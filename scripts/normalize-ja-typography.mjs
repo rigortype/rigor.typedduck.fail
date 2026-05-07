@@ -19,7 +19,10 @@ if (!targets.length) {
 
 const JP = '[\\u3000-\\u303F\\u3040-\\u30FF\\u4E00-\\u9FFF\\uFF00-\\uFFEF々ー]';
 const ASCII_RIGHT = '[A-Za-z0-9`(\\[*_]';
-const ASCII_LEFT = '[A-Za-z0-9.,;:!?)\\]`*_]';
+// Intentionally omit `.` so Markdown ordered-list markers (`1. text`) keep
+// their required space; the digit before the period is enough to anchor
+// other "filename / version / abbreviation" cases.
+const ASCII_LEFT = '[A-Za-z0-9,;:!?)\\]`*_]';
 
 for (const file of targets) {
   const original = await readFile(file, 'utf8');
