@@ -33,19 +33,25 @@ The Cloudflare project for this site is a Workers Builds project
   copies `public/` into `dist/` at build time, where Workers Static
   Assets picks up the `_headers` file.
 
-Dashboard build settings (set on the project once):
+The build is self-contained: `wrangler.toml` carries a `[build]
+command` that runs `corepack enable && pnpm install
+--frozen-lockfile && pnpm build` before the deploy. This means the
+Cloudflare dashboard only needs:
 
-- Build command: `pnpm install --frozen-lockfile && pnpm build`
 - Deploy command: `npx wrangler deploy` (the Workers Builds default)
 - Submodules: enabled (the EN reference tree is generated from the
   `upstream/rigor` submodule at build time)
 
-If the build pipeline runs the deploy command before the build
-command, `dist/` will be missing — make sure the build command is
-populated. The error
-`Missing entry-point to Worker script or to assets directory` is the
-symptom of either an empty build command or a missing `[assets]`
-declaration in `wrangler.toml`.
+The dashboard's separate "Build command" field can be left empty;
+`wrangler deploy` will execute the `[build]` block first. If you
+prefer to set it on the dashboard side instead, paste the same
+command there and remove the `[build]` block from `wrangler.toml`
+to avoid double execution.
+
+The error `Missing entry-point to Worker script or to assets
+directory` is the symptom of `dist/` not existing at deploy time —
+either the build command did not run, or `[assets]` is pointing at
+the wrong directory.
 
 ## Translation workflow
 

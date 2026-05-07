@@ -6,6 +6,9 @@ dist/
 result
 src/content/docs/reference/
 
+# Cloudflare build logs occasionally land here when downloaded from the dashboard.
+*.build.log
+
 # Override any global .gitexclude that hides .claude/ — this repo
 # ships shared Claude Code skills under .claude/skills/.
 !.claude/

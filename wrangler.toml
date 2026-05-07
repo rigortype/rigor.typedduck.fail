@@ -1,6 +1,14 @@
 name = "rigor-typedduck-fail"
 compatibility_date = "2026-05-08"
 
+# `wrangler deploy` runs this before uploading. Keeps the Cloudflare
+# Workers Builds project working even when the dashboard's Build command
+# field is left empty — corepack provisions the pinned pnpm in
+# package.json, then the existing `prebuild` hook (`pnpm sync:docs`)
+# regenerates the EN reference tree from the upstream/rigor submodule.
+[build]
+command = "corepack enable && pnpm install --frozen-lockfile && pnpm build"
+
 [assets]
 directory = "./dist"
 not_found_handling = "404-page"
