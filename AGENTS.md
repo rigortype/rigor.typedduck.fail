@@ -31,6 +31,10 @@ page:
 4. **Code fences and inline code are exempt.** Anything inside a fenced
    code block or between backticks preserves Western spacing as-is.
    The frontmatter (YAML) is exempt for the same reason.
+5. **Markdown list markers keep their space.** The space after `1.`,
+   `2.`, `-`, `*`, `+` is required syntax; do not collapse it even if
+   the next character is Japanese. The normaliser drops `.` from its
+   ASCII boundary set for this reason.
 
 `scripts/normalize-ja-typography.mjs` applies these rules in bulk:
 
