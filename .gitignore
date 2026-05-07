@@ -1,0 +1,7 @@
+node_modules/
+dist/
+.astro/
+.direnv/
+.pnpm-home/
+result
+src/content/docs/reference/
