@@ -1,0 +1,50 @@
+---
+title: "Rigor Internal Specification"
+description: "Imported from rigortype/rigor docs/internal-spec/README.md."
+editUrl: "https://github.com/rigortype/rigor/edit/main/docs/internal-spec/README.md"
+sourcePath: "docs/internal-spec/README.md"
+sourceSha: "29626554f2514e8a8f0760d5293b41c15bf5939c621e862f0c9d45cf460d385c"
+sourceCommit: "9f40e22193647dc06e3ab70c5ba82768b0bfe738"
+translationStatus: "pending"
+sidebar:
+  order: 3000
+---
+
+> [!NOTE]
+> このページはまだ翻訳されていません。英語版の本文を参考表示しています。
+
+## Status
+
+Draft. This directory is the authoritative specification of Rigor's analyzer-internal contracts: the engine-surface that downstream features depend on and the public type-object model that plugins, rules, and CLI components consume.
+
+The documents under `docs/internal-spec/` describe what the analyzer **is** internally — the immutable shapes, public method surfaces, identity rules, normalization routing, and stability guarantees that engine and plugin code MUST follow. Type-language *semantics* (RBS interop, value lattice, narrowing rules, normalization rules, erasure rules, diagnostic identifiers) live in [`docs/type-specification/`](../type-specification/) and bind whenever a description here would conflict with type-language behavior.
+
+Design rationale, the decision history, options that were rejected or deferred, and open questions live in `docs/adr/` (in particular `docs/adr/3-type-representation.md` for the type-object model). When the specification and an ADR appear to disagree on what the analyzer does, **the specification binds** and the ADR should be amended.
+
+## Conventions
+
+The keywords MUST, MUST NOT, SHOULD, SHOULD NOT, and MAY in this specification are to be interpreted as described in [RFC 2119](https://www.rfc-editor.org/rfc/rfc2119) and [RFC 8174](https://www.rfc-editor.org/rfc/rfc8174).
+
+Ruby identifiers (`Rigor::Type`, `Rigor::Trinary`, `Rigor::Type::Combinator`, …) are placeholder names used in this specification. They MAY be renamed during implementation as long as the contract they describe is preserved. Type expressions in examples follow the conventions of [`docs/type-specification/`](../type-specification/).
+
+## Relationship to other documents
+
+- [`docs/type-specification/`](../type-specification/) defines what the type language **means**. This directory defines what the analyzer **exposes** to satisfy that meaning.
+- [`docs/adr/1-types.md`](../adr/1-types/) records the rationale behind the type model. The type spec binds the resulting behavior; this directory binds the resulting internal contracts.
+- [`docs/adr/2-extension-api.md`](../adr/2-extension-api/) records the extension-API decisions. A subset of those contracts (Type queries, Scope queries, capability-role conformance) is normative here; the ADR remains the rationale.
+- [`docs/adr/3-type-representation.md`](../adr/3-type-representation/) records the rationale and open questions for the internal type representation. The decisions that have stabilized are normative in [`internal-type-api.md`](internal-type-api/).
+- [`docs/adr/4-type-inference-engine.md`](../adr/4-type-inference-engine/) records the rationale, slice roadmap, and tentative answers to ADR-3's open questions for the type-inference engine. The decisions that have stabilized are normative in [`inference-engine.md`](inference-engine/).
+
+## Reading order
+
+| Document | Scope |
+| --- | --- |
+| [implementation-expectations.md](implementation-expectations/) | Engine surface — `Scope`, fact store, effect model, capability-role inference, normalization, RBS-erasure routing, public stability rules. |
+| [internal-type-api.md](internal-type-api/) | Type-object public contract — method surface, identity and equality, immutability, normalization routing through factories, diagnostics-display routing. |
+| [inference-engine.md](inference-engine/) | `Rigor::Scope#type_of(node)` query — purity, immutable Scope discipline, fail-soft `Dynamic[Top]` policy, environment-loading boundaries. |
+| [reflection.md](reflection/) | `Rigor::Reflection` read-side facade — unified read shape over `ClassRegistry` + `RbsLoader` + `Scope` discovered facts. Public read shape for v0.1.0 plugin-API readiness. |
+| [cache.md](cache/) | `Rigor::Cache` layer — descriptor schema, filesystem-backed Store, first cached producer (`RbsConstantTable`), CLI observability, diagnostic provenance. |
+| [flow-contribution.md](flow-contribution/) | `Rigor::FlowContribution` bundle — the public packaging plugins, `RBS::Extended` annotations, and built-in narrowing rules use to hand the analyzer facts and effects at a single call edge. |
+| [public-api.md](public-api/) | Public-API stability boundary — which namespaces (`Rigor::Scope`, `Type`, `Environment`, `Reflection`, `FlowContribution`, `Diagnostic`) the v0.1.0 plugin contract is designed against, and which surfaces stay internal. |
+
+This list is expected to grow as further internal contracts (fact store schema, cache and invalidation rules, plugin lifecycle internals) stabilize.
