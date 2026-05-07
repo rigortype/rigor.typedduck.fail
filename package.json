@@ -6,6 +6,8 @@
   "packageManager": "pnpm@10.33.2",
   "scripts": {
     "sync:docs": "node scripts/sync-rigor-docs.mjs",
+    "check:translations": "node scripts/check-translations.mjs",
+    "bootstrap:translations": "node scripts/check-translations.mjs --bootstrap",
     "predev": "pnpm run sync:docs",
     "dev": "astro dev",
     "prebuild": "pnpm run sync:docs",
