@@ -20,24 +20,32 @@ The `predev` and `prebuild` scripts sync Markdown from the `upstream/rigor` subm
 - Generated English reference pages: `src/content/docs/reference/`
 - Japanese translations: `src/content/docs/ja/reference/` (mirrors the EN tree path-for-path)
 
-## Deployment (Cloudflare Pages)
+## Deployment (Cloudflare Workers Static Assets)
 
-The site is deployed through Cloudflare Pages' Git integration. The
-only repo-side deployment file is [`public/_headers`](public/_headers),
-which sets baseline security headers for every response and long-lived
-caching for hashed Astro assets. (A `wrangler.toml` is intentionally
-not committed: when Pages' build pipeline sees one, recent wrangler
-versions invoke `wrangler deploy` — the Workers command — and warn
-that `wrangler pages deploy` should have been used instead. Letting
-Pages drive the deploy through its dashboard settings avoids the
-mismatch.)
+The Cloudflare project for this site is a Workers Builds project
+(deploy command `npx wrangler deploy`), so the repo ships:
 
-Dashboard build settings:
+- [`wrangler.toml`](wrangler.toml) — declares `name`, the
+  `compatibility_date`, and `[assets] directory = "./dist"` so
+  `wrangler deploy` knows where the built static site lives.
+- [`public/_headers`](public/_headers) — security headers for every
+  response and long-lived caching for hashed Astro assets. Astro
+  copies `public/` into `dist/` at build time, where Workers Static
+  Assets picks up the `_headers` file.
+
+Dashboard build settings (set on the project once):
 
 - Build command: `pnpm install --frozen-lockfile && pnpm build`
-- Build output directory: `dist`
+- Deploy command: `npx wrangler deploy` (the Workers Builds default)
 - Submodules: enabled (the EN reference tree is generated from the
   `upstream/rigor` submodule at build time)
+
+If the build pipeline runs the deploy command before the build
+command, `dist/` will be missing — make sure the build command is
+populated. The error
+`Missing entry-point to Worker script or to assets directory` is the
+symptom of either an empty build command or a missing `[assets]`
+declaration in `wrangler.toml`.
 
 ## Translation workflow
 
