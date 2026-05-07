@@ -1,50 +1,47 @@
 ---
-title: "Rigor Internal Specification"
-description: "Imported from rigortype/rigor docs/internal-spec/README.md."
+title: "Rigor 内部仕様"
+description: "rigortype/rigor docs/internal-spec/README.md の翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/internal-spec/README.md"
 sourcePath: "docs/internal-spec/README.md"
 sourceSha: "29626554f2514e8a8f0760d5293b41c15bf5939c621e862f0c9d45cf460d385c"
 sourceCommit: "9f40e22193647dc06e3ab70c5ba82768b0bfe738"
-translationStatus: "pending"
+translationStatus: "translated"
 sidebar:
   order: 3000
 ---
 
-> [!NOTE]
-> このページはまだ翻訳されていません。英語版の本文を参考表示しています。
+## ステータス
 
-## Status
+ドラフト。このディレクトリは Rigor の解析器内部の契約に関する正規仕様です。下流の機能が依存するエンジン表面と、プラグイン・ルール・CLI コンポーネントが利用する型オブジェクトの公開モデルを定義します。
 
-Draft. This directory is the authoritative specification of Rigor's analyzer-internal contracts: the engine-surface that downstream features depend on and the public type-object model that plugins, rules, and CLI components consume.
+`docs/internal-spec/` 以下の文書は、解析器が **内部的に何で構成されているか** を記述します。エンジンとプラグインのコードが守らなければならない不変な形 (shape)、公開メソッド表面、同一性ルール、正規化ルーティング、安定性保証を扱います。型言語の **セマンティクス** (RBS 相互運用、値束、ナローイング規則、正規化規則、消去規則、診断識別子) は [`docs/type-specification/`](../type-specification/) にあり、本ディレクトリの記述が型言語の挙動と矛盾するときは型仕様が拘束します。
 
-The documents under `docs/internal-spec/` describe what the analyzer **is** internally — the immutable shapes, public method surfaces, identity rules, normalization routing, and stability guarantees that engine and plugin code MUST follow. Type-language *semantics* (RBS interop, value lattice, narrowing rules, normalization rules, erasure rules, diagnostic identifiers) live in [`docs/type-specification/`](../type-specification/) and bind whenever a description here would conflict with type-language behavior.
+設計の根拠、決定の履歴、却下/保留された選択肢、未解決事項は `docs/adr/` (とりわけ型オブジェクトモデルについては `docs/adr/3-type-representation.md`) にあります。本仕様と ADR が解析器の挙動について矛盾しているように見えるときは、**本仕様が拘束** し、ADR を修正すべきです。
 
-Design rationale, the decision history, options that were rejected or deferred, and open questions live in `docs/adr/` (in particular `docs/adr/3-type-representation.md` for the type-object model). When the specification and an ADR appear to disagree on what the analyzer does, **the specification binds** and the ADR should be amended.
+## 規約
 
-## Conventions
+本仕様で使う MUST、MUST NOT、SHOULD、SHOULD NOT、MAY のキーワードは [RFC 2119](https://www.rfc-editor.org/rfc/rfc2119) と [RFC 8174](https://www.rfc-editor.org/rfc/rfc8174) に従って解釈します。
 
-The keywords MUST, MUST NOT, SHOULD, SHOULD NOT, and MAY in this specification are to be interpreted as described in [RFC 2119](https://www.rfc-editor.org/rfc/rfc2119) and [RFC 8174](https://www.rfc-editor.org/rfc/rfc8174).
+Ruby の識別子 (`Rigor::Type`、`Rigor::Trinary`、`Rigor::Type::Combinator` など) は本仕様で使う仮の名前です。記述する契約が保たれている限り、実装段階で改名してかまいません。例の中の型表現は [`docs/type-specification/`](../type-specification/) の規約に従います。
 
-Ruby identifiers (`Rigor::Type`, `Rigor::Trinary`, `Rigor::Type::Combinator`, …) are placeholder names used in this specification. They MAY be renamed during implementation as long as the contract they describe is preserved. Type expressions in examples follow the conventions of [`docs/type-specification/`](../type-specification/).
+## 他文書との関係
 
-## Relationship to other documents
+- [`docs/type-specification/`](../type-specification/) は型言語の **意味** を定義します。本ディレクトリは、その意味を満たすために解析器が **公開する** ものを定義します。
+- [`docs/adr/1-types.md`](../adr/1-types/) は型モデルの根拠を記録します。型仕様は結果として現れる挙動を拘束し、本ディレクトリは結果として現れる内部契約を拘束します。
+- [`docs/adr/2-extension-api.md`](../adr/2-extension-api/) は拡張 API の決定を記録します。その決定の一部 (Type 問い合わせ、Scope 問い合わせ、ケイパビリティロール適合) は本書で規範的になり、ADR は引き続き根拠の文書です。
+- [`docs/adr/3-type-representation.md`](../adr/3-type-representation/) は内部型表現の根拠と未解決事項を記録します。安定した決定は [`internal-type-api.md`](internal-type-api/) で規範的になります。
+- [`docs/adr/4-type-inference-engine.md`](../adr/4-type-inference-engine/) は型推論エンジンの根拠、スライスのロードマップ、ADR-3 の未解決事項に対する暫定回答を記録します。安定した決定は [`inference-engine.md`](inference-engine/) で規範的になります。
 
-- [`docs/type-specification/`](../type-specification/) defines what the type language **means**. This directory defines what the analyzer **exposes** to satisfy that meaning.
-- [`docs/adr/1-types.md`](../adr/1-types/) records the rationale behind the type model. The type spec binds the resulting behavior; this directory binds the resulting internal contracts.
-- [`docs/adr/2-extension-api.md`](../adr/2-extension-api/) records the extension-API decisions. A subset of those contracts (Type queries, Scope queries, capability-role conformance) is normative here; the ADR remains the rationale.
-- [`docs/adr/3-type-representation.md`](../adr/3-type-representation/) records the rationale and open questions for the internal type representation. The decisions that have stabilized are normative in [`internal-type-api.md`](internal-type-api/).
-- [`docs/adr/4-type-inference-engine.md`](../adr/4-type-inference-engine/) records the rationale, slice roadmap, and tentative answers to ADR-3's open questions for the type-inference engine. The decisions that have stabilized are normative in [`inference-engine.md`](inference-engine/).
+## 読み順
 
-## Reading order
-
-| Document | Scope |
+| 文書 | 範囲 |
 | --- | --- |
-| [implementation-expectations.md](implementation-expectations/) | Engine surface — `Scope`, fact store, effect model, capability-role inference, normalization, RBS-erasure routing, public stability rules. |
-| [internal-type-api.md](internal-type-api/) | Type-object public contract — method surface, identity and equality, immutability, normalization routing through factories, diagnostics-display routing. |
-| [inference-engine.md](inference-engine/) | `Rigor::Scope#type_of(node)` query — purity, immutable Scope discipline, fail-soft `Dynamic[Top]` policy, environment-loading boundaries. |
-| [reflection.md](reflection/) | `Rigor::Reflection` read-side facade — unified read shape over `ClassRegistry` + `RbsLoader` + `Scope` discovered facts. Public read shape for v0.1.0 plugin-API readiness. |
-| [cache.md](cache/) | `Rigor::Cache` layer — descriptor schema, filesystem-backed Store, first cached producer (`RbsConstantTable`), CLI observability, diagnostic provenance. |
-| [flow-contribution.md](flow-contribution/) | `Rigor::FlowContribution` bundle — the public packaging plugins, `RBS::Extended` annotations, and built-in narrowing rules use to hand the analyzer facts and effects at a single call edge. |
-| [public-api.md](public-api/) | Public-API stability boundary — which namespaces (`Rigor::Scope`, `Type`, `Environment`, `Reflection`, `FlowContribution`, `Diagnostic`) the v0.1.0 plugin contract is designed against, and which surfaces stay internal. |
+| [implementation-expectations.md](implementation-expectations/) | エンジン表面 — `Scope`、ファクトストア、効果モデル、ケイパビリティロール推論、正規化、RBS 消去のルーティング、公開安定性ルール。 |
+| [internal-type-api.md](internal-type-api/) | 型オブジェクトの公開契約 — メソッド表面、同一性と等価性、不変性、ファクトリー経由の正規化ルーティング、診断表示のルーティング。 |
+| [inference-engine.md](inference-engine/) | `Rigor::Scope#type_of(node)` 問い合わせ — 純粋性、不変な Scope 規律、`Dynamic[Top]` への安全フォールバックポリシー、環境ローディング境界。 |
+| [reflection.md](reflection/) | `Rigor::Reflection` 読み取り側ファサード — `ClassRegistry` + `RbsLoader` + `Scope` で発見した事実を統合した読み取り表面。v0.1.0 のプラグイン API レディネス向け公開読み取り表面。 |
+| [cache.md](cache/) | `Rigor::Cache` 層 — ディスクリプタスキーマ、ファイルシステム実装の Store、最初のキャッシュ生成器 (`RbsConstantTable`)、CLI の可観測性、診断 provenance。 |
+| [flow-contribution.md](flow-contribution/) | `Rigor::FlowContribution` バンドル — プラグイン、`RBS::Extended` 注釈、組み込みナローイングルールが、単一の呼び出しエッジで解析器に事実と効果を渡すための公開パッケージ。 |
+| [public-api.md](public-api/) | 公開 API の安定境界 — v0.1.0 のプラグイン契約が設計対象とする名前空間 (`Rigor::Scope`、`Type`、`Environment`、`Reflection`、`FlowContribution`、`Diagnostic`)、および内部に留めておく表面。 |
 
-This list is expected to grow as further internal contracts (fact store schema, cache and invalidation rules, plugin lifecycle internals) stabilize.
+このリストは、追加の内部契約 (ファクトストアスキーマ、キャッシュと無効化規則、プラグインライフサイクル内部) が安定するにつれて拡大します。

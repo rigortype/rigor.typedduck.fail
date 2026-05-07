@@ -1,73 +1,70 @@
 ---
-title: "Rigor Type Specification"
-description: "Imported from rigortype/rigor docs/type-specification/README.md."
+title: "Rigor 型仕様"
+description: "rigortype/rigor docs/type-specification/README.md の翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/type-specification/README.md"
 sourcePath: "docs/type-specification/README.md"
 sourceSha: "706de3f7f5dfd0734f39926413a4c07173121400d2fa8e8bc870f42f8a0927b8"
 sourceCommit: "9f40e22193647dc06e3ab70c5ba82768b0bfe738"
-translationStatus: "pending"
+translationStatus: "translated"
 sidebar:
   order: 2000
 ---
 
-> [!NOTE]
-> このページはまだ翻訳されていません。英語版の本文を参考表示しています。
+## ステータス
 
-## Status
+ドラフト。このディレクトリは Rigor 型モデルの正規仕様です。
 
-Draft. This directory is the authoritative specification of the Rigor type model.
+`docs/type-specification/` 以下の文書は、解析器が **何をするか** を記述します。型の正規化、ナローイング、消去、署名処理、診断識別子、推論バジェット、プラグインや `RBS::Extended` 注釈に公開される表面を定義します。
 
-The documents under `docs/type-specification/` describe what the analyzer does. They define type normalization, narrowing, erasure, signature handling, diagnostic identifiers, inference budgets, and the surfaces exposed to plugins and `RBS::Extended` annotations.
+解析器内部の契約 — 下流機能が依存するエンジン表面、およびプラグイン・ルール・CLI コンポーネントが利用する型オブジェクトの公開モデル — は、本仕様と並んで [`docs/internal-spec/`](../internal-spec/) にあります。本仕様と `docs/internal-spec/` が同じ表面を扱う場合、観測可能な型言語の挙動については **本仕様が拘束** し、Ruby 側の契約については `docs/internal-spec/` が拘束します。
 
-Analyzer-internal contracts — the engine-surface that downstream features depend on and the public type-object model that plugins, rules, and CLI components consume — live alongside this specification in [`docs/internal-spec/`](../internal-spec/). When this specification and `docs/internal-spec/` describe the same surface, **this specification binds** for the observable type-language behavior and `docs/internal-spec/` binds for the Ruby-side contract.
+設計の根拠、決定の履歴、却下/保留された選択肢、未解決事項は `docs/adr/1-types.md` (およびプラグイン拡張 API の決定は `docs/adr/2-*`、内部型表現の根拠は `docs/adr/3-*`) にあります。仕様と ADR が解析器の挙動について矛盾しているように見えるときは、**仕様が拘束** し、ADR を修正すべきです。
 
-Design rationale, the decision history, options that were rejected or deferred, and open questions live in `docs/adr/1-types.md` (and `docs/adr/2-*` for plugin extension API decisions, `docs/adr/3-*` for the internal type representation rationale). When the specification and an ADR appear to disagree on what the analyzer does, **the specification binds** and the ADR should be amended.
+本仕様は長期的な型モデルを扱います。最終的な解析器の挙動について規範性を持ちますが、最初のユーザー向けリリース (v1) は意図的に範囲を絞ったスライスを出荷します。v1 と v1.1 を区別する節は、その差を本文中に明示します。
 
-This specification covers the long-term type model. It is normative for the eventual analyzer behavior. The first user-visible release (v1) ships a deliberately scoped slice of the surface; sections that distinguish v1 from v1.1 mark the difference inline.
+## 規約
 
-## Conventions
+本仕様で使う MUST、MUST NOT、SHOULD、SHOULD NOT、MAY のキーワードは [RFC 2119](https://www.rfc-editor.org/rfc/rfc2119) と [RFC 8174](https://www.rfc-editor.org/rfc/rfc8174) に従って解釈します。
 
-The keywords MUST, MUST NOT, SHOULD, SHOULD NOT, and MAY in this specification are to be interpreted as described in [RFC 2119](https://www.rfc-editor.org/rfc/rfc2119) and [RFC 8174](https://www.rfc-editor.org/rfc/rfc8174).
+型表現は、RBS で書ける範囲は RBS 構文で書き、それ以外は Rigor の内部記法で書きます。RBS の表面構文に含まれない内部記法 (例: `Dynamic[T]`、`T - U`、`~T`、`key_of[T]`) は、各文書で初めて登場するときに明示的に説明します。
 
-Type expressions are written in RBS syntax where RBS can spell them, and in Rigor's internal notation otherwise. Internal notation that is not part of RBS surface syntax (for example `Dynamic[T]`, `T - U`, `~T`, `key_of[T]`) is identified explicitly the first time it appears in each document.
+## 互換性の階層
 
-## Compatibility hierarchy
+- **RBS** と **rbs-inline** は、型構文およびインライン注釈の互換性に関する第一の規範です。
+- **Steep 2.0** の挙動は、文章による仕様が挙動を未定義にしている部分について、既存の注釈をどう解釈するかに関する第二の規範です。
+- **TypeScript**、**PHPStan**、**Python typing** は、欠けている概念や実用的な解析器機能を見つけるためのデザイン参照であり、構文互換のターゲットではありません。
 
-- **RBS** and **rbs-inline** are first-order norms for type syntax and inline annotation compatibility.
-- **Steep 2.0** behavior is the second-order norm for how existing annotations are interpreted when prose specifications leave behavior open.
-- **TypeScript**, **PHPStan**, and **Python typing** are design references used to find missing concepts and practical analyzer features. They are not syntax compatibility targets.
+3 者が異なるとき、解決順序は次のとおりです:
 
-When the three sources differ, the resolution order is:
+1. RBS の文章仕様が勝つ。
+2. RBS の文章仕様が触れていないインライン構文上の問題は、rbs-inline ドキュメントが勝つ。
+3. RBS 文章仕様も rbs-inline ドキュメントも挙動を規定していない場合に限り、Steep 2.0 の挙動が勝つ。
 
-1. RBS prose specification wins.
-2. rbs-inline documentation wins for inline-syntax questions that the RBS prose does not address.
-3. Steep 2.0 behavior wins only when neither RBS prose nor rbs-inline documentation specifies the behavior.
+Steep が上位の参照源と食い違う箇所では、Rigor は上位の参照源に従い、その差分を文書化します。Steep からの移行ユーザーが診断を踏んで初めて違いに気づくことがないよう、当該箇所では個別に明示します。
 
-Where Steep diverges from a higher-priority source, Rigor follows the higher-priority source and the divergence is documented. Such cases are called out individually in the relevant section so users migrating from Steep see the difference instead of discovering it through a diagnostic.
+## 読み順
 
-## Reading order
+文書は、基礎的な定義から始めて具体的な表面が積み上がる順に並んでいます。
 
-The documents are organized so foundational definitions come first and specific surfaces build on them.
-
-| Document | Scope |
+| 文書 | 範囲 |
 | --- | --- |
-| [overview.md](overview/) | Core principle (RBS superset), design priorities, scope of the specification. |
-| [robustness-principle.md](robustness-principle/) | Postel's law for types: strict returns, lenient parameters. The asymmetric authorship rule every Rigor-authored type observes. |
-| [relations-and-certainty.md](relations-and-certainty/) | Subtyping (`<:`) and gradual consistency (`consistent`), trinary certainty (`yes`/`no`/`maybe`). |
-| [value-lattice.md](value-lattice/) | Value lattice, lattice identities, and the `Dynamic[T]` algebra. |
-| [special-types.md](special-types/) | `top`, `bot`, `untyped`/`Dynamic[T]`, `void`, `nil`/`NilClass`, `bool`/`boolish`. |
-| [rbs-compatible-types.md](rbs-compatible-types/) | The set of RBS forms Rigor accepts and how each is interpreted. |
-| [rigor-extensions.md](rigor-extensions/) | Refinements and other internal-only forms Rigor infers beyond RBS. |
-| [imported-built-in-types.md](imported-built-in-types/) | Reserved built-in refinement names (`non-empty-string`, `positive-int`, …) and naming rules. |
-| [type-operators.md](type-operators/) | `~T`, `T - U`, `key_of[T]`, indexed access, and the diagnostic display contract. |
-| [structural-interfaces-and-object-shapes.md](structural-interfaces-and-object-shapes/) | RBS interfaces, inferred object shapes, capability roles, method-shape entries. |
-| [control-flow-analysis.md](control-flow-analysis/) | Edge-aware narrowing, equality semantics, fact stability, mutation effects, pre-plugin surface. |
-| [rbs-extended.md](rbs-extended/) | `%a{rigor:v1:…}` annotations, predicate/assertion grammar, explicit conformance, flow-effect bundles. |
-| [normalization.md](normalization/) | Deterministic normalization rules. |
-| [rbs-erasure.md](rbs-erasure/) | Conservative erasure to RBS, including the hash-shape erasure algorithm. |
-| [inference-budgets.md](inference-budgets/) | Budget table, configuration, and boundary-contract behavior. |
-| [diagnostic-policy.md](diagnostic-policy/) | Diagnostic identifier taxonomy, `Dynamic[T]` display rules, suppression markers. |
+| [overview.md](overview/) | 中核原則 (RBS のスーパーセット)、設計優先度、本仕様の範囲。 |
+| [robustness-principle.md](robustness-principle/) | 型のための Postel の法則。戻り値は厳密、引数は寛容。Rigor が著作するすべての型が守る非対称な著作ルール。 |
+| [relations-and-certainty.md](relations-and-certainty/) | サブタイピング (`<:`)、グラデュアル一貫性 (`consistent`)、3 値の確実性 (`yes`/`no`/`maybe`)。 |
+| [value-lattice.md](value-lattice/) | 値束 (lattice)、束の同一性、`Dynamic[T]` の代数。 |
+| [special-types.md](special-types/) | `top`、`bot`、`untyped`/`Dynamic[T]`、`void`、`nil`/`NilClass`、`bool`/`boolish`。 |
+| [rbs-compatible-types.md](rbs-compatible-types/) | Rigor が受け付ける RBS 形式の集合と、それぞれの解釈。 |
+| [rigor-extensions.md](rigor-extensions/) | RBS を超えて Rigor が推論する内部限定の形式 (リファインメントなど)。 |
+| [imported-built-in-types.md](imported-built-in-types/) | 予約済み組み込みリファインメント名 (`non-empty-string`、`positive-int` …) と命名規則。 |
+| [type-operators.md](type-operators/) | `~T`、`T - U`、`key_of[T]`、添字アクセス、診断表示の契約。 |
+| [structural-interfaces-and-object-shapes.md](structural-interfaces-and-object-shapes/) | RBS インターフェース、推論されたオブジェクトシェイプ、ケイパビリティロール、メソッドシェイプエントリ。 |
+| [control-flow-analysis.md](control-flow-analysis/) | エッジを意識したナローイング、等価性のセマンティクス、事実の安定性、ミューテーションの効果、プラグイン適用前の表面。 |
+| [rbs-extended.md](rbs-extended/) | `%a{rigor:v1:…}` 注釈、述語/表明の文法、明示的適合宣言、フロー効果バンドル。 |
+| [normalization.md](normalization/) | 決定論的な正規化規則。 |
+| [rbs-erasure.md](rbs-erasure/) | 保守的な RBS 消去 (ハッシュシェイプ消去アルゴリズムを含む)。 |
+| [inference-budgets.md](inference-budgets/) | バジェット表、設定、境界契約の挙動。 |
+| [diagnostic-policy.md](diagnostic-policy/) | 診断識別子の分類体系、`Dynamic[T]` の表示規則、抑制マーカー。 |
 
-## Related: analyzer-internal contracts
+## 関連: 解析器内部の契約
 
-The engine-surface contract (`Scope`, fact store, effect model, capability-role inference, normalization, RBS-erasure routing, public stability rules) and the public type-object contract (method surface, identity and equality, immutability, factory normalization, diagnostics-display routing) are normative in [`docs/internal-spec/`](../internal-spec/). The two corpora are complementary: this directory binds the type-language semantics, and `docs/internal-spec/` binds the Ruby-side surfaces that satisfy them.
+エンジン表面の契約 (`Scope`、ファクトストア、効果モデル、ケイパビリティロール推論、正規化、RBS 消去のルーティング、公開安定性ルール) と型オブジェクトの公開契約 (メソッド表面、同一性と等価性、不変性、ファクトリー経由の正規化、診断表示のルーティング) は、[`docs/internal-spec/`](../internal-spec/) で規範性を持ちます。2 つのコーパスは補完関係にあり、本ディレクトリは型言語のセマンティクスを拘束し、`docs/internal-spec/` はそれを満たす Ruby 側の表面を拘束します。

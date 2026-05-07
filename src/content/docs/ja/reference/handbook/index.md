@@ -1,123 +1,68 @@
 ---
-title: "The Rigor Handbook"
-description: "Imported from rigortype/rigor docs/handbook/README.md."
+title: "Rigor ハンドブック"
+description: "rigortype/rigor docs/handbook/README.md からインポートされたドキュメントの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/handbook/README.md"
 sourcePath: "docs/handbook/README.md"
 sourceSha: "87419eaca41be0567745dee724ce67c4f98c4bd9343903a532d0d65ef5f7eca4"
 sourceCommit: "9f40e22193647dc06e3ab70c5ba82768b0bfe738"
-translationStatus: "pending"
+translationStatus: "translated"
 sidebar:
   order: 1000
 ---
 
-> [!NOTE]
-> このページはまだ翻訳されていません。英語版の本文を参考表示しています。
+Ruby プログラマー向けに書かれた、Rigor の型モデルの解説です。静的型付けの予備知識は前提にしません。最初に読むときは順番どおり通読し、必要なときに章単位で参照してください。
 
-A walkthrough of Rigor's type model written for Ruby
-programmers — no prior static-typing background assumed. Read
-top to bottom for the first pass; come back to individual
-chapters for reference once you know what you are looking for.
+## 想定読者
 
-## Who this is for
+業務で Ruby を書いていて、`nil` への `NoMethodError` に何度かぶつかったことがあり、次のような疑問を持っている人を想定しています:
 
-You write Ruby for a living, you have run into a `NoMethodError`
-on `nil` more than once, and you want to know:
+- `rigor check` は実際に何を見ているのか?
+- なぜこの式に警告を出したのか — もっとよくあるのは、なぜ自分が想定した式に警告を出さなかったのか?
+- 推論が及ばないとき、`.rb` ファイルに注釈を書き散らさずにどう推論を補強すればよいか?
 
-- What does `rigor check` actually look at?
-- Why did it flag this expression — or, more often, why
-  didn't it flag the one I expected it to?
-- When inference falls short, how do I push it further
-  without writing annotations all over my `.rb` files?
+ハンドブックはこれらの疑問に答えます。一方、[正規型仕様](../type-specification/) を置き換えるものでは **ありません**。正規仕様は `docs/type-specification/` にあり、ハンドブックの記述と食い違ったときは正規仕様が拘束力を持ちます。
 
-The handbook answers those questions. It does **not** try to
-replace the [normative type
-specification](../type-specification/) — that lives
-in `docs/type-specification/` and is the binding source when
-this handbook disagrees.
+## 目次
 
-## Table of contents
+1. [**はじめに**](01-getting-started/) — `rigor check` の実行、診断の読み方、「注釈は書かない」というスタンス。
+2. [**日常的に出会う型**](02-everyday-types/) — キャリアの種類。定数、整数の範囲、リファインメント、ユニオン、`Dynamic[Top]`。「Rigor が見ているもの」を最短距離で把握できます。
+3. [**ナローイング**](03-narrowing/) — `if`、`case`、述語メソッドが、分岐内で変数の型をどう絞り込むか。
+4. [**タプルとハッシュシェイプ**](04-tuples-and-shapes/) — Ruby の `[a, b, c]` リテラルや `{key: value}` ハッシュが、Rigor が構造を証明できたときに受け取る構造的なキャリア。
+5. [**メソッドとブロック**](05-methods-and-blocks/) — 引数の型付け、戻り値型の推論、ブロックパラメーター、引数個数 (arity)。
+6. [**クラス**](06-classes/) — インスタンス側とクラス側、`self`、`attr_accessor`、`Data.define`。
+7. [**RBS と `RBS::Extended`**](07-rbs-and-extended/) — 推論で実際の戻り値型を証明できないとき、`.rbs` ファイルや `%a{rigor:v1:…}` ディレクティブで推論を後押しする方法。
+8. [**エラーの読み方**](08-understanding-errors/) — ルールカタログ (`call.undefined-method`、`call.argument-type-mismatch`、`flow.always-raises`、…)、深刻度プロファイル、`# rigor:disable` による抑制。
+9. [**プラグイン**](09-plugins/) — プラグインを書くべきタイミングと、[examples/](https://github.com/rigortype/rigor/blob/main/examples/README.md) ランディングページへの導線。
 
-1. [**Getting started**](01-getting-started/) — running
-   `rigor check`, reading diagnostics, the "no annotations
-   needed" stance.
-2. [**Everyday types**](02-everyday-types/) — the carrier
-   zoo. Constants, integer ranges, refinements, unions,
-   `Dynamic[Top]`. The shortest path to "now I see what
-   Rigor sees."
-3. [**Narrowing**](03-narrowing/) — how `if`, `case`, and
-   predicate methods sharpen a variable's type along the
-   branch.
-4. [**Tuples and hash shapes**](04-tuples-and-shapes/) — the
-   structural carriers Ruby's `[a, b, c]` literals and
-   `{key: value}` hashes get when Rigor can prove their layout.
-5. [**Methods and blocks**](05-methods-and-blocks/) — argument
-   typing, return-type inference, block parameters, arity.
-6. [**Classes**](06-classes/) — instance-side vs class-side,
-   `self`, `attr_accessor`, `Data.define`.
-7. [**RBS and `RBS::Extended`**](07-rbs-and-extended/) — when
-   inference cannot prove what the runtime actually returns,
-   how to nudge it through `.rbs` files and `%a{rigor:v1:…}`
-   directives.
-8. [**Understanding errors**](08-understanding-errors/) —
-   the rule catalogue (`call.undefined-method`,
-   `call.argument-type-mismatch`, `flow.always-raises`, …),
-   severity profiles, and `# rigor:disable` suppression.
-9. [**Plugins**](09-plugins/) — when to author one,
-   pointer to the [examples/](https://github.com/rigortype/rigor/blob/main/examples/README.md)
-   landing page.
+## 読み方
 
-## How to read this handbook
+各章は理論を最小限に抑え、例を多く載せています。すべての例は MRI で素のまま動く現実の Ruby コードであり、その周りの解説文は `rigor check` がそのコードに対して言うであろう内容です。
 
-Each chapter is short on theory and long on examples. Every
-example is real Ruby that runs under MRI as written; the
-prose around it is what `rigor check` would say about that
-code.
+スニペット中に `assert_type(...)` 行が現れたら、それは Rigor の内部観察用ヘルパーであり、実行時チェックではありません。プログラム上のその位置で推論された型を固定し、解説文と実際の解析器出力を比較できるようにするためのものです。`dump_type(...)` も同じ趣旨ですが、不一致でも失敗せずに通知を出力します。
 
-When you see an `assert_type(...)` line in a snippet, that is
-Rigor's introspection helper, not a runtime check — it pins
-the inferred type at that program point so you can compare
-the prose to the actual analyzer output. `dump_type(...)` is
-the same idea but emits a notice instead of failing on
-mismatch.
-
-Snippet conventions:
+スニペットの記法:
 
 ```ruby
 n = 1 + 2
-assert_type(n, "Constant<3>")  # Rigor folds the literal sum
+assert_type(n, "Constant<3>")  # Rigor がリテラル和をたたみ込む
 ```
 
-means: at the `assert_type` call, Rigor's inference for `n` is
-`Constant<3>` — the `Type::Constant` carrier with the literal
-value `3`.
+これは「`assert_type` 呼び出しの位置で、Rigor の `n` に対する推論が `Constant<3>`、つまりリテラル値 `3` を持つ `Type::Constant` キャリアになっている」という意味です。
 
-When a chapter references a more formal document, the link
-takes you out of the handbook into the binding spec corpus or
-ADRs:
+ある章でより形式的な文書に言及するとき、リンクはハンドブックを離れて拘束力のある仕様コーパスや ADR に移ります:
 
-- [`docs/types.md`](../types/) — one-page mental model.
-- [`docs/type-specification/`](../type-specification/)
-  — normative spec corpus.
-- [`docs/internal-spec/`](../internal-spec/) —
-  analyzer-internal contracts (engine surface, type-object
-  public API).
-- [`docs/adr/`](../adr/) — architecture decision records.
+- [`docs/types.md`](../types/) — 1 ページのメンタルモデル。
+- [`docs/type-specification/`](../type-specification/) — 正規の仕様コーパス。
+- [`docs/internal-spec/`](../internal-spec/) — 解析器内部の契約 (エンジン表面、型オブジェクトの公開 API)。
+- [`docs/adr/`](../adr/) — アーキテクチャ決定記録 (ADR)。
 
-## Non-goals
+## このハンドブックの非目標
 
-The handbook is meant to be readable cover-to-cover in a few
-hours. To keep it short:
+ハンドブックは数時間で通読できることを目指しています。短く保つために:
 
-- It does **not** introduce Ruby itself. `def`, `class`,
-  blocks, modules, `attr_*`, regex, RBS basics — all assumed.
-- It does **not** cover every edge case. Edge cases live in
-  the spec corpus.
-- It does **not** discuss internal contracts (engine surface,
-  type-object public API). Those live in
-  [`docs/internal-spec/`](../internal-spec/).
-- It does **not** cover plugin **authoring** — that is the
-  job of [examples/](https://github.com/rigortype/rigor/blob/main/examples/README.md). Chapter 9 is
-  a one-page pointer.
+- Ruby そのものの入門は **しません**。`def`、`class`、ブロック、モジュール、`attr_*`、正規表現、RBS の基礎などはすべて前提知識とします。
+- 全エッジケースは扱い **ません**。エッジケースは仕様コーパスにあります。
+- 内部契約 (エンジン表面、型オブジェクトの公開 API) には踏み込み **ません**。それらは [`docs/internal-spec/`](../internal-spec/) にあります。
+- プラグインの **作成** にも踏み込み **ません**。これは [examples/](https://github.com/rigortype/rigor/blob/main/examples/README.md) の役割で、第 9 章は 1 ページの導線にとどめています。
 
-If a topic comes up that the handbook does not explain, the
-relevant spec document is one click away.
+ハンドブックで説明していないトピックが出てきても、関連する仕様文書はワンクリックで開けます。

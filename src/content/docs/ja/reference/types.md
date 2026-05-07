@@ -1,65 +1,62 @@
 ---
-title: "Rigor Type System — Quick Guide"
-description: "Imported from rigortype/rigor docs/types.md."
+title: "Rigor 型システム — クイックガイド"
+description: "rigortype/rigor docs/types.md の翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/types.md"
 sourcePath: "docs/types.md"
 sourceSha: "4fc119458aecd87a0f68cd2932c8b0f1784d92489f57f2e8aa86ab7be4f63e6b"
 sourceCommit: "9f40e22193647dc06e3ab70c5ba82768b0bfe738"
-translationStatus: "pending"
+translationStatus: "translated"
 sidebar:
   order: 9050
 ---
 
-> [!NOTE]
-> このページはまだ翻訳されていません。英語版の本文を参考表示しています。
+Rigor は、Ruby 向けの「推論ファースト」な静的解析器です。型言語は **RBS の厳密なスーパーセット** で、すべての RBS 型は Rigor の内部表現を経て無損失で往復し、Rigor が推論したすべての型は通常の RBS へ保守的に消去 (erasure) できます。
 
-Rigor is an inference-first static analyzer for Ruby. Its type language is a **strict superset of RBS**: every RBS type round-trips losslessly through Rigor's internal representation, and every Rigor-inferred type erases conservatively back to ordinary RBS.
+このファイルは 1 ページで読み切れる入口です。完全な正規仕様は [`docs/type-specification/`](../type-specification/) にあります。設計の根拠と却下/保留された選択肢は [`docs/adr/1-types.md`](../adr/1-types/) にあります。
 
-This file is the one-page entry point. The full normative specification lives in [`docs/type-specification/`](../type-specification/). Design rationale and rejected/deferred options live in [`docs/adr/1-types.md`](../adr/1-types/).
+## コンセプト
 
-## Concept
+- **インライン DSL は導入しない。** アプリケーションの Ruby コードに Rigor 専用の注釈構文は持ち込みません。RBS、rbs-inline、Steep 互換の注釈は型のソースとして受け入れます。
+- **入力 RBS は無損失、出力 RBS は保守的に。** 内部の精度 (リテラル集合、リファインメント、シェイプ、動的由来 (provenance) 情報) は RBS で表現できる範囲を超えてもかまいません。エクスポート時には、Rigor が証明した型より広くなることはあっても狭くなることはない通常の RBS に消去します。
+- **3 値の確実性。** 型・リフレクション・メンバー問い合わせは `yes`、`no`、`maybe` のいずれかを返します。`maybe` は `yes` のように絞り込んだり、`no` のように反対側のエッジ事実を生成したりはしません。
+- **2 つの関係を分離して保つ。** サブタイピング (`A <: B`、値集合の包含) とグラデュアル一貫性 (`consistent(A, B)`、動的境界の互換性) は統一しません。`untyped` は動的型であり、`top` とは別物です。
+- **頑健性原則 (Postel の法則)。** Rigor が著作する型は *戻り値については厳密に* かつ *引数については寛容に* します。精密な戻り値は推論エンジンを通じて有用な事実を伝播させ、寛容な引数は呼び出し側での強制変換ワークアラウンドを防ぎます。手書きの RBS は著作物として拘束力を持ちます — 原則は Rigor のデフォルトに対して指針を与えるもので、ユーザー記述の署名には適用されません。詳細は [robustness-principle.md](../type-specification/robustness-principle/) (正規ルール) と [adr/5-robustness-principle.md](../adr/5-robustness-principle/) (設計の根拠) を参照してください。
 
-- **No inline DSL.** Application Ruby code stays free of Rigor-only annotation syntax. RBS, rbs-inline, and Steep-compatible annotations are accepted as type sources.
-- **Lossless RBS in, conservative RBS out.** Internal precision (literal sets, refinements, shapes, dynamic-origin provenance) MAY exceed what RBS can spell. On export, Rigor erases to ordinary RBS that is never narrower than what was proved.
-- **Three-valued certainty.** Type, reflection, and member queries return `yes`, `no`, or `maybe`. `maybe` does not narrow as if `yes` and does not produce the opposite-edge fact as if `no`.
-- **Two relations, kept separate.** Subtyping (`A <: B`, value-set inclusion) and gradual consistency (`consistent(A, B)`, dynamic-boundary compatibility) are not unified. `untyped` is the dynamic type, distinct from `top`.
-- **Robustness principle (Postel's law).** Rigor-authored types are *strict on returns* and *lenient on parameters*. A precise return propagates useful facts through the inference engine; a permissive parameter prevents coercion workarounds at call sites. Hand-written RBS authorship binds — the principle directs Rigor's defaults, not user-supplied signatures. See [robustness-principle.md](../type-specification/robustness-principle/) for the normative rule and [adr/5-robustness-principle.md](../adr/5-robustness-principle/) for the design rationale.
+## 主な機能
 
-## Main features
-
-| Feature | Where to read more |
+| 機能 | 詳細はこちら |
 | --- | --- |
-| `Dynamic[T]` algebra and gradual-typing provenance | [value-lattice.md](../type-specification/value-lattice/), [special-types.md](../type-specification/special-types/) |
-| Edge-aware control-flow narrowing inside compound conditions | [control-flow-analysis.md](../type-specification/control-flow-analysis/) |
-| Negative facts, difference types, complement display contract | [type-operators.md](../type-specification/type-operators/) |
-| Structural duck typing through RBS interfaces and inferred object shapes | [structural-interfaces-and-object-shapes.md](../type-specification/structural-interfaces-and-object-shapes/) |
-| Capability roles (`_RewindableStream`, `_ClosableStream`, …) for IO-like compatibility | [structural-interfaces-and-object-shapes.md](../type-specification/structural-interfaces-and-object-shapes/) |
-| Refinements (`non-empty-string`, `positive-int`, hash-shape extra-key policy, …) | [imported-built-in-types.md](../type-specification/imported-built-in-types/), [rigor-extensions.md](../type-specification/rigor-extensions/) |
-| `RBS::Extended` annotations (`%a{rigor:v1:…}` for predicates, assertions, conformance) | [rbs-extended.md](../type-specification/rbs-extended/) |
-| Inference budgets and boundary contracts for recursion / operator ambiguity | [inference-budgets.md](../type-specification/inference-budgets/) |
-| Diagnostic identifier taxonomy and suppression markers | [diagnostic-policy.md](../type-specification/diagnostic-policy/) |
-| Conservative RBS erasure and hash-shape erasure algorithm | [rbs-erasure.md](../type-specification/rbs-erasure/) |
+| `Dynamic[T]` 代数とグラデュアル型付けの provenance | [value-lattice.md](../type-specification/value-lattice/), [special-types.md](../type-specification/special-types/) |
+| 複合条件の内部でエッジを意識した制御フローナローイング | [control-flow-analysis.md](../type-specification/control-flow-analysis/) |
+| 否定事実、差分型、補集合の表示契約 | [type-operators.md](../type-specification/type-operators/) |
+| RBS インターフェースと推論されたオブジェクトシェイプによる構造的ダックタイピング | [structural-interfaces-and-object-shapes.md](../type-specification/structural-interfaces-and-object-shapes/) |
+| ケイパビリティロール (`_RewindableStream`、`_ClosableStream` …) による IO 互換性 | [structural-interfaces-and-object-shapes.md](../type-specification/structural-interfaces-and-object-shapes/) |
+| リファインメント (`non-empty-string`、`positive-int`、ハッシュシェイプの追加キーポリシー …) | [imported-built-in-types.md](../type-specification/imported-built-in-types/), [rigor-extensions.md](../type-specification/rigor-extensions/) |
+| `RBS::Extended` 注釈 (`%a{rigor:v1:…}` による述語、表明、適合宣言) | [rbs-extended.md](../type-specification/rbs-extended/) |
+| 再帰や演算子の曖昧性に対する推論バジェットと境界契約 | [inference-budgets.md](../type-specification/inference-budgets/) |
+| 診断識別子の分類体系と抑制マーカー | [diagnostic-policy.md](../type-specification/diagnostic-policy/) |
+| 保守的な RBS 消去とハッシュシェイプの消去アルゴリズム | [rbs-erasure.md](../type-specification/rbs-erasure/) |
 
-## Quick reading paths
+## 目的別の読み方
 
-- **Just want the mental model?** Read [overview.md](../type-specification/overview/), [value-lattice.md](../type-specification/value-lattice/), and [special-types.md](../type-specification/special-types/) in that order.
-- **Implementing inference?** Add [control-flow-analysis.md](../type-specification/control-flow-analysis/), [normalization.md](../type-specification/normalization/), [inference-budgets.md](../type-specification/inference-budgets/), and the analyzer-internal contracts in [`docs/internal-spec/`](../internal-spec/) — start with [implementation-expectations.md](../internal-spec/implementation-expectations/) and [internal-type-api.md](../internal-spec/internal-type-api/).
-- **Writing RBS or `RBS::Extended` payloads?** Read [rbs-compatible-types.md](../type-specification/rbs-compatible-types/) and [rbs-extended.md](../type-specification/rbs-extended/), then [rbs-erasure.md](../type-specification/rbs-erasure/) to see how they round-trip.
-- **Reviewing or extending the diagnostic surface?** Read [diagnostic-policy.md](../type-specification/diagnostic-policy/) alongside [type-operators.md](../type-specification/type-operators/).
+- **メンタルモデルだけ知りたい?** [overview.md](../type-specification/overview/)、[value-lattice.md](../type-specification/value-lattice/)、[special-types.md](../type-specification/special-types/) をこの順に読んでください。
+- **推論を実装中?** さらに [control-flow-analysis.md](../type-specification/control-flow-analysis/)、[normalization.md](../type-specification/normalization/)、[inference-budgets.md](../type-specification/inference-budgets/)、そして解析器内部の契約 [`docs/internal-spec/`](../internal-spec/) を加えてください — まず [implementation-expectations.md](../internal-spec/implementation-expectations/) と [internal-type-api.md](../internal-spec/internal-type-api/) から始めるのがおすすめです。
+- **RBS や `RBS::Extended` のペイロードを書く?** [rbs-compatible-types.md](../type-specification/rbs-compatible-types/) と [rbs-extended.md](../type-specification/rbs-extended/) を読み、続けて往復の挙動を見るために [rbs-erasure.md](../type-specification/rbs-erasure/) を読んでください。
+- **診断面のレビューや拡張をする?** [diagnostic-policy.md](../type-specification/diagnostic-policy/) を [type-operators.md](../type-specification/type-operators/) と並行して読んでください。
 
-## Specification index
+## 仕様の索引
 
-The full reading order, conventions (RFC 2119 keywords, RBS-first compatibility hierarchy), and one-line description of each topical document live in [`docs/type-specification/README.md`](../type-specification/).
+正規仕様の読み順、規約 (RFC 2119 のキーワード、RBS 優先の互換性階層)、各トピック文書の 1 行説明は [`docs/type-specification/README.md`](../type-specification/) にあります。
 
-For analyzer-internal contracts that complement the type specification (engine-surface, type-object public API), see [`docs/internal-spec/README.md`](../internal-spec/).
+型仕様を補完する解析器内部の契約 (エンジン表面、型オブジェクトの公開 API) は [`docs/internal-spec/README.md`](../internal-spec/) を参照してください。
 
-## Related documents
+## 関連文書
 
-- [`README.md`](https://github.com/rigortype/rigor/blob/main/README.md) — project overview and CLI entry point
-- [`AGENTS.md`](https://github.com/rigortype/rigor/blob/main/AGENTS.md) — development workflow for this repository
-- [`docs/adr/0-concept.md`](../adr/0-concept/) — Rigor's high-level concept ADR
-- [`docs/adr/1-types.md`](../adr/1-types/) — type-model ADR (design rationale, options considered, rejected/deferred items, open questions)
-- [`docs/adr/2-extension-api.md`](../adr/2-extension-api/) — plugin extension API ADR
-- [`docs/adr/3-type-representation.md`](../adr/3-type-representation/) — internal type representation ADR (design rationale and open questions)
-- [`docs/adr/4-type-inference-engine.md`](../adr/4-type-inference-engine/) — type inference engine ADR (slice roadmap, tentative answers to ADR-3 open questions)
-- [`docs/internal-spec/README.md`](../internal-spec/) — analyzer-internal contracts (engine surface, type-object public API, inference engine)
+- [`README.md`](https://github.com/rigortype/rigor/blob/main/README.md) — プロジェクト概要と CLI の入口
+- [`AGENTS.md`](https://github.com/rigortype/rigor/blob/main/AGENTS.md) — 本リポジトリの開発ワークフロー
+- [`docs/adr/0-concept.md`](../adr/0-concept/) — Rigor の高レベルなコンセプト ADR
+- [`docs/adr/1-types.md`](../adr/1-types/) — 型モデルの ADR (設計根拠、検討した選択肢、却下/保留事項、未解決事項)
+- [`docs/adr/2-extension-api.md`](../adr/2-extension-api/) — プラグイン拡張 API の ADR
+- [`docs/adr/3-type-representation.md`](../adr/3-type-representation/) — 内部型表現の ADR (設計根拠と未解決事項)
+- [`docs/adr/4-type-inference-engine.md`](../adr/4-type-inference-engine/) — 型推論エンジン ADR (スライスのロードマップ、ADR-3 の未解決事項に対する暫定回答)
+- [`docs/internal-spec/README.md`](../internal-spec/) — 解析器内部の契約 (エンジン表面、型オブジェクトの公開 API、推論エンジン)

@@ -1,109 +1,84 @@
 ---
-title: "Getting started"
-description: "Imported from rigortype/rigor docs/handbook/01-getting-started.md."
+title: "はじめに"
+description: "rigortype/rigor docs/handbook/01-getting-started.md の翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/handbook/01-getting-started.md"
 sourcePath: "docs/handbook/01-getting-started.md"
 sourceSha: "d09e0bf06f9ab6a461030381b0dcda0dc2f7452a9adadfdb62e5b8121907a384"
 sourceCommit: "9f40e22193647dc06e3ab70c5ba82768b0bfe738"
-translationStatus: "pending"
+translationStatus: "translated"
 sidebar:
   order: 1001
 ---
 
-> [!NOTE]
-> このページはまだ翻訳されていません。英語版の本文を参考表示しています。
+[← ハンドブック目次](../) · 次: [日常的に出会う型 →](../02-everyday-types/)
 
-[← Handbook index](../) · Next: [Everyday types →](../02-everyday-types/)
+## `rigor check` は何を見ているのか?
 
-## What does `rigor check` look at?
+Rigor はプロジェクトの `.rb` ファイルを読み、各ファイルにフローセンシティブな型推論エンジンをかけ、利用可能な `sig/*.rbs` 宣言を参照したうえで、限られた種類のバグを報告します:
 
-Rigor reads your `.rb` files, runs a flow-sensitive type
-inference engine over each one, consults any `sig/*.rbs`
-declarations available to your project, and reports a small
-catalogue of bugs:
+- 受信側のクラスが間違っているメソッド呼び出し
+- 引数の数が間違っているメソッド呼び出し
+- 必ず例外を送出する算術 (`5 / 0`)
+- リファインされたパラメーター契約を満たさない引数の型
+- そのほか、すべて [第 8 章 — エラーの読み方](../08-understanding-errors/) に列挙してあります。
 
-- methods called on the wrong receiver class;
-- methods called with the wrong number of arguments;
-- arithmetic that can be proved to raise (`5 / 0`);
-- arguments whose type does not satisfy a refined parameter
-  contract;
-- a few more, all listed in
-  [Chapter 8 — Understanding errors](../08-understanding-errors/).
+重要なのは、Rigor は Ruby ソースに型注釈を書くことを **要求しない** ことです。証明できる範囲だけ推論し、絞り込めない箇所では沈黙します。十分な静的情報があり確信をもって判断できるときだけ、診断を出します。
 
-Critically, Rigor does **not** ask you to write type
-annotations in your Ruby source. It infers as much as it can,
-and stays silent everywhere it cannot prove a narrower type.
-A diagnostic only fires when Rigor has enough static
-information to be confident.
+## 最小の動作セッション
 
-## The smallest working session
-
-Drop into your project root and run:
+プロジェクトのルートで次を実行します:
 
 ```sh
 bundle exec rigor check lib
 ```
 
-That walks every `.rb` under `lib/` and prints diagnostics —
-or `No diagnostics` when the analyzer found nothing to
-complain about.
+これで `lib/` 以下のすべての `.rb` を辿り、診断を出力します。問題がなければ `No diagnostics` と表示されます。
 
-If you want to run on a single file:
+単一ファイルだけを対象にしたいときは:
 
 ```sh
 bundle exec rigor check path/to/file.rb
 ```
 
-If you want to see what Rigor inferred at a precise position:
+特定の位置で Rigor が何を推論しているか確認したいときは:
 
 ```sh
 bundle exec rigor type-of lib/foo.rb:10:5
 ```
 
-That prints both the rich Rigor type and the conservative
-RBS erasure (the type a non-Rigor RBS tool would see). It is
-the fastest way to ask "what does Rigor think this expression
-produces?"
+これは Rigor のリッチな型と、保守的な RBS 消去 (Rigor 以外の RBS ツールが見るであろう型) の両方を表示します。「この式は Rigor からどう見えるか?」を確かめる最速の方法です。
 
-## Reading a diagnostic
+## 診断の読み方
 
-Rigor diagnostics look like this:
+Rigor の診断はこのような形をしています:
 
 ```text
 lib/user.rb:42:7: error: undefined method `upcas' for "alice" [call.undefined-method]
 ```
 
-| Slice | Meaning |
+| 部分 | 意味 |
 | --- | --- |
-| `lib/user.rb:42:7` | File, 1-indexed line, 1-indexed column |
-| `error` | Severity (`error` / `warning` / `info`) |
-| `undefined method ...` | Human-readable message |
-| `[call.undefined-method]` | The qualified rule identifier |
+| `lib/user.rb:42:7` | ファイル、1 始まりの行、1 始まりの列 |
+| `error` | 深刻度 (`error` / `warning` / `info`) |
+| `undefined method ...` | 人間向けのメッセージ |
+| `[call.undefined-method]` | 修飾されたルール識別子 |
 
-The qualified rule identifier is what you use in:
+修飾ルール識別子は次の場面で使います:
 
-- `# rigor:disable call.undefined-method` (in-source
-  suppression at end of line);
-- the `disabled_rules:` key in `.rigor.yml`;
-- the `severity_overrides:` map (to demote a rule to
-  `:warning` or `:info`, or drop it entirely with `:off`).
+- `# rigor:disable call.undefined-method` (行末でのインソース抑制)
+- `.rigor.yml` の `disabled_rules:` キー
+- `severity_overrides:` マップ (ルールを `:warning` / `:info` に下げたり、`:off` で無効化する)
 
-Family wildcards work: `# rigor:disable call` suppresses every
-`call.*` rule on that line. The full list of families and
-rules is in [Chapter 8 — Understanding
-errors](../08-understanding-errors/).
+ファミリー単位のワイルドカードも使えます: `# rigor:disable call` はその行の `call.*` ルールをすべて抑制します。ファミリーとルールの全リストは [第 8 章 — エラーの読み方](../08-understanding-errors/) にあります。
 
-## The "no annotations" stance
+## 「注釈なし」のスタンス
 
-Most static checkers ask the user to annotate types. Rigor
-does the opposite — it looks at what your Ruby code does and
-**proves** types from the values themselves. Three quick
-examples:
+多くの静的チェッカーはユーザーに型を注釈するよう求めます。Rigor は逆方向です — Ruby コードが何をしているかを見て、値そのものから型を **証明** します。簡単な例を 3 つ挙げます:
 
 ```ruby
 n = 100
 m = n + 1
-assert_type(m, "Constant<101>")     # arithmetic folds
+assert_type(m, "Constant<101>")     # 算術がたたみ込まれる
 ```
 
 ```ruby
@@ -113,53 +88,35 @@ def kind(x)
   when String  then :str
   end
 end
-assert_type(kind(7), "Constant<:int>")  # narrowing folds the case
+assert_type(kind(7), "Constant<:int>")  # ナローイングが case をたたみ込む
 ```
 
 ```ruby
 greeting = "Hello, "                 # Constant<"Hello, ">
-name     = ARGV.first                # String?  (RBS-declared)
-hello    = "#{greeting}#{name}!"     # literal-string carrier:
-                                     # every interpolated part
-                                     # is itself literal-string-
-                                     # compatible, so the result
-                                     # is "provably source-derived"
+name     = ARGV.first                # String?  (RBS 由来)
+hello    = "#{greeting}#{name}!"     # リテラル文字列キャリア:
+                                     # 補間部分がいずれもリテラル文字列互換なので、
+                                     # 結果は「ソース由来であることが証明できる」
+                                     # 型になる
 ```
 
-You did not write a single annotation. Rigor reasons about the
-values directly.
+注釈を 1 行も書かずに、Rigor は値そのものについて推論しています。
 
-When inference cannot prove a narrower type, the engine
-returns `Dynamic[Top]` (the gradual carrier — "could be any
-Ruby value") and stays silent. Rigor never invents
-diagnostics it cannot prove.
+推論で型を絞り込めないとき、エンジンは `Dynamic[Top]` (グラデュアルキャリア — 「任意の Ruby 値の可能性がある」) を返し、診断は出しません。Rigor は証明できない診断を勝手に作り出すことはありません。
 
-## When inference is not enough
+## 推論だけでは足りないとき
 
-There are three escape hatches, in order of how often you
-will need them:
+3 つの抜け道があります。よく使う順に並べると:
 
-1. **Add an `.rbs` file.** Drop a signature into `sig/` and
-   Rigor picks it up automatically. This is the most common
-   reason inference does not see further than the local
-   `def` — the analyzer cannot reach inside an external gem
-   without the gem's RBS.
-2. **Tighten an existing RBS sig with `RBS::Extended`.** Add
-   a `%a{rigor:v1:return: non-empty-string}` annotation
-   above the method's `def ... -> ::String` line. Rigor
-   sees the refinement; ordinary RBS tools see a comment.
-3. **Write a plugin.** When your project has a domain DSL
-   (`Lisp.eval`, `100.kilometers`, `transition_to(:foo)`)
-   that no general-purpose analyzer can know about, a
-   plugin teaches Rigor about it.
+1. **`.rbs` ファイルを追加する。** 署名を `sig/` に置けば Rigor が自動的に拾います。ローカルの `def` から先が見えない理由として最も多いのがこれです — 解析器は外部の gem に対し、その gem の RBS なしには内部を覗けません。
+2. **既存の RBS 署名を `RBS::Extended` で締める。** メソッドの `def ... -> ::String` の上に `%a{rigor:v1:return: non-empty-string}` のような注釈を足します。Rigor はリファインメントを認識しますが、通常の RBS ツールはコメントとしてしか見ません。
+3. **プラグインを書く。** プロジェクトに汎用解析器が知り得ないドメイン DSL (`Lisp.eval`、`100.kilometers`、`transition_to(:foo)` など) があるなら、プラグインで Rigor にそれを教えます。
 
-Chapters 7 and 9 cover these in detail. Most projects only
-need (1) and (2).
+詳細は第 7 章と第 9 章で扱います。多くのプロジェクトは (1) と (2) で十分です。
 
-## A first walk through Rigor's config file
+## 設定ファイルをひと巡り
 
-`rigor init` writes a starter configuration to `.rigor.dist.yml`
-— the project default that gets committed:
+`rigor init` は `.rigor.dist.yml` に初期設定を書き出します — これはコミット対象のプロジェクトデフォルトです:
 
 ```yaml
 target_ruby: "3.4"
@@ -167,7 +124,7 @@ target_ruby: "3.4"
 paths:
   - lib
 
-# signature_paths: [sig]   # auto-detected when omitted
+# signature_paths: [sig]   # 省略時は自動検出されます
 
 severity_profile: balanced
 
@@ -179,67 +136,39 @@ severity_profile: balanced
 # plugins: []
 ```
 
-The minimum useful run does not require any config file at all
-— `rigor check lib` works out of the box. The file is for
-non-default behaviours: extra `paths`, alternative
-`severity_profile`, project-wide rule disables, plugins.
+最小限の有用な実行に設定ファイルは不要です — `rigor check lib` はそのままで動きます。設定ファイルは、追加の `paths`、別の `severity_profile`、プロジェクト全体のルール無効化、プラグインなど、デフォルト以外の挙動のために用意します。
 
-### Two file names, no implicit merge
+### 2 つのファイル名、暗黙のマージはしない
 
-Rigor auto-discovers config in this order, reading the FIRST
-file found:
+Rigor は次の優先順位で設定を自動検出し、**最初に見つかったファイル** を読みます:
 
-| Priority | File | Purpose |
+| 優先度 | ファイル | 用途 |
 | --- | --- | --- |
-| 1 | `.rigor.yml` | Developer-local override (typically gitignored). |
-| 2 | `.rigor.dist.yml` | Project default (committed to the repo). |
+| 1 | `.rigor.yml` | 開発者ローカルのオーバーライド (通常は gitignore する) |
+| 2 | `.rigor.dist.yml` | プロジェクトデフォルト (リポジトリにコミット) |
 
-**Both files are never merged automatically** — when a developer
-maintains a `.rigor.yml`, that file is the sole source of config
-for that developer's runs. To extend the project default
-explicitly, the override lists the dist file (and any others)
-under `includes:`:
+**両方のファイルが暗黙にマージされることはありません** — 開発者が `.rigor.yml` を持っているなら、その実行ではそのファイルだけが設定の唯一のソースになります。プロジェクトデフォルトを明示的に拡張したい場合は、オーバーライド側で `includes:` に dist ファイル (および必要なら他のファイル) を列挙します:
 
 ```yaml
 # .rigor.yml
 includes:
   - .rigor.dist.yml
 
-# my own developer-local additions:
+# 自分のローカル追加:
 disable:
-  - call.undefined-method   # I'm WIP, ignore this rule for now
+  - call.undefined-method   # 作業中なので一旦無視
 ```
 
-`includes:` is processed in declaration order; later content
-overrides earlier. The CURRENT file's keys override every
-included file. This is the same shape PHPStan uses for its
-`.neon` config files.
+`includes:` は宣言順に処理され、後の内容が前の内容を上書きします。**現在のファイル** のキーは include されたすべてのファイルを上書きします。これは PHPStan が `.neon` 設定で採用しているのと同じ形式です。
 
-### Path resolution rules
+### パス解決のルール
 
-Every path-bearing key (`paths:`, `signature_paths:`,
-`plugins_io.allowed_paths:`, `includes:`) is resolved
-**relative to the directory of the config file that declares
-it**. So `paths: [lib]` in `<project>/.rigor.dist.yml` means
-`<project>/lib`; the same line in `<project>/sub/extra.yml`
-means `<project>/sub/lib`. Moving a config file to a different
-directory therefore changes only its own relative paths, not
-those declared by the file that includes it. This mirrors
-[PHPStan's path-resolution
-rule](https://phpstan.org/config-reference#paths).
+パスを取るキー (`paths:`、`signature_paths:`、`plugins_io.allowed_paths:`、`includes:`) は、**そのキーを宣言しているファイルのディレクトリを基準** に解決されます。したがって `<project>/.rigor.dist.yml` の `paths: [lib]` は `<project>/lib` を意味し、同じ行を `<project>/sub/extra.yml` に書くと `<project>/sub/lib` を意味します。設定ファイルを別ディレクトリに動かしても影響を受けるのはそのファイル自身の相対パスだけで、include 側のファイルが宣言したパスは影響を受けません。これは [PHPStan のパス解決ルール](https://phpstan.org/config-reference#paths) に倣ったものです。
 
-`cache.path:` is the one exception — it stays as the literal
-string the user wrote, because the value surfaces back to the
-user in `--cache-stats` / `--clear-cache` messages and a
-project-relative form reads better there.
+`cache.path:` だけは例外で、ユーザーが書いた文字列をそのまま保持します。`--cache-stats` / `--clear-cache` のメッセージ表示でユーザーに値が返るため、プロジェクト相対表記のほうが読みやすいからです。
 
-## What's next
+## 次に読むもの
 
-Chapter 2 introduces the carriers Rigor uses to represent
-types — the part of the model that distinguishes Rigor from
-ordinary RBS. After that, Chapter 3 (narrowing) makes the
-carriers come alive: the carriers describe values, and
-narrowing describes how those carriers change as control
-flow passes through `if` / `case` / predicate methods.
+第 2 章は、Rigor が型を表現するために使うキャリア (carrier) を紹介します。これが Rigor を通常の RBS から区別するモデルの中核です。続く第 3 章 (ナローイング) でキャリアが活きてきます — キャリアは値を記述し、ナローイングは制御フローが `if` / `case` / 述語メソッドを通過するときにキャリアがどう変化するかを記述します。
 
-[← Handbook index](../) · Next: [Everyday types →](../02-everyday-types/)
+[← ハンドブック目次](../) · 次: [日常的に出会う型 →](../02-everyday-types/)
