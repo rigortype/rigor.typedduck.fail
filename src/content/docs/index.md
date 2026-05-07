@@ -1,0 +1,29 @@
+---
+title: Rigor
+description: Documentation for the Rigor Ruby static analyzer.
+template: splash
+hero:
+  title: Rigor
+  tagline: A Ruby static analyzer focused on useful, flow-sensitive type feedback without requiring annotations in Ruby source.
+  actions:
+    - text: Start with the handbook
+      link: /reference/handbook/
+      icon: right-arrow
+      variant: primary
+    - text: View source
+      link: https://github.com/rigortype/rigor
+      icon: external
+      variant: minimal
+      attrs:
+        rel: me
+---
+
+The reference pages are generated from the upstream `rigortype/rigor` repository submodule at build time. English source documents are published first, and Japanese pages can be added under the same paths in `src/content/docs/ja/` as translations are prepared.
+
+## Documentation Layout
+
+- **Handbook**: task-oriented material for using Rigor day to day.
+- **Type Specification**: the analyzer's type model, operators, and inference rules.
+- **Internal Specification**: implementation contracts for contributors.
+- **Architecture Decisions**: ADRs and design history from the upstream repository.
+
