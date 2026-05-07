@@ -5,3 +5,8 @@ dist/
 .pnpm-home/
 result
 src/content/docs/reference/
+
+# Override any global .gitexclude that hides .claude/ — this repo
+# ships shared Claude Code skills under .claude/skills/.
+!.claude/
+.claude/settings.local.json
