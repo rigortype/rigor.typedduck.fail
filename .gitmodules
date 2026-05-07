@@ -1,0 +1,3 @@
+[submodule "upstream/rigor"]
+	path = upstream/rigor
+	url = https://github.com/rigortype/rigor.git
