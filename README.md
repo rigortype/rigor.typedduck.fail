@@ -22,16 +22,17 @@ The `predev` and `prebuild` scripts sync Markdown from the `upstream/rigor` subm
 
 ## Deployment (Cloudflare Pages)
 
-Deployment settings live in the repository:
+The site is deployed through Cloudflare Pages' Git integration. The
+only repo-side deployment file is [`public/_headers`](public/_headers),
+which sets baseline security headers for every response and long-lived
+caching for hashed Astro assets. (A `wrangler.toml` is intentionally
+not committed: when Pages' build pipeline sees one, recent wrangler
+versions invoke `wrangler deploy` — the Workers command — and warn
+that `wrangler pages deploy` should have been used instead. Letting
+Pages drive the deploy through its dashboard settings avoids the
+mismatch.)
 
-- [`wrangler.toml`](wrangler.toml) — Pages project name, compatibility
-  date, and `pages_build_output_dir`. `wrangler pages deploy` reads
-  this file and uploads `dist/` directly.
-- [`public/_headers`](public/_headers) — security headers for every
-  response and long-lived cache headers for hashed Astro assets.
-
-Dashboard-side build settings (only needed when using the Git
-integration rather than `wrangler pages deploy`):
+Dashboard build settings:
 
 - Build command: `pnpm install --frozen-lockfile && pnpm build`
 - Build output directory: `dist`
