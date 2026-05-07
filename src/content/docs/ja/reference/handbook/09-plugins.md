@@ -3,8 +3,8 @@ title: "Plugins"
 description: "Imported from rigortype/rigor docs/handbook/09-plugins.md."
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/handbook/09-plugins.md"
 sourcePath: "docs/handbook/09-plugins.md"
-sourceSha: "5e996b9ffbfb94c0c777e9180152ba8470cfe21529c0ad8298e5190166ad60ee"
-sourceCommit: "9f40e22193647dc06e3ab70c5ba82768b0bfe738"
+sourceSha: "544fdc2a12b67f2a10ecdaf163ca64ba9fbd014cb6bc89f1dbab52d7e3b9fb2c"
+sourceCommit: "b523ab36f62d89a1c16964a66864c27e3ebb0fe4"
 translationStatus: "pending"
 sidebar:
   order: 1009
@@ -12,8 +12,6 @@ sidebar:
 
 > [!NOTE]
 > このページはまだ翻訳されていません。英語版の本文を参考表示しています。
-
-[← Understanding errors](../08-understanding-errors/) · [Handbook index](../)
 
 This is the shortest chapter. Plugins exist for one reason:
 some methods' types depend on the **shape of their arguments
@@ -134,5 +132,3 @@ You have reached the end of the handbook. From here:
 
 Welcome to the small, growing community of static-Ruby
 believers.
-
-[← Understanding errors](../08-understanding-errors/) · [Handbook index](../)

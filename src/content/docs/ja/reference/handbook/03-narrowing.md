@@ -3,8 +3,8 @@ title: "Narrowing"
 description: "Imported from rigortype/rigor docs/handbook/03-narrowing.md."
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/handbook/03-narrowing.md"
 sourcePath: "docs/handbook/03-narrowing.md"
-sourceSha: "9bb6fd4c59b7ffe3533e082ac0704c233129dad1e1b3374330461e7b786ebed2"
-sourceCommit: "9f40e22193647dc06e3ab70c5ba82768b0bfe738"
+sourceSha: "8183976aa120538bc0edb9a5ed56124470a57960fcab6146aa83f1cb24784aac"
+sourceCommit: "b523ab36f62d89a1c16964a66864c27e3ebb0fe4"
 translationStatus: "pending"
 sidebar:
   order: 1003
@@ -12,8 +12,6 @@ sidebar:
 
 > [!NOTE]
 > このページはまだ翻訳されていません。英語版の本文を参考表示しています。
-
-[← Everyday types](../02-everyday-types/) · Next: [Tuples and hash shapes →](../04-tuples-and-shapes/)
 
 A carrier describes a value at one program point. **Narrowing**
 describes how the carrier changes when control flow passes
@@ -314,5 +312,3 @@ pin behaviour.
 Chapter 4 covers the structural carriers — `Tuple` and
 `HashShape` — which behave a lot like a per-element
 narrowing of `Array` and `Hash`.
-
-[← Everyday types](../02-everyday-types/) · Next: [Tuples and hash shapes →](../04-tuples-and-shapes/)

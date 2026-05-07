@@ -3,8 +3,8 @@ title: "Classes"
 description: "Imported from rigortype/rigor docs/handbook/06-classes.md."
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/handbook/06-classes.md"
 sourcePath: "docs/handbook/06-classes.md"
-sourceSha: "079977aea635303543c769c29b561b5528823c932c109b6bb30d3795593a3f24"
-sourceCommit: "9f40e22193647dc06e3ab70c5ba82768b0bfe738"
+sourceSha: "19c3f4bbfd82f5482033682d9c39eb94a6bad0238a468f20325b3cca20ca3028"
+sourceCommit: "b523ab36f62d89a1c16964a66864c27e3ebb0fe4"
 translationStatus: "pending"
 sidebar:
   order: 1006
@@ -12,8 +12,6 @@ sidebar:
 
 > [!NOTE]
 > このページはまだ翻訳されていません。英語版の本文を参考表示しています。
-
-[← Methods and blocks](../05-methods-and-blocks/) · Next: [RBS and `RBS::Extended` →](../07-rbs-and-extended/)
 
 This chapter covers class-side typing — what `self` means in
 different positions, how constants are resolved, and how
@@ -283,5 +281,3 @@ question.
 Chapter 7 covers RBS and `RBS::Extended` — the external
 signature surface that takes you beyond what inference alone
 can prove.
-
-[← Methods and blocks](../05-methods-and-blocks/) · Next: [RBS and `RBS::Extended` →](../07-rbs-and-extended/)

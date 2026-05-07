@@ -3,14 +3,12 @@ title: "はじめに"
 description: "rigortype/rigor docs/handbook/01-getting-started.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/handbook/01-getting-started.md"
 sourcePath: "docs/handbook/01-getting-started.md"
-sourceSha: "d09e0bf06f9ab6a461030381b0dcda0dc2f7452a9adadfdb62e5b8121907a384"
-sourceCommit: "9f40e22193647dc06e3ab70c5ba82768b0bfe738"
+sourceSha: "26fbbee4fa487b5e33e4e079ece835d2d79c79c93e12f9271f0ebf5204f5ef5e"
+sourceCommit: "b523ab36d3e3e9b07f2ba2b1a4b842dadcd29b58"
 translationStatus: "translated"
 sidebar:
   order: 1001
 ---
-
-[← ハンドブック目次](../) · 次: [日常的に出会う型 →](../02-everyday-types/)
 
 ## `rigor check`は何を見ているのか？
 
@@ -170,5 +168,3 @@ disable:
 ## 次に読むもの
 
 第2章は、Rigorが型を表現するために使うキャリア（carrier）を紹介します。これがRigorを通常のRBSから区別するモデルの中核です。続く第3章（ナローイング）でキャリアが活きてきます — キャリアは値を記述し、ナローイングは制御フローが`if` / `case` / 述語メソッドを通過するときにキャリアがどう変化するかを記述します。
-
-[← ハンドブック目次](../) · 次: [日常的に出会う型 →](../02-everyday-types/)

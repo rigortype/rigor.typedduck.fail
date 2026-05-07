@@ -3,8 +3,8 @@ title: "Understanding errors"
 description: "Imported from rigortype/rigor docs/handbook/08-understanding-errors.md."
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/handbook/08-understanding-errors.md"
 sourcePath: "docs/handbook/08-understanding-errors.md"
-sourceSha: "4f89eddddd2179df66058380bd2c6b8920953813208adaeaeef59f335937f73f"
-sourceCommit: "9f40e22193647dc06e3ab70c5ba82768b0bfe738"
+sourceSha: "7923db510fed4b2ad526c32c5b8a08fb25f023f0ccc1ac3e1bbf463de0d22727"
+sourceCommit: "b523ab36f62d89a1c16964a66864c27e3ebb0fe4"
 translationStatus: "pending"
 sidebar:
   order: 1008
@@ -12,8 +12,6 @@ sidebar:
 
 > [!NOTE]
 > このページはまだ翻訳されていません。英語版の本文を参考表示しています。
-
-[← RBS and `RBS::Extended`](../07-rbs-and-extended/) · Next: [Plugins →](../09-plugins/)
 
 This chapter is the catalogue of diagnostics Rigor ships, the
 families they belong to, and how to suppress one when it is
@@ -263,5 +261,3 @@ The final chapter — Plugins — is a one-page pointer to the
 specific DSLs (units of measure, route helpers, deprecations,
 …). Most projects will never write one; the chapter exists so
 you know the option is there.
-
-[← RBS and `RBS::Extended`](../07-rbs-and-extended/) · Next: [Plugins →](../09-plugins/)

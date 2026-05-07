@@ -3,8 +3,8 @@ title: "Tuples and hash shapes"
 description: "Imported from rigortype/rigor docs/handbook/04-tuples-and-shapes.md."
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/handbook/04-tuples-and-shapes.md"
 sourcePath: "docs/handbook/04-tuples-and-shapes.md"
-sourceSha: "acb22279175bb1990636f448a4052a020f2f25154df16bc3bdff1153fa2d4983"
-sourceCommit: "9f40e22193647dc06e3ab70c5ba82768b0bfe738"
+sourceSha: "8c4a50776a7c2836ef2df8bb050801c1bc94134b600932ec587713b28f1b31e3"
+sourceCommit: "b523ab36f62d89a1c16964a66864c27e3ebb0fe4"
 translationStatus: "pending"
 sidebar:
   order: 1004
@@ -12,8 +12,6 @@ sidebar:
 
 > [!NOTE]
 > このページはまだ翻訳されていません。英語版の本文を参考表示しています。
-
-[← Narrowing](../03-narrowing/) · Next: [Methods and blocks →](../05-methods-and-blocks/)
 
 `Tuple` and `HashShape` are how Rigor gives precise types to
 heterogeneous arrays and known-key hashes. They look a lot like
@@ -246,5 +244,3 @@ Chapter 5 covers the function side: how Rigor types method
 parameters and return values, how block parameters are bound
 through Enumerable iteration, and how arity / parameter-type
 mismatches surface as `call.*` diagnostics.
-
-[← Narrowing](../03-narrowing/) · Next: [Methods and blocks →](../05-methods-and-blocks/)

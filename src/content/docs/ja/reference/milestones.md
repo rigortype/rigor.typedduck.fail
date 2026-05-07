@@ -3,8 +3,8 @@ title: "Release Milestones"
 description: "Imported from rigortype/rigor docs/MILESTONES.md."
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/MILESTONES.md"
 sourcePath: "docs/MILESTONES.md"
-sourceSha: "acf866bf96df78c08f7d0c23f3d5d003556337de6f41079c7cc9e5f7c744e9e7"
-sourceCommit: "9f40e22193647dc06e3ab70c5ba82768b0bfe738"
+sourceSha: "a3423c8b6c6c2ccfb2dd6856387551ae8d8c5b64468bf08307742d826f1bdcc3"
+sourceCommit: "b523ab36f62d89a1c16964a66864c27e3ebb0fe4"
 translationStatus: "pending"
 sidebar:
   order: 9050
@@ -232,6 +232,30 @@ Out of scope for v0.1.1 (deferred to v0.1.2 or beyond):
 - **Pathname / URI delegation rules.** Wider refactor (Pathname facade routing through File projections).
 - **Lightweight HKT / type-level type computation.** Conditional and indexed-access types per [`docs/type-specification/rigor-extensions.md`](../type-specification/rigor-extensions/) rows 22 / 51. Sketched in `examples/rigor-lisp-eval/demo/sig/lisp.rbs` and `examples/rigor-units/demo/sig/units.rbs`. Larger surface; not a single-slice item.
 - **Interface-strictness on overload selection.** Surfaced during v0.1.1 self-analysis: `Array#[](Range) -> Array[Elem]?` loses to `Array#[](int) -> Elem` because the RBS `int` alias expands to `Integer | _ToInt` and Rigor translates the `_ToInt` interface to `Dynamic[top]` (which gradually accepts any type — including a Range). Symptom: `arr = Array<String>; arr[0..i]` returns `String` instead of `Array[String]?`. Suppressed at the one site in `tool/extract_builtin_catalog.rb` for v0.1.1 via `# rigor:disable call.undefined-method`. Real fix needs the overload selector to demote matches that depend on `Dynamic[top]` (from interface translation) so a non-interface match wins when both are arity-compatible.
+
+## v0.1.2 — Planned
+
+Theme: **migrate the example plugin family to the v0.1.1 `flow_contribution_for` substrate.** v0.1.1 landed the cross-plugin API and the per-call return-type contribution tier; v0.1.2 puts that substrate to work — the four example plugins whose runtime returns a typeable value migrate from "info diagnostic only" to "narrowed return type", so chained calls resolve through the analyzer's normal dispatch instead of the RBS-level `untyped` envelope. The diagnostic trace stays — both channels run from the same interpretation.
+
+### Track 1 — Example plugin return-type migration
+
+1. ✅ **`rigor-lisp-eval`** — `Lisp.eval(literal)` narrows to the carrier the literal interpreter produces (`Nominal[Integer]`, `Nominal[Float]`, `Union[Constant[true], Constant[false]]`, or unions across `:if` branches). Type-error and unknown-expression cases stay at the RBS untyped envelope so the existing `:error` / silent fall-through behaviour is unchanged.
+
+2. ✅ **`rigor-pattern`** — `validate(:name, value)` narrows to the value argument's type on a successful match (typically `Constant<String>` after Rigor's literal-string folding). Mismatches keep the `literal-mismatch` diagnostic and stay untyped — propagating `bot` would silence the diagnostic-driven feedback the README centres on.
+
+3. ✅ **`rigor-units`** — Dimensional arithmetic / chained constructors / queries narrow through the existing `MethodTable` dispatch (`Distance / Time -> Speed`, `Distance + Distance -> Distance`, `Speed * Time -> Distance`, `.in_<unit>` queries return `Float`, etc.). `dimension_for_type` folds Rigor's nominal carriers back into the table's dimension Symbols and `DIMENSION_NOMINALS` translates the result back.
+
+4. ✅ **`rigor-activerecord`** — `Model.find(id)` narrows to `Nominal[Model]`; `Model.find_by(...)` narrows to `Nominal[Model] | nil`. `where` / `find_or_*` are intentionally deferred (relations need a richer carrier than the current Nominal/Tuple shapes carry).
+
+The other three example plugins (`rigor-deprecations`, `rigor-statesman`, `rigor-routes`) stay diagnostic-only by design: deprecation reports and state-machine declarations have no return-type fit, and route helpers are already RBS-expressible.
+
+### Plugin authoring DX
+
+5. ✅ **`spec/integration/examples/support/plugin_helpers.rb` accepts `signature_paths:` keyword.** Lets a plugin integration spec materialise an RBS sig file under the per-test tmpdir and thread its directory through `Configuration#signature_paths`. The new narrowing tests use this to provide minimal sigs for user-defined classes (`User` for `rigor-activerecord`, the `Distance / Time / Speed` family for `rigor-units`) so `call.undefined-method` can fire on them — the rule's `rbs_class_known?` gate would otherwise silence the diagnostic.
+
+### Out of scope for v0.1.2 (deferred to v0.1.3 or beyond)
+
+The full "Out of scope for v0.1.1" list above applies — interface-strictness on overload selection, new `flow.*` / `def.*` rule families, `Data.define` initializer dispatch, `Plugin::IoBoundary#open_url`, `rigor:v1:conforms-to`, DX tooling track, LSP daemon, cache LRU, ObjectSpace / URI / Kernel catalog imports, Pathname / URI delegation, lightweight HKT.
 
 ## Rails ecosystem plugins (running track, parallel to v0.1.x core work)
 

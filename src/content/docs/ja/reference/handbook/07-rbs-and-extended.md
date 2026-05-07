@@ -3,8 +3,8 @@ title: "RBS and `RBS::Extended`"
 description: "Imported from rigortype/rigor docs/handbook/07-rbs-and-extended.md."
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/handbook/07-rbs-and-extended.md"
 sourcePath: "docs/handbook/07-rbs-and-extended.md"
-sourceSha: "070bff6a640b5688b632200aad93d214f32290de3974c087dfc121b345c76185"
-sourceCommit: "9f40e22193647dc06e3ab70c5ba82768b0bfe738"
+sourceSha: "e8ebe82bf5663edd9709a3e43963a8f097c31c464233011d4c72b31c199f0f7c"
+sourceCommit: "b523ab36f62d89a1c16964a66864c27e3ebb0fe4"
 translationStatus: "pending"
 sidebar:
   order: 1007
@@ -12,8 +12,6 @@ sidebar:
 
 > [!NOTE]
 > このページはまだ翻訳されていません。英語版の本文を参考表示しています。
-
-[← Classes](../06-classes/) · Next: [Understanding errors →](../08-understanding-errors/)
 
 When Rigor's inference cannot prove a type, the next escape
 hatch is RBS — Ruby's signature language. When RBS cannot
@@ -281,5 +279,3 @@ see [Chapter 9](../09-plugins/) and the
 Chapter 8 covers the rule catalogue — what each diagnostic
 means, when it fires, and how to suppress it when it is wrong
 or noisy.
-
-[← Classes](../06-classes/) · Next: [Understanding errors →](../08-understanding-errors/)

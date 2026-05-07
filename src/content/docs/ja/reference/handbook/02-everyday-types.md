@@ -3,8 +3,8 @@ title: "Everyday types"
 description: "Imported from rigortype/rigor docs/handbook/02-everyday-types.md."
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/handbook/02-everyday-types.md"
 sourcePath: "docs/handbook/02-everyday-types.md"
-sourceSha: "d7d284380c762f5345923eb4caf4cd49b1c410c3df0eeb375be0d73542b8f14b"
-sourceCommit: "9f40e22193647dc06e3ab70c5ba82768b0bfe738"
+sourceSha: "5348d928ec18d04a1224b7b97d2c5de8ca4de875cb76a9a291b5587baf0578c7"
+sourceCommit: "b523ab36f62d89a1c16964a66864c27e3ebb0fe4"
 translationStatus: "pending"
 sidebar:
   order: 1002
@@ -12,8 +12,6 @@ sidebar:
 
 > [!NOTE]
 > このページはまだ翻訳されていません。英語版の本文を参考表示しています。
-
-[← Getting started](../01-getting-started/) · Next: [Narrowing →](../03-narrowing/)
 
 This is the most important chapter. Once you have a feel for
 the carriers below, the rest of the handbook is just rules
@@ -331,5 +329,3 @@ Chapter 3 (narrowing) is the engine that takes these carriers
 and changes them as control flow passes — `if` / `case` /
 `is_a?` / `nil?`. That is where the value-lattice carriers
 above start paying for themselves.
-
-[← Getting started](../01-getting-started/) · Next: [Narrowing →](../03-narrowing/)

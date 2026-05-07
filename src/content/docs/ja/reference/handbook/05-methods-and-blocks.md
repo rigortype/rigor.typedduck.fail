@@ -3,8 +3,8 @@ title: "Methods and blocks"
 description: "Imported from rigortype/rigor docs/handbook/05-methods-and-blocks.md."
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/handbook/05-methods-and-blocks.md"
 sourcePath: "docs/handbook/05-methods-and-blocks.md"
-sourceSha: "2ca4c189c784c1da26ef8f9d554014e3b73f91aa44005cbf6bec710ae1ba7bcd"
-sourceCommit: "9f40e22193647dc06e3ab70c5ba82768b0bfe738"
+sourceSha: "429f52afb375caf7cbc7f11766e6bbe37e9d6fee94757186078c5eb859155da7"
+sourceCommit: "b523ab36f62d89a1c16964a66864c27e3ebb0fe4"
 translationStatus: "pending"
 sidebar:
   order: 1005
@@ -12,8 +12,6 @@ sidebar:
 
 > [!NOTE]
 > このページはまだ翻訳されていません。英語版の本文を参考表示しています。
-
-[← Tuples and hash shapes](../04-tuples-and-shapes/) · Next: [Classes →](../06-classes/)
 
 This chapter covers what Rigor knows about method calls — the
 receiver's type, the argument types, the inferred return
@@ -290,5 +288,3 @@ violate.
 Chapter 6 covers the class side: how Rigor types `self`,
 constant lookup, `attr_*` declarations, and the
 class-vs-instance method distinction.
-
-[← Tuples and hash shapes](../04-tuples-and-shapes/) · Next: [Classes →](../06-classes/)
