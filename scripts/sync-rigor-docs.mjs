@@ -1,7 +1,12 @@
 #!/usr/bin/env node
+import { createHash } from 'node:crypto';
+import { execFile } from 'node:child_process';
 import { mkdir, readdir, readFile, rm, stat, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { promisify } from 'node:util';
+
+const execFileAsync = promisify(execFile);
 
 const projectRoot = fileURLToPath(new URL('..', import.meta.url));
 const sourceRoot = path.resolve(projectRoot, process.env.RIGOR_SOURCE_DIR ?? 'upstream/rigor');
@@ -28,6 +33,7 @@ const sectionLabels = new Map([
 
 const docsRoot = await findDocsRoot();
 const docsRootName = path.basename(docsRoot);
+const sourceCommit = await readUpstreamCommit();
 await rm(outputRoot, { recursive: true, force: true });
 await mkdir(outputRoot, { recursive: true });
 
@@ -49,6 +55,15 @@ await writeFile(
 );
 
 console.log(`Synced ${markdownFiles.length} Markdown files from ${path.relative(projectRoot, docsRoot)}.`);
+
+async function readUpstreamCommit() {
+  try {
+    const { stdout } = await execFileAsync('git', ['-C', sourceRoot, 'rev-parse', 'HEAD']);
+    return stdout.trim();
+  } catch {
+    return '';
+  }
+}
 
 async function findDocsRoot() {
   for (const dir of upstreamDocsDirs) {
@@ -101,13 +116,17 @@ function normalizeMarkdown(source, relativePath, sourcePath) {
   const strippedBody = heading ? removeFirstHeading(body, heading.index) : body;
   const rewrittenBody = rewriteMarkdownLinks(normalizeCodeFences(strippedBody), relativePath);
   const order = orderFor(relativePath);
+  const normalizedBody = `${rewrittenBody.trimStart()}`;
+  const sourceSha = createHash('sha256').update(normalizedBody).digest('hex');
   const mergedFrontmatter = mergeFrontmatter(frontmatter, {
     title,
     sourcePath,
     order,
+    sourceSha,
+    sourceCommit,
   });
 
-  return `---\n${mergedFrontmatter}\n---\n\n${rewrittenBody.trimStart()}`;
+  return `---\n${mergedFrontmatter}\n---\n\n${normalizedBody}`;
 }
 
 function splitFrontmatter(source) {
@@ -166,7 +185,7 @@ function normalizeCodeFences(body) {
   return body.replace(/^(```+)rbs(\s*)$/gim, '$1ruby$2');
 }
 
-function mergeFrontmatter(frontmatter, { title, sourcePath, order }) {
+function mergeFrontmatter(frontmatter, { title, sourcePath, order, sourceSha, sourceCommit }) {
   const lines = frontmatter ? [frontmatter] : [];
   if (!hasFrontmatterKey(frontmatter, 'title')) {
     lines.push(`title: ${JSON.stringify(title)}`);
@@ -176,6 +195,15 @@ function mergeFrontmatter(frontmatter, { title, sourcePath, order }) {
   }
   if (!hasFrontmatterKey(frontmatter, 'editUrl')) {
     lines.push(`editUrl: ${JSON.stringify(`https://github.com/rigortype/rigor/edit/main/${sourcePath}`)}`);
+  }
+  if (!hasFrontmatterKey(frontmatter, 'sourcePath')) {
+    lines.push(`sourcePath: ${JSON.stringify(sourcePath)}`);
+  }
+  if (sourceSha && !hasFrontmatterKey(frontmatter, 'sourceSha')) {
+    lines.push(`sourceSha: ${JSON.stringify(sourceSha)}`);
+  }
+  if (sourceCommit && !hasFrontmatterKey(frontmatter, 'sourceCommit')) {
+    lines.push(`sourceCommit: ${JSON.stringify(sourceCommit)}`);
   }
   if (!hasFrontmatterKey(frontmatter, 'sidebar')) {
     lines.push('sidebar:');
@@ -278,5 +306,16 @@ function buildReferenceIndex(relativePaths) {
     .map((section) => `- [${sectionLabels.get(section) ?? titleFromFile(`${section}.md`)}](./${section}/)`)
     .join('\n');
 
-  return `---\ntitle: Reference\ndescription: Documentation imported from the upstream rigortype/rigor repository.\nsidebar:\n  order: 0\n---\n\nThese pages are generated from upstream Markdown files during the site build.\n\n${sectionLinks}\n`;
+  const body = `These pages are generated from upstream Markdown files during the site build.\n\n${sectionLinks}\n`;
+  const sha = createHash('sha256').update(body).digest('hex');
+  const front = [
+    'title: Reference',
+    'description: Documentation imported from the upstream rigortype/rigor repository.',
+    'sourcePath: "(generated)"',
+    `sourceSha: ${JSON.stringify(sha)}`,
+  ];
+  if (sourceCommit) front.push(`sourceCommit: ${JSON.stringify(sourceCommit)}`);
+  front.push('sidebar:');
+  front.push('  order: 0');
+  return `---\n${front.join('\n')}\n---\n\n${body}`;
 }
