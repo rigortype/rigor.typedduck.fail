@@ -20,11 +20,23 @@ The `predev` and `prebuild` scripts sync Markdown from the `upstream/rigor` subm
 - Generated English reference pages: `src/content/docs/reference/`
 - Japanese translations: `src/content/docs/ja/reference/` (mirrors the EN tree path-for-path)
 
-Cloudflare Pages should use:
+## Deployment (Cloudflare Pages)
+
+Deployment settings live in the repository:
+
+- [`wrangler.toml`](wrangler.toml) — Pages project name, compatibility
+  date, and `pages_build_output_dir`. `wrangler pages deploy` reads
+  this file and uploads `dist/` directly.
+- [`public/_headers`](public/_headers) — security headers for every
+  response and long-lived cache headers for hashed Astro assets.
+
+Dashboard-side build settings (only needed when using the Git
+integration rather than `wrangler pages deploy`):
 
 - Build command: `pnpm install --frozen-lockfile && pnpm build`
 - Build output directory: `dist`
-- Submodules: enabled
+- Submodules: enabled (the EN reference tree is generated from the
+  `upstream/rigor` submodule at build time)
 
 ## Translation workflow
 
