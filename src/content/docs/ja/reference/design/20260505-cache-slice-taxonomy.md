@@ -5,93 +5,52 @@ editUrl: "https://github.com/rigortype/rigor/edit/main/docs/design/20260505-cach
 sourcePath: "docs/design/20260505-cache-slice-taxonomy.md"
 sourceSha: "18b230c6c4e44840dad523b47efd78ba610c0f063c5af757e4f7074c22d9c2a7"
 sourceCommit: "9f40e22193647dc06e3ab70c5ba82768b0bfe738"
-translationStatus: "pending"
+translationStatus: "translated"
 sidebar:
   order: 20265505
 ---
 
-> [!NOTE]
-> このページはまだ翻訳されていません。英語版の本文を参考表示しています。
+ステータス: **草案。**規範的ではありません。v0.1.0の永続的なオンディスクキャッシュ（[MILESTONES.md](../../milestones/)および[ADR-2 §「登録、設定、キャッシュ」](../../adr/2-extension-api/)を参照）が準拠すべきキャッシュディスクリプタースキーマを記述します。純粋な設計出力であり、このドキュメントからコード変更は発生しません。このドラフトの後継は、スキーマが実装された時点で`docs/internal-spec/`内の規範的仕様となります。
 
-Status: **Draft.** Not normative. Captures the cache descriptor
-schema that v0.1.0's persistent on-disk cache (per [MILESTONES.md](../../milestones/)
-and [ADR-2 § "Registration, Configuration, and Caching"](../../adr/2-extension-api/))
-will be built against. Pure design output — no code changes flow
-from this document. The successor to this draft will be a normative
-spec in `docs/internal-spec/` once the schema is implemented.
+この作業は、v0.0.7のReflectionファサード移行（[`docs/internal-spec/reflection.md`](../../internal-spec/reflection/)）に続くpre-v0.1.0サブスライスです（[`20260505-v0.1.0-readiness.md`](../20260505-v0.1.0-readiness/)にてシーケンシングを参照）。この設計から生まれる永続化レイヤーはv0.0.xには**含まれません**——プラグインAPIとともにv0.1.0でリリースされます。
 
-This work is the next pre-v0.1.0 sub-slice after the v0.0.7
-Reflection facade migration ([`docs/internal-spec/reflection.md`](../../internal-spec/reflection/);
-sequencing in [`20260505-v0.1.0-readiness.md`](../20260505-v0.1.0-readiness/)).
-The persistence layer that follows from this design is **not** part
-of v0.0.x — it ships in v0.1.0 alongside the plugin API.
+このドラフトが[ADR-2](../../adr/2-extension-api/)と矛盾する場合、ADRが拘束力を持ち、ドラフトは古くなっています。
 
-When this draft disagrees with [ADR-2](../../adr/2-extension-api/),
-the ADR binds and the draft is out of date.
+## 目標
 
-## Goal
+すべての解析器内部プロデューサーがキャッシュする値に無効化ディスクリプターを付与するための、単一の型付きキャッシュキースキーマを定義します。スキーマは以下を満たさなければなりません。
 
-Define a single, typed cache-key schema that every analyzer-internal
-producer uses to attach an invalidation descriptor to the values it
-caches. The schema must:
+1. ウォームな`rigor check`の実行で、入力が変更されていない処理をスキップできるようにする。
+2. 複数のプロデューサーが同一の値に寄与する場合に確定的にコンポーズできる（例: あるメソッドの解決済み型がRBSシグネチャ + ソース内`def`の形状 + プラグインの動的メンバーファクトを使用する場合）。
+3. 「1つのソースファイルを編集した」「1つのgemバージョンを上げた」という操作が無効化するスライスを可能な限り狭く保つ——キャッシュ全体を決して無効化しない。
+4. 既存のコンシューマーを壊さずに拡張できる: 新しいスロットの追加はアディティブな変更であり、スロットの名前変更や削除にはスキーマバージョン移行が必要。
 
-1. Enable a warm `rigor check` run to skip work whose inputs have
-   not changed.
-2. Compose deterministically when multiple producers contribute to
-   the same value (e.g. a method's resolved type uses RBS sigs +
-   in-source `def` shape + plugin dynamic-member facts).
-3. Stay narrow enough that "edit one source file" or "bump one gem
-   version" invalidates the smallest possible slice — never the
-   whole cache.
-4. Be extensible without breaking existing consumers: adding a new
-   slot is an additive change; renaming or removing a slot needs
-   schema-version migration.
+## 非目標
 
-## Non-goals
+- **永続化ストレージのレイアウト。**オンディスクフォーマット（sqlite、msgpack、単一ファイルフラット、シャードディレクトリなど）はこのドラフトの対象外です。以下のスキーマはストレージに依存しません。
+- **ホットリロード。** v0.1.0のキャッシュは実行間のみです。長期実行デーモン / LSPは将来の対象です。
+- **クロスマシンキャッシュ共有。**スキーマ内のパスはすべてプロジェクト相対です。あるマシンで構築したキャッシュは同じプロジェクト / gem状態の別マシンで利用可能ですが、配布セマンティクスはこのドラフトの対象外です。
 
-- **Persistent storage layout.** The on-disk format (sqlite,
-  msgpack, single-file flat, sharded directory, …) is out of scope
-  for this draft. The schema below is storage-agnostic.
-- **Hot reload.** v0.1.0 caches are between-runs only.
-  Long-running daemons / LSPs are a future surface.
-- **Cross-machine cache sharing.** All paths in the schema are
-  project-relative; a cache built on one machine is consumable on
-  another with the same project / gem state, but distribution
-  semantics are not part of this draft.
+## ADR-2の作業上の回答
 
-## ADR-2's working answer
+ADR-2 §「登録、設定、キャッシュ」では、すでに4スロット構造が固定されています。
 
-ADR-2 § "Registration, Configuration, and Caching" already pinned
-the four-slot shape:
-
-> Cache dependencies should be explicit descriptors rather than an
-> after-the-fact list of arbitrary reads. The first implementation
-> uses a typed-slot schema with a fixed set of slots and per-entry
-> comparators, rather than a flat list of kind-tagged entries:
+> キャッシュ依存関係は、事後的な任意読み取りリストではなく、明示的なディスクリプターであるべきです。最初の実装では、固定スロットセットとエントリーごとのコンパレーターを持つ型付きスロットスキーマを使用します（フラットなkindタグ付きエントリーリストではなく）:
 >
-> - `files`: project or external file inputs. Each entry carries a
->   path and a digest or mtime policy.
-> - `gems`: gem name and version constraint or pinned version.
-> - `plugins`: plugin identifier and pinned plugin gem version.
-> - `configs`: configuration keys and a hash of their accepted
->   value, so a toggled feature flag invalidates only the depending
->   slice.
+> - `files`: プロジェクトまたは外部ファイルの入力。各エントリーはパスとダイジェストまたはmtimeポリシーを持ちます。
+> - `gems`: gem名とバージョン制約またはピン留めバージョン。
+> - `plugins`: プラグイン識別子とピン留めプラグインgemバージョン。
+> - `configs`: 設定キーとその受け入れ値のハッシュ。機能フラグの切り替えが依存するスライスのみを無効化できます。
 
-This design doc fills in the per-slot shape detail and the
-composition / invalidation semantics that ADR-2 left to the
-implementation.
+この設計ドキュメントは、ADR-2が実装に委ねた各スロットの形状の詳細とコンポジション / 無効化セマンティクスを補完します。
 
-## Per-slot detail
+## スロット別詳細
 
-The cache descriptor is a `Rigor::Cache::Descriptor` value object
-with four slots. Every slot is an array of typed entries; an empty
-array means "no dependency in this slot".
+キャッシュディスクリプターは4つのスロットを持つ`Rigor::Cache::Descriptor`値オブジェクトです。各スロットは型付きエントリーの配列であり、空の配列は「このスロットに依存関係なし」を意味します。
 
 ### `files`
 
-Each entry pins a single file input — project source, generated
-signature, vendored RBS, schema, fixture, anything the producer
-read while building the cached value.
+各エントリーは1つのファイル入力——プロジェクトソース、生成済みシグネチャ、ベンダー化RBS、スキーマ、フィクスチャーなど、プロデューサーがキャッシュ値を構築する際に読んだもの——をピン留めします。
 
 ```
 FileEntry := { path: String, comparator: Comparator, value: String }
@@ -99,197 +58,121 @@ FileEntry := { path: String, comparator: Comparator, value: String }
 Comparator := :digest | :mtime | :exists
 ```
 
-- `path` is project-relative whenever the file is under the project
-  root; absolute otherwise. Symlinks resolve to their target before
-  hashing.
-- `comparator: :digest` carries a SHA-256 of the file contents.
-  The default for source files; deterministic across machines.
-- `comparator: :mtime` carries the file's mtime as an ISO-8601
-  string. Cheaper to check than digesting; appropriate for large
-  vendored RBS / generated artefacts where digest cost dominates.
-  The producer chooses; the cache layer treats both uniformly.
-- `comparator: :exists` carries `"yes"` or `"no"`. Used when a
-  value depends on the existence of a file (e.g. an optional
-  `sig/local.rbs`) rather than its contents.
+- `path`はファイルがプロジェクトルート配下の場合はプロジェクト相対パス、それ以外は絶対パス。シンボリックリンクはハッシュ前にターゲットに解決されます。
+- `comparator: :digest`はファイル内容のSHA-256を持ちます。ソースファイルのデフォルト;マシン間で決定的です。
+- `comparator: :mtime`はISO-8601文字列としてファイルのmtimeを持ちます。ダイジェスト計算よりチェックが安価です;ダイジストコストが支配的な大きなベンダー化RBS / 生成アーティファクトに適しています。プロデューサーが選択し、キャッシュレイヤーは両方を均等に扱います。
+- `comparator: :exists`は`"yes"`または`"no"`を持ちます。値の内容ではなく存在に依存する場合（例: オプショナルな`sig/local.rbs`）に使用します。
 
-A `FileEntry` for a project file MUST use the project-relative
-path. Cache descriptors built relative to one project directory
-are valid for that project's root only.
+プロジェクトファイルの`FileEntry`はプロジェクト相対パスを使用しなければなりません（MUST）。1つのプロジェクトディレクトリに対して構築されたキャッシュディスクリプターは、そのプロジェクトのルートに対してのみ有効です。
 
 ### `gems`
 
-Each entry pins a Bundler / RubyGems dependency.
+各エントリーはBundler / RubyGemsの依存関係をピン留めします。
 
 ```
 GemEntry := { name: String, requirement: String, locked: String? }
 ```
 
-- `name` is the gem name (e.g. `"rbs"`, `"prism"`).
-- `requirement` is the active version constraint as written in the
-  Gemfile / gemspec (`">= 4.0"`, `"~> 0.20"`). When the producer
-  cares only about the locked version, set `requirement: "*"`.
-- `locked` is the resolved version from `Gemfile.lock` (`"4.0.3"`).
-  When `nil`, the entry matches any version satisfying
-  `requirement`.
+- `name`はgem名です（例: `"rbs"`、`"prism"`）。
+- `requirement`はGemfile / gemspecに記述されたアクティブなバージョン制約です（`">= 4.0"`、`"~> 0.20"`）。プロデューサーがロックバージョンのみを気にする場合は`requirement: "*"`を設定します。
+- `locked`は`Gemfile.lock`から解決されたバージョンです（`"4.0.3"`）。`nil`の場合、エントリーは`requirement`を満たす任意のバージョンにマッチします。
 
-Two `GemEntry` values are equal when their `name` matches AND
-`(requirement, locked)` matches. A null `locked` matches any
-locked value satisfying `requirement`; this lets producers depend
-on the version range without re-invalidating on every patch bump.
+2つの`GemEntry`の値は、`name`が一致し、かつ`(requirement, locked)`が一致する場合に等しくなります。`locked`がnullの場合、`requirement`を満たす任意のロック値にマッチします;これによりプロデューサーはすべてのパッチバンプで再無効化されることなくバージョン範囲に依存できます。
 
 ### `plugins`
 
-Each entry pins a plugin gem and the user-supplied plugin
-configuration that controls the producer.
+各エントリーはプラグインgemと、プロデューサーを制御するユーザー提供のプラグイン設定をピン留めします。
 
 ```
 PluginEntry := { id: String, version: String, config_hash: String? }
 ```
 
-- `id` is the plugin identifier (matches the namespace ADR-2 §
-  "Plugin Diagnostic Provenance" reserves: `plugin.<plugin-id>`).
-- `version` is the resolved plugin gem version. Required —
-  plugin-derived facts MUST recompute when the plugin's code
-  changes.
-- `config_hash` is a SHA-256 of the plugin's normalised
-  configuration (sorted keys, JSON-serialised values). When two
-  plugin entries differ only in configuration, the cache slice
-  that depends on `:strict_mode` invalidates separately from the
-  slice that depends on `:include_paths`.
+- `id`はプラグイン識別子です（ADR-2 §「プラグイン診断プロビナンス」が予約する名前空間`plugin.<plugin-id>`にマッチします）。
+- `version`は解決済みのプラグインgemバージョンです。必須——プラグインのコードが変わった場合はプラグイン由来のファクトを再計算しなければなりません（MUST）。
+- `config_hash`はプラグインの正規化された設定（ソート済みキー、JSON直列化された値）のSHA-256です。2つのプラグインエントリーが設定のみで異なる場合、`:strict_mode`に依存するキャッシュスライスは`:include_paths`に依存するスライスとは独立して無効化されます。
 
 ### `configs`
 
-Each entry pins a single Rigor configuration key whose value
-affected the producer.
+各エントリーはプロデューサーに影響した単一のRigor設定キーをピン留めします。
 
 ```
 ConfigEntry := { key: String, value_hash: String }
 ```
 
-- `key` is the dotted configuration path, e.g. `"target_ruby"`,
-  `"fold_platform_specific_paths"`,
-  `"plugins.rails.eager_load_paths"`.
-- `value_hash` is a SHA-256 of the JSON-serialised configuration
-  value. Hashing keeps the descriptor's payload small even when
-  the configuration value is a large hash or array.
+- `key`はドット区切りの設定パスです（例: `"target_ruby"`、`"fold_platform_specific_paths"`、`"plugins.rails.eager_load_paths"`）。
+- `value_hash`はJSON直列化された設定値のSHA-256です。ハッシュ化によって、設定値が大きなハッシュや配列であってもディスクリプターのペイロードを小さく保てます。
 
-## Composition
+## コンポジション
 
-A cached value's descriptor is the **union** of every dependency
-descriptor that contributed to producing it. Two producers
-contributing the same `(slot, key)` MUST agree on the comparator
-and value; conflicting contributions are a cache integrity error
-and the cache layer surfaces a diagnostic rather than choosing
-silently.
+キャッシュされた値のディスクリプターは、それを生成するために寄与したすべての依存関係ディスクリプターの**和集合**です。同じ`（スロット,キー）`に寄与する2つのプロデューサーはコンパレーターと値について一致しなければなりません（MUST）;競合する寄与はキャッシュ整合性エラーであり、キャッシュレイヤーはサイレントに選択するのではなく診断を表出します。
 
-Composition rules per slot:
+スロット別のコンポジションルール:
 
-- `files`: union by `path`. If two producers attach a `FileEntry`
-  for the same path with different comparators, the **stricter**
-  comparator wins (digest beats mtime beats exists). If the
-  values disagree under the stricter comparator, the cache slice
-  is invalidated.
-- `gems`: union by `name`. Conflicts on `(requirement, locked)`
-  invalidate the slice.
-- `plugins`: union by `id`. Conflicts on `(version, config_hash)`
-  invalidate the slice.
-- `configs`: union by `key`. Conflicts on `value_hash` invalidate
-  the slice.
+- `files`: `path`による和集合。2つのプロデューサーが異なるコンパレーターで同じパスの`FileEntry`を付与する場合、**より厳格な**コンパレーターが勝ちます（digestがmtimeに勝ち、mtimeがexistsに勝ちます）。より厳格なコンパレーター下で値が一致しない場合、キャッシュスライスは無効化されます。
+- `gems`: `name`による和集合。`(requirement, locked)`の競合はスライスを無効化します。
+- `plugins`: `id`による和集合。`(version, config_hash)`の競合はスライスを無効化します。
+- `configs`: `key`による和集合。`value_hash`の競合はスライスを無効化します。
 
-A producer MUST NOT add the same `(slot, key)` to its own
-descriptor twice — duplicate detection is a producer-side bug,
-not a cache-layer concern.
+プロデューサーは自身のディスクリプターに同じ`（スロット,キー）`を2回追加してはなりません（MUST NOT）——重複検出はプロデューサー側のバグであり、キャッシュレイヤーの関心事ではありません。
 
-## Cache key derivation
+## キャッシュキー導出
 
-The cache key for a stored value is a SHA-256 over a stable
-serialisation of:
+格納された値のキャッシュキーは、以下の安定したシリアライゼーションに対するSHA-256です。
 
-1. The schema version (a Rigor-side integer that bumps on
-   breaking schema changes).
-2. The producer's identifier (e.g. `"reflection.method_definition"`,
-   `"plugin.rails.dynamic_attributes"`).
-3. The producer's input parameters (the arguments the producer
-   was called with — for a method-definition cache, the
-   `(class_name, method_name, kind)` tuple).
-4. The composed `Descriptor` (slots sorted, entries sorted by
-   key, hashes lower-cased hex).
+1. スキーマバージョン（破壊的なスキーマ変更時にインクリメントされるRigor側の整数）。
+2. プロデューサーの識別子（例: `"reflection.method_definition"`、`"plugin.rails.dynamic_attributes"`）。
+3. プロデューサーの入力パラメーター（プロデューサーが呼び出された引数——メソッド定義キャッシュの場合は`(class_name, method_name, kind)`タプル）。
+4. コンポーズされた`Descriptor`（スロットはソート済み、エントリーはキーでソート済み、ハッシュは小文字16進数）。
 
-The serialisation MUST be canonical: sorted keys, no whitespace,
-fixed encoding (UTF-8 NFC). Two equivalent descriptors built by
-different code paths MUST produce identical cache keys.
+シリアライゼーションは正規でなければなりません（MUST）: ソート済みキー、空白なし、固定エンコーディング（UTF-8 NFC）。異なるコードパスで構築された2つの等価なディスクリプターは同一のキャッシュキーを生成しなければなりません（MUST）。
 
-## Producer responsibilities
+## プロデューサーの責務
 
-Each cache producer (built-in or plugin) MUST:
+各キャッシュプロデューサー（組み込みまたはプラグイン）はMUST:
 
-- Construct a `Descriptor` for every value it caches, naming
-  every input it read while computing the value.
-- NOT cache values whose inputs include sources outside the
-  declared schema. New input dimensions require a schema change
-  (and an ADR amendment per ADR-2 § "Cache Invalidation Needs a
-  Declarative API").
-- Use the **narrowest** slice the value depends on. A reflection
-  cache for `class_definition_for("Foo")` should depend on the
-  source file declaring `Foo`, not on every file in the project.
-- Surface its producer identifier through the cache key so
-  invalidation is per-producer, not per-class.
+- キャッシュする値ごとに`Descriptor`を構築し、値を計算する際に読んだすべての入力に名前を付ける。
+- 宣言済みスキーマ外のソースを含む入力を持つ値をキャッシュしないこと（MUST NOT）。新しい入力次元はスキーマ変更（およびADR-2 §「キャッシュ無効化には宣言的APIが必要」に従うADR修正）が必要です。
+- 値が依存する**最も狭い**スライスを使用する。`class_definition_for("Foo")`のリフレクションキャッシュは、プロジェクト内のすべてのファイルではなく、`Foo`を宣言するソースファイルに依存すべきです。
+- プロデューサー識別子をキャッシュキーを通して公開し、無効化がクラスごとではなくプロデューサーごとになるようにする。
 
-## Invalidation policy
+## 無効化ポリシー
 
-A cache value is **valid** when, for every entry in its
-`Descriptor`, the live value of the entry's input matches the
-cached value:
+キャッシュ値は、その`Descriptor`内のすべてのエントリーについて、エントリーの入力のライブ値がキャッシュされた値と一致する場合に**有効**です。
 
-- `FileEntry` with `:digest`: live SHA-256 equals cached value.
-- `FileEntry` with `:mtime`: live mtime equals cached value.
-- `FileEntry` with `:exists`: live existence equals cached value.
-- `GemEntry`: live `requirement` and live `locked` match.
-- `PluginEntry`: live plugin version and config-hash match.
-- `ConfigEntry`: live value-hash matches.
+- `FileEntry`（`:digest`）: ライブのSHA-256がキャッシュされた値と等しい。
+- `FileEntry`（`:mtime`）: ライブのmtimeがキャッシュされた値と等しい。
+- `FileEntry`（`:exists`）: ライブの存在がキャッシュされた値と等しい。
+- `GemEntry`: ライブの`requirement`とライブの`locked`が一致する。
+- `PluginEntry`: ライブのプラグインバージョンとconfig-hashが一致する。
+- `ConfigEntry`: ライブのvalue-hashが一致する。
 
-Any single mismatch invalidates the cache value. The cache
-layer MUST drop the value and re-run the producer; it MUST NOT
-attempt partial invalidation across slot entries.
+単一の不一致でもキャッシュ値が無効化されます。キャッシュレイヤーは値を削除してプロデューサーを再実行しなければなりません（MUST）;スロットエントリー間での部分的な無効化を試みてはなりません（MUST NOT）。
 
-## Granularity guidance
+## 粒度ガイダンス
 
-ADR-2 nominates the **narrowest practical slice** for every
-producer. Concretely:
+ADR-2はすべてのプロデューサーに対して**実用的な最狭スライス**を指定しています。具体的には:
 
-| Producer family | Per-slice key | Example dependency descriptor |
+| プロデューサーファミリー | スライスごとのキー | 依存関係ディスクリプターの例 |
 | --- | --- | --- |
-| `reflection.class_definition_for(name)` | `name` | `files: [<file declaring class>]` + `gems: [<rbs gem locked>]` |
-| `reflection.method_definition_for(class, method, kind)` | `(class, method, kind)` | inherits `class_definition_for(class)` deps + RBS-side method-record file |
-| `inference.user_method_return(def_node)` | def-node fingerprint | `files: [<def's source file>]` + every reflection / catalog dep transitively read |
-| `plugin.<id>.<provider>` | provider's own key | `files`, `gems`, `plugins: [<id, version, config_hash>]`, `configs: [<keys read>]` |
+| `reflection.class_definition_for(name)` | `name` | `files: [<クラスを宣言するファイル>]` + `gems: [<rbs gem locked>]` |
+| `reflection.method_definition_for(class, method, kind)` | `(class, method, kind)` | `class_definition_for(class)`の依存関係を継承 + RBS側メソッドレコードファイル |
+| `inference.user_method_return(def_node)` | defノードフィンガープリント | `files: [<defのソースファイル>]` + 推移的に読まれたすべてのリフレクション / カタログ依存関係 |
+| `plugin.<id>.<provider>` | プロバイダー独自のキー | `files`、`gems`、`plugins: [<id, version, config_hash>]`、`configs: [<読まれたキー>]` |
 | `catalog.<class>.method_record(name)` | `(class, name)` | `files: [<data/builtins/ruby_core/<class>.yml mtime>]` |
 
-Plugin-wide invalidation (depending on the whole plugin's
-configuration) is permitted but discouraged. The preferred
-grain is per dynamic-member provider, generated-signature unit,
-receiver family, or flow contribution — see ADR-2's working
-response to "Cache Invalidation Needs a Declarative API".
+プラグイン全体の無効化（プラグインの設定全体に依存する）は許容されますが推奨されません。推奨される粒度は動的メンバープロバイダーごと、生成済みシグネチャ単位ごと、レシーバーファミリーごと、またはフロー貢献ごとです——ADR-2の「キャッシュ無効化には宣言的APIが必要」に対する作業上の回答を参照してください。
 
-## Schema versioning
+## スキーマバージョニング
 
-The schema version is part of the cache key. Bumping it
-invalidates every cached value. Versioning rules:
+スキーマバージョンはキャッシュキーの一部です。これをインクリメントするとすべてのキャッシュ値が無効化されます。バージョニングルール:
 
-- **Additive change** (new optional comparator, new slot entry
-  shape that defaults to nil for older producers): no version
-  bump required. Older descriptors stay readable.
-- **Renaming or removing a slot or comparator**: bump the
-  version. Old caches drop on first read of a value with the
-  old schema marker.
-- **Adding a new top-level slot** (e.g. `env_vars`, `host`):
-  ADR amendment + version bump. ADR-2 explicitly notes that
-  environment variables would be such a change.
+- **アディティブな変更**（新しいオプショナルなコンパレーター、古いプロデューサーに対してデフォルトでnilになる新しいスロットエントリー形状）: バージョンバンプは不要。古いディスクリプターは読み取り可能のまま。
+- **スロットまたはコンパレーターの名前変更または削除**: バージョンをバンプする。古いキャッシュは古いスキーママーカーを持つ値の最初の読み取り時にドロップされます。
+- **新しいトップレベルスロットの追加**（例: `env_vars`、`host`）: ADR修正 + バージョンバンプ。ADR-2は環境変数がそのような変更になることを明示的に記しています。
 
-## Worked example
+## 実例
 
-`Rigor::Reflection.instance_method_definition("Hash", :fetch)`
-produces a cached `MethodDefinition`. Its descriptor:
+`Rigor::Reflection.instance_method_definition("Hash", :fetch)`はキャッシュされた`MethodDefinition`を生成します。そのディスクリプター:
 
 ```
 files: [
@@ -303,62 +186,29 @@ plugins: []
 configs: []
 ```
 
-Producer identifier: `"reflection.instance_method_definition"`.
-Input params: `(class_name: "Hash", method_name: :fetch)`.
+プロデューサー識別子: `"reflection.instance_method_definition"`。
+入力パラメーター: `(class_name: "Hash", method_name: :fetch)`。
 
-Cache key: SHA-256 of canonical-JSON over
-`(schema_version, producer_id, params, descriptor)`.
+キャッシュキー: `(schema_version, producer_id, params, descriptor)`に対する正規JSONのSHA-256。
 
-When the user upgrades RBS to 4.1.0, the locked version changes,
-the descriptor's `gems` entry no longer matches, the cache value
-is dropped, and the next analysis re-resolves the method through
-RBS. **Only Hash#fetch's cache slice and other slices that depend
-on the `rbs` gem invalidate** — every other reflection cache
-that does not name the `rbs` gem stays valid.
+ユーザーがRBSを4.1.0にアップグレードすると、ロックバージョンが変わり、ディスクリプターの`gems`エントリーがマッチしなくなり、キャッシュ値がドロップされ、次の解析でRBSを通じてメソッドが再解決されます。**無効化されるのはHash#fetchのキャッシュスライスと`rbs` gemに依存する他のスライスのみ**——`rbs` gemを参照しない他のリフレクションキャッシュはすべて有効のまま残ります。
 
-## Open questions
+## 未解決の問題
 
-These are intentionally left for the implementation phase; the
-working response is the design contract.
+これらは意図的に実装フェーズに委ねられています;作業上の回答が設計上の契約です。
 
-1. **Concurrent cache writes.** Multi-process `rigor check` runs
-   could race. Working answer: file-locked sqlite with a single
-   writer process, per-key writes. v0.1.0 ships with a single-
-   process model; concurrency comes later.
-2. **Cache size cap.** No bound today. Working answer: LRU with
-   a configurable byte cap, defaulting to a generous bound (e.g.
-   256 MiB) so most projects never hit it.
-3. **Plugin trust + cache poisoning.** A malicious plugin could
-   write descriptors that always claim valid. Working answer:
-   the trusted-gem trust model from ADR-2 holds — plugins are
-   selected by the user's Gemfile and are trusted Ruby code.
-   Cache integrity beyond that is an in-process invariant, not
-   a security boundary.
-4. **Cross-Ruby compatibility.** Cache built under Ruby 4.0
-   probably should not be reused under Ruby 4.1. Working
-   answer: the schema version implicitly captures Rigor-side
-   structural changes; Ruby version goes into the cache key as
-   part of the producer identifier suffix.
-5. **`Gemfile.lock` parser implementation.** Bundler-side or
-   hand-rolled? Working answer: Bundler when available, fall
-   back to a regex parser for the few fields the schema needs
-   (gem name + locked version). The cache layer itself does
-   not need Bundler runtime.
+1. **同時キャッシュ書き込み。**マルチプロセスの`rigor check`実行が競合する可能性があります。作業上の回答: 単一ライタープロセスによるキーごとの書き込みを持つファイルロックされたsqlite。v0.1.0は単一プロセスモデルでリリース;同時実行性は後で対応。
+2. **キャッシュサイズ上限。**現在は上限なし。作業上の回答: 設定可能なバイト上限（デフォルトは寛大な上限、例えば256 MiB）を持つLRUで、ほとんどのプロジェクトが到達しないようにします。
+3. **プラグインの信頼 + キャッシュポイズニング。**悪意のあるプラグインが常に有効と主張するディスクリプターを書く可能性があります。作業上の回答: ADR-2の信頼済みgemトラストモデルが維持されます——プラグインはユーザーのGemfileによって選択され、信頼されたRubyコードです。それ以上のキャッシュ整合性はインプロセスの不変条件であり、セキュリティ境界ではありません。
+4. **クロスRuby互換性。** Ruby 4.0でビルドされたキャッシュはRuby 4.1では再利用すべきではないでしょう。作業上の回答: スキーマバージョンはRigor側の構造的変更を暗黙的にキャプチャします; Rubyバージョンはプロデューサー識別子サフィックスの一部としてキャッシュキーに入ります。
+5. **`Gemfile.lock`パーサーの実装。** Bundler側またはハンドロール？作業上の回答: Bundlerが利用可能な場合はBundlerを使い、スキーマが必要なわずかなフィールド（gem名 + ロックバージョン）に対してはregexパーサーにフォールバックします。キャッシュレイヤー自体はBundlerランタイムを必要としません。
 
-## Status of the design doc itself
+## 設計ドキュメント自体のステータス
 
-This is a snapshot of the v0.0.7 working tree's cache design
-intent. It will be updated when:
+これはv0.0.7ワーキングツリーのキャッシュ設計意図のスナップショットです。以下の場合に更新されます。
 
-- The persistence layer's first implementation slice lands —
-  storage backend, locking model, eviction policy.
-- ADR-2's open questions on cache (concurrent writes, size
-  caps, environment-variable input slot) close into normative
-  rules.
-- A producer family beyond reflection / inference / catalog /
-  plugin needs cache-key support and exposes a new slot or
-  composition rule.
+- 永続化レイヤーの最初の実装スライスが着地した時——ストレージバックエンド、ロックモデル、退避ポリシー。
+- ADR-2のキャッシュに関する未解決の問題（同時書き込み、サイズ上限、環境変数入力スロット）が規範的なルールに収束した時。
+- リフレクション / 推論 / カタログ / プラグイン以外のプロデューサーファミリーがキャッシュキーサポートを必要とし、新しいスロットやコンポジションルールを公開した時。
 
-After the persistence layer ships in v0.1.0, this document is
-superseded by the normative spec in `docs/internal-spec/cache.md`
-and stays in `docs/design/` as a historical record.
+永続化レイヤーがv0.1.0でリリースされた後、このドキュメントは`docs/internal-spec/cache.md`の規範的仕様に取って代わられ、歴史的記録として`docs/design/`に残ります。

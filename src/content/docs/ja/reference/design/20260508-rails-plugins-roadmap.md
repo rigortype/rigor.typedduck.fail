@@ -5,108 +5,70 @@ editUrl: "https://github.com/rigortype/rigor/edit/main/docs/design/20260508-rail
 sourcePath: "docs/design/20260508-rails-plugins-roadmap.md"
 sourceSha: "f5721d702f770a744dfa12499411c47406e78373ad264720289c854421569d26"
 sourceCommit: "9f40e22193647dc06e3ab70c5ba82768b0bfe738"
-translationStatus: "pending"
+translationStatus: "translated"
 sidebar:
   order: 20265508
 ---
 
-> [!NOTE]
-> このページはまだ翻訳されていません。英語版の本文を参考表示しています。
+ステータス: **計画中、2026-05-08。**このドキュメントはRailsアプリ向けの`rigor-*`プラグインファミリーの計画をキャプチャしています。情報提供目的であり、個々のプラグイン契約の拘束力のあるソースは各プラグインのディレクトリ下の`README.md`と統合仕様に残ります。
 
-Status: **planning, 2026-05-08.** This document captures the
-planned `rigor-*` plugin family for Rails apps. It is informational;
-the binding sources for individual plugin contracts remain the
-`README.md` and integration spec under each plugin's directory.
+このファミリーの最初のプラグイン——[`rigor-activerecord`](../../examples/rigor-activerecord/)——は`master`（コミット`e8fda84`）に着地し、[`.codex/skills/rigor-plugin-author/SKILL.md`](https://github.com/rigortype/rigor/blob/main/.codex/skills/rigor-plugin-author/SKILL.md)の「モノリポでスタート、契約が安定したら`git subtree split`で抽出」規律に従ってモノリポにステージされています。
 
-The first plugin in this family — [`rigor-activerecord`](../../examples/rigor-activerecord/) —
-landed on `master` (commit `e8fda84`) and is staged in the
-monorepo per [`.codex/skills/rigor-plugin-author/SKILL.md`](https://github.com/rigortype/rigor/blob/main/.codex/skills/rigor-plugin-author/SKILL.md)'s
-"start in monorepo, extract via `git subtree split` once stable"
-discipline.
+## 作業原則
 
-## Working principles
+1. **各プラグインはサブツリー分割されます** — 実際のRailsコンシューマーに対してその契約が安定したら、独自のリポジトリ（`rigortype/rigor-<id>`）に。モノリポはインキュベーター;最終的な置き場は独立したgemです。
+2. **プラグインごとの`demo/`ディレクトリがプラグインとともにリリースされます。**プラグイン間で共有されるRailsアプリスケルトンなし——サブツリー分割後、各`demo/`はプラグインとともに移動し、自己完結していなければなりません。Railsシェイプのディレクトリツリー（例: `app/models/application_record.rb`）の重複は、クリーンな抽出と引き換えに許容されます。
+3. **Railsへの実際のアラインメントは目標であり、ランタイム依存関係ではありません。**プラグインのソースコードは`require "rails"` / `require "active_record"`を**しません**。プロジェクトのソースファイルを解析します。しかし、プラグインの動作（生成されるパスヘルパー、受け入れられるカラム型、認識されるフィルターチェーン）は、同じ入力に対してRailsが実際に生成 / 受け入れるものとMATCHしなければなりません。同じ`config/routes.rb`に対して小さなRailsアプリの`rails routes -E` / スキーマダンプ出力とプラグイン出力を比較する統合仕様を推奨します。
+4. **クロスプラグインファクトは共有APIを通じて流れます。** `rigor-actionpack`のストロングパラメーターコンシューマーは`rigor-activerecord`が構築するモデルインデックスを必要とします。そのクロスプラグインハンドオフはv0.1.xのクロスプラグインAPI（[ADR-9](../../adr/9-cross-plugin-api/)）を通じて行われ、重複した読み取りや共有キャッシュプロデューサーIDを通じてではありません。
 
-1. **Each plugin will be subtree-split** to its own repository
-   (`rigortype/rigor-<id>`) once its contract has stabilised
-   against a real Rails consumer. The monorepo is the
-   incubator; the eventual home is independent gems.
-2. **Per-plugin `demo/` directories ship with their plugin.**
-   No shared Rails-app skeleton across plugins — after
-   subtree-split each `demo/` travels with its plugin and must
-   be self-contained. Some duplication of Rails-shaped
-   directory tree (e.g. `app/models/application_record.rb`) is
-   accepted in exchange for clean extraction.
-3. **Real-Rails alignment is a goal, not a runtime
-   dependency.** The plugin source code does NOT
-   `require "rails"` / `require "active_record"`. It analyses
-   project source files. But the plugin's behaviour (path
-   helpers generated, column types accepted, filter chains
-   recognised) MUST match what real Rails generates / accepts
-   for the same input. Integration specs that compare plugin
-   output against a small real Rails app's `rails routes -E` /
-   schema dump output are encouraged.
-4. **Cross-plugin facts go through a shared API.** The
-   `rigor-actionpack` strong-params consumer needs the model
-   index `rigor-activerecord` builds. That cross-plugin handoff
-   is via the v0.1.x cross-plugin API ([ADR-9](../../adr/9-cross-plugin-api/)),
-   not via duplicated reads or shared cache producer ids.
+## プラグインティアテーブル
 
-## Plugin tier table
+Tier 1プラグインは最高のユーザー価値を持ち、かつ解析器側の新しいAPIを必要としないため最初に着地します。Tier 2は既存プラグインを拡張するかADR-9がリリースするクロスプラグインAPIを必要とします。Tier 3は特化型——具体的なユーザー需要があれば作成します。
 
-Tier 1 plugins land first because they have the highest user
-value AND do not require new analyser-side API. Tier 2 either
-extends an existing plugin or needs the cross-plugin API ADR-9
-ships. Tier 3 is specialised — author when there is concrete
-user demand.
-
-| Tier | Plugin | Scope | API needs |
+| ティア | プラグイン | スコープ | API要件 |
 | --- | --- | --- | --- |
-| 1A | [`rigor-rails-routes`](#rigor-rails-routes) | Real `config/routes.rb` DSL → `*_path` / `*_url` validation | Current API |
-| 1B | [`rigor-rails-i18n`](#rigor-rails-i18n) | `config/locales/*.yml` → `t('key.path')` validation | Current API |
-| 1C | [`rigor-actionmailer`](#rigor-actionmailer) | Mailer methods + view template existence | Current API |
-| 1D | [`rigor-activejob`](#rigor-activejob) | Job `perform` arity | Current API |
-| 2A | `rigor-activerecord` extension | associations, enums, scopes, validations, callbacks | Current API; landed as 0.2.0+ of the existing gem |
-| 2B | [`rigor-actionpack`](#rigor-actionpack) Phase 1 | Strong parameters → AR column validation | **Cross-plugin API (ADR-9)** |
-| 2C | [`rigor-factorybot`](#rigor-factorybot) | Factory attribute → AR column validation | Cross-plugin API |
-| 2D | `rigor-actionpack` Phase 2-4 | Filter chains, render targets, route-helper consumption | Cross-plugin API |
-| 3A | [`rigor-rspec`](#rigor-rspec) | `let` / `subject` / mock target validation | Current API |
-| 3B | [`rigor-pundit`](#rigor-pundit) | Policy method existence + `authorize` arg validation | Current API |
-| 3C | `rigor-sidekiq` | Worker `perform` arity, queue config | Current API |
-| 3D | `rigor-graphql` | Schema → resolver argument types | Current API |
-| 3E | `rigor-activestorage` | `has_one_attached` macros + generated methods | Cross-plugin API |
-| 3F | `rigor-actioncable` | Channel methods + broadcast names | Current API |
+| 1A | [`rigor-rails-routes`](#rigor-rails-routes) | 実際の`config/routes.rb` DSL → `*_path` / `*_url`バリデーション | 現行API |
+| 1B | [`rigor-rails-i18n`](#rigor-rails-i18n) | `config/locales/*.yml` → `t('key.path')`バリデーション | 現行API |
+| 1C | [`rigor-actionmailer`](#rigor-actionmailer) | メーラーメソッド + ビューテンプレート存在確認 | 現行API |
+| 1D | [`rigor-activejob`](#rigor-activejob) | ジョブ`perform`の引数アリティ | 現行API |
+| 2A | `rigor-activerecord`拡張 | アソシエーション、enum、スコープ、バリデーション、コールバック | 現行API;既存gemの0.2.0+として着地 |
+| 2B | [`rigor-actionpack`](#rigor-actionpack) Phase 1 | ストロングパラメーター → ARカラムバリデーション | **クロスプラグインAPI（ADR-9）** |
+| 2C | [`rigor-factorybot`](#rigor-factorybot) | ファクトリー属性 → ARカラムバリデーション | クロスプラグインAPI |
+| 2D | `rigor-actionpack` Phase 2-4 | フィルターチェーン、レンダーターゲット、ルートヘルパー消費 | クロスプラグインAPI |
+| 3A | [`rigor-rspec`](#rigor-rspec) | `let` / `subject` / モックターゲットバリデーション | 現行API |
+| 3B | [`rigor-pundit`](#rigor-pundit) | ポリシーメソッド存在 + `authorize`引数バリデーション | 現行API |
+| 3C | `rigor-sidekiq` | ワーカー`perform`のアリティ、キュー設定 | 現行API |
+| 3D | `rigor-graphql` | スキーマ → リゾルバー引数型 | 現行API |
+| 3E | `rigor-activestorage` | `has_one_attached`マクロ + 生成メソッド | クロスプラグインAPI |
+| 3F | `rigor-actioncable` | チャンネルメソッド + ブロードキャスト名 | 現行API |
 
-After Tier 1+2 lands, **`rigor-rails`** becomes a meta-gem that
-declares these dependencies in its gemspec and lets users add
-one line to their Gemfile to opt into the whole stack.
+Tier 1+2が着地した後、**`rigor-rails`**はこれらの依存関係をgemspecで宣言し、ユーザーがGemfileに1行追加するだけでスタック全体にオプトインできるメタgemになります。
 
-## Plugin sketches
+## プラグインスケッチ
 
 ### rigor-rails-routes
 
-**Tier 1A — current API.** Parses real `config/routes.rb` (not
-the YAML simplification `examples/rigor-routes/` uses for
-teaching purposes).
+**Tier 1A — 現行API。**実際の`config/routes.rb`を解析します（教育目的で`examples/rigor-routes/`が使用するYAML簡略化ではなく）。
 
-DSL surface for v0.1.0 of the plugin:
+プラグインのv0.1.0向けDSLサーフェス:
 
-- `Rails.application.routes.draw do ... end` block
+- `Rails.application.routes.draw do ... end`ブロック
 - `resources :name [, only: [...] | except: [...]]`
 - `resource :name`
 - `get/post/patch/put/delete "/path", to: "controller#action", as: :name`
 - `root to: "controller#action"`
-- Nested `resources` (1 level deep)
+- ネストされた`resources`（1レベル深さ）
 - `member do ... end` / `collection do ... end`
-- `namespace :admin do ... end` (prefixes path + helper name)
+- `namespace :admin do ... end`（パス + ヘルパー名にプレフィックスを付ける）
 
-Out of scope for v0.1.0:
+v0.1.0のスコープ外:
 - `scope :module:` / `scope :path:` / `scope :as:`
-- Constraints (`constraints: { id: /\d+/ }`)
-- Custom `direct(:name) { |obj| ... }`
-- Mountable engines (`mount Sidekiq::Web => "/sidekiq"`)
-- Format restrictions
+- 制約（`constraints: { id: /\d+/ }`）
+- カスタム`direct(:name) { |obj| ... }`
+- マウント可能エンジン（`mount Sidekiq::Web => "/sidekiq"`）
+- フォーマット制限
 
-**Diagnostics:**
+**診断:**
 
 ```text
 controllers/users_controller.rb:42:7: info: `user_post_path` → GET /users/:user_id/posts/:id
@@ -114,39 +76,28 @@ controllers/users_controller.rb:50:1: error: no route helper `widgts_path` (did 
 controllers/users_controller.rb:51:1: error: `user_path` expects 1 argument (:id), got 0
 ```
 
-**Architecture:** Mirrors `rigor-activerecord`'s `SchemaParser`
-recursive-descent on Prism, plus `rigor-routes`' helper-name
-table. Helper generation rules need careful real-Rails
-verification — see "Real-Rails alignment" below.
+**アーキテクチャ:** `rigor-activerecord`のPrism上の`SchemaParser`再帰下降と`rigor-routes`のヘルパー名テーブルを組み合わせます。ヘルパー生成ルールは実際のRailsによる慎重な検証が必要——下記「Railsへの実際のアラインメント」を参照。
 
-**Real-Rails alignment:** integration spec compares the
-plugin's `HelperTable` against `rails routes -E`'s output for
-the same `config/routes.rb`. A small Rails app under
-`demo/` provides the reference.
+**Railsへの実際のアラインメント:**統合仕様は同じ`config/routes.rb`に対してプラグインの`HelperTable`を`rails routes -E`の出力と比較します。`demo/`下の小さなRailsアプリがリファレンスを提供します。
 
 ---
 
 ### rigor-rails-i18n
 
-**Tier 1B — current API.** Validates `t('key.path')` against
-`config/locales/*.yml`.
+**Tier 1B — 現行API。** `config/locales/*.yml`に対して`t('key.path')`を検証します。
 
-Surface:
+サーフェス:
 
 - `t('key.path')` / `I18n.t('key.path')` / `I18n.translate('key.path')`
-- `t('key.path', interpolation_var: value)` — validates the
-  interpolation keys against the `%{var}` placeholders in the
-  locale value
-- `l(time, format: :short)` — validates `:short` against the
-  locale's date format keys
+- `t('key.path', interpolation_var: value)` — ロケール値内の`%{var}`プレースホルダーに対して補間キーを検証します
+- `l(time, format: :short)` — ロケールの日付フォーマットキーに対して`:short`を検証します
 
-Out of scope for v0.1.0:
-- Lazy lookup (`t('.title')` resolved against the rendered
-  controller / view path — needs `rigor-actionpack`)
-- Locale fallbacks chains
-- Plural rules
+v0.1.0のスコープ外:
+- 遅延ルックアップ（レンダリングされたコントローラー / ビューパスに対して解決される`t('.title')`——`rigor-actionpack`が必要）
+- ロケールフォールバックチェーン
+- 複数形ルール
 
-**Diagnostics:**
+**診断:**
 
 ```text
 view.html.erb:5:1: info: `t('users.welcome')` resolves in en, ja
@@ -154,18 +105,15 @@ view.html.erb:8:1: error: missing key `users.welcom` in en (did you mean `users.
 view.html.erb:12:1: error: `users.welcome` expects interpolation `name`, got `username`
 ```
 
-**Architecture:** `rigor-routes` (YAML reads) + `rigor-pattern`
-(literal-string gating for `t(literal_key)`). Glob-loop the
-locale paths through `IoBoundary`.
+**アーキテクチャ:** `rigor-routes`（YAML読み取り） + `rigor-pattern`（`t(literal_key)`のリテラル文字列ゲーティング）。`IoBoundary`を通じてロケールパスをグロブループします。
 
 ---
 
 ### rigor-actionmailer
 
-**Tier 1C — current API.** Validates Mailer call shape and
-view path existence.
+**Tier 1C — 現行API。**メーラーコールの形状とビューパスの存在を検証します。
 
-Surface:
+サーフェス:
 
 ```ruby
 class UserMailer < ApplicationMailer
@@ -180,21 +128,17 @@ UserMailer.welcome.deliver_now          # error: missing required arg
 UserMailer.welcome(user, foo: 1)        # error: wrong arity
 ```
 
-Plus existence check for `app/views/<mailer_underscore>/<method_name>.{html,text}.erb`.
+さらに`app/views/<mailer_underscore>/<method_name>.{html,text}.erb`の存在チェック。
 
-**Architecture:** `rigor-activerecord`'s `ModelDiscoverer`
-pattern adapted to mailer classes (subclass of
-`ApplicationMailer` / `ActionMailer::Base`). View path checked
-via `IoBoundary`.
+**アーキテクチャ:** `rigor-activerecord`の`ModelDiscoverer`パターンをメーラークラス（`ApplicationMailer` / `ActionMailer::Base`のサブクラス）に適用。ビューパスは`IoBoundary`経由でチェック。
 
 ---
 
 ### rigor-activejob
 
-**Tier 1D — current API.** Validates `Job.perform_later`
-argument arity against the job class's `#perform` definition.
+**Tier 1D — 現行API。**ジョブクラスの`#perform`定義に対して`Job.perform_later`の引数アリティを検証します。
 
-Surface:
+サーフェス:
 
 ```ruby
 class WelcomeEmailJob < ApplicationJob
@@ -208,19 +152,15 @@ WelcomeEmailJob.perform_later                   # error: missing user_id
 WelcomeEmailJob.perform_later(123, "ja", :foo)  # error: wrong arity
 ```
 
-**Architecture:** Tiny — class discovery + per-call arity check.
-Same pattern as `rigor-actionmailer`.
+**アーキテクチャ:**小規模——クラス発見 + コールごとのアリティチェック。`rigor-actionmailer`と同じパターン。
 
 ---
 
 ### rigor-actionpack
 
-**Tier 2B+2D — needs cross-plugin API (ADR-9).** The flagship
-"Rails apps want this" plugin, but its primary value comes
-from cross-checking against `rigor-activerecord`'s model
-index. Phased rollout:
+**Tier 2B+2D — クロスプラグインAPI（ADR-9）が必要。**「Railsアプリがこれを望む」旗艦プラグインですが、主な価値は`rigor-activerecord`のモデルインデックスとのクロスチェックから生まれます。段階的なロールアウト:
 
-#### Phase 1 — strong parameters
+#### Phase 1 — ストロングパラメーター
 
 ```ruby
 def user_params
@@ -229,12 +169,9 @@ def user_params
 end
 ```
 
-Reads ADR-9's `services.fact_store` for `rigor-activerecord`'s
-`:model_index` fact. Resolves `:user` (Symbol arg of `require`)
-to the `User` model, then validates `permit` keys against the
-table.
+ADR-9の`services.fact_store`から`rigor-activerecord`の`:model_index`ファクトを読みます。`require`のSymbol引数`:user`を`User`モデルに解決し、`permit`キーをテーブルに対して検証します。
 
-#### Phase 2 — filter chains
+#### Phase 2 — フィルターチェーン
 
 ```ruby
 class UsersController < ApplicationController
@@ -244,11 +181,9 @@ class UsersController < ApplicationController
 end
 ```
 
-Two-pass within the controller class: collect action method
-declarations, then validate filter `:method_name` and `only:` /
-`except:` Symbol lists.
+コントローラークラス内での2パス: アクションメソッド宣言を収集し、フィルター`:method_name`と`only:` / `except:` Symbolリストを検証します。
 
-#### Phase 3 — render targets
+#### Phase 3 — レンダーターゲット
 
 ```ruby
 def show
@@ -257,9 +192,9 @@ def show
 end
 ```
 
-`IoBoundary` checks for the partial file's existence.
+`IoBoundary`でパーシャルファイルの存在を確認します。
 
-#### Phase 4 — route-helper consumption
+#### Phase 4 — ルートヘルパー消費
 
 ```ruby
 def show
@@ -267,17 +202,13 @@ def show
 end
 ```
 
-Consumes `rigor-rails-routes`' `:helper_table` fact through
-ADR-9. Validates the helper name + arity at the call site (not
-at the controller-defining file — the controller might be
-called from anywhere).
+ADR-9を通じて`rigor-rails-routes`の`:helper_table`ファクトを消費します。コールサイトでヘルパー名 + アリティを検証します（コントローラー定義ファイルではなく——コントローラーはどこからでも呼び出される可能性があります）。
 
 ---
 
 ### rigor-factorybot
 
-**Tier 2C — needs cross-plugin API.** Factory attribute
-validation against AR columns.
+**Tier 2C — クロスプラグインAPIが必要。**ファクトリー属性のARカラムに対するバリデーション。
 
 ```ruby
 FactoryBot.define do
@@ -291,15 +222,13 @@ create(:usre)                  # error: factory undefined (did you mean :user?)
 build(:user, emial: "x")       # error: column mismatch
 ```
 
-Two-phase: discover factory definitions (similar to
-rigor-statesman), then validate use sites. Consumes
-`rigor-activerecord`'s model index via ADR-9 fact_store.
+2フェーズ: ファクトリー定義を発見（`rigor-statesman`に類似）し、使用サイトを検証。ADR-9の`fact_store`を通じて`rigor-activerecord`のモデルインデックスを消費します。
 
 ---
 
 ### rigor-rspec
 
-**Tier 3A — current API.** Test DSL flow tracking.
+**Tier 3A — 現行API。**テストDSLのフロー追跡。
 
 ```ruby
 RSpec.describe User do
@@ -313,31 +242,24 @@ RSpec.describe User do
 end
 ```
 
-Heavy implementation (RSpec DSL is broad). Expected size:
-600+ lines. Author when test-side validation becomes a clear
-priority — likely Tier 3 because Rails apps benefit more from
-controller / model / view validation first.
+実装が重い（RSpec DSLは幅広い）。予想サイズ: 600行超。テスト側のバリデーションが明確な優先事項になったら作成——Railsアプリはコントローラー / モデル / ビューのバリデーションからより多くの恩恵を受けるため、おそらくTier 3。
 
 ---
 
 ### rigor-pundit
 
-**Tier 3B — current API.** Policy method existence + `authorize`
-arg validation.
+**Tier 3B — 現行API。**ポリシーメソッドの存在 + `authorize`引数バリデーション。
 
 ```ruby
 authorize @user, :update?
 authorize @user, :destory?      # error: undefined policy method (did you mean :destroy?)
 ```
 
-Policy class discoverer + per-call validation. Conventional
-mapping: `User` → `UserPolicy`, action method `:update?` →
-`UserPolicy#update?`. `cancancan` is a separate plugin with
-similar shape but different convention.
+ポリシークラス発見器 + コールごとのバリデーション。慣習的なマッピング: `User` → `UserPolicy`、アクションメソッド`:update?` → `UserPolicy#update?`。`cancancan`は類似した形状だが異なる慣習を持つ別のプラグイン。
 
 ---
 
-## Plugin dependency graph
+## プラグイン依存関係グラフ
 
 ```
                                    ┌────────────────────────┐
@@ -371,49 +293,28 @@ similar shape but different convention.
    └──────────────────────┘  └──────────────────────┘
 ```
 
-`rigor-rails` (meta-gem) sits above all of these and pulls
-them in via gem dependencies. Users who want the whole stack:
-`gem "rigor-rails"`.
+`rigor-rails`（メタgem）はこれらすべての上位に位置し、gem依存関係を通じてすべてを取り込みます。スタック全体を欲しいユーザーには: `gem "rigor-rails"`。
 
-## Demo / test app strategy
+## デモ / テストアプリ戦略
 
-**Per-plugin self-contained demos.** Each `examples/rigor-<id>/demo/`
-ships a small Rails-shaped directory tree appropriate to the
-plugin's scope. After `git subtree split`, the demo travels
-with the plugin without manual fix-up.
+**プラグインごとの自己完結型デモ。**各`examples/rigor-<id>/demo/`はプラグインのスコープに適した小さなRailsシェイプのディレクトリツリーをリリースします。`git subtree split`後、デモは手動での修正なしにプラグインとともに移動します。
 
-For Tier 1+2 plugins that need a cross-cutting Rails app
-(strong params + AR + routes), the demo is still per-plugin —
-each plugin's demo includes only the Rails surfaces THAT
-plugin needs. `rigor-actionpack`'s demo carries a controller
-file and an `application_record.rb` for the model fixture, but
-NOT a full Rails directory tree.
+クロスカットなRailsアプリ（ストロングパラメーター + AR + ルート）を必要とするTier 1+2プラグインの場合でも、デモはプラグインごとです——各プラグインのデモは**そのプラグイン**が必要とするRailsサーフェスのみを含みます。`rigor-actionpack`のデモはコントローラーファイルとモデルフィクスチャーの`application_record.rb`を持ちますが、フルRailsディレクトリツリーはありません。
 
-For real-Rails verification: integration specs may exec a
-small `rails new` skeleton in a tmpdir and compare plugin
-output against `rails routes -E` / `db:schema:dump` etc., but
-that is a TEST-time tool, not a demo-time fixture.
+Railsへの実際の検証: 統合仕様はtmpdirに小さな`rails new`スケルトンをexecし、プラグイン出力を`rails routes -E` / `db:schema:dump`等と比較することがありますが、それはTESTツールであり、デモ時のフィクスチャーではありません。
 
-## Subtree-split readiness checklist
+## サブツリー分割準備チェックリスト
 
-Per plugin, verify before splitting:
+プラグインごとに、分割前に確認:
 
-- [ ] `examples/rigor-<id>/` directory is self-contained
-      (no `require_relative`s pointing outside).
-- [ ] `examples/rigor-<id>/demo/` runs cleanly via
-      `RUBYLIB=$PWD/../lib bundle exec rigor check`.
-- [ ] Integration spec at `spec/integration/examples/<id>_plugin_spec.rb`
-      passes with the plugin loaded as a real
-      `Plugin::Loader.load` consumer.
-- [ ] Plugin's `gemspec` declares the right semver range on
-      `rigortype` (e.g. `>= 0.1.0, < 0.2.0`).
-- [ ] No cross-plugin file references — cross-plugin
-      data flows only through `services.fact_store`
-      (post-ADR-9) or through duplicated reads (pre-ADR-9).
-- [ ] README has the "Future direction" section explaining
-      what's queued post-extraction.
+- [ ] `examples/rigor-<id>/`ディレクトリが自己完結している（外部を指す`require_relative`がない）。
+- [ ] `examples/rigor-<id>/demo/`が`RUBYLIB=$PWD/../lib bundle exec rigor check`でクリーンに実行される。
+- [ ] `spec/integration/examples/<id>_plugin_spec.rb`の統合仕様が実際の`Plugin::Loader.load`コンシューマーとしてプラグインがロードされた状態でパスする。
+- [ ]プラグインの`gemspec`が`rigortype`に対する正しいsemver範囲を宣言している（例: `>= 0.1.0, < 0.2.0`）。
+- [ ]クロスプラグインファイル参照なし——クロスプラグインデータは`services.fact_store`（ADR-9以降）または重複した読み取り（ADR-9以前）のみを通じて流れる。
+- [ ] READMEに抽出後にキューに入れられているものを説明する「将来の方向性」セクションがある。
 
-When all check, run:
+すべてチェックが付いたら実行:
 
 ```sh
 git subtree split --prefix=examples/rigor-<id> -b rigor-<id>-extracted
@@ -421,34 +322,15 @@ git remote add rigor-<id> git@github.com:rigortype/rigor-<id>.git
 git push rigor-<id> rigor-<id>-extracted:master
 ```
 
-Then in the monorepo: remove `examples/rigor-<id>/`, drop the
-matching `spec/integration/examples/<id>_plugin_spec.rb`,
-update `examples/README.md`'s comparison table to remove the
-row, and update `README.md`'s plugin list.
+その後モノリポで: `examples/rigor-<id>/`を削除し、対応する`spec/integration/examples/<id>_plugin_spec.rb`を削除し、`examples/README.md`の比較表からその行を削除し、`README.md`のプラグインリストを更新します。
 
-## Order of operations
+## 操作順序
 
-1. **Document the plan** — this file + [ADR-9](../../adr/9-cross-plugin-api/). (Current
-   commit.)
-2. **Implement Tier 1 plugins (current API)** — `rigor-rails-routes`,
-   `rigor-rails-i18n`, `rigor-actionmailer`, `rigor-activejob`.
-   Each as its own commit, with subtree-split readiness in
-   mind.
-3. **Implement cross-plugin API (ADR-9)** — `Plugin::FactStore` +
-   `prepare(services)` hook + `consumes:` manifest field +
-   topological sort in `Plugin::Loader`. Update public-API
-   drift snapshots. Add the SKILL section.
-4. **Implement Tier 2 plugins (cross-plugin)** — `rigor-actionpack`
-   Phase 1 (strong params), then `rigor-factorybot`. These
-   exercise ADR-9 against real consumers.
-5. **Stabilise + extract** — once each plugin's `examples/`
-   directory has been stable for ≥ 2 releases, run the
-   subtree-split flow and migrate to a separate repo.
-6. **Tier 3 + meta-gem** — author Tier 3 plugins as user demand
-   surfaces. Once Tier 1+2 are extracted, publish `rigor-rails`
-   meta-gem with the dependency aggregation.
+1. **計画を文書化する** — このファイル + [ADR-9](../../adr/9-cross-plugin-api/)。（現在のコミット。）
+2. **Tier 1プラグインを実装する（現行API）** — `rigor-rails-routes`、`rigor-rails-i18n`、`rigor-actionmailer`、`rigor-activejob`。各々を独自のコミットとして、サブツリー分割の準備を念頭に置いて。
+3. **クロスプラグインAPIを実装する（ADR-9）** — `Plugin::FactStore` + `prepare(services)`フック + `consumes:`マニフェストフィールド + `Plugin::Loader`でのトポロジカルソート。パブリックAPIドリフトスナップショットを更新。SKILLセクションを追加。
+4. **Tier 2プラグインを実装する（クロスプラグイン）** — `rigor-actionpack` Phase 1（ストロングパラメーター）、次に`rigor-factorybot`。これらは実際のコンシューマーに対してADR-9を実証します。
+5. **安定化 + 抽出** — 各プラグインの`examples/`ディレクトリが2リリース以上安定したら、サブツリー分割フローを実行し、独立したリポジトリに移行します。
+6. **Tier 3 + メタgem** — ユーザー需要が表面化したらTier 3プラグインを作成。Tier 1+2が抽出されたら、依存関係の集約とともに`rigor-rails`メタgemを公開します。
 
-The Tier 1 plugins (current API) are blockers only on
-authoring time, not on contract design. They can land in
-parallel by independent implementers if desired. Tier 2
-blocks on ADR-9 implementation.
+Tier 1プラグイン（現行API）は作成時間のみのブロッカーであり、契約設計のブロッカーではありません。必要に応じて独立した実装者が並行して着地させることができます。Tier 2はADR-9の実装をブロッカーとします。

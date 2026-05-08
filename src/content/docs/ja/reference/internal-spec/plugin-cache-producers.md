@@ -5,134 +5,60 @@ editUrl: "https://github.com/rigortype/rigor/edit/main/docs/internal-spec/plugin
 sourcePath: "docs/internal-spec/plugin-cache-producers.md"
 sourceSha: "ea961e2962b2ef9424fd1004086de1209e5fc7faf221299d6d57544ed16d286d"
 sourceCommit: "9f40e22193647dc06e3ab70c5ba82768b0bfe738"
-translationStatus: "pending"
+translationStatus: "translated"
 sidebar:
   order: 3050
 ---
 
-> [!NOTE]
-> このページはまだ翻訳されていません。英語版の本文を参考表示しています。
+ステータス：**v0.1.0スライス6規範的。**プラグイン作成者がキャッシュ済みプロデューサーを宣言するためのサーフェスを固定します——`Plugin::Base.producer` DSL・`Plugin::Base#cache_for`呼び出し可能オブジェクト・自動的な`PluginEntry`の追加・`plugin.<manifest.id>.`キャッシュidサンドボックス。これらのサーフェスの背後にある設計上の決定は[ADR-7 §「スライス6」](../../adr/7-v0.1.0-slice-decisions/)に記録されています；このドキュメントがADRと矛盾する場合、ADRが優先されます。
 
-Status: **v0.1.0 slice 6 normative.** Pins the plugin-author
-surface for declaring cached producers — the
-`Plugin::Base.producer` DSL, `Plugin::Base#cache_for` callable,
-automatic `PluginEntry` attachment, and the
-`plugin.<manifest.id>.` cache-id sandbox. Working decisions
-behind these surfaces are recorded in
-[ADR-7 § "Slice 6"](../../adr/7-v0.1.0-slice-decisions/); when
-this document disagrees with the ADR, the ADR binds.
+## なぜこれが存在するか
 
-## Why this exists
+Rigorの永続キャッシュ（ADR-6、v0.0.8/v0.0.9）は`(producer_id, params, descriptor)`をキーとするバイナリエントリの単一シャードディレクトリです。スライス6はそのコントラクトのプロデューサー側をプラグイン作成者に拡張することで、計算コストが高いプラグイン貢献（スキーマの解析、動的メンバーテーブルの構築、生成メタデータのインデックス作成）が`rigor check`の実行をまたいでキャッシュされ、入力が変更されたときに正しく無効化されるようにします。
 
-Rigor's persistent cache (ADR-6, v0.0.8 / v0.0.9) is a single
-sharded directory of binary entries keyed by
-`(producer_id, params, descriptor)`. Slice 6 extends the
-producer side of that contract to plugin authors so that
-plugin contributions whose computation is expensive
-(parsing schemas, building dynamic-member tables, indexing
-generated metadata) cache across `rigor check` runs and
-invalidate correctly when their inputs change.
+ADR-7 §「スライス6」は3つの実装上の選択を固定します：
 
-ADR-7 § "Slice 6" pins three implementation choices:
+- **6-A.** DSL宣言（`Plugin::Base.producer`）と命令型ヘルパー（`Plugin::Base#cache_for`）のハイブリッド。宣言はidとシリアライザのペアを持ち；ヘルパーがラウンドトリップを実行するため、プラグイン作成者は`Cache::Descriptor`を手作業で構築する必要がありません。
+- **6-B.**ローダー/サービスヘルパーがすべての`cache_for`ラウンドトリップにプラグインごとの`PluginEntry`テンプレート（id・バージョン・`config_hash`）を自動的に追加します。プラグインid・バージョン・config不変条件が構築時に強制されます。
+- **6-C.**プラグインが宣言したプロデューサーidには`plugin.<manifest.id>.`が自動的にプレフィックスとして追加されるため、プラグインキャッシュは組み込みプロデューサー（`rbs.*`など）や互いから切り離されたサンドボックスに保たれます。
 
-- **6-A.** A DSL declaration (`Plugin::Base.producer`) plus an
-  imperative helper (`Plugin::Base#cache_for`) hybrid. The
-  declaration carries the id and serialiser pair; the helper
-  performs the round-trip so plugin authors do not have to
-  construct a `Cache::Descriptor` by hand.
-- **6-B.** The loader / Services helper auto-attaches a
-  per-plugin `PluginEntry` template (id, version,
-  config_hash) to every `cache_for` round-trip. Plugin id +
-  version + config invariants are enforced by construction.
-- **6-C.** Plugin-declared producer ids are auto-prefixed
-  `plugin.<manifest.id>.` so plugin caches stay sandboxed
-  from built-in producers (`rbs.*` etc.) and from each
-  other.
-
-## Public surface (drift-pinned)
+## パブリックサーフェス（ドリフト固定済み）
 
 ### `Rigor::Plugin::Base.producer(id, serialize: nil, deserialize: nil, &block)`
 
-Class-level DSL that registers a producer. The block is the
-producer body; it runs through `instance_exec` so `self`
-inside the block is the plugin instance — `io_boundary`,
-`services`, `manifest`, `config` are all in scope. The block
-receives the call-site `params` Hash as its sole argument;
-`params` mixes into the cache key per
-`Cache::Descriptor#cache_key_for` (v0.0.8).
+プロデューサーを登録するクラスレベルDSL。ブロックはプロデューサー本体です；`instance_exec`を通じて実行されるため、ブロック内の`self`はプラグインインスタンス——`io_boundary`・`services`・`manifest`・`config`がすべてスコープ内にあります。ブロックは呼び出しサイトの`params`ハッシュを唯一の引数として受け取ります；`params`は`Cache::Descriptor#cache_key_for`（v0.0.8）に従ってキャッシュキーに混合されます。
 
-`serialize:` / `deserialize:` are forwarded verbatim to
-`Cache::Store#fetch_or_compute`. Default round-trip is
-`Marshal.dump` / `Marshal.load` per the v0.0.9 callable
-surface; producers whose return values are not Marshal-clean
-(RBS-native objects with `RBS::Location` members, raw `IO`,
-…) MUST supply their own pair.
+`serialize:` / `deserialize:`は`Cache::Store#fetch_or_compute`にそのまま転送されます。デフォルトのラウンドトリップはv0.0.9の呼び出し可能サーフェスに従う`Marshal.dump` / `Marshal.load`です；返り値がMarshalクリーンでないプロデューサー（`RBS::Location`メンバーを持つRBSネイティブオブジェクト・生の`IO`など）は独自のペアを提供しなければなりません（MUST）。
 
-`Plugin::Base.producers` returns a frozen `{ id => entry }`
-snapshot. Inherited producers from a superclass are NOT
-surfaced — the loader instantiates one subclass per
-registration and producer tables stay flat.
+`Plugin::Base.producers`は凍結された`{ id => entry }`スナップショットを返します。スーパークラスからの継承されたプロデューサーは表面化されません——ローダーは登録ごとに1つのサブクラスをインスタンス化し、プロデューサーテーブルはフラットのままです。
 
 ### `Rigor::Plugin::Base#io_boundary`
 
-Memoised per-plugin `Rigor::Plugin::IoBoundary` (slice 2). The
-boundary's accumulated `FileEntry` rows feed cache invalidation
-for `cache_for` round-trips: file reads through `io_boundary`
-that happen **before** `cache_for` is called include the file
-digest in the descriptor. See "Invalidation contract" below.
+プラグインごとにメモ化された`Rigor::Plugin::IoBoundary`（スライス2）。境界が蓄積した`FileEntry`行が`cache_for`ラウンドトリップのキャッシュ無効化に使われます：`cache_for`が呼び出される**前に**`io_boundary`を通じて行われたファイル読み込みはそのファイルのダイジェストをディスクリプタに含めます。以下の「無効化コントラクト」を参照してください。
 
 ### `Rigor::Plugin::Base#cache_for(producer_id, params: {}, descriptor: nil)`
 
-Returns a callable that performs the cache round-trip for the
-named producer. The callable, when called, returns the cached
-value (on hit) or runs the producer block (on miss) and writes
-the result.
+名前付きプロデューサーのキャッシュラウンドトリップを実行する呼び出し可能オブジェクトを返します。その呼び出し可能オブジェクトは、呼び出されるとキャッシュされた値（ヒット時）またはプロデューサーブロックの実行結果（ミス時）を返し、結果を書き込みます。
 
-When `services.cache_store` is `nil` (e.g. CLI `--no-cache`),
-the callable bypasses the cache and runs the producer block
-every time — same semantics as the v0.0.9 cache surface for
-built-in producers.
+`services.cache_store`が`nil`（例：CLI `--no-cache`）の場合、呼び出し可能オブジェクトはキャッシュをバイパスしてプロデューサーブロックを毎回実行します——組み込みプロデューサーのv0.0.9キャッシュサーフェスと同じセマンティクスです。
 
-Producer ids are auto-prefixed `plugin.<manifest.id>.`; the
-cache-store layout for a producer registered as `:schema_table`
-on a plugin with `manifest.id = "rails"` lives at
-`<root>/plugin.rails.schema_table/<2-prefix>/<62-suffix>.entry`.
+プロデューサーidには`plugin.<manifest.id>.`が自動的にプレフィックスとして追加されます；`manifest.id = "rails"`のプラグインに`:schema_table`として登録されたプロデューサーのキャッシュストアレイアウトは`<root>/plugin.rails.schema_table/<2-prefix>/<62-suffix>.entry`にあります。
 
-The optional `descriptor:` kwarg supplies extra
-`Cache::Descriptor` rows the plugin author wants to compose
-into the auto-built descriptor — typically gem-version
-`GemEntry`, configuration-file `FileEntry` digests, or
-`ConfigEntry` rows for external state the {IoBoundary} cannot
-capture itself. The passed descriptor flows through
-`Cache::Descriptor.compose` with the auto-built one
-(`PluginEntry` template + boundary reads); per-slot conflicts
-raise `Cache::Descriptor::Conflict` so divergent inputs
-surface rather than silently shadowing.
+オプションの`descriptor:`キーワード引数はプラグイン作成者が自動構築ディスクリプタに合成したい追加の`Cache::Descriptor`行を提供します——通常はgemバージョンの`GemEntry`・設定ファイルの`FileEntry`ダイジェスト・または{IoBoundary}が自身でキャプチャできない外部状態の`ConfigEntry`行です。渡されたディスクリプタは自動構築されたもの（`PluginEntry`テンプレート+境界読み込み）と`Cache::Descriptor.compose`を通じて流れます；スロットごとの競合は`Cache::Descriptor::Conflict`を発生させ、異なる入力が暗黙に上書きされることなく表面化します。
 
-## Cache descriptor composition (6-B)
+## キャッシュディスクリプタ合成（6-B）
 
-`Plugin::Base#cache_for` auto-assembles the descriptor from:
+`Plugin::Base#cache_for`は以下からディスクリプタを自動組み立てします：
 
-- The plugin's **`PluginEntry` template**: `(id, version,
-  config_hash)`. `config_hash` is the SHA-256 of the
-  canonicalised plugin config (sorted keys, recursive Symbol
-  → String) so two instances of the same plugin with
-  different `config:` values land in different cache slices.
-- The plugin's **`IoBoundary#cache_descriptor`**: every
-  `:digest` `FileEntry` the boundary recorded by the time
-  `cache_for` is called.
-- The user's **`params:`** hash (mixed into the cache key
-  through `Descriptor#cache_key_for`).
+- プラグインの**`PluginEntry`テンプレート**：`(id, version, config_hash)`。`config_hash`は正規化されたプラグインconfig（キーソート済み・再帰的なSymbol→String変換）のSHA-256であるため、`config:`の値が異なる同じプラグインの2つのインスタンスは異なるキャッシュスライスに置かれます。
+- プラグインの**`IoBoundary#cache_descriptor`**：`cache_for`が呼び出される時点で境界が記録したすべての`:digest`の`FileEntry`。
+- ユーザーの**`params:`**ハッシュ（`Descriptor#cache_key_for`を通じてキャッシュキーに混合される）。
 
-Plugin authors do not construct descriptors manually. Custom
-descriptor extensions (extra `FileEntry` / `GemEntry` /
-`ConfigEntry` rows beyond the boundary's reads) ride a future
-API; slice 6 ships only the auto-built path.
+プラグイン作成者はディスクリプタを手動で構築しません。カスタムディスクリプタ拡張（境界の読み込みを超えた追加の`FileEntry` / `GemEntry` / `ConfigEntry`行）は将来のAPIで対応します；スライス6は自動構築パスのみを出荷します。
 
-## Invalidation contract
+## 無効化コントラクト
 
-The IoBoundary integration only reflects reads that happen
-**before** `cache_for` is called. The recommended pattern is:
+IoBoundary統合は`cache_for`が呼び出される**前に**行われた読み込みのみを反映します。推奨パターン：
 
 ```ruby
 class MyRailsPlugin < Rigor::Plugin::Base
@@ -151,40 +77,16 @@ class MyRailsPlugin < Rigor::Plugin::Base
 end
 ```
 
-The pre-`cache_for` `read_file` records a `:digest` `FileEntry`
-that lands in the descriptor; if the file changes between
-runs, the digest changes, the cache key changes, and
-`cache_for` falls through to the producer. The producer body
-re-reads the file at the same path; on a cache miss the
-boundary is re-populated and the post-fact digest is written
-into the new entry.
+`cache_for`の前の`read_file`はディスクリプタに格納される`:digest`の`FileEntry`を記録します；ファイルが実行間で変更された場合、ダイジェストが変わり、キャッシュキーが変わり、`cache_for`はプロデューサーにフォールスルーします。プロデューサー本体は同じパスのファイルを再読み込みします；キャッシュミス時に境界が再びデータを収集し、事後のダイジェストが新しいエントリに書き込まれます。
 
-Plugin authors who want richer invalidation (gem versions,
-external configuration files, sibling plugin state) compose
-those into the params hash today; a future extension may add
-explicit descriptor parameters to `cache_for`.
+より豊かな無効化（gemバージョン・外部設定ファイル・兄弟プラグインの状態）を求めるプラグイン作成者は現在それらをparamsハッシュに合成します；将来の拡張が`cache_for`に明示的なディスクリプタパラメータを追加するかもしれません。
 
-## Cache-id sandbox (6-C)
+## キャッシュidサンドボックス（6-C）
 
-`Plugin::Base#cache_for` rewrites the producer id to
-`plugin.<manifest.id>.<id>` so plugin authors cannot collide
-with built-in producers (which use unprefixed `rbs.*` ids
-today) or with each other (every plugin's ids live under their
-own manifest id namespace). The prefix lives within the
-existing `Cache::Store::VALID_PRODUCER_ID = /\A[a-z][a-z0-9._-]*\z/`
-regex; on-disk attribution is unambiguous through
-`rigor check --cache-stats`.
+`Plugin::Base#cache_for`はプロデューサーidを`plugin.<manifest.id>.<id>`に書き換えるため、プラグイン作成者は組み込みプロデューサー（現在は接頭辞なしの`rbs.*`idを使用）や互いと衝突できません（すべてのプラグインのidはそれぞれのマニフェストidネームスペース下に置かれます）。プレフィックスは既存の`Cache::Store::VALID_PRODUCER_ID = /\A[a-z][a-z0-9._-]*\z/`正規表現の範囲内にあります；ディスク上の帰属は`rigor check --cache-stats`を通じて明確に確認できます。
 
-## What slice 6 deliberately does NOT do
+## スライス6が意図的に行わないこと
 
-- **Re-attempt the v0.0.9 per-method `Reflection` cache
-  carry-over.** Per ADR-7 § "Slice 6-D", that work is
-  descoped and lands in a separate v0.1.x ticket so the
-  engine-internal regression investigation does not entangle
-  with the new public plugin API.
-- **Cross-machine cache sharing.** Per ADR-6 the cache is
-  single-machine; plugin-side producers inherit that
-  constraint.
-- **LRU eviction / size cap.** Plugin caches share the
-  unbounded layout described in ADR-6; users run
-  `--clear-cache` if needed.
+- **v0.0.9のメソッドごとの`Reflection`キャッシュの持ち越しの再試行。** ADR-7 §「スライス6-D」に従い、その作業は別のv0.1.xチケットに移管されており、エンジン内部の回帰調査が新しいパブリックプラグインAPIと絡み合わないようにしています。
+- **マシン間キャッシュ共有。** ADR-6に従い、キャッシュは単一マシン用です；プラグイン側プロデューサーはその制約を継承します。
+- **LRU退去/サイズ上限。**プラグインキャッシュはADR-6で説明された無制限レイアウトを共有します；ユーザーは必要に応じて`--clear-cache`を実行します。

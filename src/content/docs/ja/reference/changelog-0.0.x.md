@@ -5,373 +5,176 @@ editUrl: "https://github.com/rigortype/rigor/edit/main/docs/CHANGELOG-0.0.x.md"
 sourcePath: "docs/CHANGELOG-0.0.x.md"
 sourceSha: "24144fa17b531e91080dd0d31cd0e60cd87a72e7efd6d120f7a88016728ee3e7"
 sourceCommit: "9f40e22193647dc06e3ab70c5ba82768b0bfe738"
-translationStatus: "pending"
+translationStatus: "translated"
 sidebar:
   order: 9050
 ---
 
-> [!NOTE]
-> このページはまだ翻訳されていません。英語版の本文を参考表示しています。
+`0.0.x`開発サイクルのアーカイブリリースノートです。
 
-Archived release notes for the `0.0.x` development cycle.
+フォーマットは[Keep a Changelog](https://keepachangelog.com/en/1.1.0/)に従い、プロジェクトは[Semantic Versioning](https://semver.org/spec/v2.0.0.html)に準拠しています。
 
-The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
-and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+このファイルは`0.0.1`から`0.0.9`までの静的アーカイブであり、プロジェクトのアーカイブルールに従ってメインの[`CHANGELOG.md`](https://github.com/rigortype/rigor/blob/main/CHANGELOG.md)から移動されました: **先頭桁のバンプ後の最初のリリース（例: `0.0.x` → `0.1.x`バンプ後の最初のリリース`0.1.1`）の時点で、以前の桁の範囲全体が`docs/CHANGELOG-<old-prefix>.md`アーカイブファイルに移動されます。**
 
-This file is the static archive for `0.0.1` through `0.0.9`, moved out of
-the main [`CHANGELOG.md`](https://github.com/rigortype/rigor/blob/main/CHANGELOG.md) per the project's archival rule:
-**at the first release after a leading-digit bump (e.g. `0.1.1`, the first
-release after the `0.0.x` → `0.1.x` bump), the entire previous-digit range
-moves into a `docs/CHANGELOG-<old-prefix>.md` archive file.**
-
-The current cycle's release notes live in [`CHANGELOG.md`](https://github.com/rigortype/rigor/blob/main/CHANGELOG.md);
-the v0.1.0 release notes also stay there. When the next leading-digit bump
-lands (e.g. `0.2.x` → `0.3.x` triggered at `0.3.1`), the `0.2.x` block will
-move into `docs/CHANGELOG-0.2.x.md` following the same rule.
+現在のサイクルのリリースノートは[`CHANGELOG.md`](https://github.com/rigortype/rigor/blob/main/CHANGELOG.md)に存在します; v0.1.0のリリースノートもそこに残ります。次の先頭桁バンプ（例: `0.3.1`でトリガーされる`0.2.x` → `0.3.x`）が着地すると、`0.2.x`ブロックが同じルールに従って`docs/CHANGELOG-0.2.x.md`に移動します。
 
 ## [0.0.9] - 2026-05-05
 
-The ninth preview. Theme: **finish the cache surface, broaden the type vocabulary, and lock the public API ahead of the v0.1.0 plugin contract.** v0.0.9 closes every remaining pre-`0.1.0` substrate slice: the persistent cache is wired into `rigor check` end-to-end (warm runs hit disk-backed tables; `--cache-stats` reports real hit/miss/write counts; `--no-cache` toggles it off), the type vocabulary picks up paired-complement `~T` narrowing and `literal-string` flow tracking through interpolation / `+` / `*` / `<<`, the [`RBS::Extended`](../docs/type-specification/rbs-extended/) directive surface rolls every recognised directive on a method into a single `Rigor::FlowContribution` bundle, and six new built-in catalogues cover `Random`, `Struct` (+ `Data`), `Encoding`, `Regexp` / `MatchData`, `Proc` / `Method` / `UnboundMethod`, and `Exception`.
+第9プレビュー。テーマ: **キャッシュサーフェスの完成、型語彙の拡張、v0.1.0プラグイン契約に向けたパブリックAPIのロック。** v0.0.9はすべての残存するpre-`0.1.0`サブストレートスライスを完了します: 永続キャッシュが`rigor check`にエンドツーエンドで配線され（ウォーム実行はディスクバックのテーブルにヒットし; `--cache-stats`は実際のヒット / ミス / 書き込みカウントを報告し; `--no-cache`でオフにできます）、型語彙は対補完`~T`ナロイングと補間 / `+` / `*` / `<<`を通じた`literal-string`フロー追跡を取り込み、[`RBS::Extended`](../docs/type-specification/rbs-extended/)ディレクティブサーフェスはメソッド上のすべての認識済みディレクティブを1つの`Rigor::FlowContribution`バンドルにまとめ、6つの新しい組み込みカタログが`Random`、`Struct`（+ `Data`）、`Encoding`、`Regexp` / `MatchData`、`Proc` / `Method` / `UnboundMethod`、`Exception`をカバーします。
 
-The next release after `0.0.9` is `0.1.0` — single-digit version-component policy, no `0.0.10`. v0.1.0 starts the plugin contract proper; v0.0.9 ships the substrate that contract is designed against.
+`0.0.9`の次のリリースは`0.1.0`です——一桁バージョンコンポーネントポリシー、`0.0.10`なし。v0.1.0がプラグイン契約を本格的に開始します; v0.0.9はその契約が設計される基板をリリースします。
 
-### Added
+### 追加
 
-#### Cache layer wired through to `rigor check`
+#### `rigor check`に配線されたキャッシュレイヤー
 
-- **`Analysis::Runner.cache_store` surface + `rigor check --no-cache`.** Runner defaults to a `Cache::Store` rooted at `.rigor/cache`; the CLI flag threads `nil` through to disable. `Environment.for_project(cache_store:)` plumbs the Store down to the underlying `RbsLoader`.
-- **First end-to-end cached producer — `RbsLoader#constant_type` reads from `RbsConstantTable`.** Cold runs build the translated constant-type table once and persist it; warm runs (and a separate loader sharing the same Store) skip the env walk entirely and pay only a `Marshal.load` of the table.
-- **Five more cache producers** — `RbsKnownClassNames` (Set<String>), `RbsClassAncestorTable` (Hash<String, Array<String>>), `RbsClassTypeParamNames` (Hash<String, Array<Symbol>>), and `RbsEnvironment` (the full `RBS::Environment`). The fifth producer (`RbsEnvironment`) caches the biggest cold-start cost — `RBS::EnvironmentLoader#load + Environment.from_loader + resolve_type_names` — by adding minimal `_dump`/`_load` Marshal hooks to the rbs gem's C-extension `RBS::Location`. The patch is purely additive and idempotent; `RBS::Location` is never read from any analysis path so the lost source-position metadata is inert.
-- **`Cache::Store#stats` + `--cache-stats` runtime breakdown.** In-process hits / misses / writes counters (per-producer breakdown) bumped inside `fetch_or_compute`; `rigor check --cache-stats` prints an on-disk inventory followed by a "this run:" section. Under `--no-cache` the section is omitted.
-- **`Cache::Store#fetch_or_compute(serialize:, deserialize:)` callable surface.** Producers whose return values are not Marshal-clean (RBS-native objects with `RBS::Location` members, raw `IO`, …) can register custom round-trip callables. Default stays at `Marshal.dump` / `Marshal.load`. Deserialiser exceptions become cache misses. `RbsEnvironment` rides this surface.
-- **Shared `Rigor::Cache::RbsDescriptor`.** Every RBS-derived producer attaches the same descriptor (rbs gem locked version + `:digest` entries for every `.rbs` file under `signature_paths` + a `rbs.libraries` configs entry), so a signature change or rbs gem bump invalidates them in lockstep.
+- **`Analysis::Runner.cache_store`サーフェス + `rigor check --no-cache`。** Runnerはデフォルトで`.rigor/cache`をルートとする`Cache::Store`を使用します; CLIフラグは`nil`をスレッドして無効にします。`Environment.for_project(cache_store:)`はStoreを基礎の`RbsLoader`まで引き渡します。
+- **最初のエンドツーエンドキャッシュプロデューサー——`RbsLoader#constant_type`が`RbsConstantTable`から読み取ります。**コールドランは翻訳済み定数型テーブルを一度構築して永続化します;ウォームラン（および同じStoreを共有する別のローダー）は環境の走査を完全にスキップし、テーブルの`Marshal.load`のみを支払います。
+- **さらに5つのキャッシュプロデューサー** — `RbsKnownClassNames`（Set<String>）、`RbsClassAncestorTable`（Hash<String, Array<String>>）、`RbsClassTypeParamNames`（Hash<String, Array<Symbol>>）、`RbsEnvironment`（完全な`RBS::Environment`）。5番目のプロデューサー（`RbsEnvironment`）は最大のコールドスタートコスト——`RBS::EnvironmentLoader#load + Environment.from_loader + resolve_type_names`——を、rbsgemのC拡張`RBS::Location`に最小限の`_dump` / `_load` Marshalフックを追加することでキャッシュします。パッチは純粋にアディティブかつべき等です; `RBS::Location`はどの解析パスからも読まれないため、失われたソース位置メタデータは不活性です。
+- **`Cache::Store#stats` + `--cache-stats`ランタイム内訳。** `fetch_or_compute`内でバンプされるインプロセスのヒット / ミス / 書き込みカウンター（プロデューサーごとの内訳）; `rigor check --cache-stats`はオンディスクインベントリに続いて「このラン:」セクションを出力します。`--no-cache`下ではセクションは省略されます。
+- **`Cache::Store#fetch_or_compute(serialize:, deserialize:)`呼び出し可能サーフェス。**戻り値がMarshalクリーンでないプロデューサー（`RBS::Location`メンバーを持つRBSネイティブオブジェクト、生の`IO`など）はカスタムラウンドトリップ呼び出し可能オブジェクトを登録できます。デフォルトは`Marshal.dump` / `Marshal.load`のまま。デシリアライザーの例外はキャッシュミスになります。`RbsEnvironment`はこのサーフェスを利用します。
+- **共有`Rigor::Cache::RbsDescriptor`。**すべてのRBS由来プロデューサーは同じディスクリプター（rbsgemのロックバージョン + `signature_paths`下のすべての`.rbs`ファイルの`:digest`エントリー + `rbs.libraries`設定エントリー）を付与します。これにより、シグネチャの変更やrbsgemのバンプが一斉に無効化されます。
 
-#### Type vocabulary
+#### 型語彙
 
-- **Paired-complement narrowing for `Refined[base, predicate]`.** `Type::Refined::COMPLEMENT_PAIRS` registers bidirectional pairs; the narrowing tier returns `Refined[base, complement]` instead of the imprecise `Difference[base, refined]` fallback. Three pairs land in v0.0.9: `lowercase ↔ not_lowercase`, `uppercase ↔ not_uppercase`, `numeric ↔ not_numeric`. Positive carriers `non-lowercase-string`, `non-uppercase-string`, `non-numeric-string` join `Builtins::ImportedRefinements::REGISTRY` so users can write them directly.
-- **`literal-string` carrier and `non-empty-literal-string` composition.** A `String` known to come from a source-code literal (or a composition of literals). Tracked through string interpolation `"#{...}"` (lifts to `literal-string` when every part is literal-bearing) and through the new `LiteralStringFolding` dispatcher tier covering `String#+`, `String#*`, `String#<<`, `String#concat` (lifts when every operand is literal-bearing).
-- **Six new built-in catalogues** — Random, Struct (+ Data), Encoding, Regexp + MatchData, Proc / Method / UnboundMethod, Exception. Each catalog drives the fold dispatcher with per-class blocklists for indirect mutators (Random's MT-state-advancing methods, Regexp's `$~`-writing matchers, Proc / Method's `:call` / `:[]` execution paths, Exception's runtime-state readers, etc.).
-- **`Numeric#clone` reclassified.** `numeric` topic's `c_index_paths` now includes `references/ruby/object.c`, so `Numeric#clone`'s alias to `rb_immutable_obj_clone` is found by the C-body classifier and the entry moves from `purity: unknown` to `purity: leaf`.
+- **`Refined[base, predicate]`の対補完ナロイング。** `Type::Refined::COMPLEMENT_PAIRS`が双方向ペアを登録します;ナロイングティアは不精確な`Difference[base, refined]`フォールバックの代わりに`Refined[base, complement]`を返します。v0.0.9では3つのペアが着地します: `lowercase ↔ not_lowercase`、`uppercase ↔ not_uppercase`、`numeric ↔ not_numeric`。ポジティブキャリア`non-lowercase-string`、`non-uppercase-string`、`non-numeric-string`が`Builtins::ImportedRefinements::REGISTRY`に追加され、直接書けるようになります。
+- **`literal-string`キャリアと`non-empty-literal-string`コンポジション。**ソースコードリテラル（またはリテラルのコンポジション）から来ることが既知の`String`。文字列補間`"#{...}"`（すべての部分がリテラルベアリングの場合`literal-string`にリフト）および`String#+`、`String#*`、`String#<<`、`String#concat`をカバーする新しい`LiteralStringFolding`ディスパッチャーティアを通じて追跡されます（すべてのオペランドがリテラルベアリングの場合にリフト）。
+- **6つの新しい組み込みカタログ** — Random、Struct（+ Data）、Encoding、Regexp + MatchData、Proc / Method / UnboundMethod、Exception。各カタログはクラスごとの間接ミューテーターブロックリストでフォールドディスパッチャーを駆動します（RandomのMT状態を進めるメソッド、Regexpの`$~`を書くマッチャー、Proc / Methodの`:call` / `:[`実行パス、Exceptionのランタイム状態リーダーなど）。
+- **`Numeric#clone`の再分類。** `numeric`トピックの`c_index_paths`に`references/ruby/object.c`が含まれるようになりました。`Numeric#clone`の`rb_immutable_obj_clone`へのエイリアスがCボディ分類器によって発見され、エントリーが`purity: unknown`から`purity: leaf`に移動します。
 
-#### Pre-v0.1.0 substrate (locks the surface the plugin contract attaches to)
+#### pre-v0.1.0サブストレート（プラグイン契約が結び付くサーフェスをロック）
 
-- **`Rigor::FlowContribution` bundle struct.** Eight content slots (`return_type`, `truthy_facts`, `falsey_facts`, `post_return_facts`, `mutations`, `invalidations`, `exceptional`, `role_conformance`) plus a `Provenance` Data carrier (`source_family`, `plugin_id`, `node`, `descriptor`). Frozen on construction; collection slots duped + frozen. Public read shape per ADR-2 § "Flow Contribution Bundle"; element-list flattening deferred to v0.1.0 alongside the contribution merger that consumes it.
-- **`Rigor::RbsExtended.read_flow_contribution(method_def)`.** Rolls every recognised directive on a single RBS method (`predicate-if-(true|false)`, `assert*`, `return:`) into one `FlowContribution` with `:rbs_extended` source family. Internal narrowing keeps consuming the typed Data carriers; the bundle is the public packaging the v0.1.0 contribution merger reads.
-- **Public-API drift specs for `Rigor::Scope`, `Rigor::Environment`, `Rigor::Type::Combinator`, `Rigor::Reflection`.** Snapshot-style spec at `spec/rigor/public_api_drift_spec.rb` pins each namespace's instance + singleton method set so accidental signature changes show up as test failures, not silent breakage. The four namespaces are the v0.1.0 plugin-contract attachment points.
-- **`docs/internal-spec/public-api.md`.** Public/internal stability boundary declared explicitly: which namespaces are drift-pinned today (Scope / Environment / Type::Combinator / Reflection), which are public-shape but still in flux until v0.1.0 (FlowContribution, Diagnostic, Cache::Store#fetch_or_compute, RbsExtended directive readers), and which stay strictly internal (Inference::*, Analysis::FactStore / CheckRules / Runner, AST::* virtuals, Source / CLI / Configuration plumbing).
+- **`Rigor::FlowContribution`バンドル構造体。** 8つのコンテンツスロット（`return_type`、`truthy_facts`、`falsey_facts`、`post_return_facts`、`mutations`、`invalidations`、`exceptional`、`role_conformance`）と`Provenance` Dataキャリア（`source_family`、`plugin_id`、`node`、`descriptor`）。構築時に凍結;コレクションスロットはdupeして凍結。ADR-2 §「フロー貢献バンドル」に従うパブリック読み取り形状;要素リストのフラット化はそれを消費するコントリビューションマージャーとともにv0.1.0に延期。
+- **`Rigor::RbsExtended.read_flow_contribution(method_def)`。**単一のRBSメソッド上のすべての認識済みディレクティブ（`predicate-if-(true|false)`、`assert*`、`return:`）を1つの`FlowContribution`（`:rbs_extended`ソースファミリー）にまとめます。内部ナロイングは型付きDataキャリアを消費し続けます;バンドルはv0.1.0のコントリビューションマージャーが読むパブリックパッケージングです。
+- **`Rigor::Scope`、`Rigor::Environment`、`Rigor::Type::Combinator`、`Rigor::Reflection`のパブリックAPIドリフトスペック。** `spec/rigor/public_api_drift_spec.rb`のスナップショットスタイルスペックが各名前空間のインスタンス + シングルトンメソッドセットをピン留めし、偶発的なシグネチャ変更がサイレントな破壊ではなくテスト失敗として現れるようにします。4つの名前空間はv0.1.0プラグイン契約の接続点です。
+- **`docs/internal-spec/public-api.md`。**パブリック / 内部安定性境界が明示的に宣言されました: 今日どの名前空間がドリフトピン留めされているか（Scope / Environment / Type::Combinator / Reflection）、v0.1.0まで流動的なパブリック形状のもの（FlowContribution、Diagnostic、Cache::Store#fetch_or_compute、RbsExtendedディレクティブリーダー）、および厳密に内部のもの（Inference::*、Analysis::FactStore / CheckRules / Runner、AST::*バーチャル、Source / CLI / Configurationプラミング）。
 
-### Internal
+### 内部
 
-- The cache layer's public read shape grows to cover all six producers in [`docs/internal-spec/cache.md`](../docs/internal-spec/cache/): `Descriptor`, `Store` (with the new `serialize:`/`deserialize:` kwargs and `Store#stats`), `RbsConstantTable`, `RbsKnownClassNames`, `RbsClassAncestorTable`, `RbsClassTypeParamNames`, `RbsEnvironment`, the shared `RbsDescriptor` builder, and the `RBS::Location` Marshal patch.
-- `Rigor::FlowContribution` documented in [`docs/internal-spec/flow-contribution.md`](../docs/internal-spec/flow-contribution/) with the slot table, equality / `to_h` / `empty?` semantics, `RbsExtended.read_flow_contribution` mapping (predicate-if-* → `truthy_facts` / `falsey_facts`, `assert*` → `post_return_facts`, `return:` → `return_type`), and the deferred element-list flattening note.
+- キャッシュレイヤーのパブリック読み取り形状が[`docs/internal-spec/cache.md`](../docs/internal-spec/cache/)の全6プロデューサーをカバーするよう拡大: `Descriptor`、`Store`（新しい`serialize:` / `deserialize:` kwargsと`Store#stats`を含む）、`RbsConstantTable`、`RbsKnownClassNames`、`RbsClassAncestorTable`、`RbsClassTypeParamNames`、`RbsEnvironment`、共有`RbsDescriptor`ビルダー、`RBS::Location` Marshalパッチ。
+- `Rigor::FlowContribution`が[`docs/internal-spec/flow-contribution.md`](../docs/internal-spec/flow-contribution/)に文書化されました（スロットテーブル、等値性 / `to_h` / `empty?`セマンティクス、`RbsExtended.read_flow_contribution`マッピング（predicate-if-* → `truthy_facts` / `falsey_facts`、`assert*` → `post_return_facts`、`return:` → `return_type`）、延期された要素リストフラット化のノートを含む）。
 
 ## [0.0.8] - 2026-05-04
 
-The eighth preview. Theme: **first cache-related code slice** — land the persistence layer that v0.0.7's cache slice taxonomy design doc fixed the schema for, with a Marshal-clean producer wired through it end-to-end. Backend choice is fixed by [ADR-6](../docs/adr/6-cache-persistence-backend/): a sharded directory of binary entries written through a custom canonical format, **zero new gem dependencies**.
+第8プレビュー。テーマ: **最初のキャッシュ関連コードスライス** — v0.0.7のキャッシュスライスタクソノミー設計ドキュメントがスキーマを固定した永続化レイヤーを着地させ、Marshalクリーンなプロデューサーをエンドツーエンドで配線します。バックエンドの選択は[ADR-6](../docs/adr/6-cache-persistence-backend/)によって固定: カスタム正規フォーマットを通じて書き込まれるバイナリエントリーのシャードディレクトリ、**新しいgem依存関係ゼロ**。
 
-### Added
+### 追加
 
-- **`Rigor::Cache::Descriptor` value object.** Pure-value four-slot schema (`files`, `gems`, `plugins`, `configs`) per [`docs/design/20260505-cache-slice-taxonomy.md`](../docs/design/20260505-cache-slice-taxonomy/). Each slot holds typed, frozen entries; `FileEntry` validates its comparator enum (`:digest > :mtime > :exists`); the rest accept already-canonical hashes. `Descriptor.compose(*descriptors)` unions slots by key, prefers the stricter comparator on file conflicts, and raises `Descriptor::Conflict` on disagreeing values. `descriptor.cache_key_for(producer_id:, params:)` derives the canonical hex SHA-256 over the composed inputs; `to_canonical_bytes` produces sorted, deterministic JSON so equivalent descriptors round-trip to identical bytes.
-- **`Rigor::Cache::Store` filesystem backend.** Sharded layout `<root>/<producer-id>/<2-prefix>/<62-suffix>.entry`, schema-version marker at `<root>/schema_version.txt`. Custom binary entry format (`"RIGOR\x00\x01"` magic, varint-prefixed descriptor and value, trailing SHA-256 integrity). Writes follow rename-into-place with `flock(LOCK_EX)` on the destination and `fsync` on the temp file. Reads tolerate any failure (missing file, bad magic, bad SHA-256, malformed varint, unmarshal-able payload) by falling through to a cache miss. `Store#fetch_or_compute(producer_id:, params:, descriptor:) { ... }` is the single producer-facing API; producer ids are constrained to `[a-z][a-z0-9._-]*` for filesystem safety.
-- **First cached producer — `Rigor::Cache::RbsConstantTable`.** Caches a `Hash<String, Rigor::Type>` mapping every RBS-declared constant (e.g. `"::Math::PI"`) to its translated `Rigor::Type`. Descriptor: the `rbs` gem with its locked version, `:digest` entries for every `.rbs` file under `signature_paths`, and a configs entry for the libraries list. The slice plan originally named the RBS environment loader (`build_env`) as the first producer; implementation discovered `RBS::Environment` is not Marshal-clean (`RBS::Location` is a C-extension class without `_dump_data`). [ADR-6 § 8](../docs/adr/6-cache-persistence-backend/) documents the finding; the slice caches a post-translation artefact instead. `RbsLoader#constant_names` is added to the public surface so the producer can enumerate constants without reaching into the loader's private state.
-- **`rigor check --cache-stats`.** Prints an on-disk inventory at the end of the run (per-producer entry counts, total bytes, schema-version marker). Sourced from a new `Rigor::Cache::Store.disk_inventory(root:)` class method. Per-run hit/miss counters are deferred until production code wires the cache (no production caller in v0.0.8).
-- **`rigor check --clear-cache`.** Removes the `.rigor/cache` directory (CWD-relative) before the analysis run. Prints `Cleared cache: .rigor/cache` or `Cache already empty: .rigor/cache`. The check itself runs to completion regardless.
-- **Diagnostic source-family provenance.** `Rigor::Analysis::Diagnostic` gains a `source_family:` keyword (default `:builtin`) and a `qualified_rule` accessor returning `"#{source_family}.#{rule}"` for non-default families and just `rule` for builtin diagnostics. JSON output (`to_h`) carries both `source_family` and the bare `rule` side-by-side. Prepares ADR-2's plugin-observability story without committing to the plugin API itself; no production caller in v0.0.8 sets a non-default source family.
+- **`Rigor::Cache::Descriptor`値オブジェクト。** [`docs/design/20260505-cache-slice-taxonomy.md`](../docs/design/20260505-cache-slice-taxonomy/)に従う純粋値の4スロットスキーマ（`files`、`gems`、`plugins`、`configs`）。各スロットは型付きの凍結エントリーを保持します; `FileEntry`はコンパレーターenum（`:digest > :mtime > :exists`）を検証します;その他はすでに正規化されたハッシュを受け入れます。`Descriptor.compose(*descriptors)`はキーでスロットを統合し、ファイル競合ではより厳格なコンパレーターを優先し、値が一致しない場合は`Descriptor::Conflict`を発生させます。`descriptor.cache_key_for(producer_id:, params:)`は合成された入力に対して正規16進SHA-256を導出します; `to_canonical_bytes`はソート済みで決定的なJSONを生成し、等価なディスクリプターが同一バイトにラウンドトリップします。
+- **`Rigor::Cache::Store`ファイルシステムバックエンド。**シャードレイアウト`<root>/<producer-id>/<2-prefix>/<62-suffix>.entry`、`<root>/schema_version.txt`のスキーマバージョンマーカー。カスタムバイナリエントリフォーマット（`"RIGOR\x00\x01"`マジック、varint接頭辞付きディスクリプターと値、末尾SHA-256整合性）。書き込みはデスティネーションの`flock(LOCK_EX)`と一時ファイルの`fsync`を使ったリネームインプレースに従います。読み取りはあらゆる失敗（ファイルなし、不正マジック、不正SHA-256、不正varint、unmarshal不可なペイロード）をキャッシュミスに落とします。`Store#fetch_or_compute(producer_id:, params:, descriptor:) { ... }`が唯一のプロデューサー向けAPIです;プロデューサーIDはファイルシステム安全のために`[a-z][a-z0-9._-]*`に制約されます。
+- **最初のキャッシュプロデューサー——`Rigor::Cache::RbsConstantTable`。**すべてのRBS宣言定数（例: `"::Math::PI"`）をその翻訳済み`Rigor::Type`にマッピングする`Hash<String, Rigor::Type>`をキャッシュします。ディスクリプター: ロックバージョンを持つ`rbs` gem、`signature_paths`下のすべての`.rbs`ファイルの`:digest`エントリー、ライブラリリストの設定エントリー。スライス計画は最初のプロデューサーとして元々RBS環境ローダー（`build_env`）を指名していましたが、実装により`RBS::Environment`はMarshalクリーンでない（`RBS::Location`は`_dump_data`を持たないC拡張クラス）ことが発見されました。[ADR-6 § 8](../docs/adr/6-cache-persistence-backend/)がその発見を文書化しています;スライスは代わりに翻訳後のアーティファクトをキャッシュします。`RbsLoader#constant_names`が追加され、プロデューサーがローダーのプライベート状態に触れることなく定数を列挙できます。
+- **`rigor check --cache-stats`。**ランの最終にオンディスクインベントリを出力します（プロデューサーごとのエントリーカウント、合計バイト、スキーマバージョンマーカー）。新しい`Rigor::Cache::Store.disk_inventory(root:)`クラスメソッドから取得。ランごとのヒット / ミスカウンターはプロダクションコードがキャッシュを配線するまで延期。
+- **`rigor check --clear-cache`。**解析ランの前に`.rigor/cache`ディレクトリ（CWD相対）を削除します。`Cleared cache: .rigor/cache`または`Cache already empty: .rigor/cache`を出力します。チェック自体は完了まで実行されます。
+- **診断ソースファミリープロビナンス。** `Rigor::Analysis::Diagnostic`に`source_family:` kwarg（デフォルト`:builtin`）と非デフォルトファミリーには`"#{source_family}.#{rule}"`を、組み込み診断には`rule`を返す`qualified_rule`アクセサーが追加されました。JSON出力（`to_h`）は`source_family`と生の`rule`の両方を並べて持ちます。プラグインAPI自体にコミットすることなくADR-2のプラグイン可観測性ストーリーを準備します; v0.0.8でデフォルト以外のソースファミリーを設定するプロダクション呼び出し元はありません。
 
-### Internal
+### 内部
 
-- New normative spec [`docs/internal-spec/cache.md`](../docs/internal-spec/cache/) tracks the cache layer's public read shape (Descriptor API, Store API, file format, atomicity & locking, schema-version mismatch behaviour, disk inventory, diagnostic provenance).
+- 新しい規範的仕様[`docs/internal-spec/cache.md`](../docs/internal-spec/cache/)がキャッシュレイヤーのパブリック読み取り形状を追跡します（Descriptor API、Store API、ファイルフォーマット、アトミシティとロック、スキーマバージョン不一致動作、ディスクインベントリ、診断プロビナンス）。
 
 ## [0.0.7] - 2026-05-05
 
-The seventh preview. Theme: **pre-plugin coverage push** — close the gap between what the type-language and built-in-coverage specs already commit to and what the analyzer actually implements, so the plugin API designed against this surface in v0.1.0 has a complete substrate to attach to. The release is breadth-over-depth: many small fills, plus the first design output in the pre-v0.1.0 sequence.
+第7プレビュー。テーマ: **プリプラグインカバレッジプッシュ** — v0.1.0でこのサーフェスに対して設計されるプラグインAPIが結び付くための完全な基板を持てるよう、型言語と組み込みカバレッジ仕様がすでにコミットしているものと解析器が実際に実装しているものとのギャップを埋めます。リリースは深さより幅を重視: 多数の小さな追加、加えてpre-v0.1.0シーケンスにおける最初の設計出力。
 
-### Added
+### 追加
 
-#### Type-language type functions
+#### 型言語型関数
 
-- **`key_of[T]` / `value_of[T]`** project the type-level union of known keys (resp. values) for `HashShape`, `Tuple`, `Nominal[Hash, [K, V]]`, `Nominal[Array, [E]]`, and finite-bound `Constant<Range>`. Reachable through `RBS::Extended` directive payloads. The parser also accepts `lower_snake` heads alongside `kebab-case` refinements and lets nominal arguments carry their own type-args, so `key_of[Hash[Symbol, Integer]]` parses to `Symbol`.
-- **`int_mask[1, 2, 4]` / `int_mask_of[T]`** compute the bitwise-OR closure over a finite integer literal set, returning a `Union[Constant<Integer>…]` for small closures and a covering `IntegerRange` past the cardinality cap. Integer literals are now accepted as parser arguments.
-- **`T[K]` indexed-access operator** projects the type at index / key `K` from a structured `T`. Reachable from RBS::Extended directive payloads through trailing `[K]` segments after a parsed type, including chained `T[K1][K2]`. The parser's top-level entry now accepts class-name-headed types directly, so `Hash[Symbol, Integer][Symbol]` parses to `Symbol`.
+- **`key_of[T]` / `value_of[T]`** — `HashShape`、`Tuple`、`Nominal[Hash, [K, V]]`、`Nominal[Array, [E]]`、有限境界`Constant<Range>`の既知キー（resp. 値）の型レベル和集合を射影します。`RBS::Extended`ディレクティブペイロードから到達可能。パーサーは`kebab-case`の精製とともに`lower_snake`ヘッドも受け入れ、名目的引数が独自の型引数を持てるようにします。`key_of[Hash[Symbol, Integer]]`は`Symbol`にパースされます。
+- **`int_mask[1, 2, 4]` / `int_mask_of[T]`** — 有限整数リテラルセットに対するビット単位OR閉包を計算し、小さな閉包には`Union[Constant<Integer>…]`を返し、カーディナリティ上限を超えたら網羅する`IntegerRange`を返します。整数リテラルがパーサー引数として受け入れられるようになりました。
+- **`T[K]`インデックスアクセス演算子** — 構造化された`T`からインデックス / キー`K`の型を射影します。パースされた型の後ろに続く`[K]`セグメントを通じて`RBS::Extended`ディレクティブペイロードから到達可能（連鎖した`T[K1][K2]`を含む）。パーサーのトップレベルエントリーはクラス名ヘッドの型を直接受け入れるようになりました。`Hash[Symbol, Integer][Symbol]`は`Symbol`にパースされます。
 
-#### Constant-carrier coverage
+#### 定数キャリアカバレッジ
 
-- **`Rational` / `Complex` literal lift.** `Prism::ImaginaryNode` (`1i`) and `Prism::RationalNode` (`1.5r`) type as `Constant<Complex>` / `Constant<Rational>`; `Kernel#Rational(num, den)` and `Kernel#Complex(re, im)` calls fold to the same precise constants when every argument is a numeric Constant. `foldable_constant_value?` widens to accept `Rational` / `Complex`, unblocking every catalog-tier `Rational#…` / `Complex#…` fold against constant receivers.
-- **`Regexp` literal lift.** Non-interpolated `Prism::RegularExpressionNode` lifts to `Constant<Regexp>` (preserving source and option flags); interpolated regexes keep the conservative `Nominal[Regexp]`. Activates the new `Constant<String>#scan(/regex/)` fold path end-to-end.
-- **Pathname delegation.** `Pathname` joins `Type::Constant::SCALAR_CLASSES`; `Pathname.new(Constant<String>)` lifts via a `MethodDispatcher#meta_new` constant-constructor table; a curated 14-method unary / 8-method binary fold table covers pure path manipulation (`to_s`, `basename`, `dirname`, `extname`, `cleanpath`, `+`, `join`, `<=>`, `==`, `relative_path_from`, …). Filesystem-touching methods (`exist?`, `file?`, `read`, `stat`, …) are intentionally NOT folded.
+- **`Rational` / `Complex`リテラルリフト。** `Prism::ImaginaryNode`（`1i`）と`Prism::RationalNode`（`1.5r`）は`Constant<Complex>` / `Constant<Rational>`として型付けされます; `Kernel#Rational(num, den)`と`Kernel#Complex(re, im)`の呼び出しはすべての引数が数値Constantの場合に同じ精密な定数にフォールドします。`foldable_constant_value?`は`Rational` / `Complex`を受け入れるよう拡張され、定数レシーバーに対するすべてのカタログティア`Rational#…` / `Complex#…`フォールドのブロックを解除します。
+- **`Regexp`リテラルリフト。**非補間の`Prism::RegularExpressionNode`は`Constant<Regexp>`にリフトします（ソースとオプションフラグを保持）;補間されたregexは保守的な`Nominal[Regexp]`を保持します。新しい`Constant<String>#scan(/regex/)`フォールドパスをエンドツーエンドでアクティブにします。
+- **Pathname委譲。** `Pathname`が`Type::Constant::SCALAR_CLASSES`に追加されます; `Pathname.new(Constant<String>)`は`MethodDispatcher#meta_new`定数コンストラクターテーブルを通じてリフトします;厳選された14メソッドの単項 / 8メソッドの二項フォールドテーブルが純粋なパス操作をカバーします（`to_s`、`basename`、`dirname`、`extname`、`cleanpath`、`+`、`join`、`<=>`、`==`、`relative_path_from`など）。ファイルシステムに触れるメソッド（`exist?`、`file?`、`read`、`stat`など）は意図的にフォールドしません。
 
-#### Constant<Range> precision
+#### `Constant<Range>`精密性
 
-- **`to_a`** lifts to a per-position `Tuple[…]` for finite integer ranges (capped at 16 elements); **`first` / `last` / `min` / `max`** and **`count` / `size` / `length`** fold to precise `Constant<Integer>` values for the no-arg form, bypassing the catalog's `:block_dependent` classification of the optional-block variants.
+- **`to_a`**は有限整数範囲に対して位置ごとの`Tuple[…]`にリフトします（16要素でキャップ）; **`first` / `last` / `min` / `max`**と**`count` / `size` / `length`**はオプショナルブロックバリアントの`:block_dependent`分類をバイパスして、引数なし形式の精密な`Constant<Integer>`値にフォールドします。
 
-#### Tuple precision (eleven new ShapeDispatch handlers)
+#### Tuple精密性（11の新しいShapeDispatchハンドラー）
 
-- **`empty?` / `any?` / `all?` / `none?`** (no-block, no-arg) fold to `Constant[bool]` per the tuple's arity and element truthiness.
-- **`include?(needle)`** folds to a precise bool when the needle is a `Constant` and the tuple's elements are all `Constant`.
-- **`sum` / `min` / `max`** fold to numeric / comparable extremes for all-Constant elements.
-- **`sort` / `reverse`** return per-position Tuples in the appropriate order.
-- **`to_a`** returns the receiver Tuple unchanged.
-- **`zip`** pairs the receiver's per-position elements with the per-position elements of each other Tuple-shaped argument; short other-Tuples pad with `Constant[nil]`; multi-arg `zip` produces wider per-position Tuples (capped at 8).
+- **`empty?` / `any?` / `all?` / `none?`**（ブロックなし、引数なし）はタプルのアリティと要素の真偽値に基づいて`Constant[bool]`にフォールドします。
+- **`include?(needle)`**はneedleが`Constant`でタプルの要素がすべて`Constant`の場合に精密なboolにフォールドします。
+- **`sum` / `min` / `max`**はすべてのConstant要素に対して数値 / 比較可能な極値にフォールドします。
+- **`sort` / `reverse`**は適切な順序で位置ごとのTupleを返します。
+- **`to_a`**はレシーバーTupleをそのまま返します。
+- **`zip`**はレシーバーの位置ごとの要素を他の各Tupleシェイプ引数の位置ごとの要素とペアにします;短い他のTupleは`Constant[nil]`でパディングします;複数引数の`zip`はより広い位置ごとのTupleを生成します（8でキャップ）。
 
-#### HashShape precision
+#### HashShape精密性
 
-- **`keys` / `values`** fold to per-position Tuples preserving declaration order.
-- **`count` / `length`** match the existing `size` handler.
-- **`empty?` / `any?`** (no-arg, no-block) fold to `Constant[bool]` per the shape's emptiness.
-- **`first` / `flatten` / `compact`** for closed shapes with no optional keys: `first` returns the `[k, v]` 2-Tuple of the first pair; `flatten` produces the per-position `[k_1, v_1, k_2, v_2, …]` Tuple; `compact` drops every entry whose value is `Constant[nil]`.
-- **Tuple ↔ HashShape conversions** — `Tuple#to_h`, `HashShape#to_a`, `HashShape#to_h`, `HashShape#invert` (Symbol-/String-valued shapes only), `HashShape#merge(other)` for closed-shape × closed-shape merges.
+- **`keys` / `values`**は宣言順を保持して位置ごとのTupleにフォールドします。
+- **`count` / `length`**は既存の`size`ハンドラーとマッチします。
+- **`empty?` / `any?`**（引数なし、ブロックなし）は形状の空き具合に基づいて`Constant[bool]`にフォールドします。
+- **`first` / `flatten` / `compact`** — オプショナルキーなしのクローズドシェイプに対して: `first`は最初のペアの`[k, v]` 2-Tupleを返します; `flatten`は位置ごとの`[k_1, v_1, k_2, v_2, …]` Tupleを生成します; `compact`は値が`Constant[nil]`のすべてのエントリーを削除します。
+- **Tuple ↔ HashShapeコンバージョン** — `Tuple#to_h`、`HashShape#to_a`、`HashShape#to_h`、`HashShape#invert`（Symbol / String値のシェイプのみ）、クローズドシェイプ × クローズドシェイプマージの`HashShape#merge(other)`。
 
-#### String precision
+#### String精密性
 
-- **Format-string fold over `Tuple` / `HashShape` arguments.** `"%d / %d" % [1, 2]` folds to `Constant<"1 / 2">`; `"%{name} is %{age}" % {name: "Alice", age: 30}` folds to `Constant<"Alice is 30">`. Malformed format specs decline so the RBS tier widens.
-- **Array-returning method lift.** `s.chars` / `s.bytes` / `s.lines` / `s.split` (no-arg, separator, or `Constant<Regexp>` pattern) / `s.scan` lift the resulting Array to a per-position `Tuple[Constant…]` when every element is a foldable scalar and the cardinality fits within 32. Larger results decline so the RBS tier widens.
+- **`Tuple` / `HashShape`引数に対するフォーマット文字列フォールド。** `"%d / %d" % [1, 2]`は`Constant<"1 / 2">`にフォールドします; `"%{name} is %{age}" % {name: "Alice", age: 30}`は`Constant<"Alice is 30">`にフォールドします。不正なフォーマット仕様は拒否されRBSティアが拡大します。
+- **配列を返すメソッドリフト。** `s.chars` / `s.bytes` / `s.lines` / `s.split`（引数なし、セパレーター、または`Constant<Regexp>`パターン）/ `s.scan`は、すべての要素がフォールド可能なスカラーでカーディナリティが32以内の場合に、結果のArrayを位置ごとの`Tuple[Constant…]`にリフトします。大きな結果は拒否されRBSティアが拡大します。
 
-#### Refinement narrowing
+#### 精製ナロイング
 
-- **`~Refined[base, predicate]`** narrows through `Difference[base, refined]` instead of falling back to `current_type` unchanged. `assert value is ~lowercase-string` now narrows `String` to `Difference[String, lowercase-string]`. The De Morgan composition for Intersection refinements also tightens.
+- **`~Refined[base, predicate]`**は`current_type`をそのまま返すフォールバックの代わりに`Difference[base, refined]`を通じてナロイングします。`assert value is ~lowercase-string`は`String`を`Difference[String, lowercase-string]`にナロイングするようになりました。Intersection精製のDe Morganコンポジションも引き締まります。
 
-#### Empty literal carriers
+#### 空のリテラルキャリア
 
-- **`{}` → `HashShape{}`** mirrors the v0.0.6 empty-array literal change. The new HashShape projections fold against it.
-- **`Array.new(n, value)` / `Array.new(n)`** lift to a per-position `Tuple[…]` when `n` is a small `Constant<Integer>` (capped at 16). Oversize `n` falls back to `Nominal[Array]`.
+- **`{}` → `HashShape{}`**はv0.0.6の空配列リテラル変更を反映します。新しいHashShape射影がそれに対してフォールドします。
+- **`Array.new(n, value)` / `Array.new(n)`**は`n`が小さな`Constant<Integer>`の場合（16でキャップ）に位置ごとの`Tuple[…]`にリフトします。過大な`n`は`Nominal[Array]`にフォールバックします。
 
-#### Pre-v0.1.0 substrate
+#### pre-v0.1.0サブストレート
 
-- **`Rigor::Reflection` read-side facade** joins Rigor's three reflection sources (`ClassRegistry` + `RbsLoader` + `Scope` discovered facts) under one read API. Nine queries: `class_known?`, `class_ordering`, `nominal_for_name`, `singleton_for_name`, `constant_type_for` (in-source wins on collision with RBS), `instance_method_definition`, `singleton_method_definition`, `discovered_class?`, `discovered_method?`. Public read shape for v0.1.0 plugin-API readiness; spec at [`docs/internal-spec/reflection.md`](../docs/internal-spec/reflection/).
-- **Reflection consumer migration.** Five engine-internal callers (`Analysis::CheckRules`, `Inference::Narrowing`, `Inference::StatementEvaluator`, `Inference::MethodDispatcher`, `Inference::MethodParameterBinder`, `Inference::MethodDispatcher::RbsDispatch`) move from raw `scope.environment.rbs_loader` access to the facade. The facade gains `rbs_class_known?`, `instance_definition` / `singleton_definition`, `class_type_param_names`, and an `environment:` kwarg variant for dispatcher call paths that don't have a `Scope` in scope. Mechanical refactor; no behaviour change.
-- **v0.1.0 readiness design doc** at [`docs/design/20260505-v0.1.0-readiness.md`](../docs/design/20260505-v0.1.0-readiness/) — maps every ADR-2 surface to today's implementation, sequences the seven major pre-v0.1.0 work items, reconciles ADR-2's open questions, and lists the items that can land as v0.0.x dot releases.
-- **Cache slice taxonomy design doc** at [`docs/design/20260505-cache-slice-taxonomy.md`](../docs/design/20260505-cache-slice-taxonomy/) — fixes the per-slot entry shapes (`FileEntry` with `:digest` / `:mtime` / `:exists` comparators, `GemEntry`, `PluginEntry`, `ConfigEntry`), composition rules, canonical cache-key derivation, granularity guidance, and schema versioning. Prerequisite contract for the persistence layer that ships in v0.1.0.
+- **`Rigor::Reflection`読み取り側ファサード** — Rigorの3つのリフレクションソース（`ClassRegistry` + `RbsLoader` + `Scope`発見ファクト）を1つの読み取りAPIの下に結合します。9つのクエリ: `class_known?`、`class_ordering`、`nominal_for_name`、`singleton_for_name`、`constant_type_for`（インソースがRBSとの衝突に勝つ）、`instance_method_definition`、`singleton_method_definition`、`discovered_class?`、`discovered_method?`。v0.1.0プラグインAPI準備のためのパブリック読み取り形状;仕様は[`docs/internal-spec/reflection.md`](../docs/internal-spec/reflection/)。
+- **リフレクションコンシューマー移行。** 5つのエンジン内部コーラー（`Analysis::CheckRules`、`Inference::Narrowing`、`Inference::StatementEvaluator`、`Inference::MethodDispatcher`、`Inference::MethodParameterBinder`、`Inference::MethodDispatcher::RbsDispatch`）が生の`scope.environment.rbs_loader`アクセスからファサードに移行します。ファサードは`rbs_class_known?`、`instance_definition` / `singleton_definition`、`class_type_param_names`、ディスパッチャーコールパスのために`Scope`を持たない場合に`environment:` kwargバリアントを獲得します。機械的なリファクター;動作変更なし。
+- **v0.1.0準備設計ドキュメント** — [`docs/design/20260505-v0.1.0-readiness.md`](../docs/design/20260505-v0.1.0-readiness/)。すべてのADR-2サーフェスを今日の実装にマッピングし、7つの主要なpre-v0.1.0作業項目のシーケンスを定め、ADR-2の未解決の問題を調和させ、v0.0.xドットリリースとして着地できる項目を列挙します。
+- **キャッシュスライスタクソノミー設計ドキュメント** — [`docs/design/20260505-cache-slice-taxonomy.md`](../docs/design/20260505-cache-slice-taxonomy/)。スロットごとのエントリー形状（`:digest` / `:mtime` / `:exists`コンパレーターを持つ`FileEntry`、`GemEntry`、`PluginEntry`、`ConfigEntry`）、コンポジションルール、正規キャッシュキー導出、粒度ガイダンス、スキーマバージョニングを固定します。v0.1.0でリリースされる永続化レイヤーの前提条件契約。
 
 ## [0.0.6] - 2026-05-05
 
-The sixth preview. Theme: **fold block-taking Enumerable methods through the constant-folding tier** so iterator-shaped expressions over literal collections produce precise carriers instead of widening through RBS.
+第6プレビュー。テーマ: **定数フォールドティアを通じてブロックを取るEnumerableメソッドをフォールドする** — リテラルコレクションに対するイテレーター形状の式がRBSを通じて拡大するのではなく精密なキャリアを生成するよう。
 
-### Added
+### 追加
 
-- **Block-shaped fold dispatch over constant-block predicates and filters.** Calls like `[1, 2, 3].select { false }`, `arr.all? { true }`, or `arr.any? { false }` collapse to the precise endpoint when the block's inferred return type is a Ruby-truthy or Ruby-falsey `Constant`. Filter methods (`select` / `filter` / `reject` / `take_while` / `drop_while`) fold to either the receiver or `Tuple[]`; predicate methods (`all?` / `any?` / `none?`) fold to `Constant[true]` / `Constant[false]` whenever the receiver-emptiness × block-truthiness combination is unconditional in Ruby's semantics, including the vacuous-truth empty-receiver cases. Receiver-emptiness is recognised against `Tuple`, `HashShape`, `Constant<Array|Hash|String|Range>`, and the imported `non-empty-array[T]` carrier (`Difference[Array, Tuple[]]`).
-- **Per-position block re-evaluation over Tuple receivers** for `map` / `collect` / `filter_map` / `flat_map` / `find` / `detect` / `find_index` / `index`. The block body is type-checked once per Tuple position with the corresponding element bound to the block parameter, then assembled per-method:
-  - `map` / `collect` produce `Tuple[U_1..U_n]`. `[1, 2, 3].map { |n| n.to_s }` resolves to `["1", "2", "3"]` instead of `Array["1" | "2" | "3"]`.
-  - `filter_map` drops `Constant[nil]` / `Constant[false]` positions and concatenates the survivors into a Tuple.
-  - `flat_map` concatenates per-position `Tuple` results, treating per-position `Constant` scalars as single-element contributions and declining on opaque carriers.
-  - `find` / `detect` return the receiver element at the first truthy position (or `Constant[nil]` when every position is falsey).
-  - `find_index` / `index` return the index of the first truthy position (or `Constant[nil]`). The value-search forms `index(value)` / `find_index(value)` decline so the RBS tier still owns those.
-- **Per-position block fold over short `Constant<Range>` receivers** up to a cardinality cap of 8 elements. Each integer in the range re-types the block body once with the corresponding `Constant<Integer>` bound to the parameter, so `(1..3).map { |n| n.to_s }` resolves to `["1", "2", "3"]` and `(1..5).find { |n| n.even? }` resolves to `Constant[2]`. Larger ranges decline so the RBS tier widens, keeping block-typing cost bounded.
-- **Branch elision for expression-position conditionals.** `if` / `unless` / ternary expressions whose predicate folds to a `Type::Constant` drop the unreachable branch and adopt the live branch's type. Statement-level branch elision was already present from v0.0.3; this slice covers expression-position uses (e.g. the right-hand side of an assignment, an argument expression, or a block body). Composes directly with the per-position fold, so `[1, 2, 3].filter_map { |n| n.even? ? n.to_s : nil }` resolves to `Tuple[Constant["2"]]`.
-- **`&&` / `||` short-circuit elision on Constant-shaped left operands.** When the left operand of `&&` / `||` folds to a `Type::Constant`, the result type follows Ruby's actual short-circuit semantics: `Constant[truthy] && rhs` is the right operand's type, `Constant[falsey] && rhs` keeps the left, and the dual rule applies for `||`. Non-Constant left operands keep the previous union-of-both-operands behaviour.
-- **`find { false }` / `detect { false }` / `find_index { false }` / `index { false }` / `count { … }` short-circuit folds.** The block-form falsey side of the find-family folds to `Constant[nil]`; `count { false }` folds to `Constant[0]`; `count { true }` folds to `Constant[size]` when the receiver pins a finite size (Tuple, HashShape, or `Constant<Range>` with finite integer endpoints). The value-search forms `index(value)` / `count(value)` carry a positional argument and decline so the RBS tier still answers them.
-- **IntegerRange-aware ternary fold — `Comparable#between?` / `Comparable#clamp`.** The 2-arg `try_fold_ternary` path now accepts an `IntegerRange` receiver paired with two scalar `Constant<Integer>` args. `int<3, 7>.between?(0, 10)` folds to `Constant[true]`; `int<3, 7>.clamp(4, 6)` folds to `int<4, 6>` (collapsing to a `Constant` when the intersection pins a single point). When the bracket is fully disjoint from the range — every receiver value would snap to one bracket bound — the fold declines so the RBS tier widens rather than the dispatcher inventing the snap point.
-- **Empty array literal carrier — `[]` resolves to `Tuple[]`.** The empty array literal previously typed as `Nominal[Array]`; v0.0.6 switches it to the empty `Tuple[]` carrier so the per-element block fold can concatenate cleanly across all-empty positions like `[1, 2, 3].flat_map { |_| [] }` (now folds to `Tuple[]`). Both carriers erase to plain `Array` on the RBS-interop path.
-- **Pathname catalog import.** `data/builtins/ruby_core/pathname.yml` (102 instance methods, 2 singletons, 5 aliases) and the matching `Builtins::PATHNAME_CATALOG` join the catalog tier. Pathname is a thin wrapper that mostly delegates to `File` / `Dir` / `FileTest`, so the user-visible payoff is narrower than Numeric or String — the import buys receiver-class recognition for `Pathname.new(...)`, a defensive `:initialize_copy` blocklist entry, and catalog folding for the lone `:leaf` method (`<=>`).
+- **定数ブロック述語とフィルターに対するブロック形状フォールドディスパッチ。** `[1, 2, 3].select { false }`、`arr.all? { true }`、`arr.any? { false }`のような呼び出しは、ブロックの推論された戻り型がRubyの真値または偽値の`Constant`の場合に精密なエンドポイントに折り畳まれます。フィルターメソッド（`select` / `filter` / `reject` / `take_while` / `drop_while`）はレシーバーまたは`Tuple[]`にフォールドします;述語メソッド（`all?` / `any?` / `none?`）は、Rubyのセマンティクスでレシーバーの空き具合 × ブロックの真偽値の組み合わせが無条件の場合（空レシーバーの空白真値ケースを含む）に`Constant[true]` / `Constant[false]`にフォールドします。レシーバーの空き具合は`Tuple`、`HashShape`、`Constant<Array|Hash|String|Range>`、インポートされた`non-empty-array[T]`キャリア（`Difference[Array, Tuple[]]`）に対して認識されます。
+- **`map` / `collect` / `filter_map` / `flat_map` / `find` / `detect` / `find_index` / `index`のTupleレシーバーに対する位置ごとのブロック再評価。**ブロックボディは対応する要素がブロックパラメーターにバインドされた状態でTupleの位置ごとに1回型チェックされ、その後メソッドごとに組み立てられます:
+  - `map` / `collect`は`Tuple[U_1..U_n]`を生成します。`[1, 2, 3].map { |n| n.to_s }`は`Array["1" | "2" | "3"]`の代わりに`["1", "2", "3"]`に解決されます。
+  - `filter_map`は`Constant[nil]` / `Constant[false]`位置を削除し、残りをTupleに連結します。
+  - `flat_map`は位置ごとの`Tuple`結果を連結し、位置ごとの`Constant`スカラーを単一要素の寄与として扱い、不透明なキャリアでは拒否します。
+  - `find` / `detect`は最初の真値位置のレシーバー要素を返します（すべての位置が偽値の場合は`Constant[nil]`）。
+  - `find_index` / `index`は最初の真値位置のインデックスを返します（`Constant[nil]`の場合あり）。値検索形式`index(value)` / `find_index(value)`は拒否されRBSティアがそれらを引き続き担当します。
+- **8要素のカーディナリティ上限までの短い`Constant<Range>`レシーバーに対する位置ごとのブロックフォールド。**範囲内の各整数はブロックボディを対応する`Constant<Integer>`がパラメーターにバインドされた状態で1回再型付けします。`(1..3).map { |n| n.to_s }`は`["1", "2", "3"]`に解決し、`(1..5).find { |n| n.even? }`は`Constant[2]`に解決します。大きな範囲は拒否されRBSティアが拡大し、ブロック型付けコストを制限します。
+- **式位置の条件式に対するブランチ除去。**述語が`Type::Constant`にフォールドする`if` / `unless` / 三項式は到達不能なブランチを削除し、生きているブランチの型を採用します。ステートメントレベルのブランチ除去はv0.0.3からすでに存在していました;このスライスは式位置での使用（例: 代入の右辺、引数式、ブロックボディ）をカバーします。位置ごとのフォールドと直接コンポーズするため、`[1, 2, 3].filter_map { |n| n.even? ? n.to_s : nil }`は`Tuple[Constant["2"]]`に解決します。
+- **Constant形状の左オペランドに対する`&&` / `||`短絡除去。** `&&` / `||`の左オペランドが`Type::Constant`にフォールドする場合、結果型はRubyの実際の短絡セマンティクスに従います: `Constant[truthy] && rhs`は右オペランドの型、`Constant[falsey] && rhs`は左を保持、そして`||`にはデュアルルールが適用されます。非Constantの左オペランドは以前の両オペランドの和集合の動作を保持します。
+- **`find { false }` / `detect { false }` / `find_index { false }` / `index { false }` / `count { … }`の短絡フォールド。**ファインドファミリーのブロック形式偽値側は`Constant[nil]`にフォールドします; `count { false }`は`Constant[0]`にフォールドします; `count { true }`は、レシーバーが有限サイズをピン留めしている場合（Tuple、HashShape、有限整数エンドポイントを持つ`Constant<Range>`）に`Constant[size]`にフォールドします。値検索形式`index(value)` / `count(value)`は位置引数を持ち、RBSティアが引き続き回答するため拒否されます。
+- **IntegerRange対応の三項フォールド——`Comparable#between?` / `Comparable#clamp`。** 2引数の`try_fold_ternary`パスは`IntegerRange`レシーバーと2つのスカラー`Constant<Integer>`引数を受け入れるようになりました。`int<3, 7>.between?(0, 10)`は`Constant[true]`にフォールドします; `int<3, 7>.clamp(4, 6)`は`int<4, 6>`にフォールドします（積集合が単一点をピン留めする場合は`Constant`に折り畳まれます）。ブラケットが範囲と完全に交差しない場合——すべてのレシーバー値が一方のブラケット境界にスナップする場合——フォールドは拒否されRBSティアが拡大します。
+- **空配列リテラルキャリア——`[]`が`Tuple[]`に解決。**空の配列リテラルは以前`Nominal[Array]`として型付けされていましたが、v0.0.6では空の`Tuple[]`キャリアに切り替わります。これにより位置ごとのブロックフォールドが`[1, 2, 3].flat_map { |_| [] }`のようなすべての空位置に対してクリーンに連結できます（現在`Tuple[]`にフォールドします）。両キャリアともRBS相互運用パスでプレーンな`Array`に消去されます。
+- **Pathnameカタログインポート。** `data/builtins/ruby_core/pathname.yml`（102インスタンスメソッド、2シングルトン、5エイリアス）と対応する`Builtins::PATHNAME_CATALOG`がカタログティアに加わります。PathnameはほぼFileおよびDirに委譲する薄いラッパーなので、ユーザーが見えるペイオフはNumericやStringより狭い——このインポートは`Pathname.new(...)`のレシーバークラス認識、防御的な`:initialize_copy`ブロックリストエントリー、唯一の`:leaf`メソッド（`<=>`）に対するカタログフォールドを提供します。
 
-### Fixed
+### 修正
 
-- **`tool/extract_builtin_catalog.rb` rescue-on-def classifier crash.** `PreludeParser#analyse_body` previously raised `NoMethodError` on Ruby methods written with the rescue-on-def idiom (`def foo; …; rescue; …; end`) because Prism wraps the body in a `BeginNode` rather than a `StatementsNode`. The classifier now descends into the begin-block's `statements` for that case. The bug surfaced importing Pathname (whose prelude has `def initialize(path); @path = …; rescue TypeError; …; end`); every catalog regenerates cleanly under `make extract-builtin-catalogs`.
+- **`tool/extract_builtin_catalog.rb`のrescue-on-defクラシファイアークラッシュ。** `PreludeParser#analyse_body`は以前、Prismがボディを`StatementsNode`ではなく`BeginNode`でラップするrescue-on-defイディオム（`def foo; …; rescue; …; end`）を持つRubyメソッドで`NoMethodError`を発生させていました。クラシファイアーはそのケースのbeginブロックの`statements`に降りるようになりました。このバグはPathname（そのpreludeに`def initialize(path); @path = …; rescue TypeError; …; end`がある）をインポートする際に表面化しました;すべてのカタログは`make extract-builtin-catalogs`下でクリーンに再生成されます。
 
 ## [0.0.5] - 2026-05-03
 
-### Added
+### 追加
 
-- **Rational and Complex built-in catalog imports.** New
-  loaders `RATIONAL_CATALOG` and `COMPLEX_CATALOG` join the
-  `CATALOG_BY_CLASS` table; the corresponding YAMLs under
-  `data/builtins/ruby_core/{rational,complex}.yml` are
-  generated from `references/ruby/{rational,complex}.c` via
-  `tool/extract_builtin_catalog.rb`. Both classes are fully
-  immutable in Ruby, so the per-class `mutating_selectors`
-  blocklists carry only the conventional defence-in-depth
-  `:initialize_copy` entry. Rigor today has no
-  `Constant<Rational>` / `Constant<Complex>` literal lift
-  (`Prism::ImaginaryNode` and `Rational(...)` /
-  `Complex(...)` Kernel-call folding stay deferred), so the
-  catalog wiring is currently a defensive surface — every
-  fixture assertion goes through the RBS-tier projection on a
-  `Nominal[<class>]` receiver. The blocklist becomes
-  load-bearing once a future slice teaches the typer to lift
-  these literals into `Constant<…>`.
-- **`Const = Data.define(*Symbol)` discovery.**
-  `Inference::ScopeIndexer.record_declarations` now
-  registers `Const` (qualified by the surrounding class /
-  module path) as a discovered class whose constant resolves
-  to `Singleton[<qualified-name>]`. Previously
-  `Const.new(...)` returned the un-narrowed `Dynamic[top]`
-  envelope; with the constant registered, `meta_new` resolves
-  it to a fresh `Nominal[<qualified-name>]`, and member
-  accessors flow through the user-class fallback without
-  false-positives. Both the bare form `Data.define(:x, :y)`
-  and the block-override form
-  `Data.define(:x, :y) do; def initialize(x:, y:); …; end end`
-  are recognised; non-symbol arguments and non-`Data`
-  receivers are rejected. Worked example: `Target` and
-  `Fact` in `lib/rigor/analysis/fact_store.rb` now type as
-  `singleton(Rigor::Analysis::FactStore::Target)` and
-  `singleton(Rigor::Analysis::FactStore::Fact)` respectively.
-- **`Kernel#Array` precision tier
-  (`MethodDispatcher::KernelDispatch`).** A new
-  precision-tier dispatcher folds `Array(arg)` into a precise
-  `Array[E]` whenever the argument's value-lattice shape lets
-  us prove the element type. The rules mirror Ruby's coercion
-  contract — `Array(nil) -> []`, an existing `Array[E]`
-  preserves its element, a Tuple materialises to
-  `Array[T1|T2|…]`, and a Union distributes element-wise and
-  unifies. Opaque shapes (Top / Dynamic / Bot) fall through to
-  the existing RBS-tier envelope. Worked example: in
-  `lib/rigor/analysis/fact_store.rb#fact_targets`,
-  `Array(fact.target)` over `fact.target: Target |
-  Array[Target]` previously typed as `Array[Dynamic[top]]`;
-  it now types as `Array[Target]`.
-- **Branch-aware scope propagation for expression-position
-  conditionals.** `Inference::ScopeIndexer.propagate` now
-  special-cases `Prism::IfNode` and `Prism::UnlessNode`,
-  threading the predicate's narrowed truthy / falsey scopes
-  into the corresponding branch subtrees. Previously, when
-  an `if` / `unless` sat in expression position (e.g. as a
-  call argument or the RHS of an `[]=`), the indexer never
-  routed it through `eval_if`'s narrowing path, so inner
-  nodes inherited the un-narrowed entry scope and downstream
-  rules (`possible-nil-receiver`, type-of probes) saw
-  spurious `T | nil`. Worked example:
-  `cache[k] = if x; x.foo; else; default; end` now sees `x`
-  narrowed to its non-nil fragment inside the truthy branch,
-  matching the behaviour for the statement-level form
-  `if x; cache[k] = x.foo; else; cache[k] = default; end`.
-  Specs at
-  `spec/rigor/inference/scope_indexer_spec.rb#narrows IfNode
-  branches when the conditional sits in expression position`
-  (and the `UnlessNode` mirror) bind both shapes.
-- **`RbsLoader#instance_definition` /
-  `#singleton_definition` now declared as `untyped?`.** The
-  earlier sig form (`untyped`) was a workaround for the
-  truthy-narrowing gap above; with that gap closed, the sig
-  can faithfully reflect the impl's `nil`-on-unknown-class
-  return contract.
-- **Two-argument constant-fold dispatch.**
-  `MethodDispatcher::ConstantFolding#try_fold` previously
-  switched on `args.size` and only handled the 0- and 1-arg
-  shapes; 2-arg leaf methods like `Comparable#between?(min,
-  max)`, the explicit-bounds form of `Comparable#clamp(min,
-  max)`, and `Integer#pow(exp, mod)` all bailed to the
-  RBS-widened tier. The dispatch now grows a `when 2` arm
-  routed through `try_fold_ternary`, which folds the cartesian
-  product of receiver × arg0 × arg1 when every operand is a
-  `Constant` (or `Union[Constant…]`) and the catalog
-  classifies the method `:leaf` / `:trivial`. The same
-  `UNION_FOLD_INPUT_LIMIT` cap that gates the binary path
-  guards the cartesian explosion. IntegerRange operands are
-  reserved for a follow-up — any range receiver or arg short-
-  circuits the ternary path so the RBS tier still answers.
-  Worked examples: `5.between?(0, 10)` folds to
-  `Constant[true]`, `100.clamp(0, 10)` folds to
-  `Constant[10]`, `100.pow(50, 17)` folds to `Constant[4]`.
-  Direct payoff for the just-landed include-aware lookup:
-  `between?` was the canonical 2-arg method blocked by the
-  arity gate. End-to-end fixture:
-  `spec/integration/fixtures/two_arg_fold.rb`.
-- **`tool/catalog_diff.rb` + `make catalog-diff`.** Prints the
-  surface-level diff between two
-  `data/builtins/ruby_core/<topic>.yml` snapshots — per-class
-  additions / removals / purity changes / cfunc renames /
-  arity changes. The motivating use is a `references/ruby`
-  submodule bump where the full YAML diff is noisy because it
-  interleaves prose comments, RBS pulls, and `defined_at` line
-  numbers; this tool extracts the catalog-semantic deltas a
-  reviewer has to look at. Default invocation:
-  `make catalog-diff BEFORE=… AFTER=…`.
-- **C-body classifier detects pure `rb_check_frozen` wrappers
-  as mutators.** Per-class wrappers like `time_modify(time)` /
-  `time_gmtime(time)` whose entire body is one or more
-  `rb_check_frozen(...)` calls used to be classified `:leaf`
-  even though they centralise the mutation gate of the
-  receiver. `CBodyIndex#mutator_helpers` now returns the set
-  of indexed cfuncs whose body matches the pure-frozen-check
-  pattern, and `CBodyClassifier.classify` flips the `:mutate`
-  effect on when a method calls one of those helpers. The
-  pattern is intentionally narrow — naive transitive
-  propagation over-flagged legitimate non-mutators like
-  `Array#to_a`, so only bodies that consist solely of
-  `rb_check_frozen` calls qualify. Re-extraction flips two
-  Time methods (`#gmtime`, `#utc`, both bound to `time_gmtime`)
-  from `:leaf` to `:mutates_self`; every other catalog
-  regenerates byte-identically.
-- **Include-aware module-catalog fallthrough activates the
-  Comparable / Enumerable imports.**
-  `MethodDispatcher::ConstantFolding#catalog_allows?` walks the
-  receiver class's `Module#ancestors` and consults the
-  imported module catalogs (`COMPARABLE_CATALOG`,
-  `ENUMERABLE_CATALOG`) when the primary class catalog has no
-  entry for the method. Resolution: primary class catalog
-  first (its `rb_define_method` registration is authoritative
-  even when the entry is classified `:dispatch`), module
-  catalogs only when the primary has no entry. The user-visible
-  payoff: methods that come purely from an `include Comparable`
-  / `include Enumerable` mixin without a direct
-  `rb_define_method` registration now fold. Worked example:
-  `5.clamp(0..10)` folds to `Constant[5]`,
-  `100.clamp(0..10)` folds to `Constant[10]`. `Comparable#between?`
-  and Enumerable's block-shaped methods need the dispatch
-  tier's two-arg / block-parameter paths and remain unfolded
-  (tracked as a follow-up). End-to-end fixture:
-  `spec/integration/fixtures/include_aware_clamp.rb`.
-- **Comparable and Enumerable module catalog imports.** New
-  `data/builtins/ruby_core/comparable.yml` and
-  `enumerable.yml` generated by
-  `tool/extract_builtin_catalog.rb` from `Init_Comparable`
-  (compar.c) and `Init_Enumerable` (enum.c). Catalog stats:
-  Comparable ships with 7 instance methods (the `<`/`<=`/`==`/
-  `>=`/`>`/`between?`/`clamp` family); Enumerable ships with 58
-  instance methods (47 `:block_dependent`, 9 `:leaf`, 2
-  `:mutates_self`). The matching `Builtins::COMPARABLE_CATALOG`
-  / `Builtins::ENUMERABLE_CATALOG` singletons are loaded at
-  boot but NOT registered in
-  `MethodDispatcher::ConstantFolding::CATALOG_BY_CLASS` because
-  modules are not receiver classes the dispatcher routes
-  through; the data is in place for a future include-aware
-  lookup that walks the receiver's ancestor chain.
-- **`tool/scaffold_builtin_catalog.rb --module`.** The scaffold
-  script gains a module mode that skips the
-  `CATALOG_BY_CLASS` row, the fixture stub, and the
-  integration `describe` block — none of those make sense
-  until include-aware dispatch ships. The loader file gets a
-  module-aware banner; the require_relative is still inserted
-  so the singleton is reachable. The associated extractor
-  upgrade (`MODULE_DEFINE_RE`) recognises
-  `rb_mFoo = rb_define_module("Foo");` registrations and
-  records modules in the per-topic `classes` map with
-  `parent: "Module"`. Two previously-dropped module
-  registrations (`FileTest` in Init_File, `UnicodeNormalize`
-  in Init_String) now surface as empty-bucket class entries
-  in their respective YAMLs.
-- **`~refinement` negation extends to IntegerRange and
-  Intersection.** `Narrowing.narrow_not_refinement` previously
-  only handled `Difference[base, Constant[v]]`; the algebra
-  now covers two more carrier kinds:
-  - `Type::IntegerRange[a, b]` — complement is the two open
-    halves `int<min, a-1>` and `int<b+1, max>`, each
-    intersected with the integer-domain parts of
-    `current_type`. Non-integer parts of a Union receiver
-    survive unchanged. `assert n is ~int<5, 10>` over
-    `n: Integer` narrows to `int<11, max> | int<min, 4>`.
-    End-to-end fixture:
-    `spec/integration/fixtures/assert_negation_integer_range/`.
-  - `Type::Intersection[M1, M2, …]` — De Morgan: `D \ (M1 ∩
-    M2) = (D \ M1) ∪ (D \ M2)`. Each member's complement is
-    computed independently and unioned; members the algebra
-    cannot complement (Refined, non-Constant Difference)
-    contribute `current_type` itself, so the union may widen.
-    `~non-empty-lowercase-string` over `String` therefore
-    yields `Constant[""] | Nominal[String]` rather than the
-    tighter `Constant[""]` we'd get with predicate-aware
-    complement. `Refined[base, predicate]` keeps its
-    conservative `current_type` answer (predicate complements
-    are not finite-carrier-expressible).
-- **`~refinement` negation in `assert:` / `predicate-if-*:`
-  directives.** The `<target> is <RHS>` right-hand side now
-  accepts the `~T` negation prefix on the refinement arm in
-  addition to the existing class-name arm. The narrowing tier
-  introduces `Narrowing.narrow_not_refinement` for the
-  Difference + Constant-removed shape: it walks the current
-  type's union members, keeps each part disjoint from the
-  refinement's base, and adds the removed-value Constant
-  exactly once when any current member covers it.
+- **RationalとComplexの組み込みカタログインポート。**新しいローダー`RATIONAL_CATALOG`と`COMPLEX_CATALOG`が`CATALOG_BY_CLASS`テーブルに加わります;対応するYAMLが`data/builtins/ruby_core/{rational,complex}.yml`下に`tool/extract_builtin_catalog.rb`を通じて`references/ruby/{rational,complex}.c`から生成されます。両クラスはRubyで完全に不変なので、クラスごとの`mutating_selectors`ブロックリストは従来の防御的な`:initialize_copy`エントリーのみを持ちます。Rigorには今日`Constant<Rational>` / `Constant<Complex>`リテラルリフト（`Prism::ImaginaryNode`と`Rational(...)` / `Complex(...)`カーネル呼び出しフォールドは延期）がないため、カタログ配線は現在防御的なサーフェスです——すべてのフィクスチャーアサーションは`Nominal[<class>]`レシーバー上のRBSティア射影を通じて行われます。このブロックリストは将来のスライスが型付け器にこれらのリテラルを`Constant<…>`にリフトする方法を教えた時点でロードベアリングになります。
+- **`Const = Data.define(*Symbol)`の発見。** `Inference::ScopeIndexer.record_declarations`は`Const`（囲むクラス / モジュールパスで修飾）を、定数が`Singleton[<qualified-name>]`に解決する発見されたクラスとして登録するようになりました。以前`Const.new(...)`は未ナロイングの`Dynamic[top]`エンベロープを返していましたが、定数の登録により`meta_new`はそれを新しい`Nominal[<qualified-name>]`に解決し、メンバーアクセサーはユーザークラスフォールバックを通じて偽陽性なしで流れます。ベア形式`Data.define(:x, :y)`とブロックオーバーライド形式`Data.define(:x, :y) do; def initialize(x:, y:); …; end end`の両方が認識されます;非Symbol引数と非`Data`レシーバーは拒否されます。実例: `lib/rigor/analysis/fact_store.rb`の`Target`と`Fact`が`singleton(Rigor::Analysis::FactStore::Target)`と`singleton(Rigor::Analysis::FactStore::Fact)`として型付けされるようになりました。
+- **`Kernel#Array`精密ティア（`MethodDispatcher::KernelDispatch`）。**新しい精密ティアディスパッチャーが、引数の値格子形状から要素型を証明できる場合はいつでも`Array(arg)`を精密な`Array[E]`にフォールドします。ルールはRubyの変換契約を反映します——`Array(nil) -> []`、既存の`Array[E]`はその要素を保持、Tupleは`Array[T1|T2|…]`に実体化、Unionは要素単位で分配して統合します。不透明な形状（Top / Dynamic / Bot）は既存のRBSティアエンベロープにフォールスルーします。実例: `lib/rigor/analysis/fact_store.rb#fact_targets`で、`fact.target: Target | Array[Target]`に対する`Array(fact.target)`は以前`Array[Dynamic[top]]`として型付けされていましたが、現在は`Array[Target]`として型付けされます。
+- **式位置の条件式に対するブランチ認識スコープ伝播。** `Inference::ScopeIndexer.propagate`は`Prism::IfNode`と`Prism::UnlessNode`を特殊ケースとして扱うようになり、述語のナロイングされた真値 / 偽値スコープを対応するブランチサブツリーにスレッドします。以前、`if` / `unless`が式位置（例: 呼び出し引数や`[]=`のRHS）にある場合、インデクサーはそれを`eval_if`のナロイングパスに転送せず、内部ノードはナロイングなしのエントリースコープを継承し、下流のルール（`possible-nil-receiver`、type-ofプローブ）が偽の`T | nil`を見ていました。実例: `cache[k] = if x; x.foo; else; default; end`は真値ブランチ内で`x`がnilでないフラグメントにナロイングされるようになりました。これはステートメントレベル形式`if x; cache[k] = x.foo; else; cache[k] = default; end`の動作と一致します。
+- **`RbsLoader#instance_definition` / `#singleton_definition`が`untyped?`として宣言されるようになりました。**以前のsig形式（`untyped`）は上記の真値ナロイングギャップの回避策でした;そのギャップが閉じたことで、sigが実装の`nil`-on-unknown-class戻り値契約を忠実に反映できます。
+- **2引数定数フォールドディスパッチ。** `MethodDispatcher::ConstantFolding#try_fold`は以前`args.size`でスイッチし、0引数と1引数の形状のみを処理していました; `Comparable#between?(min, max)`、`Comparable#clamp(min, max)`の明示的境界形式、`Integer#pow(exp, mod)`のような2引数のリーフメソッドはすべてRBS拡大ティアにベイルしていました。ディスパッチは`try_fold_ternary`を通じてルーティングされる`when 2`アームを獲得し、すべてのオペランドが`Constant`（または`Union[Constant…]`）でカタログがメソッドを`:leaf` / `:trivial`と分類する場合にレシーバー × arg0 × arg1のデカルト積をフォールドします。バイナリパスを制限する同じ`UNION_FOLD_INPUT_LIMIT`上限がデカルト爆発を防ぎます。IntegerRangeオペランドはフォローアップのために予約されています。実例: `5.between?(0, 10)`は`Constant[true]`にフォールド、`100.clamp(0, 10)`は`Constant[10]`にフォールド、`100.pow(50, 17)`は`Constant[4]`にフォールド。
+- **`tool/catalog_diff.rb` + `make catalog-diff`。** 2つの`data/builtins/ruby_core/<topic>.yml`スナップショット間のサーフェスレベルの差分を出力します——クラスごとの追加 / 削除 / 純粋性変更 / cfuncリネーム / アリティ変更。動機となるユースケースは、完全なYAML差分が散文コメント、RBSプル、`defined_at`行番号をインターリーブするため見通しが悪い`references/ruby`サブモジュールのバンプです;このツールはレビュアーが確認すべきカタログセマンティクスの差分を抽出します。デフォルト呼び出し: `make catalog-diff BEFORE=… AFTER=…`。
+- **Cボディクラシファイアーが純粋な`rb_check_frozen`ラッパーをミューテーターとして検出するようになりました。** `time_modify(time)` / `time_gmtime(time)`のようなボディ全体が1つ以上の`rb_check_frozen(...)`呼び出しのみのクラスごとのラッパーは、レシーバーのミューテーションゲートを集中管理しているにもかかわらず`:leaf`として分類されていました。`CBodyIndex#mutator_helpers`は純粋な凍結チェックパターンにマッチするボディを持つインデックス済みcfuncのセットを返すようになりました; `CBodyClassifier.classify`はメソッドがそれらのヘルパーのいずれかを呼び出す時に`:mutate`エフェクトをフリップします。このパターンは意図的に狭く制限されています——単純な推移的伝播は`Array#to_a`のような正当な非ミューテーターを過剰にフラグ付けしたため、`rb_check_frozen`呼び出しのみで構成されるボディのみが適格です。再抽出により2つのTimeメソッド（`#gmtime`、`#utc`、両方とも`time_gmtime`にバインド）が`:leaf`から`:mutates_self`に切り替わります;他のすべてのカタログはバイト同一で再生成されます。
+- **include対応のモジュールカタログフォールスルーがComparable / Enumerableインポートをアクティブにします。** `MethodDispatcher::ConstantFolding#catalog_allows?`がレシーバークラスの`Module#ancestors`を歩き、プライマリクラスカタログにメソッドのエントリーがない場合にインポートされたモジュールカタログ（`COMPARABLE_CATALOG`、`ENUMERABLE_CATALOG`）を参照するようになりました。解決: プライマリクラスカタログが最初（その`rb_define_method`登録はエントリーが`:dispatch`と分類されていても権威あります）、プライマリにエントリーがない場合のみモジュールカタログ。ユーザーが見えるペイオフ: 直接の`rb_define_method`登録なしに純粋に`include Comparable` / `include Enumerable`ミックスインから来るメソッドがフォールドするようになりました。実例: `5.clamp(0..10)`は`Constant[5]`、`100.clamp(0..10)`は`Constant[10]`にフォールド。
+- **ComparableとEnumerableモジュールカタログインポート。**新しい`data/builtins/ruby_core/comparable.yml`と`enumerable.yml`が`Init_Comparable`（compar.c）と`Init_Enumerable`（enum.c）から`tool/extract_builtin_catalog.rb`によって生成されました。カタログ統計: Comparableには7インスタンスメソッド（`<` / `<=` / `==` / `>=` / `>` / `between?` / `clamp`ファミリー）; Enumerableには58インスタンスメソッド（47 `:block_dependent`、9 `:leaf`、2 `:mutates_self`）。対応する`Builtins::COMPARABLE_CATALOG` / `Builtins::ENUMERABLE_CATALOG`シングルトンはブート時にロードされますが、モジュールはディスパッチャーがルーティングするレシーバークラスではないため`MethodDispatcher::ConstantFolding::CATALOG_BY_CLASS`に登録されません;データはレシーバーの祖先チェーンを歩く将来のinclude対応ルックアップのために用意されています。
+- **`tool/scaffold_builtin_catalog.rb --module`。**スキャフォールドスクリプトはモジュールモードを獲得しました。このモードはすべてが意味をなさない`CATALOG_BY_CLASS`行、フィクスチャースタブ、統合`describe`ブロックをスキップします（include対応ディスパッチが着地するまで）。ローダーファイルはモジュール対応バナーを持ちます; `require_relative`はシングルトンがアクセス可能なまま挿入されます。関連する抽出器アップグレード（`MODULE_DEFINE_RE`）は`rb_mFoo = rb_define_module("Foo");`登録を認識し、各トピックの`classes`マップに`parent: "Module"`でモジュールを記録します。以前はドロップされていた2つのモジュール登録（`Init_File`の`FileTest`、`Init_String`の`UnicodeNormalize`）がそれぞれのYAMLで空バケットクラスエントリーとして表面化するようになりました。
+- **IntegerRangeとIntersectionへの`~refinement`否定の拡張。** `Narrowing.narrow_not_refinement`は以前`Difference[base, Constant[v]]`のみを処理していましたが、代数は2つのキャリア種類をさらにカバーします:
+  - `Type::IntegerRange[a, b]` — 補完は2つの開いた半分`int<min, a-1>`と`int<b+1, max>`で、それぞれ`current_type`の整数ドメイン部分と積集合します。Unionレシーバーの非整数部分は変更されません。`Integer`に対する`assert n is ~int<5, 10>`は`int<11, max> | int<min, 4>`にナロイングします。エンドツーエンドのフィクスチャー: `spec/integration/fixtures/assert_negation_integer_range/`。
+  - `Type::Intersection[M1, M2, …]` — De Morgan: `D \ (M1 ∩ M2) = (D \ M1) ∪ (D \ M2)`。各メンバーの補完は独立して計算されてユニオンされます;代数が補完を計算できないメンバー（Refined、非Constant Difference）は`current_type`自体を寄与するため、ユニオンは拡大することがあります。`String`に対する`~non-empty-lowercase-string`は、述語対応の補完で得られるより厳密な`Constant[""]`ではなく`Constant[""] | Nominal[String]`を生成します。`Refined[base, predicate]`はその保守的な`current_type`答えを保持します（述語補完は有限キャリアで表現できません）。
+- **`assert:` / `predicate-if-*:`ディレクティブでの`~refinement`否定。** `<target> is <RHS>`右辺は精製アームで既存のクラス名アームに加えて`~T`否定プレフィックスを受け入れるようになりました。ナロイングティアはDifference + Constant除去形状のために`Narrowing.narrow_not_refinement`を導入します: 現在の型のユニオンメンバーを歩き、精製のベースから分離された各部分を保持し、任意の現在のメンバーがそれをカバーする場合に除去された値Constantを正確に1回追加します。
 
   ```rbs
   class Validator
@@ -380,499 +183,97 @@ The sixth preview. Theme: **fold block-taking Enumerable methods through the con
   end
   ```
 
-  After `v.assert_empty!(name)` over `name: String | nil`, the
-  narrowed type is `Constant[""] | NilClass` — the only
-  inhabitants of the original union that are NOT non-empty
-  strings. Other refinement carriers (`Refined`, `Intersection`,
-  `IntegerRange`, and `Difference` whose removed is not a
-  Constant) return `current_type` unchanged for now;
-  predicate-complement and bounded-range complement are
-  follow-up slices. End-to-end fixture:
-  `spec/integration/fixtures/assert_negation_refinement/`.
-- **`group_by` / `partition` / `each_slice` / `each_cons`
-  block-parameter projections (placeholder; future plugin).**
-  RBS already binds these methods correctly for plain
-  `Array[T]` / `Set[T]` / `Range[T]` receivers via generic
-  substitution; the new IteratorDispatch arms exist so Tuple-
-  and HashShape-shaped receivers reach the block body with the
-  precise per-position element union (or `Tuple[K, V]` pair)
-  rather than the projected `Array[union]` widening.
-  `group_by` / `partition` yield a single element; `each_slice`
-  and `each_cons` yield `Array[element]` (the slice-size
-  argument is ignored at the dispatcher tier — a tighter
-  Tuple-of-`n` carrier is reserved for the plugin tier). The
-  scope is intentionally narrow — the longer-term direction is
-  to move Enumerable-aware projections into a plugin tier
-  modelled after PHPStan's extension API (ADR-2). The
-  placeholder rules will be reimplemented and removed once the
-  plugin surface ships. Self-asserting fixture:
-  `spec/integration/fixtures/enumerable_collect.rb`.
-- **Memo-typed Enumerable block-parameter projections.**
-  `IteratorDispatch` covers `#each_with_object` (yields
-  `(element, memo)` where the memo type follows the second
-  argument's actual type) and `#inject` / `#reduce` (yields
-  `(memo, element)`). The inject family handles three call
-  shapes:
-  - `inject(seed) { |memo, elem| … }` — `[seed_type, element_type]`.
-  - `inject { |memo, elem| … }` — both block params bind to the
-    receiver's element type (Ruby's first-element-as-memo
-    semantics).
-  - `inject(:+)` / `inject(seed, :+)` — Symbol-call forms have
-    no block; the dispatcher recognises and declines.
+  `name: String | nil`に対する`v.assert_empty!(name)`の後、ナロイングされた型は`Constant[""] | NilClass`です——`non-empty-string`ではないオリジナルのユニオンの唯一の住人たち。他の精製キャリア（`Refined`、`Intersection`、`IntegerRange`、および除去がConstantでない`Difference`）は今のところ`current_type`を変更せずに返します;述語補完と境界範囲補完はフォローアップスライスです。
+- **`group_by` / `partition` / `each_slice` / `each_cons`ブロックパラメーター射影（プレースホルダー;将来のプラグイン）。** RBSはすでに汎用置換を通じてプレーンな`Array[T]` / `Set[T]` / `Range[T]`レシーバーに対してこれらのメソッドを正しくバインドします;新しいIteratorDispatchアームは、TupleおよびHashShape形状のレシーバーが射影された`Array[union]`拡大ではなく精密な位置ごとの要素ユニオン（またはHashShapeの`Tuple[K, V]`ペア）でブロックボディに到達するためのものです。
+- **メモ型Enumerableブロックパラメーター射影。** `IteratorDispatch`は`#each_with_object`（第2引数の実際の型にメモ型が従う`(element, memo)`をyield）と`#inject` / `#reduce`（`(memo, element)`をyield）をカバーします。injectファミリーは3つの呼び出し形状を処理します:
+  - `inject(seed) { |memo, elem| … }` — `[seed_type, element_type]`。
+  - `inject { |memo, elem| … }` — 両方のブロックパラメーターがレシーバーの要素型にバインドされます（Rubyの最初の要素をメモとするセマンティクス）。
+  - `inject(:+)` / `inject(seed, :+)` — Symbol呼び出し形式にはブロックがありません;ディスパッチャーはそれらを認識して拒否します。
+- **Date / DateTimeカタログインポート。**新しい`data/builtins/ruby_core/date.yml`が`references/ruby/ext/date/date_core.c`の`Init_date_core`と`lib/date.rb`プレリュードから生成されました。両クラスは単一トピックに着地します——DateTimeはDateから継承し、同じInit関数が両方を登録するため、`tool/extract_builtin_catalog.rb`は2つのRBSバインディング（`date.rbs`、`date_time.rbs`）を持つ1つのエントリーを持ちます。カタログ統計: 2クラス、96インスタンスメソッド、60シングルトンメソッド、149 `:leaf` / 2 `:mutates_self` / 3 `:block_dependent`分類。
 
-  Self-asserting fixture: `spec/integration/fixtures/enumerable_memo.rb`.
-- **Date / DateTime catalog import.** New `data/builtins/ruby_core/date.yml`
-  generated from `Init_date_core` in
-  `references/ruby/ext/date/date_core.c` plus the `lib/date.rb`
-  prelude. Both classes land in a single topic — DateTime
-  inherits from Date and the same Init function registers both,
-  so `tool/extract_builtin_catalog.rb` carries one entry with two
-  RBS bindings (`date.rbs`, `date_time.rbs`). Catalog stats:
-  2 classes, 96 instance methods, 60 singleton methods,
-  149 `:leaf` / 2 `:mutates_self` / 3 `:block_dependent`
-  classifications. The blocklist in
-  `lib/rigor/inference/builtins/date_catalog.rb` covers
-  `:initialize_copy` (defensive symmetry with String / Array /
-  Range / Set / Time) and Date's `#ifndef NDEBUG`-only `:fill`
-  helper, plus a mirrored `:initialize_copy` entry for the
-  DateTime side. `MethodDispatcher::ConstantFolding` routes
-  `Date` and `DateTime` receivers through the new
-  `DATE_CATALOG`; the DateTime row precedes Date in
-  `CATALOG_BY_CLASS` so subclass receivers hit their dedicated
-  entry first. Self-asserting fixture
-  `spec/integration/fixtures/date_catalog/` exercises the
-  Integer-typed reader surface (`#year` / `#month` / `#day` /
-  `#wday` / `#hour` / `#min` / `#sec`), the boolean predicate
-  surface (`#leap?` / `#julian?` / `#sunday?`), the String-typed
-  formatters (`#to_s` / `#iso8601` / `#strftime`), and the
-  navigation methods (`#next_day` / `#prev_day` / `#next_month` /
-  `#prev_year` / `#succ` / `#>>` / `#<<`) that return brand-new
-  Date objects rather than mutating the receiver. No
-  `RBS::Extended rigor:v1:return:` overrides this slice — the
-  reader surface is in the same situation as Time, where
-  per-method ranges (`#month` ∈ `int<1, 12>`) would need a
-  parameterised IntegerRange overlay that's out of scope.
+### 修正
 
-### Fixed
-
-- **Cross-line block comments in `tool/extract_builtin_catalog.rb`.**
-  `CInitParser#join_continuations` walks the Init function body
-  line by line and tracks paren depth to merge multi-line
-  registration macros into a single logical line. The previous
-  `strip_line_comments` helper only stripped `/* … */` runs that
-  fit on one line, so multi-line rdoc blocks (very common above a
-  `rb_define_class` call — `cDateTime = rb_define_class("DateTime", cDate);`
-  in `date_core.c` is preceded by a 200-line `/* … */` block)
-  contributed unbalanced parens to the depth counter and made the
-  next code line merge into a comment buffer. The fix
-  pre-strips block comments from the entire C source while
-  preserving newlines so per-line indexing remains valid. Without
-  the fix DateTime's class-registration line was silently dropped
-  and the catalog only saw `Date`.
+- **`tool/extract_builtin_catalog.rb`の複数行ブロックコメント。** `CInitParser#join_continuations`はInit関数ボディを1行ずつ走り、パレン深度を追跡して複数行の登録マクロを1つの論理行にマージします。以前の`strip_line_comments`ヘルパーは1行に収まる`/* … */`の実行のみを除去していたため、（`date_core.c`の`cDateTime = rb_define_class("DateTime", cDate);`の前に200行の`/* … */`ブロックがあるような、`rb_define_class`呼び出しの上によく見られる）複数行rdocブロックが深度カウンターへのアンバランスなパレンを寄与し、次のコード行がコメントバッファにマージされていました。修正は行ごとのインデックスが有効のまま残るよう改行を保持しながらCソース全体からブロックコメントを事前除去します。
 
 ## [0.0.4] - 2026-05-02
 
-The fourth preview. Theme: **finish the OQ3 refinement-carrier
-strategy and broaden the RBS::Extended directive surface**.
+第4プレビュー。テーマ: **OQ3精製キャリア戦略の完成と`RBS::Extended`ディレクティブサーフェスの拡張**。
 
-The OQ3 carrier triple (`Type::Difference` from v0.0.3 plus the
-new `Type::Refined` and `Type::Intersection`) is feature-complete
-against the imported-built-in catalogue ([`docs/type-specification/imported-built-in-types.md`](../docs/type-specification/imported-built-in-types/)),
-so authors can express the full set of refinement names from
-`%a{rigor:v1:…}` annotations and the analyzer projects them
-through method dispatch, acceptance, and the `argument-type-mismatch`
-check rule symmetrically.
+OQ3キャリアトリプル（v0.0.3からの`Type::Difference`に加えて新しい`Type::Refined`と`Type::Intersection`）はインポートされた組み込みカタログ（[`docs/type-specification/imported-built-in-types.md`](../docs/type-specification/imported-built-in-types/)）に対して機能完成しています。作者は`%a{rigor:v1:…}`アノテーションから精製名のフルセットを表現でき、解析器はメソッドディスパッチ、受け入れ、`argument-type-mismatch`チェックルールを通じてそれらを対称的に射影します。
 
-The `RBS::Extended` directive surface picks up `rigor:v1:param:`
-(both at the call boundary and inside the method body via
-`MethodParameterBinder`) and the existing `assert*` /
-`predicate-if-*` family now accepts refinement payloads on the
-right-hand side.
+`RBS::Extended`ディレクティブサーフェスは`rigor:v1:param:`（コール境界とメソッドボディ内での`MethodParameterBinder`を通じた両方）を取り込み、既存の`assert*` / `predicate-if-*`ファミリーは右辺で精製ペイロードを受け入れるようになりました。
 
-The built-in catalog import pipeline gains four more classes
-(Hash / Range / Set / Time) plus a `tool/scaffold_builtin_catalog.rb`
-script that automates the mechanical 70 % of each new import.
+組み込みカタログインポートパイプラインはさらに4クラス（Hash / Range / Set / Time）と`tool/scaffold_builtin_catalog.rb`スクリプトを獲得し、各新しいインポートの機械的な70 %を自動化します。
 
-Test count: 1148 → 1250 examples (+102), RuboCop clean,
-`bundle exec exe/rigor check lib` reports 0 diagnostics.
+テスト数: 1148 → 1250例（+102）、RuboCopクリーン、`bundle exec exe/rigor check lib`は0件の診断。
 
-### Added
+### 追加
 
-#### OQ3 refinement carriers
+#### OQ3精製キャリア
 
-- **`Type::Refined` carrier (predicate-subset half).** Sibling
-  of `Type::Difference`. Wraps `(base, predicate_id)` where
-  `predicate_id` is a Symbol drawn from
-  `Type::Refined::PREDICATES`. Construction goes through
-  `Type::Combinator.refined(base, predicate_id)` and the
-  per-name factories listed below. RBS erasure folds the carrier
-  back to its base nominal. Gradual-mode acceptance mirrors the
-  conservative `accepts_difference` policy — same-predicate
-  `Refined` plus recognised `Constant` values get `:yes`, every
-  other shape gets `:no`.
-- **`Type::Intersection` carrier — composed refinement names.**
-  Closes the OQ3 carrier strategy by adding the Intersection
-  peer alongside `Union` / `Difference` / `Refined`. The carrier
-  represents the meet of its members' value sets. Construction
-  performs the deterministic normalisation in
-  `docs/type-specification/value-lattice.md` —
-  flatten / drop-Top / Bot-absorb / dedupe / sort / 0-1 collapse
-  — so two equal intersections compare equal regardless of
-  construction order. Acceptance is conjunctive on the LHS and
-  disjunctive on the RHS, plus a top-level structural-equality
-  short-circuit. `ShapeDispatch.dispatch_intersection` combines
-  per-member projections through an IntegerRange meet when every
-  result is bounded-integer, so `(non_empty_string ∩
-  lowercase_string).size` resolves to `positive-int` rather than
-  the looser `non-negative-int`.
-- **Fourteen imported built-in refinement names.** All resolvable
-  through `Builtins::ImportedRefinements` (and through the
-  per-name factories on `Type::Combinator`):
-  - **Point-removal** (already in v0.0.3): `non-empty-string`,
-    `non-zero-int`, `non-empty-array[T]`, `non-empty-hash[K, V]`.
-  - **IntegerRange aliases** (already in v0.0.3): `positive-int`,
-    `non-negative-int`, `negative-int`, `non-positive-int`.
-  - **Predicate** (new): `lowercase-string`, `uppercase-string`,
-    `numeric-string`, `decimal-int-string`, `octal-int-string`,
-    `hex-int-string`. The base-N int-string predicates are
-    disjoint by design — `:octal_int` and `:hex_int` REQUIRE
-    their conventional prefix (`0o` / `0O` / leading `0`;
-    `0x` / `0X`), so a bare `"755"` is `decimal-int-string`,
-    not `octal-int-string`.
-  - **Composed Intersection** (new):
-    `non-empty-lowercase-string`, `non-empty-uppercase-string`.
-- **Catalog-tier projections over `Refined[String, …]`.**
-  `String#downcase` / `String#upcase` fold per predicate:
-  case-fold idempotence for `:lowercase` / `:uppercase` /
-  `:numeric` and the three base-N int-string predicates, plus
-  the lift `lowercase ↔ uppercase` for the cross calls. Size-tier
-  projections still apply through the predicate carrier so
-  `String#size` over a `Refined[String, *]` tightens to
-  `non-negative-int`.
-- **Self-asserting fixtures.** `predicate_refinement/`,
-  `intersection_refinement/`, `parameterised_refinement/`, plus
-  the existing `refinement_return_override/` from v0.0.3.
+- **`Type::Refined`キャリア（述語サブセット半分）。** `Type::Difference`のシブリング。`Type::Refined::PREDICATES`から引かれたSymbolである`(base, predicate_id)`をラップします。構築は`Type::Combinator.refined(base, predicate_id)`と以下に列挙するごとの名前ファクトリーを通じて行われます。RBS消去はキャリアをそのベース名目的型に折り戻します。グラデュアルモードの受け入れは保守的な`accepts_difference`ポリシーを反映します——同じ述語の`Refined`と認識された`Constant`値は`:yes`、その他の形状は`:no`を得ます。
+- **`Type::Intersection`キャリア——合成精製名。** `Union` / `Difference` / `Refined`と並んでIntersectionピアを追加してOQ3キャリア戦略を完成させます。キャリアはメンバーの値セットの交わりを表します。構築は`docs/type-specification/value-lattice.md`の決定論的正規化を実行します——flatten / drop-Top / Bot-absorb / dedupe / sort / 0-1 collapse——2つの等しい積集合が構築順序に関わらず等しく比較されます。受け入れはLHSで連言的、RHSで選言的、加えてトップレベルの構造的等値性短絡。`ShapeDispatch.dispatch_intersection`はすべての結果が境界整数の場合IntegerRangeの交わりを通じてメンバーごとの射影を組み合わせます。`(non_empty_string ∩ lowercase_string).size`はより緩い`non-negative-int`ではなく`positive-int`に解決します。
+- **14のインポートされた組み込み精製名。**すべて`Builtins::ImportedRefinements`（および`Type::Combinator`のごとの名前ファクトリー）を通じて解決可能:
+  - **ポイント除去**（v0.0.3からすでに存在）: `non-empty-string`、`non-zero-int`、`non-empty-array[T]`、`non-empty-hash[K, V]`。
+  - **IntegerRangeエイリアス**（v0.0.3からすでに存在）: `positive-int`、`non-negative-int`、`negative-int`、`non-positive-int`。
+  - **述語**（新規）: `lowercase-string`、`uppercase-string`、`numeric-string`、`decimal-int-string`、`octal-int-string`、`hex-int-string`。base-N int-string述語は設計上互いに素です——`:octal_int`と`:hex_int`はその慣習的なプレフィックス（`0o` / `0O` / 先頭`0`; `0x` / `0X`）を必要とするため、ベアな`"755"`は`decimal-int-string`であり`octal-int-string`ではありません。
+  - **合成積集合**（新規）: `non-empty-lowercase-string`、`non-empty-uppercase-string`。
+- **`Refined[String, …]`に対するカタログティア射影。** `String#downcase` / `String#upcase`は述語ごとにフォールドします: `:lowercase` / `:uppercase` / `:numeric`と3つのbase-N int-string述語に対するケースフォールドの冪等性、加えてクロス呼び出しのための`lowercase ↔ uppercase`リフト。サイズティア射影は述語キャリアを通じても適用されるため、`Refined[String, *]`に対する`String#size`は`non-negative-int`に引き締まります。
 
-#### `RBS::Extended` directive surface
+#### `RBS::Extended`ディレクティブサーフェス
 
-- **`rigor:v1:return:` accepts parameterised refinement payloads.**
-  In addition to the bare-name shapes, the directive now accepts
-  `non-empty-array[T]` / `non-empty-hash[K, V]` (type-arg payloads
-  where `T` / `K` / `V` may be a kebab-case refinement name or a
-  Capitalised RBS class name) and `int<min, max>` (bounded-integer
-  range with signed integer literals). Parsing lives in a new
-  `Builtins::ImportedRefinements::Parser` recursive-descent parser
-  exposed through `ImportedRefinements.parse(payload)`. Failure is
-  fail-soft — any parse miss returns nil and the directive site
-  falls back to the RBS-declared type.
-- **`rigor:v1:param: <name> [is] <refinement>` directive.**
-  Symmetric to the `return:` route landed in v0.0.3 and
-  feature-complete on both sides of the method boundary:
-  - **Call-site half.** `OverloadSelector` and the
-    `argument-type-mismatch` check rule consult
-    `RbsExtended.param_type_override_map(method_def)` and prefer
-    the override over the RBS-translated type so a too-wide call
-    site is flagged.
-  - **Body-side half.** `MethodParameterBinder` reads the same
-    override map and replaces the RBS-translated parameter
-    binding with the refinement, so projections through the
-    carrier (e.g. `id.size` resolving to `positive-int` over a
-    `non-empty-string` parameter) are observable inside the
-    method body during inference.
+- **`rigor:v1:return:`はパラメーター化された精製ペイロードを受け入れます。**ベア名形状に加えて、ディレクティブは`non-empty-array[T]` / `non-empty-hash[K, V]`（`T` / `K` / `V`がkebab-case精製名またはCapitalisedなRBSクラス名であり得る型引数ペイロード）と`int<min, max>`（符号付き整数リテラルを持つ境界整数範囲）を受け入れるようになりました。パーシングは新しい`Builtins::ImportedRefinements::Parser`再帰下降パーサーに存在し、`ImportedRefinements.parse(payload)`を通じて公開されます。失敗はフェイルソフトです——パースミスはnilを返し、ディレクティブサイトはRBS宣言型にフォールバックします。
+- **`rigor:v1:param: <name> [is] <refinement>`ディレクティブ。** v0.0.3で着地した`return:`ルートに対称的で、メソッド境界の両側で機能完成:
+  - **コールサイト半分。** `OverloadSelector`と`argument-type-mismatch`チェックルールが`RbsExtended.param_type_override_map(method_def)`を参照し、RBS翻訳型よりオーバーライドを優先するため、広すぎるコールサイトがフラグ付けされます。
+  - **ボディ側半分。** `MethodParameterBinder`は同じオーバーライドマップを読み、RBS翻訳パラメーターバインディングを精製で置き換えます。これにより、推論中にメソッドボディ内でキャリアを通じた射影（例: `non-empty-string`パラメーターに対する`id.size`が`positive-int`に解決）が観察可能になります。
 
-  The optional `is` glue word matches the existing
-  `assert` / `predicate-if-*` surface; authors MAY write
-  `param: id non-empty-string` instead. End-to-end fixture:
-  `spec/integration/fixtures/param_extended/`.
-- **`rigor:v1:assert:` and `rigor:v1:predicate-if-*:` accept
-  refinement payloads.** The `<target> is <RHS>` right-hand side
-  now matches either a Capitalised class name (existing
-  behaviour) or a kebab-case refinement payload. Both
-  `AssertEffect` and `PredicateEffect` gain a `refinement_type`
-  field; the narrowing tier substitutes the carrier when
-  present, keeping the legacy `narrow_class` path for class-name
-  directives. Refinement-form directives do not yet support
-  `~T` negation — that would require a
-  difference-against-refinement algebra and is reserved for a
-  future slice.
+  オプショナルな`is`グルーワードは既存の`assert` / `predicate-if-*`サーフェスとマッチします;作者は`param: id non-empty-string`と書くことも可能です。
+- **`rigor:v1:assert:`と`rigor:v1:predicate-if-*:`が精製ペイロードを受け入れます。** `<target> is <RHS>`右辺はCapitalisedなクラス名（既存の動作）またはkebab-case精製ペイロードのいずれかにマッチするようになりました。`AssertEffect`と`PredicateEffect`の両方が`refinement_type`フィールドを獲得します;ナロイングティアはそれが存在する場合にキャリアを置き換え、クラス名ディレクティブのためのレガシー`narrow_class`パスを維持します。精製形式ディレクティブはまだ`~T`否定をサポートしません——差異対精製代数が必要であり、将来のスライスに予約されています。
 
-#### CLI / display
+### 修正
 
-- **CLI `type-of` confirms the kebab-case canonical-name
-  contract.** New regression specs in `spec/rigor/cli_spec.rb`
-  drive `bundle exec exe/rigor type-of` through the harness over
-  both a `Difference`-backed refinement (`non-empty-string`) and
-  `Refined`-backed refinements (`lowercase-string`,
-  `numeric-string`), and assert that human-readable text and
-  `--format=json` output both render the refinement in its
-  kebab-case spelling while erasure folds back to the base
-  nominal.
-
-#### Built-in catalog imports
-
-- **`Hash` joins the catalog-driven inference pipeline.**
-  `data/builtins/ruby_core/hash.yml` is generated from
-  `references/ruby/hash.c`. `Builtins::HASH_CATALOG` consumes
-  it; the constant-fold dispatcher routes Hash receivers
-  through it. Pure readers (`size` / `[]` / `include?` /
-  `dig` / `invert` / `compact` / …) clear the catalog tier;
-  block-yielding helpers that the C-body classifier mis-flags
-  as `:leaf` (`each` / `select` / `transform_values` / `merge`,
-  …) are blocklisted.
-- **`Range` joins the catalog-driven inference pipeline.**
-  `data/builtins/ruby_core/range.yml` covers 30 instance
-  methods. Methods that fold today on a `(begin..end)` literal
-  include `#begin`, `#end`, `#size`, `#exclude_end?`,
-  `#include?`, `#cover?`, `#member?`. The block-iterating
-  surface (`#each`, `#step`, `#first`, `#min`, `#max`,
-  `#minmax`, `#count`) classifies as `block_dependent` and is
-  blocked by the foldable-purity check. The Range slice also
-  taught `tool/extract_builtin_catalog.rb` to recognise
-  `rb_struct_define_without_accessor` so future struct-defined
-  topics become drop-in additions.
-- **`Set` joins the catalog-driven inference pipeline.**
-  `data/builtins/ruby_core/set.yml` is generated from
-  `Init_Set` in `references/ruby/set.c` (Set was rewritten in
-  C and folded into CRuby for Ruby 3.2+). Per-class blocklist
-  drops false-positive `:leaf` classifications for the
-  indirect mutators (`initialize_copy`, `compare_by_identity`,
-  `reset`), the block-yielding helpers (`each`, `classify`,
-  `divide`), and `disjoint?`.
-- **`Time` joins the catalog-driven inference pipeline.**
-  `data/builtins/ruby_core/time.yml` is generated from
-  `Init_Time` in `references/ruby/time.c` plus the
-  `references/ruby/timev.rb` prelude (compiled into
-  `timev.rbinc` and `#include`d at the bottom of `time.c`); the
-  prelude path carries `Time.now` / `Time.at` / `Time.new` into
-  the singleton-method bucket. The catalog records 58 instance
-  methods (48 `:leaf`, 8 `:dispatch`, 3 `:mutates_self`, 3
-  `:unknown`), 4 singleton methods, and the
-  `iso8601` ↔ `xmlschema` alias. Per-class blocklist catches
-  `localtime` / `gmtime` / `utc` (all call `time_modify(time)` to
-  mark the receiver mutable but the C-body classifier mis-flags
-  them `:leaf`).
-
-#### Enumerable-aware projections
-
-- **`#each_with_index` block-parameter typing.**
-  `IteratorDispatch` generalises beyond Integer iteration to
-  project the element type per receiver shape (Array / Set /
-  Range nominals, Tuple, HashShape, Hash nominal,
-  Constant<Array>, Constant<Range>) and tightens the index slot
-  to `non-negative-int` over the RBS-declared `Integer`.
-  Self-asserting fixture: `spec/integration/fixtures/each_with_index.rb`.
-
-#### Tooling
-
-- **`tool/scaffold_builtin_catalog.rb`.** Automates the
-  mechanical 70 % of a new built-in catalog import: writes the
-  TOPICS entry, the optional `BASE_CLASS_VARS` row, the loader
-  file with a TODO blocklist marker, the `CATALOG_BY_CLASS` row
-  + `require_relative`, the integration fixture stub, and the
-  describe block. Manual follow-ups (blocklist curation,
-  fixture body, CHANGELOG bullet) are printed as a checklist on
-  exit. `--dry-run` previews the planned edits;
-  `--init-fn` / `--rbs` / `--rb-prelude` override defaults for
-  upstream layouts that diverge. Documented as Stage 0 of the
-  `rigor-builtin-import` skill.
-
-### Changed
-
-- **`MethodDispatcher::ConstantFolding#catalog_for` is table-
-  driven.** A `CATALOG_BY_CLASS` array of
-  `(receiver_class, [catalog, class_name])` pairs replaces the
-  growing `case` statement. Adding a class catalog is now a
-  one-line addition rather than another `when` arm, and the
-  dispatcher's cyclomatic complexity stays bounded as the
-  catalogue grows.
-
-### Fixed
-
-- **`accepts_nominal` projects refinement carriers to base.** A
-  Nominal accepting a `Difference` or `Refined` previously fell
-  through to `:no` because `accepts_nominal`'s case statement had
-  no branch for refinement kinds. The carrier's value set is
-  contained in its base nominal's, so projecting to `other.base`
-  and re-running acceptance is sound — a latent bug surfaced
-  while wiring the Intersection conjunction.
-- **`provably_disjoint_from_removed?` for nested Difference.**
-  `Difference[A, R].accepts(Difference[B, R])` previously
-  required the inner difference's BASE to be provably disjoint
-  from `R`, which never holds (a Nominal base contains the
-  removed value by construction). Same-`removed` now suffices
-  because the disjointness is exhibited at the inner difference
-  layer.
+- **`accepts_nominal`が精製キャリアをベースに射影します。** `Difference`または`Refined`を受け入れるNominalは以前、`accepts_nominal`のcaseステートメントに精製種類のブランチがなかったため`:no`にフォールスルーしていました。キャリアの値セットはそのベース名目的型のそれに含まれるため、`other.base`に射影して受け入れを再実行することは健全です——Intersectionコンジャンクションの配線中に潜在的なバグが表面化しました。
+- **ネストされたDifferenceの`provably_disjoint_from_removed?`。** `Difference[A, R].accepts(Difference[B, R])`は以前、内部差異のBASEが`R`から証明可能に非交叉であることを必要としていましたが、これは決して成り立ちません（Nominalベースは構築上において除去された値を含みます）。同じ`removed`で十分です。内部差異レイヤーで非交叉性が示されるからです。
 
 ## [0.0.3] - 2026-05-02
 
-The third preview. v0.0.3 makes the inference engine "see literal
-values where it can prove them" across a far wider surface than
-v0.0.2: aggressive constant folding (unary + binary + Union[Constant]
-cartesian + integer-range arithmetic + Tuple-shaped divmod), a
-PHPStan-style imported-built-in refinement carrier
-(`non-empty-string`, `positive-int`, `non-zero-int`,
-`non-empty-array[T]`, `non-empty-hash[K, V]`, `negative-int`,
-`non-positive-int`, `non-negative-int`), an extracted built-in
-method catalog driving the fold dispatcher (Numeric / String /
-Symbol / Array / IO / File auto-extracted from CRuby), iterator-
-block-parameter typing, scope-level integer-range narrowing,
-case/when range narrowing, an `always-raises` diagnostic for
-provable Integer division-by-zero, and end-to-end opt-in of the
-new refinement carrier through `RBS::Extended`'s new
-`rigor:v1:return:` directive.
+第3プレビュー。v0.0.3は推論エンジンを「証明できる場所ではリテラル値を見る」ようにします。v0.0.2よりはるかに広いサーフェスに渡って: 積極的な定数フォールド（単項 + 二項 + `Union[Constant]`デカルト + 整数範囲算術 + Tupleシェイプdivmod）、PHPStan形式のインポートされた組み込み精製キャリア（`non-empty-string`、`positive-int`、`non-zero-int`、`non-empty-array[T]`、`non-empty-hash[K, V]`、`negative-int`、`non-positive-int`、`non-negative-int`）、フォールドディスパッチャーを駆動する抽出済み組み込みメソッドカタログ（CRubyから自動抽出されたNumeric / String / Symbol / Array / IO / File）、イテレーターブロックパラメーター型付け、スコープレベルの整数範囲ナロイング、case / when範囲ナロイング、証明可能な整数ゼロ除算の`always-raises`診断、そして`RBS::Extended`の新しい`rigor:v1:return:`ディレクティブを通じた新しい精製キャリアのエンドツーエンドのオプトイン。
 
-The robustness principle (Postel's law for types — strict on
-returns, lenient on parameters) is now a normative section of the
-type specification with ADR-5 as the design rationale.
+堅牢性原則（型のためのPostelの法則——戻り値は厳格に、パラメーターは寛容に）は今や設計の根拠としてADR-5を持つ型仕様の規範的セクションです。
 
-### Added
+### 追加
 
-- **Aggressive constant folding through user methods.**
-  `Rigor::Inference::MethodDispatcher::ConstantFolding` invokes
-  the real Ruby method on `Constant` receivers and arguments
-  whenever the method is in a curated allow-list, the operation
-  cannot raise on the receiver's domain, and the result is a
-  scalar that round-trips through `Type::Combinator.constant_of`.
-  Combined with inter-procedural inference (v0.0.2 #5):
+- **ユーザーメソッドを通じた積極的な定数フォールド。** `Rigor::Inference::MethodDispatcher::ConstantFolding`は、メソッドが厳選されたアローリストにあり、オペレーションがレシーバーのドメインで発生させることができず、結果が`Type::Combinator.constant_of`を通じてラウンドトリップするスカラーである場合はいつでも、`Constant`レシーバーと引数の実際のRubyメソッドを呼び出します。プロシージャー間推論（v0.0.2 #5）と組み合わさって:
 
   ```ruby
   class Parity
     def is_odd(n) = n.odd?
   end
-  Parity.new.is_odd(3)   # was `false | true` in v0.0.2
-                         # is now `Constant[true]`
+  Parity.new.is_odd(3)   # v0.0.2では`false | true`
+                         # 現在は`Constant[true]`
   ```
 
-- **Cartesian fold over `Union[Constant…]`.** Binary arithmetic
-  and comparison fold pairwise across Union receivers and
-  arguments, deduplicate, and rebuild a precise `Union[Constant…]`
-  result. Bounded by `UNION_FOLD_INPUT_LIMIT = 32` and
-  `UNION_FOLD_OUTPUT_LIMIT = 8`; when the output cap is exceeded
-  for an Integer-only result set, the analyzer gracefully widens
-  to the bounding `IntegerRange[min, max]` instead of giving up.
+- **`Union[Constant…]`に対するデカルトフォールド。**二項算術と比較はUnionレシーバーと引数に対してペアワイズでフォールドし、重複を排除して精密な`Union[Constant…]`結果を再構築します。`UNION_FOLD_INPUT_LIMIT = 32`と`UNION_FOLD_OUTPUT_LIMIT = 8`で制限;整数のみの結果セットに対して出力上限を超えた場合、解析器は諦める代わりに正常に境界の`IntegerRange[min, max]`に拡大します。
 
-- **`Type::IntegerRange` carrier and range arithmetic.** PHPStan-
-  style `int<min, max>` family with named aliases `positive-int`
-  (`1..`), `non-negative-int` (`0..`), `negative-int` (`..-1`),
-  `non-positive-int` (`..0`), and `int<a, b>`. Erases to
-  `Integer` in RBS. Binary `+`, `-`, `*`, `/`, `%` and unary
-  `succ` / `pred` / `abs` / `-@` / `even?` / `odd?` /
-  `bit_length` / `zero?` / `positive?` / `negative?` all fold
-  precisely. Single-point intersections (`int<5, 5>`) collapse
-  to `Constant[5]`.
+- **`Type::IntegerRange`キャリアと範囲算術。**名前付きエイリアスを持つPHPStan形式の`int<min, max>`ファミリー——`positive-int`（`1..`）、`non-negative-int`（`0..`）、`negative-int`（`..-1`）、`non-positive-int`（`..0`）、`int<a, b>`。RBSでは`Integer`に消去されます。二項の`+`、`-`、`*`、`/`、`%`と単項の`succ` / `pred` / `abs` / `-@` / `even?` / `odd?` / `bit_length` / `zero?` / `positive?` / `negative?`がすべて精密にフォールドします。単一点積集合（`int<5, 5>`）は`Constant[5]`に折り畳まれます。
 
-- **Scope-level range narrowing through comparisons and
-  predicates.** `if x > 0 ... end` narrows `x` to `positive-int`
-  on the truthy edge, `non-positive-int` on the falsey edge.
-  Same for `<`, `<=`, `>=`, the reversed forms (`0 < x`),
-  `x.positive?` / `x.negative?` / `x.zero?` / `x.nonzero?`, and
-  `x.between?(a, b)`. The narrowing intersects with an existing
-  `IntegerRange` bound when one is already in scope.
+- **比較と述語を通じたスコープレベル範囲ナロイング。** `if x > 0 ... end`は真値エッジで`x`を`positive-int`に、偽値エッジで`non-positive-int`にナロイングします。`<`、`<=`、`>=`、反転形式（`0 < x`）、`x.positive?` / `x.negative?` / `x.zero?` / `x.nonzero?`、`x.between?(a, b)`に対しても同様。ナロイングはすでにスコープ内に`IntegerRange`境界がある場合にそれと積集合を取ります。
 
-- **`case/when` integer-range narrowing.** `case n when 1..10
-  then …` narrows `n` to `int<1, 10>` inside the body;
-  `when 1...10` narrows to `int<1, 9>` (exclusive end);
-  `when (100..)` narrows to `int<100, max>`; `when (..-1)`
-  narrows to `negative-int`; `when 0` narrows to `Constant[0]`.
+- **`case / when`整数範囲ナロイング。** `case n when 1..10 then …`はボディ内で`n`を`int<1, 10>`にナロイングします; `when 1...10`は`int<1, 9>`に（排他的終端）; `when (100..)`は`int<100, max>`に; `when (..-1)`は`negative-int`に; `when 0`は`Constant[0]`にナロイングします。
 
-- **Iterator block-parameter typing.** `5.times { |i| … }` types
-  `i` as `int<0, 4>`; `1.times { |i| … }` collapses to
-  `Constant[0]`; `3.upto(7) { |i| … }` and `7.downto(3)
-  { |i| … }` both type `i` as `int<3, 7>`. Wider Integer
-  receivers (`Nominal[Integer]`, `positive-int`) fall back to
-  `non-negative-int`.
+- **イテレーターブロックパラメーター型付け。** `5.times { |i| … }`は`i`を`int<0, 4>`として型付けします; `1.times { |i| … }`は`Constant[0]`に折り畳まれます; `3.upto(7) { |i| … }`と`7.downto(3) { |i| … }`の両方が`i`を`int<3, 7>`として型付けします。より広いIntegerレシーバー（`Nominal[Integer]`、`positive-int`）は`non-negative-int`にフォールバックします。
 
-- **Branch elision on provably-truthy/falsey predicates.**
-  `if 4.even? ; :even ; else ; :odd ; end` resolves to
-  `Constant[:even]` only — the dead branch is skipped — when
-  the predicate's narrow_truthy / narrow_falsey collapses one
-  side to `Bot`. `Constant[true]` / `Constant[false]` /
-  `Nominal[Integer]` (always truthy) all qualify; `Union[true,
-  false]` keeps both branches active as before.
+- **証明可能に真値 / 偽値の述語に対するブランチ除去。** `if 4.even? ; :even ; else ; :odd ; end`は、述語のnarrow_truthy / narrow_falseyが一方を`Bot`に折り畳む場合に`Constant[:even]`のみに解決します——デッドブランチはスキップされます。`Constant[true]` / `Constant[false]` / `Nominal[Integer]`（常に真値）がすべて適格です; `Union[true, false]`は以前と同様に両方のブランチをアクティブに保ちます。
 
-- **`Tuple`-shaped `Integer#divmod` / `Float#divmod` folds.**
-  `5.divmod(3)` lifts to `Tuple[Constant[1], Constant[2]]` so
-  multi-target destructuring threads the per-slot type into
-  locals (`q, r = 11.divmod(4)` binds `q: 2`, `r: 3`).
-  Float / mixed Integer-Float divmod produces a mixed
-  `Tuple[Constant<Integer>, Constant<Float>]`.
+- **`Tuple`形状の`Integer#divmod` / `Float#divmod`フォールド。** `5.divmod(3)`は`Tuple[Constant[1], Constant[2]]`にリフトするため、マルチターゲット分解が各スロットの型をローカルにスレッドします（`q, r = 11.divmod(4)`は`q: 2`、`r: 3`をバインドします）。Float / Integer-Floatミックスdivmodは混合`Tuple[Constant<Integer>, Constant<Float>]`を生成します。
 
-- **Built-in method catalog extraction pipeline.**
-  `tool/extract_builtin_catalog.rb` parses CRuby's
-  `Init_<Topic>` blocks (Numeric / Integer / Float / String /
-  Symbol / Array / IO / File), classifies each cfunc body
-  statically (leaf / leaf-when-numeric / dispatch /
-  block-dependent / mutates-self / raises / unknown), and
-  joins the result with the matching `references/rbs/core/*.rbs`
-  signatures. Output lives at `data/builtins/ruby_core/<topic>.yml`
-  (regenerated via `make extract-builtin-catalogs`). Generated
-  YAML ships with the gem.
+- **組み込みメソッドカタログ抽出パイプライン。** `tool/extract_builtin_catalog.rb`はCRubyの`Init_<Topic>`ブロック（Numeric / Integer / Float / String / Symbol / Array / IO / File）を解析し、各cfuncボディを静的に分類し（leaf / leaf-when-numeric / dispatch / block-dependent / mutates-self / raises / unknown）、対応する`references/rbs/core/*.rbs`シグネチャと結合します。出力は`data/builtins/ruby_core/<topic>.yml`に存在します（`make extract-builtin-catalogs`で再生成）。生成されたYAMLはgemとともにリリースされます。
 
-  `Rigor::Inference::Builtins::NumericCatalog` /
-  `STRING_CATALOG` / `ARRAY_CATALOG` consume the catalogs at
-  runtime and gate the constant-fold dispatcher on
-  per-method purity. Per-class blocklists guard against
-  classifier false positives (the C-body regex does not
-  follow indirect mutators like `rb_str_replace` →
-  `str_modifiable`); bang-suffixed selectors are universally
-  blocked.
+- **`Type::Difference`キャリア（OQ3ポイント除去半分）。** `Difference[base, removed]`は`base`から有限の除去値セットを引いた値を表し、「non-empty / non-zero / non-empty-array / non-empty-hash」ファミリーのすべてのインポートされた組み込み精製が使用する構造的プリミティブです。受け入れは保守的です: `Constant`と同じ除去の`Difference`候補のみが除去セットから非交叉と証明できるため、`Difference[String, ""].accepts(Nominal[String])`は正しく`no`を返します（より広いNominalは`""`である可能性があります）。
 
-  Folds unlocked in v0.0.3 include: `Integer#**`, `&`, `|`,
-  `^`, `<<`, `>>`, `===`, `div`, `fdiv`, `modulo`,
-  `remainder`, `pow`; `Float#**`; `String#[]`, `include?`,
-  `start_with?`, `end_with?`, `index`, `count`, `inspect`;
-  `Symbol#length`, `empty?`, `casecmp?`.
+- **`Rigor::Builtins::ImportedRefinements`レジストリ。**すべてのインポートされた組み込みkebab-case名を対応するRigor型キャリアにマッピングします。`RBS::Extended`と将来のトークナイザースライスのための単一統合ポイントです。
 
-- **`Type::IntegerRange` returns from container `#size` /
-  `#length` / `#bytesize`.** `Nominal[Array]#size`,
-  `Nominal[String]#length`, `Nominal[Hash]#size`,
-  `Nominal[Set]#size`, `Nominal[Range]#size` now return
-  `non_negative_int` instead of the RBS-declared `Integer`.
-  Composes with the comparison-narrowing tier so `if
-  arr.size > 0` narrows the local to `positive-int` and
-  `arr.size - 1` evaluates as `non-negative-int`.
-
-- **`File` path-manipulation folding (opt-in).**
-  `File.basename`, `#dirname`, `#extname`, `#join`,
-  `#split`, `#absolute_path?` over `Constant<String>`
-  arguments fold to a precise `Constant` (or
-  `Tuple[Constant, Constant]` for `split`) when
-  `fold_platform_specific_paths: true` is set in
-  `.rigor.yml`. Default mode is platform-agnostic — these
-  methods read `File::SEPARATOR` / `ALT_SEPARATOR` and would
-  otherwise bake the analyzer-host's platform into the
-  inferred type — so the RBS tier answers with
-  `Nominal[String]` / `Tuple[String, String]` / `bool`.
-  Single-platform projects opt in for the precision payoff;
-  cross-platform projects keep the safe envelope.
-
-- **`Type::Difference` carrier (OQ3 point-removal half).**
-  `Difference[base, removed]` represents `base` minus a
-  finite removed value set, the structural primitive every
-  imported-built-in refinement of the "non-empty / non-zero /
-  non-empty-array / non-empty-hash" family uses. Acceptance
-  is conservative: only `Constant` and same-removed
-  `Difference` candidates can be proved disjoint from the
-  removed set, so `Difference[String, ""].accepts(Nominal[String])`
-  correctly returns `no` (the wider Nominal could be `""`).
-  `MethodDispatcher::ShapeDispatch` projects the
-  empty-removal case directly: `nes.size` →
-  `positive-int`, `nes.empty?` → `Constant[false]`,
-  `nzi.zero?` → `Constant[false]`. Erases to the base
-  nominal in RBS.
-
-- **`Rigor::Builtins::ImportedRefinements` registry.** Maps
-  every imported-built-in kebab-case name
-  (`non-empty-string`, `non-zero-int`, `non-empty-array`,
-  `non-empty-hash`, `positive-int`, `non-negative-int`,
-  `negative-int`, `non-positive-int`) to its Rigor type
-  carrier. Single integration point for `RBS::Extended` and
-  for future tokeniser slices.
-
-- **`rigor:v1:return:` `RBS::Extended` directive.** Overrides
-  a method's RBS-declared return type with one of the
-  imported-built-in refinements. Annotation in the sig
-  file:
+- **`rigor:v1:return:` `RBS::Extended`ディレクティブ。**メソッドのRBS宣言戻り型をインポートされた組み込み精製の1つでオーバーライドします:
 
   ```rbs
   class User
@@ -884,352 +285,103 @@ type specification with ADR-5 as the design rationale.
   end
   ```
 
-  At call sites the override propagates: `User.new.name.size`
-  is `positive-int`, `User.new.name.empty?` is
-  `Constant[false]`, `User.new.age.zero?` is
-  `Constant[false]`. The RBS erasure stays at the base
-  nominal so the round-trip to ordinary RBS is unaffected.
-  Unknown refinement names degrade to the RBS-declared
-  return (silent miss, no crash).
+  コールサイトでオーバーライドが伝播します: `User.new.name.size`は`positive-int`、`User.new.name.empty?`は`Constant[false]`、`User.new.age.zero?`は`Constant[false]`。RBS消去はベース名目的型のまま残るため、通常のRBSへのラウンドトリップは影響を受けません。不明な精製名はRBS宣言戻り値に低下します（サイレントミス、クラッシュなし）。
 
-- **`always-raises` diagnostic rule.** `5 / 0`, `5 % 0`,
-  `5.div(0)`, `5.modulo(0)`, `5.divmod(0)`, and
-  `rand(100) / 0` all surface as `:error` diagnostics under
-  rule `always-raises` ("always raises ZeroDivisionError").
-  Float arithmetic (`5.0 / 0` returns `Infinity`) and
-  `Integer#fdiv(0)` stay silent. Suppressible per-line via
-  `# rigor:disable always-raises`.
+- **`always-raises`診断ルール。** `5 / 0`、`5 % 0`、`5.div(0)`、`5.modulo(0)`、`5.divmod(0)`、`rand(100) / 0`はすべてルール`always-raises`（「常にZeroDivisionErrorを発生させる」）下で`:error`診断として表面化します。Float算術（`5.0 / 0`は`Infinity`を返す）と`Integer#fdiv(0)`はサイレントのままです。`# rigor:disable always-raises`で行ごとに抑制可能。
 
-- **Implicit-self calls prefer in-source `def` over RBS dispatch.**
-  When `node.receiver` is nil (true implicit self) and the
-  file has a same-named top-level `def` (or DSL-block-nested
-  `def`, e.g. inside `RSpec.describe ... do ... end`), the
-  engine routes through inter-procedural inference on that
-  body before consulting the receiver class's RBS. When the
-  local def's parameter shape is too complex for the binder
-  (kwargs / optionals / rest), the engine returns
-  `Dynamic[Top]` instead of falling through to (incorrect)
-  RBS dispatch.
+- **堅牢性原則（PostelのTypeのための法則）。**新しいADR（[`docs/adr/5-robustness-principle.md`](../docs/adr/5-robustness-principle/)）と規範的仕様セクション（[`docs/type-specification/robustness-principle.md`](../docs/type-specification/robustness-principle/)）が非対称な作成ルールを文書化します: Rigorが作成した戻り型は証明できる限り厳格であるべき; Rigorが作成したパラメーター型はボディの正しい動作が許す限り寛容であるべき。手書きのRBS作成が拘束し;この原則はRigorのデフォルトのみを指示します。
 
-- **RSpec matcher narrowing.** The engine recognises a
-  small catalogue of RSpec matcher patterns as
-  assert-shaped narrows on the local passed to
-  `expect(...)`. `expect(x).not_to be_nil` /
-  `expect(x).to_not be_nil` drop `NilClass` from `x`'s
-  type; `expect(x).to be_a(C)` / `be_kind_of(C)` narrow `x`
-  to `C` (subtype-permitting); `be_an_instance_of(C)` /
-  `be_instance_of(C)` narrow exactly. Pattern matching is
-  purely AST-shape — no RBS for RSpec is required.
+### 修正
 
-- **`fold_platform_specific_paths` configuration option.**
-  Boolean in `.rigor.yml`, default `false`. Enables File
-  path-manipulation folds (see above) for projects that
-  target a single platform.
+- `Rigor::Analysis::CheckRules`の`arity_eligible?` / `argument_check_eligible?`は、RBS関数が`RBS::Types::UntypedFunction`（例: `(?) ->`または特定のstdlib可変長シグネチャ）の場合に発生させなくなりました。両方の述語は型なし関数に対して保守的な結果として`false`を返します——ファイルの解析をクラッシュさせる代わりに。
 
-- **Robustness principle (Postel's law) for types.** New
-  ADR ([`docs/adr/5-robustness-principle.md`](../docs/adr/5-robustness-principle/))
-  and normative spec section
-  ([`docs/type-specification/robustness-principle.md`](../docs/type-specification/robustness-principle/))
-  document the asymmetric authorship rule: Rigor-authored
-  return types should be as strict as can be proved;
-  Rigor-authored parameter types should be as permissive as
-  the body's correct behaviour permits. Hand-written RBS
-  authorship binds; the principle directs Rigor's defaults
-  only.
-
-- **ADR-3 working decisions.** OQ1 (Constant scalar shape):
-  Option C (hybrid). OQ2 (Trinary-returning predicate
-  naming): Option A (drop the `?`). OQ3 (refinement carrier
-  strategy): Option C (two-tier hybrid — `Difference` for
-  point-removal, `Refined` for predicate-subset; the latter
-  ships in v0.0.4).
-
-### Fixed
-
-- `Rigor::Analysis::CheckRules` `arity_eligible?` /
-  `argument_check_eligible?` no longer raise when the RBS
-  function is `RBS::Types::UntypedFunction` (e.g. `(?) ->`
-  or certain stdlib variadic sigs). Both predicates now
-  return `false` for untyped functions — the conservative
-  outcome — instead of crashing the file's analysis.
-
-- `ConstantFolding`'s union fold no longer silently drops
-  members for which the method is unsupported. The previous
-  behaviour folded `Union[Constant[String], Constant[nil]].nil?`
-  to `Constant[true]` because `String#nil?` was not in
-  `STRING_UNARY` and the partial fold dropped the String
-  pair. The fold now requires every receiver's method to be
-  in the allow set; partial coverage bails to RBS instead
-  of producing a wrong answer.
+- `ConstantFolding`のユニオンフォールドは、メソッドがサポートされていないメンバーをサイレントにドロップしなくなりました。以前の動作では、`String#nil?`が`STRING_UNARY`になく、部分フォールドがStringペアをドロップしたため、`Union[Constant[String], Constant[nil]].nil?`は`Constant[true]`にフォールドしていました。フォールドはすべてのレシーバーのメソッドがアローセット内にあることを要求するようになりました;部分カバレッジは間違った答えを生成する代わりにRBSにベイルします。
 
 ## [0.0.2] - 2026-05-01
 
-The second preview. v0.0.2 closes the must-have envelope around the
-v0.0.1 pipeline: a richer `RBS::Extended` directive surface
-(`assert` / `assert-if-true` / `assert-if-false`, `~T` negation,
-`target: self`), inter-procedural inference for user-defined
-methods, an `argument-type-mismatch` rule, per-rule diagnostic
-suppression (project-level + in-source comments),
-configuration passthrough for stdlib libraries and signature
-paths, and a `--explain` mode that surfaces fail-soft fallback
-events.
+第2プレビュー。v0.0.2はv0.0.1パイプライン周りの必須エンベロープを閉じます: より豊富な`RBS::Extended`ディレクティブサーフェス（`assert` / `assert-if-true` / `assert-if-false`、`~T`否定、`target: self`）、ユーザー定義メソッドのプロシージャー間推論、`argument-type-mismatch`ルール、ルールごとの診断抑制（プロジェクトレベル + インソースコメント）、stdlibライブラリとシグネチャパスの設定パススルー、フェイルソフトフォールバックイベントを表面化する`--explain`モード。
 
-### Added
+### 追加
 
-- **`rigor check --explain` mode.** Surfaces fail-soft inference
-  fallbacks as `:info` diagnostics so users can see where the
-  engine degraded to `Dynamic[Top]`. Driven by
-  `Rigor::Inference::CoverageScanner` so each event is attributable
-  to the leaf node that triggered it (pass-through wrappers like
-  `ProgramNode` / `StatementsNode` / `ParenthesesNode` are not
-  double-counted). Each diagnostic carries `rule: "fallback"`,
-  `severity: :info`, and a short message naming the node class
-  and the type the engine fell back to. Info diagnostics do not
-  fail the run.
+- **`rigor check --explain`モード。**エンジンが`Dynamic[Top]`に低下した場所をユーザーが見られるよう、フェイルソフト推論フォールバックを`:info`診断として表面化します。各イベントは`Rigor::Inference::CoverageScanner`によって駆動されるため、それをトリガーしたリーフノードに帰属できます（`ProgramNode` / `StatementsNode` / `ParenthesesNode`のようなパススルーラッパーは二重カウントされません）。各診断は`rule: "fallback"`、`severity: :info`、ノードクラスとエンジンがフォールバックした型を名前に含む短いメッセージを持ちます。Info診断は実行を失敗させません。
 
-- **`.rigor.yml` `libraries:` and `signature_paths:` keys.** The
-  configuration layer now passes through to
-  `Rigor::Environment.for_project`:
-  - `libraries:` lists stdlib libraries to load on top of
-    `Environment::DEFAULT_LIBRARIES` (e.g. `["csv", "set"]`). Each
-    entry must be a name accepted by
-    `RBS::EnvironmentLoader#has_library?`; unknown libraries
-    fail-soft.
-  - `signature_paths:` is an explicit list of `sig/`-style
-    directories. Leaving the key unset (or `null`) preserves the
-    auto-detect-`<root>/sig` default; `[]` disables project-RBS
-    loading entirely.
+- **`.rigor.yml`の`libraries:`と`signature_paths:`キー。**設定レイヤーが`Rigor::Environment.for_project`にパススルーするようになりました:
+  - `libraries:`は`Environment::DEFAULT_LIBRARIES`に加えてロードするstdlibライブラリをリストします（例: `["csv", "set"]`）。各エントリーは`RBS::EnvironmentLoader#has_library?`が受け入れる名前でなければなりません;不明なライブラリはフェイルソフト。
+  - `signature_paths:`は`sig/`形式ディレクトリの明示的なリストです。キーを未設定（または`null`）にすると`<root>/sig`の自動検出デフォルトを保持します; `[]`はプロジェクトRBSロードを完全に無効にします。
 
-  Wired through `rigor check`, `rigor type-of`, and `rigor type-scan`
-  (the latter two gain a `--config=PATH` option matching `check`).
+  `rigor check`、`rigor type-of`、`rigor type-scan`を通じて配線されます（後の2つは`check`と一致する`--config=PATH`オプションを獲得します）。
 
-- **Per-rule diagnostic suppression.** Two mechanisms compose:
-  - **Project-level**: `.rigor.yml`'s new `disable:` key
-    accepts a list of `rigor check` rule identifiers
-    (`undefined-method`, `wrong-arity`,
-    `argument-type-mismatch`, `possible-nil-receiver`,
-    `dump-type`, `assert-type`); matching diagnostics are
-    silenced project-wide.
-  - **In-source**: `# rigor:disable <rule>` (or
-    `<rule1>, <rule2>`) at the end of an offending line
-    silences per-line. `# rigor:disable all` suppresses
-    every rule on that line.
+- **ルールごとの診断抑制。** 2つのメカニズムが合成されます:
+  - **プロジェクトレベル**: `.rigor.yml`の新しい`disable:`キーが`rigor check`ルール識別子のリスト（`undefined-method`、`wrong-arity`、`argument-type-mismatch`、`possible-nil-receiver`、`dump-type`、`assert-type`）を受け入れます;マッチする診断はプロジェクト全体でサイレント化されます。
+  - **インソース**: 問題のある行の末尾の`# rigor:disable <rule>`（または`<rule1>, <rule2>`）が行ごとにサイレント化します。`# rigor:disable all`はその行のすべてのルールを抑制します。
 
-  `Rigor::Analysis::Diagnostic` gains a `rule:` field
-  carrying the source rule's stable identifier. Parse
-  errors / path errors / internal analyzer errors leave
-  `rule` as `nil` and stay unsuppressible.
+  `Rigor::Analysis::Diagnostic`はソースルールの安定した識別子を持つ`rule:`フィールドを獲得します。パースエラー / パスエラー / 内部解析器エラーは`rule`を`nil`として残し、抑制不可のままです。
 
-- **Inter-procedural inference for user-defined methods.**
-  When a call's receiver is `Nominal[T]` for a user-defined
-  class without an RBS sig and the method has been
-  discovered as an instance `def`, the engine re-types the
-  method's body at the call site with the call's argument
-  types bound to the parameters and returns the body's
-  last-expression type. The `user_methods.rb` integration
-  fixture now resolves `Parity.new.is_odd(3)` to
-  `false | true` (was `Dynamic[top]` in v0.0.1) without
-  requiring an RBS sig.
+- **ユーザー定義メソッドのプロシージャー間推論。**コールのレシーバーがRBSシグなしのユーザー定義クラスの`Nominal[T]`でメソッドがインスタンス`def`として発見されている場合、エンジンはコールサイトでコールの引数型をパラメーターにバインドしてメソッドのボディを再型付けし、ボディの最後の式の型を返します。`user_methods.rb`統合フィクスチャーはRBSシグなしで`Parity.new.is_odd(3)`を`false | true`に解決するようになりました（v0.0.1では`Dynamic[top]`）。
 
-  First iteration accepts only the simplest parameter shape
-  (required positionals, no optionals / rest / keywords /
-  block params); receiver must be `Nominal` (not Singleton);
-  recursion is guarded by a per-thread inference stack so
-  mutually recursive helpers fall back to `Dynamic[Top]`
-  rather than infinite-looping.
+  最初のイテレーションは最もシンプルなパラメーター形状（必須の位置引数、オプショナル / rest / キーワード / ブロックパラメーターなし）のみを受け入れます;レシーバーはNominal（Singletonではない）でなければなりません;再帰はスレッドごとの推論スタックで防がれるため、相互再帰ヘルパーは無限ループの代わりに`Dynamic[Top]`にフォールバックします。
 
-- `rigor check` ships an **argument-type-mismatch** rule. For
-  every explicit-receiver `Prism::CallNode` whose method has
-  exactly one RBS overload (no `rest_positionals`, no
-  required keywords, no trailing positionals), the rule
-  routes each positional argument's inferred type through
-  `Rigor::Inference::Acceptance.accepts(parameter, argument,
-  mode: :gradual)` and emits an `:error` for the first
-  argument the parameter does not accept. Argument or
-  parameter types known only as `Dynamic` skip the check
-  (the call cannot be statically refuted). The receiver
-  must be `Nominal` / `Singleton` / `Constant`; user-class
-  fallback / shape carriers behave as in the wrong-arity
-  rule. The rule respects RBS even when the user has both a
-  `def` and a sig: the sig is the authoritative parameter
-  contract.
+- **`argument-type-mismatch`ルール。**すべての明示的レシーバーの`Prism::CallNode`（`rest_positionals`なし、必須キーワードなし、末尾の位置引数なし）に対して、ルールは各位置引数の推論された型を`Rigor::Inference::Acceptance.accepts(parameter, argument, mode: :gradual)`を通じてルーティングし、パラメーターが受け入れない最初の引数に`:error`を発生させます。`Dynamic`としてのみ既知の引数またはパラメーター型はチェックをスキップします（コールは静的に反証できません）。
 
-- `Rigor::Inference::Acceptance` now treats `Singleton[T]`
-  as a subtype of `Module`, `Class`, `Object`, and
-  `BasicObject`. Without this rule a method whose parameter
-  is typed `Class | Module` (e.g. `Object#is_a?`,
-  `Module#define_method`) rejected every singleton receiver,
-  producing systemic false positives across both `lib/` and
-  `spec/`.
+- `Rigor::Inference::Acceptance`は`Singleton[T]`を`Module`、`Class`、`Object`、`BasicObject`のサブタイプとして扱うようになりました。このルールなしに、パラメーターが`Class | Module`として型付けされているメソッド（例: `Object#is_a?`、`Module#define_method`）はすべてのsingletonレシーバーを拒否し、`lib/`と`spec/`の両方に全体的な偽陽性を生成していました。
 
-- `RBS::Extended` `target: self` directives now actually
-  narrow the receiver local on the matching edge (was: parser
-  accepted but engine discarded). Covers all three rule
-  shapes:
-  - `predicate-if-true self is LoggedInUser` /
-    `predicate-if-false self is User` — narrows the receiver
-    local on the truthy / falsey edge of an `if` / `unless`
-    predicate.
-  - `assert-if-true self is AdminUser` — same shape, applied
-    when the call is observed as a truthy predicate.
-  - `assert self is RegisteredUser` — narrows the receiver
-    local unconditionally at the post-call scope.
+- `RBS::Extended`の`target: self`ディレクティブが実際にマッチするエッジでレシーバーローカルをナロイングするようになりました（以前: パーサーは受け入れたがエンジンは破棄していた）。3つのルール形状をカバーします:
+  - `predicate-if-true self is LoggedInUser` / `predicate-if-false self is User` — `if` / `unless`述語の真値 / 偽値エッジでレシーバーローカルをナロイングします。
+  - `assert-if-true self is AdminUser` — 同じ形状、コールが真値述語として観察された場合に適用されます。
+  - `assert self is RegisteredUser` — ポストコールスコープで無条件にレシーバーローカルをナロイングします。
 
-  Narrowing only fires when the call's receiver is a
-  `Prism::LocalVariableReadNode` (the engine's narrowing
-  surface) AND the receiver type is statically known
-  (Nominal / Singleton / Constant — required for the engine
-  to even resolve which class's method carries the
-  annotation).
+  ナロイングはコールのレシーバーが`Prism::LocalVariableReadNode`（エンジンのナロイングサーフェス）であり、レシーバー型が静的に既知（Nominal / Singleton / Constant——どのクラスのメソッドがアノテーションを持つかを解決するためにエンジンが必要）の場合のみ発火します。
 
-- `RBS::Extended` recognises **negation** in predicate / assert
-  directives via the `~ClassName` syntax:
-  - `predicate-if-true value is ~NilClass` narrows `value`
-    AWAY from `NilClass` on the truthy edge.
-  - `assert value is ~NilClass` narrows `value` AWAY from
-    `NilClass` in the post-call scope.
+- `RBS::Extended`は`~ClassName`構文を通じて述語 / アサートディレクティブで**否定**を認識するようになりました:
+  - `predicate-if-true value is ~NilClass`は真値エッジで`value`を`NilClass`から**離れる**方向にナロイングします。
+  - `assert value is ~NilClass`はポストコールスコープで`value`を`NilClass`から**離れる**方向にナロイングします。
 
-  `Rigor::RbsExtended::PredicateEffect#negative?` and
-  `AssertEffect#negative?` are new boolean predicates; the
-  parser sets them when the directive's type literal starts
-  with `~`. The engine routes negative effects through
-  `Narrowing.narrow_not_class` instead of `narrow_class` so
-  the union loses the named class on the active edge.
+- `RBS::Extended`は3つの追加ディレクティブを認識します:
+  - `rigor:v1:assert <target> is <Class>` — ポストコールスコープで無条件にマッチする引数のローカルを精製します。
+  - `rigor:v1:assert-if-true <target> is <Class>` — コールが真値述語として観察された場合（例: `if call_node`）に引数を精製します。
+  - `rigor:v1:assert-if-false <target> is <Class>` — 偽値のための対称形。
 
-- `RBS::Extended` recognises three additional directives:
-  - `rigor:v1:assert <target> is <Class>` — refines the
-    matching argument's local in the post-call scope
-    unconditionally. Wires through
-    `StatementEvaluator#eval_call`.
-  - `rigor:v1:assert-if-true <target> is <Class>` — refines
-    the argument when the call is observed as a truthy
-    predicate (e.g. `if call_node`). Wires through
-    `Narrowing.predicate_scopes` alongside `predicate-if-*`.
-  - `rigor:v1:assert-if-false <target> is <Class>` —
-    symmetric for falsey.
+- `Rigor::Environment::DEFAULT_LIBRARIES`は`tmpdir`、`stringio`、`forwardable`、`digest`、`securerandom`を含むようになりました。一般的なstdlib呼び出し（`Dir.mktmpdir`、`StringIO.new`、`Forwardable#def_delegator`、`Digest::SHA256.hexdigest`、`SecureRandom.hex`）はユーザーがライブラリを列挙することなくそれらのRBSシグを通じて解決します。
 
-  The three directives complement `predicate-if-true` /
-  `predicate-if-false` — together they cover the
-  `must_be_string!` / `validate!` / `valid_string?` /
-  `integer?` patterns common in Ruby. `Rigor::RbsExtended::AssertEffect`
-  is the new data class returned by
-  `RbsExtended.read_assert_effects(method_def)`.
+### 変更
 
-- `Rigor::Environment::DEFAULT_LIBRARIES` now includes
-  `tmpdir`, `stringio`, `forwardable`, `digest`, and
-  `securerandom`. Common stdlib calls
-  (`Dir.mktmpdir`, `StringIO.new`, `Forwardable#def_delegator`,
-  `Digest::SHA256.hexdigest`, `SecureRandom.hex`) resolve
-  through their RBS sigs without the user having to enumerate
-  the libraries themselves.
-
-### Changed
-
-- `Rigor::Analysis::CheckRules` `dump_type` / `assert_type`
-  rules are suppressed when the call site's `self_type` is
-  `Rigor` or `Rigor::Testing`. The reflexive
-  `Testing.dump_type(value)` / `Testing.assert_type(...)` calls
-  inside Rigor's own stub no longer surface diagnostics on
-  `rigor check lib`.
+- `Rigor::Analysis::CheckRules`の`dump_type` / `assert_type`ルールは、コールサイトの`self_type`が`Rigor`または`Rigor::Testing`の場合に抑制されます。Rigor自身のスタブ内の再帰的な`Testing.dump_type(value)` / `Testing.assert_type(...)`呼び出しは`rigor check lib`で診断を表面化しなくなりました。
 
 ## [0.0.1] - 2026-05-01
 
-The first preview release. Rigor can be pointed at a real Ruby
-project, infer types end-to-end through a flow-sensitive scope,
-and emit diagnostics for a small but practical rule catalogue.
+最初のプレビューリリース。Rigorは実際のRubyプロジェクトに向け、フロー感応スコープを通じてエンドツーエンドで型を推論し、小さいが実用的なルールカタログに対して診断を発行できます。
 
-The gem is published to RubyGems as **`rigortype`** (the
-`rigor` name was already taken). The Ruby module name remains
-`Rigor`, so user code uses `require "rigor"` and references
-`Rigor::Scope`, `Rigor::Testing`, etc. — only the
-`gem install` / `Gemfile` line uses `rigortype`.
+gemはRubyGemsに**`rigortype`**として公開されています（`rigor`の名前はすでに使われていました）。Rubyモジュール名は`Rigor`のままなので、ユーザーコードは`require "rigor"`を使い`Rigor::Scope`、`Rigor::Testing`などを参照します——`gem install` / `Gemfile`の行のみが`rigortype`を使います。
 
-### Added
+### 追加
 
-- **`rigor check` end-to-end pipeline.** Parses Ruby through
-  Prism, builds a per-node scope index, and runs a three-rule
-  catalogue against it:
-  - undefined method on a typed receiver,
-  - wrong number of positional arguments,
-  - possible nil receiver (with safe-navigation and
-    early-return narrowing exclusions).
-  False positives on reopened classes, `define_method`-defined
-  methods, constant-decl-aliased classes (`YAML` → `Psych`),
-  and dynamic / unknown receivers are suppressed.
-- **`rigor type-of FILE:LINE:COL`** — probes the inferred
-  type at any source position.
-- **`rigor type-scan PATH...`** — coverage report over a tree.
-- **`rigor init`** — writes a header-commented `.rigor.yml`.
-- **Type model.** `Top`, `Bot`, `Dynamic[T]`, `Constant[v]`,
-  `Nominal[Class, type_args]`, `Singleton[Class]`,
-  `Union[A, B, ...]`, `Tuple[T1, ..., Tn]`, and `HashShape`
-  carriers with required / optional / read-only key
-  policies. `Trinary` (`yes`/`no`/`maybe`) and
-  `AcceptsResult`.
-- **Inference engine.** Local, instance, class, and global
-  variable bindings tracked through `Rigor::Scope`.
-  Cross-method ivar / cvar accumulators populated by a
-  `ScopeIndexer` pre-pass; program-wide globals.
-- **Compound writes** (`||=`, `&&=`, `+=`, `-=`, `*=`, ...)
-  thread through scope for every variable kind, with
-  operator dispatch via `MethodDispatcher`.
-- **`self` typing.** Class- and method-body boundaries inject
-  `Singleton[T]` / `Nominal[T]`; implicit-self call dispatch
-  routes through the enclosing class's RBS.
-- **Lexical constant lookup.** Project sig, RBS-core, common
-  stdlib bundle (pathname, optparse, json, yaml, fileutils,
-  tempfile, uri, logger, date, prism, rbs), in-source class
-  discovery, and in-source constant value tracking.
-- **Predicate narrowing.** Truthiness, `nil?`, `is_a?` /
-  `kind_of?` / `instance_of?`, finite-literal equality,
-  case-equality (`===`) for Class / Module / Range / Regexp,
-  and `case` / `when` integration.
-- **Block parameter binding** including destructuring
-  (`|(a, b), c|`) and numbered parameters (`_1`, `_2`, ...).
-  Block-return-type uplift through generic methods so
-  `[1, 2, 3].map { |n| n.to_s }` resolves to `Array[String]`.
-- **Closure escape analysis.** A core-and-stdlib catalogue of
-  block-accepting methods is classified as `:non_escaping`
-  (Array#each / map / select / ...), `:escaping`
-  (Module#define_method, Thread.new, Proc.new, ...), or
-  `:unknown`. Escaping calls drop narrowed types of captured
-  outer locals the block can rebind and record a
-  `closure_escape` fact in the FactStore.
-- **`RBS::Extended` predicate effects.** Methods whose RBS
-  signature carries `%a{rigor:v1:predicate-if-true target is T}`
-  / `predicate-if-false` annotations narrow the matching
-  argument on the corresponding edge.
-- **PHPStan-style typing helpers.** `Rigor::Testing.dump_type`
-  surfaces the inferred type as an `:info` diagnostic;
-  `Rigor::Testing.assert_type("expected", value)` errors when
-  the inferred type's short description does not match. Use
-  in fixtures to make them self-asserting.
-- **Self-asserting integration suite.** Fixture-driven
-  examples under `spec/integration/fixtures/` covering
-  parity / case-when / compound writes / is_a? narrowing /
-  Tuple and HashShape access / Array#map block-return uplift
-  / early-return narrowing / RBS::Extended predicates /
-  user-defined method dispatch.
+- **`rigor check`エンドツーエンドパイプライン。** Prismを通じてRubyを解析し、ノードごとのスコープインデックスを構築し、3ルールカタログに対して実行します:
+  - 型付きレシーバーでの未定義メソッド、
+  - 位置引数の数の誤り、
+  - 可能性があるnilレシーバー（セーフナビゲーションとアーリーリターンナロイングの除外を含む）。
+  再開クラス、`define_method`で定義されたメソッド、定数宣言エイリアスクラス（`YAML` → `Psych`）、動的 / 未知のレシーバーに対する偽陽性は抑制されます。
+- **`rigor type-of FILE:LINE:COL`** — 任意のソース位置での推論型をプローブします。
+- **`rigor type-scan PATH...`** — ツリーに対するカバレッジレポート。
+- **`rigor init`** — ヘッダーコメント付きの`.rigor.yml`を書き込みます。
+- **型モデル。** `Top`、`Bot`、`Dynamic[T]`、`Constant[v]`、`Nominal[Class, type_args]`、`Singleton[Class]`、`Union[A, B, ...]`、`Tuple[T1, ..., Tn]`、required / optional / read-onlyキーポリシーを持つ`HashShape`キャリア。`Trinary`（`yes` / `no` / `maybe`）と`AcceptsResult`。
+- **推論エンジン。** `Rigor::Scope`を通じて追跡されるローカル、インスタンス、クラス、グローバル変数バインディング。クロスメソッドivar / cvarアキュムレーターが`ScopeIndexer`プレパスで設定されます;プログラム全体のグローバル。
+- **複合書き込み**（`||=`、`&&=`、`+=`、`-=`、`*=`など）が`MethodDispatcher`を通じた演算子ディスパッチとともに、すべての変数種類のスコープを通じてスレッドされます。
+- **`self`型付け。**クラスとメソッドボディの境界が`Singleton[T]` / `Nominal[T]`を注入します;暗黙的自己コールディスパッチが囲むクラスのRBSを通じてルーティングされます。
+- **語彙的定数ルックアップ。**プロジェクトsig、RBSコア、一般的なstdlibバンドル（pathname、optparse、json、yaml、fileutils、tempfile、uri、logger、date、prism、rbs）、インソースクラス発見、インソース定数値追跡。
+- **述語ナロイング。**真偽値、`nil?`、`is_a?` / `kind_of?` / `instance_of?`、有限リテラル等値、Class / Module / Range / Regexpに対する`===`（ケース等値）、`case` / `when`統合。
+- **ブロックパラメーターバインディング** — 分解（`|(a, b), c|`）と番号付きパラメーター（`_1`、`_2`など）を含む。ジェネリックメソッドを通じたブロック戻り型アップリフトにより`[1, 2, 3].map { |n| n.to_s }`は`Array[String]`に解決します。
+- **クロージャーエスケープ解析。**コアとstdlibのブロックを受け入れるメソッドのカタログが`:non_escaping`（Array#each / map / select / ...）、`:escaping`（Module#define_method、Thread.new、Proc.new、...）、`:unknown`として分類されます。エスケープコールはブロックが再バインドできるキャプチャされた外部ローカルのナロイングされた型をドロップし、`closure_escape`ファクトをFactStoreに記録します。
+- **`RBS::Extended`述語効果。** RBSシグネチャに`%a{rigor:v1:predicate-if-true target is T}` / `predicate-if-false`アノテーションを持つメソッドは対応するエッジでマッチする引数をナロイングします。
+- **PHPStan形式の型ヘルパー。** `Rigor::Testing.dump_type`は推論された型を`:info`診断として表面化します; `Rigor::Testing.assert_type("expected", value)`は推論された型の短い説明がマッチしない場合にエラーを発生させます。フィクスチャーを自己アサーティングにするために使用します。
+- **自己アサーティング統合スイート。** `spec/integration/fixtures/`下のフィクスチャー駆動の例——等価性 / case-when / 複合書き込み / is_a?ナロイング / TupleとHashShapeアクセス / Array#mapブロック戻り型アップリフト / アーリーリターンナロイング / RBS::Extended述語 / ユーザー定義メソッドディスパッチをカバーします。
 
-### Known limitations (deferred to v0.0.2)
+### 既知の制限事項（v0.0.2に延期）
 
-- Inter-procedural inference for user-defined methods. A
-  helper like `def is_odd(n) = n.odd?` types correctly inside
-  the def, but the caller observes `Dynamic[top]` until an
-  RBS sig is supplied. The `spec/integration/fixtures/user_methods*`
-  pair pins both shapes (no sig vs project sig).
-- `RBS::Extended` ships only the predicate-effect surface.
-  `assert` / `assert-if-true` / `assert-if-false`, negation
-  (`~T`), self-targeted narrowing, intersection / union
-  refinements, `param` / `return` / `conforms-to` directives
-  are deferred.
-- No persistent cache — every `rigor check` run re-parses
-  and re-types the project.
-- No plugin contribution layer past the bundled
-  `RBS::Extended` reader.
-- Per-rule severity is hard-coded to `:error` (with `:info`
-  reserved for `dump_type`); per-rule configuration and
-  suppression comments are deferred.
+- ユーザー定義メソッドのプロシージャー間推論。`def is_odd(n) = n.odd?`のようなヘルパーはdef内で正しく型付けされますが、呼び出し元はRBSシグが提供されるまで`Dynamic[top]`を観察します。
+- `RBS::Extended`は述語効果サーフェスのみをリリースします。`assert` / `assert-if-true` / `assert-if-false`、否定（`~T`）、自己ターゲットナロイング、積集合 / ユニオン精製、`param` / `return` / `conforms-to`ディレクティブは延期されます。
+- 永続キャッシュなし——すべての`rigor check`実行がプロジェクトを再解析して再型付けします。
+- バンドルされた`RBS::Extended`リーダーを超えたプラグイン貢献レイヤーなし。
+- ルールごとの重大度は`:error`にハードコードされています（`dump_type`用の`:info`を予約）;ルールごとの設定と抑制コメントは延期されます。
 
 
 [0.0.9]: https://github.com/rigortype/rigor/compare/v0.0.8...v0.0.9

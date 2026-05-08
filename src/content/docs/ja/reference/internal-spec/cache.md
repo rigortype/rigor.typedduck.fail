@@ -5,34 +5,23 @@ editUrl: "https://github.com/rigortype/rigor/edit/main/docs/internal-spec/cache.
 sourcePath: "docs/internal-spec/cache.md"
 sourceSha: "36378c7dfbb1e221069497873717a4072866483e97c3134ba9e4c24ef0029dc2"
 sourceCommit: "9f40e22193647dc06e3ab70c5ba82768b0bfe738"
-translationStatus: "pending"
+translationStatus: "translated"
 sidebar:
   order: 3050
 ---
 
-> [!NOTE]
-> このページはまだ翻訳されていません。英語版の本文を参考表示しています。
+ステータス: **実装中（v0.0.8）。** このドキュメントはキャッシュレイヤーの公開リード形を実装が進むにつれて追記していきます。スライス1と2がすでに完成しています。`Rigor::Cache::Descriptor`（すべてのキャッシュ済み値が付随する基板）と`Rigor::Cache::Store`（ディスクリプター・プロデューサー・パラメーターを消費してキャッシュ済みまたは新規計算済みの値を返すファイルシステムバックのストレージ）です。後続のスライスでは最初のキャッシュ済みプロデューサー（RBS環境ローダー）とCLI可観測フラグ（`--cache-stats`・`--clear-cache`）を追加します。
 
-Status: **In progress (v0.0.8).** This document tracks the cache
-layer's public read shape as it lands. Slices 1–2 are in place:
-`Rigor::Cache::Descriptor` (the substrate every cached value
-attaches to) and `Rigor::Cache::Store` (the filesystem-backed
-storage that consumes a descriptor + producer + params and
-returns a cached or freshly computed value). Subsequent slices
-add the first cached producer (the RBS environment loader) and
-the CLI observability flags (`--cache-stats`, `--clear-cache`).
+このモジュールが実装するスキーマは以下によって固定されています。
 
-The schema this module implements is fixed by:
+- **[`docs/design/20260505-cache-slice-taxonomy.md`](../../design/20260505-cache-slice-taxonomy/)** — スロットごとのエントリシェイプ・合成ルール・キャッシュキー導出・粒度ガイダンス。
+- **[`docs/adr/6-cache-persistence-backend.md`](../../adr/6-cache-persistence-backend/)** — バックエンド選択（バイナリエントリのシャードディレクトリ）・ファイルフォーマット・アトミック性・ロッキング・立ち退きポリシー。
 
-- **[`docs/design/20260505-cache-slice-taxonomy.md`](../../design/20260505-cache-slice-taxonomy/)** — per-slot entry shapes, composition rules, cache-key derivation, granularity guidance.
-- **[`docs/adr/6-cache-persistence-backend.md`](../../adr/6-cache-persistence-backend/)** — backend choice (sharded directory of binary entries), file format, atomicity, locking, eviction policy.
+## `Rigor::Cache::Descriptor`（v0.0.8スライス1）
 
-## `Rigor::Cache::Descriptor` (v0.0.8 slice 1)
+キャッシュ無効化ディスクリプター — 4つのスロットを持つ純粋な値オブジェクトで、各スロットは型付きエントリの配列です。
 
-The cache invalidation descriptor — a pure value object with four
-slots, every slot an array of typed entries.
-
-### Slot entries
+### スロットエントリ
 
 ```
 FileEntry   :: { path: String, comparator: :digest|:mtime|:exists, value: String }
@@ -41,162 +30,93 @@ PluginEntry :: { id: String, version: String, config_hash: String? }
 ConfigEntry :: { key: String, value_hash: String }
 ```
 
-Each entry is constructed via keyword arguments and frozen
-immediately. `FileEntry#new` validates the comparator enum and
-raises `ArgumentError` on unknown values; the other entries
-accept any string content (their values are already-canonical
-hashes by convention).
+各エントリはキーワード引数で構築され、即座にフリーズされます。`FileEntry#new`はcomparatorのenumを検証し、未知の値に対して`ArgumentError`を発生させます。他のエントリは任意の文字列コンテンツを受け入れます（その値は慣例上すでに正規化されたハッシュです）。
 
 ### `Descriptor.new(files: [], gems: [], plugins: [], configs: [])`
 
-Constructs a descriptor. Every slot defaults to an empty array;
-slots are duped and frozen so callers cannot mutate after
-construction. The descriptor itself is also frozen.
+ディスクリプターを構築します。すべてのスロットはデフォルトで空配列になります。スロットはdupされてフリーズされるため、構築後に呼び出し元が変更することはできません。ディスクリプター自体もフリーズされます。
 
 ### `Descriptor.compose(*descriptors) -> Descriptor`
 
-Composes any number of descriptors into a single descriptor. The
-composition rule per slot is **union by key**:
+任意の数のディスクリプターを1つのディスクリプターに合成します。スロットごとの合成ルールは**キーによるユニオン**です。
 
-- `files` group by `path`. Entries within a group prefer the
-  **stricter** comparator (`:digest > :mtime > :exists`); among
-  the strictest, all entries must agree on `value` or
-  `Descriptor::Conflict` is raised.
-- `gems` group by `name`. All entries within a group must be
-  structurally equal under `(requirement, locked)`; otherwise
-  `Conflict` is raised.
-- `plugins` group by `id`. Same equality rule on
-  `(version, config_hash)`.
-- `configs` group by `key`. Same equality rule on `value_hash`.
+- `files`は`path`でグループ化します。グループ内のエントリはより**厳格な**comparatorを優先します（`:digest > :mtime > :exists`）。最も厳格なcomparatorの中で、すべてのエントリが`value`について合意していなければ`Descriptor::Conflict`が発生します。
+- `gems`は`name`でグループ化します。グループ内のすべてのエントリは`(requirement, locked)`の下で構造的に等しくなければなりません。そうでなければ`Conflict`が発生します。
+- `plugins`は`id`でグループ化します。`(version, config_hash)`で同じ等値ルールが適用されます。
+- `configs`は`key`でグループ化します。`value_hash`で同じ等値ルールが適用されます。
 
-A single contributor that adds duplicate equal entries to its
-own descriptor is harmless — `compose` collapses them. Conflicts
-are exceptional; callers (the cache layer) treat `Conflict` as
-"this cache slice cannot be reused, drop it" rather than
-choosing one contribution silently.
+自分自身のディスクリプターに重複した等しいエントリを追加する単一のコントリビューターは無害です。`compose`はそれを折り畳みます。コンフリクトは例外的なケースです。呼び出し元（キャッシュレイヤー）は`Conflict`を「このキャッシュスライスは再利用できない、削除する」として扱い、いずれかのコントリビューションを黙って選択することはしません。
 
 ### `descriptor.cache_key_for(producer_id:, params: {}) -> String`
 
-Returns the canonical hex SHA-256 cache key for a producer +
-input + descriptor combination. The key incorporates:
+プロデューサー・入力・ディスクリプターの組み合わせに対して標準的なhex SHA-256キャッシュキーを返します。キーは以下を組み込みます。
 
-1. `Descriptor::SCHEMA_VERSION` (currently `1`). Bumping this
-   constant invalidates every cached value.
-2. `producer_id` (a stable string that namespaces the cache
-   slice).
-3. `params` (the producer's input hash). Recursively
-   canonicalised: hash keys stringify and sort, symbols
-   stringify, arrays preserve order.
-4. The descriptor's canonical hash form.
+1. `Descriptor::SCHEMA_VERSION`（現在は`1`）。この定数をバンプするとすべてのキャッシュ済み値が無効化されます。
+2. `producer_id`（キャッシュスライスの名前空間となる安定した文字列）。
+3. `params`（プロデューサーの入力ハッシュ）。再帰的に正規化されます。ハッシュキーは文字列化してソートし、シンボルは文字列化し、配列は順序を保持します。
+4. ディスクリプターの正規ハッシュ形式。
 
-Two callers building structurally equivalent descriptors with
-the same `producer_id` and `params` produce identical cache
-keys, regardless of construction order.
+構造的に同等なディスクリプターを同じ`producer_id`と`params`で構築する2つの呼び出し元は、構築順に関係なく同一のキャッシュキーを生成します。
 
 ### `descriptor.to_canonical_bytes -> String`
 
-Returns the descriptor as a canonical-JSON byte string (UTF-8,
-binary-encoded for transport). Slots appear in lexicographic
-order (`configs`, `files`, `gems`, `plugins`); entries within
-each slot are sorted by their key field (`path` for files, etc.)
-so two equivalent descriptors produce identical bytes.
+ディスクリプターを正規JSONバイト文字列（UTF-8、転送のためにバイナリエンコード）として返します。スロットは辞書順で現れ（`configs`・`files`・`gems`・`plugins`）、各スロット内のエントリはキーフィールドでソートされます（filesなら`path`など）。これにより2つの同等なディスクリプターは同一のバイト列を生成します。
 
-### Equality and hashing
+### 等値性とハッシュ
 
-`Descriptor#==` compares canonical-byte forms, so two descriptors
-built in different orders compare equal. `#hash` is consistent
-with `==` so descriptors are usable as Hash keys.
+`Descriptor#==`は正規バイト形式を比較するため、異なる順序で構築された2つのディスクリプターは等しく比較されます。`#hash`は`==`と整合しているため、ディスクリプターはHashのキーとして使用できます。
 
-## Stability
+## 安定性
 
-The constructor signatures and composition semantics are stable
-as a v0.0.x public read shape. Adding new slot kinds (e.g.
-`env_vars`) is a schema-version bump per the taxonomy doc and
-ADR-6. Adding new comparators to `FileEntry::VALID_COMPARATORS`
-is additive and does not require a bump.
+コンストラクターシグネチャと合成セマンティクスはv0.0.xの公開リード形として安定しています。新しいスロット種（例: `env_vars`）の追加はtaxonomyドキュメントとADR-6に従いスキーマバージョンバンプになります。`FileEntry::VALID_COMPARATORS`への新しいcomparatorの追加は加算的であり、バンプを必要としません。
 
-The persistence layer ([`Rigor::Cache::Store`](#cache-store-v008-slice-2),
-v0.0.8 slice 2) and the cached-producer integrations follow.
-This document is updated as each slice lands.
+永続化レイヤー（[`Rigor::Cache::Store`](#cache-store-v008-slice-2)、v0.0.8スライス2）とキャッシュプロデューサー統合は後続に続きます。このドキュメントは各スライスが着地するたびに更新されます。
 
-## `Rigor::Cache::Store` (v0.0.8 slice 2)
+## `Rigor::Cache::Store`（v0.0.8スライス2）
 
-Filesystem-backed cache store. ADR-6 § "Decisions in detail" fixes
-the contract; this section documents the public read shape that
-producers and the CLI consume.
+ファイルシステムバックのキャッシュストア。ADR-6 § "Decisions in detail"が契約を固定します。このセクションはプロデューサーとCLIが消費する公開リード形を文書化します。
 
 ### `Store.new(root:)`
 
-Constructs a store rooted at `root` (a directory path, typically
-`.rigor/cache`). The directory is not created eagerly — the first
-write materialises it along with the `schema_version.txt` marker.
+`root`（ディレクトリパス、通常は`.rigor/cache`）をルートにするストアを構築します。ディレクトリは積極的に作成されません。最初の書き込みで`schema_version.txt`マーカーとともにマテリアライズされます。
 
 ### `store.fetch_or_compute(producer_id:, params:, descriptor:, serialize: nil, deserialize: nil) { ... } -> Object`
 
-The single producer-facing entry point.
+プロデューサー向けの単一エントリポイントです。
 
-- `producer_id` (String) — the cache namespace. Only
-  `[a-z][a-z0-9._-]*` is accepted. The constraint guarantees
-  filesystem-friendly directory names on case-insensitive
-  filesystems.
-- `params` (Hash) — the producer's input arguments. Mixed into
-  the cache key via {Descriptor#cache_key_for}; producers do not
-  derive cache keys themselves.
-- `descriptor` ([`Rigor::Cache::Descriptor`](#rigorcachedescriptor-v008-slice-1))
-  — the invalidation descriptor for the cached value.
-- `serialize` (callable, optional) — turns the producer's return
-  value into a binary `String`. Defaults to `Marshal.dump(value).b`.
-  Producers whose return values are not `Marshal`-clean (RBS-
-  native objects with `RBS::Location` members, raw `IO`, …) MUST
-  provide a serialiser.
-- `deserialize` (callable, optional) — turns bytes back into the
-  producer's value. Defaults to `Marshal.load`. The pair
-  `(serialize, deserialize)` MUST round-trip — a producer that
-  reads with one strategy and writes with another corrupts its
-  own cache slice. Any exception (`StandardError`) raised by
-  the deserialiser is treated as a cache miss; the entry is
-  considered corrupt, the producer block reruns, and the next
-  write overwrites it. This matches the read fault-tolerance
-  rules below.
-- The block (`yield`) is invoked **only on cache miss**.
+- `producer_id`（String） — キャッシュ名前空間。`[a-z][a-z0-9._-]*`のみ受け入れます。この制約により、大小文字を区別しないファイルシステム上でもファイルシステムに適したディレクトリ名が保証されます。
+- `params`（Hash） — プロデューサーの入力引数。{Descriptor#cache_key_for}でキャッシュキーに組み込まれます。プロデューサーはキャッシュキー自体を導出しません。
+- `descriptor`（[`Rigor::Cache::Descriptor`](#rigorcachedescriptor-v008-slice-1)） — キャッシュ済み値の無効化ディスクリプター。
+- `serialize`（callable、省略可能） — プロデューサーの戻り値をバイナリ`String`に変換します。デフォルトは`Marshal.dump(value).b`です。`Marshal`でクリーンでない戻り値（`RBS::Location`メンバーを持つRBSネイティブオブジェクト・生の`IO`など）を持つプロデューサーはシリアライザーを MUST 提供しなければなりません。
+- `deserialize`（callable、省略可能） — バイトをプロデューサーの値に戻します。デフォルトは`Marshal.load`です。`(serialize, deserialize)`のペアはラウンドトリップを MUST 保証しなければなりません。一方の戦略で読み込み他方で書き込むプロデューサーは自分のキャッシュスライスを破壊します。デシリアライザーが発生させた例外（`StandardError`）はキャッシュミスとして扱われます。エントリは破損とみなされ、プロデューサーブロックが再実行され、次の書き込みでそれが上書きされます。これは以下の読み込みフォールトトレランスルールと一致します。
+- ブロック（`yield`）は**キャッシュミス時のみ**呼び出されます。
 
-Returns the cached value (loaded from disk on hit; produced by
-the block on miss).
+キャッシュ済み値を返します（ヒット時はディスクからロード、ミス時はブロックが生成）。
 
-### Read fault tolerance
+### 読み込みフォールトトレランス
 
-A read encountering any of the following silently returns a
-cache miss; the producer block reruns and the next write
-overwrites the bad entry:
+以下のいずれかに遭遇した読み込みは黙ってキャッシュミスを返します。プロデューサーブロックが再実行され、次の書き込みで破損エントリが上書きされます。
 
-- Missing entry file.
-- Entry shorter than the minimum envelope (header + trailer).
-- Mismatched magic + format-version header.
-- Mismatched trailing SHA-256.
-- Malformed varint length prefix.
-- `Marshal.load` raises (e.g. unknown class on the receiving
-  side, truncated payload, ABI skew).
+- エントリファイルが存在しない。
+- エントリが最小エンベロープ（ヘッダー＋トレーラー）より短い。
+- マジック+フォーマットバージョンヘッダーが一致しない。
+- 末尾のSHA-256が一致しない。
+- varint長さプレフィックスが不正。
+- `Marshal.load`が発生させる（例: 受信側に未知のクラス、ペイロードが切れている、ABIスキュー）。
 
-The trailing SHA-256 catches accidental corruption (partial
-writes from process kills, FS errors). It is **not** a security
-boundary, per ADR-2's trusted-gem trust model.
+末尾のSHA-256は偶発的な破損（プロセスkillによる部分書き込み、FSエラー）を検出します。ADR-2の信頼済みgemの信頼モデルに従い、セキュリティ境界では**ありません**。
 
-### Schema-version marker
+### スキーマバージョンマーカー
 
-`<root>/schema_version.txt` carries a single integer — currently
-`Rigor::Cache::Descriptor::SCHEMA_VERSION`. On every
-`fetch_or_compute` call:
+`<root>/schema_version.txt`には単一の整数（現在は`Rigor::Cache::Descriptor::SCHEMA_VERSION`）が格納されます。すべての`fetch_or_compute`呼び出し時に以下を実行します。
 
-- Marker missing → write the current version, proceed.
-- Marker matches → proceed.
-- Marker disagrees → wipe every entry under `<root>` (`unlink`
-  every child via `FileUtils.rm_rf`), rewrite the marker, and
-  proceed as if the cache were empty.
+- マーカーがない → 現在のバージョンを書き込み、続行する。
+- マーカーが一致する → 続行する。
+- マーカーが異なる → `<root>`以下のすべてのエントリを削除し（`FileUtils.rm_rf`で各子を`unlink`）、マーカーを書き直し、キャッシュが空であるかのように続行する。
 
-A bump of `SCHEMA_VERSION` therefore drops every cache file on
-the next run without any explicit migration step.
+`SCHEMA_VERSION`のバンプにより、明示的なマイグレーションステップなしに次回実行でキャッシュファイルがすべて削除されます。
 
-### On-disk layout
+### ディスク上のレイアウト
 
 ```
 <root>/
@@ -206,187 +126,93 @@ the next run without any explicit migration step.
       <ab1234567890…>.entry
 ```
 
-The cache key (a 64-character hex SHA-256 from
-`descriptor.cache_key_for(...)`) splits into a 2-character
-prefix and a 62-character suffix to keep per-directory fan-out
-manageable on busy producers.
+キャッシュキー（`descriptor.cache_key_for(...)`による64文字のhex SHA-256）は2文字のプレフィックスと62文字のサフィックスに分割され、ビジーなプロデューサーでもディレクトリごとのファンアウトが管理可能に保たれます。
 
-### Atomicity and locking
+### アトミック性とロッキング
 
-Writes follow the standard rename-into-place dance:
+書き込みは標準的なrename-into-placeの手順に従います。
 
-1. `mkdir -p` the destination directory.
-2. Acquire `flock(LOCK_EX)` on the destination file (creating
-   it with `O_CREAT|O_RDWR` if necessary).
-3. Write the body to a sibling temp file
-   (`<entry>.tmp.<pid>.<rand-hex>`).
-4. `fsync` the temp file.
-5. `rename` the temp file over the destination.
-6. Release the lock by closing the destination file descriptor.
+1. 宛先ディレクトリを`mkdir -p`で作成する。
+2. 宛先ファイルに`flock(LOCK_EX)`を取得する（必要なら`O_CREAT|O_RDWR`で作成する）。
+3. 隣接するtempファイル（`<entry>.tmp.<pid>.<rand-hex>`）にボディを書き込む。
+4. tempファイルを`fsync`する。
+5. tempファイルを宛先に`rename`する。
+6. 宛先ファイルディスクリプターをクローズしてロックを解放する。
 
-Readers do not lock; they tolerate seeing an old version (always
-a fully committed entry, never a torn write — POSIX guarantees
-`rename` atomicity on the same filesystem). A reader that catches
-a brief window where the destination file exists but is empty
-(between `O_CREAT` and the first successful `rename`) treats it
-as a cache miss per the read fault-tolerance rules above.
+読み取り側はロックしません。古いバージョン（常に完全にコミットされたエントリであり、壊れた書き込みではない — POSIXが同一ファイルシステム上の`rename`アトミック性を保証する）を参照することを許容します。宛先ファイルが存在するが空（`O_CREAT`と最初の成功した`rename`の間の短いウィンドウ）という状況に遭遇した読み取り側は、上記の読み込みフォールトトレランスルールに従いキャッシュミスとして扱います。
 
-### File format
+### ファイルフォーマット
 
-A single entry file is laid out as:
+単一のエントリファイルは以下のレイアウトです。
 
 ```
-"RIGOR\x00\x01"      6 bytes — 5-byte magic, 1-byte separator, 1-byte format version
-varint               byte length of the descriptor payload
-descriptor payload   canonical-JSON Descriptor (UTF-8, binary-encoded for transport)
-varint               byte length of the value payload
-value payload        Marshal.dump of the producer-returned object
-sha256               32 bytes — integrity hash of every preceding byte
+"RIGOR\x00\x01"      6 bytes — 5バイトマジック、1バイト区切り、1バイトフォーマットバージョン
+varint               ディスクリプターペイロードのバイト長
+descriptor payload   正規JSON Descriptor（UTF-8、転送のためにバイナリエンコード）
+varint               値ペイロードのバイト長
+value payload        プロデューサーが返したオブジェクトのMarshal.dump
+sha256               32バイト — 直前のすべてのバイトの整合性ハッシュ
 ```
 
-Descriptor and value are stored separately so a future cache-
-inspection tool can read just the descriptor without paying the
-`Marshal.load` cost. The format version (currently `1`) is
-distinct from `Descriptor::SCHEMA_VERSION` — the former covers
-the byte layout, the latter the descriptor schema. Bumping the
-format version invalidates entries on the read path (header
-mismatch → cache miss).
+ディスクリプターと値は別々に格納されるため、将来のキャッシュ検査ツールが`Marshal.load`のコストを払わずにディスクリプターだけを読み取れます。フォーマットバージョン（現在は`1`）は`Descriptor::SCHEMA_VERSION`とは異なります。前者はバイトレイアウトを対象とし、後者はディスクリプタースキーマを対象とします。フォーマットバージョンのバンプは読み込みパスでエントリを無効化します（ヘッダーの不一致 → キャッシュミス）。
 
-## `Rigor::Cache::RbsConstantTable` (v0.0.8 slice 3)
+## `Rigor::Cache::RbsConstantTable`（v0.0.8スライス3）
 
-The first cached producer wired through {`Rigor::Cache::Store#fetch_or_compute`}.
-Producer id: `"rbs.constant_type_table"`.
+{`Rigor::Cache::Store#fetch_or_compute`}を通じて配線される最初のキャッシュ済みプロデューサー。プロデューサーID: `"rbs.constant_type_table"`。
 
-### Why the constant table and not `RbsLoader#build_env`
+### 定数テーブルを`RbsLoader#build_env`ではなく選んだ理由
 
-`RBS::Environment` and its transitive AST nodes carry
-`RBS::Location` instances. `RBS::Location` is a C-extension class
-without `_dump_data`, so a naive `Marshal.dump(env)` raises
-`TypeError`. Caching `RBS::Environment` itself therefore requires
-either a custom-serialiser surface on the `Store` or a
-schema-stable intermediate that walks every relevant node into a
-Marshal-safe shape. Both options are out of scope for the v0.0.8
-slice budget — see [ADR-6 § 8 "RBS::Environment serialisation"](../../adr/6-cache-persistence-backend/).
+`RBS::Environment`とそのトランジティブなASTノードは`RBS::Location`インスタンスを保持します。`RBS::Location`は`_dump_data`を持たないC拡張クラスであるため、素直な`Marshal.dump(env)`は`TypeError`を発生させます。`RBS::Environment`そのものをキャッシュするには、`Store`上にカスタムシリアライザーサーフェスを設けるか、すべての関連ノードをMarshal安全な形状に変換するスキーマ安定な中間形式を作るかが必要です。いずれもv0.0.8スライスの予算を超えます。[ADR-6 § 8 "RBS::Environment serialisation"](../../adr/6-cache-persistence-backend/)を参照してください。
 
-The v0.0.8 slice instead caches a **post-translation** artefact:
-the result of translating every RBS-declared constant to its
-`Rigor::Type` form. `Rigor::Type` values are plain frozen value
-objects with well-defined `Marshal` round-trips, so the cache
-machinery exercises the full read/write cycle on real data
-without blocking on the serialiser question.
+v0.0.8スライスでは代わりに**翻訳後**の成果物をキャッシュします。すべてのRBS宣言済み定数を`Rigor::Type`形式に翻訳した結果です。`Rigor::Type`の値はMarshalのラウンドトリップが明確に定義された単純なフリーズ済み値オブジェクトであるため、キャッシュ機構はシリアライザーの問題をブロックせずに実データで完全な読み書きサイクルを実行できます。
 
 ### `RbsConstantTable.fetch(loader:, store:) -> Hash{String => Rigor::Type}`
 
-Returns a hash mapping every canonical constant name (top-level-
-prefixed, e.g. `"::Math::PI"`) to its translated `Rigor::Type`.
-The producer block iterates `loader.each_constant_decl` (which
-yields `(name, entry)` pairs from `env.constant_decls`) and
-translates each entry directly; entries whose translation
-returns `Rigor::Type::Bot` or raises are dropped from the table.
+すべての正規定数名（トップレベルプレフィックス付き、例: `"::Math::PI"`）を対応する翻訳済み`Rigor::Type`にマッピングするハッシュを返します。プロデューサーブロックは`loader.each_constant_decl`を反復します（`env.constant_decls`から`(name, entry)`ペアをyieldします）。翻訳が`Rigor::Type::Bot`を返すか例外を発生させたエントリはテーブルから除外されます。
 
-Going through `each_constant_decl` instead of
-`loader.constant_type` keeps the producer free of the recursion
-risk: `RbsLoader#constant_type` itself consults the cache when
-`cache_store` is set.
+`loader.constant_type`の代わりに`each_constant_decl`を経由することで、プロデューサーが再帰リスクから解放されます。`RbsLoader#constant_type`は`cache_store`が設定されているときにキャッシュを参照するためです。
 
-## `Rigor::Cache::RbsKnownClassNames` (v0.0.9 group C)
+## `Rigor::Cache::RbsKnownClassNames`（v0.0.9グループC）
 
-Second cached producer. Materialises the set of every RBS-declared
-class / module / alias name (top-level prefixed) currently loaded
-into the environment, as a Marshal-clean `Set<String>`. Producer
-id `"rbs.known_class_names"`.
+2番目のキャッシュ済みプロデューサー。環境に現在ロードされているすべてのRBS宣言済みクラス/モジュール/エイリアス名（トップレベルプレフィックス付き）の集合を、Marshal安全な`Set<String>`としてマテリアライズします。プロデューサーID: `"rbs.known_class_names"`。
 
 ### `RbsKnownClassNames.fetch(loader:, store:) -> Set<String>`
 
-Returns the set. The producer block iterates
-`loader.each_known_class_name` (which walks both
-`env.class_decls` and `env.class_alias_decls`); a fail-soft
-`rescue StandardError` inside the iterator means a broken
-environment yields no names rather than aborting the whole run.
+集合を返します。プロデューサーブロックは`loader.each_known_class_name`を反復します（`env.class_decls`と`env.class_alias_decls`の両方を走査します）。イテレーター内のフェイルソフトな`rescue StandardError`により、破損した環境はランを中断させるのではなく名前を返さないようになります。
 
-### Class-known path under `cache_store`
+### `cache_store`下でのクラス既知パス
 
-`RbsLoader#class_known?(name)` consults the cached set when the
-loader was constructed with `cache_store:` set. Cold runs build
-the set once and persist it; warm runs (and a separate loader
-sharing the same Store) skip the env walk entirely. The in-
-process per-name cache (`@class_known_cache`) still memoizes
-positive and negative answers across calls within a single
-loader instance — the disk cache only changes the cold-start
-behaviour, not the warm hot path.
+`RbsLoader#class_known?(name)`は、ローダーが`cache_store:`付きで構築されている場合にキャッシュ済み集合を参照します。コールドランは集合を一度だけ構築して永続化します。ウォームラン（および同じStoreを共有する別のローダー）は環境走査を完全にスキップします。インプロセスの名前ごとキャッシュ（`@class_known_cache`）は単一のローダーインスタンス内での呼び出し間でポジティブとネガティブの両方の回答をメモ化します。ディスクキャッシュはコールドスタートの動作のみを変更し、ウォームなホットパスは変更しません。
 
-## `Rigor::Cache::RbsClassAncestorTable` (v0.0.9 B)
+## `Rigor::Cache::RbsClassAncestorTable`（v0.0.9 B）
 
-Third cached producer. Materialises every loaded class /
-module's RBS-declared ancestor chain as a Marshal-clean
-`Hash<String, Array<String>>` keyed by top-level-stripped class
-name (e.g. `"Integer"` → `["Integer", "Numeric", "Comparable",
-"Object", "BasicObject"]`). Producer id `"rbs.class_ancestor_table"`.
+3番目のキャッシュ済みプロデューサー。ロードされたすべてのクラス/モジュールのRBS宣言済み祖先チェーンを、トップレベルなしのクラス名でキー付けされたMarshal安全な`Hash<String, Array<String>>`（例: `"Integer"` → `["Integer", "Numeric", "Comparable", "Object", "BasicObject"]`）としてマテリアライズします。プロデューサーID: `"rbs.class_ancestor_table"`。
 
-Building one ancestor chain requires a full
-`RBS::DefinitionBuilder#build_instance` over that class — the
-single most expensive RBS operation per class. Caching the table
-lets a warm process pay only a `Marshal.load` of the resulting
-hash; subsequent `class_ordering` queries are O(table-lookup +
-ancestor-list-membership-check), with no env walk.
+1つの祖先チェーンを構築するには、そのクラスに対して完全な`RBS::DefinitionBuilder#build_instance`が必要です。これはクラスごとで最もコストの高いRBS操作です。テーブルをキャッシュすることで、ウォームプロセスは結果ハッシュの`Marshal.load`のみを支払えます。後続の`class_ordering`クエリはO（テーブルルックアップ＋祖先リストメンバーシップチェック）になり、環境走査は発生しません。
 
-`RbsHierarchy#ancestor_names` consults the cached table when
-`loader.cache_store` is set. The in-process per-name cache
-(`@ancestor_names_cache`) still memoises results across calls
-within a single hierarchy instance, so the disk cache only
-changes the cold-start behaviour.
+`RbsHierarchy#ancestor_names`は`loader.cache_store`が設定されている場合にキャッシュ済みテーブルを参照します。インプロセスの名前ごとキャッシュ（`@ancestor_names_cache`）は単一の階層インスタンス内での呼び出し間で結果をメモ化します。ディスクキャッシュはコールドスタートの動作のみを変更します。
 
-## `Rigor::Cache::RbsClassTypeParamNames` (v0.0.9 A)
+## `Rigor::Cache::RbsClassTypeParamNames`（v0.0.9 A）
 
-Fourth cached producer. Materialises every loaded class's
-RBS-declared type-parameter names as a Marshal-clean
-`Hash<String, Array<Symbol>>` keyed by top-level-stripped class
-name (e.g. `"Array"` → `[:Elem]`, `"Hash"` → `[:K, :V]`,
-`"Integer"` → `[]`). Producer id `"rbs.class_type_param_names"`.
+4番目のキャッシュ済みプロデューサー。ロードされたすべてのクラスのRBS宣言済み型パラメーター名を、トップレベルなしのクラス名でキー付けされたMarshal安全な`Hash<String, Array<Symbol>>`（例: `"Array"` → `[:Elem]`、`"Hash"` → `[:K, :V]`、`"Integer"` → `[]`）としてマテリアライズします。プロデューサーID: `"rbs.class_type_param_names"`。
 
-The dispatcher reads type-parameter names every time it builds
-a substitution map from a receiver's `type_args` into a method's
-return type. Each entry shares the underlying
-`RBS::DefinitionBuilder#build_instance` cost with
-{RbsClassAncestorTable}; populating both producers warms the
-same set of definitions.
+ディスパッチャーはレシーバーの`type_args`からメソッドの戻り型への代入マップを構築するたびに型パラメーター名を読み取ります。各エントリは{RbsClassAncestorTable}と基になる`RBS::DefinitionBuilder#build_instance`コストを共有します。両プロデューサーをウォームにすることで同じ定義セットが熱くなります。
 
-`RbsLoader#class_type_param_names(class_name)` consults the
-cached table when `cache_store` is set. The accessor returns a
-fresh `Array.dup` so callers cannot mutate the cached payload.
+`RbsLoader#class_type_param_names(class_name)`は`cache_store`が設定されている場合にキャッシュ済みテーブルを参照します。アクセサーは呼び出し元がキャッシュ済みペイロードを変更できないように、フレッシュな`Array.dup`を返します。
 
-## `Rigor::Cache::RbsEnvironment` (v0.0.9 C2)
+## `Rigor::Cache::RbsEnvironment`（v0.0.9 C2）
 
-Fifth cached producer — and the first to use the
-{`Store#fetch_or_compute`} default-`Marshal` path against a
-non-Marshal-clean RBS-native value. The producer caches the
-loader's full `build_env` result (`RBS::Environment` after
-`from_loader` + `resolve_type_names`); cold runs pay the parse +
-resolve cost once and persist the result, while warm runs (and
-a separate loader sharing the same Store) load the marshalled
-blob and skip the parse / resolve stages entirely.
+5番目のキャッシュ済みプロデューサー — そして{`Store#fetch_or_compute`}のデフォルト`Marshal`パスを非Marshal安全なRBSネイティブ値に対して使う最初のもの。このプロデューサーはローダーの完全な`build_env`結果（`from_loader` + `resolve_type_names`後の`RBS::Environment`）をキャッシュします。コールドランはパース+解決コストを一度払って結果を永続化し、ウォームラン（および同じStoreを共有する別のローダー）はマーシャル済みblobをロードし、パース/解決段階を完全にスキップします。
 
-Producer id `"rbs.environment"`. Cache descriptor reuses
-{`RbsDescriptor.build`} so a single signature change or rbs gem
-bump invalidates this producer alongside the four
-post-translation caches.
+プロデューサーID: `"rbs.environment"`。キャッシュディスクリプターは{`RbsDescriptor.build`}を再利用するため、シグネチャの変更やrbs gemのバンプにより、このプロデューサーと4つの翻訳後キャッシュが同時に無効化されます。
 
 ### `RbsEnvironment.fetch(loader:, store:) -> ::RBS::Environment`
 
-Returns the env. The producer block calls
-`Rigor::Environment::RbsLoader.build_env_for(libraries:, signature_paths:)`
-— a stateless class-method counterpart to
-`RbsLoader#build_env` so the producer does not need to hold a
-loader instance.
+環境を返します。プロデューサーブロックは`Rigor::Environment::RbsLoader.build_env_for(libraries:, signature_paths:)`を呼び出します。これは`RbsLoader#build_env`のステートレスなクラスメソッドの対応物であり、プロデューサーはローダーインスタンスを保持する必要がありません。
 
-### `RBS::Location` Marshal patch
+### `RBS::Location` Marshalパッチ
 
-`RBS::Environment` and its transitive AST nodes carry
-`RBS::Location` instances. The rbs gem's C-extension
-`RBS::Location` does not ship `_dump` / `_load`, so a naive
-`Marshal.dump(env)` raises `TypeError`. v0.0.9 patches
-`RBS::Location` with the minimal Marshal hooks the cache
-machinery requires:
+`RBS::Environment`とそのトランジティブなASTノードは`RBS::Location`インスタンスを保持します。rbs gemのC拡張`RBS::Location`は`_dump` / `_load`を提供しないため、素直な`Marshal.dump(env)`は`TypeError`を発生させます。v0.0.9はキャッシュ機構が必要とする最小限のMarshalフックで`RBS::Location`にパッチを当てます。
 
 ```ruby
 class RBS::Location
@@ -395,39 +221,17 @@ class RBS::Location
 end
 ```
 
-The patch is purely additive (only adds methods that previously
-raised `TypeError` on dispatch) and idempotent (gated behind
-`method_defined?(:_dump)`). Cached `RBS::Location` instances
-lose their per-node source-position info — but Rigor never
-consults `RBS::Location` from any analysis code path (every
-diagnostic flows through Prism's own location), so the loss is
-inert in practice. Code paths that DO read Location after a
-cache hit (e.g. third-party tools) see a benign zero-range
-sentinel rather than crashing.
+このパッチは純粋に加算的（以前に`TypeError`を発生させていたディスパッチのためのメソッドを追加するだけ）で冪等です（`method_defined?(:_dump)`でゲートされます）。キャッシュされた`RBS::Location`インスタンスはノードごとのソース位置情報を失いますが、Rigorのどの解析コードパスも`RBS::Location`を参照しないため（すべての診断はPrism自身のロケーションを通じてフローします）、この損失は実用上無害です。キャッシュヒット後にLocationを読み込むコードパス（例: サードパーティツール）はクラッシュするのではなく、無害なゼロ範囲のセンチネルを参照します。
 
-The patch lives in
-`lib/rigor/cache/rbs_environment_marshal_patch.rb` and is
-required by the producer; it is loaded once per process when
-the producer is first referenced.
+このパッチは`lib/rigor/cache/rbs_environment_marshal_patch.rb`にあり、プロデューサーによってrequireされます。プロデューサーが最初に参照されたときに1プロセスにつき一度だけロードされます。
 
-### Composition with the post-translation caches
+### 翻訳後キャッシュとの合成
 
-`RbsEnvironment` lives alongside `RbsConstantTable`,
-`RbsKnownClassNames`, `RbsClassAncestorTable`, and
-`RbsClassTypeParamNames`. The post-translation caches answer
-the lookups they cover from disk without ever materialising an
-env; `RbsEnvironment` answers everything else (e.g.
-`RbsLoader#instance_method` and `singleton_method`) by handing
-the cached env to RBS's `DefinitionBuilder`. The two layers
-compose: a warm process pays no env build, no constant
-translation, no ancestors walk, and no type-parameter walk for
-already-cached lookups, and only an env load + per-class
-DefinitionBuilder cost for the few that aren't.
+`RbsEnvironment`は`RbsConstantTable`・`RbsKnownClassNames`・`RbsClassAncestorTable`・`RbsClassTypeParamNames`と並存します。翻訳後キャッシュはカバーするルックアップをディスクから返答し、環境をマテリアライズすることはありません。`RbsEnvironment`はそれ以外のすべて（例: `RbsLoader#instance_method`と`singleton_method`）を、キャッシュ済み環境をRBSの`DefinitionBuilder`に渡すことで返答します。2つのレイヤーは合成されます。ウォームプロセスは既にキャッシュされたルックアップに対してenv構築・定数変換・祖先走査・型パラメーター走査のコストを払わず、まだキャッシュされていない少数のものに対してのみenvロード＋クラスごとのDefinitionBuilderコストを払います。
 
-## `Rigor::Cache::RbsDescriptor` (shared)
+## `Rigor::Cache::RbsDescriptor`（共有）
 
-Both `RbsConstantTable` and `RbsKnownClassNames` depend on the
-same RBS environment state, so they share a descriptor builder:
+`RbsConstantTable`と`RbsKnownClassNames`はどちらも同じRBS環境状態に依存するため、ディスクリプタービルダーを共有します。
 
 ```ruby
 Rigor::Cache::RbsDescriptor.build(loader)
@@ -437,46 +241,29 @@ Rigor::Cache::RbsDescriptor.build(loader)
 #    configs = [{ key: "rbs.libraries", value_hash: SHA256(sorted-libraries) }]
 ```
 
-Sharing the builder means a single signature change or rbs gem
-bump invalidates every RBS-derived cached producer in lockstep.
+ビルダーを共有することにより、シグネチャの変更またはrbs gemのバンプで、すべてのRBS由来のキャッシュ済みプロデューサーが同時に無効化されます。
 
-## Constant-lookup path under `cache_store`
+## `cache_store`下での定数ルックアップパス
 
-Once an `Environment` is built with `Environment.for_project(..., cache_store:)`,
-every constant lookup path threads through the cache:
+`Environment.for_project(..., cache_store:)`で`Environment`が構築されると、すべての定数ルックアップパスがキャッシュを経由します。
 
-- `Rigor::Reflection.constant_type_for(name, scope:)` — public
-  read API; in-source constants win on collision, otherwise
-  falls through to:
+- `Rigor::Reflection.constant_type_for(name, scope:)` — 公開読み取りAPI。ソース内の定数が衝突時に優先されます。それ以外は以下にフォールスルーします。
 - `Environment#constant_for_name(name)` →
-- `Environment::RbsLoader#constant_type(name)` — checks
-  `constant_type_table[rbs_name.to_s]` (memoized per loader,
-  populated through `RbsConstantTable.fetch`).
+- `Environment::RbsLoader#constant_type(name)` — `constant_type_table[rbs_name.to_s]`をチェックします（ローダーごとにメモ化され、`RbsConstantTable.fetch`を通じて生成されます）。
 
-The first lookup on a cold cache pays the full table-build cost
-once and persists the result; warm runs (and a separate loader
-that shares the same Store) skip the env walk entirely and pay
-only a `Marshal.load` of the stored hash. The `params` argument
-to `Store#fetch_or_compute` is empty — every input the producer
-consumes is already encoded in the descriptor (see
-{Cache::RbsDescriptor.build}).
+コールドキャッシュでの最初のルックアップはテーブル構築コストを一度払って結果を永続化します。ウォームラン（および同じStoreを共有する別のローダー）は環境走査を完全にスキップし、格納されたハッシュの`Marshal.load`のみを払います。`Store#fetch_or_compute`への`params`引数は空です。プロデューサーが消費するすべての入力はすでにディスクリプターにエンコードされているためです（{Cache::RbsDescriptor.build}を参照）。
 
-## CLI observability (v0.0.8 slice 4)
+## CLI可観測性（v0.0.8スライス4）
 
-The cache layer ships two CLI flags on `rigor check`:
+キャッシュレイヤーは`rigor check`に2つのCLIフラグを提供します。
 
 ### `--clear-cache`
 
-Removes the `.rigor/cache` directory (resolved relative to the
-current working directory) before the analysis run. Prints
-`Cleared cache: .rigor/cache` when the directory existed and was
-removed, or `Cache already empty: .rigor/cache` when nothing was
-present. The check itself runs to completion regardless.
+解析ランの前に（カレントワーキングディレクトリ基準で）`.rigor/cache`ディレクトリを削除します。ディレクトリが存在して削除された場合は`Cleared cache: .rigor/cache`を、何もなかった場合は`Cache already empty: .rigor/cache`を出力します。チェック自体は完了まで実行されます。
 
 ### `--cache-stats`
 
-Prints both an on-disk inventory and the runtime hit/miss/write
-counters from the runner's `Cache::Store`. Output sample:
+ランナーの`Cache::Store`のディスクインベントリとランタイムのヒット/ミス/書き込みカウンターの両方を出力します。出力サンプル:
 
 ```
 Cache (root: .rigor/cache)
@@ -488,14 +275,11 @@ Cache (root: .rigor/cache)
     rbs.constant_type_table: 5 hits, 1 miss, 1 write
 ```
 
-When the cache directory does not exist, `schema_version` reads
-`absent` and the body shows `(empty)`. When the runner has no
-Store (e.g. under `--no-cache`), the `this run:` section is
-omitted — there is no in-memory state to report.
+キャッシュディレクトリが存在しない場合、`schema_version`は`absent`と表示され、本文は`(empty)`を示します。ランナーにStoreがない場合（例: `--no-cache`下）、`this run:`セクションは省略されます。報告するインメモリ状態がないためです。
 
 ### `Store#stats`
 
-Returns a frozen snapshot of the Store's per-run counters:
+Storeのランごとカウンターのフリーズ済みスナップショットを返します。
 
 ```ruby
 {
@@ -506,21 +290,16 @@ Returns a frozen snapshot of the Store's per-run counters:
 }
 ```
 
-The counters are in-memory only — every new `Store.new` starts
-at zero. Bumped inside `#fetch_or_compute`: a successful read
-increments `:hits`; a miss increments `:misses` immediately and
-then `:writes` after the producer block returns and the entry
-is persisted. Per-producer counts mirror the totals so callers
-can report the breakdown shown above.
+カウンターはインメモリのみです。新しい`Store.new`ごとにゼロからスタートします。`#fetch_or_compute`内でバンプされます。成功した読み取りは`:hits`をインクリメントし、ミスは直ちに`:misses`をインクリメントし、プロデューサーブロックが返却してエントリが永続化された後に`:writes`をインクリメントします。プロデューサーごとのカウントは合計を反映するため、呼び出し元は上記の内訳を報告できます。
 
 ### `Store.disk_inventory(root:)`
 
-Class method backing `--cache-stats`. Returns:
+`--cache-stats`を支えるクラスメソッド。以下を返します。
 
 ```ruby
 {
-  root: String,                  # the cache root path
-  schema_version: String | nil,  # nil when the marker is absent
+  root: String,                  # キャッシュルートパス
+  schema_version: String | nil,  # マーカーが存在しない場合はnil
   total_entries: Integer,
   total_bytes: Integer,
   producers: [
@@ -530,14 +309,11 @@ Class method backing `--cache-stats`. Returns:
 }
 ```
 
-Producers are sorted by id. Empty producer subdirectories are
-omitted from the listing.
+プロデューサーはIDでソートされます。空のプロデューサーサブディレクトリはリストから除外されます。
 
-## Diagnostic provenance (v0.0.8 slice 5)
+## 診断の来歴（v0.0.8スライス5）
 
-Companion slice on `Rigor::Analysis::Diagnostic`. The class gains
-a `source_family:` keyword (default `Diagnostic::DEFAULT_SOURCE_FAMILY`,
-which is `:builtin`) and a `qualified_rule` accessor:
+`Rigor::Analysis::Diagnostic`上のコンパニオンスライス。このクラスは`source_family:`キーワード（デフォルトは`Diagnostic::DEFAULT_SOURCE_FAMILY`、つまり`:builtin`）と`qualified_rule`アクセサーを追加します。
 
 ```ruby
 diagnostic = Rigor::Analysis::Diagnostic.new(
@@ -547,20 +323,11 @@ diagnostic = Rigor::Analysis::Diagnostic.new(
 )
 
 diagnostic.source_family   # => "plugin.rigor-immutable"
-diagnostic.rule            # => "no-mutation"  (bare kebab-case identifier)
+diagnostic.rule            # => "no-mutation"  (ベアのケバブケース識別子)
 diagnostic.qualified_rule  # => "plugin.rigor-immutable.no-mutation"
-diagnostic.to_h            # includes both "source_family" and "rule"
+diagnostic.to_h            # "source_family"と"rule"の両方を含む
 ```
 
-The bare `rule` accessor stays as the kebab-case identifier so
-existing config / `# rigor:disable` plumbing keeps working.
-`qualified_rule` is the namespaced identifier consumers should
-display when they want unambiguous attribution. JSON output
-(`to_h`) carries both fields side-by-side so downstream consumers
-can choose which one they care about.
+ベアの`rule`アクセサーはケバブケース識別子のままです。既存の設定や`# rigor:disable`の仕組みが引き続き動作します。`qualified_rule`は、コンシューマーが明確な帰属を表示したい場合に使うべき名前空間付き識別子です。JSON出力（`to_h`）は両フィールドを並べて持つため、ダウンストリームのコンシューマーはどちらを使うか選択できます。
 
-This prepares ADR-2's plugin-observability story (`plugin.<id>`,
-`rbs_extended`, `generated.<provider>`) without committing to the
-plugin API itself. No production caller in v0.0.8 sets a non-
-default source_family — the surface is reserved for plugin
-authors and future RBS-extended / generated rules.
+これはADR-2のプラグイン可観測性ストーリー（`plugin.<id>`・`rbs_extended`・`generated.<provider>`）を、プラグインAPI自体をコミットせずに準備するものです。v0.0.8ではデフォルト以外の`source_family`を設定する本番の呼び出し元は存在しません。このサーフェスはプラグイン作者および将来のRBS拡張/生成ルール向けに予約されています。

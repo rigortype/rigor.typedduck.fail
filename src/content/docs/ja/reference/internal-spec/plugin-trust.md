@@ -5,100 +5,70 @@ editUrl: "https://github.com/rigortype/rigor/edit/main/docs/internal-spec/plugin
 sourcePath: "docs/internal-spec/plugin-trust.md"
 sourceSha: "e27edd049eb44db71bd103023279d70edb1e0322072ed661ef148f781b6d0a95"
 sourceCommit: "9f40e22193647dc06e3ab70c5ba82768b0bfe738"
-translationStatus: "pending"
+translationStatus: "translated"
 sidebar:
   order: 3050
 ---
 
-> [!NOTE]
-> このページはまだ翻訳されていません。英語版の本文を参考表示しています。
+ステータス：**v0.1.0スライス2規範的。**トラストモデルとプラグインが使用することが期待されるアナライザ側のI/Oサーフェスを固定します。拘束力のある設計サーフェスは[ADR-2 §「プラグイントラストとI/Oポリシー」](../../adr/2-extension-api/)です；このドキュメントがADRと矛盾する場合、ADRが優先されます。
 
-Status: **v0.1.0 slice 2 normative.** Pins the trust model and the
-analyzer-side I/O surface plugins are expected to flow through. The
-binding design surface is [ADR-2 § "Plugin Trust and I/O Policy"](../../adr/2-extension-api/);
-when this document disagrees with the ADR, the ADR binds.
+## なぜこれが存在するか
 
-## Why this exists
+ADR-2はスライス2のコントラクトを3つの点を中心に固定します：
 
-ADR-2 fixes the slice-2 contract around three points:
+1. プラグインはユーザー・Gemfile・`.rigor.yml`が選択した**信頼されたRuby gem**です。スライス1のローダーはプラグインgemを設定に列挙することを要求することでこのトラスト境界をすでに強制します；スライス2はプラグインが従うことが期待される**宣言的な**ポリシーを追加します。
+2. 決定論性のため、解析中は**ネットワークアクセスがデフォルトで無効**です。
+3. **ファイル読み込みはスコープが限定**されており、プロジェクト・プロジェクトのRBSシグネチャ・アクティブな`Gemfile.lock`・各信頼済みgemの`Gem::Specification#full_gem_path`のみが対象です。そのスコープ外の読み込みには明示的な設定とキャッシュ依存ディスクリプタが必要です。
 
-1. Plugins are *trusted Ruby gems* selected by the user, their
-   Gemfile, or `.rigor.yml`. Slice 1's loader already enforces this
-   trust boundary by requiring plugin gems to be listed in
-   configuration; slice 2 adds the **declarative** policy plugins
-   are expected to operate under.
-2. **Network access is disabled by default** during analysis for
-   determinism.
-3. **File reads are scoped** to the project, the project's RBS
-   signatures, the active Gemfile.lock, and each trusted gem's
-   `Gem::Specification#full_gem_path`. Reads outside that scope
-   require explicit configuration and a cache-dependency
-   descriptor.
+ADR-2は**強制的な隔離より文書化**を明示的に選択しています：生の`File.read`や`Net::HTTP`で境界を迂回するプラグインはスライス2のスコープ外です。コントラクトは、プラグインがアナライザ側の{Rigor::Plugin::IoBoundary}を使用する場合、その読み込みが検証され、ネットワーク呼び出しが拒否され、その入力が{Rigor::Cache::Descriptor}パイプラインを通じてキャッシュ無効化に使われることです。
 
-ADR-2 explicitly chooses **documentation over forced isolation**:
-plugins that bypass the boundary with raw `File.read` or
-`Net::HTTP` are out of scope for slice 2. The contract is that
-when a plugin uses the analyzer-side {Rigor::Plugin::IoBoundary},
-its reads are validated, its network calls are denied, and its
-inputs feed cache invalidation through the
-{Rigor::Cache::Descriptor} pipeline.
+## パブリックネームスペース（ドリフト固定済み）
 
-## Public namespaces (drift-pinned)
-
-Both classes below are pinned by
-[`spec/rigor/public_api_drift_spec.rb`](../../spec/rigor/public_api_drift_spec.rb).
+以下の両クラスは[`spec/rigor/public_api_drift_spec.rb`](../../spec/rigor/public_api_drift_spec.rb)によって固定されています。
 
 ### `Rigor::Plugin::TrustPolicy`
 
-Frozen value object describing the per-run trust scope.
+実行ごとのトラストスコープを記述する凍結値オブジェクト。
 
-| Field | Purpose |
+| フィールド | 目的 |
 | --- | --- |
-| `trusted_gems` | Sorted, deduplicated list of gem names the user has authorised. Derived from the gem-name half of every `.rigor.yml` `plugins:` entry. |
-| `allowed_read_roots` | Sorted absolute paths plugins may read from through the {IoBoundary}. Default contents: project root (CWD), every `signature_paths` entry, each trusted gem's `Gem::Specification#full_gem_path`, and any extra paths the user lists under `plugins_io.allowed_paths`. |
-| `network_policy` | `:disabled` in slice 2 — the only value `Configuration` accepts today. |
+| `trusted_gems` | ユーザーが承認したgemの名前のソート済み重複排除リスト。`.rigor.yml`の`plugins:`エントリのgem名部分から導出される。 |
+| `allowed_read_roots` | プラグインが{IoBoundary}を通じて読み込める、ソート済みの絶対パス。デフォルト内容：プロジェクトルート（CWD）・すべての`signature_paths`エントリ・各信頼済みgemの`Gem::Specification#full_gem_path`・ユーザーが`plugins_io.allowed_paths`に列挙した追加パス。 |
+| `network_policy` | スライス2では`:disabled`——今日`Configuration`が受け入れる唯一の値。 |
 
-Predicates: `#allow_read?(path)` (absolute-path containment under
-any allowed root), `#network_allowed?` (always `false` while the
-policy is `:disabled`), `#gem_trusted?(name)`. `#to_h` returns a
-serialisable Hash for diagnostics and cache descriptors.
+述語：`#allow_read?(path)`（許可されたルートのいずれかに対する絶対パス包含チェック）・`#network_allowed?`（ポリシーが`:disabled`の間は常に`false`）・`#gem_trusted?(name)`。`#to_h`は診断とキャッシュディスクリプタ用のシリアライズ可能なHashを返します。
 
 ### `Rigor::Plugin::IoBoundary`
 
-Per-plugin helper service constructed by
-{Rigor::Plugin::Services#io_boundary_for}. Holds a frozen
-`TrustPolicy` and a per-instance accumulator of read entries.
+{Rigor::Plugin::Services#io_boundary_for}によって構築されるプラグインごとのヘルパーサービス。凍結された`TrustPolicy`と読み込みエントリのインスタンスごとのアキュムレータを保持します。
 
-| Method | Purpose |
+| メソッド | 目的 |
 | --- | --- |
-| `#read_file(path)` | Validates the absolute path against the policy, reads the bytes, and adds a `:digest` {Cache::Descriptor::FileEntry} to the boundary's accumulated entries. Raises {Rigor::Plugin::AccessDeniedError} (`reason: :read_outside_scope`) on a denied path. |
-| `#open_url(url)` | Always raises {Rigor::Plugin::AccessDeniedError} (`reason: :network_disabled`) while the policy is `:disabled` (slice 2's only setting). The hook is reserved so future slices can lift the gate without re-defining the API. |
-| `#cache_descriptor` | Returns a fresh frozen {Cache::Descriptor} with the boundary's accumulated `FileEntry` rows. Subsequent reads expand the underlying record table; each call returns a new descriptor reflecting the read history at that moment. |
+| `#read_file(path)` | 絶対パスをポリシーに対して検証し、バイトを読み込み、`:digest`の{Cache::Descriptor::FileEntry}を境界の蓄積エントリに追加します。拒否されたパスに対しては{Rigor::Plugin::AccessDeniedError}（`reason: :read_outside_scope`）を発生させます。 |
+| `#open_url(url)` | ポリシーが`:disabled`（スライス2の唯一の設定）の間は常に{Rigor::Plugin::AccessDeniedError}（`reason: :network_disabled`）を発生させます。このフックは将来のスライスがAPIを再定義せずにゲートを解放できるように予約されています。 |
+| `#cache_descriptor` | 境界が蓄積した`FileEntry`行を持つ新しい凍結された{Cache::Descriptor}を返します。後続の読み込みは基底レコードテーブルを拡張します；各呼び出しはその時点での読み込み履歴を反映した新しいディスクリプタを返します。 |
 
-Per-path reads are deduplicated by absolute path; re-reading a
-file with changed content updates the entry's digest in place.
+パスごとの読み込みは絶対パスによって重複排除されます；内容が変更されたファイルの再読み込みはエントリのダイジェストを上書きします。
 
 ### `Rigor::Plugin::AccessDeniedError`
 
-Public exception for boundary violations. Slice-2 reasons:
+境界違反のパブリック例外。スライス2の理由：
 
-- `:read_outside_scope` — `read_file` called with a path outside
-  every allowed read root.
-- `:network_disabled` — `open_url` called while
-  `network_policy == :disabled`.
+- `:read_outside_scope` — `read_file`がすべての許可読み込みルートの外のパスで呼び出された。
+- `:network_disabled` — `network_policy == :disabled`の間に`open_url`が呼び出された。
 
-Carries the offending `resource` (path or URL).
+問題のある`resource`（パスまたはURL）を持ちます。
 
-### `Rigor::Plugin::Services` (slice-2 additions)
+### `Rigor::Plugin::Services`（スライス2の追加）
 
-Slice 2 adds two surfaces:
+スライス2は2つのサーフェスを追加します：
 
-| Method | Purpose |
+| メソッド | 目的 |
 | --- | --- |
-| `#trust_policy` | The {TrustPolicy} for the run. Constructed by `Analysis::Runner` from the project's `.rigor.yml`. |
-| `#io_boundary_for(plugin_id)` | Returns a fresh per-plugin {IoBoundary}. The contribution merger (slice 3) constructs one per plugin per run and feeds the resulting cache descriptor through the same pipeline as built-in producers. |
+| `#trust_policy` | 実行の{TrustPolicy}。プロジェクトの`.rigor.yml`から`Analysis::Runner`によって構築される。 |
+| `#io_boundary_for(plugin_id)` | 新しいプラグインごとの{IoBoundary}を返す。貢献マージャー（スライス3）は実行ごとにプラグインごとに1つを構築し、結果のキャッシュディスクリプタを組み込みプロデューサーと同じパイプラインに通す。 |
 
-## `.rigor.yml` `plugins_io` section
+## `.rigor.yml`の`plugins_io`セクション
 
 ```yaml
 plugins_io:
@@ -108,48 +78,25 @@ plugins_io:
     - db/schema.rb
 ```
 
-`Configuration#plugins_io_network` returns the parsed Symbol;
-`Configuration#plugins_io_allowed_paths` returns a frozen
-`Array<String>` of the user-supplied extras (relative paths are
-expanded to absolute by the runner when building the policy).
+`Configuration#plugins_io_network`は解析されたシンボルを返します；`Configuration#plugins_io_allowed_paths`はユーザーが指定した追加パスの凍結された`Array<String>`を返します（相対パスはポリシー構築時にランナーが絶対パスに展開します）。
 
-## Analyzer wiring (`Analysis::Runner`)
+## アナライザの接続（`Analysis::Runner`）
 
-Slice 2's runner builds a `TrustPolicy` once per run:
+スライス2のランナーは実行ごとに一度`TrustPolicy`を構築します：
 
-1. `trusted_gems` ← gem-name half of every `Configuration#plugins`
-   entry.
-2. `allowed_read_roots`:
-   - `Dir.pwd` (project root).
-   - Every `Configuration#signature_paths` entry, expanded.
-   - For each trusted gem: `Gem.loaded_specs[gem_name]&.full_gem_path`,
-     when the gem is loadable (failures are silent — the gem may
-     be project-local with no installed spec).
-   - Every `Configuration#plugins_io_allowed_paths` entry,
-     expanded.
-3. `network_policy` ← `Configuration#plugins_io_network`
-   (`:disabled` in slice 2).
+1. `trusted_gems` ← すべての`Configuration#plugins`エントリのgem名部分。
+2. `allowed_read_roots`：
+   - `Dir.pwd`（プロジェクトルート）。
+   - すべての`Configuration#signature_paths`エントリ（展開済み）。
+   - 各信頼済みgemについて：`Gem.loaded_specs[gem_name]&.full_gem_path`（gemがロード可能な場合、失敗はサイレント——gemはインストール済みspecのないプロジェクトローカルである可能性があります）。
+   - すべての`Configuration#plugins_io_allowed_paths`エントリ（展開済み）。
+3. `network_policy` ← `Configuration#plugins_io_network`（スライス2では`:disabled`）。
 
-The policy lands on `Plugin::Services` and from there on every
-plugin's `Services#io_boundary_for` call. Plugins that do not use
-the boundary still receive the policy through `services.trust_policy`
-for documentation.
+ポリシーは`Plugin::Services`に渡され、そこからすべてのプラグインの`Services#io_boundary_for`呼び出しに渡されます。境界を使用しないプラグインも文書化のために`services.trust_policy`を通じてポリシーを受け取ります。
 
-## What slice 2 deliberately does NOT do
+## スライス2が意図的に行わないこと
 
-- **Force isolation.** ADR-2 explicitly accepts the trade-off:
-  plugins that bypass the boundary are out of scope; slice 2's job
-  is to provide the declarative policy + the documented edges.
-  Stronger isolation (Ruby::Box, process boundary) is a future
-  option, not a slice-2 commitment.
-- **Resolve symlinks via `realpath`.** `File.expand_path` is the
-  only normalisation step. Adversarial plugins are out of scope.
-- **Enable any network policy other than `:disabled`.** The
-  `network_allowed?` hook exists so slices that need offline-replay
-  / cached-fetch behaviour can lift the gate without re-defining
-  the API; slice 2's accepted set is `[:disabled]`.
-- **Wire the boundary's cache descriptor into `Cache::Store`.**
-  That's slice 6's job — plugin-side cache producers ride
-  `Store#fetch_or_compute(serialize:, deserialize:)` with
-  `PluginEntry` rows in the descriptor schema. Slice 2 only
-  builds the descriptor; nothing consumes it yet.
+- **強制的な隔離。** ADR-2はトレードオフを明示的に受け入れています：境界を迂回するプラグインはスコープ外です；スライス2の仕事は宣言的なポリシーと文書化されたエッジを提供することです。強力な隔離（Ruby::Box、プロセス境界）は将来のオプションであり、スライス2のコミットメントではありません。
+- **`realpath`によるシンボリックリンクの解決。** `File.expand_path`が唯一の正規化ステップです。敵対的なプラグインはスコープ外です。
+- **`:disabled`以外のネットワークポリシーの有効化。** `network_allowed?`フックは、オフラインリプレイ/キャッシュフェッチ動作を必要とするスライスがAPIを再定義せずにゲートを解放できるように存在します；スライス2の受け入れ値は`[:disabled]`です。
+- **境界のキャッシュディスクリプタを`Cache::Store`に接続すること。**それはスライス6の仕事です——プラグイン側キャッシュプロデューサーは`PluginEntry`行をディスクリプタスキーマに含む`Store#fetch_or_compute(serialize:, deserialize:)`を使用します。スライス2はディスクリプタを構築するだけです；まだ何もそれを消費しません。

@@ -5,56 +5,53 @@ editUrl: "https://github.com/rigortype/rigor/edit/main/docs/adr/0-concept.md"
 sourcePath: "docs/adr/0-concept.md"
 sourceSha: "f2d498d41850121d8a6d1bcc004ab4ddf2b0f033e6a319ad927a3d12f660bf96"
 sourceCommit: "9f40e22193647dc06e3ab70c5ba82768b0bfe738"
-translationStatus: "pending"
+translationStatus: "translated"
 sidebar:
   order: 4000
 ---
 
-> [!NOTE]
-> このページはまだ翻訳されていません。英語版の本文を参考表示しています。
+## ステータス
 
-## Status
+採択済み
 
-Accepted
+## コンテキスト
 
-## Context
+SorbetやSteep、RBSといったツールの登場によってRubyエコシステムが成熟するにつれ、**型推論**と**実用的なグラデュアル型付け**（漸進的、段階的）を最大限に活かす静的解析器への需要が高まっています。既存のツールはアプリケーションコードに多くの型アノテーションを要求することが多く、それが人間の開発者にとっても、AIコーディングアシスタント（LLM）にとっても、ノイズになっています。さらに、Rubyの動的な性質とメタプログラミングは、従来の型チェッカーにとって依然として大きな障壁です。
 
-As the Ruby ecosystem matures with tools like Sorbet, Steep, and RBS, there is a growing need for a static analyzer that maximizes **type inference** and **practical gradual typing**. Existing tools often require heavy type annotations within the application code, which introduces noise for both human developers and AI coding assistants (LLMs). Furthermore, Ruby's dynamic nature and metaprogramming remain significant hurdles for traditional type checkers.
+次世代の静的解析ツールが必要です。AIネイティブな純粋性、ゼロランタイムオーバーヘッド、高性能なキャッシュ、そして堅牢なプラグインシステムによるメタプログラミングの実用的な解決を優先するツールです。
 
-We need a next-generation static analysis tool that prioritizes AI-native purity, zero runtime overhead, high-performance caching, and practical resolution of metaprogramming through a robust plugin system. 
+## 決定事項
 
-## Decisions
+**Rigor**（"Rigorous Inference for Ruby"）という名称で新しい静的解析ツールを構築します。設計は以下のコア原則に基づきます。
 
-We will build a new static analysis tool named **Rigor** ("Rigorous Inference for Ruby"), designed with the following core principles:
+### 1. AIネイティブな純粋性とゼロランタイム依存
 
-### 1. AI-Native Purity & Zero Runtime Dependency
+* **Rigor固有のインライン型DSLを持たない：** RigorはアプリケーションコードにカスタムのインラインアノテーションDSLを要求しません。既存のRBS、rbs-inline、Steep互換のアノテーションは標準的なRubyエコシステムの型ソースとして受け入れますが、RigorはRubyアプリケーション本体に独自の追加構文を持ち込みません。
+* **ゼロランタイムオーバーヘッド：** Rigorは開発依存としてのみ機能します。実行時にアプリケーションにフックしません。
 
-* **No Rigor-Specific Inline Type DSL:** Rigor will not require a custom inline annotation DSL in application code. Existing RBS-, rbs-inline-, and Steep-compatible annotations may be consumed as standard Ruby ecosystem type sources, but Rigor should keep its own extra syntax out of Ruby application bodies.
-* **Zero Runtime Overhead:** Rigor functions strictly as a development dependency. It will not hook into the application at runtime.
+### 2. ハイブリッド型解決と高度な型システム
 
-### 2. Hybrid Type Resolution & Advanced Type System
+* **推論ファースト：** コアエンジンは深い制御フロー解析（CFA）とデータフロー解析に基づいて型を推定します。
+* **高度な型：** Rigorはユニオン型、リテラル型（例：`1`、`"str"`）、仮想/精細化型（例：`non-empty-string`、`positive-int`）をサポートします。
+* **外部依存はRBS経由：** 標準的なgemの型は既存のRBSエコシステムを使って解決します。
+* **`RBS::Extended`：** 標準のRBSではまだサポートされていない高度な型を表現するため、Rigor固有のメタデータはRBSアノテーションや外部/生成済みシグネチャを通じてRBS宣言に添付します。新しいRubyコメントDSLは使いません。
 
-* **Powerful Inference First:** The core engine relies on deep Control Flow Analysis (CFA) and Data Flow Analysis to deduce types.
-* **Advanced Types:** Rigor will support Union Types, Literal Types (e.g., `1`, `"str"`), and Virtual/Refined Types (e.g., `non-empty-string`, `positive-int`).
-* **External Dependencies via RBS:** Standard gem types will be resolved using the existing RBS ecosystem.
-* **`RBS::Extended`:** To express advanced types not yet supported by standard RBS, Rigor-specific metadata should attach to RBS declarations through RBS annotations or external/generated signatures rather than through a new Ruby comment DSL.
+### 3. PHPStanライクなプラグインアーキテクチャ
 
-### 3. PHPStan-like Plugin Architecture
+* Rubyのメタプログラミング（例：Railsの`ActiveRecord`、動的な`method_missing`）は純粋に**外部プラグイン**で処理します。
+* **仮想プロトコル：** Rigorは（PHPStanと同様の）拡張APIを提供します。仮想「プロトコル」または型クラスを使うことで、プラグインが必要なフック（動的メソッド解決、戻り値型推論など）を正しく実装しているかをRigor自身が静的に検証できます。
 
-* Ruby's metaprogramming (e.g., Rails' `ActiveRecord`, dynamic `method_missing`) will be handled purely by **external plugins**.
-* **Virtual Protocols:** Rigor will provide an extension API (similar to PHPStan) using virtual "Protocols" or type classes. This allows Rigor itself to statically verify that plugins correctly implement required hooks (e.g., Dynamic Method Resolution, Return Type Inference).
+### 4. 高性能なキャッシュとDX
 
-### 4. High-Performance Caching & DX
+* RigorはAST及び依存グラフのアグレッシブなキャッシュを実装します。
+* コーディング中に即座のフィードバックを提供することが主目標です。まずは堅牢な**CLIエクスペリエンス**を優先し、LSP（Language Server Protocol）統合は後フェーズに延期します。
+* **スマート初期化：** `rigor init`は`Gemfile.lock`を解析し、必要なプラグイン（Rails、RSpecなど）とプロジェクトディレクトリを自動的に提案・設定します。
 
-* Rigor will implement aggressive AST and dependency graph caching.
-* The primary goal is to provide instantaneous feedback during coding. We will prioritize a robust **CLI experience first**, deferring LSP (Language Server Protocol) integration to a later phase.
-* **Smart Initialization:** `rigor init` will analyze `Gemfile.lock` to automatically suggest and configure the necessary plugins (e.g., Rails, RSpec) and project directories.
+### 5. MVPターゲット（CLI）
 
-### 5. MVP Target (CLI)
+最小実行可能プロダクトは、ユニオン型に起因する潜在的な`NoMethodError`を検出するための基礎的な制御フロー解析に集中します。
 
-The Minimum Viable Product will focus on foundational Control Flow Analysis to catch potential `NoMethodError`s resulting from union types.
-
-**MVP Example Scope:**
+**MVPの対象例：**
 
 ```ruby
 # Rigor CFA must track branches and infer `v` as `Integer | String` (1 | "str")
@@ -68,7 +65,7 @@ end
 p v.upcase 
 ```
 
-## Consequences
+## 結果
 
-* **Positive:** Application code remains clean and AI-friendly. The plugin architecture keeps the core engine small, maintainable, and highly performant. The CLI-first approach ensures the inference engine is deeply tested and reliable before dealing with asynchronous editor states.
-* **Negative/Risks:** Implementing a robust Control Flow Graph (CFG) from scratch (likely using `Prism` or `SyntaxTree`) requires significant upfront engineering effort. Building the plugin ecosystem will require community adoption or maintaining core framework plugins (like Rails) ourselves initially.
+* **ポジティブ：** アプリケーションコードはクリーンでAIフレンドリーな状態を保てます。プラグインアーキテクチャはコアエンジンを小さく、保守しやすく、高パフォーマンスに保ちます。CLIファーストのアプローチにより、非同期なエディタ状態を扱う前に推論エンジンが徹底的にテストされ、信頼性を確保できます。
+* **ネガティブ/リスク：** 制御フローグラフ（CFG）をゼロから実装する（`Prism`や`SyntaxTree`の活用が有力）には、多大な初期エンジニアリング工数が必要です。プラグインエコシステムの構築にはコミュニティの採用を促すか、当初は私たち自身でRailsなどのコアフレームワークプラグインを維持する必要があります。

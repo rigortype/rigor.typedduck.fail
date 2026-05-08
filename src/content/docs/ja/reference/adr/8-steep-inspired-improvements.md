@@ -5,108 +5,65 @@ editUrl: "https://github.com/rigortype/rigor/edit/main/docs/adr/8-steep-inspired
 sourcePath: "docs/adr/8-steep-inspired-improvements.md"
 sourceSha: "f5859eaaee7b3fc2ea8c77ac9ac7797a419db1213b6407a4d26c4801e6ebb4a6"
 sourceCommit: "9f40e22193647dc06e3ab70c5ba82768b0bfe738"
-translationStatus: "pending"
+translationStatus: "translated"
 sidebar:
   order: 4008
 ---
 
-> [!NOTE]
-> このページはまだ翻訳されていません。英語版の本文を参考表示しています。
+## ステータス
 
-## Status
+承認（作業上の決定）。Rigor自己解析レポート（非公式）と[`docs/notes/20260503-steep-cross-check-triage.md`](../../notes/20260503-steep-cross-check-triage/)にあるv0.0.5 Steepクロスチェックトリアージの付属物。診断IDファミリー階層、重大度プロファイル、`return-type-mismatch`ルールファミリーという3つのSteepに触発された改善の実装選択を記録する。
 
-Accepted (working decisions). Companion to the Rigor self-analysis
-report (informal) and the v0.0.5 Steep cross-check triage at
-[`docs/notes/20260503-steep-cross-check-triage.md`](../../notes/20260503-steep-cross-check-triage/).
-Captures the implementation choices for three Steep-inspired
-improvements: a diagnostic-ID family hierarchy, severity profiles,
-and a `return-type-mismatch` rule family.
+## コンテキスト
 
-## Context
+`lib/`に対してSteep 2.0を実行する（`make steep-check`に従って）と、RigorがSteepと比較して持つ3つの構造的なギャップが表面化した。
 
-Running Steep 2.0 over `lib/` (per `make steep-check`) surfaced
-three structural gaps Rigor's diagnostic surface has compared to
-Steep's:
+1. SteepのレントIDは2セグメント（`Ruby::MethodParameterMismatch`、`RBS::DuplicatedMethodDefinition`）。Rigorはシングルセグメント（`undefined-method`、`wrong-arity`）。フラットな名前空間では、`# rigor:disable`や設定で関連する診断のファミリー（例：「すべての呼び出しサイトルール」）をターゲットにしにくい。
+2. Steepには組み込みの重大度プロファイル（`Steep::Diagnostic::Ruby.lenient`、`.strict`）が付属する。Rigorは`.rigor.yml`の`disable:`リストによるルールごとのオン/オフのみをサポートする。その結果、CIと開発での重大度チューニングが扱いにくい。
+3. Steepはメソッドボディの推論された返り値型が宣言された返り値型を満たせない場合に`Ruby::MethodBodyTypeMismatch`を出力する。Rigorには基盤（スライス4の`FlowContribution::Merger`、B1のメソッドごとのReflectionキャッシュ）はあるがルールはまだない——返り値側における既存の`argument-type-mismatch`の対称的な存在。
 
-1. Steep's diagnostic IDs are two-segment (`Ruby::MethodParameterMismatch`,
-   `RBS::DuplicatedMethodDefinition`); Rigor's are single-segment
-   (`undefined-method`, `wrong-arity`). The flat namespace makes
-   it harder to target families of related diagnostics
-   (e.g. "all call-site rules") via `# rigor:disable` or
-   configuration.
-2. Steep ships built-in severity profiles (`Steep::Diagnostic::Ruby.lenient`,
-   `.strict`); Rigor only supports per-rule on/off via
-   `.rigor.yml`'s `disable:` list. CI-vs-development severity
-   tuning is awkward as a result.
-3. Steep emits `Ruby::MethodBodyTypeMismatch` when a method body's
-   inferred return type cannot satisfy the declared return type.
-   Rigor has the substrate (slice 4 `FlowContribution::Merger`,
-   B1 per-method Reflection cache) but no rule yet — the dual of
-   `argument-type-mismatch` on the return side.
+このADRは実装がサーフェス設計を再検討せずにランドできるよう、各改善の選択された方向を記録する。
 
-This ADR records the chosen direction for each improvement so
-the implementation lands without re-opening the surface design.
+## 決定
 
-## Decisions
+### 1. 診断IDファミリー階層
 
-### 1. Diagnostic ID family hierarchy
+**決定: ルール識別子を`family.rule-name`形式に正規化する。** `family`は`[a-z][a-z0-9_]*`セグメントの小さな固定セットの1つだ。
 
-**Decision: rule identifiers are normalised to `family.rule-name`
-form**, where `family` is one of a small fixed set of
-`[a-z][a-z0-9_]*` segments.
+ファミリープレフィックス:
 
-Family prefixes:
-
-| family | Rules |
+| family | ルール |
 | --- | --- |
-| `call`   | `call.undefined-method`, `call.wrong-arity`, `call.argument-type-mismatch`, `call.possible-nil-receiver` |
-| `assert` | `assert.type-mismatch` (test-harness assertion), `dump.type` (debug) |
-| `flow`   | `flow.always-raises` (proves a flow path ends in raise) |
-| `def`    | `def.return-type-mismatch` (slice #1 below) |
+| `call`   | `call.undefined-method`、`call.wrong-arity`、`call.argument-type-mismatch`、`call.possible-nil-receiver` |
+| `assert` | `assert.type-mismatch`（テストハーネスアサーション）、`dump.type`（デバッグ） |
+| `flow`   | `flow.always-raises`（フローパスがraiseで終わることを証明） |
+| `def`    | `def.return-type-mismatch`（以下のスライス#1） |
 
-`dump.type` lives under its own `dump` family rather than
-`assert.dump-type` because the runtime semantics differ (assertion
-fails the run; dump always succeeds with diagnostic side-effect).
+`dump.type`は`assert.dump-type`ではなく独自の`dump`ファミリーに置かれる。ランタイムセマンティクスが異なるからだ（アサーションは実行を失敗させ、ダンプは診断副作用で常に成功する）。
 
-**Backward compatibility.** Existing `# rigor:disable
-undefined-method` and `disable: ["undefined-method"]` keep working
-in v0.1.x. The configuration / suppression layer accepts both:
+**後方互換性。**既存の`# rigor:disable undefined-method`と`disable: ["undefined-method"]`はv0.1.xで動作し続ける。設定/抑制レイヤーは両方を受け入れる。
 
-- `<rule>` (unprefixed, legacy form).
-- `<family>.<rule>` (new canonical form).
-- `<family>` (wildcard — disables every rule whose identifier
-  starts with `<family>.`).
+- `<rule>`（プレフィックスなし、レガシー形式）。
+- `<family>.<rule>`（新しい正規形式）。
+- `<family>`（ワイルドカード——`<family>.`で始まる識別子を持つすべてのルールを無効化）。
 
-The unprefixed form resolves through a fixed alias table in
-`Analysis::CheckRules`. Removing the alias table is a future ADR
-once user code has migrated.
+プレフィックスなし形式は`Analysis::CheckRules`の固定エイリアステーブルを通じて解決される。ユーザーコードが移行した後でエイリアステーブルを削除することは将来のADRだ。
 
-**Diagnostic surface.** `Diagnostic#rule` exposes the
-canonical (`family.rule-name`) form. `Diagnostic#qualified_rule`
-already prefixes with `source_family` when non-default; the
-combined form is `<source_family>.<family>.<rule>` for
-`source_family ∉ {:builtin}`. `Diagnostic#to_s` keeps the
-existing `[<qualified-rule>]` rendering.
+**診断サーフェス。** `Diagnostic#rule`は正規（`family.rule-name`）形式を公開する。`Diagnostic#qualified_rule`はデフォルト以外のsource_familyの場合にすでに`source_family`プレフィックスを付ける。組み合わせた形式は`source_family ∉ {:builtin}`の場合に`<source_family>.<family>.<rule>`だ。`Diagnostic#to_s`は既存の`[<qualified-rule>]`レンダリングを保つ。
 
-### 2. Severity profile
+### 2. 重大度プロファイル
 
-**Decision: introduce three named profiles** — `lenient`,
-`balanced` (default), `strict`. Each profile is a fixed table
-mapping `family.rule-name` to `:error` / `:warning` / `:info` /
-`:off`.
+**決定: 3つの名前付きプロファイルを導入する** — `lenient`、`balanced`（デフォルト）、`strict`。各プロファイルは`family.rule-name`を`:error`/`:warning`/`:info`/`:off`にマッピングする固定テーブルだ。
 
-| Profile | Behaviour |
+| プロファイル | 挙動 |
 | --- | --- |
-| `lenient` | Only `:no`-class diagnostics are errors. `:maybe`-class diagnostics are `:warning`. Useful for incremental adoption on legacy code. |
-| `balanced` (**default**) | Current Rigor stance: most rules `:error`; `dump.type` `:info`; uncertain rules `:warning`. |
-| `strict` | Every rule (including `flow.*` proof failures) is `:error`. CI-friendly. |
+| `lenient` | `:no`クラスの診断のみがエラー。`:maybe`クラスの診断は`:warning`。レガシーコードでの段階的な採用に有用。 |
+| `balanced`（**デフォルト**） | 現在のRigorのスタンス: ほとんどのルールは`:error`。`dump.type`は`:info`。不確かなルールは`:warning`。 |
+| `strict` | すべてのルール（`flow.*`の証明失敗を含む）が`:error`。CI向け。 |
 
-The profile is a **final filter**: rules emit `Diagnostic` rows
-with their authored severity; `Analysis::Runner` re-stamps each
-diagnostic's severity from the profile before adding it to the
-result. Rules do not consult the profile directly.
+プロファイルは**最終フィルター**だ。ルールは作成された重大度で`Diagnostic`行を出力する。`Analysis::Runner`は結果に追加する前に各診断の重大度をプロファイルから再スタンプする。ルールはプロファイルを直接参照しない。
 
-`.rigor.yml` adds two keys:
+`.rigor.yml`に2つのキーが追加される。
 
 ```yaml
 severity_profile: balanced     # one of lenient | balanced | strict
@@ -114,103 +71,56 @@ severity_overrides:
   call.argument-type-mismatch: warning
 ```
 
-`severity_overrides` is the per-rule escape hatch — the table
-matches by canonical rule id (or family wildcard). Unknown rule
-ids in `severity_overrides` are silently skipped; per-run drift
-is caught by the public-API drift spec instead.
+`severity_overrides`はルールごとのエスケープハッチ——テーブルは正規ルールid（またはファミリーワイルドカード）でマッチする。`severity_overrides`の未知のルールidはサイレントにスキップされる。実行ごとのドリフトはパブリックAPIドリフトspecが代わりに検出する。
 
-### 3. `def.return-type-mismatch` rule
+### 3. `def.return-type-mismatch`ルール
 
-**Decision: emit a diagnostic when the inferred return type of a
-method body cannot satisfy the declared RBS return type.**
+**決定: メソッドボディの推論された返り値型が宣言されたRBSの返り値型を満たせない場合に診断を出力する。**
 
-Scope (v0.1.x first cut):
+スコープ（v0.1.x最初のカット）:
 
-- The method has an explicit RBS sig (instance or singleton)
-  reachable through `Rigor::Reflection`.
-- The method body's last evaluated expression's type is computable
-  from `Inference::ExpressionTyper` (no `Dynamic[top]` fallback).
-- The comparison is `declared.accepts(inferred)`:
-  - `:yes` — silent.
-  - `:no` — emit `:error` with rule `def.return-type-mismatch`.
-  - `:maybe` — silent in the v0.1.x first cut. Implementation
-    discipline: dogfooding revealed 16 warnings on Rigor's own
-    `lib/`, all from the same set of analyzer-precision gaps
-    (`{}` not recovering its declared element type, `Set.new`
-    returning bare `Set` rather than `Set[Symbol]`, …) that the
-    body's inferred type does not yet pin precisely enough.
-    Lifting `:maybe` to `:warning` (and `:error` under
-    `severity_profile: strict`) is queued for a follow-up that
-    lands together with the narrowing precision improvements
-    those cases require.
+- メソッドに`Rigor::Reflection`を通じて到達可能な明示的なRBSシグ（インスタンスまたはシングルトン）がある。
+- メソッドボディの最後に評価された式の型が`Inference::ExpressionTyper`から計算可能（`Dynamic[top]`フォールバックなし）。
+- 比較は`declared.accepts(inferred)`:
+  - `:yes` — サイレント。
+  - `:no` — `:error`とルール`def.return-type-mismatch`で診断を出力する。
+  - `:maybe` — v0.1.x最初のカットではサイレント。実装上の規律: ドッグフーディングでRigor自身の`lib/`に16の警告が見つかり、すべてが同じ解析器精度ギャップのセット（`{}`が宣言された要素型を回復しない、`Set.new`が`Set[Symbol]`ではなく裸の`Set`を返す、…）から来ており、ボディの推論型がまだ十分に正確にピン留めできていない。`:maybe`を`:warning`（と`severity_profile: strict`下での`:error`）に引き上げることは、それらのケースが必要とするナローイング精度改善と一緒にランドするフォローアップにキューイングされている。
 
-Out of scope for the first cut:
+最初のカットのスコープ外:
 
-- Methods without RBS sigs (no declared contract to compare against).
-- Multiple-return-paths analysis. The first cut takes the body's
-  last expression as the proxy for the inferred return; explicit
-  `return` mid-body, branching returns, `raise` exits, and
-  `next`/`break` paths fall through unchanged for now.
-- Block return types. Future work on top of `IteratorDispatch` /
-  `BlockFolding`.
-- Method overloads — the rule consults the method's `method_types`
-  array and considers the union of all declared return types as
-  the comparison target.
+- RBSシグのないメソッド（比較する宣言された契約がない）。
+- 複数返り値パス解析。最初のカットはボディの最後の式を推論された返り値のプロキシとして取る。ボディ途中の明示的な`return`、分岐する返り値、`raise`終了、`next`/`break`パスは今は素通りする。
+- ブロック返り値型。`IteratorDispatch`/`BlockFolding`の上の将来の作業。
+- メソッドオーバーロード——ルールはメソッドの`method_types`配列を参照し、宣言されたすべての返り値型のユニオンを比較ターゲットとして考慮する。
 
-Rationale: this matches Steep's `Ruby::MethodBodyTypeMismatch`
-scope. ADR-5 (robustness principle) requires "strict on returns";
-this rule is the first concrete consumer of that policy.
+根拠: これはSteepの`Ruby::MethodBodyTypeMismatch`スコープと一致する。ADR-5（堅牢性原則）は「返り値では厳格に」を要求する。このルールはそのポリシーの最初の具体的なコンシューマーだ。
 
-### 4. Out-of-scope items (recorded for posterity)
+### 4. スコープ外の項目（記録のために）
 
-The Steep-inspired list also flagged:
+Steepに触発されたリストはまた次のものもフラグ立てした。
 
-- **LSP / langserver mode.** Defer to v0.1.x or beyond. Cache
-  layer is now ready (B1 per-method cache + the Steep-driven
-  rescue tightening), but the mode itself needs a separate
-  design pass.
-- **Detailed text formatter.** Optional `--format=detailed` with
-  source-snippet rendering. Defer; default text format keeps the
-  single-line layout for grep / count compatibility.
-- **`Data.define` override-aware initializer dispatch.** Out of
-  this ADR; CURRENT_WORK already tracks it as a parallel-safe
-  entry point.
+- **LSP/langserverモード。** v0.1.x以降に延期。キャッシュレイヤーは準備できている（B1のメソッドごとのキャッシュ+Steepが誘発したrescueの厳格化）が、モード自体には別の設計パスが必要だ。
+- **詳細テキストフォーマッター。**ソーススニペットレンダリングを持つオプションの`--format=detailed`。延期。デフォルトのテキストフォーマットはgrep/カウント互換性のためにシングルラインレイアウトを保つ。
+- **`Data.define`オーバーライド対応イニシャライザーディスパッチ。**このADRのスコープ外。CURRENT_WORKはすでにそれを並行安全なエントリーポイントとして追跡している。
 
-## Consequences
+## 結果
 
-### Positive
+### ポジティブ
 
-- Diagnostic-family wildcards make `# rigor:disable call` and
-  per-family CI gating cleanly expressible.
-- Severity profiles unblock the strict-CI / lenient-development
-  pattern that Steep users routinely employ.
-- `def.return-type-mismatch` closes the symmetric gap between
-  the existing `argument-type-mismatch` (parameters) and the
-  return side, fulfilling ADR-5's "strict on returns" promise.
+- 診断ファミリーワイルドカードは`# rigor:disable call`とファミリーごとのCIゲートを明確に表現可能にする。
+- 重大度プロファイルはSteepユーザーが日常的に採用するstrict-CI/lenient-developmentパターンのブロックを解除する。
+- `def.return-type-mismatch`は既存の`argument-type-mismatch`（パラメータ）と返り値側の間の対称的なギャップを閉じ、ADR-5の「返り値では厳格に」の約束を果たす。
 
-### Negative
+### ネガティブ
 
-- Existing `# rigor:disable undefined-method` comments and
-  `disable:` config entries in user code use the unprefixed form;
-  the alias table absorbs the migration but the coexistence of
-  two spellings increases the surface plugin authors and
-  formatters must understand. The plan is to remove the alias
-  table in a future ADR once the canonical form is widely
-  adopted.
-- Severity profile re-stamping changes the `Diagnostic#severity`
-  observed by downstream consumers (formatters, JSON output).
-  CI parsers that depend on a specific severity should pin the
-  profile.
-- The first cut of `def.return-type-mismatch` is conservative.
-  False positives are minimised by skipping `Dynamic[top]`
-  bodies, but real-world code with branchy returns may surface
-  cases the v0.1.x cut does not handle. Plan: collect those as
-  follow-up tickets.
+- ユーザーコードの既存の`# rigor:disable undefined-method`コメントと`disable:`設定エントリはプレフィックスなし形式を使用する。エイリアステーブルが移行を吸収するが、2つの綴りの共存はプラグイン作成者とフォーマッターが理解しなければならないサーフェスを増加させる。計画は正規形式が広く採用された後、将来のADRでエイリアステーブルを削除することだ。
+- 重大度プロファイルの再スタンプは下流のコンシューマー（フォーマッター、JSON出力）が観察する`Diagnostic#severity`を変更する。特定の重大度に依存するCIパーサーはプロファイルをピン留めすべきだ。
+- `def.return-type-mismatch`の最初のカットは保守的だ。`Dynamic[top]`ボディをスキップすることで偽陽性は最小化されるが、分岐する返り値を持つ実世界のコードはv0.1.xカットが処理しないケースを表面化させる可能性がある。計画: それらをフォローアップチケットとして収集する。
 
-## References
+## 参照
 
-- [Steep cross-check triage 2026-05-03](../../notes/20260503-steep-cross-check-triage/)
-- [ADR-5: Robustness principle](../5-robustness-principle/)
-- [ADR-7: v0.1.0 slice 4 – 6 working decisions](../7-v0.1.0-slice-decisions/)
+- [Steepクロスチェックトリアージ2026-05-03](../../notes/20260503-steep-cross-check-triage/)
+- [ADR-5: 堅牢性原則](../5-robustness-principle/)
+- [ADR-7: v0.1.0スライス4〜6の作業上の決定](../7-v0.1.0-slice-decisions/)
 - [`docs/internal-spec/inference-engine.md`](../../internal-spec/inference-engine/)
 - [`docs/internal-spec/flow-contribution-merger.md`](../../internal-spec/flow-contribution-merger/)

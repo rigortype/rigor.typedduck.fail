@@ -5,190 +5,187 @@ editUrl: "https://github.com/rigortype/rigor/edit/main/docs/internal-spec/intern
 sourcePath: "docs/internal-spec/internal-type-api.md"
 sourceSha: "1c2cad782ba0ec561779cd7e05b0cf43557519fef9ca7a7ede8f95f90ec30672"
 sourceCommit: "9f40e22193647dc06e3ab70c5ba82768b0bfe738"
-translationStatus: "pending"
+translationStatus: "translated"
 sidebar:
   order: 3050
 ---
 
-> [!NOTE]
-> このページはまだ翻訳されていません。英語版の本文を参考表示しています。
+このドキュメントは、すべてのRigorの型オブジェクトがMUST満たすパブリックコントラクトを規定します。不変性と等価性の規律、メソッドサーフェス、結果値オブジェクト、ラッパー合成ルール、そして正規化・消去・診断表示のルーティングが対象です。
 
-This document specifies the public contract that every Rigor type object MUST satisfy: the immutability and equality discipline, the method surface, the result value objects, the wrapper-composition rules, and the routing of normalization, erasure, and diagnostic display.
+これは[`docs/type-specification/`](../../type-specification/)の型言語セマンティクスと対になるエンジン内部の仕様です。ここでの記述が型言語の振る舞いと矛盾する場合は、型仕様が優先されます。
 
-This is the engine-internal counterpart of the type-language semantics in [`docs/type-specification/`](../../type-specification/). When a description here would conflict with type-language behavior, the type specification binds.
+このドキュメントで定められた決定事項は安定しています。[`docs/adr/3-type-representation.md`](../../adr/3-type-representation/)で追跡されている2つの未解決問題——定数スカラー/オブジェクトキャリア形状と三値返却メソッドの命名規約——はいずれもコントラクトがそれらに依存しないよう、ここでは意図的に抽象化されています。
 
-The decisions in this document are stable. The two open questions tracked in [`docs/adr/3-type-representation.md`](../../adr/3-type-representation/) — the constant scalar/object carrier shape and the trinary-returning method naming convention — are deliberately abstracted here so that the contract does not depend on either resolution.
+## スコープ
 
-## Scope
+このドキュメントが拘束するもの：
 
-This document binds:
+- エンジンコード、プラグイン、CLIコンポーネント、テストが型を推論するために使用するRubyサーフェス。
+- すべての型インスタンスがMUST満たす同一性・等価性・ハッシュ化・不変性のルール。
+- メソッドサーフェスの分類（ケイパビリティクエリ、リファインメント射影、関係クエリ、構造クエリ、コンビネータ、メタ）と、各グループの結果形状コントラクト。
+- ラッパー形式（`Dynamic[T]`、リファインメント、ユニオン、インターセクション、差分、補集合、ジェネリック位置キャリア）の合成ルール。
+- パブリックメソッドから型仕様へのルーティングルール（`describe(verbosity)`から[`diagnostic-policy.md`](../../type-specification/diagnostic-policy/)、`erase_to_rbs`から[`rbs-erasure.md`](../../type-specification/rbs-erasure/)、`normalize`から[`normalization.md`](../../type-specification/normalization/)）。
 
-- The Ruby surface that engine code, plugins, CLI components, and tests use to reason about types.
-- The identity, equality, hashing, and immutability rules every type instance MUST satisfy.
-- The method-surface taxonomy (capability queries, refinement projections, relational queries, structural queries, combinators, meta) and the result-shape contract for each group.
-- The composition rules for wrapper forms (`Dynamic[T]`, refinements, unions, intersections, differences, complements, generic position carriers).
-- The routing rules from public methods into the type specification (`describe(verbosity)` to [`diagnostic-policy.md`](../../type-specification/diagnostic-policy/), `erase_to_rbs` to [`rbs-erasure.md`](../../type-specification/rbs-erasure/), `normalize` to [`normalization.md`](../../type-specification/normalization/)).
+このドキュメントが拘束しないもの：
 
-This document does **not** bind:
+- 具体的なクラスの正確なセット。[`docs/adr/3-type-representation.md`](../../adr/3-type-representation/)の未解決問題1が未解決なためです。そのADRにあるクラスカタログのドラフトは、縦断的なスライスの実装がオプションを選択するまでは例示にとどまります。
+- 三値返却の命名規約（同ADRの未解決問題2）が未解決な場合の具体的なRubyメソッド名。命名が重要な箇所では、`?`サフィックスなしの抽象的な形式でメソッドを記述しています。最終的な規約はすべてのメソッドに一様に適用されます。
 
-- The exact set of concrete classes, since open question 1 in [`docs/adr/3-type-representation.md`](../../adr/3-type-representation/) is unresolved. The class catalogue draft in that ADR remains illustrative until a vertical-slice implementation chooses among the recorded options.
-- Concrete Ruby method names where the trinary-returning naming convention (open question 2 in the same ADR) is unresolved. Where naming matters in this document, methods are written without the `?` suffix; the final convention applies uniformly.
+## 同一性と不変性
 
-## Identity and Immutability
+- すべての型インスタンスは構築の終わりに`freeze`されなければなりません（MUST）。構築後にインスタンスを変更することは、内部アクセサを通じても、コントラクト違反です。
+- 等価性はMUST構造的でなければなりません。`==`と`eql?`は一致しなければならず（MUST）、構造的に等価なデータを保持する2つのインスタンスに対して両方とも`true`を返さなければなりません（MUST）。
+- `hash`は同じ構造的データから導出されなければならず（MUST）、`eql?`で等しいインスタンスは同一の`hash`値を生成しなければなりません（MUST）。
+- 等価性はオブジェクト同一性に依存してはなりません（MUST NOT）。同じRubyオブジェクトでなくても、等しい構造を持つ2つの型インスタンスは等しいと比較されなければなりません（MUST）。
+- 型インスタンスはハッシュキーとして再利用してもかまいません（MAY）。実装はキャッシュが有効な場合に共通インスタンスをフライウェイト化してもかまいませんが（MAY）、フライウェイト化を正確さのために依存してはなりません（MUST NOT）。
 
-- Every type instance MUST be `freeze`d at the end of construction. Mutating an instance after construction is a contract violation, even through internal accessors.
-- Equality MUST be structural. `==` and `eql?` MUST agree, and both MUST return `true` for two instances that hold structurally equivalent data.
-- `hash` MUST be derived from the same structural data so that `eql?`-equal instances produce identical `hash` values.
-- Equality MUST NOT depend on object identity. Two type instances with equal structure MUST compare equal even when they are not the same Ruby object.
-- A type instance MAY be reused as a hash key. Implementations MAY flyweight common instances when caching is observably useful, but flyweighting MUST NOT be relied on for correctness.
+## 三値結果値
 
-## Trinary Result Value
+`Rigor::Trinary`値オブジェクトは、ケイパビリティクエリ、関係クエリ、および「証明されたyes」「証明されたno」「どちらも証明できない」を区別するアナライザサーフェスが使用する標準的な三値結果です。そのセマンティクスは[`relations-and-certainty.md`](../../type-specification/relations-and-certainty/)で規範的に定義されており、このセクションはパブリックなRubyコントラクトを拘束します。
 
-The `Rigor::Trinary` value object is the canonical three-valued result used by capability queries, relational queries, and any analyzer surface that distinguishes "proven yes", "proven no", and "cannot prove either" answers. Its semantics are normative in [`relations-and-certainty.md`](../../type-specification/relations-and-certainty/); this section binds the public Ruby contract.
+- `Rigor::Trinary`は、`yes`・`no`・`maybe`という名前のファクトリを通じてアクセス可能な3つのフライウェイトインスタンスを公開しなければなりません（MUST）。フライウェイトは同じ値に対して`equal?`・`==`・`eql?`を満たさなければなりません（MUST）。
+- `Rigor::Trinary`は、`true`または`false`を返すブールな述語`yes?`・`no?`・`maybe?`を公開しなければなりません（MUST）。これらは`Trinary`上で`?`-returns-boolean規約に従う唯一のメソッドでなければなりません（MUST）。
+- `Rigor::Trinary`は少なくとも標準コンビネータ`and(other)`・`or(other)`・`negate`（`yes`の否定は`no`、`no`の否定は`yes`、`maybe`の否定は`maybe`）を公開しなければなりません（MUST）。コンビネータは`Rigor::Trinary`インスタンスを返さなければなりません（MUST）。
+- `Rigor::Trinary`値は暗黙にRubyのブール値に強制変換されてはなりません（MUST NOT）。ブール値が必要な呼び出し元は明示的な述語（`yes?`・`no?`・`maybe?`）を選択しなければなりません（MUST）。
+- `maybe`は繰り返しの証拠によって`yes`に昇格されてはなりません（MUST NOT）。[`relations-and-certainty.md`](../../type-specification/relations-and-certainty/)の昇格ルールだけが確実性の変更の源です。
 
-- `Rigor::Trinary` MUST expose three flyweight instances reachable through factories named `yes`, `no`, and `maybe`. The flyweights MUST satisfy `equal?` for the same value, `==` for the same value, and `eql?` for the same value.
-- `Rigor::Trinary` MUST expose boolean predicates `yes?`, `no?`, `maybe?` that return `true` or `false`. These MUST be the only methods on `Trinary` that follow Ruby's `?`-returns-boolean convention.
-- `Rigor::Trinary` MUST expose at least the standard combinators: `and(other)`, `or(other)`, and `negate` (the negation of `yes` is `no`, the negation of `no` is `yes`, the negation of `maybe` is `maybe`). The combinators MUST return `Rigor::Trinary` instances.
-- A `Rigor::Trinary` value MUST NOT be silently coerced to a Ruby boolean. Callers that need a boolean MUST select an explicit predicate (`yes?`, `no?`, `maybe?`).
-- `maybe` MUST NOT be promoted to `yes` by repeated evidence. The promotion rules in [`relations-and-certainty.md`](../../type-specification/relations-and-certainty/) are the only sources of certainty change.
+## 結果値オブジェクト
 
-## Result Value Objects
+関係クエリは、アナライザが呼び出し元が消費してもよい（MAY）理由メタデータを持つ場合、裸のブール値や裸の`Rigor::Trinary`値ではなく、不変の結果値オブジェクトを返さなければなりません（MUST）。
 
-Relational queries MUST return immutable result value objects, not bare booleans or bare `Rigor::Trinary` values, when the analyzer also has reason metadata that callers MAY consume.
+- サブタイプクエリ（`subtype_of`）は、型APIの残りの部分で選ばれる三値命名規約に従ったメソッドを通じて`Rigor::Trinary`の回答を公開するオブジェクトに加え、どのルールが発動したか、どの動的起源ファクトが参照されたか、どの予算カットオフに達したかを説明する理由メタデータを持つオブジェクトを返さなければなりません（MUST）。
+- 受容クエリ（`accepts`）は、受容固有のメタデータ（モード、変換パス、動的起源の来歴）をカバーする類似のオブジェクトを返さなければなりません（MUST）。スライス4フェーズ2cは、次の形状を持つ具体的な`Rigor::Type::AcceptsResult`値オブジェクトにこれを紐付けます：
+  - `trinary` — 保持する`Rigor::Trinary`の回答。
+  - `mode` — 回答が計算された境界モード（`:gradual`が現在利用可能；`:strict`は後のスライスのために予約）。
+  - `reasons` — 発動したルールを発動順に説明する凍結された`Array<String>`。
+  - 述語`yes?`・`no?`・`maybe?`は保持する`Rigor::Trinary`に委譲しなければならず（MUST）、`?`-returns-boolean規約に従う`AcceptsResult`上の唯一のメソッドでなければなりません（MUST）。
+  - `with_reason(reason)`は同じ`trinary`と`mode`を持ちつつ`reason`を`reasons`に追加した新しい`AcceptsResult`を返さなければなりません（MUST）。レシーバを変更してはなりません（MUST NOT）。`nil`または空文字列を渡すことはno-op（同じインスタンスが返される）でなければなりません（MUST）。
+  - `(trinary, mode, reasons)`の構造的等価性は、*同一性と不変性*セクションに従って保持されなければなりません（MUST）。
+  - reasonsは人間が読めるログ以外のすべての呼び出し元から不透明として扱われなければなりません（MUST）。後のスライスはエントリを構造化レコード（ルールid、サポートファクト、動的来歴）にアップグレードしてもよく（MAY）、それに関する事前通知は不要です；より豊かなキャリアが必要な呼び出し元は文字列を解析するのではなく将来の名前付きアクセサを通じてそれを消費しなければなりません（MUST）。
+- 単純なクエリ（`consistent_with`・`equal_value`）は有用な理由メタデータが存在しない場合に裸の`Rigor::Trinary`を返してもかまいません（MAY）。
+- 結果オブジェクトは不変であり、型インスタンスと同じルールで構造的に比較可能でなければなりません（MUST）。
 
-- The subtype query (`subtype_of`) MUST return an object that exposes a `Rigor::Trinary` answer through a method named consistently with the trinary-naming convention chosen for the rest of the type API, plus reason metadata describing which rules fired, which dynamic-origin facts were consulted, and which budget cutoffs were hit.
-- The acceptance query (`accepts`) MUST return an analogous object covering acceptance-specific metadata (mode, coercion path, dynamic-origin provenance). Slice 4 phase 2c binds this to the concrete `Rigor::Type::AcceptsResult` value object with the following shape:
-  - `trinary` — the carried `Rigor::Trinary` answer.
-  - `mode` — the boundary mode the answer was computed under (`:gradual` ships now; `:strict` is reserved for later slices).
-  - `reasons` — a frozen `Array<String>` describing which rules fired in the order they fired.
-  - Predicates `yes?`, `no?`, `maybe?` MUST delegate to the carried `Rigor::Trinary` and remain the only methods on `AcceptsResult` that follow the `?`-returns-boolean convention.
-  - `with_reason(reason)` MUST return a new `AcceptsResult` with the same `trinary` and `mode` but with `reason` appended to `reasons`. It MUST NOT mutate the receiver. Passing `nil` or an empty string MUST be a no-op (same instance returned).
-  - Structural equality on `(trinary, mode, reasons)` MUST hold, in line with the *Identity and Immutability* section.
-  - The reasons MUST be treated as opaque by every caller except human-readable logging. Later slices MAY upgrade the entries to structured records (rule id, supporting facts, dynamic provenance) without further notice; callers that need a richer carrier MUST consume it through future named accessors rather than parsing the strings.
-- Simpler queries (`consistent_with`, `equal_value`) MAY return a bare `Rigor::Trinary` when no useful reason metadata exists.
-- Result objects MUST be immutable and structurally comparable on the same rules as type instances.
+結果オブジェクトサーフェスは、[`docs/adr/3-type-representation.md`](../../adr/3-type-representation/)に記録されたPHPStanの`IsSuperTypeOfResult`と`AcceptsResult`設計を反映しています。
 
-The result-object surface mirrors PHPStan's `IsSuperTypeOfResult` and `AcceptsResult` design recorded in [`docs/adr/3-type-representation.md`](../../adr/3-type-representation/).
+## メソッドサーフェス
 
-## Method Surface
+すべての具体的な型実装は以下に列挙するメソッドサーフェスを公開しなければなりません（MUST）。`?`サフィックスなしのメソッド名はこの仕様で使用される抽象形式に従います；最終的な具体的なスペルはADR-3の未解決問題2の解決によって固定され、`Rigor::Trinary`を返すすべてのメソッドに一様に適用されます。
 
-Every concrete type implementation MUST expose the method surface listed below. Method names without the `?` suffix follow the abstract form used in this specification; the final concrete spelling is fixed by the resolution of open question 2 in ADR-3 and applies uniformly across every method that returns `Rigor::Trinary`.
+### ケイパビリティ述語
 
-### Capability predicates
+ケイパビリティ述語は型が特定のRubyの種類として振る舞うかどうかを問います。`Rigor::Trinary`を返さなければなりません（MUST）。最小サーフェスは：
 
-Capability predicates ask whether a type behaves as a particular Ruby kind. They MUST return `Rigor::Trinary`. The minimum surface is:
+`string`・`integer`・`float`・`symbol`・`boolean`・`nil_value`・`array`・`hash`・`tuple`・`record`・`proc`・`callable`・`iterable`・`void`・`dynamic`・`class_object`・`module_object`。
 
-`string`, `integer`, `float`, `symbol`, `boolean`, `nil_value`, `array`, `hash`, `tuple`, `record`, `proc`, `callable`, `iterable`, `void`, `dynamic`, `class_object`, `module_object`.
+実装は型仕様が対応する区別を得た場合に追加の種類のケイパビリティ述語を追加してもかまいません（MAY）。実装は振る舞い的に弱いチェックでケイパビリティ述語を置き換えてはなりません（MUST NOT）。
 
-Implementations MAY add capability predicates for additional kinds when the type specification gains a corresponding distinction. Implementations MUST NOT replace a capability predicate with a behaviorally weaker check.
+### リファインメント射影
 
-### Refinement projections
+リファインメント射影は特定のリファインメントファミリーの証人を列挙します。Rubyの`Array<Rigor::Type>`を返さなければなりません（MUST）。空の配列は「この射影の証明された証人がない」ことを意味します。空でない配列はアナライザが証人を列挙できることを意味します。最小サーフェスは：
 
-Refinement projections enumerate witnesses for a particular refinement family. They MUST return a Ruby `Array<Rigor::Type>`. An empty array means "no proven witnesses for this projection". A non-empty array means the analyzer can enumerate the witnesses. The minimum surface is:
+`constant_strings`・`constant_integers`・`constant_floats`・`constant_symbols`・`constant_booleans`・`constant_arrays`・`arrays`・`tuples`・`records`・`hashes`・`enum_cases`・`finite_values`。
 
-`constant_strings`, `constant_integers`, `constant_floats`, `constant_symbols`, `constant_booleans`, `constant_arrays`, `arrays`, `tuples`, `records`, `hashes`, `enum_cases`, `finite_values`.
+合成ルール：
 
-Composition rules:
+- ユニオンは各射影をメンバーに転送し、結果を順序を保持しながら連結しなければなりません（MUST）。
+- インターセクションは各射影をメンバーに転送し、結果を交差させなければなりません（MUST）。
+- `Dynamic[T]`ラッパーは[`value-lattice.md`](../../type-specification/value-lattice/)に従って静的ファセット`T`への射影を転送しなければなりません（MUST）。`Dynamic[T]`を通じて取得された証人は自身に動的起源の来歴を持たなければなりません（MUST）。
+- リファインメントラッパー（精緻化された名前的型、整数範囲、有限リテラルユニオン等）は基底型を通じて射影を転送し、適用可能な場合は独自の貢献を追加しなければなりません（MUST）（例えば、文字列の有限リテラルユニオンは`constant_strings`にそのメンバーを提供しなければなりません）。
 
-- A union MUST forward each projection into its members and concatenate the results, preserving order.
-- An intersection MUST forward each projection into its members and intersect the results.
-- A `Dynamic[T]` wrapper MUST forward projections into the static facet `T` per [`value-lattice.md`](../../type-specification/value-lattice/). Witnesses retrieved through `Dynamic[T]` MUST themselves carry dynamic-origin provenance.
-- Refinement wrappers (refined nominal, integer range, finite literal union, …) MUST forward projections through the underlying type and add their own contribution where applicable (for example, a finite literal union of strings MUST contribute its members to `constant_strings`).
+### 関係クエリ
 
-### Relational queries
+関係クエリは（理由メタデータが意味を持つ場合）結果値オブジェクトを、（持たない場合）`Rigor::Trinary`を返さなければなりません（MUST）。最小サーフェスは：
 
-Relational queries MUST return result value objects (when reason metadata is meaningful) or `Rigor::Trinary` (when it is not). The minimum surface is:
+- `subtype_of(other)` — サブタイプ結果オブジェクトを返す；セマンティクスは[`relations-and-certainty.md`](../../type-specification/relations-and-certainty/)を参照。
+- `accepts(other, mode:)` — 受容結果オブジェクトを返す；`mode:`キーワードは境界モード（strict、gradual、プラグイン提供）を持つ。
+- `consistent_with(other)` — `Rigor::Trinary`を返す；セマンティクスは[`relations-and-certainty.md`](../../type-specification/relations-and-certainty/)を参照。
+- `equal_value(other)` — `Rigor::Trinary`を返す；型セット等価性ではなく値等価性の絞り込みを意図している。
 
-- `subtype_of(other)` — returns the subtype-result object; semantics in [`relations-and-certainty.md`](../../type-specification/relations-and-certainty/).
-- `accepts(other, mode:)` — returns the acceptance-result object; the `mode:` keyword carries the boundary mode (strict, gradual, plugin-supplied).
-- `consistent_with(other)` — returns `Rigor::Trinary`; semantics in [`relations-and-certainty.md`](../../type-specification/relations-and-certainty/).
-- `equal_value(other)` — returns `Rigor::Trinary`; intended for value-equality narrowing rather than type-set equality.
+関係クエリは[`value-lattice.md`](../../type-specification/value-lattice/)に従って`Dynamic[T]`の静的ファセットを扱わなければなりません（MUST）。動的な値が型付き境界を越えるかどうかを支配するのは、サブタイピングではなくグラデュアル（漸進的、段階的）一貫性です。
 
-Relational queries MUST treat the static facet of `Dynamic[T]` per [`value-lattice.md`](../../type-specification/value-lattice/). Gradual consistency, not subtyping, governs whether a dynamic value crosses a typed boundary.
+### 構造クエリ
 
-### Structural queries
+構造クエリはADR-2の拡張APIに必要なメンバーレベルのサーフェスを公開します。最小サーフェスは：
 
-Structural queries expose the member-level surface needed by ADR-2's extension API. The minimum surface is:
+- `has_method(name)` — `Rigor::Trinary`を返す。
+- `method(name, scope:)` — メソッドリフレクション結果または「利用不可」のセンチネルを返す。
+- `members` — [`structural-interfaces-and-object-shapes.md`](../../type-specification/structural-interfaces-and-object-shapes/)の構造化された形状を返す。
+- `key_type`・`value_type`・`tuple_arity`・`iterable_key_type`・`iterable_value_type` — `Rigor::Type`または「適用不可」のセンチネルを返す。
 
-- `has_method(name)` returning `Rigor::Trinary`.
-- `method(name, scope:)` returning a method-reflection result or a sentinel for "not available".
-- `members` returning the structured shape from [`structural-interfaces-and-object-shapes.md`](../../type-specification/structural-interfaces-and-object-shapes/).
-- `key_type`, `value_type`, `tuple_arity`, `iterable_key_type`, `iterable_value_type` returning either a `Rigor::Type` or a sentinel for "not applicable".
+メンバーを持つ型（オブジェクト形状、ケイパビリティロール、ハッシュ形状、レコード）はこれらの結果を埋める際に[`structural-interfaces-and-object-shapes.md`](../../type-specification/structural-interfaces-and-object-shapes/)のスキーマを参照しなければなりません（MUST）。
 
-Member-bearing types (object shapes, capability roles, hash shapes, records) MUST consult the schema in [`structural-interfaces-and-object-shapes.md`](../../type-specification/structural-interfaces-and-object-shapes/) when populating these results.
+### 操作とコンビネータ
 
-### Operations and combinators
+コンビネータはファクトリモジュール（仮称`Rigor::Type::Combinator`）に置かれ、すべてのパブリック構築を[`normalization.md`](../../type-specification/normalization/)の決定論的な正規化ルールを通じてルーティングしなければなりません（MUST）。最小サーフェスは：
 
-Combinators MUST live on a factory module (working name `Rigor::Type::Combinator`) and route every public construction through the deterministic normalization rules in [`normalization.md`](../../type-specification/normalization/). The minimum surface is:
+- `union(*types)`・`intersect(*types)`・`difference(left, right)`・`complement_within(domain, type)`。
+- `refine(base, predicate)` — リファインメントを既存の型に付加する。`predicate`の正確な形状は適用されるリファインメントファミリーに依存する（[`rigor-extensions.md`](../../type-specification/rigor-extensions/)を参照）。
+- `dynamic(static_facet)` — `Dynamic[T]`ラッパーを構築する。`dynamic(top)`は`untyped`の標準形でなければなりません（MUST）。
 
-- `union(*types)`, `intersect(*types)`, `difference(left, right)`, `complement_within(domain, type)`.
-- `refine(base, predicate)` for attaching a refinement to an existing type. The exact shape of `predicate` depends on the refinement family being applied (see [`rigor-extensions.md`](../../type-specification/rigor-extensions/)).
-- `dynamic(static_facet)` for constructing a `Dynamic[T]` wrapper. `dynamic(top)` MUST be the canonical form for `untyped`.
+型インスタンスは変更するコンビネータを公開してはなりません（MUST NOT）。追加のリファインメントを持つ新しい型を返すインスタンスメソッド（仮称`with_refinement`）はADR-3の未解決問題1が解決されたら追加してもかまいません（MAY）。
 
-Type instances MUST NOT expose mutating combinators. An instance method that returns a new type with an additional refinement (working name `with_refinement`) MAY be added once open question 1 in ADR-3 is resolved.
+ファクトリの正規化ルートを迂回する直接コンストラクタ呼び出しはテストと移行のために予約された内部エスケープハッチです。本番コードパスはファクトリを通じなければなりません（MUST）。
 
-Direct constructor calls that bypass the factory normalization route are an internal escape hatch reserved for tests and migration. Production code paths MUST go through the factory.
+### ラッパー合成
 
-### Wrapper composition
+ラッパー（`Dynamic[T]`、リファインメントキャリア、`Union`・`Intersection`・`Difference`・`Complement`、ジェネリック位置キャリア）は基底クラスを継承するのではなく、内部の`Rigor::Type`参照を保持しなければなりません（MUST）。振る舞いは内部型に以下に従って委譲されます：
 
-Wrappers (`Dynamic[T]`, refinement carriers, `Union`, `Intersection`, `Difference`, `Complement`, generic position carriers) MUST hold inner `Rigor::Type` references rather than extend a base class. Behavior is delegated to the inner types according to:
+- `Dynamic[T]`については[`value-lattice.md`](../../type-specification/value-lattice/)の動的起源代数。
+- 負形式と差分形式については[`type-operators.md`](../../type-specification/type-operators/)のコンビネータ代数。
+- リファインメントキャリアについては[`rigor-extensions.md`](../../type-specification/rigor-extensions/)のリファインメント合成ルール。
+- ジェネリック位置キャリアについては[`value-lattice.md`](../../type-specification/value-lattice/)のジェネリックスロット保全ルール。
 
-- The dynamic-origin algebra in [`value-lattice.md`](../../type-specification/value-lattice/) for `Dynamic[T]`.
-- The combinator algebra in [`type-operators.md`](../../type-specification/type-operators/) for negative and difference forms.
-- The refinement composition rules in [`rigor-extensions.md`](../../type-specification/rigor-extensions/) for refinement carriers.
-- The generic-slot preservation rules in [`value-lattice.md`](../../type-specification/value-lattice/) for generic position carriers.
+ラッパーはケイパビリティと射影クエリを内部型に転送してから独自の貢献を適用しなければなりません（MUST）。ラッパーは転送中に来歴を暗黙に除去してはなりません（MUST NOT）（例えば、`Dynamic[T]`は返す値に動的起源の来歴を記録し続けなければなりません）。
 
-A wrapper MUST forward capability and projection queries into its inner types, then apply its own contribution. A wrapper MUST NOT silently strip its provenance during forwarding (for example, `Dynamic[T]` MUST keep recording dynamic-origin provenance on the values it returns).
+### メタ操作
 
-### Meta operations
+すべての型インスタンスは以下を公開しなければなりません（MUST）：
 
-Every type instance MUST expose:
+- `describe(verbosity)` — 診断表示ルールに従った文字列を返す。実装は[`diagnostic-policy.md`](../../type-specification/diagnostic-policy/)（`Dynamic[T]`ファミリーの例外を含む）、[`type-operators.md`](../../type-specification/type-operators/)（否定ファクトと演算子省略ルール）、[`structural-interfaces-and-object-shapes.md`](../../type-specification/structural-interfaces-and-object-shapes/)と[`rbs-erasure.md`](../../type-specification/rbs-erasure/)（ハッシュ形状とタプル表示）を遵守しなければなりません（MUST）。
+- `erase_to_rbs` — [`rbs-erasure.md`](../../type-specification/rbs-erasure/)に従った保守的なRBS消去を返す。消去は証明された型以上に広くなければならず（MUST）、有効なRBS構文でなければなりません（MUST）。
+- `normalize` — 冪等でなければなりません（MUST）。すでに正規化された型は`self`を返さなければなりません（MUST）。ファクトリルート外で構築された型は、同じ入力に対してファクトリが生成するのと同じインスタンスに正規化されなければなりません（MUST）。
+- `traverse(&block)` — コンビネータとラッパーの内部型参照を歩き、各内部型を決定論的な順序でブロックにyieldします。リーフ型はno-opとして`traverse`を実装してもかまいません（MAY）。
+- 上記の*同一性と不変性*セクションに従った構造的`==`・`eql?`・`hash`。
 
-- `describe(verbosity)` returning a string under the diagnostic display rules. The implementation MUST honour [`diagnostic-policy.md`](../../type-specification/diagnostic-policy/) (including the `Dynamic[T]` family carve-out), [`type-operators.md`](../../type-specification/type-operators/) (negative-fact and operator omission rules), and [`structural-interfaces-and-object-shapes.md`](../../type-specification/structural-interfaces-and-object-shapes/) and [`rbs-erasure.md`](../../type-specification/rbs-erasure/) (hash-shape and tuple display).
-- `erase_to_rbs` returning the conservative RBS erasure under [`rbs-erasure.md`](../../type-specification/rbs-erasure/). Erasure MUST be at least as wide as the proven type and MUST be valid RBS syntax.
-- `normalize` that is idempotent. A type that is already normalized MUST return `self`. A type built outside the factory route MUST normalize to the same instance the factory would have produced for the same input.
-- `traverse(&block)` that walks inner type references for combinators and wrappers, yielding each inner type to the block in a deterministic order. Leaf types MAY implement `traverse` as a no-op.
-- Structural `==`, `eql?`, and `hash` per the *Identity and Immutability* section above.
+`inspect`は開発の便宜のために存在してもかまいません（MAY）。`inspect`を診断サーフェスとして使用してはなりません（MUST NOT）；`describe(verbosity)`が診断と説明の拘束コントラクトです。
 
-`inspect` MAY exist for development convenience. `inspect` MUST NOT be used as the diagnostic surface; `describe(verbosity)` is the binding contract for diagnostics and explanations.
+## モジュールレイアウト
 
-## Module Layout
+Rubyモジュールのレイアウトは上記のコントラクトに必要な粒度で固定されています。名前はプレースホルダーであり、実装中に変更されるかもしれません（MAY）。
 
-The Ruby module layout is fixed at the granularity needed for the contracts above. Names are placeholder and MAY be renamed during implementation.
+- `Rigor::Type`はドキュメントのみのモジュールであり、ダックタイプコントラクトを名付けるものでなければなりません（MUST）。具体的な型クラスは`Rigor::Type`を継承してはならず（MUST NOT）、振る舞いを得るために`Rigor::Type`を`include`してはなりません（MUST NOT）。ミックスインは狭いトレイト的な共有に使用してもかまいませんが（MAY）、サブタイプ関係を表すための継承の代わりとして使用してはなりません（MUST NOT）。
+- 具体的な型クラスは`Rigor::Type::*`以下に置かれます。正確なリストは[`docs/adr/3-type-representation.md`](../../adr/3-type-representation/)の未解決問題1に依存します。
+- `Rigor::Trinary`は型ネームスペースとは別のトップレベル値オブジェクトです。制御フロー解析、プラグインのスコープクエリ、および三値確実性を返すその他のサーフェスと共有されます。
+- コンビネータファクトリ（仮称`Rigor::Type::Combinator`）は正規化された構築のエントリポイントです。直接クラスコンストラクタは本番コードパスで使用してはなりません（MUST NOT）。
 
-- `Rigor::Type` MUST be a documentation-only module that names the duck-type contract. Concrete type classes MUST NOT inherit from `Rigor::Type`, and MUST NOT `include Rigor::Type` to gain behavior. Mixins MAY be used for narrow trait-like sharing (for example structural-equality helpers) but MUST NOT be used as a substitute for inheritance to express subtype relations.
-- Concrete type classes live under `Rigor::Type::*`. The exact list depends on open question 1 in [`docs/adr/3-type-representation.md`](../../adr/3-type-representation/).
-- `Rigor::Trinary` is a top-level value object, distinct from the type namespace. It is shared with control-flow analysis, plugin Scope queries, and any other surface that returns three-valued certainty.
-- The combinator factory (working name `Rigor::Type::Combinator`) is the entry point for normalized construction. Direct class constructors MUST NOT be used by production code paths.
+`sig/rigor.rbs`はサーフェスが安定したらここで説明するパブリックサーフェスと一貫した状態に保たれなければなりません（MUST）。ADR-3で追跡される最初の縦断的スライスは、対応するRBSシグネチャを導入する場所です。
 
-`sig/rigor.rbs` MUST be kept consistent with the public surface described here once the surface stabilizes. The first vertical slice tracked in ADR-3 is the place to introduce the corresponding RBS signatures.
+## 安定性とバージョニング
 
-## Stability and Versioning
+このドキュメントのコントラクトは、[`implementation-expectations.md`](../implementation-expectations/)と同じ意味で、メジャーバージョン内で安定しています。以下も追加的に安定しています：
 
-The contracts in this document are stable within a major version, in the same sense as [`implementation-expectations.md`](../implementation-expectations/). The following are additionally stable:
+- ケイパビリティ述語・リファインメント射影・メタ操作のリスト。
+- `subtype_of`と`accepts`の結果値オブジェクトの形状。
+- ファクトリ正規化ルーティング。
+- ラッパー合成ルール。
 
-- The list of capability predicates, refinement projections, and meta operations.
-- The result-value-object shape for `subtype_of` and `accepts`.
-- The factory normalization routing.
-- The wrapper composition rules.
+以下はADR-3が昇格させるまで安定性コントラクトの外です：
 
-The following are explicitly out of the stability contract until ADR-3 promotes them:
+- 定数スカラー/オブジェクトキャリア形状（ADR-3の未解決問題1）。
+- 三値返却メソッドの命名規約（ADR-3の未解決問題2）。
+- 型仕様が要求するもの以外の`Rigor::Type::*`以下の具体的なクラスの正確なカタログ。
 
-- The constant scalar/object carrier shape (open question 1 in ADR-3).
-- The trinary-returning method naming convention (open question 2 in ADR-3).
-- The exact catalogue of concrete classes under `Rigor::Type::*` beyond what the type specification requires.
+プラグイン作成者とエンジンコンシューマは、リストされた安定コントラクトを拘束力があるものとして扱い、リストされた不安定な項目は最初の縦断的スライス中に精緻化の対象とされることを理解しなければなりません（MUST）。
 
-Plugin authors and engine consumers MUST treat the listed stable contracts as binding and the listed unstable items as subject to refinement during the first vertical slice.
+## 関連ドキュメント
 
-## Related Documents
-
-- [`docs/internal-spec/implementation-expectations.md`](../implementation-expectations/) — engine-surface contract (Scope, fact store, effect model, capability-role inference, normalization, RBS erasure routing).
-- [`docs/type-specification/relations-and-certainty.md`](../../type-specification/relations-and-certainty/) — subtyping, gradual consistency, trinary semantics.
-- [`docs/type-specification/value-lattice.md`](../../type-specification/value-lattice/) — lattice identities and `Dynamic[T]` algebra.
-- [`docs/type-specification/normalization.md`](../../type-specification/normalization/) — deterministic normalization rules used by the factory route.
-- [`docs/type-specification/rbs-erasure.md`](../../type-specification/rbs-erasure/) — conservative RBS erasure routed through `erase_to_rbs`.
-- [`docs/type-specification/diagnostic-policy.md`](../../type-specification/diagnostic-policy/) — diagnostic identifier taxonomy and display rules routed through `describe(verbosity)`.
-- [`docs/type-specification/type-operators.md`](../../type-specification/type-operators/) — operator surface and negative-fact display contract.
-- [`docs/type-specification/structural-interfaces-and-object-shapes.md`](../../type-specification/structural-interfaces-and-object-shapes/) — interfaces, object shapes, capability roles, member-shape entries.
-- [`docs/type-specification/rigor-extensions.md`](../../type-specification/rigor-extensions/) — refinement catalogue and composition.
-- [`docs/adr/3-type-representation.md`](../../adr/3-type-representation/) — design rationale and open questions for the contracts in this document.
+- [`docs/internal-spec/implementation-expectations.md`](../implementation-expectations/) — エンジンサーフェスコントラクト（スコープ、ファクトストア、エフェクトモデル、ケイパビリティロール推論、正規化、RBS消去ルーティング）。
+- [`docs/type-specification/relations-and-certainty.md`](../../type-specification/relations-and-certainty/) — サブタイピング、グラデュアル一貫性、三値セマンティクス。
+- [`docs/type-specification/value-lattice.md`](../../type-specification/value-lattice/) — 束恒等式と`Dynamic[T]`代数。
+- [`docs/type-specification/normalization.md`](../../type-specification/normalization/) — ファクトリルートが使用する決定論的な正規化ルール。
+- [`docs/type-specification/rbs-erasure.md`](../../type-specification/rbs-erasure/) — `erase_to_rbs`を通じてルーティングされる保守的なRBS消去。
+- [`docs/type-specification/diagnostic-policy.md`](../../type-specification/diagnostic-policy/) — `describe(verbosity)`を通じてルーティングされる診断識別子の分類と表示ルール。
+- [`docs/type-specification/type-operators.md`](../../type-specification/type-operators/) — 演算子サーフェスと否定ファクト表示コントラクト。
+- [`docs/type-specification/structural-interfaces-and-object-shapes.md`](../../type-specification/structural-interfaces-and-object-shapes/) — インターフェース、オブジェクト形状、ケイパビリティロール、メンバー形状エントリ。
+- [`docs/type-specification/rigor-extensions.md`](../../type-specification/rigor-extensions/) — リファインメントカタログと合成。
+- [`docs/adr/3-type-representation.md`](../../adr/3-type-representation/) — このドキュメントのコントラクトの設計根拠と未解決問題。

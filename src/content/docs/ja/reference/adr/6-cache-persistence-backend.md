@@ -5,69 +5,46 @@ editUrl: "https://github.com/rigortype/rigor/edit/main/docs/adr/6-cache-persiste
 sourcePath: "docs/adr/6-cache-persistence-backend.md"
 sourceSha: "8848a8fd3bc765a66b57a4b1868b7a7946e1f1f9119796abf2d356c37165b249"
 sourceCommit: "9f40e22193647dc06e3ab70c5ba82768b0bfe738"
-translationStatus: "pending"
+translationStatus: "translated"
 sidebar:
   order: 4006
 ---
 
-> [!NOTE]
-> このページはまだ翻訳されていません。英語版の本文を参考表示しています。
+## ステータス
 
-## Status
+ドラフト。v0.0.8キャッシュ永続化スライスの固定ターゲットとして作業上の決定を記録する。最初のプロデューサー（RBS環境キャッシュ）がランドした時点で承認される。
 
-Draft. Working decision recorded so the v0.0.8 cache persistence
-slice has a fixed target. Will be ratified once the first
-producer (the RBS environment cache) lands.
+## コンテキスト
 
-## Context
+[ADR-2 § 「登録、設定、キャッシュ」](../2-extension-api/)は、`rigor check`実行間の永続キャッシュをRigorにコミットし、キャッシュ無効化ディスクリプターの**スキーマ**を固定する。これは型付きの4スロット`(files, gems, plugins, configs)`形状であり、[`docs/design/20260505-cache-slice-taxonomy.md`](../../design/20260505-cache-slice-taxonomy/)でスロットごとのエントリ定義、合成ルール、および正規キャッシュキー導出に展開されている。
 
-[ADR-2 § "Registration, Configuration, and Caching"](../2-extension-api/)
-commits Rigor to a persistent cache between `rigor check` runs and
-fixes the **schema** of the cache invalidation descriptor: a typed
-four-slot `(files, gems, plugins, configs)` shape, expanded in
-[`docs/design/20260505-cache-slice-taxonomy.md`](../../design/20260505-cache-slice-taxonomy/)
-into per-slot entry definitions, composition rules, and a canonical
-cache-key derivation.
+スキーマは設計上ストレージ非依存だ。分類ドキュメントはこう締め括っている。
 
-The schema is storage-agnostic by design — the taxonomy doc closes
-with:
+> ディスク上のフォーマット（sqlite、msgpack、単一ファイルフラット、シャード
+> ディレクトリ、…）はこのドラフトのスコープ外である。以下のスキーマは
+> ストレージ非依存である。
 
-> The on-disk format (sqlite, msgpack, single-file flat, sharded
-> directory, …) is out of scope for this draft. The schema below is
-> storage-agnostic.
+このADRはv0.0.8の最初の実装に向けてその未解決の問いを解決する。この選択はプロデューサー向けAPI、ロックモデル、エビクションポリシー、gemspecが広告する依存関係のフットプリントなど、後続のすべてを制約する。
 
-This ADR resolves that open question for the v0.0.8 first
-implementation. The choice constrains everything that follows: the
-producer-facing API, the locking model, the eviction policy, and
-the dependency footprint that the gemspec advertises.
+## 作業上の決定
 
-## Working Decision
+**最初のキャッシュバックエンドはmsgpackファイルのシャードディレクトリである。**キャッシュスライスごとに1ファイル、パスは正規キャッシュキー（`.rigor/cache/<producer-id>/<key-prefix>/<key-suffix>.msgpack`）から導出される。キャッシュレイヤーは最初の実装で**新しいgem依存関係ゼロ**で出荷する。msgpackシリアライズはキャッシュレイヤー自身が書くカスタム正規バイナリフォーマットに置き換えられる。
 
-**The first cache backend is a sharded directory of msgpack files.**
-One file per cache slice, paths derived from the canonical cache
-key (`.rigor/cache/<producer-id>/<key-prefix>/<key-suffix>.msgpack`).
-The cache layer ships with **zero new gem dependencies** for the
-first implementation: msgpack serialisation is replaced by a
-custom canonical-binary format the cache layer writes itself.
+バイナリフォーマットを読み取れない環境（エントリ破損、スキーマバージョン不一致）向けにピュアRubyのフォールバックパスが使用可能なまま残る。デシリアライズに失敗した読み取りはキャッシュミスとして扱われ、エントリは削除され、プロデューサーが再実行される。
 
-A pure-Ruby fallback path stays available for environments where
-the binary format cannot be read (corrupt entry, schema-version
-mismatch); reads that fail to deserialise are treated as cache
-misses, the entry is dropped, and the producer reruns.
+## トレードオフの要約
 
-## Trade-off summary
+3つの候補バックエンドは次の通りだった。
 
-The three candidate backends were:
-
-| Backend | Pros | Cons | Verdict |
+| バックエンド | 長所 | 短所 | 判定 |
 | --- | --- | --- | --- |
-| **sqlite** | Atomic writes, query power, well-tested concurrent reads, easy size cap via `VACUUM`. | Adds the `sqlite3` gem (with C extension); locking semantics have surprising corners under multi-process. The query power exceeds what the cache schema needs (we look up by key, not by predicate). | **Rejected for v0.0.8.** Reconsidered if sharded directory hits scale issues. |
-| **msgpack single-file** | Compact binary; one file is easy to lock. | Requires the `msgpack` gem (or a hand-rolled subset). Whole-cache rewrites on every change scale poorly past ~100 entries. | **Rejected for v0.0.8.** The whole-cache rewrite is the disqualifier. |
-| **Sharded directory** | One file per slice → partial invalidation is a literal `unlink`; reads are independent and scale linearly with hit cardinality; no new gem dependency if the cache layer writes its own canonical format. | More inodes; concurrent writes need per-file locking, not a single global lock. | **Selected for v0.0.8.** |
+| **sqlite** | アトミック書き込み、クエリ能力、十分にテストされた並行読み取り、`VACUUM`による簡単なサイズ上限。 | Cエクステンション付きの`sqlite3`gemを追加する。マルチプロセス下のロックセマンティクスに意外な落とし穴がある。クエリ能力はキャッシュスキーマが必要とするもの（述語ではなくキーで検索）を超えている。 | **v0.0.8では却下。**シャードディレクトリがスケール問題に直面した場合に再検討。 |
+| **msgpack単一ファイル** | コンパクトなバイナリ。1ファイルはロックが簡単。 | `msgpack`gem（または手動サブセット）が必要。変更ごとのキャッシュ全体書き直しは〜100エントリ以降でスケールが悪い。 | **v0.0.8では却下。**キャッシュ全体書き直しが失格理由。 |
+| **シャードディレクトリ** | スライスごとに1ファイル → 部分的な無効化はリテラルな`unlink`。読み取りは独立しており、ヒット数に比例してスケールする。キャッシュレイヤーが独自の正規フォーマットを書けば新しいgem依存関係不要。 | inode数が多い。並行書き込みはグローバルロックではなくファイルごとのロックが必要。 | **v0.0.8で選択。** |
 
-## Decisions in detail
+## 詳細な決定
 
-### 1. Layout
+### 1. レイアウト
 
 ```
 .rigor/cache/
@@ -77,19 +54,13 @@ The three candidate backends were:
       <ab1234567890…>.entry
 ```
 
-- `schema_version.txt` carries a single integer — the schema
-  version from the cache slice taxonomy. Bumping it implicitly
-  invalidates every cache file (the cache layer reads the version
-  before reading any entry; a mismatch drops the directory).
-- `<producer-id>` is the producer's identifier. Each producer
-  owns its own subtree; there is no cross-producer file.
-- The cache key (canonical-JSON-then-SHA-256 per the taxonomy doc)
-  is split into a 2-character prefix and a 62-character suffix
-  for filesystem-friendly fan-out.
+- `schema_version.txt`はキャッシュスライス分類のスキーマバージョンを表す単一の整数を持つ。バンプするとすべてのキャッシュファイルが暗黙的に無効化される（キャッシュレイヤーはエントリを読む前にバージョンを読む。不一致はディレクトリを削除する）。
+- `<producer-id>`はプロデューサーの識別子。各プロデューサーは自身のサブツリーを所有し、クロスプロデューサーファイルはない。
+- キャッシュキー（分類ドキュメントに従って正規JSON→SHA-256）はファイルシステムフレンドリーなファンアウトのために2文字のプレフィックスと62文字のサフィックスに分割される。
 
-### 2. File format
+### 2. ファイルフォーマット
 
-A cache entry is a single binary file with this layout:
+キャッシュエントリはこのレイアウトの単一バイナリファイルである。
 
 ```
 "RIGOR\0\1"          - magic (5 bytes) + format version (1 byte)
@@ -100,61 +71,37 @@ value payload        - producer-defined bytes (typically Marshal.dump)
 sha256 (32 bytes)    - integrity check over the prior bytes
 ```
 
-- The magic + version pair lets future format migrations detect
-  old files cheaply and treat them as misses.
-- Descriptor is stored separately from the value so cache
-  validation can read just the descriptor (cheap) without
-  deserialising the value.
-- The trailing SHA-256 is a defence against partial-write
-  corruption (truncated writes from process kills); it is **not**
-  a security boundary, per ADR-2's trusted-gem model.
-- Producer values use `Marshal.dump` by default because Rigor's
-  type carriers are immutable value objects whose `Marshal` round-
-  trip is well-defined; a producer that returns
-  marshal-incompatible objects (e.g. raw `IO`) MUST register a
-  custom serialiser.
+- マジック+バージョンペアにより、将来のフォーマット移行が古いファイルを安価に検出してミスとして扱える。
+- ディスクリプターは値とは別に格納されるため、キャッシュ検証は値をデシリアライズせずにディスクリプターだけを読み取れる（安価）。
+- 末尾のSHA-256は部分書き込み破損（プロセスキルによる切り詰め書き込み）に対する防御だ。ADR-2の信頼されたgemモデルに従い、**セキュリティ境界ではない**。
+- プロデューサーの値はデフォルトで`Marshal.dump`を使う。RigorのキャリアはMarshalラウンドトリップが明確に定義された不変値オブジェクトだからだ。marshalと互換性のないオブジェクト（例：生の`IO`）を返すプロデューサーはカスタムシリアライザーを登録しなければならない（MUST）。
 
-### 3. Atomicity
+### 3. アトミック性
 
-Writes follow the standard rename-into-place dance:
+書き込みは標準のrename-into-placeダンスに従う。
 
-1. `mkdir -p` the destination directory.
-2. Write to a sibling temp file (`<key>.entry.tmp.<pid>.<rand>`).
-3. `fsync` the temp file.
-4. `rename` over the destination.
+1. 宛先ディレクトリを`mkdir -p`する。
+2. 兄弟テンポラリファイル（`<key>.entry.tmp.<pid>.<rand>`）に書き込む。
+3. テンポラリファイルを`fsync`する。
+4. 宛先に`rename`する。
 
-POSIX guarantees that `rename` is atomic on the same filesystem.
-A reader that sees a partial entry has either an old (committed)
-file or no file (no entry yet) — never a torn write.
+POSIXは同じファイルシステム上で`rename`がアトミックであることを保証する。部分的なエントリを見る読み取り側は、古い（コミット済み）ファイルかファイルなし（まだエントリなし）のどちらかを見る——切り詰め書き込みは決して見ない。
 
-### 4. Locking
+### 4. ロック
 
-Per-file: a producer about to write acquires `flock(LOCK_EX)` on
-the destination file (creating it if necessary). Readers do not
-lock; they tolerate seeing an old version, since the cache layer
-is best-effort and a stale entry simply triggers a reread on next
-cache check.
+ファイルごと: 書き込もうとするプロデューサーは宛先ファイルに`flock(LOCK_EX)`を取得する（必要に応じて作成）。読み取り側はロックしない。古いバージョンを見ることを許容する。キャッシュレイヤーはベストエフォートであり、古いエントリは次のキャッシュチェック時に再読み込みを引き起こすだけだ。
 
-### 5. Eviction
+### 5. エビクション
 
-The first implementation does **not** evict. The cache grows
-unbounded; `rigor check --clear-cache` removes the whole
-`.rigor/cache` directory. A future ADR-amendment introduces an
-LRU policy with a configurable byte cap when project size makes
-unbounded growth a problem. Defer the policy to keep the v0.0.8
-slice tractable.
+最初の実装はエビクションを**行わない**。キャッシュは際限なく増大する。`rigor check --clear-cache`は`.rigor/cache`ディレクトリ全体を削除する。将来のADR修正でプロジェクトサイズが際限のない増大を問題にするときに、設定可能なバイト上限付きのLRUポリシーを導入する。v0.0.8スライスを扱いやすくするためにポリシーを延期する。
 
-### 6. Concurrency model
+### 6. 並行性モデル
 
-v0.0.8 ships with a single-writer model: one `rigor check` run
-at a time per project. Concurrent runs MAY use the same cache
-directory, but per-file locks serialise writes and the result
-is correct (every reader gets either a committed entry or a
-miss). No coordinator process; no shared in-memory state.
+v0.0.8はシングルライターモデルで出荷する。プロジェクトごとに1度に1つの`rigor check`実行。並行実行は同じキャッシュディレクトリを使ってもよい（MAY）。ファイルごとのロックが書き込みをシリアライズし、結果は正しい（すべての読み取り側はコミット済みエントリかミスのどちらかを得る）。コーディネータープロセスなし、共有インメモリ状態なし。
 
-Long-running daemons / LSP-mode is a separate v0.1.0+ surface.
+長時間実行デーモン/LSPモードは別のv0.1.0+サーフェスである。
 
-### 7. Producer API surface
+### 7. プロデューサーAPIサーフェス
 
 ```ruby
 Rigor::Cache::Store.new(root: ".rigor/cache").fetch_or_compute(
@@ -166,97 +113,58 @@ Rigor::Cache::Store.new(root: ".rigor/cache").fetch_or_compute(
 end
 ```
 
-- `producer_id` is a stable string. Never write a value under a
-  producer id you do not own.
-- `params` are the inputs the producer was called with. Mixing
-  them into the cache key is the cache layer's responsibility,
-  not the producer's.
-- `descriptor` is the `Rigor::Cache::Descriptor` value object.
-- The block runs only on cache miss.
+- `producer_id`は安定した文字列。所有していないプロデューサーidの下に値を書かないこと。
+- `params`はプロデューサーが呼び出された際の入力。これらをキャッシュキーに混ぜるのはプロデューサーの責任ではなくキャッシュレイヤーの責任だ。
+- `descriptor`は`Rigor::Cache::Descriptor`値オブジェクト。
+- ブロックはキャッシュミス時のみ実行される。
 
-The first producer wired through this API in v0.0.8 is the RBS
-**translated-constant table** — a `Hash<String, Rigor::Type>`
-keyed by every constant name declared in the loaded RBS
-environment, materialised once and reused. It is not the single
-largest cold-start cost (that is `RBS::EnvironmentLoader#build_env`
-itself), but it is the largest cost the cache machinery can
-consume **without a custom serialiser**: see § "RBS::Environment
-serialisation" below. Other producers (reflection, scope index,
-catalog loaders) follow in subsequent v0.0.8 slices or v0.0.9.
+v0.0.8でこのAPIを通じて最初に接続されるプロデューサーはRBSの**翻訳定数テーブル**だ——読み込まれたRBS環境で宣言されたすべての定数名をキーとした`Hash<String, Rigor::Type>`で、一度マテリアライズされて再利用される。これは最大のコールドスタートコストではない（それは`RBS::EnvironmentLoader#build_env`自体）が、**カスタムシリアライザーなしで**キャッシュ機構が消費できる最大のコストだ。以下の「RBS::Environmentシリアライズ」を参照。他のプロデューサー（リフレクション、スコープインデックス、カタログローダー）は後続のv0.0.8スライスまたはv0.0.9で続く。
 
-### 8. RBS::Environment serialisation
+### 8. RBS::Environmentシリアライズ
 
-`RBS::Environment` and its transitive AST nodes carry
-`RBS::Location` instances. `RBS::Location` is a C-extension
-class without `_dump_data`/`_load_data`, so naive `Marshal.dump`
-fails with `TypeError`. Caching `RBS::Environment` itself
-therefore requires either:
+`RBS::Environment`とその推移的ASTノードは`RBS::Location`インスタンスを持つ。`RBS::Location`は`_dump_data`/`_load_data`のないCエクステンションクラスであるため、単純な`Marshal.dump`は`TypeError`で失敗する。`RBS::Environment`自体をキャッシュするには次のいずれかが必要だ。
 
-- A custom-serialiser surface on the cache `Store` (a producer
-  registers `dump`/`load` callables alongside `fetch_or_compute`),
-  plus a serialiser that strips and reconstructs `RBS::Location`
-  / `RBS::Buffer`; or
-- A schema-stable intermediate representation (every relevant RBS
-  node walked into a Marshal-safe shape).
+- キャッシュ`Store`のカスタムシリアライザーサーフェス（プロデューサーが`fetch_or_compute`と並行して`dump`/`load`コーラブルを登録する）と、`RBS::Location`/`RBS::Buffer`を取り除いて再構築するシリアライザー、または
+- スキーマ安定な中間表現（関連するすべてのRBSノードがMarshalセーフな形状にウォークされる）。
 
-Both are substantial work and out of scope for the v0.0.8 slice
-budget. The v0.0.8 first producer therefore caches a
-**post-translation** artefact (`Rigor::Type` values, which are
-plain frozen value objects with well-defined `Marshal` round-
-trips). Subsequent slices reconsider the custom-serialiser route
-once a real cold-start regression motivates the work.
+どちらもv0.0.8スライスの予算の範囲外の実質的な作業だ。したがってv0.0.8の最初のプロデューサーは**翻訳後**アーティファクト（`Rigor::Type`値、明確に定義されたMarshalラウンドトリップを持つプレーンな凍結値オブジェクト）をキャッシュする。後続のスライスでは、実際のコールドスタート回帰がその作業を動機付けた後でカスタムシリアライザールートを再検討する。
 
-## Rejected and Deferred Candidate Decisions
+## 却下・延期された候補決定
 
-| Candidate | Status | Reason |
+| 候補 | ステータス | 理由 |
 | --- | --- | --- |
-| sqlite as v0.0.8 backend | Rejected | Adds the `sqlite3` gem dependency (C extension) for query power the schema does not need. Reconsider if sharded-directory I/O cost dominates. |
-| Single msgpack file | Rejected | Whole-cache rewrites on every change scale poorly past ~100 entries. |
-| Cross-machine cache sharing | Deferred | Out of scope for v0.0.8. The schema is path-relative so a cache built on one machine can be moved to another with the same project / gem state, but Rigor does not coordinate that. |
-| LRU eviction policy | Deferred | First implementation is unbounded; users run `--clear-cache` if needed. |
-| Long-running-daemon / LSP cache mode | Deferred | Separate v0.1.0+ surface. |
-| `msgpack` gem dependency | Rejected | The cache layer writes its own canonical binary format to keep the zero-runtime-dependency property. |
-| `marshal` for descriptor payload | Rejected | Descriptor is canonical JSON so two equivalent descriptors built by different code paths produce identical bytes; `Marshal` does not guarantee that across Ruby versions. |
-| Cache integrity as a security boundary | Rejected | Per ADR-2's trusted-gem model, plugins are trusted Ruby code. The trailing SHA-256 catches accidental corruption (partial writes, FS errors), not malicious tampering. |
+| v0.0.8バックエンドとしてのsqlite | 却下 | スキーマが必要としないクエリ能力のために`sqlite3`gem依存関係（Cエクステンション）を追加する。シャードディレクトリのI/Oコストが支配的になった場合に再検討。 |
+| 単一msgpackファイル | 却下 | 変更ごとのキャッシュ全体書き直しは〜100エントリ以降でスケールが悪い。 |
+| クロスマシンキャッシュ共有 | 延期 | v0.0.8のスコープ外。スキーマはパス相対であるため、あるマシンで構築されたキャッシュを同じプロジェクト/gem状態の別のマシンに移動できるが、Rigorはそれを調整しない。 |
+| LRUエビクションポリシー | 延期 | 最初の実装は際限なし。必要なユーザーは`--clear-cache`を実行する。 |
+| 長時間実行デーモン/LSPキャッシュモード | 延期 | 別のv0.1.0+サーフェス。 |
+| `msgpack`gem依存関係 | 却下 | キャッシュレイヤーがゼロ実行時依存プロパティを保つために独自の正規バイナリフォーマットを書く。 |
+| ディスクリプターペイロードに`marshal` | 却下 | ディスクリプターは正規JSONであるため、異なるコードパスで構築された2つの等価なディスクリプターが同一のバイトを生成する。Marshalはそれを全Rubyバージョン間で保証しない。 |
+| セキュリティ境界としてのキャッシュ整合性 | 却下 | ADR-2の信頼されたgemモデルに従い、プラグインは信頼されたRubyコード。末尾のSHA-256は悪意あるタンパリングではなく偶発的な破損（部分書き込み、FSエラー）を検出する。 |
 
-## Open Questions
+## 未解決の疑問
 
-- **Filesystem case sensitivity.** Producer ids and cache keys
-  use only `[a-z0-9._-]` so case-insensitive filesystems (macOS
-  HFS+, NTFS) do not cause collisions. The cache layer
-  enforces this character set at write time.
-- **Symlinks / network filesystems.** v0.0.8 assumes the cache
-  root is a real local directory. NFS / network FS works but
-  the `flock` semantics are FS-specific; we do not test NFS in
-  v0.0.8.
-- **Schema-version migration UX.** A bump invalidates the whole
-  cache. Should the cache layer emit a one-line `:info`
-  diagnostic on first detection? Working answer: yes, but the
-  diagnostic is gated behind `--cache-stats` until v0.1.0.
+- **ファイルシステムの大文字小文字区別。**プロデューサーidとキャッシュキーは`[a-z0-9._-]`のみを使用するため、大文字小文字を区別しないファイルシステム（macOS HFS+、NTFS）では衝突が発生しない。キャッシュレイヤーは書き込み時にこの文字セットを強制する。
+- **シンボリックリンク/ネットワークファイルシステム。** v0.0.8はキャッシュルートが実際のローカルディレクトリであると仮定する。NFS/ネットワークFSは動作するが`flock`セマンティクスはFS固有であり、v0.0.8ではNFSをテストしない。
+- **スキーマバージョン移行のUX。**バンプするとキャッシュ全体が無効化される。キャッシュレイヤーは最初の検出時に1行の`:info`診断を出力すべきか？作業上の答えはYesだが、診断はv0.1.0まで`--cache-stats`の後ろにゲートされる。
 
-## Consequences
+## 結果
 
-Positive:
+ポジティブ:
 
-- Zero new gem dependencies; the `rigortype` gem stays at the
-  current `(prism, rbs)` runtime surface.
-- Cache reads and writes are O(per-slice), not O(whole-cache);
-  partial invalidation is `unlink` of one file.
-- The on-disk layout is human-inspectable through `ls
-  .rigor/cache` and `xxd <entry>`.
+- 新しいgem依存関係ゼロ。`rigortype`gemは現在の`(prism, rbs)`実行時サーフェスのままだ。
+- キャッシュの読み取りと書き込みはO（キャッシュ全体）ではなくO（スライスごと）。部分的な無効化は1ファイルの`unlink`。
+- ディスク上のレイアウトは`ls .rigor/cache`と`xxd <entry>`で人間が検査できる。
 
-Negative:
+ネガティブ:
 
-- More inodes than a single-file backend.
-- Per-file locking semantics are FS-dependent; macOS / Linux are
-  the supported targets, Windows requires a follow-up
-  evaluation.
-- No size cap in v0.0.8. Users on tiny disks need to clear the
-  cache manually.
+- 単一ファイルバックエンドよりもinodeが多い。
+- ファイルごとのロックセマンティクスはFS依存。macOS/Linuxはサポート対象ターゲット。Windowsはフォローアップ評価が必要。
+- v0.0.8ではサイズ上限なし。小さなディスクのユーザーは手動でキャッシュをクリアする必要がある。
 
-## Reading order for a returning implementer
+## 復帰実装者の読み順
 
-1. [ADR-2 § "Registration, Configuration, and Caching"](../2-extension-api/) — the schema-level decisions this ADR builds on.
-2. [`docs/design/20260505-cache-slice-taxonomy.md`](../../design/20260505-cache-slice-taxonomy/) — per-slot detail, composition, cache-key derivation.
-3. This ADR — backend choice, file format, atomicity, locking, eviction.
-4. [`docs/design/20260505-v0.1.0-readiness.md`](../../design/20260505-v0.1.0-readiness/) — where the cache slice fits in the v0.1.0 sequencing.
+1. [ADR-2 § 「登録、設定、キャッシュ」](../2-extension-api/) — このADRが基礎とするスキーマレベルの決定。
+2. [`docs/design/20260505-cache-slice-taxonomy.md`](../../design/20260505-cache-slice-taxonomy/) — スロットごとの詳細、合成、キャッシュキー導出。
+3. このADR — バックエンド選択、ファイルフォーマット、アトミック性、ロック、エビクション。
+4. [`docs/design/20260505-v0.1.0-readiness.md`](../../design/20260505-v0.1.0-readiness/) — v0.1.0シーケンスにキャッシュスライスがどう収まるか。

@@ -5,229 +5,124 @@ editUrl: "https://github.com/rigortype/rigor/edit/main/docs/internal-spec/flow-c
 sourcePath: "docs/internal-spec/flow-contribution-merger.md"
 sourceSha: "98ef4389e62d174854430dec2052a0026eb9304597526cdb3470df582589af90"
 sourceCommit: "9f40e22193647dc06e3ab70c5ba82768b0bfe738"
-translationStatus: "pending"
+translationStatus: "translated"
 sidebar:
   order: 3050
 ---
 
-> [!NOTE]
-> このページはまだ翻訳されていません。英語版の本文を参考表示しています。
+ステータス: **v0.1.0スライス3規範文書。** 組み込みナローイングルール・`RBS::Extended`アノテーション・プラグインからの`FlowContribution`バンドルを単一の`MergeResult`にまとめるマージポリシーを固定します。設計サーフェスの根拠: [ADR-2 § "Plugin Contribution Merging"](../../adr/2-extension-api/)。
 
-Status: **v0.1.0 slice 3 normative.** Pins the merge policy that
-combines `FlowContribution` bundles from built-in narrowing rules,
-`RBS::Extended` annotations, and plugins into a single
-`MergeResult`. Binding design surface:
-[ADR-2 § "Plugin Contribution Merging"](../../adr/2-extension-api/).
+## この仕組みが必要な理由
 
-## Why this exists
+同一の呼び出しに対して複数のフローコントリビューションが発生しうる場合があります。組み込みナローイングルールとプラグイン提供ファクトが同一サイトに適用されることも、2つのプラグインが同一レシーバーファミリーに登録されることも、`RBS::Extended`アノテーションが独自のファクトを追加することもあります。ADR-2は先着優先/後着優先の動作を禁じています。コントリビューションは**決定論的にマージ**され、コントリビューション間の**矛盾**は黙って上書きするのではなく**診断**として表面化しなければなりません。
 
-Multiple flow contributions can target the same call: a built-in
-narrowing rule and a plugin-provided fact may apply at the same
-site, two plugins may both register for the same receiver family,
-and `RBS::Extended` annotations may add their own facts. ADR-2
-forbids first-wins / last-wins behaviour: contributions must
-**merge deterministically**, and **contradictions** between
-contributions must surface as **diagnostics**, not silent
-overrides.
+スライス3はスタンドアロンのマージャーを提供します。スライス4は組み込みナローイングをマージャー経由でルーティングし、スライス5はプラグイン診断の来歴を結果に通し、スライス6はマージャーの`{provenances, conflicts}`を使ってプラグイン側のキャッシュエントリを帰属させます。
 
-Slice 3 ships the standalone merger. Slice 4 routes built-in
-narrowing through it; slice 5 wires plugin diagnostic provenance
-through the result; slice 6 uses the merger's
-`{provenances, conflicts}` to attribute plugin-side cache
-entries.
+## 公開名前空間（ドリフトピン済み）
 
-## Public namespaces (drift-pinned)
-
-Every namespace below is locked by
-[`spec/rigor/public_api_drift_spec.rb`](../../spec/rigor/public_api_drift_spec.rb).
+以下の各名前空間は[`spec/rigor/public_api_drift_spec.rb`](../../spec/rigor/public_api_drift_spec.rb)によってロックされています。
 
 ### `Rigor::FlowContribution#to_element_list`
 
-Bundle → element list flattening. Walks every non-empty slot and
-produces one or more {Element} value objects keyed by
-`(target, edge, kind)`:
+バンドル → 要素リストへの展開。空でないスロットをすべて走査し、`(target, edge, kind)`をキーとする{Element}値オブジェクトを1つ以上生成します。
 
-| slot                | edge          | kind                | target                  |
+| スロット | エッジ | kind | ターゲット |
 | ------------------- | ------------- | ------------------- | ----------------------- |
 | `return_type`       | `normal`      | `return_type`       | `:return`               |
-| `truthy_facts`      | `truthy`      | `truthy_fact`       | per-fact                |
-| `falsey_facts`      | `falsey`      | `falsey_fact`       | per-fact                |
-| `post_return_facts` | `post_return` | `post_return_fact`  | per-fact                |
-| `mutations`         | `normal`      | `mutation`          | per-mutation            |
-| `invalidations`     | `normal`      | `invalidation`      | per-fact                |
+| `truthy_facts`      | `truthy`      | `truthy_fact`       | ファクトごと             |
+| `falsey_facts`      | `falsey`      | `falsey_fact`       | ファクトごと             |
+| `post_return_facts` | `post_return` | `post_return_fact`  | ファクトごと             |
+| `mutations`         | `normal`      | `mutation`          | 変更ごと                 |
+| `invalidations`     | `normal`      | `invalidation`      | ファクトごと             |
 | `exceptional`       | `exceptional` | `exception`         | `:raise`                |
-| `role_conformance`  | `normal`      | `role`              | per-role                |
+| `role_conformance`  | `normal`      | `role`              | ロールごと               |
 
-Per-fact targets come from the payload's `#target` accessor when
-present (typed-fact carriers, mutation effects); otherwise the
-payload itself becomes the merge key. The flattening is
-mechanical, deterministic, and round-trippable — feeding the
-result back through `Merger.merge` produces an equivalent bundle.
+ファクトごとのターゲットは、ペイロードに`#target`アクセサーが存在する場合（型付きファクトキャリア、変更エフェクト）はそこから取得し、ない場合はペイロード自体がマージキーになります。この展開は機械的・決定論的で、逆変換可能です。結果を`Merger.merge`に戻すと同等のバンドルが得られます。
 
 ### `Rigor::FlowContribution::Element`
 
-Frozen `Data.define(:target, :edge, :kind, :payload, :provenance)`
-value object. Constructor validates `edge` and `kind` against the
-`ELEMENT_VALID_EDGES` / `ELEMENT_VALID_KINDS` enums. `#merge_key`
-returns the `[target, edge, kind]` tuple the merger groups by.
+フリーズされた`Data.define(:target, :edge, :kind, :payload, :provenance)`値オブジェクト。コンストラクターは`edge`と`kind`を`ELEMENT_VALID_EDGES` / `ELEMENT_VALID_KINDS`のenumに照らして検証します。`#merge_key`はマージャーがグルーピングに使う`[target, edge, kind]`タプルを返します。
 
 ### `Rigor::FlowContribution::Conflict`
 
-Frozen `Data.define(:target, :edge, :kind, :reason, :provenances, :message)`.
-`reason` is one of the slice-3 enum:
+フリーズされた`Data.define(:target, :edge, :kind, :reason, :provenances, :message)`。`reason`はスライス3enumのいずれかです。
 
-- `:return_type_collapse` — same-tier return types whose
-  intersection is empty.
-- `:exceptional_disagreement` — same-tier non-`nil` exceptional
-  effects that disagree.
-- `:lower_tier_contradiction` — a lower-tier contribution would
-  weaken or contradict a higher-tier proof.
+- `:return_type_collapse` — インターセクションが空になる同一ティアの戻り型。
+- `:exceptional_disagreement` — 同一ティアで非`nil`の例外エフェクトが一致しない。
+- `:lower_tier_contradiction` — 下位ティアのコントリビューションが上位ティアの証明を弱めるまたは矛盾する。
 
-`provenances` carries every contributing
-{FlowContribution::Provenance} (typically two — the higher-tier
-and the contradicting one). `#to_h` renders the conflict for
-diagnostic / formatter output.
+`provenances`にはすべての貢献した{FlowContribution::Provenance}が入ります（通常は2つ — 上位ティアと矛盾する側）。`#to_h`は診断/フォーマッター出力向けにコンフリクトをレンダリングします。
 
-`#to_diagnostic(path:, line:, column:, severity: :error)` (slice
-5-C) converts the conflict into a `Rigor::Analysis::Diagnostic`
-with `source_family: :contribution_merge` and a kebab-cased
-`rule` derived from the conflict reason
-(`return_type_collapse` → `return-type-collapse`). The qualified
-rule renders as `[contribution_merge.return-type-collapse]` in
-the standard `rigor check` text stream once the slice-4 wiring
-emits a conflict.
+`#to_diagnostic(path:, line:, column:, severity: :error)`（スライス5-C）はコンフリクトを`Rigor::Analysis::Diagnostic`に変換します。`source_family: :contribution_merge`と、コンフリクト理由から派生したケバブケースの`rule`（`return_type_collapse` → `return-type-collapse`）を持ちます。スライス4の配線がコンフリクトを発行すると、qualified ruleは標準の`rigor check`テキストストリームで`[contribution_merge.return-type-collapse]`としてレンダリングされます。
 
 ### `Rigor::FlowContribution::MergeResult`
 
-Frozen value object with the eight content slots from
-`FlowContribution` (`return_type`, `truthy_facts`,
-`falsey_facts`, `post_return_facts`, `mutations`,
-`invalidations`, `exceptional`, `role_conformance`), plus
-`provenances` (ordered list of every contributing provenance)
-and `conflicts` (collected `Conflict` rows). `#conflict?` and
-`#empty?` are predicates; `#to_h` renders the result for
-diagnostics.
+`FlowContribution`の8つのコンテンツスロット（`return_type`・`truthy_facts`・`falsey_facts`・`post_return_facts`・`mutations`・`invalidations`・`exceptional`・`role_conformance`）、`provenances`（貢献した全来歴の順序付きリスト）、`conflicts`（収集した`Conflict`行）を持つフリーズ済み値オブジェクト。`#conflict?`と`#empty?`は述語メソッドで、`#to_h`は診断向けに結果をレンダリングします。
 
 ### `Rigor::FlowContribution::Merger`
 
-Stateless module-level entry. Two surface methods:
+ステートレスなモジュールレベルのエントリポイント。2つの公開メソッドを持ちます。
 
-- `Merger.merge(contributions)` — folds an array of bundles
-  through the merge policy and returns a `MergeResult`.
-- `Merger.tier_for(provenance)` — exposes the tier mapping the
-  merger uses internally (useful for diagnostic formatters).
+- `Merger.merge(contributions)` — バンドルの配列をマージポリシーに沿って畳み込み、`MergeResult`を返します。
+- `Merger.tier_for(provenance)` — マージャーが内部で使用するティアマッピングを公開します（診断フォーマッターに有用）。
 
-### `Rigor::FlowContribution::Fact` (slice 4-A)
+### `Rigor::FlowContribution::Fact`（スライス4-A）
 
-Canonical slot payload for the four edge-aware fact slots
-(`truthy_facts`, `falsey_facts`, `post_return_facts` plus the
-equivalent under future role / mutation Fact-shaped variants).
-Pinned by [ADR-7 § "Slice 4-A"](../../adr/7-v0.1.0-slice-decisions/);
-unifies four parallel contribution carriers into a single
-comparable shape so the merger's deduplication / intersection
-rules operate over a homogeneous payload type.
+4つのエッジ対応ファクトスロット（`truthy_facts`・`falsey_facts`・`post_return_facts`、および将来のロール/変更のFactシェイプバリアント）向けの標準スロットペイロード。[ADR-7 § "Slice 4-A"](../../adr/7-v0.1.0-slice-decisions/)でピン留めされており、4つの並列コントリビューションキャリアを単一の比較可能なシェイプに統一することで、マージャーの重複排除/インターセクションルールが均質なペイロード型の上で動作できるようになります。
 
-| Field         | Purpose |
+| フィールド | 役割 |
 | ------------- | --- |
-| `target_kind` | `:parameter` or `:self`. Future kinds (`:local`, `:ivar`, `:result`) attach without changing the merger. |
-| `target_name` | `Symbol` — declared parameter name, or the literal `:self`. Non-nil so `#target` is well-defined. |
-| `type`        | `Rigor::Type::*` — the type the target is narrowed toward (or away from when `negative` is true). |
-| `negative`    | `true` for the `~T` form (`predicate-if-true x is ~Integer`); `false` for the plain positive form. |
+| `target_kind` | `:parameter`または`:self`。将来のkind（`:local`・`:ivar`・`:result`）はマージャーを変更せずに追加可能。 |
+| `target_name` | `Symbol` — 宣言されたパラメーター名、またはリテラル`:self`。非nilなので`#target`は常に定義済みです。 |
+| `type`        | `Rigor::Type::*` — ターゲットがナローイングされる型（`negative`がtrueの場合は除外方向）。 |
+| `negative`    | `~T`形式（`predicate-if-true x is ~Integer`）の場合は`true`、通常の正形式の場合は`false`。 |
 
-`#target` returns `:self` for self-targeted facts, and
-`[:parameter, name]` otherwise. That value lands on
-`Element#target` and is the merge bucket key — two facts that
-narrow the same parameter from different contribution sources
-group together regardless of source family.
+`#target`はself対象のファクトには`:self`を返し、それ以外には`[:parameter, name]`を返します。この値は`Element#target`に入り、マージバケットキーになります。つまり異なるソースファミリーから同じパラメーターをナローイングする2つのファクトは、ソースファミリーに関係なく同じグループにまとめられます。
 
-### Translation boundaries
+### 変換境界
 
-The four parallel carriers translate to / from `Fact`:
+4つの並列キャリアは`Fact`との間で変換されます。
 
-- **`Rigor::RbsExtended::PredicateEffect#to_fact`** — class-name
-  effects lift to `Nominal[<class>]`-typed facts; refinement-form
-  effects pass their `refinement_type` through directly. The
-  `edge` field doesn't survive — the slot the resulting fact
-  lands in (`truthy_facts` / `falsey_facts`) encodes that.
-- **`Rigor::RbsExtended::AssertEffect#to_fact`** — same shape;
-  the `condition` field (`:always` / `:if_truthy_return` /
-  `:if_falsey_return`) routes the slot at the
-  `read_flow_contribution` boundary (`:always` →
-  `post_return_facts`, `:if_truthy_return` → `truthy_facts`,
-  `:if_falsey_return` → `falsey_facts`) and does not surface on
-  the Fact itself.
-- **Built-in narrowing facts** — slice 4 implementer adds the
-  translation when wiring `Inference::Narrowing` through the
-  merger.
-- **Plugin contributions** — slice 5's emission protocol
-  returns `FlowContribution` bundles whose `truthy_facts` /
-  `falsey_facts` slots are already `Fact` arrays.
+- **`Rigor::RbsExtended::PredicateEffect#to_fact`** — クラス名エフェクトは`Nominal[<class>]`型のファクトに昇格します。絞り込みフォームのエフェクトは`refinement_type`をそのまま渡します。`edge`フィールドは残りません。結果のファクトが入るスロット（`truthy_facts` / `falsey_facts`）がそれをエンコードします。
+- **`Rigor::RbsExtended::AssertEffect#to_fact`** — 同じシェイプです。`condition`フィールド（`:always` / `:if_truthy_return` / `:if_falsey_return`）は`read_flow_contribution`境界でスロットをルーティングし（`:always` → `post_return_facts`、`:if_truthy_return` → `truthy_facts`、`:if_falsey_return` → `falsey_facts`）、Fact自体には現れません。
+- **組み込みナローイングファクト** — スライス4の実装者が`Inference::Narrowing`をマージャー経由で配線する際に変換を追加します。
+- **プラグインコントリビューション** — スライス5の発行プロトコルは、`truthy_facts` / `falsey_facts`スロットがすでに`Fact`配列になっている`FlowContribution`バンドルを返します。
 
-## Authority tiers
+## 権限ティア
 
-| Tier | Source family            | Notes |
+| ティア | ソースファミリー | 備考 |
 | ---- | ------------------------ | ----- |
-| 0    | `:builtin`               | Core Ruby semantics + accepted RBS contracts. Authoritative. |
-| 1    | `:rbs_extended`          | `RBS::Extended` directive bundles (v0.0.9 group D reference impl). |
-| 1    | `:generated`             | Generated signatures / metadata. |
-| 2    | `:plugin`, `plugin.<id>` | Plugin contributions. |
-| 3    | anything else            | Unknown — reported but treated as the lowest tier. |
+| 0    | `:builtin`               | Rubyのコアセマンティクス＋受け入れ済みRBS契約。権威あるもの。 |
+| 1    | `:rbs_extended`          | `RBS::Extended`ディレクティブバンドル（v0.0.9グループD参照実装）。 |
+| 1    | `:generated`             | 生成されたシグネチャ/メタデータ。 |
+| 2    | `:plugin`、`plugin.<id>` | プラグインコントリビューション。 |
+| 3    | その他すべて              | 不明 — 報告されますが最低ティアとして扱われます。 |
 
-Within a tier, contributions merge in deterministic order:
-provenance-supplied `plugin_id` alphabetical (nil plugin ids sort
-first to keep `:rbs_extended` / `:generated` pre-plugin
-contributions stable), then by their original input position as
-the final tie-break.
+ティア内では、コントリビューションは決定論的な順序でマージされます。来歴が提供する`plugin_id`のアルファベット順（nil plugin idは先頭にソートされ、`:rbs_extended` / `:generated`のプレプラグインコントリビューションを安定させます）、その後は元の入力位置が最終的なタイブレークになります。
 
-## Composition rules (per ADR-2)
+## 合成ルール（ADR-2準拠）
 
-- **`:return_type`.** Intersect via
-  `Rigor::Type::Combinator.intersection`. The merger detects
-  collapse via mutual `accepts` trinaries: when neither side
-  accepts the other (`a.accepts(b).no? && b.accepts(a).no?`),
-  the value domains are disjoint and the intersection is empty.
-  Collapse at the same tier raises `:return_type_collapse`;
-  collapse triggered by a lower tier raises
-  `:lower_tier_contradiction`. The result keeps the higher-tier
-  value for the slot.
-- **`:truthy_fact` / `:falsey_fact` / `:post_return_fact`.**
-  Edge-local. Plugin true-edge facts do NOT imply the false-edge
-  complement. Same-tier and cross-tier facts accumulate while
-  deduping by payload equality.
-- **`:mutation` / `:invalidation` / `:role`.** Union; dedupe by
-  equality.
-- **`:exception`.** Single-valued. Equal exceptional effects
-  collapse silently; non-equal effects raise either
-  `:exceptional_disagreement` (same tier) or
-  `:lower_tier_contradiction` (lower tier challenges higher).
+- **`:return_type`。** `Rigor::Type::Combinator.intersection`でインターセクトします。マージャーは相互`accepts`三値論理でコラプスを検出します。どちらの側も相手を受け入れない（`a.accepts(b).no? && b.accepts(a).no?`）場合、値のドメインは互いに素でインターセクションは空です。同一ティアでのコラプスは`:return_type_collapse`を、下位ティアがトリガーしたコラプスは`:lower_tier_contradiction`を発生させます。結果は上位ティアの値をスロットに保持します。
+- **`:truthy_fact` / `:falsey_fact` / `:post_return_fact`。** エッジローカル。プラグインのtrueエッジのファクトはfalseエッジの補集合を意味しません。同一ティアおよびクロスティアのファクトは、ペイロード等値性による重複排除をしながら蓄積されます。
+- **`:mutation` / `:invalidation` / `:role`。** ユニオン。等値性による重複排除。
+- **`:exception`。** 単値。等しい例外エフェクトは黙ってコラプスします。等しくないエフェクトは`:exceptional_disagreement`（同一ティア）または`:lower_tier_contradiction`（下位ティアが上位ティアに挑戦）のいずれかを発生させます。
 
-## What slice 3 deliberately does NOT do
+## スライス3が意図的に行わないこと
 
-- **Wire built-in narrowing through the merger.** Slice 4's job.
-- **Diagnose conflicts as `:contribution_merge` `Diagnostic`
-  rows.** Slice 5 routes plugin diagnostic provenance through
-  the formatter; slice 4 surfaces conflicts during analysis.
-- **Compose `Cache::Descriptor` rows from the merge result.**
-  Slice 6 picks that up alongside plugin-side cache producers.
-- **Detect richer return-type-collapse cases.** The slice-3
-  heuristic uses the `accepts` trinary; non-nominal carriers
-  (Tuple intersection that collapses, structural intersection
-  with a refined predicate that excludes every constant) fall
-  through as non-collapsing for now. Slice 4 will exercise the
-  full carrier matrix and fold any missed cases back into the
-  merger.
+- **組み込みナローイングをマージャー経由でルーティングすること。** スライス4の仕事です。
+- **コンフリクトを`:contribution_merge` `Diagnostic`行として診断すること。** スライス5がプラグイン診断の来歴をフォーマッターに通します。スライス4が解析中にコンフリクトを表面化させます。
+- **マージ結果から`Cache::Descriptor`行を合成すること。** スライス6がプラグイン側のキャッシュプロデューサーと並行してそれを担います。
+- **より豊かな戻り型コラプスケースの検出。** スライス3のヒューリスティックは`accepts`三値論理を使います。非名前的キャリア（コラプスするタプルインターセクション、すべての定数を排除する絞り込み述語との構造的インターセクション）は今のところ非コラプスとして処理されます。スライス4がキャリアの全行列を検証し、見逃したケースをマージャーにフォールドバックします。
 
-## Round-trip property
+## ラウンドトリップ特性
 
-The flattening is implemented to be invertible:
+この展開は可逆に実装されています。
 
 ```ruby
 contribution = Rigor::FlowContribution.new(...)
 elements     = contribution.to_element_list
 merged       = Rigor::FlowContribution::Merger.merge([contribution])
-# merged carries the same slots as `contribution`, plus the
-# provenance and an empty conflict list.
+# merged は `contribution` と同じスロットを持ち、来歴と空のコンフリクトリストを加えます。
 ```
 
-Slice 4 will exercise this round-trip alongside the analyzer's
-existing narrowing call sites.
+スライス4はこのラウンドトリップをアナライザーの既存のナローイング呼び出しサイトと並行して検証します。

@@ -5,173 +5,75 @@ editUrl: "https://github.com/rigortype/rigor/edit/main/docs/internal-spec/public
 sourcePath: "docs/internal-spec/public-api.md"
 sourceSha: "9b8ac57d18f2752f2e1f2e91d81d89d8b096fcf02e92a3d54f054a70d07742b1"
 sourceCommit: "9f40e22193647dc06e3ab70c5ba82768b0bfe738"
-translationStatus: "pending"
+translationStatus: "translated"
 sidebar:
   order: 3050
 ---
 
-> [!NOTE]
-> このページはまだ翻訳されていません。英語版の本文を参考表示しています。
+ステータス：**v0.1.0以前のサーフェス宣言。** v0.1.0のプラグインコントラクトが設計される対象となるネームスペースをリストし、[パブリックAPIドリフトスペック](../../spec/rigor/public_api_drift_spec.rb)を通じてそれらを固定します。v0.1.0が出荷されるまで、サーフェスはコミットごとに進化することが許されます；ドリフトスペックは偶発的なシグネチャ変更を検出するため、変更は意図的にレビュー可能な形で行われます。
 
-Status: **Pre-v0.1.0 surface declaration.** Lists the namespaces
-the v0.1.0 plugin contract will be designed against and pins them
-in place via the [public-API drift spec](../../spec/rigor/public_api_drift_spec.rb).
-Until v0.1.0 ships, the surface is allowed to evolve commit-by-commit;
-the drift spec catches accidental signature changes so changes are
-deliberate and reviewable.
+## なぜこの境界が存在するか
 
-## Why this boundary exists
+ADR-2はRigorをプラグインアーキテクチャにコミットさせており、gem作成者がケイパビリティロール・動的返却ファクト・型指定プラグイン・`RBS::Extended`ディレクティブを提供できるようにします。プラグイン作成者は少数の読み取り側サーフェスに対して書き込みを行います：
 
-ADR-2 commits Rigor to a plugin architecture that lets gem authors
-contribute capability roles, dynamic-return facts, type-specifying
-plugins, and `RBS::Extended` directives. Plugin authors will write
-against a small set of read-side surfaces:
+- **`Rigor::Scope`** — ノードごとの解析状態（ローカル変数・インスタンス変数・ファクト・環境）。
+- **`Rigor::Type`** + **`Rigor::Type::Combinator`** — 型オブジェクトレイアウトとファクトリエントリポイント。
+- **`Rigor::Environment`** — プロジェクトレベルのRBS/クラスレジストリ/キャッシュストアハンドル。
+- **`Rigor::Reflection`** — 3つのリフレクションソース（ClassRegistry + RbsLoader + スコープで発見されたファクト）に対する統合された読み取り側ファサード。
+- **`Rigor::FlowContribution`** — プラグインが返すバンドル（v0.1.0貢献マージャーはバンドルを直接消費します）。
+- **`Rigor::Analysis::Diagnostic`** — プラグインが発行する診断の形状（`source_family`来歴を持つ）。
 
-- **`Rigor::Scope`** — the per-node analysis state (locals, ivars,
-  facts, environment).
-- **`Rigor::Type`** + **`Rigor::Type::Combinator`** — the type-object
-  layout and factory entry points.
-- **`Rigor::Environment`** — the project-level RBS / class-registry
-  / cache-store handle.
-- **`Rigor::Reflection`** — the unified read-side facade over the
-  three reflection sources (ClassRegistry + RbsLoader + Scope's
-  discovered facts).
-- **`Rigor::FlowContribution`** — the bundle plugins return (the
-  v0.1.0 contribution merger consumes bundles directly).
-- **`Rigor::Analysis::Diagnostic`** — the diagnostic shape plugins
-  emit (with `source_family` provenance).
+このドキュメントは、それらのネームスペース上のどのメソッドが**パブリック**（プラグイン作成者が依存してよい）か、**内部**（予告なく変更される可能性がある）かを宣言します。v0.0.9のクラスタはネームスペースごとのドリフトスナップショットを増やしたため、将来のシグネチャ変更はサイレントな破壊ではなくテストの失敗として現れます。
 
-This document declares which methods on those namespaces are
-**public** (plugin authors may rely on them) versus **internal**
-(may change without notice). The v0.0.9 cluster grew per-namespace
-drift snapshots so future signature changes show up as test
-failures, not silent breakage.
+## 現在ロックされているもの
 
-## What is currently locked
+[`spec/rigor/public_api_drift_spec.rb`](../../spec/rigor/public_api_drift_spec.rb)のドリフトスペックは以下のインスタンスおよびシングルトンメソッドセットを固定します：
 
-The drift spec at
-[`spec/rigor/public_api_drift_spec.rb`](../../spec/rigor/public_api_drift_spec.rb)
-pins instance and singleton method sets for:
+- `Rigor::Scope` — インスタンスメソッド + `Scope.empty(environment:)`ファクトリ。
+- `Rigor::Environment` — インスタンスメソッド + `Environment.default` / `Environment.for_project(root:, libraries:, signature_paths:, cache_store:)`。
+- `Rigor::Type::Combinator` — 推論エンジンが使用するすべてのファクトリ（`top`・`bot`・`untyped`・`nominal_of`・`singleton_of`・`constant_of`・`integer_range`・`positive_int`・`non_empty_string`・`lowercase_string`・`literal_string`・`union`・`intersection`・`difference`・`refined`・`key_of`・`value_of`・`indexed_access`など）。
+- `Rigor::Reflection` — すべての`class_known?`・`class_ordering`・`class_type_param_names`・`constant_type_for`・`discovered_class?`・`discovered_method?`・`instance_definition`・`instance_method_definition`・`nominal_for_name`・`rbs_class_known?`・`singleton_definition`・`singleton_for_name`・`singleton_method_definition`。
+- `Rigor::Plugin` — `register`・`registered`・`registered_for`・`unregister!`（テストヘルパー）。v0.1.0スライス1。
+- `Rigor::Plugin::Base` — クラスレベルの`manifest(**fields)`・インスタンスレベルの`services` / `config` / `manifest`・オーバーライドフック`#init(services)`。v0.1.0スライス1。
+- `Rigor::Plugin::Manifest` — `id`・`version`・`description`・`protocols`・`config_schema`・`validate_config(config)`。
+- `Rigor::Plugin::Services` — `reflection`・`type`・`configuration`・`cache_store`・`trust_policy`・`io_boundary_for(plugin_id)`。
+- `Rigor::Plugin::Registry` — `plugins`・`ids`・`find(id)`・`load_errors`・`empty?`・`any_load_errors?`。
+- `Rigor::Plugin::TrustPolicy` — `trusted_gems`・`allowed_read_roots`・`network_policy`・`allow_read?(path)`・`network_allowed?`・`gem_trusted?(name)`・`to_h`。v0.1.0スライス2。
+- `Rigor::Plugin::IoBoundary` — `policy`・`plugin_id`・`read_file(path)`・`open_url(url)`・`cache_descriptor`。v0.1.0スライス2。
 
-- `Rigor::Scope` — instance methods + the `Scope.empty(environment:)`
-  factory.
-- `Rigor::Environment` — instance methods + `Environment.default` /
-  `Environment.for_project(root:, libraries:, signature_paths:, cache_store:)`.
-- `Rigor::Type::Combinator` — every factory the inference engine
-  reaches for (`top`, `bot`, `untyped`, `nominal_of`, `singleton_of`,
-  `constant_of`, `integer_range`, `positive_int`, `non_empty_string`,
-  `lowercase_string`, `literal_string`, `union`, `intersection`,
-  `difference`, `refined`, `key_of`, `value_of`, `indexed_access`, …).
-- `Rigor::Reflection` — every `class_known?`, `class_ordering`,
-  `class_type_param_names`, `constant_type_for`, `discovered_class?`,
-  `discovered_method?`, `instance_definition`, `instance_method_definition`,
-  `nominal_for_name`, `rbs_class_known?`, `singleton_definition`,
-  `singleton_for_name`, `singleton_method_definition`.
-- `Rigor::Plugin` — `register`, `registered`, `registered_for`,
-  `unregister!` (test helper). v0.1.0 slice 1.
-- `Rigor::Plugin::Base` — class-level `manifest(**fields)`,
-  instance-level `services` / `config` / `manifest`, the override
-  hook `#init(services)`. v0.1.0 slice 1.
-- `Rigor::Plugin::Manifest` — `id`, `version`, `description`,
-  `protocols`, `config_schema`, `validate_config(config)`.
-- `Rigor::Plugin::Services` — `reflection`, `type`, `configuration`,
-  `cache_store`, `trust_policy`, `io_boundary_for(plugin_id)`.
-- `Rigor::Plugin::Registry` — `plugins`, `ids`, `find(id)`,
-  `load_errors`, `empty?`, `any_load_errors?`.
-- `Rigor::Plugin::TrustPolicy` — `trusted_gems`,
-  `allowed_read_roots`, `network_policy`, `allow_read?(path)`,
-  `network_allowed?`, `gem_trusted?(name)`, `to_h`. v0.1.0 slice 2.
-- `Rigor::Plugin::IoBoundary` — `policy`, `plugin_id`,
-  `read_file(path)`, `open_url(url)`, `cache_descriptor`. v0.1.0
-  slice 2.
+これらのメソッドのシグネチャが変更された場合は、同じコミットで対応する`PublicApiDriftSnapshots::*`定数を更新する必要があります。
 
-Any signature change on these methods has to update the matching
-`PublicApiDriftSnapshots::*` constant in the same commit.
+## 意図的にまだロックされていないもの
 
-## What is intentionally NOT yet locked
+- **`Rigor::FlowContribution`** — v0.0.9（`c48f05f`）で出荷されたバンドル構造体；スライス3が`#to_element_list`を追加し、パブリックAPIドリフトスペックを通じてバンドル形状を固定しました。プラグイン作成者はパブリックリーダー/`to_h`形式を通じてバンドルを消費し、v0.1.0が確定するまでスロットごとの値形状（`PredicateEffect`・`AssertEffect`など）を直接固定するのは避けてください。
+- **`Rigor::FlowContribution::Element` / `MergeResult` / `Conflict` / `Merger`** — スライス3のサーフェス；ドリフトスペックによって固定済み。平坦化とマージポリシーは[`flow-contribution-merger.md`](../flow-contribution-merger/)に従って規範的です。
+- **`Rigor::Analysis::Diagnostic`** — `source_family`と`qualified_rule`はv0.0.8（`ed9ae0a`）で追加されましたが、v0.1.0プラグインの可観測性ストーリーが確定するにつれてルールごとの診断識別子はまだ流動的です。
+- **`Rigor::Cache::*`** — プロデューサー向けの`Store#fetch_or_compute(producer_id:, params:, descriptor:, serialize:, deserialize:)` APIは最も安定したレイヤーであり、プラグイン側キャッシュプロデューサーが使用するものです。ディスクリプタスキーマはADR-6とスライス分類設計ドキュメントによって固定されています；プラグイン作成者は新しいスロット種類ではなく`PluginEntry`行を追加すべきです。
+- **`Rigor::RbsExtended`ディレクティブパーサー** — パブリックリーダーメソッド（`read_predicate_effects`・`read_assert_effects`・`read_return_type_override`・`read_param_type_overrides`・`read_flow_contribution`）は現在安定した形状です；エフェクトごとのデータキャリア（`PredicateEffect`・`AssertEffect`・`ParamOverride`）は`FlowContribution`と同じv0.1.0の精緻化の対象です。
+- **`Rigor::Plugin::*`** — 登録/ロードサーフェスはv0.1.0スライス1で到着しました。インスタンスレベルの`Rigor::Plugin::Base#init`フックは現在安定しています；スライス3〜6で追加されるプロトコルフックは`Base`のパブリックメソッドセットを精緻化するかもしれません。プラグイン作成者はv0.1.0の開発中は特定のRigorバージョンにgemを固定すべきです。
 
-- **`Rigor::FlowContribution`** — the bundle struct shipped in
-  v0.0.9 (`c48f05f`); slice 3 added `#to_element_list` and pinned
-  the bundle shape via the public-API drift spec. Plugin authors
-  should consume bundles via the public reader / `to_h` form and
-  avoid pinning the per-slot value shapes (`PredicateEffect`,
-  `AssertEffect`, …) directly until v0.1.0 ratifies them.
-- **`Rigor::FlowContribution::Element` / `MergeResult` / `Conflict` /
-  `Merger`** — slice 3 surface; pinned by the drift spec. The
-  flattening + merge policy is normative per
-  [`flow-contribution-merger.md`](../flow-contribution-merger/).
-- **`Rigor::Analysis::Diagnostic`** — `source_family` and
-  `qualified_rule` were added in v0.0.8 (`ed9ae0a`) but the
-  per-rule diagnostic identifiers are still in flux as the v0.1.0
-  plugin observability story finalises.
-- **`Rigor::Cache::*`** — the producer-facing
-  `Store#fetch_or_compute(producer_id:, params:, descriptor:,
-  serialize:, deserialize:)` API is the most stable layer and the
-  one plugin-side cache producers will ride. The descriptor schema
-  is fixed by ADR-6 and the slice-taxonomy design doc; plugin
-  authors should add `PluginEntry` rows rather than new slot kinds.
-- **`Rigor::RbsExtended`** directive parsers — public reader
-  methods (`read_predicate_effects`, `read_assert_effects`,
-  `read_return_type_override`, `read_param_type_overrides`,
-  `read_flow_contribution`) are stable shapes today; the per-effect
-  Data carriers (`PredicateEffect`, `AssertEffect`,
-  `ParamOverride`) are subject to the same v0.1.0 refinement as
-  `FlowContribution`.
-- **`Rigor::Plugin::*`** — registration / loading surface landed
-  in v0.1.0 slice 1. The instance-level `Rigor::Plugin::Base#init`
-  hook is stable today; protocol hooks added by slices 3–6 may
-  refine the public method set on `Base`. Plugin authors should
-  pin their gem to a specific Rigor version while v0.1.0 is in
-  development.
+## 内部サーフェス（パブリックではない）
 
-## Internal surfaces (NOT public)
+プラグイン作成者が以下に依存してはなりません（MUST NOT）：
 
-Plugin authors must NOT rely on:
+- `Rigor::Inference::*`モジュール（`ScopeIndexer`・`ExpressionTyper`・`StatementEvaluator`・`MethodDispatcher`・`MethodParameterBinder`・`ClosureEscapeAnalyzer`・`CoverageScanner`）。これらはエンジンの内部メカニズムです；推論サーフェスの進化に伴い形状が変わります。
+- `Rigor::Analysis::FactStore`・`Analysis::Result`・`Analysis::CheckRules`・`Analysis::Runner`。診断カタログとルール定義はプラグイン拡張サーフェスではありません——プラグインはv0.1.0プラグインプロトコルを通じて診断を発行し、`CheckRules`に行を追加しません。
+- `Rigor::AST::*`仮想ノード。エンジンが内部で使用する合成ASTノードは安定したプラグインサーフェスではありません。
+- `Rigor::Source::*`・`Rigor::CLI::*`・`Rigor::Configuration`ヘルパー。これらはCLI/ローダーの配管です。
 
-- `Rigor::Inference::*` modules (ScopeIndexer, ExpressionTyper,
-  StatementEvaluator, MethodDispatcher, MethodParameterBinder,
-  ClosureEscapeAnalyzer, CoverageScanner). These are the engine's
-  internal mechanism; their shapes change as the inference surface
-  evolves.
-- `Rigor::Analysis::FactStore`, `Analysis::Result`,
-  `Analysis::CheckRules`, `Analysis::Runner`. The diagnostic
-  catalogue and the rule definitions are not a plugin extension
-  surface — plugins emit diagnostics via the v0.1.0 plugin
-  protocol, not by adding rows to `CheckRules`.
-- `Rigor::AST::*` virtual nodes. The synthetic AST nodes the
-  engine uses internally are not a stable plugin surface.
-- Any `Rigor::Source::*`, `Rigor::CLI::*`, `Rigor::Configuration`
-  helper. These are CLI / loader plumbing.
+## 昇格パス
 
-## Promotion path
+v0.1.0プラグインコントラクトが現在内部のサーフェスをパブリックにする必要がある場合：
 
-When a v0.1.0 plugin contract requires a currently-internal surface
-to become public:
+1. 関連するADRが修正されます（プラグイン拡張プロトコルはADR-2、型オブジェクト/推論エンジンの詳細はADR-3/4）。
+2. クラスがメソッドセットのスナップショットと共に[`spec/rigor/public_api_drift_spec.rb`](../../spec/rigor/public_api_drift_spec.rb)に追加されます。そのコミット以降、偶発的なシグネチャ変更はドリフトスペックを壊します。
+3. このドキュメントに新しいネームスペースの「v0.1.0で昇格」エントリが追加されます。
 
-1. The relevant ADR is amended (ADR-2 for the plugin extension
-   protocol, ADR-3/4 for type-object / inference engine details).
-2. The class is added to
-   [`spec/rigor/public_api_drift_spec.rb`](../../spec/rigor/public_api_drift_spec.rb)
-   with a snapshot of its method set. From that commit forward,
-   accidental signature changes break the drift spec.
-3. This document grows a "Promoted in v0.1.0" entry for the new
-   namespace.
+## プラグイン作成者のための読み順
 
-## Reading order for a plugin author
-
-1. [`docs/adr/2-extension-api.md`](../../adr/2-extension-api/) — the
-   plugin contract (capability roles, contribution merging,
-   diagnostic provenance, registration, configuration, caching,
-   trust / I/O).
-2. [`docs/internal-spec/internal-type-api.md`](../internal-type-api/)
-   — type-object public contract every `Rigor::Type::*` carrier
-   satisfies.
-3. [`docs/internal-spec/inference-engine.md`](../inference-engine/)
-   — `Rigor::Scope#type_of` purity, fact-store / effect model,
-   environment-loading boundaries.
-4. [`docs/internal-spec/reflection.md`](../reflection/) — the
-   `Rigor::Reflection` read-side facade.
-5. [`docs/internal-spec/flow-contribution.md`](../flow-contribution/)
-   — the `Rigor::FlowContribution` bundle.
-6. [`docs/internal-spec/cache.md`](../cache/) — the cache layer's
-   public read shape; plugin-side cache producers ride this API.
+1. [`docs/adr/2-extension-api.md`](../../adr/2-extension-api/) — プラグインコントラクト（ケイパビリティロール・貢献マージ・診断来歴・登録・設定・キャッシュ・トラスト/I/O）。
+2. [`docs/internal-spec/internal-type-api.md`](../internal-type-api/) — すべての`Rigor::Type::*`キャリアが満たす型オブジェクトパブリックコントラクト。
+3. [`docs/internal-spec/inference-engine.md`](../inference-engine/) — `Rigor::Scope#type_of`の純粋性・ファクトストア/エフェクトモデル・環境読み込み境界。
+4. [`docs/internal-spec/reflection.md`](../reflection/) — `Rigor::Reflection`読み取り側ファサード。
+5. [`docs/internal-spec/flow-contribution.md`](../flow-contribution/) — `Rigor::FlowContribution`バンドル。
+6. [`docs/internal-spec/cache.md`](../cache/) — キャッシュレイヤーのパブリック読み取り形状；プラグイン側キャッシュプロデューサーがこのAPIを使用します。

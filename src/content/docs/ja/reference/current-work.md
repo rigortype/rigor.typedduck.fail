@@ -5,71 +5,68 @@ editUrl: "https://github.com/rigortype/rigor/edit/main/docs/CURRENT_WORK.md"
 sourcePath: "docs/CURRENT_WORK.md"
 sourceSha: "b477bb7ce11886fae1f5a7ffceff3d79b6a6b976095644bdef864e47f502f32d"
 sourceCommit: "b523ab36f62d89a1c16964a66864c27e3ebb0fe4"
-translationStatus: "pending"
+translationStatus: "translated"
 sidebar:
   order: 9050
 ---
 
-> [!NOTE]
-> このページはまだ翻訳されていません。英語版の本文を参考表示しています。
+これは長い実装スレッドをレビュー可能なチャンクに分割するための一時的なブックマークです。**規範的な**契約とスライスロードマップは[`docs/internal-spec/inference-engine.md`](../internal-spec/inference-engine/)と[`docs/adr/4-type-inference-engine.md`](../adr/4-type-inference-engine/)に残ります。リリースごとのコミットメントエンベロープは[`docs/MILESTONES.md`](../milestones/)にあります。このファイルがそれらのいずれかと矛盾する場合、仕様 / ADR / マイルストーンが拘束力を持ち、このファイルは古くなっています。
 
-This is a transient bookmark used to break a long implementation thread into reviewable chunks. The **normative** contracts and slice roadmap remain in [`docs/internal-spec/inference-engine.md`](../internal-spec/inference-engine/) and [`docs/adr/4-type-inference-engine.md`](../adr/4-type-inference-engine/). The release-by-release commitment envelope lives in [`docs/MILESTONES.md`](../milestones/). If this file disagrees with any of those, the spec / ADR / milestone binds and this file is out of date.
+## ステータス
 
-## Status
+**v0.1.0が`master`にバージョンバンプされました（コミット`6170832`）;リリース待ち。** 6つのプラグイン契約スライスとv0.1.0ポリッシュ作業が着地しました（6つの動作プラグイン例、9章のエンドユーザーハンドブック、named-captureナロイング修正、`;`プレフィックスのブロックローカルnil shadow修正）。7番目のプラグイン例（`rigor-activerecord`）がポリッシュウィンドウ中に着地しました。[`AGENTS.md`](https://github.com/rigortype/rigor/blob/main/AGENTS.md)の自律バージョンバンプ禁止ルールに従い、`bundle exec rake release`は明示的なユーザー承認を待ちます。スライスごとのまとめは`CHANGELOG.md`の`[0.1.0]`セクションとv0.1.0行の[`docs/MILESTONES.md`](../milestones/)にあります。
 
-**v0.1.0 version-bumped on `master` (commit `6170832`); release pending.** All six plugin-contract slices and the v0.1.0-polish work landed (six worked plugin examples, the nine-chapter end-user handbook, the named-capture narrowing fix, the `;`-prefixed block-local nil shadow fix). The seventh plugin example (`rigor-activerecord`) landed during the polish window. Per the no-autonomous-version-bump rule in [`AGENTS.md`](https://github.com/rigortype/rigor/blob/main/AGENTS.md), `bundle exec rake release` waits for explicit user authorisation. The slice-by-slice recap is in `CHANGELOG.md`'s `[0.1.0]` section and the v0.1.0 row of [`docs/MILESTONES.md`](../milestones/).
+**v0.1.2進行中。** Track 1（プラグイン例の戻り型移行）が7つのワークプラグインのうち4つ——`rigor-lisp-eval`、`rigor-pattern`、`rigor-units`、`rigor-activerecord`——で`master`に着地しました。これらは`#flow_contribution_for`を通じてコールサイトの戻り型を貢献するようになりました。診断トレースは残ります——両チャンネルが同じ解釈から実行されます。他の3つ（`rigor-deprecations`、`rigor-statesman`、`rigor-routes`）は設計上診断専用のままです（戻り型の適合なし / RBSで表現可能）。スペックヘルパー拡張（`run_plugin`の`signature_paths:`キーワード）がナロイングアサーションがユーザー定義クラスに最小限のシグを提供して`call.undefined-method`が発火できるよう、並行して着地しました。スライスリストは[`docs/MILESTONES.md`](../milestones/) §「v0.1.2 — 計画中」にあります。
 
-**v0.1.2 in progress.** Track 1 (example plugin return-type migration) landed on `master` for four of the seven worked plugins — `rigor-lisp-eval`, `rigor-pattern`, `rigor-units`, `rigor-activerecord` now contribute call-site return types via `#flow_contribution_for`. The diagnostic trace stays — both channels run from the same interpretation. The other three (`rigor-deprecations`, `rigor-statesman`, `rigor-routes`) remain diagnostic-only by design (no return-type fit / RBS-expressible). Spec helper extension (`signature_paths:` keyword on `run_plugin`) landed alongside so narrowing assertions can provide minimal sigs for `call.undefined-method` to fire on user-defined classes. Slice list in [`docs/MILESTONES.md`](../milestones/) § "v0.1.2 — Planned".
+**v0.1.1完了。** 4つのトラックすべてが作業ブランチに未リリースで着地しました:
 
-**v0.1.1 complete.** All four tracks landed unreleased on the work branch:
+- **Track 1スライス1** — regexパターン → 精製名認識器。
+- **Track 1スライス2** — `decimal-int-string` / `numeric-string`上の`String#to_i` / `#to_int`（2a）と`Kernel#Integer(s)`（2b） → `non-negative-int`。
+- **Track 1スライス3** — `predicate-if-*` / `assert-if-*` / `assert`での完全な`self`ナロイング（LocalVariable / InstanceVariable / SelfNode / 暗黙的selfレシーバー形状）。
+- **Track 1スライス4** — `String#start_with?` / `#end_with?` / `#include?`フローファクト（FactStoreベース;新しいキャリアなし）。
+- **Track 1スライス5** — `#strip`ファミリーを通じた`literal-string`伝播（5a）、非負`IntegerRange`に対する`Integer#to_s`精密性（5b）、`#center` / `#ljust` / `#rjust`リテラルベアリングリフト（5c）。`Numeric#to_s`は意図的に取り消されました（`Float` / 符号付き`Integer`出力にクリーンなキャリアなし）。
+- **Track 2（ADR-9クロスプラグインAPI + 戻り型貢献）** — スライス1 → 5（`Plugin::FactStore`、`Services#fact_store`、`#prepare(services)`フック + Runner呼び出し、`manifest(produces:/consumes:)`、トポロジカルソート + 欠落プロデューサー検出）+ スライス7（`Plugin::Base#flow_contribution_for`フック + `RbsDispatch`より前のディスパッチャーティア）。Tier 2 Railsプラグインのブロックが解除されました。
+- **Track 3** — スライス8（ヘルパー、以前のコミット`ce64bb6`）、スライス9（`tmp/`下のプラグインデモごとのキャッシュ分離 + `.rigor.yml`からの`cache.path`を尊重するCLI修正）、スライス10（RuboCopに文書化された緩和とともに再インクルードされた例）。
+- **Track 4** — 完全に完了: 項目11（3つの`lib/` sigドリフトを解消）、項目12（`node_locator_spec.rb:82`の古いもの）、項目13（prelude`composed`ボディを`unknown` → `dispatch`に再分類）。
 
-- **Track 1 slice 1** — regex pattern → refinement-name recogniser.
-- **Track 1 slice 2** — `String#to_i` / `#to_int` (2a) and `Kernel#Integer(s)` (2b) on `decimal-int-string` / `numeric-string` → `non-negative-int`.
-- **Track 1 slice 3** — full `self`-narrowing in `predicate-if-*` / `assert-if-*` / `assert` (LocalVariable / InstanceVariable / SelfNode / implicit-self receiver shapes).
-- **Track 1 slice 4** — `String#start_with?` / `#end_with?` / `#include?` flow facts (FactStore-based; no new carrier).
-- **Track 1 slice 5** — `literal-string` preservation through `#strip` family (5a), `Integer#to_s` precision on non-negative `IntegerRange` (5b), `#center` / `#ljust` / `#rjust` literal-bearing lift (5c). `Numeric#to_s` intentionally retracted (no clean carrier for `Float` / signed `Integer` outputs).
-- **Track 2 (ADR-9 cross-plugin API + return-type contributions)** — slices 1 → 5 (`Plugin::FactStore`, `Services#fact_store`, `#prepare(services)` hook + Runner invocation, `manifest(produces:/consumes:)`, topological sort + missing-producer detection) + slice 7 (`Plugin::Base#flow_contribution_for` hook + dispatcher tier ahead of `RbsDispatch`). Tier 2 Rails plugins are unblocked.
-- **Track 3** — slice 8 (helpers, prior commit `ce64bb6`), slice 9 (per-demo cache isolation under `tmp/` + CLI fix to honour `cache.path` from `.rigor.yml`), slice 10 (examples re-included in RuboCop with documented relaxations).
-- **Track 4** — fully drained: item 11 (three `lib/` sig drifts closed), item 12 (`node_locator_spec.rb:82` stale), item 13 (prelude `composed` bodies reclassified `unknown` → `dispatch`).
+設定監査（このバッチ中にも）: `target_ruby`ファントム設定配線ギャップを解消（3つのパースサイトすべてで`Prism.parse_file(version:)`に渡されるようになりました）、将来の`.rigor.yml`設定がサイレントにファントムになれないよう実行時監査ガードスペックブロックを追加。
 
-Configuration audit (also during this batch): closed the `target_ruby` phantom-setting wiring gap (now passed to `Prism.parse_file(version:)` at all three parse sites), and added a runtime audit-guard spec block so future `.rigor.yml` settings can't go phantom silently.
+作業状態: RSpec 2195例 / 0失敗、RuboCop 264ファイル / 0オフェンス、`bundle exec exe/rigor check lib`は`No diagnostics`を報告。**v0.1.1はユーザーが承認次第`bundle exec rake release`の準備ができています。**フルスライスリストは[`docs/MILESTONES.md`](../milestones/) §「v0.1.1 — 計画中」にあります。
 
-Working state: 2195 RSpec examples / 0 failures, RuboCop 264 files / 0 offenses, `bundle exec exe/rigor check lib` reports `No diagnostics`. **v0.1.1 is ready for `bundle exec rake release` once the user authorises it.** Full slice list in [`docs/MILESTONES.md`](../milestones/) § "v0.1.1 — Planned".
+## 作業が再開される場所
 
-## Where the Work Resumes
+### Railsエコシステムプラグイン（並行実行トラック）
 
-### Rails ecosystem plugins (parallel running track)
+Railsプラグインファミリー——`rigor-rails-routes`、`rigor-rails-i18n`、`rigor-actionpack`、`rigor-actionmailer`、`rigor-activejob`、加えて`rigor-activerecord`拡張——はv0.1.xコア作業と並行して作成されています。フルプランは[`docs/design/20260508-rails-plugins-roadmap.md`](../design/20260508-rails-plugins-roadmap/)にあります。Tier 1プラグイン（現行API、解析器側の変更不要）はブロックが解除されており、作成はすぐに**1セッションにつき1プラグイン**の形式で`examples/rigor-<id>/`にステージされ、契約が安定したら`git subtree split`で抽出できます。Tier 2（`rigor-actionpack` Phase 1、`rigor-factorybot`）は[ADR-9 — クロスプラグインAPI](../adr/9-cross-plugin-api/)をブロッカーとします。これはv0.1.1 Track 2です。
 
-The Rails plugin family — `rigor-rails-routes`, `rigor-rails-i18n`, `rigor-actionpack`, `rigor-actionmailer`, `rigor-activejob`, plus `rigor-activerecord` extensions — is being authored in parallel with v0.1.x core work. The full plan is in [`docs/design/20260508-rails-plugins-roadmap.md`](../design/20260508-rails-plugins-roadmap/). Tier 1 plugins (current API, no analyser-side change required) are unblocked and authoring can start immediately, **one plugin per session**, staged in `examples/rigor-<id>/` and extracted via `git subtree split` once the contract is stable. Tier 2 (`rigor-actionpack` Phase 1, `rigor-factorybot`) blocks on [ADR-9 — Cross-plugin API](../adr/9-cross-plugin-api/), which is v0.1.1 Track 2.
+### v0.1.2エントリーパス
 
-### v0.1.2 entry path
+スライスリストについては[`docs/MILESTONES.md`](../milestones/) §「v0.1.2 — 計画中」を参照してください。推奨エントリー順序:
 
-Read [`docs/MILESTONES.md`](../milestones/) § "v0.1.2 — Planned" for the slice list. Recommended entry order:
+- v0.1.2 Track 1（7つのプラグイン例のうち4つを`#flow_contribution_for`に移行済み）が`master`にあります。v0.1.1も`master`にバージョンバンプされており、ユーザーが両方のカットを一緒に（または順番に、[`.codex/skills/rigor-release-prep/SKILL.md`](https://github.com/rigortype/rigor/blob/main/.codex/skills/rigor-release-prep/SKILL.md)に従って）承認次第`bundle exec rake release`の準備ができています。
+- Railsプラグイン並行実行トラックはブロックが解除されています——Tier 2（`rigor-actionpack` Phase 1、`rigor-factorybot`）はクロスプラグインAPIに対して作成できるようになりました。Tier 1プラグイン（`rigor-rails-routes`、`rigor-rails-i18n`、`rigor-actionmailer`、`rigor-activejob`）はv0.1.0からブロックが解除されていました。
+- v0.1.1から延期されたスコープ外の項目（過負荷選択のインターフェース厳格性、新しい`flow.*` / `def.*`ルールファミリー、`Data.define`イニシャライザーディスパッチ、`Plugin::IoBoundary#open_url`、DXツール、LSPデーモンなど）はv0.1.3+に引き継がれます。
 
-- v0.1.2 Track 1 (four of seven example plugins migrated to `#flow_contribution_for`) is on `master`. v0.1.1 also remains version-bumped on `master` and ready for `bundle exec rake release` once the user authorises both cuts together (or sequentially, per [`.codex/skills/rigor-release-prep/SKILL.md`](https://github.com/rigortype/rigor/blob/main/.codex/skills/rigor-release-prep/SKILL.md)).
-- The Rails plugin parallel running track is unblocked — Tier 2 (`rigor-actionpack` Phase 1, `rigor-factorybot`) can now author against the cross-plugin API. Tier 1 plugins (`rigor-rails-routes`, `rigor-rails-i18n`, `rigor-actionmailer`, `rigor-activejob`) were unblocked from v0.1.0.
-- Out-of-scope items deferred from v0.1.1 (interface-strictness on overload selection, new `flow.*` / `def.*` rule families, `Data.define` initializer dispatch, `Plugin::IoBoundary#open_url`, DX tooling, LSP daemon, etc.) carry forward to v0.1.3+.
+## オープンエンジニアリング項目
 
-## Open Engineering Items
+v0.0.xスライスを通じて浮かび上がった永続的な項目で、次の実装者がフルスレッドを再読することなく見ておくべきもの。v0.1.1にすでに吸収された項目はここで再説明するのではなくMILESTONESを通じて参照されます。
 
-Persistent items that have come up across v0.0.x slices and that the next implementer benefits from seeing without re-reading the full thread. Items already absorbed into v0.1.1 are referenced through MILESTONES rather than restated here.
+1. **Cボディクラシファイアーの間接ミューテーター。**カタログ抽出器のregexは`str_modifiable` / `time_modify` / 類似のヘルパー間接を追いません; `String#replace`、`Time#localtime`、`Set#reset`のようなメソッドはミューテートするにもかかわらず`:leaf`として着地します。v0.0.5で着地した純粋な`rb_check_frozen`ラッパー検出がギャップを縮小しますが、`STRING_CATALOG` / `TIME_CATALOG` / `SET_CATALOG`のクラスごとのブロックリストは狭いregexが見逃す偽陽性を吸収し続けます。長期的には: クラシファイアーは正当な非ミューテーター（v0.0.5修正を制限した`Array#to_a`リグレッション）を過剰フラグ付けせずにヘルパーを推移的に追跡すべきです。v0.1.1のスコープ外;具体的なユーザーが見えるリグレッションが動機付けるまで延期。
 
-1. **C-body classifier indirect mutators.** The catalog extractor's regex does not follow `str_modifiable` / `time_modify` / similar helper indirection; methods like `String#replace`, `Time#localtime`, and `Set#reset` land as `:leaf` even though they mutate. The pure-`rb_check_frozen`-wrapper detection landed in v0.0.5 narrows the gap, but per-class blocklists in `STRING_CATALOG` / `TIME_CATALOG` / `SET_CATALOG` still absorb false positives the narrow regex misses. Long-term: the classifier should track the helpers transitively without over-flagging legitimate non-mutators (the `Array#to_a` regression that gated the v0.0.5 fix). Out of scope for v0.1.1; deferred until a concrete user-visible regression motivates it.
+（以前ここに列挙されていた項目——`node_locator_spec.rb:82`と`numeric.yml`の`Integer#ceildiv`——は現在[v0.1.1 Track 4メンテナンス](../milestones/#v011--planned)です。）
 
-(Items previously listed here — `node_locator_spec.rb:82` and `numeric.yml` `Integer#ceildiv` — are now [v0.1.1 Track 4 maintenance](../milestones/#v011--planned).)
+## 復帰する実装者のための読書順
 
-## Reading Order for a Returning Implementer
+デフォルトの目標は「v0.1.0をリリースし、その後v0.1.1を開始する」です。v0.1.0が`master`にバージョンバンプされていることで、次のセッションの作業仮定は「v0.1.1スライスを実装する」です。この順序で読んでください:
 
-The default goal is "ship v0.1.0, then start v0.1.1." With v0.1.0 version-bumped on `master`, the working assumption for the next session is "implement a v0.1.1 slice." Read in this order:
+1. `CHANGELOG.md`の`[Unreleased]`セクション——v0.1.1の作業が着地するにつれて蓄積されます。
+2. [`docs/MILESTONES.md`](../milestones/) —「v0.1.1 — 計画中」下の4トラックv0.1.1スライスリスト。
+3. [`docs/adr/9-cross-plugin-api.md`](../adr/9-cross-plugin-api/) — Track 2の拘束力のある設計; 6つの実装スライス。
+4. [`docs/design/20260508-rails-plugins-roadmap.md`](../design/20260508-rails-plugins-roadmap/) — Railsプラグインファミリーの順序付け、依存関係グラフ、サブツリー分割準備チェックリスト。
+5. [`.codex/skills/rigor-plugin-author/SKILL.md`](https://github.com/rigortype/rigor/blob/main/.codex/skills/rigor-plugin-author/SKILL.md) — 新しいプラグインを作成するためのエージェント向けプレイブック（すべてのRailsプラグインセッションに使用）。
+6. [`docs/internal-spec/public-api.md`](../internal-spec/public-api/) — パブリック対内部の安定性境界。ピン留めされた名前空間を拡張する前に`spec/rigor/public_api_drift_spec.rb`をクロスリファレンスしてください。
+7. [`examples/README.md`](https://github.com/rigortype/rigor/blob/main/examples/README.md) — 7つの動作プラグイン例の比較表;新しい作者への推奨読書順。
+8. [`docs/adr/2-extension-api.md`](../adr/2-extension-api/)と[`docs/adr/7-v0.1.0-slice-decisions.md`](../adr/7-v0.1.0-slice-decisions/) — v0.1.1が構築するv0.1.0プラグイン契約の拘束力のある設計とスライスごとの作業上の決定。
+9. [`docs/adr/3-type-representation.md`](../adr/3-type-representation/)作業上の決定 — OQ1 / OQ2 / OQ3の結果がプラグインが消費する型オブジェクトパブリックサーフェスを引き続き拘束します。
 
-1. `CHANGELOG.md` `[Unreleased]` section — accumulates v0.1.1 work as it lands.
-2. [`docs/MILESTONES.md`](../milestones/) — the four-track v0.1.1 slice list under "v0.1.1 — Planned".
-3. [`docs/adr/9-cross-plugin-api.md`](../adr/9-cross-plugin-api/) — binding design for Track 2; six implementation slices.
-4. [`docs/design/20260508-rails-plugins-roadmap.md`](../design/20260508-rails-plugins-roadmap/) — Rails plugin family ordering, dependency graph, subtree-split readiness checklist.
-5. [`.codex/skills/rigor-plugin-author/SKILL.md`](https://github.com/rigortype/rigor/blob/main/.codex/skills/rigor-plugin-author/SKILL.md) — agent-facing playbook for authoring a new plugin (used for every Rails plugin session).
-6. [`docs/internal-spec/public-api.md`](../internal-spec/public-api/) — public-vs-internal stability boundary. Cross-reference `spec/rigor/public_api_drift_spec.rb` before extending any pinned namespace.
-7. [`examples/README.md`](https://github.com/rigortype/rigor/blob/main/examples/README.md) — comparison table over the seven worked plugin examples; recommended reading order for new authors.
-8. [`docs/adr/2-extension-api.md`](../adr/2-extension-api/) and [`docs/adr/7-v0.1.0-slice-decisions.md`](../adr/7-v0.1.0-slice-decisions/) — the binding design and per-slice working decisions for the v0.1.0 plugin contract that v0.1.1 builds on.
-9. [`docs/adr/3-type-representation.md`](../adr/3-type-representation/) Working Decisions — OQ1 / OQ2 / OQ3 outcomes still bind the type-object public surface plugins consume.
-
-After those, the implementation surface for v0.1.1 is locatable from grep over `lib/rigor/inference/narrowing.rb`, `lib/rigor/flow_contribution*.rb`, `lib/rigor/plugin/`, `lib/rigor/cache/`, `lib/rigor/rbs_extended/`, and `lib/rigor/analysis/`.
+その後、v0.1.1の実装サーフェスは`lib/rigor/inference/narrowing.rb`、`lib/rigor/flow_contribution*.rb`、`lib/rigor/plugin/`、`lib/rigor/cache/`、`lib/rigor/rbs_extended/`、`lib/rigor/analysis/`に対するgrepから見つけられます。

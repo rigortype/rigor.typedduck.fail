@@ -5,103 +5,67 @@ editUrl: "https://github.com/rigortype/rigor/edit/main/docs/internal-spec/reflec
 sourcePath: "docs/internal-spec/reflection.md"
 sourceSha: "adf951b9848aecc184b87b72fde2d70a8a508c2620b17fa824b3499460c0afdf"
 sourceCommit: "9f40e22193647dc06e3ab70c5ba82768b0bfe738"
-translationStatus: "pending"
+translationStatus: "translated"
 sidebar:
   order: 3050
 ---
 
-> [!NOTE]
-> このページはまだ翻訳されていません。英語版の本文を参考表示しています。
+ステータス：**パブリック読み取り形状（v0.0.7）。**このモジュールはRigorの3つのリフレクションソースに対する統合された読み取り側ファサードです。v0.1.0プラグインAPIが設計される基盤となります；[`docs/design/20260505-v0.1.0-readiness.md`](../../design/20260505-v0.1.0-readiness/)に従い、ファサードの実装はv0.1.0準備のための最もレバレッジの高いコールドスタートスライスでした。
 
-Status: **Public read shape (v0.0.7).** This module is the unified
-read-side facade over Rigor's three reflection sources. It is the
-substrate the v0.1.0 plugin API will be designed against; per
-[`docs/design/20260505-v0.1.0-readiness.md`](../../design/20260505-v0.1.0-readiness/),
-landing the facade was the highest-leverage cold-start slice for
-v0.1.0 readiness.
+このモジュールは**読み取り専用で追加的**です。`Rigor::Scope`や`Rigor::Environment::RbsLoader`から直接読み込む既存の呼び出しサイトは変更なく動作し続けます；それらは自分たちのペースでファサードに移行します。
 
-The module is **read-only and additive**. Existing call sites that
-read directly from `Rigor::Scope` or
-`Rigor::Environment::RbsLoader` continue to work unchanged; they
-migrate to the facade at their own pace.
+## 結合されるリフレクションソース
 
-## Reflection sources joined
-
-| Source | What it provides | Mutability |
+| ソース | 提供するもの | 変更可能性 |
 | --- | --- | --- |
-| `Rigor::Environment::ClassRegistry` | Ruby `Class` / `Module` objects (Integer, Float, Set, Pathname, …) registered at boot. | Static during a `rigor check` run. |
-| `Rigor::Environment::RbsLoader` | RBS-side declarations: instance / singleton methods, class hierarchy, constants. | Loaded on demand from the project's `sig/` directory and the bundled stdlib RBS. |
-| `Rigor::Scope` discovered facts | Source-side discoveries from `Rigor::Inference::ScopeIndexer`: user-defined classes / modules, in-source constants, discovered method nodes, class ivar / cvar declarations. | Per-scope; threaded through the inference engine. |
+| `Rigor::Environment::ClassRegistry` | 起動時に登録されたRubyの`Class`/`Module`オブジェクト（Integer・Float・Set・Pathname等）。 | `rigor check`実行中は静的。 |
+| `Rigor::Environment::RbsLoader` | RBS側の宣言：インスタンス/シングルトンメソッド・クラス階層・定数。 | プロジェクトの`sig/`ディレクトリとバンドルされた標準ライブラリRBSからオンデマンドで読み込まれる。 |
+| `Rigor::Scope`で発見されたファクト | `Rigor::Inference::ScopeIndexer`によるソース側の発見：ユーザー定義のクラス/モジュール・ソース内定数・発見されたメソッドノード・クラスのインスタンス変数/クラス変数宣言。 | スコープごと；推論エンジンを通じてスレッド化される。 |
 
-The facade joins these sources without caching; underlying sources
-already cache where it matters (`RbsLoader` memoises class
-definitions; `ClassRegistry` is constant; `Scope` is an immutable
-value object).
+ファサードはキャッシュなしでこれらのソースを結合します；基底ソースは重要な箇所でキャッシュ済みです（`RbsLoader`はクラス定義をメモ化；`ClassRegistry`は定数；`Scope`は不変値オブジェクト）。
 
-## Public API (v0.0.7 first pass)
+## パブリックAPI（v0.0.7初回実装）
 
-### Existence and ordering
+### 存在確認と順序付け
 
-- `Rigor::Reflection.class_known?(class_name, scope: Scope.empty)` — `true` when ANY source recognises the class / module name.
-- `Rigor::Reflection.class_ordering(lhs, rhs, scope: Scope.empty)` — `:equal` / `:subclass` / `:superclass` / `:disjoint` / `:unknown` ordering between two class names. Delegates to `Environment#class_ordering`.
+- `Rigor::Reflection.class_known?(class_name, scope: Scope.empty)` — いずれかのソースがそのクラス/モジュール名を認識する場合に`true`。
+- `Rigor::Reflection.class_ordering(lhs, rhs, scope: Scope.empty)` — 2つのクラス名の順序関係を`:equal` / `:subclass` / `:superclass` / `:disjoint` / `:unknown`で返す。`Environment#class_ordering`に委譲。
 
-### Type carriers
+### 型キャリア
 
-- `Rigor::Reflection.nominal_for_name(class_name, scope: Scope.empty)` — `Rigor::Type::Nominal` for the class name, or `nil` when no source knows the class.
-- `Rigor::Reflection.singleton_for_name(class_name, scope: Scope.empty)` — `Rigor::Type::Singleton` for the class name's class object, or `nil`.
+- `Rigor::Reflection.nominal_for_name(class_name, scope: Scope.empty)` — クラス名の`Rigor::Type::Nominal`、またはいずれのソースもクラスを知らない場合は`nil`。
+- `Rigor::Reflection.singleton_for_name(class_name, scope: Scope.empty)` — クラス名のクラスオブジェクトの`Rigor::Type::Singleton`、または`nil`。
 
-### Constants
+### 定数
 
-- `Rigor::Reflection.constant_type_for(constant_name, scope: Scope.empty)` — type of the named constant. Joins in-source constants (recorded by `ScopeIndexer`) and RBS-side constants. **In-source wins on collision** because the user's source is the authoritative declaration.
+- `Rigor::Reflection.constant_type_for(constant_name, scope: Scope.empty)` — 名前付き定数の型。ソース内定数（`ScopeIndexer`が記録）とRBS側定数を結合する。**競合時はソース内が優先**（ユーザーのソースが権威ある宣言のため）。
 
-### Methods
+### メソッド
 
-- `Rigor::Reflection.instance_method_definition(class_name, method_name, scope: Scope.empty)` — RBS `RBS::Definition::Method` for the instance method, or `nil` when the class or method is not in RBS.
-- `Rigor::Reflection.singleton_method_definition(class_name, method_name, scope: Scope.empty)` — RBS-side singleton (class-side) method definition, or `nil`.
+- `Rigor::Reflection.instance_method_definition(class_name, method_name, scope: Scope.empty)` — インスタンスメソッドのRBSの`RBS::Definition::Method`、またはクラスやメソッドがRBSにない場合は`nil`。
+- `Rigor::Reflection.singleton_method_definition(class_name, method_name, scope: Scope.empty)` — RBS側のシングルトン（クラス側）メソッド定義、または`nil`。
 
-### Source-side discoveries
+### ソース側の発見
 
-- `Rigor::Reflection.discovered_class?(class_name, scope: Scope.empty)` — `true` when the analyzed source contains a class / module declaration. Does NOT consult the RBS loader (use `class_known?` for the union).
-- `Rigor::Reflection.discovered_method?(class_name, method_name, kind: :instance, scope: Scope.empty)` — `true` when `ScopeIndexer` recorded a `def` for the given method on the given class with the matching kind.
+- `Rigor::Reflection.discovered_class?(class_name, scope: Scope.empty)` — 解析対象ソースにクラス/モジュール宣言が含まれる場合に`true`。RBSローダーを参照しない（ユニオンには`class_known?`を使用）。
+- `Rigor::Reflection.discovered_method?(class_name, method_name, kind: :instance, scope: Scope.empty)` — `ScopeIndexer`が指定のクラスの指定のメソッドに対して一致する種類の`def`を記録した場合に`true`。
 
-## Provenance
+## 来歴
 
-The provenance side of the API (which source family contributed
-each fact) is explicitly **out of scope for the v0.0.7 first
-pass**. v0.1.0's plugin API adds it as a separate concern, per
-ADR-2 § "Plugin Diagnostic Provenance" and the readiness
-analysis's recommendation to keep the facade narrow until plugin
-authors require provenance for diagnostic explanations.
+APIの来歴側（どのソースファミリーが各ファクトを提供したか）はv0.0.7の初回実装の**スコープ外**です。v0.1.0のプラグインAPIはそれを別の関心事として追加します——ADR-2 §「プラグイン診断来歴」と、プラグイン作成者が診断説明のために来歴を必要とするまでファサードを狭く保つというreadiness分析の推奨に従います。
 
-## Stability
+## 安定性
 
-The facade's method signatures are stable as a v0.0.x public read
-shape. Adding new methods is an additive change; renaming or
-removing existing methods is a breaking change requiring a major
-or minor version bump.
+ファサードのメソッドシグネチャはv0.0.xのパブリック読み取り形状として安定しています。新しいメソッドの追加は追加的な変更です；既存のメソッドの名称変更や削除はメジャーまたはマイナーバージョンバンプが必要な破壊的変更です。
 
-The underlying source-of-truth dispatch may change without notice.
-For example, the in-source vs RBS preference rule for
-`constant_type_for` is a documented contract and stays stable;
-how each source caches its lookups internally is not.
+基底の真実ソースのディスパッチは予告なく変更される可能性があります。例えば、`constant_type_for`のソース内対RBS優先ルールは文書化されたコントラクトであり安定を保ちます；各ソースが内部的にルックアップをキャッシュする方法はそうではありません。
 
-## Future evolution
+## 将来の進化
 
-The v0.1.0 plugin API extends this module along three axes,
-called out in [`docs/design/20260505-v0.1.0-readiness.md`](../../design/20260505-v0.1.0-readiness/):
+v0.1.0プラグインAPIはこのモジュールを[`docs/design/20260505-v0.1.0-readiness.md`](../../design/20260505-v0.1.0-readiness/)で言及される3つの軸に沿って拡張します：
 
-- **Provenance** — every read returns a `(value, source_family)`
-  pair so plugin diagnostics can explain why a fact came from
-  source / RBS / generated / plugin.
-- **Unified `MethodDefinition` carrier** — currently
-  `instance_method_definition` returns the raw
-  `RBS::Definition::Method`; v0.1.0 introduces a Rigor-side
-  carrier that joins source `def` nodes, RBS sigs, and plugin
-  dynamic members under one shape.
-- **Cache slice descriptors** — each read returns or accepts a
-  cache key derived from the typed-slot schema in ADR-2 § "Cache
-  Invalidation Needs a Declarative API", so plugin facts that
-  depend on a reflection lookup invalidate cleanly when the
-  underlying source changes.
+- **来歴** — すべての読み込みが`(value, source_family)`ペアを返すため、プラグイン診断がファクトがソース/RBS/生成済み/プラグインのどこから来たかを説明できます。
+- **統合された`MethodDefinition`キャリア** — 現在`instance_method_definition`は生の`RBS::Definition::Method`を返します；v0.1.0はソースの`def`ノード・RBSシグネチャ・プラグインの動的メンバーを1つの形状に結合するRigor側のキャリアを導入します。
+- **キャッシュスライスディスクリプタ** — 各読み込みがADR-2 §「キャッシュ無効化には宣言的なAPIが必要」の型付きスロットスキーマから導出されたキャッシュキーを返すまたは受け取るため、リフレクションルックアップに依存するプラグインファクトは基底ソースが変更されたときに正しく無効化されます。
 
-These are not part of the v0.0.x contract.
+これらはv0.0.xコントラクトの一部ではありません。

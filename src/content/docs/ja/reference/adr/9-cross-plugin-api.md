@@ -5,72 +5,36 @@ editUrl: "https://github.com/rigortype/rigor/edit/main/docs/adr/9-cross-plugin-a
 sourcePath: "docs/adr/9-cross-plugin-api.md"
 sourceSha: "e1e0ca181b4bded70ec696c11ff57b028366523ce499eb6b4d2ed45da72de3b8"
 sourceCommit: "9f40e22193647dc06e3ab70c5ba82768b0bfe738"
-translationStatus: "pending"
+translationStatus: "translated"
 sidebar:
   order: 4009
 ---
 
-> [!NOTE]
-> このページはまだ翻訳されていません。英語版の本文を参考表示しています。
+ステータス: **提案中、2026-05-08。**実装はv0.1.xのためにキューイング済み。このADRは設計を固定し、Tier 1プラグイン作成がそのランドを待たずに進められるようにする。
 
-Status: **proposed, 2026-05-08.** Implementation queued for
-v0.1.x; this ADR fixes the design so Tier 1 plugin authoring
-can proceed without depending on its arrival.
+## コンテキスト
 
-## Context
+v0.1.0プラグイン契約（[ADR-2](../2-extension-api/)）は、すべてのプラグインに独自のファイルごと解析フック（`#diagnostics_for_file(path:, scope:, root:)`）、ファイル読み取り用の独自の`IoBoundary`、キャッシュ用の独自の`Plugin::Base.producer`名前空間を提供する。プラグインは**完全に独立している** — 1つのプラグインが別のプラグインの解析状態を読めず、プロデューサー名前空間（`plugin.<id>.<producer>`）は[ADR-7 § 「スライス6-C」](../7-v0.1.0-slice-decisions/)に従って意図的にプラグインごとにサンドボックス化されている。
 
-The v0.1.0 plugin contract ([ADR-2](../2-extension-api/)) gives
-every plugin its own per-file analysis hook
-(`#diagnostics_for_file(path:, scope:, root:)`), its own
-`IoBoundary` for file reads, and its own
-`Plugin::Base.producer` namespace for caching. Plugins are
-**fully independent** — one plugin cannot read another
-plugin's parsed state, and the producer namespace
-(`plugin.<id>.<producer>`) is intentionally sandboxed per
-[ADR-7 § "Slice 6-C"](../7-v0.1.0-slice-decisions/).
+この独立性はプラグインが未実証だったv0.1.0の正しいデフォルトだった。7つの実装例がランドし、Railsエコシステムロードマップ（[`docs/design/20260508-rails-plugins-roadmap.md`](../../design/20260508-rails-plugins-roadmap/)）が記録されると、制約は具体的に障害になっている。
 
-This independence is the right default for v0.1.0 because
-plugins were unproven. With seven worked examples landed and
-the Rails ecosystem roadmap
-([`docs/design/20260508-rails-plugins-roadmap.md`](../../design/20260508-rails-plugins-roadmap/))
-captured, the constraint now bites concretely:
+- `rigor-actionpack`フェーズ1（強いパラメータ）は`rigor-activerecord`がすでに構築しているモデルインデックスが必要だ。`db/schema.rb`を最初から再読み込み・再パースするのは無駄であり、モデルディスカバラーを再実装すると`rigor-activerecord`のルールからずれていく。
+- `rigor-factorybot`はファクトリー属性検証に同じモデルインデックスが必要だ。
+- `rigor-actionpack`フェーズ4（ルートヘルパー消費）は`rigor-rails-routes`が構築するヘルパーテーブルが必要だ。
 
-- `rigor-actionpack` Phase 1 (strong parameters) needs the
-  model index that `rigor-activerecord` already builds.
-  Re-reading and re-parsing `db/schema.rb` from scratch is
-  wasteful, and re-implementing the model discoverer would
-  drift against `rigor-activerecord`'s rules.
-- `rigor-factorybot` needs the same model index for factory
-  attribute validation.
-- `rigor-actionpack` Phase 4 (route-helper consumption) needs
-  the helper table that `rigor-rails-routes` builds.
+これらのクロスプラグイン読み取りはRailsエコシステムプラグイン全体で繰り返される。公認APIなしでは、プラグイン作成者は作業を重複させるか、アドホックな回避策（例：スライス6-Cサンドボックスに違反する共有プロデューサーid）を考案するかのどちらかになる。
 
-These cross-plugin reads recur throughout the Rails ecosystem
-plugins. Without a sanctioned API, plugin authors will either
-duplicate work or invent ad-hoc workarounds (e.g. shared
-producer ids that violate the slice 6-C sandbox).
+## 決定
 
-## Decision
+v0.1.0プラグイン契約に3つの追加をv0.1.xスライスとしてゲートして追加する。
 
-Add three additions to the v0.1.0 plugin contract, gated as a
-v0.1.x slice:
-
-1. **A per-run `Plugin::FactStore`** that lets plugins publish
-   typed key-value tuples. Other plugins read by `(plugin_id,
-   fact_name)`.
-2. **A new `Plugin::Base#prepare(services)` hook** invoked
-   once per `Analysis::Runner.run`, after `#init` and before
-   any `#diagnostics_for_file` call. Plugins compute and
-   publish facts here.
-3. **A new `manifest(consumes: [...])` declaration** that
-   declares the `(plugin_id, fact_name)` pairs a plugin reads
-   from the fact store. The loader uses it for topological
-   sort + early failure on missing producers.
+1. **プラグインが型付きキーバリューのタプルを公開できるプランごとの`Plugin::FactStore`。**他のプラグインは`(plugin_id, fact_name)`で読み取る。
+2. **新しい`Plugin::Base#prepare(services)`フック。** `Analysis::Runner.run`ごとに1回、`#init`の後、任意の`#diagnostics_for_file`呼び出しの前に呼び出される。プラグインはここでファクトを計算して公開する。
+3. **新しい`manifest(consumes: [...])`宣言。**プラグインがファクトストアから読み取る`(plugin_id, fact_name)`ペアを宣言する。ローダーはそれをトポロジカルソートと欠落しているプロデューサーの早期失敗に使用する。
 
 ### `Plugin::FactStore`
 
-Public read-only-once value object with publish / read /
-iterate operations. Lives on `Plugin::Services#fact_store`.
+公開/読み取り/反復操作を持つパブリック読み取り専用の値オブジェクト。`Plugin::Services#fact_store`に配置される。
 
 ```ruby
 module Rigor
@@ -104,24 +68,13 @@ module Rigor
 end
 ```
 
-Lifecycle: a fresh `FactStore` instance is constructed at the
-start of every `Analysis::Runner.run` and discarded at the
-end. The store is NOT cached across runs — caching the
-underlying expensive computation is the producer's job
-(`Plugin::Base.producer`); the FactStore just publishes the
-*reference* to that already-cached result.
+ライフサイクル: 新鮮な`FactStore`インスタンスはすべての`Analysis::Runner.run`の開始時に構築され、終了時に破棄される。ストアは実行をまたいでキャッシュされない — 高コストな基礎計算のキャッシュはプロデューサーの仕事（`Plugin::Base.producer`）。FactStoreはそのすでにキャッシュされた結果への*参照*を公開するだけだ。
 
-Conflict semantics: if two plugins publish under the same
-`(plugin_id, name)`, the second write either matches the first
-(no-op) or differs (raises). Since `plugin_id` namespaces the
-key, conflicts only happen when a single plugin publishes
-twice — so the conflict signals a plugin-author bug, not a
-loader-time conflict between unrelated plugins.
+コンフリクトセマンティクス: 2つのプラグインが同じ`(plugin_id, name)`の下に公開する場合、2番目の書き込みは最初のものと一致（ノーオペレーション）するか、異なる（raiseする）かのどちらかだ。`plugin_id`がキーを名前空間化するため、コンフリクトは単一プラグインが2回公開する場合にのみ発生する——したがってコンフリクトはローダー時の無関係なプラグイン間の衝突ではなく、プラグイン作成者のバグを示す。
 
-### `Plugin::Base#prepare(services)` hook
+### `Plugin::Base#prepare(services)`フック
 
-Default no-op. Plugins override to compute and publish facts
-that other plugins consume:
+デフォルトはノーオペレーション。プラグインは他のプラグインが消費するファクトを計算・公開するためにオーバーライドする。
 
 ```ruby
 class Activerecord < Plugin::Base
@@ -141,33 +94,20 @@ class Activerecord < Plugin::Base
 end
 ```
 
-Calling order within a single `Analysis::Runner.run`:
+単一の`Analysis::Runner.run`内の呼び出し順序:
 
-1. `Plugin::Loader.load` constructs every plugin instance and
-   calls each plugin's `#init(services)`.
-2. The loader topologically sorts plugins by their `consumes:`
-   declarations (producer first; cycles are a load error).
-3. **For each plugin in topological order**, the runner calls
-   `#prepare(services)`. Plugins publish their facts here.
-4. The runner iterates files. For each file, every plugin's
-   `#diagnostics_for_file` runs (in registration order — the
-   existing semantics). Hooks read from `services.fact_store`
-   freely.
+1. `Plugin::Loader.load`がすべてのプラグインインスタンスを構築し、各プラグインの`#init(services)`を呼び出す。
+2. ローダーは`consumes:`宣言によってプラグインをトポロジカルソートする（プロデューサーが先。サイクルはロードエラー）。
+3. **トポロジカル順序でプラグインごとに**、ランナーが`#prepare(services)`を呼び出す。プラグインはここでファクトを公開する。
+4. ランナーはファイルを反復する。各ファイルに対して、すべてのプラグインの`#diagnostics_for_file`が実行される（登録順——既存のセマンティクス）。フックは`services.fact_store`から自由に読み取る。
 
-Plugins that have no facts to publish leave `#prepare` as the
-default no-op.
+公開するファクトのないプラグインは`#prepare`をデフォルトのノーオペレーションのままにする。
 
-Failure isolation: a `#prepare` raise isolates as a
-`:plugin_loader runtime-error` diagnostic per ADR-2 § "Plugin
-Trust and I/O Policy", same shape as a
-`#diagnostics_for_file` raise. Plugins that fail in `#prepare`
-have their facts considered un-published; downstream consumers
-see `nil` from `fact_store.read` and degrade gracefully.
+失敗の分離: `#prepare`のraiseはADR-2 § 「プラグイン信頼とI/Oポリシー」に従って`:plugin_loader runtime-error`診断として分離され、`#diagnostics_for_file`のraiseと同じ形状だ。`#prepare`で失敗したプラグインのファクトは未公開と見なされる。下流のコンシューマーは`fact_store.read`から`nil`を見て、グレースフルにデグレードする。
 
-### `manifest(consumes:)` declaration
+### `manifest(consumes:)`宣言
 
-Optional manifest field. An array of `{ plugin_id:, name: }`
-hashes naming the facts a plugin reads:
+オプションのマニフェストフィールド。プラグインが読み取るファクトを命名する`{ plugin_id:, name: }`ハッシュの配列:
 
 ```ruby
 class Actionpack < Plugin::Base
@@ -182,31 +122,14 @@ class Actionpack < Plugin::Base
 end
 ```
 
-`Plugin::Manifest::Consumption` value object: frozen
-`Data.define(:plugin_id, :name)`. The manifest validates the
-shape at class-definition time; malformed declarations raise
-`ArgumentError` with a message naming the offending entry.
+`Plugin::Manifest::Consumption`値オブジェクト: 凍結された`Data.define(:plugin_id, :name)`。マニフェストはクラス定義時に形状を検証する。不正な宣言は問題のあるエントリを名指しするメッセージで`ArgumentError`をraiseする。
 
-The loader uses `consumes` for two things:
+ローダーは`consumes`を2つのことに使用する。
 
-1. **Topological sort** — a depth-first walk over the
-   `consumes` graph orders plugin `#prepare` invocations so
-   producers fire before consumers. Cycles raise
-   `Plugin::LoadError(:dependency-cycle)`. Determinism
-   tie-break: `plugin_id` alphabetical when no dependency
-   relation exists.
-2. **Early validation** — at the end of `Plugin::Loader.load`,
-   the loader checks that every consumed `(plugin_id, name)`
-   has a plugin in the registry whose manifest declares the
-   matching production. This is enforced via a manifest field
-   on the producer side: `manifest(produces: [:model_index])`.
-   Missing producer surfaces as a `:plugin_loader load-error`
-   diagnostic before any analysis runs.
+1. **トポロジカルソート** — `consumes`グラフの深さ優先ウォークがプラグインの`#prepare`呼び出しをプロデューサーがコンシューマーの前に実行されるよう順序付ける。サイクルは`Plugin::LoadError(:dependency-cycle)`をraiseする。決定論性の同率処理: 依存関係がない場合は`plugin_id`アルファベット順。
+2. **早期検証** — `Plugin::Loader.load`の終了時、ローダーは消費されたすべての`(plugin_id, name)`に、一致するproductionを宣言するマニフェストを持つプラグインがレジストリにあることを確認する。これはプロデューサー側のマニフェストフィールド`manifest(produces: [:model_index])`を通じて強制される。欠落しているプロデューサーは解析が実行される前に`:plugin_loader load-error`診断として表面化する。
 
-Optional `consumes:` entry semantics: an entry tagged
-`optional: true` skips the early-validation check. The
-consumer's `fact_store.read` returns `nil` and the consumer
-must degrade gracefully:
+オプションの`consumes:`エントリセマンティクス: `optional: true`でタグ付けされたエントリは早期検証チェックをスキップする。コンシューマーの`fact_store.read`は`nil`を返し、コンシューマーはグレースフルにデグレードしなければならない。
 
 ```ruby
 manifest(
@@ -222,104 +145,61 @@ def diagnostics_for_file(path:, scope:, root:)
 end
 ```
 
-Use `optional: true` for plugins whose ergonomics improve when
-a sibling is loaded but who must function alone. `rigor-factorybot`
-is the canonical example — works without `rigor-activerecord`,
-benefits from it.
+`optional: true`は、兄弟がロードされているとエルゴノミクスが改善するが、単独でも機能しなければならないプラグインに使用する。`rigor-factorybot`が典型的な例だ——`rigor-activerecord`なしでも動作するが、あれば恩恵を受ける。
 
-## Public-API drift surface
+## パブリックAPIドリフトサーフェス
 
-This ADR adds:
+このADRは以下を追加する。
 
-- `Rigor::Plugin::FactStore` (new namespace) — `publish`,
-  `read`, `published?`, `each_fact`, `Fact` (frozen Data),
-  `Conflict` (exception class).
-- `Rigor::Plugin::Services#fact_store` (new accessor).
-- `Rigor::Plugin::Base#prepare(services)` (new hook, default no-op).
-- `Rigor::Plugin::Manifest#consumes` (new attr_reader; default `[]`).
-- `Rigor::Plugin::Manifest#produces` (new attr_reader; default `[]`).
-- `Rigor::Plugin::Manifest::Consumption` (new frozen Data).
-- `Rigor::Plugin::LoadError` gains `:dependency-cycle` and
-  `:missing-producer` reason codes.
+- `Rigor::Plugin::FactStore`（新しい名前空間） — `publish`、`read`、`published?`、`each_fact`、`Fact`（凍結Data）、`Conflict`（例外クラス）。
+- `Rigor::Plugin::Services#fact_store`（新しいアクセサー）。
+- `Rigor::Plugin::Base#prepare(services)`（新しいフック、デフォルトノーオペレーション）。
+- `Rigor::Plugin::Manifest#consumes`（新しいattr_reader、デフォルト`[]`）。
+- `Rigor::Plugin::Manifest#produces`（新しいattr_reader、デフォルト`[]`）。
+- `Rigor::Plugin::Manifest::Consumption`（新しい凍結Data）。
+- `Rigor::Plugin::LoadError`が`:dependency-cycle`と`:missing-producer`の理由コードを得る。
 
-All updates land in `spec/rigor/public_api_drift_spec.rb` in
-the same commit as the implementation.
+すべての更新は実装と同じコミットの`spec/rigor/public_api_drift_spec.rb`にランドする。
 
-## Implementation slicing
+## 実装スライシング
 
-Recommended order; each slice independently shippable:
+推奨順序。各スライスは独立して出荷可能:
 
-1. **`Plugin::FactStore` value object + spec.** Pure value
-   object; no plugin loader changes yet. Drift snapshot
-   landed.
-2. **`Plugin::Services#fact_store` accessor.** A FactStore
-   instance is constructed per Services. Plugins can publish
-   and read; nothing else changes.
-3. **`Plugin::Base#prepare(services)` default hook + Runner
-   invocation.** Runner calls `#prepare` on every plugin
-   before per-file iteration. Order: registration order (no
-   topological sort yet — that's slice 5).
-4. **`manifest(produces:)` + `manifest(consumes:)`
-   declarations + validation.** Manifest carries the
-   declarations but the loader does not yet enforce them.
-5. **Topological sort + missing-producer / cycle detection in
-   `Plugin::Loader`.** This is the slice that makes
-   `consumes:` binding.
-6. **Documentation update** —
-   `docs/internal-spec/plugin-cross-plugin.md` (new file)
-   + the `rigor-plugin-author` SKILL gains a "Phase 4.7 —
-   cross-plugin facts" section.
+1. **`Plugin::FactStore`値オブジェクト+spec。**純粋な値オブジェクト。プラグインローダーの変更はまだなし。ドリフトスナップショットをランド。
+2. **`Plugin::Services#fact_store`アクセサー。** Servicesごとにインスタンスが1つ構築される。プラグインは公開と読み取りができる。他は何も変わらない。
+3. **`Plugin::Base#prepare(services)`デフォルトフック+Runnerの呼び出し。** Runnerはファイルごとの反復の前にすべてのプラグインで`#prepare`を呼び出す。順序: 登録順（まだトポロジカルソートなし——それはスライス5）。
+4. **`manifest(produces:)` + `manifest(consumes:)`宣言+検証。**マニフェストは宣言を持つが、ローダーはまだそれを強制しない。
+5. **`Plugin::Loader`のトポロジカルソート+欠落プロデューサー/サイクル検出。**これが`consumes:`を拘束力あるものにするスライスだ。
+6. **ドキュメント更新** — `docs/internal-spec/plugin-cross-plugin.md`（新ファイル）+ `rigor-plugin-author` SKILLが「フェーズ4.7 — クロスプラグインファクト」セクションを得る。
 
-`rigor-actionpack` Phase 1 lands AFTER slice 5 ships. Tier 1
-plugins (rigor-rails-routes, rigor-rails-i18n,
-rigor-actionmailer, rigor-activejob) DON'T need any of these
-slices and can land in parallel.
+`rigor-actionpack`フェーズ1はスライス5が出荷された後にランドする。Tier 1プラグイン（rigor-rails-routes、rigor-rails-i18n、rigor-actionmailer、rigor-activejob）はこれらのスライスを必要とせず、並行してランドできる。
 
-## Working decisions
+## 作業上の決定
 
-### WD1 — Why not a method-call passthrough?
+### WD1 — なぜメソッド呼び出しパススルーではないのか？
 
-An alternative design would let plugins query each other's
-public methods directly:
+別の設計では、プラグインが互いのパブリックメソッドを直接クエリできるようにする。
 
 ```ruby
 ar_plugin = services.plugin_registry.find("activerecord")
 ar_plugin.model_index  # call public method
 ```
 
-This was rejected because:
+これは却下された。理由:
 
-- It couples plugins to each other's class-level API; a method
-  rename in `rigor-activerecord` breaks every consumer.
-- Plugin instances are private to the runner; exposing them
-  would leak unrelated state (`@io_boundary`, `@config`).
-- The "fact" abstraction is closer to what consumers actually
-  want — a value object the producer chose to publish, not the
-  plugin's internal state.
+- プラグインを互いのクラスレベルAPIに結合させる。`rigor-activerecord`でのメソッド名変更がすべてのコンシューマーを壊す。
+- プラグインインスタンスはランナーにとってプライベートだ。それらを公開すると無関係な状態（`@io_boundary`、`@config`）が漏洩する。
+- 「ファクト」の抽象は、コンシューマーが実際に欲しいもの——プロデューサーが公開することを選んだ値オブジェクト、プラグインの内部状態ではない——に近い。
 
-The FactStore design prevents accidental coupling: the only
-contract is the published value's shape, which can be pinned
-by a typed Data class living in `lib/rigor-<id>-facts.rb` (a
-shared shape gem) if cross-version compatibility becomes a
-concern.
+FactStore設計は偶発的な結合を防ぐ。唯一の契約は公開された値の形状であり、クロスバージョン互換性が懸念になる場合は`lib/rigor-<id>-facts.rb`（共有形状gem）に配置された型付きDataクラスでピン留めできる。
 
-### WD2 — Why not RBS for fact shapes?
+### WD2 — なぜファクト形状にRBSではないのか？
 
-RBS could declare the fact value's type contract. Considered
-and deferred — the shape contract is best owned by the
-producing plugin's own code (e.g.
-`Rigor::Plugin::Activerecord::ModelIndex`), and consumers
-import the producing gem to access its types. RBS adds rigor
-but requires every plugin to ship `.rbs` for its public types,
-which is currently not the convention. Revisit when one of the
-plugin gems hits a v1.0.0 stability commitment.
+RBSはファクト値の型契約を宣言できる。検討されたが延期——形状契約はプロデューシングプラグイン自身のコード（例：`Rigor::Plugin::Activerecord::ModelIndex`）が所有するのが最善で、コンシューマーはその型にアクセスするためにプロデューシングgemをインポートする。RBSはリゴール（厳密さ）を加えるが、すべてのプラグインがパブリック型用の`.rbs`を出荷することを要求し、これは現在の慣行ではない。プラグインgemの1つがv1.0.0の安定性コミットメントに達したときに再検討する。
 
-### WD3 — Cache descriptor composition
+### WD3 — キャッシュディスクリプター合成
 
-When a consumer plugin uses a fact in its own cache producer
-key, the descriptor needs to include the producer's
-identity + version so a producer upgrade invalidates the
-consumer's cache:
+コンシューマープラグインが自身のキャッシュプロデューサーキーでファクトを使用する場合、ディスクリプターにはプロデューサーのアイデンティティ+バージョンを含める必要があり、プロデューサーのアップグレードがコンシューマーのキャッシュを無効化する。
 
 ```ruby
 producer :strong_params_validation do |params|
@@ -336,33 +216,20 @@ producer :strong_params_validation do |params|
 end
 ```
 
-Open question: how does the consumer learn the producer's
-version? Options:
+未解決の問い: コンシューマーはどのようにプロデューサーのバージョンを知るか？選択肢:
 
-A. The producer publishes its version as part of the fact
-   payload: `{ plugin_id:, name:, value:, producer_version: }`.
-B. `services.fact_store.read` returns a wrapper carrying
-   producer metadata: `Fact(value:, producer_version:)`.
-C. The consumer reads the producer's manifest:
-   `services.plugin_registry.find("activerecord").manifest.version`.
+A. プロデューサーがファクトペイロードの一部としてバージョンを公開する: `{ plugin_id:, name:, value:, producer_version: }`。
+B. `services.fact_store.read`がプロデューサーメタデータを持つラッパーを返す: `Fact(value:, producer_version:)`。
+C. コンシューマーがプロデューサーのマニフェストを読む: `services.plugin_registry.find("activerecord").manifest.version`。
 
-Option B is cleanest — implementation defers the wrapper
-shape until the first concrete need (likely `rigor-actionpack`
-Phase 1).
+オプションBが最もクリーンだ——実装は最初の具体的なニーズ（おそらく`rigor-actionpack`フェーズ1）まで形状を延期する。
 
-## Alternatives considered
+## 検討した代替案
 
-- **Shared producer ids** (a consumer registers
-  `producer :"plugin.activerecord.model_index"`). Rejected: violates
-  ADR-7 § "Slice 6-C" sandbox; cache attribution becomes
-  ambiguous.
-- **Plugin-to-plugin require / direct constant lookup**. Rejected:
-  forces gem dependencies between plugin gems. The whole point of
-  the FactStore is to keep gems independently extractable.
-- **Capability-based message passing**. Considered. Heavier than
-  needed for the current use cases.
+- **共有プロデューサーid**（コンシューマーが`producer :"plugin.activerecord.model_index"`を登録する）。却下: ADR-7 § 「スライス6-C」サンドボックスに違反する。キャッシュ帰属が曖昧になる。
+- **プラグイン間requireおよび直接定数ルックアップ。**却下: プラグインgem間でgem依存関係を強制する。FactStoreの目的はgemを独立して取り出せるまま保つことだ。
+- **能力ベースのメッセージパッシング。**検討済み。現在のユースケースに対して重すぎる。
 
-## Revision history
+## 改訂履歴
 
-- 2026-05-08 — initial proposal. Triggered by the Rails
-  ecosystem roadmap landing.
+- 2026-05-08 — 初期提案。Railsエコシステムロードマップのランドによって引き起こされた。

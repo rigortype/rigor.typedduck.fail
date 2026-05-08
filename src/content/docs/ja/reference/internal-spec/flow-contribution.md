@@ -5,24 +5,14 @@ editUrl: "https://github.com/rigortype/rigor/edit/main/docs/internal-spec/flow-c
 sourcePath: "docs/internal-spec/flow-contribution.md"
 sourceSha: "58cb27213f942ae171f157c291094d33b1180dfd4f06d22d6ba99aefb7530b97"
 sourceCommit: "9f40e22193647dc06e3ab70c5ba82768b0bfe738"
-translationStatus: "pending"
+translationStatus: "translated"
 sidebar:
   order: 3050
 ---
 
-> [!NOTE]
-> このページはまだ翻訳されていません。英語版の本文を参考表示しています。
+ステータス: **公開リード形（v0.0.9 グループB）。** このドキュメントは、フローコントリビューションプロデューサー（現在は組み込みナローイングルール、v0.1.0以降は`RBS::Extended`アノテーションおよびプラグイン作者）が単一の呼び出しエッジでアナライザーに渡すサーフェスを固定します。これらのバンドルを消費するマージポリシーは[ADR-2 § "Plugin Contribution Merging"](../../adr/2-extension-api/)が所有します。v0.0.9ではバンドル構造体のみを提供し、マージャーはv0.1.0でプラグインAPIとともに導入されます。
 
-Status: **Public read shape (v0.0.9 group B).** This document
-fixes the surface every flow-contribution producer (built-in
-narrowing rules today, `RBS::Extended` annotations and plugin
-authors after v0.1.0) hands the analyzer at a single call edge.
-The merge policy that consumes these bundles is owned by
-[ADR-2 § "Plugin Contribution Merging"](../../adr/2-extension-api/);
-v0.0.9 ships only the bundle struct itself — the merger lands
-alongside the plugin API in v0.1.0.
-
-## Public surface
+## 公開サーフェス
 
 ```ruby
 contribution = Rigor::FlowContribution.new(
@@ -43,35 +33,26 @@ contribution = Rigor::FlowContribution.new(
 )
 ```
 
-Every keyword argument is optional. A slot left unset means "this
-contribution does not assert anything in that dimension" and the
-merge policy treats it as absent. Bundles are frozen on
-construction; collection slots are duped and frozen so callers
-cannot mutate them after the fact.
+キーワード引数はすべて省略可能です。スロットを未設定のままにすることは「このコントリビューションはその次元では何も主張しない」ことを意味し、マージポリシーはそれを存在しないものとして扱います。バンドルは構築時にフリーズされます。コレクションスロットはdup後にフリーズされるため、呼び出し元は構築後に変更できません。
 
-## Slot definitions
+## スロット定義
 
-The eight content slots match
-[ADR-2 § "Flow Contribution Bundle"](../../adr/2-extension-api/):
+8つのコンテンツスロットは[ADR-2 § "Flow Contribution Bundle"](../../adr/2-extension-api/)に対応します。
 
-| Slot | Type | Meaning |
+| スロット | 型 | 意味 |
 | --- | --- | --- |
-| `return_type` | type carrier or `nil` | Normal-edge return type. Plugins MAY narrow within the selected RBS contract; an incompatible return becomes a conflict diagnostic per the merge policy. |
-| `truthy_facts` | `Array` or `nil` | Facts that hold only on the truthy control-flow edge. Edge-local: a truthy-edge fact does NOT imply its falsey-edge complement unless the contribution explicitly supplies it. |
-| `falsey_facts` | `Array` or `nil` | Dual of `truthy_facts`. |
-| `post_return_facts` | `Array` or `nil` | Facts that hold after the call returns normally on every edge. The carrier for assertion-style contributions (`%a{rigor:v1:assert ...}`). |
-| `mutations` | `Array` or `nil` | Receiver and argument mutation effects. Conflicts with `pure`-style declarations are diagnostics. |
-| `invalidations` | `Array` or `nil` | Targeted fact invalidations beyond what `mutations` already implies. |
-| `exceptional` | effect tag or `nil` | Non-returning, raising, or unreachable effect. |
-| `role_conformance` | `Array` or `nil` | Capability-role conformance facts the contribution provides. |
+| `return_type` | 型キャリアまたは`nil` | 通常エッジの戻り型。プラグインは選択されたRBS契約の範囲内で MAY ナローイングできます。非互換な戻り型はマージポリシーに従いコンフリクト診断になります。 |
+| `truthy_facts` | `Array`または`nil` | truthyな制御フローエッジでのみ成立するファクト。エッジローカル：truthyエッジのファクトは、コントリビューションが明示的に提供しない限り、falseyエッジの補集合を MUST NOT 意味しません。 |
+| `falsey_facts` | `Array`または`nil` | `truthy_facts`の双対。 |
+| `post_return_facts` | `Array`または`nil` | 呼び出しがすべてのエッジで正常に戻った後に成立するファクト。アサーションスタイルのコントリビューション（`%a{rigor:v1:assert ...}`）のキャリアです。 |
+| `mutations` | `Array`または`nil` | レシーバーおよび引数の変更エフェクト。`pure`スタイルの宣言との矛盾は診断になります。 |
+| `invalidations` | `Array`または`nil` | `mutations`がすでに示す範囲を超えた、特定ファクトの無効化。 |
+| `exceptional` | エフェクトタグまたは`nil` | 返らない・例外を投げる・到達不能エフェクト。 |
+| `role_conformance` | `Array`または`nil` | コントリビューションが提供するケイパビリティロール適合ファクト。 |
 
-The shape of the values inside the collection slots is
-intentionally not pinned in v0.0.9. The merger that lands in
-v0.1.0 will define a tagged element form; until then
-contributions are free to use the analyzer-internal narrowing
-representation that already drives built-in rules.
+コレクションスロット内の値のシェイプは、v0.0.9では意図的に固定されていません。v0.1.0で導入されるマージャーがタグ付き要素フォームを定義します。それまでの間、コントリビューションは組み込みルールをすでに動かしているアナライザー内部のナローイング表現を自由に使用できます。
 
-## Provenance
+## 来歴（Provenance）
 
 ```ruby
 Rigor::FlowContribution::Provenance = Data.define(
@@ -85,53 +66,34 @@ Rigor::FlowContribution::Provenance.builtin
 # => #<data Provenance source_family=:builtin, plugin_id=nil, node=nil, descriptor=nil>
 ```
 
-`source_family` mirrors `Rigor::Analysis::Diagnostic#source_family`
-so attribution composes cleanly: a diagnostic produced by a
-plugin contribution carries the same source-family string the
-contribution declared. Cache invalidation runs through
-`descriptor` per [ADR-2 § "Registration, Configuration, and
-Caching"](../../adr/2-extension-api/) and the
-[`Rigor::Cache::Descriptor`](../cache/) schema.
+`source_family`は`Rigor::Analysis::Diagnostic#source_family`と対応しており、帰属がきれいに構成されます。つまりプラグインコントリビューションから生成された診断は、コントリビューションが宣言したのと同じ`source_family`文字列を持ちます。キャッシュ無効化は`descriptor`を通じて[ADR-2 § "Registration, Configuration, and Caching"](../../adr/2-extension-api/)および[`Rigor::Cache::Descriptor`](../cache/)スキーマに従い処理されます。
 
-## Equality, hashing, and emptiness
+## 等値性・ハッシュ・空判定
 
-- `==` compares the bundle structurally (every content slot plus
-  provenance). `hash` is consistent with `==`.
-- `to_h` returns a Hash keyed by every slot name plus
-  `:provenance` (whose value is the Provenance Data's `to_h`).
-- `empty?` is true when every content slot is `nil` or an empty
-  collection. Provenance does NOT count toward emptiness — an
-  empty bundle still carries source attribution.
+- `==`はバンドルを構造的に比較します（すべてのコンテンツスロットと来歴）。`hash`は`==`と整合しています。
+- `to_h`はすべてのスロット名と`:provenance`（値はProvenanceのData `to_h`）をキーとするHashを返します。
+- `empty?`はすべてのコンテンツスロットが`nil`または空コレクションのときtrueです。来歴は空判定に MUST NOT 影響しません。空のバンドルも来歴による帰属情報を持ちます。
 
-## Producers wired through the bundle
+## バンドルを通じて公開されるプロデューサー
 
-Internal producers may surface their contributions as
-`FlowContribution`s alongside their typed-Data carriers. The
-typed carriers (`PredicateEffect`, `AssertEffect`, …) keep
-serving the analyzer-internal narrowing / dispatch machinery;
-the bundle is the public packaging for the v0.1.0 contribution
-merger and for diagnostic / documentation surfaces that want a
-single shape across producers.
+内部プロデューサーは型付きデータキャリアと並行してコントリビューションを`FlowContribution`として公開 MAY できます。型付きキャリア（`PredicateEffect`・`AssertEffect`など）はアナライザー内部のナローイング/ディスパッチ機構で引き続き使われます。バンドルはv0.1.0のコントリビューションマージャー向け、および複数プロデューサーにわたって単一シェイプを求める診断/ドキュメントサーフェス向けの公開パッケージングです。
 
 ### `Rigor::RbsExtended.read_flow_contribution(method_def) -> FlowContribution | nil`
 
-Rolls up every recognised RBS::Extended directive on a single
-RBS method definition into one bundle:
+単一のRBSメソッド定義上で認識されたすべての`RBS::Extended`ディレクティブを1つのバンドルにまとめます。
 
-| Directive | Bundle slot |
+| ディレクティブ | バンドルスロット |
 | --- | --- |
-| `rigor:v1:predicate-if-true ...`  | `truthy_facts` (each entry an `RbsExtended::PredicateEffect`) |
-| `rigor:v1:predicate-if-false ...` | `falsey_facts` (`PredicateEffect`s) |
-| `rigor:v1:assert ...`             | `post_return_facts` (each entry an `AssertEffect`) |
-| `rigor:v1:assert-if-true ...`     | `post_return_facts` (`AssertEffect` with `condition: :if_truthy_return`) |
-| `rigor:v1:assert-if-false ...`    | `post_return_facts` (`AssertEffect` with `condition: :if_falsey_return`) |
-| `rigor:v1:return: ...`            | `return_type` (a `Rigor::Type`) |
+| `rigor:v1:predicate-if-true ...`  | `truthy_facts`（各エントリは`RbsExtended::PredicateEffect`） |
+| `rigor:v1:predicate-if-false ...` | `falsey_facts`（`PredicateEffect`の配列） |
+| `rigor:v1:assert ...`             | `post_return_facts`（各エントリは`AssertEffect`） |
+| `rigor:v1:assert-if-true ...`     | `post_return_facts`（`condition: :if_truthy_return`付き`AssertEffect`） |
+| `rigor:v1:assert-if-false ...`    | `post_return_facts`（`condition: :if_falsey_return`付き`AssertEffect`） |
+| `rigor:v1:return: ...`            | `return_type`（`Rigor::Type`） |
 
-Slots that have no contributions stay `nil` (rather than empty
-collections) so the bundle's `#empty?` rule applies cleanly.
+コントリビューションのないスロットは空コレクションではなく`nil`のままになるため、バンドルの`#empty?`ルールがきれいに適用されます。
 
-`provenance` is the shared
-`Rigor::RbsExtended::RBS_EXTENDED_PROVENANCE`:
+`provenance`は共有定数`Rigor::RbsExtended::RBS_EXTENDED_PROVENANCE`です。
 
 ```ruby
 Rigor::FlowContribution::Provenance.new(
@@ -142,31 +104,14 @@ Rigor::FlowContribution::Provenance.new(
 )
 ```
 
-`source_family: :rbs_extended` lines up with the diagnostic-
-provenance prefix introduced in v0.0.8 slice 5, so a diagnostic
-sourced from an RBS::Extended directive can carry the same
-attribution string.
+`source_family: :rbs_extended`はv0.0.8スライス5で導入された診断来歴プレフィックスと一致するため、`RBS::Extended`ディレクティブに由来する診断は同一の帰属文字列を持てます。
 
-`param: <name>` directives are intentionally NOT bundled — they
-refine the call's signature contract rather than its flow facts
-and do not fit ADR-2 § "Flow Contribution Bundle" slot
-semantics. Callers that care about parameter contracts keep
-using `RbsExtended.read_param_type_overrides` /
-`RbsExtended.param_type_override_map`.
+`param: <name>`ディレクティブは意図的にバンドルに含まれません。これらはフローファクトではなく呼び出しのシグネチャ契約を絞り込むものであり、ADR-2 § "Flow Contribution Bundle"スロットのセマンティクスに合いません。パラメーター契約を扱う呼び出し元は引き続き`RbsExtended.read_param_type_overrides` / `RbsExtended.param_type_override_map`を使用してください。
 
-## Element-list flattening (deferred)
+## 要素リストへの展開（延期）
 
-ADR-2 mentions an analyzer-internal flattening of each bundle
-into a tagged element list keyed by `(target, flow edge, effect
-kind)`. That representation is the implementation surface the
-merge policy will consume; v0.0.9 deliberately does not ship it.
-The merger and the element-list form land together in v0.1.0.
-Plugin authors should not rely on the element-list form.
+ADR-2では、各バンドルを`(target, flow edge, effect kind)`をキーとするタグ付き要素リストに展開するアナライザー内部処理について言及しています。その表現はマージポリシーが消費する実装サーフェスです。v0.0.9では意図的に提供されません。マージャーと要素リストフォームはv0.1.0で一緒に導入されます。プラグイン作者は要素リストフォームに依存 MUST NOT してはなりません。
 
-## Stability
+## 安定性
 
-The constructor surface and slot names are stable as a v0.0.x
-public read shape. Adding a new slot is a public-API expansion
-that should be accompanied by an ADR-2 amendment plus a
-schema-version note in this document. Renaming or removing a
-slot is a breaking change that requires a major-version bump.
+コンストラクターサーフェスとスロット名は、v0.0.xの公開リード形として安定しています。新しいスロットを追加することは、ADR-2の修正とこのドキュメントへのスキーマバージョン注記を伴う公開API拡張です。スロットのリネームや削除はメジャーバージョンバンプが必要な破壊的変更です。
