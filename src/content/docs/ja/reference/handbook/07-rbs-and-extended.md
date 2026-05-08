@@ -1,57 +1,43 @@
 ---
-title: "RBS and `RBS::Extended`"
-description: "Imported from rigortype/rigor docs/handbook/07-rbs-and-extended.md."
+title: "RBSと`RBS::Extended`"
+description: "rigortype/rigor docs/handbook/07-rbs-and-extended.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/handbook/07-rbs-and-extended.md"
 sourcePath: "docs/handbook/07-rbs-and-extended.md"
 sourceSha: "e8ebe82bf5663edd9709a3e43963a8f097c31c464233011d4c72b31c199f0f7c"
 sourceCommit: "b523ab36f62d89a1c16964a66864c27e3ebb0fe4"
-translationStatus: "pending"
+translationStatus: "translated"
 sidebar:
   order: 1007
 ---
 
-> [!NOTE]
-> このページはまだ翻訳されていません。英語版の本文を参考表示しています。
+Rigorの推論が型を証明できないとき、次の逃げ道はRBS — Rubyのシグネチャ言語 — です。RBSが求める精密なコントラクトを表現できないとき、`RBS::Extended`がその上に小さなアノテーション表面を追加します。
 
-When Rigor's inference cannot prove a type, the next escape
-hatch is RBS — Ruby's signature language. When RBS cannot
-express the precise contract you want, `RBS::Extended` adds a
-small annotation surface on top.
+この章では、通常手を伸ばす順序でその両方を扱います。
 
-This chapter covers both, in the order you usually reach for
-them.
+## RBSが必要なとき
 
-## When you need RBS
+以下の場合にRBSファイルを追加する必要があるでしょう:
 
-You probably need to add an RBS file when:
+- メソッド本体の戻り値型が、Rigorのバンドルされたstdlibがカバーしていない外部gemに依存している。
+- 引数シェイプエラーに対して`call.argument-type-mismatch`を発火させたい（インソース`def`はパラメーターコントラクトを強制しません; RBS宣言メソッドのみが強制します）。
+- 本体の推論された戻り値が宣言された戻り値からずれたときに`def.return-type-mismatch`を発火させたい。
+- 将来のRBS対応ツール（Steep、ruby-lsp）が同じファイルを読んで、コントラクトから恩恵を受けるでしょう。
 
-- The method body's return type depends on an external gem
-  Rigor's bundled stdlib does not cover.
-- You want `call.argument-type-mismatch` to fire on
-  argument-shape errors (in-source `def` does NOT enforce
-  parameter contracts; only RBS-declared methods do).
-- You want `def.return-type-mismatch` to fire when a body's
-  inferred return drifts from the declared return.
-- A future RBS-aware tool (Steep, ruby-lsp) will read the
-  same file and benefit from the contract.
+以下の場合はRBSが**不要**でしょう:
 
-You probably do **not** need RBS when:
+- メソッドがプロジェクトのプライベートで、本体が短く、Rigorがすでに正しい戻り値型を推論している。
+- メソッドがすでにシグを持つメソッドのラッパーに過ぎない（Rigorは本体を辿って伝播する）。
 
-- The method is private to your project, the body is short,
-  and Rigor already infers the right return type.
-- The method is just a wrapper around a method that already
-  has a sig (Rigor walks the body and propagates).
+## 最初のシグ
 
-## A first sig
-
-In a fresh project:
+新しいプロジェクトで:
 
 ```text
 my-app/
 ├── lib/
 │   └── slug.rb
 └── sig/
-    └── slug.rbs       # ← your sig
+    └── slug.rbs       # ← あなたのシグ
 ```
 
 ```ruby
@@ -70,25 +56,19 @@ class Slug
 end
 ```
 
-Drop the `.rbs` file in `sig/` and Rigor picks it up
-automatically — no `.rigor.yml` change required. The default
-config has `signature_paths: [sig]`.
+`.rbs`ファイルを`sig/`に置けばRigorが自動的に拾います — `.rigor.yml`の変更は不要です。デフォルト設定には`signature_paths: [sig]`があります。
 
-After that, this code:
+その後、このコード:
 
 ```ruby
 Slug.new.normalise(42)
 ```
 
-fires `call.argument-type-mismatch`: `42` is an Integer, the
-parameter is `String`.
+は`call.argument-type-mismatch`を発火させます: `42`はIntegerで、パラメーターは`String`です。
 
-## When the RBS shape is too wide
+## RBSシェイプが広すぎるとき
 
-The Slug example's runtime always returns a non-empty,
-lowercase string — but the RBS sig only says `String`. If you
-want Rigor to know the narrower fact, attach an `RBS::Extended`
-annotation:
+Slugの例のランタイムは常に非空の小文字文字列を返しますが、RBSシグは`String`としか言っていません。Rigorにより狭い事実を知らせたい場合、`RBS::Extended`アノテーションを付けます:
 
 ```ruby
 class Slug
@@ -97,59 +77,49 @@ class Slug
 end
 ```
 
-Now:
+これで:
 
 ```ruby
 s = Slug.new.normalise("Hello World")
 # s: non-empty-lowercase-string
-s.empty?     # Constant<false>  — proven
-s.size       # positive-int     — proven
-s == "hello-world"  # bool — equality narrowing applies
+s.empty?     # Constant<false>  — 証明済み
+s.size       # positive-int     — 証明済み
+s == "hello-world"  # bool — 等値ナローイングが適用される
 ```
 
-The `.rbs` file is **still valid RBS** — `%a{...}` is the RBS
-annotation syntax. Steep / typeprof / ruby-lsp see a comment;
-Rigor sees a tightening.
+`.rbs`ファイルは**依然として有効なRBS**です — `%a{...}`はRBSアノテーション構文です。Steep / typeprof / ruby-lspはコメントとして見ます; Rigorは締め付けとして見ます。
 
-## The directive grammar
+## ディレクティブ文法
 
-`RBS::Extended` lives at
-[`docs/type-specification/rbs-extended.md`](../../type-specification/rbs-extended/).
-The five directives:
+`RBS::Extended`は[`docs/type-specification/rbs-extended.md`](../../type-specification/rbs-extended/)にあります。5つのディレクティブ:
 
-| Directive | Says |
+| ディレクティブ | 意味 |
 | --- | --- |
-| `%a{rigor:v1:return: <type>}` | Tighten the method's return type. |
-| `%a{rigor:v1:param: <name> is <type>}` | Tighten a parameter's accepted type at the call site, AND narrow the local in the body. |
-| `%a{rigor:v1:assert: <name> is <type>}` | After this method returns, the named local in the caller's scope is `<type>`. |
-| `%a{rigor:v1:predicate-if-true: <name> is <type>}` | When this method returns truthy, the named local in the caller's scope is `<type>`. (Symmetric `predicate-if-false`.) |
-| `%a{rigor:v1:assertion-on: <name>}` | Mark the method as an assertion gate — the body's last expression's type becomes a fact about `<name>`. |
+| `%a{rigor:v1:return: <type>}` | メソッドの戻り値型を締め付ける。 |
+| `%a{rigor:v1:param: <name> is <type>}` | 呼び出し元でのパラメーターの受け入れ型を締め付け、かつ本体内のローカル変数をナローイングする。 |
+| `%a{rigor:v1:assert: <name> is <type>}` | このメソッドが返った後、呼び出し元スコープの名前付きローカル変数は`<type>`である。 |
+| `%a{rigor:v1:predicate-if-true: <name> is <type>}` | このメソッドが真値を返したとき、呼び出し元スコープの名前付きローカル変数は`<type>`である。（対称な`predicate-if-false`。） |
+| `%a{rigor:v1:assertion-on: <name>}` | メソッドをアサーションゲートとしてマークする — 本体の最後の式の型が`<name>`に関する事実になる。 |
 
-The `<type>` slot accepts:
+`<type>`スロットは以下を受け入れます:
 
-- **RBS class names** — `String`, `Integer`, `::Foo::Bar`.
-- **Imported refinement names** —
-  `non-empty-string`, `lowercase-string`, `numeric-string`,
-  `int<5, 10>`, `non-empty-array[Integer]`, `literal-string`,
-  …
-- **Negation `~T`** — `~lowercase-string` means
-  "non-lowercase-string."
+- **RBSクラス名** — `String`、`Integer`、`::Foo::Bar`。
+- **インポートされたリファインメント名** — `non-empty-string`、`lowercase-string`、`numeric-string`、`int<5, 10>`、`non-empty-array[Integer]`、`literal-string`など。
+- **否定`~T`** — `~lowercase-string`は「非小文字string」を意味します。
 
-## Refinement names
+## リファインメント名
 
-The full catalogue is in
-[`docs/type-specification/imported-built-in-types.md`](../../type-specification/imported-built-in-types/).
-A short reference:
+完全なカタログは[`docs/type-specification/imported-built-in-types.md`](../../type-specification/imported-built-in-types/)にあります。短いリファレンス:
 
-| Family | Names |
+| ファミリー | 名前 |
 | --- | --- |
-| Empty / non-empty | `non-empty-string`, `non-empty-array[T]`, `non-empty-hash[K, V]` |
-| Integer ranges | `positive-int`, `non-negative-int`, `negative-int`, `non-positive-int`, `non-zero-int`, `int<min, max>` |
-| String predicates | `lowercase-string`, `uppercase-string`, `numeric-string`, `decimal-int-string`, `octal-int-string`, `hex-int-string`, `literal-string` |
-| Paired complements | `non-lowercase-string`, `non-uppercase-string`, `non-numeric-string` |
-| Composed | `non-empty-lowercase-string`, `non-empty-uppercase-string`, `non-empty-literal-string` |
+| 空/非空 | `non-empty-string`、`non-empty-array[T]`、`non-empty-hash[K, V]` |
+| 整数範囲 | `positive-int`、`non-negative-int`、`negative-int`、`non-positive-int`、`non-zero-int`、`int<min, max>` |
+| 文字列述語 | `lowercase-string`、`uppercase-string`、`numeric-string`、`decimal-int-string`、`octal-int-string`、`hex-int-string`、`literal-string` |
+| ペアになった補完 | `non-lowercase-string`、`non-uppercase-string`、`non-numeric-string` |
+| 合成 | `non-empty-lowercase-string`、`non-empty-uppercase-string`、`non-empty-literal-string` |
 
-## Worked example: an assertion gate
+## 実例: アサーションゲート
 
 ```ruby
 class Validator
@@ -161,15 +131,14 @@ end
 ```ruby
 def configure(host)
   Validator.new.assert_non_empty(host)
-  # host: non-empty-string after this call
-  host.size   # positive-int — proven
+  # この呼び出し後、host: non-empty-string
+  host.size   # positive-int — 証明済み
 end
 ```
 
-The runtime side is whatever `assert_non_empty` does (raise
-on empty, log, ...) — Rigor only reads the directive.
+ランタイム側は`assert_non_empty`が何をするかです（空のとき例外、ログなど）— Rigorはディレクティブのみを読みます。
 
-## Worked example: a type predicate
+## 実例: 型述語
 
 ```ruby
 class Range
@@ -181,7 +150,7 @@ end
 ```ruby
 def double_if_int(value)
   if (1..10).integer?(value)
-    # value: Integer  in the truthy branch
+    # 真値ブランチでvalue: Integer
     value * 2
   else
     value
@@ -189,11 +158,9 @@ def double_if_int(value)
 end
 ```
 
-This is the supported way to teach Rigor about a custom
-type-predicate method that the engine's built-in `is_a?` /
-`nil?` rules cannot recognise.
+これは、エンジンの組み込み`is_a?` / `nil?`ルールが認識できないカスタム型述語メソッドについてRigorに教えるためのサポートされた方法です。
 
-## Worked example: parameter override
+## 実例: パラメーターオーバーライド
 
 ```ruby
 class Slug
@@ -202,22 +169,14 @@ class Slug
 end
 ```
 
-This has two effects:
+これには2つの効果があります:
 
-1. **Call-site checking.** `Slug.new.normalise("")` is now a
-   `call.argument-type-mismatch` because `Constant<"">` does
-   not satisfy `non-empty-string`.
-2. **Body-side narrowing.** Inside the method body of
-   `normalise`, the parameter `id` is `non-empty-string`. So
-   `id.empty?` reduces to `Constant<false>` and `id.size`
-   reduces to `positive-int`.
+1. **呼び出し元チェック。** `Slug.new.normalise("")`は`Constant<"">`が`non-empty-string`を満たさないため、`call.argument-type-mismatch`になります。
+2. **本体側ナローイング。** `normalise`のメソッド本体内側で、パラメーター`id`は`non-empty-string`です。したがって`id.empty?`は`Constant<false>`に還元され、`id.size`は`positive-int`に還元されます。
 
-## When you need a parameter override the runtime cannot enforce
+## ランタイムが強制できないパラメーターオーバーライドが必要なとき
 
-Sometimes the runtime function does NOT raise on bad input —
-it returns nil, returns a default, or swallows the error.
-Rigor's `param:` directive still tightens the call-site
-contract:
+ランタイム関数が不正な入力で例外を投げない場合 — nilを返す、デフォルトを返す、またはエラーを飲み込む — があります。Rigorの`param:`ディレクティブは依然として呼び出し元のコントラクトを締め付けます:
 
 ```ruby
 class FileLoader
@@ -226,15 +185,11 @@ class FileLoader
 end
 ```
 
-`FileLoader.new.load("")` fires `call.argument-type-mismatch`
-even though at runtime `load` would fail gracefully. The
-directive expresses **what callers should pass**, not what
-the body enforces.
+`FileLoader.new.load("")`は、ランタイムで`load`が穏やかに失敗するにもかかわらず、`call.argument-type-mismatch`を発火させます。ディレクティブは「本体が何を強制するか」ではなく**「呼び出し元が何を渡すべきか」**を表現します。
 
-## Where annotations belong
+## アノテーションの置き場所
 
-Put `RBS::Extended` annotations on the same `def` they refine,
-inside the same `.rbs` file. Group them above the method:
+`RBS::Extended`アノテーションは、それが絞り込む`def`と同じ`.rbs`ファイル内の同じ`def`の上に置きます。メソッドの上にグループ化します:
 
 ```ruby
 class Slug
@@ -244,38 +199,22 @@ class Slug
 end
 ```
 
-You **cannot** put them inside a `.rb` file. The directives
-only fire when read from RBS — that is a design choice (see
-ADR-5, the robustness principle: strict on returns, lenient
-on parameters).
+`.rb`ファイルの内側に置くことは**できません**。ディレクティブはRBSから読まれたときのみ発火します — これは設計上の選択です（ADR-5、堅牢性の原則: 戻り値に対して厳密、パラメーターに対して寛大を参照）。
 
-## Falling back to `untyped`
+## `untyped`へのフォールバック
 
-When a method's signature involves a type RBS cannot express,
-the conservative thing to do is `untyped`:
+メソッドのシグネチャにRBSが表現できない型が含まれる場合、保守的な対処は`untyped`です:
 
 ```ruby
 def deserialize: (String) -> untyped
 ```
 
-`untyped` is a contract-free hatch — every method exists on
-it, every argument shape is acceptable. Rigor's diagnostics
-stay silent on `untyped` receivers. Use it for legitimately
-dynamic boundaries (deserialisation, `eval`, plugin entry
-points). The static analysis you lose is made up by the
-honesty of admitting "this could be anything."
+`untyped`はコントラクトフリーのハッチ — あらゆるメソッドがそれに存在し、あらゆる引数シェイプが受け入れられます。Rigorの診断は`untyped`レシーバーに対して沈黙します。正当に動的な境界（デシリアライズ、`eval`、プラグインエントリポイント）に使います。失う静的解析は「これは何でもあり得る」と認めることの誠実さで補われます。
 
-## When RBS cannot help — the plugin escape hatch
+## RBSが助けにならないとき — プラグインの逃げ道
 
-When a method's behaviour depends on the **shape of its
-arguments at runtime** (`Lisp.eval([:+, 1, 2])` returns
-Integer, but `Lisp.eval([:<, 1, 2])` returns bool), no RBS sig
-can express the relationship. That is what plugins are for —
-see [Chapter 9](../09-plugins/) and the
-[examples/](https://github.com/rigortype/rigor/blob/main/examples/README.md) directory.
+メソッドの動作が**ランタイムでの引数のシェイプに依存する**場合（`Lisp.eval([:+, 1, 2])`はIntegerを返すが、`Lisp.eval([:<, 1, 2])`はboolを返す）、どんなRBSシグもその関係を表現できません。それがプラグインのためのものです — [第9章](../09-plugins/)と[examples/](https://github.com/rigortype/rigor/blob/main/examples/README.md)ディレクトリを参照してください。
 
-## What's next
+## 次に読むもの
 
-Chapter 8 covers the rule catalogue — what each diagnostic
-means, when it fires, and how to suppress it when it is wrong
-or noisy.
+第8章はルールカタログを扱います — 各診断の意味、発火するタイミング、それが間違いまたはノイズのときの抑制方法。

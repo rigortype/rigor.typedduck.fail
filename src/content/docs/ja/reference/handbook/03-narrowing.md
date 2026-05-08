@@ -1,38 +1,27 @@
 ---
-title: "Narrowing"
-description: "Imported from rigortype/rigor docs/handbook/03-narrowing.md."
+title: "ナローイング"
+description: "rigortype/rigor docs/handbook/03-narrowing.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/handbook/03-narrowing.md"
 sourcePath: "docs/handbook/03-narrowing.md"
 sourceSha: "8183976aa120538bc0edb9a5ed56124470a57960fcab6146aa83f1cb24784aac"
 sourceCommit: "b523ab36f62d89a1c16964a66864c27e3ebb0fe4"
-translationStatus: "pending"
+translationStatus: "translated"
 sidebar:
   order: 1003
 ---
 
-> [!NOTE]
-> このページはまだ翻訳されていません。英語版の本文を参考表示しています。
+キャリアはあるプログラム地点における値を記述します。**ナローイング**は、制御フローが述語を通過するときにキャリアがどう変化するかを記述します。この章では、Rigorが現在認識しているナローイングのあらゆる形式を解説します。
 
-A carrier describes a value at one program point. **Narrowing**
-describes how the carrier changes when control flow passes
-through a predicate. This chapter walks through every form of
-narrowing Rigor recognises today.
+メンタルモデル: 各述語は2つのスコープを生成します — 真値のエッジと偽値のエッジです。各エッジの内側では、変数のキャリアが述語が証明したものに鋭利化されます。述語が認識されなければ、両エッジはエントリスコープをそのまま共有します。
 
-The mental model: each predicate produces two scopes — one
-for the truthy edge and one for the falsey edge. Inside each
-edge, the variable's carrier is sharpened to whatever the
-predicate proved. If the predicate is unrecognised, both
-edges share the entry scope unchanged.
+## 真偽性ナローイング
 
-## Truthiness narrowing
-
-The simplest form. `if x` separates "x is truthy" from "x is
-`false` or `nil`":
+最も単純な形式です。`if x`は「xが真値」と「xが`false`または`nil`」を分離します:
 
 ```ruby
 def shout(name)
   if name
-    # name: String — `false | nil` removed by truthy edge
+    # name: String — 真値エッジで `false | nil` が除去される
     name.upcase
   else
     # name: Constant<false> | Constant<nil>
@@ -41,27 +30,23 @@ def shout(name)
 end
 ```
 
-This form is what makes `if value` so common in Ruby useful at
-lint time: inside the `if` body, Rigor knows `value` is
-non-nil.
+この形式こそ、`if value`がRubyで非常によく使われリント時に有用な理由です: `if`本体の内側で、Rigorは`value`が非nilであることを知ります。
 
-## `nil?` and the inverse
+## `nil?`とその逆
 
 ```ruby
 def length(s)
   return 0 if s.nil?
-  # s: Nominal[String] (the nil component of String? is gone)
+  # s: Nominal[String] (String?のnil成分が消えた)
   s.length
 end
 ```
 
-`s.nil?` narrows the truthy edge to `Constant<nil>` and the
-falsey edge to "everything else" — typically the original
-type with `nil` removed.
+`s.nil?`は真値エッジを`Constant<nil>`にナローイングし、偽値エッジを「それ以外すべて」— 通常は`nil`が除去された元の型 — にナローイングします。
 
-## `is_a?`, `kind_of?`, `instance_of?`
+## `is_a?`、`kind_of?`、`instance_of?`
 
-These three all narrow on the class hierarchy:
+これら3つはすべてクラス階層に基づいてナローイングします:
 
 ```ruby
 def kind(x)
@@ -75,24 +60,21 @@ def kind(x)
 end
 ```
 
-Subclass relationships are honoured: `is_a?(Numeric)` accepts
-`Integer` and `Float` and narrows accordingly. `instance_of?`
-is stricter — only the exact class — and Rigor narrows
-correspondingly.
+サブクラスの関係が考慮されます: `is_a?(Numeric)`は`Integer`と`Float`を受け入れ、それに応じてナローイングします。`instance_of?`はより厳密で — 完全に一致するクラスのみ — Rigorもそれに応じてナローイングします。
 
-The falsey edge subtracts the matched class:
+偽値エッジでは一致したクラスが除外されます:
 
 ```ruby
 x = some_call_that_returns_integer_or_string
 unless x.is_a?(Integer)
-  # x: String — Integer subtracted
+  # x: String — Integerが除外される
   x.upcase
 end
 ```
 
-## Equality with literal values
+## リテラル値との等値比較
 
-Rigor narrows `==` and `!=` against trusted literal values:
+Rigorは信頼できるリテラル値に対して`==`と`!=`をナローイングします:
 
 ```ruby
 state = some_call_returning_a_symbol
@@ -105,36 +87,26 @@ elsif state == :pending
 end
 ```
 
-This is most useful when `state` is itself a union of
-constants (`Constant<:ready> | Constant<:pending> |
-Constant<:failed>`). Each branch peels one member off, and
-Rigor can prove the final `else` is one of the remaining
-constants — not "any Symbol."
+これは`state`自体が定数のユニオン（`Constant<:ready> | Constant<:pending> | Constant<:failed>`）のときに最も有用です。各ブランチが1つのメンバーを剥がし、Rigorは最後の`else`が残りの定数のいずれかであると証明できます — 「任意のSymbol」ではありません。
 
 ## `case` / `when`
 
-`case x; when …` is narrowing-syntax sugar over equality and
-class checks. Each `when` branch sees `x` narrowed to the
-matched member:
+`case x; when …`は、等値チェックとクラスチェックに対するナローイング構文糖です。各`when`ブランチでは`x`が一致したメンバーにナローイングされます:
 
 ```ruby
 case n
 when 0      then :zero        # Constant<0>
 when 1..9   then :small       # int<1, 9>
 when 10     then :ten         # Constant<10>
-else             :large       # everything else
+else             :large       # それ以外すべて
 end
 ```
 
-The result type unions the per-branch results. When the input
-is a finite literal union, Rigor proves the `else` branch is
-unreachable when every member is matched.
+結果型はブランチごとの結果のユニオンです。入力が有限リテラルユニオンのとき、すべてのメンバーが一致する場合、Rigorは`else`ブランチが到達不能であることを証明します。
 
-`case x; in pattern` (one-line pattern matching) narrows the
-same way for the patterns Rigor understands — class checks,
-literal equality, array / hash structural patterns.
+`case x; in pattern`（1行パターンマッチング）も、Rigorが理解するパターン — クラスチェック、リテラル等値、配列/ハッシュ構造パターン — に対して同じようにナローイングします。
 
-## Boolean composition (`&&`, `||`, `!`)
+## 論理演算（`&&`、`||`、`!`）
 
 ```ruby
 def safe_size(s)
@@ -145,11 +117,9 @@ def safe_size(s)
 end
 ```
 
-`&&` chains left-to-right narrowing: the right-hand operand
-is evaluated under the truthy edge of the left. `||` chains
-the falsey edge. `!` swaps the two edges.
+`&&`は左から右へのナローイングを連鎖します: 右オペランドは左の真値エッジ下で評価されます。`||`は偽値エッジを連鎖します。`!`は2つのエッジを入れ替えます。
 
-This composes with everything else:
+これは他のすべてと組み合わせられます:
 
 ```ruby
 if x.is_a?(Integer) && x > 0
@@ -157,26 +127,23 @@ if x.is_a?(Integer) && x > 0
 end
 ```
 
-The `is_a?` narrowed `x` to `Integer`, then the integer
-comparison narrowed it further to `int<1, max>`.
+`is_a?`が`x`を`Integer`にナローイングし、次に整数比較がさらに`int<1, max>`にナローイングしました。
 
-## Integer comparisons
+## 整数比較
 
-`<`, `<=`, `>`, `>=`, plus `Integer#zero?` / `#positive?` /
-`#negative?` / `#nonzero?` / `Comparable#between?`, all narrow
-integer ranges:
+`<`、`<=`、`>`、`>=`、および`Integer#zero?` / `#positive?` / `#negative?` / `#nonzero?` / `Comparable#between?`はすべて整数範囲をナローイングします:
 
 ```ruby
 def safe_index(arr, n)
   return :empty if arr.empty?
   return :out_of_range if n < 0 || n >= arr.size
-  # n: int<0, arr.size - 1>  (in practice: int<0, max>
-  # tightened against `n >= arr.size`)
+  # n: int<0, arr.size - 1>  (実際には: int<0, max>
+  # が `n >= arr.size` に対して締め付けられる)
   arr.fetch(n)
 end
 ```
 
-Range comparisons compose with literals:
+範囲比較はリテラルと組み合わせられます:
 
 ```ruby
 n = some_input
@@ -185,43 +152,38 @@ if n.between?(1, 9)
 end
 ```
 
-## Predicate methods on refinements
+## リファインメントに対する述語メソッド
 
-Rigor recognises a small set of "type-carrier predicate
-methods" — methods whose return type is `bool` and whose
-truthy / falsey edges narrow the receiver:
+Rigorは少数の「型キャリア述語メソッド」を認識します — 戻り値型が`bool`で、真値/偽値エッジがレシーバーをナローイングするメソッドです:
 
-| Method | Narrows the receiver to |
+| メソッド | レシーバーをナローイングする先 |
 | --- | --- |
-| `String#empty?` | `Constant<"">` (truthy) / `non-empty-string` (falsey) |
-| `Array#empty?` | `Constant<[]>` (truthy) / `non-empty-array[T]` (falsey) |
-| `Hash#empty?` | `Constant<{}>` (truthy) / `non-empty-hash[K,V]` (falsey) |
-| `Integer#zero?` | `Constant<0>` (truthy) / `non-zero-int` (falsey) |
-| `Integer#positive?` | `positive-int` (truthy) / `non-positive-int` (falsey) |
-| `Integer#negative?` | `negative-int` (truthy) / `non-negative-int` (falsey) |
+| `String#empty?` | `Constant<"">` (真値) / `non-empty-string` (偽値) |
+| `Array#empty?` | `Constant<[]>` (真値) / `non-empty-array[T]` (偽値) |
+| `Hash#empty?` | `Constant<{}>` (真値) / `non-empty-hash[K,V]` (偽値) |
+| `Integer#zero?` | `Constant<0>` (真値) / `non-zero-int` (偽値) |
+| `Integer#positive?` | `positive-int` (真値) / `non-positive-int` (偽値) |
+| `Integer#negative?` | `negative-int` (真値) / `non-negative-int` (偽値) |
 
-Compose these as you would expect:
+期待通りに組み合わせられます:
 
 ```ruby
 def first_word(s)
   return "" if s.empty?
   # s: non-empty-string
-  s.split.first    # at runtime always returns String,
-                   # never nil — and Rigor knows it
+  s.split.first    # ランタイムでは常にStringを返す、
+                   # nilではない — Rigorもそれを知っている
 end
 ```
 
-## Named-capture regex narrowing (`if /(?<x>...)/ =~ str`)
+## 名前付きキャプチャ正規表現ナローイング（`if /(?<x>...)/ =~ str`）
 
-When a regex with named captures matches in the predicate
-position of `if` / `unless`, the captured locals are bound to
-`String | nil` after the match, and narrowed to `String` in
-the truthy branch:
+名前付きキャプチャを持つ正規表現が`if` / `unless`の述語位置でマッチすると、キャプチャされたローカル変数はマッチ後に`String | nil`にバインドされ、真値ブランチでは`String`にナローイングされます:
 
 ```ruby
 def parse_date(s)
   if /(?<year>\d{4})-(?<month>\d{2})-(?<day>\d{2})/ =~ s
-    # year, month, day: String  (narrowed from String | nil)
+    # year, month, day: String  (String | nilからナローイングされた)
     "#{year}/#{month}/#{day}"
   else
     "no match"
@@ -229,86 +191,56 @@ def parse_date(s)
 end
 ```
 
-(In a future release the truthy edge will narrow further to
-specific refinement carriers — `\d{4}` would produce
-`decimal-int-string`. Tracked under
-[`docs/MILESTONES.md`](../../milestones/) § "v0.1.1 — Planned".)
+（将来のリリースでは、真値エッジがさらに特定のリファインメントキャリアにナローイングされる予定です — `\d{4}`は`decimal-int-string`を生成するはずです。[`docs/MILESTONES.md`](../../milestones/) § "v0.1.1 — Planned"でトラッキングされています。）
 
-## `!=` and `unless`
+## `!=`と`unless`
 
-Both are mechanical mirrors of their non-negated forms.
-`unless x` is `if !x` for narrowing purposes; `x != y` is
-`!(x == y)`. Rigor swaps the two edges.
+どちらも否定されていない形式の機械的な鏡です。ナローイング目的では`unless x`は`if !x`と同じです。`x != y`は`!(x == y)`と同じです。Rigorは2つのエッジを入れ替えます。
 
-## Local rebinding flips the narrowing
+## ローカル変数の再バインドはナローイングをリセットする
 
-A narrowing fact is **scope-local**. The moment you reassign
-the variable, the fact resets:
+ナローイングの事実は**スコープローカル**です。変数を再代入した瞬間に、その事実はリセットされます:
 
 ```ruby
 def example(s)
   return if s.nil?
   # s: String
 
-  s = some_other_call    # s rebound — narrowing dropped
-  s.upcase               # s: String? again, depending on
-                         # the call's return type
+  s = some_other_call    # sが再バインド — ナローイングが除去される
+  s.upcase               # s: 呼び出しの戻り値型によっては
+                         # 再びString?になる
 end
 ```
 
-This is why the engine's narrowing facts are bound to a
-specific scope, not a specific variable name. Rebinding is
-detected; mutation through method calls is not (Rigor does
-not chase mutation).
+これがエンジンのナローイング事実が特定の変数名ではなく特定のスコープに紐付けられている理由です。再バインドは検出されますが、メソッド呼び出しを通じた変異は検出されません（Rigorは変異を追いません）。
 
-## What's not narrowed (yet)
+## まだナローイングされないもの
 
-A few forms you might expect that Rigor does **not** narrow
-today:
+Rigorが今日**ナローイングしない**形式でよく期待されるもの:
 
-- `respond_to?(:method_name)` — proving "this object responds
-  to that method" requires a structural facet the engine does
-  not yet expose.
-- `frozen?` and other mutation guards — Rigor does not track
-  mutability as a narrowing fact yet.
-- Open-ended class-comparison via `===` against arbitrary
-  user-defined `case_eq` — only Class / Module / Range /
-  Regexp are recognised.
-- Method-chain receivers in `self`-targeted directives
-  (`get_user.admin?`) — there is no scope binding to narrow
-  against. Local, instance-variable, explicit-`self`, and
-  implicit-self receivers are all supported (v0.1.1 Track 1
-  slice 3).
+- `respond_to?(:method_name)` — 「このオブジェクトはそのメソッドに応答する」を証明するには、エンジンがまだ公開していない構造的ファセットが必要です。
+- `frozen?`などの変異ガード — Rigorはまだミュータビリティをナローイング事実として追跡しません。
+- 任意のユーザー定義`case_eq`に対する`===`によるオープンエンドのクラス比較 — Class / Module / Range / Regexpのみが認識されます。
+- `self`ターゲットディレクティブ内のメソッドチェーンレシーバー（`get_user.admin?`）— ナローイングするスコープバインディングがありません。ローカル変数、インスタンス変数、明示的`self`、暗黙的selfのレシーバーはすべてサポートされています（v0.1.1 Track 1 スライス3）。
 
-When narrowing is not recognised, both edges share the entry
-scope unchanged — Rigor stays conservative rather than
-making a wrong call.
+ナローイングが認識されない場合、両エッジはエントリスコープをそのまま共有します — Rigorは間違った判断をするよりも保守的に留まります。
 
-## Reading a narrowing trace
+## ナローイングトレースを読む
 
-When you want to see what Rigor narrowed at a point:
+特定の地点でRigorが何をナローイングしたかを確認したいとき:
 
 ```ruby
 def foo(x)
   if x.is_a?(Integer)
-    dump_type(x)     # emits an info diagnostic at this line
+    dump_type(x)     # この行にinfo診断を出力する
   end
 end
 ```
 
-`dump_type(...)` is the introspection helper. It is a no-op
-at runtime (lives in the `Kernel` extension Rigor's test
-harness uses) and emits a `dump.type` diagnostic naming the
-inferred type. Use it during debugging to confirm a narrowing
-fired.
+`dump_type(...)`はイントロスペクションヘルパーです。ランタイムではno-op（Rigorのテストハーネスが使う`Kernel`拡張に存在）で、推論された型を名前付きの`dump.type`診断として出力します。ナローイングが発火したことを確認するデバッグ時に使います。
 
-`assert_type(value, "expected-string")` is the stricter
-sibling: it emits a diagnostic when the inferred type does
-NOT match the string. It is what the handbook examples use to
-pin behaviour.
+`assert_type(value, "expected-string")`はより厳密な兄弟です: 推論された型が文字列に**一致しない**とき診断を出力します。ハンドブックの例が動作を固定するために使っています。
 
-## What's next
+## 次に読むもの
 
-Chapter 4 covers the structural carriers — `Tuple` and
-`HashShape` — which behave a lot like a per-element
-narrowing of `Array` and `Hash`.
+第4章は構造的キャリア — `Tuple`と`HashShape` — を扱います。これらは`Array`と`Hash`の要素ごとのナローイングによく似ています。

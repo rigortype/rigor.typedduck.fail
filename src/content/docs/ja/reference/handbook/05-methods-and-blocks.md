@@ -1,62 +1,32 @@
 ---
-title: "Methods and blocks"
-description: "Imported from rigortype/rigor docs/handbook/05-methods-and-blocks.md."
+title: "メソッドとブロック"
+description: "rigortype/rigor docs/handbook/05-methods-and-blocks.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/handbook/05-methods-and-blocks.md"
 sourcePath: "docs/handbook/05-methods-and-blocks.md"
 sourceSha: "429f52afb375caf7cbc7f11766e6bbe37e9d6fee94757186078c5eb859155da7"
 sourceCommit: "b523ab36f62d89a1c16964a66864c27e3ebb0fe4"
-translationStatus: "pending"
+translationStatus: "translated"
 sidebar:
   order: 1005
 ---
 
-> [!NOTE]
-> このページはまだ翻訳されていません。英語版の本文を参考表示しています。
+この章では、Rigorがメソッド呼び出しについて知っていること — レシーバーの型、引数の型、推論された戻り値型、ブロックが付属している場合のブロックパラメーター — を扱います。
 
-This chapter covers what Rigor knows about method calls — the
-receiver's type, the argument types, the inferred return
-type, and the block parameters when a block is attached.
+## メソッドディスパッチ — 呼び出し元でRigorが見るもの
 
-## Method dispatch — what Rigor sees at a call site
+Rigorが`receiver.method(args, &block)`に遭遇したとき、結果を生成する最初のものを採用しながら、固定されたディスパッチ層のシーケンスを実行します:
 
-When Rigor encounters `receiver.method(args, &block)`, it
-runs through a fixed sequence of dispatch tiers, taking the
-first one that produces a result:
+1. **定数たたみ込み。** すべての引数が`Constant<...>`または定数のタプルで、レシーバーが既知のノミナルクラスで、メソッドがクラスごとの「純粋な」カタログにある場合。Rigorはリント時にメソッドを実行して結果を返します。`1 + 2` → `Constant<3>`、`[1, 2, 3].first` → `Constant<1>`。
+2. **シェイプディスパッチ。** レシーバーが`Tuple` / `HashShape` / `IntegerRange` / リファインメントを持ち、メソッドにシェイプごとのルールがある場合。`Tuple[A, B, C].size` → `Constant<3>`; `int<0, max>.zero?` → `Constant<true> | Constant<false>`。
+3. **RBSディスパッチ。** クラスにそのメソッドのRBSシグがある場合。引数型がパラメーターコントラクトに対してチェックされます（後述）; 戻り値型はシグから読まれ、`RBS::Extended`ディレクティブによって締め付けられることがあります。
+4. **インソースディスパッチ。** クラスにRBSはないが、Rigorがプロジェクト内の`def`（または`define_method`、`attr_*`）を見つけた場合。パラメーター型はチェックされません（コントラクトがない）; 戻り値型はメソッド本体から推論されます。
+5. **フォールバック。** 上記のいずれも当てはまらない — 呼び出しは`Dynamic[Top]`を返し、沈黙を保ちます。
 
-1. **Constant folding.** Every argument is a `Constant<...>`
-   or a tuple of constants, the receiver is a known
-   nominal class, and the method is in the per-class
-   "pure" catalog. Rigor invokes the method at lint time
-   and returns the result. `1 + 2` → `Constant<3>`,
-   `[1, 2, 3].first` → `Constant<1>`.
-2. **Shape dispatch.** The receiver carries a `Tuple` /
-   `HashShape` / `IntegerRange` / refinement and the method
-   has a per-shape rule. `Tuple[A, B, C].size` →
-   `Constant<3>`; `int<0, max>.zero?` → `Constant<true> |
-   Constant<false>`.
-3. **RBS dispatch.** The class has an RBS sig for the method.
-   Argument types are checked against the parameter contract
-   (more on this below); the return type is read from the sig
-   and may be tightened by `RBS::Extended` directives.
-4. **In-source dispatch.** The class has no RBS but Rigor
-   discovered a `def` (or `define_method`, `attr_*`) in the
-   project. Parameter types are not checked (no contract);
-   the return type is inferred from the method body.
-5. **Fallback.** None of the above — the call returns
-   `Dynamic[Top]` and stays silent.
+「最初に一致したものが勝つ」カスケード構造が、厳密なRBSシグ + `RBS::Extended`ディレクティブを持つメソッドがインソース本体の推論された戻り値型をオーバーライドする理由です。シグレベルでの締め付けは、RBSが表現するよりも狭い戻り値型を持つドメイン固有のメソッドについてRigorに教える、サポートされた方法です。
 
-The cascading "first match wins" structure is why a method
-with a tight RBS sig + an `RBS::Extended` directive overrides
-the in-source body's inferred return type. Tightening at the
-sig level is the supported way to teach Rigor about a
-domain-specific method whose return type is narrower than
-RBS expresses.
+## 引数型付け — `call.argument-type-mismatch`
 
-## Argument typing — `call.argument-type-mismatch`
-
-When the method has an RBS sig (or an `RBS::Extended`
-parameter override), Rigor checks each positional / keyword
-argument against the declared parameter type:
+メソッドにRBSシグ（または`RBS::Extended`パラメーターオーバーライド）がある場合、Rigorは各位置引数/キーワード引数を宣言されたパラメーター型に対してチェックします:
 
 ```ruby
 class Slug
@@ -66,27 +36,23 @@ end
 ```
 
 ```ruby
-Slug.new.normalise("hello")  # OK — Constant<"hello"> accepted
-                             # by non-empty-string
+Slug.new.normalise("hello")  # OK — Constant<"hello">はnon-empty-stringを満たす
 
 Slug.new.normalise("")       # error: argument-type-mismatch
-                             # ("" is the one value
-                             # non-empty-string excludes)
+                             # ("" はnon-empty-stringが除外する
+                             # 唯一の値)
 
-Slug.new.normalise(some_str) # OK if Rigor cannot prove some_str
-                             # is empty; Rigor stays silent on
-                             # "could be either" cases.
+Slug.new.normalise(some_str) # some_strが空であることをRigorが
+                             # 証明できない場合はOK;
+                             # 「どちらかの可能性がある」ケースでは
+                             # Rigorは沈黙します
 ```
 
-`call.argument-type-mismatch` only fires when Rigor can
-**prove** the argument cannot satisfy the parameter contract.
-"Possibly empty" stays silent — the no-false-positives rule.
+`call.argument-type-mismatch`は、Rigorが引数がパラメーターコントラクトを満たせないことを**証明**できる場合にのみ発火します。「空の可能性がある」は沈黙します — 偽陽性なしルール。
 
-## Arity — `call.wrong-arity`
+## アリティ — `call.wrong-arity`
 
-When the receiver class is statically known and the method is
-discoverable (RBS sig or in-source `def`), Rigor checks the
-number of arguments against the method's arity:
+レシーバークラスが静的に既知で、メソッドが発見可能（RBSシグまたはインソース`def`）な場合、Rigorは引数の数をメソッドのアリティに対してチェックします:
 
 ```ruby
 [1, 2, 3].rotate(1, 2)
@@ -94,69 +60,53 @@ number of arguments against the method's arity:
 #        (given 2, expected 0..1)
 ```
 
-Arity checking respects optional positional, splat, keyword
-arguments, and overload signatures. When the method is
-overloaded, every overload that accepts the given arity is a
-candidate — Rigor only flags arity when **no** overload
-accepts.
+アリティチェックは省略可能な位置引数、スプラット、キーワード引数、オーバーロードシグネチャを考慮します。メソッドがオーバーロードされている場合、指定されたアリティを受け入れるすべてのオーバーロードが候補です — Rigorはどのオーバーロードも受け入れない場合に**のみ**アリティをフラグします。
 
 ## `call.undefined-method`
 
-When the receiver class is statically known and the method is
-not in any of (RBS sig, in-source `def`, in-source attr,
-`Data.define` accessor), Rigor flags the call:
+レシーバークラスが静的に既知で、メソッドが（RBSシグ、インソース`def`、インソースattr、`Data.define`アクセサーの）いずれにもない場合、Rigorは呼び出しをフラグします:
 
 ```ruby
 "hello".no_such_method
 # error: undefined method `no_such_method' for "hello"
 ```
 
-The rule is **deliberately conservative**: a call only fires
-when the receiver type is statically known and the method
-catalogue is enumerable. `Dynamic[Top]` receivers, implicit-
-self calls inside method bodies, and constant-decl alias
-classes (`YAML` → `Psych`) are silenced.
+このルールは**意図的に保守的**です: 呼び出しがフラグされるのは、レシーバー型が静的に既知で、メソッドカタログが列挙可能な場合のみです。`Dynamic[Top]`レシーバー、メソッド本体内の暗黙的selfの呼び出し、定数宣言エイリアスクラス（`YAML` → `Psych`）は沈黙します。
 
 ## `call.possible-nil-receiver`
 
-When the receiver's type is `T | nil` and the method called
-on it is not defined on `NilClass`, Rigor flags it:
+レシーバーの型が`T | nil`で、呼び出されたメソッドが`NilClass`で定義されていない場合、Rigorはフラグします:
 
 ```ruby
 def shout(name)
-  name.upcase  # warning if name: String?
+  name.upcase  # warning: name: String?のとき
 end
 ```
 
-The fix is usually a guard:
+修正は通常ガードを追加することです:
 
 ```ruby
 def shout(name)
   return "" if name.nil?
-  name.upcase  # name: String now
+  name.upcase  # name: Stringになった
 end
 ```
 
-This rule is one of the highest-value diagnostics Rigor ships
-— it catches the entire family of `NoMethodError on nil`
-crashes that pepper any non-trivial Ruby code base.
+このルールはRigorが出荷する最も高価値な診断の1つです — 非自明なRubyコードベースに散在する`nil`への`NoMethodError`クラッシュのファミリー全体を捉えます。
 
-## Return-type inference for in-source methods
+## インソースメソッドの戻り値型推論
 
-When you write a `def` without an RBS sig, Rigor infers the
-return type from the method body. The inferred type is
-whatever the last expression evaluates to:
+RBSシグなしで`def`を書くと、Rigorはメソッド本体から戻り値型を推論します。推論された型は最後の式が評価するものです:
 
 ```ruby
 def double(n)
   n * 2
 end
 
-double(5)   # Constant<10>  — Rigor folds the call
+double(5)   # Constant<10>  — Rigorが呼び出しをたたみ込む
 ```
 
-When the body has multiple branches, the return type is the
-union of every reachable terminal expression:
+本体に複数のブランチがある場合、戻り値型は到達可能なすべての終端式のユニオンです:
 
 ```ruby
 def kind(x)
@@ -169,18 +119,15 @@ end
 
 kind(7)        # Constant<:int>
 kind("hi")     # Constant<:str>
-kind(:nope)    # Constant<nil>  — the implicit nil from
-               # the if's missing else branch
+kind(:nope)    # Constant<nil>  — ifのelse分岐が欠けている
+               # ことによる暗黙のnil
 ```
 
-`return` mid-body works as expected; explicit `raise` excludes
-that branch from the union (a `bot` carrier internally).
+本体途中の`return`は期待通りに動作します; 明示的な`raise`はそのブランチをユニオンから除外します（内部的に`bot`キャリア）。
 
 ## `def.return-type-mismatch`
 
-When a method has both an RBS-declared return type and an
-inferred one, Rigor checks that the inferred fits the
-declared:
+メソッドにRBS宣言の戻り値型と推論された型の両方がある場合、Rigorは推論された型が宣言された型に適合するかチェックします:
 
 ```ruby
 class Slug
@@ -193,22 +140,17 @@ class Slug
   def normalise(s)
     s.empty? ? nil : s.upcase   # warning:
                                 # def.return-type-mismatch
-                                # (declared String, inferred
+                                # (宣言はString、推論は
                                 # String | nil)
   end
 end
 ```
 
-The rule is the symmetric counterpart of
-`call.argument-type-mismatch`: argument-side is "the caller
-gave me a wrong type"; return-side is "I gave my caller a
-wrong type."
+このルールは`call.argument-type-mismatch`の対称的な対応物です: 引数側は「呼び出し元が間違った型を渡した」; 戻り値側は「私が呼び出し元に間違った型を返した」。
 
-## Block parameters
+## ブロックパラメーター
 
-When a method takes a block, Rigor binds the block parameters
-based on the receiver method's signature. Every block-using
-method in the bundled catalog has a per-method rule:
+メソッドがブロックを受け取るとき、Rigorはレシーバーメソッドのシグネチャに基づいてブロックパラメーターをバインドします。バンドルされたカタログのすべてのブロック使用メソッドにはメソッドごとのルールがあります:
 
 ```ruby
 [1, 2, 3].each do |n|
@@ -226,65 +168,43 @@ end
 end
 ```
 
-Per-position binding works for tuples, hash shapes, and
-ranges. When the receiver is widened (`Array[T]` instead of
-`Tuple[…]`), the block parameter is the element type `T`.
+位置ごとのバインディングはタプル、ハッシュシェイプ、範囲に対して機能します。レシーバーが拡幅されている（`Tuple[…]`ではなく`Array[T]`）場合、ブロックパラメーターは要素型`T`です。
 
-When the receiving method does not have a per-method rule,
-the block parameter falls back to `Dynamic[Top]`. Custom
-block-using methods you write in your project's source are
-seen by the in-source dispatch tier — Rigor walks the body to
-infer the parameter type from `yield` calls — but that
-analysis is more limited than the catalogued built-ins.
+受信メソッドにメソッドごとのルールがない場合、ブロックパラメーターは`Dynamic[Top]`にフォールバックします。プロジェクトソースに書いたカスタムなブロック使用メソッドは、インソースディスパッチ層によって見られます — Rigorが本体を走査して`yield`呼び出しからパラメーター型を推論します — しかしその解析はカタログに載っている組み込みよりも制限があります。
 
-## Numbered parameters and `it`
+## 番号付きパラメーターと`it`
 
-`_1`, `_2`, ..., and Ruby 3.4's `it` are bound exactly like
-explicit parameters:
+`_1`、`_2`、...、およびRuby 3.4の`it`は明示的なパラメーターとまったく同じようにバインドされます:
 
 ```ruby
 [1, 2, 3].each { _1.succ }
 # _1: Constant<1> | Constant<2> | Constant<3>
 
 [10, 20, 30].each { it.to_s }
-# it: same as the explicit form
+# it: 明示的な形式と同じ
 ```
 
-## Block-local declarations (`do |i; x|`)
+## ブロックローカル宣言（`do |i; x|`）
 
-The `;`-prefixed names introduce a fresh block-local
-variable that shadows any outer local of the same name. Rigor
-binds these locals to `Constant<nil>` at block entry — Ruby's
-runtime semantics — and treats writes inside the block as
-local to the block:
+`;`を接頭辞にした名前は、同名の外側ローカル変数をシャドウする新しいブロックローカル変数を導入します。Rigorはブロックエントリ時にこれらのローカル変数を`Constant<nil>`にバインドします — Rubyのランタイムセマンティクス — そしてブロック内の書き込みをそのブロックにローカルなものとして扱います:
 
 ```ruby
 x = 100
 [1, 2, 3].each do |i; x|
-  # x: Constant<nil>  at this point — the block-local shadow
+  # x: Constant<nil>  この時点で — ブロックローカルなシャドウ
   x = i * 2
   # x: Constant<2> | Constant<4> | Constant<6>
 end
 
-assert_type(x, "Constant<100>")  # outer x untouched
+assert_type(x, "Constant<100>")  # 外側のxは変更されていない
 ```
 
-## Closure escape and captured locals
+## クロージャエスケープとキャプチャされたローカル変数
 
-When a block captures an outer local, the block's writes to
-that local affect the post-call view of the local. For known
-non-escaping methods (`Array#each`, `tap`, …) the post-call
-narrowing is preserved; for escaping methods (`Thread.new`,
-`define_method`, …) the analyzer drops the narrowing on
-captured locals because the block could fire arbitrarily
-later.
+ブロックが外側のローカル変数をキャプチャすると、そのローカル変数へのブロックの書き込みが呼び出し後のローカル変数のビューに影響します。非エスケープとして既知のメソッド（`Array#each`、`tap`など）では、呼び出し後のナローイングが保持されます; エスケープするメソッド（`Thread.new`、`define_method`など）では、ブロックが任意の後のタイミングで発火する可能性があるため、解析器はキャプチャされたローカル変数のナローイングを除去します。
 
-This is the conservative call: better to widen too much than
-to claim narrowed-after-escape facts that the runtime might
-violate.
+これは保守的な判断です: エスケープ後のナローイング事実をランタイムが違反するかもしれないという主張をするよりも、広げすぎるほうがよいです。
 
-## What's next
+## 次に読むもの
 
-Chapter 6 covers the class side: how Rigor types `self`,
-constant lookup, `attr_*` declarations, and the
-class-vs-instance method distinction.
+第6章はクラス側を扱います: Rigorが`self`、定数ルックアップ、`attr_*`宣言、クラスメソッドとインスタンスメソッドの区別をどう型付けするか。

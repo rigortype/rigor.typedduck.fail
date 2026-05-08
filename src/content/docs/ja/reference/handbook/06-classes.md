@@ -1,26 +1,20 @@
 ---
-title: "Classes"
-description: "Imported from rigortype/rigor docs/handbook/06-classes.md."
+title: "クラス"
+description: "rigortype/rigor docs/handbook/06-classes.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/handbook/06-classes.md"
 sourcePath: "docs/handbook/06-classes.md"
 sourceSha: "19c3f4bbfd82f5482033682d9c39eb94a6bad0238a468f20325b3cca20ca3028"
 sourceCommit: "b523ab36f62d89a1c16964a66864c27e3ebb0fe4"
-translationStatus: "pending"
+translationStatus: "translated"
 sidebar:
   order: 1006
 ---
 
-> [!NOTE]
-> このページはまだ翻訳されていません。英語版の本文を参考表示しています。
+この章はクラス側の型付けを扱います — 異なる位置での`self`の意味、定数の解決、そしてRigorが`attr_*`と`Data.define`宣言をどう読むか。
 
-This chapter covers class-side typing — what `self` means in
-different positions, how constants are resolved, and how
-Rigor reads `attr_*` and `Data.define` declarations.
+## インスタンス側とクラス側の`self`
 
-## Instance-side and class-side `self`
-
-Inside an instance method body, `self` is a `Nominal[T]` of
-the enclosing class:
+インスタンスメソッド本体の内側では、`self`は囲むクラスの`Nominal[T]`です:
 
 ```ruby
 class User
@@ -30,9 +24,7 @@ class User
 end
 ```
 
-Inside a singleton method body (`def self.foo` or
-`def User.foo`), `self` is a `Singleton[T]` — the class
-object itself, not an instance:
+シングルトンメソッド本体の内側（`def self.foo`または`def User.foo`）では、`self`は`Singleton[T]` — インスタンスではなくクラスオブジェクト自体 — です:
 
 ```ruby
 class User
@@ -42,31 +34,20 @@ class User
 end
 
 User       # Singleton[User]
-User.find(1)  # Nominal[User]  (declared by RBS)
+User.find(1)  # Nominal[User]  (RBSで宣言)
 User.new      # Nominal[User]
 ```
 
-The distinction matters for method dispatch: instance methods
-run on `Nominal[User]`, singleton methods run on
-`Singleton[User]`. Rigor reads the right side of the colon in
-RBS sigs (`def self.find: (Integer) -> User`) to know which
-side a method lives on.
+この区別はメソッドディスパッチで重要です: インスタンスメソッドは`Nominal[User]`で実行され、シングルトンメソッドは`Singleton[User]`で実行されます。Rigorはメソッドがどちら側にあるかを知るために、RBSシグのコロンの右側（`def self.find: (Integer) -> User`）を読みます。
 
-## Constants
+## 定数
 
-Constant lookup walks four sources, in this order:
+定数ルックアップは4つのソースを順に辿ります:
 
-1. **Lexical scope.** If `Foo` is referenced inside
-   `class A; module B; ...`, Rigor looks for `A::B::Foo`,
-   `A::Foo`, `Foo`.
-2. **RBS-core and bundled stdlib.** `String`, `Integer`,
-   `Symbol`, `Array`, `Pathname`, `URI`, `OptParse`, `JSON`,
-   `YAML`, etc.
-3. **Project RBS.** `sig/` files in your project add to the
-   lookup.
-4. **In-source class discovery.** When no RBS exists, Rigor
-   walks `class Foo`, `module Bar`, and constant assignments
-   (`MAX = 100`).
+1. **字句スコープ。** `Foo`が`class A; module B; ...`の内側で参照されている場合、Rigorは`A::B::Foo`、`A::Foo`、`Foo`を探します。
+2. **RBSコアとバンドルされたstdlib。** `String`、`Integer`、`Symbol`、`Array`、`Pathname`、`URI`、`OptParse`、`JSON`、`YAML`など。
+3. **プロジェクトRBS。** プロジェクトの`sig/`ファイルがルックアップに追加されます。
+4. **インソースクラス探索。** RBSが存在しない場合、Rigorは`class Foo`、`module Bar`、定数代入（`MAX = 100`）を辿ります。
 
 ```ruby
 MAX = 100
@@ -74,20 +55,16 @@ class Counter
   def initial = MAX
 end
 
-Counter.new.initial   # Constant<100>  — the constant value
-                      # propagates through the in-source
-                      # class lookup
+Counter.new.initial   # Constant<100>  — 定数値が
+                      # インソースクラスルックアップを
+                      # 通じて伝播する
 ```
 
-For constants whose right-hand side Rigor can fold, the
-constant carries a `Constant<value>` type. For others, it
-carries the wider RBS-erased form.
+Rigorがたたみ込める右辺を持つ定数には`Constant<value>`型が付きます。そうでない定数には、より広いRBS消去形式が付きます。
 
-## `attr_reader`, `attr_writer`, `attr_accessor`
+## `attr_reader`、`attr_writer`、`attr_accessor`
 
-Rigor reads `attr_*` declarations and treats them as method
-definitions. The reader's return type matches the
-corresponding ivar's inferred type:
+Rigorは`attr_*`宣言を読み、メソッド定義として扱います。リーダーの戻り値型は対応するインスタンス変数の推論された型と一致します:
 
 ```ruby
 class User
@@ -99,46 +76,37 @@ class User
 end
 
 u = User.new("Alice")
-u.name    # Constant<"Alice">  — through in-source dispatch +
-          # ivar tracking
+u.name    # Constant<"Alice">  — インソースディスパッチ +
+          # インスタンス変数追跡を通じて
 ```
 
-`attr_writer` exposes the setter; `attr_accessor` exposes
-both. The setter's argument type is whatever the call site
-provides; Rigor does not yet check writes against a declared
-ivar type (that would need the `def.ivar-write-mismatch` rule
-queued for v0.1.x).
+`attr_writer`はセッターを公開します; `attr_accessor`は両方を公開します。セッターの引数型は呼び出し元が提供するものです; Rigorはまだ宣言されたインスタンス変数型に対して書き込みをチェックしません（v0.1.xで予定されている`def.ivar-write-mismatch`ルールが必要です）。
 
-## Instance variables across methods
+## メソッドをまたいだインスタンス変数
 
-Rigor accumulates ivar facts across all methods in a class:
+Rigorはクラスのすべてのメソッドにわたってインスタンス変数の事実を蓄積します:
 
 ```ruby
 class Counter
   def initialize
-    @count = 0    # @count: Constant<0> after init
+    @count = 0    # init後の@count: Constant<0>
   end
 
   def bump
-    @count += 1   # @count rebound to int<1, max>
+    @count += 1   # @countがint<1, max>に再バインドされる
   end
 
   def value
-    @count        # int<0, max>  (union of seen writes)
+    @count        # int<0, max>  (見られた書き込みのユニオン)
   end
 end
 ```
 
-The ivar type at each read site is the union of every
-statically-visible write — including writes from a different
-method on the same class.
+各読み取り地点でのインスタンス変数型は、静的に見えるすべての書き込みのユニオンです — 同じクラスの別のメソッドからの書き込みも含みます。
 
 ## `Data.define`
 
-`Data.define` produces a small immutable struct. Rigor
-recognises the declaration and surfaces the constructor
-arity, the per-field accessors, and the resulting class
-type:
+`Data.define`は小さなイミュータブルな構造体を生成します。Rigorは宣言を認識し、コンストラクターのアリティ、フィールドごとのアクセサー、結果のクラス型を公開します:
 
 ```ruby
 Point = Data.define(:x, :y)
@@ -149,17 +117,11 @@ assert_type(p.x, "Constant<3>")
 assert_type(p.y, "Constant<4>")
 ```
 
-The discovery walks `define_method`-style block bodies too,
-so `Point = Data.define(:x, :y) do ... end` still works.
-Override-aware initializer dispatch (where the block redefines
-`#initialize`) is queued for v0.1.x — today the synthesized
-keyword-argument constructor wins.
+探索は`define_method`スタイルのブロック本体も辿るので、`Point = Data.define(:x, :y) do ... end`でも動作します。ブロックが`#initialize`を再定義するオーバーライド対応のイニシャライザディスパッチはv0.1.xに予定されています — 現在は合成されたキーワード引数コンストラクターが優先されます。
 
 ## `Struct.new`
 
-`Struct.new(*Symbol)` produces a positional-arg constructor
-plus the same accessors as `Data.define`. Rigor handles both
-shapes:
+`Struct.new(*Symbol)`は位置引数コンストラクターに加えて`Data.define`と同じアクセサーを生成します。Rigorは両方の形式を処理します:
 
 ```ruby
 Coord = Struct.new(:x, :y)
@@ -169,55 +131,38 @@ assert_type(c.x, "Constant<10>")
 assert_type(c.y, "Constant<20>")
 ```
 
-`Struct` adds mutability (the accessors are also writers), so
-ivar-style accumulation applies. `Data` is read-only.
+`Struct`はミュータビリティを追加します（アクセサーはライターでもある）ので、インスタンス変数スタイルの蓄積が適用されます。`Data`は読み取り専用です。
 
-## Inheritance and method resolution
+## 継承とメソッド解決
 
-When you call a method on `Nominal[Subclass]`, Rigor walks
-the class hierarchy: subclass's RBS / in-source body first,
-then each ancestor's RBS / body, then included modules in
-their declaration order. The first one to define the method
-wins.
+`Nominal[Subclass]`でメソッドを呼び出すと、Rigorはクラス階層を辿ります: まずサブクラスのRBS / インソース本体、次に各祖先のRBS / 本体、次に宣言順に含まれるモジュール。メソッドを定義した最初のものが勝ちます。
 
-The hierarchy is read from:
+階層は次から読まれます:
 
-- RBS `class Foo < Bar` declarations.
-- In-source `class Foo < Bar` lines.
-- `include` / `prepend` / `extend` calls Rigor walked.
+- RBSの`class Foo < Bar`宣言。
+- インソースの`class Foo < Bar`行。
+- Rigorが辿った`include` / `prepend` / `extend`呼び出し。
 
-When the hierarchy is statically incomplete (a class
-references a parent Rigor cannot locate), the receiver type
-falls back to the deepest known ancestor — never to
-`Dynamic[Top]` for a class Rigor saw the declaration of.
+階層が静的に不完全な場合（クラスがRigorが見つけられない親を参照している）、レシーバー型は最も深い既知の祖先にフォールバックします — Rigorが宣言を見たクラスに対しては、`Dynamic[Top]`になることはありません。
 
-## `class` and `singleton(C)` types
+## `class`型と`singleton(C)`型
 
-Method signatures sometimes return "the class object itself":
+メソッドシグネチャが「クラスオブジェクト自体」を返すことがあります:
 
 ```ruby
 class Foo
-  def self.factory: () -> Foo            # returns an instance
-  def self.subclasses: () -> Array[singleton(Foo)]  # returns class objects
+  def self.factory: () -> Foo            # インスタンスを返す
+  def self.subclasses: () -> Array[singleton(Foo)]  # クラスオブジェクトを返す
 end
 ```
 
-`singleton(Foo)` is the type of the class object `Foo`.
-`Singleton[Foo]` (Rigor's internal carrier display form) is
-the same idea. `Foo` (in `Array[Foo]`) means "an instance of
-`Foo`" / `Nominal[Foo]`.
+`singleton(Foo)`はクラスオブジェクト`Foo`の型です。`Singleton[Foo]`（Rigorの内部キャリア表示形式）も同じ概念です。（`Array[Foo]`での）`Foo`は「`Foo`のインスタンス」/ `Nominal[Foo]`を意味します。
 
-Calling an instance method on a `singleton(Foo)` is an error
-unless `Foo` itself defines that singleton method — `String`
-is `singleton(String)`, `String#upcase` is on instances, so
-`String.upcase` flags `call.undefined-method`.
+`singleton(Foo)`でインスタンスメソッドを呼び出すのはエラーです。ただし`Foo`自体がそのシングルトンメソッドを定義している場合は除きます — `String`は`singleton(String)`で、`String#upcase`はインスタンスにあるので、`String.upcase`は`call.undefined-method`をフラグします。
 
-## Custom `case_eq` (`===`)
+## カスタム`case_eq`（`===`）
 
-Rigor recognises `===` for `Class` / `Module` / `Range` /
-`Regexp` — these are the standard `case x; when …` shapes.
-Custom `case_eq` implementations on user classes are NOT
-recognised:
+Rigorは`Class` / `Module` / `Range` / `Regexp`に対して`===`を認識します — これらは標準の`case x; when …`の形式です。ユーザークラスへのカスタム`case_eq`実装は認識されません:
 
 ```ruby
 class IPv4
@@ -228,56 +173,35 @@ end
 
 case some_input
 when IPv4
-  # Rigor does not narrow `some_input` here — IPv4.=== is a
-  # user-defined case-equality, which the engine cannot prove
-  # narrows a specific class.
+  # Rigorはここで`some_input`をナローイングしません —
+  # IPv4.===はユーザー定義のcase等値で、エンジンは
+  # 特定のクラスにナローイングするとは証明できません。
   some_input
 end
 ```
 
-For these cases, write an explicit `is_a?` / `respond_to?`
-guard, or use an `RBS::Extended` `predicate-if-true` directive
-on the `===` method (see [Chapter 7](../07-rbs-and-extended/)).
+このような場合、明示的な`is_a?` / `respond_to?`ガードを書くか、`===`メソッドに`RBS::Extended`の`predicate-if-true`ディレクティブを使ってください（[第7章](../07-rbs-and-extended/)参照）。
 
-## Constant-decl alias classes
+## 定数宣言エイリアスクラス
 
-Some Ruby idioms create a class alias by constant assignment:
+一部のRubyイディオムは定数代入でクラスエイリアスを作ります:
 
 ```ruby
 YAML = Psych
 ```
 
-When the right-hand side is itself a class, Rigor follows the
-alias for receiver typing — `YAML.load(...)` is treated as
-`Psych.load(...)`. Method-existence checks deliberately stay
-silent on the aliased name, however; the analyzer cannot
-distinguish a deliberate alias from an accidental shadowing
-without more context, so `YAML.unknown` does not fire
-`call.undefined-method`. Use the canonical name when you need
-the diagnostic.
+右辺がクラス自体の場合、Rigorはレシーバー型付けのためにエイリアスを追います — `YAML.load(...)`は`Psych.load(...)`として扱われます。しかしメソッド存在チェックはエイリアス名に対して意図的に沈黙します; 解析器はより多くのコンテキストなしに意図的なエイリアスと偶発的なシャドウを区別できないので、`YAML.unknown`は`call.undefined-method`を発火しません。診断が必要な場合は正規名を使ってください。
 
-## Modules
+## モジュール
 
-`module M; def foo; end; end` is structurally similar to a
-class for typing purposes. Methods are looked up the same
-way; `include M` adds `M`'s methods to the including class's
-hierarchy.
+型付けの目的では、`module M; def foo; end; end`はクラスと構造的に似ています。メソッドは同じように参照されます; `include M`は`M`のメソッドをインクルードするクラスの階層に追加します。
 
-`extend self`-style mixin patterns (`module_function` /
-`extend self`) are recognised — both instance-side and
-singleton-side surface the same methods.
+`extend self`スタイルのミックスインパターン（`module_function` / `extend self`）が認識されます — インスタンス側とシングルトン側の両方が同じメソッドを公開します。
 
-## `protected` and `private`
+## `protected`と`private`
 
-Rigor reads visibility modifiers and respects them in the
-limited context of `def.method-visibility-mismatch` rules
-(future). Today, calling a private method on an external
-receiver does not fire a diagnostic — visibility is more a
-concern for `rubocop-style` linters than a type-system
-question.
+Rigorは可視性修飾子を読み、`def.method-visibility-mismatch`ルール（将来）の限定的なコンテキストでそれらを考慮します。今日、外部レシーバーへのプライベートメソッド呼び出しは診断を発火しません — 可視性は型システムの問題というよりも`rubocop-style`リンターの関心事です。
 
-## What's next
+## 次に読むもの
 
-Chapter 7 covers RBS and `RBS::Extended` — the external
-signature surface that takes you beyond what inference alone
-can prove.
+第7章はRBSと`RBS::Extended`を扱います — 推論だけでは証明できないものを超えるための外部シグネチャ表面です。

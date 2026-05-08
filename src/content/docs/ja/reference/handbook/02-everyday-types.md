@@ -1,82 +1,54 @@
 ---
-title: "Everyday types"
-description: "Imported from rigortype/rigor docs/handbook/02-everyday-types.md."
+title: "日常的に出会う型"
+description: "rigortype/rigor docs/handbook/02-everyday-types.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/handbook/02-everyday-types.md"
 sourcePath: "docs/handbook/02-everyday-types.md"
 sourceSha: "5348d928ec18d04a1224b7b97d2c5de8ca4de875cb76a9a291b5587baf0578c7"
 sourceCommit: "b523ab36f62d89a1c16964a66864c27e3ebb0fe4"
-translationStatus: "pending"
+translationStatus: "translated"
 sidebar:
   order: 1002
 ---
 
-> [!NOTE]
-> このページはまだ翻訳されていません。英語版の本文を参考表示しています。
+この章が最も重要です。以下のキャリアを把握してしまえば、ハンドブックの残りはそれらに適用されるルールの話だけになります。
 
-This is the most important chapter. Once you have a feel for
-the carriers below, the rest of the handbook is just rules
-operating on them.
+## なぜ「型」では粒度が荒いのか
 
-## Why "type" is too coarse a word
-
-A vanilla static checker answers "what *class* is this
-object?" Rigor answers a narrower question: "what *subset of
-values* can this expression actually produce?"
+通常の静的チェッカーは「このオブジェクトはどのクラスか？」と問います。Rigorが問うのはもっと狭い問いです:「この式が実際に生成できる**値の部分集合**はどれか？」
 
 ```ruby
 n = 1 + 2
 ```
 
-A vanilla checker says: `n: Integer`. Rigor says:
-`n: Constant<3>`. Both are correct; Rigor's is much more
-useful.
+通常のチェッカーは`n: Integer`と言います。Rigorは`n: Constant<3>`と言います。どちらも正しいですが、Rigorのほうがはるかに有用です。
 
 ```ruby
 n = ARGV.size
 ```
 
-A vanilla checker says: `n: Integer`. Rigor says:
-`n: int<0, max>` (a non-negative integer — `Array#size` cannot
-return a negative count).
+通常のチェッカーは`n: Integer`と言います。Rigorは`n: int<0, max>`（非負の整数 — `Array#size`は負の値を返せない）と言います。
 
-The reason this matters: most diagnostics Rigor wants to fire
-need the narrower fact. "Integer" is not enough to prove
-`n / 0` always raises; `Constant<0>` is. "Array" is not enough
-to prove `arr.first.upcase` is safe; `non-empty-array[String]`
-is.
+これが重要な理由: Rigorが出したい診断のほとんどは、より狭い事実を必要とします。「Integer」だけでは`n / 0`が常に例外を投げると証明できませんが、`Constant<0>`なら証明できます。「Array」だけでは`arr.first.upcase`が安全と証明できませんが、`non-empty-array[String]`なら証明できます。
 
-So: every value at every program point is described by a
-**carrier**. Carriers can be wide (`Integer`, `Dynamic[Top]`)
-or narrow (`Constant<3>`, `non-empty-string`). The rest of
-this chapter is the carrier zoo.
+まとめると: プログラムのすべての地点にある各値は**キャリア**（carrier）で記述されます。キャリアは広い（`Integer`、`Dynamic[Top]`）場合もあれば、狭い（`Constant<3>`、`non-empty-string`）場合もあります。この章の残りはキャリアの図鑑です。
 
-## Nominal types — the familiar starting point
+## ノミナル型 — 馴染み深い出発点
 
-The simplest carrier is the one you already know:
-`Nominal[ClassName]`. It says "this is an instance of that
-class" with no additional information.
+最もシンプルなキャリアは、すでに知っている`Nominal[ClassName]`です。追加情報なしに「これはそのクラスのインスタンスである」と言うものです。
 
 ```ruby
 n = ARGV.first         # Nominal[String] | Constant<nil>
-                       # (RBS says `String?`, which is
+                       # (RBSは `String?` と言う、つまり
                        # String | nil)
 ```
 
-`Nominal[Integer]`, `Nominal[String]`, `Nominal[Symbol]`,
-`Nominal[Hash[K, V]]` — exactly what you expect. The display
-form drops the `Nominal[]` wrapper for readability:
-`Integer`, `String`, `Hash[String, Integer]`.
+`Nominal[Integer]`、`Nominal[String]`、`Nominal[Symbol]`、`Nominal[Hash[K, V]]` — 期待通りです。表示形式は読みやすさのために`Nominal[]`ラッパーを省略します: `Integer`、`String`、`Hash[String, Integer]`。
 
-Rigor reads nominal types from RBS. When you write
-`def foo(s) -> ::String`, the call site's result is
-`Nominal[String]`. When the receiver class has a richer
-catalogue (built-in `String`, `Array`, `Integer`, …), Rigor
-often produces something narrower than nominal — see below.
+RigorはRBSからノミナル型を読みます。`def foo(s) -> ::String`と書くと、呼び出し元の戻り値は`Nominal[String]`になります。受信クラスがより豊富なカタログを持つ場合（組み込みの`String`、`Array`、`Integer`など）、Rigorはノミナルより狭いものを生成することがよくあります — 後述します。
 
-## Constants — single Ruby values
+## 定数 — 単一のRuby値
 
-`Type::Constant` is Rigor's "I know exactly which value this
-is" carrier. It wraps one Ruby literal:
+`Type::Constant`はRigorの「この値が正確にどれかを知っている」キャリアです。1つのRubyリテラルをラップします:
 
 ```ruby
 n = 42
@@ -92,8 +64,7 @@ t = true
 assert_type(t, "Constant<true>")
 ```
 
-Rigor folds arithmetic and string composition aggressively
-when every operand is a Constant:
+すべてのオペランドがConstantのとき、Rigorは算術と文字列合成を積極的にたたみ込みます:
 
 ```ruby
 two = 1 + 1               # Constant<2>
@@ -102,142 +73,99 @@ hi  = "Hello, " + "world" # Constant<"Hello, world">
 sym = "foo".to_sym        # Constant<:foo>
 ```
 
-Folding extends to a long list of "pure" methods on Numeric,
-String, Symbol, Array, and Hash. The list is not in this
-handbook (it would fill several pages); see
-[`docs/types.md`](../../types/) and the per-class catalogues
-under
-[`data/builtins/ruby_core/`](../../data/builtins/ruby_core/).
+たたみ込みはNumeric、String、Symbol、Array、Hashの「純粋な」メソッドの長いリストに及びます。リストはこのハンドブックには載せていません（数ページにわたる）。[`docs/types.md`](../../types/)とクラス別カタログ [`data/builtins/ruby_core/`](../../data/builtins/ruby_core/)を参照してください。
 
-When folding is **not** safe (because a method has side
-effects, depends on the environment, or is not in a
-catalogued built-in class), Rigor declines and you get a
-nominal carrier or `Dynamic[Top]`.
+たたみ込みが**安全でない**とき（メソッドに副作用がある、環境に依存する、またはカタログに載っていない組み込みクラスにある）、Rigorは辞退してノミナルキャリアか`Dynamic[Top]`を返します。
 
-## Integer ranges — bounded intervals
+## 整数範囲 — 有界な区間
 
-Some integer-valued expressions produce a known range without
-producing a single literal value. Rigor describes those with
-`Type::IntegerRange`, displayed as `int<min, max>`:
+整数値を持つ式の中には、単一のリテラル値を生成せずに既知の範囲を生成するものがあります。Rigorはそれらを`Type::IntegerRange`で記述し、`int<min, max>`と表示します:
 
 ```ruby
 n = ARGV.size               # int<0, max>
 m = n + 1                   # int<1, max>
-double = n * 2              # int<0, max>  — multiplication preserves the floor
+double = n * 2              # int<0, max>  — 乗算は下限を保持
 ```
 
-`max` here means "positive infinity" — the upper bound is
-unbounded.
+ここでの`max`は「正の無限大」を意味します — 上限は無制限です。
 
-A handful of common ranges have shorter names:
+よく使う範囲には短い名前があります:
 
-| Spelling | Meaning |
+| 表記 | 意味 |
 | --- | --- |
 | `positive-int` | `int<1, max>` |
 | `non-negative-int` | `int<0, max>` |
 | `negative-int` | `int<min, -1>` |
 | `non-positive-int` | `int<min, 0>` |
 
-`Array#size`, `Array#length`, `Hash#size`, `String#size`, …
-all carry `non-negative-int`. `Array#count` does too. Adding
-`1` to a `non-negative-int` produces a `positive-int`. Adding
-`-1` produces an unconstrained `Integer` (it could go below
-zero).
+`Array#size`、`Array#length`、`Hash#size`、`String#size`など、すべて`non-negative-int`を持ちます。`Array#count`も同様です。`non-negative-int`に`1`を加えると`positive-int`になります。`-1`を加えると制約のない`Integer`になります（ゼロ以下になる可能性があるため）。
 
-## Refinements — values restricted by a predicate
+## リファインメント — 述語で制約された値
 
-Some types are not "this nominal class minus / plus a literal
-value" but "this nominal class restricted by a predicate."
-Rigor uses the carrier `Type::Refined` for these, displayed
-with a kebab-case name. The catalogue:
+「このノミナルクラスからリテラル値を引いた/加えた」ではなく「述語で制約されたこのノミナルクラス」という型があります。Rigorはこれらに`Type::Refined`キャリアを使い、ケバブケース名で表示します。カタログ:
 
-| Refinement | Means |
+| リファインメント | 意味 |
 | --- | --- |
-| `non-empty-string` | `String` whose `#empty?` is provably `false` |
-| `lowercase-string` | `String` equal to its `#downcase` |
-| `uppercase-string` | `String` equal to its `#upcase` |
-| `numeric-string` | `String` parseable as a number |
-| `decimal-int-string` | `String` parseable as a decimal integer |
-| `octal-int-string` | leading `0o` / octal digits |
-| `hex-int-string` | leading `0x` / hex digits |
-| `literal-string` | `String` provably composed from literals |
-| `non-empty-lowercase-string` | both at once |
-| `non-empty-uppercase-string` | both at once |
-| `non-empty-literal-string` | both at once |
+| `non-empty-string` | `#empty?`が証明可能に`false`の`String` |
+| `lowercase-string` | `#downcase`と等しい`String` |
+| `uppercase-string` | `#upcase`と等しい`String` |
+| `numeric-string` | 数値としてパース可能な`String` |
+| `decimal-int-string` | 十進整数としてパース可能な`String` |
+| `octal-int-string` | 先頭`0o` / 八進数字 |
+| `hex-int-string` | 先頭`0x` / 十六進数字 |
+| `literal-string` | リテラルから構成されることが証明可能な`String` |
+| `non-empty-lowercase-string` | 両方同時 |
+| `non-empty-uppercase-string` | 両方同時 |
+| `non-empty-literal-string` | 両方同時 |
 
-Most of these carriers come into being one of two ways:
+これらのキャリアのほとんどは2つの方法で生まれます:
 
-1. **Through narrowing** — `if s.empty?` gives `s` the type
-   `non-empty-string` in the false branch (see
-   [Chapter 3](../03-narrowing/)).
-2. **Through `RBS::Extended` annotations** — a method's RBS
-   sig says `String`, but the author knows the runtime
-   always returns non-empty, so they tag
-   `%a{rigor:v1:return: non-empty-string}` (see
-   [Chapter 7](../07-rbs-and-extended/)).
+1. **ナローイングを通じて** — `if s.empty?`は偽のブランチで`s`に`non-empty-string`型を与えます（[第3章](../03-narrowing/)参照）。
+2. **`RBS::Extended`アノテーションを通じて** — メソッドのRBSシグネチャが`String`と言っていても、著者がランタイムが常に非空を返すと知っている場合、`%a{rigor:v1:return: non-empty-string}`とタグ付けします（[第7章](../07-rbs-and-extended/)参照）。
 
-Refinements **erase** to their base nominal class for RBS
-interop. A method whose signature says `-> String` keeps
-that contract — Rigor only adds a tighter view inside its
-own analysis.
+リファインメントはRBSとの相互運用のためにベースのノミナルクラスに**消去**されます。シグネチャが`-> String`と言っているメソッドはそのコントラクトを保ちます — Rigorは自身の解析の中でのみ、より厳密なビューを加えます。
 
-The negation form `~T` denotes the complement: `~lowercase-string`
-is "a String that has at least one non-lowercase character."
-A small number of refinements have a hand-paired complement
-(`lowercase-string` ↔ `non-lowercase-string`) which Rigor
-prefers when it can; the rest fall back to a generic
-`Difference` form.
+否定形`~T`は補完を意味します: `~lowercase-string`は「少なくとも1文字の小文字以外の文字を持つString」です。少数のリファインメントには手動でペアになった補完があります（`lowercase-string` ↔ `non-lowercase-string`）。Rigorはできるときにこれを優先し、それ以外は汎用的な`Difference`形にフォールバックします。
 
-## Difference — a base minus a single value
+## 差分 — ベースから単一の値を引いた
 
-`non-empty-string` could equivalently be spelled
-`String - ""`. Rigor uses `Type::Difference` for this kind of
-carrier:
+`non-empty-string`は等価的に`String - ""`と書けます。Rigorはこの種のキャリアに`Type::Difference`を使います:
 
-| Carrier | Equivalent |
+| キャリア | 等価表現 |
 | --- | --- |
 | `non-empty-string` | `String - ""` |
 | `non-zero-int` | `Integer - 0` |
 | `non-empty-array[T]` | `Array[T] - []` |
 | `non-empty-hash[K, V]` | `Hash[K, V] - {}` |
 
-You will see them most often in narrowing:
+ナローイングで最もよく見かけます:
 
 ```ruby
 n = some_integer_call
 if n.zero?
   # n: Constant<0>
 else
-  assert_type(n, "non-zero-int")  # narrowed by !.zero?
+  assert_type(n, "non-zero-int")  # !.zero? によってナローイング
 end
 ```
 
-## `Dynamic[Top]` — the gradual carrier
+## `Dynamic[Top]` — グラデュアルキャリア
 
-Sometimes Rigor cannot prove anything tighter than "this
-could be any Ruby value." That is `Dynamic[Top]`, often
-shortened to `untyped` for the RBS-erased view.
+Rigorが「これは任意のRuby値かもしれない」よりも厳密なことを証明できないことがあります。それが`Dynamic[Top]`で、RBS消去後のビューでは`untyped`と短縮されることが多いです。
 
 ```ruby
 def foo(x)
-  x.bar           # x: Dynamic[Top] — no calling-side info
+  x.bar           # x: Dynamic[Top] — 呼び出し元からの情報がない
 end
 ```
 
-`Dynamic[T]` (with a non-Top inner) is the more specific
-gradual form: "we do not have a static contract for this
-value, but the static facet behaves like `T`." It pops up
-when an RBS-declared `untyped` boundary meets a class Rigor
-already knows something about.
+`Dynamic[T]`（Top以外の内部）はより具体的なグラデュアル形式です: 「この値に対する静的コントラクトはないが、静的ファセットは`T`のように振る舞う」。RBSで宣言された`untyped`境界が、Rigorがすでに何かを知っているクラスと出会うときに現れます。
 
-A diagnostic NEVER fires on a `Dynamic[Top]` receiver. That is
-the no-false-positives stance — Rigor stays silent rather
-than reporting on values it cannot characterise.
+`Dynamic[Top]`レシーバーに対して診断が出ることは**ありません**。これが偽陽性なし方針です — Rigorは特定できない値に対しては、報告するよりも沈黙を選びます。
 
-## Tuples and hash shapes — heterogeneous structures
+## タプルとハッシュシェイプ — 異種構造
 
-`[1, "two", :three]` is more specific than "an Array of mixed
-elements." Rigor describes it with `Type::Tuple`:
+`[1, "two", :three]`は「混在要素のArray」より具体的です。Rigorはこれを`Type::Tuple`で記述します:
 
 ```ruby
 arr = [1, "two", :three]
@@ -249,7 +177,7 @@ assert_type(second, "Constant<\"two\">")
 assert_type(third,  "Constant<:three>")
 ```
 
-Same for hashes with literal keys:
+リテラルキーを持つハッシュも同様:
 
 ```ruby
 h = { name: "Alice", age: 30 }
@@ -258,17 +186,13 @@ h = { name: "Alice", age: 30 }
 assert_type(h[:name], "Constant<\"Alice\">")
 ```
 
-Tuples and hash shapes erase to `Array[…]` and `Hash[K, V]`
-when crossing an RBS boundary. Inside Rigor they carry the
-full per-position / per-key type information so destructuring
-and slot access stay precise.
+タプルとハッシュシェイプはRBS境界を越えるときに`Array[…]`と`Hash[K, V]`に消去されます。Rigor内部では、位置ごと/キーごとの完全な型情報を持っているので、分解代入とスロットアクセスが精密に保たれます。
 
-Chapter 4 covers tuples and hash shapes in depth.
+第4章でタプルとハッシュシェイプを詳しく説明します。
 
-## Unions — "one of these"
+## ユニオン — 「このどれか」
 
-When a value can be one of finitely many types, Rigor uses
-`Type::Union`:
+値が有限個の型のいずれかになれるとき、Rigorは`Type::Union`を使います:
 
 ```ruby
 label = case n
@@ -279,19 +203,13 @@ label = case n
 # Constant<:zero> | Constant<:small> | Constant<:large>
 ```
 
-A union of constants is the closest Ruby gets to a sum type or
-discriminated union. Rigor takes them seriously: switching on
-a literal-union value with `case` produces a precise narrowing
-(see [Chapter 3](../03-narrowing/)).
+定数のユニオンは、Rubyが直和型や識別可能ユニオンに最も近づく形です。Rigorはこれを真剣に扱います: `case`でリテラルユニオン値を切り替えると精密なナローイングが生まれます（[第3章](../03-narrowing/)参照）。
 
-There are limits — Rigor does not extend a union past a
-configurable size budget. Beyond that, it widens to the union
-of the members' nominal bases. This keeps the analyzer fast
-and predictable on degenerate input.
+制限があります — Rigorは設定可能なサイズ予算を超えてユニオンを拡張しません。それを超えると、メンバーのノミナルベースのユニオンに広げます。これにより、デジェネレートな入力でも解析器は高速で予測可能に保たれます。
 
-## A worked example
+## 実例
 
-Putting it together:
+まとめると:
 
 ```ruby
 def classify(n)
@@ -308,8 +226,7 @@ result = classify(some_integer_input)
 assert_type(result, "Constant<:zero> | Constant<:positive> | Constant<:negative>")
 ```
 
-A vanilla type-checker would call `result: Symbol`. Rigor
-narrows to the exact 3-element union. If you later write
+通常の型チェッカーは`result: Symbol`と言います。Rigorは正確な3要素のユニオンにナローイングします。後でこう書くと:
 
 ```ruby
 case result
@@ -319,13 +236,8 @@ when :zero     then "0"
 end
 ```
 
-Rigor proves the `case` is exhaustive — every union member
-matches some `when` — and the result is
-`Constant<"+"> | Constant<"-"> | Constant<"0">`.
+Rigorは`case`が網羅的であることを証明します — すべてのユニオンメンバーがいずれかの`when`に一致する — そして結果は`Constant<"+"> | Constant<"-"> | Constant<"0">`となります。
 
-## What's next
+## 次に読むもの
 
-Chapter 3 (narrowing) is the engine that takes these carriers
-and changes them as control flow passes — `if` / `case` /
-`is_a?` / `nil?`. That is where the value-lattice carriers
-above start paying for themselves.
+第3章（ナローイング）は、これらのキャリアを受け取り、制御フローが通過するときにキャリアがどう変化するかを扱うエンジンです — `if` / `case` / `is_a?` / `nil?`。そこで上記の値ラティスキャリアが本領を発揮します。

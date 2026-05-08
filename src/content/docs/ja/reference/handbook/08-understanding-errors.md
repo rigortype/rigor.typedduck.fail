@@ -1,119 +1,103 @@
 ---
-title: "Understanding errors"
-description: "Imported from rigortype/rigor docs/handbook/08-understanding-errors.md."
+title: "エラーの読み方"
+description: "rigortype/rigor docs/handbook/08-understanding-errors.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/handbook/08-understanding-errors.md"
 sourcePath: "docs/handbook/08-understanding-errors.md"
 sourceSha: "7923db510fed4b2ad526c32c5b8a08fb25f023f0ccc1ac3e1bbf463de0d22727"
 sourceCommit: "b523ab36f62d89a1c16964a66864c27e3ebb0fe4"
-translationStatus: "pending"
+translationStatus: "translated"
 sidebar:
   order: 1008
 ---
 
-> [!NOTE]
-> このページはまだ翻訳されていません。英語版の本文を参考表示しています。
+この章はRigorが出荷する診断のカタログ、それらが属するファミリー、そして診断が間違っているとき（または深刻度を変えたいとき）に抑制する方法です。
 
-This chapter is the catalogue of diagnostics Rigor ships, the
-families they belong to, and how to suppress one when it is
-wrong (or move its severity around).
-
-## Anatomy of a diagnostic
+## 診断の構造
 
 ```text
 lib/user.rb:42:7: error: undefined method `upcas' for "alice" [call.undefined-method]
                   ↑      ↑                                   ↑
-                  │      │                                   └─ qualified rule
-                  │      └─ message
-                  └─ severity (error / warning / info)
+                  │      │                                   └─ 修飾ルール
+                  │      └─ メッセージ
+                  └─ 深刻度 (error / warning / info)
 ```
 
-The qualified rule (`call.undefined-method`,
-`flow.always-raises`, `def.return-type-mismatch`, …) is the
-stable identifier for the rule. Use it in:
+修飾ルール（`call.undefined-method`、`flow.always-raises`、`def.return-type-mismatch`など）はルールの安定した識別子です。以下で使います:
 
-- `# rigor:disable <rule>` end-of-line suppressions in source
-- `severity_overrides:` in `.rigor.yml`
-- `disabled_rules:` in `.rigor.yml`
+- ソース内の`# rigor:disable <rule>`行末抑制
+- `.rigor.yml`の`severity_overrides:`
+- `.rigor.yml`の`disabled_rules:`
 
-Wildcards work — `# rigor:disable call` suppresses every
-`call.*` rule on that line.
+ワイルドカードも使えます — `# rigor:disable call`はその行のすべての`call.*`ルールを抑制します。
 
-## The rule catalogue
+## ルールカタログ
 
-Five families, each with one or more rules:
+5つのファミリー、それぞれに1つ以上のルール:
 
-### `call.*` — call-site rules
+### `call.*` — 呼び出し元ルール
 
-Fire when a method call's shape is wrong.
+メソッド呼び出しの形状が間違っているときに発火します。
 
-| Rule | Fires when | Default severity |
+| ルール | 発火するとき | デフォルト深刻度 |
 | --- | --- | --- |
-| `call.undefined-method` | The receiver class is statically known and the method is not defined on it (RBS or in-source). | error |
-| `call.wrong-arity` | The number of positional arguments does not satisfy any overload's arity. | error |
-| `call.argument-type-mismatch` | An argument's type provably does not satisfy the parameter contract (RBS or `RBS::Extended` `param:`). | error |
-| `call.possible-nil-receiver` | The receiver type is `T | nil` and the method is not defined on `NilClass`. | warning |
+| `call.undefined-method` | レシーバークラスが静的に既知で、メソッドがそれに定義されていない（RBSまたはインソース）。 | error |
+| `call.wrong-arity` | 位置引数の数がどのオーバーロードのアリティも満たさない。 | error |
+| `call.argument-type-mismatch` | 引数の型がパラメーターコントラクト（RBSまたは`RBS::Extended` `param:`）を証明可能に満たさない。 | error |
+| `call.possible-nil-receiver` | レシーバー型が`T | nil`で、メソッドが`NilClass`で定義されていない。 | warning |
 
-`call.*` rules are the highest-volume diagnostics on
-real-world code. They are also the most refined — every one
-fires only when Rigor can prove the underlying fact.
+`call.*`ルールは実際のコードで最も量の多い診断です。また最も洗練されています — それぞれがRigorが根底にある事実を証明できる場合にのみ発火します。
 
-### `flow.*` — flow-analysis rules
+### `flow.*` — フロー解析ルール
 
-Fire when the control flow itself is unsound.
+制御フロー自体が健全でないときに発火します。
 
-| Rule | Fires when | Default severity |
+| ルール | 発火するとき | デフォルト深刻度 |
 | --- | --- | --- |
-| `flow.always-raises` | Every reachable evaluation of an expression raises (e.g. `n / 0` where `n: Integer`). | error |
+| `flow.always-raises` | 式のすべての到達可能な評価が例外を投げる（例: `n: Integer`のとき`n / 0`）。 | error |
 
-More flow rules are queued for v0.1.x — `flow.unreachable-branch`,
-`flow.dead-assignment`, `flow.always-truthy-condition` — but
-none have shipped yet.
+さらなるフロールールがv0.1.xに予定されています — `flow.unreachable-branch`、`flow.dead-assignment`、`flow.always-truthy-condition` — しかしまだ出荷されていません。
 
-### `def.*` — method-definition rules
+### `def.*` — メソッド定義ルール
 
-Fire when the body of a method violates its declared
-contract.
+メソッドの本体が宣言されたコントラクトに違反するときに発火します。
 
-| Rule | Fires when | Default severity |
+| ルール | 発火するとき | デフォルト深刻度 |
 | --- | --- | --- |
-| `def.return-type-mismatch` | The body's last expression's inferred type cannot satisfy the RBS-declared return type. | warning under `balanced` profile, error under `strict` |
+| `def.return-type-mismatch` | 本体の最後の式の推論された型がRBS宣言の戻り値型を満たせない。 | `balanced`プロファイルでwarning、`strict`でerror |
 
-### `assert.*` — runtime assertion rules
+### `assert.*` — ランタイムアサーションルール
 
-| Rule | Fires when | Default severity |
+| ルール | 発火するとき | デフォルト深刻度 |
 | --- | --- | --- |
-| `assert.type-mismatch` | An `assert_type(value, "expected")` call's actual inferred type does not match the expected string. | error |
+| `assert.type-mismatch` | `assert_type(value, "expected")`呼び出しの実際の推論された型が期待文字列と一致しない。 | error |
 
-### `dump.*` — debug helpers
+### `dump.*` — デバッグヘルパー
 
-| Rule | Fires when | Default severity |
+| ルール | 発火するとき | デフォルト深刻度 |
 | --- | --- | --- |
-| `dump.type` | `dump_type(value)` was called — emits an info diagnostic naming the inferred type. | info |
+| `dump.type` | `dump_type(value)`が呼ばれた — 推論された型を名前付きのinfo診断として出力する。 | info |
 
-`dump_type` is your introspection probe during debugging:
-sprinkle it through suspicious code, run `rigor check`, read
-the inferred types from the diagnostic stream.
+`dump_type`はデバッグ時のイントロスペクションプローブです: 疑わしいコードに散りばめて、`rigor check`を実行し、診断ストリームから推論された型を読みます。
 
-## Severity profiles
+## 深刻度プロファイル
 
-Rigor ships three named severity profiles that re-stamp the
-shipped severities:
+Rigorは出荷された深刻度を再スタンプする3つの名前付き深刻度プロファイルを提供します:
 
-| Profile | Behaviour |
+| プロファイル | 動作 |
 | --- | --- |
-| `lenient` | Most rules → `warning`; uncertain rules drop to `info`. CI-friendly for legacy code. |
-| `balanced` (default) | Most rules → `error`; `dump.type` → `info`. The shipped behaviour. |
-| `strict` | Everything → `error` including the `:warning` rules under `balanced`. Suitable for new projects with no legacy noise. |
+| `lenient` | ほとんどのルール → `warning`; 不確かなルールは`info`に下がる。レガシーコードのCI向け。 |
+| `balanced`（デフォルト） | ほとんどのルール → `error`; `dump.type` → `info`。出荷された動作。 |
+| `strict` | `balanced`での`:warning`ルールも含め、すべて → `error`。レガシーノイズのない新しいプロジェクトに適しています。 |
 
-Set in `.rigor.yml`:
+`.rigor.yml`で設定:
 
 ```yaml
 severity_profile: strict
 ```
 
-## Per-rule overrides
+## ルールごとのオーバーライド
 
-Override a single rule's severity:
+単一ルールの深刻度をオーバーライド:
 
 ```yaml
 severity_overrides:
@@ -121,47 +105,42 @@ severity_overrides:
   def.return-type-mismatch: off
 ```
 
-`off` drops the diagnostic from the result entirely — useful
-when you want a profile-wide setting for most rules but
-silence one specifically.
+`off`は診断を結果から完全に除去します — プロファイル全体の設定をほとんどのルールに使いつつ、1つだけ沈黙させたいときに有用です。
 
-Family wildcards work in overrides too:
+ファミリーワイルドカードもオーバーライドで使えます:
 
 ```yaml
 severity_overrides:
-  call: warning   # demote every call.* rule
-  dump: off       # drop every dump.* rule
+  call: warning   # すべてのcall.*ルールを降格
+  dump: off       # すべてのdump.*ルールを除去
 ```
 
-Per-rule entries beat family-wildcard entries:
+ルールごとのエントリはファミリーワイルドカードエントリより優先されます:
 
 ```yaml
 severity_overrides:
-  call: warning                    # every call.* → warning
-  call.undefined-method: error     # except undefined-method, still error
+  call: warning                    # すべてのcall.* → warning
+  call.undefined-method: error     # ただしundefined-methodは依然としてerror
 ```
 
-YAML reserves the bareword `off`. If the stripped severity
-seems not to apply, quote it: `"off"`. Same for `on`.
+YAMLは裸の`off`を予約済みにしています。削除された深刻度が適用されないように見える場合は、クォートしてください: `"off"`。`on`も同様です。
 
-## In-source suppression
+## インソース抑制
 
 ```ruby
 "hello".no_such_method  # rigor:disable call.undefined-method
 ```
 
-The comment must be on the same line as the diagnostic. Use
-the qualified rule, the family wildcard, or `all`:
+コメントは診断と同じ行になければなりません。修飾ルール、ファミリーワイルドカード、または`all`を使います:
 
 ```ruby
 "hello".no_such_method   # rigor:disable call
 "hello".no_such_method   # rigor:disable all
 ```
 
-For multiline blocks, suppress at every line — Rigor does
-not yet ship a `disable-block` syntax.
+複数行のブロックの場合は、各行で抑制します — Rigorはまだ`disable-block`構文を出荷していません。
 
-## Project-wide suppression
+## プロジェクト全体の抑制
 
 ```yaml
 # .rigor.yml
@@ -169,95 +148,51 @@ disabled_rules:
   - call.possible-nil-receiver
 ```
 
-Drops the rule project-wide. Heavier hammer than
-`severity_overrides: { call.possible-nil-receiver: off }` —
-both work; the choice is stylistic.
+プロジェクト全体でルールを除去します。`severity_overrides: { call.possible-nil-receiver: off }`よりも強力なハンマーです — どちらも機能します; 選択はスタイルの問題です。
 
-## Why a diagnostic might NOT fire when you expected one
+## 期待していたのに診断が発火しない理由
 
-The most common reasons:
+最もよくある理由:
 
-1. **The receiver is `Dynamic[Top]`.** Rigor stays silent on
-   gradual receivers. Run `rigor type-of <file>:<line>:<col>`
-   to confirm what the engine sees.
-2. **The method exists somewhere in the hierarchy.** Even one
-   matching def in any ancestor class / module silences
-   `call.undefined-method`.
-3. **The call is implicit-self inside a method body.** Rigor
-   does not flag implicit-self calls — too much noise on
-   metaprogramming-heavy code.
-4. **The literal might be empty / nil at runtime in a way the
-   analyzer cannot prove.** `s = ARGV.first; s.upcase`
-   silently passes because `s` could legitimately be a
-   non-empty string at runtime, and Rigor will not flag what
-   it cannot prove. Add an explicit guard or a `param:`
-   tightening.
-5. **The target rule is disabled by configuration.** Check
-   your `.rigor.yml` and any `# rigor:disable` comments in
-   the offending file.
-6. **The severity profile dropped it.** Under `lenient`, rules
-   that fire as `:warning` may have been further demoted to
-   `:info` and filtered out of your CI script.
+1. **レシーバーが`Dynamic[Top]`です。** Rigorはグラデュアルレシーバーに対して沈黙します。`rigor type-of <file>:<line>:<col>`を実行してエンジンが何を見ているか確認します。
+2. **メソッドが階層のどこかに存在します。** 祖先クラス/モジュールの一致するdefが1つでもあれば`call.undefined-method`は沈黙します。
+3. **呼び出しがメソッド本体内の暗黙的selfです。** Rigorは暗黙的selfの呼び出しをフラグしません — メタプログラミングの多いコードではノイズが多すぎます。
+4. **リテラルは解析器が証明できない方法でランタイムに空/nilの可能性があります。** `s = ARGV.first; s.upcase`は黙って通ります。なぜなら`s`はランタイムで正当に非空文字列である可能性があり、Rigorは証明できないことをフラグしないからです。明示的なガードまたは`param:`の締め付けを追加します。
+5. **対象のルールが設定で無効にされています。** `.rigor.yml`と問題のファイルの`# rigor:disable`コメントを確認します。
+6. **深刻度プロファイルがそれを降格しました。** `lenient`では、`:warning`として発火するルールがさらに`:info`に降格されてCIスクリプトでフィルタアウトされた可能性があります。
 
-When in doubt, run with `--explain`:
+疑わしいときは`--explain`で実行します:
 
 ```sh
 bundle exec rigor check --explain lib
 ```
 
-This adds an `:info` diagnostic for every fail-soft fallback
-the engine took — every place it widened to `Dynamic[Top]`
-because it could not see further. The output is noisy on
-realistic code but invaluable when "I expected a diagnostic
-here" debugging.
+これにより、エンジンが取ったすべてのfail-softフォールバックごとに`:info`診断が追加されます — それ以上見えなかったため`Dynamic[Top]`に拡幅した各箇所。現実的なコードでは出力がノイズになりますが、「ここで診断が来ると思っていた」デバッグには非常に価値があります。
 
-## Why a diagnostic IS firing when you think it should not
+## 来るべきでないと思う診断が発火している理由
 
-Almost always one of:
+ほぼ常に以下のいずれかです:
 
-1. **Rigor is right.** The classic case: a method's RBS sig
-   says `String?` but the project's runtime invariants
-   guarantee non-nil. Either fix the sig (preferred), add a
-   `RBS::Extended` `return:` directive, or add a `# rigor:disable`
-   on the line.
-2. **An RBS sig is missing or wrong.** The class lives in a
-   gem with no `.rbs`, or the project's own `sig/` is out of
-   date with the source. Update or add the sig.
-3. **A constant is being looked up wrong.** Constant
-   resolution can fall back to RBS-core or in-source class
-   discovery; if both miss, the call goes through
-   `Dynamic[Top]` and you see no diagnostic, but a sibling
-   call against the wrong class might fire.
-4. **A diagnostic is genuinely false-positive.** Rare —
-   Rigor's design priority is no-false-positives — but
-   possible. File an issue with the smallest reproducer you
-   can extract.
+1. **Rigorが正しいです。** 典型的なケース: メソッドのRBSシグが`String?`と言っているが、プロジェクトのランタイム不変条件が非nilを保証している。シグを修正するか（推奨）、`RBS::Extended`の`return:`ディレクティブを追加するか、その行に`# rigor:disable`を追加します。
+2. **RBSシグが欠落または間違っています。** クラスが`.rbs`のないgemに存在するか、プロジェクト自身の`sig/`がソースと同期していません。シグを更新または追加します。
+3. **定数が間違って参照されています。** 定数解決はRBSコアまたはインソースクラス探索にフォールバックする可能性があります; 両方が見逃す場合、呼び出しは`Dynamic[Top]`を通り診断は出ませんが、間違ったクラスに対する兄弟呼び出しが発火するかもしれません。
+4. **診断が正真正銘の偽陽性です。** まれです — Rigorの設計優先事項は偽陽性なし — しかし可能性はあります。抽出できる最小の再現コードで問題を報告してください。
 
-## A helpful workflow
+## 役立つワークフロー
 
-The pragmatic loop on a project that just adopted Rigor:
+Rigorを採用したばかりのプロジェクトでの実用的なループ:
 
-1. Run `rigor check lib` once to see the baseline.
-2. Skim every diagnostic. Triage as one of:
-   a. **Real bug.** Fix the code.
-   b. **Missing / wrong RBS.** Update the sig or add a new
-      one.
-   c. **Genuine noise.** Add `# rigor:disable <rule>` on the
-      line, or `disabled_rules:` to `.rigor.yml`.
-3. Re-run. Repeat until the diagnostic stream is clean.
-4. Add `bundle exec rigor check lib` to CI under the
-   `balanced` profile (or stricter).
-5. As the project's invariants get more proven, demote
-   `# rigor:disable` lines into `RBS::Extended` directives
-   so the analyzer learns the real contract.
+1. `rigor check lib`を一度実行してベースラインを確認します。
+2. すべての診断をざっと確認します。以下のいずれかとして分類します:
+   a. **実際のバグ。** コードを修正します。
+   b. **欠落/間違ったRBS。** シグを更新するか新しいものを追加します。
+   c. **正当なノイズ。** その行に`# rigor:disable <rule>`を追加するか、`.rigor.yml`に`disabled_rules:`を追加します。
+3. 再実行します。診断ストリームがきれいになるまで繰り返します。
+4. `balanced`プロファイル（またはより厳密）の下で`bundle exec rigor check lib`をCIに追加します。
+5. プロジェクトの不変条件がより証明されるにつれて、`# rigor:disable`行を`RBS::Extended`ディレクティブに格上げして、解析器に実際のコントラクトを教えます。
 
-A clean `rigor check` run is the goal; a green CI badge says
-"every diagnostic that fires is one we accept."
+クリーンな`rigor check`の実行が目標です; グリーンのCIバッジは「発火するすべての診断は受け入れるものだ」を意味します。
 
-## What's next
+## 次に読むもの
 
-The final chapter — Plugins — is a one-page pointer to the
-`examples/` directory. Plugins extend Rigor for project-
-specific DSLs (units of measure, route helpers, deprecations,
-…). Most projects will never write one; the chapter exists so
-you know the option is there.
+最終章 — プラグイン — は`examples/`ディレクトリへの1ページのポインタです。プラグインはプロジェクト固有のDSL（単位、ルートヘルパー、非推奨など）のためにRigorを拡張します。ほとんどのプロジェクトはプラグインを書くことはないでしょう; この章はそのオプションがあることを知っていただくために存在します。

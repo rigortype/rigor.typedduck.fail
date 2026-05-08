@@ -1,68 +1,58 @@
 ---
-title: "Tuples and hash shapes"
-description: "Imported from rigortype/rigor docs/handbook/04-tuples-and-shapes.md."
+title: "タプルとハッシュシェイプ"
+description: "rigortype/rigor docs/handbook/04-tuples-and-shapes.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/handbook/04-tuples-and-shapes.md"
 sourcePath: "docs/handbook/04-tuples-and-shapes.md"
 sourceSha: "8c4a50776a7c2836ef2df8bb050801c1bc94134b600932ec587713b28f1b31e3"
 sourceCommit: "b523ab36f62d89a1c16964a66864c27e3ebb0fe4"
-translationStatus: "pending"
+translationStatus: "translated"
 sidebar:
   order: 1004
 ---
 
-> [!NOTE]
-> このページはまだ翻訳されていません。英語版の本文を参考表示しています。
+`Tuple`と`HashShape`は、Rigorが異種配列と既知キーのハッシュに精密な型を与える方法です。外見上はRubyの`Array`と`Hash`によく似ており（RBS境界を越えるとこれらのノミナル型に消去されます）、Rigorの内部では通常の`Array[T]` / `Hash[K, V]`が失ってしまう、位置ごと/キーごとの型情報を持ちます。
 
-`Tuple` and `HashShape` are how Rigor gives precise types to
-heterogeneous arrays and known-key hashes. They look a lot like
-Ruby's `Array` and `Hash` from the outside (and erase to those
-nominal types when crossing an RBS boundary), but inside Rigor
-they carry the per-position / per-key types that ordinary
-`Array[T]` / `Hash[K, V]` would lose.
+## タプル — 異種配列
 
-## Tuples — heterogeneous arrays
-
-When the analyzer can prove the layout of an array literal, it
-produces `Tuple[…]` rather than `Array[T]`:
+解析器が配列リテラルのレイアウトを証明できるとき、`Array[T]`ではなく`Tuple[…]`を生成します:
 
 ```ruby
 arr = [1, "two", :three]
 # Tuple[Constant<1>, Constant<"two">, Constant<:three>]
 ```
 
-The most common ways tuples appear in real code:
+実際のコードでタプルが現れる最もよくある場面:
 
 ```ruby
-# Multiple-assignment destructuring is per-position.
+# 多重代入の分解は位置ごと
 first, second, third = [10, 20, 30]
 assert_type(first,  "Constant<10>")
 assert_type(second, "Constant<20>")
 assert_type(third,  "Constant<30>")
 
-# divmod returns a 2-tuple.
+# divmodは2要素タプルを返す
 quotient, remainder = 17.divmod(5)
 assert_type(quotient,  "Constant<3>")
 assert_type(remainder, "Constant<2>")
 
-# Each-with-index yields a 2-tuple.
+# each_with_indexは2要素タプルをyieldする
 %w[a b c].each_with_index do |elt, idx|
   assert_type(elt, "Constant<\"a\"> | Constant<\"b\"> | Constant<\"c\">")
   assert_type(idx, "non-negative-int")
 end
 ```
 
-Indexed access into a tuple stays per-position:
+タプルへのインデックスアクセスは位置ごとに保たれます:
 
 ```ruby
 arr = [1, "two", :three]
 arr[0]   # Constant<1>
 arr[1]   # Constant<"two">
 arr[-1]  # Constant<:three>
-arr[5]   # Constant<nil> — out of bounds
+arr[5]   # Constant<nil> — 範囲外
 ```
 
-Slicing with `[start, length]` or `[range]` produces a tuple
-of the matching elements:
+`[start, length]`や`[range]`でのスライスは、一致する要素のタプルを生成します:
 
 ```ruby
 arr = [10, 20, 30, 40, 50]
@@ -70,11 +60,9 @@ arr[1..3]    # Tuple[Constant<20>, Constant<30>, Constant<40>]
 arr[2, 2]    # Tuple[Constant<30>, Constant<40>]
 ```
 
-## Tuples through `map`, `select`, and friends
+## `map`、`select`などを通じたタプル
 
-When you call an Enumerable method on a tuple, Rigor evaluates
-the block once per element with the per-position type
-substituted, then unions the results:
+タプルに対してEnumerableメソッドを呼び出すと、Rigorはブロックを要素ごとの型を代入して各要素について1回評価し、結果をユニオンします:
 
 ```ruby
 arr = [1, 2, 3]
@@ -86,30 +74,17 @@ strings = mixed.map { |x| x.to_s }
 # Tuple[Constant<"1">, Constant<"two">, Constant<"three">]
 ```
 
-`select` and `filter_map` widen to `Array[Element]` because
-the resulting size depends on the predicate, not the
-positions. `find` returns the union of the elements (or `nil`
-when no element matches statically).
+`select`と`filter_map`は`Array[Element]`に広げます。なぜなら結果のサイズが述語に依存し、位置に依存しないからです。`find`は要素のユニオン（または静的にどの要素も一致しないとき`nil`）を返します。
 
-## Tuples widen — when and why
+## タプルの拡幅 — いつ、なぜ
 
-A `Tuple` widens to `Array[T]` when its size grows past the
-configurable union budget, when an unknown-shape array is
-concatenated to it, or when it crosses an RBS-declared
-parameter typed as `Array[T]`. The widening is deterministic
-and documented in
-[`docs/type-specification/inference-budgets.md`](../../type-specification/inference-budgets/).
+`Tuple`は、サイズが設定可能なユニオン予算を超えたとき、未知の形状の配列が連結されたとき、またはRBSで`Array[T]`として型付けされたパラメーターを越えるときに`Array[T]`に拡幅されます。拡幅は決定論的で、[`docs/type-specification/inference-budgets.md`](../../type-specification/inference-budgets/)に文書化されています。
 
-Widening is safe — `Array[T]` is a strictly less precise view
-of the same value — but you lose the per-position information.
-If you find yourself writing code where `[a, b, c]` should
-type-check precisely but does not, look for a method
-in the chain that takes `Array[T]` rather than a tuple, or a
-`+` / `concat` against a wider array.
+拡幅は安全です — `Array[T]`は同じ値のより精度が低いビューです — しかし位置ごとの情報が失われます。`[a, b, c]`が精密に型チェックされるべきなのにされない状況に遭遇したら、チェーン内のタプルではなく`Array[T]`を受け取るメソッド、または広い配列に対する`+` / `concat`を探してください。
 
-## Hash shapes — known-key hashes
+## ハッシュシェイプ — 既知キーのハッシュ
 
-The hash analogue is `HashShape`:
+ハッシュの類似物は`HashShape`です:
 
 ```ruby
 user = { name: "Alice", age: 30, admin: false }
@@ -120,58 +95,49 @@ assert_type(user[:age],   "Constant<30>")
 assert_type(user[:admin], "Constant<false>")
 ```
 
-Hash shapes have a few extra dimensions over tuples:
+ハッシュシェイプにはタプルよりいくつか追加の次元があります:
 
-- **Required vs optional keys.** Was the key written
-  unconditionally in the literal, or merged in conditionally?
-- **Open vs closed.** Can the value carry extra keys beyond
-  the listed ones?
-- **Read-only entries.** Has Rigor seen a write to the key, or
-  only reads?
+- **必須キーと省略可能キー。** キーがリテラルに無条件に書かれたか、条件付きでマージされたか？
+- **オープンとクローズ。** 列挙されたキー以外の追加キーを持てるか？
+- **読み取り専用エントリ。** Rigorがそのキーへの書き込みを見たか、読み取りだけか？
 
-Rigor tracks all three but exposes them mostly through the
-narrowing rules — most users do not need to think about them
-directly.
+Rigorは3つすべてを追跡しますが、ほとんどはナローイングルールを通じて公開します — ほとんどのユーザーはこれらを直接考える必要はありません。
 
-## Hash shapes through method calls
+## メソッド呼び出しを通じたハッシュシェイプ
 
 ```ruby
 config = { host: "example.com", port: 8080 }
 # HashShape{host: Constant<"example.com">, port: Constant<8080>}
 
 config.fetch(:host)        # Constant<"example.com">
-config.fetch(:host, "x")   # Constant<"example.com"> (default unused)
+config.fetch(:host, "x")   # Constant<"example.com"> (デフォルト未使用)
 config[:port]              # Constant<8080>
-config.key?(:host)         # Constant<true>  — proven
-config.empty?              # Constant<false> — proven
+config.key?(:host)         # Constant<true>  — 証明済み
+config.empty?              # Constant<false> — 証明済み
 config.size                # Constant<2>
 ```
 
-## Keyword-argument hashes
+## キーワード引数ハッシュ
 
-When you call a method with keyword arguments, the implicit
-hash shape is what Rigor types-checks against:
+キーワード引数でメソッドを呼び出すとき、暗黙のハッシュシェイプがRigorの型チェックの対象です:
 
 ```ruby
 def connect(host:, port: 80)
   # ...
 end
 
-connect(host: "example.com")            # OK (port defaults)
+connect(host: "example.com")            # OK (portはデフォルト)
 connect(host: "example.com", port: 80)  # OK
-connect(host: "example.com", port: "8080")  # warning when
+connect(host: "example.com", port: "8080")  # warning:
                                             #  port: Integer
-                                            #  is required
+                                            #  が必須のとき
 ```
 
-Hash shapes flow through `**` splat and double-splat
-operations, so `connect(**opts)` where `opts` is a known
-shape narrows correctly.
+ハッシュシェイプは`**`スプラットとダブルスプラット操作を通じて流れるので、`opts`が既知のシェイプのとき`connect(**opts)`は正しくナローイングされます。
 
-## Splat composition
+## スプラット合成
 
-Splatting one tuple into another preserves the per-position
-information when the splat is at a fixed position:
+1つのタプルを別のタプルにスプラットすると、スプラットが固定位置にある場合に位置ごとの情報が保持されます:
 
 ```ruby
 head = [1, 2]
@@ -184,20 +150,19 @@ with_middle = [*head, "X", *tail]
 #       Constant<3>, Constant<4>]
 ```
 
-Same for double-splat into hash shapes:
+ハッシュシェイプへのダブルスプラットも同様:
 
 ```ruby
 defaults = { port: 80, ssl: false }
 overrides = { port: 443, ssl: true }
 final = { **defaults, **overrides }
 # HashShape{port: Constant<443>, ssl: Constant<true>}
-# (the override wins per Ruby semantics)
+# (Rubyのセマンティクスに従いオーバーライドが勝つ)
 ```
 
-## Pattern matching destructuring
+## パターンマッチング分解
 
-`case x in [a, b, c]` narrows `a` / `b` / `c` per-position
-exactly like multiple-assignment:
+`case x in [a, b, c]`は多重代入とまったく同じく`a` / `b` / `c`を位置ごとにナローイングします:
 
 ```ruby
 case [10, 20, 30]
@@ -207,7 +172,7 @@ in [first, _, third]
 end
 ```
 
-Hash patterns work the same way:
+ハッシュパターンも同様:
 
 ```ruby
 case { name: "Alice", age: 30 }
@@ -217,30 +182,19 @@ in { name:, age: }
 end
 ```
 
-`AlternationPatternNode` (`Integer | String => x`) produces a
-union for the captured local — see
-[Chapter 3](../03-narrowing/) for the underlying narrowing
-rule.
+`AlternationPatternNode`（`Integer | String => x`）はキャプチャされたローカルに対してユニオンを生成します — 基礎となるナローイングルールについては[第3章](../03-narrowing/)を参照してください。
 
-## When the layout is not provable
+## レイアウトが証明できないとき
 
-If even one element of an array literal has a non-Constant,
-non-tuple-shaped type, Rigor falls back to `Array[T]` where
-`T` is the union of element types — still useful, just not
-per-position:
+配列リテラルの要素の1つでもConstantでも、タプル形状でもない型を持つとき、Rigorは`Array[T]`にフォールバックします。ここで`T`は要素型のユニオンです — まだ有用ですが、位置ごとではありません:
 
 ```ruby
 arr = [1, ARGV.first]
 # Array[Constant<1> | String?]
 ```
 
-The same goes for hashes whose keys are not provably symbol /
-string literals — Rigor produces `Hash[K, V]` rather than
-`HashShape`.
+キーが証明可能にシンボル/文字列リテラルでないハッシュも同様 — Rigorは`HashShape`ではなく`Hash[K, V]`を生成します。
 
-## What's next
+## 次に読むもの
 
-Chapter 5 covers the function side: how Rigor types method
-parameters and return values, how block parameters are bound
-through Enumerable iteration, and how arity / parameter-type
-mismatches surface as `call.*` diagnostics.
+第5章は関数の側を扱います: Rigorがメソッドのパラメーターと戻り値型をどう型付けするか、Enumerable反復を通じてブロックパラメーターがどうバインドされるか、アリティ/パラメーター型のミスマッチが`call.*`診断としてどう現れるか。

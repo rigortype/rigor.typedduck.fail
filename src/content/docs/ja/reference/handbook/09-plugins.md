@@ -1,134 +1,68 @@
 ---
-title: "Plugins"
-description: "Imported from rigortype/rigor docs/handbook/09-plugins.md."
+title: "プラグイン"
+description: "rigortype/rigor docs/handbook/09-plugins.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/handbook/09-plugins.md"
 sourcePath: "docs/handbook/09-plugins.md"
 sourceSha: "544fdc2a12b67f2a10ecdaf163ca64ba9fbd014cb6bc89f1dbab52d7e3b9fb2c"
 sourceCommit: "b523ab36f62d89a1c16964a66864c27e3ebb0fe4"
-translationStatus: "pending"
+translationStatus: "translated"
 sidebar:
   order: 1009
 ---
 
-> [!NOTE]
-> このページはまだ翻訳されていません。英語版の本文を参考表示しています。
+これが最も短い章です。プラグインが存在する理由はひとつ: 一部のメソッドの型が、どんなRBSシグでも表現できない方法で**ランタイムでの引数のシェイプに依存する**からです。
 
-This is the shortest chapter. Plugins exist for one reason:
-some methods' types depend on the **shape of their arguments
-at runtime** in ways that no RBS sig can express.
+## プラグインを使うとき
 
-## When you reach for a plugin
-
-The classic case is a domain-specific evaluator:
+典型的なケースはドメイン固有の評価器です:
 
 ```ruby
-Lisp.eval([:+, 1, 2])           # Integer at runtime
-Lisp.eval([:<, 1, 2])           # bool at runtime
-Lisp.eval([:if, true, "a", 0])  # String | Integer at runtime
+Lisp.eval([:+, 1, 2])           # ランタイムでInteger
+Lisp.eval([:<, 1, 2])           # ランタイムでbool
+Lisp.eval([:if, true, "a", 0])  # ランタイムでString | Integer
 ```
 
-The return type depends on the literal first symbol of the
-argument array. RBS can only say `untyped` here; Rigor's
-inference can do nothing about it; an `RBS::Extended`
-directive cannot vary by argument shape. **A plugin can.**
+戻り値型は引数配列の先頭のリテラルシンボルに依存します。RBSはここで`untyped`しか言えません; Rigorの推論にはどうしようもありません; `RBS::Extended`ディレクティブは引数のシェイプで変えられません。**プラグインならできます。**
 
-Other shapes that fit the plugin niche:
+プラグインのニッチに当てはまる他の形状:
 
-- **Units-of-measure DSLs** — `100.kilometers / 2.hours`
-  produces a `Speed`, but Ruby's runtime sees a method on
-  Integer that returns a user class.
-- **Route helpers** — `users_path` returns a String, but
-  whether the helper exists at all depends on a YAML file
-  the analyzer has to read.
-- **State machines** — `transition_to(:foo)` is fine if
-  `:foo` is in a `state_machine do ... end` block declared
-  somewhere; otherwise it is a typo.
-- **Custom validators** — `validate(:email, value)` should
-  catch a literal that does not match the named pattern at
-  lint time.
+- **単位DSL** — `100.kilometers / 2.hours`は`Speed`を生成しますが、Rubyのランタイムはユーザークラスを返すIntegerのメソッドとして見ます。
+- **ルートヘルパー** — `users_path`はStringを返しますが、ヘルパーが存在するかどうかは解析器が読む必要があるYAMLファイルに依存します。
+- **ステートマシン** — `transition_to(:foo)`は、`:foo`がどこかで宣言された`state_machine do ... end`ブロック内にある場合には有効ですが、そうでなければタイポです。
+- **カスタムバリデーター** — `validate(:email, value)`はリント時に名前付きパターンに一致しないリテラルを捕捉すべきです。
 
-Each of these has a worked example in
-[`examples/`](https://github.com/rigortype/rigor/blob/main/examples/README.md). The
-[`examples/README.md`](https://github.com/rigortype/rigor/blob/main/examples/README.md) page
-compares the six plugins on architectural axes (config
-schema, file I/O, cache producers, engine-collaboration via
-`Scope#type_of`, …) and recommends a reading order.
+これらのそれぞれに[`examples/`](https://github.com/rigortype/rigor/blob/main/examples/README.md)に実例があります。[`examples/README.md`](https://github.com/rigortype/rigor/blob/main/examples/README.md)ページは6つのプラグインをアーキテクチャ軸（設定スキーマ、ファイルI/O、キャッシュプロデューサー、`Scope#type_of`を通じたエンジン連携など）で比較し、読む順序を推奨しています。
 
-## What a plugin can do today
+## プラグインが今日できること
 
-The v0.1.0 plugin contract — pinned at
-[`docs/internal-spec/plugin.md`](../../internal-spec/plugin/)
-and laid out across a handful of slice specs in the same
-directory — gives a plugin three primary surfaces:
+v0.1.0プラグインコントラクト — [`docs/internal-spec/plugin.md`](../../internal-spec/plugin/)に固定されており、同ディレクトリのいくつかのスライス仕様に展開されています — はプラグインに3つの主要サーフェスを与えます:
 
-1. **`#diagnostics_for_file(path:, scope:, root:)`** — the
-   per-file emission hook. Walk the parsed AST, return an
-   array of `Rigor::Analysis::Diagnostic` rows. The runner
-   stamps each with `source_family: "plugin.<your-id>"`. All
-   six worked examples use this hook.
-2. **`Plugin::IoBoundary#read_file`** — sandboxed file reads
-   under the active `TrustPolicy`. Use this when the plugin
-   needs to read project files (route tables, schemas,
-   locale files). `examples/rigor-routes` is the reference
-   example.
-3. **`Plugin::Base.producer` + `#cache_for`** — plugin-side
-   cache producers. Use these for parses / lookups expensive
-   enough to want cross-run caching. Auto-invalidates on
-   the digest of every file the IoBoundary read while
-   building the result.
+1. **`#diagnostics_for_file(path:, scope:, root:)`** — ファイルごとの出力フック。解析されたASTを辿り、`Rigor::Analysis::Diagnostic`行の配列を返します。ランナーは各行に`source_family: "plugin.<your-id>"`をスタンプします。6つの実例すべてがこのフックを使います。
+2. **`Plugin::IoBoundary#read_file`** — アクティブな`TrustPolicy`の下でサンドボックス化されたファイル読み取り。プラグインがプロジェクトファイル（ルートテーブル、スキーマ、ロケールファイル）を読む必要があるときに使います。`examples/rigor-routes`が参照例です。
+3. **`Plugin::Base.producer` + `#cache_for`** — プラグイン側キャッシュプロデューサー。クロスランキャッシングが欲しいほど高コストなパース/ルックアップに使います。IoBoundaryが結果を構築している間に読んだすべてのファイルのダイジェストで自動的に無効化されます。
 
-## What a plugin cannot do today (intentionally)
+## プラグインが今日できないこと（意図的に）
 
-Plugins can emit diagnostics, but they cannot **replace the
-analyzer's inferred return type for a call site**. The
-`FlowContribution`-based plugin contribution surface that
-would let plugins emit return-type bundles is queued for a
-later v0.1.x slice. Until then, plugins surface their
-inferred types as `:info` diagnostics — useful as a trace,
-not a tightening.
+プラグインは診断を出力できますが、**呼び出し元の推論された戻り値型を置き換えることはできません**。プラグインが戻り値型バンドルを出力できるようにする`FlowContribution`ベースのプラグイン貢献サーフェスは、後のv0.1.xスライスに予定されています。それまでの間、プラグインは推論された型を`:info`診断として公開します — トレースとして有用ですが、締め付けではありません。
 
-That is exactly the constraint the worked examples document
-at the top of their `lib/rigor/plugin/<id>.rb` files: the
-plugin sees the right type, the user sees the right
-diagnostic, but the analyzer's internal call-site inference
-is unchanged. When the v0.1.x return-type contribution slice
-ships, the same plugin code will move from emitting
-diagnostics to producing FlowContribution bundles, and the
-prose around each example's "Future direction" section
-becomes the implementation.
+これはまさに、各実例の`lib/rigor/plugin/<id>.rb`ファイルの冒頭が文書化している制約です: プラグインは正しい型を見て、ユーザーは正しい診断を見ますが、解析器の内部呼び出し元推論は変わりません。v0.1.xの戻り値型貢献スライスが出荷されると、同じプラグインコードは診断の出力からFlowContributionバンドルの生成に移行し、各実例の「将来の方向性」セクション周辺の散文が実装になります。
 
-## Should you write one?
+## プラグインを書くべきか？
 
-Probably not — most projects benefit from RBS and
-`RBS::Extended` long before they hit the plugin niche.
-Reach for a plugin only when:
+おそらくそうではありません — ほとんどのプロジェクトは、プラグインのニッチに達する前にRBSと`RBS::Extended`から恩恵を受けます。プラグインに手を伸ばすのは以下の場合のみです:
 
-- A domain DSL's typing depends on argument shape, file
-  contents, or cross-method declarations.
-- You are willing to maintain the plugin gem alongside your
-  application.
-- The team can read the plugin's source — it is not a black
-  box anyone can ignore.
+- ドメインDSLの型付けが引数のシェイプ、ファイルの内容、またはクロスメソッド宣言に依存している。
+- アプリケーションと共にプラグインgemを保守する意欲がある。
+- チームがプラグインのソースを読める — それは誰も無視できるブラックボックスではありません。
 
-If those are true, [`examples/README.md`](https://github.com/rigortype/rigor/blob/main/examples/README.md)
-is your starting point. The
-[`rigor-deprecations`](../../examples/rigor-deprecations/)
-example is under 80 lines and is the recommended template
-for "I want to author my first plugin."
+これらが当てはまるなら、[`examples/README.md`](https://github.com/rigortype/rigor/blob/main/examples/README.md)が出発点です。[`rigor-deprecations`](../../examples/rigor-deprecations/)の例は80行未満で、「最初のプラグインを書きたい」のための推奨テンプレートです。
 
-## What's next
+## 次に読むもの
 
-You have reached the end of the handbook. From here:
+ハンドブックの終わりに到達しました。ここからは:
 
-- Cover-to-cover re-reading is rarely useful — most readers
-  return to specific chapters as questions arise.
-- The [Handbook index](../) has the cross-references
-  to deeper material in
-  [`docs/type-specification/`](../../type-specification/),
-  [`docs/internal-spec/`](../../internal-spec/), and
-  [`docs/adr/`](../adr/).
-- The [`CHANGELOG.md`](https://github.com/rigortype/rigor/blob/main/CHANGELOG.md) is the per-release
-  truth for what shipped when.
+- 通読しなおすことはほとんど有用ではありません — ほとんどの読者は疑問が生じたときに特定の章に戻ります。
+- [ハンドブック索引](../)には[`docs/type-specification/`](../../type-specification/)、[`docs/internal-spec/`](../../internal-spec/)、[`docs/adr/`](../adr/)のより深い素材への相互参照があります。
+- [`CHANGELOG.md`](https://github.com/rigortype/rigor/blob/main/CHANGELOG.md)はいつ何が出荷されたかのリリースごとの真実です。
 
-Welcome to the small, growing community of static-Ruby
-believers.
+静的Rubyを信じる小さな、成長中のコミュニティへようこそ。
