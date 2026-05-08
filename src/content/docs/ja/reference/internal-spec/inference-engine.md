@@ -1,146 +1,143 @@
 ---
-title: "Inference Engine"
+title: "推論エンジン"
 description: "Imported from rigortype/rigor docs/internal-spec/inference-engine.md."
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/internal-spec/inference-engine.md"
 sourcePath: "docs/internal-spec/inference-engine.md"
 sourceSha: "0d5f2514df4ba9ccc57cbbb49210d7caeec9890ccf54d75096f0339add565443"
 sourceCommit: "9f40e22193647dc06e3ab70c5ba82768b0bfe738"
-translationStatus: "pending"
+translationStatus: "translated"
 sidebar:
   order: 3050
 ---
 
-> [!NOTE]
-> このページはまだ翻訳されていません。英語版の本文を参考表示しています。
+このドキュメントは、Rigor型推論エンジンが満たさなければならない公開契約を仕様化します。すなわち`Rigor::Scope#type_of(node)`クエリ、不変スコープ規律、フェイルソフトな`Dynamic[Top]`ポリシー、およびそれらを取り巻く環境ロード境界です。これは[`docs/type-specification/`](../type-specification/)の型言語セマンティクスと[`internal-type-api.md`](../internal-type-api/)の型オブジェクト公開APIに対する、エンジン側の対応物です。
 
-This document specifies the public contract that the Rigor type-inference engine MUST satisfy: the `Rigor::Scope#type_of(node)` query, the immutable-Scope discipline, the fail-soft `Dynamic[Top]` policy, and the environment-loading boundaries that surround them. It is the engine-side counterpart of the type-language semantics in [`docs/type-specification/`](../type-specification/) and the type-object public API in [`internal-type-api.md`](../internal-type-api/).
+スライス単位の成長計画とADR-3の未決事項に対する暫定回答の根拠は[`docs/adr/4-type-inference-engine.md`](../../adr/4-type-inference-engine/)にあります。そのADRと本ドキュメントが観測可能なRubyの挙動について食い違うとき、本ドキュメントが束縛します。
 
-The slice-by-slice growth plan and the rationale behind the tentative answers to ADR-3's open questions live in [`docs/adr/4-type-inference-engine.md`](../../adr/4-type-inference-engine/). When that ADR and this document disagree on observable Ruby behavior, this document binds.
+## スコープ
 
-## Scope
+本ドキュメントは以下を束縛します。
 
-This document binds:
+- `Rigor::Scope#type_of(node)`クエリの形状と安定性。
+- そのクエリを取り巻く不変スコープ規律。
+- 型付け器がまだ認識しないASTノードに対するフェイルソフトポリシー。
+- 環境ロードの境界。すなわちどの表層がMUST利用可能で、どの表層がスライス間で変わってもMAY良いか。
 
-- The shape and stability of the `Rigor::Scope#type_of(node)` query.
-- The immutable-Scope discipline that surrounds the query.
-- The fail-soft policy for AST nodes the typer does not yet recognise.
-- The environment-loading boundaries: which surface MUST be available, and which surface MAY change between slices.
+本ドキュメントは以下を束縛**しません**。
 
-This document does **not** bind:
+- `Rigor::Scope`が用いる内部データ構造（公開表層が保たれ、不変性が観測可能である限り）。
+- `Rigor::Inference::ExpressionTyper`の内部で用いるビジターまたはパターンマッチ戦略。
+- 任意の特定スライスで認識されるPrismノードの正確なカタログ。そのカタログは参考情報であり、[`docs/adr/4-type-inference-engine.md`](../../adr/4-type-inference-engine/)で追跡されます。
 
-- The internal data structure used by `Rigor::Scope` (so long as the public surface is preserved and immutability is observable).
-- The visitor or pattern-match strategy used inside `Rigor::Inference::ExpressionTyper`.
-- The exact catalogue of Prism nodes recognised in any particular slice; that catalogue is informational and tracked in [`docs/adr/4-type-inference-engine.md`](../../adr/4-type-inference-engine/).
+## `Scope#type_of(node)`契約
 
-## The `Scope#type_of(node)` Contract
+`Rigor::Scope#type_of(node)`はMUST純粋なクエリです。レシーバスコープやそこから到達可能な任意のオブジェクトをMUST NOT変更し、解析器の他のどこでも永続的な状態変更をMUST NOT引き起こしません。同じ`(scope, node)`ペアは、単一の解析器実行内の呼び出しを通じて構造的に等しい`Rigor::Type`の結果をMUST生成します。
 
-`Rigor::Scope#type_of(node)` MUST be a pure query. It MUST NOT mutate the receiver scope or any object reachable from it, and it MUST NOT cause persistent state changes anywhere else in the analyzer. The same `(scope, node)` pair MUST produce structurally equal `Rigor::Type` results across calls within a single analyzer run.
+クエリは[`internal-type-api.md`](../internal-type-api/)に従って`Rigor::Type`をMUST返します。`nil`をMUST NOT返し、サポートされないノードでMUST NOTraiseし、戻り値にPrismオブジェクトをMUST NOT露出させません。
 
-The query MUST return a `Rigor::Type` per [`internal-type-api.md`](../internal-type-api/). It MUST NOT return `nil`, raise on unsupported nodes, or expose Prism objects in its return value.
+レシーバはMUST`Rigor::Scope`のインスタンスです。実装は生のHashや束縛のArrayをMUST NOT受け付けません。束縛コンテナは`Rigor::Scope`の内部実装です。
 
-The receiver MUST be a `Rigor::Scope` instance. Implementations MUST NOT accept a raw Hash or Array of bindings; the binding container is internal to `Rigor::Scope`.
+`node`引数はMUST`Prism::Node`または`Rigor::AST::Node`（後述の*仮想ノード*ファミリーからの合成ノード）のいずれかです。実装は、上流のPrismで追加されたときに追加のPrismノードファミリーをMAY受け付け、またエンジンを通じて登録されたときに追加の`Rigor::AST::Node`サブタイプをMAY受け付けますが、いずれのファミリー内でも認識されない具象クラスは後述のフェイルソフトポリシーの下でMUST扱い、raiseしてはなりません。
 
-The `node` argument MUST be either a `Prism::Node` or a `Rigor::AST::Node` (a synthetic node from the *Virtual Nodes* family below). Implementations MAY accept additional Prism node families when added by upstream Prism, and additional `Rigor::AST::Node` subtypes when registered through the engine, but MUST treat unrecognised concrete classes within either family under the fail-soft policy below rather than raising.
+## 不変スコープ規律
 
-## Immutable Scope Discipline
+`Rigor::Scope`のインスタンスはMUST不変です。構築の最後にMUST`freeze`されます。任意の公開または内部メソッドを通じた変更は契約違反であり、内部コンテナを公開するアクセサ経由のものも含みます。
 
-`Rigor::Scope` instances MUST be immutable. They MUST be `freeze`d at the end of construction. Mutation through any public or internal method is a contract violation, including through accessors that expose internal containers.
+状態変化はMUST明示的な遷移メソッドから返される新しいスコープとして表現されます。最小セットは以下のとおりです。
 
-State changes MUST be expressed as new scopes returned from explicit transition methods. The minimum set is:
+- `Rigor::Scope.empty(environment:)` — ローカル束縛なし・空の`Rigor::Analysis::FactStore`を持つスコープを構築し、`Rigor::Environment`に紐づけます。
+- `Rigor::Scope#with_local(name, type)` — `name`が`type`に束縛されている点を除いてレシーバと同じ新しいスコープを返します。ローカルを再束縛するとMUSTそのローカルを対象とするファクトを無効化します。
+- `Rigor::Scope#local(name)` — 束縛された`Rigor::Type`を返すか、`name`が束縛されていなければ`nil`を返します。
+- `Rigor::Scope#fact_store` — スナップショットに紐づく不変な`Rigor::Analysis::FactStore`を返します。
+- `Rigor::Scope#local_facts(name, bucket: nil)` / `Rigor::Scope#facts_for(target:, bucket: nil)` — バケットストレージを直接公開せずに、スコープの`Rigor::Analysis::FactStore`からファクトを返します。
+- `Rigor::Scope#with_fact(fact)` — `fact`がファクトストアに追加された新しいスコープを返します。
+- `Rigor::Scope#join(other)` — 制御フロー合流点で新しいスコープを返します。実装は、2つのスコープが同じ`Environment`を共有することをMUST要求します。結合されたスコープは、**両方の**レシーバが束縛するすべての名前にMUST束縛されます。そのような各名前について、結合された型はMUST`Type::Combinator.union(self.local(name), other.local(name))`です。一方のレシーバにのみ束縛されている名前は、結合されたスコープからMUST落とされます。半束縛の名前のnil注入は文レベル評価器（[`docs/adr/4-type-inference-engine.md`](../../adr/4-type-inference-engine/)のSlice 3を参照）の責任であり、`#join`の責任ではありません。結合されたファクトストアは、両方の入力エッジに存在するファクトのみをMUST保持します。
 
-- `Rigor::Scope.empty(environment:)` — constructs a scope with no local bindings and an empty `Rigor::Analysis::FactStore`, attached to a `Rigor::Environment`.
-- `Rigor::Scope#with_local(name, type)` — returns a new scope identical to the receiver except that `name` is bound to `type`. Rebinding a local MUST invalidate facts that target that local.
-- `Rigor::Scope#local(name)` — returns the bound `Rigor::Type` or `nil` if `name` is not bound.
-- `Rigor::Scope#fact_store` — returns the immutable `Rigor::Analysis::FactStore` attached to the snapshot.
-- `Rigor::Scope#local_facts(name, bucket: nil)` / `Rigor::Scope#facts_for(target:, bucket: nil)` — return facts from the scope's `Rigor::Analysis::FactStore` without exposing bucket storage directly.
-- `Rigor::Scope#with_fact(fact)` — returns a new scope with `fact` added to the fact store.
-- `Rigor::Scope#join(other)` — returns a new scope at a control-flow merge point. Implementations MUST require the two scopes to share the same `Environment`. The joined scope MUST be bound to every name that BOTH receivers bind; for each such name the joined type MUST be `Type::Combinator.union(self.local(name), other.local(name))`. Names bound in only one receiver MUST be dropped from the joined scope; nil-injection of half-bound names is the responsibility of the statement-level evaluator (see Slice 3 in [`docs/adr/4-type-inference-engine.md`](../../adr/4-type-inference-engine/)), not of `#join`. The joined fact store MUST retain only facts present on both input edges.
+`Rigor::Scope`は、有用な箇所で基底データを構造的にMUST共有します。親を共有し1つの束縛で異なる2つのスコープは、他のすべての束縛のストレージをMAY共有します。これは実装の詳細であり、契約の一部ではありません。
 
-`Rigor::Scope` MUST share underlying data structurally where useful. Two scopes that share a parent and differ in one binding MAY share the storage of all other bindings; this is an implementation detail and not part of the contract.
+`Rigor::Scope#environment`は、スコープを構築したのと同じ`Rigor::Environment`インスタンスをMUST返します。環境は、スコープの観点からはクエリの期間中は不変として扱われます。
 
-`Rigor::Scope#environment` MUST return the same `Rigor::Environment` instance that constructed the scope. The environment is treated as immutable from the scope's perspective for the duration of a query.
+### FactStore（Slice 6 phase 2 sub-phase 2）
 
-### FactStore (Slice 6 phase 2 sub-phase 2)
+`Rigor::Analysis::FactStore`は各`Scope`スナップショットが運ぶ不変なファクト束です。最初の実装は意図的に小さいですが、[`control-flow-analysis.md`](../../type-specification/control-flow-analysis/)からの長期的なバケット形状を確立します。
 
-`Rigor::Analysis::FactStore` is the immutable fact bundle carried by each `Scope` snapshot. The first implementation is intentionally small but establishes the long-term bucket shape from [`control-flow-analysis.md`](../../type-specification/control-flow-analysis/):
+- `Rigor::Analysis::FactStore.empty`は空のフローズンストアをMUST返します。
+- `FactStore::Target.local(name)`はローカル束縛ターゲットを識別します。
+- `FactStore::Fact`はMUST`bucket`・`target`・`predicate`・`payload`・`polarity`・`stability`を運びます。認識されるバケットは`local_binding`・`captured_local`・`object_content`・`global_storage`・`dynamic_origin`・`relational`です。
+- `FactStore#with_fact(fact)`は新しいストアをMUST返し、構造的に等しいファクトを重複排除します。
+- `FactStore#invalidate_target(target, buckets: nil)`は`target`に言及するファクトが除去された新しいストアをMUST返します。`buckets:`が指定されたとき、それらのバケット内のファクトのみが除去されます。
+- `FactStore#join(other)`は両方のストアに存在する構造的に等しいファクトのみをMUST保持します。
 
-- `Rigor::Analysis::FactStore.empty` MUST return an empty frozen store.
-- `FactStore::Target.local(name)` identifies a local-binding target.
-- `FactStore::Fact` MUST carry `bucket`, `target`, `predicate`, `payload`, `polarity`, and `stability`. The recognised buckets are `local_binding`, `captured_local`, `object_content`, `global_storage`, `dynamic_origin`, and `relational`.
-- `FactStore#with_fact(fact)` MUST return a new store and deduplicate structurally equal facts.
-- `FactStore#invalidate_target(target, buckets: nil)` MUST return a new store with facts mentioning `target` removed. When `buckets:` is provided, only facts in those buckets are removed.
-- `FactStore#join(other)` MUST retain only structurally equal facts present in both stores.
+ファクトストアのバケットは内部的な最適化境界です。`Scope`はファクトクエリとファクト追加遷移を公開してかまいませんが、呼び出し元はバケットストレージをin-placeでMUST NOT変更しません。
 
-The fact-store buckets are an internal optimisation boundary. `Scope` may expose fact queries and fact-adding transitions, but callers MUST NOT mutate bucket storage in place.
+## フェイルソフトポリシー
 
-## Fail-Soft Policy
+型付け器がまだ認識しないノード — エンジンがまだ配線していないクラスのPrismノードか、未知の種別の`Rigor::AST::Node`のいずれか — に出会ったとき、`Scope#type_of(node)`は「型なし、未チェック」の標準的な`Dynamic[Top]`表現である`Rigor::Type::Combinator.dynamic(Rigor::Type::Combinator.top)`をMUST返します。
 
-When the typer encounters a node it does not yet recognise — either a Prism node whose class the engine has not yet wired in or a `Rigor::AST::Node` of an unknown kind — `Scope#type_of(node)` MUST return `Rigor::Type::Combinator.dynamic(Rigor::Type::Combinator.top)`, the canonical `Dynamic[Top]` representation of "untyped, unchecked".
+フェイルソフト経路はMUST以下を満たします。
 
-The fail-soft path MUST satisfy:
+- MUST NOTraiseします。呼び出し元はPrismが生成する任意の式ノード、および`Rigor::AST::Node`を含む任意の合成ノードについて`Scope#type_of`にMAY依存できます。
+- [`value-lattice.md`](../../type-specification/value-lattice/)の動的起源代数をMUST保ちます。返された型に対する下流クエリは、他のあらゆる`Dynamic[T]`が観測するのと同じグラデュアル型付け規則をMUST観測します。
+- 後述の*フォールバックトレーサー*契約を通じて、計装にMUST観測可能です。
 
-- It MUST NOT raise. Callers MAY rely on `Scope#type_of` for any expression node Prism produces and for any synthetic node that includes `Rigor::AST::Node`.
-- It MUST preserve the dynamic-origin algebra in [`value-lattice.md`](../../type-specification/value-lattice/). Downstream queries against the returned type MUST observe the same gradual-typing rules that any other `Dynamic[T]` would.
-- It MUST be observable to instrumentation through the *Fallback Tracer* contract below.
+スライスがあるノード種別のサポートを導入するとき、その種別のフェイルソフト経路は同じスライス内でMUST除去されます。型付け器は、誤って型付けされたノードをマスクするフォールバックをMUST NOT残しません。
 
-When a slice introduces support for a node kind, the fail-soft path for that kind MUST be removed in the same slice. The typer MUST NOT keep a fallback that masks an incorrectly-typed node.
+### フォールバックトレーサー
 
-### Fallback Tracer
+`Rigor::Scope#type_of`はオプショナルな`tracer:`キーワード引数をMUST受け付けます。`tracer`が`nil`（デフォルト）のとき、エンジンはトレーサーが取り付けられていないかのようにMUST振る舞います。すなわちMUSTイベントは記録されず、フェイルソフト経路で戻り値を生成するために必要な範囲を超える割り当てがMUST行われません。
 
-`Rigor::Scope#type_of` MUST accept an optional `tracer:` keyword argument. When `tracer` is `nil` (the default), the engine MUST behave as if no tracer were attached: no events MUST be recorded and no allocations beyond those needed to produce the return value MUST be made on the fallback path.
-
-When `tracer` is non-`nil`, every fail-soft fallback (both Prism and synthetic) MUST be recorded into the tracer through a single method call:
+`tracer`が非`nil`のとき、フェイルソフトフォールバック（PrismとSyntheticの両方）はすべて、単一のメソッド呼び出しを通じてトレーサーにMUST記録されます。
 
 ```ruby
 tracer.record_fallback(event)
 ```
 
-`event` MUST be a `Rigor::Inference::Fallback` value object with the following structurally-equal fields:
+`event`はMUST`Rigor::Inference::Fallback`値オブジェクトで、構造的に等しい以下のフィールドを持ちます。
 
-- `node_class` — the Ruby `Class` of the node that triggered the fallback (e.g. `Prism::CallNode`, `Rigor::AST::SomeFutureNode`).
-- `location` — the Prism source location object for real Prism nodes, or `nil` for synthetic nodes that do not expose a location.
-- `family` — the symbol `:prism` for real Prism nodes and `:virtual` for nodes that include `Rigor::AST::Node`.
-- `inner_type` — the `Rigor::Type` returned to the caller. This is `Dynamic[Top]` today; later slices MAY enrich the inner type while keeping the fallback observable.
+- `node_class` — フォールバックを引き起こしたノードのRubyの`Class`（例: `Prism::CallNode`・`Rigor::AST::SomeFutureNode`）。
+- `location` — 実際のPrismノードに対するPrismソース位置オブジェクト、または位置を露出しない合成ノードに対する`nil`。
+- `family` — 実際のPrismノードに対するシンボル`:prism`、`Rigor::AST::Node`を含むノードに対する`:virtual`。
+- `inner_type` — 呼び出し元に返された`Rigor::Type`。今日は`Dynamic[Top]`です。後のスライスはフォールバックを観測可能に保ちながら内部型をMAYリッチにします。
 
-The tracer protocol exposed by `Rigor::Inference::FallbackTracer` MUST satisfy:
+`Rigor::Inference::FallbackTracer`が公開するトレーサープロトコルはMUST以下を満たします。
 
-- `record_fallback(event)` MUST accept any `Rigor::Inference::Fallback` and reject other arguments.
-- `events` MUST return a frozen, ordered snapshot of recorded events.
-- `empty?` and `size` MUST report the current number of recorded events.
-- `each` MUST iterate the recorded events in insertion order; the tracer MUST `include Enumerable`.
+- `record_fallback(event)`は任意の`Rigor::Inference::Fallback`をMUST受け付け、他の引数を拒否します。
+- `events`はMUST記録済みイベントのフローズンで順序付けされたスナップショットを返します。
+- `empty?`と`size`はMUST現在の記録済みイベント数を報告します。
+- `each`はMUST挿入順に記録済みイベントを反復します。トレーサーはMUST`include Enumerable`します。
 
-The tracer is the ONLY mutable state observable from `Scope#type_of`; it MUST NOT change the return value of `type_of` and MUST NOT be exposed through `Rigor::Scope` accessors. Implementations MAY add additional `record_*` methods (for example a richer `record_dispatch_miss` once the Slice 2 dispatcher gains tiers, or `record_budget_cutoff` in Slice 6) so multiple event families share a single tracer; new methods MUST follow the immutable-event-value-object pattern above.
+トレーサーは`Scope#type_of`から観測可能な**唯一の**可変状態です。`type_of`の戻り値をMUST NOT変更し、`Rigor::Scope`のアクセサを通じてMUST NOT公開されません。実装は追加の`record_*`メソッドをMAY追加できます（例えばSlice 2ディスパッチャーがティアを得たときのよりリッチな`record_dispatch_miss`や、Slice 6での`record_budget_cutoff`など）。これにより複数のイベントファミリーが1つのトレーサーを共有します。新しいメソッドはMUST上記の不変イベント値オブジェクトパターンに従います。
 
-## Virtual Nodes
+## 仮想ノード
 
-The engine MUST accept a synthetic AST family in addition to Prism nodes. Synthetic nodes are Ruby objects that include the documentation-only marker module `Rigor::AST::Node` and expose whatever node-specific data the engine needs to translate them into a `Rigor::Type`. They make it possible to ask `Scope#type_of` "what would the analyzer infer if a value of type T appeared here?" without constructing a real Prism expression.
+エンジンは、Prismノードに加えてMUST合成ASTファミリーを受け付けます。合成ノードは、ドキュメンテーション専用のマーカーモジュール`Rigor::AST::Node`をincludeし、エンジンが`Rigor::Type`へ翻訳するために必要なノード固有データを公開するRubyオブジェクトです。これにより、実際のPrism式を構築せずに「型Tの値がここに現れたら解析器は何を推論するか？」を`Scope#type_of`に問えるようになります。
 
-Synthetic nodes MUST satisfy:
+合成ノードはMUST以下を満たします。
 
-- They MUST be immutable. `Rigor::AST::Node` MUST be `freeze`d at construction.
-- They MUST support structural equality. Two synthetic nodes that hold structurally equivalent data MUST compare equal under `==` and `eql?` and MUST share the same `hash`.
-- They MUST be composable with real Prism children when the synthetic node has an inner-AST position. The engine MUST NOT require all transitive children to be synthetic.
-- They MUST NOT carry analyzer state or fact-store entries. Any such state lives on `Rigor::Scope` or in the engine's environment, not on the node.
+- MUST不変です。`Rigor::AST::Node`は構築時にMUST`freeze`されます。
+- MUST構造的等価性をサポートします。構造的に等価なデータを持つ2つの合成ノードは、`==`と`eql?`の下でMUST等しく比較され、同じ`hash`をMUST共有します。
+- 合成ノードが内部AST位置を持つとき、実際のPrismの子とMUST合成可能です。エンジンはすべての推移的な子が合成であることをMUST NOT要求しません。
+- 解析器の状態やファクトストアのエントリをMUST NOT運びません。そのような状態は`Rigor::Scope`またはエンジンの環境にあり、ノード上にはありません。
 
-`Scope#type_of(virtual_node)` is dispatched through the same fail-soft contract as Prism nodes: an unrecognised concrete class within `Rigor::AST::Node` MUST return `Dynamic[Top]` rather than raise.
+`Scope#type_of(virtual_node)`はPrismノードと同じフェイルソフト契約を通じてディスパッチされます。`Rigor::AST::Node`内の認識されない具象クラスはraiseするのではなくMUST`Dynamic[Top]`を返します。
 
 ### `Rigor::AST::TypeNode`
 
-The minimum synthetic node family that this specification binds is `Rigor::AST::TypeNode`. It MUST exist, MUST include `Rigor::AST::Node`, MUST be constructible from a single `Rigor::Type`, and MUST satisfy:
+本仕様が束縛する最小の合成ノードファミリーは`Rigor::AST::TypeNode`です。MUST存在し、MUST`Rigor::AST::Node`をincludeし、MUST単一の`Rigor::Type`から構築可能であり、MUST以下を満たします。
 
-- `Rigor::Scope#type_of(Rigor::AST::TypeNode.new(t))` MUST return a `Rigor::Type` that compares structurally equal to `t` for any non-`nil` `t`.
-- The engine MUST NOT modify, normalise, annotate, or wrap the inner type. Round-trip through `TypeNode` is observably the identity.
-- `TypeNode` MUST NOT be wrapped in `Dynamic[T]`, refinements, or any other carrier as a side effect of `Scope#type_of`.
+- `Rigor::Scope#type_of(Rigor::AST::TypeNode.new(t))`は、任意の非`nil`な`t`について、`t`と構造的に等しく比較される`Rigor::Type`をMUST返します。
+- エンジンは内部型をMUST NOT変更・正規化・注釈付け・ラップしません。`TypeNode`を通じたラウンドトリップは観測可能に恒等です。
+- `TypeNode`は`Scope#type_of`の副作用として、`Dynamic[T]`・リファインメント・任意の他のキャリアにMUST NOTラップされません。
 
-Additional synthetic node kinds (call expressions, container literals, narrowing wrappers) are added by later slices and are non-normative until promoted. New kinds MUST follow the immutability, structural-equality, and composability rules above.
+追加の合成ノード種別（呼び出し式・コンテナリテラル・ナローイングラッパー）は後のスライスで追加され、昇格されるまで規範的ではありません。新しい種別はMUST上記の不変性・構造的等価性・合成可能性の規則に従います。
 
-## Method Dispatch Boundary
+## メソッドディスパッチ境界
 
-Method dispatch (the rule that determines the result type of a call expression given a receiver type and argument types) MUST NOT live on `Rigor::Type` instances. Type classes remain thin value objects per [`internal-type-api.md`](../internal-type-api/): they hold structural data and answer capability questions, but they do not carry method-summary tables or operator handlers.
+メソッドディスパッチ（レシーバ型と引数型から呼び出し式の結果型を決定する規則）はMUST NOT`Rigor::Type`のインスタンスに存在しません。型クラスは[`internal-type-api.md`](../internal-type-api/)に従って薄い値オブジェクトのままです。すなわち、構造的データを保持し能力（capability）の問いに答えますが、メソッド要約テーブルや演算子ハンドラーは運びません。
 
-Slice 2 introduces `Rigor::Inference::MethodDispatcher` as a separate engine surface, originally planned for Slice 3 but pulled forward after the `rigor type-scan` dogfood signal showed `Prism::CallNode` and `Prism::ArgumentsNode` were the largest single source of unrecognised expressions. The Slice 2 dispatcher ships only a constant-folding tier; Slice 4 layers RBS-backed lookups behind it (see [`docs/adr/4-type-inference-engine.md`](../../adr/4-type-inference-engine/)).
+Slice 2は`Rigor::Inference::MethodDispatcher`を別のエンジン表層として導入します。元はSlice 3で計画されていましたが、`rigor type-scan`によるドッグフードシグナルが`Prism::CallNode`と`Prism::ArgumentsNode`が認識されない式の最大の単一ソースであることを示したため前倒しされました。Slice 2ディスパッチャーは定数畳み込みティアのみを出荷します。Slice 4はその背後にRBSバックのルックアップを重ねます（[`docs/adr/4-type-inference-engine.md`](../../adr/4-type-inference-engine/)を参照）。
 
-The dispatcher's public signature is:
+ディスパッチャーの公開シグネチャは以下のとおりです。
 
 ```ruby
 Rigor::Inference::MethodDispatcher.dispatch(
@@ -159,384 +156,384 @@ Rigor::Inference::MethodDispatcher.dispatch(
 ) #=> Rigor::Type, or nil when no rule matches
 ```
 
-A `nil` return value is the deliberate "no rule" signal. Callers MUST own the fail-soft fallback (`ExpressionTyper` records a `FallbackTracer` event and returns `Dynamic[Top]`); the dispatcher itself MUST NOT touch the tracer or raise on unrecognised inputs.
+`nil`の戻り値は意図的な「規則なし」のシグナルです。呼び出し元はフェイルソフトフォールバックをMUST所有します（`ExpressionTyper`は`FallbackTracer`イベントを記録して`Dynamic[Top]`を返します）。ディスパッチャー自体はトレーサーにMUST NOT触れず、認識されない入力でMUST NOTraiseします。
 
-The dispatcher MUST consult tiers in this order: the constant-folding tier (Slice 2), the RBS-backed dispatch tier (Slice 4), and — once those land — the plugin-supplied method extensions defined by ADR-2. The first tier that returns a non-`nil` `Rigor::Type` wins; subsequent tiers MUST NOT be consulted on a hit. The dispatcher MUST take its input as a uniform call-shape that may carry either Prism child nodes or synthetic `Rigor::AST::Node` arguments (by way of the *Virtual Nodes* contract above), so synthesised expressions and real expressions share a single dispatch path.
+ディスパッチャーはMUST以下の順序でティアを参照します。すなわち定数畳み込みティア（Slice 2）、RBSバックのディスパッチティア（Slice 4）、そして — それらが着地次第 — ADR-2で定義されるプラグイン提供のメソッド拡張です。非`nil`の`Rigor::Type`を返す最初のティアが勝ちます。ヒット時に後続のティアはMUST NOT参照されません。ディスパッチャーは、Prismの子ノードまたは（上記の*仮想ノード*契約を介した）合成`Rigor::AST::Node`引数のいずれかを運べる統一された呼び出し形状として入力をMUST取り、これによって合成された式と実際の式が単一のディスパッチ経路を共有します。
 
-The RBS-backed tier MUST resolve receiver types to a `(class_name, kind)` pair where `kind` is `:instance` or `:singleton`:
+RBSバックのティアは、レシーバ型を`kind`が`:instance`または`:singleton`である`(class_name, kind)`ペアにMUST解決します。
 
-- `Type::Constant[v]` resolves to `(v.class.name, :instance)`.
-- `Type::Nominal[name]` resolves to `(name, :instance)`.
-- `Type::Singleton[name]` (Slice 4 phase 2b) resolves to `(name, :singleton)`. The dispatcher MUST consult `RbsLoader#singleton_method` rather than `instance_method` for this kind, so `Foo.bar` correctly looks up the class methods of `Foo`.
-- `Type::Dynamic[T]` recurses into `T`'s static facet using the same rules.
-- `Type::Top` and `Type::Bot` produce no descriptor; the dispatcher MUST return `nil`.
+- `Type::Constant[v]`は`(v.class.name, :instance)`に解決されます。
+- `Type::Nominal[name]`は`(name, :instance)`に解決されます。
+- `Type::Singleton[name]`（Slice 4 phase 2b）は`(name, :singleton)`に解決されます。ディスパッチャーはこの種別についてMUST`instance_method`ではなく`RbsLoader#singleton_method`を参照し、これにより`Foo.bar`は`Foo`のクラスメソッドを正しくルックアップします。
+- `Type::Dynamic[T]`は同じ規則を用いて`T`の静的ファセットへ再帰します。
+- `Type::Top`と`Type::Bot`はディスクリプターを生成しません。ディスパッチャーはMUST`nil`を返します。
 
-`Union` receivers MUST dispatch each member individually — when every member resolves, the per-member return types are unioned and that union is returned; when any member returns `nil`, the whole dispatch MUST return `nil`. Mixing instance and singleton members within a single union MUST NOT be a special case; each member is dispatched against its own descriptor.
+`Union`レシーバは各メンバーをMUST個別にディスパッチします。すなわちすべてのメンバーが解決すると、メンバーごとの戻り値型がunionされそのunionが返されます。任意のメンバーが`nil`を返すと、全体のディスパッチはMUST`nil`を返します。インスタンスとシングルトンのメンバーを単一のunion内で混ぜることはMUST NOT特別扱いされません。各メンバーはそれぞれのディスクリプターに対してディスパッチされます。
 
-When the resolved RBS method has multiple overloads, Slice 4 phase 2c selects one of them through `Rigor::Inference::MethodDispatcher::OverloadSelector`. The selector MUST:
+解決されたRBSメソッドが複数のオーバーロードを持つとき、Slice 4 phase 2cは`Rigor::Inference::MethodDispatcher::OverloadSelector`を通じてその1つを選択します。セレクタはMUST以下を行います。
 
-- Filter overloads by positional arity. The actual `arg_types.size` MUST satisfy `required_positionals.size + trailing_positionals.size <= n` and either `rest_positionals` is present or `n <= required + optional + trailing`.
-- Skip overloads whose `required_keywords` is non-empty. Slice 4 phase 2c does not thread keyword arguments through the call site, so a keyword-required overload is unreachable from the current call shape.
-- Among the remaining overloads, MUST consult `param_type.accepts(arg_type, mode: :gradual)` for every (formal, actual) positional pair (rest positionals consume one declaration repeatedly). An overload matches when every pair returns `yes` or `maybe`.
-- Pick the first matching overload in declaration order. When no overload matches, fall back to `method_types.first`. The fallback is the only normative deviation from "first match wins": it preserves the fail-soft contract of Slice 4 phase 1 / 2b for call sites whose actual argument types cannot be matched by any overload (because of `untyped`-degraded interfaces, generics, or callers we have not yet wired in).
+- 位置引数のアリティでオーバーロードをフィルタします。実際の`arg_types.size`はMUST`required_positionals.size + trailing_positionals.size <= n`を満たし、かつ`rest_positionals`が存在するか`n <= required + optional + trailing`のいずれかです。
+- `required_keywords`が空でないオーバーロードをスキップします。Slice 4 phase 2cはキーワード引数を呼び出し位置に通さないため、キーワード必須のオーバーロードは現在の呼び出し形状から到達不能です。
+- 残ったオーバーロードのうち、すべての（仮引数、実引数）位置ペアについてMUST`param_type.accepts(arg_type, mode: :gradual)`を参照します（rest位置引数は1つの宣言を繰り返し消費します）。すべてのペアが`yes`または`maybe`を返すとき、オーバーロードはマッチします。
+- 宣言順で最初にマッチしたオーバーロードを取ります。どのオーバーロードもマッチしないとき、`method_types.first`にフォールバックします。このフォールバックは「最初のマッチが勝つ」からの唯一の規範的な逸脱です。これは、（`untyped`に劣化したインターフェイス・ジェネリクス・まだ配線していない呼び出し元のため）実際の引数型がどのオーバーロードにもマッチしない呼び出し位置について、Slice 4 phase 1 / 2bのフェイルソフト契約を保ちます。
 
-Implementations MAY pre-translate parameter types per overload for performance, but MUST NOT cache results across `(class_name, method_name)` keys because `self_type` and `instance_type` substitution depends on the dispatch site.
+実装はパフォーマンスのためにオーバーロードごとに引数型を事前翻訳してMAYかまいませんが、`self_type`と`instance_type`の置換はディスパッチ位置に依存するため、`(class_name, method_name)`キーにまたがって結果をMUST NOTキャッシュしません。
 
-`Rigor::Inference::RbsTypeTranslator.translate(rbs_type, self_type:, instance_type:, type_vars:)` is the only normative path from `RBS::Types::*` to `Rigor::Type`. It MUST be deterministic, MUST NOT raise on any well-formed RBS type, and MUST follow the mapping documented in [`docs/adr/4-type-inference-engine.md`](../../adr/4-type-inference-engine/). The substitution keywords are independent:
+`Rigor::Inference::RbsTypeTranslator.translate(rbs_type, self_type:, instance_type:, type_vars:)`は`RBS::Types::*`から`Rigor::Type`への唯一の規範的経路です。MUST決定的であり、任意の整形式RBS型でMUST NOTraiseし、[`docs/adr/4-type-inference-engine.md`](../../adr/4-type-inference-engine/)に文書化されたマッピングにMUST従います。置換キーワードは独立しています。
 
-- `Bases::Self` MUST be substituted by `self_type:`. For instance dispatch this is `Nominal[C]`; for singleton dispatch it is `Singleton[C]`.
-- `Bases::Instance` MUST be substituted by `instance_type:`. The dispatcher passes `Nominal[C]` regardless of dispatch kind so that `def self.create: () -> instance` resolves to `Nominal[C]` even when the receiver is `Singleton[C]`.
-- `Variable` (Slice 4 phase 2d) MUST be substituted by `type_vars:`. The map is keyed by the RBS variable's `name` symbol (`:Elem`, `:K`, `:V`, ...). Bound variables MUST be replaced by the bound `Rigor::Type` value; unbound variables MUST degrade to `Dynamic[Top]`.
-- `ClassInstance` MUST translate its `args` recursively through the same `translate` call so `::Array[Elem]` round-trips into `Nominal["Array", [type_vars[:Elem]]]`. Translators for sibling generic forms (`Tuple`, `Record`, `Proc`) follow the same recursion rule once they grow generic carriage in Slice 5+.
-- Any keyword MAY be omitted; the corresponding RBS token then degrades to `Dynamic[Top]`. The `type_vars:` default MUST be the empty hash so the keyword does not influence non-generic calls.
+- `Bases::Self`はMUST`self_type:`で置換されます。インスタンスディスパッチでは`Nominal[C]`、シングルトンディスパッチでは`Singleton[C]`です。
+- `Bases::Instance`はMUST`instance_type:`で置換されます。ディスパッチャーは、レシーバが`Singleton[C]`であっても`def self.create: () -> instance`が`Nominal[C]`に解決されるよう、ディスパッチ種別に関係なく`Nominal[C]`を渡します。
+- `Variable`（Slice 4 phase 2d）はMUST`type_vars:`で置換されます。マップはRBS変数の`name`シンボル（`:Elem`・`:K`・`:V`...）でキー付けされます。束縛された変数はMUST束縛された`Rigor::Type`値に置換されます。束縛されていない変数はMUST`Dynamic[Top]`に劣化します。
+- `ClassInstance`はMUST同じ`translate`呼び出しを通じて`args`を再帰的に翻訳し、`::Array[Elem]`が`Nominal["Array", [type_vars[:Elem]]]`へラウンドトリップするようにします。兄弟ジェネリック形式（`Tuple`・`Record`・`Proc`）の翻訳器は、Slice 5以降でジェネリック搭載が育てば、同じ再帰規則に従います。
+- 任意のキーワードはMAY省略でき、対応するRBSトークンは`Dynamic[Top]`に劣化します。`type_vars:`のデフォルトはMUST空ハッシュで、これによりキーワードは非ジェネリック呼び出しに影響しません。
 
-Future slices that refine the mapping (intersection, interfaces, alias resolution) MUST keep the existing entries' outputs unchanged on the gradual-typing axis: any tightening of precision MUST be a non-breaking change to subtyping queries against the result type.
+マッピングを精緻化する将来のスライス（交差・インターフェイス・エイリアス解決）は、グラデュアル型付け軸において既存エントリの出力をMUST変更しません。精度のいかなる引き締めも、結果型に対する部分型クエリへの非破壊変更でMUSTあります。
 
-The Slice 4 phase 2d generic dispatch contract MUST also satisfy:
+Slice 4 phase 2dのジェネリックディスパッチ契約はMUSTさらに以下を満たします。
 
-- `Rigor::Type::Nominal` MUST carry an ordered, frozen `type_args` array. The empty array MUST denote the "raw" form (`Array`) and any non-empty array MUST denote an applied generic (`Array[Integer]`). Two carriers MUST compare structurally equal only when both `class_name` AND `type_args` match.
-- `Rigor::Environment::RbsLoader#class_type_param_names(class_name)` MUST return the class's declared type-parameter names as `Array<Symbol>`, drawing from the instance definition because singleton methods parameterize over the same names. It MUST return an empty array for non-generic classes and for unknown names (fail-soft).
-- The dispatcher MUST build the `type_vars` map by zipping `class_type_param_names` against the receiver's `type_args`. Empty `type_args` (raw receivers and singletons) MUST yield an empty map so free variables degrade as before. Arity disagreement between params and args MUST yield an empty map; the dispatcher MUST NOT silently truncate or pad.
-- The dispatcher MUST thread the same `type_vars` map through both the overload selector and the final return-type translation, so parameter types like `::Array[Elem]` substitute Elem before the accepts check rather than degrading to `Array[Dynamic[Top]]`.
+- `Rigor::Type::Nominal`はMUST順序付き・フローズンな`type_args`配列を運びます。空配列はMUST「素」形式（`Array`）を表し、空でない配列はMUST適用済みジェネリック（`Array[Integer]`）を表します。2つのキャリアは`class_name`**と**`type_args`の両方が一致するときのみMUST構造的に等しく比較されます。
+- `Rigor::Environment::RbsLoader#class_type_param_names(class_name)`はMUSTそのクラスの宣言された型パラメーター名を`Array<Symbol>`として返します。シングルトンメソッドが同じ名前でパラメーター化されるため、インスタンス定義から取得します。非ジェネリッククラスや未知の名前についてはMUST空配列を返します（フェイルソフト）。
+- ディスパッチャーは`class_type_param_names`をレシーバの`type_args`とジップして`type_vars`マップをMUST構築します。空の`type_args`（素のレシーバとシングルトン）は、自由変数が以前と同様に劣化するようMUST空マップを生成します。パラメーターと引数のアリティ不一致はMUST空マップを生成します。ディスパッチャーは黙って切り詰めたりパディングしたりしてはMUST NOTなりません。
+- ディスパッチャーはMUSTオーバーロードセレクタと最終的な戻り値型翻訳の両方に同じ`type_vars`マップを通し、これにより`::Array[Elem]`のような引数型は`Array[Dynamic[Top]]`に劣化するのではなく、acceptsチェックの前にElemを置換します。
 
-The Slice 5 phase 1 shape-dispatch contract MUST also satisfy:
+Slice 5 phase 1のシェイプディスパッチ契約はMUSTさらに以下を満たします。
 
-- `Rigor::Type::Tuple` and `Rigor::Type::HashShape` MUST be projected onto their underlying nominal carriers when used as dispatch receivers. `Tuple[T1..Tn]` projects to `Nominal["Array", [union(T1..Tn)]]` (raw `Array` for empty Tuples); `HashShape{k: T,...}` projects to `Nominal["Hash", [union(constant_keys), union(values)]]` (raw `Hash` for empty shapes). The projection MUST be confined to `RbsDispatch.receiver_descriptor`; the surface contract on the carriers themselves MUST stay value-object thin.
-- `Rigor::Inference::Acceptance` MUST treat shape carriers symmetrically with their projected nominal:
-  - A nominal `self` MUST accept a shape `other` by projecting the shape and recursing through the existing nominal-acceptance route, so `Nominal[Array, [Integer]].accepts(Tuple[Constant[1], Constant[2]])` is equivalent to `Nominal[Array, [Integer]].accepts(Nominal[Array, [union(Constant[1], Constant[2])]])` and yields the same result.
-  - A `Tuple` `self` MUST require `Tuple` `other` of equal arity, and recurse element-wise (covariant). Mismatched arity MUST collapse to `no`. Non-Tuple `other` MUST be rejected because the analyzer cannot prove arity from a generic nominal alone.
-  - A `HashShape` `self` MUST require every required key of `self` to be required in `other` (depth covariant on shared entries). Optional keys on `self` MAY be absent in `other`; when present, their values MUST satisfy the same depth check. A closed `self` MUST reject known extra keys and open-extra-key sources; an open `self` MAY accept wider shapes. Missing required keys MUST collapse to `no`. Non-HashShape `other` MUST be rejected; nominal-side projection lives on the `accepts_nominal` route, not on the HashShape route.
-- `Rigor::Inference::RbsTypeTranslator` MUST map `RBS::Types::Tuple` and `RBS::Types::Record` to the dedicated shape carriers (NOT to `Nominal[Array]`/`Nominal[Hash]`). Element and field types MUST be translated recursively under the caller's `self_type:` / `instance_type:` / `type_vars:` context, so generics inside tuples and records survive the boundary. `Record` MUST translate required fields from `RBS::Types::Record#fields`, optional fields from `#optional_fields`, and mark the resulting `HashShape` as closed.
-- `Rigor::Inference::ExpressionTyper` MUST upgrade non-empty array literals whose every element is a non-splat value to `Tuple` carriers; literals containing splats MUST keep the Slice 4 phase 2d `Nominal[Array, [union]]` form so `[*xs, 1]` still produces an inferable element type. `ExpressionTyper` MUST upgrade hash literals whose every entry is an `AssocNode` with a static `SymbolNode` or `StringNode` key (with a non-`nil` `value`/`unescaped`) to `HashShape` carriers; literals with `AssocSplatNode` entries, dynamic keys, or duplicate keys MUST fall through to the `Nominal[Hash, [K, V]]` form. Integer-endpoint `RangeNode` literals MUST be carried as `Constant[Range]` so shape dispatch can resolve tuple range slices; dynamic ranges MUST remain `Nominal[Range]`.
+- `Rigor::Type::Tuple`と`Rigor::Type::HashShape`はディスパッチレシーバとして使われるとき、MUST基底のnominalキャリアに射影されます。`Tuple[T1..Tn]`は`Nominal["Array", [union(T1..Tn)]]`に射影されます（空Tupleでは素の`Array`）。`HashShape{k: T,...}`は`Nominal["Hash", [union(constant_keys), union(values)]]`に射影されます（空シェイプでは素の`Hash`）。射影はMUST`RbsDispatch.receiver_descriptor`に閉じ込められます。キャリア自体の表層契約はMUST値オブジェクトとして薄く保たれます。
+- `Rigor::Inference::Acceptance`はシェイプキャリアを射影されたnominalと対称にMUST扱います。
+  - nominalな`self`はシェイプを射影し既存のnominal受理経路を再帰することでシェイプの`other`をMUST受理し、これにより`Nominal[Array, [Integer]].accepts(Tuple[Constant[1], Constant[2]])`は`Nominal[Array, [Integer]].accepts(Nominal[Array, [union(Constant[1], Constant[2])]])`と等価で同じ結果を生成します。
+  - `Tuple`な`self`は同じアリティの`Tuple`な`other`をMUST要求し、要素ごとに（共変で）再帰します。アリティ不一致はMUST`no`に縮退します。`Tuple`でない`other`はMUST拒否されます。なぜなら解析器はジェネリックnominal単独からアリティを証明できないからです。
+  - `HashShape`な`self`は、`self`のすべての必須キーが`other`で必須であることをMUST要求します（共有エントリでは深さ共変）。`self`のオプショナルキーは`other`でMAY不在でかまいませんが、存在するときは値が同じ深さチェックをMUST満たします。closedな`self`は既知の追加キーとオープンな追加キーソースをMUST拒否します。openな`self`はより広いシェイプをMAY受理します。必須キーの欠落はMUST`no`に縮退します。`HashShape`でない`other`はMUST拒否されます。nominal側の射影は`accepts_nominal`経路に存在し、HashShape経路には存在しません。
+- `Rigor::Inference::RbsTypeTranslator`は`RBS::Types::Tuple`と`RBS::Types::Record`を専用のシェイプキャリアにMUSTマップします（`Nominal[Array]`/`Nominal[Hash]`にではありません）。要素型とフィールド型は呼び出し元の`self_type:` / `instance_type:` / `type_vars:`コンテキスト下で再帰的にMUST翻訳され、これによりタプルやレコード内のジェネリクスが境界を越えて生き残ります。`Record`は必須フィールドを`RBS::Types::Record#fields`から、オプショナルフィールドを`#optional_fields`からMUST翻訳し、結果の`HashShape`をclosedとMUSTマークします。
+- `Rigor::Inference::ExpressionTyper`は、すべての要素が非splat値である空でない配列リテラルを`Tuple`キャリアにMUSTアップグレードします。splatを含むリテラルは、`[*xs, 1]`が依然として推論可能な要素型を生成するよう、Slice 4 phase 2dの`Nominal[Array, [union]]`形式をMUST保ちます。`ExpressionTyper`は、すべてのエントリが静的な`SymbolNode`または`StringNode`キー（非`nil`の`value`/`unescaped`を持つ）の`AssocNode`であるハッシュリテラルを`HashShape`キャリアにMUSTアップグレードします。`AssocSplatNode`エントリ・動的キー・重複キーを持つリテラルはMUST`Nominal[Hash, [K, V]]`形式にフォールスルーします。整数端点の`RangeNode`リテラルは、シェイプディスパッチがタプル範囲スライスを解決できるよう、`Constant[Range]`としてMUST運ばれます。動的範囲はMUST`Nominal[Range]`のままです。
 
-When the receiver of a call is a `Rigor::Type::Dynamic` and no positive dispatcher tier matches, `ExpressionTyper#call_type_for` MUST return `Dynamic[Top]` *silently*, without recording a `FallbackTracer` event. This is a recognised semantic outcome — the value-lattice algebra in [`value-lattice.md`](../../type-specification/value-lattice/) requires Dynamic to propagate through opaque method calls — and not a fail-soft compromise. Receivers that are not Dynamic still trigger the standard fail-soft fallback (with a tracer event) when no rule resolves.
+呼び出しのレシーバが`Rigor::Type::Dynamic`で正のディスパッチャーティアがどれもマッチしないとき、`ExpressionTyper#call_type_for`は`FallbackTracer`イベントを記録せずに*静かに*MUST`Dynamic[Top]`を返します。これは認識されたセマンティック結果であり — [`value-lattice.md`](../../type-specification/value-lattice/)の値格子代数はDynamicが不透明なメソッド呼び出しを通じて伝播することを要求します — フェイルソフト的妥協ではありません。Dynamicでないレシーバは、規則が解決されないときには依然として標準のフェイルソフトフォールバック（トレーサーイベント付き）をトリガーします。
 
-The Slice 5 phase 2 shape-aware dispatch tier (`Rigor::Inference::MethodDispatcher::ShapeDispatch`) MUST run between the constant-folding tier and the RBS-backed tier so that `Tuple` and `HashShape` receivers resolve element-access methods to their precise per-position / per-key type rather than the projected `Array#[]` / `Hash#fetch` answer. The tier MUST handle the following catalogue, returning `nil` to defer to `RbsDispatch` when the call cannot be proved against the static shape:
+Slice 5 phase 2のシェイプ対応ディスパッチティア（`Rigor::Inference::MethodDispatcher::ShapeDispatch`）は、`Tuple`と`HashShape`のレシーバが要素アクセスメソッドを射影された`Array#[]` / `Hash#fetch`の答えではなく位置ごと/キーごとの精密な型に解決するよう、定数畳み込みティアとRBSバックティアの間でMUST動作します。ティアは以下のカタログをMUST処理し、呼び出しを静的シェイプに対して証明できないとき`nil`を返して`RbsDispatch`に委ねます。
 
-- Tuple receivers: `first`, `last`, `size`/`length`/`count` (no-arg, no-block) MUST return the precise tuple element / `Constant[size]`. `[]` and `fetch` with a single `Constant[Integer]` argument MUST normalise negative indices by length and return the precise element when the index is in `[-size, size)`; out-of-range indices MUST defer (`nil`) so the projection answer applies for `fetch` (which would raise) and MUST resolve to `Constant[nil]` only when invoked through a chain step (see `dig` below). `[]` with `Constant[Range]` integer/nil endpoints and `[]` with two `Constant[Integer]` arguments MUST use Ruby `Array#[]` slice semantics and return a sliced `Tuple` or `Constant[nil]` for statically nil slices; `fetch` MUST NOT claim those forms. `dig` MUST recurse through the resolved member: a `Tuple`/`HashShape` member MUST re-dispatch into the catalogue with the remaining arguments; a `Constant[nil]` member MUST short-circuit the chain (Ruby's `Array#dig` does the same at runtime); other Constants and any non-shape carrier MUST defer so the projection answer applies. An out-of-range index that arises *during* a chain step MUST resolve to `Constant[nil]` because Ruby's `Array#dig` returns nil for out-of-range indices rather than raising.
-- HashShape receivers: `size`/`length` (no-arg) MUST return `Constant[size]` only when the shape is closed and no known key is optional. `[]` and `fetch` with a single `Constant[Symbol|String]` argument MUST return the precise value when a required key is declared. Optional-key `[]`/`dig` MUST return `value | nil`, while optional-key `fetch` MUST defer because the key may be absent and Ruby would raise `KeyError`. Missing keys MUST resolve to `Constant[nil]` for `[]` (matching Ruby's runtime behaviour) and MUST defer for `fetch`. `dig` MUST follow the same chain semantics as Tuple `dig`: a single static key resolves to the precise value (or `Constant[nil]` for a missing key); a multi-key chain recurses with the resolved value as the new receiver. `values_at` with one or more `Constant[Symbol|String]` arguments MUST return a `Tuple` whose per-position values are the per-key values, with missing keys filled by `Constant[nil]`. Falls through (defers) when any argument is non-static or when the call has zero arguments.
+- Tupleレシーバ: `first`・`last`・`size`/`length`/`count`（無引数・無ブロック）はMUST精密なタプル要素/`Constant[size]`を返します。単一の`Constant[Integer]`引数を伴う`[]`と`fetch`は、負のインデックスを長さで正規化しMUSTインデックスが`[-size, size)`にあるとき精密な要素を返します。範囲外のインデックスはMUST委ねます（`nil`）。これにより`fetch`（は実行時にraiseするでしょう）に対しては射影の答えが適用され、チェーンステップを通じて呼ばれたとき（後述の`dig`を参照）にのみMUST`Constant[nil]`に解決されます。`Constant[Range]`の整数/nil端点を伴う`[]`と2つの`Constant[Integer]`引数を伴う`[]`はRubyの`Array#[]`スライスセマンティクスをMUST用い、スライスされた`Tuple`または静的にnilなスライスについて`Constant[nil]`を返します。`fetch`はそれらの形式をMUST NO要求しません。`dig`は解決されたメンバーを通じてMUST再帰します。`Tuple`/`HashShape`のメンバーは残りの引数でカタログにMUST再ディスパッチします。`Constant[nil]`メンバーはチェーンをMUST短絡します（Rubyの`Array#dig`は実行時に同じことをします）。他のConstantsと任意の非シェイプキャリアはMUST委ね、射影の答えが適用されます。チェーンステップ*中*に発生する範囲外インデックスは、Rubyの`Array#dig`が範囲外インデックスに対してraiseするのではなくnilを返すため、MUST`Constant[nil]`に解決されます。
+- HashShapeレシーバ: `size`/`length`（無引数）は、シェイプがclosedで既知のキーがどれもオプショナルでないときにのみMUST`Constant[size]`を返します。単一の`Constant[Symbol|String]`引数を伴う`[]`と`fetch`は、必須キーが宣言されているときMUST精密な値を返します。オプショナルキーの`[]`/`dig`はMUST`value | nil`を返しますが、オプショナルキーの`fetch`は、キーが不在の可能性があり、Rubyが`KeyError`をraiseするためMUST委ねます。欠落キーは`[]`について（Rubyの実行時挙動と一致して）MUST`Constant[nil]`に解決され、`fetch`についてはMUST委ねます。`dig`はTuple `dig`と同じチェーンセマンティクスにMUST従います。すなわち単一の静的キーは精密な値（または欠落キーに対しては`Constant[nil]`）に解決されます。複数キーチェーンは解決された値を新しいレシーバとして再帰します。1つ以上の`Constant[Symbol|String]`引数を伴う`values_at`はMUST位置ごとの値がキーごとの値であり欠落キーが`Constant[nil]`で埋められた`Tuple`を返します。任意の引数が非静的のときや、呼び出しが引数ゼロのときはフォールスルー（委ねる）します。
 
-The shape tier MUST NOT consult the RBS environment, MUST NOT raise on any input, and MUST NOT touch the fallback tracer; it is a pure refinement layered on the type carriers. Methods outside the catalogue, non-static keys/indices, non-integer ranges, and any `dig`/`values_at` call whose chain steps cannot be resolved statically MUST defer so the projection-based `RbsDispatch` answer applies.
+シェイプティアはRBS環境をMUST NOT参照し、任意の入力でMUST NOTraiseし、フォールバックトレーサーにMUST NOT触れません。これは型キャリアの上に重ねられた純粋な精緻化です。カタログ外のメソッド・非静的なキー/インデックス・非整数範囲・チェーンステップが静的に解決できない任意の`dig`/`values_at`呼び出しはMUST委ね、射影ベースの`RbsDispatch`の答えが適用されます。
 
-This split is normative: implementations MUST NOT define operator-method-aware subclasses of any `Rigor::Type` form (for example, a hypothetical `Rigor::Type::IntegerType` carrying `+`/`*` rules). Operator semantics MUST be expressed as method-handler entries that the dispatcher consults; specialising the type class for built-in arithmetic is rejected to keep the type lattice and method semantics independently extensible.
+この分離は規範的です。すなわち実装はいかなる`Rigor::Type`形式の演算子メソッド対応サブクラスをMUST NOT定義しません（例えば、`+`/`*`規則を運ぶ仮想的な`Rigor::Type::IntegerType`）。演算子セマンティクスはディスパッチャーが参照するメソッドハンドラーエントリとしてMUST表現されます。組み込み算術のために型クラスを特殊化することは、型格子とメソッドセマンティクスを独立に拡張可能に保つために拒絶されます。
 
-## Local Variables
+## ローカル変数
 
-Local variable read nodes (`Prism::LocalVariableReadNode`) MUST be looked up in the receiver scope. A bound name MUST return the bound `Rigor::Type`. An unbound name MUST fail soft to `Dynamic[Top]` per the rule above; `Scope#type_of` MUST NOT raise on unbound locals.
+ローカル変数リードノード（`Prism::LocalVariableReadNode`）はMUSTレシーバスコープでルックアップされます。束縛された名前はMUST束縛された`Rigor::Type`を返します。束縛されていない名前は上記の規則に従いMUST`Dynamic[Top]`へフェイルソフトします。`Scope#type_of`は束縛されていないローカルでMUST NOTraiseします。
 
-Local variable write nodes (`Prism::LocalVariableWriteNode` and the targets that imply it) MUST be typed as the type of their value expression. Binding the result back into the scope is the responsibility of the statement-level evaluator (see Slice 3 in [`docs/adr/4-type-inference-engine.md`](../../adr/4-type-inference-engine/)); `Scope#type_of` itself MUST NOT mutate the scope.
+ローカル変数ライトノード（`Prism::LocalVariableWriteNode`とそれを含意するターゲット）はMUSTその値式の型として型付けされます。結果をスコープへ束縛し直すことは文レベル評価器の責任であり（[`docs/adr/4-type-inference-engine.md`](../../adr/4-type-inference-engine/)のSlice 3を参照）、`Scope#type_of`自体はスコープをMUST NOT変更しません。
 
-## Statement-Level Evaluation
+## 文レベル評価
 
-`Rigor::Scope#type_of` is a pure expression-level query and MUST NOT thread scope. The statement-level evaluator `Rigor::Inference::StatementEvaluator` (Slice 3 phase 2) sits next to it and provides the complementary scope-threading surface. Its public delegate on `Rigor::Scope` MUST exist:
+`Rigor::Scope#type_of`は純粋な式レベルクエリであり、スコープをMUST NOTスレッドしません。文レベル評価器`Rigor::Inference::StatementEvaluator`（Slice 3 phase 2）はその隣にあり、補完的なスコープスレッディング表層を提供します。`Rigor::Scope`上の公開デリゲートはMUST存在します。
 
 ```ruby
 Rigor::Scope#evaluate(node, tracer: nil) #=> [Rigor::Type, Rigor::Scope]
 ```
 
-The contract MUST satisfy:
+契約はMUST以下を満たします。
 
-- The first element of the returned pair MUST be the type that `node` produces, equivalent to what `Scope#type_of(node)` would return for a pure expression. The second element MUST be the scope observable AFTER `node` has run; for nodes that perform no scope effect this MUST be the receiver scope (compared with `==`, the receiver's identity MAY differ).
-- The receiver scope MUST never be mutated. Internal recursion MUST allocate fresh `StatementEvaluator` instances for every forked scope so branches stay isolated and the equality of distinct branch outputs is observable.
-- The `tracer:` keyword MUST be threaded into every nested `Scope#type_of` call so fail-soft fallbacks emitted while typing children of a statement-y node are recorded under the same tracer.
-- An `evaluate` call against a node that the evaluator does not specialise MUST defer to `Scope#type_of(node, tracer:)` and MUST return the receiver scope unchanged. This preserves the Slice 1 fail-soft policy: an unrecognised statement-y node MUST NOT raise.
+- 返されたペアの最初の要素はMUST`node`が生成する型で、純粋な式について`Scope#type_of(node)`が返すものと等価です。2番目の要素はMUST`node`が実行された**後**に観測可能なスコープです。スコープ効果を行わないノードについて、これはMUSTレシーバスコープです（`==`で比較され、レシーバの同一性はMAY異なります）。
+- レシーバスコープはMUSTいかなる場合も変更されません。内部の再帰は、分岐が分離され区別された分岐出力の等価性が観測可能であるよう、フォークされた各スコープについてMUST新鮮な`StatementEvaluator`インスタンスを割り当てます。
+- `tracer:`キーワードはMUSTすべてのネストされた`Scope#type_of`呼び出しにスレッドされ、これにより文的ノードの子を型付けする間に発出されるフェイルソフトフォールバックが同じトレーサー下に記録されます。
+- 評価器が特殊化していないノードに対する`evaluate`呼び出しは、MUST`Scope#type_of(node, tracer:)`に委ね、MUSTレシーバスコープを変更せずに返します。これによりSlice 1のフェイルソフトポリシーが保たれます。すなわち認識されない文的ノードはMUST NOTraiseしません。
 
-The catalogue of nodes that the evaluator MUST recognise in Slice 3 phase 2 is:
+Slice 3 phase 2で評価器がMUST認識するノードのカタログは以下のとおりです。
 
-- `Prism::ProgramNode` and `Prism::StatementsNode` — sequential evaluation that threads scope through every child statement in declaration order. The body's value MUST be the type of the last statement (or `Constant[nil]` for an empty body); the post-scope MUST be the post-scope of the last statement.
-- `Prism::LocalVariableWriteNode` — evaluates the rvalue under the entry scope and binds `name` to the resulting type via `Scope#with_local`. The pair's type MUST equal the rvalue type.
-- `Prism::MultiWriteNode` (Slice 5 phase 2 sub-phase 2) — evaluates the right-hand side once under the entry scope, then walks the destructuring tree (`lefts` / `rest` / `rights`, with `rest` a `Prism::SplatNode` whose `expression` MAY be a `Prism::LocalVariableTargetNode`) and binds every named local through `Rigor::Inference::MultiTargetBinder`. The pair's type MUST equal the right-hand side's type (matching Ruby's `(a, b = [1, 2]) #=> [1, 2]` semantics). When the right-hand side is a `Type::Tuple`, per-slot bindings MUST be element-wise: missing front/back slots collapse to `Constant[nil]`, the rest slot binds to a `Type::Tuple` of the middle elements (`Tuple[]` when the source has no surplus). For non-Tuple right-hand sides every slot MUST bind to `Dynamic[Top]`. Nested `Prism::MultiTargetNode` targets MUST recurse through the same binder. Non-local targets (instance/class/global variables, constants, index/call targets, anonymous splat) MUST be silently skipped.
-- `Prism::IfNode` and `Prism::UnlessNode` — evaluate the predicate first (its post-scope is shared by both branches), then evaluate each branch under the post-predicate scope. The result type MUST be the union of the two branch types; the post-scope MUST be the join-with-nil-injection of the two branch scopes (see below). A `nil` branch (no else / no then) MUST contribute `Constant[nil]` and the post-predicate scope.
-- `Prism::ElseNode` — evaluates its body under the receiver scope, returning `[Constant[nil], scope]` for empty bodies.
-- `Prism::CaseNode` and `Prism::CaseMatchNode` — evaluate the predicate first; every `WhenNode`/`InNode` body and the optional else-clause are evaluated independently under the post-predicate scope and merged with the same join-with-nil-injection rule generalised to N branches.
-- `Prism::WhenNode` and `Prism::InNode` — evaluate their statements under the receiver scope; an empty body MUST be `[Constant[nil], scope]`.
-- `Prism::BeginNode` — evaluate the primary path (body, then optional else-clause; the else-clause MUST replace the body's value while the body's scope effects still apply because the body did run before the else). Each `Prism::RescueNode` in the chain is an alternative exit path evaluated under the entry scope. The exit type MUST be the union of the primary and rescue exits; the exit scope MUST be the join-with-nil-injection of the primary and rescue scopes. When an `ensure_clause` is present, its scope effects MUST be layered on the joined exit scope, so locals bound exclusively in the ensure stay observable; the ensure's value MUST NOT contribute to the exit type.
-- `Prism::WhileNode` and `Prism::UntilNode` — evaluate the predicate (its post-scope is observable in the body), then evaluate the body. The result type MUST be `Constant[nil]`. The post-scope MUST be the join-with-nil-injection of the post-predicate scope and the post-body scope, modelling "body might have run zero or more times".
-- `Prism::AndNode` and `Prism::OrNode` — evaluate the LHS, then the RHS under the LHS's post-scope. The result type MUST be the union of the two operand types; the post-scope MUST be the join-with-nil-injection of the LHS and RHS post-scopes (modelling "LHS always ran; RHS only sometimes ran"). Slice 3 phase 2 does NOT narrow on the LHS's truthiness; that refinement is the job of Slice 6.
-- `Prism::ParenthesesNode` — threads scope through the inner expression so `(x = 1; x + 2)` binds `x` and produces `Constant[3]`.
-- `Prism::ClassNode` and `Prism::ModuleNode` — evaluate the body in a *fresh* scope (Ruby's class/module scope does NOT see the outer locals; it shares only the Environment). The body's value is the body's last statement (or `Constant[nil]` for an empty body); the post-scope MUST be the receiver scope unchanged because a class/module definition does not bind any local in its enclosing scope. The evaluator MUST push a new lexical class frame onto its `class_context` for the body's evaluation; nested `def`s consult the frame to resolve their RBS lookup. The frame's qualified name MUST be the rendered `constant_path` (e.g., `"Foo::Bar"` for `class Foo::Bar` and the join of every nested name for `class A; class B`).
-- `Prism::SingletonClassNode` — same fresh-scope contract. When the singleton expression is `self`, the innermost lexical class frame MUST be flipped to `singleton: true` for the body's evaluation, so a `def foo` inside `class << self` resolves through `RbsLoader#singleton_method`. For non-`self` expressions the receiver class is not statically resolvable; the evaluator MUST keep the existing class context unchanged and accept that nested defs degrade to the `Dynamic[Top]` parameter default.
-- `Prism::DefNode` — builds the method-entry scope by binding every named parameter through `Rigor::Inference::MethodParameterBinder` (see below) and evaluates the body under that scope. The pair's type MUST be `Constant[:method_name]` (matching Ruby's runtime behaviour of `def` evaluating to a Symbol) and the pair's scope MUST be the receiver scope unchanged (a `def` does not introduce a binding in its enclosing scope). The body MUST NOT see the outer scope's locals.
+- `Prism::ProgramNode`と`Prism::StatementsNode` — 宣言順にすべての子文を通じてスコープをスレッドする逐次評価です。本体の値はMUST最後の文の型（空本体では`Constant[nil]`）です。後置スコープはMUST最後の文の後置スコープです。
+- `Prism::LocalVariableWriteNode` — エントリスコープ下で右辺値を評価し、`Scope#with_local`を介して`name`を結果型に束縛します。ペアの型はMUST右辺値の型と等しくなります。
+- `Prism::MultiWriteNode`（Slice 5 phase 2 sub-phase 2） — エントリスコープ下で右辺を一度評価し、それから分解木（`lefts` / `rest` / `rights`、`rest`は`Prism::SplatNode`で`expression`はMAY`Prism::LocalVariableTargetNode`）を歩き、`Rigor::Inference::MultiTargetBinder`を介してすべての名前付きローカルを束縛します。ペアの型はMUST右辺の型と等しくなります（Rubyの`(a, b = [1, 2]) #=> [1, 2]`セマンティクスと一致）。右辺が`Type::Tuple`のとき、スロットごとの束縛はMUST要素ごとです。すなわち欠落した前方/後方スロットは`Constant[nil]`に縮退し、restスロットは中間要素の`Type::Tuple`（ソースに余剰がないとき`Tuple[]`）に束縛されます。`Tuple`でない右辺については、すべてのスロットがMUST`Dynamic[Top]`に束縛されます。ネストされた`Prism::MultiTargetNode`ターゲットはMUST同じバインダーを通じて再帰します。非ローカルなターゲット（インスタンス/クラス/グローバル変数、定数、インデックス/呼び出しターゲット、無名splat）はMUST静かにスキップされます。
+- `Prism::IfNode`と`Prism::UnlessNode` — 述語をまず評価し（その後置スコープは両方の分岐で共有されます）、それから後置述語スコープ下で各分岐を評価します。結果型はMUST2つの分岐型のunionです。後置スコープはMUST2つの分岐スコープのnil注入付き結合です（後述）。`nil`分岐（else／thenなし）はMUST`Constant[nil]`と後置述語スコープを寄与します。
+- `Prism::ElseNode` — レシーバスコープ下で本体を評価し、空本体については`[Constant[nil], scope]`を返します。
+- `Prism::CaseNode`と`Prism::CaseMatchNode` — 述語をまず評価します。すべての`WhenNode`/`InNode`本体とオプショナルなelse節は後置述語スコープ下で独立に評価され、N分岐に一般化された同じnil注入付き結合規則でマージされます。
+- `Prism::WhenNode`と`Prism::InNode` — レシーバスコープ下で文を評価します。空本体はMUST`[Constant[nil], scope]`です。
+- `Prism::BeginNode` — 主経路（本体、それからオプショナルなelse節。else節はMUST本体の値を置き換えますが、elseの前に本体が実行されたため本体のスコープ効果は依然として適用されます）を評価します。チェーン内の各`Prism::RescueNode`はエントリスコープ下で評価される代替の出口経路です。出口型はMUST主経路とrescue出口のunionです。出口スコープはMUST主経路とrescueスコープのnil注入付き結合です。`ensure_clause`が存在するとき、そのスコープ効果はMUST結合された出口スコープの上に重ねられ、これによりensure内のみで束縛されたローカルが観測可能なまま残ります。ensureの値はMUST NOT出口型に寄与しません。
+- `Prism::WhileNode`と`Prism::UntilNode` — 述語を評価し（その後置スコープは本体で観測可能です）、それから本体を評価します。結果型はMUST`Constant[nil]`です。後置スコープはMUST後置述語スコープと後置本体スコープのnil注入付き結合で、「本体は0回以上実行されたかもしれない」をモデル化します。
+- `Prism::AndNode`と`Prism::OrNode` — LHSを評価し、それからLHSの後置スコープ下でRHSを評価します。結果型はMUST2つのオペランド型のunionです。後置スコープはMUSTLHSとRHSの後置スコープのnil注入付き結合（「LHSは常に実行された。RHSはときどきしか実行されなかった」をモデル化）です。Slice 3 phase 2はLHSの真偽値性でナローイングしません。その精緻化はSlice 6の仕事です。
+- `Prism::ParenthesesNode` — 内側の式を通じてスコープをスレッドし、これにより`(x = 1; x + 2)`が`x`を束縛して`Constant[3]`を生成します。
+- `Prism::ClassNode`と`Prism::ModuleNode` — 本体を*新鮮な*スコープで評価します（Rubyのクラス／モジュールスコープは外側のローカルを見**ません**。Environmentのみを共有します）。本体の値は本体の最後の文（空本体については`Constant[nil]`）です。クラス／モジュール定義は囲みスコープ内のいかなるローカルも束縛しないため、後置スコープはMUSTレシーバスコープを変更せずに残します。評価器は本体の評価のためにMUST新しいレキシカルクラスフレームを`class_context`にプッシュします。ネストされた`def`は、RBSルックアップを解決するためにそのフレームを参照します。フレームの修飾名はMUSTレンダリングされた`constant_path`です（例えば`class Foo::Bar`に対して`"Foo::Bar"`、`class A; class B`に対しては全ネスト名のジョイン）。
+- `Prism::SingletonClassNode` — 同じ新鮮スコープ契約です。シングルトン式が`self`のとき、最内のレキシカルクラスフレームは本体の評価のためにMUST`singleton: true`にフリップされ、これにより`class << self`内の`def foo`が`RbsLoader#singleton_method`を通じて解決されます。`self`でない式についてはレシーバクラスは静的に解決可能ではありません。評価器は既存のクラスコンテキストをMUST変更せずに保ち、ネストされたdefが`Dynamic[Top]`の引数デフォルトに劣化することを受け入れます。
+- `Prism::DefNode` — `Rigor::Inference::MethodParameterBinder`（後述）を介してすべての名前付き引数を束縛することでメソッドエントリスコープを構築し、そのスコープ下で本体を評価します。ペアの型はMUST`Constant[:method_name]`（`def`がSymbolに評価されるRubyの実行時挙動と一致）であり、ペアのスコープはMUSTレシーバスコープを変更せずに残します（`def`は囲みスコープ内に束縛を導入しません）。本体は外側スコープのローカルをMUST NOT見ません。
 
-### Self typing (Slice A-engine)
+### Self型付け（Slice A-engine）
 
-`Rigor::Scope` carries an optional `self_type:` field, accessed through `Scope#self_type` and updated via `Scope#with_self_type(type)`. The field is `nil` for top-level scopes and is injected by the `StatementEvaluator` at the boundaries where Ruby gives `self` a definite identity:
+`Rigor::Scope`はオプショナルな`self_type:`フィールドを運び、`Scope#self_type`を通じてアクセスされ、`Scope#with_self_type(type)`を介して更新されます。フィールドはトップレベルスコープでは`nil`であり、Rubyが`self`に確定的な同一性を与える境界で`StatementEvaluator`によって注入されます。
 
-- `Prism::ClassNode` / `Prism::ModuleNode` body: `self_type` MUST be `Singleton[<qualified-name>]` (because `self` inside the class body is the class object itself).
-- `Prism::SingletonClassNode` body when the receiver is `self`: same as above (the body still runs with `self` = the enclosing class object), and the innermost class frame additionally flips to `singleton: true`.
-- `Prism::DefNode` body: when the def is on the singleton side (`def self.foo` or any def lexically inside `class << self`) or the surrounding class frame is already singleton, `self_type` MUST be `Singleton[<qualified-name>]`. Otherwise (an ordinary instance def), `self_type` MUST be `Nominal[<qualified-name>]` with no type arguments. Top-level defs (no enclosing class) MUST leave `self_type` as `nil`.
+- `Prism::ClassNode` / `Prism::ModuleNode`本体: `self_type`はMUST`Singleton[<qualified-name>]`です（クラス本体内の`self`はクラスオブジェクト自体だからです）。
+- レシーバが`self`である`Prism::SingletonClassNode`本体: 上と同じ（本体は依然として`self` = 囲みクラスオブジェクトで実行されます）であり、最内クラスフレームはさらに`singleton: true`にフリップします。
+- `Prism::DefNode`本体: defがシングルトン側（`def self.foo`や`class << self`の中のレキシカルなdef）にあるとき、または周囲のクラスフレームがすでにシングルトンであるとき、`self_type`はMUST`Singleton[<qualified-name>]`です。それ以外（通常のインスタンスdef）では、`self_type`はMUST型引数なしの`Nominal[<qualified-name>]`です。トップレベルのdef（囲みクラスなし）はMUST`self_type`を`nil`のまま残します。
 
-`ExpressionTyper` consumes the field in two places:
+`ExpressionTyper`はそのフィールドを2か所で消費します。
 
-- `Prism::SelfNode` MUST type as `scope.self_type` when set, or `Dynamic[Top]` when nil. This MUST NOT record a fallback event in either case.
-- `Prism::CallNode` with `receiver: nil` (an implicit-self call such as `attr_reader_method`, `private_helper`, ...) MUST adopt `scope.self_type` as the receiver type for `MethodDispatcher.dispatch`. When `self_type` is nil, the receiver remains nil and the existing top-level fallback applies.
+- `Prism::SelfNode`はMUST設定されているとき`scope.self_type`、nilのとき`Dynamic[Top]`として型付けされます。これはどちらの場合もMUST NOTフォールバックイベントを記録しません。
+- `receiver: nil`の`Prism::CallNode`（`attr_reader_method`・`private_helper`...のような暗黙self呼び出し）は、MUST`MethodDispatcher.dispatch`のレシーバ型として`scope.self_type`を採用します。`self_type`がnilのとき、レシーバはnilのままで、既存のトップレベルフォールバックが適用されます。
 
-`Scope#==` and `Scope#hash` MUST include `self_type`. `Scope#join` MUST keep `self_type` when both sides agree and reset it to `nil` when they differ. `Scope#with_local`, `Scope#with_fact`, and `Scope#with_self_type` MUST all preserve the other two fields.
+`Scope#==`と`Scope#hash`はMUST`self_type`を含めます。`Scope#join`は両側が一致するときMUST`self_type`を保ち、異なるときMUST`nil`にリセットします。`Scope#with_local`・`Scope#with_fact`・`Scope#with_self_type`はMUSTすべて他の2つのフィールドを保ちます。
 
-### Instance-, class-, and global-variable bindings (Slice 7 phase 1)
+### インスタンス・クラス・グローバル変数の束縛（Slice 7 phase 1）
 
-`Rigor::Scope` carries three additional binding maps alongside `locals`: `ivars`, `cvars`, and `globals` (each `Hash[Symbol, Type]`, default empty and frozen). The accessors are:
+`Rigor::Scope`は`locals`に加えて3つの追加の束縛マップを運びます。すなわち`ivars`・`cvars`・`globals`（それぞれ`Hash[Symbol, Type]`、デフォルト空・フローズン）です。アクセサは以下のとおりです。
 
-- `Scope#ivar(name)`, `#cvar(name)`, `#global(name)` — return the bound type for `name`, or `nil` when no write has been recorded in the analyzed slice of the program.
-- `Scope#with_ivar(name, type)`, `#with_cvar`, `#with_global` — return a fresh scope with the named binding added. They MUST preserve `locals`, `fact_store`, `self_type`, and `declared_types` exactly like `with_local` does.
+- `Scope#ivar(name)`・`#cvar(name)`・`#global(name)` — `name`の束縛された型を返すか、解析されたプログラムのスライスに書き込みが記録されていなければ`nil`を返します。
+- `Scope#with_ivar(name, type)`・`#with_cvar`・`#with_global` — 名前付き束縛が追加された新鮮なスコープを返します。`with_local`が行うのと正確に同様に`locals`・`fact_store`・`self_type`・`declared_types`をMUST保ちます。
 
-The `StatementEvaluator` MUST handle `Prism::InstanceVariableWriteNode`, `Prism::ClassVariableWriteNode`, and `Prism::GlobalVariableWriteNode` symmetrically with `LocalVariableWriteNode`: evaluate the rvalue under the entry scope, return `[rvalue_type, post_rvalue_scope.with_<kind>(name, rvalue_type)]`. The compound-write forms (`@x ||= …`, `@x &&= …`, `@x += …`) remain on the existing `type_of_assignment_write` expression-typer path until a follow-up slice binds them in the post-scope. The `ExpressionTyper` MUST handle `Prism::InstanceVariableReadNode`, `Prism::ClassVariableReadNode`, and `Prism::GlobalVariableReadNode` by consulting the corresponding scope binding map and falling through to `Dynamic[Top]` (without recording a fallback event) when no binding exists.
+`StatementEvaluator`は`Prism::InstanceVariableWriteNode`・`Prism::ClassVariableWriteNode`・`Prism::GlobalVariableWriteNode`をMUST`LocalVariableWriteNode`と対称に処理します。すなわちエントリスコープ下で右辺値を評価し、`[rvalue_type, post_rvalue_scope.with_<kind>(name, rvalue_type)]`を返します。複合書き込み形式（`@x ||= …`・`@x &&= …`・`@x += …`）は、後続のスライスが後置スコープでそれらを束縛するまで、既存の`type_of_assignment_write`式型付け器経路に残ります。`ExpressionTyper`は`Prism::InstanceVariableReadNode`・`Prism::ClassVariableReadNode`・`Prism::GlobalVariableReadNode`を、対応するスコープ束縛マップを参照しMUST処理し、束縛が存在しないとき（フォールバックイベントを記録せずに）`Dynamic[Top]`へフォールスルーします。
 
-`Scope#join` MUST union ivar/cvar/global bindings the same way it unions locals (drop any name not bound in BOTH sides; the statement-level evaluator is responsible for nil-injection on half-bound names if the catalogue ever extends to a control-flow construct that needs it). `Scope#==` and `Scope#hash` MUST include the three binding maps.
+`Scope#join`はivar/cvar/グローバル束縛をローカルをunionするのと同じ方法でMUSTunionします（**両**側で束縛されていない任意の名前は落とします。半束縛の名前のnil注入は、カタログがそれを必要とする制御フロー構成へ拡張されたときに文レベル評価器の責任です）。`Scope#==`と`Scope#hash`はMUST3つの束縛マップを含めます。
 
-Slice 7 phase 2 lifts the method-local boundary for ivars: `Scope` carries a `class_ivars: Hash[String, Hash[Symbol, Type]]` accumulator keyed by qualified class name. `ScopeIndexer` populates it once at index time through a separate pre-pass that walks every `Prism::ClassNode` / `Prism::ModuleNode`, descends into each nested instance `Prism::DefNode`, and types every `Prism::InstanceVariableWriteNode` rvalue under a scope that carries the appropriate `self_type` (instance defs only — singleton defs operate on a different `self`). Multiple writes to the same ivar within the class union via `Type::Combinator.union`. `StatementEvaluator#build_method_entry_scope` MUST seed an instance method body's `ivars` from `Scope#class_ivars_for(current_class_path)`; singleton-method bodies (`def self.foo` or any def lexically inside `class << self`) MUST NOT consult the accumulator because their `self` is the class object itself.
+Slice 7 phase 2はivarのメソッドローカル境界を持ち上げます。すなわち`Scope`は修飾クラス名でキー付けされた`class_ivars: Hash[String, Hash[Symbol, Type]]`アキュムレータを運びます。`ScopeIndexer`は、すべての`Prism::ClassNode` / `Prism::ModuleNode`を歩き、ネストされた各インスタンス`Prism::DefNode`に降下し、適切な`self_type`を運ぶスコープ下で各`Prism::InstanceVariableWriteNode`右辺値を型付けする別個の前パスを通じて、インデックス時に1度だけそれを埋めます（インスタンスdefのみ — シングルトンdefは異なる`self`で動作します）。クラス内で同じivarへの複数書き込みは`Type::Combinator.union`を介してunionされます。`StatementEvaluator#build_method_entry_scope`はインスタンスメソッド本体の`ivars`をMUST`Scope#class_ivars_for(current_class_path)`からシードします。シングルトンメソッド本体（`def self.foo`や`class << self`内のレキシカルなdef）は、`self`がクラスオブジェクト自体であるため、アキュムレータをMUST NOT参照しません。
 
-The pre-pass types rvalues with no local bindings, so `@x = 1` records `Constant[1]` but `@x = some_local + 1` records `Dynamic[Top]`. Cvars and globals remain method-local; the equivalent class-level / process-level accumulators are a follow-up slice.
+前パスはローカル束縛なしで右辺値を型付けするため、`@x = 1`は`Constant[1]`を記録しますが、`@x = some_local + 1`は`Dynamic[Top]`を記録します。Cvarsとグローバルはメソッドローカルのままです。同等のクラスレベル／プロセスレベルのアキュムレータは後続のスライスです。
 
-Slice 7 phase 3 extends `StatementEvaluator` with **compound writes** for every variable kind. The handlers cover `Prism::{Local,InstanceVariable,ClassVariable,GlobalVariable}{Or,And,Operator}WriteNode` and apply uniform semantics:
+Slice 7 phase 3は`StatementEvaluator`を、すべての変数種別の**複合書き込み**で拡張します。ハンドラーは`Prism::{Local,InstanceVariable,ClassVariable,GlobalVariable}{Or,And,Operator}WriteNode`をカバーし、統一的なセマンティクスを適用します。
 
-- The current type is read from the appropriate scope binding map (`local`/`ivar`/`cvar`/`global`); unbound variables read as `Dynamic[Top]`.
-- The rvalue is evaluated under the entry scope through `sub_eval`.
-- The result type for `||=` is `union(Narrowing.narrow_truthy(current), rhs)`; for `&&=` it is `union(Narrowing.narrow_falsey(current), rhs)`; for operator forms (`+=`, `-=`, `*=`, ...) the typer dispatches `current.send(operator, rhs)` through `MethodDispatcher` and falls back to `Dynamic[Top]` on a miss.
-- The variable is then rebound into the post-scope through the same `with_*` builder used by the plain write handler. The expression value is the result type, matching Ruby's semantics.
+- 現在の型は適切なスコープ束縛マップ（`local`/`ivar`/`cvar`/`global`）から読まれます。束縛されていない変数は`Dynamic[Top]`として読まれます。
+- 右辺値は`sub_eval`を通じてエントリスコープ下で評価されます。
+- `||=`の結果型は`union(Narrowing.narrow_truthy(current), rhs)`です。`&&=`では`union(Narrowing.narrow_falsey(current), rhs)`です。演算子形式（`+=`・`-=`・`*=`...）では、型付け器は`MethodDispatcher`を通じて`current.send(operator, rhs)`をディスパッチし、ミス時に`Dynamic[Top]`にフォールバックします。
+- 変数はそれから、平のライトハンドラーが用いるのと同じ`with_*`ビルダーを通じて後置スコープに再束縛されます。式の値はRubyのセマンティクスと一致して結果型です。
 
-### Lexical constant lookup (Slice A constant-walk)
+### レキシカル定数ルックアップ（Slice A constant-walk）
 
-`ExpressionTyper#type_of_constant_read` and `#type_of_constant_path` MUST resolve a constant by walking the surrounding lexical class context, mirroring Ruby's runtime constant lookup rules at the granularity the analyzer can prove statically:
+`ExpressionTyper#type_of_constant_read`と`#type_of_constant_path`は、解析器が静的に証明できる粒度でRubyの実行時定数ルックアップ規則をミラーリングし、周囲のレキシカルクラスコンテキストを歩いて定数をMUST解決します。
 
-1. The qualified candidate `<class_path>::<name>` MUST be tried first, where `<class_path>` is the `class_name` of `Scope#self_type` when the latter is a `Type::Nominal` or `Type::Singleton`.
-2. The candidate path MUST then be peeled one `::segment` at a time and re-tried (`<class_path>::<name>` → `<parent_path>::<name>` → ... → `<top>::<name>`).
-3. The bare `<name>` MUST be tried last, preserving the pre-walk top-level behaviour.
-4. For each candidate, the typer MUST first consult `Environment#singleton_for_name(candidate)` (resolves a class object → `Type::Singleton[candidate]`), then `Environment#constant_for_name(candidate)` (resolves a non-class RBS constant declaration to its translated `Rigor::Type`). The first hit wins; the walk continues only when both miss for that candidate.
-5. If no candidate resolves through either query, the engine MUST fall through to `fallback_for(node, family: :prism)` exactly as before.
+1. 修飾候補`<class_path>::<name>`がMUST最初に試されます。ここで`<class_path>`は`Scope#self_type`が`Type::Nominal`または`Type::Singleton`のときのその`class_name`です。
+2. それから候補パスはMUST`::segment`ごとに1つずつ剥がされて再試行されます（`<class_path>::<name>` → `<parent_path>::<name>` → ... → `<top>::<name>`）。
+3. 素の`<name>`がMUST最後に試され、ウォーク前のトップレベル挙動を保ちます。
+4. 各候補について、型付け器はMUSTまず`Environment#singleton_for_name(candidate)`（クラスオブジェクト → `Type::Singleton[candidate]`を解決）、それから`Environment#constant_for_name(candidate)`（非クラスのRBS定数宣言を翻訳された`Rigor::Type`に解決）を参照します。最初のヒットが勝ちます。その候補で両方がミスしたときのみウォークが続きます。
+5. どちらのクエリでも候補が解決されないとき、エンジンは以前と同様にMUST`fallback_for(node, family: :prism)`へフォールスルーします。
 
-`Environment#constant_for_name(name)` MUST consult the attached `RbsLoader` and return `nil` when the loader is absent or the name has no constant decl. `RbsLoader#constant_type(name)` MUST translate `RBS::AST::Declarations::Constant#type` through `Rigor::Inference::RbsTypeTranslator.translate` and return the resulting `Rigor::Type`, or `nil` when translation produces `Type::Bot` (an empty type). The query MUST NOT raise on malformed inputs; the loader stays fail-soft.
+`Environment#constant_for_name(name)`は取り付けられた`RbsLoader`をMUST参照し、ローダーが不在のときや名前が定数宣言を持たないとき`nil`を返します。`RbsLoader#constant_type(name)`は`RBS::AST::Declarations::Constant#type`を`Rigor::Inference::RbsTypeTranslator.translate`を通じてMUST翻訳し、結果の`Rigor::Type`を返すか、翻訳が`Type::Bot`（空型）を生成するとき`nil`を返します。クエリは不正な入力でMUST NOTraiseしません。ローダーはフェイルソフトのままです。
 
-### Declaration-position overrides (Slice A-declarations)
+### 宣言位置のオーバーライド（Slice A-declarations）
 
-`Rigor::Scope` carries a `declared_types:` field — an identity-comparing `Hash[Prism::Node, Rigor::Type]` that overrides `ExpressionTyper#type_of` for specific node identities. The default value is a frozen empty hash; `Scope#with_declared_types(table)` returns a scope carrying the provided table. `Scope#with_local`, `Scope#with_fact`, `Scope#with_self_type`, and the join helpers MUST preserve the table by structural reference.
+`Rigor::Scope`は`declared_types:`フィールドを運びます。これは特定のノード同一性について`ExpressionTyper#type_of`をオーバーライドする同一性比較の`Hash[Prism::Node, Rigor::Type]`です。デフォルト値はフローズン空ハッシュです。`Scope#with_declared_types(table)`は提供されたテーブルを運ぶスコープを返します。`Scope#with_local`・`Scope#with_fact`・`Scope#with_self_type`、およびjoinヘルパーはMUST構造的参照によってテーブルを保ちます。
 
-`ExpressionTyper#type_of(node)` MUST consult `scope.declared_types[node]` BEFORE any other dispatch. When a value is present, the typer MUST return it as-is and MUST NOT record a fallback event.
+`ExpressionTyper#type_of(node)`はMUST他の任意のディスパッチの**前に**`scope.declared_types[node]`を参照します。値が存在するとき、型付け器はMUSTそのまま返し、MUST NOTフォールバックイベントを記録しません。
 
-`Rigor::Inference::ScopeIndexer.index(root, default_scope:)` MUST populate the table for declaration-position nodes:
+`Rigor::Inference::ScopeIndexer.index(root, default_scope:)`は宣言位置のノードについてMUSTテーブルを埋めます。
 
-- `Prism::ModuleNode#constant_path` MUST map to `Singleton[<qualified-path>]` where `<qualified-path>` is the join of every enclosing `ModuleNode`/`ClassNode` declaration name.
-- `Prism::ClassNode#constant_path` MUST map to the corresponding `Singleton[<qualified-path>]`.
-- The override MUST cover the OUTERMOST `constant_path` node only. For `class Foo::Bar`, the inner `Foo` reference remains a real lookup (resolved through the lexical walk).
+- `Prism::ModuleNode#constant_path`はMUST`Singleton[<qualified-path>]`にマップされます。ここで`<qualified-path>`は囲む各`ModuleNode`/`ClassNode`の宣言名のジョインです。
+- `Prism::ClassNode#constant_path`はMUST対応する`Singleton[<qualified-path>]`にマップされます。
+- オーバーライドはMUST**最外**の`constant_path`ノードのみをカバーします。`class Foo::Bar`について、内側の`Foo`参照は実際のルックアップのままです（レキシカルウォークを通じて解決されます）。
 
-The seeded scope produced by `index` MUST carry the populated table so the StatementEvaluator's class-body and method-body fresh scopes (`Scope.empty(environment: ...)` followed by `with_self_type` and `with_declared_types`) propagate the override into nested bodies. Indexer-produced scopes MUST be used by `Rigor::Scope#type_of` callers (CLI probes, test fixtures) so the override actually fires; bare `Rigor::Scope.empty` scopes consciously preserve the empty-table behaviour for test isolation.
+`index`が生成するシードされたスコープはMUST埋められたテーブルを運び、これによりStatementEvaluatorのクラス本体およびメソッド本体の新鮮スコープ（`Scope.empty(environment: ...)`に続いて`with_self_type`と`with_declared_types`）がオーバーライドをネストされた本体へ伝播します。インデクサーが生成したスコープは、オーバーライドが実際に発火するよう、`Rigor::Scope#type_of`の呼び出し元（CLIプローブ・テストフィクスチャ）によってMUST用いられます。素の`Rigor::Scope.empty`スコープは、テスト分離のために空テーブル挙動を意識的に保ちます。
 
-Top-level scopes (no `self_type` set) MUST yield only the bare candidate so the pre-walk behaviour is observable for tests that do not configure a class context. The walk MUST NOT mutate the receiver scope, MUST NOT raise on names that fail to resolve, and MUST NOT traverse the singleton ancestry chain — that refinement is a future slice.
+トップレベルスコープ（`self_type`が設定されていない）は、クラスコンテキストを設定しないテストでウォーク前の挙動が観測可能であるよう、MUST素の候補のみを生成します。ウォークはレシーバスコープをMUST NOT変更せず、解決に失敗する名前でMUST NOTraiseせず、シングルトンの祖先チェーンをMUST NOT走査しません — その精緻化は将来のスライスです。
 
-### Join with Nil-Injection
+### nil注入付き結合
 
-`Scope#join` drops names bound in only one receiver (per the [Immutable Scope Discipline](#immutable-scope-discipline) above). The statement-level evaluator's branch-merge MUST instead inject `Constant[nil]` for half-bound names so the joined scope sees them as `T | nil`:
+`Scope#join`は一方のレシーバにのみ束縛されている名前を落とします（上記の[不変スコープ規律](#不変スコープ規律)に従う）。文レベル評価器の分岐マージは、結合スコープが`T | nil`としてそれらを見るよう、半束縛の名前について代わりにMUST`Constant[nil]`を注入します。
 
-- For names bound in `scope_a` but not `scope_b`: bind those names to `Constant[nil]` in `scope_b` before joining.
-- For names bound in `scope_b` but not `scope_a`: bind those names to `Constant[nil]` in `scope_a` before joining.
-- Then call `Scope#join` on the augmented scopes; the result MUST contain every name from either side, with the union including `Constant[nil]` for names bound in only one side.
+- `scope_a`に束縛されているが`scope_b`には束縛されていない名前について: 結合前に`scope_b`内でそれらの名前を`Constant[nil]`に束縛します。
+- `scope_b`に束縛されているが`scope_a`には束縛されていない名前について: 結合前に`scope_a`内でそれらの名前を`Constant[nil]`に束縛します。
+- それから拡張されたスコープに対して`Scope#join`を呼び出します。結果はMUSTいずれかの側からのすべての名前を含み、unionは一方の側にのみ束縛されている名前について`Constant[nil]`を含みます。
 
-This is the contract that the Slice 3 phase 1 [Immutable Scope Discipline](#immutable-scope-discipline) defers to the statement-level evaluator. N-ary branch merges (case/when, begin/rescue chain) reduce by repeated pairwise join-with-nil-injection; the reduce order does not affect the result because nil-injection commutes with union under `Scope#join`.
+これはSlice 3 phase 1の[不変スコープ規律](#不変スコープ規律)が文レベル評価器に委ねる契約です。N項分岐マージ（case/when・begin/rescueチェーン）は繰り返しのペアごとのnil注入付き結合で還元されます。`Scope#join`の下でnil注入はunionと交換するため、還元順序は結果に影響しません。
 
-### Per-Node Scope Index
+### ノードごとのスコープインデックス
 
-`Rigor::Inference::ScopeIndexer.index(root, default_scope:)` is the canonical surface that converts a Prism program subtree into a per-node scope lookup. It MUST satisfy:
+`Rigor::Inference::ScopeIndexer.index(root, default_scope:)`は、Prismプログラムのサブツリーをノードごとのスコープルックアップに変換する標準表層です。MUST以下を満たします。
 
-- The return value MUST be an identity-comparing `Hash{Prism::Node => Rigor::Scope}`. Looking up a node not contained in `root`'s subtree MUST yield `default_scope` (the `Hash#default` slot).
-- For every Prism node the StatementEvaluator visits during `evaluate(root)`, the indexer MUST record the entry scope observed at that visit. Visits are fired through the `on_enter:` callback the indexer wires onto a fresh evaluator (the StatementEvaluator therefore stays state-free; the indexer carries the table).
-- For every Prism node in `root`'s subtree the StatementEvaluator does NOT visit (expression-interior children of nodes that the evaluator's default branch fell through on), the indexer MUST set the recorded scope to the nearest recorded ancestor's scope. The DFS pre-order propagation is a contract: a child MUST observe an entry scope at least as informative as its parent's, never weaker.
-- The indexer MUST run its internal StatementEvaluator with `tracer: nil`. CLI callers that want fail-soft fallback events MUST attach their tracer only to the post-index `type_of` probe, so the events come exactly from the second pass and are not double-recorded by the indexer's own typing of the program tree.
+- 戻り値はMUST同一性比較の`Hash{Prism::Node => Rigor::Scope}`です。`root`のサブツリーに含まれないノードをルックアップするとMUST`default_scope`（`Hash#default`スロット）を生成します。
+- `evaluate(root)`の間にStatementEvaluatorが訪れる各Prismノードについて、インデクサーはMUSTその訪問時に観測されたエントリスコープを記録します。訪問は、インデクサーが新鮮な評価器に配線する`on_enter:`コールバックを通じて発火されます（したがってStatementEvaluatorは状態フリーのままです。インデクサーがテーブルを運びます）。
+- `root`のサブツリーでStatementEvaluatorが訪れ**ない**Prismノード（評価器のデフォルト分岐がフォールスルーしたノードの式内部の子）について、インデクサーはMUST記録されたスコープを最も近い記録された祖先のスコープに設定します。DFS事前順伝播は契約です。すなわち子はMUST親と少なくとも同程度に情報量のあるエントリスコープを観測し、決して弱くありません。
+- インデクサーは内部のStatementEvaluatorをMUST`tracer: nil`で実行します。フェイルソフトフォールバックイベントを欲しがるCLI呼び出し元は、イベントがちょうど第2パスから来てインデクサー自身のプログラムツリー型付けによって二重記録されないよう、MUSTインデックス後の`type_of`プローブにのみトレーサーを取り付けます。
 
-The CLI commands `rigor type-of` and `rigor type-scan` MUST consult the index when typing nodes from a parsed file, so locals bound earlier in the program flow into the scope used to type later nodes. Both commands look up `index[node]` and then run `node_scope.type_of(node, tracer:)`. The contract above is what makes this composition correct.
+CLIコマンド`rigor type-of`と`rigor type-scan`は、パースされたファイルからノードを型付けするときMUSTインデックスを参照し、これによりプログラムフロー内で先に束縛されたローカルが、後のノードを型付けするのに使われるスコープへ流れ込みます。両コマンドは`index[node]`をルックアップし、それから`node_scope.type_of(node, tracer:)`を実行します。上記の契約がこの合成を正しくするものです。
 
 ### `Rigor::Inference::StatementEvaluator#initialize(on_enter:)`
 
-The third constructor keyword on `StatementEvaluator` is the hook the ScopeIndexer drives. It MUST satisfy:
+`StatementEvaluator`の3つ目のコンストラクタキーワードは、ScopeIndexerが駆動するフックです。MUST以下を満たします。
 
-- `on_enter:` defaults to `nil`. When `nil`, no callback fires and the evaluator's behaviour MUST be observably identical to a slice 3 phase 2 evaluator constructed without the keyword.
-- When non-`nil`, the callback MUST be called exactly once at the start of every `evaluate(node)` call, before the handler dispatch, with `(node, scope)` as the arguments — `node` is the Prism node being entered and `scope` is the entry scope (`@scope` at that recursion level).
-- The callback MUST be threaded through every recursive `sub_eval` so that nested invocations on forked scopes still report their own entries.
+- `on_enter:`はデフォルトで`nil`です。`nil`のとき、コールバックは発火せず、評価器の挙動はMUSTキーワードなしで構築されたslice 3 phase 2評価器と観測可能に同一です。
+- 非`nil`のとき、コールバックはMUSTすべての`evaluate(node)`呼び出しの開始時に、ハンドラーディスパッチの前に、`(node, scope)`を引数としてちょうど1回呼ばれます — `node`は入っているPrismノード、`scope`はエントリスコープ（その再帰レベルでの`@scope`）です。
+- コールバックはMUSTすべての再帰的な`sub_eval`を通じてスレッドされ、フォークされたスコープでのネストされた呼び出しが依然としてそれぞれのエントリを報告します。
 
-### Method Parameter Binding
+### メソッドパラメーター束縛
 
-`Rigor::Inference::MethodParameterBinder.new(environment:, class_path:, singleton:)` is the canonical surface that builds the method-entry scope from a `DefNode`. It MUST satisfy:
+`Rigor::Inference::MethodParameterBinder.new(environment:, class_path:, singleton:)`は、`DefNode`からメソッドエントリスコープを構築する標準表層です。MUST以下を満たします。
 
-- `bind(def_node)` MUST return an ordered `Hash{Symbol => Rigor::Type}` of parameter name to bound type, in the order the names appear in the def's parameter list.
-- Anonymous parameters (`*` and `**` without an identifier) MUST be skipped silently because there is no local name to bind.
-- When `class_path:` is `nil`, when the environment has no RBS loader, or when the resolved class/method is unknown to RBS, every parameter MUST default to `Dynamic[Top]`. The binder MUST NOT raise on RBS misses; the fail-soft contract from the Slice 1 fail-soft policy applies at the binding boundary too.
-- When the RBS lookup succeeds, every parameter slot MUST be bound to the *union of the matching RBS parameter types across every overload that has that slot*. Overloads that omit the slot (e.g., `Array#first`'s `()` overload, vs the `(?int)` overload that the `n` parameter of `def first(n)` matches) MUST be skipped silently rather than contributing a `Dynamic[Top]` (so the binding is the most informative type the signature provides without having to know which overload the caller will pick).
-- Positional slots (required, optional, rest, trailing) MUST be matched by *position* into the matching RBS positional list. Keyword slots (required, optional) MUST be matched by *name* across both the required and optional keyword maps so a `def foo(by:)` redefinition picks up an `?by:` keyword in the RBS overload (or vice versa).
-- A `*rest` parameter's bound type MUST be `Nominal["Array", [T]]` where `T` is the translated rest element type. A `**kw_rest` parameter's bound type MUST be `Nominal["Hash", [Nominal["Symbol"], V]]` where `V` is the translated rest-keyword value type. The binder MUST NOT bind a rest parameter to a single element type — the local actually holds the array/hash.
-- When `def_node.receiver` is a `Prism::SelfNode` OR `singleton:` is `true`, the binder MUST consult `RbsLoader#singleton_method` (the immediate enclosing lexical scope is a singleton class). Otherwise it MUST consult `RbsLoader#instance_method`. The translator's `self_type:` and `instance_type:` keywords MUST be set to `(Singleton[C], Nominal[C])` for the singleton route and `(Nominal[C], Nominal[C])` for the instance route.
+- `bind(def_node)`はMUST、defの引数リストに名前が現れる順で、引数名を束縛型へマップする順序付き`Hash{Symbol => Rigor::Type}`を返します。
+- 無名引数（識別子のない`*`と`**`）は束縛するローカル名がないため、MUST静かにスキップされます。
+- `class_path:`が`nil`のとき、環境がRBSローダーを持たないとき、または解決されたクラス／メソッドがRBSに知られていないとき、すべての引数はMUSTデフォルトで`Dynamic[Top]`です。バインダーはRBSミスでMUST NOTraiseしません。Slice 1のフェイルソフトポリシーからのフェイルソフト契約は束縛境界でも適用されます。
+- RBSルックアップが成功したとき、すべての引数スロットはMUST*そのスロットを持つすべてのオーバーロードにわたるマッチングRBS引数型のunion*に束縛されます。スロットを省略するオーバーロード（例: `Array#first`の`()`オーバーロード対`def first(n)`の`n`引数がマッチする`(?int)`オーバーロード）はMUST`Dynamic[Top]`を寄与するのではなく静かにスキップされます（これにより束縛は、呼び出し元がどのオーバーロードを選ぶか知る必要なく、シグネチャが提供する最も情報量のある型になります）。
+- 位置スロット（required・optional・rest・trailing）はMUSTマッチングRBS位置リストへ*位置*でマッチされます。キーワードスロット（required・optional）はMUSTrequiredとoptionalの両方のキーワードマップにわたって*名前*でマッチされ、これにより`def foo(by:)`の再定義がRBSオーバーロードの`?by:`キーワード（またはその逆）を拾います。
+- `*rest`引数の束縛型はMUST`Nominal["Array", [T]]`で、`T`は翻訳されたrest要素型です。`**kw_rest`引数の束縛型はMUST`Nominal["Hash", [Nominal["Symbol"], V]]`で、`V`は翻訳されたrestキーワード値型です。バインダーはMUST NOT rest引数を単一要素型に束縛しません — ローカルは実際には配列／ハッシュを保持します。
+- `def_node.receiver`が`Prism::SelfNode`である**または**`singleton:`が`true`のとき、バインダーはMUST`RbsLoader#singleton_method`を参照します（直接の囲みレキシカルスコープはシングルトンクラスです）。それ以外ではMUST`RbsLoader#instance_method`を参照します。翻訳器の`self_type:`と`instance_type:`キーワードはMUSTシングルトン経路では`(Singleton[C], Nominal[C])`に、インスタンス経路では`(Nominal[C], Nominal[C])`に設定されます。
 
-### Multi-Target Binder (Slice 5 phase 2 sub-phase 2)
+### 多重ターゲットバインダー（Slice 5 phase 2 sub-phase 2）
 
-`Rigor::Inference::MultiTargetBinder` is the canonical surface for decomposing a tuple-shaped right-hand side type against a Prism multi-target tree. It is a pure module-function module (no state) and MUST satisfy:
+`Rigor::Inference::MultiTargetBinder`は、タプル形状の右辺型をPrism多重ターゲットツリーに対して分解する標準表層です。これは純粋なモジュール関数モジュール（状態なし）で、MUST以下を満たします。
 
-- `MultiTargetBinder.bind(target_node, rhs_type)` — accepts either a `Prism::MultiWriteNode` (statement-level `a, b = rhs`) or a `Prism::MultiTargetNode` (nested `(a, b)` form). Returns an ordered `Hash{Symbol => Rigor::Type}` whose keys are the named locals bound by the destructuring, in declaration order.
-- When `rhs_type` is a `Type::Tuple`, the binder MUST decompose the elements into the front (`lefts`), middle (`rest`), and back (`rights`) regions. Front targets at index `i` MUST bind to `tuple.elements[i]` or `Constant[nil]` when the index is past the tuple's bounds. The rest target (a `Prism::SplatNode` with a `LocalVariableTargetNode` expression) MUST bind to `Type::Tuple[*middle]` (with `middle` empty when the source has no surplus elements). Back targets MUST bind to the elements at the corresponding tail offsets (or `Constant[nil]` when out of bounds).
-- When `rhs_type` is anything other than a `Type::Tuple`, every slot (fronts, rest, backs) MUST bind to `Type::Combinator.untyped` (`Dynamic[Top]`). The slice deliberately stays conservative on dynamic-arity right-hand sides until a richer carrier-receiver lattice lands.
-- Nested `Prism::MultiTargetNode` targets MUST recurse with the slot's type as the new right-hand side. This lets `a, (b, c) = [1, [2, 3]]` bind `a -> 1`, `b -> 2`, `c -> 3` when both nesting levels are tuple-shaped.
-- Non-local targets (`InstanceVariableTargetNode`, `ConstantTargetNode`, `IndexTargetNode`, `CallTargetNode`, `ConstantPathTargetNode`, `ImplicitRestNode`, anonymous splat without an expression, ...) MUST be silently skipped: they have no observable contribution to the local-variable scope the StatementEvaluator threads.
-- The binder MUST NOT raise on any well-formed Prism input and MUST NOT mutate its arguments.
+- `MultiTargetBinder.bind(target_node, rhs_type)` — `Prism::MultiWriteNode`（文レベルの`a, b = rhs`）または`Prism::MultiTargetNode`（ネストされた`(a, b)`形式）のいずれかを受け付けます。分解で束縛された名前付きローカルを宣言順でキーとする順序付き`Hash{Symbol => Rigor::Type}`を返します。
+- `rhs_type`が`Type::Tuple`のとき、バインダーは要素を前方（`lefts`）・中央（`rest`）・後方（`rights`）の領域にMUST分解します。インデックス`i`の前方ターゲットはMUST`tuple.elements[i]`に、またはインデックスがタプルの境界を超えるとき`Constant[nil]`に束縛されます。restターゲット（`LocalVariableTargetNode`式を持つ`Prism::SplatNode`）はMUST`Type::Tuple[*middle]`に束縛されます（ソースに余剰要素がないとき`middle`は空）。後方ターゲットはMUST対応するテールオフセットの要素（または範囲外のとき`Constant[nil]`）に束縛されます。
+- `rhs_type`が`Type::Tuple`以外の何かのとき、すべてのスロット（前方・rest・後方）はMUST`Type::Combinator.untyped`（`Dynamic[Top]`）に束縛されます。スライスは、よりリッチなキャリアレシーバ格子が着地するまで、動的アリティの右辺について意図的に保守的なままです。
+- ネストされた`Prism::MultiTargetNode`ターゲットはMUSTスロットの型を新しい右辺としてリカースします。これにより、両方のネストレベルがタプル形状のとき`a, (b, c) = [1, [2, 3]]`は`a -> 1`・`b -> 2`・`c -> 3`を束縛します。
+- 非ローカルターゲット（`InstanceVariableTargetNode`・`ConstantTargetNode`・`IndexTargetNode`・`CallTargetNode`・`ConstantPathTargetNode`・`ImplicitRestNode`・式のない無名splat...）はMUST静かにスキップされます。これらはStatementEvaluatorがスレッドするローカル変数スコープに観測可能な寄与を持ちません。
+- バインダーは整形式のPrism入力でMUST NOTraiseせず、その引数をMUST NOT変更しません。
 
-### Block Parameter Binding (Slice 6 phase C sub-phases 1 and 2)
+### ブロック引数束縛（Slice 6 phase C sub-phases 1 and 2）
 
-`Rigor::Inference::BlockParameterBinder` is the canonical surface that builds the entry scope augmentation for a `Prism::BlockNode`. It MUST satisfy:
+`Rigor::Inference::BlockParameterBinder`は、`Prism::BlockNode`のエントリスコープ拡張を構築する標準表層です。MUST以下を満たします。
 
-- `BlockParameterBinder.new(expected_param_types:)` accepts an ordered array of `Rigor::Type` values, one per positional block parameter as supplied by the receiving method's RBS signature. Indices the binder cannot fill from this array (the array is shorter than the parameter list, or the slot is a kind that is not driven by the array) MUST default to `Dynamic[Top]`.
-- `bind(block_node)` MUST return an ordered `Hash{Symbol => Rigor::Type}` of parameter name to bound type, in declaration order. Anonymous parameters MUST be skipped silently. `Prism::MultiTargetNode` destructuring slots (the `|(a, b), c|` form) MUST be expanded through `Rigor::Inference::MultiTargetBinder` against the slot's expected type (Slice 6 phase C sub-phase 2): a `Type::Tuple` slot decomposes element-wise; any other carrier collapses every inner local to `Dynamic[Top]`. The inner targets are `Prism::RequiredParameterNode` instances (block-side encoding); `MultiTargetBinder` MUST treat them uniformly with `Prism::LocalVariableTargetNode` for binding purposes.
-- A `*rest` parameter MUST be bound to `Nominal["Array", [Dynamic[Top]]]`. A `**kw_rest` parameter MUST be bound to `Nominal["Hash", [Nominal["Symbol"], Dynamic[Top]]]`. An explicit `&block` parameter MUST be bound to `Nominal[Proc]`. Keyword parameters (required and optional) MUST be bound to `Dynamic[Top]` because Slice 6 phase C sub-phase 1 does not introspect the receiving method's block keyword signature.
-- `NumberedParametersNode` (the implicit-`_1` form) MUST yield bindings for `:_1`, `:_2`, ... up to `numbered_node.maximum`, each driven by the same per-position `expected_param_types:` array used for explicit parameters. Slots past the array's length MUST default to `Dynamic[Top]`. This is the Slice 6 phase C sub-phase 2 contract; the previous slice's "no-bindings" behaviour is superseded.
-- The binder MUST NOT raise on any well-formed Prism block node and MUST NOT mutate its input.
+- `BlockParameterBinder.new(expected_param_types:)`は、受信側メソッドのRBSシグネチャから提供される位置ブロック引数1つにつき1つの`Rigor::Type`値の順序付き配列を受け付けます。バインダーがこの配列から埋められないインデックス（配列が引数リストより短いか、スロットが配列で駆動されない種類）はMUSTデフォルトで`Dynamic[Top]`です。
+- `bind(block_node)`はMUST、引数名を束縛型へマップする宣言順の順序付き`Hash{Symbol => Rigor::Type}`を返します。無名引数はMUST静かにスキップされます。`Prism::MultiTargetNode`分解スロット（`|(a, b), c|`形式）はMUSTスロットの期待型に対して`Rigor::Inference::MultiTargetBinder`を通じて展開されます（Slice 6 phase C sub-phase 2）。すなわち`Type::Tuple`スロットは要素ごとに分解されます。他の任意のキャリアはすべての内部ローカルを`Dynamic[Top]`に縮退します。内部ターゲットは`Prism::RequiredParameterNode`インスタンス（ブロック側のエンコード）です。`MultiTargetBinder`は束縛目的のためにそれらをMUST`Prism::LocalVariableTargetNode`と統一的に扱います。
+- `*rest`引数はMUST`Nominal["Array", [Dynamic[Top]]]`に束縛されます。`**kw_rest`引数はMUST`Nominal["Hash", [Nominal["Symbol"], Dynamic[Top]]]`に束縛されます。明示的な`&block`引数はMUST`Nominal[Proc]`に束縛されます。キーワード引数（requiredとoptional）はMUST`Dynamic[Top]`に束縛されます。Slice 6 phase C sub-phase 1は受信側メソッドのブロックキーワードシグネチャを内省しないからです。
+- `NumberedParametersNode`（暗黙の`_1`形式）はMUST`numbered_node.maximum`まで`:_1`・`:_2`...の束縛を生成します。それぞれは明示的な引数で用いるのと同じ位置ごとの`expected_param_types:`配列で駆動されます。配列の長さを超えるスロットはMUSTデフォルトで`Dynamic[Top]`です。これはSlice 6 phase C sub-phase 2の契約です。前のスライスの「束縛なし」挙動は置き換えられます。
+- バインダーは整形式のPrismブロックノードでMUST NOTraiseせず、その入力をMUST NOT変更しません。
 
-`Rigor::Inference::MethodDispatcher.expected_block_param_types(receiver_type:, method_name:, arg_types:, environment:)` is the canonical query that supplies the binder's `expected_param_types:` array. It MUST satisfy:
+`Rigor::Inference::MethodDispatcher.expected_block_param_types(receiver_type:, method_name:, arg_types:, environment:)`は、バインダーの`expected_param_types:`配列を供給する標準クエリです。MUST以下を満たします。
 
-- It MUST return an ordered `Array<Rigor::Type>` of the positional block parameters (`required_positionals` + `optional_positionals`) declared by the selected RBS overload. Block-only keyword parameters and rest forms MUST be excluded from the returned array; the binder handles those slots independently.
-- It MUST select the overload through `OverloadSelector.select` with `block_required: true`, so a block-bearing call (`Array#each { ... }`) does not accidentally bind through the no-block overload (`Array#each() -> Enumerator`).
-- It MUST consult the same shape/generic-substitution machinery that `RbsDispatch.try_dispatch` uses, so generic block parameters resolve through the receiver's `type_args` (a `Tuple[Constant[1], Constant[2]]` receiver makes `Array#each`'s `Elem` block parameter resolve to `Constant[1] | Constant[2]`).
-- It MUST return an empty array when the environment, RBS loader, receiver descriptor, method definition, selected overload, or block clause is missing or untyped. The binder MUST treat the empty array as "no information" and default every parameter to `Dynamic[Top]`.
-- For `Union` receivers it MUST take the per-member answers and return them only when every member yields the structurally equal block parameter list; otherwise it MUST return the empty array. Mixed-arity unions therefore degrade to `Dynamic[Top]` rather than producing a non-deterministic block binding.
-- It MUST NOT raise on any well-formed input. Defensive `rescue StandardError` around RBS' `DefinitionBuilder` is permitted to keep the probe fail-soft.
+- 選択されたRBSオーバーロードで宣言された位置ブロック引数（`required_positionals` + `optional_positionals`）の順序付き`Array<Rigor::Type>`をMUST返します。ブロック専用のキーワード引数とrest形式はMUST返り値配列から除外されます。バインダーがそれらのスロットを独立に扱います。
+- ブロック付き呼び出し（`Array#each { ... }`）が誤ってブロックなしオーバーロード（`Array#each() -> Enumerator`）を通じて束縛しないよう、`block_required: true`で`OverloadSelector.select`を通じてオーバーロードをMUST選択します。
+- ジェネリックブロック引数がレシーバの`type_args`を通じて解決されるよう、`RbsDispatch.try_dispatch`が用いるのと同じシェイプ／ジェネリック置換機構をMUST参照します（`Tuple[Constant[1], Constant[2]]`レシーバは`Array#each`の`Elem`ブロック引数を`Constant[1] | Constant[2]`に解決させます）。
+- 環境・RBSローダー・レシーバディスクリプター・メソッド定義・選択されたオーバーロード・ブロック節が欠落または型なしのとき、MUST空配列を返します。バインダーはMUST空配列を「情報なし」として扱い、すべての引数を`Dynamic[Top]`にデフォルトします。
+- `Union`レシーバについて、メンバーごとの答えを取り、すべてのメンバーが構造的に等しいブロック引数リストを生成するときのみMUST返します。それ以外ではMUST空配列を返します。したがって混合アリティのunionは、非決定的なブロック束縛を生成するのではなく`Dynamic[Top]`に劣化します。
+- 整形式の入力でMUST NOTraiseしません。プローブをフェイルソフトに保つため、RBSの`DefinitionBuilder`周りの防御的な`rescue StandardError`は許可されます。
 
-`Rigor::Inference::StatementEvaluator` MUST consume both surfaces through a `Prism::CallNode` handler:
+`Rigor::Inference::StatementEvaluator`は両方の表層をMUST`Prism::CallNode`ハンドラーを通じて消費します。
 
-- The handler MUST evaluate the call expression as a pure value (delegating to `Scope#type_of` so the existing dispatch chain and shape tier still apply) and MUST return the receiver scope unchanged. Block effects MUST NOT leak into the post-call scope; locals bound exclusively inside a block MUST NOT be observable on the outer side of the call.
-- When `node.block` is a `Prism::BlockNode`, the handler MUST build the block's entry scope by augmenting the *receiver's outer scope* with the bindings produced by `BlockParameterBinder.bind`. The block body inherits the outer scope's locals (Ruby's lexical scoping rule), with the block parameters layered on top.
-- The handler MUST `sub_eval` the `BlockNode`, threading the block's entry scope through the body so the per-node scope index sees the parameter bindings. The block's `Prism::BlockNode` MUST itself have a handler that delegates to `sub_eval(body, scope)` so the body's statement chain is visited under the augmented scope.
-- The handler's exception envelope MUST treat a probe failure as "no expected types"; the binder still runs and defaults every parameter to `Dynamic[Top]`.
-- Block-aware result typing (Slice 6 phase C sub-phase 2) lives in `Rigor::Inference::ExpressionTyper#call_type_for`: when the call carries a `Prism::BlockNode`, the typer MUST build the same block-entry scope (`outer-scope + BlockParameterBinder.bind`), type the block's body under that scope, and pass the body's value type as `block_type:` into `MethodDispatcher.dispatch`. This is the exact mechanism that makes `[1, 2, 3].map { |n| n.to_s }` resolve to `Array[String]` from any call site (CLI `type-of`, ScopeIndexer, plain `Scope#type_of`) without requiring the StatementEvaluator to be in the loop. The StatementEvaluator's CallNode handler MUST stay aligned: it delegates to the same `Scope#type_of` for the result type and only re-evaluates the block body for the per-node scope index.
+- ハンドラーは呼び出し式を純粋な値としてMUST評価し（既存のディスパッチチェーンとシェイプティアが依然として適用されるよう`Scope#type_of`に委ねる）、レシーバスコープをMUST変更せずに返します。ブロック効果は後置呼び出しスコープにMUST NOT漏れません。ブロック内のみで束縛されたローカルは、呼び出しの外側でMUST NOT観測可能です。
+- `node.block`が`Prism::BlockNode`のとき、ハンドラーは*レシーバの外側スコープ*を`BlockParameterBinder.bind`が生成した束縛で拡張することでブロックのエントリスコープをMUST構築します。ブロック本体は外側スコープのローカルを継承し（Rubyのレキシカルスコーピング規則）、ブロック引数がその上に重ねられます。
+- ハンドラーは、ノードごとのスコープインデックスが引数束縛を見るよう、`BlockNode`をMUST`sub_eval`し、ブロックのエントリスコープを本体を通じてスレッドします。ブロックの`Prism::BlockNode`自体は、本体の文チェーンが拡張されたスコープ下で訪れられるよう、MUST`sub_eval(body, scope)`に委ねるハンドラーを持ちます。
+- ハンドラーの例外エンベロープはプローブの失敗を「期待型なし」としてMUST扱います。バインダーは依然として実行され、すべての引数を`Dynamic[Top]`にデフォルトします。
+- ブロック対応の結果型付け（Slice 6 phase C sub-phase 2）は`Rigor::Inference::ExpressionTyper#call_type_for`にあります。すなわち呼び出しが`Prism::BlockNode`を運ぶとき、型付け器はMUST同じブロックエントリスコープ（`外側スコープ + BlockParameterBinder.bind`）を構築し、そのスコープ下でブロックの本体を型付けし、本体の値型を`block_type:`として`MethodDispatcher.dispatch`に渡します。これがStatementEvaluatorをループに含めることを要求せずに、任意の呼び出し位置（CLI `type-of`・ScopeIndexer・素の`Scope#type_of`）から`[1, 2, 3].map { |n| n.to_s }`を`Array[String]`に解決させる正確なメカニズムです。StatementEvaluatorのCallNodeハンドラーはMUST整合を保ちます。すなわち結果型については同じ`Scope#type_of`に委ね、ブロック本体をノードごとのスコープインデックスのためにのみ再評価します。
 
-### Boundaries
+### 境界
 
-Slice 3 phase 2 does NOT thread scope through the *interior* of arbitrary expressions: `foo(x = 1)` and `[1, x = 2]` do not propagate `x` to the post-scope, because the recursive descent stops at expression-level children that the evaluator's catalogue does not cover. This is a deliberate Phase 2 simplification; later slices may expand the catalogue to thread scope through call arguments and array/hash elements. Statement-y constructs at the top level (assignments, ifs, cases, begins, loops, parens) propagate as specified above.
+Slice 3 phase 2は任意の式の*内部*を通じてスコープをスレッドし**ません**。すなわち`foo(x = 1)`や`[1, x = 2]`は`x`を後置スコープに伝播しません。再帰下降は評価器のカタログがカバーしない式レベルの子で止まるからです。これは意図的なPhase 2の簡略化です。後のスライスはカタログを拡張して呼び出し引数や配列／ハッシュ要素を通じてスコープをスレッドするかもしれません。トップレベルの文的構成（代入・if・case・begin・ループ・括弧）は上記の指定どおりに伝播します。
 
-Slice 3 phase 2 narrowly limits the *expressivity* of the parameter binding too: the binder picks the union across overloads at each slot, but does NOT yet refine the binding by argument-call-site type the way `MethodDispatcher::OverloadSelector` does for return types. RBS interface types (`int`, `_ToS`, ...) and aliases still degrade to `Dynamic[Top]` through the existing `RbsTypeTranslator` translator, so `def first(n)` redefinitions where the only overload's parameter is `int` MUST observably bind `n` to `Dynamic[Top]`. This matches the existing translator's gradual-typing posture.
+Slice 3 phase 2は引数束縛の*表現力*も狭く制限します。バインダーは各スロットでオーバーロードにわたるunionを選びますが、`MethodDispatcher::OverloadSelector`が戻り値型に対して行うような、引数呼び出し位置の型による束縛の精緻化はまだ行いません。RBSインターフェイス型（`int`・`_ToS`...）とエイリアスは既存の`RbsTypeTranslator`翻訳器を通じて依然として`Dynamic[Top]`に劣化するため、唯一のオーバーロードの引数が`int`である`def first(n)`の再定義はMUST観測可能に`n`を`Dynamic[Top]`に束縛します。これは既存の翻訳器のグラデュアル型付け姿勢と一致します。
 
-## Narrowing (Slice 6 phases 1 and 2)
+## ナローイング（Slice 6 phases 1 and 2）
 
-Slice 6 phase 1 adds the first edge-aware refinement surface to the engine. It is exposed through `Rigor::Inference::Narrowing`, a pure module consumed by `Rigor::Inference::StatementEvaluator` to refine the `then` and `else` scopes of `Prism::IfNode`/`Prism::UnlessNode` (and the RHS-entry scope of `Prism::AndNode`/`Prism::OrNode`). Slice 6 phase 2 extends the catalogue with class-membership predicates (`is_a?`, `kind_of?`, `instance_of?`) and trusted equality/inequality predicates while keeping the same consumption contract.
+Slice 6 phase 1はエンジンに最初のエッジ対応精緻化表層を追加します。これは`Rigor::Inference::Narrowing`を通じて公開され、`Rigor::Inference::StatementEvaluator`が`Prism::IfNode`/`Prism::UnlessNode`の`then`と`else`スコープ（および`Prism::AndNode`/`Prism::OrNode`のRHSエントリスコープ）を精緻化するために消費する純粋なモジュールです。Slice 6 phase 2はカタログをクラスメンバーシップ述語（`is_a?`・`kind_of?`・`instance_of?`）と信頼できる等価／不等価述語で拡張しつつ、同じ消費契約を保ちます。
 
-### Type-level narrowing primitives
+### 型レベルナローイングプリミティブ
 
-The module MUST expose the following module functions, each producing a fresh `Rigor::Type` value and never mutating its input:
+モジュールはMUST以下のモジュール関数を公開し、それぞれが新鮮な`Rigor::Type`値を生成しその入力を決して変更しません。
 
-- `Narrowing.narrow_truthy(type)` — the truthy fragment of `type`. `Constant[v]` collapses to `Bot` when `v` is `nil` or `false` and is preserved otherwise; `Nominal[NilClass]`/`Nominal[FalseClass]` collapse to `Bot` and other `Nominal` carriers are preserved; `Union` recurses element-wise; `Top`, `Dynamic[T]`, `Bot`, `Singleton`, `Tuple`, and `HashShape` flow through unchanged.
-- `Narrowing.narrow_falsey(type)` — the falsey fragment of `type`. `Constant[nil]`/`Constant[false]` and `Nominal[NilClass]`/`Nominal[FalseClass]` are preserved; other `Constant`/`Nominal` carriers collapse to `Bot`; `Union` recurses element-wise; `Singleton`/`Tuple`/`HashShape` collapse to `Bot` (their inhabitants are truthy); `Top`/`Dynamic[T]`/`Bot` flow through unchanged because the analyzer cannot prove the falsey side empty.
-- `Narrowing.narrow_nil(type)` — the nil fragment of `type`. `Constant[nil]` and `Nominal[NilClass]` are preserved; non-nil `Constant`/`Nominal` carriers collapse to `Bot`; `Union` recurses element-wise; `Top`/`Dynamic[T]` MUST narrow to the canonical `Constant[nil]` so downstream dispatch resolves through `NilClass`; carriers that never inhabit nil (`Singleton`, `Tuple`, `HashShape`) collapse to `Bot`; `Bot` is its own nil fragment.
-- `Narrowing.narrow_non_nil(type)` — the non-nil fragment of `type`. Mirror of `narrow_nil`: nil-only carriers collapse to `Bot` and non-nil carriers are preserved; `Top`/`Dynamic[T]`/`Singleton`/`Tuple`/`HashShape` flow through unchanged; `Union` recurses element-wise.
-- `Narrowing.narrow_equal(type, literal)` (Slice 6 phase 2 sub-phase 2) — the equality fragment of `type` against a trusted `Type::Constant` literal. String, Symbol, and Integer literals MUST narrow only when `type` is already a finite trusted literal domain (`Constant` or a `Union` of trusted constants). Nil, true, and false are singleton values and MAY be extracted from mixed domains such as `Integer | nil`, but MUST NOT narrow `Dynamic[Top]` into the compared literal. Float literals MUST NOT narrow. Untrusted inputs return `type` unchanged.
-- `Narrowing.narrow_not_equal(type, literal)` (Slice 6 phase 2 sub-phase 2) — the domain-relative complement of `narrow_equal`. It removes the compared literal from finite trusted literal domains and removes nil/true/false singleton members from mixed domains when present. It MUST NOT create an unbounded difference type for broad domains such as `String` or `Dynamic[Top]`.
-- `Narrowing.narrow_class(type, class_name, exact: false, environment: Environment.default)` (Slice 6 phase 2 sub-phase 1) — the class-membership fragment of `type`. The `class_name` argument is the qualified name of the asked class as it appears in source (`"Integer"`, `"Foo::Bar"`); `exact: false` models `is_a?`/`kind_of?` (subclass-inclusive) and `exact: true` models `instance_of?` (exact). The carrier rules MUST be:
-  - `Constant[v]` — preserved when `v.class` satisfies the predicate (subclass-or-equal of the asked class under `exact: false`; equal under `exact: true`); collapses to `Bot` otherwise.
-  - `Nominal[C]` — when the bound `C` is the same as the asked class (or already its subclass under `exact: false`) it is preserved. When the asked class is a subclass of `C` under `exact: false` the type narrows DOWN to `Nominal[asked]` (e.g., `Nominal[Numeric]` under `is_a?(Integer)` becomes `Nominal[Integer]`). Disjoint hierarchies under `exact: false` and any non-equal class under `exact: true` collapse to `Bot`. When either class name does not resolve through the supplied analyzer `Environment`, the result MUST stay conservative and preserve the input type.
-  - `Union` — recurses element-wise, dropping disjoint members.
-  - `Tuple[*]`/`HashShape{*}` — projected uniformly through `"Array"`/`"Hash"` against the asked class.
-  - `Singleton[C]` — projected uniformly through `"Class"` against the asked class (the inhabitants are class objects).
-  - `Top`/`Dynamic[T]` — narrow to `Nominal[asked]` so downstream dispatch can resolve through the asked class.
-  - `Bot` — preserved.
-- `Narrowing.narrow_not_class(type, class_name, exact: false, environment: Environment.default)` (Slice 6 phase 2 sub-phase 1) — the falsey fragment of the same predicate. `Constant`/`Nominal`/`Union`/`Tuple`/`HashShape`/`Singleton` carriers that DO satisfy the predicate collapse to `Bot`; carriers that do NOT satisfy it are preserved unchanged (for `Nominal` this means `Nominal[Numeric]` under `!is_a?(Integer)` stays `Nominal[Numeric]`, since the analyzer cannot prove the disjunction without a richer carrier). `Top`/`Dynamic[T]`/`Bot` flow through unchanged.
+- `Narrowing.narrow_truthy(type)` — `type`の真値フラグメント。`Constant[v]`は`v`が`nil`または`false`のとき`Bot`に縮退し、それ以外では保たれます。`Nominal[NilClass]`/`Nominal[FalseClass]`は`Bot`に縮退し、他の`Nominal`キャリアは保たれます。`Union`は要素ごとに再帰します。`Top`・`Dynamic[T]`・`Bot`・`Singleton`・`Tuple`・`HashShape`は変更されずに通過します。
+- `Narrowing.narrow_falsey(type)` — `type`の偽値フラグメント。`Constant[nil]`/`Constant[false]`と`Nominal[NilClass]`/`Nominal[FalseClass]`は保たれます。他の`Constant`/`Nominal`キャリアは`Bot`に縮退します。`Union`は要素ごとに再帰します。`Singleton`/`Tuple`/`HashShape`は`Bot`に縮退します（その住人は真値だからです）。`Top`/`Dynamic[T]`/`Bot`は、解析器が偽値側を空と証明できないため、変更されずに通過します。
+- `Narrowing.narrow_nil(type)` — `type`のnilフラグメント。`Constant[nil]`と`Nominal[NilClass]`は保たれます。非nilな`Constant`/`Nominal`キャリアは`Bot`に縮退します。`Union`は要素ごとに再帰します。`Top`/`Dynamic[T]`は、下流ディスパッチが`NilClass`を通じて解決するよう、MUST標準的な`Constant[nil]`に絞り込みます。nilを決して住まないキャリア（`Singleton`・`Tuple`・`HashShape`）は`Bot`に縮退します。`Bot`はそれ自身のnilフラグメントです。
+- `Narrowing.narrow_non_nil(type)` — `type`の非nilフラグメント。`narrow_nil`のミラーです。すなわちnil専用キャリアは`Bot`に縮退し、非nilキャリアは保たれます。`Top`/`Dynamic[T]`/`Singleton`/`Tuple`/`HashShape`は変更されずに通過します。`Union`は要素ごとに再帰します。
+- `Narrowing.narrow_equal(type, literal)`（Slice 6 phase 2 sub-phase 2） — 信頼できる`Type::Constant`リテラルに対する`type`の等価フラグメント。String・Symbol・Integerリテラルは、`type`がすでに有限な信頼できるリテラルドメイン（`Constant`または信頼できるconstantsの`Union`）であるときにのみMUST絞り込みます。Nil・true・falseはシングルトン値で、`Integer | nil`のような混合ドメインからMAY抽出できますが、`Dynamic[Top]`を比較されるリテラルにMUST NOT絞り込みません。FloatリテラルはMUST NOT絞り込みません。信頼できない入力は`type`を変更せずに返します。
+- `Narrowing.narrow_not_equal(type, literal)`（Slice 6 phase 2 sub-phase 2） — `narrow_equal`のドメイン相対補集合。有限な信頼できるリテラルドメインから比較されるリテラルを除去し、混合ドメインからnil/true/falseのシングルトンメンバーが存在するときに除去します。`String`や`Dynamic[Top]`のような広いドメインに対して、無境界の差集合型をMUST NOT作成しません。
+- `Narrowing.narrow_class(type, class_name, exact: false, environment: Environment.default)`（Slice 6 phase 2 sub-phase 1） — `type`のクラスメンバーシップフラグメント。`class_name`引数はソースに現れるとおりの問われたクラスの修飾名（`"Integer"`・`"Foo::Bar"`）です。`exact: false`は`is_a?`/`kind_of?`（サブクラス包含）をモデル化し、`exact: true`は`instance_of?`（厳密）をモデル化します。キャリア規則はMUST以下のとおりです。
+  - `Constant[v]` — `v.class`が述語を満たす（`exact: false`では問われたクラスのサブクラスまたは等しい、`exact: true`では等しい）とき保たれます。それ以外では`Bot`に縮退します。
+  - `Nominal[C]` — 束縛された`C`が問われたクラスと同じ（または`exact: false`下ですでにそのサブクラス）のとき保たれます。問われたクラスが`exact: false`下で`C`のサブクラスのとき、型は`Nominal[asked]`に**下方へ**絞り込まれます（例えば`is_a?(Integer)`下の`Nominal[Numeric]`は`Nominal[Integer]`になります）。`exact: false`下の互いに素な階層と`exact: true`下の任意の非等価クラスは`Bot`に縮退します。いずれかのクラス名が提供された解析器`Environment`を通じて解決しないとき、結果はMUST保守的なまま残り、入力型を保ちます。
+  - `Union` — 要素ごとに再帰し、互いに素なメンバーを落とします。
+  - `Tuple[*]`/`HashShape{*}` — 問われたクラスに対して`"Array"`/`"Hash"`を通じて統一的に射影されます。
+  - `Singleton[C]` — 問われたクラスに対して`"Class"`を通じて統一的に射影されます（住人はクラスオブジェクトです）。
+  - `Top`/`Dynamic[T]` — 下流ディスパッチが問われたクラスを通じて解決できるよう、`Nominal[asked]`に絞り込みます。
+  - `Bot` — 保たれます。
+- `Narrowing.narrow_not_class(type, class_name, exact: false, environment: Environment.default)`（Slice 6 phase 2 sub-phase 1） — 同じ述語の偽値フラグメント。述語を満たす`Constant`/`Nominal`/`Union`/`Tuple`/`HashShape`/`Singleton`キャリアは`Bot`に縮退します。満たさないキャリアは変更されずに保たれます（`Nominal`について、解析器がよりリッチなキャリアなしに分離を証明できないため、`!is_a?(Integer)`下の`Nominal[Numeric]`は`Nominal[Numeric]`のままになります）。`Top`/`Dynamic[T]`/`Bot`は変更されずに通過します。
 
-These primitives MUST be deterministic and structurally pure: two calls with structurally-equal inputs produce structurally-equal outputs, and calling them never alters the input.
+これらのプリミティブはMUST決定的かつ構造的に純粋です。すなわち構造的に等しい入力での2つの呼び出しは構造的に等しい出力を生成し、それらを呼び出しても入力を決して変更しません。
 
-### Predicate-level narrowing
+### 述語レベルナローイング
 
-`Narrowing.predicate_scopes(node, scope)` MUST return an `[truthy_scope, falsey_scope]` pair. When `node` is `nil` or its shape is not in the recognised catalogue the pair MUST be `[scope, scope]` so the caller observes "no narrowing" without a special return value. The recognised Slice 6 phase 1 catalogue is:
+`Narrowing.predicate_scopes(node, scope)`はMUST`[truthy_scope, falsey_scope]`ペアを返します。`node`が`nil`またはその形状が認識カタログにないとき、ペアはMUST`[scope, scope]`であり、これにより呼び出し元は特別な戻り値なしに「ナローイングなし」を観測します。認識されるSlice 6 phase 1のカタログは以下のとおりです。
 
-- `Prism::ParenthesesNode` — recurse into the body when present.
-- `Prism::StatementsNode` — analyse the last statement; earlier statements MAY have scope effects, but the StatementEvaluator has already produced the post-predicate scope before calling `Narrowing`, so the analyser does NOT thread additional effects.
-- `Prism::LocalVariableReadNode` — when the local is bound in `scope`, narrow truthy → `narrow_truthy(local)` and falsey → `narrow_falsey(local)`. Unbound locals fall through to the no-narrowing fallback.
-- `Prism::CallNode` — the catalogue covers four predicate shapes, all rejected silently when the call has a block or its receiver is `nil`:
-  - `recv.nil?` (no positional/keyword argument): narrow the receiver-local through `narrow_nil`/`narrow_non_nil`.
-  - unary `!recv` (`name == :!`, no positional/keyword argument): analyse `recv` and swap the resulting pair.
-  - `recv.is_a?(C)` / `recv.kind_of?(C)` / `recv.instance_of?(C)` (Slice 6 phase 2 sub-phase 1): require the receiver to be a `Prism::LocalVariableReadNode` and the single argument to be a static constant reference (`Prism::ConstantReadNode` or `Prism::ConstantPathNode`). The qualified name MUST be rendered via the parent-walk `Foo::Bar` form. The truthy edge rebinds the local through `narrow_class(local, class_name, exact:, environment: scope.environment)` (`exact: true` only for `instance_of?`); the falsey edge rebinds through `narrow_not_class(local, class_name, exact:, environment: scope.environment)`. Anything else (a local-only argument, a method-call argument, multiple arguments) MUST fall through to the no-narrowing branch.
-  - `local == literal` / `literal == local` and the `!=` mirror (Slice 6 phase 2 sub-phase 2): require one side to be a `Prism::LocalVariableReadNode` and the other side to be a static trusted literal (`String`, `Symbol`, `Integer`, `true`, `false`, or `nil`; not `Float`). The truthy edge of `==` rebinds the local through `narrow_equal`; the falsey edge rebinds through `narrow_not_equal`. `!=` swaps those edges. Each recognised equality predicate MUST also attach a `FactStore::Fact`: use the `local_binding` bucket when the local type changed, otherwise the `relational` bucket so broad or dynamic domains retain the relation without unsound positive narrowing.
-- `recv.foo(arg)` with **RBS::Extended predicate annotations** (Slice 7 phase 15): when the receiving method's RBS signature carries `%a{rigor:v1:predicate-if-true <target> is <Class>}` or `%a{rigor:v1:predicate-if-false <target> is <Class>}` annotations on its `RBS::Definition::Method`, the analyser MUST narrow the matching binding on the corresponding edge through `narrow_class`. The parser recognises a strict shape: `<target>` is a Ruby parameter name (matched against the selected overload's `required_positionals` / `optional_positionals`) or `self`; `<Class>` is a single optionally-namespaced class identifier (`String`, `Foo::Bar`, `::Foo`). For parameter targets, narrowing applies only when the matching call argument is a `Prism::LocalVariableReadNode`. For `self` targets, four receiver shapes participate (v0.1.1 Track 1 slice 3): `Prism::LocalVariableReadNode` and `Prism::InstanceVariableReadNode` rebind through `Scope#with_local` / `with_ivar`, and both implicit-self (nil receiver) and `Prism::SelfNode` rebind through `Scope#with_self_type`. The implicit-self path requires `Inference::Narrowing#analyse_call` to allow nil-receiver shapes through to the RBS::Extended path; `resolve_rbs_extended_method` consults `scope.self_type` instead of `scope.type_of(node.receiver)` when the receiver is nil. Other receiver shapes (method chains, expressions) still fall through.
-- `recv === local` (Slice 7 phase 4): the case-equality predicate is recognised for three receiver shapes:
-  - **Class / Module receiver** (a static `Prism::ConstantReadNode` or `Prism::ConstantPathNode`) — isomorphic to `local.is_a?(receiver)`. The truthy and falsey edges are produced through `class_predicate_scopes`, identical to `is_a?`/`kind_of?`.
-  - **Range literal receiver** (`Prism::RangeNode`, optionally wrapped in `Prism::ParenthesesNode`) — narrows `local` on the truthy edge to `Numeric` for integer/float endpoints and to `String` for string endpoints. The falsey edge keeps the entry type because `Range#===` returns false both for non-coercible types and for in-range failures.
-  - **Regexp literal receiver** (`Prism::RegularExpressionNode` / `Prism::InterpolatedRegularExpressionNode`) — narrows `local` on the truthy edge to `String`. Same falsey rule as Range.
-  Anything else (dynamic receiver, custom `===` method, non-local LHS) MUST fall through to the no-narrowing branch (preserving the entry scope on both edges).
-- `Prism::AndNode` — `a && b` narrows the truthy edge with `b`'s truthy scope under `a`'s truthy scope; the falsey edge unions `a`'s falsey scope (b skipped) and `b`'s falsey scope (b ran but returned falsey) via `Scope#join`.
-- `Prism::OrNode` — `a || b` narrows the truthy edge with `Scope#join` of `a`'s truthy scope and `b`'s truthy scope (under `a`'s falsey scope); the falsey edge is `b`'s falsey scope under `a`'s falsey scope.
+- `Prism::ParenthesesNode` — 存在するときbodyへ再帰します。
+- `Prism::StatementsNode` — 最後の文を解析します。先行する文はMAYスコープ効果を持ちますが、StatementEvaluatorは`Narrowing`を呼ぶ前にすでに後置述語スコープを生成しているため、解析器は追加の効果をスレッドし**ません**。
+- `Prism::LocalVariableReadNode` — ローカルが`scope`に束縛されているとき、真値 → `narrow_truthy(local)`、偽値 → `narrow_falsey(local)`に絞り込みます。束縛されていないローカルはナローイングなしフォールバックへフォールスルーします。
+- `Prism::CallNode` — カタログは4つの述語形状をカバーし、呼び出しがブロックを持つかレシーバが`nil`のときはすべて静かに拒否されます。
+  - `recv.nil?`（位置／キーワード引数なし）: `narrow_nil`/`narrow_non_nil`を通じてレシーバローカルを絞り込みます。
+  - 単項`!recv`（`name == :!`、位置／キーワード引数なし）: `recv`を解析して結果のペアをスワップします。
+  - `recv.is_a?(C)` / `recv.kind_of?(C)` / `recv.instance_of?(C)`（Slice 6 phase 2 sub-phase 1）: レシーバが`Prism::LocalVariableReadNode`であり、単一引数が静的な定数参照（`Prism::ConstantReadNode`または`Prism::ConstantPathNode`）であることを要求します。修飾名はMUST親ウォーク`Foo::Bar`形式を介してレンダリングされます。真値エッジはローカルを`narrow_class(local, class_name, exact:, environment: scope.environment)`を通じて再束縛します（`exact: true`は`instance_of?`のみ）。偽値エッジは`narrow_not_class(local, class_name, exact:, environment: scope.environment)`を通じて再束縛します。それ以外（ローカル専用引数・メソッド呼び出し引数・複数引数）はMUSTナローイングなし分岐へフォールスルーします。
+  - `local == literal` / `literal == local`と`!=`ミラー（Slice 6 phase 2 sub-phase 2）: 一方の側が`Prism::LocalVariableReadNode`、もう一方の側が静的な信頼できるリテラル（`String`・`Symbol`・`Integer`・`true`・`false`または`nil`。`Float`ではない）であることを要求します。`==`の真値エッジはローカルを`narrow_equal`を通じて再束縛します。偽値エッジは`narrow_not_equal`を通じて再束縛します。`!=`はそれらのエッジをスワップします。認識される各等価述語はMUSTさらに`FactStore::Fact`を取り付けます。すなわちローカル型が変わったときは`local_binding`バケットを使い、それ以外では広いまたは動的なドメインが不健全な肯定的ナローイングなしに関係を保持するよう`relational`バケットを使います。
+- **RBS::Extended述語注釈**を伴う`recv.foo(arg)`（Slice 7 phase 15）: 受信側メソッドのRBSシグネチャがその`RBS::Definition::Method`上に`%a{rigor:v1:predicate-if-true <target> is <Class>}`または`%a{rigor:v1:predicate-if-false <target> is <Class>}`注釈を運ぶとき、解析器はマッチする束縛を対応するエッジで`narrow_class`を通じてMUST絞り込みます。パーサは厳密な形状を認識します。すなわち`<target>`はRubyの引数名（選択されたオーバーロードの`required_positionals` / `optional_positionals`に対してマッチ）または`self`です。`<Class>`は単一のオプショナルに名前空間付けされたクラス識別子（`String`・`Foo::Bar`・`::Foo`）です。引数ターゲットについて、ナローイングはマッチする呼び出し引数が`Prism::LocalVariableReadNode`のときにのみ適用されます。`self`ターゲットについて、4つのレシーバ形状が参加します（v0.1.1 Track 1 slice 3）。すなわち`Prism::LocalVariableReadNode`と`Prism::InstanceVariableReadNode`は`Scope#with_local` / `with_ivar`を通じて再束縛し、暗黙self（nilレシーバ）と`Prism::SelfNode`の両方は`Scope#with_self_type`を通じて再束縛します。暗黙self経路は`Inference::Narrowing#analyse_call`がnilレシーバ形状をRBS::Extended経路まで通すことを要求します。`resolve_rbs_extended_method`はレシーバがnilのとき`scope.type_of(node.receiver)`の代わりに`scope.self_type`を参照します。他のレシーバ形状（メソッドチェーン・式）は依然としてフォールスルーします。
+- `recv === local`（Slice 7 phase 4）: case等価述語は3つのレシーバ形状について認識されます。
+  - **クラス／モジュールレシーバ**（静的な`Prism::ConstantReadNode`または`Prism::ConstantPathNode`） — `local.is_a?(receiver)`と同型です。真値と偽値のエッジは`is_a?`/`kind_of?`と同一に`class_predicate_scopes`を通じて生成されます。
+  - **Rangeリテラルレシーバ**（`Prism::RangeNode`、オプショナルに`Prism::ParenthesesNode`にラップされる） — 真値エッジで`local`を整数／浮動小数端点では`Numeric`に、文字列端点では`String`に絞り込みます。`Range#===`は強制不可能な型と範囲内失敗の両方でfalseを返すため、偽値エッジはエントリ型を保ちます。
+  - **Regexpリテラルレシーバ**（`Prism::RegularExpressionNode` / `Prism::InterpolatedRegularExpressionNode`） — 真値エッジで`local`を`String`に絞り込みます。Rangeと同じ偽値規則です。
+  それ以外（動的レシーバ・カスタム`===`メソッド・非ローカルLHS）はMUSTナローイングなし分岐へフォールスルーします（両エッジでエントリスコープを保ちます）。
+- `Prism::AndNode` — `a && b`は真値エッジを`a`の真値スコープ下の`b`の真値スコープで絞り込みます。偽値エッジは`Scope#join`を介して`a`の偽値スコープ（bがスキップ）と`b`の偽値スコープ（bが実行されたが偽値を返した）をunionします。
+- `Prism::OrNode` — `a || b`は真値エッジを`a`の真値スコープと（`a`の偽値スコープ下の）`b`の真値スコープの`Scope#join`で絞り込みます。偽値エッジは`a`の偽値スコープ下の`b`の偽値スコープです。
 
-The analyser MUST NOT raise on unrecognised predicate shapes, MUST NOT thread any tracer (predicate analysis is a pure query that consults already-typed scope information), and MUST NOT mutate the receiver scope.
+解析器は認識されない述語形状でMUST NOTraiseせず、いかなるトレーサーをもMUST NOTスレッドせず（述語解析はすでに型付けされたスコープ情報を参照する純粋なクエリです）、レシーバスコープをMUST NOT変更しません。
 
-### StatementEvaluator integration
+### StatementEvaluatorとの統合
 
-`Rigor::Inference::StatementEvaluator` MUST consume the predicate analyser as follows:
+`Rigor::Inference::StatementEvaluator`はMUST以下のように述語解析器を消費します。
 
-- `Prism::IfNode` — after evaluating the predicate to obtain `post_pred`, call `Narrowing.predicate_scopes(node.predicate, post_pred)` to derive `(truthy_scope, falsey_scope)`. The `then` branch MUST be evaluated under `truthy_scope`; the `else` branch (or an absent else, which contributes `Constant[nil]` and the predicate's post-scope) MUST be evaluated under `falsey_scope`. The branch types are unioned and the post-scopes are merged through the existing nil-injection rule.
-- `Prism::UnlessNode` — same shape as `IfNode`, but the `then` branch (which runs when the predicate is falsey) MUST be evaluated under `falsey_scope` and the `else` branch under `truthy_scope`.
-- `Prism::AndNode`/`Prism::OrNode` — after evaluating the LHS to obtain `left_scope`, call `Narrowing.predicate_scopes(node.left, left_scope)`. The RHS MUST be evaluated under the LHS's truthy scope for `&&` and the LHS's falsey scope for `||`. The post-scope MUST still be the join-with-nil-injection of `left_scope` and the RHS's post-scope (modelling "RHS sometimes ran") so half-bound names from the RHS continue to nil-inject. The result type MUST be `union(narrow_falsey(left_type), right_type)` for `&&` and `union(narrow_truthy(left_type), right_type)` for `||`.
+- `Prism::IfNode` — 述語を評価して`post_pred`を得たのち、`Narrowing.predicate_scopes(node.predicate, post_pred)`を呼び出して`(truthy_scope, falsey_scope)`を導出します。`then`分岐はMUST`truthy_scope`下で評価されます。`else`分岐（または不在のelse、これは`Constant[nil]`と述語の後置スコープを寄与します）はMUST`falsey_scope`下で評価されます。分岐型はunionされ、後置スコープは既存のnil注入規則を通じてマージされます。
+- `Prism::UnlessNode` — `IfNode`と同じ形状ですが、`then`分岐（述語が偽値のときに実行される）はMUST`falsey_scope`下、`else`分岐はMUST`truthy_scope`下で評価されます。
+- `Prism::AndNode`/`Prism::OrNode` — LHSを評価して`left_scope`を得たのち、`Narrowing.predicate_scopes(node.left, left_scope)`を呼び出します。RHSはMUST`&&`ではLHSの真値スコープ下、`||`ではLHSの偽値スコープ下で評価されます。後置スコープはMUST依然として`left_scope`とRHSの後置スコープのnil注入付き結合（「RHSはときどき実行された」をモデル化）であり、これによりRHSからの半束縛の名前が引き続きnil注入します。結果型はMUST`&&`では`union(narrow_falsey(left_type), right_type)`、`||`では`union(narrow_truthy(left_type), right_type)`です。
 
-### Boundaries
+### 境界
 
-Slice 6 phase 1 + phase 2 binds local-variable narrowing for truthiness, `nil?`, class-membership predicates, and trusted equality/inequality predicates. The following surfaces are deliberately deferred to a follow-up:
+Slice 6 phase 1 + phase 2は、真偽値性・`nil?`・クラスメンバーシップ述語・信頼できる等価／不等価述語についてローカル変数ナローイングを束縛します。以下の表層は意図的に後続に委ねられます。
 
-- Equality narrowing is intentionally narrow: it does not promote user-defined equality, `eql?`, `===`, Float literals, broad `String`/`Symbol`/`Integer` domains, or `Dynamic[Top]` into precise literal domains. Those comparisons may carry relational facts, but value narrowing waits for RBS/plugin-declared effects.
-- Closure-captured locals are treated as ordinary locals at narrowing time. Slice 6 phase C sub-phase 3a introduces `Rigor::Inference::ClosureEscapeAnalyzer.classify(receiver_type:, method_name:, environment:)`, a pure query that returns `:non_escaping`, `:escaping`, or `:unknown` for a block-accepting call. Sub-phase 3a is RBS-blind: the analyzer ships a hardcoded catalogue covering core iteration methods (`Array`/`Hash`/`Range`/`Set`/`Enumerator`/`Enumerator::Lazy` Enumerable methods, `Hash#each_pair`/`each_key`/`each_value`/`transform_keys`/`transform_values`, `Range#step`, `Integer#times`/`upto`/`downto`, `Object#tap`/`then`/`yield_self`) as `:non_escaping` and a small set of known retainers (`Module#define_method`, `Class#define_method`, `Thread.new`/`start`/`fork`, `Fiber.new`, `Proc.new`) as `:escaping`. `Tuple` receivers project to `Array`, `HashShape` to `Hash`, and `Constant[v]` projects through the value's class. `Top`, `Dynamic[T]`, `Union`, and any uncatalogued `(class, method)` pair return `:unknown`. The analyzer MUST NOT mutate scope or raise on unrecognised inputs; consumers MUST treat `:unknown` as conservatively as `:escaping` for fact retention. The analyzer is a pure query in sub-phase 3a.
-- Slice 6 phase C sub-phase 3b wires `ClosureEscapeAnalyzer` into `StatementEvaluator#eval_call`. When a `Prism::CallNode` carries a `Prism::BlockNode` and the analyzer classifies the call as `:escaping` or `:unknown`, the evaluator MUST attach a `FactStore::Fact` to the post-call scope with `bucket: :dynamic_origin`, `predicate: :closure_escape`, `target: Target.new(kind: :closure, name: <method symbol>)`, `payload: { method_name:, classification: }`, and `stability: :unstable`. A `:non_escaping` classification (or any block-less call) MUST leave the post-call `Scope#fact_store` unchanged. Sub-phase 3c additionally drops the narrowed type of every captured outer local that the block body can rebind, replacing it with `Dynamic[Top]` through `Scope#with_local` (which also invalidates the local's `local_binding` facts). The "captured outer local" set is computed by walking `BlockNode#body` for `Prism::LocalVariableWriteNode`s whose name (a) appears in `Scope#locals` of the call-site scope and (b) is NOT introduced by the block itself (block parameters from `BlockParameterBinder.bind`, plus the `;`-prefixed block-locals on `BlockParametersNode#locals`). Locals the block only reads MUST stay narrowed; writes to a name shadowed by a block parameter MUST NOT count. The conservative drop replaces the type with `Dynamic[Top]`; a future sub-phase MAY refine this to the union of the block's actual writes once block-body effect tracking is available.
-- Instance-, class-, and global-variable narrowing remains out of scope; only `Prism::LocalVariableReadNode` is recognised by the analyser today. (Slice 7 phase 1 binds the **type** of ivar/cvar/global writes through `Scope#with_ivar` / `#with_cvar` / `#with_global`, but the predicate-narrowing catalogue still only fires for `LocalVariableReadNode` receivers.)
+- 等価ナローイングは意図的に狭いです。すなわちユーザー定義の等価・`eql?`・`===`・Floatリテラル・広い`String`/`Symbol`/`Integer`ドメイン・`Dynamic[Top]`を精密なリテラルドメインに昇格しません。それらの比較は関係的ファクトをMAY運びますが、値ナローイングはRBS／プラグイン宣言の効果を待ちます。
+- クロージャに捕捉されたローカルはナローイング時には通常のローカルとして扱われます。Slice 6 phase C sub-phase 3aは`Rigor::Inference::ClosureEscapeAnalyzer.classify(receiver_type:, method_name:, environment:)`を導入します。これはブロック受け入れ呼び出しに対して`:non_escaping`・`:escaping`・`:unknown`を返す純粋なクエリです。Sub-phase 3aはRBSブラインドです。すなわち解析器はコア反復メソッド（`Array`/`Hash`/`Range`/`Set`/`Enumerator`/`Enumerator::Lazy`のEnumerableメソッド、`Hash#each_pair`/`each_key`/`each_value`/`transform_keys`/`transform_values`、`Range#step`、`Integer#times`/`upto`/`downto`、`Object#tap`/`then`/`yield_self`）を`:non_escaping`としてカバーし、既知のリテイナー（`Module#define_method`・`Class#define_method`・`Thread.new`/`start`/`fork`・`Fiber.new`・`Proc.new`）の小さなセットを`:escaping`としてカバーするハードコードされたカタログを出荷します。`Tuple`レシーバは`Array`に、`HashShape`は`Hash`に射影され、`Constant[v]`は値のクラスを通じて射影されます。`Top`・`Dynamic[T]`・`Union`、およびカタログ化されていない任意の`(class, method)`ペアは`:unknown`を返します。解析器はスコープをMUST NOT変更せず、認識されない入力でMUST NOTraiseしません。消費者はファクト保持のためにMUST`:unknown`を`:escaping`と同じ程度に保守的に扱います。Sub-phase 3aで解析器は純粋なクエリです。
+- Slice 6 phase C sub-phase 3bは`ClosureEscapeAnalyzer`を`StatementEvaluator#eval_call`に配線します。`Prism::CallNode`が`Prism::BlockNode`を運び、解析器が呼び出しを`:escaping`または`:unknown`に分類するとき、評価器はMUST後置呼び出しスコープに`bucket: :dynamic_origin`・`predicate: :closure_escape`・`target: Target.new(kind: :closure, name: <method symbol>)`・`payload: { method_name:, classification: }`・`stability: :unstable`の`FactStore::Fact`を取り付けます。`:non_escaping`分類（または任意のブロックなし呼び出し）はMUST後置呼び出しの`Scope#fact_store`を変更せずに残します。Sub-phase 3cはさらに、ブロック本体が再束縛できる各捕捉外側ローカルの絞り込まれた型を落とし、`Scope#with_local`を通じて`Dynamic[Top]`に置き換えます（これはローカルの`local_binding`ファクトも無効化します）。「捕捉外側ローカル」セットは、名前が（a）呼び出し位置スコープの`Scope#locals`に現れ、（b）ブロック自身（`BlockParameterBinder.bind`からのブロック引数、加えて`BlockParametersNode#locals`上の`;`プレフィックス付きブロックローカル）によって導入されて**いない**`Prism::LocalVariableWriteNode`を求めて`BlockNode#body`を歩いて計算されます。ブロックが読むだけのローカルはMUST絞り込まれたまま残ります。ブロック引数によってシャドウされた名前への書き込みはMUST NOTカウントされません。保守的な落としは型を`Dynamic[Top]`に置き換えます。将来のsub-phaseは、ブロック本体効果追跡が利用可能になり次第、これをブロックの実際の書き込みのunionにMAY精緻化できます。
+- インスタンス・クラス・グローバル変数ナローイングはスコープ外のままです。今日解析器によって認識されるのは`Prism::LocalVariableReadNode`のみです。（Slice 7 phase 1は`Scope#with_ivar` / `#with_cvar` / `#with_global`を通じてivar/cvar/グローバル書き込みの**型**を束縛しますが、述語ナローイングカタログは依然として`LocalVariableReadNode`レシーバについてのみ発火します。）
 
-These boundaries MUST NOT silently degrade Slice 6 phase 1 callers: predicates that fall outside the recognised catalogue MUST observe the entry scope on both edges, preserving the Slice 3 phase 2 behaviour.
+これらの境界は、Slice 6 phase 1の呼び出し元をMUST NOT静かに劣化させません。すなわち認識カタログ外の述語はMUST両エッジでエントリスコープを観測し、Slice 3 phase 2の挙動を保ちます。
 
-## Environment Surface
+## 環境表層
 
-`Rigor::Environment` is the engine's view of the type universe outside the current scope: nominal classes, RBS definitions, plugin-supplied facts (Slice 6+), and any other module-level information. The minimum public surface that Slice 1 binds is:
+`Rigor::Environment`は現在のスコープ外の型宇宙に対するエンジンのビューです。すなわちnominalクラス・RBS定義・プラグイン提供のファクト（Slice 6以降）・任意の他のモジュールレベル情報です。Slice 1が束縛する最小の公開表層は以下のとおりです。
 
-- `Rigor::Environment#class_registry` — returns a `Rigor::Environment::ClassRegistry` that can resolve a Ruby `Class` or `Module` object to a `Rigor::Type::Nominal`.
-- `Rigor::Environment::ClassRegistry#nominal_for(class_object)` — returns the registered `Rigor::Type::Nominal` for a registered class, or raises if the class is not registered.
-- `Rigor::Environment::ClassRegistry#registered?(class_object)` — returns `true` or `false` for whether the class is registered.
-- `Rigor::Environment::ClassRegistry#nominal_for_name(name)` — returns the registered `Rigor::Type::Nominal` for a Symbol/String class name, or `nil` when the name is unknown.
+- `Rigor::Environment#class_registry` — Rubyの`Class`または`Module`オブジェクトを`Rigor::Type::Nominal`に解決できる`Rigor::Environment::ClassRegistry`を返します。
+- `Rigor::Environment::ClassRegistry#nominal_for(class_object)` — 登録されたクラスについて登録済みの`Rigor::Type::Nominal`を返すか、クラスが登録されていなければraiseします。
+- `Rigor::Environment::ClassRegistry#registered?(class_object)` — クラスが登録されているかどうかについて`true`または`false`を返します。
+- `Rigor::Environment::ClassRegistry#nominal_for_name(name)` — Symbol／Stringのクラス名について登録済みの`Rigor::Type::Nominal`を返すか、名前が未知のとき`nil`を返します。
 
-Slice 4 introduces:
+Slice 4は以下を導入します。
 
-- `Rigor::Environment#rbs_loader` — returns the `Rigor::Environment::RbsLoader` attached to the environment, or `nil` for an "RBS-blind" environment (test fixture).
-- `Rigor::Environment::RbsLoader#class_known?(name)` — returns `true` when the RBS environment defines a class or module by that name; nil-safe and string/symbol tolerant.
-- `Rigor::Environment#class_ordering(lhs, rhs)` — Slice 6 phase 2 sub-phase 2. Returns `:equal`, `:subclass`, `:superclass`, `:disjoint`, or `:unknown` by consulting the static registry first and then the RBS loader. This is the class-membership narrower's hierarchy oracle; it MUST NOT rely on ad hoc `Object.const_get` at the predicate site.
-- `Rigor::Environment::RbsLoader#class_ordering(lhs, rhs)` — returns the same ordering vocabulary by comparing `RBS::Definition#ancestors` for the two names. Unknown or malformed names return `:unknown`.
-- `Rigor::Environment::RbsLoader#instance_method(class_name:, method_name:)` — returns the resolved `RBS::Definition::Method` for the given instance method, or `nil` when the class or method is unknown. Inherited methods MUST be visible through this call (the loader uses `RBS::DefinitionBuilder#build_instance` which walks the ancestor chain).
-- `Rigor::Environment::RbsLoader#singleton_method(class_name:, method_name:)` — Slice 4 phase 2b. Returns the resolved `RBS::Definition::Method` for the given *class method*, or `nil` when the class or method is unknown. Inherited class methods MUST be visible (e.g. `Class#new`, `Module#name`); the loader uses `RBS::DefinitionBuilder#build_singleton`. The instance and singleton namespaces MUST be disjoint — for example `Module#instance_methods` resolves on the singleton side and is silently absent on the instance side.
-- `Rigor::Environment::RbsLoader.new(libraries:, signature_paths:)` — Slice 4 phase 2a. Lets callers extend the loader past RBS core: `libraries` is an array of stdlib library names accepted by `RBS::EnvironmentLoader#add(library:, version:)`; `signature_paths` is an array of `Pathname`-or-`String` directories of additional `.rbs` files. Unknown library names MUST fail-soft (the loader skips them via `RBS::EnvironmentLoader#has_library?`); non-existent signature paths MUST be silently dropped at build time. `RbsLoader#libraries` and `#signature_paths` expose the configured values for round-trip and observability.
-- `Rigor::Environment#nominal_for_name(name)` — consults the class registry first, then the RBS loader (when present); returns the `Rigor::Type::Nominal` for the first hit, or `nil` when no hit. This is the construction helper for "an *instance* of class `name`".
-- `Rigor::Environment#singleton_for_name(name)` — Slice 4 phase 2b. Returns the `Rigor::Type::Singleton` for the constant's class object, or `nil` when no class with `name` is known to either the registry or the RBS loader. This is the canonical entry point for typing `Prism::ConstantReadNode`/`Prism::ConstantPathNode`; `ExpressionTyper` MUST route through it so the result is the class object's type, not the instance type.
-- `Rigor::Environment#class_known?(name)` — Slice 4 phase 2b. Convenience predicate that returns `true` when the registry or the RBS loader knows `name`. Useful for callers that need a presence check without materialising a carrier.
-- `Rigor::Environment.for_project(root:, libraries:, signature_paths:)` — Slice 4 phase 2a. Factory that builds a project-aware Environment. Auto-detects `<root>/sig` as the default signature path when `signature_paths` is `nil` and the directory exists; uses an empty list otherwise. Callers MAY override the auto-detection by passing an explicit `signature_paths` array (including `[]` to disable). The factory MUST return a fresh Environment instance — it MUST NOT memoize or share with `Environment.default`, because project-aware loaders depend on the caller's working directory and configuration. Slice A stdlib expansion: the factory MUST merge `Environment::DEFAULT_LIBRARIES` (a curated stdlib set: `pathname`, `optparse`, `json`, `yaml`, `fileutils`, `tempfile`, `uri`, `logger`, `date`, plus the analyzer-adjacent `prism` and `rbs` gems) ahead of the caller's `libraries:` argument and de-duplicate the result while preserving order. Unknown libraries MUST stay fail-soft; `RbsLoader#build_env` already filters through `RBS::EnvironmentLoader#has_library?`.
+- `Rigor::Environment#rbs_loader` — 環境に取り付けられた`Rigor::Environment::RbsLoader`を返すか、「RBSブラインド」環境（テストフィクスチャ）について`nil`を返します。
+- `Rigor::Environment::RbsLoader#class_known?(name)` — RBS環境がその名前のクラスまたはモジュールを定義しているとき`true`を返します。nil安全でstring/symbol寛容です。
+- `Rigor::Environment#class_ordering(lhs, rhs)` — Slice 6 phase 2 sub-phase 2。まず静的レジストリを参照し次にRBSローダーを参照することで`:equal`・`:subclass`・`:superclass`・`:disjoint`・`:unknown`を返します。これはクラスメンバーシップナローワーの階層オラクルです。述語位置でアドホックな`Object.const_get`にMUST NOT依存しません。
+- `Rigor::Environment::RbsLoader#class_ordering(lhs, rhs)` — 2つの名前について`RBS::Definition#ancestors`を比較することで同じ順序語彙を返します。未知または不正な名前は`:unknown`を返します。
+- `Rigor::Environment::RbsLoader#instance_method(class_name:, method_name:)` — 与えられたインスタンスメソッドの解決された`RBS::Definition::Method`を返すか、クラスまたはメソッドが未知のとき`nil`を返します。継承されたメソッドはMUSTこの呼び出しを通じて見えます（ローダーは祖先チェーンを歩く`RBS::DefinitionBuilder#build_instance`を使います）。
+- `Rigor::Environment::RbsLoader#singleton_method(class_name:, method_name:)` — Slice 4 phase 2b。与えられた*クラスメソッド*の解決された`RBS::Definition::Method`を返すか、クラスまたはメソッドが未知のとき`nil`を返します。継承されたクラスメソッドはMUST見えます（例: `Class#new`・`Module#name`）。ローダーは`RBS::DefinitionBuilder#build_singleton`を使います。インスタンスとシングルトンの名前空間はMUST互いに素です — 例えば`Module#instance_methods`はシングルトン側で解決され、インスタンス側では静かに不在です。
+- `Rigor::Environment::RbsLoader.new(libraries:, signature_paths:)` — Slice 4 phase 2a。呼び出し元がローダーをRBSコアを越えて拡張できるようにします。`libraries`は`RBS::EnvironmentLoader#add(library:, version:)`が受け付けるstdlibライブラリ名の配列です。`signature_paths`は追加の`.rbs`ファイルの`Pathname`または`String`ディレクトリの配列です。未知のライブラリ名はMUSTフェイルソフトです（ローダーは`RBS::EnvironmentLoader#has_library?`を介してそれらをスキップします）。存在しないシグネチャパスはMUSTビルド時に静かに落とされます。`RbsLoader#libraries`と`#signature_paths`は、ラウンドトリップと可観測性のために設定された値を公開します。
+- `Rigor::Environment#nominal_for_name(name)` — まずクラスレジストリを参照し、それから（存在するとき）RBSローダーを参照します。最初のヒットの`Rigor::Type::Nominal`を返すか、ヒットなしのとき`nil`を返します。これは「クラス`name`の*インスタンス*」のための構築ヘルパーです。
+- `Rigor::Environment#singleton_for_name(name)` — Slice 4 phase 2b。定数のクラスオブジェクトに対する`Rigor::Type::Singleton`を返すか、レジストリまたはRBSローダーのいずれにも`name`のクラスが知られていないとき`nil`を返します。これは`Prism::ConstantReadNode`/`Prism::ConstantPathNode`を型付けするための標準エントリポイントです。`ExpressionTyper`は、結果がインスタンス型ではなくクラスオブジェクトの型になるよう、MUSTこれを通じてルーティングします。
+- `Rigor::Environment#class_known?(name)` — Slice 4 phase 2b。レジストリまたはRBSローダーが`name`を知っているとき`true`を返す便利な述語です。キャリアを実体化せずに存在チェックが必要な呼び出し元に有用です。
+- `Rigor::Environment.for_project(root:, libraries:, signature_paths:)` — Slice 4 phase 2a。プロジェクト対応のEnvironmentを構築するファクトリです。`signature_paths`が`nil`でディレクトリが存在するとき、`<root>/sig`をデフォルトのシグネチャパスとして自動検出します。それ以外では空リストを使います。呼び出し元は明示的な`signature_paths`配列（無効化のための`[]`を含む）を渡してMAY自動検出をオーバーライドできます。プロジェクト対応のローダーは呼び出し元の作業ディレクトリと設定に依存するため、ファクトリはMUST新鮮なEnvironmentインスタンスを返します — `Environment.default`とMUST NOTメモ化または共有しません。Slice Aのstdlib拡張: ファクトリはMUST`Environment::DEFAULT_LIBRARIES`（厳選されたstdlibセット: `pathname`・`optparse`・`json`・`yaml`・`fileutils`・`tempfile`・`uri`・`logger`・`date`、加えて解析器隣接の`prism`と`rbs`gem）を呼び出し元の`libraries:`引数の前にマージし、順序を保ちながら結果を重複排除します。未知のライブラリはMUSTフェイルソフトのまま残ります。`RbsLoader#build_env`はすでに`RBS::EnvironmentLoader#has_library?`を通じてフィルタしています。
 
-Slice 6 introduces fact-store access. The methods added in later slices MUST NOT change the Slice 1 surface.
+Slice 6はファクトストアアクセスを導入します。後のスライスで追加されたメソッドはSlice 1の表層をMUST NOT変更しません。
 
-The class registry MUST always recognise the following Ruby classes: `Integer`, `Float`, `String`, `Symbol`, `NilClass`, `TrueClass`, `FalseClass`, `Object`, `BasicObject`. Implementations MAY extend this list as long as the listed classes remain present.
+クラスレジストリはMUST常に以下のRubyクラスを認識します。すなわち`Integer`・`Float`・`String`・`Symbol`・`NilClass`・`TrueClass`・`FalseClass`・`Object`・`BasicObject`です。実装は、列挙されたクラスが存在し続ける限り、このリストをMAY拡張できます。
 
-The default `Rigor::Environment.default` MUST attach a default `RbsLoader` covering RBS core (no opt-in libraries, no signature paths). Constructing `Rigor::Environment.new` (no kwargs) MUST produce an RBS-blind environment so test fixtures can assert engine behaviour without paying RBS startup cost. The `for_project` factory is the canonical entry point for production CLI commands and any other call site that needs the local `sig/` tree.
+デフォルトの`Rigor::Environment.default`は、RBSコア（オプトインライブラリなし、シグネチャパスなし）をカバーするデフォルトの`RbsLoader`をMUST取り付けます。`Rigor::Environment.new`を構築（kwargsなし）すると、テストフィクスチャがRBS起動コストを払わずにエンジンの挙動をアサートできるよう、MUST RBSブラインド環境を生成します。`for_project`ファクトリは、本番CLIコマンドおよびローカルの`sig/`ツリーが必要な任意の他の呼び出し位置に対する標準エントリポイントです。
 
-## Determinism and Caching
+## 決定性とキャッシュ
 
-`Scope#type_of` results MUST be deterministic for a given `(scope, node)` pair. Caching MAY be used and MAY be keyed on identity (`equal?`) or on structural equality (`==`); caching MUST NOT change observable behavior, only performance.
+`Scope#type_of`の結果は、与えられた`(scope, node)`ペアについてMUST決定的です。キャッシュはMAY使われ、同一性（`equal?`）または構造的等価性（`==`）でMAYキー付けできます。キャッシュは観測可能な挙動をMUST NOT変更し、パフォーマンスのみを変更します。
 
-Two scopes that compare structurally equal MUST produce structurally equal results from `Scope#type_of` for the same node, even if the scopes are not the same Ruby object.
+構造的に等しく比較される2つのスコープは、それらが同じRubyオブジェクトでなくても、同じノードに対して`Scope#type_of`からMUST構造的に等しい結果を生成します。
 
-## Stability and Versioning
+## 安定性とバージョニング
 
-The contracts in this document are stable within a major version. The following are additionally stable:
+本ドキュメントの契約はメジャーバージョン内で安定です。以下は加えて安定です。
 
-- The `Scope#type_of` shape (input types, return type, purity, optional `tracer:` keyword).
-- The `Scope.empty(environment:)` constructor signature.
-- The `Scope#join(other)` semantics: same-environment requirement, intersection of bound names, union of types.
-- The fail-soft policy and its `Dynamic[Top]` return value.
-- The Fallback Tracer protocol (`record_fallback`, `events`, `empty?`, `size`, `each`) and the `Rigor::Inference::Fallback` value object.
-- The minimum class-registry surface listed above.
-- The `Rigor::AST::Node` marker module and the existence of `Rigor::AST::TypeNode` with the round-trip behaviour above.
-- The method-dispatch boundary: method-summary tables MUST NOT live on `Rigor::Type` instances.
+- `Scope#type_of`の形状（入力型・戻り値型・純粋性・オプショナルな`tracer:`キーワード）。
+- `Scope.empty(environment:)`コンストラクタシグネチャ。
+- `Scope#join(other)`のセマンティクス。すなわち同一環境要件・束縛された名前の交差・型のunion。
+- フェイルソフトポリシーとその`Dynamic[Top]`戻り値。
+- フォールバックトレーサープロトコル（`record_fallback`・`events`・`empty?`・`size`・`each`）と`Rigor::Inference::Fallback`値オブジェクト。
+- 上で列挙された最小のクラスレジストリ表層。
+- `Rigor::AST::Node`マーカーモジュールと、上記のラウンドトリップ挙動を持つ`Rigor::AST::TypeNode`の存在。
+- メソッドディスパッチ境界。すなわちメソッド要約テーブルは`Rigor::Type`のインスタンスにMUST NOT存在しません。
 
-The following are explicitly out of the stability contract until later slices promote them:
+以下は、後のスライスがそれらを昇格させるまで、安定性契約から明示的に外れます。
 
-- The exact catalogue of Prism nodes recognised by `ExpressionTyper`.
-- The internal layout of `Rigor::Scope` and its caching strategy.
-- The fact-store schema (Slice 6+) and the RBS-loader cache shape (Slice 4+).
-- The capability and projection surfaces on `Rigor::Type`, which depend on the resolution of ADR-3's open questions.
+- `ExpressionTyper`が認識するPrismノードの正確なカタログ。
+- `Rigor::Scope`の内部レイアウトとそのキャッシュ戦略。
+- ファクトストアスキーマ（Slice 6以降）とRBSローダーキャッシュ形状（Slice 4以降）。
+- ADR-3の未決事項の解決に依存する、`Rigor::Type`の能力（capability）と射影表層。
 
-## Related Documents
+## 関連ドキュメント
 
-- [`docs/internal-spec/internal-type-api.md`](../internal-type-api/) — type-object public contract consumed by the typer.
-- [`docs/internal-spec/implementation-expectations.md`](../implementation-expectations/) — engine-surface contract that surrounds the typer (Scope joins, fact store, effect model, capability-role inference).
-- [`docs/adr/4-type-inference-engine.md`](../../adr/4-type-inference-engine/) — design rationale, slice roadmap, tentative answers to ADR-3's open questions.
-- [`docs/adr/3-type-representation.md`](../../adr/3-type-representation/) — type-object representation and the open questions whose tentative answers ADR-4 commits.
-- [`docs/type-specification/relations-and-certainty.md`](../../type-specification/relations-and-certainty/) — subtyping, gradual consistency, trinary semantics.
-- [`docs/type-specification/value-lattice.md`](../../type-specification/value-lattice/) — `Dynamic[T]` algebra used by the fail-soft path.
+- [`docs/internal-spec/internal-type-api.md`](../internal-type-api/) — 型付け器が消費する型オブジェクト公開契約。
+- [`docs/internal-spec/implementation-expectations.md`](../implementation-expectations/) — 型付け器を取り巻くエンジン表層契約（Scope結合・ファクトストア・効果モデル・能力役割推論）。
+- [`docs/adr/4-type-inference-engine.md`](../../adr/4-type-inference-engine/) — 設計根拠・スライスロードマップ・ADR-3の未決事項に対する暫定回答。
+- [`docs/adr/3-type-representation.md`](../../adr/3-type-representation/) — 型オブジェクト表現と、その暫定回答にADR-4がコミットしている未決事項。
+- [`docs/type-specification/relations-and-certainty.md`](../../type-specification/relations-and-certainty/) — 部分型・グラデュアル一貫性・3値セマンティクス。
+- [`docs/type-specification/value-lattice.md`](../../type-specification/value-lattice/) — フェイルソフト経路で用いる`Dynamic[T]`代数。
 - [`docs/type-specification/control-flow-analysis.md`](../../type-specification/control-flow-analysis/) — Slice 6 narrowing target.
