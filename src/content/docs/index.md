@@ -22,8 +22,8 @@ The reference pages are generated from the upstream `rigortype/rigor` repository
 
 ## Documentation Layout
 
-- **Handbook**: task-oriented material for using Rigor day to day.
-- **Type Specification**: the analyzer's type model, operators, and inference rules.
-- **Internal Specification**: implementation contracts for contributors.
+- [**Handbook**](/reference/handbook/): task-oriented material for using Rigor day to day.
+- [**Type Specification**](/reference/type-specification/): the analyzer's type model, operators, and inference rules.
+- [**Internal Specification**](/reference/internal-spec/): implementation contracts for contributors.
 - **Architecture Decisions**: ADRs and design history from the upstream repository.
 
