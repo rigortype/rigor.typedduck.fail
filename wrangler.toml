@@ -1,6 +1,15 @@
 name = "rigor-typedduck-fail"
 compatibility_date = "2026-05-08"
 
+# Claim the production custom domain on this Worker. When `wrangler
+# deploy` runs, Cloudflare moves the binding here if it currently
+# lives on another Worker (e.g. the default Hello World template
+# that ships with new Workers projects). Requires the domain's zone
+# to be on Cloudflare under the same account.
+routes = [
+  { pattern = "rigor.typedduck.fail", custom_domain = true }
+]
+
 # `wrangler deploy` runs this before uploading. Keeps the Cloudflare
 # Workers Builds project working even when the dashboard's Build command
 # field is left empty — corepack provisions the pinned pnpm in
