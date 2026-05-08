@@ -1,261 +1,174 @@
 ---
-title: "ADR-3: Internal Type Representation"
+title: "ADR-3: 内部型表現"
 description: "Imported from rigortype/rigor docs/adr/3-type-representation.md."
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/adr/3-type-representation.md"
 sourcePath: "docs/adr/3-type-representation.md"
 sourceSha: "37bbaf69537d0fb6f918e5b0994fd2082d09610e3e70cf69e97bb6cc307f2575"
 sourceCommit: "9f40e22193647dc06e3ab70c5ba82768b0bfe738"
-translationStatus: "pending"
+translationStatus: "translated"
 sidebar:
   order: 4003
 ---
 
-> [!NOTE]
-> このページはまだ翻訳されていません。英語版の本文を参考表示しています。
+## ステータス
 
-## Status
+ドラフト。
 
-Draft.
+ADR-3は、Rigorの内部型オブジェクトレイアウト（型モデルを実装するRubyのクラス、モジュール、メソッド、値オブジェクト）の設計空間を記録します。ADR-3はセマンティクスを再定義**しません**——それはADR-1と型仕様が所有します——そしてプラグインコントラクトも定義**しません**——それはADR-2が所有します。ADR-3は、ADR-1とADR-2が付着する解析器側のデータ形状を取り巻く根拠とオープンクエスチョンを捉えます。
 
-ADR-3 records the design space for Rigor's internal type-object layout: the Ruby classes, modules, methods, and value objects that implement the type model. ADR-3 does **not** redefine semantics — those are owned by ADR-1 and the type specification — and it does **not** define the plugin contract — that is owned by ADR-2. ADR-3 captures the rationale and the open questions that surround the analyzer-side data shapes that ADR-1 and ADR-2 attach to.
+安定した決定は[`docs/internal-spec/internal-type-api.md`](../../internal-spec/internal-type-api/)において規範的です。そのドキュメントとこのADRが一致しない場合、仕様が拘束力を持ち、このADRはそれに合わせて更新されます。型仕様についても同様です。[`docs/type-specification/`](../type-specification/)がこのADRと観察可能な動作について一致しない場合、型仕様が拘束力を持ちます。
 
-The decisions that have stabilized are normative in [`docs/internal-spec/internal-type-api.md`](../../internal-spec/internal-type-api/). When that document and this ADR disagree, the spec binds and this ADR is updated to match. The same precedence applies to the type specification: when [`docs/type-specification/`](../type-specification/) disagrees with this ADR on observable behavior, the type spec binds.
+## コンテキスト
 
-## Context
+Rigorは、垂直スライス実装が着地する前に内部型表現が必要です。型仕様は、表現がカバーしなければならない形式を列挙するのに十分なほど安定しています（[`docs/type-specification/rbs-compatible-types.md`](../../type-specification/rbs-compatible-types/)、[`docs/type-specification/rigor-extensions.md`](../../type-specification/rigor-extensions/)、[`docs/type-specification/special-types.md`](../../type-specification/special-types/)、[`docs/type-specification/structural-interfaces-and-object-shapes.md`](../../type-specification/structural-interfaces-and-object-shapes/)を参照）。ADR-1は関係と動的起源代数を決定します（[`docs/adr/1-types.md`](../1-types/)、[`docs/type-specification/relations-and-certainty.md`](../../type-specification/relations-and-certainty/)、[`docs/type-specification/value-lattice.md`](../../type-specification/value-lattice/)）。ADR-2は型値を消費する拡張サーフェスを決定します（[`docs/adr/2-extension-api.md`](../2-extension-api/)、特に「型システムオブジェクトモデル」と「Scopeオブジェクト」セクション）。
 
-Rigor needs an internal type representation before any vertical-slice implementation can land. The type specification has stabilized enough to enumerate the forms the representation must cover (see [`docs/type-specification/rbs-compatible-types.md`](../../type-specification/rbs-compatible-types/), [`docs/type-specification/rigor-extensions.md`](../../type-specification/rigor-extensions/), [`docs/type-specification/special-types.md`](../../type-specification/special-types/), [`docs/type-specification/structural-interfaces-and-object-shapes.md`](../../type-specification/structural-interfaces-and-object-shapes/)). ADR-1 fixes the relations and the dynamic-origin algebra ([`docs/adr/1-types.md`](../1-types/), [`docs/type-specification/relations-and-certainty.md`](../../type-specification/relations-and-certainty/), [`docs/type-specification/value-lattice.md`](../../type-specification/value-lattice/)). ADR-2 fixes the extension surface that consumes type values ([`docs/adr/2-extension-api.md`](../2-extension-api/), in particular the *Type System Object Model* and *Scope Object* sections).
+残る決定は、解析器がRubyコード内でそれらの形式をどのように表現するか——どのクラスが存在するか、メソッドがどのようにグループ化されるか、関係的な回答がどのように返されるか、そして「決定済み」と「実装に委ねる」の境界がどこにあるべきか——です。
 
-The remaining decision is *how* the analyzer represents those forms in Ruby code: which classes exist, how methods are grouped, how relational answers are returned, and where the boundary between "decided" and "deferred to implementation" should fall.
+## 参照モデル: PHPStan `Type`
 
-## Reference Model: PHPStan `Type`
+最も近い実用的な参照は、`phpstan/phpstan-src`のPHPStanの`Type`インターフェースとその`TrinaryLogic`コンパニオンです。代表的なアップストリームパス:
 
-The closest practical reference is PHPStan's `Type` interface and its `TrinaryLogic` companion in `phpstan/phpstan-src`. Indicative upstream paths:
+- [`src/Type/Type.php`](https://github.com/phpstan/phpstan-src/blob/2.2.x/src/Type/Type.php) — すべての型が実装する中心的なインターフェース。
+- [`src/Type/Constant/ConstantStringType.php`](https://github.com/phpstan/phpstan-src/blob/2.2.x/src/Type/Constant/ConstantStringType.php) — 代表的なリテラル値実装。
+- [`src/Type/Accessory/`](https://github.com/phpstan/phpstan-src/tree/2.2.x/src/Type/Accessory) — `IntersectionType`を通じて合成するリファインメントのみの型。
+- [`src/Type/Generic/`](https://github.com/phpstan/phpstan-src/tree/2.2.x/src/Type/Generic) — テンプレートパラメーター、変性、汎用キャリア。
+- [`src/TrinaryLogic.php`](https://github.com/phpstan/phpstan-src/blob/2.2.x/src/TrinaryLogic.php) — ケイパビリティクエリと関係クエリが共有する3値結果クラス。
+- [`src/Type/IsSuperTypeOfResult.php`](https://github.com/phpstan/phpstan-src/blob/2.2.x/src/Type/IsSuperTypeOfResult.php)と[`src/Type/AcceptsResult.php`](https://github.com/phpstan/phpstan-src/blob/2.2.x/src/Type/AcceptsResult.php) — 3値の回答とleason メタデータをバンドルする結果オブジェクト。
 
-- [`src/Type/Type.php`](https://github.com/phpstan/phpstan-src/blob/2.2.x/src/Type/Type.php) — the central interface every type implements.
-- [`src/Type/Constant/ConstantStringType.php`](https://github.com/phpstan/phpstan-src/blob/2.2.x/src/Type/Constant/ConstantStringType.php) — a representative literal-value implementation.
-- [`src/Type/Accessory/`](https://github.com/phpstan/phpstan-src/tree/2.2.x/src/Type/Accessory) — refinement-only types that compose through `IntersectionType`.
-- [`src/Type/Generic/`](https://github.com/phpstan/phpstan-src/tree/2.2.x/src/Type/Generic) — template parameters, variance, and generic carriers.
-- [`src/TrinaryLogic.php`](https://github.com/phpstan/phpstan-src/blob/2.2.x/src/TrinaryLogic.php) — the three-valued result class shared by capability and relational queries.
-- [`src/Type/IsSuperTypeOfResult.php`](https://github.com/phpstan/phpstan-src/blob/2.2.x/src/Type/IsSuperTypeOfResult.php) and [`src/Type/AcceptsResult.php`](https://github.com/phpstan/phpstan-src/blob/2.2.x/src/Type/AcceptsResult.php) — result objects that bundle a trinary answer with reason metadata.
+`phpstan-src`リポジトリはRigorのサブモジュールの一部**ではありません**——`references/phpstan`はウェブサイト（`website/`）のみを持ちます——そのため、これらの引用は外部ポインターです。Rigorのチェックアウト内の`references/phpstan/website/src/developing-extensions/type-system.md`ドキュメントが最も近いリポジトリ内の説明です。
 
-The `phpstan-src` repository is **not** part of Rigor's submodules — `references/phpstan` carries the website (`website/`) only — so these citations are external pointers. The `references/phpstan/website/src/developing-extensions/type-system.md` document inside the Rigor checkout is the closest in-repo description.
+Rigorがこの参照から採用するパターンは、後でどのオープンクエスチョンが解決されるかに関わらず:
 
-The patterns Rigor adopts from this reference, regardless of which open question is resolved later, are:
+- **型を切り替えるために`instanceof`を使わない。** PHPStanのインターフェースコメントは明示的です: 呼び出し元は`$type instanceof StringType`ではなく`$type->isString()->yes()`と聞きます。Rigorは同じルールに従います。具体的なクラスは実装の詳細です。
+- **モナドのような証人リストとしての空/非空配列。** PHPStanの`getConstantStrings(): list<ConstantStringType>`のようなメソッドは、解析器が定数文字列の証人を証明できない場合に空の配列を返し、そうでなければ非空のリストを返します。ユニオンと積はメンバーリストを組み合わせることで合成します。Rigorはリファインメントプロジェクション用にこのパターンを採用します。
+- **ブール値から分離された3値の結果。** ケイパビリティの質問は3値の結果（`yes`/`no`/`maybe`）を返します。特定の結果クラスのみがその値を理由でラップします。RigorはRubyイディオムで同じ分離を採用します。
+- **サブクラスではなくラッパーとしての複合型。** PHPStanの`IntersectionType`、`UnionType`、`GenericObjectType`、`ConstantArrayType`、そしてアクセサリー型は、内部の`Type`参照を保持することで合成します。Rigorのラッパー（`Dynamic`、`Refined`、`Union`、`Intersection`、`Difference`、汎用キャリア）は同じ合成に従います。
 
-- **Never use `instanceof` to switch on a type.** PHPStan's interface comment is explicit: callers ask `$type->isString()->yes()` rather than `$type instanceof StringType`. Rigor follows the same rule. Concrete classes are implementation details.
-- **Empty/non-empty array as a monad-like witness list.** Methods such as PHPStan's `getConstantStrings(): list<ConstantStringType>` return an empty array when the analyzer cannot prove any constant string witnesses, and a non-empty list otherwise. Unions and intersections compose by combining witness lists. Rigor adopts this pattern for refinement projections.
-- **Trinary results, separated from booleans.** Capability questions return a three-valued result (`yes`/`no`/`maybe`); only specific result classes wrap that value with reasons. Rigor adopts the same separation but in Ruby idiom.
-- **Compound types are wrappers, not subclasses.** PHPStan's `IntersectionType`, `UnionType`, `GenericObjectType`, `ConstantArrayType`, and the accessory types compose by holding inner `Type` references. Rigor's wrappers (`Dynamic`, `Refined`, `Union`, `Intersection`, `Difference`, generic carriers) follow the same composition.
+PHPStanはコードの再利用のために内部的にクラス継承も使用します（例: `ConstantStringType extends StringType`）。Rigorはここで意図的に分岐します: Rigorの型表現は**型クラス間に継承がありません**。次のセクションでその理由を説明します。
 
-PHPStan also uses class inheritance internally for code reuse (for example `ConstantStringType extends StringType`). Rigor deliberately diverges here: the Rigor type representation has **no inheritance between type classes**. The next section explains why.
+## Ruby固有のフレーミング
 
-## Ruby-Specific Framing
+RigorはRubyを対象とします。Rubyの3つの特性がPHPStanモデルからの偏差を駆動します:
 
-Rigor targets Ruby. Three properties of Ruby drive deviations from the PHPStan model:
+- **すべての値はオブジェクトです。** PHPのスカラー値とオブジェクト値の分割はRubyには存在しません。整数リテラル`1`はすでに`1.class == Integer`を通じてクラス情報を持ちます。「定数文字列」型と「定数整数」型は原則として、識別が`value.class`である単一のRubyキャリアを共有できますが、クラスごとのレイアウトも可能です。これはオープンクエスチョン1の実質です。
+- **`?`サフィックスのメソッドは慣例的にブール値を返します。** Rubyの読者は`string?`が`true`または`false`を返すことを期待します。Rigorのケイパビリティクエリは3値の結果を返します。命名規則は`?`を削除するか、ローカルで再定義するか、または2つの並行サーフェスを公開する必要があります。これはオープンクエスチョン2の実質です。
+- **ミックスイン基盤の合成が慣用的です。** RubyモジュールはクラスHierarchyを強制せずにトレイトのような動作を共有できます。Rigorはモジュールを、型分類ではなく共有の構造的等値性とidentityコントラクトに狭く使用します。
 
-- **Every value is an object.** PHP's split between scalar and object values does not exist in Ruby. The integer literal `1` already carries class information through `1.class == Integer`. A "constant string" type and a "constant integer" type can in principle share a single Ruby carrier whose discrimination is `value.class`, although a per-class layout is also possible. This is the substance of open question 1.
-- **`?`-suffixed methods conventionally return booleans.** Ruby readers expect `string?` to return `true` or `false`. Rigor's capability queries return a three-valued result. The naming convention must either drop the `?`, redefine it locally, or expose two parallel surfaces. This is the substance of open question 2.
-- **Mixin-based composition is idiomatic.** Ruby modules can share trait-like behavior without imposing a class hierarchy. Rigor uses modules narrowly for shared structural-equality and identity contracts, not as a type taxonomy.
+このADRの残りは、設計の根拠、作業決定、却下/延期された選択肢、および計画チェックリストを記録します。安定した決定は[`docs/internal-spec/internal-type-api.md`](../../internal-spec/internal-type-api/)において規範的です。このADRとそのドキュメントが一致しないように見える場合、仕様が拘束力を持ちます。
 
-The rest of this ADR records the design rationale, the working decisions, the rejected/deferred alternatives, and the planning checklist. The decisions that have stabilized are normative in [`docs/internal-spec/internal-type-api.md`](../../internal-spec/internal-type-api/); when this ADR and that document appear to disagree, the spec binds.
+## 規範的コントラクト
 
-## Normative Contract
+内部型表現の決定済みの部分——不変値オブジェクト、構造的等値性、型クラス間の継承なし、`Rigor::Trinary`を返すケイパビリティクエリ、`Array<Type>`を返すリファインメントプロジェクション、ラッパーとしての複合形式、結果オブジェクトを返す関係クエリ、ファクトリールートの正規化、メソッドサーフェス、モジュールレイアウト、診断表示ルーティング——は[`docs/internal-spec/internal-type-api.md`](../../internal-spec/internal-type-api/)において規範的です。エンジンとプラグインのコードはそのドキュメントに従わなければなりません（MUST）。このADRは設計の根拠、以下の却下/延期オプション、および計画チェックリストのために保持されます。移動したコントラクトに対して拘束力があるものとして扱ってはなりません（MUST NOT）。
 
-The decided parts of the internal type representation — immutable value objects, structural equality, no inheritance between type classes, capability queries returning `Rigor::Trinary`, refinement projections returning `Array<Type>`, compound forms as wrappers, relational queries returning result objects, factory-routed normalization, the method surface, the module layout, and the diagnostics-display routing — are normative in [`docs/internal-spec/internal-type-api.md`](../../internal-spec/internal-type-api/). Engine and plugin code MUST follow that document. This ADR is retained for design rationale, the rejected/deferred options below, and the planning checklist; it MUST NOT be treated as binding for the contracts that have moved.
+それらの型オブジェクトを取り囲むエンジンサーフェスコントラクト（`Scope`、ファクトストア、エフェクトモデル、ケイパビリティロール推論、正規化、RBS消去ルーティング、公開安定性ルール）は[`docs/internal-spec/implementation-expectations.md`](../../internal-spec/implementation-expectations/)において規範的です。
 
-The engine-surface contract that surrounds those type objects (`Scope`, fact store, effect model, capability-role inference, normalization, RBS erasure routing, public stability rules) is normative in [`docs/internal-spec/implementation-expectations.md`](../../internal-spec/implementation-expectations/).
+## 作業決定
 
-## Working Decisions
+3つの設計上の問いは、最初は選ばれた回答を実際のコードで試せるように延期されていました。最初の2つは既存の実装によって解決されています。3つ目は後続のスライスが一貫したターゲットを持てるように設計レベルで解決されています。以下の各セクションは作業決定、それを着地させた根拠、および却下/延期された選択肢をその元の「検討されたオプション」形式で記録します。
 
-Three design questions were originally deferred so the chosen answer could be exercised in real code first. The first two are now resolved by the existing implementation; the third is resolved at the design level so subsequent slices have a consistent target. Each section below records the working decision, the rationale that landed it, and the rejected/deferred alternatives in their original "Options Considered" form so future readers see the trade-off space.
+### オープンクエスチョン1: 定数スカラーとオブジェクトシェイプ
 
-### Open Question 1: Constant Scalar and Object Shape
+解析器が値が特定のRubyリテラル（`1`、`"aaa"`、`:sym`、`true`、`false`、`nil`）と等しいことを証明できる場合、その事実はどのように型表現に持ち込まれるべきですか？
 
-When the analyzer can prove that a value equals a specific Ruby literal (`1`, `"aaa"`, `:sym`, `true`, `false`, `nil`), how should that fact be carried in the type representation?
+**作業決定: オプションC（ハイブリッド）。** 単一の`Rigor::Type::Constant`クラスがスカラーリテラル（`Integer`、`Float`、`String`、`Symbol`、`Rational`、`Complex`、`true`、`false`、`nil`、整数エンドポイントの`Range`）を持ちます。専用のキャリア（`Tuple`、`HashShape`、`IntegerRange`など）は、内部構造が単一のRuby値に圧縮できない複合形状とリファインメント形状を持ちます。実装は[`lib/rigor/type/constant.rb`](../../lib/rigor/type/constant.rb)（`SCALAR_CLASSES`が受け入れるクラスを列挙）、[`lib/rigor/type/tuple.rb`](../../lib/rigor/type/tuple.rb)、[`lib/rigor/type/hash_shape.rb`](../../lib/rigor/type/hash_shape.rb)、[`lib/rigor/type/integer_range.rb`](../../lib/rigor/type/integer_range.rb)にあります。
 
-**Working Decision: Option C (hybrid).** A single `Rigor::Type::Constant` class carries any scalar-like literal (`Integer`, `Float`, `String`, `Symbol`, `Rational`, `Complex`, `true`, `false`, `nil`, plus integer-endpoint `Range`); dedicated carriers (`Tuple`, `HashShape`, `IntegerRange`, …) hold the compound and refinement shapes whose inner structure cannot compress to a single Ruby value. The implementation lives in [`lib/rigor/type/constant.rb`](../../lib/rigor/type/constant.rb) (`SCALAR_CLASSES` enumerates the accepted classes) alongside [`lib/rigor/type/tuple.rb`](../../lib/rigor/type/tuple.rb), [`lib/rigor/type/hash_shape.rb`](../../lib/rigor/type/hash_shape.rb), and [`lib/rigor/type/integer_range.rb`](../../lib/rigor/type/integer_range.rb).
+ハイブリッドは元の分析でスコアが最も高かったのと同じ理由で着地しました。スカラーキャリアはコンパクトでRubyイディオムを保ち、既存のキャリアはすでに内部型参照とシェイプポリシーのために独自の構造を必要とし、「スカラーリテラル」と「複合シェイプ」の境界は[`rigor-extensions.md`](../../type-specification/rigor-extensions/)の概念的な分離と一致します。
 
-The hybrid landed for the same reasons it scored best in the original analysis: scalar carriage stays compact and Ruby-idiomatic, every existing carrier already needs its own structure for inner-type references and shape policies, and the boundary between "scalar literal" and "compound shape" matches the conceptual separation in [`rigor-extensions.md`](../../type-specification/rigor-extensions/). The soft boundary is documented in [`docs/internal-spec/internal-type-api.md`](../../internal-spec/internal-type-api/) (the public type-object surface) and in [`lib/rigor/type/constant.rb`](../../lib/rigor/type/constant.rb)'s `SCALAR_CLASSES` list.
+**検討して却下されたオプション:**
 
-The compound-of-constants question called out in the original analysis (whether `[1, 2, 3]` lifts to `Tuple[Constant[1], Constant[2], Constant[3]]` or to a constant-array carrier) is resolved in favour of `Tuple[Constant…]`. `Tuple` is the carrier; `Constant` participates only as element types. The same shape applies to `{a: 1}` lifting to `HashShape{a: Constant[1]}`.
+- *オプションA — 統一キャリア（複合リテラルを含むすべてのものに単一の`Constant`）。* 複合シェイプ（`Tuple`、`HashShape`、`Record`）は内部の`Rigor::Type`参照とelement単位のポリシーを持ち、単一のRuby値に圧縮できないため却下。統一された`Constant`はすべてのインスタンスにそれらのポリシーを埋め込む必要があり、スカラーキャリアとシェイプポリシーを混同します。
+- *オプションB — Rubyクラスごとの専門化（`String::Constant`、`Integer::Constant`など）。* クラスごとのレイアウトはサポートされるリテラル種類に比例してクラス数を増やし、Rubyでそのレイアウトが購入するクラスごとの動作は何も必要ありません——統一キャリアでの`value.class`ディスパッチはクラスパターンマッチと同様に直接的であり、リファインメントプロジェクションは統一されたシェイプに対してクリーンに合成するため却下（OQ3の作業決定を参照）。
 
-**Options considered and rejected.**
+### オープンクエスチョン2: 3値を返す述語の命名
 
-- *Option A — Unified carrier (single `Constant` for everything, including compound literals).* Rejected because compound shapes (`Tuple`, `HashShape`, `Record`) carry inner `Rigor::Type` references and per-element policies (extra-key handling, optional keys, read-only flags) that do not compress to a single Ruby value. A unified `Constant` would have to embed those policies in every instance, conflating scalar carriage with shape policy.
-- *Option B — Specialized per Ruby class (`String::Constant`, `Integer::Constant`, …).* Rejected because the per-class layout grows the class count linearly with supported literal kinds while none of the per-class behaviour the layout would buy is needed in Ruby — `value.class` dispatch in a unified carrier is just as direct as a class-pattern match, and refinement projections compose cleanly against the unified shape (see OQ3's working decision).
+ケイパビリティメソッドは`Rigor::Trinary`を返し、Rubyのブール値ではありません。Rubyの慣例は`?`サフィックスのメソッドがブール値を返すことです。この2つの事実が衝突します。
 
-### Open Question 2: Trinary-Returning Predicate Naming
+**作業決定: オプションA（3値を返すメソッドの`?`を削除）。** 型側のケイパビリティと関係クエリは`Rigor::Trinary`（`type.top`、`type.bot`、`type.dynamic`）または結果オブジェクト（`type.accepts(other, mode:)`は`Type::AcceptsResult`を返す）を返す名詞/動詞形式です。ブールクエリ——`Trinary`自体を含む——は、それが本当にブール値を返すから`?`サフィックスを保持します（`Trinary#yes?`、`Trinary#no?`、`Trinary#maybe?`、`AcceptsResult#yes?`/`#no?`/`#maybe?`）。
 
-Capability methods return `Rigor::Trinary`, not Ruby booleans. Ruby's convention is that `?`-suffixed methods return booleans. The two facts collide.
+実装はスライス1からこのルールと一致しています。すべての`Rigor::Type`キャリアは`top`、`bot`、`dynamic`（3値を返す、`?`なし）と`accepts(other, mode:)`（結果オブジェクトを返す）を公開し、`Trinary`はブールプロジェクションのために`yes?`/`no?`/`maybe?`を公開します。
 
-**Working Decision: Option A (drop the `?` for trinary-returning methods).** Type-side capability and relational queries are noun/verb forms that return either a `Rigor::Trinary` (`type.top`, `type.bot`, `type.dynamic`) or a result object (`type.accepts(other, mode:)` returns `Type::AcceptsResult`). Boolean queries — including `Trinary` itself — keep the `?` suffix exactly because they DO return booleans (`Trinary#yes?`, `Trinary#no?`, `Trinary#maybe?`, `AcceptsResult#yes?`/`#no?`/`#maybe?`).
+クロスカット要件は引き続き有効です:
 
-The implementation has been consistent with this rule from Slice 1: every `Rigor::Type` carrier exposes `top`, `bot`, `dynamic` (Trinary-returning, no `?`) plus `accepts(other, mode:)` (result-object returning), and `Trinary` exposes `yes?`/`no?`/`maybe?` for boolean projection. See [`lib/rigor/type/constant.rb`](../../lib/rigor/type/constant.rb), [`lib/rigor/type/nominal.rb`](../../lib/rigor/type/nominal.rb), [`lib/rigor/type/union.rb`](../../lib/rigor/type/union.rb), and [`lib/rigor/trinary.rb`](../../lib/rigor/trinary.rb).
+- `Rigor::Trinary`値オブジェクトは`yes?`、`no?`、`maybe?`メソッドを持たなければなりません（MUST）。
+- `Rigor::Type`のすべてのメソッドが3値を返す場合、このルールに従わなければなりません（MUST）（クラスごとの偏差なし）。
+- ケイパビリティサーフェスと関係サーフェスは一致します。
 
-The cross-cutting requirements remain in force:
+**検討して却下されたオプション:**
 
-- The `Rigor::Trinary` value object MUST have `yes?`, `no?`, `maybe?` methods; those *are* booleans by the ordinary Ruby convention.
-- Every `Rigor::Type` method that returns a trinary MUST follow this convention (no per-class deviation).
-- The capability surface and the relational surface agree: capability methods drop the `?`, and relational methods (return result objects) do likewise.
+- *オプションB — `?`を保持して偏差を文書化。* `?`サフィックスのメソッドから非ブール値を静かに返すことは広く保持されているRubyの期待と矛盾し、コントリビューター、RuboCop/Rubyルール、RBS著者、IDEのインレイヒントを混乱させるため却下。
+- *オプションC — デュアルAPI（3値のための`type.string`と`.yes?`上のブールシュガーのための`type.string?`）。* サーフェスを2倍にし、呼び出し元が`?`をデフォルトに使用して`maybe`を認識する動作を静かに失う誘惑を与え——[`relations-and-certainty.md`](../../type-specification/relations-and-certainty/)が警告する正確な失敗モード——2つの並行サーフェスを同期する保守負担はすべての新しいクエリメソッドとともに増大するため却下。
 
-**Options considered and rejected.**
+### オープンクエスチョン3: リファインメントキャリア戦略
 
-- *Option B — Keep the `?` and document the deviation.* Rejected because silently returning a non-boolean from a `?`-suffixed method conflicts with widely-held Ruby expectations and confuses contributors, RuboCop / lint rules, RBS authors, and IDE inlay hints. The deviation cost compounds across every type-class method.
-- *Option C — Dual API (`type.string` for Trinary, `type.string?` for boolean sugar over `.yes?`).* Rejected because it doubles the surface, tempts callers to default to `?` and silently lose `maybe`-aware behavior — the exact failure mode [`relations-and-certainty.md`](../../type-specification/relations-and-certainty/) warns against — and the maintenance burden of keeping two parallel surfaces in sync grows with every new query method. The single `type.foo + foo.yes?` chain at the call site is the same character count as `type.foo?` and is unambiguous about the answer's shape.
+[`imported-built-in-types.md`](../../type-specification/imported-built-in-types/)はリファインメント名のカタログを予約します——`non-empty-string`、`lowercase-string`、`numeric-string`、`decimal-int-string`、`positive-int`、`non-empty-array[T]`、`non-empty-hash[K, V]`など——これらは既存の名前的型の*サブセット*を命名します。問いは、解析器がそれらのサブセットをどのように内部的に表現するかです。
 
-### Open Question 3: Refinement Carrier Strategy
+**作業決定: オプションC（2層ハイブリッド: 点除去`Difference`、述語サブセット`Refined`）。** カタログは自然な数学的境界に沿って分割されます:
 
-[`imported-built-in-types.md`](../../type-specification/imported-built-in-types/) reserves a catalogue of refinement names — `non-empty-string`, `lowercase-string`, `numeric-string`, `decimal-int-string`, `positive-int`, `non-empty-array[T]`, `non-empty-hash[K, V]`, … — that name a *subset* of an existing nominal type. The question is how the analyzer represents those subsets internally so that:
-
-- the refinement composes with combinators (`Union`, `Intersection`, `Difference`) without introducing a parallel algebra,
-- predicates whose answer is determined by the refinement (`ns.empty?` / `ns.size == 0` / `ns.size > 0` for `ns: non-empty-string`) reduce to the precise `Constant[bool]`, and
-- new refinement names — including plugin-contributed ones — slot in without bespoke carrier code per name.
-
-**Working Decision: Option C (two-tier hybrid: point-removal `Difference`, predicate-subset `Refined`).** The catalogue splits along the natural mathematical boundary so each refinement lands in the carrier that matches its shape:
-
-- **Point-removal refinements** — value set is the base type minus a finite, statically describable set of values — use the existing `Difference[BaseType, RemovedSet]` carrier:
+- **点除去リファインメント** — 値集合が基底型から有限で静的に記述可能な値の集合を引いたもの — 既存の`Difference[BaseType, RemovedSet]`キャリアを使用:
   - `non-empty-string` = `String - ""`
   - `non-zero-int` = `Integer - 0`
   - `non-empty-array[T]` = `Array[T] - []`
   - `non-empty-hash[K, V]` = `Hash[K, V] - {}`
-  - `positive-int` and `non-negative-int` are already realised through `IntegerRange`, which is structurally a Difference against the complementary half-line and stays as the dedicated bounded-integer carrier.
-- **Predicate-subset refinements** — value set is defined by a per-element predicate the analyzer cannot reduce to a finite complement — use a `Type::Refined` carrier that wraps a base type and a predicate identifier:
+  - `positive-int`と`non-negative-int`はすでに`IntegerRange`を通じて実現されています。
+- **述語サブセットリファインメント** — 値集合が要素ごとの述語によって定義される — 基底型と述語識別子をラップする`Type::Refined`キャリアを使用:
   - `lowercase-string` = `Refined[String, :lowercase]`
   - `uppercase-string` = `Refined[String, :uppercase]`
   - `numeric-string` = `Refined[String, :numeric]`
-  - `decimal-int-string`, `octal-int-string`, `hex-int-string` — each a `Refined[String, :…]`
-  - Plugin-contributed predicate refinements via ADR-2, which register a `(name, base, predicate)` triple at boot time.
+  - `decimal-int-string`、`octal-int-string`、`hex-int-string` — それぞれ`Refined[String, :…]`
+  - ADR-2を介したプラグイン提供の述語リファインメント
 
-Composite refinement names compose through `Intersection`: `non-empty-lowercase-string` = `Difference[String, ""] & Refined[String, :lowercase]`. The intersection algebra already exists; no per-refinement intersection rules are needed.
+複合リファインメント名は`Intersection`を通じて合成します: `non-empty-lowercase-string` = `Difference[String, ""] & Refined[String, :lowercase]`。
 
-A canonical-name registry maps each kebab-case name to its carrier shape (`Difference` or `Refined`+predicate). Display routes through the registry so `Difference[String, ""]` prints as `non-empty-string`, `Refined[String, :lowercase]` prints as `lowercase-string`, and the parser accepts both kebab-case names and the equivalent operator forms in `RBS::Extended` payloads. The registry is the single integration point ADR-2 plugins extend.
+正規名レジストリはケバブケース名をそのキャリア形状（`Difference`または`Refined`+述語）にマッピングします。
 
-The first implementation slice will land `non-empty-string` end to end:
+**ステータス（v0.0.4以降）:** 両方の半分と合成`Intersection`キャリアはv0.0.4で出荷されました。`Type::Difference`は[`lib/rigor/type/difference.rb`](../../lib/rigor/type/difference.rb)、`Type::Refined`は[`lib/rigor/type/refined.rb`](../../lib/rigor/type/refined.rb)、`Type::Intersection`は[`lib/rigor/type/intersection.rb`](../../lib/rigor/type/intersection.rb)にあります。
 
-- introduce `Type::Difference` as a peer of `Union` / `Intersection` in [`lib/rigor/type/`](../../lib/rigor/type/);
-- add `Combinator.non_empty_string` (and the symmetric `Combinator.non_zero_int`, `Combinator.non_empty_array`, `Combinator.non_empty_hash`);
-- add a catalog-tier rule that projects `String#size` over a `Difference[String, ""]` receiver to `positive-int` (which then folds `ns.size == 0` to `Constant[false]` through the existing integer-equal narrowing tier);
-- add a `String#empty?` rule that returns `Constant[false]` for a non-empty-string receiver directly;
-- add the canonical-name registry with the bidirectional `non-empty-string` ↔ `String - ""` mapping.
+**検討して却下されたオプション:**
 
-**Status (post-v0.0.4):** Both halves and the composed Intersection carrier shipped in v0.0.4 (CHANGELOG `[0.0.4]`). `Type::Difference` lives at [`lib/rigor/type/difference.rb`](../../lib/rigor/type/difference.rb), `Type::Refined` at [`lib/rigor/type/refined.rb`](../../lib/rigor/type/refined.rb), and `Type::Intersection` at [`lib/rigor/type/intersection.rb`](../../lib/rigor/type/intersection.rb). The `Builtins::ImportedRefinements` registry resolves `non-empty-string`, `non-zero-int`, `non-empty-array[T]`, `non-empty-hash[K, V]`, the IntegerRange aliases (`positive-int`, `non-negative-int`, `negative-int`, `non-positive-int`), the predicate refinements (`lowercase-string`, `uppercase-string`, `numeric-string`, `decimal-int-string`, `octal-int-string`, `hex-int-string`), and the composed names (`non-empty-lowercase-string`, `non-empty-uppercase-string`). Plugin-contributed predicate refinements (ADR-2) are still gated on the plugin API; the carrier itself is in place.
+- *オプションA — アクセサリーキャリアごとの`IntersectionType`。* PHPStanスタイル。リファインメントごとのクラス成長はカタログに対して無限であり、点除去半分の`Difference`と述語半分の共有`Refined`キャリアによってすでに表現可能な動作をクラスごとのレイアウトが購入するため却下。
+- *オプションB — Difference型のみ。* 述語定義のリファインメント（`lowercase-string`、`numeric-string`）をカバーできないため却下。
 
-**Rationale for choosing C over A and B.**
+## クラスカタログドラフト
 
-| Concern | Option A (Accessory) | Option B (Difference only) | Option C (chosen) |
-| --- | --- | --- | --- |
-| Per-name class count | One per refinement | Zero | Zero for point-removals, one shared `Refined` for predicates |
-| Predicate-subset coverage | Yes | No | Yes |
-| Reuse of existing combinators | New intersection rules per accessory | Full reuse of `Difference` | Full reuse of `Difference` + a single shared `Refined` |
-| Plugin authoring surface | Subclass an accessory base | N/A (no predicate refinements) | Register a `(name, base, predicate)` triple |
-| Display contract | Per-class `describe` | Canonical-name table | Canonical-name registry (bidirectional) |
-| RBS erasure | Per-class | Universal (Difference erases to base) | Universal (`Difference` and `Refined` both erase to base) |
+このカタログは**規範的ではありません**。型仕様が計画された表現によってカバーされているかのチェックリストです。
 
-Option B is closer to the implementation (no new carrier classes at all), but it cannot express `lowercase-string` / `numeric-string` because those are predicate-defined, not point-set complements. Adopting B alone would leave the imported-built-in catalogue half-implemented.
+- **特殊型**: `Top`、`Bot`、`Dynamic`、`Void`。`Untyped`は構築時に`Dynamic[Top]`に解決されます。
+- **名前的型**: `Nominal`、`Singleton`、`Self`、`Instance`、`ClassMarker`。
+- **構造的型**: `Interface`、`ObjectShape`、`Capability`、`MethodSignature`、`ProcSignature`、`BlockSignature`。
+- **コンテナ**: `ArrayShape`、`Tuple`、`HashShape`、`Record`。
+- **定数**: `Constant`はスカラーリテラルを持ちます（OQ1オプションCで解決）。
+- **コンビネータ**: `Union`（実装済み）、`Intersection`、`Difference`、`Complement`。
+- **リファインメント**: OQ3オプションCごとに、リファインメントは2層に分割されます。点除去は`Difference[BaseType, RemovedSet]`を使用。述語サブセットは`Refined[BaseType, predicate]`を使用。`IntegerRange`は専用の有界整数キャリアとして残ります。
+- **汎用位置キャリア**: `Generic`、`TemplateParameter`、`Variance`。
 
-Option A scales linearly with the catalogue and proliferates classes whose sole job is to encode "this base type, that predicate". Ruby modules, mixins, and `case` patterns can match a `Type::Refined.predicate` without per-class boilerplate, so the per-class layout buys nothing the unified `Refined` shape does not already provide.
+すべてのエントリは[`docs/internal-spec/internal-type-api.md`](../../internal-spec/internal-type-api/)のメソッドサーフェスを満たさなければなりません（MUST）。
 
-Option C is the minimum-class-count answer that covers the entire catalogue: the point-removal half reuses `Difference` (one new carrier class total), the predicate half adds one shared `Refined` carrier, and the canonical-name registry handles printing and parsing for both halves uniformly.
+## 実装ロードマップ
 
-**Predicate-evaluation propagation example.** For `ns: non-empty-string` (= `Difference[Nominal[String], Constant[""]]`), the chained projection is:
+ロードマップは情報提供のためであり、規範的ではありません。
 
-```ruby
-ns.size                       # positive-int
-ns.size == 0                  # Constant[false]
-ns.size != 0                  # Constant[true]
-ns.size > 0                   # Constant[true]
-ns.empty?                     # Constant[false]
-```
+OQ1+OQ2キャリアは着地しています: `Type::Constant`、`Type::Tuple`、`Type::HashShape`、`Type::IntegerRange`、`Type::Union`、`Type::Top`、`Type::Bot`、`Type::Dynamic`、`Type::Nominal`、`Type::Singleton`、3値を返すケイパビリティメソッド、`Type::AcceptsResult`など。
 
-The route is: the catalog tier projects `String#size` over the *base* nominal as `non_negative_int`; the Difference subtracts `""` (whose size is `0`) from the receiver's value set; the size projection collapses to `positive-int` automatically because the base's `non_negative_int` minus the size-of-`""` (`Constant[0]`) is `positive-int`. The existing integer-equal narrowing tier handles `positive-int == 0 → Constant[false]` without any refinement-specific rule. `ns.empty?` returns `Constant[false]` via a one-line direct rule for `String#empty?` over a non-empty-string receiver.
+OQ3は`Type::Difference`の着地（点除去半分）と`Type::Refined`（述語サブセット半分）によって解決されています。
 
-When the slice lands, ADR-3 will record the working decision in the implementation notes and add a normative section to [`internal-type-api.md`](../../internal-spec/internal-type-api/) describing the `Difference` carrier's public surface, the canonical-name registry contract, and the `String#size` / `String#empty?` projection rules.
+**ステータス（v0.0.4以降）:** 両方のフォローアップスライスが出荷しました。`Type::Refined[base, predicate_id]`（述語レジストリ、正規名テーブル、カタログ層プロジェクションルール付き）と`Type::Intersection`（合成された`non-empty-lowercase-string`/`non-empty-uppercase-string`名のため）がすべて着地しました。6つの述語リファインメントがカタログ化されています（`lowercase-string`、`uppercase-string`、`numeric-string`、`decimal-int-string`、`octal-int-string`、`hex-int-string`）。
 
-**Options considered and rejected.**
+## 参照
 
-- *Option A — Per-refinement Accessory carriers + IntersectionType.* PHPStan-style. Each reserved name gets its own carrier class composed via `Intersection`. Rejected because the per-class growth is unbounded relative to the imported-built-in catalogue, while the per-class behaviour the layout would buy is already expressible through `Difference` (point-removal half) and a shared `Refined` carrier (predicate half). Each new refinement under Option A would require a new class file, new tests, and a new intersection-algebra entry. Reconciling PHPStan's accessory tier with Rigor's value-lattice rules in [`value-lattice.md`](../../type-specification/value-lattice/) would also require an extra reconciliation note that Option C avoids by reusing the lattice directly.
-- *Option B — Difference type alone.* Rejected because it does not cover predicate-defined refinements (`lowercase-string`, `numeric-string`, `decimal-int-string`). Choosing B would force the catalogue to ship half-implemented or to add a parallel mechanism later — which is exactly the choice C makes once, up front. Difference remains essential under C; B's "Difference only" framing is the strict subset.
+Rigorドキュメント:
 
-## Class Catalogue Draft
-
-This catalogue is **not** normative. It is a checklist that the type specification is covered by the planned representation. Each entry cross-references the binding spec section.
-
-- **Special**: `Top`, `Bot`, `Dynamic`, `Void`. `Untyped` resolves to `Dynamic[Top]` at construction; it is not a separate class. See [`special-types.md`](../../type-specification/special-types/) and [`value-lattice.md`](../../type-specification/value-lattice/).
-- **Nominal**: `Nominal` (instance type for a class or module), `Singleton` (class-object type, RBS `singleton(C)`), `Self`, `Instance`, `ClassMarker`. See [`rbs-compatible-types.md`](../../type-specification/rbs-compatible-types/).
-- **Structural**: `Interface` (named RBS interface), `ObjectShape` (anonymous structural type), `Capability` (capability role), `MethodSignature`, `ProcSignature`, `BlockSignature`. See [`structural-interfaces-and-object-shapes.md`](../../type-specification/structural-interfaces-and-object-shapes/).
-- **Containers**: `ArrayShape`, `Tuple`, `HashShape`, `Record`. See [`rbs-compatible-types.md`](../../type-specification/rbs-compatible-types/) for the RBS-derived forms and [`rigor-extensions.md`](../../type-specification/rigor-extensions/) for the refinements (required/optional keys, read-only entries, extra-key policy).
-- **Constants**: `Constant` carries any scalar-like literal (resolved per OQ1 Option C). The carrier is implemented in [`lib/rigor/type/constant.rb`](../../lib/rigor/type/constant.rb) and admits the classes enumerated in `SCALAR_CLASSES`.
-- **Combinators**: `Union` (implemented), `Intersection`, `Difference`, `Complement` (the latter three are landed incrementally by the OQ3 implementation slice and the `RBS::Extended` slice). See [`type-operators.md`](../../type-specification/type-operators/).
-- **Refinements**: per OQ3 Option C, refinements split into two tiers. Point-removals use `Difference[BaseType, RemovedSet]`; predicate-subsets use `Refined[BaseType, predicate]`. `IntegerRange` stays as a dedicated bounded-integer carrier (it is structurally a Difference against the complementary half-line; the dedicated carrier optimises the common case). A canonical-name registry maps each kebab-case name to its carrier shape and back. Imported built-in refinement names are catalogued in [`imported-built-in-types.md`](../../type-specification/imported-built-in-types/).
-- **Generic position carriers**: `Generic`, `TemplateParameter`, `Variance`. Variance is a tag, not a separate type form. See [`rbs-compatible-types.md`](../../type-specification/rbs-compatible-types/).
-
-Every entry MUST satisfy the method surface in [`docs/internal-spec/internal-type-api.md`](../../internal-spec/internal-type-api/). Wrappers (`Dynamic`, refinements, combinators, generic carriers) MUST forward queries into their inner types according to the algebraic rules in [`value-lattice.md`](../../type-specification/value-lattice/).
-
-## Implementation Roadmap
-
-The roadmap is informational, not normative. It scopes the next vertical slices that exercise the resolved Working Decisions.
-
-The OQ1 + OQ2 carriers are landed: `Type::Constant` (unified scalar carrier), `Type::Tuple`, `Type::HashShape`, `Type::IntegerRange` (compound and refinement shapes), `Type::Union`, `Type::Top`, `Type::Bot`, `Type::Dynamic`, `Type::Nominal`, `Type::Singleton`, `Trinary`-returning capability methods, `Type::AcceptsResult` for relational answers, and `describe`/`erase_to_rbs` for each. The remaining work for OQ1/OQ2 is normative consolidation in [`internal-type-api.md`](../../internal-spec/internal-type-api/), not new carrier code.
-
-The next slice resolves OQ3 by landing the point-removal half of Option C:
-
-1. Add `Type::Difference[base, removed]` as a peer of `Union` / `Intersection` in [`lib/rigor/type/`](../../lib/rigor/type/), with the lattice algebra reductions documented in [`value-lattice.md`](../../type-specification/value-lattice/).
-2. Add factory methods on `Combinator`: `non_empty_string`, `non_zero_int`, `non_empty_array(elem)`, `non_empty_hash(k, v)`. Each constructs the matching `Difference[…]`.
-3. Add catalog-tier rules:
-   - `String#size` / `String#length` over `Difference[String, ""]` → `positive-int`
-   - `String#empty?` over `Difference[String, ""]` → `Constant[false]`
-   - Symmetric rules for `Array#size` / `Array#empty?`, `Hash#size` / `Hash#empty?`, `Integer#zero?`.
-4. Add the canonical-name registry: `non-empty-string` ↔ `Difference[String, ""]`, `non-zero-int` ↔ `Difference[Integer, 0]`, etc. Display routes through it; RBS::Extended parsing recognises both forms.
-5. Add a self-asserting integration fixture (`spec/integration/fixtures/non_empty_string.rb`) that demonstrates the chained projection and the canonical-name display.
-
-**Status (post-v0.0.4):** Both follow-up slices shipped. `Type::Refined[base, predicate_id]` (with the predicate registry, the canonical-name table, and the catalog-tier projection rules) and `Type::Intersection` (for the composed `non-empty-lowercase-string` / `non-empty-uppercase-string` names) all landed; six predicate refinements are catalogued (`lowercase-string`, `uppercase-string`, `numeric-string`, `decimal-int-string`, `octal-int-string`, `hex-int-string`). The historical priority order below is preserved as design rationale.
-
-A follow-up slice lands the predicate-subset half (`Type::Refined[base, predicate]`) when the first predicate-defined refinement is needed. Likely candidates in priority order:
-
-- `lowercase-string` / `uppercase-string` (predicate over the receiver's chars)
-- `numeric-string` (predicate: parses as Numeric)
-- `decimal-int-string` / `octal-int-string` / `hex-int-string` (parse-target-specific)
-
-The follow-up slice introduces:
-
-- `Type::Refined[base, predicate_id]` as a sibling of `Difference`. `predicate_id` is a Symbol drawn from a registered predicate table (built-in plus plugin-contributed via ADR-2).
-- The predicate registry: maps each `predicate_id` to a `(name, base, recogniser)` triple. The recogniser MAY be invoked at constant-fold time when the receiver is a `Constant<base>`; for non-Constant receivers the predicate stays opaque to the analyzer (the Refined carrier is a marker).
-- Catalog-tier rules that project specific methods over `Refined[String, :lowercase]` etc. (e.g. `String#downcase` over a lowercase-string receiver folds to `self`).
-- Canonical-name registry entries pointing to the Refined shape.
-
-After the OQ3 slices land, subsequent work expands the catalogue: container shape refinements (`Record` extra-key policies, `Tuple` slicing), structural interfaces and capability roles, generic carriers (`Generic`, `TemplateParameter`, `Variance`), and the diagnostics-display integration in [`diagnostic-policy.md`](../../type-specification/diagnostic-policy/).
-
-## References
-
-Rigor documents:
-
-- [`docs/internal-spec/internal-type-api.md`](../../internal-spec/internal-type-api/) — normative public contract for the type-object surface decided by this ADR.
-- [`docs/internal-spec/implementation-expectations.md`](../../internal-spec/implementation-expectations/) — engine-surface contract that surrounds the type objects.
-- [`docs/adr/1-types.md`](../1-types/) — type-model semantics, dynamic-origin algebra, trinary certainty.
-- [`docs/adr/2-extension-api.md`](../2-extension-api/) — extension surface that consumes Type values; *Type System Object Model* and *Scope Object* sections.
-- [`docs/type-specification/relations-and-certainty.md`](../../type-specification/relations-and-certainty/) — subtyping, gradual consistency, trinary certainty.
-- [`docs/type-specification/value-lattice.md`](../../type-specification/value-lattice/) — lattice identities and `Dynamic[T]` algebra.
-- [`docs/type-specification/special-types.md`](../../type-specification/special-types/) — `top`, `bot`, `untyped`/`Dynamic[T]`, `void`, `nil`/`NilClass`, `bool`/`boolish`.
-- [`docs/type-specification/rbs-compatible-types.md`](../../type-specification/rbs-compatible-types/) — RBS forms and contextual rules.
-- [`docs/type-specification/rigor-extensions.md`](../../type-specification/rigor-extensions/) — refinements Rigor adds beyond RBS.
-- [`docs/type-specification/imported-built-in-types.md`](../../type-specification/imported-built-in-types/) — reserved built-in refinement names.
-- [`docs/type-specification/type-operators.md`](../../type-specification/type-operators/) — operator forms and display contract.
-- [`docs/type-specification/structural-interfaces-and-object-shapes.md`](../../type-specification/structural-interfaces-and-object-shapes/) — interfaces, shapes, capability roles.
-- [`docs/type-specification/normalization.md`](../../type-specification/normalization/) — deterministic normalization rules.
-- [`docs/type-specification/rbs-erasure.md`](../../type-specification/rbs-erasure/) — conservative erasure to RBS.
-- [`docs/type-specification/diagnostic-policy.md`](../../type-specification/diagnostic-policy/) — identifier taxonomy and display rules.
-
-External references (PHPStan source code; not part of Rigor's submodules — `references/phpstan` carries `website/` only):
-
-- [`phpstan/phpstan-src` `src/Type/Type.php`](https://github.com/phpstan/phpstan-src/blob/2.2.x/src/Type/Type.php).
-- [`phpstan/phpstan-src` `src/Type/Constant/ConstantStringType.php`](https://github.com/phpstan/phpstan-src/blob/2.2.x/src/Type/Constant/ConstantStringType.php).
-- [`phpstan/phpstan-src` `src/Type/Accessory/`](https://github.com/phpstan/phpstan-src/tree/2.2.x/src/Type/Accessory).
-- [`phpstan/phpstan-src` `src/Type/Generic/`](https://github.com/phpstan/phpstan-src/tree/2.2.x/src/Type/Generic).
-- [`phpstan/phpstan-src` `src/TrinaryLogic.php`](https://github.com/phpstan/phpstan-src/blob/2.2.x/src/TrinaryLogic.php).
-- [`phpstan/phpstan-src` `src/Type/IsSuperTypeOfResult.php`](https://github.com/phpstan/phpstan-src/blob/2.2.x/src/Type/IsSuperTypeOfResult.php).
-- [`phpstan/phpstan-src` `src/Type/AcceptsResult.php`](https://github.com/phpstan/phpstan-src/blob/2.2.x/src/Type/AcceptsResult.php).
-
-Reference docs included in the Rigor checkout via the `references/phpstan` submodule:
-
-- [`references/phpstan/website/src/developing-extensions/type-system.md`](https://github.com/rigortype/rigor/blob/main/references/phpstan/website/src/developing-extensions/type-system.md).
-- [`references/phpstan/website/src/developing-extensions/trinary-logic.md`](https://github.com/rigortype/rigor/blob/main/references/phpstan/website/src/developing-extensions/trinary-logic.md).
+- [`docs/internal-spec/internal-type-api.md`](../../internal-spec/internal-type-api/) — このADRによって決定された型オブジェクトサーフェスの規範的公開コントラクト。
+- [`docs/internal-spec/implementation-expectations.md`](../../internal-spec/implementation-expectations/) — 型オブジェクトを取り囲むエンジンサーフェスコントラクト。
+- [`docs/adr/1-types.md`](../1-types/) — 型モデルセマンティクス、動的起源代数、3値の確実性。
+- [`docs/adr/2-extension-api.md`](../2-extension-api/) — 型値を消費する拡張サーフェス。
+- [`docs/type-specification/relations-and-certainty.md`](../../type-specification/relations-and-certainty/) — サブタイピング、グラデュアル一貫性（gradual consistency）、3値の確実性。
+- [`docs/type-specification/value-lattice.md`](../../type-specification/value-lattice/) — 束のidentityと`Dynamic[T]`代数。
+- [`docs/type-specification/special-types.md`](../../type-specification/special-types/) — `top`、`bot`、`untyped`/`Dynamic[T]`、`void`、`nil`/`NilClass`、`bool`/`boolish`。
+- [`docs/type-specification/rbs-compatible-types.md`](../../type-specification/rbs-compatible-types/) — RBS形式と文脈的ルール。
+- [`docs/type-specification/rigor-extensions.md`](../../type-specification/rigor-extensions/) — RigorがRBSを超えて追加するリファインメント。
+- [`docs/type-specification/imported-built-in-types.md`](../../type-specification/imported-built-in-types/) — 予約された組み込みリファインメント名。
+- [`docs/type-specification/type-operators.md`](../../type-specification/type-operators/) — 演算子形式と表示コントラクト。
+- [`docs/type-specification/structural-interfaces-and-object-shapes.md`](../../type-specification/structural-interfaces-and-object-shapes/) — インターフェース、シェイプ、ケイパビリティロール。
+- [`docs/type-specification/normalization.md`](../../type-specification/normalization/) — 決定論的正規化ルール。
+- [`docs/type-specification/rbs-erasure.md`](../../type-specification/rbs-erasure/) — RBSへの保守的消去。
+- [`docs/type-specification/diagnostic-policy.md`](../../type-specification/diagnostic-policy/) — 識別子分類体系と表示ルール。

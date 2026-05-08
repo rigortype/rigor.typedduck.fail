@@ -1,30 +1,24 @@
 ---
-title: "ADR-2: Extension API Strategy"
+title: "ADR-2: 拡張API戦略"
 description: "Imported from rigortype/rigor docs/adr/2-extension-api.md."
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/adr/2-extension-api.md"
 sourcePath: "docs/adr/2-extension-api.md"
 sourceSha: "b348f37ad42dbba186dc173d65a772dd69cd9d38f0a8115edb55d56bc9dad3ff"
 sourceCommit: "9f40e22193647dc06e3ab70c5ba82768b0bfe738"
-translationStatus: "pending"
+translationStatus: "translated"
 sidebar:
   order: 4002
 ---
 
-> [!NOTE]
-> このページはまだ翻訳されていません。英語版の本文を参考表示しています。
+## ステータス
 
-## Status
+ドラフト。進行中のv0.1.0実装スライス（4 — 内部ナローイングを通じたFlowContributionの配線、5 — プラグイン診断エミッションプロトコル、6 — プラグイン側キャッシュプロデューサー）の作業決定は[ADR-7](../7-v0.1.0-slice-decisions/)に固定されています。
 
-Draft. Working decisions for the in-flight v0.1.0 implementation
-slices (4 — FlowContribution wiring through internal narrowing,
-5 — plugin diagnostic emission protocol, 6 — plugin-side cache
-producers) are pinned in [ADR-7](../7-v0.1.0-slice-decisions/).
+## コンテキスト
 
-## Context
+Rigorはコア解析器を小さく保ちながら、Rubyフレームワーク、生成されたAPI、DSL、メタプログラミングを処理できる必要があります。PHPStanはこの設計部分の最も強力な参照ポイントです。なぜなら、その拡張APIはフレームワーク著者が解析されたアプリケーションコードを変更せずに型ファクト、リフレクションファクト、ルール、インフラストラクチャ動作を精密に提供する方法を与えるからです。
 
-Rigor should keep the core analyzer small while still handling Ruby frameworks, generated APIs, DSLs, and metaprogramming. PHPStan is the strongest reference point for this part of the design because its extension API gives framework authors precise ways to contribute type facts, reflection facts, rules, and infrastructure behavior without changing the analyzed application code.
-
-The PHPStan reference material for this ADR is `references/phpstan/website/src/developing-extensions/`, especially:
+このADRのPHPStan参照資料は`references/phpstan/website/src/developing-extensions/`、特に:
 
 - `dynamic-return-type-extensions.md`
 - `type-specifying-extensions.md`
@@ -35,370 +29,323 @@ The PHPStan reference material for this ADR is `references/phpstan/website/src/d
 - `dependency-injection-configuration.md`
 - `testing.md`
 
-Rigor should model the architecture, not the PHP names, PHPDoc syntax, or PHP runtime assumptions.
+Rigorはアーキテクチャをモデル化すべきであり、PHPの名前、PHPDocの構文、またはPHPのランタイムの前提ではありません。
 
-## Working Decision
+## 作業決定
 
-Rigor's extension API should be PHPStan-like: a set of small, typed extension protocols registered by configuration or plugin manifests. Each extension receives immutable analysis context objects such as AST nodes, `Scope`, reflection objects, and `Type` values, then returns either a precise contribution or `nil`/empty results to let the core analyzer continue with default behavior.
+RigorのExtension APIはPHPStanのようにすべきです: 設定またはプラグインマニフェストによって登録された小さく型付けされた拡張プロトコルのセット。各拡張はASTノード、`Scope`、リフレクションオブジェクト、`Type`値などの不変の解析コンテキストオブジェクトを受け取り、精密な貢献または`nil`/空の結果を返してコア解析器がデフォルト動作を続けられるようにします。
 
-Plugins must not execute application code. They may inspect parsed Ruby, RBS, generated signatures, configuration, dependency metadata, and cached plugin metadata.
+プラグインはアプリケーションコードを実行してはなりません（MUST NOT）。解析されたRuby、RBS、生成されたシグネチャ、設定、依存関係メタデータ、キャッシュされたプラグインメタデータを検査できます（MAY）。
 
-The core API should start with the extension points that improve type inference and metaprogramming support:
+コアAPIは型推論とメタプログラミングサポートを改善する拡張ポイントから始まるべきです:
 
-- Dynamic return type extensions.
-- Type-specifying extensions for flow narrowing.
-- Dynamic member reflection for methods, attributes, constants, and object shapes.
-- Custom rules and restricted-usage checks.
-- Result-cache metadata and diagnostics.
+- 動的戻り値型拡張。
+- フローナローイングのための型指定拡張。
+- メソッド、属性、定数、オブジェクトシェイプの動的メンバーリフレクション。
+- カスタムルールと制限された使用チェック。
+- 結果キャッシュメタデータと診断。
 
-## PHPStan Extension Surface
+## PHPStan拡張サーフェス
 
-| Category | PHPStan feature | Rigor implication |
+| カテゴリ | PHPStan機能 | Rigorへの含意 |
 | --- | --- | --- |
-| Foundations | AST, Scope, Type System, Trinary Logic, Reflection, DI and configuration. | Rigor needs stable object models for Prism AST access, flow scope snapshots, type queries, analyzer reflection, three-valued certainty, service construction, and plugin configuration. |
-| Custom rules | `Rule<TNode>` runs on a selected AST or virtual node and returns diagnostics. Collectors aggregate cross-file facts before rules run on `CollectedDataNode`. | Rigor should support node-scoped rules first, then cross-file collectors once parallel analysis and caching mature. Diagnostics should carry identifiers, file, line, and severity. |
-| Restricted usage | Specialized hooks restrict methods, properties, functions, class names, constants, or similar symbols without writing full AST rules. | Rigor should provide simpler symbol-use hooks for access-policy checks such as internal APIs, generated classes, Rails-only entry points, or test-only helpers. |
-| Type inference | Dynamic return type, dynamic throw type, type-specifying, closure, parameter-out, expression resolver, operator type, and custom PHPDoc type extensions. | Rigor should prioritize return inference, flow facts, block/proc context, expression fallback, and custom RBS-extended type parsing. PHP by-reference parameter hooks map to Ruby mutation/effect hooks instead. |
-| Metadata | Class reflection extensions, custom deprecations, allowed subtypes, additional constructors, exception classification, conditional stub files. | Rigor should let plugins contribute dynamic Ruby members, sealed-like subtype facts, initialization methods, deprecation/internal metadata, exception policy, and generated or conditional RBS. |
-| Dead-code support | Always-read/written properties, always-used constants, always-used methods. | Rigor should defer most dead-code extension points, but the model is useful for Rails, serializers, ORM fields, callbacks, and reflection-heavy code. |
-| Output and infrastructure | Error formatters, ignore-error extensions, diagnose extensions, result-cache metadata extensions, extension testing. | Rigor should support cache invalidation metadata and plugin diagnostics early. Custom formatters and ignore hooks can wait until the CLI output model is stable. |
+| 基盤 | AST、Scope、型システム、3値ロジック、リフレクション、DIと設定。 | Rigorはイミュータブルなスコープスナップショット、型クエリ、解析器リフレクション、3値の確実性、サービス構築、プラグイン設定のために安定したオブジェクトモデルが必要です。 |
+| カスタムルール | `Rule<TNode>`は選択されたASTまたは仮想ノードで実行され診断を返します。コレクターはルールが`CollectedDataNode`で実行される前にクロスファイルファクトを集約します。 | Rigorはまずノードスコープのルールをサポートし、並列解析とキャッシングが成熟したらクロスファイルコレクターをサポートすべきです。 |
+| 制限された使用 | 専門化されたフックは、フルASTルールを書かずにメソッド、プロパティ、関数、クラス名、定数などを制限します。 | Rigorは内部API、生成されたクラス、Rails専用エントリポイント、テスト専用ヘルパーなどのアクセスポリシーチェックのためにシンプルなシンボル使用フックを提供すべきです。 |
+| 型推論 | 動的戻り値型、動的スロー型、型指定、クロージャー、パラメーターアウト、式リゾルバー、演算子型、カスタムPHPDoc型拡張。 | Rigorは戻り値推論、フローファクト、ブロック/プロックコンテキスト、式フォールバック、カスタムRBS拡張型解析を優先すべきです。 |
+| メタデータ | クラスリフレクション拡張、カスタム非推奨、許可されたサブタイプ、追加コンストラクター、例外分類、条件付きスタブファイル。 | Rigorはプラグインが動的Rubyメンバー、サブタイプファクト、初期化メソッド、非推奨/内部メタデータ、例外ポリシー、生成されたまたは条件付きRBSを提供できるようにすべきです。 |
+| デッドコードサポート | 常に読み取られる/書き込まれるプロパティ、常に使用される定数、常に使用されるメソッド。 | Rigorはほとんどのデッドコード拡張ポイントを延期すべきですが、そのモデルはRails、シリアライザー、ORMフィールド、コールバック、リフレクション重いコードに有用です。 |
+| 出力とインフラ | エラーフォーマッター、エラー無視拡張、診断拡張、結果キャッシュメタデータ拡張、拡張テスト。 | Rigorはキャッシュ無効化メタデータとプラグイン診断を早期にサポートすべきです。カスタムフォーマッターと無視フックはCLI出力モデルが安定するまで待てます。 |
 
-The important design pattern is consistent across the PHPStan API: a narrow extension declares what it supports, receives the current `Scope` and reflection/type objects, and returns a domain object. Broad extension points exist, but PHPStan recommends using the narrowest hook that fits.
+重要な設計パターンはPHPStan APIを通じて一貫しています: 狭い拡張は何をサポートするかを宣言し、現在の`Scope`とリフレクション/型オブジェクトを受け取り、ドメインオブジェクトを返します。
 
-## Scope Object
+## Scopeオブジェクト
 
-PHPStan's `Scope` represents the analyzer state at the current AST position. It can answer expression type queries, identify the current file, namespace, class, trait, function, method, or closure, and resolve context-sensitive names such as `self`.
+PHPStanの`Scope`は現在のAST位置での解析器の状態を表します。式の型クエリに答え、現在のファイル、名前空間、クラス、トレイト、関数、メソッド、またはクロージャーを識別し、`self`などのコンテキスト依存の名前を解決できます。
 
-Rigor should provide a similar immutable `Scope` object. It should expose:
+Rigorは同様の不変`Scope`オブジェクトを提供すべきです。以下を公開すべきです:
 
-- `type_of(node)` for expression type queries.
-- `analyze_condition(node)` or an equivalent analyzer-owned operation that can produce truthy, falsey, normal, exceptional, and unreachable output scopes.
-- Current file, lexical nesting, class/module singleton context, method, block, and visibility context.
-- Current receiver type and known local, instance-variable, class-variable, global, constant, and shape facts.
-- Value facts, negative facts, relational facts, member-existence facts, shape facts, dynamic-origin provenance, and fact-stability metadata.
-- Name and constant resolution helpers for Ruby lexical lookup.
-- Flow-edge context such as truthy branch, falsy branch, assertion context, rescue context, and unreachable context.
+- 式型クエリのための`type_of(node)`。
+- `analyze_condition(node)`またはtruthy、falsey、normal、exceptional、unreachableな出力スコープを生成できる同等の解析器所有の操作。
+- 現在のファイル、字句ネスト、クラス/モジュールシングルトンコンテキスト、メソッド、ブロック、可視性コンテキスト。
+- 現在のレシーバー型と既知のローカル、インスタンス変数、クラス変数、グローバル、定数、シェイプファクト。
+- 値ファクト、否定的ファクト、関係ファクト、メンバー存在ファクト、シェイプファクト、動的起源provenance、ファクト安定性メタデータ。
+- Ruby字句ルックアップの名前と定数解決ヘルパー。
+- truthy分岐、falsy分岐、アサーションコンテキスト、rescueコンテキスト、unreachableコンテキストなどのフローエッジコンテキスト。
 
-Extensions should not mutate `Scope` directly. They should return facts, diagnostics, synthetic nodes, or metadata to the analyzer, which applies them through normal control-flow machinery.
+拡張は`Scope`を直接変更してはなりません（SHOULD NOT）。ファクト、診断、合成ノード、またはメタデータを解析器に返すべきであり、解析器は通常の制御フロー機構を通じてそれらを適用します。
 
-The scope model must be precise enough for short-circuiting conditions. If a plugin-defined predicate appears on the left side of `&&`, its true-edge facts must be visible while analyzing the right side. If it appears on the left side of `||`, its false-edge facts must be visible while analyzing the right side.
+スコープモデルは短絡条件に対して十分精密でなければなりません。プラグイン定義の述語が`&&`の左側に現れる場合、そのtrue-edgeファクトは右側を解析する間に見えなければなりません。`||`の左側に現れる場合、そのfalse-edgeファクトは右側を解析する間に見えなければなりません。
 
-The minimal first implementation surface for `Scope` is intentionally narrow:
+`Scope`の最小の最初の実装サーフェスは意図的に狭いです:
 
-- Type queries: `type_of(target)` returns the current narrowed type for a supported target.
-- Relational queries with trinary results: `has_member?(target, name)`, `has_key?(target, key)`, and `equals?(target, value)` return `yes`, `maybe`, or `no` so plugins can ask for relational facts without forcing them into types.
-- Edge-aware narrowing: plugins receive separate truthy and falsey scopes for the conditions they participate in, rather than reading flags off a single mutable `Scope`.
+- 型クエリ: `type_of(target)`はサポートされるターゲットの現在のナローイングされた型を返します。
+- 3値の結果を持つ関係クエリ: `has_member?(target, name)`、`has_key?(target, key)`、`equals?(target, value)`はプラグインが型に強制せずに関係ファクトを尋ねられるように`yes`、`maybe`、または`no`を返します。
+- エッジ認識ナローイング: プラグインは参加する条件のtruthy edgeとfalsey edgeのスコープを別々に受け取ります。
 
-A small `ContextInfo` companion object exposes lexical context that does not belong on `Scope` itself, including current file, surrounding class or module, current method, current visibility scope, and whether the call is being analyzed inside a private, protected, or assertion context. Plugin authors should treat it as descriptive only; analyzer state never flows back into `ContextInfo`.
+小さな`ContextInfo`コンパニオンオブジェクトは`Scope`自体には属さない字句コンテキストを公開します: 現在のファイル、囲むクラスまたはモジュール、現在のメソッド、現在の可視性スコープ、呼び出しがprivate、protected、またはアサーションコンテキストの中で解析されているかどうか。
 
-Target paths accepted in the first plugin milestone are restricted to `self`, named parameters, named locals proven stable in the current scope, and stable receiver members where the receiver is itself a stable target. More expressive paths such as hash keys, tuple elements, instance variables, and method-result chains stay internal until fact-stability rules generalize.
+## 型システムオブジェクトモデル
 
-## Type System Object Model
+PHPStanはすべての型を共通の`Type`インターフェースを実装するオブジェクトとして表現します。型は`isSuperTypeOf`、`accepts`、`hasMethod`、`getMethod`、`hasProperty`、`describe`などのケイパビリティと関係クエリに答えます。これらの回答はしばしばブール値ではなく3値ロジックを使用します。
 
-PHPStan represents every type as an object implementing a common `Type` interface. Types answer capability and relationship queries such as `isSuperTypeOf`, `accepts`, `hasMethod`, `getMethod`, `hasProperty`, and `describe`. These answers often use trinary logic rather than booleans.
+Rigorは同じスタイルを採用すべきです:
 
-Rigor should adopt the same style:
+- 型オブジェクトは通常の不変値オブジェクトです。
+- 関係クエリは不確実性が意味を持つ場合に`yes`、`maybe`、または`no`を返します。
+- 拡張は具体的な実装クラスをチェックするのではなく、`StringType.supertype_of?(type)`などのセマンティックな質問をすべきです。
+- 型コンストラクターはコンビネータ（ユニオン、積、差、消去ヘルパーなど）を通じて正規化すべきです。
+- カスタム型のようなリファインメントは関係、正規化、表示、RBS消去動作を実装すべきです。
 
-- Type objects are ordinary immutable value objects.
-- Relationship queries return `yes`, `maybe`, or `no` where uncertainty is meaningful.
-- Extensions should ask semantic questions such as `StringType.supertype_of?(type)` rather than checking concrete implementation classes.
-- Type constructors should normalize through combinators, for example union, intersection, difference, and erasure helpers.
-- Custom type-like refinements should implement relationship, normalization, display, and RBS erasure behavior.
+`yes`と`no`は現在のソース、受け付けられたシグネチャ、プラグインファクト、および解析器の仮定の下で証明された結果のために予約されています。`maybe`は解析器がどちら側も証明できないことを意味します。
 
-`yes` and `no` are reserved for results that are proven under the current source, accepted signatures, plugin facts, and analyzer assumptions. `maybe` means the analyzer cannot prove either side. Accepted method signatures still define trusted method-boundary contracts: parameters and called method return values are analyzed through their accepted RBS, rbs-inline, Steep-compatible, generated, or `RBS::Extended` contracts rather than treated as uncertain merely because the implementation is outside the current method.
+`non-empty-string`のような型はアクセサリーリファインメントとして表現でき、文字列リテラルのユニオンは依然として文字列として答えるべきです。拡張著者はすべての具体的な内部表現を知る必要がありません。
 
-`maybe` is not enough to narrow as though a relationship were `yes`, and it does not imply the opposite edge as though the answer were `no`. It may be retained as a weak relational, member-existence, dynamic-origin, or plugin-provenance fact for diagnostics. Whether maybe-dependent calls are reported is an error-level policy, similar in spirit to PHPStan: permissive levels may accept them silently, while stricter levels can report uncertain method calls, role matches, or branch proofs.
+## リフレクションオブジェクト
 
-This matters because a type such as `non-empty-string` may be represented as a string plus an accessory refinement, and a union of string literals should still answer as a string. Extension authors should not need to know every concrete internal representation.
+PHPStanは関数、クラス、プロパティ、メソッド、定数、PHPDocのための解析器所有のリフレクション層を持ちます。リフレクションはソース、ネイティブシンボル、スタブ、または拡張提供のマジックメンバーから来る可能性があります。
 
-## Reflection Objects
+RigorはRubyランタイムリフレクションとは別の解析器リフレクション層を公開すべきです。以下を組み合わせるべきです:
 
-PHPStan has an analyzer-owned reflection layer for functions, classes, properties, methods, constants, and PHPDocs. Reflection can come from source, native symbols, stubs, or extension-provided magic members. Methods and functions expose callable variants, and call-site arguments select the applicable variant.
+- Rubyソース宣言。
+- RBS宣言。
+- 生成されたRBSまたはプラグイン提供のシグネチャ。
+- コアと標準ライブラリのシグネチャ。
+- プラグインによって貢献された動的メンバー。
 
-Rigor should expose an analyzer reflection layer separate from Ruby runtime reflection. It should combine:
+リフレクションオブジェクトはクラス、モジュール、シングルトンクラスオブジェクト、メソッド、属性、定数、エイリアス、インターフェース、オブジェクトシェイプをカバーすべきです。診断がその説明を必要とする場合、ネイティブ/ソースメンバーとプラグイン提供の動的メンバーを区別すべきです。
 
-- Ruby source declarations.
-- RBS declarations.
-- Generated RBS or plugin-provided signatures.
-- Core and standard library signatures.
-- Dynamic members contributed by plugins.
+## 動的戻り値型拡張
 
-Reflection objects should cover classes, modules, singleton class objects, methods, attributes, constants, aliases, interfaces, and object shapes. They should distinguish native/source members from plugin-provided dynamic members where diagnostics need that explanation. Method reflection should expose overloads and a call-site selector that understands Ruby positional, keyword, block, rest, and forwarding arguments.
+PHPStanの動的戻り値型拡張は、関数またはメソッドの戻り値型が呼び出し側の引数に依存する場合に使用されます。拡張はターゲットクラス/関数を宣言し、メソッドがサポートされているかチェックし、メソッドリフレクション、呼び出しASTノード、スコープを受け取ります。
 
-## Dynamic Return Type Extensions
+RigorはRubyメソッド呼び出しに同じ形状を使用すべきです:
 
-PHPStan dynamic return type extensions are used when the return type of a function or method depends on the call-site arguments. The extension declares the target class/function, checks whether a method is supported, and receives the method reflection, call AST node, and scope. It returns a `Type` or `null` to fall back to the default return type.
+- 動的戻り値拡張はサポートするレシーバーファミリーを宣言します。
+- メソッドリフレクション、呼び出しノード、レシーバー型、引数ノード、ブロック情報、スコープを受け取ります。
+- `scope.type_of`で引数の型またはリテラルを検査できます（MAY）。
+- 型、型付きエフェクトバンドル、またはデフォルト動作のための`nil`を返します。
 
-Rigor should use the same shape for Ruby method calls:
+このフックはコンテナ、ORM、ファクトリー、スキーマバックされたアクセサー、`Hash#fetch`のようなラッパー、フレームワーククエリビルダーなどのAPIに適切です。
 
-- A dynamic return extension declares the receiver family it supports, such as a nominal class, module singleton, interface, object shape, or plugin-defined virtual receiver.
-- It receives method reflection, call node, receiver type, argument nodes, block information, and scope.
-- It may inspect argument types or literals with `scope.type_of`.
-- It returns a type, a typed effect bundle, or `nil` for default behavior.
+型付きエフェクトバンドルには通常の戻り値型、レシーバーまたは引数の変異ファクト、導入された動的メンバー、スローまたは非戻り値制御フローファクト、ファクト無効化を含めることができます（MAY）。
 
-This hook is appropriate for APIs such as containers, ORMs, factories, schema-backed accessors, `Hash#fetch`-like wrappers, and framework query builders. If ordinary RBS overloads, generics, or `RBS::Extended` conditional return metadata are enough, those should be preferred over custom code.
+## 型指定拡張
 
-A typed effect bundle may include the normal return type, receiver or argument mutation facts, introduced dynamic members, thrown or non-returning control-flow facts, and fact invalidations. This keeps Ruby APIs such as builders, validators, schema loaders, and memoized dynamic accessors expressible without allowing extensions to edit `Scope`.
+PHPStanの型指定拡張は型チェック関数またはメソッドへの呼び出しに基づくフローファクトを提供します。
 
-## Type-Specifying Extensions
+Rigorはこれを一流の拡張ファミリーにすべきです。なぜなら、RubyコードはしばしばPredicate と アサーションAPIを通じてナローイングするからです:
 
-PHPStan type-specifying extensions provide flow facts based on calls to type-checking functions or methods. They receive the call node, method/function reflection, scope, and a context object that says whether the call is being evaluated as truthy, falsy, null, or as an assertion. They return `SpecifiedTypes`, often through a central `TypeSpecifier`.
+- `nil?`、`is_a?`、`kind_of?`、`instance_of?`、`respond_to?`、カスタム`foo?`メソッド、フレームワークガードなどの述語。
+- `assert`、`raise unless`、テストフレームワークアサーション、コントラクトヘルパー、検証ライブラリなどのアサーションメソッド。
+- レシーバーメンバー、ハッシュキー、またはメソッド結果に関するファクトを証明するパターンスタイルまたは関係スタイルのAPI。
 
-Rigor should make this a first-class extension family because Ruby code often narrows through predicate and assertion APIs:
+拡張結果はポジティブとネガティブのファクトを別々に記述すべきです。またfalse分岐がコンプリメントを意味しない場合のtrue-onlyフォームもサポートすべきです。
 
-- Predicates such as `nil?`, `is_a?`, `kind_of?`, `instance_of?`, `respond_to?`, custom `foo?` methods, and framework guards.
-- Assertion methods such as `assert`, `raise unless`, test-framework assertions, contract helpers, and validation libraries.
-- Pattern-style or relation-style APIs that prove facts about receiver members, hash keys, or method results.
+RigorはRuby固有のガードのための関係認識ファクトも必要とします。
 
-The extension result should describe positive and negative facts separately. It should also support a true-only form when the false branch does not imply the complement, matching PHPStan's distinction between equality-like assertions and one-sided predicates.
+## 動的リフレクションとマジックメンバー
 
-Rigor also needs relation-aware facts for Ruby-specific guards. Some calls prove `target is T`; others prove only `target == literal`, `target responds_to method`, `hash has key`, or `receiver.member is stable`. The extension API should preserve this difference so the core analyzer can decide whether the fact can be reduced to a type, kept as a relation, or invalidated after mutation.
+PHPStanのクラスリフレクション拡張は`__get`、`__set`、`__call`などのメカニズムを通じて公開されるマジックプロパティとメソッドを記述します。
 
-## Dynamic Reflection and Magic Members
+RigorはRubyの`method_missing`、`respond_to_missing?`、`define_method`、Rails生成メソッド、ActiveRecord属性、enumヘルパー、アソシエーション、シリアライザー、デリゲートメソッド、DSL生成定数に対して同じケイパビリティが必要です。
 
-PHPStan class reflection extensions describe magic properties and methods exposed through `__get`, `__set`, `__call`, and similar mechanisms. The reflection layer asks registered extensions when native reflection cannot find a member.
+動的リフレクションは構造的インターフェースチェックをサポートしなければなりません（MUST）。プラグイン提供のメンバーは、Rigorが名前的型またはオブジェクトシェイプがRBSインターフェースを満たすかどうか決定するのに十分なシグネチャと確実性情報を公開すべきです。
 
-Rigor needs the same capability for Ruby's `method_missing`, `respond_to_missing?`, `define_method`, Rails-style generated methods, ActiveRecord attributes, enum helpers, associations, serializers, delegated methods, and DSL-generated constants.
+Rigorは一般的な標準ライブラリのケイパビリティロール（読み取り可能ストリーム、書き込み可能ストリーム、巻き戻し可能ストリーム、シーク可能ストリーム、クローズ可能、列挙可能、呼び出し可能、ファイル記述子バック）の意見を持つコアカタログを出荷すべきです。
 
-Rigor dynamic reflection extensions should contribute method, attribute, constant, and shape members with ordinary reflection objects. Those reflection objects should expose readable and writable types, method overloads, visibility, deprecation/internal facts, side-effect facts, and source/provenance for diagnostics.
+## リフレクション層の再ビルド
 
-Dynamic reflection must support structural interface checking, not only member lookup. A plugin-provided member should expose enough signature and certainty information for Rigor to decide whether a nominal type or object shape satisfies an RBS interface. A `respond_to_missing?`-style fact may be useful for a guarded send while still being too weak for full interface conformance.
+リフレクション層は1つのモノリシックテーブルとして再ビルドするのではなく、入力ソースによって層化されるべきです。最初の層は: コアと標準ライブラリのシグネチャ、プロジェクトソース宣言、受け付けられたRBSとインラインシグネチャ、生成されたシグネチャ、プラグイン提供の動的メンバー。
 
-The same mechanism should support capability roles for standard and framework objects. For example, `IO` and `StringIO` can both satisfy readable or rewindable stream interfaces without either becoming a subtype of the other. A standard-library fact provider or plugin should be able to contribute role conformance, member signatures, and role-specific exclusions such as file-descriptor-backed behavior.
+各リフレクション貢献は、最も狭い実用的なスライス（クラスまたはモジュール宣言、シングルトンオブジェクト、メンバーエントリなど）で安定したidentityとキャッシュキーを持つべきです。
 
-Rigor should ship an opinionated core catalog of common standard-library capability roles, such as readable stream, writable stream, rewindable stream, seekable stream, closable, enumerable, callable, and file-descriptor-backed. Plugins may add roles, additional conformance facts, role-specific exclusions, and `maybe` conformance, but they should not silently replace the core catalog.
+プラグイン提供の動的メンバーはprovenanceと依存関係記述子を持たなければなりません（MUST）。安定した動的メンバーはファイルと実行をまたいで再利用できます（MAY）。
 
-## Reflection Layer Rebuilds
+## 広い式と演算子フック
 
-The reflection layer should be layered by input source rather than rebuilt as one monolithic table. The initial layers are core and standard-library signatures, project source declarations, accepted RBS and inline signatures, generated signatures, and plugin-provided dynamic members.
+PHPStanにはキャッチオール式型リゾルバー拡張と演算子型指定拡張があります。そのドキュメントは可能な場合は狭いフックを推奨します。
 
-Each reflection contribution should have a stable identity and cache key at the narrowest practical slice: class or module declaration, singleton object, member entry, shape provider, generated signature unit, or plugin dynamic-member provider. A single edited source file should invalidate the affected declaration and member slices, not every plugin fact or every reflected class.
+Rigorはそれらが解析順序とパフォーマンスの推論を難しくできるため、広い式フックを高いハードルの後ろに置くべきです。最初の公開プラグインマイルストーンは、具体的なフレームワークのユースケースが狭いフックで表現できない場合を除いて、広い式と演算子フックを延期すべきです。
 
-Plugin-provided dynamic members must carry provenance and dependency descriptors. If a Rails plugin builds members from schema files, model source, plugin configuration, and gem versions, those inputs belong to the dynamic-member cache key. Stable dynamic members may be reused across files and runs; members that depend on the analyzed file or call-site context should be recomputed at that narrower analysis point.
+## フロー貢献バンドル
 
-## Broad Expression and Operator Hooks
+プラグイン、`RBS::Extended`アノテーション、組み込みナローイングルールはすべて同じ種類のオブジェクトを解析器に渡します: 単一の呼び出しエッジで生成されたファクトとエフェクトのバンドル。
 
-PHPStan has catch-all expression type resolver extensions and operator type specifying extensions. Its documentation recommends narrow hooks, such as dynamic return type extensions, when possible.
+最小の最初の実装の公開バンドルはオプションスロットを持つ単一のstructです:
 
-Rigor should keep broad expression hooks behind a higher bar because they can make analysis order and performance harder to reason about. They are still useful for Ruby constructs that do not fit method-call hooks, such as custom `[]` access, pattern-matching helpers, DSL literals, or operator-like methods whose meaning is framework-specific.
+- `return_type`: 通常エッジの戻り値型。
+- `truthy_facts`、`falsey_facts`: 対応する制御フローエッジでのみ保持するファクト。
+- `post_return_facts`: アサーションに使用される、呼び出しが任意のエッジで正常に戻った後に保持するファクト。
+- `mutations`: レシーバーと引数の変異エフェクト。
+- `invalidations`: 変異が意味する以上のターゲットファクト無効化。
+- `exceptional`: 非戻り値、例外、またはunreachableエフェクト。
+- `role_conformance`: 貢献がそれらを提供する場合のケイパビリティロール適合ファクト。
+- `provenance`: ソースファミリー、プラグインid、アノテーションノード、インクリメンタル再ビルドに必要なキャッシュ記述子。
 
-The first public plugin milestone should defer broad expression and operator hooks unless a concrete framework use case cannot be represented by narrower hooks. When introduced, broad hooks must come with traversal-order guarantees, invocation budgets, timeouts or cancellation behavior, and a diagnostic tracing mode that shows which hook affected an expression.
+## プラグイン貢献のマージ
 
-## Flow Contribution Bundle
+複数のフロー貢献が同じ呼び出しをターゲットにできます。Rigorはあるソースが別のソースを静かに上書きするのではなく、これらの貢献を決定論的にマージします。
 
-Plugins, `RBS::Extended` annotations, and built-in narrowing rules all hand the analyzer the same kind of object: a bundle of facts and effects produced at a single call edge. The bundle is the public packaging of the flow contribution semantics owned by ADR-1.
+権限ティアは明示的です:
 
-The minimal first implementation public bundle is a single struct with optional slots:
+- コアRubyのセマンティクスと受け付けられた通常のRBS、rbs-inline、Steep互換のコントラクトは権威があります。
+- `RBS::Extended`アノテーションと生成されたメタデータはそれらのコントラクトを精製できます（MAY）。
+- プラグインは互換性のある解析器ファクトを精製できます（MAY）。
+- 下位ティアは上位ティアを弱めたり矛盾させてはなりません（MUST NOT）。
 
-- `return_type`: normal-edge return type.
-- `truthy_facts`, `falsey_facts`: facts that hold only on the corresponding control-flow edge.
-- `post_return_facts`: facts that hold after the call returns normally on any edge, used for assertions.
-- `mutations`: receiver and argument mutation effects.
-- `invalidations`: targeted fact invalidations beyond what mutations imply.
-- `exceptional`: non-returning, raising, or unreachable effects.
-- `role_conformance`: capability-role conformance facts when the contribution provides them.
-- `provenance`: source family, plugin id, annotation node, and any cache descriptor required for incremental rebuilds.
+同じティア内のプラグイン順序は決定論的です: プロジェクト設定順序（依存関係制約が満たされた後）、タイブレーカーとしてプラグイン識別子順序。最初の公開APIはアドホックな優先フィールドを公開しません。
 
-A field that is left unset means the contribution does not assert anything in that slot. The struct is the only shape plugin authors need to learn; richer or more permissive shapes are not part of the first public contract.
+互換性のある貢献はターゲット、フローエッジ、エフェクト種類によって合成します:
 
-Internally the analyzer flattens each bundle into a tagged element list keyed by `(target, flow edge, effect kind)` before running the merge policy described below. The flattening is mechanical, deterministic, and round-trippable: a bundle and its element list represent the same contribution. Plugin authors should not rely on the element-list form, but it is the natural implementation of `Plugin Contribution Merging` because compatible elements compose by their tags and conflicts surface as duplicate elements with incompatible payloads.
+- 同じターゲットとエッジのポジティブ型ファクトは交差します。
+- 否定的と関係ファクトはADR-1で定義された通常のファクト予算の下で蓄積します。
+- 動的戻り値拡張からの戻り値型は選択されたシグネチャに対してチェックされます。
+- 変異、エスケープ、無効化エフェクトは保守的にユニオンされます。
 
-## Plugin Contribution Merging
+矛盾は診断であり、first-winsまたはlast-wins動作ではありません。
 
-Multiple flow contributions can target the same call: a built-in narrowing rule and a plugin-provided fact may apply at the same site, two plugins may both register for the same receiver family, and `RBS::Extended` annotations may add their own facts. Rigor merges these contributions deterministically rather than letting any one source silently override another.
+## プラグイン診断Provenance
 
-Extensions do not override `Scope`, method reflection, or the selected RBS contract directly. They return provenance-bearing contributions that the analyzer merges through the same control-flow machinery as built-in rules.
+プラグイン、生成された、または`RBS::Extended`の貢献に依存する診断はPHPStanエラー識別子と同様に安定した識別子を公開すべきです。公開識別子はソースファミリープレフィックスを使用すべきです（`plugin.<plugin-id>.<name>`、`rbs_extended.<name>`、`generated.<provider>.<name>`など）。
 
-Authority tiers are explicit:
+内部的には、ファクト、エフェクト、診断はソースティア、プラグイン識別子、バージョン、設定ソース、依存関係記述子、ターゲットパス、エフェクト種類、貢献するリフレクションまたはシグネチャオブジェクトを保持すべきです。
 
-- Core Ruby semantics and accepted ordinary RBS, rbs-inline, and Steep-compatible contracts are authoritative.
-- `RBS::Extended` annotations and generated metadata may refine those contracts.
-- Plugins may refine compatible analyzer facts.
-- Lower tiers must not weaken or contradict higher tiers. Lower-tier contributions that contradict a higher tier are diagnostics, not silent overrides.
+## 登録、設定、キャッシング
 
-Plugin order within the same tier is deterministic: project configuration order after dependency constraints are satisfied, with plugin identifier order as the tie-breaker. The first public API does not expose ad hoc priority fields.
+PHPStanはタグ付きサービスとして拡張を登録します。
 
-Compatible contributions compose by target, flow edge, and effect kind:
+Rigorはプラグインマニフェストとプロジェクト設定を使用して拡張サービスを登録すべきです。最初の設計は以下を含むべきです:
 
-- Positive type facts on the same target and edge are intersected. "Compatible" means the intersection of value domains does not collapse to `bot`; intersections that do collapse are conflicts.
-- Negative and relational facts accumulate under the normal fact budgets defined in ADR-1.
-- Return types from dynamic return extensions are checked against the selected signature. A plugin may narrow within the contract; an incompatible return is a conflict diagnostic, not a contract override.
-- Mutation, escape, and invalidation effects are unioned conservatively. Effect declarations that cannot both be true, such as `pure` combined with a receiver-mutation effect, are conflicts.
+- アドホックなメソッド名ディスカバリーではなく拡張プロトコル識別子。
+- リフレクションプロバイダー、型ファクトリー、ロガー、設定リーダーなどの解析器サービスのコンストラクターインジェクション。
+- タイポが診断になるように明示的なプラグイン設定スキーマ。
+- 決定論的な拡張順序。
+- 外部スキーマ、生成されたファイル、gemバージョン、プラグインバージョン、設定が変更されたときにプラグインが結果を無効化できる宣言的なキャッシュ依存関係記述子。
 
-Contradictions are diagnostics, not first-wins or last-wins behavior. When two same-tier contributions conflict, Rigor reports both sources and falls back to the nearest non-conflicting higher-tier or default fact for that target and edge.
+キャッシュ依存関係は型付きスロットスキーマを使用すべきです:
 
-Truthy-edge and falsey-edge facts stay edge-local. A plugin's true-edge fact does not imply the false-edge complement unless the contribution explicitly supplies it or a trusted core rule derives it. Plugins that want PHPStan `@phpstan-assert`- or TypeScript `is`-style two-edge narrowing should declare both edges explicitly, for example with paired `predicate-if-true` and `predicate-if-false` effects.
+- `files`: プロジェクトまたは外部ファイル入力。
+- `gems`: gem名とバージョン制約またはピン留めされたバージョン。
+- `plugins`: プラグイン識別子とピン留めされたプラグインgemバージョン。
+- `configs`: 設定キーとそれらの受け付けられた値のハッシュ。
 
-Repeated `maybe` results remain `maybe` unless a stronger proof is supplied. Counting two uncertain plugin answers is not enough to promote a relationship to `yes`. Certainty changes only when a contribution supplies a stronger proof or the core analyzer can derive one from compatible facts.
+## プラグインの信頼とI/Oポリシー
 
-This gives plugin authors a predictable rule: contributions refine the existing Ruby/RBS contract, and conflicts are reported rather than silently ordered away.
+プラグインはアプリケーションコードを実行してはなりません（MUST NOT）。解析されたRuby、RBS、生成されたシグネチャ、プロジェクト設定、依存関係メタデータ、キャッシュされたプラグインメタデータを検査できます（MAY）。
 
-## Plugin Diagnostic Provenance
+最初の実装はプラグインをユーザー、Gemfile、またはプロジェクト設定によって選択された信頼されたRuby gemsとして扱うべきです。解析中は決定論のためにデフォルトでネットワークアクセスを無効にすべきです。ファイル読み取りは通常プロジェクトルート、設定された生成ファイル、依存関係メタデータ、インストールされたgemメタデータにスコープされるべきです。
 
-Diagnostics that depend on plugin, generated, or `RBS::Extended` contributions should expose stable identifiers, similar to PHPStan error identifiers. Public identifiers should use source-family prefixes, for example `plugin.<plugin-id>.<name>`, `rbs_extended.<name>`, or `generated.<provider>.<name>`.
+プラグインの失敗は解析器の境界で分離されるべきです（SHOULD）。プラグインの例外はprovenanceを持つプラグイン診断になるべきであり、可能な場合は影響を受けた貢献のみを劣化させ、`rigor check`をクラッシュさせるべきではありません。
 
-The public identifier is not the whole provenance model. Internally, facts, effects, and diagnostics should retain source tier, plugin identifier, plugin version, configuration source, dependency descriptors, target path, effect kind, and contributing reflection or signature object where available. This richer data supports explanations, cache invalidation, and future suppression policies.
+## テストと互換性
 
-Diagnostic de-duplication should use a normalized key such as diagnostic identifier, location, target path, normalized fact or effect kind, and contributing source family. When several plugins contribute the same conflicting fact, Rigor should report one diagnostic with multiple sources rather than repeating the same message.
+PHPStanはルールと型推論拡張のためのテストベースを提供します。
 
-## Registration, Configuration, and Caching
+Rigorは同じ2つのテストスタイルを提供すべきです:
 
-PHPStan registers extensions as services with tags. Services are long-lived objects constructed by dependency injection; value objects such as types, scopes, and reflections are created during analysis or returned from services. PHPStan also validates custom configuration parameters with schemas.
+- フィクスチャファイルを解析し、行番号と識別子を持つ診断をアサートするルールテスト。
+- フィクスチャコードとヘルパーアサーションを使用して推論された型、ナローイングされた型、動的戻り値型、プラグイン提供のメンバーをチェックする型推論テスト。
 
-Rigor should use plugin manifests and project configuration to register extension services. The initial design should include:
+型推論アサーション構文はフィクスチャハーネス構文であり、アプリケーションRuby構文ではありません。
 
-- Extension protocol identifiers rather than ad hoc method-name discovery.
-- Constructor injection for analyzer services such as reflection providers, type factories, loggers, and configuration readers.
-- Explicit plugin configuration schema so typos are diagnostics.
-- Deterministic extension ordering.
-- Declarative cache dependency descriptors so plugins can invalidate results when external schemas, generated files, gem versions, plugin versions, or configuration change.
+拡張の互換性は最初はRuby gem版の依存関係とRigor提供の拡張テストスイートを通じて管理されるべきです。
 
-Cache dependencies should be explicit descriptors rather than an after-the-fact list of arbitrary reads. The first implementation uses a typed-slot schema with a fixed set of slots and per-entry comparators, rather than a flat list of kind-tagged entries:
+## 結果の型仕様からのフィードバック
 
-- `files`: project or external file inputs. Each entry carries a path and a digest or mtime policy.
-- `gems`: gem name and version constraint or pinned version.
-- `plugins`: plugin identifier and pinned plugin gem version.
-- `configs`: configuration keys and a hash of their accepted value, so a toggled feature flag invalidates only the depending slice.
+`docs/types.md`を理想的な型モデルとして再構築することで、いくつかの拡張API要件が明らかになりました:
 
-A descriptor attaches to the contribution or reflection slice it produced. Plugin-wide dependencies are allowed when the fact truly depends on the whole plugin configuration, but the preferred granularity is per dynamic-member provider, generated signature unit, receiver family, analyzed file, or flow contribution. This keeps one edited schema or fixture from invalidating the entire result cache. Adding a new dimension such as environment variables is an explicit schema change and should be accompanied by an ADR update.
+- 拡張は型だけでなくフロー貢献を返す必要があります。
+- `Scope`はエッジ認識でなければなりません（MUST）。
+- ターゲットパスはステージングされた設計が必要です。
+- APIは型ファクトに加えて関係ファクトが必要です。
+- 拡張と標準ライブラリファクトプロバイダーはケイパビリティロール適合を宣言する方法が必要です。
+- 動的リフレクションはメンバーの確実性、provenance、可視性、呼び出しシグネチャ、変異動作、安定性を公開すべきです。
+- 型とリフレクションAPIは`yes`、`maybe`、`no`に対して3値の確実性が必要です。
+- 拡張テストはステートメント境界だけでなく、複合条件内のプログラムポイントで推論された型とファクトをアサートできる必要があります。
+- キャッシュメタデータには外部スキーマ、生成されたシグネチャ、gemバージョン、プラグイン設定、動的メンバーまたはフローファクトの生成に使用されたファイルが含まれなければなりません（MUST）。
 
-## Plugin Trust and I/O Policy
+## クリティカルレビューの作業回答
 
-Plugins must not execute application code. They may inspect parsed Ruby, RBS, generated signatures, project configuration, dependency metadata, and cached plugin metadata.
+拡張APIドラフトのクリティカルレビューで以下のリスクが浮上しました。以下の作業回答は現在の決定または明示的な延期を記録します。
 
-The first implementation should treat plugins as trusted Ruby gems selected by the user, their Gemfile, or project configuration. Rigor should document that trust model rather than pretending ordinary in-process Ruby plugins are sandboxed. Future implementations may explore stronger isolation such as Ruby::Box or process isolation, but that is not part of the first public plugin contract.
+### キャッシュ無効化には宣言的APIが必要
 
-During analysis, network access should be disabled by default for determinism. File reads should normally be scoped to the project root, configured generated files, dependency metadata, and installed gem metadata. Reads outside those areas require explicit configuration and should be reflected in cache dependency descriptors.
+プラグインキャッシュメタデータは重要な入力を命名しましたが、プラグインがファクトをファイル、生成されたシグネチャ、gemバージョン、プラグインバージョン、設定キーに結び付ける方法を定義しませんでした。
 
-Plugin failures should be isolated at the analyzer boundary. A plugin exception should become a plugin diagnostic with provenance and, where possible, should degrade only the affected contribution rather than crashing `rigor check`.
+**作業回答:** プラグインのファクトとリフレクション貢献は、それらが生成したキャッシュスライスに付加された宣言的依存関係記述子を持つべきです。
 
-## Testing and Compatibility
+### 型推論アサーションはフィクスチャのみに留まらなければならない
 
-PHPStan provides test bases for rules and type inference extensions. Rule tests assert diagnostics in fixture files. Type inference tests assert inferred types in ordinary analyzed code.
+**作業回答:** アサーションマーカーはフィクスチャハーネス構文です。Prismが通常のRubyとして解析するコメントまたは外部期待ファイルを使用すべきであり、本番解析は明示的なテストハーネスが有効にしない限りそれらを無視します。
 
-Rigor should provide the same two test styles:
+### プラグインサンドボックスとI/Oは信頼されたgemモデルから始まる
 
-- Rule tests that analyze fixture files and assert diagnostics with line numbers and identifiers.
-- Type inference tests that use fixture code and helper assertions to check inferred types, narrowed types, dynamic return types, and plugin-provided members.
+**作業回答:** 最初の実装はプラグインを信頼されたRuby gemsとして扱います。解析中はデフォルトでネットワークアクセスを無効にし、通常の読み取りはプロジェクトと依存関係の入力にスコープされ、それらの外の読み取りには明示的な設定とキャッシュ依存関係記述子が必要です。
 
-Type-inference assertion syntax is fixture-harness syntax, not application Ruby syntax. The first test helper should use comments or external expectation files that Prism can parse as ordinary Ruby without a custom dialect. Production analysis ignores the markers completely unless an explicit test harness enables them.
+### 3値の`maybe`はポリシー認識の不確実性
 
-Extension compatibility should initially be managed through Ruby gem version dependencies and a Rigor-provided extension test suite rather than a separate protocol-version number. Public extension namespaces should be documented as public; internal protocols should be explicitly marked internal so plugin authors do not depend on them accidentally. Rigor can evolve internal type representations freely, but documented plugin-facing interfaces need deprecation windows, compatibility tests, and migration notes once they are released as public gem APIs.
+**作業回答:** `yes`と`no`は現在の受け付けられたコントラクトと解析器の仮定の下で証明された回答です。`maybe`はそれ以外のすべてです。`maybe`はポジティブ証明としてナローイングせず、補完的なfalse-edge証明を作成せず、繰り返された`maybe`証拠は`maybe`のまま残ります。
 
-## Feedback from the Resulting Type Specification
+### ケイパビリティロールはコアによって提供される
 
-Reconstructing `docs/types.md` exposes several extension API requirements that are not optional for the ideal type model:
+**作業回答:** Rigorは一般的な標準ライブラリのケイパビリティロールの意見を持つコアカタログを出荷します。プラグインはフレームワークロール、追加の適合ファクト、ロール固有の除外、不確かな適合を追加できますが（MAY）、コアロール定義を静かに置き換えてはなりません（SHOULD NOT）。
 
-- Extensions need to return flow contributions, not just types. A contribution should be able to describe truthy facts, falsey facts, post-return assertion facts, normal return type, exceptional or non-returning effects, receiver and argument mutations, and fact invalidations.
-- `Scope` must be edge-aware. Plugin facts must participate in the same short-circuiting machinery as built-in guards so `&&`, `||`, `unless`, `elsif`, `case`, and pattern matching can refine scopes before later operands or arms are analyzed.
-- Target paths need a staged design. The first annotation grammar may support only `self` and named parameters, but the plugin API should be prepared for local variables, receiver members, instance variables, hash keys, tuple elements, and stable method-result paths.
-- The API needs relation facts in addition to type facts. Ruby `==`, `respond_to?`, key-presence checks, and framework predicates often prove relations or capabilities that are weaker than `target is T`.
-- Extensions and standard-library fact providers need a way to declare capability-role conformance, so unrelated nominal classes such as `IO` and `StringIO` can satisfy shared stream roles without becoming mutually assignable as whole classes.
-- Dynamic reflection should expose member certainty, provenance, visibility, call signature, mutation behavior, and stability. Without this, structural interface conformance would collapse into name-only duck typing.
-- Type and reflection APIs need trinary certainty for `yes`, `maybe`, and `no`, because plugin-provided dynamic behavior often cannot be modeled as a hard boolean.
-- Extension tests must be able to assert inferred types and facts at program points inside compound conditions, not only at statement boundaries.
-- Cache metadata must include external schemas, generated signatures, gem versions, plugin configuration, and any files used to produce dynamic members or flow facts.
+### ADR-1はフローエフェクトセマンティクスを所有する
 
-## Critical Review Working Responses
+**作業回答:** ADR-1はセマンティックスキーマを所有します。ADR-2はプラグインパッケージング、登録、サービスライフタイム、provenanceを所有します。`docs/types.md`は両方のADRが参照する詳細な規範的製品仕様を持ちます。
 
-A critical review of the extension API draft surfaced the following risks. The working responses below record the current decisions or explicit deferrals. Exact object shapes, naming, and budgets can still evolve before the first public plugin API.
+### リフレクション再ビルドはスライスベース
 
-### Cache Invalidation Needs a Declarative API
+**作業回答:** リフレクション入力はソースによって層化され、宣言、メンバーエントリ、シングルトンオブジェクト、シェイププロバイダー、生成されたシグネチャ単位、プラグイン動的メンバープロバイダーなどの安定したスライスによってキャッシュされます。
 
-Concern: plugin cache metadata named important inputs, but did not define how a plugin ties facts to files, generated signatures, gem versions, plugin versions, or configuration keys.
+### 診断Provenanceは公開プレフィックスと内部詳細を使用する
 
-Working response: plugin facts and reflection contributions should carry declarative dependency descriptors attached to the cache slice they produced. Preferred granularity is contribution, generated signature unit, receiver family, dynamic-member provider, or analyzed file. Plugin-wide invalidation is allowed only when the whole plugin configuration truly affects the fact.
+**作業回答:** 公開診断識別子はPHPStanエラー識別子と同様のソースファミリープレフィックスを使用すべきです。内部的には、診断は説明、キャッシュキー、将来の抑制ポリシーのためにより豊富なprovenanceを保持します。
 
-### Type-Inference Assertions Must Stay Fixture-Only
+### 互換性はgemバージョンとテストスイートを最初に使用する
 
-Concern: type inference tests need program-point assertions, but helper syntax could accidentally become a Rigor-specific Ruby dialect.
+**作業回答:** 最初の公開コントラクトはRuby gem版の依存関係、文書化された公開名前空間、明示的な内部名前空間、Rigor提供の適合テストスイートに依存すべきです。
 
-Working response: assertion markers are fixture-harness syntax. They should use comments or external expectation files that Prism parses as ordinary Ruby, and production analysis ignores them unless an explicit test harness enables them.
+### 広い式と演算子フックは延期される
 
-### Plugin Sandboxing and I/O Start from a Trusted-Gem Model
+**作業回答:** 最初の公開プラグインマイルストーンは、具体的なフレームワークのユースケースが狭いフックで表現できない場合を除いて、広い式と演算子フックを延期すべきです。
 
-Concern: "plugins must not execute application code" is not a complete filesystem, network, failure-isolation, or trust policy.
+## 却下および延期された候補決定
 
-Working response: the first implementation treats plugins as trusted Ruby gems selected by the user, Gemfile, or project configuration. Network access is disabled by default during analysis, ordinary reads are scoped to project and dependency inputs, and reads outside those inputs require explicit configuration plus cache dependency descriptors. Plugin exceptions become diagnostics at the analyzer boundary. Stronger isolation, such as Ruby::Box or process isolation, remains a future option.
-
-### Trinary `maybe` Is Policy-Aware Uncertainty
-
-Concern: relationship queries return `yes`/`maybe`/`no`, but the operational meaning of `maybe` was underspecified.
-
-Working response: `yes` and `no` are proven answers under the current accepted contracts and analyzer assumptions; `maybe` is everything else. `maybe` does not narrow as a positive proof, does not create a complementary false-edge proof, and repeated `maybe` evidence remains `maybe`. Error levels decide whether maybe-dependent calls are accepted silently, reported as weak diagnostics, or rejected more strictly.
-
-### Capability Roles Are Supplied by Core
-
-Concern: plugin authors need to know which standard roles exist and whether Rigor depends on a core role provider, bundled plugin, or external plugin.
-
-Working response: Rigor ships an opinionated core catalog of common standard-library capability roles. Plugins may add framework roles, additional conformance facts, role-specific exclusions, and uncertain conformance, but they should not silently replace core role definitions.
-
-### ADR-1 Owns Flow-Effect Semantics
-
-Concern: ADR-1 and ADR-2 both mention flow-effect bundle fields, which risks drift.
-
-Working response: ADR-1 owns the semantic schema: fields, target-path meaning, certainty rules, and scope transitions. ADR-2 owns plugin packaging, registration, service lifetime, and provenance. `docs/types.md` carries the detailed normative product specification both ADRs reference.
-
-### Reflection Rebuilds Are Slice-Based
-
-Concern: combining source declarations, RBS, generated signatures, plugin members, and core/stdlib signatures into one reflection model needs an incremental rebuild story.
-
-Working response: reflection inputs are layered by source and cached by stable slices such as declaration, member entry, singleton object, shape provider, generated signature unit, and plugin dynamic-member provider. Plugin dynamic members carry provenance and dependency descriptors so a single edited file or schema invalidates only the affected reflection slices.
-
-### Diagnostic Provenance Uses Public Prefixes and Internal Detail
-
-Concern: plugin-related diagnostics need attribution, de-duplication, and future suppression behavior.
-
-Working response: public diagnostic identifiers should use source-family prefixes similar to PHPStan error identifiers, such as `plugin.<plugin-id>.<name>`, `rbs_extended.<name>`, or `generated.<provider>.<name>`. Internally, diagnostics retain richer provenance for explanations, cache keys, and future suppression policy. Duplicate diagnostics are grouped by normalized identifier, location, target, fact/effect kind, and source family.
-
-### Compatibility Uses Gem Versions and Test Suites First
-
-Concern: public extension protocols need compatibility policy, but a separate protocol-version system may be premature.
-
-Working response: the first public contract should rely on Ruby gem version dependencies, documented public namespaces, explicit internal namespaces, and a Rigor-provided extension conformance test suite. A separate extension protocol version can be introduced later if gem version constraints and tests are not enough.
-
-### Broad Expression and Operator Hooks Are Deferred
-
-Concern: broad hooks can make analysis order and performance difficult to reason about.
-
-Working response: the first public plugin milestone should defer broad expression and operator hooks unless a concrete framework use case cannot be represented by narrow hooks. Any future broad hook must specify traversal-order guarantees, invocation budgets, timeout or cancellation behavior, and diagnostic tracing.
-
-## Rejected and Deferred Candidate Decisions
-
-| Candidate | Status | Reason |
+| 候補 | ステータス | 理由 |
 | --- | --- | --- |
-| One generic plugin hook that can inspect and override everything | Rejected | PHPStan's narrow extension types are easier to reason about, cache, test, and document. Broad expression hooks should be exceptional. |
-| Letting plugins mutate the current scope directly | Rejected | Scope mutation would make CFA order-dependent. Plugins should return facts and effects for the analyzer to apply. |
-| Executing application code to discover framework behavior | Rejected | Rigor remains a static analyzer with zero runtime dependency. Plugins may read source, signatures, generated metadata, and configuration. |
-| Making PHPDoc or Rigor-specific inline Ruby comments the main extension interface | Rejected | Rigor should not invent a new application-code annotation DSL. Existing RBS-, rbs-inline-, and Steep-compatible annotations are accepted as type sources; RBS, `RBS::Extended`, generated signatures, and plugins remain the extension surfaces. |
-| Making type-inference assertion helpers part of application Ruby | Rejected | Assertion markers are fixture-harness syntax only. Production analysis must ignore them unless a test harness explicitly enables them. |
-| Introducing a separate extension protocol version before gem compatibility proves insufficient | Deferred | Ruby gem version dependencies, documented public namespaces, explicit internal namespaces, and Rigor-provided conformance tests should carry the first public compatibility contract. |
-| Shipping all PHPStan-style extension points in the MVP | Deferred | Dynamic return types, type-specifying extensions, and dynamic reflection provide the most immediate value. Output, dead-code, and broad infrastructure hooks can follow later. |
+| すべてを検査して上書きできる1つの汎用プラグインフック | 却下 | PHPStanの狭い拡張タイプは推論、キャッシュ、テスト、文書化が容易です。 |
+| プラグインが現在のスコープを直接変更することを許可する | 却下 | スコープの変異はCFAを順序依存にします。 |
+| フレームワーク動作を発見するためにアプリケーションコードを実行する | 却下 | Rigorはゼロランタイム依存の静的解析器であり続けます。 |
+| PHPDocまたはRigor固有のインラインRubyコメントを主な拡張インターフェースにする | 却下 | Rigorは新しいアプリケーションコードアノテーションDSLを発明すべきではありません。 |
+| 型推論アサーションヘルパーをアプリケーションRubyの一部にする | 却下 | アサーションマーカーはフィクスチャハーネス構文のみです。 |
+| gem互換性が不十分と証明される前に別の拡張プロトコルバージョンを導入する | 延期 | Ruby gem版の依存関係、文書化された公開名前空間、明示的な内部名前空間、Rigor提供の適合テストが最初の公開互換性コントラクトを担うべきです。 |
+| MVPですべてのPHPStanスタイルの拡張ポイントを出荷する | 延期 | 動的戻り値型、型指定拡張、動的リフレクションが最も即時の価値を提供します。 |
 
-## Open Questions
+## オープンクエスチョン
 
-- Should dynamic return extensions match by nominal receiver type only at first, or also by structural interface and object shape?
-- What is the initial plugin manifest format and configuration schema language?
-- Should Rigor expose synthetic or virtual AST nodes to rules in the first custom-rule milestone?
-- What is the exact fixture marker spelling for asserting inferred types and branch-local facts in Ruby fixtures, including facts that exist only while analyzing the right side of `&&` or `||`?
-- What exact payload should plugins use to declare full, partial, excluded, or `maybe` capability-role conformance?
-- What exact diagnostic identifier taxonomy and display format should Rigor use for conflicting plugin, generated, and `RBS::Extended` contributions?
-- What exact reflection cache key schema and persistence format should represent source, RBS, generated, and plugin-provided slices?
-- What gem dependency ranges and Rigor-provided conformance tests define compatibility for public extension namespaces?
-- If broad expression or operator hooks are enabled later, what concrete invocation budgets, timeout behavior, traversal-order guarantees, and tracing output should they use?
+- 動的戻り値拡張は最初に名前的レシーバー型のみで一致すべきか、それとも構造的インターフェースとオブジェクトシェイプでも一致すべきか？
+- 最初のプラグインマニフェスト形式と設定スキーマ言語は何か？
+- Rigorは最初のカスタムルールマイルストーンでルールに合成または仮想ASTノードを公開すべきか？
+- `&&`または`||`の右側を解析中にのみ存在するファクトを含む、Rubyフィクスチャで推論された型とブランチローカルファクトをアサートするための正確なフィクスチャマーカースペルは何か？
+- プラグインが完全、部分的、除外、または`maybe`のケイパビリティロール適合を宣言するために使用する正確なペイロードは何か？
+- 衝突するプラグイン、生成された、および`RBS::Extended`の貢献にRigorが使用する正確な診断識別子分類体系と表示形式は何か？
+- ソース、RBS、生成、プラグイン提供のスライスを表す正確なリフレクションキャッシュキースキーマと永続形式は何か？
+- 広い式または演算子フックが後で有効になる場合、どの具体的な呼び出し予算、タイムアウト動作、トラバーサル順序保証、トレース出力を使用すべきか？
 
-## Consequences
+## 結果
 
-Positive:
+ポジティブ:
 
-- Rigor can support framework-specific Ruby behavior without hard-coding frameworks into the core.
-- Extension authors get focused protocols with stable context objects.
-- The core analyzer keeps ownership of flow application, normalization, diagnostics, and caching.
-- PHPStan's separation between Scope, Type, Reflection, and extension services gives Rigor a proven shape for plugin APIs.
+- Rigorはフレームワーク固有のRuby動作をコアにハードコードせずにサポートできます。
+- 拡張著者は安定したコンテキストオブジェクトを持つ集中したプロトコルを得ます。
+- コア解析器はフロー適用、正規化、診断、キャッシングの所有権を維持します。
+- PHPStanのScope、Type、Reflection、拡張サービス間の分離はRigorにプラグインAPIの実証済みの形状を与えます。
 
-Negative:
+ネガティブ:
 
-- Public extension protocols create compatibility obligations.
-- A useful plugin API requires careful type, scope, and reflection object design earlier than the core-only MVP would.
-- Broad hooks can harm performance or predictability if introduced without discipline.
-- Plugin test harnesses become part of the supported developer experience.
+- 公開拡張プロトコルは互換性の義務を作成します。
+- 有用なプラグインAPIはコアのみのMVPよりも早く慎重な型、スコープ、リフレクションオブジェクトの設計を必要とします。
+- 広いフックは規律なしに導入されると、パフォーマンスや予測可能性を損なう可能性があります。
+- プラグインテストハーネスはサポートされた開発者体験の一部になります。
