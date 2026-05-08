@@ -1,3 +1,10 @@
 name = "rigor-typedduck-fail"
 compatibility_date = "2026-05-08"
-pages_build_output_dir = "./dist"
+
+# Workers Static Assets: no `main`, just upload the directory and let
+# Cloudflare serve it. The Worker already exists in the dashboard
+# with the rigor.typedduck.fail custom domain attached, so each
+# `wrangler deploy` from CI just refreshes its assets in place.
+[assets]
+directory = "./dist"
+not_found_handling = "404-page"

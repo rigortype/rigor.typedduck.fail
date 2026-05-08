@@ -44,12 +44,13 @@ jobs:
       - name: Build
         run: pnpm build
 
-      - name: Deploy to Cloudflare Pages
+      - name: Deploy to Cloudflare Workers
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          # `--commit-dirty=true` silences the warning Wrangler emits because
-          # the runner's working tree contains the freshly synced
-          # src/content/docs/reference/ files (gitignored, but still "dirty").
-          command: pages deploy dist --project-name=rigor-typedduck-fail --branch=master --commit-dirty=true
+          # The Cloudflare project for this site is a Worker (not a
+          # Pages project). `wrangler deploy` reads wrangler.toml and
+          # uploads `[assets]` directly to the existing Worker, which
+          # already owns the rigor.typedduck.fail custom domain.
+          command: deploy

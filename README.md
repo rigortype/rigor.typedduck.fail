@@ -20,11 +20,15 @@ The `predev` and `prebuild` scripts sync Markdown from the `upstream/rigor` subm
 - Generated English reference pages: `src/content/docs/reference/`
 - Japanese translations: `src/content/docs/ja/reference/` (mirrors the EN tree path-for-path)
 
-## Deployment (Cloudflare Pages via GitHub Actions)
+## Deployment (Cloudflare Workers Static Assets via GitHub Actions)
 
-Deploys are driven from
-[`.github/workflows/deploy.yml`](.github/workflows/deploy.yml). On
-every push to `master` the workflow:
+The Cloudflare side of this site is a **Worker** named
+`rigor-typedduck-fail` with `rigor.typedduck.fail` already attached
+as a custom domain. Each push to `master` refreshes the Worker's
+static assets through GitHub Actions; the Worker keeps its identity
+and the domain binding stays put.
+
+[`.github/workflows/deploy.yml`](.github/workflows/deploy.yml):
 
 1. Checks out the repo without submodules, then runs
    `git submodule update --init --depth=1 upstream/rigor` so only
@@ -37,48 +41,30 @@ every push to `master` the workflow:
 2. Sets up pnpm + Node.js, runs `pnpm install --frozen-lockfile`
    and `pnpm build` (the `prebuild` hook regenerates the EN
    reference tree from the submodule).
-3. Calls `cloudflare/wrangler-action@v3` with
-   `pages deploy dist --project-name=rigor-typedduck-fail
-   --branch=master`.
+3. Calls `cloudflare/wrangler-action@v3` with `command: deploy`,
+   which reads [`wrangler.toml`](wrangler.toml) and uploads
+   `dist/` via the `[assets]` block.
 
 [`public/_headers`](public/_headers) ships with the build for
 security headers and long-lived caching of hashed Astro assets.
-[`wrangler.toml`](wrangler.toml) keeps `name`,
-`compatibility_date`, and `pages_build_output_dir` so `wrangler
-pages deploy` works locally without arguments.
 
 ### Required configuration
 
 GitHub repository **Secrets and variables → Actions → Secrets**:
 
-- `CLOUDFLARE_API_TOKEN` — token with the **Cloudflare Pages —
-  Edit** template applied (or equivalent custom permissions).
+- `CLOUDFLARE_API_TOKEN` — token with **Workers Scripts: Edit**
+  (the "Edit Workers" template covers it). The Pages-Edit template
+  used previously is not sufficient because we are deploying a
+  Worker.
 - `CLOUDFLARE_ACCOUNT_ID` — the account ID shown on the right side
   of the Cloudflare dashboard home.
 
-Cloudflare side (one-time):
+Cloudflare side (already configured for this project):
 
-- A **Pages** project named `rigor-typedduck-fail` exists. The
-  fastest way to create it is one local command:
-
-  ```sh
-  CLOUDFLARE_API_TOKEN=<token> \
-    npx wrangler pages project create rigor-typedduck-fail \
-      --production-branch master
-  ```
-
-  Or via dashboard: Workers & Pages → Create → Pages → Direct
-  Upload, name the project `rigor-typedduck-fail`, set the
-  production branch to `master`. (A *Workers Builds* project of
-  the same name does not satisfy this — `wrangler pages deploy`
-  only finds Pages-type projects, otherwise it fails with
-  `Project not found`.)
-
-- After the first successful deploy, attach the custom domain in
-  the dashboard under Workers & Pages → rigor-typedduck-fail →
-  Custom domains → Set up a custom domain → `rigor.typedduck.fail`.
-- Disable any Cloudflare-side Git integration on the project so
-  it does not race the GitHub Actions workflow.
+- The Worker `rigor-typedduck-fail` exists with the
+  `rigor.typedduck.fail` custom domain attached.
+- The dashboard's Build → Git repository connection is left
+  disconnected so it does not race the GitHub Actions workflow.
 
 ## Translation workflow
 
