@@ -1,25 +1,22 @@
 ---
-title: "RBS::Extended Annotations"
-description: "Imported from rigortype/rigor docs/type-specification/rbs-extended.md."
+title: "RBS::Extendedアノテーション"
+description: "rigortype/rigor docs/type-specification/rbs-extended.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/type-specification/rbs-extended.md"
 sourcePath: "docs/type-specification/rbs-extended.md"
 sourceSha: "7e8016638d51a2aa10bd6d182eb68697d83704aeaa5fc48812a7ca3c58f5b207"
 sourceCommit: "9f40e22193647dc06e3ab70c5ba82768b0bfe738"
-translationStatus: "pending"
+translationStatus: "translated"
 sidebar:
   order: 2050
 ---
 
-> [!NOTE]
-> このページはまだ翻訳されていません。英語版の本文を参考表示しています。
+Rigorは仮称`RBS::Extended`の下で`*.rbs`ファイルのRBSアノテーションからRigor固有のメタデータを読み取る場合があります（MAY）。
 
-Rigor MAY read Rigor-specific metadata from RBS annotations in `*.rbs` files under the provisional name `RBS::Extended`.
+RBSはすでに宣言、メンバー、メソッドオーバーロードに対して`%a{...}`アノテーションをサポートしています。`RBS::Extended`は予約済みキー名前空間の下でそれらのアノテーションにRigorメタデータを添付する慣習のRigorの名称です; 最初のバージョンは`rigor:v1:<directive>`ペイロードを予約します。関係のないキーを使う同じノード上のアノテーションは他のツールに属し、Rigorによって消費されません。Rigorは解析と消去中にそれらを変更せずに保存しなければなりません（MUST）。
 
-RBS already supports `%a{...}` annotations on declarations, members, and method overloads. `RBS::Extended` is Rigor's name for the convention of attaching Rigor metadata to those annotations under a reserved key namespace; the first version reserves `rigor:v1:<directive>` payloads. Annotations on the same node that use unrelated keys belong to other tools and are not consumed by Rigor. Rigor MUST preserve them unmodified during analysis and erasure.
+これらのアノテーションにより、ユーザーとプラグイン著者はRubyアプリケーションコードを変更せず、通常のRBSパーサーを壊すことなく標準RBSを超える型を記述できます。標準RBSツールはこれらのアノテーションを保存または無視できなければなりません（MUST）。これはPythonの`Annotated[T, metadata]`と同じ互換性原則に従います: 基本型はメタデータを理解しないツールにとっても意味があり続けます。
 
-These annotations let users and plugin authors describe types that exceed standard RBS without changing Ruby application code and without breaking ordinary RBS parsers. Standard RBS tools MUST be able to preserve or ignore these annotations. This follows the same compatibility principle as Python's `Annotated[T, metadata]`: the base type remains meaningful to tools that do not understand the metadata.
-
-## Worked examples
+## 実際の例
 
 ```ruby
 %a{rigor:v1:return: non-empty-string}
@@ -36,30 +33,30 @@ def assert_present!: (String value) -> void
 def check: (untyped value) -> bool
 ```
 
-The right-hand side of `return:`, `param:`, `assert*`, and `predicate-if-*` accepts either an RBS-style class name (`String`, `::Foo::Bar`) or a kebab-case refinement payload from the imported-built-in catalogue ([`imported-built-in-types.md`](../imported-built-in-types/)). The refinement payload supports the parameterised forms `non-empty-array[Integer]`, `non-empty-hash[Symbol, Integer]`, and `int<min, max>` through `Builtins::ImportedRefinements::Parser`. Class-name directives MAY use `~T` negation; refinement-form directives currently MUST NOT (the difference-against-refinement algebra is reserved for a future slice).
+`return:`、`param:`、`assert*`、`predicate-if-*`の右辺は、RBSスタイルのクラス名（`String`、`::Foo::Bar`）またはインポート済み組み込みカタログ（[`imported-built-in-types.md`](../imported-built-in-types/)）のkebab-caseリファインメントペイロードのいずれかを受け付けます。リファインメントペイロードは`Builtins::ImportedRefinements::Parser`を通じてパラメーター化形式`non-empty-array[Integer]`、`non-empty-hash[Symbol, Integer]`、`int<min, max>`をサポートします。クラス名ディレクティブは`~T`否定を使う場合があります（MAY）; リファインメント形式のディレクティブは現在使ってはなりません（MUST NOT）（差分対リファインメントの代数は将来のスライスのために予約されています）。
 
-## Authoring rules
+## 著作ルール
 
-- The ordinary RBS signature remains the compatibility contract.
-- `RBS::Extended` annotations refine or explain that contract for Rigor.
-- Annotation keys use a versioned `rigor:v1:` namespace, for example `rigor:v1:return` or `rigor:v1:predicate-if-true`.
-- The annotation key comes first; the remaining text is a Rigor-specific payload.
-- Rigor-generated annotations MUST use the explicit `rigor:v1:` prefix. Unversioned `rigor:` directives MUST NOT be emitted and SHOULD be treated as invalid until a compatibility migration need exists.
-- The version prefix is part of the directive identity. Rigor v1 reads only `rigor:v1:` directives; an unsupported `rigor:vN:` directive is preserved by RBS tooling but reported by Rigor as unsupported metadata when it is on a node Rigor analyzes.
-- Multiple annotations on the same RBS node MUST be interpreted deterministically and independently of source order.
-- Exact duplicate annotations are idempotent.
-- Compatible annotations compose by directive kind, target, and flow edge. For example, true-edge and false-edge predicate facts on the same parameter are different effect slots.
-- Conflicting annotations are diagnostics. Rigor MUST NOT use first-wins or last-wins behavior. A conflict includes incompatible payload syntax, incompatible versions on the same node, two non-identical singleton directives for the same effect slot, contradictory refinements whose intersection is `bot`, and any annotation whose refinement exceeds the ordinary RBS contract.
-- Authors SHOULD prefer `T - U` for explicit user-authored difference types and use `~T` primarily for negative facts and compact diagnostic display (see [type-operators.md](../type-operators/)).
-- If an annotation conflicts with the RBS signature, Rigor MUST report a diagnostic.
-- Exported plain RBS MUST drop or erase Rigor-only annotations unless the user asks to preserve them.
-- The annotation grammar is versioned and SHOULD remain small until implementation experience proves it out. Incompatible grammar changes require a new version prefix rather than changing `rigor:v1:` semantics.
+- 通常のRBSシグネチャは互換性コントラクトのままです。
+- `RBS::Extended`アノテーションはRigorのためにそのコントラクトを絞り込むか説明します。
+- アノテーションキーはバージョン管理された`rigor:v1:`名前空間を使います（例: `rigor:v1:return`または`rigor:v1:predicate-if-true`）。
+- アノテーションキーが最初に来ます; 残りのテキストはRigor固有のペイロードです。
+- Rigor生成アノテーションは明示的な`rigor:v1:`プレフィックスを使わなければなりません（MUST）。バージョン管理されていない`rigor:`ディレクティブは発行してはなりません（MUST NOT）し、互換性移行の必要がない限り無効として扱うべきです（SHOULD）。
+- バージョンプレフィックスはディレクティブIDの一部です。Rigor v1は`rigor:v1:`ディレクティブのみを読み取ります; サポートされていない`rigor:vN:`ディレクティブはRBSツールによって保存されますが、Rigorが解析するノードにある場合はサポートされていないメタデータとして報告されます。
+- 同じRBSノード上の複数のアノテーションはソース順序に依存せず決定論的に独立して解釈されなければなりません（MUST）。
+- 正確に重複するアノテーションは冪等です。
+- 互換性のあるアノテーションはディレクティブの種類、ターゲット、フローエッジによって合成されます。例えば、同じパラメーターの真エッジと偽エッジの述語ファクトは異なる効果スロットです。
+- 競合するアノテーションは診断です。Rigorは最初優先または最後優先の挙動を使ってはなりません（MUST NOT）。競合は、ペイロード構文の非互換性、同じノードでのバージョンの非互換性、同じ効果スロットに対する2つの非同一シングルトンディレクティブ、積集合が`bot`である矛盾するリファインメント、通常のRBSコントラクトを超えるリファインメントを含みます。
+- 著者は明示的なユーザー著作差分型には`T - U`を優先し、負のファクトとコンパクトな診断表示には主に`~T`を使うべきです（SHOULD）（[type-operators.md](../type-operators/)参照）。
+- アノテーションがRBSシグネチャと競合する場合、Rigorは診断を報告しなければなりません（MUST）。
+- エクスポートされたプレーンRBSは、ユーザーが保存を要求しない限りRigorのみのアノテーションを削除または消去しなければなりません（MUST）。
+- アノテーション文法はバージョン管理されており、実装経験がそれを証明するまで小さくあるべきです（SHOULD）。非互換な文法変更は`rigor:v1:`のセマンティクスを変更するのではなく新しいバージョンプレフィックスを必要とします。
 
-## Type predicates and assertions
+## 型述語とアサーション
 
-Rigor models Python `TypeGuard`/`TypeIs`-style predicates, TypeScript-style type guards, and PHPStan-style assertions as **flow effects** attached to RBS method signatures.
+RigorはPythonの`TypeGuard`/`TypeIs`スタイルの述語、TypeScriptスタイルの型ガード、PHPStanスタイルのアサーションをRBSメソッドシグネチャに添付された**フロー効果**としてモデル化します。
 
-### Predicate examples
+### 述語の例
 
 ```ruby
 %a{rigor:v1:predicate-if-true value is String}
@@ -70,7 +67,7 @@ def string?: (untyped value) -> bool
 def logged_in?: () -> bool
 ```
 
-### Assertion examples
+### アサーションの例
 
 ```ruby
 %a{rigor:v1:assert value is String}
@@ -80,19 +77,19 @@ def assert_string!: (untyped value) -> void
 def valid_string?: (untyped value) -> bool
 ```
 
-### Directive meanings
+### ディレクティブの意味
 
-| Directive | Effect |
+| ディレクティブ | 効果 |
 | --- | --- |
-| `rigor:v1:return: T` | Overrides the RBS-declared return type with `T` at every call site. |
-| `rigor:v1:param: name [is] T` | Tightens the RBS-declared type of parameter `name` to `T`, both at overload selection / argument-type checks AND inside the method body during inference. The `is` glue word is optional. |
-| `rigor:v1:predicate-if-true target is T` | Refines `target` to `T` on the **true** branch of a call used as a condition. |
-| `rigor:v1:predicate-if-false target is T` | Refines `target` to `T` on the **false** branch. |
-| `rigor:v1:assert target is T` | Refines `target` after the method returns normally. |
-| `rigor:v1:assert-if-true target is T` | Refines `target` when the method returns a truthy value. |
-| `rigor:v1:assert-if-false target is T` | Refines `target` when the method returns `false` or `nil`. |
+| `rigor:v1:return: T` | すべての呼び出しサイトでRBS宣言の戻り値型を`T`でオーバーライドします。 |
+| `rigor:v1:param: name [is] T` | パラメーター`name`のRBS宣言型を`T`に絞り込みます。オーバーロード選択/引数型チェックと推論中のメソッド本体内の両方に適用されます。`is`グルーワードはオプションです。 |
+| `rigor:v1:predicate-if-true target is T` | 条件として使われる呼び出しの**真**ブランチで`target`を`T`に絞り込みます。 |
+| `rigor:v1:predicate-if-false target is T` | **偽**ブランチで`target`を`T`に絞り込みます。 |
+| `rigor:v1:assert target is T` | メソッドが正常にリターンした後に`target`を絞り込みます。 |
+| `rigor:v1:assert-if-true target is T` | メソッドが真値を返したときに`target`を絞り込みます。 |
+| `rigor:v1:assert-if-false target is T` | メソッドが`false`または`nil`を返したときに`target`を絞り込みます。 |
 
-A true-branch-only predicate is sufficient for Python `TypeGuard`-like behavior. A predicate pair that describes both branches is sufficient for Python `TypeIs`-like behavior. The false branch MAY be written as an explicit negative type when that is clearer:
+真ブランチのみの述語はPythonの`TypeGuard`的な挙動に十分です。両ブランチを記述する述語ペアはPythonの`TypeIs`的な挙動に十分です。偽ブランチはより明確な場合は明示的な負の型として書く場合があります（MAY）:
 
 ```ruby
 %a{rigor:v1:predicate-if-true value is String}
@@ -100,34 +97,34 @@ A true-branch-only predicate is sufficient for Python `TypeGuard`-like behavior.
 def string?: (untyped value) -> bool
 ```
 
-### Target grammar
+### ターゲット文法
 
-The initial target grammar is intentionally small:
+初期ターゲット文法は意図的に小さくなっています:
 
 ```text
 target ::= parameter-name | self
 ```
 
-`parameter-name` refers to an RBS method parameter name, not an arbitrary Ruby Symbol. RBS parameter names follow `_var-name_ ::= /[a-z]\w*/`, so predicate targets follow that existing identifier style. The hyphenated words in directives such as `predicate-if-true` live inside the annotation payload and are parsed by Rigor, not as Ruby Symbols.
+`parameter-name`は任意のRuby Symbolではなく、RBSメソッドパラメーター名を指します。RBSパラメーター名は`_var-name_ ::= /[a-z]\w*/`に従うため、述語ターゲットは既存の識別子スタイルに従います。`predicate-if-true`のようなディレクティブのハイフン付き単語はアノテーションペイロード内にあり、Ruby Symbolとしてではなくリgorによって解析されます。
 
-If a predicate needs to refer to an argument, the RBS method type MUST name that argument:
+述語が引数を参照する必要がある場合、RBSメソッド型はその引数に名前を付けなければなりません（MUST）:
 
 ```ruby
-# Good: `value` can be referenced.
+# 良い例: `value`を参照できます。
 %a{rigor:v1:predicate-if-true value is String}
 def string?: (untyped value) -> bool
 
-# Not enough information for a predicate target.
+# 述語ターゲットに対して情報が不十分です。
 def string?: (untyped) -> bool
 ```
 
-Future versions MAY extend targets to instance variables, record keys, shape paths, and block parameters, but those SHOULD use explicit path syntax rather than overloading the annotation directive name.
+将来のバージョンはターゲットをインスタンス変数、レコードキー、シェイプパス、ブロックパラメーターに拡張する場合がありますが（MAY）、それらはアノテーションディレクティブ名をオーバーロードするのではなく明示的なパス構文を使うべきです（SHOULD）。
 
-## Explicit conformance directive
+## 明示的な適合ディレクティブ
 
-Implicit structural conformance is the default. Ordinary assignments, parameter passing, and method calls trigger structural compatibility checks against the relevant interface or capability role without requiring author-visible opt-in (see [structural-interfaces-and-object-shapes.md](../structural-interfaces-and-object-shapes/)).
+暗黙の構造的適合がデフォルトです。通常の代入、パラメーター渡し、メソッド呼び出しは、著者が見えるオプトインを必要とせずに関連するインターフェースまたはケイパビリティロールに対する構造的互換性チェックをトリガーします（[structural-interfaces-and-object-shapes.md](../structural-interfaces-and-object-shapes/)参照）。
 
-In addition, an explicit conformance directive lets a class declare that it satisfies a structural interface as part of its public contract:
+さらに、明示的な適合ディレクティブにより、クラスがその公開コントラクトの一部として構造的インターフェースを満たすことを宣言できます:
 
 ```ruby
 %a{rigor:v1:conforms-to _RewindableStream}
@@ -135,53 +132,53 @@ class MyBuffer
 end
 ```
 
-The directive instructs Rigor to verify the conformance regardless of whether any current call site exercises that requirement, which is useful for libraries that want their structural contract to be a checked design assertion rather than an emergent property of usage. Multiple `conforms-to` directives on the same class are allowed and combine like an intersection of interfaces. Rigor MUST report a diagnostic when a declared `conforms-to` interface is not satisfied; satisfied directives are silent.
+ディレクティブはRigorに対して、現在の呼び出しサイトがその要件を実行するかどうかに関係なく適合を検証するよう指示します。これは構造的コントラクトを使用から生まれるプロパティではなくチェックされた設計アサーションにしたいライブラリに有用です。同じクラス上の複数の`conforms-to`ディレクティブは許可され、インターフェースの積集合のように結合します。宣言された`conforms-to`インターフェースが満たされない場合、Rigorは診断を報告しなければなりません（MUST）; 満たされたディレクティブはサイレントです。
 
-The directive is purely additive. Implicit structural compatibility continues to apply, and a class that already satisfies the interface continues to type-check without the annotation.
+ディレクティブは純粋に追加的です。暗黙の構造的互換性は引き続き適用され、すでにインターフェースを満たすクラスはアノテーションなしで型チェックを続けます。
 
-## Flow effects and extension contributions
+## フロー効果と拡張の貢献
 
-This section is the canonical semantic schema for flow-effect bundles. Extension API documents (ADR-2 and onward) MUST reference this schema when describing how plugins package and return contributions.
+このセクションはフロー効果バンドルの正規のセマンティクススキーマです。拡張APIドキュメント（ADR-2以降）はプラグインが貢献をパッケージ化して返す方法を説明するときにこのスキーマを参照しなければなりません（MUST）。
 
-The type specification depends on the extension API exposing facts, not direct scope mutation. A plugin or `RBS::Extended` annotation MAY contribute a flow-effect bundle with:
+型仕様はスコープの直接ミューテーションではなく、ファクトを公開する拡張APIに依存します。プラグインまたは`RBS::Extended`アノテーションは以下を持つフロー効果バンドルを貢献する場合があります（MAY）:
 
-- normal return type;
-- truthy-edge facts;
-- falsey-edge facts;
-- post-return assertion facts;
-- exceptional or non-returning effects;
-- block call-timing effects;
-- escape effects for receivers, arguments, blocks, and captured locals;
-- receiver and argument mutation effects;
-- fact invalidation effects;
-- dynamic reflection members introduced by the call;
-- provenance and certainty for the contributed facts and effects.
+- 正常リターン型;
+- 真値エッジファクト;
+- 偽値エッジファクト;
+- リターン後アサーションファクト;
+- 例外または非リターン効果;
+- ブロック呼び出しタイミング効果;
+- レシーバー、引数、ブロック、キャプチャされたローカルのエスケープ効果;
+- レシーバーと引数のミューテーション効果;
+- ファクト無効化効果;
+- 呼び出しによって導入される動的リフレクションメンバー;
+- 貢献されたファクトと効果のprovenanceと確実性。
 
-The analyzer applies these contributions through the same control-flow machinery it uses for built-in guards (see [control-flow-analysis.md](../control-flow-analysis/)). This keeps short-circuiting expressions precise. For example, a plugin-defined predicate used on the left side of `&&` MUST refine the scope used to analyze the right side, and its negative fact MUST flow into the right side of `||`.
+解析器はこれらの貢献を組み込みガードに使うのと同じ制御フロー機構を通じて適用します（[control-flow-analysis.md](../control-flow-analysis/)参照）。これにより短絡式が精密なままになります。例えば、`&&`の左辺で使われるプラグイン定義述語は右辺の解析に使われるスコープを絞り込まなければならず（MUST）、その負のファクトは`||`の右辺に流れなければなりません（MUST）。
 
-### Contribution merging
+### 貢献のマージ
 
-Contribution merging is deterministic and analyzer-owned:
+貢献のマージは決定論的で解析器が所有します:
 
-- Contributions carry **provenance**, including whether they came from core Ruby semantics, an accepted signature or `RBS::Extended` annotation, generated metadata, or a plugin.
-- Core Ruby semantics and accepted signature contracts are authoritative. `RBS::Extended`, generated metadata, and plugins MAY refine compatible facts, but they MUST NOT weaken or contradict the ordinary Ruby/RBS contract.
-- Compatible facts on the same target, flow edge, and effect kind are composed. Positive type facts intersect, negative facts and relational facts accumulate under their normal budgets, and mutation, escape, and invalidation effects are unioned conservatively.
-- Contradictory contributions are diagnostics, not first-wins or last-wins behavior. Rigor SHOULD keep the nearest non-conflicting authoritative fact and ignore or weaken the conflicting contribution for that target and edge.
-- Truthy-edge and falsey-edge facts remain edge-local. A plugin MAY contribute one-sided facts, but Rigor MUST NOT infer the opposite edge unless the contribution explicitly provides it or the core analyzer can derive it.
-- Dynamic return contributions are checked against the selected signature or default return contract. A plugin MAY narrow a compatible return, but an incompatible return contribution is a conflict diagnostic rather than an override of the contract.
-- Repeated `maybe` evidence does not become `yes` merely by count. Certainty changes only when a contribution supplies a stronger proof or the core analyzer can derive one from compatible facts.
+- 貢献は**provenance**を持ちます: コアRubyセマンティクス、受け付けられたシグネチャまたは`RBS::Extended`アノテーション、生成されたメタデータ、プラグインのどこから来たかを含みます。
+- コアRubyセマンティクスと受け付けられたシグネチャコントラクトは権威があります。`RBS::Extended`、生成されたメタデータ、プラグインは互換性のあるファクトを絞り込む場合がありますが（MAY）、通常のRuby/RBSコントラクトを弱体化または矛盾させてはなりません（MUST NOT）。
+- 同じターゲット、フローエッジ、効果の種類の互換性のあるファクトは合成されます。正の型ファクトは積集合を取り、負のファクトと関係的ファクトは通常のバジェットの下で蓄積され、ミューテーション、エスケープ、無効化効果は保守的に結合されます。
+- 矛盾する貢献は診断です。最初優先または最後優先の挙動ではありません。Rigorは最も近い非競合権威ファクトを保持し、そのターゲットとエッジの競合する貢献を無視または弱体化すべきです（SHOULD）。
+- 真値エッジと偽値エッジのファクトはエッジローカルのままです。プラグインは片側のファクトを貢献する場合がありますが（MAY）、貢献が明示的に提供するか、コア解析器が互換性のあるファクトから導出できない限り、Rigorは反対のエッジを推論してはなりません（MUST NOT）。
+- 動的リターン貢献は選択されたシグネチャまたはデフォルトのリターンコントラクトに対してチェックされます。プラグインは互換性のあるリターンを絞り込む場合がありますが（MAY）、非互換なリターン貢献はコントラクトのオーバーライドではなく競合診断です。
+- `maybe`の証拠が繰り返されても、単に数によって`yes`になることはありません。確実性は、貢献がより強い証明を提供するか、コア解析器が互換性のあるファクトからそれを導出できる場合にのみ変わります。
 
-### Future targets
+### 将来のターゲット
 
-Future target grammar SHOULD grow only with clear stability rules. Plausible targets include:
+将来のターゲット文法は明確な安定性ルールによってのみ成長すべきです（SHOULD）。妥当なターゲットには以下が含まれます:
 
 - `self`;
-- named parameters;
-- local variables visible at the call site;
-- receiver members, such as `self.name`;
-- instance variables, such as `@name`;
-- hash or record keys, such as `config[:mode]`;
-- tuple or array elements with literal indexes;
-- method-result paths on the same receiver, when the method is known to be pure or stable.
+- 名前付きパラメーター;
+- 呼び出しサイトで可視のローカル変数;
+- `self.name`のようなレシーバーメンバー;
+- `@name`のようなインスタンス変数;
+- `config[:mode]`のようなハッシュまたはレコードキー;
+- リテラルインデックスを持つタプルまたは配列要素;
+- メソッドが純粋または安定していることが既知の場合、同じレシーバーのメソッド結果パス。
 
-Targets that can be mutated behind the analyzer's back SHOULD either be rejected in annotations, treated as `maybe`, or paired with explicit stability metadata.
+解析器の背後でミューテートされる可能性のあるターゲットは、アノテーションで拒否されるか、`maybe`として扱われるか、または明示的な安定性メタデータとペアにされるべきです（SHOULD）。

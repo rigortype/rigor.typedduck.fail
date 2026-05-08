@@ -1,120 +1,117 @@
 ---
-title: "Special Types"
-description: "Imported from rigortype/rigor docs/type-specification/special-types.md."
+title: "特殊型"
+description: "rigortype/rigor docs/type-specification/special-types.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/type-specification/special-types.md"
 sourcePath: "docs/type-specification/special-types.md"
 sourceSha: "df3a80f30759e47bfdfce3e2fee30d6023d05254c7e02c616d681b29f355d3c1"
 sourceCommit: "9f40e22193647dc06e3ab70c5ba82768b0bfe738"
-translationStatus: "pending"
+translationStatus: "translated"
 sidebar:
   order: 2050
 ---
 
-> [!NOTE]
-> このページはまだ翻訳されていません。英語版の本文を参考表示しています。
-
-Rigor distinguishes several special types that have specific semantic roles and are not interchangeable. The lattice in which they live is defined in [value-lattice.md](../value-lattice/).
+Rigorは特定の意味論的役割を持ち、互換性がない複数の特殊型を区別します。これらが属する束は[value-lattice.md](../value-lattice/)で定義されています。
 
 ## `top`
 
-`top` is the greatest type for any Ruby value. It is useful when a value exists but Rigor has no useful static structure for it.
+`top`はあらゆるRuby値に対する最大型です。値は存在するがRigorにとって有用な静的構造がない場合に使われます。
 
-Using a value of type `top` is still checked. A method call on `top` MUST be accepted only when the method is known to be available for every possible inhabitant, or when a plugin supplies a stronger fact.
+`top`型の値の使用は依然としてチェックされます。`top`へのメソッド呼び出しは、メソッドがすべての可能な住民に対して利用可能であることが既知の場合、またはプラグインがより強い事実を提供する場合にのみ受け付けられなければなりません（MUST）。
 
-`top` plays the role of TypeScript's `unknown` for the safe-top axis: a value of type `top` can hold any Ruby value, but the analyzer requires a guard, signature, or plugin fact before it can be used. Diagnostics for unguarded calls on `top` belong to the `static.*` family (see [diagnostic-policy.md](../diagnostic-policy/)).
+`top`はTypeScriptの`unknown`の安全な頂点軸における役割を果たします: `top`型の値は任意のRuby値を保持できますが、解析器はガード、シグネチャ、またはプラグインの事実を必要とします。`top`に対するガードなしの呼び出しの診断は`static.*`ファミリーに属します（[diagnostic-policy.md](../diagnostic-policy/)参照）。
 
 ## `bot`
 
-`bot` is the empty type. It appears in unreachable branches, methods that always raise, exits, failed pattern matches, and contradictory refinements.
+`bot`は空型です。到達不能なブランチ、常に例外を投げるメソッド、出口、失敗したパターンマッチ、矛盾するリファインメントに現れます。
 
-`bot` is useful for control-flow analysis because joining `bot` with a real branch leaves the real branch unchanged: `T | bot = T`.
+`bot`は制御フロー解析に有用です。なぜなら`bot`を実際のブランチとジョインしても実際のブランチが変わらないからです: `T | bot = T`。
 
-For return contracts, `bot` satisfies every result contract because no normal value is produced. A method body that always raises, exits, or loops forever is therefore compatible with a `void` return contract. The reverse is not true: a `void` result is **not** a proof of non-returning control flow and does **not** satisfy a `bot` return contract.
+戻り値コントラクトについて、`bot`は通常の値が生成されないのですべての結果コントラクトを満たします。したがって、常に例外を投げる、終了する、または永遠にループするメソッド本体は`void`戻り値コントラクトと互換性があります。逆は真ではありません: `void`の結果は非リターン制御フローの証明では**なく**、`bot`戻り値コントラクトを満たし**ません**。
 
-## `untyped` and `Dynamic[T]`
+## `untyped`と`Dynamic[T]`
 
-`untyped` is the dynamic type. It is consistent with every type:
+`untyped`は動的型です。すべての型と一貫しています:
 
 ```text
 consistent(untyped, T)
 consistent(T, untyped)
 ```
 
-Rigor's internal representation is more precise:
+Rigorの内部表現はより精密です:
 
 ```text
 untyped = Dynamic[top]
 ```
 
-`Dynamic[T]` combines two facts:
+`Dynamic[T]`は2つの事実を組み合わせます:
 
-- the value crossed a gradual boundary or otherwise came from unchecked information;
-- the current control-flow analysis can still prove the static facet `T`.
+- 値がグラデュアル境界を越えたか、チェックされていない情報から来た
+- 現在の制御フロー解析がまだ静的ファセット`T`を証明できる
 
-`Dynamic[T]` is **not** surface RBS syntax and MUST NOT be accepted as an ordinary user-authored type. It is an implementation form. The full algebra (joins, intersections, differences, generic-slot preservation) is in [value-lattice.md](../value-lattice/).
+`Dynamic[T]`は**表面RBS構文ではなく**、通常のユーザーが著作する型として受け付けてはなりません（MUST NOT）。これは実装形式です。完全な代数（ジョイン、積、差、ジェネリックスロット保持）は[value-lattice.md](../value-lattice/)にあります。
 
-### Subtyping versus consistency
+### サブタイピング対一貫性
 
-Subtyping and method availability are checked against the static facet `T` when Rigor has one. Gradual consistency, not subtyping, is what allows a dynamic value to cross a typed boundary. See [relations-and-certainty.md](../relations-and-certainty/).
+サブタイピングとメソッド利用可能性は、Rigorが静的ファセット`T`を持つとき、それに対してチェックされます。動的値が型付き境界を越えることを可能にするのは、サブタイピングではなくグラデュアル一貫性です。[relations-and-certainty.md](../relations-and-certainty/)を参照してください。
 
-### Operations on raw `Dynamic[top]`
+### 生の`Dynamic[top]`に対する操作
 
-Operations on raw `Dynamic[top]` MUST NOT create false precision. A method call on raw `untyped` returns `Dynamic[top]` unless Rigor has an explicit refinement, signature, or plugin-provided rule. Assigning a dynamic-origin value to a precise type is allowed at a gradual boundary, but Rigor MUST retain enough provenance to explain that the value passed through unchecked code.
+生の`Dynamic[top]`に対する操作は偽の精度を作り出してはなりません（MUST NOT）。生の`untyped`に対するメソッド呼び出しは、Rigorが明示的なリファインメント、シグネチャ、またはプラグイン提供のルールを持たない限り`Dynamic[top]`を返します。動的由来の値を精密な型に代入することはグラデュアル境界で許されますが、Rigorは値がチェックされていないコードを通過したことを説明できるだけのprovenanceを保持しなければなりません（MUST）。
 
-### Dynamic-origin sources
+### 動的由来のソース
 
-Rigor SHOULD distinguish dynamic-origin sources for diagnostics, even though the type relation is the same for all of them:
+Rigorは診断のために動的由来のソースを区別すべきです（SHOULD）、型関係はすべてで同じですが:
 
-- explicit `untyped` in RBS, rbs-inline, or Steep-compatible annotations;
-- missing external signatures or implicit unknown library facts;
-- analyzer limits, failed inference, or plugin-declared dynamic behavior.
+- RBS、rbs-inline、またはSteep互換のアノテーションでの明示的な`untyped`
+- 外部シグネチャの欠落または暗黙の未知のライブラリ事実
+- 解析器の制限、推論の失敗、またはプラグインが宣言した動的挙動
 
-Diagnostics MAY use these distinctions to explain whether a `Dynamic[T]` came from a deliberate gradual boundary or from a missing signature.
+診断はこれらの区別を使って、`Dynamic[T]`が意図的なグラデュアル境界から来たのか、シグネチャの欠落から来たのかを説明できます（MAY）。
 
-### Strict modes
+### ストリクトモード
 
-Strict dynamic modes MAY report dynamic-to-precise assignments, arguments, returns, and generic-slot leaks such as `Array[Dynamic[top]]`. Strict static modes MAY additionally report method calls or branch proofs whose safety depends on dynamic-origin facts rather than checked static facts.
+ストリクト動的モードは、動的から精密な代入、引数、戻り値、`Array[Dynamic[top]]`のようなジェネリックスロットのリークを報告できます（MAY）。ストリクト静的モードはさらに、チェックされた静的事実ではなく動的由来の事実に安全性が依存するメソッド呼び出しやブランチ証明を報告できます（MAY）。
 
 ## `void`
 
-`void` is **not** an ordinary value type in Rigor. It is a result marker for expressions whose return value should not be used.
+`void`はRigorでは通常の値型では**ありません**。戻り値を使うべきでない式の結果マーカーです。
 
-RBS treats `void`, `boolish`, and `top` equivalently for many type-system purposes. Rigor keeps `void` distinct internally so it can diagnose value use:
+RBSは多くの型システム目的で`void`、`boolish`、`top`を同等に扱います。Rigorは値の使用を診断できるように内部で`void`を区別して保持します:
 
 ```ruby
 result = puts("hello")
-# `puts` returns void; assigning or sending methods to the value is suspicious.
+# `puts` は void を返す; 値に代入したりメソッドを送ることは疑わしい。
 ```
 
-### Rules
+### 規則
 
-- `void` is valid in method and proc return positions.
-- A `bot` implementation path is compatible with `void`; a `void` implementation path is not compatible with `bot`.
-- `void | bot` normalizes to `void` in result summaries because the `bot` path contributes no normal value.
-- `void` is valid as a generic argument, block parameter, or callback return only when preserving an existing RBS signature.
-- Rigor SHOULD NOT infer or author new `void` slots inside ordinary unions, optionals, records, tuples, or parameter types.
-- When imported RBS places `void` in a generic slot, Rigor MUST preserve the slot. Reading from that slot produces a `void` result marker, and using that result follows the ordinary `void` value-context rule.
+- `void`はメソッドとprocの戻り値位置で有効です。
+- `bot`の実装パスは`void`と互換性があります; `void`の実装パスは`bot`と互換性がありません。
+- `void | bot`は結果サマリーで`void`に正規化されます。なぜなら`bot`パスは通常値を提供しないからです。
+- `void`はジェネリック引数、ブロックパラメーター、またはコールバック戻り値として、既存のRBSシグネチャを保持する場合にのみ有効です。
+- Rigorは通常のユニオン、オプショナル、レコード、タプル、パラメーター型の内部で新しい`void`スロットを推論したり著作したりすべきではありません（SHOULD NOT）。
+- インポートされたRBSが`void`をジェネリックスロットに置く場合、Rigorはそのスロットを保持しなければなりません（MUST）。そのスロットからの読み取りは`void`結果マーカーを生成し、その結果の使用は通常の`void`値コンテキストルールに従います。
 
-### Statement context vs value context
+### 文コンテキスト対値コンテキスト
 
-- In statement context, a `void` result is accepted.
-- In value context, a `void` result MUST produce a primary "use of void value" diagnostic and is materialized as `top` for downstream recovery.
-- Recovery from a `void` value SHOULD suppress immediate cascading diagnostics such as "method on `top`" for the same expression unless the user has requested cascading output.
+- 文コンテキストでは、`void`の結果は受け付けられます。
+- 値コンテキストでは、`void`の結果は「void値の使用」という一次診断を生成しなければならず（MUST）、下流のリカバリーのために`top`として具体化されます。
+- `void`値からのリカバリーは、ユーザーがカスケード出力を要求していない限り、同じ式に対する「`top`上のメソッド」のような即時カスケード診断を抑制すべきです（SHOULD）。
 
-The recovery rule means a `void` value reaches `top`, not a stricter or weaker substitute. Rigor's contribution on top of the RBS rule is to record that the value reached the position by recovery from `void` and to surface that as a primary diagnostic, so the analyzer can explain *why* a `top` appeared and the user can fix the call site rather than learning to live with a generic `top`.
+リカバリールールは`void`値が`top`に到達することを意味します。より厳密でも緩くもない代替ではありません。RBSルールに加えてRigorが貢献するのは、値が`void`からのリカバリーによってその位置に到達したことを記録し、それを一次診断として浮上させることです。これにより解析器は`top`が現れた**理由**を説明でき、ユーザーは汎用的な`top`と共存することを学ぶのではなく、呼び出し元を修正できます。
 
-## `nil`, `NilClass`, and optional types
+## `nil`、`NilClass`、オプショナル型
 
-`nil` is the singleton nil value. `T?` is normalized to `T | nil` (see [normalization.md](../normalization/)).
+`nil`はシングルトンnil値です。`T?`は内部的に`T | nil`に正規化されます（[normalization.md](../normalization/)参照）。
 
-`NilClass` is a nominal RBS type, but Rigor SHOULD prefer the singleton `nil` internally whenever it can prove the exact value. Export SHOULD prefer `nil` for singleton nil and preserve `NilClass` only when it came from an explicit external signature.
+`NilClass`は公称RBS型ですが、Rigorは正確な値を証明できる場合は常に内部でシングルトン`nil`を優先すべきです（SHOULD）。エクスポートはシングルトンnilに対して`nil`を優先し、明示的な外部シグネチャから来た場合にのみ`NilClass`を保持すべきです（SHOULD）。
 
-Optional-key absence in hash shapes does **not** add `nil` to the value type. Absence is not a stored value. Hash-shape erasure rules are in [rbs-erasure.md](../rbs-erasure/).
+ハッシュシェイプでのオプショナルキーの不在は値型に`nil`を追加**しません**。不在は保存された値ではありません。ハッシュシェイプの消去規則は[rbs-erasure.md](../rbs-erasure/)にあります。
 
-## `bool`, truthiness, and `boolish`
+## `bool`、真偽性、`boolish`
 
-`bool` is `true | false`.
+`bool`は`true | false`です。
 
-Ruby conditionals accept any value as a truth value: only `false` and `nil` are falsey. Rigor models this as a flow-sensitive predicate over types (see [control-flow-analysis.md](../control-flow-analysis/)), not by widening every condition to `bool`.
+Rubyの条件式は任意の値を真偽値として受け付けます: `false`と`nil`だけが偽です。Rigorはこれを型に対するフロー感度述語としてモデル化します（[control-flow-analysis.md](../control-flow-analysis/)参照）。すべての条件を`bool`に広げることはしません。
 
-RBS `boolish` is an alias of `top`. Rigor SHOULD erase truthiness-accepting callback return types to `boolish` when matching an existing RBS signature, but internally it SHOULD retain the actual return type when possible.
+RBSの`boolish`は`top`のエイリアスです。Rigorは既存のRBSシグネチャと一致するとき、真偽性を受け付けるコールバック戻り値型を`boolish`に消去すべきですが（SHOULD）、内部的には可能な限り実際の戻り値型を保持すべきです（SHOULD）。

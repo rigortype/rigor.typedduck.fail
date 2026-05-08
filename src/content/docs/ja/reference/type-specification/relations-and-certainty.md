@@ -1,78 +1,75 @@
 ---
-title: "Relations and Certainty"
-description: "Imported from rigortype/rigor docs/type-specification/relations-and-certainty.md."
+title: "関係と確実性"
+description: "rigortype/rigor docs/type-specification/relations-and-certainty.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/type-specification/relations-and-certainty.md"
 sourcePath: "docs/type-specification/relations-and-certainty.md"
 sourceSha: "c16064db397769042a52fee79ef38d42c090229af0a2b7fac7a70f173f8ff696"
 sourceCommit: "9f40e22193647dc06e3ab70c5ba82768b0bfe738"
-translationStatus: "pending"
+translationStatus: "translated"
 sidebar:
   order: 2050
 ---
 
-> [!NOTE]
-> このページはまだ翻訳されていません。英語版の本文を参考表示しています。
+Rigorは2つの型関係と3値の確実性結果を区別します。これらを合わせることで、解析器が型に何を求め、呼び出し元に何を返すかを記述できます。
 
-Rigor distinguishes two type relations and a trinary certainty result. Together they describe what the analyzer asks of a type and what it returns to callers.
+## サブタイピングとグラデュアル一貫性
 
-## Subtyping and gradual consistency
+Rigorは以下を区別します:
 
-Rigor distinguishes:
+- **サブタイピング**（`A <: B`と書く）は値集合の包含関係を記述します。
+- **グラデュアル一貫性**（`consistent(A, B)`と書く）は`untyped`が参加するときの互換性を記述します。
 
-- **Subtyping**, written `A <: B`, describes value-set inclusion.
-- **Gradual consistency**, written `consistent(A, B)`, describes compatibility when `untyped` participates.
+この区別は`untyped`が単に`top`ではないために必要です。`top`は最大の静的値型です。`untyped`は動的型: 境界で精密な静的チェックを抑制しながらも、精度が失われたという事実を保持します。束と動的由来の代数については[special-types.md](../special-types/)と[value-lattice.md](../value-lattice/)を参照してください。
 
-This distinction is required because `untyped` is not simply `top`. `top` is the greatest static value type. `untyped` is the dynamic type: it suppresses precise static checking at a boundary while preserving the fact that precision was lost. See [special-types.md](../special-types/) and [value-lattice.md](../value-lattice/) for the lattice and dynamic-origin algebra.
+本仕様は`~T`をグラデュアル一貫性関係として使いません。なぜなら`~T`は否定型または補完型のために予約されているからです（[type-operators.md](../type-operators/)参照）。
 
-This specification does not use `~` as the gradual-consistency relation because `~T` is reserved for negative or complement types (see [type-operators.md](../type-operators/)).
+### サブタイピングの性質
 
-### Subtyping properties
+- 反射性: すべての型`T`に対して`T <: T`。
+- 推移性: `A <: B`かつ`B <: C`ならば`A <: C`。
+- サブタイピングは利用可能な場合は**静的ファセット**に対してチェックされます。`Dynamic[T]`について、サブタイピングは値集合の証人として`T`を使います。値が型付き境界を越えられるかを管理するのはサブタイピングではなくグラデュアル一貫性です。
+- 値束の底と頂の同一性（`bot <: T`、`T <: top`）はすべての静的値型で成り立ちます。
 
-- Reflexive: `T <: T` for every type `T`.
-- Transitive: if `A <: B` and `B <: C`, then `A <: C`.
-- Subtyping is checked against the **static facet** when one is available. For `Dynamic[T]`, subtyping uses `T` as the value-set witness; gradual consistency, not subtyping, governs whether the value can cross a typed boundary.
-- The bottom and top identities of the value lattice (`bot <: T`, `T <: top`) hold for every static value type.
+### グラデュアル一貫性
 
-### Gradual consistency
-
-Gradual consistency is symmetric in the dynamic direction:
+グラデュアル一貫性は動的方向で対称です:
 
 ```text
 consistent(Dynamic[T], U)
 consistent(U, Dynamic[T])
 ```
 
-Consistency is **not** transitive in the way subtyping is, and it is not a substitute for subtyping. Method availability, member access, and refinement checks use subtyping or structural rules against the static facet. Gradual consistency only explains why a dynamic value may cross a typed boundary.
+一貫性はサブタイピングのような推移性を持ちません。また、サブタイピングの代替ではありません。メソッドの利用可能性、メンバーアクセス、リファインメントチェックは静的ファセットに対してサブタイピングまたは構造的規則を使います。グラデュアル一貫性は動的値が型付き境界を越えられる理由のみを説明します。
 
-A complete account of how `Dynamic[T]` participates in unions, intersections, and differences is in [value-lattice.md](../value-lattice/).
+`Dynamic[T]`がユニオン、積、差にどのように参加するかの完全な説明は[value-lattice.md](../value-lattice/)にあります。
 
-## Trinary certainty
+## 3値の確実性
 
-Type, reflection, role-conformance, and member-availability queries return one of three results:
+型、リフレクション、ロール適合、メンバー利用可能性のクエリは3つの結果のいずれかを返します:
 
-- `yes` — proven under the current source, signatures, plugin facts, and configured analyzer assumptions.
-- `no` — disproven under the same evidence base.
-- `maybe` — every other case.
+- `yes` — 現在のソース、シグネチャ、プラグイン事実、設定された解析器の仮定の下で証明済み。
+- `no` — 同じ証拠基盤の下で反証済み。
+- `maybe` — それ以外のすべてのケース。
 
-`yes` and `no` are reserved for results Rigor can treat as proven. `maybe` covers everything else: the analyzer cannot prove the relationship, the answer depends on dynamic behavior, a plugin supplied an uncertain member, or an inference budget was exhausted.
+`yes`と`no`はRigorが証明済みとして扱える結果のために予約されています。`maybe`は他のすべてをカバーします: 解析器が関係を証明できない、答えが動的挙動に依存する、プラグインが不確かなメンバーを提供した、または推論バジェットが尽きた。
 
-### Method-boundary trust
+### メソッド境界の信頼
 
-Rigor MUST trust accepted method signatures at method boundaries. If a parameter or called-method return value has an accepted RBS, rbs-inline, Steep-compatible, generated, or `RBS::Extended` contract, callers analyze through that contract rather than treating every external value as `maybe`. Diagnostics MAY still preserve dynamic provenance when the contract includes `untyped` or came from a plugin.
+Rigorはメソッド境界で受け付けられたメソッドシグネチャを信頼しなければなりません（MUST）。パラメーターまたは呼び出されたメソッドの戻り値が受け付けられたRBS、rbs-inline、Steep互換、生成済み、または`RBS::Extended`コントラクトを持つ場合、呼び出し元はすべての外部値を`maybe`として扱うのではなく、そのコントラクトを通じて解析します。コントラクトに`untyped`が含まれるか、プラグインから来た場合、診断は動的provenanceを保持できます（MAY）。
 
-### `maybe` is not a proof for narrowing
+### `maybe`はナローイングの証明ではない
 
-A `maybe` relationship MAY be retained as a weak relational, member-existence, or dynamic-origin fact for diagnostics and later explanation. It MUST NOT refine a value as if the answer were `yes`, and it MUST NOT produce the complementary false-edge fact as if the answer were `no`. Repeated `maybe` evidence remains `maybe`; Rigor MUST NOT promote uncertainty to `yes` merely by count.
+`maybe`の関係は、診断と後の説明のために弱い関係的、メンバー存在、または動的由来の事実として保持される場合があります（MAY）。答えが`yes`であるかのように値を絞り込んではならず（MUST NOT）、答えが`no`であるかのような補完的な偽エッジ事実を生成してはなりません（MUST NOT）。`maybe`の証拠を繰り返すことは`maybe`のままです; Rigorは単に数が多いというだけで不確実性を`yes`に昇格させてはなりません（MUST NOT）。
 
-### Diagnostic policy is level-dependent
+### 診断ポリシーはレベル依存
 
-Diagnostic policy is level-dependent, similar in spirit to PHPStan error levels. A permissive level MAY accept a method call or role match that depends on `maybe` evidence without reporting it. Stricter levels MAY report that the proof is uncertain and suggest adding a guard, a signature, generated metadata, or a plugin configuration. The diagnostic identifier scheme that supports this layering is documented in [diagnostic-policy.md](../diagnostic-policy/).
+診断ポリシーはレベル依存で、PHPStanのエラーレベルと精神的に似ています。寛容なレベルは、`maybe`の証拠に依存するメソッド呼び出しやロールマッチを報告せずに受け付ける場合があります（MAY）。より厳格なレベルは、証明が不確かであることを報告し、ガード、シグネチャ、生成されたメタデータ、またはプラグイン設定の追加を提案できます（MAY）。このレイヤリングをサポートする診断識別子スキームは[diagnostic-policy.md](../diagnostic-policy/)に文書化されています。
 
-### `maybe` is distinct from incomplete inference
+### `maybe`は不完全推論とは別物
 
-Two distinct concepts MUST NOT be conflated:
+2つの別個の概念を混同してはなりません（MUST NOT）:
 
-- **`maybe`** is a *relational query result*. It applies even when inference is complete: the analyzer simply cannot prove either side under the available evidence.
-- **Incomplete inference** is an *analyzer outcome* triggered by a budget cutoff (recursion depth, call-graph width, operator ambiguity, and so on). It produces a `static.*` diagnostic with the cutoff reason and a conservative placeholder type such as `Dynamic[top]`. See [inference-budgets.md](../inference-budgets/).
+- **`maybe`**は*関係クエリの結果*です。推論が完全であっても適用されます: 解析器は利用可能な証拠の下でどちらの側も単純に証明できません。
+- **不完全推論**は、バジェットカットオフ（再帰深度、呼び出しグラフの幅、演算子の曖昧さなど）によって引き起こされる*解析器の結果*です。カットオフの理由と`Dynamic[top]`のような保守的なプレースホルダー型を含む`static.*`診断を生成します。[inference-budgets.md](../inference-budgets/)を参照してください。
 
-The two compose. A relational query against a placeholder type MAY return `maybe` because the missing precision blocks a `yes` or `no` answer, but the underlying cause is the cutoff. The diagnostic MUST identify the cutoff as such. Implementations MUST NOT collapse "stopped early" into a relational `maybe` that hides the cutoff from users.
+2つは組み合わさります。プレースホルダー型に対する関係クエリは、欠けた精度が`yes`または`no`の答えをブロックするため`maybe`を返す場合があります（MAY）。しかし根本的な原因はカットオフです。診断はカットオフをそのものとして識別しなければなりません（MUST）。実装はカットオフをユーザーから隠す関係的`maybe`に「早期停止」を折り畳んではなりません（MUST NOT）。

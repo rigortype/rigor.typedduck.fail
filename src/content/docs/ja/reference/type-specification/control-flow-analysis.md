@@ -1,228 +1,225 @@
 ---
-title: "Control-Flow Analysis"
-description: "Imported from rigortype/rigor docs/type-specification/control-flow-analysis.md."
+title: "制御フロー解析"
+description: "rigortype/rigor docs/type-specification/control-flow-analysis.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/type-specification/control-flow-analysis.md"
 sourcePath: "docs/type-specification/control-flow-analysis.md"
 sourceSha: "b0195593040bdb622433e0903c52a5ecbadede93e161f56719a2b48324f330e6"
 sourceCommit: "9f40e22193647dc06e3ab70c5ba82768b0bfe738"
-translationStatus: "pending"
+translationStatus: "translated"
 sidebar:
   order: 2050
 ---
 
-> [!NOTE]
-> このページはまだ翻訳されていません。英語版の本文を参考表示しています。
+RigorはPHPStan、TypeScript、Pythonの型チェッカーのスタイルでフロー感度のある型解析を実行します。解析器はガード、リターン、raise、ループ脱出、パターンマッチ、等価比較、述語メソッド、プラグイン提供ファクトによって型を絞り込みます。
 
-Rigor performs flow-sensitive type analysis in the style of PHPStan, TypeScript, and Python type checkers. The analyzer refines types by guards, returns, raises, loop exits, pattern matches, equality comparisons, predicate methods, and plugin-provided facts.
+この文書は以下を定義します:
 
-This document defines:
+- エッジ対応スコープの構造;
+- サポートされているナローイングソース;
+- ナローイングのためのRuby等価セマンティクス;
+- ファクトの安定性、無効化、ミューテーション効果;
+- プラグイン前のv1ナローイングサーフェスとv1.1に先送りされるもの。
 
-- the structure of edge-aware scopes;
-- supported narrowing sources;
-- Ruby equality semantics for narrowing;
-- fact stability, invalidation, and mutation effects;
-- the pre-plugin v1 narrowing surface and what is deferred to v1.1.
+`RBS::Extended`アノテーションとプラグイン貢献で使われるフロー効果バンドルスキーマは[rbs-extended.md](../rbs-extended/)にあります。
 
-The flow-effect bundle schema used by `RBS::Extended` annotations and plugin contributions is in [rbs-extended.md](../rbs-extended/).
+## エッジ対応スコープ
 
-## Edge-aware scopes
+型環境はガード、リターン、raise、ループ脱出、パターンマッチ、等価比較、述語メソッド、プラグイン提供ファクトによって絞り込まれます。各式は入力`Scope`で解析され、関連するエッジの出力スコープを生成します:
 
-The type environment is refined by guards, returns, raises, loop exits, pattern matches, equality comparisons, predicate methods, and plugin-provided facts. Each expression is analyzed with an input `Scope` and produces output scopes for the relevant edges:
+- 正常完了;
+- 真値条件の結果;
+- 偽値条件の結果;
+- 例外または非リターン終了;
+- `bot`で表される到達不能な結果。
 
-- normal completion;
-- truthy condition result;
-- falsey condition result;
-- exceptional or non-returning exit;
-- unreachable result, represented by `bot`.
+これらのスコープは**正のファクト**と**負のファクト**の両方を運びます。結合はそれらのファクトを保守的にマージします。
 
-These scopes carry both **positive facts** and **negative facts**. Joins merge those facts conservatively.
+エッジ対応スコープは`if`条件全体に1つのスコープを割り当てるよりも細かいです。短絡式はオペランド間でスコープを更新します:
 
-Edge-aware scopes are finer than assigning one scope to the whole `if` condition. Short-circuiting expressions update the scope between operands:
-
-- `a && b` analyzes `b` in the truthy scope produced by `a`.
-- `a || b` analyzes `b` in the falsey scope produced by `a`.
-- `!a` swaps truthy and falsey scopes.
-- `unless a` uses the same condition facts as `if a`, then swaps branch destinations.
-- `case`, pattern matching, and chained `elsif` expressions pass negative facts from earlier arms to later arms.
+- `a && b`は`a`が生成した真値スコープで`b`を解析します。
+- `a || b`は`a`が生成した偽値スコープで`b`を解析します。
+- `!a`は真値スコープと偽値スコープを入れ替えます。
+- `unless a`は`if a`と同じ条件ファクトを使い、ブランチの宛先を入れ替えます。
+- `case`、パターンマッチ、連鎖した`elsif`式は、後のアームに前のアームからの負のファクトを渡します。
 
 ```ruby
 def contradictory(foo)
-  # Assume `foo` has a finite literal domain and ordinary String equality.
+  # `foo`が有限リテラルドメインと通常のString等価を持つと仮定します。
   if foo == "foo" && foo == "bar"
-    p foo # Rigor type: bot; this edge is unreachable.
+    p foo # Rigorの型: bot; このエッジは到達不能です。
   end
 end
 ```
 
-The right side of `&&` is analyzed after the left side's true fact has refined `foo` to `"foo"`. The true edge of `foo == "bar"` then intersects `"foo"` with `"bar"`, normalizes to `bot`, and marks the body as unreachable. Rigor SHOULD be able to report the contradiction at the comparison or at the unreachable body, depending on diagnostic policy.
+`&&`の右辺は、左辺の真ファクトが`foo`を`"foo"`に絞り込んだ後で解析されます。その後`foo == "bar"`の真エッジが`"foo"`と`"bar"`の積集合を取り、`bot`に正規化し、本体を到達不能としてマークします。Rigorは診断ポリシーに応じて比較または到達不能な本体で矛盾を報告できるべきです（SHOULD）。
 
-For `||`, the same precision applies in the opposite direction:
+`||`では、反対方向に同じ精度が適用されます:
 
 ```ruby
 def impossible_after_or(foo)
-  # Assume `foo` has a finite literal domain and ordinary String equality.
+  # `foo`が有限リテラルドメインと通常のString等価を持つと仮定します。
   if foo == "foo" || foo == "bar"
-    p foo # Rigor type includes only the "foo" and "bar" alternatives.
+    p foo # Rigorの型は"foo"と"bar"の代替のみを含みます。
   else
-    p foo # Rigor type excludes both "foo" and "bar".
+    p foo # Rigorの型は"foo"と"bar"の両方を除外します。
   end
 end
 ```
 
-## Supported narrowing sources
+## サポートされているナローイングソース
 
-Supported narrowing sources include:
+サポートされているナローイングソースには以下が含まれます:
 
-- Trusted equality and inequality checks against literals and singleton values.
-- `nil?` checks and nil comparisons.
-- Truthiness checks, where `nil` and `false` narrow the false branch.
-- `is_a?`, `kind_of?`, `instance_of?`, and class/module comparisons.
-- `respond_to?` checks when the method name is statically known. See [structural-interfaces-and-object-shapes.md](../structural-interfaces-and-object-shapes/) for the visibility rules.
-- Pattern matching and case analysis.
-- Predicate methods registered by Rigor plugins.
-- Assertions and guards described in `RBS::Extended` annotations (see [rbs-extended.md](../rbs-extended/)).
+- リテラルとシングルトン値に対する信頼された等価および不等価チェック。
+- `nil?`チェックとnil比較。
+- 真偽性チェック（`nil`と`false`が偽ブランチを絞り込みます）。
+- `is_a?`、`kind_of?`、`instance_of?`、クラスとモジュールの比較。
+- メソッド名が静的に既知の場合の`respond_to?`チェック。可視性ルールは[structural-interfaces-and-object-shapes.md](../structural-interfaces-and-object-shapes/)を参照してください。
+- パターンマッチとcase解析。
+- Rigorプラグインによって登録された述語メソッド。
+- `RBS::Extended`アノテーションに記述されたアサーションとガード（[rbs-extended.md](../rbs-extended/)参照）。
 
-## Negative facts
+## 負のファクト
 
-Negative facts are first-class scope facts. Rigor SHOULD preserve facts such as "not nil", "not false", "not this literal", and "does not have this nominal class" when they improve later diagnostics.
+負のファクトはファーストクラスのスコープファクトです。Rigorは後の診断を改善する場合、「nilではない」、「falseではない」、「このリテラルではない」、「この公称クラスを持たない」といったファクトを保持すべきです（SHOULD）。
 
-A negative fact is **domain-relative**: it removes values from the value's already-known positive domain. It MUST NOT introduce a new positive domain from the right-hand side of a comparison. The complete semantic and display rules for negative facts are in [type-operators.md](../type-operators/).
+負のファクトは**ドメイン相対**です: 値のすでに既知の正のドメインから値を取り除きます。比較の右辺から新しい正のドメインを導入してはなりません（MUST NOT）。負のファクトの完全なセマンティクスと表示規則は[type-operators.md](../type-operators/)にあります。
 
-Python's `TypeGuard` and `TypeIs` are useful reference points for predicate effects. A predicate that refines only the true branch is `TypeGuard`-like. A predicate that refines both true and false branches is `TypeIs`-like; internally, the false branch SHOULD be modeled as intersection with a complement, such as `A & ~R`, or as an equivalent difference type.
+Pythonの`TypeGuard`と`TypeIs`は述語効果の有用な参照点です。真ブランチのみを絞り込む述語は`TypeGuard`に似ています。真ブランチと偽ブランチの両方を絞り込む述語は`TypeIs`に似ています; 内部的に偽ブランチは`A & ~R`のような補完との積集合として、または同等の差分型としてモデル化すべきです（SHOULD）。
 
-## Ruby equality semantics
+## Ruby等価セマンティクス
 
-Ruby equality is method dispatch. A syntactic comparison such as `foo == "foo"` calls `foo.==("foo")`, and arbitrary classes MAY override that method. Rigor MUST therefore distinguish:
+Ruby等価はメソッドディスパッチです。`foo == "foo"`のような構文的比較は`foo.==("foo")`を呼び出し、任意のクラスがそのメソッドをオーバーライドできます（MAY）。Rigorは以下を区別しなければなりません（MUST）:
 
-- **identity facts**, such as `x.equal?(obj)`, which can prove singleton identity;
-- **nil and boolean checks**, which are stable Ruby value tests;
-- **equality facts for known built-in domains** whose dispatch target is stable, such as finite `String`, `Symbol`, `Integer`, `true`, `false`, and `nil` alternatives already present in the receiver domain;
-- **comparison facts contributed by RBS or plugins** for trusted predicate and equality methods;
-- **unknown equality methods**, which SHOULD produce at most a relational fact unless the analyzer has enough method information to refine the value type;
-- **floating-point comparisons**, which MUST NOT produce literal narrowing by default because `NaN`, signed zero, infinities, and coercion make exhaustiveness and equality reasoning easy to misstate.
+- `x.equal?(obj)`のような**同一性ファクト**（シングルトン同一性を証明できます）;
+- 安定したRuby値テストである**nilとブーリアンチェック**;
+- 有限の`String`、`Symbol`、`Integer`、`true`、`false`、レシーバードメインにすでに存在する`nil`の代替のように、ディスパッチターゲットが安定している**既知の組み込みドメインの等価ファクト**;
+- 信頼された述語と等価メソッドに対して**RBSまたはプラグインが貢献した比較ファクト**;
+- 解析器が値型を絞り込むのに十分なメソッド情報を持たない限り、最大でも関係的ファクトを生成すべき（SHOULD）**未知の等価メソッド**;
+- `NaN`、符号付きゼロ、無限大、強制変換が完全性と等価推論を誤って述べやすくするため、デフォルトではリテラルナローイングを生成してはならない（MUST NOT）**浮動小数点比較**。
 
-Equality narrowing MUST NOT introduce a positive domain from the compared value alone. If `foo` is raw `untyped`, `foo == "foo"` keeps `foo` as `Dynamic[top]` with a dynamic-origin relational fact unless Rigor also knows that the dispatched equality method has a trusted narrowing effect. If `foo` is already known to be `"foo" | "bar"`, the same comparison MAY narrow the true branch to `"foo"` and the false branch to `"bar"`.
+等価ナローイングは比較値のみから正のドメインを導入してはなりません（MUST NOT）。`foo`が生の`untyped`であれば、`foo == "foo"`は、Rigorがディスパッチされた等価メソッドに信頼されたナローイング効果があることを知らない限り、動的由来の関係的ファクトを持つ`Dynamic[top]`として`foo`を保持します。`foo`がすでに`"foo" | "bar"`として知られている場合、同じ比較は真ブランチを`"foo"`に、偽ブランチを`"bar"`に絞り込む場合があります（MAY）。
 
-### Equality trust levels
+### 等価の信頼レベル
 
-Rigor SHOULD classify equality facts by trust level:
+Rigorは等価ファクトを信頼レベルで分類すべきです（SHOULD）:
 
-- **Identity facts from `equal?`** are value facts as long as the observed reference itself remains stable.
-- **Built-in literal-domain equality** can narrow only inside an already-compatible receiver domain with a known core dispatch target.
-- **`Module`, `Class`, `Range`, `Regexp`, and `===`-based case behavior** need explicit per-kind rules or plugin facts rather than being treated as general equality.
-- **User-defined `==`, `eql?`, `===`, and coercion-sensitive comparisons** remain relational facts until RBS metadata or a plugin declares true-edge and false-edge effects.
+- **`equal?`からの同一性ファクト**は、観測された参照自体が安定している限り値ファクトです。
+- **組み込みリテラルドメイン等価**は、既知のコアディスパッチターゲットを持ち、レシーバードメインがすでに互換性がある場合にのみ、すでに互換性のあるレシーバードメイン内でナローイングできます。
+- **`Module`、`Class`、`Range`、`Regexp`、`===`ベースのcaseの挙動**は、一般的な等価として扱うのではなく、種別ごとの明示的なルールまたはプラグインファクトが必要です。
+- **ユーザー定義の`==`、`eql?`、`===`、強制変換に敏感な比較**は、RBSメタデータまたはプラグインが真エッジと偽エッジの効果を宣言するまで関係的ファクトのままです。
 
-The initial trusted equality surface is intentionally narrow:
+初期の信頼された等価サーフェスは意図的に狭くなっています:
 
-- `equal?` produces an identity fact bound to the observed reference. The fact is invalidated by reassignment, alias-escaping mutation, unknown calls, or plugin-declared effects.
-- Built-in literal-domain equality is trusted only for finite literal sets of `String`, `Symbol`, `Integer`, booleans, and `nil`, and only when the receiver dispatch target is known and the receiver domain is already compatible.
-- `Float` literal narrowing is refused by default. Relational facts MAY still be kept for diagnostics.
-- `Range`, `Regexp`, `Module`, `Class`, and `===`-based case behavior MUST NOT produce general value-narrowing facts on their own. They require specific narrowing rules or RBS/plugin effects before they can refine value domains.
-- User-defined `==`, `eql?`, and `===` are promoted from relational facts to value facts only through explicit RBS metadata, `RBS::Extended` flow effects, or plugin-declared true-edge and false-edge facts together with any required stability or purity assumptions.
+- `equal?`は観測された参照にバインドされた同一性ファクトを生成します。このファクトは、再代入、エイリアスエスケープミューテーション、未知の呼び出し、またはプラグイン宣言効果によって無効化されます。
+- 組み込みリテラルドメイン等価は、`String`、`Symbol`、`Integer`、ブーリアン、`nil`の有限リテラルセットに対してのみ、かつレシーバーのディスパッチターゲットが既知でレシーバードメインがすでに互換性がある場合にのみ信頼されます。
+- `Float`リテラルナローイングはデフォルトで拒否されます。診断のために関係的ファクトを保持する場合があります（MAY）。
+- `Range`、`Regexp`、`Module`、`Class`、`===`ベースのcase挙動は、それ自体では一般的な値ナローイングファクトを生成してはなりません（MUST NOT）。値ドメインを絞り込む前に特定のナローイングルールまたはRBS/プラグイン効果が必要です。
+- ユーザー定義の`==`、`eql?`、`===`は、明示的なRBSメタデータ、`RBS::Extended`フロー効果、または必要な安定性または純粋性の仮定とともにプラグイン宣言の真エッジと偽エッジのファクトを通じてのみ、関係的ファクトから値ファクトに昇格されます。
 
-## Fact stability and mutation
+## ファクトの安定性とミューテーション
 
-Flow facts are valid only while the analyzer can trust the path they describe. Rigor MUST invalidate or weaken facts when Ruby behavior can mutate, replace, or escape the observed target.
+フローファクトは解析器がそれらが記述するパスを信頼できる間だけ有効です。RubyのふるまいがObservedターゲットをミューテート、置換、またはエスケープさせる可能性がある場合、Rigorはファクトを無効化または弱体化させなければなりません（MUST）。
 
-Facts MUST carry a target and a stability reason. The first implementation distinguishes at least:
+ファクトはターゲットと安定性の理由を持たなければなりません（MUST）。最初の実装では少なくとも以下を区別します:
 
-- **local binding facts**, such as "local `x` currently refers to a non-nil value";
-- **captured local facts**, where a block, proc, or lambda may write the local from another lexical scope;
-- **object-content facts**, such as hash keys, instance variables, singleton methods, and object-shape members;
-- **global storage facts**, such as constants, class variables, and globals;
-- **dynamic-origin and relational facts**, which may survive local calls but still need target invalidation.
+- 「ローカル`x`は現在非nil値を参照している」のような**ローカルバインディングファクト**;
+- ブロック、proc、ラムダが別のレキシカルスコープからローカルに書き込む可能性がある**キャプチャされたローカルファクト**;
+- ハッシュキー、インスタンス変数、シングルトンメソッド、オブジェクトシェイプメンバーのような**オブジェクトコンテンツファクト**;
+- 定数、クラス変数、グローバルのような**グローバルストレージファクト**;
+- ローカル呼び出しを生き残る可能性があるが、それでもターゲット無効化が必要な**動的由来ファクトと関係的ファクト**。
 
-### Targeted invalidation
+### ターゲット指定無効化
 
-Local binding facts are stable across ordinary method calls until assignment to that local. A call MAY mutate the object referenced by the local, but it MUST NOT rebind the local variable itself unless the local is captured by a closure that writes it. Therefore:
+ローカルバインディングファクトは、そのローカルへの代入まで通常のメソッド呼び出しを越えて安定しています。呼び出しはローカルが参照するオブジェクトをミューテートする可能性がありますが（MAY）、ローカルが書き込むクロージャによってキャプチャされない限り、ローカル変数自体を再バインドしてはなりません（MUST NOT）。したがって:
 
-- `x.is_a?(String)` remains a local binding fact after an unknown call that cannot write `x`;
-- `x[:key]` or `x.foo` shape facts MAY be weakened by a call that can mutate `x` or escape it;
-- facts about instance variables, class variables, globals, and constants are heap or global-storage facts and are invalidated more aggressively.
+- `x.is_a?(String)`は`x`を書き込めない未知の呼び出しの後もローカルバインディングファクトのままです;
+- `x[:key]`または`x.foo`のシェイプファクトは`x`をミューテートまたはエスケープさせる可能性のある呼び出しによって弱体化される場合があります（MAY）;
+- インスタンス変数、クラス変数、グローバル、定数に関するファクトはヒープまたはグローバルストレージファクトであり、より積極的に無効化されます。
 
-Unknown method calls remain conservative for heap facts. They MAY invalidate object-shape, hash-entry, instance-variable, constant-object, and global-storage facts for any target that may have escaped to the call. They MUST NOT invalidate every local binding fact in the current scope.
+未知のメソッド呼び出しはヒープファクトに対して保守的なままです。呼び出しにエスケープされた可能性のあるターゲットのオブジェクトシェイプ、ハッシュエントリ、インスタンス変数、定数オブジェクト、グローバルストレージファクトを無効化する場合があります（MAY）。現在のスコープのすべてのローカルバインディングファクトを無効化してはなりません（MUST NOT）。
 
-### Closure captures
+### クロージャキャプチャ
 
-Closure-captured locals need explicit handling. When a block, proc, or lambda writes an outer local, Rigor MUST record a captured-local write effect. If the closure is invoked immediately and its body is available, Rigor applies the write at the call edge. If the closure escapes or may be invoked later, facts about locals it can write become unstable after the escape point and before any unknown invocation of that closure.
+クロージャにキャプチャされたローカルには明示的な処理が必要です。ブロック、proc、またはラムダが外側のローカルに書き込む場合、Rigorはキャプチャされたローカルへの書き込み効果を記録しなければなりません（MUST）。クロージャがすぐに呼び出されてその本体が利用可能な場合、Rigorは呼び出しエッジで書き込みを適用します。クロージャがエスケープするか後で呼び出される可能性がある場合、それが書き込める可能性のあるローカルに関するファクトは、エスケープポイント以降およびそのクロージャの未知の呼び出しの前に不安定になります。
 
-### Block call timing
+### ブロック呼び出しタイミング
 
-Block and higher-order method calls SHOULD be modeled through call-timing and mutation effects instead of a blanket "yield invalidates everything" rule. Useful first categories are:
+ブロックと高階メソッド呼び出しは、「yieldはすべてを無効化する」という一律ルールではなく、呼び出しタイミングとミューテーション効果によってモデル化すべきです（SHOULD）。有用な最初のカテゴリーは:
 
-- no block invocation;
-- immediate non-escaping invocation, once or a known bounded number of times;
-- immediate non-escaping invocation, unknown number of times;
-- deferred or escaping block storage;
-- unknown block behavior.
+- ブロック呼び出しなし;
+- 即時の非エスケープ呼び出し、1回または既知の有界な回数;
+- 即時の非エスケープ呼び出し、未知の回数;
+- 遅延またはエスケープするブロックストレージ;
+- 未知のブロック挙動。
 
-Known Ruby methods such as `tap`, `then`, `yield_self`, and `each_with_object` SHOULD eventually receive summaries for block timing, return behavior, and receiver or argument mutation. Without such a summary, Rigor MAY be conservative for object-content facts, but it SHOULD still preserve unrelated local-binding facts.
+`tap`、`then`、`yield_self`、`each_with_object`のような既知のRubyメソッドは最終的にブロックタイミング、戻り値挙動、レシーバーまたは引数ミューテーションのサマリーを受け取るべきです（SHOULD）。そのようなサマリーなしでは、Rigorはオブジェクトコンテンツファクトに対して保守的である場合がありますが（MAY）、それでも無関係なローカルバインディングファクトを保持すべきです（SHOULD）。
 
-### Proof obligations for stronger fact retention
+### より強いファクト保持のための証明義務
 
-The first implementation can use these proof obligations for stronger fact retention:
+最初の実装では、より強いファクト保持のためにこれらの証明義務を使えます:
 
-- a local binding has not been assigned and is not writable by an escaping closure;
-- the value is an immutable singleton or immediate value, such as `nil`, `true`, `false`, a symbol, or an integer;
-- the value is proven frozen for the relevant operation;
-- the value is freshly allocated, has not escaped, and has not been passed to a call that may mutate or store it;
-- a RBS, `RBS::Extended`, or plugin effect declares that the call is read-only, pure for the relevant target, or mutates only specific receivers or arguments.
+- ローカルバインディングが代入されておらず、エスケープするクロージャによって書き込み可能でない;
+- 値が不変のシングルトンまたは即値（`nil`、`true`、`false`、シンボル、整数など）;
+- 値が関連操作に対してfrozenであることが証明されている;
+- 値が新たに割り当てられ、エスケープしておらず、それをミューテートまたは格納する可能性のある呼び出しに渡されていない;
+- RBS、`RBS::Extended`、またはプラグイン効果が呼び出しがread-only、関連ターゲットに対して純粋、または特定のレシーバーまたは引数のみをミューテートすることを宣言している。
 
-Plugins MAY return explicit mutation, escape, call-timing, purity, or invalidation effects rather than mutating `Scope` directly. The bundle schema is in [rbs-extended.md](../rbs-extended/).
+プラグインは`Scope`を直接ミューテートするのではなく、明示的なミューテーション、エスケープ、呼び出しタイミング、純粋性、または無効化効果を返すことができます（MAY）。バンドルスキーマは[rbs-extended.md](../rbs-extended/)にあります。
 
-## Scope snapshots and fact buckets
+## スコープスナップショットとファクトバケット
 
-The first implementation pairs a category-bucketed fact store with immutable per-edge `Scope` snapshots:
+最初の実装ではカテゴリー分けされたファクトストアと不変のエッジごとの`Scope`スナップショットを組み合わせます:
 
-- Each `Scope` is an immutable snapshot keyed by control-flow edge. Joins, narrowing, and invalidation produce new snapshots through structural sharing rather than in-place mutation.
-- Within a snapshot, facts are partitioned into buckets that mirror the categories above: local-binding, captured-local, object-content, global-storage, dynamic-origin, and relational. Invalidation rules act on a specific bucket, so an unknown method call sweeps object-content while leaving local-binding intact.
-- Relational facts that span multiple targets live in their own bucket and are invalidated when any participating target's bucket records a change.
-- The public surface of `Scope` MUST NOT expose buckets directly. Plugins, narrowing rules, and diagnostics ask `Scope` for facts about a target; the bucket layout is an internal optimization that MAY evolve.
+- 各`Scope`は制御フローエッジをキーとする不変スナップショットです。結合、ナローイング、無効化は、インプレースミューテーションではなく構造共有を通じて新しいスナップショットを生成します。
+- スナップショット内では、ファクトは上記のカテゴリーを反映したバケットに分割されます: ローカルバインディング、キャプチャされたローカル、オブジェクトコンテンツ、グローバルストレージ、動的由来、関係的。無効化ルールは特定のバケットに作用するため、未知のメソッド呼び出しはオブジェクトコンテンツをスイープしながらローカルバインディングをそのままにします。
+- 複数のターゲットにまたがる関係的ファクトは独自のバケットに存在し、参加しているターゲットのバケットが変更を記録すると無効化されます。
+- `Scope`の公開サーフェスはバケットを直接公開してはなりません（MUST NOT）。プラグイン、ナローイングルール、診断はターゲットに関するファクトを`Scope`に尋ねます; バケットレイアウトは進化する可能性がある内部最適化です（MAY）。
 
-## Purity policy
+## 純粋性ポリシー
 
-The pre-plugin purity policy controls how method-call results are remembered or forgotten across re-invocations:
+プラグイン前の純粋性ポリシーは、メソッド呼び出し結果が再呼び出しを越えて記憶されるか忘れられるかを制御します:
 
-- Methods are treated as **impure by default**. Calling an impure method on a receiver invalidates the receiver's object-content bucket and discards remembered value facts for prior calls to the same receiver.
-- Purity becomes effective only when an authoritative source declares it: core Ruby and stdlib RBS distributed with Rigor, accepted ordinary RBS files, or explicit `rigor:v1:pure` annotations on `RBS::Extended`. Generated signatures and plugin contributions MAY refine purity within their tier.
-- A configuration switch makes the default look more like PHPStan's "value-returning is pure unless declared impure" policy for projects that want stronger narrowing across repeated calls. The switch flips the default but never overrides explicit `pure` or mutation declarations.
-- `pure` combined with any receiver-mutation, argument-mutation, or fact-invalidation effect is a contract conflict, as specified in [rbs-extended.md](../rbs-extended/).
+- メソッドはデフォルトで**不純**として扱われます。レシーバーで不純なメソッドを呼び出すと、レシーバーのオブジェクトコンテンツバケットが無効化され、同じレシーバーへの以前の呼び出しで記憶された値ファクトが破棄されます。
+- 純粋性は権威あるソースがそれを宣言した場合にのみ有効になります: Rigorと共に配布されるコアRubyとstdlibのRBS、受け付けられた通常のRBSファイル、または`RBS::Extended`の明示的な`rigor:v1:pure`アノテーション。生成されたシグネチャとプラグインの貢献はそのティア内で純粋性を絞り込む場合があります（MAY）。
+- 設定スイッチにより、デフォルトがより「値を返すことは不純として宣言されない限り純粋」というPHPStanのポリシーに似た挙動になり、繰り返し呼び出しを越えてより強いナローイングを望むプロジェクトに対応します。スイッチはデフォルトを切り替えますが、明示的な`pure`またはミューテーション宣言をオーバーライドすることはありません。
+- `pure`とレシーバーミューテーション、引数ミューテーション、またはファクト無効化効果を組み合わせることはコントラクトの競合であり、[rbs-extended.md](../rbs-extended/)で指定されています。
 
-## Built-in mutation summaries
+## 組み込みミューテーションサマリー
 
-The first user-visible milestone (v1) ships built-in mutation, purity, and call-timing summaries for a fixed set of core and stdlib classes. The covered set is `Array`, `Hash`, `String`, `Set`, `IO`, `StringIO`, `File`, `Tempfile`, `Pathname`, and `Logger`. Each summary records:
+最初のユーザー可視マイルストーン（v1）は、固定されたコアとstdlibクラスのセットに対して組み込みのミューテーション、純粋性、呼び出しタイミングサマリーを提供します。対象セットは`Array`、`Hash`、`String`、`Set`、`IO`、`StringIO`、`File`、`Tempfile`、`Pathname`、`Logger`です。各サマリーは以下を記録します:
 
-- per-method receiver-mutation status, argument-mutation status, and fact-invalidation effect;
-- per-method block call timing using the categories above;
-- per-method purity declaration where it can be made without overpromising.
+- メソッドごとのレシーバーミューテーションステータス、引数ミューテーションステータス、ファクト無効化効果;
+- 上記カテゴリーを使ったメソッドごとのブロック呼び出しタイミング;
+- 過度の約束なしに行えるメソッドごとの純粋性宣言。
 
-Classes outside this set follow the impure-by-default policy until ordinary RBS, `RBS::Extended`, or plugin facts say otherwise. Rigor MUST NOT silently assume purity or mutation behavior for them.
+このセット外のクラスは、通常のRBS、`RBS::Extended`、またはプラグインファクトが別に述べるまで不純がデフォルトのポリシーに従います。Rigorはそれらの純粋性やミューテーション挙動を静かに仮定してはなりません（MUST NOT）。
 
-The v1.1 roadmap extends coverage to additional core classes (`Numeric` and its descendants, `Symbol`, `Range`, `Regexp`, `Proc`, `Method`, `Time`, `Date`, `DateTime`), broadly used stdlib (`Date`, `JSON`, `URI`, `OpenStruct`, `Forwardable`, `Comparable`-bearing classes that need explicit mutation summaries), and selected metaprogramming-adjacent core APIs (`Module`, `Class`, `BasicObject`). Each addition ships behind a feature flag so v1 behavior is not perturbed as the larger surface lands.
+v1.1のロードマップはカバレッジを追加コアクラス（`Numeric`とその子孫、`Symbol`、`Range`、`Regexp`、`Proc`、`Method`、`Time`、`Date`、`DateTime`）、広く使われるstdlib（`Date`、`JSON`、`URI`、`OpenStruct`、`Forwardable`、明示的なミューテーションサマリーが必要な`Comparable`を持つクラス）、および選択されたメタプログラミング隣接コアAPI（`Module`、`Class`、`BasicObject`）に拡張します。各追加はフィーチャーフラグの後ろで提供されるため、より大きなサーフェスが着地する間もv1の挙動は乱されません。
 
-Built-in mutation summaries are not a closed list. New entries MAY be added in any minor release as long as their addition does not change the meaning of code that does not call them; the published roadmap is a planning aid, not a contract.
+組み込みミューテーションサマリーはクローズドリストではありません。それらを呼び出さないコードの意味を変えない限り、新しいエントリはマイナーリリースで追加される場合があります（MAY）; 公開されたロードマップは計画補助ツールであり、コントラクトではありません。
 
-## Pre-plugin narrowing surface
+## プラグイン前のナローイングサーフェス
 
-The pre-plugin narrowing surface is the set of facts Rigor produces in heavily `Dynamic[top]` code before any user plugin is loaded.
+プラグイン前のナローイングサーフェスは、ユーザープラグインがロードされる前に、高度に`Dynamic[top]`なコードでRigorが生成するファクトのセットです。
 
-This specification describes the full pre-plugin surface that the analyzer ultimately supports. The first user-visible product release (v1) is a scoped slice of that surface; it does not redefine the spec. Internal data structures such as fact buckets, the capability-role catalog, and built-in mutation summaries are normative from v1; the *derivation rules* exposed to users are tightened in v1 and broaden in v1.1.
+この仕様は解析器が最終的にサポートする完全なプラグイン前サーフェスを記述します。最初のユーザー可視製品リリース（v1）はそのサーフェスのスコープされたスライスです; 仕様を再定義するものではありません。ファクトバケット、ケイパビリティロールカタログ、組み込みミューテーションサマリーのような内部データ構造はv1から規範的です; ユーザーに公開される*導出ルール*はv1で絞られ、v1.1で広がります。
 
-### v1 narrowing surface
+### v1ナローイングサーフェス
 
-- Literal narrowing for `nil`, `true`, `false`, integer and string literals, and finite literal-union refinements produced by equality checks against trusted built-in domains.
-- Syntax-level guards: `is_a?`, `kind_of?`, `instance_of?`, `nil?`, truthiness, `respond_to?`, equality with literal sets, and class- or pattern-matching narrowing in `case` and `case/in` forms that do not require dataflow across statements.
-- Method-call resolution that uses RBS or `RBS::Extended` for core Ruby and a curated subset of stdlib without requiring user plugins. Generated signatures from `RBS::Extended` MAY participate.
-- Direct application of the bundled core/stdlib mutation summaries at call sites where the receiver is statically known. Summaries drive bucket invalidation locally; cross-statement propagation of those effects is a v1.1 surface.
+- `nil`、`true`、`false`、整数と文字列リテラル、信頼された組み込みドメインに対する等価チェックによって生成された有限リテラルユニオンリファインメントのリテラルナローイング。
+- 構文レベルのガード: `is_a?`、`kind_of?`、`instance_of?`、`nil?`、真偽性、`respond_to?`、リテラルセットとの等価、および文をまたぐデータフローを必要としない`case`と`case/in`形式のクラスまたはパターンマッチングナローイング。
+- ユーザープラグインを必要とせずにコアRubyと整理されたstdlibのサブセットにRBSまたは`RBS::Extended`を使うメソッド呼び出し解決。生成されたシグネチャ（`RBS::Extended`から）は参加する場合があります（MAY）。
+- レシーバーが静的に既知の呼び出しサイトでバンドルされたコア/stdlibミューテーションサマリーを直接適用します。サマリーはバケット無効化をローカルに駆動します; それらの効果の文をまたぐ伝播はv1.1のサーフェスです。
 
-### Deferred to v1.1
+### v1.1に先送り
 
-- intra-procedural propagation of facts and mutation effects across straight-line code, joins, and loops;
-- capability-role *requirement inference* from method bodies (the catalog and explicit `conforms-to` directives are already available; deriving "what role does this body require" is v1.1);
-- plugin-supplied flow contributions.
+- 直線コード、結合、ループを越えたファクトとミューテーション効果の手続き内伝播;
+- メソッド本体からのケイパビリティロール*要件推論*（カタログと明示的な`conforms-to`ディレクティブはすでに利用可能; 「本体が何のロールを必要とするか」の導出はv1.1）;
+- プラグイン提供のフロー貢献。
 
-Each v1.1 surface ships behind a feature flag so v1 behavior stays stable while the larger surface lands.
+各v1.1サーフェスはフィーチャーフラグの後ろで提供されるため、より大きなサーフェスが着地する間もv1の挙動は安定したままです。
 
-## Diagnostics
+## 診断
 
-Diagnostics that arise from control-flow analysis live primarily in the `flow.*` family. Strict modes that depend on dynamic-origin provenance live in the `dynamic.*` family. Cutoff diagnostics live in `static.*`. The full identifier taxonomy is in [diagnostic-policy.md](../diagnostic-policy/).
+制御フロー解析から生まれる診断は主に`flow.*`ファミリーにあります。動的由来のprovenanceに依存するストリクトモードは`dynamic.*`ファミリーにあります。カットオフ診断は`static.*`にあります。完全な識別子分類体系は[diagnostic-policy.md](../diagnostic-policy/)にあります。

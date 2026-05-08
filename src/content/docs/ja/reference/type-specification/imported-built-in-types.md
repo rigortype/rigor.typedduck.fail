@@ -1,114 +1,111 @@
 ---
-title: "Imported Built-In Types"
-description: "Imported from rigortype/rigor docs/type-specification/imported-built-in-types.md."
+title: "インポートされた組み込み型"
+description: "rigortype/rigor docs/type-specification/imported-built-in-types.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/type-specification/imported-built-in-types.md"
 sourcePath: "docs/type-specification/imported-built-in-types.md"
 sourceSha: "d9a48f511229bb976ca7118dcbe2c7c7e47399bdb73fec0248c03812e83c9fcb"
 sourceCommit: "9f40e22193647dc06e3ab70c5ba82768b0bfe738"
-translationStatus: "pending"
+translationStatus: "translated"
 sidebar:
   order: 2050
 ---
 
-> [!NOTE]
-> このページはまだ翻訳されていません。英語版の本文を参考表示しています。
+Rigorは明確なRubyの意味を持つ場合にのみ、PHPStan、TypeScript、Pythonの型付けからアイデアをインポートします。デフォルトでは互換性のために外来構文は保持されません。
 
-Rigor imports type ideas from PHPStan, TypeScript, and Python typing only when they have a clear Ruby meaning. Foreign syntax is not preserved for compatibility by default.
+この文書はRigorがリファインメントと型関数に使う予約済み組み込み**名前**を定義します。これらの名前を裏打ちする内部形式は[rigor-extensions.md](../rigor-extensions/)にカタログ化されています。演算子形式（`~T`、`T - U`、`key_of[T]`など）は[type-operators.md](../type-operators/)にあります。
 
-This document defines the reserved built-in **names** Rigor uses for refinements and type functions. The internal forms backing these names are catalogued in [rigor-extensions.md](../rigor-extensions/). Operator forms (`~T`, `T - U`, `key_of[T]`, …) are in [type-operators.md](../type-operators/).
+## 命名規則
 
-## Naming rules
+- 予約済み組み込み**リファインメント**名は`non-empty-string`、`positive-int`、`non-empty-array[T]`のように`kebab-case`を使います。
+- リファインメント名は絞り込まれたRuby値ドメインを記述し、RubyのconstantやRBSエイリアス名ではなく、Rigor予約型名として解析されます。
+- `-`文字は意図的なものです: Rubyのconstantやアメスラ名では有効ではないため、`non-empty-string`のような名前は視覚的かつ構文的にRigor組み込みとしてマークされます。
+- Rigorは`non_empty_string`のようなリファインメント名の`lower_snake`エイリアスを追加してはなりません（MUST NOT）。それらの名前は通常のRBS型エイリアスとして利用可能なままです。
+- パラメーター化された**型関数**と型レベル操作は`key_of[T]`のように`lower_snake`名と角括弧引数を使います。
+- 型関数は別の型またはリテラルセットを計算、投影、または変換するものであり、絞り込まれた値ドメインに直接名前をつけるものではありません。
+- 型関数が`-`を避けるのは、`-`がRigorの型構文では差分演算子でもあるためです; `int_mask[1, 2, 4]`は`int-mask[1, 2, 4]`より曖昧さが少ないです。
+- 具体的な移行や可読性の問題を解決しない限り、互換性エイリアスを受け付けてはなりません（MUST NOT）。
+- RBS名はすでにその概念を表現している場合は正規のままです。`bot`はボトム型です; `never`、`noreturn`、`never-return`、`never-returns`、`no-return`、`Never`、`NoReturn`は初期エイリアスとして追加してはなりません（MUST NOT）。
+- 整数範囲は`Integer[1..10]`のようにRigorの範囲表記を使います。PHPStanスタイルの`int<1, 10>`は初期エイリアスとして追加してはなりません（MUST NOT）。
 
-- Reserved built-in **refinement** names use `kebab-case`, such as `non-empty-string`, `positive-int`, and `non-empty-array[T]`.
-- Refinement names describe a refined Ruby value domain and are parsed as Rigor-reserved type names, not as Ruby constants or RBS aliases.
-- The `-` character is intentional: it is not valid in Ruby constants or RBS alias names, so names such as `non-empty-string` are visually and syntactically marked as Rigor built-ins.
-- Rigor MUST NOT add `lower_snake` aliases for refinement names, such as `non_empty_string`. Those names remain available for ordinary RBS type aliases.
-- Parameterized **type functions** and type-level operations use `lower_snake` names with square-bracket arguments, such as `key_of[T]`.
-- Type functions compute, project, or transform another type or literal set rather than naming a refined value domain directly.
-- Type functions avoid `-` because `-` is also the difference operator in Rigor's type syntax; `int_mask[1, 2, 4]` is less ambiguous than `int-mask[1, 2, 4]`.
-- Compatibility aliases MUST NOT be accepted unless they solve a concrete migration or readability problem.
-- RBS names remain canonical when they already express the concept. `bot` is the bottom type; `never`, `noreturn`, `never-return`, `never-returns`, `no-return`, `Never`, and `NoReturn` MUST NOT be added as initial aliases.
-- Integer ranges use Rigor's range notation, such as `Integer[1..10]`. PHPStan-style `int<1, 10>` MUST NOT be added as an alias initially.
+## 初期スカラーリファインメント
 
-## Initial scalar refinements
-
-| Rigor type | Meaning | RBS erasure |
+| Rigor型 | 意味 | RBS消去 |
 | --- | --- | --- |
-| `non-empty-string` | `String` except `""` | `String` |
-| `literal-string` | String known to come from source literals and literal-only composition. v0.0.9 tracks the carrier through string interpolation `"#{...}"`, through `String#+` / `String#*` whose every operand is itself literal-bearing, and through the mutating composition methods `String#<<` / `String#concat` (whose return value is the receiver, so a literal-bearing receiver with literal-bearing args stays literal-string). | `String` |
-| `numeric-string` | String accepted by Rigor's Ruby numeric-string predicate | `String` |
-| `decimal-int-string` | String accepted by Rigor's Ruby decimal-integer-string predicate | `String` |
-| `lowercase-string` | String equal to its lowercase normalization | `String` |
-| `non-lowercase-string` | String NOT equal to its lowercase normalization (i.e. contains at least one non-lowercase character). Paired complement of `lowercase-string` under `~T` | `String` |
-| `uppercase-string` | String equal to its uppercase normalization | `String` |
-| `non-uppercase-string` | String NOT equal to its uppercase normalization. Paired complement of `uppercase-string` under `~T` | `String` |
-| `non-numeric-string` | String NOT accepted by Rigor's Ruby numeric-string predicate. Paired complement of `numeric-string` under `~T` | `String` |
+| `non-empty-string` | `""`を除く`String` | `String` |
+| `literal-string` | ソースリテラルとリテラルのみの合成から来ることが既知の文字列。v0.0.9はすべてのオペランド自体がリテラルを持つ`String#+` / `String#*`による文字列補間`"#{...}"`を通じて、また`String#<<` / `String#concat`（その戻り値はレシーバーであるため、リテラルを持つレシーバーとリテラルを持つ引数はliteral-stringのままです）を通じてキャリアを追跡します。 | `String` |
+| `numeric-string` | RigorのRuby数値文字列述語が受け付けるString | `String` |
+| `decimal-int-string` | RigorのRuby10進整数文字列述語が受け付けるString | `String` |
+| `lowercase-string` | 小文字正規化と等しいString | `String` |
+| `non-lowercase-string` | 小文字正規化と等しくないString（つまり少なくとも1つの非小文字文字を含む）。`~T`の下での`lowercase-string`のペア補完 | `String` |
+| `uppercase-string` | 大文字正規化と等しいString | `String` |
+| `non-uppercase-string` | 大文字正規化と等しくないString。`~T`の下での`uppercase-string`のペア補完 | `String` |
+| `non-numeric-string` | RigorのRuby数値文字列述語が受け付けないString。`~T`の下での`numeric-string`のペア補完 | `String` |
 | `non-empty-lowercase-string` | `non-empty-string & lowercase-string` | `String` |
 | `non-empty-uppercase-string` | `non-empty-string & uppercase-string` | `String` |
 | `non-empty-literal-string` | `non-empty-string & literal-string` | `String` |
-| `positive-int` | `Integer` greater than `0` | `Integer` |
-| `negative-int` | `Integer` less than `0` | `Integer` |
-| `non-positive-int` | `Integer` less than or equal to `0` | `Integer` |
-| `non-negative-int` | `Integer` greater than or equal to `0` | `Integer` |
-| `non-zero-int` | `Integer` except `0` | `Integer` |
+| `positive-int` | `0`より大きい`Integer` | `Integer` |
+| `negative-int` | `0`より小さい`Integer` | `Integer` |
+| `non-positive-int` | `0`以下の`Integer` | `Integer` |
+| `non-negative-int` | `0`以上の`Integer` | `Integer` |
+| `non-zero-int` | `0`を除く`Integer` | `Integer` |
 
-The canonical lowercase string name is `lowercase-string`; `lower-string` MUST NOT be accepted as a separate alias unless a concrete usability problem appears.
+正規の小文字文字列名は`lowercase-string`です; 具体的な使いやすさの問題が現れない限り、`lower-string`は別のエイリアスとして受け付けてはなりません（MUST NOT）。
 
-## Numeric refinement scope
+## 数値リファインメントのスコープ
 
-Integer refinements are deliberately `Integer` refinements, **not** sign refinements for all `Numeric` values. Ruby's numeric classes have different equality, ordering, and promotion behavior, so Rigor MUST NOT generalize `positive-int`, `negative-int`, or `non-zero-int` across nominal numeric boundaries.
+整数リファインメントは意図的に`Integer`のリファインメントであり、すべての`Numeric`値の符号リファインメントでは**ありません**。Rubyの数値クラスは異なる等価、順序付け、昇格の挙動を持つため、Rigorは公称数値境界を越えて`positive-int`、`negative-int`、または`non-zero-int`を一般化してはなりません（MUST NOT）。
 
-Non-integer numeric refinements have separate rules:
+非整数数値リファインメントには別のルールがあります:
 
-- `Float` literal equality and exhaustiveness narrowing are refused by default. `NaN`, infinities, signed zero, and coercion-sensitive comparisons make literal partitions easy to misstate. Rigor MAY retain relational facts from float comparisons, and a future `finite-float` or non-`NaN` proof MAY unlock narrower float-specific refinements.
-- `Rational` is exact and ordered, but it is not an `Integer`. Future sign or range facts for `Rational` MUST be Rational-specific and MUST NOT reuse `*-int` names.
-- `Complex` does not have a total ordering in Ruby, so positive, negative, and interval refinements MUST NOT apply to `Complex`. Facts about zero-ness, real parts, imaginary parts, or magnitude need explicit predicates or plugin/RBS effects.
-- Mixed numeric operations and comparisons follow Ruby method dispatch and `coerce`, not subtype promotion. Refinements MUST NOT automatically cross from `Integer` to `Float`, `Rational`, or another `Numeric` class. When a mixed operation is known, the result type follows the Ruby/RBS operator signature or a trusted plugin fact; otherwise Rigor keeps a relational or dynamic-origin fact and widens conservatively.
+- `Float`リテラル等価と完全性ナローイングはデフォルトで拒否されます。`NaN`、無限大、符号付きゼロ、強制変換に敏感な比較はリテラルパーティションを誤って述べやすくします。Rigorはfloat比較から関係的ファクトを保持する場合があります（MAY）、また将来の`finite-float`または非`NaN`証明がより狭いfloat固有のリファインメントを解放する場合があります（MAY）。
+- `Rational`は正確で順序付けられていますが`Integer`ではありません。`Rational`の将来の符号または範囲ファクトはRational固有でなければならず（MUST）、`*-int`名を再使用してはなりません（MUST NOT）。
+- `Complex`はRubyでは全順序を持たないため、正、負、区間リファインメントは`Complex`に適用してはなりません（MUST NOT）。ゼロ性、実部、虚部、または大きさに関するファクトには明示的な述語またはプラグイン/RBS効果が必要です。
+- 混合数値演算と比較はサブタイプ昇格ではなく、Rubyのメソッドディスパッチと`coerce`に従います。リファインメントは`Integer`から`Float`、`Rational`、または別の`Numeric`クラスに自動的に越境してはなりません（MUST NOT）。混合演算が既知の場合、結果型はRuby/RBS演算子シグネチャまたは信頼されたプラグインファクトに従います; そうでなければRigorは関係的または動的由来ファクトを保持し、保守的に拡幅します。
 
-Non-integer numeric precision is therefore opt-in through future built-ins, trusted predicates, or plugin and RBS effects, not through silent promotion of `*-int` refinements across nominal numeric boundaries.
+非整数数値精度は、`*-int`リファインメントの公称数値境界を越えた静かな昇格によってではなく、将来の組み込み、信頼された述語、またはプラグインとRBS効果を通じてオプトインです。
 
-## Initial collection and shape refinements
+## 初期コレクションとシェイプリファインメント
 
-| Rigor type | Meaning | RBS erasure |
+| Rigor型 | 意味 | RBS消去 |
 | --- | --- | --- |
-| `non-empty-array[T]` | `Array[T]` with at least one element | `Array[T]` |
-| hash shape with optional keys | Hash with known required and optional keys | RBS record when exact, otherwise `Hash[K, V]` |
-| hash shape with extra-key policy | Hash shape that is open, closed, or open only for extra keys of a known value type | RBS record when exact and closed, otherwise `Hash[K, V]` |
-| read-only hash shape entry | Key whose value may be read but should not be written through the current reference | Entry mutability marker erased |
-| tuple refinements | Fixed or bounded array positions | RBS tuple when exact, otherwise `Array[T]` |
-| object shape | Object with known public methods or singleton capabilities | Named interface when available, otherwise `top` or nominal base |
+| `non-empty-array[T]` | 少なくとも1つの要素を持つ`Array[T]` | `Array[T]` |
+| オプショナルキーを持つハッシュシェイプ | 既知の必須およびオプショナルキーを持つHash | 正確な場合はRBSレコード、そうでなければ`Hash[K, V]` |
+| 追加キーポリシーを持つハッシュシェイプ | オープン、クローズ、または既知の値型の追加キーのみオープンなハッシュシェイプ | 正確でクローズドの場合はRBSレコード、そうでなければ`Hash[K, V]` |
+| 読み取り専用ハッシュシェイプエントリ | 現在の参照を通じて読み取ることはできるが書き込むべきでないキー | エントリのミュータビリティマーカーは消去 |
+| タプルリファインメント | 固定または有界な配列位置 | 正確な場合はRBSタプル、そうでなければ`Array[T]` |
+| オブジェクトシェイプ | 既知の公開メソッドまたはシングルトンケイパビリティを持つオブジェクト | 利用可能であれば名前付きインターフェース、そうでなければ`top`または公称ベース |
 
-Python `TypedDict` contributes the vocabulary for shape exactness: required and non-required keys, read-only entries, and open, closed, or typed-extra-key policies. Rigor adapts those ideas to Ruby hashes, options hashes, and keyword arguments. A read-only entry is a static write restriction on the current view of the value; it does **not** prove that the underlying Ruby object is frozen.
+Pythonの`TypedDict`はシェイプの正確性の語彙を提供します: 必須および非必須キー、読み取り専用エントリ、オープン、クローズド、または型付き追加キーポリシー。Rigorはそれらのアイデアをハッシュ、オプションハッシュ、キーワード引数に適用します。読み取り専用エントリは現在の値のビューに対する静的な書き込み制限です; 基礎となるRubyオブジェクトがfrozenであることを証明するものでは**ありません**。
 
-Rigor MUST NOT initially import PHPStan's `list<T>` and `non-empty-list<T>` as separate surface types. Ruby `Array[T]` already has list-like indexing semantics; `non-empty-array[T]` covers the useful refinement without adding another spelling.
+RigorはPHPStanの`list<T>`と`non-empty-list<T>`を別個の表面型として初期にインポートしてはなりません（MUST NOT）。Ruby `Array[T]`はすでにリスト的なインデックスセマンティクスを持ちます; `non-empty-array[T]`は別のスペルを追加せずに有用なリファインメントをカバーします。
 
-## Initial type functions and operators
+## 初期型関数と演算子
 
-| Rigor form | Meaning |
+| Rigor形式 | 意味 |
 | --- | --- |
-| `key_of[T]` | Known keys of a record, hash shape, tuple, or shape-like type |
-| `value_of[T]` | Union of known values of a record, hash shape, tuple, or shape-like type |
-| `T[K]` | Indexed access into tuple, record, object shape, or generic container metadata |
-| `int_mask[1, 2, 4]` | Integers representable by bitwise-or over the listed flags, including `0` |
-| `int_mask_of[T]` | Bit mask derived from a finite integer literal union or constant-derived set |
+| `key_of[T]` | レコード、ハッシュシェイプ、タプル、またはシェイプ的型の既知キー |
+| `value_of[T]` | レコード、ハッシュシェイプ、タプル、またはシェイプ的型の既知値のユニオン |
+| `T[K]` | タプル、レコード、オブジェクトシェイプ、またはジェネリックコンテナメタデータへのインデックスアクセス |
+| `int_mask[1, 2, 4]` | `0`を含む、リストされたフラグのビットOR で表現可能な整数 |
+| `int_mask_of[T]` | 有限整数リテラルユニオンまたは定数由来セットから導出されたビットマスク |
 
-`key_of[T]` is the canonical spelling. Rigor MUST NOT accept both PHPStan-style `key-of<T>` and TypeScript-style `keyof T` unless there is a concrete benefit that outweighs the extra notation.
+`key_of[T]`は正規のスペルです。具体的なメリットがない限り、RigorはPHPStanスタイルの`key-of<T>`とTypeScriptスタイルの`keyof T`の両方を受け付けてはなりません（MUST NOT）。
 
-Diagnostic display rules for these operators (and for the difference and complement operators) are defined in [type-operators.md](../type-operators/).
+これらの演算子（および差分と補完演算子）の診断表示規則は[type-operators.md](../type-operators/)で定義されています。
 
-## Deferred or rejected imports
+## 先送りまたは拒否されたインポート
 
-The following imports are intentionally not provided. Each is recorded so future proposals can refer to a single rule rather than rediscussing the rationale.
+以下のインポートは意図的に提供されません。各項目は将来の提案が根拠を再議論することなく単一のルールを参照できるように記録されています。
 
-- Python `Any` and `object` MUST NOT become Rigor spellings. Rigor uses RBS `untyped` for dynamic boundaries and `top` for the greatest static value type.
-- Python `Never` and `NoReturn` MUST NOT become aliases for `bot`. RBS already provides the canonical bottom type.
-- Python `Protocol`, `TypedDict`, `Annotated`, `TypeGuard`, `TypeIs`, `Final`, and `ClassVar` MUST NOT become Rigor surface syntax. Their useful ideas map to RBS interfaces, Rigor shape refinements, `%a{...}` annotations, flow effects, and separate symbol or member facts.
-- Python `type[C]` MUST NOT be imported as syntax. RBS already uses `singleton(C)` for class objects; a future `instance_type[T]` projection should be designed around Ruby factory APIs.
-- Python numeric promotions such as `int` assignable to `float` or `complex` MUST NOT be imported directly. Ruby numeric behavior is modeled from Ruby classes and RBS signatures.
-- `class-string`, `interface-string`, `trait-string`, and `enum-string` are deferred. Ruby can pass class and module objects directly, and RBS already has `singleton(C)` for class objects.
-- A PHPStan `new`-like type operation remains a future candidate, but it MUST be designed around Ruby class objects rather than class-name strings. For example, a future `instance_type[T]` could project the instance type created by a class object when factory APIs need that precision.
-- `non-falsy-string` and `truthy-string` MUST NOT be added because every `String` value is truthy in Ruby.
-- `non-decimal-int-string` MUST NOT be a named built-in initially; use `String - decimal-int-string`.
-- PHP truthiness-oriented types such as `empty`, `empty-scalar`, `non-empty-scalar`, and `non-empty-mixed` MUST NOT be imported directly. Rigor models Ruby truthiness with `false | nil` flow facts and explicit collection/string refinements.
-- `Exclude`, `Extract`, and `NonNullable` MUST NOT be imported as surface aliases initially. Rigor expresses them as `T - U`, `T & U`, and `T - nil`.
-- TypeScript utility or mapped type aliases such as `Partial`, `Required`, `Readonly`, `Pick`, `Omit`, `Record`, `Parameters`, `ReturnType`, and `InstanceType` MUST NOT be imported as Rigor surface forms initially.
+- Pythonの`Any`と`object`はRigorのスペルになってはなりません（MUST NOT）。Rigorは動的境界には`untyped`を、最大の静的値型には`top`を使います。
+- Pythonの`Never`と`NoReturn`は`bot`のエイリアスになってはなりません（MUST NOT）。RBSはすでに正規のボトム型を提供しています。
+- Pythonの`Protocol`、`TypedDict`、`Annotated`、`TypeGuard`、`TypeIs`、`Final`、`ClassVar`はRigor表面構文になってはなりません（MUST NOT）。それらの有用なアイデアはRBSインターフェース、Rigorシェイプリファインメント、`%a{...}`アノテーション、フロー効果、別個のシンボルまたはメンバーファクトにマッピングされます。
+- Pythonの`type[C]`は構文としてインポートしてはなりません（MUST NOT）。RBSはクラスオブジェクトに対してすでに`singleton(C)`を使います; 将来の`instance_type[T]`投影はRubyファクトリAPIを中心に設計すべきです。
+- `int`が`float`または`complex`に代入可能のようなPythonの数値昇格は直接インポートしてはなりません（MUST NOT）。Ruby数値挙動はRubyクラスとRBSシグネチャからモデル化されます。
+- `class-string`、`interface-string`、`trait-string`、`enum-string`は先送りです。RubyはクラスとモジュールオブジェクトをDirectに渡すことができ、RBSはクラスオブジェクトにすでに`singleton(C)`を持ちます。
+- PHPStanの`new`のような型操作は将来の候補として残りますが、クラス名文字列ではなくRubyクラスオブジェクトを中心に設計されなければなりません（MUST）。例えば、将来の`instance_type[T]`はファクトリAPIがその精度を必要とするときにクラスオブジェクトによって作成されたインスタンス型を投影できます。
+- Rubyではすべての`String`値が真値であるため、`non-falsy-string`と`truthy-string`は追加してはなりません（MUST NOT）。
+- `non-decimal-int-string`は初期に名前付き組み込みになってはなりません（MUST NOT）; `String - decimal-int-string`を使ってください。
+- `empty`、`empty-scalar`、`non-empty-scalar`、`non-empty-mixed`のようなPHPの真偽性指向型は直接インポートしてはなりません（MUST NOT）。Rigorは`false | nil`フローファクトと明示的なコレクション/文字列リファインメントでRubyの真偽性をモデル化します。
+- `Exclude`、`Extract`、`NonNullable`は初期に表面エイリアスとしてインポートしてはなりません（MUST NOT）。Rigorはそれらを`T - U`、`T & U`、`T - nil`として表現します。
+- TypeScriptのユーティリティまたはマッピング型エイリアス（`Partial`、`Required`、`Readonly`、`Pick`、`Omit`、`Record`、`Parameters`、`ReturnType`、`InstanceType`）は初期にRigor表面形式としてインポートしてはなりません（MUST NOT）。

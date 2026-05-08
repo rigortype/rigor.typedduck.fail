@@ -1,65 +1,62 @@
 ---
-title: "Rigor Extensions"
-description: "Imported from rigortype/rigor docs/type-specification/rigor-extensions.md."
+title: "Rigor拡張"
+description: "rigortype/rigor docs/type-specification/rigor-extensions.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/type-specification/rigor-extensions.md"
 sourcePath: "docs/type-specification/rigor-extensions.md"
 sourceSha: "834d6737b6e22ed21a9c2b028e75b065d4a7662a3ac628f693665eba2ee417a2"
 sourceCommit: "9f40e22193647dc06e3ab70c5ba82768b0bfe738"
-translationStatus: "pending"
+translationStatus: "translated"
 sidebar:
   order: 2050
 ---
 
-> [!NOTE]
-> このページはまだ翻訳されていません。英語版の本文を参考表示しています。
+RigorはRBSが直接表現できない型を推論できます（MAY）。これらの型は常にRBS消去を持たなければなりません（MUST）（[rbs-erasure.md](../rbs-erasure/)参照）。
 
-Rigor MAY infer types that RBS cannot spell directly. These types MUST always have an RBS erasure (see [rbs-erasure.md](../rbs-erasure/)).
+この文書は解析器が使用するが表面RBSには現れない内部専用形式のカタログです。リファインメントの予約済み組み込み**名前**は[imported-built-in-types.md](../imported-built-in-types/)にあります。演算子形式（`~T`、`T - U`、`key_of[T]`など）は[type-operators.md](../type-operators/)にあります。
 
-This document is the catalog of internal-only forms that the analyzer uses but that do not appear in surface RBS. Reserved built-in **names** for refinements are in [imported-built-in-types.md](../imported-built-in-types/). Operator forms (`~T`, `T - U`, `key_of[T]`, etc.) are in [type-operators.md](../type-operators/).
+## カタログ
 
-## Catalog
-
-| Rigor extension | Purpose | RBS erasure |
+| Rigor拡張 | 目的 | RBS消去 |
 | --- | --- | --- |
-| Refined nominal type, such as `String where non_empty` | Predicate-proven subtype of a nominal type | Nominal base, such as `String` |
-| Integer range, such as `Integer[1..]` | Numeric comparisons and bounds | `Integer` |
-| Finite set of literals | Precise branch and enum tracking | RBS literal union when possible, otherwise nominal base |
-| Truthiness refinement | Branch-sensitive nil/false elimination | Erased underlying type |
-| Relational fact, such as `x == "foo"` | Captures a guard that may not be soundly reducible to a value type because Ruby equality is dispatch | Erased marker |
-| Object shape | Known methods or singleton-object capabilities inferred locally | Named interface if available, otherwise `top` or nominal base |
-| Inferred capability role | Minimum structural interface required by a method body, such as readable and rewindable stream behavior | Named interface when available, otherwise object-shape erasure |
-| Hash shape refinements beyond RBS records | Required keys, optional keys, read-only entries, open or closed extra-key policy, and key presence after guards | RBS record when exact, otherwise `Hash[K, V]` |
-| Fact stability marker | Records whether a local, member, shape entry, or hash key fact survives assignment, calls, or mutation | Erased marker |
-| Dynamic-origin wrapper, such as `Dynamic[T]` | Tracks precision lost through `untyped` while preserving the current static facet | `untyped` at unchecked boundaries; marker erased only after a checked non-dynamic contract |
-| Negation or complement type, such as `~"foo"` | Represents values in the current domain except a type | Erased domain type |
-| Conditional type | Models type-level branching when needed for library signatures | Conservative union or bound |
-| Indexed access type | Projects member, tuple, record, or shape component types | Projected RBS type when expressible, otherwise conservative base |
-| Template literal-like string refinement | Tracks formatted string families | `String` |
+| 絞り込まれた公称型（例: `String where non_empty`） | 公称型の述語で証明されたサブタイプ | 公称ベース（例: `String`） |
+| 整数範囲（例: `Integer[1..]`） | 数値比較と境界 | `Integer` |
+| リテラルの有限集合 | 精密なブランチと列挙型の追跡 | 可能な場合はRBSリテラルユニオン、そうでなければ公称ベース |
+| 真偽性リファインメント | ブランチ感度のあるnil/falseの除去 | 基礎となる型を消去 |
+| 関係的事実（例: `x == "foo"`） | Rubyの等価性がディスパッチであるため健全に値型に還元できない可能性のあるガードをキャプチャ | マーカーを消去 |
+| オブジェクトシェイプ | 既知のメソッドまたはシングルトンオブジェクトのケイパビリティをローカルに推論 | 利用可能なら名前付きインターフェース、そうでなければ`top`または公称ベース |
+| 推論されたケイパビリティロール | メソッド本体が必要とする最小の構造的インターフェース（例: 読み取り可能でリワインド可能なストリーム動作） | 利用可能なら名前付きインターフェース、そうでなければオブジェクトシェイプの消去 |
+| RBSレコードを超えるハッシュシェイプのリファインメント | 必須キー、オプショナルキー、読み取り専用エントリ、オープンまたはクローズの追加キーポリシー、ガード後のキー存在 | 完全な場合はRBSレコード、そうでなければ`Hash[K, V]` |
+| 事実安定性マーカー | ローカル、メンバー、シェイプエントリ、またはハッシュキーの事実が代入、呼び出し、またはミューテーションを生き残るかどうかを記録 | マーカーを消去 |
+| 動的由来ラッパー（例: `Dynamic[T]`） | `untyped`を通じて失った精度を追跡しながら現在の静的ファセットを保持 | チェックされていない境界で`untyped`; チェックされた非動的コントラクトの後にのみマーカーを消去 |
+| 否定または補完型（例: `~"foo"`） | 現在のドメインの型を除いた値を表す | ドメイン型を消去 |
+| 条件型 | ライブラリシグネチャに必要なとき型レベルの分岐をモデル化 | 保守的なユニオンまたは境界 |
+| インデックスアクセス型 | メンバー、タプル、レコード、またはシェイプコンポーネントの型を投影 | 表現可能な場合は投影されたRBS型、そうでなければ保守的なベース |
+| テンプレートリテラル的な文字列リファインメント | フォーマットされた文字列ファミリーを追跡 | `String` |
 
-## Authoring rules
+## 著作規則
 
-Rigor extensions MUST NOT leak into generated RBS syntax. Erasure is the contract that keeps export compatible with ordinary RBS-aware tools.
+Rigorの拡張は生成されたRBS構文にリークしてはなりません（MUST NOT）。消去は通常のRBS対応ツールとのエクスポート互換性を保つコントラクトです。
 
-A small subset of these forms MAY be authored explicitly by users, restricted to `RBS::Extended` annotation payloads (see [rbs-extended.md](../rbs-extended/)):
+これらの形式の小さなサブセットは、`RBS::Extended`アノテーションペイロードに限定してユーザーが明示的に著作できます（MAY）（[rbs-extended.md](../rbs-extended/)参照）:
 
-- `T - U` is the preferred explicit authoring form for difference types.
-- `~T` is reserved primarily for negative facts and compact diagnostic display; authors MAY use it where the surrounding context names the domain.
-- Reserved built-in refinement names (see [imported-built-in-types.md](../imported-built-in-types/)) are accepted in `RBS::Extended` payloads.
+- `T - U`は差分型の推奨された明示的著作形式です。
+- `~T`は主に否定的事実とコンパクトな診断表示のために予約されています; 著者はドメインが命名されているコンテキストでそれを使えます（MAY）。
+- 予約済み組み込みリファインメント名（[imported-built-in-types.md](../imported-built-in-types/)参照）は`RBS::Extended`ペイロードで受け付けられます。
 
-Rigor extensions that are not user-authored — refined nominal types proved by guards, hash-shape stability markers, dynamic-origin wrappers, capability-role inference results — are produced by the analyzer from the source program, accepted signatures, generated metadata, plugin contributions, and `RBS::Extended` annotations. They MUST NOT be authored directly in `*.rb` files.
+ユーザーが著作しないRigor拡張 — ガードによって証明されたリファインメントされた公称型、ハッシュシェイプの安定性マーカー、動的由来ラッパー、ケイパビリティロール推論結果 — は、解析器がソースプログラム、受け付けられたシグネチャ、生成されたメタデータ、プラグインの貢献、および`RBS::Extended`アノテーションから生成します。これらは`*.rb`ファイルで直接著作してはなりません（MUST NOT）。
 
-## How extensions interact with the rest of the type system
+## 拡張が型システムの他の部分とどう相互作用するか
 
-- **Refined nominal types** are subtypes of their base for subtyping queries. The refinement adds a check that the base does not already prove. Diagnostics and narrowing keep the refinement until normalization, mutation, or budget exhaustion forces a widening.
-- **Integer ranges** participate in subtyping by interval inclusion (within `Integer`). They erase to `Integer` because RBS cannot spell the range. See [imported-built-in-types.md](../imported-built-in-types/) for naming and the rationale for keeping ranges integer-only.
-- **Finite literal unions** participate in subtyping as ordinary unions. They are bounded by the union-size budget (see [inference-budgets.md](../inference-budgets/)); when the budget is exceeded, Rigor widens to the nominal base.
-- **Truthiness refinements** are flow-sensitive (`false | nil` versus the rest of the domain). They are not value types in their own right; they are scope facts that compose with other refinements. See [control-flow-analysis.md](../control-flow-analysis/).
-- **Relational facts** are scope facts that capture comparisons whose value-type effect is not yet justified. They MUST NOT introduce a positive domain from the right-hand side of the comparison. They are retained for diagnostics, contradiction detection, and later promotion when stronger evidence appears.
-- **Object shapes** describe known members for a value at a program point. The members themselves carry kind, signature, visibility, source/provenance, stability, and certainty. The full schema is in [structural-interfaces-and-object-shapes.md](../structural-interfaces-and-object-shapes/).
-- **Inferred capability roles** are summaries of what a method body actually requires from a parameter or receiver. They are anonymous shape requirements until Rigor proves a named interface is a good representation; the matching procedure is bounded and deterministic (see [structural-interfaces-and-object-shapes.md](../structural-interfaces-and-object-shapes/) and [inference-budgets.md](../inference-budgets/)).
-- **Hash shape refinements** add required/optional/extra-key policies and read-only markers on top of RBS records. The erasure algorithm is in [rbs-erasure.md](../rbs-erasure/).
-- **Fact stability markers** record whether facts survive assignments, mutations, escapes, unknown calls, and yielded blocks. They live in scope snapshots. See [control-flow-analysis.md](../control-flow-analysis/).
-- **`Dynamic[T]`** is described in [special-types.md](../special-types/); the algebra is in [value-lattice.md](../value-lattice/).
-- **Negation and difference types** display under the diagnostic display contract in [type-operators.md](../type-operators/).
-- **Conditional types** and **indexed access types** are the type-level computation forms Rigor MAY support for library signatures. They erase conservatively.
-- **Template-literal-like string refinements** describe formatted string families. They are inferred when the analyzer can prove the family; they erase to `String`.
+- **絞り込まれた公称型**はサブタイピングクエリでそのベースのサブタイプです。リファインメントはベースがまだ証明しないチェックを追加します。診断とナローイングは正規化、ミューテーション、またはバジェット枯渇が広げることを強制するまでリファインメントを保持します。
+- **整数範囲**は区間包含によってサブタイピングに参加します（`Integer`の範囲内で）。RBSが範囲を表現できないため`Integer`に消去されます。命名と整数のみに範囲を保つ根拠については[imported-built-in-types.md](../imported-built-in-types/)を参照してください。
+- **有限リテラルユニオン**は通常のユニオンとしてサブタイピングに参加します。ユニオンサイズバジェットで制限されます（[inference-budgets.md](../inference-budgets/)参照）; バジェットが超過すると、Rigorは公称ベースに広げます。
+- **真偽性リファインメント**はフロー感度があります（`false | nil`対ドメインの残り）。それ自体で値型ではありません; 他のリファインメントと組み合わさるスコープ事実です。[control-flow-analysis.md](../control-flow-analysis/)を参照してください。
+- **関係的事実**は値型の効果がまだ正当化されていない比較をキャプチャするスコープ事実です。比較の右辺から正のドメインを導入してはなりません（MUST NOT）。診断、矛盾検出、より強い証拠が現れたときの昇格のために保持されます。
+- **オブジェクトシェイプ**はプログラム地点での値に対して既知のメンバーを記述します。メンバー自体はkind、シグネチャ、可視性、ソース/provenance、安定性、確実性を持ちます。完全なスキーマは[structural-interfaces-and-object-shapes.md](../structural-interfaces-and-object-shapes/)にあります。
+- **推論されたケイパビリティロール**はメソッド本体がパラメーターまたはレシーバーから実際に必要とするもののサマリーです。Rigorが名前付きインターフェースが良い表現であることを証明するまで匿名シェイプ要件です; マッチング手順は制限されており決定論的です（[structural-interfaces-and-object-shapes.md](../structural-interfaces-and-object-shapes/)と[inference-budgets.md](../inference-budgets/)参照）。
+- **ハッシュシェイプのリファインメント**はRBSレコードの上に必須/オプショナル/追加キーポリシーと読み取り専用マーカーを追加します。消去アルゴリズムは[rbs-erasure.md](../rbs-erasure/)にあります。
+- **事実安定性マーカー**は事実が代入、ミューテーション、エスケープ、未知の呼び出し、およびyieldされたブロックを生き残るかどうかを記録します。スコープスナップショットに住んでいます。[control-flow-analysis.md](../control-flow-analysis/)を参照してください。
+- **`Dynamic[T]`**は[special-types.md](../special-types/)で説明されています; 代数は[value-lattice.md](../value-lattice/)にあります。
+- **否定と差分型**は[type-operators.md](../type-operators/)の診断表示コントラクトの下で表示されます。
+- **条件型**と**インデックスアクセス型**はRigorがライブラリシグネチャのためにサポートできる（MAY）型レベルの計算形式です。保守的に消去されます。
+- **テンプレートリテラル的な文字列リファインメント**はフォーマットされた文字列ファミリーを記述します。解析器がファミリーを証明できるとき推論されます; `String`に消去されます。

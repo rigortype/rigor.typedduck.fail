@@ -1,75 +1,72 @@
 ---
-title: "RBS-Compatible Types"
-description: "Imported from rigortype/rigor docs/type-specification/rbs-compatible-types.md."
+title: "RBS互換型"
+description: "rigortype/rigor docs/type-specification/rbs-compatible-types.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/type-specification/rbs-compatible-types.md"
 sourcePath: "docs/type-specification/rbs-compatible-types.md"
 sourceSha: "27080c9a84920fd39dc3afc7f0543b7f0d0709091d3a0916475d5d8ae9b2dddf"
 sourceCommit: "9f40e22193647dc06e3ab70c5ba82768b0bfe738"
-translationStatus: "pending"
+translationStatus: "translated"
 sidebar:
   order: 2050
 ---
 
-> [!NOTE]
-> このページはまだ翻訳されていません。英語版の本文を参考表示しています。
+RigorはRBS構文で文書化されたすべての型形式をサポートします。この文書はRBS形式をRigorの解釈とRBS消去にマッピングする権威あるテーブルです。
 
-Rigor supports every type form documented by RBS syntax. This document is the authoritative table mapping RBS forms to Rigor's interpretation and to their RBS erasure.
+ハッシュシェイプ消去アルゴリズムを含む完全な消去規則は[rbs-erasure.md](../rbs-erasure/)にあります。RBSを超えるRigor専用の形式は[rigor-extensions.md](../rigor-extensions/)にリストされています。予約済み組み込みリファインメント名は[imported-built-in-types.md](../imported-built-in-types/)にあります。
 
-The exhaustive erasure rules, including the hash-shape erasure algorithm, are in [rbs-erasure.md](../rbs-erasure/). Rigor-only forms that exceed RBS are listed in [rigor-extensions.md](../rigor-extensions/). Reserved built-in refinement names are in [imported-built-in-types.md](../imported-built-in-types/).
+## 形式テーブル
 
-## Form table
-
-| RBS form | Rigor interpretation | RBS erasure |
+| RBS形式 | Rigorの解釈 | RBS消去 |
 | --- | --- | --- |
-| `C`, `C[A]` | Nominal instance type | Same |
-| `_I`, `_I[A]` | Interface type | Same |
-| `alias`, `alias[A]` | Alias reference, expanded on demand | Same or expanded alias |
-| `singleton(C)` | Singleton class object type | Same |
-| string, symbol, integer, `true`, `false` literal | Literal singleton type | Same |
-| `A \| B` | Union type | Same after erased operands |
-| `A & B` | Intersection type | Same after erased operands |
-| `T?` | `T \| nil` | Optional syntax when valid, otherwise union |
-| `{ key: T }` | Hash record with known keys | Same |
-| `[A, B]` | Array tuple with fixed arity | Same |
-| type variable | Scoped type variable with bounds and variance | Same |
-| `self` | Open-recursive receiver type in self-context | Same when the RBS context allows it |
-| `instance` | Current class instance type in classish-context | Same when the RBS context allows it |
-| `class` | Current class singleton type in classish-context | Same when the RBS context allows it |
-| `bool` | Alias for `true \| false` | `bool` |
-| `nil` | The singleton `nil` value | `nil` |
-| `untyped` | Dynamic type | `untyped` |
-| `top` | Greatest static value type | `top` |
-| `bot` | Empty type | `bot` |
-| `void` | Return-position no-use result marker | `void` where valid, otherwise `top` with a diagnostic |
-| proc type | Callable object type | Same after erased operands |
+| `C`、`C[A]` | 公称インスタンス型 | 同じ |
+| `_I`、`_I[A]` | インターフェース型 | 同じ |
+| `alias`、`alias[A]` | エイリアス参照、必要に応じて展開 | 同じまたは展開されたエイリアス |
+| `singleton(C)` | シングルトンクラスオブジェクト型 | 同じ |
+| string、symbol、integer、`true`、`false`リテラル | リテラルシングルトン型 | 同じ |
+| `A \| B` | ユニオン型 | 消去されたオペランドの後に同じ |
+| `A & B` | 積型 | 消去されたオペランドの後に同じ |
+| `T?` | `T \| nil` | 有効なときはオプショナル構文、そうでなければユニオン |
+| `{ key: T }` | 既知キーのハッシュレコード | 同じ |
+| `[A, B]` | 固定アリティの配列タプル | 同じ |
+| 型変数 | 境界と変性を持つスコープ型変数 | 同じ |
+| `self` | selfコンテキストでのオープン再帰レシーバー型 | RBSコンテキストが許す場合に同じ |
+| `instance` | classish-contextでの現在のクラスインスタンス型 | RBSコンテキストが許す場合に同じ |
+| `class` | classish-contextでの現在のクラスシングルトン型 | RBSコンテキストが許す場合に同じ |
+| `bool` | `true \| false`のエイリアス | `bool` |
+| `nil` | シングルトン`nil`値 | `nil` |
+| `untyped` | 動的型 | `untyped` |
+| `top` | 最大の静的値型 | `top` |
+| `bot` | 空型 | `bot` |
+| `void` | 戻り値位置の「使用しない」結果マーカー | 有効な場所では`void`、そうでなければ診断付きで`top` |
+| proc型 | 呼び出し可能オブジェクト型 | 消去されたオペランドの後に同じ |
 
-## Contextual restrictions
+## 文脈的制限
 
-`self`, `instance`, `class`, and `void` have context restrictions in RBS. Rigor MAY carry richer contextual information internally, but exported RBS MUST obey those restrictions.
+`self`、`instance`、`class`、`void`はRBSにコンテキスト制限があります。Rigorは内部的により豊かなコンテキスト情報を保持できますが（MAY）、エクスポートされたRBSはそれらの制限を守らなければなりません（MUST）。
 
-- `self`, `instance`, `class`: valid only in their respective classish or self contexts. Rigor MUST emit them only where RBS accepts them.
-- `void`: valid in method and proc return positions and in generic slots that carry it from imported signatures. See [special-types.md](../special-types/) for the value-context rule and the imported-RBS rule.
+- `self`、`instance`、`class`: それぞれのclassishまたはselfコンテキストでのみ有効。RigorはRBSが受け付ける場所でのみそれらを出力しなければなりません（MUST）。
+- `void`: メソッドとprocの戻り値位置、およびインポートされたシグネチャからそれを持つジェネリックスロットで有効。値コンテキストルールとインポートされたRBSルールについては[special-types.md](../special-types/)を参照してください。
 
-If an internal type contains one of these markers in an invalid RBS context, the erasure pass MUST rewrite it to the nearest valid conservative type and report the loss of precision. The diagnostic policy for precision loss during export is in [diagnostic-policy.md](../diagnostic-policy/).
+内部型が無効なRBSコンテキストでこれらのマーカーのいずれかを含む場合、消去パスは最も近い有効な保守的型に書き直し、精度損失を報告しなければなりません（MUST）。エクスポート中の精度損失の診断ポリシーは[diagnostic-policy.md](../diagnostic-policy/)にあります。
 
-## Notes on individual forms
+## 個別形式の注記
 
-### Optionals
+### オプショナル
 
-`T?` is normalized to `T | nil` internally (see [normalization.md](../normalization/)). On export, Rigor SHOULD prefer the `T?` syntax when valid; otherwise it falls back to the explicit union.
+`T?`は内部的に`T | nil`に正規化されます（[normalization.md](../normalization/)参照）。エクスポート時、Rigorは有効なときは`T?`構文を優先すべきです（SHOULD）; そうでなければ明示的なユニオンにフォールバックします。
 
-### Records and tuples
+### レコードとタプル
 
-RBS records (`{ key: T }`) and tuples (`[A, B]`) are accepted as exact forms. Rigor's internal hash and array shapes (see [structural-interfaces-and-object-shapes.md](../structural-interfaces-and-object-shapes/)) extend these RBS forms with required/optional/extra-key policies and read-only markers; those extensions erase deterministically (see [rbs-erasure.md](../rbs-erasure/)).
+RBSレコード（`{ key: T }`）とタプル（`[A, B]`）は正確な形式として受け付けられます。Rigorの内部ハッシュと配列シェイプ（[structural-interfaces-and-object-shapes.md](../structural-interfaces-and-object-shapes/)参照）はこれらのRBS形式を必須/オプショナル/追加キーポリシーと読み取り専用マーカーで拡張します; それらの拡張は決定論的に消去されます（[rbs-erasure.md](../rbs-erasure/)参照）。
 
-### Type variables
+### 型変数
 
-Type variable bounds and declaration-site variance from RBS are preserved. Generic preservation through method bodies — for example inferring `[S < _RewindableStream] (S stream) -> S` when a method returns the same parameter object it received — is a Rigor inference behavior, not a new surface form. See [structural-interfaces-and-object-shapes.md](../structural-interfaces-and-object-shapes/).
+RBSからの型変数の境界と宣言サイトの変性は保持されます。メソッド本体を通じたジェネリック保持 — 例えばメソッドが受け取ったのと同じパラメーターオブジェクトを返すとき`[S < _RewindableStream] (S stream) -> S`を推論する — はRigorの推論挙動であり、新しい表面形式ではありません。[structural-interfaces-and-object-shapes.md](../structural-interfaces-and-object-shapes/)を参照してください。
 
-### `bool` versus truthiness
+### `bool`対真偽性
 
-`bool` is the literal alias for `true | false`. Ruby truthiness accepts any value, and Rigor models truthiness as a flow predicate, not by widening to `bool`. See [special-types.md](../special-types/) and [control-flow-analysis.md](../control-flow-analysis/).
+`bool`は`true | false`のリテラルエイリアスです。Rubyの真偽性は任意の値を受け付けます。Rigorは真偽性をフロー述語としてモデル化します。`bool`に広げることはしません。[special-types.md](../special-types/)と[control-flow-analysis.md](../control-flow-analysis/)を参照してください。
 
 ### `untyped`
 
-`untyped` is preserved at the RBS boundary in both directions. The internal precise representation is `Dynamic[top]`, with full algebra in [value-lattice.md](../value-lattice/). The round-trip from RBS to Rigor and back is exact.
+`untyped`はRBS境界で両方向に保持されます。内部精密表現は`Dynamic[top]`で、完全な代数は[value-lattice.md](../value-lattice/)にあります。RBSからRigorへのラウンドトリップとその逆は正確です。

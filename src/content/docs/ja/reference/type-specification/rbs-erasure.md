@@ -1,51 +1,48 @@
 ---
-title: "RBS Erasure"
-description: "Imported from rigortype/rigor docs/type-specification/rbs-erasure.md."
+title: "RBS消去"
+description: "rigortype/rigor docs/type-specification/rbs-erasure.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/type-specification/rbs-erasure.md"
 sourcePath: "docs/type-specification/rbs-erasure.md"
 sourceSha: "fe78592983daebf0a92249608fbfa7a5755917a183792b46c3abf41cfdbc6169"
 sourceCommit: "9f40e22193647dc06e3ab70c5ba82768b0bfe738"
-translationStatus: "pending"
+translationStatus: "translated"
 sidebar:
   order: 2050
 ---
 
-> [!NOTE]
-> このページはまだ翻訳されていません。英語版の本文を参考表示しています。
+RBS消去はRigorの内部型を有効なRBS型に変換します。Rigor→RBS方向は**無損失ではありません**: 消去はリファインメント、リテラルユニオン、シェイプ、動的由来のprovenanceを折り畳める場合があります（MAY）。消去はRigorが証明した型より**狭い**型を生成してはならず（MUST NOT）、より広い型を生成することは許されます（MAY）。
 
-RBS erasure converts an internal Rigor type to a valid RBS type. The Rigor→RBS direction is **not** lossless: erasure MAY collapse refinements, literal unions, shapes, and dynamic-origin provenance. Erasure MUST NOT produce a narrower type than Rigor proved; it MAY produce a wider one.
+この文書は一般的な消去規則とハッシュシェイプ消去アルゴリズムを定義します。消去が消費する内部形式は[rigor-extensions.md](../rigor-extensions/)にカタログ化されています。
 
-This document defines the general erasure rules and the hash-shape erasure algorithm. The internal forms that erasure consumes are catalogued in [rigor-extensions.md](../rigor-extensions/).
+## 一般規則
 
-## General rules
+- 正確なRBS型はそれ自身に消去されます。
+- 絞り込まれた型は絞り込まれていないベースに消去されます。
+- サポートされていないリテラル種類はその公称クラスに消去されます。
+- 整数範囲は`Integer`に消去されます。
+- 補完と差分のリファインメントは現在のドメイン型に消去されます。
+- ハッシュシェイプの開放性、追加キー、読み取り専用マーカーは以下のハッシュシェイプ消去アルゴリズムによって消去されます。
+- オブジェクトシェイプは一致する名前付きインターフェースが存在する場合はそれに消去され、そうでなければ保守的な公称または`top`に消去されます。
+- 動的由来ラッパーは未チェック境界型としてエクスポートされるとき`untyped`に消去されます。値がすでに非動的コントラクトに対してチェックされた場合、コントラクト型がエクスポートされ、動的マーカーはRBSに表現されません。
+- 無効なコンテキストの`void`、`self`、`instance`、または`class`形式は有効な保守的RBSに書き直され、精度損失として報告されます（[rbs-compatible-types.md](../rbs-compatible-types/)のコンテキスト制限参照）。
 
-- Exact RBS types erase to themselves.
-- Refined types erase to their unrefined base.
-- Unsupported literal kinds erase to their nominal class.
-- Integer ranges erase to `Integer`.
-- Complement and difference refinements erase to their current domain type.
-- Hash-shape openness, extra-key, and read-only markers are erased by the hash-shape erasure algorithm below.
-- Object shapes erase to a matching named interface when one exists, otherwise a conservative nominal or `top`.
-- Dynamic-origin wrappers erase to `untyped` when exported as unchecked-boundary types. When a value has already been checked against a non-dynamic contract, the contract type is exported and the dynamic marker is not represented in RBS.
-- Invalid-context `void`, `self`, `instance`, or `class` forms are rewritten to valid conservative RBS and reported as precision loss (see [rbs-compatible-types.md](../rbs-compatible-types/) for context restrictions).
+消去は保守的です: `erase(T) = R`ならば、`T`が受け付けるすべての値は`R`でも受け付けられなければなりません（MUST）。
 
-Erasure is conservative: if `erase(T) = R`, then every value accepted by `T` MUST be accepted by `R`.
+## ハッシュシェイプの消去
 
-## Hash-shape erasure
+ハッシュシェイプはRBSレコードと`Hash[K, V]`が表現できるより多くの情報を持ちます: 必須キー、オプショナルキー、読み取り専用エントリ、オープンまたはクローズの追加キーポリシー、キー存在の事実、動的由来のprovenance、安定性。RBS消去はその情報を決定論的かつ保守的に失わなければなりません（MUST）。
 
-Hash shapes carry more information than RBS records and `Hash[K, V]` can express: required keys, optional keys, read-only entries, open or closed extra-key policy, key presence facts, dynamic-origin provenance, and stability. RBS erasure MUST lose that information deterministically and conservatively.
+### 正確なクローズシェイプ
 
-### Exact closed shapes
+正確なクローズシェイプは、すべてのキーがRBSレコード構文で表現できる場合、RBSレコードに消去されます:
 
-Exact closed shapes erase to RBS records when every key can be represented by RBS record syntax:
+- 必須エントリは必須レコードフィールドになります。
+- オプショナルエントリはRBSがオプショナルキーを表現できる場合、オプショナルレコードフィールドになります。
+- エントリの値型は再帰的に消去されます。
+- 読み取り専用、provenance、安定性、キー存在マーカーは消去されます。
+- 欠落したオプショナルキーは値型に`nil`を追加しません。不在は保存された値ではありません。
 
-- Required entries become required record fields.
-- Optional entries become optional record fields when RBS can spell the optional key.
-- Entry value types erase recursively.
-- Read-only, provenance, stability, and key-presence markers are erased.
-- Missing optional keys do not add `nil` to the value type. Absence is not a stored value.
-
-Examples:
+例:
 
 ```text
 closed { a: 1, b: "str" }
@@ -55,41 +52,41 @@ closed { a: Integer, ?b: String }
   => { a: Integer, ?b: String }
 ```
 
-### Fallback to `Hash[K, V]`
+### `Hash[K, V]`へのフォールバック
 
-If the shape cannot be represented as an exact RBS record, it erases to `Hash[K, V]`.
+シェイプが正確なRBSレコードとして表現できない場合、`Hash[K, V]`に消去されます。
 
-#### Reconstructing the key type `K`
+#### キー型`K`の再構築
 
-The key type `K` is reconstructed from:
+キー型`K`は以下から再構築されます:
 
-- known literal keys, kept as a literal union while the set is finite and within the export budget;
-- widened nominal key classes when the literal-key set is too large for readable RBS;
-- the declared extra-key bound for open shapes with typed extra keys;
-- `top` for statically open shapes with unknown extra keys;
-- `untyped` for dynamic-origin extra keys.
+- 既知のリテラルキー、セットが有限でエクスポートバジェット内にある間はリテラルユニオンとして保持
+- リテラルキーセットが読みやすいRBSには大きすぎる場合は広げられた公称キークラス
+- 型付き追加キーを持つオープンシェイプの宣言された追加キー境界
+- 未知の追加キーを持つ静的にオープンなシェイプの`top`
+- 動的由来の追加キーの`untyped`
 
-#### Reconstructing the value type `V`
+#### 値型`V`の再構築
 
-The value type `V` is reconstructed from:
+値型`V`は以下から再構築されます:
 
-- values of all known required entries;
-- values of known optional entries, because they may be present;
-- the declared extra-value bound for open shapes with typed extra keys;
-- `top` for statically open shapes with unknown extra values;
-- `untyped` for dynamic-origin extra values.
+- すべての既知の必須エントリの値
+- 既知のオプショナルエントリの値（存在する場合があるため）
+- 型付き追加キーを持つオープンシェイプの宣言された追加値境界
+- 未知の追加値を持つ静的にオープンなシェイプの`top`
+- 動的由来の追加値の`untyped`
 
-Optional-key absence does not contribute `nil` to `V` unless the entry value type itself includes `nil`.
+オプショナルキーの不在は、エントリの値型自体が`nil`を含まない限り`V`に`nil`を加算しません。
 
-### Empty closed records
+### 空のクローズレコード
 
-An exact empty closed record erases to `{}`. If a target RBS version or output mode cannot preserve an empty record, the fallback is `Hash[bot, bot]`.
+正確な空のクローズレコードは`{}`に消去されます。ターゲットのRBSバージョンまたは出力モードが空のレコードを保持できない場合、フォールバックは`Hash[bot, bot]`です。
 
-### Open shapes with extra-value bounds
+### 追加値境界を持つオープンシェイプ
 
-For open shapes, the extra-value bound MUST be used when known. Rigor MUST NOT use only the current known value union for unknown extra keys, because an unseen extra key may hold a value unrelated to the observed entries.
+オープンシェイプの場合、既知の場合は追加値境界を使用しなければなりません（MUST）。Rigorは未知の追加キーに対して現在の既知の値ユニオンだけを使用してはなりません（MUST NOT）。なぜなら未見の追加キーが観察されたエントリとは無関係の値を保持している可能性があるからです。
 
-Examples:
+例:
 
 ```text
 open { a: 1, b: "str", **String => bool }
@@ -102,20 +99,20 @@ dynamic-open { a: 1, **untyped }
   => Hash[untyped, untyped]
 ```
 
-### Budget-driven widening
+### バジェット駆動の拡幅
 
-If literal-key or literal-value unions exceed the export budget, Rigor MUST widen them to nominal bases deterministically, such as `Hash[Symbol, Integer | String]`. Losing closedness, optional-key precision, read-only status, or literal precision SHOULD be reportable in strict export or explanation mode.
+リテラルキーまたはリテラル値のユニオンがエクスポートバジェットを超える場合、Rigorはそれらを`Hash[Symbol, Integer | String]`のように決定論的に公称ベースに広げなければなりません（MUST）。クローズド性、オプショナルキーの精度、読み取り専用ステータス、またはリテラル精度の損失は、厳密なエクスポートまたは説明モードで報告可能であるべきです（SHOULD）。
 
-The literal-key and literal-value unions have **separate** budgets because keys carry more identifier-like meaning than values do:
+リテラルキーとリテラル値のユニオンには**別々の**バジェットがあります。なぜならキーは値よりも識別子的な意味を持つからです:
 
-- `budgets.hash_erasure_keys` (default 16, range 1–256) controls the literal-key union.
-- `budgets.hash_erasure_values` (default 8, range 1–256) controls the literal-value union.
+- `budgets.hash_erasure_keys`（デフォルト16、範囲1〜256）はリテラルキーユニオンを制御します。
+- `budgets.hash_erasure_values`（デフォルト8、範囲1〜256）はリテラル値ユニオンを制御します。
 
-Both are configurable in `.rigor.yml`. See [inference-budgets.md](../inference-budgets/) for the full budget table.
+どちらも`.rigor.yml`で設定可能です。完全なバジェットテーブルは[inference-budgets.md](../inference-budgets/)を参照してください。
 
-When one budget is exceeded, only that axis widens to the nearest nominal base; the other axis remains a literal union if it still fits. Widening is deterministic:
+一方のバジェットが超過すると、その軸だけが最も近い公称ベースに広がります; もう一方の軸はまだ収まる場合はリテラルユニオンのままです。拡幅は決定論的です:
 
-- the widened nominal base for keys is the least common nominal class among the literal keys (for example `Symbol`, `String`, `Integer`);
-- the widened nominal base for values is the least common nominal class or `top` when the values do not share a useful base.
+- キーの広げられた公称ベースはリテラルキー間の最小共通公称クラスです（例: `Symbol`、`String`、`Integer`）
+- 値の広げられた公称ベースは最小共通公称クラス、または値が有用なベースを共有しない場合は`top`です
 
-Rigor MUST explain a budget-driven widening as `+N more` in the diagnostic, with full details available through `rigor explain`. The omission contract is in [type-operators.md](../type-operators/).
+Rigorはバジェット駆動の拡幅を診断で`+N more`として説明しなければならず（MUST）、`rigor explain`で完全な詳細が利用可能です。省略コントラクトは[type-operators.md](../type-operators/)にあります。

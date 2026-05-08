@@ -1,139 +1,136 @@
 ---
-title: "Robustness Principle (Postel's Law for Types)"
-description: "Imported from rigortype/rigor docs/type-specification/robustness-principle.md."
+title: "頑健性原則（型のためのPostelの法則）"
+description: "rigortype/rigor docs/type-specification/robustness-principle.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/type-specification/robustness-principle.md"
 sourcePath: "docs/type-specification/robustness-principle.md"
 sourceSha: "85136c840ac250ac55638947361417c2bdcf575af48edd991d5a2c87808a0a85"
 sourceCommit: "9f40e22193647dc06e3ab70c5ba82768b0bfe738"
-translationStatus: "pending"
+translationStatus: "translated"
 sidebar:
   order: 2050
 ---
 
-> [!NOTE]
-> このページはまだ翻訳されていません。英語版の本文を参考表示しています。
+## ステータス
 
-## Status
+規範的（Normative）。
 
-Normative.
+この文書は、Rigorが著作するすべての型 — 組み込みカタログエントリ、推論されたユーザーメソッドシグネチャ、または`RBS::Extended`ペイロード — が守らなければならない頑健性原則を定義します。設計の根拠と未解決事項は[`docs/adr/5-robustness-principle.md`](../../adr/5-robustness-principle/)にあります。
 
-This document defines the robustness principle that every Rigor-authored type — built-in catalog entry, inferred user-method signature, or `RBS::Extended` payload — MUST observe. Design rationale and the open questions live in [`docs/adr/5-robustness-principle.md`](../../adr/5-robustness-principle/).
+## 原則
 
-## The principle
+> **戻り値は健全性を損なわずに証明できる限り厳密であるべきです（SHOULD）。パラメーターは本体の正しい動作が許す限り寛容であるべきです（SHOULD）。**
 
-> **Returns SHOULD be as strict as can be proved without compromising soundness. Parameters SHOULD be as permissive as the body's correct behaviour permits.**
+これは型システムにおけるPostelの法則（「頑健性原則」）の解釈です: *生み出すものについては保守的に、受け入れるものについては寛大に*。Rigorに限定すると:
 
-This is the type-system reading of Postel's law (the "robustness principle"): *be conservative in what you produce, be liberal in what you accept*. For Rigor specifically:
+1. **厳密な戻り値**は推論エンジンが下流に伝播できる事実の精度を最大化します。`non-negative-int`の戻り値は値に依存するすべての後続ナローイングチェーンを締め付けます; それを`Integer`に広げることはすべての消費者にとって情報を捨てることになります。
+2. **寛容なパラメーター**は過度に厳格なシグネチャが呼び出し元に防衛的な型強制（`x.to_s`、`x || default`、`Array(x)`）をすべての呼び出し元に貼り付けることを強いるのを防ぎます。メソッド本体内部のナローイング層が実装が実際に必要とする精密な型を回復します。
 
-1. **Strict returns** maximise the precision of facts the inference engine can propagate downstream. A `non-negative-int` return tightens every subsequent narrowing chain that depends on the value; widening it back to `Integer` discards information for every consumer.
-2. **Lenient parameters** prevent over-strict signatures from forcing callers to paste defensive coercions (`x.to_s`, `x || default`, `Array(x)`) at every call site. The narrowing tier inside the method body recovers the precise type the implementation actually needs.
+両句はMUSTではなくSHOULDです: 原則は、複数の正確性を保持するキャリアが利用可能なときのデフォルトの選択を指示します。正確性は常にどちらの句よりも優先します。
 
-Both clauses are SHOULD, not MUST: the principle directs the default choice when several correctness-preserving carriers are available. Correctness ALWAYS takes precedence over either clause.
+## 原則が適用される場所
 
-## Where the principle applies
+原則はRigorが型を*著作*するすべての場所に拘束力を持ちます。すでに存在するRBSの著作をオーバーライドしません。
 
-The principle binds wherever Rigor *authors* a type. It does NOT override RBS authorship that already exists.
-
-| Authorship surface | Principle applies | Notes |
+| 著作サーフェス | 原則の適用 | 注記 |
 | --- | --- | --- |
-| Built-in catalog (`data/builtins/ruby_core/*.yml`) | Yes — return tier only | Catalog overrides RBS *return* projections; parameter projections stay RBS-driven unless an `RBS::Extended` annotation is present. |
-| Inferred user-method signatures | Yes — both tiers | Re-typed at the call site; the inferred return is the body's precise lattice value, the inferred parameter is the union of call-site types. |
-| `RBS::Extended` annotations a user authors | Yes — both tiers | A `%a{rigor:v1:return-refinement: …}` MAY tighten the return; capability-role / `_ToFoo` parameter annotations MAY widen the parameter. |
-| Hand-written RBS signatures (the user's own `.rbs` files, rbs-inline annotations) | NO | RBS authorship binds. The principle MUST NOT silently rewrite a user-supplied signature. |
-| Vendored / stdlib RBS bundled with the `rbs` gem | NO | Same: those signatures bind their declared shape. The catalog tier may layer a tighter return on top, but it MUST NOT override a parameter type. |
+| 組み込みカタログ（`data/builtins/ruby_core/*.yml`） | はい — 戻り値層のみ | カタログはRBSの*戻り値*プロジェクションをオーバーライドします; `RBS::Extended`アノテーションがない限り、パラメータープロジェクションはRBS駆動のままです。 |
+| 推論されたユーザーメソッドシグネチャ | はい — 両方の層 | 呼び出し元で再型付けされます; 推論された戻り値は本体の精密な格子値であり、推論されたパラメーターは呼び出し元の型のユニオンです。 |
+| ユーザーが著作する`RBS::Extended`アノテーション | はい — 両方の層 | `%a{rigor:v1:return-refinement: …}`は戻り値を締め付けられます（MAY）; ケイパビリティロール / `_ToFoo`パラメーターアノテーションはパラメーターを広げられます（MAY）。 |
+| 手書きのRBSシグネチャ（ユーザー自身の`.rbs`ファイル、rbs-inlineアノテーション） | いいえ | RBSの著作が拘束します。原則はユーザーが提供したシグネチャを暗黙に書き換えてはなりません（MUST NOT）。 |
+| `rbs` gemにバンドルされたベンダー済み / stdlib RBS | いいえ | 同様: それらのシグネチャは宣言された形状に拘束します。カタログ層はより厳密な戻り値をその上に重ねられますが、パラメーター型をオーバーライドしてはなりません（MUST NOT）。 |
 
-## Strict returns: clause 1
+## 厳密な戻り値: 第1句
 
-Rigor's existing carriers are the precision tools the principle directs the analyzer to reach for. In order of decreasing precision:
+Rigorの既存のキャリアは、原則が解析器に使うよう指示する精度のツールです。精度の高い順:
 
-| Carrier | When to prefer | Example |
+| キャリア | 優先するとき | 例 |
 | --- | --- | --- |
-| `Constant[v]` | Result is statically determined | `1 + 2` → `Constant[3]` |
-| `Tuple[T1, …, Tn]` | Fixed-arity heterogeneous container | `5.divmod(3)` → `Tuple[Constant[1], Constant[2]]` |
-| `HashShape{k: T, …}` | Symbol-keyed record with known keys | `{name: "A", age: 30}` |
-| `IntegerRange[a, b]` | Bounded integer | `Array#size` → `non-negative-int` |
-| `Union[T1, …, Tn]` | Finite, small set of distinct possibilities | `n.even? ? :even : :odd` → `Constant[:even] | Constant[:odd]` |
-| `Nominal[Class[args]]` | A class with applied generic arguments | `Array#map { String }` → `Array[String]` |
-| `Nominal[Class]` | Raw nominal | `Object#dup` → `self` (still a nominal) |
-| `Dynamic[T]` | Last-resort gradual fallback | When nothing more specific can be proved |
+| `Constant[v]` | 結果が静的に決定される | `1 + 2` → `Constant[3]` |
+| `Tuple[T1, …, Tn]` | 固定アリティの異種コンテナ | `5.divmod(3)` → `Tuple[Constant[1], Constant[2]]` |
+| `HashShape{k: T, …}` | 既知キーのシンボルキードレコード | `{name: "A", age: 30}` |
+| `IntegerRange[a, b]` | 有界整数 | `Array#size` → `non-negative-int` |
+| `Union[T1, …, Tn]` | 異なる可能性の有限で小さなセット | `n.even? ? :even : :odd` → `Constant[:even] | Constant[:odd]` |
+| `Nominal[Class[args]]` | 適用されたジェネリック引数を持つクラス | `Array#map { String }` → `Array[String]` |
+| `Nominal[Class]` | 生の公称型 | `Object#dup` → `self`（依然として公称型） |
+| `Dynamic[T]` | 最終手段のグラデュアルフォールバック | より具体的なものを証明できないとき |
 
-A clause-1 candidate MUST NOT be adopted if it would falsely exclude values that the implementation actually returns. The principle is "as strict as proven", not "as strict as imaginable".
+第1句の候補は、実装が実際に返す値を誤って除外する場合には採用してはなりません（MUST NOT）。原則は「証明済みの限り厳密」であり、「想像できる限り厳密」ではありません。
 
-### Concrete patterns
+### 具体的なパターン
 
-- **Bounded integers from container queries.** `Array#size`, `String#length`, `Hash#size`, `Range#size`, `Set#size` SHOULD return `non-negative-int` rather than `Nominal[Integer]`. The bound is a structural truth (no negative size) and propagates through every subsequent comparison.
-- **Iterator-block parameters.** `Integer#times`, `Integer#upto`, `Integer#downto`, `Range#each`, and similar SHOULD bind the block's index parameter to the precise `IntegerRange` of the iteration domain rather than to the container's element type alone.
-- **Tuple-shaped returns.** Methods that return a fixed-arity heterogeneous array (e.g. `Integer#divmod`) SHOULD surface as `Tuple[…]` so multi-target destructuring threads the per-slot type into locals.
-- **Constant folding under the catalog.** Any method classified `:leaf` / `:trivial` / `:leaf_when_numeric` whose receiver and arguments are concrete constants SHOULD fold to a `Constant`. The `MethodCatalog` layer is the toolchain that observes clause 1 across the broadest method surface.
+- **コンテナクエリからの有界整数。** `Array#size`、`String#length`、`Hash#size`、`Range#size`、`Set#size`は`Nominal[Integer]`ではなく`non-negative-int`を返すべきです（SHOULD）。境界は構造的な真実（負のサイズはない）であり、すべての後続比較を通じて伝播します。
+- **イテレーターブロックパラメーター。** `Integer#times`、`Integer#upto`、`Integer#downto`、`Range#each`などは、コンテナの要素型だけではなく、反復ドメインの精密な`IntegerRange`にブロックのインデックスパラメーターをバインドすべきです（SHOULD）。
+- **タプル形状の戻り値。** 固定アリティの異種配列を返すメソッド（例: `Integer#divmod`）は、多重代入先で各スロットの型がローカル変数に流れるように`Tuple[…]`として公開すべきです（SHOULD）。
+- **カタログ下の定数たたみ込み。** レシーバーと引数が具体的な定数である`:leaf` / `:trivial` / `:leaf_when_numeric`として分類されたすべてのメソッドは`Constant`にたたみ込まれるべきです（SHOULD）。`MethodCatalog`層は最も広いメソッドサーフェスにわたって第1句を観察するツールチェーンです。
 
-### Platform-host portability
+### プラットフォーム移植性
 
-The strict-as-proven envelope EXCLUDES Constants whose value depends on the analyzer host's platform when the user's deployment target may differ. `File.basename`, `File.dirname`, `File.extname`, `File.join`, `File.split`, and `File.absolute_path?` all read `File::SEPARATOR` / `File::ALT_SEPARATOR` and produce different answers on Windows vs POSIX hosts. The default Rigor mode declines to fold them so the inferred type stays portable.
+厳密な証明済みの包絡線は、ユーザーのデプロイターゲットが異なる可能性があるとき解析器ホストのプラットフォームに依存する定数を**除外**します。`File.basename`、`File.dirname`、`File.extname`、`File.join`、`File.split`、`File.absolute_path?`はすべて`File::SEPARATOR` / `File::ALT_SEPARATOR`を読み、WindowsとPOSIXホストで異なる答えを生成します。デフォルトのRigorモードは推論された型が移植可能なままになるようにそれらをたたみ込むことを拒否します。
 
-Configuration opt-in (`fold_platform_specific_paths: true` in `.rigor.yml`) trades platform-portability for the precision payoff. Single-platform projects (most internal tooling, server-only deployments) MAY enable it; the default is off so an analyzer running on a developer's macOS machine never silently bakes POSIX-specific path semantics into a project that also runs on Windows CI.
+設定によるオプトイン（`.rigor.yml`の`fold_platform_specific_paths: true`）は精度の利得のために移植性を犠牲にします。単一プラットフォームプロジェクト（ほとんどの内部ツール、サーバーオンリーデプロイメント）は有効にできます（MAY）; デフォルトはオフで、macOSの開発者マシンで実行する解析器がWindowsのCIでも実行するプロジェクトにPOSIX固有のパスセマンティクスを暗黙に焼き込まないようにします。
 
-The reserved `non-empty-string` refinement (see [imported-built-in-types.md](../imported-built-in-types/)) is the planned platform-agnostic tightening for the path-method returns. It surfaces "result is a non-empty String" without committing to a specific separator. Until the refinement infrastructure ships, the path methods land at `Nominal[String]` in default mode.
+予約済みの`non-empty-string`リファインメント（[imported-built-in-types.md](../imported-built-in-types/)参照）はパスメソッドの戻り値に対して計画されたプラットフォームに依存しない締め付けです。「結果は非空のString」を特定のセパレーターにコミットせずに浮上させます。リファインメントインフラが出荷されるまで、パスメソッドはデフォルトモードで`Nominal[String]`に着地します。
 
-### When clause 1 yields
+### 第1句が譲歩するとき
 
-- **The contract is for all callers**, not the current call site. A signature describes the method's promise to every caller; clause 1 does NOT permit tightening a method's signature for a specific call. That work belongs to `ConstantFolding` and the per-call-site dispatcher tier.
-- **The body genuinely returns the wider type.** `Array#each` returns `self`, not the block's return type. `Object#tap` returns `self`. Clause 1 does NOT permit advertising a tighter return that the body never produces.
-- **The user has supplied an RBS signature.** A hand-written or rbs-inline-supplied return type binds; clause 1 only operates when Rigor authors the signature.
+- **コントラクトはすべての呼び出し元のため**であり、現在の呼び出しサイトのためではありません。シグネチャはすべての呼び出し元へのメソッドの約束を記述します; 第1句は特定の呼び出しのためにメソッドのシグネチャを締め付けることを許可しません。その作業は`ConstantFolding`と呼び出しサイトごとのディスパッチャー層に属します。
+- **本体が実際により広い型を返す。** `Array#each`は`self`を返し、ブロックの戻り値型を返しません。`Object#tap`は`self`を返します。第1句は本体が一度も生成しない、より厳密な戻り値を宣伝することを許可しません。
+- **ユーザーがRBSシグネチャを提供した。** 手書きまたはrbs-inlineで提供された戻り値型が拘束します; 第1句はRigorがシグネチャを著作するときのみ動作します。
 
-## Lenient parameters: clause 2
+## 寛容なパラメーター: 第2句
 
-Parameter authorship reaches for the widest correctness-preserving carrier. In order of decreasing leniency:
+パラメーターの著作は最も広い正確性を保持するキャリアに手を伸ばします。寛容度の高い順:
 
-| Carrier | When to prefer | Example |
+| キャリア | 優先するとき | 例 |
 | --- | --- | --- |
-| Capability role (`_ReadableStream`, `_ToS`, …) | The body uses only the methods the role lists | `def write(stream) = stream.write(...)` → `_Writable` |
-| Structural interface (RBS `interface _Foo`) | The body uses a small fixed surface | `def each(enum)` → `_Each[T]` |
-| `Union[T1, T2]` | The body handles each case explicitly | `def render(content) = content.nil? ? "" : content.to_s` → `String | nil` |
-| `Nominal[Superclass]` | The body uses only superclass methods | `def add(numeric)` → `Numeric`, not `Integer` |
-| `Nominal[ExactClass]` | The body genuinely requires this class | `def freeze_string(s)` → `String` only |
+| ケイパビリティロール（`_ReadableStream`、`_ToS` …） | 本体がロールに挙げられたメソッドのみを使う | `def write(stream) = stream.write(...)` → `_Writable` |
+| 構造的インターフェース（RBS `interface _Foo`） | 本体が小さな固定サーフェスを使う | `def each(enum)` → `_Each[T]` |
+| `Union[T1, T2]` | 本体が各ケースを明示的に処理する | `def render(content) = content.nil? ? "" : content.to_s` → `String | nil` |
+| `Nominal[Superclass]` | 本体がスーパークラスのメソッドのみを使う | `def add(numeric)` → `Numeric`、`Integer`ではない |
+| `Nominal[ExactClass]` | 本体が本当にこのクラスを必要とする | `def freeze_string(s)` → `String`のみ |
 
-A clause-2 candidate MUST NOT be adopted if it would let a value reach the body that the body cannot correctly handle. The principle is "as permissive as the body permits", not "as permissive as imaginable".
+第2句の候補は、本体が正しく処理できない値が本体に到達することを許す場合には採用してはなりません（MUST NOT）。原則は「本体が許す限り寛容」であり、「想像できる限り寛容」ではありません。
 
-### Concrete patterns
+### 具体的なパターン
 
-- **Capability roles over nominal classes.** When a method uses only `:write` on its argument, the parameter type SHOULD be `_Writable` (a structural role) rather than `IO`. This frees `StringIO`, `Tempfile`, custom mock objects, and any future class to satisfy the contract.
-- **Structural interfaces via `RBS::Extended`.** When a method's argument needs to expose a small set of methods, an `interface _Foo` declaration in RBS plus a `%a{rigor:v1:conforms-to: _Foo}` annotation on the parameter is preferred over enumerating concrete classes in a union.
-- **Nilable parameter when the body checks.** When the body has a `return if x.nil?` guard or equivalent narrowing, the parameter SHOULD be `T | nil` rather than `T`. The narrowing tier recovers the precise non-nil type inside the body.
-- **Numeric supertypes.** A method that uses only `+`, `-`, `*`, `<=>` on its arguments SHOULD parameter-type as `Numeric` rather than `Integer`, even if the test suite happens to pass only integers.
+- **公称クラスよりもケイパビリティロール。** メソッドが引数に対して`:write`のみを使う場合、パラメーター型は`IO`ではなく`_Writable`（構造的ロール）であるべきです（SHOULD）。これにより`StringIO`、`Tempfile`、カスタムモックオブジェクト、および将来のすべてのクラスがコントラクトを満たせるようになります。
+- **`RBS::Extended`による構造的インターフェース。** メソッドの引数が少数のメソッドセットを公開する必要がある場合、RBSの`interface _Foo`宣言にパラメーターへの`%a{rigor:v1:conforms-to: _Foo}`アノテーションを加えることが、具体的なクラスのユニオンを列挙するよりも好まれます。
+- **本体がチェックするときのnilableパラメーター。** 本体に`return if x.nil?`ガードまたは同等のナローイングがある場合、パラメーターは`T`ではなく`T | nil`であるべきです（SHOULD）。ナローイング層は本体内で精密な非nil型を回復します。
+- **数値スーパータイプ。** 引数に対して`+`、`-`、`*`、`<=>`のみを使うメソッドは、テストスイートがたまたま整数のみを渡す場合でも`Integer`ではなく`Numeric`でパラメーター型付けすべきです（SHOULD）。
 
-### The workaround-multiplication anti-pattern
+### 回避策の増殖アンチパターン
 
-If a method's parameter is over-strict, callers paste workarounds at every call site:
+メソッドのパラメーターが過度に厳格な場合、呼び出し元はすべての呼び出し元で回避策を貼り付けます:
 
 ```ruby
-# Over-strict: render expects String only
+# 過度に厳格: renderがStringのみを期待する
 render(content || "")
 render(other.to_s)
 render(nullable_field.to_s)
 ```
 
-The workarounds become load-bearing — replacing them later is hard because they hide their intent. Clause 2 prevents this by *erring toward leniency at design time*. The cost of a slightly wider parameter type at the method boundary is far smaller than the cost of compounding workarounds across the codebase.
+回避策は荷重を担うようになります — 後で置き換えることが難しくなるのは意図を隠すからです。第2句はデザイン時に寛容性に傾けることでこれを防ぎます。メソッド境界でわずかに広いパラメーター型のコストは、コードベース全体に渡る回避策の複合コストよりもはるかに小さいです。
 
-### When clause 2 yields
+### 第2句が譲歩するとき
 
-- **The body cannot handle the wider type.** A method that calls `arg.bit_length` cannot accept `Numeric` because `Float#bit_length` does not exist. The parameter MUST stay `Integer`.
-- **The wider type would mask programmer errors.** Accepting `Object` because the body uses only `to_s` would let `nil.to_s` reach the body silently; if the contract is "non-nil string-ish", `_ToS` (a role that excludes nil) is the right widening, not `Object`.
-- **The parameter is on a public boundary the user has documented as nominal.** When the user's RBS signature binds the parameter to a specific class, the principle does not override.
+- **本体がより広い型を処理できない。** `arg.bit_length`を呼ぶメソッドは`Numeric`を受け入れられません。なぜなら`Float#bit_length`は存在しないからです。パラメーターは`Integer`のままでなければなりません（MUST）。
+- **より広い型がプログラマーエラーをマスクする。** 本体が`to_s`のみを使うために`Object`を受け入れることは、`nil.to_s`が本体に静かに到達することを許してしまいます; コントラクトが「非nilの文字列的な」ものなら、`_ToS`（nilを除外するロール）が`Object`ではなく正しい広げ方です。
+- **パラメーターがユーザーが公称として文書化した公開境界にある。** ユーザーのRBSシグネチャがパラメーターを特定のクラスに拘束している場合、原則はオーバーライドしません。
 
-## Interaction with other rules
+## 他のルールとの相互作用
 
-- **RBS round-trip ([ADR-1](../../adr/1-types/))**: RBS → Rigor remains lossless. Rigor → RBS remains conservatively erasing. The principle directs Rigor's authorship choices but does not change the boundary contract.
-- **Subtyping vs. gradual consistency ([relations-and-certainty.md](../relations-and-certainty/))**: clause 2 widening is a subtyping move (a more permissive parameter is a supertype of a stricter one); it does NOT collapse `Dynamic[T]` into `top`.
-- **Trinary certainty ([relations-and-certainty.md](../relations-and-certainty/))**: a clause-1 strict return type can still produce `maybe` answers when the precision is exactly at the boundary. The principle does not force `yes`/`no` answers where `maybe` is correct.
-- **Narrowing ([control-flow-analysis.md](../control-flow-analysis/))**: clause 2 widening pairs deliberately with the narrowing tier. A wider parameter feeds a narrowing-recovered precise body — these two are designed together, not separately.
-- **Erasure ([rbs-erasure.md](../rbs-erasure/))**: a strict return MAY erase to a wider RBS form on export. Clause 1 produces a strict carrier *internally*; erasure presents whatever the export rule requires. The user's view through `rigor type-of` shows the strict form.
-- **Inference budgets ([inference-budgets.md](../inference-budgets/))**: clause 1 is bounded by the same budgets as the rest of the engine. A strict return that would require unbounded computation MUST yield to the budget; the principle does not authorise unbounded inference.
+- **RBSラウンドトリップ（[ADR-1](../../adr/1-types/)）**: RBS → Rigorは無損失のままです。Rigor → RBSは保守的な消去のままです。原則はRigorの著作の選択を指示しますが、境界コントラクトを変更しません。
+- **サブタイピング対グラデュアル一貫性（[relations-and-certainty.md](../relations-and-certainty/)）**: 第2句の広げ方はサブタイピングの動き（より寛容なパラメーターはより厳格なものの上位型）です; `Dynamic[T]`を`top`に折り畳みません。
+- **3値の確実性（[relations-and-certainty.md](../relations-and-certainty/)）**: 第1句の厳密な戻り値型は、精度がちょうど境界にある場合でも`maybe`の答えを生成できます。原則は`maybe`が正しい場所で`yes`/`no`の答えを強制しません。
+- **ナローイング（[control-flow-analysis.md](../control-flow-analysis/)）**: 第2句の広げ方はナローイング層と意図的にペアになります。広いパラメーターはナローイングで回復された精密な本体を供給します — これら2つは別々ではなく一緒に設計されています。
+- **消去（[rbs-erasure.md](../rbs-erasure/)）**: 厳密な戻り値はエクスポート時により広いRBS形式に消去される場合があります（MAY）。第1句は*内部的に*厳密なキャリアを生成します; 消去はエクスポートルールが要求するものを提示します。`rigor type-of`によるユーザーのビューは厳密な形式を示します。
+- **推論バジェット（[inference-budgets.md](../inference-budgets/)）**: 第1句はエンジンの残りと同じバジェットで制限されます。無限計算を必要とする厳密な戻り値はバジェットに譲歩しなければなりません（MUST）; 原則は無制限の推論を認可しません。
 
-## Specification-level summary
+## 仕様レベルのまとめ
 
-| Position | Direction | Choose carrier with |
+| 位置 | 方向 | キャリアを選ぶ |
 | --- | --- | --- |
-| Return | Tighter (clause 1) | Smallest correctness-preserving value set |
-| Parameter | Wider (clause 2) | Largest correctness-preserving value set |
+| 戻り値 | より厳密（第1句） | 最小の正確性を保持する値セット |
+| パラメーター | より広い（第2句） | 最大の正確性を保持する値セット |
 
-When the choice is ambiguous, the analyzer SHOULD log the candidates so the catalog author or rule author can curate. When the choice would compromise correctness, the analyzer MUST yield to the safe (less precise / less permissive) option.
+選択が曖昧な場合、解析器は候補を記録してカタログ著者またはルール著者がキュレーションできるようにすべきです（SHOULD）。選択が正確性を損なう場合、解析器は安全な（精度が低い / 寛容度が低い）オプションに譲歩しなければなりません（MUST）。

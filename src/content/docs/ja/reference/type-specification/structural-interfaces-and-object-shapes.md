@@ -1,45 +1,42 @@
 ---
-title: "Structural Interfaces and Object Shapes"
-description: "Imported from rigortype/rigor docs/type-specification/structural-interfaces-and-object-shapes.md."
+title: "構造的インターフェースとオブジェクトシェイプ"
+description: "rigortype/rigor docs/type-specification/structural-interfaces-and-object-shapes.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/type-specification/structural-interfaces-and-object-shapes.md"
 sourcePath: "docs/type-specification/structural-interfaces-and-object-shapes.md"
 sourceSha: "8536d688c6d0bcfc93ad781cfe5209d656ea9c97d1966425afc618fd1c5b2a37"
 sourceCommit: "9f40e22193647dc06e3ab70c5ba82768b0bfe738"
-translationStatus: "pending"
+translationStatus: "translated"
 sidebar:
   order: 2050
 ---
 
-> [!NOTE]
-> このページはまだ翻訳されていません。英語版の本文を参考表示しています。
+RigorはRBSインターフェース、内部オブジェクトシェイプ、整理されたケイパビリティロールカタログを通じてRubyのダックタイピングをモデル化します。クラスとモジュール名は公称のままです; 構造的型付けは特定の境界でのみ適用されます。
 
-Rigor models Ruby duck typing through RBS interfaces, internal object shapes, and a curated catalog of capability roles. Class and module names remain nominal; structural typing applies only at specific boundaries.
+`_Closable`のようなRBSインターフェース型は**名前付き構造的コントラクト**です。**内部オブジェクトシェイプ**はローカル定義、シングルトンメソッド、モジュールメンバー、インクルードされたモジュール、プラグインファクト、または制御フローガードから推論される匿名の構造的型です。公称型またはオブジェクトシェイプは、Rigorが互換性のある型を持つすべての必要なメンバーを提供することを証明できる場合、インターフェースに代入可能です。
 
-An RBS interface type, such as `_Closable`, is a **named structural contract**. An **internal object shape** is an anonymous structural type inferred from local definitions, singleton methods, module members, included modules, plugin facts, or control-flow guards. A nominal type or object shape is assignable to an interface when Rigor can prove that it provides all required members with compatible types.
+この文書は以下を定義します:
 
-This document defines:
+- 構造的型付けが適用される境界;
+- 代入可能性とメンバー互換性のルール;
+- 可視性、リーダー/ライターケイパビリティ、`respond_to?`セマンティクス;
+- オブジェクトシェイプエントリと`MethodEntry`レコードのスキーマ;
+- ケイパビリティロールカタログとロール推論を制限する規律;
+- 診断対ヒントのエスカレーションルール。
 
-- the boundary at which structural typing applies;
-- assignability and member-compatibility rules;
-- visibility, reader/writer capability, and `respond_to?` semantics;
-- the schema for object-shape entries and `MethodEntry` records;
-- the capability-role catalog and the discipline that bounds role inference;
-- the diagnostic-versus-hint escalation rule.
+プラグイン提供ファクトと`RBS::Extended`アノテーションの具体的なルールは[rbs-extended.md](../rbs-extended/)にあります。
 
-The specific rules for plugin-supplied facts and `RBS::Extended` annotations are in [rbs-extended.md](../rbs-extended/).
+## 構造的型付けが適用される場所
 
-## Where structural typing applies
+RigorはTypeScriptスタイルで通常のクラス間互換性をデフォルトで構造的にしてはなりません（MUST NOT）。クラスとモジュール名は公称のままです。なぜならRBSはそれらの名前をRuby定数に関する宣言として使い、`is_a?`や`kind_of?`のようなRubyランタイムチェックがクラス/モジュール関係に依存するからです。
 
-Rigor MUST NOT make ordinary class-to-class compatibility TypeScript-style structural by default. Class and module names remain nominal because RBS uses those names as declarations about Ruby constants and because Ruby runtime checks such as `is_a?` and `kind_of?` depend on class/module relationships.
+構造的型付けはこれらの境界で適用されます:
 
-Structural typing applies at these boundaries:
+- RBSインターフェースが期待される場所に値を代入またはパスする場合;
+- 推論されたオブジェクトシェイプがインターフェースを満たすかチェックする場合;
+- 既知のシェイプに対して直接のメソッド送信をチェックする場合;
+- プラグイン提供の動的リフレクションを使ってシェイプまたは公称型にメンバーを追加する場合。
 
-- assigning or passing a value where an RBS interface is expected;
-- checking whether an inferred object shape satisfies an interface;
-- checking a direct method send against a known shape;
-- using plugin-provided dynamic reflection to add members to a shape or nominal type.
-
-This gives Rigor a pseudo-protocol model without adding new surface syntax:
+これにより新しい表面構文を追加せずに擬似プロトコルモデルがRigorに与えられます:
 
 ```ruby
 interface _Closable
@@ -57,134 +54,134 @@ end
 def close_all(items)
   items.each(&:close)
 end
-# If Rigor knows `items` is `Array[_Closable]`, `Resource` can satisfy `_Closable`
-# structurally. No Ruby inheritance or runtime marker is required.
+# Rigorが`items`が`Array[_Closable]`であることを知っている場合、`Resource`は
+# 構造的に`_Closable`を満たせます。RubyのInheritanceやRuntimeマーカーは不要です。
 ```
 
-## Assignability rules
+## 代入可能性のルール
 
-- A concrete nominal type is assignable to an interface when its instance method shape satisfies every interface member.
-- An object shape is assignable to an interface when the shape contains every required member with an assignable signature.
-- One interface is assignable to another when the source interface provides all members required by the target interface.
-- Interface unions behave like ordinary unions.
-- Interface intersections require all members from all intersected interfaces.
-- Callable object shapes MAY satisfy proc-like or interface-like call contracts through a known `call` method when the signature is compatible.
-- Singleton class and module object shapes MAY satisfy interfaces through singleton methods and module-level members. This SHOULD be implemented after instance-side structural checks.
+- 具体的な公称型は、そのインスタンスメソッドシェイプがすべてのインターフェースメンバーを満たす場合、インターフェースに代入可能です。
+- オブジェクトシェイプは、シェイプが代入可能なシグネチャを持つすべての必要なメンバーを含む場合、インターフェースに代入可能です。
+- 一つのインターフェースは、ソースインターフェースがターゲットインターフェースが必要とするすべてのメンバーを提供する場合、別のインターフェースに代入可能です。
+- インターフェースユニオンは通常のユニオンのように振る舞います。
+- インターフェース積集合はすべての積集合インターフェースからすべてのメンバーを必要とします。
+- 呼び出し可能なオブジェクトシェイプは、シグネチャが互換性がある場合、既知の`call`メソッドを通じてprocまたはインターフェース的な呼び出しコントラクトを満たす場合があります（MAY）。
+- シングルトンクラスとモジュールオブジェクトシェイプは、シングルトンメソッドとモジュールレベルのメンバーを通じてインターフェースを満たす場合があります（MAY）。これはインスタンス側の構造的チェックの後に実装すべきです（SHOULD）。
 
-Member compatibility follows method-type compatibility, not just name existence. Rigor MUST compare visibility, arity, positional parameters, keyword parameters, blocks, overloads, return types, and receiver constraints through the ordinary method-assignability rules once those exist.
+メンバー互換性は名前の存在だけでなく、メソッド型互換性に従います。Rigorはそれらのメソッド代入可能性ルールが存在するようになったら、通常のメソッド代入可能性ルールを通じて可視性、アリティ、位置パラメーター、キーワードパラメーター、ブロック、オーバーロード、リターン型、レシーバー制約を比較しなければなりません（MUST）。
 
-## Reader and writer capabilities
+## リーダーとライターのケイパビリティ
 
-Reader and writer capabilities are method capabilities, not field declarations. `attr_reader`, `attr_writer`, and `attr_accessor` are sources of method facts; Rigor models the resulting `x` and `x=` methods as separate entries on the shape.
+リーダーとライターのケイパビリティはフィールド宣言ではなくメソッドケイパビリティです。`attr_reader`、`attr_writer`、`attr_accessor`はメソッドファクトのソースです; Rigorは結果として得られる`x`と`x=`メソッドをシェイプ上の別々のエントリとしてモデル化します。
 
-- A read-only member is represented by a reader method and is **covariant** in its return type.
-- A write-only member is represented by a writer method and is **contravariant** in its accepted value type.
-- A read-write member, such as an `attr_accessor` pair, combines reader and writer requirements and is effectively **invariant** in the value type.
+- 読み取り専用メンバーはリーダーメソッドで表され、その戻り値型において**共変**です。
+- 書き込み専用メンバーはライターメソッドで表され、受け付ける値型において**反変**です。
+- `attr_accessor`ペアのような読み取り-書き込みメンバーはリーダーとライターの両方の要件を組み合わせ、値型において実質的に**不変**です。
 
-Accessor syntax is one source of these method facts:
+アクセサー構文はこれらのメソッドファクトの一つのソースです:
 
-- `attr_reader :x` contributes a public reader method `x` unless surrounding Ruby visibility state changes it.
-- `attr_writer :x` contributes a writer method `x=` and does not imply a reader.
-- `attr_accessor :x` contributes both methods, but Rigor MUST still model them as two method entries.
-- A manually defined or overridden `x` or `x=` method replaces or refines the method fact according to ordinary Ruby method lookup and source order.
+- `attr_reader :x`は周囲のRuby可視性状態が変更しない限り公開リーダーメソッド`x`を貢献します。
+- `attr_writer :x`はライターメソッド`x=`を貢献し、リーダーを意味しません。
+- `attr_accessor :x`は両メソッドを貢献しますが、Rigorはそれらを2つのメソッドエントリとしてモデル化しなければなりません（MUST）。
+- 手動で定義またはオーバーライドされた`x`または`x=`メソッドは、通常のRubyメソッドルックアップとソース順序に従ってメソッドファクトを置換または絞り込みます。
 
-Reader and writer capability does **not** imply purity. A reader MAY mutate state, and a writer MAY return any Ruby value unless a signature or implementation proves otherwise.
+リーダーとライターのケイパビリティは純粋性を**意味しません**。リーダーは状態をミューテートする場合があり（MAY）、ライターはシグネチャまたは実装が別に証明しない限り任意のRuby値を返す場合があります（MAY）。
 
-## Visibility
+## 可視性
 
-Visibility is a first-class facet of every method-shape entry. Rigor MUST track at least `public`, `protected`, and `private`, plus the call context in which a member can be used:
+可視性はすべてのメソッドシェイプエントリのファーストクラスのファセットです。Rigorは少なくとも`public`、`protected`、`private`と、メンバーが使える呼び出しコンテキストを追跡しなければなりません（MUST）:
 
-- External explicit-receiver sends require a public method.
-- Private methods MAY be called only in private-call contexts, not as ordinary explicit-receiver sends.
-- Protected methods follow Ruby's protected-receiver restriction and MUST NOT satisfy public structural interface requirements by default.
-- Public structural interfaces require public members unless the interface or internal check explicitly asks for another visibility.
+- 外部の明示的レシーバー送信は公開メソッドを必要とします。
+- プライベートメソッドはプライベート呼び出しコンテキストでのみ呼び出せます（MAY）。通常の明示的レシーバー送信としてではありません。
+- プロテクテッドメソッドはRubyのprotectedレシーバー制限に従い、デフォルトでは公開構造的インターフェース要件を満たしてはなりません（MUST NOT）。
+- 公開構造的インターフェースは、インターフェースまたは内部チェックが明示的に別の可視性を求めない限り、公開メンバーを必要とします。
 
-## `respond_to?` and method-missing facts
+## `respond_to?`とmethod_missingファクト
 
-`respond_to?` checks MAY refine an object to an existence-only shape, for example "has public method `close`". That fact is useful for diagnostics and guarded sends, but it does not prove full signature compatibility with an interface unless Rigor also knows the method type.
+`respond_to?`チェックはオブジェクトを存在のみのシェイプ（例: 「公開メソッド`close`を持つ」）に絞り込む場合があります（MAY）。そのファクトは診断とガードされた送信に有用ですが、Rigorがメソッド型も知らない限り、インターフェースとの完全なシグネチャ互換性を証明しません。
 
-The optional `include_private` argument MUST affect the visibility fact:
+オプションの`include_private`引数は可視性ファクトに影響しなければなりません（MUST）:
 
-- `obj.respond_to?(:foo)` records a public existence fact for `foo` on the true branch.
-- `obj.respond_to?(:foo, false)` is the same as the default when the second argument is statically false.
-- `obj.respond_to?(:foo, true)` records an existence fact whose visibility may be public, protected, or private. By itself it does not prove that `obj.foo` is legal as an external explicit-receiver call.
-- If the second argument is not statically known, Rigor MUST record a weaker maybe-private visibility fact.
+- `obj.respond_to?(:foo)`は真ブランチで`foo`の公開存在ファクトを記録します。
+- `obj.respond_to?(:foo, false)`は第2引数が静的にfalseの場合、デフォルトと同じです。
+- `obj.respond_to?(:foo, true)`は可視性がpublic、protected、またはprivateである存在ファクトを記録します。それ自体では`obj.foo`が外部の明示的レシーバー呼び出しとして合法であることを証明しません。
+- 第2引数が静的に既知でない場合、Rigorはより弱いmaybe-private可視性ファクトを記録しなければなりません（MUST）。
 
-If the method exists only through `respond_to_missing?` or `method_missing`, the fact MUST be recorded with dynamic provenance and an unknown or plugin-provided signature so diagnostics can explain why the call was accepted.
+メソッドが`respond_to_missing?`または`method_missing`を通じてのみ存在する場合、ファクトは動的provenanceと未知またはプラグイン提供のシグネチャで記録されなければならず（MUST）、診断が呼び出しが受け付けられた理由を説明できるようにします。
 
-## Object-shape entry schema
+## オブジェクトシェイプエントリスキーマ
 
-Object-shape entries MUST carry enough metadata to avoid confusing Ruby's dynamic surface with a static protocol proof:
+オブジェクトシェイプエントリはRubyの動的サーフェスを静的プロトコル証明と混同しないように十分なメタデータを持たなければなりません（MUST）:
 
-- **member kind**, such as method, reader, writer, constant, or index operation;
-- **call signature** or readable/writable value type;
-- **visibility** and valid call context;
-- **source and provenance**, such as source definition, RBS, plugin, `respond_to?`, or `method_missing`;
-- **stability and mutation** information;
-- **certainty**, such as `yes`, `maybe`, or `no` (see [relations-and-certainty.md](../relations-and-certainty/)).
+- **メンバーの種類**（メソッド、リーダー、ライター、定数、インデックス操作など）;
+- **呼び出しシグネチャ**または読み取り/書き込み可能な値型;
+- **可視性**と有効な呼び出しコンテキスト;
+- ソース定義、RBS、プラグイン、`respond_to?`、`method_missing`のような**ソースとprovenance**;
+- **安定性とミューテーション**情報;
+- `yes`、`maybe`、`no`のような**確実性**（[relations-and-certainty.md](../relations-and-certainty/)参照）。
 
-## Method entries (`MethodEntry`)
+## メソッドエントリ（`MethodEntry`）
 
-The first implementation pairs one method-shape entry with one resolved Ruby method body:
+最初の実装では1つのメソッドシェイプエントリを1つのresolvedされたRubyメソッド本体とペアにします:
 
-- A `MethodEntry` is one record per `(class-or-module, method name)` and corresponds to the runtime-resolved method body for that name on that class or module. Ruby has no per-signature overloading at runtime, so multiple `def foo` definitions in the same class collapse to a single entry.
-- Visibility is stored at the entry level. `private :foo` and similar visibility toggles act on the whole method, not on a particular signature variant.
-- Signature variants from RBS overloads, `RBS::Extended` payloads, or plugin contributions are stored as a list of branches inside the entry. Branches share the entry's visibility but MAY carry different argument shapes, return types, predicate effects, and mutation effects.
-- Conditional `def`, conditional `private`, and other dynamically constructed method definitions are out of scope for the first implementation. They surface as ordinary diagnostics or dynamic-origin facts.
+- `MethodEntry`は`(クラスまたはモジュール, メソッド名)`ごとの1レコードであり、そのクラスまたはモジュールでその名前のランタイム解決されたメソッド本体に対応します。Rubyはランタイムでシグネチャごとのオーバーロードを持たないため、同じクラスの複数の`def foo`定義は単一のエントリに折り畳まれます。
+- 可視性はエントリレベルで格納されます。`private :foo`および同様の可視性切り替えはメソッド全体に作用し、特定のシグネチャバリアントには作用しません。
+- RBSオーバーロード、`RBS::Extended`ペイロード、プラグイン貢献からのシグネチャバリアントはエントリ内のブランチリストとして格納されます。ブランチはエントリの可視性を共有しますが、異なる引数シェイプ、リターン型、述語効果、ミューテーション効果を持つ場合があります（MAY）。
+- 条件付き`def`、条件付き`private`、およびその他の動的に構築されたメソッド定義は最初の実装のスコープ外です。それらは通常の診断または動的由来ファクトとして浮上します。
 
-Open classes, reopens, and monkey patches contribute to the same entry rather than producing parallel ones:
+オープンクラス、再オープン、モンキーパッチは並行するものを生成するのではなく、同じエントリに貢献します:
 
-- Each `def foo` across files contributes a candidate definition. The default merge policy follows Ruby's runtime resolution: the candidate that Ruby would actually dispatch wins. Among ordinary same-class redefinitions this is source order with a last-definition-wins resolution; among ancestor chains this is the lookup order Ruby uses for `prepend` over the class over `include`d modules over the superclass chain.
-- Strict mode raises a diagnostic when a re-definition changes RBS-visible signature or visibility without an explicit override marker (working name `rigor:v1:override=replace`; see [rbs-extended.md](../rbs-extended/)). Until that marker exists, strict mode reports the suspected silent monkey patch.
-- Module includes and refinements are not flattened into the host class's entry. They remain on their owning module and participate in lookup through the ancestor chain.
+- ファイルをまたぐ各`def foo`は候補定義を貢献します。デフォルトのマージポリシーはRubyのランタイム解決に従います: RubyがDispatishする候補が勝ちます。通常の同クラス再定義の中では、これはソース順序と最後定義優先の解決です; 祖先チェーンの中では、これはRubyが`prepend`からクラスから`include`されたモジュールから親クラスチェーンへのルックアップ順序を使います。
+- Strictモードでは、明示的なオーバーライドマーカーなしにRBS可視シグネチャまたは可視性を変更する再定義で診断を発生させます（仮称`rigor:v1:override=replace`; [rbs-extended.md](../rbs-extended/)参照）。そのマーカーが存在するまで、strictモードは疑わしいサイレントモンキーパッチを報告します。
+- モジュールインクルードとリファインメントはホストクラスのエントリにフラット化されません。それらは所有するモジュールに残り、祖先チェーンを通じたルックアップに参加します。
 
-## Capability roles
+## ケイパビリティロール
 
-Rigor models common Ruby "IO-like" relationships as capability roles, not as global class equivalence.
+Rigorはグローバルクラス等価ではなく、ケイパビリティロールとして一般的なRubyの「IO的」関係をモデル化します。
 
-`IO` and `StringIO` are the motivating example. A `StringIO` is often a good test double for an `IO` object when the code only reads, writes, rewinds, or closes a stream. It is not a subclass of `IO` and does not have the same complete method set. Treating `StringIO` as a subtype of `IO` would erase real runtime differences. Requiring every implementation to write `IO | StringIO` would also miss the point of Ruby duck typing.
+`IO`と`StringIO`は動機となる例です。コードがストリームの読み取り、書き込み、巻き戻し、クローズのみを行う場合、`StringIO`はしばしば`IO`オブジェクトの良いテストダブルです。それは`IO`のサブクラスではなく、同じ完全なメソッドセットを持ちません。`StringIO`を`IO`のサブタイプとして扱うと実際のランタイムの違いが消去されてしまいます。すべての実装に`IO | StringIO`と書くことを要求するのもRubyダックタイピングのポイントを外しています。
 
-The model is:
+モデルは以下の通りです:
 
-- `IO` remains a nominal type for APIs that require an actual `IO` object or file-descriptor-backed behavior.
-- `StringIO` remains a separate nominal type.
-- Both classes MAY satisfy smaller structural interfaces such as readable, writable, seekable, flushable, or closable stream roles.
-- A method that only calls stream capability methods SHOULD be inferred as requiring the corresponding object shape or named interface, not the whole nominal `IO` type.
-- A method that calls `IO`-specific members such as file-descriptor operations SHOULD require `IO` or a more specific file-descriptor-backed role.
+- `IO`は実際の`IO`オブジェクトまたはファイルディスクリプタバックド挙動を必要とするAPIの公称型のままです。
+- `StringIO`は別個の公称型のままです。
+- 両クラスは読み取り可能、書き込み可能、シーク可能、フラッシュ可能、またはクローズ可能なストリームロールのような、より小さな構造的インターフェースを満たす場合があります（MAY）。
+- ストリームケイパビリティメソッドのみを呼び出すメソッドは、公称`IO`型全体ではなく、対応するオブジェクトシェイプまたは名前付きインターフェースを必要とすると推論すべきです（SHOULD）。
+- ファイルディスクリプタ操作のような`IO`固有のメンバーを呼び出すメソッドは`IO`またはより具体的なファイルディスクリプタバックドロールを必要とすべきです（SHOULD）。
 
-### Core role catalog
+### コアロールカタログ
 
-Rigor MUST ship an opinionated core catalog of common standard-library capability roles. The catalog reuses existing RBS-defined interfaces wherever Ruby and the standard library already provide them, and adds a small set of Rigor-specific roles only where existing interfaces are missing or would conflate distinct capabilities.
+Rigorは一般的なスタンダードライブラリのケイパビリティロールの意見を持つコアカタログを提供しなければなりません（MUST）。カタログはRubyとスタンダードライブラリがすでに提供している場所で既存のRBS定義インターフェースを再使用し、既存のインターフェースが欠けているか明確に異なるケイパビリティを混同する場所でのみ少数のRigor固有ロールを追加します。
 
-Reused RBS interfaces (matched by their existing RBS shape, not redefined by Rigor):
+再使用されたRBSインターフェース（Rigorによって再定義されるのではなく、既存のRBSシェイプによってマッチされます）:
 
-| Interface | Use |
+| インターフェース | 使用 |
 |---|---|
-| `_Each[T]` | Enumerable iteration over `T` |
-| `_Reader` | Stream-like read access |
-| `_Writer` | Stream-like write access |
-| `_ToS` | Implicit string conversion through `to_s` |
-| `_ToStr` | Explicit string coercion through `to_str` |
-| `_ToInt` | Explicit integer coercion through `to_int` |
-| `_ToProc` | Block conversion through `to_proc` |
-| `_ToHash[K, V]` | Hash coercion through `to_hash` |
-| `_ToA[T]` | Array conversion through `to_a` |
-| `_ToAry[T]` | Strict array coercion through `to_ary` |
-| `Enumerable[T]` | Broad collection protocol, treated as a nominal interface for role matching |
-| `Comparable` | Ordering protocol, treated as a nominal interface for role matching |
+| `_Each[T]` | `T`に対するEnumerable反復 |
+| `_Reader` | ストリーム的な読み取りアクセス |
+| `_Writer` | ストリーム的な書き込みアクセス |
+| `_ToS` | `to_s`を通じた暗黙の文字列変換 |
+| `_ToStr` | `to_str`を通じた明示的な文字列強制変換 |
+| `_ToInt` | `to_int`を通じた明示的な整数強制変換 |
+| `_ToProc` | `to_proc`を通じたブロック変換 |
+| `_ToHash[K, V]` | `to_hash`を通じたHash強制変換 |
+| `_ToA[T]` | `to_a`を通じたArray変換 |
+| `_ToAry[T]` | `to_ary`を通じた厳密なArray強制変換 |
+| `Enumerable[T]` | 広範なコレクションプロトコル、ロールマッチングの公称インターフェースとして扱われます |
+| `Comparable` | 順序付けプロトコル、ロールマッチングの公称インターフェースとして扱われます |
 
-Rigor-specific roles added in the first milestone, each shipped with an explicit RBS interface in Rigor's bundled signatures:
+最初のマイルストーンで追加されたRigor固有ロール（それぞれRigorのバンドルされたシグネチャに明示的なRBSインターフェースを持ちます）:
 
-| Role | Purpose | Required members |
+| ロール | 目的 | 必要なメンバー |
 |---|---|---|
-| `_RewindableStream` | Stream-like objects that can be replayed from the start | `read`, `rewind` |
-| `_ClosableStream` | Stream-like objects whose lifetime can be closed | `close`, `closed?` |
-| `_FileDescriptorBacked` | Real OS-backed streams that justify diagnostics requiring an actual `IO` | `fileno` |
-| `_Callable[**A, R]` | Anything that responds to `call`, distinct from `_ToProc` | `call(*A) -> R` |
+| `_RewindableStream` | 先頭から再生できるストリーム的オブジェクト | `read`、`rewind` |
+| `_ClosableStream` | ライフタイムをクローズできるストリーム的オブジェクト | `close`、`closed?` |
+| `_FileDescriptorBacked` | 実際の`IO`を必要とする診断を正当化する実OSバックドストリーム | `fileno` |
+| `_Callable[**A, R]` | `call`に応答するもの（`_ToProc`とは別） | `call(*A) -> R` |
 
-Plugins MAY add framework roles, additional conformance facts, role-specific exclusions, and `maybe` conformance, but they MUST NOT silently replace either the reused RBS interfaces or the Rigor-specific roles in this catalog.
+プラグインはフレームワークロール、追加の適合ファクト、ロール固有の除外、`maybe`適合を追加する場合がありますが（MAY）、このカタログの再使用されたRBSインターフェースまたはRigor固有のロールのいずれかをサイレントに置換してはなりません（MUST NOT）。
 
-The role names and method signatures below are illustrative, not final standard-library signatures:
+以下のロール名とメソッドシグネチャは説明的なものであり、最終的なスタンダードライブラリシグネチャではありません:
 
 ```ruby
 interface _Reader
@@ -202,64 +199,64 @@ def slurp(stream)
   stream.rewind
   stream.read
 end
-# Inferred requirement: _RewindableStream
-# `IO` and `StringIO` can both satisfy that requirement if their signatures match.
+# 推論された要件: _RewindableStream
+# `IO`と`StringIO`はシグネチャが一致すれば両方ともその要件を満たせます。
 ```
 
-This avoids comparing total method sets. Structural subtyping asks whether a value provides the target role's required members; it does not require the source object and target object to expose the same complete surface.
+これにより完全なメソッドセットの比較が避けられます。構造的サブタイピングは値がターゲットロールの必要なメンバーを提供するかを尋ねます; ソースオブジェクトとターゲットオブジェクトが同じ完全なサーフェスを公開することを必要としません。
 
-### Generic preservation
+### ジェネリック保持
 
-When a method returns the same stream object it receives, Rigor SHOULD preserve the concrete input type through generics rather than widening to a role:
+メソッドが受け取ったのと同じストリームオブジェクトを返す場合、Rigorはロールに拡幅するのではなく、ジェネリクスを通じて具体的な入力型を保持すべきです（SHOULD）:
 
 ```ruby
 def reset: [S < _RewindableStream] (S stream) -> S
 ```
 
-Generic preservation is a separate rule from role extraction. If a method returns the same parameter object it received, Rigor SHOULD prefer a type variable such as `[S < _RewindableStream] (S stream) -> S` when the body preserves object identity. It MUST NOT widen the return to `_RewindableStream` merely because the parameter requirement is structural. If the body MAY replace the value, branch between unrelated objects, or return a delegated object, Rigor SHOULD fall back to the ordinary inferred return type.
+ジェネリック保持はロール抽出とは別のルールです。メソッドが受け取ったのと同じパラメーターオブジェクトを返す場合、本体がオブジェクト同一性を保持するとき、Rigorは`[S < _RewindableStream] (S stream) -> S`のような型変数を優先すべきです（SHOULD）。パラメーター要件が構造的であるからといって、リターンを`_RewindableStream`に拡幅してはなりません（MUST NOT）。本体が値を置換したり、無関係なオブジェクト間で分岐したり、委譲されたオブジェクトを返す場合があるなら（MAY）、Rigorは通常の推論されたリターン型にフォールバックすべきです（SHOULD）。
 
-Unions remain useful when the implementation genuinely has class-specific behavior. If the method branches on `IO` versus `StringIO`, calls members unique to each class, or returns class-specific values, then `IO | StringIO` is a faithful type. For ordinary duck-typed stream consumption, capability roles are the preferred model.
+実装が本当にクラス固有の挙動を持つ場合、ユニオンは有用なままです。メソッドが`IO`対`StringIO`で分岐し、各クラス固有のメンバーを呼び出し、クラス固有の値を返す場合、`IO | StringIO`は忠実な型です。通常のダックタイプされたストリーム消費には、ケイパビリティロールが好ましいモデルです。
 
-### Erasure
+### 消去
 
-RBS erasure SHOULD prefer a matching named interface when one exists. Anonymous object shapes that do not match a known interface erase to a conservative nominal base or `top`. The erasure algorithm is in [rbs-erasure.md](../rbs-erasure/).
+RBS消去は一致する名前付きインターフェースが存在する場合はそれを優先すべきです（SHOULD）。既知のインターフェースにマッチしない匿名オブジェクトシェイプは保守的な公称ベースまたは`top`に消去されます。消去アルゴリズムは[rbs-erasure.md](../rbs-erasure/)にあります。
 
-## Capability-role inference discipline
+## ケイパビリティロール推論の規律
 
-Capability-role inference MUST be bounded. Rigor SHOULD infer a per-method requirement summary for each parameter and receiver rather than repeatedly reanalyzing every call site. A summary contains the members the method body actually requires, including method names, visibility, arity, keyword and block requirements, return-use constraints, mutation requirements, and provenance. It is an anonymous object-shape requirement until Rigor proves that a named interface or small intersection of named interfaces is a good representation.
+ケイパビリティロール推論は制限されなければなりません（MUST）。Rigorはすべての呼び出しサイトを繰り返し再解析するのではなく、各パラメーターとレシーバーのメソッドごとの要件サマリーを推論すべきです（SHOULD）。サマリーには、メソッド本体が実際に必要とするメンバー（メソッド名、可視性、アリティ、キーワードとブロック要件、リターン使用制約、ミューテーション要件、provenance）が含まれます。Rigorが名前付きインターフェースまたは名前付きインターフェースの小さな積集合が良い表現であることを証明するまで、匿名のオブジェクトシェイプ要件です。
 
-The first implementation SHOULD keep the inference local and monotone:
+最初の実装はローカルで単調な推論を保持すべきです（SHOULD）:
 
-- Analyze the method body once per relevant method version and cache the requirement summary.
-- Use existing signatures or cached summaries for direct calls; do not recursively inline callees by default.
-- For recursive methods or mutually recursive summaries, start with an unknown or widening placeholder and iterate only to a small fixed-point budget.
-- Treat `send`, `public_send`, unknown `method_missing`, and dynamic delegation as dynamic requirements unless a plugin or signature provides a precise target.
-- Widen large requirement shapes by keeping the member set needed for diagnostics and dropping low-value details such as long overload expansions when they exceed a budget.
+- メソッド本体を関連するメソッドバージョンごとに1回解析し、要件サマリーをキャッシュします。
+- 直接呼び出しには既存のシグネチャまたはキャッシュされたサマリーを使います; デフォルトでは呼び出し先をインラインに再帰しません。
+- 再帰メソッドまたは相互再帰サマリーでは、未知または拡幅プレースホルダーから始め、小さな固定点バジェットまでのみ反復します。
+- `send`、`public_send`、未知の`method_missing`、動的委譲はプラグインまたはシグネチャが正確なターゲットを提供しない限り動的要件として扱います。
+- 診断に必要なメンバーセットを保持し、バジェットを超えるときに長いオーバーロード展開のような低価値な詳細を削除することで、大きな要件シェイプを拡幅します。
 
-### Named-interface matching
+### 名前付きインターフェースマッチング
 
-Named-interface matching SHOULD be indexed, not a scan of every interface. Rigor MAY maintain an index from required member names and visibility to candidate interfaces. A candidate interface is compared only when it shares at least one required member and passes cheap arity or visibility filters. If the candidate set is too large, Rigor SHOULD keep the anonymous shape and avoid a generalization hint instead of performing an expensive global search.
+名前付きインターフェースマッチングはすべてのインターフェースのスキャンではなく、インデックス化すべきです（SHOULD）。Rigorは必要なメンバー名と可視性から候補インターフェースへのインデックスを維持する場合があります（MAY）。候補インターフェースは少なくとも1つの必要なメンバーを共有し、安価なアリティまたは可視性フィルターを通過した場合にのみ比較されます。候補セットが大きすぎる場合、Rigorは高価なグローバル検索を実行するのではなく、匿名シェイプを保持して一般化ヒントを避けるべきです（SHOULD）。
 
-When multiple named interfaces match, selection MUST be deterministic and conservative:
+複数の名前付きインターフェースがマッチする場合、選択は決定論的で保守的でなければなりません（MUST）:
 
-1. Prefer an exact member-signature match.
-2. Prefer a configured standard-library role over an unrelated coincidental interface.
-3. Prefer fewer extra required members.
-4. Then a stable lexical name order.
-5. If several candidates remain meaningfully ambiguous, keep the anonymous shape internally and do not emit a named-interface suggestion.
+1. 正確なメンバーシグネチャマッチを優先します。
+2. 無関係な偶然のインターフェースより設定されたスタンダードライブラリロールを優先します。
+3. 追加の必要なメンバーが少ないものを優先します。
+4. 次に安定したレキシカル名順序。
+5. 複数の候補が意味的に曖昧なままなら、内部的に匿名シェイプを保持し、名前付きインターフェースの提案を発行しません。
 
-Intersections of named roles are useful, but Rigor MUST NOT solve an unbounded set-cover problem to find the mathematically smallest role expression. The first implementation MAY use only exact single-interface matches, explicit standard role bundles, or a small greedy intersection under a strict candidate limit. Otherwise it keeps the anonymous shape.
+名前付きロールの積集合は有用ですが、Rigorは数学的に最小のロール式を見つけるために無制限のセットカバー問題を解いてはなりません（MUST NOT）。最初の実装は厳密な候補制限の下で正確な単一インターフェースマッチ、明示的なスタンダードロールバンドル、または小さなgreedy積集合のみを使う場合があります（MAY）。それ以外は匿名シェイプを保持します。
 
-The candidate limit is `budgets.interface_candidates`; see [inference-budgets.md](../inference-budgets/).
+候補制限は`budgets.interface_candidates`です; [inference-budgets.md](../inference-budgets/)を参照してください。
 
-## Escalation rule
+## エスカレーションルール
 
-Explicit declarations still matter. If an external RBS signature says a parameter is `IO`, Rigor MUST treat that as the public nominal contract. If the implementation and observed call sites only require `_Reader`, Rigor MAY report that the declared type is narrower than the inferred capability requirement and suggest generalizing the signature to a structural interface. It MUST NOT silently rewrite a public `IO` contract into a structural one.
+明示的な宣言はまだ重要です。外部RBSシグネチャがパラメーターを`IO`と言う場合、Rigorはそれを公開公称コントラクトとして扱わなければなりません（MUST）。実装と観測された呼び出しサイトが`_Reader`のみを必要とする場合、Rigorは宣言された型が推論されたケイパビリティ要件より狭いことを報告し、シグネチャを構造的インターフェースに汎化することを提案する場合があります（MAY）。公開`IO`コントラクトを静かに構造的なものに書き直してはなりません（MUST NOT）。
 
-The escalation rule used when the inferred role and the declared type disagree is explicit:
+推論されたロールと宣言された型が一致しない場合に使われるエスカレーションルールは明示的です:
 
-- **Diagnostic.** A call that does not satisfy the declared parameter type is always reported, regardless of how the body is implemented. This level is independent of any configuration.
-- **Hint.** When the body's inferred role is strictly smaller than the declared nominal type and a generalization to a structural interface would still type-check, Rigor MAY emit a `hint.role-generalization.*` diagnostic. Hints are gated by the `style.suggest_role_generalization` configuration switch and default to off so libraries that intentionally chose a nominal contract are not nudged out of it.
-- **Silent.** Otherwise the inference result is retained internally and available to callers, refactor tooling, and the plugin `Scope` API, but no diagnostic is emitted.
+- **診断。** 宣言されたパラメーター型を満たさない呼び出しは常に報告されます。本体がどのように実装されているかに関係なく。このレベルはどの設定とも無関係です。
+- **ヒント。** 本体の推論されたロールが宣言された公称型より厳密に小さく、構造的インターフェースへの汎化がまだ型チェックされる場合、Rigorは`hint.role-generalization.*`診断を発行する場合があります（MAY）。ヒントは`style.suggest_role_generalization`設定スイッチでゲートされ、公称コントラクトを意図的に選んだライブラリがそこから押し出されないようにデフォルトでオフです。
+- **サイレント。** それ以外の場合、推論結果は内部的に保持され、呼び出し元、リファクタリングツール、プラグインの`Scope` APIに利用可能ですが、診断は発行されません。
 
-The three levels are mutually exclusive at any given site. Rigor MUST never both reject a call and offer a hint for the same parameter, and MUST never silently rewrite a public nominal contract into a structural one.
+3つのレベルはどの与えられたサイトでも相互排他的です。Rigorは同じパラメーターで呼び出しを拒否しながらヒントを提供してはならず（MUST）、公開公称コントラクトを静かに構造的なものに書き直してもなりません（MUST）。

@@ -1,46 +1,43 @@
 ---
-title: "Normalization"
-description: "Imported from rigortype/rigor docs/type-specification/normalization.md."
+title: "正規化"
+description: "rigortype/rigor docs/type-specification/normalization.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/type-specification/normalization.md"
 sourcePath: "docs/type-specification/normalization.md"
 sourceSha: "bbe27b66f89c012ea66909301a98c503d318fbdc807d436fd171321eca576586"
 sourceCommit: "9f40e22193647dc06e3ab70c5ba82768b0bfe738"
-translationStatus: "pending"
+translationStatus: "translated"
 sidebar:
   order: 2050
 ---
 
-> [!NOTE]
-> このページはまだ翻訳されていません。英語版の本文を参考表示しています。
+Rigorは比較と報告の前に型を正規化します。正規化は診断、キャッシュ、エクスポートされたシグネチャが安定するように決定論的でなければなりません（MUST）。
 
-Rigor normalizes types before comparison and reporting. Normalization MUST be deterministic so diagnostics, caches, and exported signatures are stable.
+この文書は正規化規則の権威ある一覧です。これらを裏付ける束は[value-lattice.md](../value-lattice/)にあります。ここで参照される演算子（`~T`、`T - U`、`T?`）は[type-operators.md](../type-operators/)で定義されています。`Dynamic[T]`の代数は[special-types.md](../special-types/)にあります。
 
-This document is the authoritative list of normalization rules. The lattice that backs them is in [value-lattice.md](../value-lattice/). Operators referenced here (`~T`, `T - U`, `T?`) are defined in [type-operators.md](../type-operators/). The `Dynamic[T]` algebra is in [special-types.md](../special-types/).
+## 規則
 
-## Rules
+- ネストされたユニオンと積をフラット化する。
+- 重複するユニオンと積のオペランドを除去する。
+- ユニオンから`bot`を削除する（`T | bot = T`）。
+- 積から`top`を削除する（`T & top = T`）。
+- `T?`を内部的に`T | nil`に展開する。
+- ドメインが既知の場合、有限集合の差と補完を正規化する。
+- 否定的事実は正のドメインに対するスコープ事実として保持する; 除外された値だけから正のドメインを導入しない。
+- 大きなドメインに対して保持された否定的事実にバジェットを設定し、バジェットが超過したときに表示を広げる（[inference-budgets.md](../inference-budgets/)参照）。
+- RBS消去まで（[rbs-erasure.md](../rbs-erasure/)参照）ハッシュシェイプの開放性と読み取り専用マーカーを保持する。
+- より明確な場合は**表示**のために`true | false`を`bool`に折り畳む。
+- リテラルの精度が大きくなりすぎるか高コストになるまで保持する; その後は公称ベースに広げる。
+- `untyped`を`top`に正規化するのではなく、動的由来のラッパーを明示的に保持する。
+- 動的由来のユニオン、積、差は静的ファセットを変換してラッパーを保持することで正規化する。
 
-- Flatten nested unions and intersections.
-- Remove duplicate union and intersection operands.
-- Drop `bot` from unions (`T | bot = T`).
-- Drop `top` from intersections (`T & top = T`).
-- Expand `T?` to `T | nil` internally.
-- Normalize finite set difference and complement when the domain is known.
-- Preserve negative facts as scope facts over a positive domain; do not introduce a positive domain from the excluded value alone.
-- Budget retained negative facts for large domains and widen display when the budget is exceeded (see [inference-budgets.md](../inference-budgets/)).
-- Preserve hash-shape openness and read-only markers until RBS erasure (see [rbs-erasure.md](../rbs-erasure/)).
-- Collapse `true | false` to `bool` for **display** when that is clearer.
-- Preserve literal precision until it becomes too large or expensive; then widen to the nominal base.
-- Preserve dynamic-origin wrappers explicitly rather than normalizing `untyped` to `top`.
-- Normalize dynamic-origin unions, intersections, and differences by transforming the static facet and keeping the wrapper.
+## 特別な結果の同一性
 
-## Special-result identities
+`void | bot`は結果サマリーで`void`に折り畳まれます。なぜなら`bot`パスは通常値を提供しないからです。完全な`void`対`bot`規則については[special-types.md](../special-types/)を参照してください。
 
-`void | bot` collapses to `void` in result summaries because the `bot` path contributes no normal value. See [special-types.md](../special-types/) for the full `void`-versus-`bot` rule.
+## 決定論性
 
-## Determinism
+正規化は決定論的でなければなりません（MUST）。同等の入力は、設定されたバジェットと権威あるシグネチャの変更を除き、実行間および解析器インスタンス間で同一の出力を生成しなければなりません（MUST）。この決定論性が診断、キャッシュ、エクスポートされたシグネチャを編集とCIの実行にわたって比較可能にします。
 
-Normalization MUST be deterministic. Equivalent inputs MUST produce identical outputs across runs and across analyzer instances, modulo configured budgets and authoritative signature changes. This determinism is what makes diagnostics, caches, and exported signatures comparable across edits and CI runs.
+## 表示との相互作用
 
-## Interaction with display
-
-Normalization is the engine-internal canonicalization. The diagnostic display contract for difference, complement, and dynamic-origin types lives in [type-operators.md](../type-operators/) and [diagnostic-policy.md](../diagnostic-policy/). Display rules MAY render a normalized type more readably (for example showing `bool` instead of `true | false`), but they MUST NOT change the underlying type identity.
+正規化はエンジン内部の正規化です。差、補完、動的由来型の診断表示コントラクトは[type-operators.md](../type-operators/)と[diagnostic-policy.md](../diagnostic-policy/)にあります。表示規則は正規化された型をより読みやすく描画する場合がありますが（例: `true | false`の代わりに`bool`を表示）、基礎となる型の同一性を変更してはなりません（MUST NOT）。

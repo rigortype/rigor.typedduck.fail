@@ -1,29 +1,26 @@
 ---
-title: "Value Lattice"
-description: "Imported from rigortype/rigor docs/type-specification/value-lattice.md."
+title: "値束（Value Lattice）"
+description: "rigortype/rigor docs/type-specification/value-lattice.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/type-specification/value-lattice.md"
 sourcePath: "docs/type-specification/value-lattice.md"
 sourceSha: "fd81eaa7793c6405884c3324c0ccc997ab07959f3b42b9c61a6d9c157139e626"
 sourceCommit: "9f40e22193647dc06e3ab70c5ba82768b0bfe738"
-translationStatus: "pending"
+translationStatus: "translated"
 sidebar:
   order: 2050
 ---
 
-> [!NOTE]
-> このページはまだ翻訳されていません。英語版の本文を参考表示しています。
+この文書はRigorが内部で使う値束（value lattice）を定義します。サブタイピング、正規化、ナローイング、消去はすべてこれを基盤としています。
 
-This document defines the value lattice Rigor uses internally. It is the foundation on which subtyping, normalization, narrowing, and erasure all rest.
+## 通常の値束
 
-## Ordinary value lattice
+通常の値束は以下を持ちます:
 
-The ordinary value lattice has:
+- すべてのRuby値に対する最大型としての`top`。
+- 到達不能または不可能な値に対する空型としての`bot`。
+- その間にある公称型、構造型、リテラル型、ユニオン型、積型、タプル型、レコード型、proc型、リファインメント型。
 
-- `top` as the greatest type for all Ruby values.
-- `bot` as the empty type for unreachable or impossible values.
-- Nominal, structural, literal, union, intersection, tuple, record, proc, and refined types between them.
-
-Important identities:
+重要な同一性:
 
 ```text
 bot <: T
@@ -34,51 +31,51 @@ T | top = top
 T & bot = bot
 ```
 
-These identities are normative and feed normalization (see [normalization.md](../normalization/)).
+これらの同一性は規範的であり、正規化（[normalization.md](../normalization/)参照）に使われます。
 
-## `Dynamic[T]` and the dynamic-origin algebra
+## `Dynamic[T]`と動的由来の代数
 
-`untyped` is deliberately outside the ordinary value lattice. Rigor represents values that crossed a dynamic boundary as `Dynamic[T]`, where `T` is the currently known static facet. Raw RBS `untyped` is `Dynamic[top]`.
+`untyped`は意図的に通常の値束の外に置かれています。Rigorは動的境界を越えた値を`Dynamic[T]`として表現します。ここで`T`は現在既知の静的ファセットです。生のRBS `untyped`は`Dynamic[top]`です。
 
-`Dynamic[T]` is **not** surface RBS syntax. It MUST NOT be accepted as an ordinary user-authored type. It is an internal implementation form that combines two facts:
+`Dynamic[T]`は**表面RBS構文ではありません**。通常のユーザーが著作する型として受け付けてはなりません（MUST NOT）。これは2つの事実を組み合わせた内部実装形式です:
 
-- the value crossed a gradual boundary or otherwise came from unchecked information;
-- the current control-flow analysis can still prove the static facet `T`.
+- 値がグラデュアル境界を越えたか、チェックされていない情報から来た
+- 現在の制御フロー解析がまだ静的ファセット`T`を証明できる
 
-The detailed semantics of `untyped`, `Dynamic[T]`, gradual consistency, and the strict modes that build on dynamic-origin provenance live in [special-types.md](../special-types/). The relations themselves live in [relations-and-certainty.md](../relations-and-certainty/).
+`untyped`、`Dynamic[T]`、グラデュアル一貫性、および動的由来のprovenanceに基づくストリクトモードの詳細なセマンティクスは[special-types.md](../special-types/)にあります。関係自体は[relations-and-certainty.md](../relations-and-certainty/)にあります。
 
-### Algebraic rules
+### 代数的規則
 
-Dynamic-origin joins preserve the marker instead of pretending the value is purely static:
+動的由来のジョインは、値が純粋に静的であるかのように見せかけるのではなく、マーカーを保持します:
 
 ```text
 Dynamic[A] | Dynamic[B] = Dynamic[A | B]
 T | Dynamic[U]          = Dynamic[T | U]
 ```
 
-Dynamic-origin intersection and difference preserve both precision and provenance:
+動的由来の積と差は精度とprovenanceの両方を保持します:
 
 ```text
 Dynamic[T] & U = Dynamic[T & U]
 Dynamic[T] - U = Dynamic[T - U]
 ```
 
-When `U` is `top`, the result MAY be displayed as `untyped`, but the internal form MUST still record dynamic-origin provenance. Diagnostic display rules are in [diagnostic-policy.md](../diagnostic-policy/).
+`U`が`top`のとき、結果は`untyped`と表示される場合がありますが（MAY）、内部形式は動的由来のprovenanceを引き続き記録しなければなりません（MUST）。診断表示規則は[diagnostic-policy.md](../diagnostic-policy/)にあります。
 
-### Worked example
+### 実例
 
-`untyped & String` becomes `Dynamic[String]`, not plain `String` and not raw `untyped`. A trusted guard MAY narrow `Dynamic[top]` to `Dynamic[String]`; a method call such as `upcase` MAY then use `String` method facts. The receiver remains traceable to the unchecked source, and diagnostics MAY record that the call was enabled by a dynamic-origin fact.
+`untyped & String`は、普通の`String`でも生の`untyped`でもなく`Dynamic[String]`になります。信頼できるガードが`Dynamic[top]`を`Dynamic[String]`にナローイングする場合があります。`upcase`のようなメソッド呼び出しはその後`String`のメソッド事実を使える場合があります。レシーバーはチェックされていないソースに追跡可能なままで、診断は呼び出しが動的由来の事実によって可能になったことを記録できます（MAY）。
 
-### Generic positions
+### ジェネリック位置
 
-Generic positions preserve dynamic-origin slots. For example, `Array[untyped]` is internally `Array[Dynamic[top]]`, **not** `Array[top]`. Reading an element returns `Dynamic[top]`. Writing an element follows gradual consistency, and stricter modes MAY report that the collection stores unchecked values. The same rule applies to hashes, tuples, records, proc parameters and returns, and shape members.
+ジェネリック位置は動的由来のスロットを保持します。例えば`Array[untyped]`は内部的に`Array[Dynamic[top]]`であり、**`Array[top]`ではありません**。要素を読み取ると`Dynamic[top]`が返ります。要素の書き込みはグラデュアル一貫性に従い、ストリクトモードはコレクションがチェックされていない値を保持することを報告できます（MAY）。同じルールがハッシュ、タプル、レコード、procのパラメーターと戻り値、シェイプメンバーに適用されます。
 
-### Round-trip preservation
+### ラウンドトリップ保持
 
-The dynamic-origin wrapper is reversible at the RBS boundary. `Dynamic[top]` round-trips to `untyped`; preserved generic slots round-trip with the same shape. This is what makes the RBS→Rigor direction lossless even when `untyped` participates. See [overview.md](../overview/) for the lossless/lossy contract and [rbs-erasure.md](../rbs-erasure/) for the export side.
+動的由来ラッパーはRBS境界で可逆です。`Dynamic[top]`は`untyped`にラウンドトリップし、保持されたジェネリックスロットは同じ形状でラウンドトリップします。これが`untyped`が参加する場合でもRBS→Rigor方向が無損失である理由です。無損失/有損失コントラクトについては[overview.md](../overview/)を、エクスポート側については[rbs-erasure.md](../rbs-erasure/)を参照してください。
 
-## Working with the lattice
+## 束を使った作業
 
-- Subtyping uses the static facet on `Dynamic[T]`; gradual consistency governs unchecked crossings (see [relations-and-certainty.md](../relations-and-certainty/)).
-- Normalization MUST be deterministic so diagnostics, caches, and exported signatures are stable. The full normalization rule set is in [normalization.md](../normalization/).
-- Narrowing operates over the lattice through edge-aware scopes (see [control-flow-analysis.md](../control-flow-analysis/)). Negative facts are expressed using the operators in [type-operators.md](../type-operators/) and never introduce a positive domain from the excluded value alone.
+- サブタイピングは`Dynamic[T]`の静的ファセットを使います。グラデュアル一貫性はチェックされていない越境を管理します（[relations-and-certainty.md](../relations-and-certainty/)参照）。
+- 正規化は診断、キャッシュ、エクスポートされたシグネチャが安定するように決定論的でなければなりません（MUST）。完全な正規化規則セットは[normalization.md](../normalization/)にあります。
+- ナローイングはエッジを意識したスコープを通じて束の上で動作します（[control-flow-analysis.md](../control-flow-analysis/)参照）。否定的事実は[type-operators.md](../type-operators/)の演算子を使って表現され、除外された値だけから正のドメインを導入することはありません。

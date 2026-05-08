@@ -1,86 +1,83 @@
 ---
-title: "Diagnostic Policy"
-description: "Imported from rigortype/rigor docs/type-specification/diagnostic-policy.md."
+title: "診断ポリシー"
+description: "rigortype/rigor docs/type-specification/diagnostic-policy.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/type-specification/diagnostic-policy.md"
 sourcePath: "docs/type-specification/diagnostic-policy.md"
 sourceSha: "a45507f0c557b92d2ed16dacf8b7cafeb05e669ec7821e44c34ded13f612f579"
 sourceCommit: "9f40e22193647dc06e3ab70c5ba82768b0bfe738"
-translationStatus: "pending"
+translationStatus: "translated"
 sidebar:
   order: 2050
 ---
 
-> [!NOTE]
-> このページはまだ翻訳されていません。英語版の本文を参考表示しています。
+Rigorは静かな拡幅よりも精密な診断を優先すべきです（SHOULD）。この文書は診断識別子の分類体系、表示規則、抑制マーカー文法を定義します。
 
-Rigor SHOULD prefer precise diagnostics over silent widening. This document defines the diagnostic identifier taxonomy, display rules, and the suppression-marker grammar.
+推論バジェットが使うカットオフ識別子は`static.*`ファミリーにあります（[inference-budgets.md](../inference-budgets/)参照）。否定的事実と差分型の表示規則は[type-operators.md](../type-operators/)にあります。`Dynamic[T]`の表示規則はここにあります。
 
-The cutoff identifiers used by inference budgets live in the `static.*` family (see [inference-budgets.md](../inference-budgets/)). The display rules for negative facts and difference types are in [type-operators.md](../type-operators/). The display rule for `Dynamic[T]` is here.
+## 診断ガイドライン
 
-## Diagnostic guidelines
+- 値として`void`を使うことは一次診断です; 下流のリカバリーは`top`を使い、同じ式に対して重複するカスケードレポートを避けるべきです（SHOULD）。
+- 証明なしに`top`のメソッドを呼ぶことは診断です。
+- 生の`untyped`のメソッドを呼ぶことは許されますが、チェックされていない境界に追跡可能であるべきです（SHOULD）。
+- `Dynamic[T]`のメソッドを呼ぶことは静的ファセット`T`を使う場合があります（MAY）が、診断は証明が動的由来の値に依存していることを説明できるべきです（SHOULD）。
+- ストリクト動的モードは、動的から精密な代入、引数、戻り値、`Array[Dynamic[top]]`のようなジェネリックスロットのリークを報告できます（MAY）。
+- ストリクト静的モードはさらに、チェックされた静的事実ではなく動的由来の事実に安全性が依存するメソッド呼び出しやブランチ証明を報告できます（MAY）。
+- 否定的事実によってナローイングされたブランチは、それが有用な場合にその事実を表示すべきです（SHOULD）。例: `String - ""`または`~"foo"`。
+- 診断は裸の`~"foo"`が曖昧になる場合、`String - "foo"`のような明示的なドメインを持つ表示を優先すべきです（SHOULD）。
+- 読み取り専用シェイプエントリを通じた書き込みは、Rigorがその事実を持つとき診断です。
+- クローズドキーワードまたはオプションハッシュシェイプへの予期しないキーの渡しは診断です。
+- 無効または矛盾する`RBS::Extended`アノテーションは診断です。
+- メソッド実装はソースに関係なく受け付けられたシグネチャコントラクトに対してチェックされます: インライン`#:`、`# @rbs`、rbs-inlineパラメーターアノテーション、生成されたスタブ、および外部`.rbs`宣言はすべて同じ実装側の力を持ちます。
+- 再帰、演算子の曖昧さ、動的ディスパッチ、またはバジェット枯渇のために推論が停止するとき、Rigorはカットオフを報告しなければならず（MUST）、推論された型が精密であるふりをするのではなく、境界コントラクトを提案すべきです（SHOULD）。
+- 明示的な公称パラメーター型が呼び出しを拒否するがメソッド本体がより小さな推論されたケイパビリティロールのみを必要とする場合、Rigorはアドホックなユニオンを追加するよりもインターフェースに公開シグネチャを汎化することを提案できます（MAY）。
+- プラグイン、生成済み、または`RBS::Extended`の事実を含む診断は安定した識別子を持つべきです（SHOULD）。公開識別子はソースファミリーを明確にするプレフィックスを使うべきです（SHOULD）（`plugin.<plugin-id>.<name>`、`rbs_extended.<name>`、`generated.<provider>.<name>`など）。一方、内部診断メタデータはより豊富なprovenanceを保持できます（MAY）。
+- RBSエクスポート中の精度損失は、ユーザーが説明またはストリクトエクスポートモードを要求したとき報告可能であるべきです（SHOULD）。
 
-- Using `void` as a value is a primary diagnostic; downstream recovery uses `top` and SHOULD avoid duplicate cascade reports for the same expression.
-- Calling a method on `top` without proof is a diagnostic.
-- Calling a method on raw `untyped` is allowed but SHOULD be traceable to an unchecked boundary.
-- Calling a method on `Dynamic[T]` MAY use the static facet `T`, but diagnostics SHOULD be able to explain that the proof depended on a dynamic-origin value.
-- Strict dynamic modes MAY report dynamic-to-precise assignments, arguments, returns, and generic-slot leaks such as `Array[Dynamic[top]]`.
-- Strict static modes MAY additionally report method calls or branch proofs whose safety depends on dynamic-origin facts rather than checked static facts.
-- A branch narrowed by a negative fact SHOULD display that fact when it is useful, for example `String - ""` or `~"foo"`.
-- Diagnostics SHOULD prefer explicit domain-bearing displays such as `String - "foo"` when a bare `~"foo"` would be ambiguous.
-- Writing through a read-only shape entry is a diagnostic when Rigor has that fact.
-- Passing unexpected keys to a closed keyword or options-hash shape is a diagnostic.
-- Invalid or contradictory `RBS::Extended` annotations are diagnostics.
-- Method implementations are checked against accepted signature contracts regardless of source: inline `#:`, `# @rbs`, rbs-inline parameter annotations, generated stubs, and external `.rbs` declarations all have the same implementation-side force.
-- When inference stops because of recursion, operator ambiguity, dynamic dispatch, or budget exhaustion, Rigor MUST report the cutoff and SHOULD suggest a boundary contract rather than pretending the inferred type is precise.
-- When an explicit nominal parameter type rejects a call but the method body only requires a smaller inferred capability role, Rigor MAY suggest generalizing the public signature to an interface rather than adding an ad hoc union.
-- Diagnostics that involve plugin, generated, or `RBS::Extended` facts SHOULD carry stable identifiers. Public identifiers SHOULD use prefixes that make the source family clear, such as `plugin.<plugin-id>.<name>`, `rbs_extended.<name>`, or `generated.<provider>.<name>`, while internal diagnostic metadata MAY retain richer provenance.
-- Losing precision during RBS export SHOULD be reportable when users request explanation or strict export mode.
+## 識別子分類体系
 
-## Identifier taxonomy
+診断識別子はプラグイン著者、RBSメタデータ、ユーザーの抑制マーカーが内部の番号付けと衝突せずにアドレス指定できるように階層的です。識別子はメジャーバージョン内で安定しています。新しい診断はどのプレフィックスの下にも追加できます（MAY）; 名前変更または削除には非推奨ウィンドウが必要です。
 
-Diagnostic identifiers are hierarchical so plugin authors, RBS metadata, and user suppression markers can address them without colliding with internal numbering. Identifiers are stable within a major version. New diagnostics MAY be added under any prefix; renames or removals require a deprecation window.
-
-| Prefix | Use |
+| プレフィックス | 使用 |
 |---|---|
-| `dynamic.*` | `untyped` and `Dynamic[T]` boundary crossings, unchecked generic leaks, and method calls whose proof depends on dynamic origin |
-| `static.*` | Static checks that stop short of a proof, including incomplete-inference cutoffs |
-| `flow.*` | Control-flow narrowing failures, equality and predicate refinement issues, fact-stability violations |
-| `compat.*` | RBS, rbs-inline, and Steep-compatible signature compatibility |
-| `rbs_extended.*` | `RBS::Extended` payload validity, version compatibility, and conflict reports |
-| `plugin.<plugin-id>.*` | Plugin-contributed diagnostics |
-| `generated.<provider>.*` | Generated-signature provider diagnostics |
-| `hint.*` | Style and refactor suggestions, gated by configuration (for example `hint.role-generalization.*`) |
+| `dynamic.*` | `untyped`と`Dynamic[T]`の境界越境、チェックされていないジェネリックリーク、動的由来に証明が依存するメソッド呼び出し |
+| `static.*` | 不完全推論カットオフを含む、証明に至らない静的チェック |
+| `flow.*` | 制御フローのナローイング失敗、等価性と述語のリファインメント問題、事実安定性の違反 |
+| `compat.*` | RBS、rbs-inline、Steep互換シグネチャの互換性 |
+| `rbs_extended.*` | `RBS::Extended`ペイロードの有効性、バージョン互換性、競合レポート |
+| `plugin.<plugin-id>.*` | プラグインが貢献した診断 |
+| `generated.<provider>.*` | 生成シグネチャプロバイダーの診断 |
+| `hint.*` | スタイルとリファクタリングの提案、設定でゲート（例: `hint.role-generalization.*`） |
 
-## `Dynamic[T]` display rules
+## `Dynamic[T]`の表示規則
 
-`Dynamic[T]` provenance is rendered by the diagnostic prefix family rather than by branch:
+`Dynamic[T]`のprovenanceは診断プレフィックスファミリーによってレンダリングされます:
 
-- Diagnostics outside the `dynamic.*` family render the narrowed static facet `T` with a small `from untyped` provenance note. The narrowed facet is what the user can reason about; the wrapped form would only add noise to messages that are not about the dynamic boundary itself.
-- Diagnostics in `dynamic.*`, and explanations requested through `rigor explain` or `--explain`, show the full `Dynamic[T]` form, because that is exactly the information they exist to surface.
-- Internal traces, cache keys, and plugin `Scope` queries always retain the full `Dynamic[T]` form regardless of how the message renders. Plugins that need the dynamic facet to compose a higher-tier diagnostic do not need to reconstruct it.
+- `dynamic.*`ファミリー外の診断はナローイングされた静的ファセット`T`を小さな`from untyped`のprovenanceノートと共にレンダリングします。ナローイングされたファセットはユーザーが推論できるものです; ラップされた形式は動的境界自体についてではないメッセージにはノイズを追加するだけです。
+- `dynamic.*`の診断、および`rigor explain`または`--explain`で要求された説明は完全な`Dynamic[T]`形式を表示します。なぜなら、まさにそれが浮上させるために存在する情報だからです。
+- 内部トレース、キャッシュキー、プラグインの`Scope`クエリはメッセージのレンダリング方法に関係なく常に完全な`Dynamic[T]`形式を保持します。より高い層の診断を構成するために動的ファセットが必要なプラグインはそれを再構築する必要はありません。
 
-## Suppression markers
+## 抑制マーカー
 
-Rigor MUST recognize three families of suppression markers so the analyzer can interoperate with existing ecosystems while keeping a clean Rigor-native form.
+Rigorは既存のエコシステムと相互運用しながらクリーンなRigorネイティブ形式を維持できるように、3つのファミリーの抑制マーカーを認識しなければなりません（MUST）。
 
-### Steep-style markers
+### Steepスタイルのマーカー
 
-Steep-style markers such as `# steep:ignore` are recognized by default. Only line-scoped Steep markers are accepted, and Rigor maps them to its own diagnostic suppression. Nothing in Steep's marker grammar is reinterpreted as Rigor configuration.
+`# steep:ignore`のようなSteepスタイルのマーカーはデフォルトで認識されます。行スコープのSteepマーカーのみが受け付けられ、RigorはそれらをRigor自身の診断抑制にマッピングします。Steepのマーカー文法のいずれもRigor設定として再解釈されません。
 
-### Sorbet- and RuboCop-style markers (opt-in)
+### SorbetおよびRuboCopスタイルのマーカー（オプトイン）
 
-Sorbet-style file-level markers (`# typed:`) and RuboCop-style suppression comments (`# rubocop:disable`, `# rubocop:enable`) are opt-in. Projects enable them with `compat.sorbet_ignore` and `compat.rubocop_disable` switches in `.rigor.yml`. Sorbet's typed-mode policy and RuboCop's lint scope are not the same as Rigor's diagnostic suppression, so defaulting them on would conflate concerns.
+Sorbetスタイルのファイルレベルマーカー（`# typed:`）とRuboCopスタイルの抑制コメント（`# rubocop:disable`、`# rubocop:enable`）はオプトインです。プロジェクトは`.rigor.yml`の`compat.sorbet_ignore`と`compat.rubocop_disable`スイッチで有効にします。Sorbetの型付きモードポリシーとRuboCopのリントスコープはRigorの診断抑制と同じではないため、デフォルトでオンにすると懸念事項が混在します。
 
-### Rigor-native markers
+### Rigorネイティブのマーカー
 
-Rigor-native markers use a Ruby comment grammar that mirrors PHPStan's annotation feel without inventing application-side type DSL.
+Rigorネイティブのマーカーは、PHPStanのアノテーションの感覚を踏まえながらアプリケーション側の型DSLを発明しないRubyコメント文法を使います。
 
-- **Line form**: `# rigor:ignore[<diagnostic.id>]`
-- **Block form**: `# rigor:ignore-start[<diagnostic.id>]` paired with `# rigor:ignore-end`
+- **行形式**: `# rigor:ignore[<diagnostic.id>]`
+- **ブロック形式**: `# rigor:ignore-start[<diagnostic.id>]`と`# rigor:ignore-end`のペア
 
-The diagnostic identifier list uses the prefixes above.
+診断識別子リストは上記のプレフィックスを使います。
 
-### Validity rules
+### 有効性規則
 
-- A marker that names an unknown diagnostic identifier MUST produce a warning so dead suppressions surface during refactoring.
-- A marker without an identifier list MUST be a diagnostic by default; strict mode MUST reject it entirely.
+- 未知の診断識別子を名前に挙げるマーカーはリファクタリング中に死んだ抑制が浮上するように警告を生成しなければなりません（MUST）。
+- 識別子リストなしのマーカーはデフォルトで診断でなければなりません（MUST）; ストリクトモードは完全に拒否しなければなりません（MUST）。

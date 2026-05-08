@@ -1,25 +1,22 @@
 ---
-title: "Inference Budgets and User-Supplied Boundaries"
-description: "Imported from rigortype/rigor docs/type-specification/inference-budgets.md."
+title: "推論バジェットとユーザー提供の境界"
+description: "rigortype/rigor docs/type-specification/inference-budgets.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/type-specification/inference-budgets.md"
 sourcePath: "docs/type-specification/inference-budgets.md"
 sourceSha: "00468ae908daf9884657fbe019aa9bc122b4677bf76b828c5a133a81853ed043"
 sourceCommit: "9f40e22193647dc06e3ab70c5ba82768b0bfe738"
-translationStatus: "pending"
+translationStatus: "translated"
 sidebar:
   order: 2050
 ---
 
-> [!NOTE]
-> このページはまだ翻訳されていません。英語版の本文を参考表示しています。
+Rigorは難しいケースがグローバル検索になる前に推論を停止しなければなりません（MUST）。再帰的メソッド、相互再帰呼び出しグラフ、オーバーロードされた演算子、動的ディスパッチ、大きなユニオン、制約のない構造的推論にはすべて明示的なバジェットが必要です。バジェットが超過した場合、Rigorは精度を静かに作り出すのではなく、理由を含む不完全推論の結果を生成しなければなりません（MUST）。
 
-Rigor MUST stop inference before hard cases become global searches. Recursive methods, mutually recursive call graphs, overloaded operators, dynamic dispatch, large unions, and unconstrained structural inference all need explicit budgets. When a budget is exceeded, Rigor MUST produce an incomplete-inference result with a reason instead of silently inventing precision.
+この文書はバジェットカテゴリー、デフォルト、設定、ユーザー提供のカットオフの境界コントラクトルールを定義します。カットオフ診断は`static.*`ファミリーにあります（[diagnostic-policy.md](../diagnostic-policy/)参照）。
 
-This document defines the budget categories, defaults, configuration, and the boundary-contract rule for user-supplied cutoffs. Cutoff diagnostics live in the `static.*` family (see [diagnostic-policy.md](../diagnostic-policy/)).
+## 動機となる例
 
-## Motivating example
-
-Operator-heavy recursive code is the motivating case:
+演算子が多い再帰コードが動機となるケースです:
 
 ```ruby
 def tarai(x, y, z)
@@ -35,62 +32,62 @@ def tarai(x, y, z)
 end
 ```
 
-Without a parameter or return contract, `<=` and `-` are too polymorphic to infer a unique domain by enumerating every Ruby class that implements them. The recursive calls also make return inference fan out. Rigor MUST detect this shape early and ask for a boundary rather than expanding the search.
+パラメーターまたは戻り値コントラクトなしでは、`<=`と`-`はすべてのRubyクラスを列挙してそれらを実装するものを一意のドメインに推論するには多態性が高すぎます。再帰呼び出しも戻り値推論をファンアウトさせます。Rigorはこの形状を早期に検出し、検索を拡大するのではなく境界を求めなければなりません（MUST）。
 
-## Boundary contracts
+## 境界コントラクト
 
-Accepted signature contracts are inference cutoffs. A simple return annotation such as `#: Integer`, a full inline `# @rbs` method type, a generated stub, or an external `.rbs` declaration all let callers use the declared return and stop recursive return inference at the method boundary. The implementation body is still checked against the contract.
+受け付けられたシグネチャコントラクトは推論のカットオフです。`#: Integer`のような単純な戻り値アノテーション、完全なインライン`# @rbs`メソッド型、生成されたスタブ、または外部`.rbs`宣言はすべて、呼び出し元が宣言された戻り値を使えるようにし、メソッド境界での再帰的な戻り値推論を停止します。実装本体はコントラクトに対して依然としてチェックされます。
 
-This boundary is especially valuable for deep, recursive, or expensive methods. It prevents analysis from fanning out into the method body when the author has already supplied the return contract.
+この境界は深い、再帰的、または高コストのメソッドに特に価値があります。著者がすでに戻り値コントラクトを提供しているとき、分析がメソッド本体にファンアウトするのを防ぎます。
 
-A `bot` return contract means the call never returns normally. Callers MUST treat it as `bot` for reachability and dead-code analysis. If implementation analysis finds a normal return path, Rigor MUST report a diagnostic against the method body, regardless of whether the `bot` came from inline `#: bot`, `# @rbs`, generated RBS, or external `.rbs`.
+`bot`戻り値コントラクトは呼び出しが正常に返らないことを意味します。呼び出し元は到達可能性とデッドコード解析のために`bot`として扱わなければなりません（MUST）。実装解析が通常の戻り値パスを見つけた場合、Rigorは`bot`がインライン`#: bot`、`# @rbs`、生成されたRBS、または外部`.rbs`から来たかどうかに関係なく、メソッド本体に対して診断を報告しなければなりません（MUST）。
 
-Implementation-side checking is independent of where the contract came from. See [overview.md](../overview/) for the inline-annotation policy that backs this rule.
+実装側のチェックはコントラクトがどこから来たかとは無関係です。このルールを裏付けるインラインアノテーションポリシーについては[overview.md](../overview/)を参照してください。
 
-## CLI behavior
+## CLIの挙動
 
-CLI behavior MUST have two modes:
+CLIの挙動には2つのモードが必要です（MUST）:
 
-- **Non-interactive mode** reports an incomplete-inference diagnostic, the reason for stopping, and one or more compatible ways to add a boundary contract.
-- **Interactive mode** MAY prompt the user for a boundary type, such as an rbs-inline return `#: Integer`, a full method signature, or an external RBS entry. Rigor MUST only write or modify files after explicit user confirmation.
+- **非インタラクティブモード**は不完全推論の診断、停止の理由、および境界コントラクトを追加する1つ以上の互換性のある方法を報告します。
+- **インタラクティブモード**はユーザーにrbs-inlineの戻り値`#: Integer`、完全なメソッドシグネチャ、または外部RBSエントリのような境界型を求めることができます（MAY）。Rigorは明示的なユーザー確認の後にのみファイルを書き込みまたは変更しなければなりません（MUST）。
 
-The prompt SHOULD prefer small, ecosystem-compatible annotations. For return-only recursive cutoffs, `#: Integer` MAY be enough. When receiver or operator parameter domains are also unconstrained, Rigor MAY ask for a full method type such as `(Integer x, Integer y, Integer z) -> Integer` or suggest adding the contract in `.rbs`.
+プロンプトは小さなエコシステム互換のアノテーションを優先すべきです（SHOULD）。戻り値のみの再帰カットオフには`#: Integer`で十分な場合があります（MAY）。レシーバーまたは演算子パラメータードメインも制約されていない場合、Rigorは`(Integer x, Integer y, Integer z) -> Integer`のような完全なメソッド型を求めるか、`.rbs`にコントラクトを追加することを提案できます（MAY）。
 
-If no boundary is supplied, callers MUST NOT receive a fabricated precise type. Rigor MAY use `Dynamic[top]`, `top`, or another conservative incomplete-inference marker internally, but diagnostics and exports MUST preserve the fact that inference stopped.
+境界が提供されない場合、呼び出し元は作られた精密な型を受け取ってはなりません（MUST NOT）。Rigorは内部的に`Dynamic[top]`、`top`、または別の保守的な不完全推論マーカーを使える場合があります（MAY）が、診断とエクスポートは推論が停止したという事実を保持しなければなりません（MUST）。
 
-The interactive prompt surface is target behavior, not a current scaffold feature. The non-interactive cutoff path is normative from v1.
+インタラクティブなプロンプトサーフェスはターゲット挙動であり、現在のスキャフォールド機能ではありません。非インタラクティブなカットオフパスはv1から規範的です。
 
-## Budget table
+## バジェットテーブル
 
-Every budget category is configurable through `.rigor.yml` under `budgets:`, and the analyzer MUST enforce a healthy range for each entry. Values outside the accepted range produce a configuration diagnostic and the analyzer falls back to the default for that key.
+すべてのバジェットカテゴリーは`.rigor.yml`の`budgets:`下で設定可能であり、解析器は各エントリに対して正常な範囲を強制しなければなりません（MUST）。受け入れられた範囲外の値は設定診断を生成し、解析器はそのキーのデフォルトにフォールバックします。
 
-| Key | Category | Default | Range |
+| キー | カテゴリー | デフォルト | 範囲 |
 |---|---|---|---|
-| `recursion_depth` | Recursion depth | 5 | 1–32 |
-| `call_graph_width` | Call-graph expansion | 16 | 1–256 |
-| `overload_candidates` | Overload candidate count | 8 | 1–64 |
-| `operator_ambiguity` | Operator ambiguity per call | 4 | 1–32 |
-| `union_size` | Union size for joined returns | 24 | 4–256 |
-| `structural_growth` | Structural requirement growth | 16 | 1–256 |
-| `interface_candidates` | Named-interface candidate matches | 8 | 1–64 |
-| `hash_erasure_keys` | Hash-shape literal-key union | 16 | 1–256 |
-| `hash_erasure_values` | Hash-shape literal-value union | 8 | 1–256 |
-| `negative_fact_display` | Retained negative-fact display | 3 | 0–32 |
+| `recursion_depth` | 再帰深度 | 5 | 1〜32 |
+| `call_graph_width` | 呼び出しグラフ展開 | 16 | 1〜256 |
+| `overload_candidates` | オーバーロード候補数 | 8 | 1〜64 |
+| `operator_ambiguity` | 呼び出しごとの演算子の曖昧さ | 4 | 1〜32 |
+| `union_size` | ジョインされた戻り値のユニオンサイズ | 24 | 4〜256 |
+| `structural_growth` | 構造的要件の成長 | 16 | 1〜256 |
+| `interface_candidates` | 名前付きインターフェース候補マッチ | 8 | 1〜64 |
+| `hash_erasure_keys` | ハッシュシェイプのリテラルキーユニオン | 16 | 1〜256 |
+| `hash_erasure_values` | ハッシュシェイプのリテラル値ユニオン | 8 | 1〜256 |
+| `negative_fact_display` | 保持された否定的事実の表示 | 3 | 0〜32 |
 
-The `hash_erasure_values` default is intentionally smaller than `hash_erasure_keys`: hash keys carry more identifier-like meaning than values do, so retaining wider key unions is more useful in diagnostics and erasure than retaining wide value unions. See [rbs-erasure.md](../rbs-erasure/) for how the budgets shape the erased type.
+`hash_erasure_values`のデフォルトは意図的に`hash_erasure_keys`より小さいです: ハッシュキーは値よりも識別子的な意味を持つため、より広いキーユニオンを保持することは広い値ユニオンを保持するよりも診断と消去において有用です。バジェットが消去された型をどう形成するかについては[rbs-erasure.md](../rbs-erasure/)を参照してください。
 
-The `negative_fact_display` budget controls the omission contract documented in [type-operators.md](../type-operators/).
+`negative_fact_display`バジェットは[type-operators.md](../type-operators/)に文書化された省略コントラクトを制御します。
 
-## Cutoff categories
+## カットオフカテゴリー
 
-The initial budget categories are explicit so cutoffs are predictable:
+初期のバジェットカテゴリーはカットオフが予測可能になるように明示的です:
 
-- **Recursion depth** on the same method or mutually recursive cluster.
-- **Call-graph expansion width** when a body fans out into many callees without contracts.
-- **Overload candidate count** for argument-sensitive dispatch.
-- **Operator ambiguity per call** when an operator like `<=` or `-` accepts many receiver types.
-- **Union size** for joined inferred returns.
-- **Structural requirement growth** when a capability summary keeps acquiring new members.
-- **Named-interface candidate matches**, used when role inference looks for matching named interfaces (see [structural-interfaces-and-object-shapes.md](../structural-interfaces-and-object-shapes/)).
+- 同じメソッドまたは相互再帰クラスターに対する**再帰深度**。
+- 本体がコントラクトなしで多くの呼び出し先にファンアウトするときの**呼び出しグラフ展開幅**。
+- 引数感度ディスパッチに対する**オーバーロード候補数**。
+- `<=`や`-`のような演算子が多くのレシーバー型を受け付けるときの**呼び出しごとの演算子の曖昧さ**。
+- ジョインされた推論戻り値の**ユニオンサイズ**。
+- ケイパビリティサマリーが新しいメンバーを取得し続けるときの**構造的要件の成長**。
+- ロール推論が名前付きインターフェースのマッチを探すときに使われる**名前付きインターフェース候補マッチ**（[structural-interfaces-and-object-shapes.md](../structural-interfaces-and-object-shapes/)参照）。
 
-Each budget produces an incomplete-inference result with a reason rather than a fabricated precise type. This keeps the inference compatible with the "no Rigor-specific inline type syntax in Ruby code" goal: the user resolves the cutoff with an accepted RBS-shaped contract, not with a Rigor-only DSL.
+各バジェットは作られた精密な型ではなく、理由を含む不完全推論の結果を生成します。これにより推論は「Rubyコードに特定のRigorインラインシグネチャ構文なし」という目標と互換性が保たれます: ユーザーはRigorのみのDSLではなく、受け付けられたRBS形状のコントラクトでカットオフを解決します。
