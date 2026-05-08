@@ -44,10 +44,10 @@ User.new      # Nominal[User]
 
 定数ルックアップは4つのソースを順に辿ります:
 
-1. **字句スコープ。** `Foo`が`class A; module B; ...`の内側で参照されている場合、Rigorは`A::B::Foo`、`A::Foo`、`Foo`を探します。
-2. **RBSコアとバンドルされたstdlib。** `String`、`Integer`、`Symbol`、`Array`、`Pathname`、`URI`、`OptParse`、`JSON`、`YAML`など。
-3. **プロジェクトRBS。** プロジェクトの`sig/`ファイルがルックアップに追加されます。
-4. **インソースクラス探索。** RBSが存在しない場合、Rigorは`class Foo`、`module Bar`、定数代入（`MAX = 100`）を辿ります。
+1. **字句スコープ**。 `Foo`が`class A; module B; ...`の内側で参照されている場合、Rigorは`A::B::Foo`、`A::Foo`、`Foo`を探します。
+2. **RBSコアとバンドルされたstdlib**。 `String`、`Integer`、`Symbol`、`Array`、`Pathname`、`URI`、`OptParse`、`JSON`、`YAML`など。
+3. **プロジェクトRBS**。 プロジェクトの`sig/`ファイルがルックアップに追加されます。
+4. **インソースクラス探索**。 RBSが存在しない場合、Rigorは`class Foo`、`module Bar`、定数代入（`MAX = 100`）を辿ります。
 
 ```ruby
 MAX = 100

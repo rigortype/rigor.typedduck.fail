@@ -171,8 +171,8 @@ end
 
 これには2つの効果があります:
 
-1. **呼び出し元チェック。** `Slug.new.normalise("")`は`Constant<"">`が`non-empty-string`を満たさないため、`call.argument-type-mismatch`になります。
-2. **本体側ナローイング。** `normalise`のメソッド本体内側で、パラメーター`id`は`non-empty-string`です。したがって`id.empty?`は`Constant<false>`に還元され、`id.size`は`positive-int`に還元されます。
+1. **呼び出し元チェック**。 `Slug.new.normalise("")`は`Constant<"">`が`non-empty-string`を満たさないため、`call.argument-type-mismatch`になります。
+2. **本体側ナローイング**。 `normalise`のメソッド本体内側で、パラメーター`id`は`non-empty-string`です。したがって`id.empty?`は`Constant<false>`に還元され、`id.size`は`positive-int`に還元されます。
 
 ## ランタイムが強制できないパラメーターオーバーライドが必要なとき
 
