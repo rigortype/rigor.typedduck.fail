@@ -49,4 +49,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy dist --project-name=rigor-typedduck-fail --branch=master
+          # `--commit-dirty=true` silences the warning Wrangler emits because
+          # the runner's working tree contains the freshly synced
+          # src/content/docs/reference/ files (gitignored, but still "dirty").
+          command: pages deploy dist --project-name=rigor-typedduck-fail --branch=master --commit-dirty=true

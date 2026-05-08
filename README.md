@@ -56,14 +56,29 @@ GitHub repository **Secrets and variables → Actions → Secrets**:
 - `CLOUDFLARE_ACCOUNT_ID` — the account ID shown on the right side
   of the Cloudflare dashboard home.
 
-Cloudflare side:
+Cloudflare side (one-time):
 
-- A **Pages** project named `rigor-typedduck-fail` exists. (If the
-  current project is Workers Builds, create a new Pages project via
-  Workers & Pages → Create → Pages → Direct Upload, name it the
-  same, and bind `rigor.typedduck.fail` as a custom domain.)
-- The Cloudflare-side **Git integration is disabled** so it does
-  not race the GitHub Actions workflow.
+- A **Pages** project named `rigor-typedduck-fail` exists. The
+  fastest way to create it is one local command:
+
+  ```sh
+  CLOUDFLARE_API_TOKEN=<token> \
+    npx wrangler pages project create rigor-typedduck-fail \
+      --production-branch master
+  ```
+
+  Or via dashboard: Workers & Pages → Create → Pages → Direct
+  Upload, name the project `rigor-typedduck-fail`, set the
+  production branch to `master`. (A *Workers Builds* project of
+  the same name does not satisfy this — `wrangler pages deploy`
+  only finds Pages-type projects, otherwise it fails with
+  `Project not found`.)
+
+- After the first successful deploy, attach the custom domain in
+  the dashboard under Workers & Pages → rigor-typedduck-fail →
+  Custom domains → Set up a custom domain → `rigor.typedduck.fail`.
+- Disable any Cloudflare-side Git integration on the project so
+  it does not race the GitHub Actions workflow.
 
 ## Translation workflow
 
