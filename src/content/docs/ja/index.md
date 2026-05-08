@@ -6,11 +6,11 @@ hero:
   title: Rigor
   tagline: Rubyソースに注釈を書かなくても、フローに応じた実用的な型フィードバックを返す静的解析器です。
   actions:
-    - text:ハンドブックを読む
+    - text: ハンドブックを読む
       link: /ja/reference/handbook/
       icon: right-arrow
       variant: primary
-    - text:ソースを見る
+    - text: ソースを見る
       link: https://github.com/rigortype/rigor
       icon: external
       variant: minimal
@@ -23,7 +23,7 @@ hero:
 ## ドキュメント構成
 
 - **ハンドブック**: Rigorを日常的に使うための手順中心の資料です。
-- **型仕様**:型モデル、型演算子、推論規則を扱います。
-- **内部仕様**:コントリビューター向けの実装上の契約をまとめます。
+- **型仕様**: 型モデル、型演算子、推論規則を扱います。
+- **内部仕様**: コントリビューター向けの実装上の契約をまとめます。
 - **設計判断**: upstreamリポジトリにあるADRと設計履歴です。
 

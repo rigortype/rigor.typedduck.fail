@@ -30,11 +30,18 @@ page:
    `!=` in Ruby) stay half-width.
 4. **Code fences and inline code are exempt.** Anything inside a fenced
    code block or between backticks preserves Western spacing as-is.
-   The frontmatter (YAML) is exempt for the same reason.
-5. **Markdown list markers keep their space.** The space after `1.`,
+5. **YAML frontmatter is exempt.** The `---` block at the top of every
+   page is parsed as YAML at build time, so its colons, hyphens, and
+   structure must not be normalised. The script splits the file on the
+   closing `---` and only touches the body.
+6. **Markdown list markers keep their space.** The space after `1.`,
    `2.`, `-`, `*`, `+` is required syntax; do not collapse it even if
    the next character is Japanese. The normaliser drops `.` from its
    ASCII boundary set for this reason.
+7. **Label colons keep their space.** Patterns like `**型仕様**: 型モデル`
+   or `text: ハンドブックを読む` rely on the space after `:` for
+   readability and (in YAML) for parseability. The normaliser drops `:`
+   from its ASCII boundary set for this reason.
 
 `scripts/normalize-ja-typography.mjs` applies these rules in bulk:
 

@@ -21,8 +21,10 @@ const JP = '[\\u3000-\\u303F\\u3040-\\u30FF\\u4E00-\\u9FFF\\uFF00-\\uFFEF々ー]
 const ASCII_RIGHT = '[A-Za-z0-9`(\\[*_]';
 // Intentionally omit `.` so Markdown ordered-list markers (`1. text`) keep
 // their required space; the digit before the period is enough to anchor
-// other "filename / version / abbreviation" cases.
-const ASCII_LEFT = '[A-Za-z0-9,;:!?)\\]`*_]';
+// other "filename / version / abbreviation" cases. Likewise omit `:` so
+// YAML-style and Markdown label patterns (`text: 内容`, `**型仕様**: 型モデル`)
+// keep their separating space.
+const ASCII_LEFT = '[A-Za-z0-9,;!?)\\]`*_]';
 
 for (const file of targets) {
   const original = await readFile(file, 'utf8');
@@ -36,10 +38,26 @@ for (const file of targets) {
 }
 
 function transform(content) {
-  const parts = content.split(/(^```[\s\S]*?^```)/gm);
-  return parts
+  // Pull off the YAML frontmatter so its colon-delimited fields are
+  // never touched. A frontmatter block is `---` on the first line,
+  // a body of arbitrary lines, then a closing `---` on its own line.
+  let frontmatter = '';
+  let body = content;
+  if (content.startsWith('---\n')) {
+    const closeIndex = content.indexOf('\n---', 4);
+    if (closeIndex !== -1) {
+      const afterClose = content.indexOf('\n', closeIndex + 4);
+      const splitAt = afterClose === -1 ? content.length : afterClose + 1;
+      frontmatter = content.slice(0, splitAt);
+      body = content.slice(splitAt);
+    }
+  }
+
+  const parts = body.split(/(^```[\s\S]*?^```)/gm);
+  const transformedBody = parts
     .map((part, index) => (index % 2 === 1 ? part : transformProse(part)))
     .join('');
+  return frontmatter + transformedBody;
 }
 
 function transformProse(text) {
