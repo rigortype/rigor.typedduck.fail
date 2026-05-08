@@ -1,523 +1,520 @@
 ---
-title: "ADR-1: Type Model and RBS Superset Strategy"
+title: "ADR-1: 型モデルとRBSスーパーセット戦略"
 description: "Imported from rigortype/rigor docs/adr/1-types.md."
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/adr/1-types.md"
 sourcePath: "docs/adr/1-types.md"
 sourceSha: "326605def11340f1234fa3c3b25431fdefade304b5862dce1880324971ae0d80"
 sourceCommit: "9f40e22193647dc06e3ab70c5ba82768b0bfe738"
-translationStatus: "pending"
+translationStatus: "translated"
 sidebar:
   order: 4001
 ---
 
-> [!NOTE]
-> このページはまだ翻訳されていません。英語版の本文を参考表示しています。
+## ステータス
 
-## Status
+ドラフト。
 
-Draft.
+ADR-1は型モデルの設計決定とその根拠を記録します。コンパニオンドキュメント`docs/types.md`は型仕様です。すなわち正規化・ナローイング・消去・シグネチャ処理・診断表層のレベルで解析器がどう振る舞うかを定義します。2つのドキュメントが同じ領域を議論するとき:
 
-ADR-1 records type-model design decisions and their rationale. The companion document `docs/types.md` is the type specification: it defines how the analyzer behaves at the level of normalization, narrowing, erasure, signature handling, and diagnostic surfaces. When the two documents discuss the same area:
+- `docs/types.md`は具体的な規則・デフォルト・予算を含む*解析器の挙動*について権威的です。
+- ADR-1は*なぜ決定が取られたか*と、フォローアップ作業のスコープを定める設計境界について権威的です。
+- 2つのドキュメントが観測可能な挙動で食い違うときは、`docs/types.md`を束縛するテキストとして扱い、ADR-1を一致するよう更新します。ADR-1は仕様にある挙動契約を黙って言い直してはいけません。
 
-- `docs/types.md` is authoritative for *what the analyzer does*, including concrete rules, defaults, and budgets.
-- ADR-1 is authoritative for *why a decision was taken* and for the design boundaries that scope follow-up work.
-- If the two documents diverge in observable behavior, treat `docs/types.md` as the binding text and update ADR-1 to match. ADR-1 should not silently restate a behavior contract that lives in the spec.
+ADR-1はまたプラグイン拡張API設計についてはADR-2に委ねます。ADR-1はADR-2が取り付けなければならない解析器側の表層（Scopeクエリ・ファクト貢献・能力役割・変異サマリー・診断識別子プレフィックス）のみを固定します。具体的なプラグインのライフサイクル・設定・マージ規則はADR-2で規範的です。
 
-ADR-1 also defers to ADR-2 for plugin extension API design. ADR-1 only fixes the analyzer-side surface that ADR-2 must attach to (Scope queries, fact contributions, capability roles, mutation summaries, diagnostic identifier prefixes); concrete plugin lifecycle, configuration, and merging rules are normative in ADR-2.
+## コンテキスト
 
-## Context
+Rigorは推論ファーストのRuby静的解析器です。既存のRBSエコシステムと相互運用しつつ、RBSが表現できるよりも精密な内部型をサポートしなければなりません。
 
-Rigor is an inference-first static analyzer for Ruby. It must interoperate with the existing RBS ecosystem while supporting internal types that are more precise than RBS can express.
+RBSはすでにリッチな型構文を定義しており、これには名前的型・シングルトンクラス型・リテラル型・unions・交差・オプショナル・レコード・タプル・proc型・型変数・`self`・`instance`・`class`・`bool`・`untyped`・`nil`・`top`・`bot`・`void`が含まれます。
 
-RBS already defines a rich type syntax, including nominal types, singleton class types, literal types, unions, intersections, optionals, records, tuples, proc types, type variables, `self`, `instance`, `class`, `bool`, `untyped`, `nil`, `top`, `bot`, and `void`.
+RigorはまたPHPStan・TypeScript・Pythonのtyping仕様から積極的に学ぶべきです。それらのシステムは、実用的な静的解析がリテラル型・有限union・制御フローナローイング・否定的ファクト・シェイプ型・グラデュアル型付け規律・表現力のある型演算子の恩恵を受けることを示します。Rigorはそれらの構文を批判的検討なしにコピーするのではなく、RubyとRBSにそれらのアイデアを適応させるべきです。
 
-Rigor should also learn aggressively from PHPStan, TypeScript, and Python's typing specification. Those systems demonstrate that practical static analysis benefits from literal types, finite unions, control-flow narrowing, negative facts, shape-like types, gradual typing discipline, and expressive type operators. Rigor should adapt those ideas to Ruby and RBS rather than copying their syntax uncritically.
+初期設計要件は以下のとおりです。
 
-The initial design requirement is:
+- すべてのRBS型は有効なRigor型であり、RBS→Rigorの方向は*無損失*です。すなわち任意のRBS型はRigorの内部表現を通じて精度を失わずにラウンドトリップします。`Dynamic[T]`のような内部ラッパーは境界で可逆です。
+- RigorはRBSよりリッチな型を推論してかまいません。
+- すべてのRigorで推論された型は有効なRBSに保守的に消去できますが、Rigor→RBSの方向は一般的に*無損失ではありません*。すなわち消去はリファインメント・リテラルunion・シェイプ・動的起源のproductnanceを縮退させるかもしれません。消去はRigorが証明したより狭い型を決して生成してはなりませんが、より広い型を生成してかまいません。
+- `untyped`・`top`・`bot`・`void`のような特別なRBS型は、アドホックなエイリアスとしてではなく、型理論的な明確さで処理されなければなりません。
+- RBSを超える型は、暫定的な`RBS::Extended`規約の下でRBS注釈に記録されてかまいません。
 
-- Every RBS type is a valid Rigor type, and the RBS→Rigor direction is *lossless*: any RBS type round-trips through Rigor's internal representation without losing precision. Internal wrappers such as `Dynamic[T]` are reversible at the boundary.
-- Rigor may infer richer types than RBS.
-- Every Rigor-inferred type can be conservatively erased to valid RBS, but the Rigor→RBS direction is generally *not* lossless: erasure may collapse refinements, literal unions, shapes, and dynamic-origin provenance. Erasure must never produce a narrower type than Rigor proved, but it may produce a wider one.
-- Special RBS types such as `untyped`, `top`, `bot`, and `void` must be handled with type-theoretic clarity rather than as ad hoc aliases.
-- Types that exceed RBS may be recorded in RBS annotations under a provisional `RBS::Extended` convention.
+互換性階層は以下のとおりです。
 
-The compatibility hierarchy is:
+- RBSとrbs-inlineは型構文とインライン注釈互換性についての一次規範です。
+- Steep 2.0の挙動は、散文仕様が挙動を開いておくときに既存の注釈がどう解釈されるかについての二次規範です。
+- TypeScript・PHPStan・Pythonのtypingは、欠けた概念と実用的な解析器機能を見つけるために用いる設計参照です。それらは構文互換性ターゲットではありません。
 
-- RBS and rbs-inline are first-order norms for type syntax and inline annotation compatibility.
-- Steep 2.0 behavior is the second-order norm for how existing annotations are interpreted when prose specifications leave behavior open.
-- TypeScript, PHPStan, and Python typing are design references used to find missing concepts and practical analyzer features; they are not syntax compatibility targets.
+このADRはRigorチェックアウト内の指示的参照パスとして`references/`下の位置（例えば`references/phpstan/...`・`references/typescript/...`・`references/python-typing/...`）を引用します。正確なファイルと行番号は`make init-submodules`で設定されたサブモジュールリビジョンに依存します。特定のチェックアウトでパスが解決しない場合、引用を厳格な参照ではなく対応するリビジョンの上流リポジトリへのポインタとして扱ってください。
 
-This ADR cites locations under `references/` (for example `references/phpstan/...`, `references/typescript/...`, `references/python-typing/...`) as indicative reference paths inside the Rigor checkout. The exact files and line numbers depend on the submodule revisions configured by `make init-submodules`. If a path does not resolve in a particular checkout, treat the citation as a pointer into the upstream repository at the corresponding revision rather than as a hard reference.
+## ゴール
 
-## Goals
+- 入力と出力についてRBS互換性を保ちます。
+- アプリケーションコードをRigor固有のインライン型構文から自由に保ちます。Rigorは依然として既存のRBS・rbs-inline・Steep互換の注釈コメントを型ソースとして消費してかまいません。
+- 精密な制御フローとデータフロー推論をサポートします。
+- Rubyのセマンティクスに合うところでPHPStan・TypeScript・Pythonスタイルのナローイングをサポートします。
+- グラデュアル型付け境界を明示的にします。
+- エクスポートされたRBSを保守的かつ説明可能にします。
+- フレームワークの挙動をコアに焼き込まずに、プラグイン提供の型ファクトの余地を保ちます。
 
-- Preserve RBS compatibility for input and output.
-- Keep application code free of Rigor-specific inline type syntax. Rigor may still consume existing RBS-, rbs-inline-, and Steep-compatible annotation comments as type sources.
-- Support precise control-flow and data-flow inference.
-- Support PHPStan-, TypeScript-, and Python-style narrowing where it fits Ruby semantics.
-- Make gradual typing boundaries explicit.
-- Make exported RBS conservative and explainable.
-- Keep room for plugin-provided type facts without baking framework behavior into the core.
+## 非ゴール
 
-## Non-Goals
+- Rigorは互換性のないシグネチャ言語を発明する必要はありません。
+- Rigorは生成されたRBSにすべての内部リファインメントを公開する必要はありません。
+- Rigorは基底セマンティクスを実装する前にすべての型演算子構文を確定する必要はありません。
+- Rigorは最初のMVPで完全な最終型格子を実装する必要はありません。
 
-- Rigor does not need to invent an incompatible signature language.
-- Rigor does not need to expose every internal refinement in generated RBS.
-- Rigor does not need to finalize every type operator syntax before implementing the underlying semantics.
-- Rigor does not need to implement the complete final type lattice in the first MVP.
+## 検討された選択肢
 
-## Options Considered
+### Option A: RBS型のみを使う
 
-### Option A: Use RBS Types Only
+RigorはRBSが綴ることができる型を正確に表現できるかもしれません。
 
-Rigor could represent exactly the types RBS can spell.
+利点:
 
-Benefits:
+- 単純なエクスポート経路。
+- 既存ツールとの密接な整合。
+- 小さな初期実装。
 
-- Simple export path.
-- Close alignment with existing tooling.
-- Smaller initial implementation.
+欠点:
 
-Drawbacks:
+- 推論はリテラルセット・整数境界・真偽値リファインメント・動的起源provenanceのような有用なファクトを失います。
+- 診断はあまり精密でなくなります。
+- `void`と`untyped`は早期に広いエイリアスとして扱われがちです。
+- PHPStan・TypeScript・Pythonスタイルのリファインメントはうまく表現できません。
 
-- Inference loses useful facts, such as literal sets, integer bounds, truthiness refinements, and dynamic-origin provenance.
-- Diagnostics become less precise.
-- `void` and `untyped` are likely to be treated as broad aliases too early.
-- PHPStan-, TypeScript-, and Python-style refinements cannot be represented well.
+### Option B: 保守的な消去を伴うRBSスーパーセットを使う
 
-### Option B: Use a RBS Superset with Conservative Erasure
+Rigorはすべてのrbs型を表現し、内部専用のリファインメントを追加できます。エクスポートはそれらのリファインメントを保守的なRBSへ変換します。
 
-Rigor can represent every RBS type and add internal-only refinements. Export converts those refinements back to conservative RBS.
+利点:
 
-Benefits:
+- RBSを相互運用フォーマットとして保ちます。
+- 精密な推論と診断を可能にします。
+- グラデュアル型付けと高度なリファインメントへの原則的経路を提供します。
+- 肯定的・否定的ファクトを伴う制御フロー解析をサポートします。
+- アプリケーションコード注釈なしの推論ファースト解析というプロジェクトゴールと一致します。
 
-- Keeps RBS as the interoperability format.
-- Allows precise inference and diagnostics.
-- Provides a principled path for gradual typing and advanced refinements.
-- Supports control-flow analysis with positive and negative facts.
-- Matches the project goal of inference-first analysis without application-code annotations.
+欠点:
 
-Drawbacks:
+- 実際の消去パスが必要です。
+- 別個の正規化・部分型・一貫性ロジックが必要です。
+- エクスポートされたRBSがRigorの内部型より精密でないとき、ユーザーは説明が必要かもしれません。
+- Rigor専用の型演算子の構文は注意深く設計されなければなりません。
 
-- Requires a real erasure pass.
-- Requires separate normalization, subtyping, and consistency logic.
-- Users may need explanations when exported RBS is less precise than Rigor's internal type.
-- The syntax for Rigor-only type operators must be designed carefully.
+### Option C: RBSと`RBS::Extended`注釈のみを使う
 
-### Option C: Use RBS Plus `RBS::Extended` Annotations Only
+Rigorは独立した内部型モデルを避け、すべての拡張をRBS注釈として表現できるかもしれません。
 
-Rigor could avoid an independent internal type model and represent every extension as RBS annotations.
+利点:
 
-Benefits:
+- すべての明示的な型メタデータをRBS宣言・メンバー・オーバーロードに取り付けたまま保ちます。
+- 標準のRBSパーサに対して見えないままです。
+- 高度なライブラリシグネチャへの移行経路を提供します。
 
-- Keeps all explicit type metadata attached to RBS declarations, members, or overloads.
-- Remains invisible to standard RBS parsers.
-- Provides a migration path for advanced library signatures.
+欠点:
 
-Drawbacks:
+- CFAが生成する推論されたファクトには注釈は十分ではありません。
+- 注釈を構造化されない第2言語に変えるリスクがあります。
+- 内部正規化・部分型・消去を解決しません。
 
-- Annotations are not enough for inferred facts produced by CFA.
-- It risks turning annotations into an unstructured second language.
-- It does not solve internal normalization, subtyping, or erasure.
+### Option D: 別個のRigorシグネチャ言語を作る
 
-### Option D: Create a Separate Rigor Signature Language
+Rigorは新しい完全なシグネチャ言語を定義し、オプショナルにRBSを生成できるかもしれません。
 
-Rigor could define a new full signature language and optionally generate RBS.
+利点:
 
-Benefits:
+- 最大の表現力。
+- 内部概念をRBSの制約に合わせる必要がない。
 
-- Maximum expressiveness.
-- No need to fit internal concepts into RBS constraints.
+欠点:
 
-Drawbacks:
-
-- Splits the ecosystem.
-- Adds learning and maintenance cost.
-- Conflicts with the goal of using existing RBS types for dependencies.
-- Encourages annotation workflows that Rigor is intentionally avoiding.
+- エコシステムを分裂させます。
+- 学習と保守コストを追加します。
+- 依存関係に既存のRBS型を使うというゴールと衝突します。
+- Rigorが意図的に避けている注釈ワークフローを助長します。
 
 ## Working Decision
 
-Adopt Option B, with a constrained part of Option C: Rigor's type language is a strict superset of RBS with conservative RBS erasure, and `RBS::Extended` annotations may describe Rigor-only facts in `*.rbs` files.
+Option Bを、Option Cの制約された一部とともに採用します。すなわちRigorの型言語は保守的なRBS消去を伴うRBSの厳格なスーパーセットであり、`RBS::Extended`注釈は`*.rbs`ファイルにRigor専用のファクトを記述してかまいません。
 
-RBS remains the boundary format. Rigor's internal type representation may include refinements that RBS cannot express, but those refinements must always have a valid RBS erasure.
+RBSは境界フォーマットのままです。Rigorの内部型表現はRBSが表現できないリファインメントを含んでかまいませんが、それらのリファインメントは常に有効なRBS消去を持たなければなりません。
 
-`RBS::Extended` annotations are metadata layered on top of ordinary RBS. They are not a replacement for internal inference and should not require annotations in Ruby application code.
+`RBS::Extended`注釈は通常のRBSの上に重ねられるメタデータです。それは内部推論の代替ではなく、Rubyのアプリケーションコード内で注釈を要求するべきではありません。
 
-How Rigor *chooses* between candidate types when authoring its own signatures (built-in catalog entries, inferred user-method types, RBS::Extended payloads) is governed by the asymmetric robustness principle in [ADR-5](../5-robustness-principle/): strict returns to maximise downstream precision propagation, lenient parameters to avoid forcing callers to paste defensive coercions. Hand-written RBS authorship binds; the principle directs the default choice when Rigor authors the signature itself.
+Rigorが自身のシグネチャ（組み込みカタログエントリ・推論されたユーザーメソッド型・RBS::Extendedペイロード）を書くときに候補型から*選ぶ*方法は、[ADR-5](../5-robustness-principle/)の非対称頑健性原則によって統治されます。すなわち下流の精度伝播を最大化するための厳格な戻り値、呼び出し元に防御的な強制を貼り付けるよう強いるのを避けるための寛容な引数です。手書きのRBSオーサリングが束縛します。原則はRigor自身がシグネチャを書くときのデフォルト選択を導きます。
 
-## Key Design Points
+## キー設計ポイント
 
-### Subtyping and Gradual Consistency Are Separate
+### 部分型とグラデュアル一貫性は分離されている
 
-Rigor should distinguish ordinary subtyping from gradual consistency.
+Rigorは通常の部分型とグラデュアル一貫性を区別すべきです。
 
-`top` is the greatest static value type. `bot` is the empty type. `untyped` is the dynamic type and should not be collapsed into `top`, even though RBS describes it as both a subtype and supertype of all types for gradual typing purposes.
+`top`は最大の静的値型です。`bot`は空型です。`untyped`は動的型であり、RBSがグラデュアル型付けのためにそれをすべての型の部分型かつ上位型と記述していても、`top`に縮退させてはいけません。
 
-This separation lets Rigor keep track of unchecked boundaries while still allowing gradual code to type-check.
+この分離により、グラデュアルコードが型検査されることを依然として許しつつ、Rigorはチェックされていない境界を追跡できます。
 
-Internally, dynamic-origin values should be represented as `Dynamic[T]`, where `T` is the currently known static facet. Raw `untyped` is `Dynamic[top]`. This is not user-facing RBS syntax; it is the implementation device that lets Rigor narrow an unchecked value without losing the fact that the value came from a gradual boundary.
+内部的には、動的起源の値は`Dynamic[T]`として表現されるべきで、ここで`T`は現在知られている静的ファセットです。素の`untyped`は`Dynamic[top]`です。これはユーザー向けのRBS構文ではありません。これは、値がグラデュアル境界から来たという事実を失うことなく、Rigorがチェックされていない値を絞り込めるようにする実装装置です。
 
-The dynamic algebra preserves the static facet through the ordinary type operators while keeping the dynamic-origin marker:
+動的代数は、動的起源マーカーを保ちつつ、通常の型演算子を通じて静的ファセットを保ちます。
 
 - `Dynamic[A] | Dynamic[B] = Dynamic[A | B]`
 - `T | Dynamic[U] = Dynamic[T | U]`
 - `Dynamic[T] & U = Dynamic[T & U]`
 - `Dynamic[T] - U = Dynamic[T - U]`
 
-Generic positions preserve dynamic-origin slots. `Array[untyped]` becomes `Array[Dynamic[top]]`, so element reads, writes, and leaks can be explained precisely. Subtyping and member lookup still use the static facet when one is available; gradual consistency only applies at the dynamic boundary.
+ジェネリック位置は動的起源スロットを保ちます。`Array[untyped]`は`Array[Dynamic[top]]`になるため、要素の読み込み・書き込み・漏れを精密に説明できます。部分型とメンバールックアップは利用可能なときに依然として静的ファセットを使います。グラデュアル一貫性は動的境界でのみ適用されます。
 
-Strict modes use this provenance rather than changing the core relation. One level may report dynamic-to-precise boundary crossings and unchecked generic leaks; a stricter level may also report operations whose proof depends on dynamic-origin facts.
+厳格モードはコア関係を変えるのではなく、このprovenanceを使います。あるレベルは動的から精密への境界横断とチェックされないジェネリック漏れを報告するかもしれません。より厳格なレベルは、証明が動的起源ファクトに依存する操作も報告するかもしれません。
 
-The documentation should write the gradual-consistency relation as `consistent(A, B)`, not `A ~ B`, because `~T` is reserved for negative or complement types.
+ドキュメンテーションは、`~T`が否定または補集合の型のために予約されているため、グラデュアル一貫性関係を`A ~ B`ではなく`consistent(A, B)`として書くべきです。
 
-Display of `Dynamic[T]` follows the diagnostic identifier system. Diagnostics outside the `dynamic.*` family render the narrowed static facet `T` with a small `from untyped` provenance note rather than the wrapped form, because the dynamic origin is incidental to most user-facing messages. Diagnostics in `dynamic.*` and explanations requested through `rigor explain` show the full `Dynamic[T]` form. Internal traces, cache keys, and plugin `Scope` queries always retain the wrapped form regardless of display choices, so reasoning chains across plugins and refactors remain stable.
+`Dynamic[T]`の表示は診断識別子システムに従います。`dynamic.*`ファミリー外の診断は、動的起源がほとんどのユーザー向けメッセージにとって付随的であるため、ラップされた形式ではなく絞り込まれた静的ファセット`T`に小さな`from untyped` provenance注を付けてレンダリングします。`dynamic.*`内の診断と`rigor explain`を通じて要求された説明は、完全な`Dynamic[T]`形式を表示します。内部トレース・キャッシュキー・プラグインの`Scope`クエリは、表示選択に関係なく常にラップされた形式を保持するため、プラグインとリファクタにわたる推論チェーンは安定したままです。
 
-### Trinary Certainty Is Not a Proof System Shortcut
+### 3値の確信度は証明システムの近道ではない
 
-Relationship queries should return `yes`, `no`, or `maybe` when uncertainty is meaningful. `yes` and `no` are reserved for results that are proven under the current source, accepted signatures, plugin facts, and analyzer assumptions. `maybe` means the analyzer cannot prove either side.
+関係クエリは、不確実性が意味あるとき`yes`・`no`・`maybe`を返すべきです。`yes`と`no`は、現在のソース・受け付けられたシグネチャ・プラグインファクト・解析器の仮定の下で証明された結果のために予約されています。`maybe`は、解析器がどちらの側も証明できないことを意味します。
 
-Accepted method signatures still define trusted method-boundary contracts. Parameters and called method return values are analyzed according to their accepted RBS, rbs-inline, Steep-compatible, generated, or `RBS::Extended` contracts; Rigor does not turn every value received from another method into an uncertain value merely because the implementation is elsewhere.
+受け付けられたメソッドシグネチャは、依然として信頼できるメソッド境界契約を定義します。引数と呼ばれたメソッドの戻り値は、受け付けられたRBS・rbs-inline・Steep互換・生成された・`RBS::Extended`契約に従って解析されます。Rigorは、実装が別の場所にあるという理由だけで他のメソッドから受け取ったすべての値を不確実な値にしません。
 
-`maybe` is not enough to narrow as though the relationship were `yes`, and it does not imply the opposite edge as though the relationship were `no`. It may be retained as a weak relational, member-existence, dynamic-origin, or plugin-provenance fact for diagnostics. Repeated `maybe` evidence remains `maybe` unless a stronger proof is supplied.
+`maybe`は関係が`yes`であるかのように絞り込むには十分ではなく、関係が`no`であるかのように反対側エッジを示唆もしません。診断のために弱い関係的・メンバー存在・動的起源・プラグインprovenanceファクトとして保持されてかまいません。繰り返しの`maybe`証拠は、より強い証明が提供されない限り`maybe`のままです。
 
-Diagnostics for `maybe` are policy-driven. Like PHPStan error levels, Rigor should leave room for a permissive level that accepts maybe-dependent calls without reporting them and stricter levels that report uncertain method calls, role matches, or branch proofs.
+`maybe`の診断はポリシー駆動です。PHPStanのエラーレベルのように、Rigorは、それらを報告せずにmaybe依存の呼び出しを受け入れる寛容なレベルと、不確実なメソッド呼び出し・役割マッチ・分岐証明を報告するより厳格なレベルの余地を残すべきです。
 
-`maybe` and incomplete inference are distinct concepts and must not be conflated:
+`maybe`と不完全な推論は別個の概念であり、混同されてはいけません。
 
-- `maybe` is a *relational query result*. It answers a question such as subtype relationship, structural compatibility, or member existence with three values. It applies even when inference is complete: the analyzer simply cannot prove either side under the available evidence.
-- Incomplete inference is an *analyzer outcome* triggered by a budget cutoff (recursion depth, call-graph width, operator ambiguity, and so on). It produces a `static.*` diagnostic with a reason and a placeholder type such as `Dynamic[top]` or another conservative incomplete-inference marker. The cutoff is independent of any specific relational question.
-- The two compose. A relational query against a placeholder type is allowed to return `maybe` because the missing precision prevents a `yes`/`no` answer, but the underlying cause is the cutoff and the diagnostic identifies it as such. Implementers must not collapse "stopped early" into a relational `maybe` that hides the cutoff from users.
+- `maybe`は*関係クエリの結果*です。部分型関係・構造的互換性・メンバー存在のような問いに3つの値で答えます。推論が完全であっても適用されます。すなわち解析器は単に利用可能な証拠の下でどちらの側も証明できないだけです。
+- 不完全な推論は、予算カットオフ（再帰深度・コールグラフ幅・演算子の曖昧さなど）によって引き起こされる*解析器の結果*です。それは理由とプレースホルダー型（`Dynamic[top]`または別の保守的な不完全推論マーカー）を伴う`static.*`診断を生成します。カットオフは特定の関係的問いから独立しています。
+- 2つは合成します。プレースホルダー型に対する関係クエリは、欠けている精度が`yes`/`no`の答えを妨げるため`maybe`を返すことが許されますが、根本的な原因はカットオフであり、診断はそうとして識別します。実装者は、ユーザーからカットオフを隠す関係的`maybe`に「早期停止」を縮退してはいけません。
 
-### PHPStan Compared with RBS
+### PHPStanとRBSの比較
 
-The PHPStan documentation in `references/phpstan/website/src/writing-php-code/` is useful because it describes the feature surface of a mature analyzer for a dynamic language. PHPStan is not a compatibility target, and PHPDoc syntax should not become Rigor syntax, but its features are a strong checklist for what users eventually expect from precise static analysis.
+`references/phpstan/website/src/writing-php-code/`のPHPStanドキュメンテーションは、動的言語のための成熟した解析器の機能表層を記述するため有用です。PHPStanは互換性ターゲットではなく、PHPDoc構文はRigor構文になるべきではありませんが、その機能は精密な静的解析からユーザーが最終的に期待するものの強いチェックリストです。
 
-| Area | PHPStan | RBS and Rigor implication |
+| 領域 | PHPStan | RBSとRigorの含意 |
 | --- | --- | --- |
-| Annotation boundary | PHPStan combines PHP native typehints with PHPDoc tags on functions, methods, properties, classes, local variables, and vendor stub files. PHPDocs augment native hints when PHP syntax is too weak. | Rigor keeps Ruby application code free of Rigor-specific annotation DSLs. RBS, rbs-inline, and Steep-compatible annotations are accepted type sources, while `RBS::Extended` annotations or external signatures are the place for Rigor-only extra facts. Inline Ruby comments should not become the main correction mechanism for Rigor-specific refinements. |
-| Trust and source of truth | PHPStan trusts inline `@var` assertions and recommends fixing types at the source with better PHPDocs, stubs, generics, assertions, or extensions. | Rigor should prefer RBS signatures, generated facts, and checked assertions over local override comments. Any future local override should be visibly unsafe and should not silently replace inferred facts without diagnostics. |
-| Dynamic type | PHPStan `mixed` permits unchecked operations. It distinguishes implicit `mixed`, caused by missing types, from explicit `mixed`, and stricter rule levels limit what can be done with it. | RBS `untyped` is the dynamic type. Rigor should preserve dynamic-origin provenance so strict modes can distinguish deliberate `untyped` from missing or inferred-unknown information. |
-| Basic scalar and object types | PHPStan has PHP-shaped scalar, object, resource, callable, iterable, and class/interface names, plus aliases such as `int` and `integer`. | Rigor should use RBS and Ruby names as canonical. PHP aliases are reference material only; Ruby core classes, singleton class types, interfaces, and RBS built-ins define the surface. |
-| `void` and bottom | PHPStan uses `void` for no useful return value and aliases such as `never` for early-terminating calls. `@return never` also helps undefined-variable analysis after exits or redirects. | RBS already has `void` and `bot`. Rigor should keep `void` as a no-use return marker and use `bot` for non-returning control flow, early termination, impossible branches, and exhaustiveness. |
-| Unions, intersections, and parentheses | PHPStan supports unions, intersections, and grouping in PHPDoc types. | RBS already supports unions and intersections. Rigor should preserve RBS syntax at the boundary and use normalization internally for precise diagnostics. |
-| Literal and constant types | PHPStan accepts scalar literals and class or global constants, including wildcard-like constant enumerations. | RBS supports literal types. Rigor can use literal unions and selected constant expansion internally, but constant-pattern enumeration should follow Ruby constant semantics rather than PHP class-constant syntax. |
-| Integer refinements | PHPStan has named integer refinements and ranges such as positive, non-zero, and bounded integer intervals. | Rigor should keep useful refinements such as `positive-int` and `non-zero-int`, but Ruby/RBS-shaped range notation such as `Integer[1..10]` is preferable to PHPStan syntax. |
-| String refinements | PHPStan has `non-empty-string`, `literal-string`, `numeric-string`, case refinements, decimal-int strings, and PHP-truthiness-oriented string types. | Rigor should import only refinements that make sense for Ruby. `non-empty-string`, `literal-string`, `numeric-string`, `lowercase-string`, `uppercase-string`, and `decimal-int-string` are plausible; PHP truthiness spellings such as `truthy-string` are not useful because Ruby strings are always truthy. |
-| Arrays, lists, and iterables | PHPStan distinguishes homogeneous arrays, non-empty arrays, lists with sequential integer keys, iterables with key and value types, and collection-like traversable classes. | RBS has arrays, tuples, records, and enumerable-like library signatures. Rigor should infer array/list/iterator element facts where useful, but Ruby `Array[T]`, tuples, records, and library RBS should remain the export forms. |
-| Array and object shapes | PHPStan array shapes support required and optional keys, tuple-like numeric keys, class-constant keys, `list{...}`, and non-empty shape forms. Object shapes describe public read-only properties, with intersections used to regain writability. | RBS records and tuples cover part of this space. Rigor should infer richer hash, keyword, tuple, and object shapes internally, including optional keys and open or closed extra-key policies, then erase them to RBS records, tuples, `Hash[K, V]`, interfaces, nominal types, or `top`. |
-| Key and value projection | PHPStan has `key-of`, `value-of`, and offset access such as `T[K]`, especially for arrays and generic attribute maps. | Rigor should support the semantics of key projection, value projection, and indexed access for records, tuples, hashes, keyword arguments, and object shapes, using canonical forms such as `key_of[T]`, `value_of[T]`, and `T[K]`. |
-| Type aliases | PHPStan supports global configured aliases plus local `@phpstan-type` aliases and `@phpstan-import-type`. | RBS already has type aliases. Rigor should use RBS aliases for shared names and reserve `RBS::Extended` metadata for facts that ordinary RBS cannot express, rather than adding a second alias system. |
-| Generics and variance | PHPStan defines generic classes, interfaces, traits, functions, and methods with `@template`, bounds, defaults, declaration-site variance, call-site variance, and star projections. | RBS already has generics and variance for declarations. Rigor should preserve RBS generic boundaries, consider call-site variance and unknown-argument projections as future internal checking tools, and avoid importing PHPDoc template syntax. |
-| Conditional and dependent returns | PHPStan conditional return types, `template-type`, and `new` express return types dependent on argument types, generic arguments, or class-name strings. | Rigor should model argument-sensitive and receiver-sensitive return facts as inference, overload selection, or `RBS::Extended` metadata. Class-name-string projections are less central in Ruby than class objects and `singleton(C)`. |
-| Class-name strings | PHPStan has `class-string<T>`, `interface-string`, `trait-string`, and `enum-string`, narrowed by calls such as `class_exists`. | Ruby can pass class and module objects directly. Rigor should prefer `singleton(C)` and object-level facts; string-to-class projections are deferred and should be designed around Ruby constant lookup and factory APIs. |
-| Callable precision | PHPStan PHPDocs can specify callable signatures, pure callables, generic closures, by-reference parameters, variadic parameters, immediate versus later invocation, and closure `$this` rebinding. | RBS already has method, proc, block, overload, optional, keyword, rest, and self-related forms. Rigor should model Ruby blocks, procs, lambdas, receiver binding, purity, and invocation timing as separate facts where they affect flow analysis. |
-| Magic members and mixins | PHPStan uses `@property`, `@method`, and `@mixin` to describe `__get`, `__set`, `__call`, delegation, and framework-style dynamic APIs. | Ruby has `method_missing`, `respond_to_missing?`, delegation, `include`, `extend`, and metaprogramming. Rigor should keep these out of core syntax where possible and represent them through RBS members, interfaces, generated signatures, and future plugin facts. |
-| Flow narrowing | PHPStan narrows through strict comparisons, type-checking functions, `instanceof`, `assert`, assertion libraries, and custom type-specifying extensions. | Rigor should implement Ruby-specific CFA using equality, `nil?`, `is_a?`, `kind_of?`, `instance_of?`, `respond_to?`, pattern matching, returns, raises, assertions, and plugin facts. The narrowed facts are internal even when they were motivated by signature metadata. |
-| Predicate and assertion metadata | PHPStan's `@phpstan-assert`, `@phpstan-assert-if-true`, and `@phpstan-assert-if-false` can narrow parameters, properties, and method return values, including negated assertions and true-only equality assertions. | RBS has no predicate return type. Rigor should use `RBS::Extended` flow effects for assertion behavior, support positive and negative branch facts, and allow an explicit form for true-only narrowing when the false branch does not imply the complement. |
-| Out and self effects | PHPStan can describe by-reference output parameters with `@param-out` and receiver type changes with `@phpstan-self-out` or `@phpstan-this-out`. | Ruby does not have PHP-style by-reference parameters, but methods can mutate receivers and arguments. Rigor should model receiver, argument, instance-variable, and shape mutation as effects, not as ordinary return types. |
-| Exceptions, deprecations, and internal APIs | PHPStan reads tags such as `@throws`, `@deprecated`, `@not-deprecated`, and `@internal`, with extensions for richer policies. | These are analyzer features around symbols and control flow more than value types. Rigor should eventually attach equivalent facts to RBS declarations or project configuration, while keeping the core value type language focused. |
-| Extensions and configuration | PHPStan exposes stub files, dynamic return type extensions, type-specifying extensions, parameter-out extensions, closure extensions, early-terminating call configuration, and extension packages. | This strongly supports Rigor's plugin direction. Framework- and library-specific facts should be contributed by signatures, configuration, generated RBS, or plugins rather than by hard-coding framework behavior into the core analyzer. |
+| 注釈境界 | PHPStanは関数・メソッド・プロパティ・クラス・ローカル変数・ベンダースタブファイル上のPHPDocタグとPHPネイティブ型ヒントを組み合わせます。PHPDocはPHP構文が弱すぎるときネイティブヒントを補完します。 | RigorはRubyのアプリケーションコードをRigor固有の注釈DSLから自由に保ちます。RBS・rbs-inline・Steep互換の注釈は受け入れられた型ソースであり、`RBS::Extended`注釈または外部シグネチャはRigor専用の追加ファクトの場所です。インラインRubyコメントは、Rigor固有のリファインメントの主要な訂正機構になるべきではありません。 |
+| 信頼と真実のソース | PHPStanはインラインの`@var`アサーションを信頼し、より良いPHPDoc・スタブ・ジェネリクス・アサーション・拡張でソースで型を直すことを推奨します。 | RigorはローカルオーバーライドコメントよりRBSシグネチャ・生成されたファクト・チェックされたアサーションを好むべきです。将来のローカルオーバーライドは目に見えて安全でなく、診断なしに推論されたファクトを黙って置き換えるべきではありません。 |
+| 動的型 | PHPStanの`mixed`はチェックされない操作を許します。それは欠けた型によって引き起こされる暗黙の`mixed`を明示的な`mixed`から区別し、より厳格なルールレベルでそれで何ができるかを制限します。 | RBSの`untyped`は動的型です。Rigorは動的起源のprovenanceを保つべきで、これにより厳格モードは意図的な`untyped`を欠落または推論不能の情報から区別できます。 |
+| 基本スカラーとオブジェクト型 | PHPStanはPHP形のスカラー・オブジェクト・リソース・callable・iterable・クラス／インターフェイス名を持ち、加えて`int`や`integer`のようなエイリアスを持ちます。 | RigorはRBSとRubyの名前を標準として使うべきです。PHPエイリアスは参考資料のみです。Rubyのコアクラス・シングルトンクラス型・インターフェイス・RBS組み込みが表層を定義します。 |
+| `void`とbottom | PHPStanは有用な戻り値がないことに`void`を使い、早期終了する呼び出しに`never`のようなエイリアスを使います。`@return never`はexitやリダイレクト後の未定義変数解析にも役立ちます。 | RBSはすでに`void`と`bot`を持っています。Rigorは`void`を未使用の戻り値マーカーとして保ち、戻らない制御フロー・早期終了・不可能な分岐・網羅性に`bot`を使うべきです。 |
+| Union・交差・括弧 | PHPStanはPHPDoc型でunion・交差・グループ化をサポートします。 | RBSはすでにunionと交差をサポートしています。Rigorは境界でRBS構文を保ち、精密な診断のために内部で正規化を使うべきです。 |
+| リテラルとconstant型 | PHPStanはスカラーリテラルとクラスまたはグローバル定数を受け入れ、ワイルドカードのような定数列挙を含みます。 | RBSはリテラル型をサポートします。Rigorは内部でリテラルunionと選択された定数展開を使えますが、定数パターン列挙はPHPのクラス定数構文ではなくRubyの定数セマンティクスに従うべきです。 |
+| 整数リファインメント | PHPStanはpositive・non-zero・境界付き整数区間のような名前付き整数リファインメントと範囲を持ちます。 | Rigorは`positive-int`や`non-zero-int`のような有用なリファインメントを保つべきですが、`Integer[1..10]`のようなRuby/RBS形の範囲表記がPHPStan構文より好ましいです。 |
+| 文字列リファインメント | PHPStanは`non-empty-string`・`literal-string`・`numeric-string`・caseリファインメント・decimal-int文字列・PHP真偽値指向の文字列型を持ちます。 | RigorはRubyに意味のあるリファインメントのみを取り入れるべきです。`non-empty-string`・`literal-string`・`numeric-string`・`lowercase-string`・`uppercase-string`・`decimal-int-string`はもっともらしいです。Ruby文字列は常に真値であるため、`truthy-string`のようなPHP真偽値の綴りは有用ではありません。 |
+| 配列・リスト・iterable | PHPStanは同質配列・空でない配列・連続整数キーを持つリスト・キーと値の型を持つiterable・collection的なtraversableクラスを区別します。 | RBSは配列・タプル・レコード・enumerable的ライブラリシグネチャを持ちます。Rigorは有用なときに配列／リスト／iterator要素ファクトを推論すべきですが、Rubyの`Array[T]`・タプル・レコード・ライブラリRBSがエクスポート形式のままであるべきです。 |
+| 配列とオブジェクトのシェイプ | PHPStanの配列シェイプは必須キーとオプショナルキー・タプルのような数値キー・クラス定数キー・`list{...}`・空でないシェイプ形式をサポートします。オブジェクトシェイプは公開の読み取り専用プロパティを記述し、書き込み性を取り戻すために交差を使います。 | RBSのレコードとタプルはこの空間の一部をカバーします。Rigorはオプショナルキー・open/closed extra-keyポリシーを含むよりリッチなhash・キーワード・タプル・オブジェクトシェイプを内部で推論し、それからそれらをRBSレコード・タプル・`Hash[K, V]`・インターフェイス・名前的型・`top`に消去すべきです。 |
+| キーと値の射影 | PHPStanは`key-of`・`value-of`・配列とジェネリック属性マップに特に有用な`T[K]`のようなオフセットアクセスを持ちます。 | Rigorはレコード・タプル・hash・キーワード引数・オブジェクトシェイプのキー射影・値射影・インデックスアクセスのセマンティクスを、`key_of[T]`・`value_of[T]`・`T[K]`のような標準形式を使ってサポートすべきです。 |
+| 型エイリアス | PHPStanはグローバルに設定されたエイリアスに加えてローカルな`@phpstan-type`エイリアスと`@phpstan-import-type`をサポートします。 | RBSはすでに型エイリアスを持っています。Rigorは共有名にRBSエイリアスを使い、第2のエイリアスシステムを追加するのではなく、通常のRBSが表現できないファクトのために`RBS::Extended`メタデータを予約すべきです。 |
+| ジェネリクスと分散 | PHPStanは`@template`・境界・デフォルト・宣言位置の分散・呼び出し位置の分散・スター射影でジェネリッククラス・インターフェイス・トレイト・関数・メソッドを定義します。 | RBSはすでに宣言のためのジェネリクスと分散を持っています。RigorはRBSのジェネリック境界を保ち、呼び出し位置の分散と未知引数射影を将来の内部チェックツールとして検討し、PHPDocのテンプレート構文の取り入れを避けるべきです。 |
+| 条件付き・依存戻り値 | PHPStanの条件付き戻り値型・`template-type`・`new`は引数型・ジェネリック引数・クラス名文字列に依存する戻り値型を表現します。 | Rigorは引数感受性・レシーバ感受性の戻り値ファクトを推論・オーバーロード選択・`RBS::Extended`メタデータとしてモデル化すべきです。クラス名文字列射影はクラスオブジェクトと`singleton(C)`より中心的ではありません。 |
+| クラス名文字列 | PHPStanは`class-string<T>`・`interface-string`・`trait-string`・`enum-string`を持ち、`class_exists`のような呼び出しによって絞り込まれます。 | Rubyはクラスとモジュールのオブジェクトを直接渡せます。Rigorは`singleton(C)`とオブジェクトレベルのファクトを好むべきです。文字列からクラスへの射影は委ねられ、Rubyの定数ルックアップとファクトリAPIを中心に設計されるべきです。 |
+| Callableの精度 | PHPStanのPHPDocはcallableシグネチャ・純粋callable・ジェネリッククロージャ・参照渡し引数・可変長引数・即時対遅延呼び出し・クロージャの`$this`再束縛を指定できます。 | RBSはすでにメソッド・proc・ブロック・オーバーロード・オプショナル・キーワード・rest・self関連形式を持っています。Rigorはフロー解析に影響するときRubyのブロック・proc・lambda・レシーバ束縛・純粋性・呼び出しタイミングを別個のファクトとしてモデル化すべきです。 |
+| マジックメンバーとmixin | PHPStanは`@property`・`@method`・`@mixin`を使って`__get`・`__set`・`__call`・委譲・フレームワーク的動的APIを記述します。 | Rubyは`method_missing`・`respond_to_missing?`・委譲・`include`・`extend`・メタプログラミングを持ちます。Rigorは可能な限りこれらをコア構文の外に保ち、RBSメンバー・インターフェイス・生成されたシグネチャ・将来のプラグインファクトを通じて表現すべきです。 |
+| フローナローイング | PHPStanは厳密な比較・型チェック関数・`instanceof`・`assert`・アサーションライブラリ・カスタム型指定拡張を通じて絞り込みます。 | Rigorは等価性・`nil?`・`is_a?`・`kind_of?`・`instance_of?`・`respond_to?`・パターンマッチング・return・raise・アサーション・プラグインファクトを使ってRuby固有のCFAを実装すべきです。絞り込まれたファクトは、シグネチャメタデータが動機であった場合でも内部的です。 |
+| 述語とアサーションメタデータ | PHPStanの`@phpstan-assert`・`@phpstan-assert-if-true`・`@phpstan-assert-if-false`は、否定アサーションとtrueのみの等価アサーションを含めて、引数・プロパティ・メソッド戻り値を絞り込めます。 | RBSは述語戻り値型を持ちません。Rigorはアサーション挙動に`RBS::Extended`フロー効果を使い、肯定的・否定的分岐ファクトをサポートし、false分岐が補集合を含意しないときtrueのみの絞り込みのために明示的な形式を許すべきです。 |
+| Outとself効果 | PHPStanは`@param-out`で参照渡し出力引数を、`@phpstan-self-out`または`@phpstan-this-out`でレシーバ型変更を記述できます。 | RubyはPHPスタイルの参照渡し引数を持ちませんが、メソッドはレシーバと引数を変更できます。Rigorはレシーバ・引数・インスタンス変数・シェイプ変異を通常の戻り値型としてではなく効果としてモデル化すべきです。 |
+| 例外・非推奨・内部API | PHPStanは`@throws`・`@deprecated`・`@not-deprecated`・`@internal`のようなタグを読み、よりリッチなポリシーのための拡張があります。 | これらは値型より、シンボルと制御フロー周りの解析機能です。Rigorは最終的にRBS宣言またはプロジェクト設定に同等のファクトを取り付けるべきで、コア値型言語を集中させ続けるべきです。 |
+| 拡張と設定 | PHPStanはスタブファイル・動的戻り値型拡張・型指定拡張・パラメーターout拡張・クロージャ拡張・早期終了呼び出し設定・拡張パッケージを公開します。 | これは強くRigorのプラグイン方向をサポートします。フレームワーク・ライブラリ固有のファクトは、フレームワークの挙動をコア解析器にハードコードするのではなく、シグネチャ・設定・生成されたRBS・プラグインによって貢献されるべきです。 |
 
-The main PHPStan lesson for Rigor is that useful static analysis needs more than nominal signatures. Users need precise collection members, shapes, callable behavior, flow predicates, magic-member descriptions, and library-specific facts. Rigor should provide those capabilities while keeping RBS as the stable interchange format and keeping Ruby source code free of analyzer-specific PHPDoc-like comments.
+Rigorに対する主なPHPStanの教訓は、有用な静的解析が名前的シグネチャ以上のものを必要とすることです。ユーザーは精密なコレクションメンバー・シェイプ・callable挙動・フロー述語・マジックメンバー記述・ライブラリ固有のファクトを必要とします。Rigorは、RBSを安定した交換フォーマットとして保ち、Rubyソースコードを解析器固有のPHPDoc的コメントから自由に保ちつつ、それらの能力を提供すべきです。
 
-### TypeScript Compared with RBS
+### TypeScriptとRBSの比較
 
-The TypeScript handbook and reference materials in `references/TypeScript-Website/packages/documentation/copy/en/handbook-v2/` and `references/TypeScript-Website/packages/documentation/copy/en/reference/` are useful design input, but TypeScript is not a compatibility target. Rigor should borrow the semantic ideas that fit Ruby and RBS, not TypeScript syntax.
+`references/TypeScript-Website/packages/documentation/copy/en/handbook-v2/`と`references/TypeScript-Website/packages/documentation/copy/en/reference/`のTypeScriptハンドブックと参考資料は有用な設計入力ですが、TypeScriptは互換性ターゲットではありません。RigorはTypeScriptの構文ではなく、RubyとRBSに合うセマンティックなアイデアを借用すべきです。
 
-| Area | TypeScript | RBS and Rigor implication |
+| 領域 | TypeScript | RBSとRigorの含意 |
 | --- | --- | --- |
-| Signature boundary | TypeScript normally mixes implementation code and type annotations in `.ts` files, and also supports declaration-only `.d.ts` files for JavaScript libraries. Type annotations are erased from emitted JavaScript. | Rigor does not introduce TypeScript-like inline syntax for Ruby. RBS, rbs-inline, and Steep-compatible annotations are the accepted Ruby ecosystem inputs, and Rigor-only internal precision must erase conservatively to ordinary RBS. |
-| External type ecosystem | TypeScript uses built-in `lib.*.d.ts`, bundled package declarations, and DefinitelyTyped `@types` packages. | Rigor should rely on RBS for Ruby core, stdlib, gems, and dependency signatures. TypeScript declarations are reference material only. |
-| Compatibility model | TypeScript compatibility is primarily structural. Object, interface, class instance, and generic compatibility are based on available members, with private and protected class members adding nominal-like constraints. | RBS classes and modules remain nominal. RBS interfaces and Rigor object shapes provide the structural bridge. Rigor should not make all class assignability TypeScript-style structural by default. |
-| Soundness model | TypeScript intentionally accepts some unsound behavior for JavaScript ergonomics, including `any`, assignment compatibility, function parameter bivariance in some modes, optional/rest parameter rules, and local excess-property heuristics. | Rigor should make unsoundness visible through `untyped`, gradual consistency, plugin facts, and diagnostics. It should not copy TypeScript assignment compatibility wholesale. |
-| Dynamic, top, and unknown values | `any` disables checking and propagates dynamically. `unknown` can hold any value but requires narrowing before use. `object` excludes primitives. `never` is bottom. | RBS already has `untyped`, `top`, and `bot`. Rigor maps the idea of `any` to `untyped`, the safe-top role of `unknown` mostly to `top` plus checked operations, and `never` to `bot`. TypeScript spellings should not become canonical Rigor spellings. |
-| `void` | TypeScript `void` is mainly a function return type. A function returning a value may be assignable to a `void` callback type, while a direct `function f(): void` body cannot return a value. | RBS `void` is a no-use return marker. Rigor should keep it distinct so assigning or sending messages to a `void` result is diagnostic, and should not import TypeScript's callback-specific `void` assignability without a Ruby block-semantics reason. |
-| Absence and nilability | TypeScript has both `null` and `undefined`; optional properties read as possibly `undefined` under `strictNullChecks`; non-null assertion `!` removes `null | undefined` without a runtime check. | Ruby has `nil`, not JavaScript `undefined`. RBS `T?` means `T | nil`. Rigor should model missing hash keys, missing keyword arguments, and nilability separately, and should treat unchecked non-nil assertions as flow effects or diagnostics, not as TypeScript syntax. |
-| Truthiness | JavaScript falsy values include `0`, `NaN`, `""`, `0n`, `null`, and `undefined`. TypeScript narrows around that model. | Ruby falsy values are only `false` and `nil`. Rigor should borrow the control-flow-narrowing idea, but must use Ruby truthiness. Types such as `truthy-string` or `non-falsy-string` add no Ruby precision. |
-| Object and hash shapes | TypeScript object types describe property bags with required, optional, and `readonly` properties, index signatures, excess-property checks for object literals, and mapped transformations over keys. | RBS has records, tuples, interfaces, and nominal classes, but not the full TypeScript object-type calculus. Rigor may infer richer hash, keyword, and object shapes internally, then erase them to RBS records, `Hash[K, V]`, interfaces, nominal bases, or `top`. |
-| Mutability qualifiers | TypeScript has `readonly` properties, `ReadonlyArray`, readonly tuples, and mapped modifiers that add or remove `readonly` and optionality. These are compile-time use restrictions and do not imply deep runtime immutability. | Rigor should model read-only views, frozen values, shape entry mutability, and writer availability as separate facts. They should not become ordinary nominal value types unless RBS later standardizes them. |
-| Union, intersection, literal, and tuple types | TypeScript supports unions, intersections, string/number/boolean literals, discriminated unions, arrays, and tuples. Literal inference is sensitive to `let`, `const`, object mutability, and `as const`. | RBS already supports unions, intersections, literals, arrays, and tuples. Rigor should keep literal precision internally, then widen when mutation, aliasing, performance, or RBS erasure requires it. |
-| Flow narrowing | TypeScript narrows with `typeof`, truthiness, equality, `in`, `instanceof`, assignments, reachability, user-defined type predicates, assertion functions, discriminated unions, and `never` exhaustiveness checks. | Rigor should implement Ruby-specific CFA using guards such as `nil?`, `is_a?`, `kind_of?`, `instance_of?`, `respond_to?`, equality, pattern matching, returns, raises, and plugin facts. Predicate and assertion behavior belongs in `RBS::Extended` flow effects, not ordinary return types. |
-| Type predicates | TypeScript writes predicates as return types such as `parameter is Type`, and classes may use `this is Type`. | RBS has no equivalent return type form. Rigor should express these as annotations such as `rigor:v1:predicate-if-true value is T` on ordinary RBS signatures. |
-| Exhaustiveness | TypeScript uses `never` after all union alternatives have been removed, often for exhaustive `switch` checks. | Rigor should use `bot` for impossible branches and exhaustiveness over finite literal unions, sealed-like plugin facts, and pattern matches. The canonical spelling remains `bot`. |
-| Type-level operators | TypeScript has `keyof`, type-context `typeof`, indexed access types, conditional types with `infer`, distributive conditional types, mapped types, template literal types, and utility types such as `Partial`, `Pick`, `Omit`, `Exclude`, `Extract`, and `NonNullable`. | RBS has no comparable general type-level computation. Rigor may support selected semantics through Rigor-native forms such as `key_of[T]`, `value_of[T]`, `T[K]`, `T - U`, `T & U`, and a future conditional type syntax. It should avoid importing TypeScript operator and utility names unless a concrete migration benefit appears. |
-| Generics and variance | TypeScript generic type parameters affect structural compatibility only where they are used in members. Variance is inferred from structural use, and explicit variance annotations are limited to instantiation-based comparisons. | RBS generics are declared on nominal and interface definitions, aliases, methods, and procs with RBS's own variance rules. Rigor should preserve RBS generic boundaries and use structural variance reasoning only where it is comparing shapes or interfaces. |
-| Functions and overloads | TypeScript has function type expressions, call signatures, construct signatures, overload signatures, implementation signatures, erased `this` parameters, and contextual typing of callbacks. | RBS has method types, proc types, blocks, overloads, `self`, `instance`, `class`, and `singleton(C)`. Rigor should model Ruby methods, blocks, procs, singleton methods, and class objects directly rather than importing TypeScript call/construct syntax. |
-| Classes and object construction | TypeScript classes create both instance-side and static-side types; construct signatures and `InstanceType` relate constructor functions to instances. `implements` checks conformance but does not change the class body's inferred types. | Ruby class objects are ordinary objects and RBS spells class object types with `singleton(C)`. Any future instance projection should be designed around Ruby class objects and factory methods, not JavaScript constructor function types. |
-| Declaration merging and namespaces | TypeScript can merge interfaces, namespaces, classes, functions, and enums across declarations, and declarations can create different namespace, type, and value entities. | Ruby already has reopenable classes and modules, and RBS has its own declaration model. Rigor should not import TypeScript declaration merging as a type feature; it should follow RBS and Ruby constant semantics. |
-| Enums, JSX, decorators, and symbols | TypeScript includes JavaScript-facing features and documentation for enums, JSX, decorators, `unique symbol`, and well-known symbols. | These are not RBS type-system targets. Rigor should use Ruby literals, constants, symbols, modules, classes, and plugin facts instead of TypeScript-specific runtime or platform constructs. |
+| シグネチャ境界 | TypeScriptは通常`.ts`ファイルで実装コードと型注釈を混ぜ、JavaScriptライブラリのために宣言のみの`.d.ts`ファイルもサポートします。型注釈は出力されたJavaScriptから消去されます。 | RigorはRubyにTypeScriptのようなインライン構文を導入しません。RBS・rbs-inline・Steep互換の注釈はRubyエコシステム入力として受け入れられ、Rigor専用の内部精度は通常のRBSに保守的に消去しなければなりません。 |
+| 外部型エコシステム | TypeScriptは組み込みの`lib.*.d.ts`・バンドルされたパッケージ宣言・DefinitelyTypedの`@types`パッケージを使います。 | RigorはRubyコア・stdlib・gem・依存関係シグネチャをRBSに依存すべきです。TypeScript宣言は参考資料のみです。 |
+| 互換性モデル | TypeScriptの互換性は主に構造的です。オブジェクト・インターフェイス・クラスインスタンス・ジェネリックの互換性は利用可能なメンバーに基づいており、privateとprotectedのクラスメンバーが名前的のような制約を追加します。 | RBSのクラスとモジュールは名前的のままです。RBSインターフェイスとRigorのオブジェクトシェイプが構造的橋渡しを提供します。Rigorはデフォルトですべてのクラスの代入可能性をTypeScriptスタイルの構造的にすべきではありません。 |
+| 健全性モデル | TypeScriptはJavaScriptのエルゴノミクスのために意図的にいくつかの不健全な挙動を受け入れます。これには`any`・代入互換性・一部モードの関数引数の双変性・optional/rest引数規則・ローカルの過剰プロパティヒューリスティクスが含まれます。 | Rigorは`untyped`・グラデュアル一貫性・プラグインファクト・診断を通じて不健全性を見えるようにすべきです。TypeScriptの代入互換性を全面的にコピーすべきではありません。 |
+| 動的・top・unknown値 | `any`はチェックを無効化し動的に伝播します。`unknown`は任意の値を保持できますが、使用前に絞り込みが必要です。`object`はプリミティブを除外します。`never`はbottomです。 | RBSはすでに`untyped`・`top`・`bot`を持っています。Rigorは`any`のアイデアを`untyped`に、`unknown`の安全top役割を主に`top`プラスチェックされた操作に、`never`を`bot`にマップします。TypeScriptの綴りは標準のRigorの綴りになるべきではありません。 |
+| `void` | TypeScriptの`void`は主に関数戻り値型です。値を返す関数は`void`callback型に代入可能になり得ますが、直接の`function f(): void`の本体は値を返せません。 | RBSの`void`は未使用の戻り値マーカーです。Rigorは`void`結果に代入したりメッセージを送ったりすることが診断であるよう区別を保つべきで、Rubyのブロックセマンティクスの理由なしにTypeScriptのcallback固有の`void`代入可能性を取り入れるべきではありません。 |
+| 不在性とnil可能性 | TypeScriptは`null`と`undefined`の両方を持ちます。オプショナルプロパティは`strictNullChecks`下で`undefined`の可能性として読まれます。非null assertion `!`は実行時チェックなしに`null | undefined`を除去します。 | Rubyは`nil`を持ち、JavaScriptの`undefined`はありません。RBSの`T?`は`T | nil`を意味します。Rigorは欠落しているhashキー・欠落しているキーワード引数・nil可能性を別個にモデル化し、チェックされない非nil assertionをTypeScript構文ではなくフロー効果または診断として扱うべきです。 |
+| 真偽値性 | JavaScriptの偽値値は`0`・`NaN`・`""`・`0n`・`null`・`undefined`を含みます。TypeScriptはそのモデルの周りで絞り込みます。 | Rubyの偽値値は`false`と`nil`のみです。Rigorは制御フローナローイングのアイデアを借用すべきですが、Rubyの真偽値性を使わなければなりません。`truthy-string`や`non-falsy-string`のような型はRubyの精度を加えません。 |
+| オブジェクトとhashシェイプ | TypeScriptのオブジェクト型は、必須・オプショナル・`readonly`プロパティ・インデックスシグネチャ・オブジェクトリテラルの過剰プロパティチェック・キー上のmapped変換を持つプロパティバッグを記述します。 | RBSはレコード・タプル・インターフェイス・名前的クラスを持ちますが、完全なTypeScriptのオブジェクト型計算ではありません。Rigorはよりリッチなhash・キーワード・オブジェクトシェイプを内部で推論し、それからそれらをRBSレコード・`Hash[K, V]`・インターフェイス・名前的基底・`top`に消去できます。 |
+| 可変性修飾子 | TypeScriptは`readonly`プロパティ・`ReadonlyArray`・readonlyタプル・`readonly`とオプショナル性を追加または除去するmapped修飾子を持ちます。これらはコンパイル時の使用制限であり、深い実行時不変性を含意しません。 | Rigorは読み取り専用ビュー・フローズン値・シェイプエントリ可変性・writer利用可能性を別個のファクトとしてモデル化すべきです。それらはRBSが後で標準化しない限り、通常の名前的値型になるべきではありません。 |
+| Union・交差・リテラル・タプル型 | TypeScriptはunion・交差・string/number/booleanリテラル・判別union・配列・タプルをサポートします。リテラル推論は`let`・`const`・オブジェクト可変性・`as const`に敏感です。 | RBSはすでにunion・交差・リテラル・配列・タプルをサポートします。Rigorはリテラル精度を内部で保ち、変異・エイリアス・パフォーマンス・RBS消去が要求するときに広げるべきです。 |
+| フローナローイング | TypeScriptは`typeof`・真偽値性・等価性・`in`・`instanceof`・代入・到達可能性・ユーザー定義型述語・assertion関数・判別union・`never`網羅性チェックで絞り込みます。 | Rigorは`nil?`・`is_a?`・`kind_of?`・`instance_of?`・`respond_to?`・等価性・パターンマッチング・return・raise・プラグインファクトのようなガードを使ってRuby固有のCFAを実装すべきです。述語とassertion挙動は通常の戻り値型ではなく`RBS::Extended`フロー効果に属します。 |
+| 型述語 | TypeScriptは`parameter is Type`のような戻り値型として述語を書き、クラスは`this is Type`を使えます。 | RBSは同等の戻り値型形式を持ちません。Rigorは通常のRBSシグネチャ上の`rigor:v1:predicate-if-true value is T`のような注釈としてこれらを表現すべきです。 |
+| 網羅性 | TypeScriptはすべてのunion代替が除去された後、しばしば網羅的な`switch`チェックのために`never`を使います。 | Rigorは不可能な分岐と、有限リテラルunion・sealed的プラグインファクト・パターンマッチ上の網羅性に`bot`を使うべきです。標準の綴りは`bot`のままです。 |
+| 型レベル演算子 | TypeScriptは`keyof`・型コンテキスト`typeof`・インデックスアクセス型・`infer`を伴う条件型・分配条件型・mapped型・テンプレートリテラル型、および`Partial`・`Pick`・`Omit`・`Exclude`・`Extract`・`NonNullable`のようなユーティリティ型を持ちます。 | RBSは比較可能な一般的な型レベル計算を持ちません。Rigorは`key_of[T]`・`value_of[T]`・`T[K]`・`T - U`・`T & U`のようなRigorネイティブ形式と将来の条件型構文を通じて選択されたセマンティクスをサポートできます。具体的な移行利益が現れない限り、TypeScriptの演算子とユーティリティ名の取り入れを避けるべきです。 |
+| ジェネリクスと分散 | TypeScriptのジェネリック型パラメーターは、それらがメンバーで使われる場所でのみ構造的互換性に影響します。分散は構造的使用から推論され、明示的な分散注釈はインスタンス化ベースの比較に限定されます。 | RBSのジェネリクスは、RBS独自の分散規則で名前的とインターフェイス定義・エイリアス・メソッド・procに宣言されます。RigorはRBSのジェネリック境界を保ち、シェイプまたはインターフェイスを比較しているところでのみ構造的分散推論を使うべきです。 |
+| 関数とオーバーロード | TypeScriptは関数型式・呼び出しシグネチャ・constructシグネチャ・オーバーロードシグネチャ・実装シグネチャ・消去された`this`引数・callbackの文脈型付けを持ちます。 | RBSはメソッド型・proc型・ブロック・オーバーロード・`self`・`instance`・`class`・`singleton(C)`を持ちます。RigorはTypeScriptのcall/construct構文を取り入れるのではなく、Rubyのメソッド・ブロック・proc・singletonメソッド・クラスオブジェクトを直接モデル化すべきです。 |
+| クラスとオブジェクト構築 | TypeScriptクラスはインスタンス側とstatic側の両方の型を作ります。constructシグネチャと`InstanceType`はコンストラクタ関数をインスタンスに関連付けます。`implements`は適合をチェックしますが、クラス本体の推論された型を変えません。 | Rubyのクラスオブジェクトは通常のオブジェクトであり、RBSは`singleton(C)`でクラスオブジェクト型を綴ります。将来のインスタンス射影は、JavaScriptのコンストラクタ関数型ではなくRubyのクラスオブジェクトとファクトリメソッドを中心に設計されるべきです。 |
+| 宣言マージと名前空間 | TypeScriptは宣言にわたってインターフェイス・名前空間・クラス・関数・enumをマージでき、宣言は異なる名前空間・型・値エンティティを作成できます。 | Rubyはすでに再開可能なクラスとモジュールを持ち、RBSは独自の宣言モデルを持っています。RigorはTypeScriptの宣言マージを型機能として取り入れるべきではありません。RBSとRubyの定数セマンティクスに従うべきです。 |
+| Enum・JSX・decorator・symbol | TypeScriptはenum・JSX・decorator・`unique symbol`・well-known symbolのJavaScript向け機能とドキュメンテーションを含みます。 | これらはRBS型システムのターゲットではありません。RigorはTypeScript固有の実行時またはプラットフォーム構成ではなく、Rubyのリテラル・定数・シンボル・モジュール・クラス・プラグインファクトを使うべきです。 |
 
-Two TypeScript lessons are especially important for Rigor.
+Rigorにとって特に重要なTypeScriptの教訓は2つあります。
 
-First, flow-sensitive analysis is not optional. TypeScript's useful diagnostics depend on preserving the difference between a declared type and the type observed at a program point. Rigor needs the same distinction for Ruby locals, instance variables, method receivers, block parameters, and shape members.
+第1に、フロー感受性解析はオプショナルではありません。TypeScriptの有用な診断は、宣言された型とプログラム位置で観測される型の差を保つことに依存します。Rigorはローカル・インスタンス変数・メソッドレシーバ・ブロック引数・シェイプメンバーについて同じ区別を必要とします。
 
-Second, TypeScript's type-level computation is powerful but tightly coupled to JavaScript object keys and property access. Rigor should use those operators as design inspiration for records, tuples, hashes, keyword arguments, object shapes, and plugin-provided facts, while keeping the RBS boundary small and Ruby-shaped.
+第2に、TypeScriptの型レベル計算は強力ですが、JavaScriptのオブジェクトキーとプロパティアクセスに密に結合されています。Rigorは、RBS境界を小さくRuby形に保ちながら、レコード・タプル・hash・キーワード引数・オブジェクトシェイプ・プラグイン提供のファクトのための設計インスピレーションとしてそれらの演算子を使うべきです。
 
-### Python Typing Compared with RBS
+### PythonのtypingとRBSの比較
 
-The `references/python-typing` tree is useful reference material, but Python typing is not a compatibility target. Rigor should borrow concepts only when they preserve Ruby semantics and can erase to RBS.
+`references/python-typing`ツリーは有用な参考資料ですが、Pythonのtypingは互換性ターゲットではありません。Rigorは概念がRubyのセマンティクスを保ちRBSに消去できるときにのみ借用すべきです。
 
-| Area | Python typing | RBS and Rigor implication |
+| 領域 | Pythonのtyping | RBSとRigorの含意 |
 | --- | --- | --- |
-| Signature boundary | Python allows inline annotations and separate stubs. | Rigor avoids a Python-like Rigor-specific inline annotation system and uses RBS, rbs-inline, and Steep-compatible annotations as Ruby ecosystem signature inputs. |
-| Dynamic and top types | `Any` is an unknown gradual type, while `object` is the greatest fully static object type. | RBS already gives Rigor `untyped` and `top`; Python's materialization and assignability model reinforces keeping them separate. |
-| Structural types | `Protocol` and `TypedDict` are structural type forms with explicit typing rules. | RBS interfaces and records cover part of this space; Rigor can infer richer object and hash shapes internally, then erase them to RBS interfaces, records, `Hash[K, V]`, or `top`. |
-| Hash shape detail | `TypedDict` distinguishes required, non-required, read-only, open, closed, and extra items. | Rigor should reuse this vocabulary for Ruby hash, options-hash, and keyword-argument shapes, while remembering that ordinary Ruby hashes are mutable unless a separate fact proves otherwise. |
-| Class objects and self types | Python uses `type[C]`, `Self`, and constructor-specific rules. | RBS already has `singleton(C)`, `self`, `instance`, and `class`; Rigor should prefer those forms and design any future instance projection around Ruby class objects. |
-| Nil-like and bottom types | `None` is an ordinary value type; `Never` and `NoReturn` are bottom aliases. | RBS distinguishes `nil`, `NilClass`, `bot`, and `void`; Rigor should not import Python aliases, and `void` remains a RBS-specific no-use return marker. |
-| Type predicates | Python has `TypeGuard` for positive-only narrowing and `TypeIs` for positive and negative narrowing. | RBS has no predicate return type form; Rigor should model these as flow effects in `RBS::Extended` annotations. |
-| Metadata | `Annotated[T, ...]` is treated as `T` by tools that do not understand the metadata. | RBS `%a{...}` annotations give Rigor the same compatibility pattern for `RBS::Extended` metadata. |
-| Callable precision | Python specifies overload matching, positional and keyword parameter kinds, `ParamSpec`, `TypeVarTuple`, and `Unpack[TypedDict]`. | RBS already has method and proc signatures, overloads, optional and keyword parameters, and block types. Rigor should borrow checking principles and keyword-shape ideas, not Python syntax. |
-| Mutability and finality | Python has `Final`, `ClassVar`, `ReadOnly`, and `@final` qualifiers. | Rigor should model these, if needed, as symbol, member, or shape-write facts rather than ordinary value types. |
+| シグネチャ境界 | Pythonはインライン注釈と別個のスタブを許します。 | RigorはPythonのようなRigor固有のインライン注釈システムを避け、RBS・rbs-inline・Steep互換の注釈をRubyエコシステムのシグネチャ入力として使います。 |
+| 動的型とtop型 | `Any`は未知のグラデュアル型ですが、`object`は最大の完全静的オブジェクト型です。 | RBSはすでにRigorに`untyped`と`top`を与えています。Pythonの実体化と代入可能性モデルはそれらを別個に保つことを補強します。 |
+| 構造的型 | `Protocol`と`TypedDict`は明示的な型付け規則を持つ構造的型形式です。 | RBSのインターフェイスとレコードはこの空間の一部をカバーします。Rigorはよりリッチなオブジェクトとhashシェイプを内部で推論し、それからそれらをRBSのインターフェイス・レコード・`Hash[K, V]`・`top`に消去できます。 |
+| Hashシェイプの詳細 | `TypedDict`は必須・非必須・読み取り専用・open・closed・extra項目を区別します。 | RigorはRubyのhash・options-hash・キーワード引数のシェイプにこの語彙を再利用すべきですが、別のファクトが証明しない限り通常のRubyのhashが可変であることを覚えておきます。 |
+| クラスオブジェクトとself型 | Pythonは`type[C]`・`Self`・コンストラクタ固有の規則を使います。 | RBSはすでに`singleton(C)`・`self`・`instance`・`class`を持っています。Rigorはそれらの形式を好み、将来のインスタンス射影をRubyのクラスオブジェクトを中心に設計すべきです。 |
+| Nil的型とbottom型 | `None`は通常の値型です。`Never`と`NoReturn`はbottomエイリアスです。 | RBSは`nil`・`NilClass`・`bot`・`void`を区別します。RigorはPythonのエイリアスを取り入れるべきではなく、`void`はRBS固有の未使用戻り値マーカーのままです。 |
+| 型述語 | Pythonは肯定のみのナローイングのために`TypeGuard`を、肯定と否定のナローイングのために`TypeIs`を持ちます。 | RBSは述語戻り値型形式を持ちません。Rigorは`RBS::Extended`注釈内のフロー効果としてこれらをモデル化すべきです。 |
+| メタデータ | `Annotated[T, ...]`はメタデータを理解しないツールによって`T`として扱われます。 | RBSの`%a{...}`注釈はRigorに`RBS::Extended`メタデータのために同じ互換性パターンを与えます。 |
+| Callable精度 | Pythonはオーバーロードマッチング・位置とキーワード引数の種類・`ParamSpec`・`TypeVarTuple`・`Unpack[TypedDict]`を指定します。 | RBSはすでにメソッドとprocシグネチャ・オーバーロード・オプショナルとキーワード引数・ブロック型を持ちます。Rigorはチェック原則とキーワードシェイプのアイデアを借用すべきで、Python構文は借用すべきではありません。 |
+| 可変性とfinality | Pythonは`Final`・`ClassVar`・`ReadOnly`・`@final`修飾子を持ちます。 | Rigorは、必要に応じて、これらを通常の値型ではなくシンボル・メンバー・シェイプ書き込みファクトとしてモデル化すべきです。 |
 
-### Structural Interfaces Are the Protocol Bridge
+### 構造的インターフェイスがプロトコル橋渡しである
 
-Python `Protocol` is valuable because it gives static duck typing a named contract: an object is acceptable when it has the required members with compatible types, even without inheriting from the protocol.
+Pythonの`Protocol`は、静的ダックタイピングに名前付きの契約を与えるため価値があります。すなわちプロトコルから継承していなくても、必要なメンバーを互換性のある型で持つときオブジェクトは受け入れ可能です。
 
-Rigor should get the same benefit through RBS interfaces and inferred object shapes, not by importing Python syntax. An RBS interface such as `_Closable` can be treated as a named structural contract. A nominal class, singleton object, module object, or anonymous object shape can satisfy that interface if Rigor can prove that it has every required member with compatible method or attribute behavior.
+RigorはPython構文を取り入れるのではなく、RBSインターフェイスと推論されたオブジェクトシェイプを通じて同じ恩恵を得るべきです。`_Closable`のようなRBSインターフェイスは、名前付きの構造的契約として扱えます。名前的クラス・シングルトンオブジェクト・モジュールオブジェクト・無名オブジェクトシェイプは、Rigorがすべての必要なメンバーを互換性のあるメソッドまたは属性挙動で持つことを証明できるとき、そのインターフェイスを満たせます。
 
-This is a pseudo-protocol model:
+これは擬似プロトコルモデルです。
 
-- RBS interface declarations provide stable names for structural contracts.
-- Rigor object shapes provide anonymous, inference-produced structural types.
-- Assignability to an interface may be proven structurally; no Ruby inheritance, `include`, or runtime marker is required.
-- Explicit RBS declarations or future `RBS::Extended` metadata may ask Rigor to verify conformance early, but structural assignability should not require explicit opt-in.
-- Runtime checks such as `respond_to?` can provide member-existence facts, but they should not prove full signature compatibility by themselves.
+- RBSインターフェイス宣言は構造的契約に安定した名前を提供します。
+- Rigorのオブジェクトシェイプは無名で推論生成された構造的型を提供します。
+- インターフェイスへの代入可能性は構造的に証明されてかまいません。Rubyの継承・`include`・実行時マーカーは要求されません。
+- 明示的なRBS宣言または将来の`RBS::Extended`メタデータは、Rigorに早期適合性検証を要求してかまいませんが、構造的代入可能性は明示的なオプトインを要求すべきではありません。
+- `respond_to?`のような実行時チェックはメンバー存在ファクトを提供できますが、それ単独で完全なシグネチャ互換性を証明すべきではありません。
 
-Python's rule that mutable protocol attributes are invariant maps cleanly to Ruby method capabilities. A read-only attribute is a reader method and can be covariant in its result. A write-only attribute is a writer method and is checked contravariantly in its accepted value. A read-write accessor combines both constraints and is effectively invariant.
+可変なプロトコル属性が不変であるというPythonの規則は、Rubyのメソッド能力（capability）にきれいにマップします。読み取り専用属性はリーダーメソッドであり、その結果で共変であり得ます。書き込み専用属性はライターメソッドであり、受け入れる値で反変にチェックされます。読み書きアクセサは両方の制約を組み合わせ、実質的に不変です。
 
-### Method Shapes and Visibility
+### メソッドシェイプと可視性
 
-Reader and writer capabilities are method capabilities, not field declarations. `attr_reader`, `attr_writer`, and `attr_accessor` are sources of method facts; Rigor models the resulting `x` and `x=` methods as separate entries on the shape.
+リーダーとライター能力（capability）はフィールド宣言ではなくメソッド能力（capability）です。`attr_reader`・`attr_writer`・`attr_accessor`はメソッドファクトのソースです。Rigorは結果の`x`と`x=`メソッドをシェイプ上の別個のエントリとしてモデル化します。
 
-- `attr_reader :x` contributes a public reader method `x` unless surrounding Ruby visibility state changes it.
-- `attr_writer :x` contributes a writer method `x=` and does not imply a reader.
-- `attr_accessor :x` contributes both methods, but Rigor still keeps them as two method entries.
-- A manually defined or overridden `x` or `x=` method replaces or refines the method fact according to ordinary Ruby method lookup and source order. Reader and writer capability does not imply purity.
+- `attr_reader :x`は、周囲のRubyの可視性状態が変えない限り、公開リーダーメソッド`x`を貢献します。
+- `attr_writer :x`はライターメソッド`x=`を貢献し、リーダーを含意しません。
+- `attr_accessor :x`は両方のメソッドを貢献しますが、Rigorは依然としてそれらを2つのメソッドエントリとして保ちます。
+- 手動で定義またはオーバーライドされた`x`または`x=`メソッドは、通常のRubyのメソッドルックアップとソース順に従ってメソッドファクトを置き換えまたは精緻化します。リーダーとライター能力（capability）は純粋性を含意しません。
 
-Visibility is a first-class facet on every method-shape entry. Rigor tracks at least `public`, `protected`, and `private`, plus the call context in which a member may be used:
+可視性はすべてのメソッドシェイプエントリ上の第一級ファセットです。Rigorは少なくとも`public`・`protected`・`private`、加えてメンバーが使われる呼び出しコンテキストを追跡します。
 
-- External explicit receiver sends require a public method.
-- Private methods may be called only in private-call contexts, not as ordinary explicit receiver sends.
-- Protected methods follow Ruby's protected receiver restriction and do not satisfy public structural interface requirements by default.
-- Public structural interfaces require public members unless an internal check or a future interface form explicitly requests another visibility.
+- 外部の明示的レシーバ送信は公開メソッドを要求します。
+- privateメソッドはprivate呼び出しコンテキストでのみ呼ばれ、通常の明示的レシーバ送信としては呼ばれません。
+- protectedメソッドはRubyのprotectedレシーバ制限に従い、デフォルトでは公開構造的インターフェイス要件を満たしません。
+- 公開構造的インターフェイスは、内部チェックまたは将来のインターフェイス形式が明示的に別の可視性を要求しない限り、公開メンバーを要求します。
 
-`respond_to?` checks refine an object to an existence-only shape, not to full signature compatibility. The optional `include_private` argument changes the visibility fact:
+`respond_to?`チェックは、オブジェクトを完全なシグネチャ互換性ではなく存在のみのシェイプに精緻化します。オプショナルな`include_private`引数は可視性ファクトを変えます。
 
-- `obj.respond_to?(:foo)` and `obj.respond_to?(:foo, false)` produce a public existence fact for `foo` on the true branch.
-- `obj.respond_to?(:foo, true)` produces an existence fact whose visibility may be public, protected, or private. By itself it does not prove that `obj.foo` is legal as an external explicit receiver call.
-- If the second argument is not statically known, Rigor records a weaker maybe-private visibility fact.
+- `obj.respond_to?(:foo)`と`obj.respond_to?(:foo, false)`はtrue分岐で`foo`の公開存在ファクトを生成します。
+- `obj.respond_to?(:foo, true)`は、可視性がpublic・protected・privateであり得る存在ファクトを生成します。それ自体では`obj.foo`が外部の明示的レシーバ呼び出しとして合法であることを証明しません。
+- 第2引数が静的に分かっていないとき、Rigorはより弱いmaybe-private可視性ファクトを記録します。
 
-`respond_to_missing?` and `method_missing` facts carry dynamic provenance and an unknown or plugin-provided signature. They can justify guarded dynamic calls but do not prove full interface compatibility on their own.
+`respond_to_missing?`と`method_missing`ファクトは動的provenanceと未知またはプラグイン提供のシグネチャを運びます。それらはガードされた動的呼び出しを正当化できますが、それ単独で完全なインターフェイス互換性を証明しません。
 
-The minimal first implementation representation pairs one method-shape entry with one resolved Ruby method body:
+最小の最初の実装表現は、1つのメソッドシェイプエントリを1つの解決されたRubyメソッド本体とペアにします。
 
-- A `MethodEntry` is one record per `(class-or-module, method name)`. Ruby has no per-signature overloading at runtime, so the entry corresponds to the runtime-resolved method body for that name on that class or module.
-- A single source-level `def foo` is the simplest input that produces a `MethodEntry`. Multiple source-level `def foo` definitions on the same class or module — whether from a single file, partial classes split across files, monkey patching, or `prepend` and `include` chains — feed into the same entry as merge candidates rather than distinct entries.
-- Visibility is stored at the `MethodEntry` level. Ruby's `private :foo` toggles the whole method, not a particular signature variant, so per-overload visibility is not represented in the first version.
-- Signature variants from RBS overloads, `RBS::Extended` payloads, or plugin contributions are stored as a list of branches inside the entry. Branches share the entry's visibility but may carry different argument shapes, return types, predicate effects, and mutation effects.
-- Conditional `def`, conditional `private`, and other dynamically constructed method definitions are out of scope for the first implementation. They surface as ordinary diagnostics or dynamic-origin facts and may be revisited later.
+- `MethodEntry`は`（クラスまたはモジュール、メソッド名）`ごとに1レコードです。Rubyは実行時にシグネチャごとのオーバーロードを持たないため、エントリはそのクラスまたはモジュール上のその名前に対する実行時解決のメソッド本体に対応します。
+- 単一のソースレベル`def foo`は`MethodEntry`を生成する最も単純な入力です。同じクラスまたはモジュール上の複数のソースレベル`def foo`定義 — 単一ファイルから・ファイルにまたがって分割された部分クラスから・モンキーパッチから・`prepend`と`include`チェーンから — は、別個のエントリではなくマージ候補として同じエントリに供給されます。
+- 可視性は`MethodEntry`レベルに保存されます。Rubyの`private :foo`は特定のシグネチャバリアントではなくメソッド全体を切り替えるため、オーバーロードごとの可視性は最初のバージョンでは表現されません。
+- RBSオーバーロード・`RBS::Extended`ペイロード・プラグイン貢献からのシグネチャバリアントは、エントリ内のブランチのリストとして保存されます。ブランチはエントリの可視性を共有しますが、異なる引数シェイプ・戻り値型・述語効果・変異効果を運んでかまいません。
+- 条件付き`def`・条件付き`private`・他の動的に構築されたメソッド定義は最初の実装のスコープ外です。それらは通常の診断または動的起源ファクトとして表面化し、後で再検討されてかまいません。
 
-Open classes, monkey patches, and ancestor chain insertions all feed the same `MethodEntry`:
+オープンクラス・モンキーパッチ・祖先チェーン挿入はすべて同じ`MethodEntry`に供給します。
 
-- Each candidate `def foo` (whether from the original class, a reopened class, a `prepend`ed or `include`d module that ends up resolving on this receiver, or a refinement scope where Rigor has visibility) contributes one input.
-- The default merge policy follows Ruby's runtime resolution: the candidate that Ruby would actually dispatch wins. Among ordinary same-class redefinitions this is source order with a last-definition-wins resolution; among ancestor chains this is the lookup order Ruby uses for `prepend` over the class over `include`d modules over the superclass chain.
-- Strict mode raises a diagnostic when a re-definition changes RBS-visible signature or visibility without an explicit override marker. The intended override marker is a future `RBS::Extended` directive (working name `rigor:v1:override=replace`); until that exists, strict mode reports the suspected silent monkey patch.
-- Module includes and refinements are not flattened into the host class's `MethodEntry`. They remain on their owning module and participate in lookup through the ancestor chain.
+- 各候補`def foo`（元のクラスから・再開されたクラスから・このレシーバで解決される`prepend`または`include`されたモジュールから・Rigorに可視性のあるリファインメントスコープから）は1つの入力を貢献します。
+- デフォルトのマージポリシーはRubyの実行時解決に従います。すなわちRubyが実際にディスパッチする候補が勝ちます。通常の同一クラス再定義の中ではこれは最後の定義が勝つ解決を伴うソース順です。祖先チェーンの中ではこれはRubyが`prepend`をクラスより優先し、`include`されたモジュールをsuperclassチェーンより優先して使うルックアップ順です。
+- 厳格モードは、明示的なoverrideマーカーなしに再定義がRBSに見えるシグネチャまたは可視性を変えるとき診断を発生させます。意図されるoverrideマーカーは将来の`RBS::Extended`ディレクティブ（作業名`rigor:v1:override=replace`）です。それが存在するまで、厳格モードは疑わしい黙ったモンキーパッチを報告します。
+- モジュールincludeとリファインメントはホストクラスの`MethodEntry`にフラット化されません。それらは所有モジュール上に残り、祖先チェーンを通じてルックアップに参加します。
 
-### Capability Roles Beat Ad Hoc Mock Unions
+### 能力役割はアドホックなモックunionを上回る
 
-Ruby libraries often accept objects that are not related by inheritance but share the capability required by a method body. `IO` and `StringIO` are the central example: `StringIO` is useful as an in-memory test double for many stream consumers, but it is not a subclass of `IO` and does not expose the full `IO` method surface.
+Rubyライブラリはしばしば、継承で関連していないが、メソッド本体が要求する能力（capability）を共有するオブジェクトを受け入れます。`IO`と`StringIO`が中心的な例です。すなわち`StringIO`は多くのストリーム消費者にとってインメモリのテストダブルとして有用ですが、`IO`のサブクラスではなく、完全な`IO`メソッド表層を公開しません。
 
-Rigor should not model this by declaring `StringIO <: IO`. It should also avoid pushing users toward repetitive declarations such as `IO | StringIO` when the implementation merely needs a small stream capability. Instead, Rigor should infer and support structural capability roles such as readable, writable, rewindable, closable, seekable, and file-descriptor-backed.
+Rigorはこれを`StringIO <: IO`を宣言することでモデル化すべきではありません。実装が単に小さなストリーム能力（capability）を必要とするだけのとき、`IO | StringIO`のような繰り返しの宣言にユーザーを押しやることも避けるべきです。代わりに、Rigorは読み取り可能・書き込み可能・巻き戻し可能・閉じることが可能・シーク可能・ファイルディスクリプタバックのような構造的能力役割を推論しサポートすべきです。
 
-This keeps three facts separate:
+これは3つのファクトを別個に保ちます。
 
-- `IO` is the nominal type for real `IO` objects and APIs that require file-descriptor-backed behavior.
-- `StringIO` is a separate nominal type that can satisfy some stream roles.
-- A method's inferred parameter requirement may be a smaller object shape or named interface, such as readable and rewindable stream behavior.
+- `IO`は実際の`IO`オブジェクトとファイルディスクリプタバック挙動を要求するAPIの名前的型です。
+- `StringIO`はいくつかのストリーム役割を満たせる別個の名前的型です。
+- メソッドの推論された引数要件は、読み取り可能で巻き戻し可能なストリーム挙動のような、より小さなオブジェクトシェイプまたは名前付きインターフェイスかもしれません。
 
-Explicit RBS declarations still define public contracts. If a signature says `IO`, passing `StringIO` should not be silently accepted as a subtype. Rigor may instead report that the implementation appears to require only a smaller capability role and suggest generalizing the signature to an interface. Unions remain appropriate when the implementation genuinely branches on or uses class-specific behavior from both `IO` and `StringIO`.
+明示的なRBS宣言は依然として公開契約を定義します。シグネチャが`IO`と言うとき、`StringIO`を渡すことはサブタイプとして黙って受け入れられるべきではありません。Rigorは代わりに、実装がより小さな能力役割のみを要求するように見えると報告し、シグネチャをインターフェイスに一般化することを示唆してかまいません。実装が`IO`と`StringIO`の両方からクラス固有の挙動で実際に分岐したり使用したりするとき、Unionは依然として適切です。
 
-Rigor should ship an opinionated core catalog of common standard-library capability roles instead of making the first plugin milestone invent its own names. The catalog reuses existing RBS-defined interfaces wherever Ruby and the standard library already provide them, and adds a small set of Rigor-specific roles only where existing interfaces are missing or would conflate distinct capabilities.
+Rigorは、最初のプラグインマイルストーンに独自の名前を発明させるのではなく、共通の標準ライブラリ能力役割の独自のコアカタログを出荷すべきです。カタログは、Rubyと標準ライブラリがすでに提供する場所では既存のRBS定義インターフェイスを再利用し、既存のインターフェイスが欠けているか、別個の能力（capability）を混同してしまう場所でのみ、Rigor固有の役割の小さなセットを追加します。
 
-Initial reused RBS interfaces:
+初期に再利用されるRBSインターフェイス:
 
-- `_Each[T]`, `_Reader`, `_Writer`, `_ToS`, `_ToStr`, `_ToInt`, `_ToProc`, `_ToHash[K, V]`, `_ToA[T]`, `_ToAry[T]` for the established stdlib interfaces. Rigor matches these by their existing RBS shape and does not redefine them.
-- `Enumerable[T]` and `Comparable` for the broad collection and ordering protocols. They participate in role matching as nominal interfaces rather than fresh structural roles.
+- 確立されたstdlibインターフェイスのための`_Each[T]`・`_Reader`・`_Writer`・`_ToS`・`_ToStr`・`_ToInt`・`_ToProc`・`_ToHash[K, V]`・`_ToA[T]`・`_ToAry[T]`。Rigorはこれらを既存のRBSシェイプでマッチし、それらを再定義しません。
+- 広いコレクションと順序付けプロトコルのための`Enumerable[T]`と`Comparable`。それらは新鮮な構造的役割ではなく名前的インターフェイスとして役割マッチングに参加します。
 
-Rigor-specific roles introduced for the first milestone (each one ships with an explicit RBS interface in Rigor's bundled signatures):
+最初のマイルストーンのために導入されるRigor固有の役割（それぞれRigorのバンドルされたシグネチャに明示的なRBSインターフェイスとともに出荷されます）:
 
-| Role | Purpose | Required members |
+| 役割 | 目的 | 必要なメンバー |
 |---|---|---|
-| `_RewindableStream` | Stream-like objects that can be replayed from the start | `read`, `rewind` |
-| `_ClosableStream` | Stream-like objects whose lifetime can be closed | `close`, `closed?` |
-| `_FileDescriptorBacked` | Real OS-backed streams that justify diagnostics requiring an actual `IO` | `fileno` |
-| `_Callable[**A, R]` | Anything that responds to `call`, distinct from `_ToProc` | `call(*A) -> R` |
+| `_RewindableStream` | 最初から再生できるストリーム的オブジェクト | `read`・`rewind` |
+| `_ClosableStream` | ライフタイムを閉じることができるストリーム的オブジェクト | `close`・`closed?` |
+| `_FileDescriptorBacked` | 実際の`IO`を要求する診断を正当化する実OSバックのストリーム | `fileno` |
+| `_Callable[**A, R]` | `call`に応答する任意のもの。`_ToProc`とは異なる | `call(*A) -> R` |
 
-Plugins may add roles, additional conformance facts, role-specific exclusions, and uncertain conformance, but they cannot silently replace either the reused RBS interfaces or the Rigor-specific roles in this catalog.
+プラグインは役割・追加の適合ファクト・役割固有の除外・不確実な適合性を追加してかまいませんが、このカタログ内の再利用されたRBSインターフェイスまたはRigor固有の役割を黙って置き換えることはできません。
 
-### Capability-Role Inference Discipline
+### 能力役割推論の規律
 
-Capability roles are summaries, not searches. The inference must stay bounded and predictable:
+能力役割はサマリーであり、検索ではありません。推論は有界で予測可能なまま留まらなければなりません。
 
-- Each method has a cached requirement summary recording required member names, visibility, arity, keyword and block requirements, return-use constraints, mutation requirements, and provenance for each parameter and receiver.
-- The summary is an anonymous object-shape requirement by default. Naming it as a known interface is an export and diagnostic convenience, not the core inference result.
-- Requirement inference is local and monotone. Direct calls reuse existing signatures or cached summaries. Recursive or mutually recursive summaries use a widening placeholder and iterate only to a small fixed-point budget.
-- Dynamic dispatch through `send`, `public_send`, unconstrained `method_missing`, or untyped delegation records a dynamic requirement instead of attempting to enumerate every possible target.
-- Named-interface matching uses an index keyed by member name and visibility. Rigor compares only cheap-filtered candidates; if the candidate set is too large, the anonymous shape is kept and the generalization hint is suppressed.
-- Candidate selection is deterministic: exact member-signature match first, configured standard-library roles before coincidental user interfaces, fewer extra required members next, then stable lexical name order. Ambiguity at the top of that ordering means no named suggestion is reported.
-- Intersections of roles are allowed but bounded. The first implementation may use exact single-interface matches, explicit standard role bundles, or a small greedy intersection under a strict candidate limit. It does not solve an unbounded set-cover problem.
-- Generic preservation is handled by identity tracking, not the role matcher. If a method returns the same parameter object it received, Rigor may infer `[S < _Role] (S value) -> S`. If the body may replace the value or return a delegated object, Rigor uses the ordinary inferred return type.
+- 各メソッドはキャッシュされた要件サマリーを持ち、これは必要なメンバー名・可視性・アリティ・キーワードとブロック要件・戻り値使用制約・変異要件・各引数とレシーバのprovenanceを記録します。
+- サマリーはデフォルトで無名のオブジェクトシェイプ要件です。それを既知のインターフェイスとして名付けることは、コア推論結果ではなくエクスポートと診断の便宜です。
+- 要件推論はローカルかつ単調です。直接呼び出しは既存のシグネチャまたはキャッシュされたサマリーを再利用します。再帰的または相互再帰的なサマリーは広げるプレースホルダーを使い、小さな不動点予算まで反復します。
+- `send`・`public_send`・制約のない`method_missing`・型なし委譲を通じた動的ディスパッチは、すべての可能なターゲットを列挙しようとするのではなく、動的要件を記録します。
+- 名前付きインターフェイスマッチングはメンバー名と可視性でキー付けされたインデックスを使います。Rigorは安価にフィルタされた候補のみを比較します。候補セットが大きすぎる場合、無名シェイプが保たれ、一般化ヒントは抑制されます。
+- 候補選択は決定的です。すなわち厳密なメンバーシグネチャマッチが最初、設定された標準ライブラリ役割が偶然のユーザーインターフェイスより前、より少ない追加の必要メンバーが次、それから安定したレキシカルな名前順です。その順序の最上位での曖昧さは、名前付きの提案が報告されないことを意味します。
+- 役割の交差は許されますが有界です。最初の実装は、厳密な単一インターフェイスマッチ・明示的な標準役割バンドル・厳格な候補制限の下での小さな貪欲な交差を使ってかまいません。無界のセットカバー問題を解決しません。
+- ジェネリック保存は役割マッチャーではなく同一性追跡によって処理されます。メソッドが受け取った引数オブジェクトと同じものを返すなら、Rigorは`[S < _Role] (S value) -> S`を推論してかまいません。本体が値を置き換えるか、委譲されたオブジェクトを返すかもしれないなら、Rigorは通常の推論された戻り値型を使います。
 
-When the body's inferred capability requirement and the declared nominal type disagree, Rigor escalates along three explicit levels:
+本体の推論された能力（capability）要件と宣言された名前的型が不一致のとき、Rigorは3つの明示的なレベルに沿ってエスカレートします。
 
-- **Diagnostic** is reserved for genuine type mismatches at call sites. A call that does not satisfy the declared parameter type is a diagnostic regardless of how the body is implemented. This level is unconditional and does not depend on configuration.
-- **Hint** applies when the body's inferred role is strictly smaller than the declared nominal type and a generalization to a structural interface would still type-check. Hints are emitted under the `hint.role-generalization.*` category and are gated by the `style.suggest_role_generalization` configuration switch. The default is off so library authors who chose a nominal contract are not nudged out of it; opting in is appropriate for application code that wants to discover structural opportunities.
-- **Silent** is the default for the remaining cases: the inferred role and the declared type are compatible, no generalization is offered to the user, and the inference result is retained internally for callers and refactor tooling. Plugins and reflective queries can still observe the inferred role through the `Scope` API.
+- **Diagnostic**は呼び出し位置での真の型不一致のために予約されます。宣言された引数型を満たさない呼び出しは、本体がどう実装されているかに関係なく診断です。このレベルは無条件で、設定に依存しません。
+- **Hint**は、本体の推論された役割が宣言された名前的型より厳密に小さく、構造的インターフェイスへの一般化が依然として型検査されるときに適用されます。ヒントは`hint.role-generalization.*`カテゴリーの下で発出され、`style.suggest_role_generalization`設定スイッチによってゲートされます。デフォルトはオフで、これにより名前的契約を選んだライブラリ作者がそれから押し出されません。構造的機会を発見したいアプリケーションコードにオプトインするのが適切です。
+- **Silent**は残りのケースのデフォルトです。すなわち推論された役割と宣言された型が互換性があり、ユーザーには一般化が提供されず、推論結果は呼び出し元とリファクタツールのために内部的に保持されます。プラグインとリフレクティブクエリは依然として`Scope` APIを通じて推論された役割を観測できます。
 
-The three levels are mutually exclusive at any given site. Rigor never both rejects a call and offers a generalization hint for the same parameter, and never silently rewrites a public nominal contract into a structural one.
+3つのレベルは任意の与えられた位置で相互排他的です。Rigorは、同じ引数について呼び出しを拒否しかつ一般化ヒントを提供することは決してなく、公開された名前的契約を黙って構造的なものに書き換えることも決してありません。
 
-### Control-Flow Narrowing Is Central
+### 制御フローナローイングは中心的である
 
-Rigor should run appropriate CFA and data-flow analysis, similar in spirit to PHPStan, TypeScript, and Python type checkers.
+RigorはPHPStan・TypeScript・Pythonの型チェッカーと精神的に類似した適切なCFAとデータフロー解析を実行すべきです。
 
-For example, after `value == "foo"`, the true branch can narrow `value` to `"foo"` and the false branch can carry the negative fact displayed as `~"foo"` when `value` already has a compatible trusted domain. The comparison does not create that positive domain by itself. The exact operator syntax is provisional, but the semantic capability is required.
+例えば、`value == "foo"`の後、true分岐は`value`を`"foo"`に絞り込めて、false分岐は`value`がすでに互換性のある信頼できるドメインを持つとき`~"foo"`として表示される否定的ファクトを運べます。比較はそれ自体で肯定的ドメインを作成しません。正確な演算子構文は暫定的ですが、セマンティック能力（capability）は必要です。
 
-Python's `TypeGuard` and `TypeIs` distinction supports the same design direction: predicate behavior is a flow effect. A true-only predicate is enough for `TypeGuard`-like behavior; paired true and false facts, or a false fact expressed as `T & ~U`, provide `TypeIs`-like behavior.
+Pythonの`TypeGuard`と`TypeIs`の区別は同じ設計方向をサポートします。すなわち述語挙動はフロー効果です。trueのみの述語は`TypeGuard`的挙動には十分です。trueとfalseのファクトのペア、または`T & ~U`として表現されたfalseファクトは、`TypeIs`的挙動を提供します。
 
-CFA must be fine-grained enough to update scope inside a condition expression, not only after the whole condition has been evaluated. For `if foo == "foo" && foo == "bar"`, the right side of `&&` is analyzed in the scope produced by the left side's true edge. If the current domain makes `"foo" & "bar"` impossible, the whole true branch becomes `bot`. The same principle applies to `||`, `!`, `unless`, `elsif`, `case`, and pattern matching.
+CFAは、条件式全体が評価された後だけでなく、条件式内でスコープを更新するのに十分にきめ細かくなければなりません。`if foo == "foo" && foo == "bar"`について、`&&`の右側は左側のtrueエッジによって生成されたスコープで解析されます。現在のドメインが`"foo" & "bar"`を不可能にするなら、true分岐全体が`bot`になります。同じ原則が`||`・`!`・`unless`・`elsif`・`case`・パターンマッチングに適用されます。
 
-Ruby equality is method dispatch, so equality narrowing cannot be a purely syntactic rule. `equal?`, `nil?`, boolean checks, trusted built-in literal domains, and predicate effects declared by RBS or plugins can produce type facts. Unknown `==` implementations should produce a weaker relational fact unless Rigor has method information that justifies a value-type refinement.
+Rubyの等価性はメソッドディスパッチであるため、等価ナローイングは純粋に構文的な規則ではあり得ません。`equal?`・`nil?`・ブール値チェック・信頼できる組み込みリテラルドメイン・RBSまたはプラグインによって宣言された述語効果は型ファクトを生成できます。未知の`==`実装は、Rigorが値型リファインメントを正当化するメソッド情報を持たない限り、より弱い関係的ファクトを生成すべきです。
 
-Raw `untyped` equality remains dynamic-origin relational information. `v: untyped` followed by `v == "foo"` does not become `Dynamic["foo"]` unless an independent guard or trusted equality effect proves that narrowing.
+素の`untyped`の等価性は動的起源の関係的情報のままです。`v: untyped`に続く`v == "foo"`は、独立したガードまたは信頼できる等価効果がそのナローイングを証明しない限り、`Dynamic["foo"]`にはなりません。
 
-The initial trusted equality surface is intentionally narrow:
+初期の信頼できる等価表層は意図的に狭いです。
 
-- `equal?` produces an identity fact bound to the observed reference. The fact is invalidated by reassignment, alias-escaping mutation, unknown calls, or plugin-declared effects.
-- Built-in literal-domain equality is trusted only for finite literal sets of `String`, `Symbol`, `Integer`, booleans, and `nil`, and only when the receiver dispatch target is known and the receiver domain is already compatible.
-- `Float` literal narrowing is refused by default. `NaN`, signed zero, infinities, and numeric coercion make exhaustiveness over float literals unsafe; relational facts may still be kept for diagnostics.
-- `Range`, `Regexp`, `Module`, `Class`, and `===`-based case behavior do not produce general value-narrowing facts on their own. They require specific narrowing rules or RBS/plugin effects before they can refine value domains.
-- User-defined `==`, `eql?`, and `===` are promoted from relational facts to value facts only through explicit RBS metadata, `RBS::Extended` flow effects, or plugin-declared true-edge and false-edge facts together with any required stability or purity assumptions.
+- `equal?`は観測された参照に束縛された同一性ファクトを生成します。ファクトは再代入・エイリアスエスケープ変異・未知呼び出し・プラグイン宣言の効果によって無効化されます。
+- 組み込みリテラルドメインの等価性は、`String`・`Symbol`・`Integer`・boolean・`nil`の有限リテラルセットに対してのみ、レシーバディスパッチターゲットが分かっておりレシーバドメインがすでに互換性があるときにのみ信頼されます。
+- `Float`リテラルナローイングはデフォルトで拒否されます。`NaN`・符号付きゼロ・無限大・数値強制が浮動小数リテラル上の網羅性を安全でなくします。関係的ファクトは依然として診断のために保たれてかまいません。
+- `Range`・`Regexp`・`Module`・`Class`・`===`ベースのcase挙動は、それ自体では一般的な値ナローイングファクトを生成しません。それらは値ドメインを精緻化する前に特定のナローイング規則またはRBS/プラグイン効果を要求します。
+- ユーザー定義の`==`・`eql?`・`===`は、明示的なRBSメタデータ・`RBS::Extended`フロー効果・プラグイン宣言のtrueエッジとfalseエッジファクトに加えて任意の必要な安定性または純粋性仮定を通じてのみ、関係的ファクトから値ファクトに昇格されます。
 
-### Fact Stability and Mutation Effects
+### ファクトの安定性と変異効果
 
-Flow facts are not all of the same kind, and they invalidate at different rates:
+フローファクトはすべて同じ種類ではなく、異なる速度で無効化されます。
 
-- Local binding facts are about which value a name refers to in this scope.
-- Captured-local facts are about locals that may be written by an outer or inner closure.
-- Object-content facts cover hash entries, instance variables, object-shape members, and other heap state.
-- Global-storage facts cover constants, globals, class variables, and similar shared state.
-- Dynamic-origin facts retain a `Dynamic[T]` marker even after narrowing.
-- Relational facts record comparisons that have not yet been reduced to a value type.
+- ローカル束縛ファクトは、このスコープで名前がどの値を参照するかについてです。
+- 捕捉ローカルファクトは、外側または内側のクロージャによって書き込まれる可能性のあるローカルについてです。
+- オブジェクト内容ファクトはhashエントリ・インスタンス変数・オブジェクトシェイプメンバー・他のヒープ状態をカバーします。
+- グローバルストレージファクトは定数・グローバル・クラス変数・類似の共有状態をカバーします。
+- 動的起源ファクトはナローイング後でも`Dynamic[T]`マーカーを保持します。
+- 関係的ファクトは、まだ値型に還元されていない比較を記録します。
 
-Invalidation is targeted rather than scope-wide:
+無効化はスコープ全体ではなく標的化されています。
 
-- Unknown method calls may invalidate heap facts for targets that could have escaped, such as object shapes, hash entries, instance variables, constants, globals, and class variables. They do not invalidate every local binding fact in scope.
-- Local binding facts survive ordinary method calls until assignment to that local. A call may mutate the object referenced by `x`, but it cannot rebind `x` unless `x` is captured by a closure that writes it.
-- Closure writes are explicit effects. When a block, proc, or lambda writes an outer local, Rigor records a captured-local write. Immediate known invocation applies that write at the call edge; escaping or deferred closures make writable captured-local facts unstable after the escape point.
-- Higher-order calls need call-timing effects rather than a blanket "yield invalidates everything" rule. The initial categories are no block invocation, immediate non-escaping invocation with known count, immediate non-escaping invocation with unknown count, deferred or escaping block storage, and unknown block behavior.
-- Core methods such as `tap`, `then`, `yield_self`, and `each_with_object` should eventually have summaries for block timing, return behavior, and receiver or argument mutation. Until those summaries exist, Rigor may weaken object-content facts touched by such calls but should preserve unrelated local binding facts.
+- 未知のメソッド呼び出しは、エスケープした可能性のあるターゲット（オブジェクトシェイプ・hashエントリ・インスタンス変数・定数・グローバル・クラス変数）のヒープファクトを無効化してかまいません。それらはスコープ内のすべてのローカル束縛ファクトを無効化しません。
+- ローカル束縛ファクトは、そのローカルへの代入まで通常のメソッド呼び出しを生き延びます。呼び出しは`x`が参照するオブジェクトを変異してかまいませんが、`x`がそれを書き込むクロージャによって捕捉されない限り、`x`を再束縛できません。
+- クロージャ書き込みは明示的な効果です。ブロック・proc・lambdaが外側のローカルを書き込むとき、Rigorは捕捉ローカル書き込みを記録します。即時の既知呼び出しはその書き込みを呼び出しエッジで適用します。エスケープまたは遅延クロージャは、エスケープ点後に書き込み可能な捕捉ローカルファクトを不安定にします。
+- 高階呼び出しは「yieldはすべてを無効化する」という包括的な規則ではなく呼び出しタイミング効果を必要とします。初期カテゴリは、ブロック呼び出しなし・既知カウントの即時非エスケープ呼び出し・未知カウントの即時非エスケープ呼び出し・遅延またはエスケープブロックストレージ・未知のブロック挙動です。
+- `tap`・`then`・`yield_self`・`each_with_object`のようなコアメソッドは、最終的にブロックタイミング・戻り挙動・レシーバまたは引数の変異についてのサマリーを持つべきです。それらのサマリーが存在するまで、Rigorはそのような呼び出しによって触れられたオブジェクト内容ファクトを弱めてかまいませんが、関連のないローカル束縛ファクトは保つべきです。
 
-The first proof obligations for stable facts are concrete:
+安定したファクトに対する最初の証明義務は具体的です。
 
-- A non-reassigned local that is not writable by any escaping closure.
-- Immutable singleton or immediate values.
-- Values proven frozen for the relevant operation.
-- Fresh allocations that have not escaped.
-- RBS, `RBS::Extended`, or plugin effects that declare read-only, pure, or targeted mutation behavior.
+- エスケープするクロージャによって書き込み可能でない再代入されないローカル。
+- 不変なシングルトンまたは即時値。
+- 関連する操作についてフローズンと証明された値。
+- エスケープしていない新鮮な割り当て。
+- 読み取り専用・純粋・標的化された変異挙動を宣言するRBS・`RBS::Extended`・プラグイン効果。
 
-The minimal first implementation pairs a category-bucketed fact store with immutable per-edge `Scope` snapshots:
+最小の最初の実装は、カテゴリーバケット化されたファクトストアを不変なエッジごとの`Scope`スナップショットとペアにします。
 
-- Each `Scope` is an immutable snapshot keyed by control-flow edge. Joins, narrowing, and invalidation produce new snapshots through structural sharing rather than in-place mutation.
-- Within a snapshot, facts are partitioned into buckets that mirror the categories above: local-binding, captured-local, object-content, global-storage, dynamic-origin, and relational. Invalidation rules act on a specific bucket, so an unknown method call sweeps object-content without touching local-binding.
-- Relational facts that span multiple targets live in their own bucket and are invalidated when any participating target's bucket records a change.
-- The public surface of `Scope` does not expose buckets directly. Plugins, narrowing rules, and diagnostics ask `Scope` for facts about a target; the bucket layout is an internal optimization that may evolve.
+- 各`Scope`は制御フローエッジでキー付けされた不変なスナップショットです。ジョイン・ナローイング・無効化はin-place変異ではなく構造的共有を通じて新しいスナップショットを生成します。
+- スナップショット内では、ファクトは上記のカテゴリーをミラーするバケットに分割されます。すなわちlocal-binding・captured-local・object-content・global-storage・dynamic-origin・relationalです。無効化規則は特定のバケットに作用するため、未知のメソッド呼び出しはlocal-bindingに触れずにobject-contentを掃きます。
+- 複数のターゲットにまたがる関係的ファクトは独自のバケットに住み、参加するターゲットのバケットが変更を記録するとき無効化されます。
+- `Scope`の公開表層はバケットを直接公開しません。プラグイン・ナローイング規則・診断はターゲットについてのファクトを`Scope`に尋ねます。バケットレイアウトは進化してかまわない内部最適化です。
 
-The pre-plugin purity policy controls how method-call results are remembered or forgotten across re-invocations and how PHPStan-style remembered values map onto Rigor's category buckets:
+プラグイン前の純粋性ポリシーは、再呼び出しにわたってメソッド呼び出し結果がどう記憶または忘れられるか、PHPStanスタイルの記憶された値がどうRigorのカテゴリーバケットにマップするかを制御します。
 
-- Methods are treated as impure by default. Calling an impure method on a receiver invalidates the receiver's object-content bucket and discards remembered value facts for prior calls to the same receiver.
-- Purity becomes effective only when an authoritative source declares it. Core Ruby and stdlib RBS distributed with Rigor, accepted ordinary RBS files, and explicit `rigor:v1:pure` annotations on `RBS::Extended` are the initial sources. Generated signatures and plugin contributions may refine purity within their tier.
-- A configuration switch should make the default look more like PHPStan's "value-returning is pure unless declared impure" policy for projects that want stronger narrowing across repeated calls. The switch flips the default but never overrides explicit `pure` or mutation declarations.
-- `pure` combined with any receiver-mutation, argument-mutation, or fact-invalidation effect remains a contract conflict, as already specified in the `RBS::Extended` merge rules.
+- メソッドはデフォルトで非純粋として扱われます。レシーバ上の非純粋メソッドを呼び出すと、レシーバのオブジェクト内容バケットが無効化され、同じレシーバへの先行呼び出しの記憶された値ファクトが破棄されます。
+- 純粋性は権威あるソースが宣言したときにのみ有効になります。Rigorとともに配布されるコアRubyとstdlibのRBS・受け付けられた通常のRBSファイル・`RBS::Extended`上の明示的な`rigor:v1:pure`注釈が初期ソースです。生成されたシグネチャとプラグイン貢献はそのティア内で純粋性を精緻化してかまいません。
+- 設定スイッチは、繰り返しの呼び出しにわたるより強いナローイングを望むプロジェクトのために、デフォルトをPHPStanの「値返却は非純粋と宣言されない限り純粋」ポリシーに似たものにすべきです。スイッチはデフォルトを反転させますが、明示的な`pure`または変異宣言を決してオーバーライドしません。
+- `pure`が任意のレシーバ変異・引数変異・ファクト無効化効果と組み合わされることは、`RBS::Extended`マージ規則ですでに指定されているとおり、契約衝突のままです。
 
-The first user-visible milestone (v1) ships built-in mutation, purity, and call-timing summaries for a small, deliberately chosen set of core and stdlib classes. Picking a fixed set keeps the v1 narrowing surface honest: code outside this set falls back to "impure by default" without pretending to know more, and authors who need precision earlier can supply `RBS::Extended` annotations or plugins.
+最初のユーザー可視マイルストーン（v1）は、慎重に選ばれた小さなコアおよびstdlibクラスのセットに対する組み込みの変異・純粋性・呼び出しタイミングサマリーを出荷します。固定セットを選ぶことでv1のナローイング表層を正直に保ちます。すなわちこのセット外のコードは、より多く知っているふりをせずに「デフォルト非純粋」にフォールバックし、より早く精度を必要とする作者は`RBS::Extended`注釈またはプラグインを供給できます。
 
-The v1 covered set is:
+v1のカバーされたセットは以下のとおりです。
 
-| Class | Reason |
+| クラス | 理由 |
 |---|---|
-| `Array` | The most commonly mutated container in Ruby code; clear distinction between `<<`, `push`, `pop`, `replace` (mutate) and `map`, `select`, `+` (pure). |
-| `Hash` | Same role as `Array` for keyed storage; needed for `merge!` versus `merge`, `[]=` versus `dup`-then-modify patterns. |
-| `String` | Frequent target of in-place mutation (`<<`, `gsub!`, `replace`) where mistaking a pure call for impure produces real false positives. |
-| `Set` | The only widely used non-core collection where in-place semantics differ from immutable composition; `add`, `delete`, `merge` versus `|`, `&`, `-`. |
-| `IO` | Effect-heavy class whose call timing (`each_line`, `read`, `write`) directly drives flow stability for real file-descriptor-backed code. |
-| `StringIO` | Used as a stand-in for `IO` in tests and pipelines; needs the same call-timing model so capability roles behave consistently. |
-| `File` | Adds path-bound side effects on top of `IO`; `File.open` block timing and `File.write` are common enough that missing them weakens v1 noticeably. |
-| `Tempfile` | Has lifetime effects (creation, unlink) that pair naturally with `_ClosableStream` and `_FileDescriptorBacked` roles. |
-| `Pathname` | Common boundary for filesystem-touching code; mostly pure transformations with a small set of effectful methods (`mkdir`, `rmtree`). |
-| `Logger` | Representative effect-only API; useful for validating that pure/impure separation does not regress diagnostics for side-effect-only callers. |
+| `Array` | Rubyコードで最もよく変更されるコンテナ。`<<`・`push`・`pop`・`replace`（変更）と`map`・`select`・`+`（純粋）の明確な区別。 |
+| `Hash` | キー付きストレージに対する`Array`と同じ役割。`merge!`対`merge`、`[]=`対`dup`-then-modifyパターンに必要。 |
+| `String` | 純粋呼び出しを非純粋と誤ると実際の偽陽性を生むin-place変異の頻繁なターゲット（`<<`・`gsub!`・`replace`）。 |
+| `Set` | in-placeセマンティクスが不変合成と異なる、広く使われる唯一の非コアコレクション。`add`・`delete`・`merge`対`|`・`&`・`-`。 |
+| `IO` | 呼び出しタイミング（`each_line`・`read`・`write`）が実際のファイルディスクリプタバックのコードのフロー安定性を直接駆動する効果重いクラス。 |
+| `StringIO` | テストとパイプラインで`IO`の代わりとして使われる。能力役割が一貫して振る舞うよう同じ呼び出しタイミングモデルが必要。 |
+| `File` | `IO`の上にパス束縛の副作用を追加する。`File.open`ブロックタイミングと`File.write`は十分に一般的で、それらが欠けるとv1が顕著に弱まる。 |
+| `Tempfile` | `_ClosableStream`と`_FileDescriptorBacked`役割と自然にペアになるライフタイム効果（作成・unlink）を持つ。 |
+| `Pathname` | ファイルシステムに触れるコードの一般的な境界。ほとんど純粋な変換と効果のあるメソッド（`mkdir`・`rmtree`）の小さなセット。 |
+| `Logger` | 代表的な効果のみのAPI。純粋／非純粋の分離が副作用のみの呼び出し元の診断をリグレッションさせないことを検証するのに有用。 |
 
-The v1 summaries cover, for each class:
+v1のサマリーは、各クラスについて以下をカバーします。
 
-- per-method receiver-mutation status, argument-mutation status, and fact-invalidation effect;
-- per-method block call timing (no block, immediate non-escaping known-count, immediate non-escaping unknown-count, deferred or escaping, unknown);
-- per-method purity declaration where it can be made without overpromising.
+- メソッドごとのレシーバ変異状態・引数変異状態・ファクト無効化効果。
+- メソッドごとのブロック呼び出しタイミング（ブロックなし・既知カウントの即時非エスケープ・未知カウントの即時非エスケープ・遅延またはエスケープ・未知）。
+- 過剰な約束をせずに行えるところでのメソッドごとの純粋性宣言。
 
-Classes outside this set are not silently assumed pure or impure. They follow the default impure policy until ordinary RBS, `RBS::Extended`, or plugin facts say otherwise.
+このセット外のクラスは、純粋または非純粋と黙って仮定されません。それらは、通常のRBS・`RBS::Extended`・プラグインファクトが別途述べるまでデフォルトの非純粋ポリシーに従います。
 
-The v1.1 roadmap extends coverage along three axes, behind feature flags so v1 behavior stays stable as the larger surface lands:
+v1.1ロードマップは3つの軸に沿ってカバレッジを拡張し、より大きな表層が着地する間にv1の挙動が安定したまま留まるようフィーチャーフラグの背後にあります。
 
-- additional core classes (`Numeric` and its descendants, `Symbol`, `Range`, `Regexp`, `Proc`, `Method`, `Time`, `Date`, `DateTime`);
-- additional widely used stdlib (`Date`, `JSON`, `URI`, `OpenStruct`, `Forwardable`, `Comparable`-bearing classes that need explicit mutation summaries);
-- selected metaprogramming-adjacent core APIs (`Module`, `Class`, `BasicObject`) once their analyzer-side modeling is stable.
+- 追加のコアクラス（`Numeric`とその子孫・`Symbol`・`Range`・`Regexp`・`Proc`・`Method`・`Time`・`Date`・`DateTime`）。
+- 追加の広く使われるstdlib（`Date`・`JSON`・`URI`・`OpenStruct`・`Forwardable`・明示的な変異サマリーが必要な`Comparable`を持つクラス）。
+- 解析器側のモデリングが安定したら、選択されたメタプログラミング隣接のコアAPI（`Module`・`Class`・`BasicObject`）。
 
-Built-in mutation summaries are not a closed list. New entries may be added in any minor release as long as their addition does not change the meaning of code that does not call them; the published roadmap is a planning aid, not a contract.
+組み込みの変異サマリーはクローズドリストではありません。新しいエントリは、それらを呼び出さないコードの意味を変えない限り、任意のマイナーリリースで追加されてかまいません。発表されたロードマップは契約ではなく計画の助けです。
 
-### `void` Is a Return-Position Marker
+### `void`は戻り位置マーカーである
 
-RBS treats `void` as top-like but context-limited. Rigor should model `void` internally as a result marker that says the return value should not be used.
+RBSは`void`をtop的だがコンテキスト制限されたものとして扱います。Rigorは`void`を、戻り値が使われるべきでないことを言う結果マーカーとして内部でモデル化すべきです。
 
-Rigor's value-context recovery is consistent with RBS's "top-like" treatment: when a `void` result reaches a value position the recovered type is `top`, not a stricter or weaker substitute. Rigor's contribution on top of the RBS rule is to record that the value reached the position by recovery from `void` and to surface that as a primary diagnostic, so the analyzer can explain *why* a `top` appeared and the user can fix the call site rather than learning to live with a generic `top`. Generated RBS continues to spell `void` only in the positions RBS allows.
+Rigorの値コンテキスト復旧はRBSの「top的」扱いと整合的です。すなわち`void`の結果が値位置に到達するとき、復旧された型は`top`であり、より厳格またはより弱い代替ではありません。RBS規則の上に乗るRigorの貢献は、値が`void`からの復旧によって位置に到達したことを記録し、それを主要な診断として表面化することです。これにより解析器は*なぜ*`top`が現れたかを説明でき、ユーザーは一般的な`top`と共に生きることを学ぶのではなく呼び出し位置を直せます。生成されたRBSはRBSが許す位置でのみ`void`を綴り続けます。
 
-This enables diagnostics such as assigning the result of a `void` method call. In statement context, `void` is fine. In value context, Rigor reports a diagnostic and recovers with `top`.
+これは`void`メソッド呼び出しの結果を代入するような診断を可能にします。文コンテキストでは`void`は問題ありません。値コンテキストではRigorは診断を報告し、`top`で復旧します。
 
-In normalized result summaries, `void | bot` collapses to `void`. A path that always raises is acceptable in a `void` context, so the union does not weaken the marker.
+正規化された結果サマリーでは、`void | bot`は`void`に縮退します。常にraiseする経路は`void`コンテキストで受け入れ可能であるため、unionはマーカーを弱めません。
 
-### Inline RBS Annotations and Inference Boundaries
+### インラインRBS注釈と推論境界
 
-Rigor's "no Rigor-specific inline type syntax" goal is about keeping Ruby code readable for humans and low-noise for AI-assisted editing. It does not mean Rigor ignores existing Ruby ecosystem annotation conventions.
+Rigorの「Rigor固有のインライン型構文なし」というゴールは、Rubyコードを人間にとって読みやすく、AI支援編集にとって低ノイズに保つことについてです。それはRigorが既存のRubyエコシステム注釈規約を無視することを意味しません。
 
-Rigor should be 100% compatible with RBS and rbs-inline annotation syntax, and should follow Steep 2.0 behavior for inline annotation interpretation and precedence. RBS and rbs-inline are the primary norms for inline type syntax; Steep's implementation is the secondary norm where behavior is not fully specified in prose. TypeScript, PHPStan, and Python typing remain reference material for missing concepts, not compatibility targets.
+RigorはRBSとrbs-inline注釈構文と100%互換であるべきで、インライン注釈の解釈と優先度についてSteep 2.0の挙動に従うべきです。RBSとrbs-inlineはインライン型構文の一次規範です。Steepの実装は挙動が散文で完全に指定されていないところでの二次規範です。TypeScript・PHPStan・Pythonのtypingは欠けた概念のための参考資料のままで、互換性ターゲットではありません。
 
-When the three sources differ, the resolution order is:
+3つのソースが異なるとき、解決順序は以下のとおりです。
 
-1. RBS prose specification wins.
-2. rbs-inline documentation wins for inline-syntax questions that the RBS prose does not address.
-3. Steep 2.0 behavior wins only when neither RBS prose nor rbs-inline documentation specifies the behavior.
+1. RBSの散文仕様が勝ちます。
+2. RBSの散文が扱わないインライン構文の問いについてはrbs-inlineのドキュメンテーションが勝ちます。
+3. RBSの散文もrbs-inlineのドキュメンテーションも挙動を指定していないときにのみSteep 2.0の挙動が勝ちます。
 
-Where Steep diverges from a higher-priority source, Rigor follows the higher-priority source and treats the divergence as documented behavior. Such cases should be called out individually in `docs/types.md` so users migrating from Steep see the difference instead of discovering it through a diagnostic.
+Steepが優先度の高いソースから逸脱する場所では、Rigorは優先度の高いソースに従い、逸脱を文書化された挙動として扱います。そのようなケースは、Steepから移行するユーザーが診断を通じて違いを発見するのではなく違いを見るよう、`docs/types.md`で個別に呼び出されるべきです。
 
-Rigor should read existing rbs-inline and Steep-compatible annotations as official type sources. It should not rewrite them, warn only because they are complex, or require `# rbs_inline: enabled`. Only the rbs-inline configuration directives such as `# rbs_inline: enabled` and `# rbs_inline: disabled` are ignored; the rbs-inline annotation comments themselves (for example `#: String`, `# @rbs`, parameter annotations) are always parsed and used as type sources whenever present.
+Rigorは既存のrbs-inlineとSteep互換の注釈を公式の型ソースとして読むべきです。それらを書き直したり、複雑であるという理由だけで警告したり、`# rbs_inline: enabled`を要求したりすべきではありません。`# rbs_inline: enabled`と`# rbs_inline: disabled`のようなrbs-inline設定ディレクティブのみが無視されます。rbs-inline注釈コメント自体（例えば`#: String`・`# @rbs`・引数注釈）は、存在するときは常にパースされ型ソースとして使われます。
 
-Standalone `.rbs` files and generated stubs remain the preferred place for complete type definitions. Inline annotations are nevertheless real contracts when present. They are not merely hints.
+スタンドアロンの`.rbs`ファイルと生成されたスタブは、完全な型定義のために好まれる場所のままです。インライン注釈はそれにもかかわらず、存在するとき実際の契約です。それらは単なるヒントではありません。
 
-Contract checking is independent of where the contract came from. A return type written as inline `#: void`, a method type written with `# @rbs`, parameter types written in rbs-inline style, a generated stub, and an external `.rbs` declaration all constrain the implementation in the same way. Rigor should report implementation-side diagnostics when the method body contradicts any accepted signature source.
+契約チェックは契約がどこから来たかから独立しています。インライン`#: void`として書かれた戻り値型・`# @rbs`で書かれたメソッド型・rbs-inlineスタイルで書かれた引数型・生成されたスタブ・外部の`.rbs`宣言はすべて、同じ方法で実装を制約します。Rigorはメソッド本体が任意の受け付けられたシグネチャソースに矛盾するとき、実装側の診断を報告すべきです。
 
-**Recommendation level.** Rigor's style guidance is only about whether authors should write a type in `.rb` source:
+**推奨レベル。** Rigorのスタイルガイダンスは作者が`.rb`ソースに型を書くべきかどうかについてのみです。
 
-- `#: void` and `#: bot` are strongly recommended when they express intent and create useful inference boundaries.
-- Short returns such as `#: bool`, `#: String`, or `#: User` are neutral; authors may write them when they make intent clearer.
-- Complex inline types, such as unions, generics, records, and nested method types, are valid RBS/rbs-inline input and must be accepted. Rigor's style guidance prefers moving them to `.rbs` or generated stubs, but Rigor should not report diagnostics merely for using them.
+- `#: void`と`#: bot`は、意図を表現し有用な推論境界を作るとき強く推奨されます。
+- `#: bool`・`#: String`・`#: User`のような短い戻り値は中立です。意図をより明確にするとき作者はそれらを書いてかまいません。
+- union・ジェネリクス・レコード・ネストされたメソッド型のような複雑なインライン型は、有効なRBS/rbs-inline入力で受け入れられなければなりません。Rigorのスタイルガイダンスはそれらを`.rbs`または生成されたスタブに移すことを好みますが、Rigorはそれらを使用することだけで診断を報告すべきではありません。
 
-**Inference boundary contract.** When a return contract is available from any accepted signature source, callers use that declared return and Rigor can stop recursive return inference at the method boundary. The implementation body is still checked against the contract. If the body can return a value outside the declared return, Rigor reports a diagnostic on the implementation side.
+**推論境界契約。**戻り契約が任意の受け付けられたシグネチャソースから利用可能なとき、呼び出し元はその宣言された戻り値を使い、Rigorはメソッド境界で再帰的な戻り値推論を停止できます。実装本体は依然として契約に対してチェックされます。本体が宣言された戻り値の外の値を返せるなら、Rigorは実装側の診断を報告します。
 
-This boundary is especially valuable for deep, recursive, or expensive methods. It prevents analysis from fanning out into the method body when the author has already supplied the return contract.
+この境界は、深い・再帰的・高価なメソッドにとって特に価値があります。作者がすでに戻り契約を供給したとき、解析がメソッド本体に拡散するのを防ぎます。
 
-**Bottom type in signatures.** A `bot` return contract means the call never returns normally. Callers treat it as `bot` for reachability and dead-code analysis. If implementation analysis finds a normal return path, Rigor reports a diagnostic against the method body, regardless of whether the `bot` came from inline `#: bot`, `# @rbs`, generated RBS, or external `.rbs`.
+**シグネチャ内のbottom型。** `bot`戻り契約は、呼び出しが正常に決して返らないことを意味します。呼び出し元は到達可能性とデッドコード解析のためにそれを`bot`として扱います。実装解析が正常な戻り経路を見つけたとき、`bot`がインライン`#: bot`・`# @rbs`・生成されたRBS・外部の`.rbs`から来たかに関係なく、Rigorはメソッド本体に対して診断を報告します。
 
-**Example.**
+**例。**
 
 ```ruby
 def print(foo) #: void
@@ -527,17 +524,17 @@ def print(foo) #: void
 end
 ```
 
-**Why a `void` contract can matter for Ruby.** A `void` return contract tells the analyzer to treat the return as `void` and not to **propagate** a more precise inferred return from the last expression. The last line is still a Ruby value (implicit return), but the **type contract** is “no meaningful return for typing,” matching RBS’s `void` meaning. Writing `#: void` in `.rb` is strongly recommended when that inline marker makes the author's side-effect-only intent clearer, but the static meaning is the same as `void` from any other accepted signature source.
+**なぜ`void`契約がRubyにとって重要であり得るか。** `void`戻り契約は解析器に、戻り値を`void`として扱い、最後の式からのより精密な推論された戻り値を**伝播しない**よう告げます。最後の行は依然としてRubyの値（暗黙のreturn）ですが、**型契約**は「型付けにとって意味のある戻り値なし」で、RBSの`void`の意味と一致します。`.rb`内に`#: void`を書くことは、そのインラインマーカーが作者の副作用のみの意図をより明確にするとき強く推奨されますが、静的な意味は他の任意の受け付けられたシグネチャソースからの`void`と同じです。
 
-**Interaction with implicit return at runtime.** Ruby’s last-expression return means a value almost always **exists** in the VM. Rigor’s obligation remains **static** (value context, assignment, chains, boundary behavior), not a proof that the runtime value is never observed.
+**実行時の暗黙returnとの相互作用。** Rubyの最後の式returnは、値がVMにほぼ常に**存在する**ことを意味します。Rigorの義務は実行時の値が決して観測されないことの証明ではなく、**静的**（値コンテキスト・代入・チェーン・境界挙動）のままです。
 
-**Relation to `bot`.** A `bot` implementation satisfies a `void` return contract because no normal value is produced. A `void` result does not satisfy a `bot` return contract because the call may still return normally at runtime.
+**`bot`との関係。** `bot`実装は`void`戻り契約を満たします。なぜなら通常の値が生成されないからです。`void`結果は`bot`戻り契約を満たしません。なぜなら呼び出しは依然として実行時に正常に返ることがあるからです。
 
-**Value-context recovery.** If a `void` result is assigned, chained, interpolated, passed as an argument, or otherwise used as a value, Rigor reports a primary "use of void value" diagnostic and then recovers with `top`. Immediate follow-on diagnostics caused only by that recovery, such as "method on `top`", should be suppressed for the same expression unless cascading diagnostics are explicitly requested.
+**値コンテキスト復旧。** `void`結果が代入・チェーン・補間・引数として渡される・他の方法で値として使われるとき、Rigorは主要な「voidの値の使用」診断を報告し、それから`top`で復旧します。「`top`上のメソッド」のような、その復旧によってのみ引き起こされる即時の後続診断は、カスケード診断が明示的に要求されない限り、同じ式に対して抑制されるべきです。
 
-**Imported RBS slots.** Existing RBS can place `void` in generic or callback slots, such as `Enumerator[Elem, void]` or a block parameter whose value is intentionally ignored. Rigor preserves these signatures for compatibility. If substitution makes such a slot appear in a value-producing position, the result is handled as a `void` result marker rather than as an ordinary value-set type.
+**インポートされたRBSスロット。**既存のRBSは`Enumerator[Elem, void]`や意図的に値が無視されるブロック引数のような、ジェネリックまたはcallbackスロットに`void`を置けます。Rigorは互換性のためにこれらのシグネチャを保ちます。置換がそのようなスロットを値生成位置に現れさせるなら、結果は通常の値セット型としてではなく`void`結果マーカーとして処理されます。
 
-**Interactive inference cutoffs (target behavior, not current scaffold).** This subsection describes Rigor's intended CLI behavior once the analyzer ships an interactive surface. The current scaffold does not yet implement these prompts; the description is normative for the target product, not a checklist of features that already exist. Some methods are not worth inferring from implementation alone. Recursive code with unconstrained operators is the clearest case:
+**対話的推論カットオフ（現在の足場ではなくターゲット挙動）。**このサブセクションは、解析器が対話的表層を出荷したときの意図されるCLIの挙動を記述します。現在の足場はまだこれらのプロンプトを実装していません。記述はすでに存在する機能のチェックリストではなく、ターゲット製品にとって規範的です。一部のメソッドは実装のみから推論する価値がありません。制約のない演算子を伴う再帰的コードが最も明確なケースです。
 
 ```ruby
 def tarai(x, y, z)
@@ -553,176 +550,176 @@ def tarai(x, y, z)
 end
 ```
 
-Many Ruby classes implement `<=` and `-`, so without a parameter or return contract this method does not have a unique useful inferred domain. The recursive calls also make return inference fan out. Rigor should stop early when operator ambiguity and recursion exceed a budget. In non-interactive mode it reports an incomplete-inference diagnostic and suggests adding a boundary contract. In interactive CLI mode it may ask the user for a compatible type source, such as `#: Integer` for a return-only cutoff, a full `# @rbs` method type, or an external `.rbs` declaration. The chosen contract is trusted by callers and checked against the implementation like any other accepted signature source.
+多くのRubyクラスが`<=`と`-`を実装しているため、引数または戻り契約なしではこのメソッドはユニークで有用な推論ドメインを持ちません。再帰呼び出しもまた戻り値推論を拡散させます。Rigorは演算子の曖昧さと再帰が予算を超えるとき早期に停止すべきです。非対話モードでは不完全推論診断を報告し、境界契約を追加することを示唆します。対話的CLIモードでは、戻り値のみのカットオフのための`#: Integer`・完全な`# @rbs`メソッド型・外部の`.rbs`宣言のような、互換性のある型ソースをユーザーに尋ねてかまいません。選ばれた契約は呼び出し元に信頼され、他の任意の受け付けられたシグネチャソースのように実装に対してチェックされます。
 
-The initial budget categories are explicit so cutoffs are predictable:
+初期予算カテゴリーは、カットオフが予測可能であるよう明示的です。
 
-- Recursion depth on the same method or mutually recursive cluster.
-- Call-graph expansion width when a body fans out into many callees without contracts.
-- Overload candidate count for argument-sensitive dispatch.
-- Operator ambiguity per call when an operator like `<=` or `-` accepts many receiver types.
-- Union size for joined inferred returns.
-- Structural requirement growth when a capability summary keeps acquiring new members.
+- 同じメソッドまたは相互再帰クラスタ上の再帰深度。
+- 本体が契約のない多くの被呼び出し先に拡散するときのコールグラフ拡張幅。
+- 引数感受性ディスパッチのオーバーロード候補数。
+- `<=`や`-`のような演算子が多くのレシーバ型を受け入れるときの呼び出しごとの演算子の曖昧さ。
+- ジョインされた推論された戻り値のunionサイズ。
+- 能力サマリーが新しいメンバーを取得し続けるときの構造的要件成長。
 
-Each budget produces an incomplete-inference result with a reason rather than a fabricated precise type. This keeps the inference compatible with the "no Rigor-specific inline type syntax in Ruby code" goal: the user resolves the cutoff with an accepted RBS-shaped contract, not with a Rigor-only DSL.
+各予算は、捏造された精密な型ではなく理由付きの不完全推論結果を生成します。これは推論を「Rubyコード内のRigor固有のインライン型構文なし」というゴールと互換に保ちます。すなわちユーザーはRigor専用のDSLではなく、受け付けられたRBS形の契約でカットオフを解決します。
 
-Every budget category is configurable through `.rigor.yml` under a single `budgets:` namespace, with healthy ranges enforced by the analyzer. Values outside the accepted range produce a configuration diagnostic rather than silent acceptance. The first implementation defaults and ranges are:
+すべての予算カテゴリーは、解析器によって強制された健全な範囲とともに、`.rigor.yml`の単一の`budgets:`名前空間下で設定可能です。受け付けられた範囲外の値は、黙った受け入れではなく設定診断を生成します。最初の実装のデフォルトと範囲は以下のとおりです。
 
-| Category | Default | Accepted range |
+| カテゴリー | デフォルト | 受け入れ範囲 |
 |---|---|---|
-| Recursion depth | 5 | 1–32 |
-| Call-graph expansion width | 16 | 1–256 |
-| Overload candidate count | 8 | 1–64 |
-| Operator ambiguity per call | 4 | 1–32 |
-| Union size for inferred returns | 24 | 4–256 |
-| Structural requirement growth | 16 | 1–256 |
-| Named-interface candidate matches | 8 | 1–64 |
+| 再帰深度 | 5 | 1–32 |
+| コールグラフ拡張幅 | 16 | 1–256 |
+| オーバーロード候補数 | 8 | 1–64 |
+| 呼び出しごとの演算子の曖昧さ | 4 | 1–32 |
+| 推論された戻り値のunionサイズ | 24 | 4–256 |
+| 構造的要件成長 | 16 | 1–256 |
+| 名前付きインターフェイス候補マッチ | 8 | 1–64 |
 
-The same `budgets:` namespace also carries the hash-shape erasure key budget (default 16) and value budget (default 8); see `Hash Shape Erasure`. The negative-fact display budget for difference and complement diagnostics defaults to 3 retained exclusions; see `Type Operators Are Provisional`.
+同じ`budgets:`名前空間はhashシェイプ消去キー予算（デフォルト16）と値予算（デフォルト8）も運びます。`Hashシェイプ消去`を参照。差と補集合の診断のための否定的ファクト表示予算はデフォルトで3つの保持された除外です。`型演算子は暫定的`を参照。
 
-### Diagnostic Identifiers, Display, and Suppression
+### 診断識別子・表示・抑制
 
-Diagnostics use hierarchical identifiers so plugin authors, RBS metadata, and user suppression markers can address them without colliding with internal numbering. The first implementation prefixes are:
+診断は階層的識別子を使うため、プラグイン作者・RBSメタデータ・ユーザーの抑制マーカーは内部の番号付けと衝突せずにそれらを扱えます。最初の実装のプレフィックスは以下のとおりです。
 
-| Prefix | Use |
+| プレフィックス | 用途 |
 |---|---|
-| `dynamic.*` | `untyped` and `Dynamic[T]` boundary crossings, unchecked generic leaks, and method calls whose proof depends on dynamic origin |
-| `static.*` | Static checks that stop short of a proof, including incomplete-inference cutoffs |
-| `flow.*` | Control-flow narrowing failures, equality and predicate refinement issues, fact-stability violations |
-| `compat.*` | RBS, rbs-inline, and Steep-compatible signature compatibility |
-| `rbs_extended.*` | `RBS::Extended` payload validity, version compatibility, and conflict reports |
-| `plugin.<plugin-id>.*` | Plugin-contributed diagnostics, as already specified in ADR-2 |
-| `generated.<provider>.*` | Generated-signature provider diagnostics |
+| `dynamic.*` | `untyped`と`Dynamic[T]`境界横断・チェックされないジェネリック漏れ・証明が動的起源に依存するメソッド呼び出し |
+| `static.*` | 不完全推論カットオフを含む、証明に至らない静的チェック |
+| `flow.*` | 制御フローナローイング失敗・等価性と述語精緻化の問題・ファクト安定性違反 |
+| `compat.*` | RBS・rbs-inline・Steep互換シグネチャ互換性 |
+| `rbs_extended.*` | `RBS::Extended`ペイロードの妥当性・バージョン互換性・衝突レポート |
+| `plugin.<plugin-id>.*` | ADR-2で既に指定されたプラグイン貢献の診断 |
+| `generated.<provider>.*` | 生成されたシグネチャプロバイダー診断 |
 
-Identifiers are stable within a major version. New diagnostics may be added under any prefix; renames or removals are breaking changes that require a deprecation window.
+識別子はメジャーバージョン内で安定です。新しい診断は任意のプレフィックス下で追加されてかまいません。リネームまたは除去は非推奨期間を必要とする破壊的変更です。
 
-`Dynamic[T]` provenance is displayed conservatively. Ordinary diagnostics show the narrowed static facet `T` with a small `from untyped` provenance note rather than the wrapped `Dynamic[T]` form. Diagnostics in the `dynamic.*` category, and explanations requested through `rigor explain`, show the full `Dynamic[T]` form so the dynamic origin is visible at the point where it actually matters. Internal traces and cache keys always retain the wrapped form regardless of display rules.
+`Dynamic[T]`のprovenanceは保守的に表示されます。通常の診断は、ラップされた`Dynamic[T]`形式ではなく、絞り込まれた静的ファセット`T`を小さな`from untyped` provenance注付きで表示します。`dynamic.*`カテゴリーの診断と`rigor explain`を通じて要求された説明は、動的起源が実際に重要な点で見えるよう、完全な`Dynamic[T]`形式を表示します。内部トレースとキャッシュキーは表示規則に関係なく常にラップされた形式を保持します。
 
-Suppression markers are recognized in three families to balance ecosystem migration with a clean Rigor-native form:
+抑制マーカーは、エコシステムの移行とクリーンなRigorネイティブ形式のバランスを取るために3つのファミリーで認識されます。
 
-- Steep-style markers such as `# steep:ignore` are recognized by default. Rigor maps them to its own diagnostic suppression so existing Steep-using projects can adopt Rigor without rewriting suppression comments. The mapping is intentionally conservative: only line-scoped Steep markers are accepted, and nothing in Steep's marker grammar is reinterpreted as Rigor-specific configuration.
-- Sorbet-style file-level markers (`# typed:`) and RuboCop-style suppression comments are opt-in. Projects enable them through `compat.sorbet_ignore` and `compat.rubocop_disable` switches in `.rigor.yml`. Defaulting them on would conflate Sorbet's typed-mode policy and RuboCop's lint scope with Rigor's diagnostic suppression.
-- Rigor-native markers use a Ruby comment grammar that mirrors PHPStan's annotation feel without inventing application-side type DSL. The line form is `# rigor:ignore[<diagnostic.id>]`; the block form is `# rigor:ignore-start[<diagnostic.id>]` and `# rigor:ignore-end`. The diagnostic identifier list uses the prefixes defined above.
+- `# steep:ignore`のようなSteepスタイルのマーカーはデフォルトで認識されます。Rigorはそれらを独自の診断抑制にマップするため、既存のSteep使用プロジェクトは抑制コメントを書き直さずにRigorを採用できます。マッピングは意図的に保守的です。すなわち行スコープのSteepマーカーのみが受け入れられ、Steepのマーカー文法のいかなるものもRigor固有の設定として再解釈されません。
+- Sorbetスタイルのファイルレベルマーカー（`# typed:`）とRuboCopスタイルの抑制コメントはオプトインです。プロジェクトは`.rigor.yml`の`compat.sorbet_ignore`と`compat.rubocop_disable`スイッチを通じてそれらを有効にします。デフォルトでオンにすると、Sorbetの型付きモードポリシーとRuboCopのリント対象がRigorの診断抑制と混同されてしまいます。
+- Rigorネイティブマーカーは、アプリケーション側の型DSLを発明することなくPHPStanの注釈フィールをミラーするRubyコメント文法を使います。行形式は`# rigor:ignore[<diagnostic.id>]`です。ブロック形式は`# rigor:ignore-start[<diagnostic.id>]`と`# rigor:ignore-end`です。診断識別子リストは上で定義されたプレフィックスを使います。
 
-Markers that name an unknown diagnostic identifier produce a warning so dead suppressions are visible. Markers without an identifier list are diagnostics by default; strict mode rejects them entirely.
+未知の診断識別子に名前付けるマーカーは、デッドな抑制が見えるよう警告を生成します。識別子リストのないマーカーはデフォルトで診断です。厳格モードはそれらを完全に拒否します。
 
-### RBS Context Rules Are Preserved
+### RBSのコンテキスト規則は保たれる
 
-`self`, `instance`, `class`, and `void` have context restrictions in RBS. Rigor may carry richer contextual information internally, but exported RBS must obey those restrictions.
+`self`・`instance`・`class`・`void`はRBSでコンテキスト制限を持ちます。Rigorはより内部的なリッチなコンテキスト情報を運んでかまいませんが、エクスポートされたRBSはそれらの制限に従わなければなりません。
 
-### Refinements Are Internal
+### リファインメントは内部的である
 
-Rigor can infer refined types such as non-empty strings, positive integers, literal sets, truthiness-narrowed types, and hash/object shapes. These refinements improve diagnostics and flow analysis, but they erase to ordinary RBS.
+Rigorは空でない文字列・正の整数・リテラルセット・真偽値で絞り込まれた型・hash/オブジェクトシェイプのような精緻化された型を推論できます。これらのリファインメントは診断とフロー解析を改善しますが、通常のRBSに消去されます。
 
-### Numeric Refinement Scope
+### 数値リファインメントのスコープ
 
-The initial scalar refinement surface intentionally stops at `Integer`. The reserved names `positive-int`, `negative-int`, `non-positive-int`, `non-negative-int`, and `non-zero-int` are exact integer refinements, not generic sign refinements for arbitrary `Numeric` values.
+初期のスカラーリファインメント表層は意図的に`Integer`で止まります。予約された名前`positive-int`・`negative-int`・`non-positive-int`・`non-negative-int`・`non-zero-int`は厳密な整数リファインメントであり、任意の`Numeric`値の汎用符号リファインメントではありません。
 
-- `Float` keeps the conservative rule: equality and exhaustiveness narrowing are refused by default. Comparisons may produce relational facts, but float-specific value refinements require a proof that excludes `NaN` and handles infinities and signed zero explicitly. A future `finite-float` or non-`NaN` predicate may unlock narrower facts.
-- `Rational` may eventually receive exact ordered refinements, but those refinements must be Rational-specific. Rigor should not silently treat a Rational sign fact as an integer-range fact.
-- `Complex` does not participate in positive, negative, or interval refinements because Ruby does not provide a total ordering for complex numbers. Useful `Complex` facts need explicit predicates or plugin/RBS effects.
-- Refinements do not automatically transit `coerce` boundaries. Mixed numeric operations follow Ruby dispatch and the relevant RBS or plugin signature. If Rigor cannot prove the operation and promotion path, it preserves a relational or dynamic-origin fact and widens to the conservative nominal result.
+- `Float`は保守的な規則を保ちます。すなわち等価性と網羅性ナローイングはデフォルトで拒否されます。比較は関係的ファクトを生成してかまいませんが、浮動小数固有の値リファインメントは`NaN`を除外し、無限大と符号付きゼロを明示的に処理する証明を要求します。将来の`finite-float`または非`NaN`述語はより狭いファクトを解除できるかもしれません。
+- `Rational`は最終的に厳密な順序付きリファインメントを受け取ってかまいませんが、それらのリファインメントはRational固有でなければなりません。RigorはRational符号ファクトを整数範囲ファクトとして黙って扱うべきではありません。
+- `Complex`は、Rubyが複素数の全順序を提供しないため、肯定的・否定的・区間リファインメントに参加しません。有用な`Complex`ファクトは明示的な述語またはプラグイン/RBS効果を必要とします。
+- リファインメントは`coerce`境界を自動的に通過しません。混合数値操作はRubyのディスパッチと関連するRBSまたはプラグインシグネチャに従います。Rigorが操作と昇格経路を証明できないなら、関係的または動的起源ファクトを保ち、保守的な名前的結果に広げます。
 
-Non-integer numeric precision is therefore opt-in through future built-ins, trusted predicates, or plugin and RBS effects, not through silent promotion of `*-int` refinements across nominal numeric boundaries.
+したがって非整数の数値精度は、名前的数値境界を越える`*-int`リファインメントの黙った昇格を通じてではなく、将来の組み込み・信頼できる述語・プラグインおよびRBS効果を通じてオプトインです。
 
-### Pre-Plugin Inference Surface
+### プラグイン前推論表層
 
-Many Ruby code bases are dominated by `Dynamic[top]` until plugins, generated stubs, or RBS files fill in shapes. The pre-plugin surface should still produce useful facts:
+多くのRubyコードベースは、プラグイン・生成されたスタブ・RBSファイルがシェイプを埋めるまで`Dynamic[top]`が支配的です。プラグイン前の表層も依然として有用なファクトを生成すべきです。
 
-- Stable Ruby guards narrow `Dynamic[top]` to `Dynamic[T]` whenever Ruby semantics or existing signatures justify the static facet. The initial useful checks include nilability, truthiness, `is_a?`, `kind_of?`, `instance_of?`, literal equality for trusted built-in domains, and `respond_to?` member-existence facts.
-- Method calls on raw `Dynamic[top]` remain allowed by default so gradual code can be analyzed incrementally. They are traceable, and strict modes may report them as dynamic-to-precise crossings without changing the core relation.
-- Diagnostics should explain whether a `Dynamic[T]` came from a missing signature, an explicit `untyped`, or an analyzer or plugin limit, even when no plugin is loaded.
+- 安定したRubyガードは、Rubyのセマンティクスまたは既存のシグネチャが静的ファセットを正当化するときはいつでも、`Dynamic[top]`を`Dynamic[T]`に絞り込みます。初期の有用なチェックには、nil可能性・真偽値性・`is_a?`・`kind_of?`・`instance_of?`・信頼できる組み込みドメインのリテラル等価性・`respond_to?`メンバー存在ファクトが含まれます。
+- 素の`Dynamic[top]`上のメソッド呼び出しは、グラデュアルコードを漸進的に解析できるよう、デフォルトで許されたままです。それらは追跡可能で、厳格モードはコア関係を変えずにそれらを動的から精密への横断として報告してかまいません。
+- 診断は、プラグインがロードされていなくても、`Dynamic[T]`が欠けたシグネチャ・明示的な`untyped`・解析器またはプラグインの制限から来たかを説明すべきです。
 
-This is the analyzer's baseline before framework- or library-specific plugins ship. Plugin-specific behavior remains deferred to ADR-2.
+これは、フレームワークまたはライブラリ固有のプラグインが出荷される前の解析器のベースラインです。プラグイン固有の挙動はADR-2に委ねられたままです。
 
-When this ADR refers to "v1," it means the *first user-visible product release* of the Rigor analyzer. v1 is a shipping milestone, not the entire type-model specification. The full specification described in this ADR and `docs/types.md` is normative for the long-term analyzer; v1 ships a deliberately scoped slice of that specification so the first release does not over-promise. The boundary is:
+このADRが「v1」を指すとき、それはRigor解析器の*最初のユーザー可視製品リリース*を意味します。v1は出荷マイルストーンであり、型モデル仕様全体ではありません。このADRと`docs/types.md`に記述された完全な仕様は長期的な解析器にとって規範的です。v1は、最初のリリースが過剰約束しないよう、その仕様の意図的にスコープされたスライスを出荷します。境界は以下のとおりです。
 
-- The full specification — fact-stability buckets, capability-role catalog, mutation summary set, Dynamic[T] algebra, type operators, RBS::Extended schema — is normative. Internal data structures may be present in v1 even when the user-visible narrowing surface does not yet exploit them.
-- The v1 narrowing surface is the subset of derivation rules that are turned on for end users in the first release.
-- v1.1 is the next user-visible release; it expands the narrowing surface using rules that the data structures already support, behind feature flags so v1 behavior is preserved.
+- 完全な仕様 — ファクト安定性バケット・能力役割カタログ・変異サマリーセット・Dynamic[T]代数・型演算子・RBS::Extendedスキーマ — は規範的です。ユーザー可視ナローイング表層がまだ活用していないときでも、内部データ構造はv1に存在してかまいません。
+- v1ナローイング表層は、最初のリリースでエンドユーザー向けにオンになっている導出規則のサブセットです。
+- v1.1は次のユーザー可視リリースです。データ構造がすでにサポートする規則を使ってナローイング表層を拡張し、v1の挙動が保たれるようフィーチャーフラグの背後にあります。
 
-The v1 narrowing surface ships:
+v1ナローイング表層は以下を出荷します。
 
-- Literal narrowing for `nil`, `true`, `false`, integer and string literals, and finite literal-union refinements produced by equality checks against trusted built-in domains.
-- Syntax-level guards: `is_a?`, `kind_of?`, `instance_of?`, `nil?`, truthiness, `respond_to?`, equality with literal sets, and class- and pattern-matching narrowing in `case` and `case/in` forms that do not require dataflow across statements.
-- Method-call resolution that uses RBS or `RBS::Extended` for core Ruby and a curated subset of stdlib without requiring user plugins. Generated signatures from `RBS::Extended` may participate.
-- Direct application of the bundled mutation summaries described in `Fact Stability and Mutation Effects` at call sites where the receiver is statically known. The summaries drive bucket invalidation locally; cross-statement propagation of those effects is a v1.1 surface.
+- `nil`・`true`・`false`・整数と文字列リテラル・信頼できる組み込みドメインに対する等価チェックが生成する有限リテラルunionリファインメントのリテラルナローイング。
+- 構文レベルガード: `is_a?`・`kind_of?`・`instance_of?`・`nil?`・真偽値性・`respond_to?`・リテラルセットとの等価性・文をまたぐデータフローを必要としない`case`と`case/in`形式でのクラスとパターンマッチングナローイング。
+- ユーザープラグインを必要とせずに、コアRubyとstdlibの厳選されたサブセットにRBSまたは`RBS::Extended`を使うメソッド呼び出し解決。`RBS::Extended`からの生成されたシグネチャは参加してかまいません。
+- レシーバが静的に分かっている呼び出し位置での、`ファクトの安定性と変異効果`に記述されたバンドルされた変異サマリーの直接適用。サマリーはバケット無効化をローカルに駆動します。それらの効果の文をまたいだ伝播はv1.1表層です。
 
-The v1 narrowing surface does *not* yet expose:
+v1ナローイング表層は*まだ*以下を公開しません。
 
-- Intra-procedural propagation of facts and mutation effects across statements, joins, and loops.
-- Inference of capability-role *requirements* from method bodies (the catalog and explicit conformance directives are available; inferring "what role does this body require" is v1.1).
-- Plugin-supplied flow contributions, which depend on ADR-2.
+- 文・ジョイン・ループにわたるファクトと変異効果の手続き内伝播。
+- メソッド本体からの能力役割*要件*の推論（カタログと明示的な適合ディレクティブは利用可能です。「この本体はどの役割を要求するか」を推論することはv1.1です）。
+- ADR-2に依存する、プラグイン提供のフロー貢献。
 
-Each v1.1 surface ships behind a feature flag so the v1 release behaves consistently while the larger surface lands.
+各v1.1表層は、より大きな表層が着地する間にv1リリースが一貫して振る舞うよう、フィーチャーフラグの背後で出荷されます。
 
-### Imported Built-Ins Follow Ruby Semantics
+### インポートされた組み込みはRubyのセマンティクスに従う
 
-Rigor should import PHPStan, TypeScript, and Python typing ideas by semantic value, not by syntax compatibility.
+RigorはPHPStan・TypeScript・Pythonのtypingのアイデアを構文互換性ではなくセマンティック価値で取り入れるべきです。
 
-Reserved built-in refinement names use `kebab-case` spellings when they are recognizable and map cleanly to Ruby, such as `non-empty-string`, `positive-int`, `lowercase-string`, `literal-string`, `numeric-string`, `decimal-int-string`, and `non-empty-array[T]`. The hyphen is intentional because it cannot appear in Ruby constants or RBS alias names, so these names are visibly Rigor-reserved.
+予約された組み込みリファインメント名は、認識可能でRubyにきれいにマップされるとき、`non-empty-string`・`positive-int`・`lowercase-string`・`literal-string`・`numeric-string`・`decimal-int-string`・`non-empty-array[T]`のような`kebab-case`綴りを使います。ハイフンは意図的です。なぜならRubyの定数やRBSのエイリアス名に現れることができないため、これらの名前は目に見えてRigor予約だからです。
 
-Parameterized type functions should use one canonical lower_snake Rigor spelling with square brackets. For example, `key_of[T]` is preferred over accepting both PHPStan-style `key-of<T>` and TypeScript-style `keyof T`. Type functions compute, project, or transform another type or literal set; they avoid hyphens because `-` is also the difference operator in Rigor's type syntax. Additional spellings should require a concrete migration or readability benefit.
+パラメーター化された型関数は、角括弧を伴う1つの標準のlower_snake Rigor綴りを使うべきです。例えば、`key_of[T]`は、PHPStanスタイルの`key-of<T>`とTypeScriptスタイルの`keyof T`の両方を受け入れることより好まれます。型関数は別の型またはリテラルセットを計算・射影・変換します。`-`はRigorの型構文の差演算子でもあるため、それらはハイフンを避けます。追加の綴りは具体的な移行または可読性の利益を要求すべきです。
 
-RBS names remain canonical when they already exist. `bot` is the bottom type; PHPStan aliases such as `never`, `noreturn`, `never-return`, `never-returns`, and `no-return`, and Python aliases such as `Never` and `NoReturn`, should not be added as initial aliases.
+RBSの名前はすでに存在するとき標準のままです。`bot`はbottom型です。`never`・`noreturn`・`never-return`・`never-returns`・`no-return`のようなPHPStanエイリアスや、`Never`と`NoReturn`のようなPythonエイリアスは、初期のエイリアスとして追加されるべきではありません。
 
-Class-name string types are deferred. Ruby can pass class and module objects directly, and RBS already has `singleton(C)`. A PHPStan `new`-like type operation or Python `type[C]`-like projection remains a future candidate, but it should be designed around Ruby class objects and factory APIs rather than class-name strings.
+クラス名文字列型は委ねられます。Rubyはクラスとモジュールのオブジェクトを直接渡せて、RBSはすでに`singleton(C)`を持っています。PHPStanの`new`的な型操作またはPythonの`type[C]`的な射影は将来の候補のままですが、クラス名文字列ではなくRubyのクラスオブジェクトとファクトリAPIを中心に設計されるべきです。
 
-### Type Operators Are Provisional
+### 型演算子は暫定的である
 
-Rigor should support the semantics of complement, difference, indexed access, shape projection, and possibly conditional types. The final syntax is undecided.
+Rigorは補集合・差・インデックスアクセス・シェイプ射影・場合によっては条件型のセマンティクスをサポートすべきです。最終的な構文は未決定です。
 
-The candidate `~T` operator means the complement of `T` within the current known domain, not necessarily every Ruby object except `T`.
+候補`~T`演算子は、`T`を除くすべてのRubyオブジェクトではなく、現在知られているドメイン内での`T`の補集合を意味します。
 
-The current known domain is the left-hand side's already-established positive domain, not a domain inferred from the excluded value. For example, `v != "foo"` narrows `v: String` to `String - "foo"`, but it does not narrow `v: untyped` to `String - "foo"`. With raw `untyped`, Rigor keeps `Dynamic[top]` plus a dynamic-origin relational fact.
+現在知られているドメインは、除外された値から推論されたドメインではなく、左辺のすでに確立された肯定的ドメインです。例えば、`v != "foo"`は`v: String`を`String - "foo"`に絞り込みますが、`v: untyped`を`String - "foo"`に絞り込みません。素の`untyped`では、Rigorは`Dynamic[top]`に動的起源関係的ファクトを加えて保ちます。
 
-The working notation policy is:
+作業中の表記ポリシーは以下のとおりです。
 
-- Use `~T` as the concise display form for CFA-produced negative facts.
-- Use `T - U` as the preferred explicit authoring form for difference types in `RBS::Extended` annotations.
-- Allow the implementation to normalize `T - U` to `T & ~U`.
+- CFAが生成する否定的ファクトの簡潔な表示形式として`~T`を使います。
+- `RBS::Extended`注釈での差型の好ましい明示的な作成形式として`T - U`を使います。
+- 実装に`T - U`を`T & ~U`に正規化することを許します。
 
-Retention follows finite-domain precision and a budget for open domains:
+保持は有限ドメイン精度と、開いたドメインのための予算に従います。
 
-- Finite domains normalize exactly. `"foo" | "bar"` minus `"foo"` becomes `"bar"`; removing every alternative becomes `bot`.
-- Large or unknown domains keep negative facts under a budget. When the budget is exceeded, Rigor records that exclusions were omitted and falls back to the positive domain rather than rendering unstable chains such as `Integer - 0 - 1 - 2 - ...`.
-- Negative facts follow the same stability rules as other flow facts: assignment, mutation, unknown calls, yielded blocks, and plugin-declared invalidation may weaken or remove them.
+- 有限ドメインは厳密に正規化します。`"foo" | "bar"`から`"foo"`を引くと`"bar"`になります。すべての代替を除去すると`bot`になります。
+- 大きなまたは未知のドメインは予算下で否定的ファクトを保ちます。予算が超過されたとき、Rigorは除外が省略されたことを記録し、`Integer - 0 - 1 - 2 - ...`のような不安定なチェーンをレンダリングするのではなく、肯定的ドメインにフォールバックします。
+- 否定的ファクトは他のフローファクトと同じ安定性規則に従います。すなわち代入・変異・未知呼び出し・yieldされたブロック・プラグイン宣言の無効化はそれらを弱めるか除去するかもしれません。
 
-Diagnostic display follows a domain-aware contract so users do not misread negative facts as global complements:
+ユーザーが否定的ファクトをグローバル補集合と読み違えないよう、診断表示はドメイン対応契約に従います。
 
-- Internal normalization may continue to use `T & ~U`, but diagnostics should render with the current positive domain visible.
-- Small finite domains display as their normalized positive union. For example, `"foo" | "bar" - "foo"` displays as `"bar"`.
-- Broad known domains display as `D - U`, such as `String - "foo"` or `Integer - 0`, rather than a bare complement.
-- Multiple retained exclusions display as a flattened difference, such as `String - ("" | "foo")`, rather than nested differences or repeated intersections.
-- Bare `~U` is allowed only for compact branch-local display when the surrounding diagnostic already states the domain. Otherwise Rigor prefers `D - U`, `top - U`, or prose that names the domain.
-- Dynamic-origin provenance does not replace the domain display. A diagnostic may show `String - "foo"` with a dynamic-origin note, while technical traces may show `Dynamic[String - "foo"]`.
-- When the exclusion budget is exceeded, Rigor displays the positive domain plus an omission note instead of a long unstable chain.
+- 内部正規化は`T & ~U`を使い続けてかまいませんが、診断は現在の肯定的ドメインを見える形でレンダリングすべきです。
+- 小さな有限ドメインは正規化された肯定的unionとして表示されます。例えば、`"foo" | "bar" - "foo"`は`"bar"`として表示されます。
+- 広い既知のドメインは、ベアな補集合ではなく`String - "foo"`や`Integer - 0`のような`D - U`として表示されます。
+- 複数の保持された除外は、ネストされた差や繰り返しの交差ではなく、`String - ("" | "foo")`のような平坦化された差として表示されます。
+- ベアな`~U`は、周囲の診断がすでにドメインを述べているとき、コンパクトな分岐ローカル表示にのみ許されます。それ以外ではRigorは`D - U`・`top - U`・ドメインに名前付ける散文を好みます。
+- 動的起源provenanceはドメイン表示を置き換えません。診断は動的起源注付きで`String - "foo"`を表示してかまいません。技術トレースは`Dynamic[String - "foo"]`を表示してかまいません。
+- 除外予算が超過されたとき、Rigorは長い不安定なチェーンの代わりに肯定的ドメインに省略注を加えて表示します。
 
-The omission contract is concrete enough that diagnostics stay short by default and remain explorable on demand:
+省略契約は十分に具体的で、診断はデフォルトで短く、要求に応じて探索可能なまま留まります。
 
-- The default display budget keeps the top three retained exclusions and ends with `+N more` when more were retained internally. Selection prefers values that participated most recently in narrowing decisions, then literal values over nominal bases, then lexicographic order to keep output stable.
-- The `+N more` note links to the diagnostic identifier so users know they can ask for the full breakdown.
-- `rigor explain <diagnostic-id>` (and the equivalent `--explain` CLI flag) prints the full domain difference, including every retained exclusion and the budget that was exceeded, in the spirit of PHPStan's analysis explanation. The full form is also available to plugins through the `Scope` API for higher-tier diagnostics that want to render the whole reasoning chain.
-- The default budget is configurable through `.rigor.yml` (`budgets.negative_fact_display`) within the same healthy-range enforcement as other budgets.
+- デフォルトの表示予算は、上位3つの保持された除外を保ち、より多くが内部的に保持されたとき`+N more`で終わります。選択は、最近のナローイング決定に最も参加した値、それから名前的基底よりリテラル値、それから出力を安定に保つレキシカル順を好みます。
+- `+N more`注は、ユーザーが完全な内訳を尋ねられることを知るよう、診断識別子にリンクします。
+- `rigor explain <diagnostic-id>`（および同等の`--explain` CLIフラグ）は、PHPStanの解析説明の精神で、すべての保持された除外と超過された予算を含む完全なドメイン差を表示します。完全な形式はまた、推論チェーン全体をレンダリングしたい高ティア診断のために`Scope` APIを通じてプラグインに利用可能です。
+- デフォルト予算は、他の予算と同じ健全な範囲強制内で、`.rigor.yml`（`budgets.negative_fact_display`）を通じて設定可能です。
 
-### `RBS::Extended` Is an Annotation-Based Metadata Layer
+### `RBS::Extended`は注釈ベースのメタデータレイヤーである
 
-Advanced types may be attached to ordinary RBS declarations, members, and overloads using RBS `%a{...}` annotations. This preserves compatibility with standard RBS tooling while giving Rigor a place to read refinements such as `String - ""`, `~"foo"`, or `String where non_empty`.
+高度な型は、RBSの`%a{...}`注釈を使って通常のRBS宣言・メンバー・オーバーロードに取り付けられてかまいません。これは標準のRBSツーリングとの互換性を保ちつつ、Rigorに`String - ""`・`~"foo"`・`String where non_empty`のようなリファインメントを読む場所を与えます。
 
-`RBS::Extended` is Rigor's name for the convention of carrying its metadata inside ordinary RBS `%a{...}` annotations under a reserved key namespace. The reserved keys for the first version are `rigor:v1:<directive>` payloads. Other tools' annotations under unrelated keys are not consumed by Rigor and pass through analysis unchanged. Rigor never rewrites another tool's `%a{...}` annotations during erasure.
+`RBS::Extended`は、予約されたキー名前空間下で通常のRBSの`%a{...}`注釈の中にRigorのメタデータを運ぶ規約のRigorの名前です。最初のバージョンの予約されたキーは`rigor:v1:<directive>`ペイロードです。関連のないキー下の他のツールの注釈はRigorによって消費されず、解析を変更されずに通過します。Rigorは消去中に他のツールの`%a{...}`注釈を決して書き直しません。
 
-The canonical directive form is a versioned `rigor:v1:` key followed by a payload. The schema lives in `docs/types.md` `RBS::Extended Annotations`; ADR-1 defines design decisions and uses `docs/types.md` as the single source of truth for the directive grammar. The canonical predicate example referenced from this ADR is:
+標準のディレクティブ形式はバージョン付きの`rigor:v1:`キーの後にペイロードを続けたものです。スキーマは`docs/types.md`の`RBS::Extended Annotations`にあります。ADR-1は設計決定を定義し、ディレクティブ文法のための単一の真実のソースとして`docs/types.md`を使います。このADRから参照される標準的な述語例は以下のとおりです。
 
 ```ruby
 %a{rigor:v1:predicate-if-true value is String}
 def string?: (untyped value) -> bool
 ```
 
-Predicate targets are initially limited to RBS parameter names and `self`. RBS parameter names use the `_var-name_ ::= /[a-z]\w*/` grammar, so Rigor does not need to encode arbitrary Ruby Symbol names in directive identifiers. Hyphenated directive names such as `predicate-if-true` are safe because they are parsed from the annotation payload by Rigor. Other directive spellings live in `docs/types.md`.
+述語ターゲットは初期にはRBSの引数名と`self`に限定されます。RBSの引数名は`_var-name_ ::= /[a-z]\w*/`文法を使うため、Rigorはディレクティブ識別子で任意のRubyのSymbol名をエンコードする必要はありません。`predicate-if-true`のようなハイフン付きのディレクティブ名は、Rigorが注釈ペイロードからパースするため安全です。他のディレクティブ綴りは`docs/types.md`にあります。
 
-The version prefix is part of the compatibility contract. Rigor-generated annotations must use `rigor:v1:`. Unversioned `rigor:` directives should be invalid for now rather than silently treated as v1. Unsupported future versions such as `rigor:v2:` are preserved by ordinary RBS tooling, but Rigor should report unsupported metadata when it analyzes the node.
+バージョンプレフィックスは互換性契約の一部です。Rigorが生成する注釈は`rigor:v1:`を使わなければなりません。バージョンなしの`rigor:`ディレクティブは、v1として黙って扱われるのではなく、現在のところ無効であるべきです。`rigor:v2:`のようなサポートされていない将来のバージョンは通常のRBSツーリングによって保たれますが、Rigorはノードを解析するときサポートされていないメタデータを報告すべきです。
 
-Conformance can be checked implicitly or explicitly. Implicit conformance is the default: ordinary assignments, parameter passing, and method calls trigger structural compatibility checks against the relevant interface or capability role. No author-visible opt-in is required. In addition, Rigor accepts an explicit *design assertion* directive:
+適合性は暗黙的または明示的にチェックできます。暗黙的な適合性がデフォルトです。すなわち通常の代入・引数渡し・メソッド呼び出しは、関連するインターフェイスまたは能力役割に対する構造的互換性チェックをトリガーします。作者可視のオプトインは要求されません。さらに、Rigorは明示的な*設計アサーション*ディレクティブを受け入れます。
 
 ```ruby
 %a{rigor:v1:conforms-to _RewindableStream}
@@ -730,123 +727,123 @@ class MyBuffer
 end
 ```
 
-The directive instructs Rigor to verify that `MyBuffer` satisfies `_RewindableStream` regardless of whether any current call site exercises that requirement. It is useful for libraries that want to guarantee a class meets a structural interface as part of their public contract. The directive is purely additive: it does not change the semantics of implicit conformance, and a class that already satisfies the interface continues to type-check without the annotation.
+ディレクティブはRigorに、現在のいずれかの呼び出し位置がその要件を行使するかに関係なく、`MyBuffer`が`_RewindableStream`を満たすことを検証するよう指示します。クラスが公開契約の一部として構造的インターフェイスを満たすことを保証したいライブラリに有用です。ディレクティブは純粋に追加的です。すなわち暗黙的な適合性のセマンティクスを変えず、すでにインターフェイスを満たすクラスは注釈なしで型検査され続けます。
 
-If `RBS::Extended` metadata conflicts with the ordinary RBS signature, Rigor should report a diagnostic.
+`RBS::Extended`メタデータが通常のRBSシグネチャと衝突する場合、Rigorは診断を報告すべきです。
 
-Multiple annotations on the same node are combined by directive kind, target, and flow edge. Exact duplicates are idempotent. Compatible effects compose; for example, true-edge and false-edge predicate annotations occupy different effect slots. Conflicts are always diagnostics, never first-wins or last-wins. This includes incompatible payload syntax, incompatible versions on the same node, two non-identical singleton directives for the same effect slot, contradictory refinements whose intersection is `bot`, refinements that exceed the ordinary RBS signature, and effect declarations that cannot both be true such as a "pure" effect combined with a receiver-mutation effect.
+同じノード上の複数の注釈はディレクティブ種別・ターゲット・フローエッジで組み合わされます。完全な重複はベキ等です。互換性のある効果は合成します。例えば、trueエッジとfalseエッジの述語注釈は異なる効果スロットを占めます。衝突は常に診断であり、決して最初が勝つ・最後が勝つではありません。これには互換性のないペイロード構文・同じノード上の互換性のないバージョン・同じ効果スロットに対する2つの非同一なシングルトンディレクティブ・交差が`bot`である矛盾するリファインメント・通常のRBSシグネチャを超えるリファインメント・「pure」効果がレシーバ変異効果と組み合わされたような両方ともtrueにできない効果宣言が含まれます。
 
-Type guard and assertion effects should be modeled as flow effects, not as ordinary return types. This keeps signatures RBS-compatible while still allowing TypeScript-style narrowing, PHPStan-style assertion behavior, and Python `TypeGuard`/`TypeIs`-style predicates.
+型ガードとアサーション効果は、通常の戻り値型ではなくフロー効果としてモデル化されるべきです。これは、TypeScriptスタイルのナローイング・PHPStanスタイルのアサーション挙動・Pythonの`TypeGuard`/`TypeIs`スタイルの述語を依然として許しつつ、シグネチャをRBS互換に保ちます。
 
-ADR-1 owns the semantic schema for flow effect bundles: the field set, target-path meaning, certainty rules, and how effects change scopes. ADR-2 owns the extension API packaging, registration, service lifetime, and plugin provenance for those bundles. The product specification in `docs/types.md` is the detailed normative table both ADRs should reference.
+ADR-1はフロー効果バンドルのセマンティックスキーマを所有します。すなわちフィールドセット・ターゲットパスの意味・確信度規則・効果がスコープをどう変えるかです。ADR-2はそれらのバンドルの拡張APIパッケージング・登録・サービスの寿命・プラグインprovenanceを所有します。`docs/types.md`の製品仕様は、両方のADRが参照すべき詳細な規範的テーブルです。
 
-### Erasure Must Be Conservative
+### 消去は保守的でなければならない
 
-If `T` is a Rigor type and `erase(T)` is the generated RBS type, every value accepted by `T` must be accepted by `erase(T)`.
+`T`がRigor型で、`erase(T)`が生成されたRBS型なら、`T`が受け入れるすべての値は`erase(T)`が受け入れなければなりません。
 
-Erasure can lose precision. It must not become narrower than the internal type.
+消去は精度を失うことができます。内部型より狭くなってはいけません。
 
-### Hash Shape Erasure
+### Hashシェイプ消去
 
-Hash shapes carry more information than RBS records and `Hash[K, V]` can express. Rigor's erasure rule preserves what RBS can spell and falls back deterministically when it cannot. The detailed algorithm lives in `docs/types.md`; the strategic decisions are:
+HashシェイプはRBSのレコードと`Hash[K, V]`が表現できるよりも多くの情報を運びます。Rigorの消去規則はRBSが綴れるものを保ち、できないとき決定的にフォールバックします。詳細なアルゴリズムは`docs/types.md`にあります。戦略的決定は以下のとおりです。
 
-- Exact closed shapes erase to RBS records when every key can be represented by RBS record syntax. Required entries become required record fields, optional entries become optional fields when spellable, and values erase recursively.
-- Optional-key absence is not a stored `nil`. Rigor must not add `nil` to a value type merely because a key is optional.
-- Read-only, provenance, stability, key-presence, and open/closed markers are erased. Losing them is reportable in strict export or explanation mode.
-- Shapes that cannot be represented exactly as records erase to `Hash[K, V]`.
-- `K` is the union of known literal keys, widened nominal key classes when literal unions exceed the export budget, and the extra-key bound for open shapes. Statically unknown extra keys use `top`; dynamic-origin extra keys use `untyped`.
-- `V` is the union of known required values, known optional values, and the extra-value bound for open shapes. Statically unknown extra values use `top`; dynamic-origin extra values use `untyped`.
-- For open shapes, the extra-value bound wins over the current observed value union. Rigor does not infer that all future extra keys have values drawn only from already-seen entries.
-- Exact empty closed records erase to `{}` when the target RBS output supports it; otherwise the conservative fallback is `Hash[bot, bot]`, which preserves the "no entries possible" fact.
+- 厳密なclosedシェイプは、すべてのキーがRBSレコード構文で表現できるとき、RBSレコードに消去されます。必須エントリは必須レコードフィールドになり、オプショナルエントリは綴れるときオプショナルフィールドになり、値は再帰的に消去します。
+- オプショナルキーの不在は保存された`nil`ではありません。Rigorは、キーがオプショナルであるという理由だけで値型に`nil`を加えてはいけません。
+- 読み取り専用・provenance・安定性・キー存在・open/closedマーカーは消去されます。それらを失うことは厳格エクスポートまたは説明モードで報告可能です。
+- レコードとして厳密に表現できないシェイプは`Hash[K, V]`に消去されます。
+- `K`は既知のリテラルキーのunion・リテラルunionがエクスポート予算を超えるときの広げられた名前的キークラス・openシェイプの追加キー境界です。静的に未知の追加キーは`top`を使います。動的起源の追加キーは`untyped`を使います。
+- `V`は既知の必須値・既知のオプショナル値・openシェイプの追加値境界のunionです。静的に未知の追加値は`top`を使います。動的起源の追加値は`untyped`を使います。
+- openシェイプについて、追加値境界は現在観測された値unionに勝ちます。Rigorは、すべての将来の追加キーがすでに見えたエントリのみから取られた値を持つと推論しません。
+- 厳密な空のclosedレコードは、ターゲットRBS出力がサポートするとき`{}`に消去されます。それ以外では保守的なフォールバックは「エントリ可能なし」のファクトを保つ`Hash[bot, bot]`です。
 
-Key and value export budgets are configured separately because hash keys carry more identifier-like meaning than values do. The first implementation defaults are 16 for the literal-key union and 8 for the literal-value union, both configurable through `.rigor.yml` (`budgets.hash_erasure_keys`, `budgets.hash_erasure_values`). When a budget is exceeded, the corresponding axis widens to the nearest nominal base while the other axis stays as a literal union if it still fits.
+hashキーは値より識別子的な意味を運ぶため、キーと値のエクスポート予算は別々に設定されます。最初の実装のデフォルトは、リテラルキーunionに対して16、リテラル値unionに対して8で、両方とも`.rigor.yml`（`budgets.hash_erasure_keys`・`budgets.hash_erasure_values`）を通じて設定可能です。予算が超過されたとき、対応する軸は最も近い名前的基底に広がり、もう一方の軸はまだ収まるならリテラルunionのままです。
 
-## Feedback from the Resulting Type Specification
+## 結果の型仕様からのフィードバック
 
-Reconstructing `docs/types.md` as the ideal type model adds several requirements that this ADR should carry forward:
+`docs/types.md`を理想的な型モデルとして再構築すると、このADRが前へ運ぶべきいくつかの要件が追加されます。
 
-- Structural typing should be explicit but limited. RBS classes and modules remain nominal; RBS interfaces and Rigor object shapes are the bridge for Ruby duck typing.
-- IO-like compatibility should be modeled through inferred capability roles, not by treating unrelated nominal classes as subtypes or by requiring ad hoc unions at every call site.
-- Object-shape facts need member kind, call signature, visibility, provenance, stability, and certainty. A `respond_to?` guard can prove member existence, but it is not enough to prove full interface compatibility.
-- The type engine needs expression-edge scopes. Each expression should be able to produce normal, truthy, falsey, exceptional, and unreachable output scopes so short-circuiting conditions can update facts between operands.
-- Negative and difference types need a current-domain model. `~"foo"` inside `String | Symbol` is not the same as global `top - "foo"` unless the current domain is `top`.
-- Equality narrowing must respect Ruby dispatch. Rigor needs trusted equality facts for built-ins, RBS effects, or plugins; otherwise it should keep relational facts instead of silently pretending `==` is identity.
-- Gradual facts need provenance. Narrowing an `untyped` value can be useful inside a branch, but diagnostics, generic slots, and joins should still know that the value crossed an unchecked boundary. The working internal form is `Dynamic[T]`, with raw `untyped` represented as `Dynamic[top]`.
-- Shape, member, and hash-key facts need invalidation rules. Assignments, mutation, unknown calls, yielded blocks, and plugin-declared effects may weaken or remove facts.
-- RBS erasure is part of the type design, not a presentation layer. Every internal refinement, relation, and provenance marker needs a conservative erasure rule.
+- 構造的型付けは明示的だが限定的であるべきです。RBSのクラスとモジュールは名前的のままです。RBSインターフェイスとRigorのオブジェクトシェイプはRubyのダックタイピングのための橋渡しです。
+- IO的な互換性は、関連のない名前的クラスをサブタイプとして扱うことや、すべての呼び出し位置でアドホックなunionを要求することではなく、推論された能力役割を通じてモデル化されるべきです。
+- オブジェクトシェイプファクトはメンバー種別・呼び出しシグネチャ・可視性・provenance・安定性・確信度を必要とします。`respond_to?`ガードはメンバー存在を証明できますが、完全なインターフェイス互換性を証明するには十分ではありません。
+- 型エンジンは式エッジスコープを必要とします。各式は、短絡条件がオペランド間でファクトを更新できるよう、normal・truthy・falsey・exceptional・到達不能な出力スコープを生成できるべきです。
+- 否定的型と差型は現在ドメインモデルを必要とします。`String | Symbol`内の`~"foo"`は、現在ドメインが`top`でない限り、グローバルな`top - "foo"`と同じではありません。
+- 等価ナローイングはRubyのディスパッチを尊重しなければなりません。Rigorは組み込み・RBS効果・プラグインのための信頼できる等価ファクトを必要とします。それ以外では`==`が同一性であるかのように黙ってふりをするのではなく、関係的ファクトを保つべきです。
+- グラデュアルファクトはprovenanceを必要とします。`untyped`値を絞り込むことは分岐内で有用であり得ますが、診断・ジェネリックスロット・ジョインは依然として値がチェックされない境界を横断したことを知っているべきです。作業中の内部形式は`Dynamic[T]`で、素の`untyped`は`Dynamic[top]`として表現されます。
+- シェイプ・メンバー・hashキーファクトは無効化規則を必要とします。代入・変異・未知呼び出し・yieldされたブロック・プラグイン宣言の効果はファクトを弱めるか除去するかもしれません。
+- RBS消去はプレゼンテーション層ではなく、型設計の一部です。すべての内部リファインメント・関係・provenanceマーカーは保守的な消去規則を必要とします。
 
-## Rejected and Deferred Candidate Decisions
+## 拒絶された・委ねられた候補決定
 
-This ADR keeps explicit notes for candidate ideas that were discussed but not accepted as the current direction.
+このADRは、議論されたが現在の方向として受け入れられなかった候補のアイデアの明示的な注を保ちます。
 
-| Candidate | Status | Reason |
+| 候補 | 状態 | 理由 |
 | --- | --- | --- |
-| Treating `untyped` as another name for `top` | Rejected | `untyped` marks a gradual boundary and loss of precision; `top` is the greatest static value type. Collapsing them would lose diagnostics and provenance. |
-| Writing gradual consistency as `A ~ B` | Rejected | The `~T` form is reserved for negative or complement types, so gradual consistency is written as `consistent(A, B)`. |
-| Free-form `# @rigor ...` comments in `*.rbs` | Rejected | RBS `%a{...}` annotations are parsed into the RBS AST and attach to declarations, members, and overloads. Free-form comments would require a parallel attachment model. |
-| Encoding type predicates as ordinary return types | Rejected | Predicate and assertion behavior changes the flow environment, not the runtime return value. Rigor records those effects through `RBS::Extended` annotations. |
-| Arbitrary predicate target syntax in the first version | Rejected for now | Initial targets are limited to RBS parameter names and `self`; shape paths, instance variables, and block parameters can be added later with explicit path syntax. |
-| Importing `class-string`, `interface-string`, `trait-string`, or `enum-string` | Deferred | Ruby can pass class and module objects directly, and RBS already has `singleton(C)`. String-based class names are less central than they are in PHP. |
-| Importing PHPStan's `new` operation as a class-name-string operation | Deferred | A `new`-like projection may be useful for factory APIs, but it should be designed around Ruby class objects rather than class-name strings. |
-| Adding `never`, `noreturn`, `never-return`, `never-returns`, and `no-return` as aliases for `bot` | Rejected for now | RBS already provides `bot`; adding aliases would increase notation without improving expressiveness. |
-| Adding Python `Never` and `NoReturn` as aliases for `bot` | Rejected for now | They map conceptually to `bot`, but Rigor should keep RBS spelling canonical at the boundary. |
-| Importing TypeScript `any`, `unknown`, `object`, `undefined`, `null`, or `never` spellings | Rejected | RBS already provides `untyped`, `top`, `nil`, and `bot`; TypeScript's names are tied to JavaScript's runtime value model. |
-| Importing Python `Any` and `object` spellings | Rejected | RBS already provides `untyped` for the dynamic type and `top` for the greatest static type. |
-| Importing Python `Protocol`, `TypedDict`, `Annotated`, `TypeGuard`, `TypeIs`, `Final`, or `ClassVar` syntax directly | Rejected | Their useful ideas map to RBS interfaces, records, `%a{...}` annotations, flow effects, and separate symbol or member facts. |
-| Treating all class compatibility as TypeScript-style structural assignment | Rejected | RBS class and module names are nominal. Structural checking belongs to RBS interfaces, object shapes, and explicit shape-like facts. |
-| Requiring explicit protocol inheritance or registration for structural interface assignability | Rejected for now | Ruby duck typing works best when structural compatibility can be inferred from members. Explicit declarations may still be useful as verification requests. |
-| Accepting both `key-of<T>` and `keyof T` | Rejected for now | Rigor should use one canonical type-function spelling, currently `key_of[T]`, unless compatibility aliases show concrete value. |
-| Importing PHPStan-style integer ranges such as `int<1, 10>` | Rejected for now | Rigor should use its own range notation, such as `Integer[1..10]`, to stay closer to Ruby and RBS naming. |
-| Adding lower_snake aliases for built-in refinement names, such as `non_empty_string` | Rejected for now | Hyphenated refinement names are intentionally reserved for Rigor built-ins. Lower_snake names should remain available for ordinary RBS type aliases. |
-| Adding `lower-string` as an alias | Rejected for now | `lowercase-string` is the established spelling and is clearer. |
-| Adding `non-falsy-string` or `truthy-string` | Rejected | Every Ruby `String` value is truthy, so these types do not add precision. |
-| Importing PHP truthiness types such as `empty`, `empty-scalar`, `non-empty-scalar`, and `non-empty-mixed` | Rejected | They are tied to PHP's truthiness model. Rigor models Ruby truthiness through `false | nil` flow facts and explicit string/collection refinements. |
-| Importing `list<T>` and `non-empty-list<T>` as separate surface types | Rejected for now | Ruby `Array[T]` already has list-like indexing semantics; `non-empty-array[T]` provides the useful additional refinement. |
-| Adding `non-decimal-int-string` as a named built-in | Rejected for now | It can be expressed as `String - decimal-int-string` without adding another built-in name. |
-| Adding `Exclude`, `Extract`, and `NonNullable` as surface aliases | Rejected for now | Rigor can express them directly as `T - U`, `T & U`, and `T - nil`. |
-| Adding TypeScript utility or mapped type aliases such as `Partial`, `Required`, `Readonly`, `Pick`, `Omit`, `Record`, `Parameters`, `ReturnType`, or `InstanceType` | Rejected for now | These are useful reference designs, but Rigor should first expose smaller Ruby/RBS-shaped shape facts and type functions. |
-| Using TypeScript syntax `T extends U ? X : Y` as the canonical conditional type syntax | Rejected for now | Rigor should avoid copying TypeScript syntax unless it fits the rest of the type language. The current candidate is `if T <: U then X else Y`. |
+| `untyped`を`top`の別名として扱う | 拒絶 | `untyped`はグラデュアル境界と精度の損失を表します。`top`は最大の静的値型です。それらを縮退すると診断とprovenanceが失われます。 |
+| グラデュアル一貫性を`A ~ B`として書く | 拒絶 | `~T`形式は否定または補集合の型のために予約されているため、グラデュアル一貫性は`consistent(A, B)`として書かれます。 |
+| `*.rbs`内のフリーフォーム`# @rigor ...`コメント | 拒絶 | RBSの`%a{...}`注釈はRBS ASTにパースされて宣言・メンバー・オーバーロードに取り付けられます。フリーフォームコメントは並列の取り付けモデルを要求するでしょう。 |
+| 通常の戻り値型として型述語をエンコード | 拒絶 | 述語とアサーションの挙動は、実行時の戻り値ではなくフロー環境を変えます。Rigorはそれらの効果を`RBS::Extended`注釈を通じて記録します。 |
+| 最初のバージョンでの任意の述語ターゲット構文 | 現時点で拒絶 | 初期ターゲットはRBSの引数名と`self`に限定されます。シェイプパス・インスタンス変数・ブロック引数は、明示的なパス構文で後で追加できます。 |
+| `class-string`・`interface-string`・`trait-string`・`enum-string`の取り入れ | 委ねる | Rubyはクラスとモジュールのオブジェクトを直接渡せて、RBSはすでに`singleton(C)`を持っています。文字列ベースのクラス名はPHPほど中心的ではありません。 |
+| PHPStanの`new`操作をクラス名文字列操作として取り入れる | 委ねる | `new`的な射影はファクトリAPIに有用かもしれませんが、クラス名文字列ではなくRubyのクラスオブジェクトを中心に設計されるべきです。 |
+| `never`・`noreturn`・`never-return`・`never-returns`・`no-return`を`bot`のエイリアスとして追加する | 現時点で拒絶 | RBSはすでに`bot`を提供します。エイリアスを追加すると、表現力を改善せずに表記を増やすでしょう。 |
+| Pythonの`Never`と`NoReturn`を`bot`のエイリアスとして追加する | 現時点で拒絶 | それらは概念的に`bot`にマップされますが、Rigorは境界でRBSの綴りを標準的に保つべきです。 |
+| TypeScriptの`any`・`unknown`・`object`・`undefined`・`null`・`never`の綴りを取り入れる | 拒絶 | RBSはすでに`untyped`・`top`・`nil`・`bot`を提供します。TypeScriptの名前はJavaScriptの実行時値モデルに結びついています。 |
+| Pythonの`Any`と`object`の綴りを取り入れる | 拒絶 | RBSはすでに動的型のための`untyped`と最大の静的型のための`top`を提供します。 |
+| Pythonの`Protocol`・`TypedDict`・`Annotated`・`TypeGuard`・`TypeIs`・`Final`・`ClassVar`構文を直接取り入れる | 拒絶 | それらの有用なアイデアはRBSのインターフェイス・レコード・`%a{...}`注釈・フロー効果・別個のシンボルまたはメンバーファクトにマップされます。 |
+| すべてのクラス互換性をTypeScriptスタイルの構造的代入として扱う | 拒絶 | RBSのクラスとモジュール名は名前的です。構造的チェックはRBSインターフェイス・オブジェクトシェイプ・明示的なシェイプ的ファクトに属します。 |
+| 構造的インターフェイス代入可能性のために明示的なプロトコル継承または登録を要求する | 現時点で拒絶 | Rubyのダックタイピングは、構造的互換性がメンバーから推論できるとき最もうまく動作します。明示的な宣言は依然として検証要求として有用かもしれません。 |
+| `key-of<T>`と`keyof T`の両方を受け入れる | 現時点で拒絶 | 互換性エイリアスが具体的な価値を示さない限り、Rigorは1つの標準の型関数の綴り、現在は`key_of[T]`を使うべきです。 |
+| `int<1, 10>`のようなPHPStanスタイルの整数範囲を取り入れる | 現時点で拒絶 | Rigorは、RubyとRBSの命名により近づくため、`Integer[1..10]`のような独自の範囲表記を使うべきです。 |
+| `non_empty_string`のような組み込みリファインメント名のlower_snakeエイリアスを追加する | 現時点で拒絶 | ハイフン付きのリファインメント名は意図的にRigorの組み込みのために予約されています。Lower_snake名は通常のRBS型エイリアスのために利用可能なまま留まるべきです。 |
+| `lower-string`をエイリアスとして追加する | 現時点で拒絶 | `lowercase-string`は確立された綴りでより明確です。 |
+| `non-falsy-string`または`truthy-string`を追加する | 拒絶 | すべてのRubyの`String`値は真値であるため、これらの型は精度を加えません。 |
+| `empty`・`empty-scalar`・`non-empty-scalar`・`non-empty-mixed`のようなPHP真偽値型を取り入れる | 拒絶 | それらはPHPの真偽値モデルに結びついています。Rigorは`false | nil`フローファクトと明示的な文字列/コレクションリファインメントを通じてRubyの真偽値性をモデル化します。 |
+| `list<T>`と`non-empty-list<T>`を別個の表層型として取り入れる | 現時点で拒絶 | Rubyの`Array[T]`はすでにリスト的なインデックス付けセマンティクスを持っています。`non-empty-array[T]`は有用な追加リファインメントを提供します。 |
+| `non-decimal-int-string`を名前付き組み込みとして追加する | 現時点で拒絶 | 別の組み込み名を追加せずに`String - decimal-int-string`として表現できます。 |
+| `Exclude`・`Extract`・`NonNullable`を表層エイリアスとして追加する | 現時点で拒絶 | Rigorはそれらを`T - U`・`T & U`・`T - nil`として直接表現できます。 |
+| `Partial`・`Required`・`Readonly`・`Pick`・`Omit`・`Record`・`Parameters`・`ReturnType`・`InstanceType`のようなTypeScriptユーティリティまたはmapped型エイリアスを追加する | 現時点で拒絶 | これらは有用な参考設計ですが、Rigorはまずより小さなRuby/RBS形のシェイプファクトと型関数を公開すべきです。 |
+| 標準の条件型構文としてTypeScript構文`T extends U ? X : Y`を使う | 現時点で拒絶 | Rigorは、型言語の残りに合わない限り、TypeScript構文のコピーを避けるべきです。現在の候補は`if T <: U then X else Y`です。 |
 
-## Consequences
+## 結果
 
-Positive:
+肯定的:
 
-- Rigor can produce precise diagnostics while remaining compatible with RBS.
-- Generated RBS can be consumed by existing RBS-aware tools.
-- `untyped`, `top`, `bot`, and `void` retain distinct meanings internally.
-- PHPStan-, TypeScript-, and Python-style flow analysis becomes part of the core design.
-- Advanced library facts can be added in `.rbs` annotations without modifying Ruby application code.
-- Future plugins can contribute precise facts without requiring new user-facing syntax.
+- RigorはRBSと互換性を保ちつつ精密な診断を生成できます。
+- 生成されたRBSは既存のRBS対応ツールによって消費できます。
+- `untyped`・`top`・`bot`・`void`は内部的に区別された意味を保持します。
+- PHPStan・TypeScript・Pythonスタイルのフロー解析がコア設計の一部になります。
+- 高度なライブラリファクトはRubyのアプリケーションコードを変更せずに`.rbs`注釈に追加できます。
+- 将来のプラグインは新しいユーザー向けの構文を要求せずに精密なファクトを貢献できます。
 
-Negative:
+否定的:
 
-- The type engine needs more than a direct wrapper around RBS ASTs.
-- RBS export requires loss-of-precision handling.
-- Documentation must clearly explain why Rigor may infer more than it can export.
-- `RBS::Extended` needs a careful annotation payload grammar and conflict rules.
-- Negative and complement types require domain-aware normalization.
+- 型エンジンはRBS ASTの直接ラッパー以上のものを必要とします。
+- RBSエクスポートは精度損失処理を必要とします。
+- ドキュメンテーションは、なぜRigorがエクスポートできるよりも多くを推論するかを明確に説明しなければなりません。
+- `RBS::Extended`は注意深い注釈ペイロード文法と衝突規則を必要とします。
+- 否定的型と補集合型はドメイン対応の正規化を必要とします。
 
-## Open Questions
+## オープン課題
 
-- Which Rigor-only refinements should be implemented first after the MVP union/no-method diagnostic?
-- How much of the `~T` and `T - U` notation should be accepted in user-authored `RBS::Extended` annotations in the first implementation?
-- Which imported built-in refinements should be accepted in the first parser milestone beyond `non-empty-string` and integer ranges?
-- How quickly should predicate targets grow beyond `parameter-name` and `self`?
-- Which Python `TypedDict`-inspired shape facts, such as read-only keys and open or closed extra-key policies, should ship first?
-- Should Rigor model finality and read-only member facts separately from value types in the first signature metadata grammar?
-- Should generated RBS preserve `RBS::Extended` annotations that explain erased refinements when users request an annotated export?
-- Which dynamic-origin sources should be classified as explicit user intent, missing signatures, analyzer limits, or plugin-declared dynamic behavior?
-- What plugin API is needed for framework-specific object shapes and dynamic method resolution?
-- What exact `RBS::Extended` or plugin payload should declare custom equality effects?
-- What cache keys and invalidation rules should capability requirement summaries use across edits and dependency signature changes?
-- How should interactive CLI prompts choose between inline `#:`, full `# @rbs`, generated stubs, and external `.rbs` persistence targets?
-- Which generic variance cases require special handling for `Dynamic[T]` slots in the first implementation?
-- What exact trusted predicate or effect payload should prove finite, non-`NaN`, and signed-zero behavior if float refinements are introduced later?
-- What exact effect payload should encode block call timing, closure escape, receiver or argument mutation, and read-only/pure behavior?
-- Which non-predicate `rigor:v1:` directives should be standardized first, and which should remain plugin-only metadata?
-- Which non-integer numeric refinement names, if any, should be accepted after the integer refinement milestone?
-- How exactly should Rigor model Ruby protected-call receiver restrictions in structural interface and object-shape checks?
+- MVPのunion/no-method診断後にどのRigor専用リファインメントを最初に実装すべきか？
+- 最初の実装ではユーザー作成の`RBS::Extended`注釈で`~T`と`T - U`表記のうちどれだけを受け入れるべきか？
+- `non-empty-string`と整数範囲を超えて、最初のパーサマイルストーンでどの取り入れた組み込みリファインメントを受け入れるべきか？
+- 述語ターゲットは`parameter-name`と`self`を超えてどれだけ早く成長すべきか？
+- Pythonの`TypedDict`に触発されたシェイプファクト（読み取り専用キーやopen/closed追加キーポリシーなど）のうちどれを最初に出荷すべきか？
+- Rigorは最初のシグネチャメタデータ文法でfinalityと読み取り専用メンバーファクトを値型と別個にモデル化すべきか？
+- ユーザーが注釈付きエクスポートを要求するとき、生成されたRBSは消去されたリファインメントを説明する`RBS::Extended`注釈を保つべきか？
+- どの動的起源ソースが明示的なユーザー意図・欠けたシグネチャ・解析器の制限・プラグイン宣言の動的挙動として分類されるべきか？
+- フレームワーク固有のオブジェクトシェイプと動的メソッド解決のためにどのプラグインAPIが必要か？
+- カスタム等価効果を宣言する正確な`RBS::Extended`またはプラグインペイロードは何か？
+- 能力（capability）要件サマリーは、編集と依存シグネチャ変更にわたってどのキャッシュキーと無効化規則を使うべきか？
+- 対話的CLIプロンプトは、インライン`#:`・完全な`# @rbs`・生成されたスタブ・外部`.rbs`の永続化ターゲットの間でどのように選択すべきか？
+- 最初の実装で`Dynamic[T]`スロットの特別な処理を要求するジェネリック分散ケースはどれか？
+- 浮動小数リファインメントが後で導入されるなら、有限・非`NaN`・符号付きゼロの挙動を証明する正確な信頼できる述語または効果ペイロードは何か？
+- ブロック呼び出しタイミング・クロージャエスケープ・レシーバまたは引数の変異・読み取り専用/純粋挙動をエンコードする正確な効果ペイロードは何か？
+- どの非述語の`rigor:v1:`ディレクティブを最初に標準化すべきで、どれがプラグイン専用メタデータのまま留まるべきか？
+- 整数リファインメントマイルストーン後に、もしあるとすれば、どの非整数の数値リファインメント名を受け入れるべきか？
+- Rigorは構造的インターフェイスとオブジェクトシェイプチェックでRubyのprotected呼び出しレシーバ制限を正確にどうモデル化すべきか？
 
-## Resulting Specification
+## 結果の仕様
 
-The current draft specification is maintained in `docs/types.md`.
+現在のドラフト仕様は`docs/types.md`で保守されています。
