@@ -1,25 +1,3 @@
 name = "rigor-typedduck-fail"
 compatibility_date = "2026-05-08"
-
-# Claim the production custom domain on this Worker. When `wrangler
-# deploy` runs, Cloudflare moves the binding here if it currently
-# lives on another Worker (e.g. the default Hello World template
-# that ships with new Workers projects). Requires the domain's zone
-# to be on Cloudflare under the same account.
-routes = [
-  { pattern = "rigor.typedduck.fail", custom_domain = true }
-]
-
-# `wrangler deploy` runs this before uploading. Init only the
-# upstream/rigor submodule — non-recursively, shallow — because its
-# `references/` tree carries 8 nested submodules (ruby/ruby alone is
-# multi-GB, two use git@ SSH URLs that fail in CI), and the docs
-# site only consumes upstream/rigor/docs/. Cloudflare's automatic
-# submodule update must be disabled in the dashboard for this to be
-# the only path that touches submodules.
-[build]
-command = "git submodule update --init --depth=1 upstream/rigor && corepack enable && pnpm install --frozen-lockfile && pnpm build"
-
-[assets]
-directory = "./dist"
-not_found_handling = "404-page"
+pages_build_output_dir = "./dist"

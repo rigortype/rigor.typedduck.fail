@@ -20,46 +20,50 @@ The `predev` and `prebuild` scripts sync Markdown from the `upstream/rigor` subm
 - Generated English reference pages: `src/content/docs/reference/`
 - Japanese translations: `src/content/docs/ja/reference/` (mirrors the EN tree path-for-path)
 
-## Deployment (Cloudflare Workers Static Assets)
+## Deployment (Cloudflare Pages via GitHub Actions)
 
-The Cloudflare project for this site is a Workers Builds project
-(deploy command `npx wrangler deploy`), so the repo ships:
+Deploys are driven from
+[`.github/workflows/deploy.yml`](.github/workflows/deploy.yml). On
+every push to `master` the workflow:
 
-- [`wrangler.toml`](wrangler.toml) — declares `name`, the
-  `compatibility_date`, and `[assets] directory = "./dist"` so
-  `wrangler deploy` knows where the built static site lives.
-- [`public/_headers`](public/_headers) — security headers for every
-  response and long-lived caching for hashed Astro assets. Astro
-  copies `public/` into `dist/` at build time, where Workers Static
-  Assets picks up the `_headers` file.
+1. Checks out the repo without submodules, then runs
+   `git submodule update --init --depth=1 upstream/rigor` so only
+   the upstream we actually consume is fetched, shallow and
+   non-recursive. (Cloudflare's own Git integration kept timing
+   out at 10 minutes because `upstream/rigor` registers 8 nested
+   submodules under `references/`, including the multi-GB
+   `ruby/ruby` and two `git@github.com:` SSH URLs the build
+   environment can't authenticate to.)
+2. Sets up pnpm + Node.js, runs `pnpm install --frozen-lockfile`
+   and `pnpm build` (the `prebuild` hook regenerates the EN
+   reference tree from the submodule).
+3. Calls `cloudflare/wrangler-action@v3` with
+   `pages deploy dist --project-name=rigor-typedduck-fail
+   --branch=master`.
 
-The build is self-contained: `wrangler.toml` carries a `[build]
-command` that initialises the `upstream/rigor` submodule (shallow,
-non-recursive), runs `corepack enable && pnpm install
---frozen-lockfile && pnpm build`, and then `wrangler deploy`
-uploads `dist/`.
+[`public/_headers`](public/_headers) ships with the build for
+security headers and long-lived caching of hashed Astro assets.
+[`wrangler.toml`](wrangler.toml) keeps `name`,
+`compatibility_date`, and `pages_build_output_dir` so `wrangler
+pages deploy` works locally without arguments.
 
-Dashboard settings:
+### Required configuration
 
-- Deploy command: `npx wrangler deploy` (the Workers Builds default)
-- **Submodules: DISABLED.** This is critical — `upstream/rigor`
-  registers 8 nested submodules under `references/` (multi-GB
-  `ruby/ruby`, plus two `git@github.com:` SSH URLs the build
-  environment can't authenticate to). The default
-  `git submodule update --init --recursive` would try to fetch all
-  of them, time out, and abort the clone. The `[build]` block does
-  the targeted shallow init we actually need.
+GitHub repository **Secrets and variables → Actions → Secrets**:
 
-The dashboard's separate "Build command" field can be left empty;
-`wrangler deploy` will execute the `[build]` block first. If you
-prefer to set it on the dashboard side instead, paste the same
-command there and remove the `[build]` block from `wrangler.toml`
-to avoid double execution.
+- `CLOUDFLARE_API_TOKEN` — token with the **Cloudflare Pages —
+  Edit** template applied (or equivalent custom permissions).
+- `CLOUDFLARE_ACCOUNT_ID` — the account ID shown on the right side
+  of the Cloudflare dashboard home.
 
-The error `Missing entry-point to Worker script or to assets
-directory` is the symptom of `dist/` not existing at deploy time —
-either the build command did not run, or `[assets]` is pointing at
-the wrong directory.
+Cloudflare side:
+
+- A **Pages** project named `rigor-typedduck-fail` exists. (If the
+  current project is Workers Builds, create a new Pages project via
+  Workers & Pages → Create → Pages → Direct Upload, name it the
+  same, and bind `rigor.typedduck.fail` as a custom domain.)
+- The Cloudflare-side **Git integration is disabled** so it does
+  not race the GitHub Actions workflow.
 
 ## Translation workflow
 
