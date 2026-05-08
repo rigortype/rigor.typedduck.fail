@@ -66,7 +66,7 @@ Rigorは既存のエコシステムと相互運用しながらクリーンなRig
 
 ### SorbetおよびRuboCopスタイルのマーカー（オプトイン）
 
-Sorbetスタイルのファイルレベルマーカー（`# typed:`）とRuboCopスタイルの抑制コメント（`# rubocop:disable`、`# rubocop:enable`）はオプトインです。プロジェクトは`.rigor.yml`の`compat.sorbet_ignore`と`compat.rubocop_disable`スイッチで有効にします。Sorbetの型付きモードポリシーとRuboCopのリントスコープはRigorの診断抑制と同じではないため、デフォルトでオンにすると懸念事項が混在します。
+Sorbetスタイルのファイルレベルマーカー（`# typed:`）とRuboCopスタイルの抑制コメント（`# rubocop:disable`、`# rubocop:enable`）はオプトインです。プロジェクトは`.rigor.yml`の`compat.sorbet_ignore`と`compat.rubocop_disable`スイッチで有効にします。Sorbetの型付きモードポリシーとRuboCopのリント対象はRigorの診断抑制と同じではないため、デフォルトでオンにすると懸念事項が混在します。
 
 ### Rigorネイティブのマーカー
 

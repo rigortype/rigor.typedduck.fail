@@ -30,7 +30,7 @@ def shout(name)
 end
 ```
 
-この形式こそ、`if value`がRubyで非常によく使われリント時に有用な理由です: `if`本体の内側で、Rigorは`value`が非nilであることを知ります。
+この形式こそ、`if value`がRubyで非常によく使われ解析時に有用な理由です: `if`本体の内側で、Rigorは`value`が非nilであることを知ります。
 
 ## `nil?`とその逆
 

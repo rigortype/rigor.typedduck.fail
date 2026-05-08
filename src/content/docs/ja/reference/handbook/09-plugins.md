@@ -29,7 +29,7 @@ Lisp.eval([:if, true, "a", 0])  # ランタイムでString | Integer
 - **単位DSL** — `100.kilometers / 2.hours`は`Speed`を生成しますが、Rubyのランタイムはユーザークラスを返すIntegerのメソッドとして見ます。
 - **ルートヘルパー** — `users_path`はStringを返しますが、ヘルパーが存在するかどうかは解析器が読む必要があるYAMLファイルに依存します。
 - **ステートマシン** — `transition_to(:foo)`は、`:foo`がどこかで宣言された`state_machine do ... end`ブロック内にある場合には有効ですが、そうでなければタイポです。
-- **カスタムバリデーター** — `validate(:email, value)`はリント時に名前付きパターンに一致しないリテラルを捕捉すべきです。
+- **カスタムバリデーター** — `validate(:email, value)`は解析時に名前付きパターンに一致しないリテラルを捕捉すべきです。
 
 これらのそれぞれに[`examples/`](https://github.com/rigortype/rigor/blob/main/examples/README.md)に実例があります。[`examples/README.md`](https://github.com/rigortype/rigor/blob/main/examples/README.md)ページは6つのプラグインをアーキテクチャ軸（設定スキーマ、ファイルI/O、キャッシュプロデューサー、`Scope#type_of`を通じたエンジン連携など）で比較し、読む順序を推奨しています。
 
