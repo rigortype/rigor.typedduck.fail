@@ -3,8 +3,8 @@ title: "ADR-8: Steep-inspired Improvements"
 description: "Imported from rigortype/rigor docs/adr/8-steep-inspired-improvements.md."
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/adr/8-steep-inspired-improvements.md"
 sourcePath: "docs/adr/8-steep-inspired-improvements.md"
-sourceSha: "f5859eaaee7b3fc2ea8c77ac9ac7797a419db1213b6407a4d26c4801e6ebb4a6"
-sourceCommit: "9f40e22193647dc06e3ab70c5ba82768b0bfe738"
+sourceSha: "c1c787c1909363d82352b01fc6cddfd097c4bd58355d77893900f309479b5679"
+sourceCommit: "74ac0f8722e98525410373ffc22f93595bc15e65"
 translationStatus: "translated"
 sidebar:
   order: 4008
@@ -36,8 +36,8 @@ sidebar:
 | --- | --- |
 | `call`   | `call.undefined-method`、`call.wrong-arity`、`call.argument-type-mismatch`、`call.possible-nil-receiver` |
 | `assert` | `assert.type-mismatch`（テストハーネスアサーション）、`dump.type`（デバッグ） |
-| `flow`   | `flow.always-raises`（フローパスがraiseで終わることを証明） |
-| `def`    | `def.return-type-mismatch`（以下のスライス#1） |
+| `flow`   | `flow.always-raises`（フローパスがraiseで終わることを証明）、`flow.unreachable-branch`（リテラル述語による到達不能ブランチ）、`flow.dead-assignment`（書き込み後に読み込まれないローカル変数）、`flow.always-truthy-condition`（推論された定数述語、ループ / ブロック / 防衛的な形式の外部） |
+| `def`    | `def.return-type-mismatch`（以下のスライス#1）、`def.method-visibility-mismatch`（privateメソッドレシーバーチェック）、`def.ivar-write-mismatch`（クラスごとのivar具体クラスドリフト） |
 
 `dump.type`は`assert.dump-type`ではなく独自の`dump`ファミリーに置かれる。ランタイムセマンティクスが異なるからだ（アサーションは実行を失敗させ、ダンプは診断副作用で常に成功する）。
 

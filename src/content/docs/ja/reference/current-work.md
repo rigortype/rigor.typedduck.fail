@@ -3,8 +3,8 @@ title: "Current Work — Inference Engine Checkpoint"
 description: "Imported from rigortype/rigor docs/CURRENT_WORK.md."
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/CURRENT_WORK.md"
 sourcePath: "docs/CURRENT_WORK.md"
-sourceSha: "b477bb7ce11886fae1f5a7ffceff3d79b6a6b976095644bdef864e47f502f32d"
-sourceCommit: "b523ab36f62d89a1c16964a66864c27e3ebb0fe4"
+sourceSha: "a1a9d95c32d3ce6305c5f706c09e72cefd0ebbec8765f47aa78e740b4fb35a73"
+sourceCommit: "74ac0f8722e98525410373ffc22f93595bc15e65"
 translationStatus: "translated"
 sidebar:
   order: 9050
@@ -51,7 +51,7 @@ Railsプラグインファミリー——`rigor-rails-routes`、`rigor-rails-i18
 
 v0.0.xスライスを通じて浮かび上がった永続的な項目で、次の実装者がフルスレッドを再読することなく見ておくべきもの。v0.1.1にすでに吸収された項目はここで再説明するのではなくMILESTONESを通じて参照されます。
 
-1. **Cボディクラシファイアーの間接ミューテーター。**カタログ抽出器のregexは`str_modifiable` / `time_modify` / 類似のヘルパー間接を追いません; `String#replace`、`Time#localtime`、`Set#reset`のようなメソッドはミューテートするにもかかわらず`:leaf`として着地します。v0.0.5で着地した純粋な`rb_check_frozen`ラッパー検出がギャップを縮小しますが、`STRING_CATALOG` / `TIME_CATALOG` / `SET_CATALOG`のクラスごとのブロックリストは狭いregexが見逃す偽陽性を吸収し続けます。長期的には: クラシファイアーは正当な非ミューテーター（v0.0.5修正を制限した`Array#to_a`リグレッション）を過剰フラグ付けせずにヘルパーを推移的に追跡すべきです。v0.1.1のスコープ外;具体的なユーザーが見えるリグレッションが動機付けるまで延期。
+1. ~~**Cボディクラシファイアーの間接ミューテーター。**~~ v0.1.2でクローズ——抽出器のシードが、ボディで凍結チェック（`str_modifiable`、`rb_struct_modify`、`range_modify`、`rb_class_modify_check`など）を発行する`_modify` / `_modifiable`命名のヘルパーもマッチするようになりました。カタログ再生成により`String#replace` / `String#initialize_copy` / 複数のStringビックリメソッド / `Range#initialize` / `Range#initialize_copy`が`mutates_self`に切り替わります。最初の引数の形式パラメーターに対する推移的閉包アプローチが検討されましたが差し戻されました——最初の引数が形式であるにもかかわらずヘルパーが実際にはそれをミューテートしない関数での過剰分類。クラスごとのブロックリストが残りのケース（Time / Setヘルパー）を吸収し続けます。
 
 （以前ここに列挙されていた項目——`node_locator_spec.rb:82`と`numeric.yml`の`Integer#ceildiv`——は現在[v0.1.1 Track 4メンテナンス](../milestones/#v011--planned)です。）
 

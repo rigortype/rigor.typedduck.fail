@@ -3,8 +3,8 @@ title: "はじめに"
 description: "rigortype/rigor docs/handbook/01-getting-started.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/handbook/01-getting-started.md"
 sourcePath: "docs/handbook/01-getting-started.md"
-sourceSha: "26fbbee4fa487b5e33e4e079ece835d2d79c79c93e12f9271f0ebf5204f5ef5e"
-sourceCommit: "b523ab36d3e3e9b07f2ba2b1a4b842dadcd29b58"
+sourceSha: "d491f36b9f7337a5c5500a46d4b6eb1061e2035b1b44d612d3f4d19afec1ccc4"
+sourceCommit: "74ac0f8722e98525410373ffc22f93595bc15e65"
 translationStatus: "translated"
 sidebar:
   order: 1001
@@ -135,6 +135,10 @@ severity_profile: balanced
 ```
 
 最小限の有用な実行に設定ファイルは不要です — `rigor check lib`はそのままで動きます。設定ファイルは、追加の`paths`、別の`severity_profile`、プロジェクト全体のルール無効化、プラグインなど、デフォルト以外の挙動のために用意します。
+
+### エディターオートコンプリート
+
+配布ファイルの先頭には`# yaml-language-server: $schema=...`マジックコメントがあり、[`schemas/rigor-config.schema.json`](../../schemas/rigor-config.schema.json)を指しています。この規約を認識するエディター——VS CodeのYAML拡張機能、IntelliJファミリーのIDE、Helix、`yaml-ls`を使ったNeovim、[redhat-developer/yaml-language-serverの仕様](https://github.com/redhat-developer/yaml-language-server)に従うその他——はスキーマを自動的に取得し、編集中にオートコンプリート、ホバードキュメント、バリデーションを提供します。`rigor init`が生成するファイルには絶対GitHubのURLが含まれるため、Rigorのソースをチェックアウトしなくてもスキーマが動作します。
 
 ### 2つのファイル名、暗黙のマージはしない
 

@@ -3,8 +3,8 @@ title: "Release Milestones"
 description: "Imported from rigortype/rigor docs/MILESTONES.md."
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/MILESTONES.md"
 sourcePath: "docs/MILESTONES.md"
-sourceSha: "a3423c8b6c6c2ccfb2dd6856387551ae8d8c5b64468bf08307742d826f1bdcc3"
-sourceCommit: "b523ab36f62d89a1c16964a66864c27e3ebb0fe4"
+sourceSha: "b2f11152f3410987d85150c244cb2aad5b65737cc15f23c9c6ecf37d08f20e87"
+sourceCommit: "74ac0f8722e98525410373ffc22f93595bc15e65"
 translationStatus: "translated"
 sidebar:
   order: 9050
@@ -214,19 +214,19 @@ v0.1.0を超えて延期された項目は以下の[v0.1.1セクション](#v011
 
 v0.1.1のスコープ外（v0.1.2以降に延期）:
 
-- **新しいCheckRulesルールファミリー。** `flow.unreachable-branch`、`flow.dead-assignment`、`flow.always-truthy-condition`、`def.ivar-write-mismatch`、`def.method-visibility-mismatch`、加えて型キャリア述語の`def.return-type-mismatch`。各々に慎重な偽陽性トリアージが必要。
+- **新しいCheckRulesルールファミリー。** ~~`flow.unreachable-branch`~~（v0.1.2 Track 2でクローズ;リテラルのみエンベロープ）、~~`flow.dead-assignment`~~（v0.1.2 Track 2でクローズ; def内で読み込まれないエンベロープ）、~~`flow.always-truthy-condition`~~（v0.1.2 Track 2でクローズ;ループ / ブロック / 防衛的述語スキップ）、~~`def.ivar-write-mismatch`~~（v0.1.2 Track 2でクローズ;具体クラスドリフト）、~~`def.method-visibility-mismatch`~~（v0.1.2 Track 2でクローズ;ユーザークラスprivateのみ）、~~型キャリア述語の`def.return-type-mismatch`~~（v0.1.2 Track 2でクローズ; `rigor:v1:return:`精製オーバーライドを参照）。各々に慎重な偽陽性トリアージが必要でした。
 - **Cボディクラシファイアーのより広い推移的ミューテータースキャン。** `str_modifiable` / `time_modify` / 類似のヘルパーを正当な非ミューテーター（v0.0.5修正を制限した`Array#to_a`リグレッション）を過剰フラグ付けせずに追跡する必要がある長期延期のカタログ抽出器作業。
-- **`Data.define`オーバーライド対応イニシャライザーディスパッチ。** `Const.new`の正規シグとしてのブロックボディ`def initialize(...)`。
-- **`Plugin::IoBoundary#open_url`アローリスト。**現在は常に発生します;具体的なプラグインが必要とする時点で緩和されたネットワークポリシーが着地します。
+- ~~`Data.define`オーバーライド対応イニシャライザーディスパッチ。~~ v0.1.2 Track 2でクローズ——以下を参照。
+- ~~`Plugin::IoBoundary#open_url`アローリスト。~~ v0.1.2 Track 2でクローズ——項目17を参照。
 - **`rigor:v1:conforms-to`ディレクティブ。**実際の構造的適合チェッカーが必要。
-- **DXツールトラック。** `rigor explain <rule-id>` / `rigor diff <baseline>` / `# rigor:disable-file <rule>` / エディターオートコンプリートのための`.rigor.yml` JSONスキーマ。別のユーザー向けサーフェス; v0.1.2にキューイング。
+- **DXツールトラック。** ~~`rigor explain <rule-id>`~~、~~`rigor diff <baseline>`~~、~~`# rigor:disable-file <rule>`~~、~~`.rigor.yml` JSONスキーマ~~ ——4つすべてv0.1.2 Track 2でクローズ。
 - **LSP / 長期実行デーモンモード。**ファイルごとの`flock`モデルを超えた同時マルチプロセス安全性が必要。プラグインエコシステムが成長するにつれてますます関連性が高まりますが、まだ実質的です。
 - **キャッシュ退避 / LRU / サイズ上限。**キャッシュは制限なし;ユーザーは必要に応じて`--clear-cache`を実行します。
 - **クロスマシンキャッシュ共有。**
 - **ObjectSpace / URI / Kernelカタログインポート。** ObjectSpaceはカタログティアがまだ提供しないシングルトンモジュールディスパッチパスが必要。URIはCサーフェスのない純粋RubyのstdlibGemです; KernelメソッドはInit関数なしの20以上のCファイルに散在しています。両方とも手作りまたはカスタムスキャフォールドアプローチが必要。
 - **Pathname / URI委譲ルール。**より広いリファクター（ファイル射影を通じてルーティングするPathnameファサード）。
 - **軽量HKT / 型レベル型計算。** [`docs/type-specification/rigor-extensions.md`](../type-specification/rigor-extensions/)行22 / 51の条件付きおよびインデックスアクセス型。より大きなサーフェス;単一スライスの項目ではありません。
-- **過負荷選択でのインターフェース厳格性。** v0.1.1の自己解析中に表面化しました: `Array#[](Range) -> Array[Elem]?`は`Array#[](int) -> Elem`に負けます——RBS `int`エイリアスが`Integer | _ToInt`に展開され、RigorがRBSの`_ToInt`インターフェースを`Dynamic[top]`に変換するため（あらゆる型をグラデュアルに受け入れる——Rangeを含む）。症状: `arr = Array<String>; arr[0..i]`は`Array[String]?`の代わりに`String`を返します。v0.1.1では`tool/extract_builtin_catalog.rb`の1つのサイトで`# rigor:disable call.undefined-method`で抑制されています。
+- ~~過負荷選択でのインターフェース厳格性。~~ v0.1.2 Track 2でクローズ——以下を参照。
 
 ## v0.1.2 — 計画中
 
@@ -246,11 +246,45 @@ v0.1.1のスコープ外（v0.1.2以降に延期）:
 
 ### プラグイン作成DX
 
-5. ✅ **`spec/integration/examples/support/plugin_helpers.rb`が`signature_paths:`キーワードを受け入れます。**プラグイン統合スペックがテストごとのtmpdirの下にRBSシグファイルを実体化し、そのディレクトリを`Configuration#signature_paths`を通じてスレッドできます。
+5. ✅ **`spec/integration/examples/support/plugin_helpers.rb`が`signature_paths:`キーワードを受け入れます。**プラグイン統合スペックがテストごとのtmpdirの下にRBSシグファイルを実体化し、そのディレクトリを`Configuration#signature_paths`を通じてスレッドできます。新しいナロイングテストがユーザー定義クラス（`rigor-activerecord`の`User`、`rigor-units`の`Distance / Time / Speed`ファミリー）に最小限のシグを提供して`call.undefined-method`が発火できるよう、これを使用します——ルールの`rbs_class_known?`ゲートが他の場合は診断をサイレンスします。
+
+### Track 2 — エンジン深化フォローアップ
+
+6. ✅ **過負荷選択でのインターフェース厳格性** ——未リリースで着地。`OverloadSelector`が2パスマッチを実行するようになりました: パス1はパラメーター型が厳密に型付けされた（`RBS::Types::Alias` / `Interface` / `Intersection` / `Bases::Any`から変換された`Dynamic[Top]`がない）オーバーロードのみを考慮し、パス2は既存のグラデュアルマッチャーにフォールバックします。厳密パスは引数自体が`Dynamic[Top]`（リテラルな`untyped`）の場合もスキップされ、未型付き引数に対するグラデュアル受け入れが任意に厳密なオーバーロードをロックインしません。v0.1.1の自己解析ミス（`Array[String]#[](Range)`が以前先着で勝っていたエイリアス型の`(::int) -> Elem`オーバーロードの代わりに`(::Range[::Integer?]) -> ::Array[Elem]?`オーバーロードを通じて`Array[String]?`を返すようになりました）をクローズします; `tool/extract_builtin_catalog.rb:750`の`# rigor:disable call.undefined-method`ワークアラウンドが削除されます。
+
+7. ✅ **`def.ivar-write-mismatch`ルール** ——未リリースで着地。新しい`Analysis::CheckRules::IvarWriteCollector`がすべてのクラス / モジュールボディを走査し、クラスごとのインスタンスメソッドの`@var = ...`書き込みとそのrvalue型を収集します。後の書き込みの具体クラス（Nominal / Singleton / Constant / Tuple → "Array" / HashShape → "Hash"）が最初の書き込みのものと異なる場合にルールが発火します。`NilClass`は意図的な`@cache = nil`でクリアするイディオムのためにアローリストされます; Union / Dynamic / IntegerRange / シェイプが変わるキャリアはフォールスルーします。作成`: error`;重大度プロファイルエントリー: `:warning`（lenientとbalanced）、`:error`（strict）。
+
+9. ✅ **`def.method-visibility-mismatch`ルール** ——未リリースで着地。新しい`Scope#discovered_method_visibilities`テーブルが`Inference::ScopeIndexer`によって周囲のクラスボディから入力されます;モディファイアーブロック（引数なしの`private` / `protected` / `public`が後続の`def`のデフォルトを切り替える）と名前付き引数形式（`private :foo, :bar`が特定の名前にバックパッチする）の両方がテーブルに入力されます。明示的レシーバーの`Prism::CallNode`が`discovered_method_visibilities[X][name] == :private`の`Nominal[X]`をターゲットにする場合にCheckRuleが発火します。暗黙的selfコールと`self.foo`はスキップされます（Ruby 2.7+は`self.private_method`を許可します）。作成`: error`;重大度プロファイルエントリー: `:warning`（lenient）、`:error`（balancedとstrict）。`:protected`アームとRBSで既知のクラスサーフェスは意図的に延期されます（サブクラス追跡 / コールサイトごとのトリアージが必要）。
+
+10. ✅ **`flow.unreachable-branch`ルール** ——未リリースで着地。`if` / `unless` / 三項演算子の述語が構文的リテラル（`true` / `false` / `nil` / Integer / Float / String / Symbol / Regexp）**かつ**対応する到達不能ブランチが空でない場合に発火します。到達不能ブランチの位置を指します。作成`:warning`; `severity_profile`テーブルが`:info`（lenient）/ `:warning`（balanced）/ `:error`（strict）に再スタンプします。リテラルのみエンベロープはv0.1.2の意図的な保守性です——推論された定数述語（RBSの`Module#name -> String`シグが隠す匿名クラスのnilに対する防衛的な`Module#name.nil?`チェック; Rigorが拡幅しない`<<`ミューテーションのアキュムレーター`arr.empty?`パターン）はループ / ミューテーション / RBS厳格性モデリングが改善されるまで偽陽性を表面化させます。拡大は後のv0.1.xリリースのためにキューに入れられています。
+
+11. ✅ **`Data.define` / `Struct.new`ブロックボディメソッド発見** ——未リリースで着地。`ScopeIndexer.walk_methods`と`walk_def_nodes`が、`Const`の修飾名をプレフィックスにプッシュして`Const = Data.define(*sym) do ... end` / `Const = Struct.new(*sym) do ... end`書き込みのブロックボディに再帰するようになりました。ブロックボディの`def initialize(...)`とその他のオーバーライドdefが`discovered_methods`と`discovered_def_nodes`の両方で定数名の下に登録されます。RBSで既知の`Point`定数の`Point.new`がブロックで定義されたアクセサーに対して偽陽性の`call.undefined-method`を表面化しなくなります。v0.0.5フォローアップ「オーバーライド対応イニシャライザーシグネチャーディスパッチ（ブロックの`def initialize(...)`を正規シグとして使用）」をクローズします。
+
+12. ✅ **`rigor explain <rule>` CLIコマンド** ——未リリースで着地。新しい`Rigor::Analysis::RuleCatalog`がルールごとの単一情報源メタデータテーブルです（サマリー / 発火条件 / 非発火条件 / 抑制 / 作成重大度 / プロファイルごとの重大度 / 導入バージョン）。`Rigor::CLI::ExplainCommand`が`RuleCatalog.resolve`を通じて正規 / レガシーエイリアス / ファミリーワイルドカードトークンを解決し、`text`（デフォルト）または`json`（`--format=json`）出力をレンダリングします。引数なしの場合はすべてのルールのインデックスを表示します。DXツールトラック項目「rigor explain <rule>」をクローズします。
+
+13. ✅ **`# rigor:disable-file <rule>`ファイルスコープ抑制** ——未リリースで着地。`Analysis::CheckRules.parse_suppression_comments`を別の`FILE_SUPPRESSION_PATTERN`で拡張します;ファイルスコープのセットが`filter_suppressed`の既存の行ごとのセットと合成されます。ファイルのどこにでも配置できます（先頭要件なし）。`# rigor:disable-file all`がすべてのルールを抑制します;ファミリーワイルドカードとレガシー未プレフィックス名が行スコープ形式と同じ展開ルールに従います。DXツールトラック項目「`# rigor:disable-file <rule>`」をクローズします。
+
+14. ✅ **`rigor diff <baseline.json>` CLIコマンド** ——未リリースで着地。新しい`Rigor::CLI::DiffCommand`が保存されたベースラインJSONに対して現在の`rigor check`診断を比較し、新しい / 修正済みのデルタを表示します。マッチングの識別子は`(path, line, column, rule, source_family, message)`です。2つのモード: デフォルトは現在側の`rigor check`を実行します; `--current=<path>`はアナライザーを呼び出さずに2つの保存されたJSONファイルを比較します。エディター / ダッシュボード消費のための`--format=json`。新しい診断が現れた場合の終了コードは`1`、そうでない場合は`0`——CIはリグレッションで失敗しますが、ベースラインに記録されたレガシー診断は問題ありません。DXツールトラック項目「rigor diff <baseline>」をクローズします。
+
+15. ✅ **`schemas/rigor-config.schema.json` — `.rigor.yml`のJSONスキーマ** ——未リリースで着地。ローダーが認識するすべてのキーとロード時の`includes:`ディレクティブのJSON Schema 2020-12ディスクリプター。定数は`Configuration::DEFAULTS`、`SeverityProfile::VALID_PROFILES`、`SeverityProfile::VALID_SEVERITIES`、プラグインエントリー強制ルールから取得されます;スペックがスキーマとローダーの契約を固定してサイレントに乖離できないようにします。コミットされた`.rigor.dist.yml`が`# yaml-language-server: $schema=...`マジックコメント（相対パス）を持ちます; `rigor init`が同じコメントを絶対GitHubのURLで書き込みます。DXツールトラック項目「.rigor.yml JSONスキーマ」をクローズします。
+
+16. ✅ **`flow.dead-assignment`ルール** ——未リリースで着地。新しい`Analysis::CheckRules::DeadAssignmentCollector`がすべての`DefNode`ボディを走査し、ターゲット名が同じボディ内で一度も読まれない単純な`LocalVariableWriteNode`を見つけます。保守的なエンベロープ: トップレベル / クラスボディの代入、`_`で始まる名前、演算子 / and / or書き込み、`MultiWriteNode`分割代入、ボディの末尾代入（Rubyの暗黙のreturn）がすべてルールをバイパスします。読み込みはdefサブツリー全体（ネストされたブロックを含む）からカウントされます。作成`:warning`;重大度プロファイルエントリー: `:info`（lenient）、`:warning`（balanced）、`:error`（strict）。v0.1.1の「スコープ外」`flow.dead-assignment`項目をクローズします。
+
+17. ✅ **`Plugin::IoBoundary#open_url`アローリスト** ——未リリースで着地。v0.1.0は`#open_url`を常に拒否するスタブとして出荷しました。v0.1.2はホストアローリストの後ろでゲートを解除します: `TrustPolicy`が`network_policy: :allowlist`と`allowed_url_hosts:`配列を受け入れます; `IoBoundary#open_url`が`policy.allow_url?(url)`がtrueを返す場合にGET専用のHTTPSフェッチを実行します（HTTPSスキーム + 完全一致ホスト名）。上限: 10秒タイムアウト、10 MBボディ。フェッチャーは`http_client:`で依存性注入されるためスペックはネットワークなしで実行されます。成功したフェッチがボディのSHA-256でキー付けされた`Cache::Descriptor::ConfigEntry`を記録します。設定 / JSONスキーマが`plugins_io.allowed_url_hosts:`と`plugins_io.network`の`allowlist`値を取得します。ワイルドカードホスト名は意図的に延期されます。v0.1.1の「スコープ外」`Plugin::IoBoundary#open_url`アローリスト項目をクローズします。
+
+18. ✅ **`flow.always-truthy-condition`ルール** ——未リリースで着地。リテラルのみの`flow.unreachable-branch`に対応する推論された定数版。2つの外科的スキップがv0.1.2の最初の保守的なカットが誘発した偽陽性を再表面化させずに推論されたケースをもたらします: （1）`WhileNode` / `UntilNode` / `ForNode` / `BlockNode`祖先内の述語（ループボディを通じたミューテーション追跡が不完全）、（2）防衛的述語コール（`.nil?` / `.empty?` / `.zero?` / `.any?` / `.none?` / `.all?` / `.respond_to?`——これらは通常、RBSの厳密なシグが認める以上にユーザーが慎重になっている場合に発火します）。診断は到達不能ブランチではなく述語（ユーザーの主張）を指します（`flow.unreachable-branch`がすでにカバー）。作成`:warning`;重大度プロファイルエントリー: `:info`（lenient）、`:warning`（balanced）、`:error`（strict）。新しい`Analysis::CheckRules::AlwaysTruthyConditionCollector`が作業を行います。v0.1.1の「スコープ外」`flow.always-truthy-condition`項目をクローズします。
+
+19. ✅ **`def.return-type-mismatch`が`%a{rigor:v1:return: <refinement>}`を尊重** ——未リリースで着地。`Analysis::CheckRules.declared_return_type`が`RbsExtended.read_return_type_override(method_def)`を参照し、裸のRBS宣言戻り型よりも精製キャリア（`non-empty-string`、`positive-int`、`non-empty-array[Integer]`など）を優先するようになりました。ボディの推論型が基礎となるRBSクラスが受け入れていたとしても精製に失敗する場合に受け入れチェックが発火します。v0.1.1の「スコープ外」型キャリア述語の`def.return-type-mismatch`項目をクローズします。
+
+20. ✅ **Cボディクラシファイアーの`_modify` / `_modifiable`命名規則シード** ——未リリースで着地。v0.0.5のミューテーターヘルパー認識器は`{ rb_check_frozen(arg); }`そのままのボディのみをキャッチしていました。v0.1.2は`_modify` / `_modifiable`規則に名前がマッチする**かつ**ボディで`rb_check_frozen` / `rb_check_lockedtmp`コールを発行する関数もシードに拡張します。`str_modifiable`、`rb_struct_modify`、`range_modify`、`rb_class_modify_check`などをキャッチします——厳密なregexが見逃したゲート。カタログ再生成により`String#replace`、`String#initialize_copy`、`String#chomp!`、`String#delete_suffix!`、`String#force_encoding`、`Range#initialize`、`Range#initialize_copy`が`mutates_self`に切り替わります。最初の引数の形式パラメーターに対する推移的閉包アプローチが検討されましたが差し戻されました——最初の引数が形式であるにもかかわらずヘルパーが実際にはその引数をミューテートしない関数（`rb_ary_reject` → `ary_reject`はミューテートせずに反復）で偽陽性が発生。`*_catalog.rb`のクラスごとのブロックリストが残りのケースを吸収し続けます。`docs/CURRENT_WORK.md`からの長年の「Cボディクラシファイアーの間接ミューテーター」延期項目をクローズします。
 
 ### v0.1.2のスコープ外（v0.1.3以降に延期）
 
-v0.1.1の「スコープ外」リスト全体が適用されます——過負荷選択でのインターフェース厳格性、新しい`flow.*` / `def.*`ルールファミリー、`Data.define`イニシャライザーディスパッチ、`Plugin::IoBoundary#open_url`、`rigor:v1:conforms-to`、DXツールトラック、LSPデーモン、キャッシュLRU、ObjectSpace / URI / Kernelカタログインポート、Pathname / URI委譲、軽量HKT。
+v0.1.1の「スコープ外」リスト全体が適用されます（現在クローズされたインターフェース厳格性と`Data.define`項目を除く）——新しい`flow.*` / `def.*`ルールファミリー、`Plugin::IoBoundary#open_url`、`rigor:v1:conforms-to`、DXツールトラック、LSPデーモン、キャッシュLRU、ObjectSpace / URI / Kernelカタログインポート、Pathname / URI委譲、軽量HKT。
+
+**新しい延期項目（キューに入れられたが特定リリースには未コミット）:**
+
+- **オプトイン依存関係ソース推論。**オプトインGem（RBS / RBS::Inline未使用）のRuby実装を走査し、依存関係境界で`Dynamic[top]`に降格する代わりに型情報を取得します。設計は[ADR-10](../adr/10-dependency-source-inference/)で固定されています: `dependencies.source_inference`設定軸、`Dynamic[T]`ラップされた戻り型、プラグインより厳密に下位のディスパッチャーティア、Gemごとのバジェットプール、新しい`Cache::Descriptor::DependencyEntry`を通じたGemバージョンごとのキャッシュスライス。5つの実装スライス（設定配線 → ウォーカー → キャッシュディスクリプター → Gemごとのバジェット → ドキュメント）。最短目標v0.1.3ですが確約されていません;エントリーはRailsプラグイン並行トラックが安定した後のv0.1.xコアブランチの帯域幅に依存します。
 
 ## Railsエコシステムプラグイン（v0.1.xコア作業に並行した実行トラック）
 
