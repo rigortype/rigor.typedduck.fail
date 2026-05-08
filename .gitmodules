@@ -1,3 +1,8 @@
 [submodule "upstream/rigor"]
 	path = upstream/rigor
 	url = https://github.com/rigortype/rigor.git
+	# Hint to git submodule update --recommend-shallow: we only need
+	# the docs/ tree, never history. Skip recursing into upstream's
+	# references/ submodules; see wrangler.toml's [build] command.
+	shallow = true
+	fetchRecurseSubmodules = false

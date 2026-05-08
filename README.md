@@ -34,13 +34,21 @@ The Cloudflare project for this site is a Workers Builds project
   Assets picks up the `_headers` file.
 
 The build is self-contained: `wrangler.toml` carries a `[build]
-command` that runs `corepack enable && pnpm install
---frozen-lockfile && pnpm build` before the deploy. This means the
-Cloudflare dashboard only needs:
+command` that initialises the `upstream/rigor` submodule (shallow,
+non-recursive), runs `corepack enable && pnpm install
+--frozen-lockfile && pnpm build`, and then `wrangler deploy`
+uploads `dist/`.
+
+Dashboard settings:
 
 - Deploy command: `npx wrangler deploy` (the Workers Builds default)
-- Submodules: enabled (the EN reference tree is generated from the
-  `upstream/rigor` submodule at build time)
+- **Submodules: DISABLED.** This is critical — `upstream/rigor`
+  registers 8 nested submodules under `references/` (multi-GB
+  `ruby/ruby`, plus two `git@github.com:` SSH URLs the build
+  environment can't authenticate to). The default
+  `git submodule update --init --recursive` would try to fetch all
+  of them, time out, and abort the clone. The `[build]` block does
+  the targeted shallow init we actually need.
 
 The dashboard's separate "Build command" field can be left empty;
 `wrangler deploy` will execute the `[build]` block first. If you

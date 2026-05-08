@@ -10,13 +10,15 @@ routes = [
   { pattern = "rigor.typedduck.fail", custom_domain = true }
 ]
 
-# `wrangler deploy` runs this before uploading. Keeps the Cloudflare
-# Workers Builds project working even when the dashboard's Build command
-# field is left empty — corepack provisions the pinned pnpm in
-# package.json, then the existing `prebuild` hook (`pnpm sync:docs`)
-# regenerates the EN reference tree from the upstream/rigor submodule.
+# `wrangler deploy` runs this before uploading. Init only the
+# upstream/rigor submodule — non-recursively, shallow — because its
+# `references/` tree carries 8 nested submodules (ruby/ruby alone is
+# multi-GB, two use git@ SSH URLs that fail in CI), and the docs
+# site only consumes upstream/rigor/docs/. Cloudflare's automatic
+# submodule update must be disabled in the dashboard for this to be
+# the only path that touches submodules.
 [build]
-command = "corepack enable && pnpm install --frozen-lockfile && pnpm build"
+command = "git submodule update --init --depth=1 upstream/rigor && corepack enable && pnpm install --frozen-lockfile && pnpm build"
 
 [assets]
 directory = "./dist"
