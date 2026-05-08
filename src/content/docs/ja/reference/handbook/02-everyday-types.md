@@ -32,9 +32,9 @@ n = ARGV.size
 
 まとめると: プログラムのすべての地点にある各値は**キャリア**（carrier）で記述されます。キャリアは広い（`Integer`、`Dynamic[Top]`）場合もあれば、狭い（`Constant<3>`、`non-empty-string`）場合もあります。この章の残りはキャリアの図鑑です。
 
-## 名前的型（nominal type、公称型とも） — 馴染み深い出発点
+## 名前的型 — 馴染み深い出発点
 
-最もシンプルなキャリアは、すでに知っている`Nominal[ClassName]`です。追加情報なしに「これはそのクラスのインスタンスである」と言うものです。
+最もシンプルなキャリアは、すでに知っている`Nominal[ClassName]`です。名前的型（nominal type）は公称型とも呼ばれます。追加情報なしに「これはそのクラスのインスタンスである」と言うものです。
 
 ```ruby
 n = ARGV.first         # Nominal[String] | Constant<nil>
