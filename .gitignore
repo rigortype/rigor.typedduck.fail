@@ -5,6 +5,7 @@ dist/
 .pnpm-home/
 result
 src/content/docs/reference/
+src/data/rigor-release.json
 
 # Cloudflare build logs occasionally land here when downloaded from the dashboard.
 *.build.log

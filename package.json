@@ -16,6 +16,7 @@
     "check": "astro check"
   },
   "dependencies": {
+    "@astrojs/mdx": "5.0.4",
     "@astrojs/starlight": "0.39.1",
     "astro": "6.3.1"
   },

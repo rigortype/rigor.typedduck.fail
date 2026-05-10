@@ -11,6 +11,7 @@ const execFileAsync = promisify(execFile);
 const projectRoot = fileURLToPath(new URL('..', import.meta.url));
 const sourceRoot = path.resolve(projectRoot, process.env.RIGOR_SOURCE_DIR ?? 'upstream/rigor');
 const outputRoot = path.resolve(projectRoot, 'src/content/docs/reference');
+const releaseOutputPath = path.resolve(projectRoot, 'src/data/rigor-release.json');
 const upstreamDocsDirs = ['docs', 'doc'];
 
 const sectionOrder = new Map([
@@ -54,7 +55,16 @@ await writeFile(
   buildReferenceIndex(markdownFiles.map((file) => path.relative(docsRoot, file)))
 );
 
+const release = await readUpstreamRelease();
+await mkdir(path.dirname(releaseOutputPath), { recursive: true });
+await writeFile(releaseOutputPath, `${JSON.stringify(release, null, 2)}\n`);
+
 console.log(`Synced ${markdownFiles.length} Markdown files from ${path.relative(projectRoot, docsRoot)}.`);
+if (release.tag) {
+  console.log(`Latest upstream release: ${release.tag} (${release.date ?? 'unknown date'}).`);
+} else {
+  console.log('No upstream release tag detected.');
+}
 
 async function readUpstreamCommit() {
   try {
@@ -62,6 +72,48 @@ async function readUpstreamCommit() {
     return stdout.trim();
   } catch {
     return '';
+  }
+}
+
+async function readUpstreamRelease() {
+  const commit = await readUpstreamCommit();
+  let tag = await tagAtUpstreamHead();
+  if (!tag) {
+    try {
+      await execFileAsync('git', ['-C', sourceRoot, 'fetch', '--tags', '--depth=1', '--quiet']);
+    } catch {
+      // shallow clones in CI may not have a fetchable remote here; ignore.
+    }
+    tag = await tagAtUpstreamHead();
+  }
+  if (!tag) return { tag: null, date: null, commit };
+  return { tag, date: await tagCreatedAt(tag), commit };
+}
+
+async function tagAtUpstreamHead() {
+  try {
+    const { stdout } = await execFileAsync('git', [
+      '-C', sourceRoot,
+      'tag', '--points-at', 'HEAD', '--sort=-creatordate',
+    ]);
+    const tags = stdout.split('\n').map((line) => line.trim()).filter(Boolean);
+    return tags.find((tag) => /^v?\d/.test(tag)) ?? tags[0] ?? null;
+  } catch {
+    return null;
+  }
+}
+
+async function tagCreatedAt(tag) {
+  try {
+    const { stdout } = await execFileAsync('git', [
+      '-C', sourceRoot,
+      'for-each-ref',
+      '--format=%(creatordate:iso-strict)',
+      `refs/tags/${tag}`,
+    ]);
+    return stdout.trim() || null;
+  } catch {
+    return null;
   }
 }
 
