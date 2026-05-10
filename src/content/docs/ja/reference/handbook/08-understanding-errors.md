@@ -3,8 +3,8 @@ title: "エラーの読み方"
 description: "rigortype/rigor docs/handbook/08-understanding-errors.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/handbook/08-understanding-errors.md"
 sourcePath: "docs/handbook/08-understanding-errors.md"
-sourceSha: "6aac6830fbee75a2a68f3e068231a9f14f371f33a51a55588649eb3e5fe8ae1a"
-sourceCommit: "74ac0f8722e98525410373ffc22f93595bc15e65"
+sourceSha: "9fba72224757f90f19762cf2b5336dee749fcec73b54a4fae71846ed85a948ee"
+sourceCommit: "f87b68f852350994a182dca35c52464a59be6e53"
 translationStatus: "translated"
 sidebar:
   order: 1008
@@ -25,10 +25,13 @@ lib/user.rb:42:7: error: undefined method `upcas' for "alice" [call.undefined-me
 修飾ルール（`call.undefined-method`、`flow.always-raises`、`def.return-type-mismatch`など）はルールの安定した識別子です。以下で使います:
 
 - ソース内の`# rigor:disable <rule>`行末抑制
+- ソース内の`# rigor:disable-file <rule>`ファイルスコープ抑制
 - `.rigor.yml`の`severity_overrides:`
 - `.rigor.yml`の`disabled_rules:`
 
 ワイルドカードも使えます — `# rigor:disable call`はその行のすべての`call.*`ルールを抑制します。
+
+シェルを離れずにルールの内容を調べたい場合は、`rigor explain <rule>`でルールのサマリー、発火条件、非発火条件、抑制トークン、作成重大度、プロファイルごとの重大度を確認できます。引数なしの`rigor explain`は出荷済みすべてのルールのインデックスを表示します。
 
 ## ルールカタログ
 
@@ -54,8 +57,9 @@ lib/user.rb:42:7: error: undefined method `upcas' for "alice" [call.undefined-me
 | ルール | 発火するとき | デフォルト深刻度 |
 | --- | --- | --- |
 | `flow.always-raises` | 式のすべての到達可能な評価が例外を投げる（例: `n: Integer`のとき`n / 0`）。 | error |
-
-さらなるフロールールがv0.1.xに予定されています — `flow.unreachable-branch`、`flow.dead-assignment`、`flow.always-truthy-condition` — しかしまだ出荷されていません。
+| `flow.unreachable-branch` | `if` / `unless` / 三項演算子の述語が構文的リテラルで、対応する到達不能ブランチが空でない。 | warning |
+| `flow.always-truthy-condition` | `if` / `unless` / 三項演算子の述語が推論型により証明可能に真値（または偽値）で、ループボディ内と防衛的述語コールに外科的スキップあり。 | warning |
+| `flow.dead-assignment` | 同じ`def`ボディ内で一度も読まれないローカル変数への単純な書き込み。 | warning |
 
 ### `def.*` — メソッド定義ルール
 
@@ -63,7 +67,9 @@ lib/user.rb:42:7: error: undefined method `upcas' for "alice" [call.undefined-me
 
 | ルール | 発火するとき | デフォルト深刻度 |
 | --- | --- | --- |
-| `def.return-type-mismatch` | 本体の最後の式の推論された型がRBS宣言の戻り値型を満たせない。 | `balanced`プロファイルでwarning、`strict`でerror |
+| `def.return-type-mismatch` | 本体の最後の式の推論された型がRBS宣言の戻り値型を満たせない。`%a{rigor:v1:return: <refinement>}`オーバーライドを尊重。 | `balanced`プロファイルでwarning、`strict`でerror |
+| `def.ivar-write-mismatch` | 同じクラスボディ内で後の`@var = ...`書き込みの具体クラスが最初の書き込みのクラスと異なる（NilClass-to-clearはアローリスト）。 | error |
+| `def.method-visibility-mismatch` | 明示的レシーバーのコールが、周囲のクラスボディで`：private`として発見されたメソッドを持つ`Nominal[X]`をターゲットにする。 | error |
 
 ### `assert.*` — ランタイムアサーションルール
 
@@ -226,4 +232,4 @@ Rigorを採用したばかりのプロジェクトでの実用的なループ:
 
 ## 次に読むもの
 
-最終章 — プラグイン — は`examples/`ディレクトリへの1ページのポインタです。プラグインはプロジェクト固有のDSL（単位、ルートヘルパー、非推奨など）のためにRigorを拡張します。ほとんどのプロジェクトはプラグインを書くことはないでしょう;この章はそのオプションがあることを知っていただくために存在します。
+[第9章 — プラグイン](09-plugins/)は`examples/`ディレクトリへの1ページのポインタです。プラグインはプロジェクト固有のDSL（単位、ルートヘルパー、非推奨など）のためにRigorを拡張します。ほとんどのプロジェクトはプラグインを書くことはないでしょう;この章はそのオプションがあることを知っていただくために存在します。[第10章 — Sorbetとの共存](10-sorbet/)はSorbetコードベースから来たプロジェクト向けです: [`rigor-sorbet`](https://github.com/rigortype/rigor/blob/main/examples/rigor-sorbet/)アダプターが`sig { ... }`ブロック、RBIファイル、`T.let` / `T.cast` / `T.must` / `T.unsafe`アサーションを型ソースとして読み取ります。

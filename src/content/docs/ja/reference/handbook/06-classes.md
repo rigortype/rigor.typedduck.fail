@@ -3,8 +3,8 @@ title: "クラス"
 description: "rigortype/rigor docs/handbook/06-classes.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/handbook/06-classes.md"
 sourcePath: "docs/handbook/06-classes.md"
-sourceSha: "19c3f4bbfd82f5482033682d9c39eb94a6bad0238a468f20325b3cca20ca3028"
-sourceCommit: "b523ab36f62d89a1c16964a66864c27e3ebb0fe4"
+sourceSha: "8eeea260215e63f1d11cff4fabe0e7680152041d39daf42cfc1354eb323a2d5e"
+sourceCommit: "f87b68f852350994a182dca35c52464a59be6e53"
 translationStatus: "translated"
 sidebar:
   order: 1006
@@ -80,7 +80,7 @@ u.name    # Constant<"Alice">  — インソースディスパッチ +
           # インスタンス変数追跡を通じて
 ```
 
-`attr_writer`はセッターを公開します; `attr_accessor`は両方を公開します。セッターの引数型は呼び出し元が提供するものです; Rigorはまだ宣言されたインスタンス変数型に対して書き込みをチェックしません（v0.1.xで予定されている`def.ivar-write-mismatch`ルールが必要です）。
+`attr_writer`はセッターを公開します; `attr_accessor`は両方を公開します。セッターの引数型は呼び出し元が提供するものです。`def.ivar-write-mismatch`ルール（v0.1.2）は、同じクラスボディ内の同じインスタンス変数への2つの書き込みが具体クラスで一致しているかチェックします — 正確なコントラクトについては[第8章 — エラーの読み方](08-understanding-errors/)を参照してください。明示的なインスタンス変数型を作成せずに、同じクラス内での`String`から`Array`への誤ったリバインドをキャッチできます。
 
 ## メソッドをまたいだインスタンス変数
 
@@ -117,7 +117,7 @@ assert_type(p.x, "Constant<3>")
 assert_type(p.y, "Constant<4>")
 ```
 
-探索は`define_method`スタイルのブロック本体も辿るので、`Point = Data.define(:x, :y) do ... end`でも動作します。ブロックが`#initialize`を再定義するオーバーライド対応のイニシャライザディスパッチはv0.1.xに予定されています — 現在は合成されたキーワード引数コンストラクターが優先されます。
+探索は`define_method`スタイルのブロック本体も辿るので、`Point = Data.define(:x, :y) do ... end`でも動作します。合成されたキーワード引数コンストラクターをオーバーライドするブロック定義の`def initialize(...)`も含みます（v0.1.2）。同じルールが`Const = Struct.new(*Symbol) do ... end`にも適用されます — ブロックボディのメソッド発見が両方の形式にわたって均一に組み合わせられます。
 
 ## `Struct.new`
 

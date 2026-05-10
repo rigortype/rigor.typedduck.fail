@@ -3,8 +3,8 @@ title: "RBSと`RBS::Extended`"
 description: "rigortype/rigor docs/handbook/07-rbs-and-extended.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/handbook/07-rbs-and-extended.md"
 sourcePath: "docs/handbook/07-rbs-and-extended.md"
-sourceSha: "e8ebe82bf5663edd9709a3e43963a8f097c31c464233011d4c72b31c199f0f7c"
-sourceCommit: "b523ab36f62d89a1c16964a66864c27e3ebb0fe4"
+sourceSha: "9da2f539030917ab8d77fac34aca92a7fd85e7364c2d8397183886968485412b"
+sourceCommit: "f87b68f852350994a182dca35c52464a59be6e53"
 translationStatus: "translated"
 sidebar:
   order: 1007
@@ -210,6 +210,54 @@ def deserialize: (String) -> untyped
 ```
 
 `untyped`はコントラクトフリーのハッチ — あらゆるメソッドがそれに存在し、あらゆる引数シェイプが受け入れられます。Rigorの診断は`untyped`レシーバーに対して沈黙します。正当に動的な境界（デシリアライズ、`eval`、プラグインエントリポイント）に使います。失う静的解析は「これは何でもあり得る」と認めることの誠実さで補われます。
+
+## PHPStanから来た方へ — `@phpstan-assert`ファミリー
+
+PHPStanのPHPDocアノテーションに慣れている場合、RigorのRBS::Extendedディレクティブは、PHPStanが「アサート」や「型指定関数」と呼ぶポストリターン / 条件付きナロイングのプリミティブに直接マッピングされます。挙動は同一です:
+
+> 「このメソッドが返した後、名前付き引数は`T`です。」
+
+PHPStanでは`@phpstan-assert`、Rigorでは`%a{rigor:v1:assert:}`です。
+
+| PHPStan PHPDoc | Rigor RBS::Extended | 効果 |
+| --- | --- | --- |
+| `@phpstan-assert T $x` | `%a{rigor:v1:assert: x is T}` | このメソッドが正常に返った後、呼び出し元の`x`は`T`。 |
+| `@phpstan-assert-if-true T $x` | `%a{rigor:v1:predicate-if-true: x is T}` | このメソッドが真値を返した場合、呼び出し元の`x`は`T`。 |
+| `@phpstan-assert-if-false T $x` | `%a{rigor:v1:predicate-if-false: x is T}` | このメソッドが偽値を返した場合、呼び出し元の`x`は`T`。 |
+| `@phpstan-assert !T $x` | `%a{rigor:v1:assert: x is ~T}` | このメソッドが返った後、呼び出し元の`x`は`T`**ではない**（否定形式）。 |
+| `@phpstan-assert-if-true !T $x` | `%a{rigor:v1:predicate-if-true: x is ~T}` | 条件付き否定。`predicate-if-false`と対称。 |
+
+実践例 — PHPStanのドキュメントからの典型的な「assertNotNull」パターン:
+
+```rbs
+# sig/asserts.rbs
+class Asserts
+  %a{rigor:v1:assert: x is ~nil}
+  def self.not_nil: (untyped x) -> void
+end
+```
+
+```ruby
+# lib/configure.rb
+def configure(maybe)
+  Asserts.not_nil(maybe)
+  # maybe: (~nil)、ナロイングされた型で.upcaseが解決される
+  maybe.upcase
+end
+```
+
+selfターゲット形式もサポートされています — PHPStanのアナログは`$this`をナロイングするメソッドになります。`target self`を使います:
+
+```rbs
+class Connection
+  %a{rigor:v1:assert: self is Connected}
+  def assert_connected!: () -> void
+end
+```
+
+RigorのディレクティブのグラマーはPHPStanが`@phpstan-assert*`ファミリーで提供するものをカバーします。ディレクティブは**RBSからのみ**発火します（ADR-5に従い: 戻り値では厳格に、パラメーターでは寛容に）; PHPStan側では関数のすぐ上のPHPDocに`@phpstan-assert`を直接書けます — Rigorでの等価表現は同じRBSファイルの`def`行です。
+
+**コールシェイプ**によってアサーションを認識するプラグイン側の等価表現が必要な場合（PHPStanの「型指定拡張」）は[第9章](09-plugins/)を参照してください。プラグインコントラクトはディレクティブが使うのと同じ`Fact(target_kind: :self)`と`Fact(target_kind: :parameter)`キャリアを提供しているため、プラグイン作者はRubyからPHPStanの`StaticMethodTypeSpecifyingExtension`に相当するものを書けます。
 
 ## RBSが助けにならないとき — プラグインの逃げ道
 

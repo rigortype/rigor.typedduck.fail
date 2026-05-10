@@ -3,8 +3,8 @@ title: "特殊型"
 description: "rigortype/rigor docs/type-specification/special-types.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/type-specification/special-types.md"
 sourcePath: "docs/type-specification/special-types.md"
-sourceSha: "df3a80f30759e47bfdfce3e2fee30d6023d05254c7e02c616d681b29f355d3c1"
-sourceCommit: "9f40e22193647dc06e3ab70c5ba82768b0bfe738"
+sourceSha: "03907b6b2ce006f7e2c07af7e718804c0bd274c9fb0483489943e72557c43d6c"
+sourceCommit: "f87b68f852350994a182dca35c52464a59be6e53"
 translationStatus: "translated"
 sidebar:
   order: 2050
@@ -64,9 +64,10 @@ Rigorは診断のために動的由来のソースを区別すべきです（SHO
 
 - RBS、rbs-inline、またはSteep互換のアノテーションでの明示的な`untyped`
 - 外部シグネチャの欠落または暗黙の未知のライブラリ事実
-- 解析器の制限、推論の失敗、またはプラグインが宣言した動的挙動
+- 解析器の制限、推論の失敗、またはプラグインが宣言した動的挙動;
+- [ADR-10](../adr/10-dependency-source-inference/)に従ったオプトイン依存関係ソース推論（解析器コントラクト: [`docs/internal-spec/dependency-source-inference.md`](../internal-spec/dependency-source-inference/)）: `dependencies.source_inference:`下にリストされたGemのRuby実装をRBSティアより下位のフォールバックとしてRigorが走査する場合。ラッパーはプルーフがGemの作者がコミットしたコントラクトではなくサードパーティソースから来たという事実を保持します。このパスで発行される診断は`dynamic.dependency-source.*`プレフィックスファミリーを使用します（[diagnostic-policy.md](../diagnostic-policy/)参照）。
 
-診断はこれらの区別を使って、`Dynamic[T]`が意図的なグラデュアル境界から来たのか、シグネチャの欠落から来たのかを説明できます（MAY）。
+診断はこれらの区別を使って、`Dynamic[T]`が意図的なグラデュアル境界から来たのか、シグネチャの欠落から来たのか、オプトインGemソース走査から来たのかを説明できます（MAY）。
 
 ### ストリクトモード
 

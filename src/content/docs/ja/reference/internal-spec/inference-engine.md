@@ -3,8 +3,8 @@ title: "推論エンジン"
 description: "Imported from rigortype/rigor docs/internal-spec/inference-engine.md."
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/internal-spec/inference-engine.md"
 sourcePath: "docs/internal-spec/inference-engine.md"
-sourceSha: "0d5f2514df4ba9ccc57cbbb49210d7caeec9890ccf54d75096f0339add565443"
-sourceCommit: "9f40e22193647dc06e3ab70c5ba82768b0bfe738"
+sourceSha: "7961b7d9454a5e270db820e591c289acdd3e9d4a1caecfed778933f75d05b56b"
+sourceCommit: "f87b68f852350994a182dca35c52464a59be6e53"
 translationStatus: "translated"
 sidebar:
   order: 3050
@@ -158,7 +158,7 @@ Rigor::Inference::MethodDispatcher.dispatch(
 
 `nil`の戻り値は意図的な「規則なし」のシグナルです。呼び出し元はフェイルソフトフォールバックをMUST所有します（`ExpressionTyper`は`FallbackTracer`イベントを記録して`Dynamic[Top]`を返します）。ディスパッチャー自体はトレーサーにMUST NOT触れず、認識されない入力でMUST NOTraiseします。
 
-ディスパッチャーはMUST以下の順序でティアを参照します。すなわち定数畳み込みティア（Slice 2）、RBSバックのディスパッチティア（Slice 4）、そして — それらが着地次第 — ADR-2で定義されるプラグイン提供のメソッド拡張です。非`nil`の`Rigor::Type`を返す最初のティアが勝ちます。ヒット時に後続のティアはMUST NOT参照されません。ディスパッチャーは、Prismの子ノードまたは（上記の*仮想ノード*契約を介した）合成`Rigor::AST::Node`引数のいずれかを運べる統一された呼び出し形状として入力をMUST取り、これによって合成された式と実際の式が単一のディスパッチ経路を共有します。
+ディスパッチャーはMUST以下の順序でティアを参照します: 精密ティア（定数畳み込み、形状認識、ファイル畳み込み、カーネル畳み込み、ブロック畳み込み）を最初に、次にプラグイン戻り型コントリビューションティア（v0.1.1 Track 2スライス7、[ADR-2](../../adr/2-extension-api/) §「プラグインコントリビューションマージ」に従う）、次にRBSバックのディスパッチティア、次に依存関係ソース推論ティア（v0.1.3 / [ADR-10](../../adr/10-dependency-source-inference/)スライス2b-ii — オプトインGemの`(class_name, method_name)`カタログエントリーのために`Environment#dependency_source_index`を参照し、ヒット時に`Dynamic[Top]`を返してコールサイトが動的由来マーカーを持つようにする）、最後にRigorが名前で知っているがRBSでは知らないレシーバーに対して`Object` / `Class`に対して再試行するユーザークラス祖先フォールバック。非`nil`の`Rigor::Type`を返す最初のティアが勝ちます。ヒット時に後続のティアはMUST NOT参照されません。ディスパッチャーは、Prismの子ノードまたは（上記の*仮想ノード*契約を介した）合成`Rigor::AST::Node`引数のいずれかを運べる統一された呼び出し形状として入力をMUST取り、これによって合成された式と実際の式が単一のディスパッチ経路を共有します。
 
 RBSバックのティアは、レシーバ型を`kind`が`:instance`または`:singleton`である`(class_name, kind)`ペアにMUST解決します。
 

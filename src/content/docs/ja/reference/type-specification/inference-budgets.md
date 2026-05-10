@@ -3,8 +3,8 @@ title: "推論バジェットとユーザー提供の境界"
 description: "rigortype/rigor docs/type-specification/inference-budgets.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/type-specification/inference-budgets.md"
 sourcePath: "docs/type-specification/inference-budgets.md"
-sourceSha: "00468ae908daf9884657fbe019aa9bc122b4677bf76b828c5a133a81853ed043"
-sourceCommit: "9f40e22193647dc06e3ab70c5ba82768b0bfe738"
+sourceSha: "15098bb11c6d8210d0cd52dabfc0af9e103645195d4e9a6cc339f56198c29968"
+sourceCommit: "f87b68f852350994a182dca35c52464a59be6e53"
 translationStatus: "translated"
 sidebar:
   order: 2050
@@ -54,6 +54,8 @@ CLIの挙動には2つのモードが必要です（MUST）:
 プロンプトは小さなエコシステム互換のアノテーションを優先すべきです（SHOULD）。戻り値のみの再帰カットオフには`#: Integer`で十分な場合があります（MAY）。レシーバーまたは演算子パラメータードメインも制約されていない場合、Rigorは`(Integer x, Integer y, Integer z) -> Integer`のような完全なメソッド型を求めるか、`.rbs`にコントラクトを追加することを提案できます（MAY）。
 
 境界が提供されない場合、呼び出し元は作られた精密な型を受け取ってはなりません（MUST NOT）。Rigorは内部的に`Dynamic[top]`、`top`、または別の保守的な不完全推論マーカーを使える場合があります（MAY）が、診断とエクスポートは推論が停止したという事実を保持しなければなりません（MUST）。
+
+ユーザーが`dependencies.source_inference:`を通じてオプトインしたGemにレシーバーが属する場合（[ADR-10](../adr/10-dependency-source-inference/)に従い、解析器コントラクト: [`docs/internal-spec/dependency-source-inference.md`](../internal-spec/dependency-source-inference/)）、依存関係ソース推論ティアがRBSティアより下位で`Dynamic[T]`の回答を提供してもよく（MAY）、コールサイトを生の`Dynamic[top]`のままにしません。このラッピングは動的由来のprovenanceを保持するため、消費者は静的ファセット`T`をグラウンドトゥルースのコントラクトとして頼ってはなりません（MUST NOT）——RBS / RBS::Inline / 生成されたスタブ / プラグインコントラクトはコンフリクト時に常に優先され、推論された形状は作成されたRBSとしてラウンドトリップされることはありません。
 
 インタラクティブなプロンプトサーフェスはターゲット挙動であり、現在のスキャフォールド機能ではありません。非インタラクティブなカットオフパスはv1から規範的です。
 

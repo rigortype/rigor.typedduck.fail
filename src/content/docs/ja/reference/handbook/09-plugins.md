@@ -3,8 +3,8 @@ title: "プラグイン"
 description: "rigortype/rigor docs/handbook/09-plugins.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/handbook/09-plugins.md"
 sourcePath: "docs/handbook/09-plugins.md"
-sourceSha: "544fdc2a12b67f2a10ecdaf163ca64ba9fbd014cb6bc89f1dbab52d7e3b9fb2c"
-sourceCommit: "b523ab36f62d89a1c16964a66864c27e3ebb0fe4"
+sourceSha: "fb88ecd8e72683405e70b82138b6c065b667e7cca0dd44a9291795f2ea8eb5b3"
+sourceCommit: "f87b68f852350994a182dca35c52464a59be6e53"
 translationStatus: "translated"
 sidebar:
   order: 1009
@@ -31,21 +31,19 @@ Lisp.eval([:if, true, "a", 0])  # ランタイムでString | Integer
 - **ステートマシン** — `transition_to(:foo)`は、`:foo`がどこかで宣言された`state_machine do ... end`ブロック内にある場合には有効ですが、そうでなければタイポです。
 - **カスタムバリデーター** — `validate(:email, value)`は解析時に名前付きパターンに一致しないリテラルを捕捉すべきです。
 
-これらのそれぞれに[`examples/`](https://github.com/rigortype/rigor/blob/main/examples/README.md)に実例があります。[`examples/README.md`](https://github.com/rigortype/rigor/blob/main/examples/README.md)ページは6つのプラグインをアーキテクチャ軸（設定スキーマ、ファイルI/O、キャッシュプロデューサー、`Scope#type_of`を通じたエンジン連携など）で比較し、読む順序を推奨しています。
+これらのそれぞれに[`examples/`](https://github.com/rigortype/rigor/blob/main/examples/README.md)に実例があります。[`examples/README.md`](https://github.com/rigortype/rigor/blob/main/examples/README.md)ページは16の実例をアーキテクチャ軸（設定スキーマ、ファイルI/O、キャッシュプロデューサー、`Scope#type_of`を通じたエンジン連携、クロスプラグインファクト、戻り型コントリビューションなど）で比較し、読む順序を推奨しています。
 
 ## プラグインが今日できること
 
-v0.1.0プラグインコントラクト — [`docs/internal-spec/plugin.md`](../../internal-spec/plugin/)に固定されており、同ディレクトリのいくつかのスライス仕様に展開されています — はプラグインに3つの主要サーフェスを与えます:
+v0.1.0+プラグインコントラクト — [`docs/internal-spec/plugin.md`](../../internal-spec/plugin/)に固定されており、同ディレクトリのいくつかのスライス仕様に展開されています — はプラグインに5つの主要サーフェスを与えます:
 
-1. **`#diagnostics_for_file(path:, scope:, root:)`** — ファイルごとの出力フック。解析されたASTを辿り、`Rigor::Analysis::Diagnostic`行の配列を返します。ランナーは各行に`source_family: "plugin.<your-id>"`をスタンプします。6つの実例すべてがこのフックを使います。
-2. **`Plugin::IoBoundary#read_file`** — アクティブな`TrustPolicy`の下でサンドボックス化されたファイル読み取り。プラグインがプロジェクトファイル（ルートテーブル、スキーマ、ロケールファイル）を読む必要があるときに使います。`examples/rigor-routes`が参照例です。
-3. **`Plugin::Base.producer` + `#cache_for`** — プラグイン側キャッシュプロデューサー。クロスランキャッシングが欲しいほど高コストなパース/ルックアップに使います。IoBoundaryが結果を構築している間に読んだすべてのファイルのダイジェストで自動的に無効化されます。
+1. **`#diagnostics_for_file(path:, scope:, root:)`** — ファイルごとの出力フック。解析されたASTを辿り、`Rigor::Analysis::Diagnostic`行の配列を返します。ランナーは各行に`source_family: "plugin.<your-id>"`をスタンプします。
+2. **`#flow_contribution_for(call_node:, scope:)`** — コールサイトごとの戻り型コントリビューションフック（v0.1.1 Track 2スライス7）。プラグインはコールサイトでの推論された戻り型を命名した`Rigor::FlowContribution`バンドルを返します; 解析器のディスパッチャーはコントリビューションをマージし、マージされた戻り型をRBS宣言済みかのように使います。
+3. **`Plugin::IoBoundary#read_file`** / **`#open_url`** — アクティブな`TrustPolicy`の下でサンドボックス化されたファイルおよび（v0.1.2以降）HTTPSの読み取り。プラグインがプロジェクトファイル（ルートテーブル、スキーマ、ロケールファイル）を読む、または安定したURLをフェッチする必要があるときに使います。
+4. **`Plugin::Base.producer` + `#cache_for`** — プラグイン側キャッシュプロデューサー。クロスランキャッシングが欲しいほど高コストなパース/ルックアップに使います。IoBoundaryが結果を構築している間に読んだすべてのファイルのダイジェスト（およびURLのコンテンツハッシュ）で自動的に無効化されます。
+5. **`Plugin::FactStore` + `#prepare(services)`** — クロスプラグインファクト公開サーフェス（v0.1.1 Track 2、ADR-9）。プラグインは`prepare`でファクトを公開します; 下流のプラグインは`services.fact_store`を通じてそれらを消費するため、プロデューサー側の解析（例: `config/routes.rb`）をすべてのコンシューマーで再利用できます。
 
-## プラグインが今日できないこと（意図的に）
-
-プラグインは診断を出力できますが、**呼び出し元の推論された戻り値型を置き換えることはできません**。プラグインが戻り値型バンドルを出力できるようにする`FlowContribution`ベースのプラグイン貢献サーフェスは、後のv0.1.xスライスに予定されています。それまでの間、プラグインは推論された型を`:info`診断として公開します — トレースとして有用ですが、締め付けではありません。
-
-これはまさに、各実例の`lib/rigor/plugin/<id>.rb`ファイルの冒頭が文書化している制約です: プラグインは正しい型を見て、ユーザーは正しい診断を見ますが、解析器の内部呼び出し元推論は変わりません。v0.1.xの戻り値型貢献スライスが出荷されると、同じプラグインコードは診断の出力からFlowContributionバンドルの生成に移行し、各実例の「将来の方向性」セクション周辺の散文が実装になります。
+v0.1.2リリースは4つの実例（`rigor-lisp-eval`、`rigor-pattern`、`rigor-units`、`rigor-activerecord`）を「診断専用」から「`flow_contribution_for`を通じてナロイングされた戻り型」に移行したため、プラグイン型の値へのチェーンされたコールがRBSレベルの`untyped`エンベロープではなく解析器の通常のディスパッチで解決されます。各プラグインのREADMEを参照して、それぞれがどのサーフェスをデモしているか確認してください。
 
 ## プラグインを書くべきか？
 

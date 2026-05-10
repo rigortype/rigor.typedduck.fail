@@ -3,8 +3,8 @@ title: "はじめに"
 description: "rigortype/rigor docs/handbook/01-getting-started.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/handbook/01-getting-started.md"
 sourcePath: "docs/handbook/01-getting-started.md"
-sourceSha: "d491f36b9f7337a5c5500a46d4b6eb1061e2035b1b44d612d3f4d19afec1ccc4"
-sourceCommit: "74ac0f8722e98525410373ffc22f93595bc15e65"
+sourceSha: "f45ce0cfbc8180fda040e2a1c57e96ff00d20f3b4fb954252be890791a1fff5c"
+sourceCommit: "f87b68f852350994a182dca35c52464a59be6e53"
 translationStatus: "translated"
 sidebar:
   order: 1001
@@ -104,13 +104,15 @@ hello    = "#{greeting}#{name}!"     # リテラル文字列キャリア:
 
 ## 推論だけでは足りないとき
 
-3つの抜け道があります。よく使う順に並べると:
+5つの抜け道があります。よく使う順に並べると:
 
-1. **`.rbs`ファイルを追加する**。署名を`sig/`に置けばRigorが自動的に拾います。ローカルの`def`から先が見えない理由として最も多いのがこれです — 解析器は外部のgemに対し、そのgemのRBSなしには内部を覗けません。
+1. **`.rbs`ファイルを追加する**。署名を`sig/`に置けばRigorが自動的に拾います。ローカルの`def`から先が見えない理由として最も多いのがこれです — デフォルトでは解析器は外部のgemをすべて`Dynamic[Top]`として扱います。gemがRBSを同梱していないかぎり、または以下の（4）でgemソース推論をオプトインしないかぎり、内部は見えません。
 2. **既存のRBS署名を`RBS::Extended`で締める**。メソッドの`def ... -> ::String`の上に`%a{rigor:v1:return: non-empty-string}`のような注釈を足します。Rigorはリファインメントを認識しますが、通常のRBSツールはコメントとしてしか見ません。
 3. **プラグインを書く**。プロジェクトに汎用解析器が知り得ないドメインDSL（`Lisp.eval`、`100.kilometers`、`transition_to(:foo)`など）があるなら、プラグインでRigorにそれを教えます。
+4. **gemソース推論をオプトインする**。RBSを持たないgemのメソッドが`Dynamic[Top]`に解決されてしまうとき、そのgemを`.rigor.yml`の`dependencies.source_inference:`に列挙すれば、Rigorはそのgemの`lib/`をプロジェクトソースと同じように辿ります。戻り値は`Dynamic[T]`でラップされ、呼び出し元には出所情報が保持されます。トレードオフは[ADR-10](../../adr/10-dependency-source-inference/)を参照してください（広いデフォルトは予算を圧迫し`bundle update`をノイジーにするため、gem単位のオプトイン設計です）。
+5. **`rigor-sorbet`アダプターを使う**。プロジェクトがすでに[Sorbet](https://sorbet.org/)を使っているなら、Rigorは既存の`sig { ... }`ブロック、RBIファイル、`T.let` / `T.cast` / `T.must` / `T.unsafe`アサーションを何も書き直さずに型ソースとして読み取れます。移行パターンと対応表は[第10章](../10-sorbet/)を参照してください。
 
-詳細は第7章と第9章で扱います。多くのプロジェクトは（1）と（2）で十分です。
+第7章と第9章は（1）〜（3）を詳しく扱います;第10章は（5）を扱います。多くのプロジェクトは（1）と（2）で十分です;（4）はシグネチャを持たないユーティリティgemの長い尾のためで、（5）はSorbetから移行するプロジェクトのためです。
 
 ## 設定ファイルをひと巡り
 

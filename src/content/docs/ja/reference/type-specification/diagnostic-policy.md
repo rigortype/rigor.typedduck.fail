@@ -3,8 +3,8 @@ title: "診断ポリシー"
 description: "rigortype/rigor docs/type-specification/diagnostic-policy.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/type-specification/diagnostic-policy.md"
 sourcePath: "docs/type-specification/diagnostic-policy.md"
-sourceSha: "a45507f0c557b92d2ed16dacf8b7cafeb05e669ec7821e44c34ded13f612f579"
-sourceCommit: "9f40e22193647dc06e3ab70c5ba82768b0bfe738"
+sourceSha: "7f4c268ab69f4dc7a37225a579a62c4e1036e92bbc2e3a344973ee0dcb09fac0"
+sourceCommit: "f87b68f852350994a182dca35c52464a59be6e53"
 translationStatus: "translated"
 sidebar:
   order: 2050
@@ -39,7 +39,7 @@ Rigorは静かな拡幅よりも精密な診断を優先すべきです（SHOULD
 
 | プレフィックス | 使用 |
 |---|---|
-| `dynamic.*` | `untyped`と`Dynamic[T]`の境界越境、チェックされていないジェネリックリーク、動的由来に証明が依存するメソッド呼び出し |
+| `dynamic.*` | `untyped`と`Dynamic[T]`の境界越境、チェックされていないジェネリックリーク、動的由来に証明が依存するメソッド呼び出し。[ADR-10](../adr/10-dependency-source-inference/)（解析器コントラクト: [`docs/internal-spec/dependency-source-inference.md`](../internal-spec/dependency-source-inference/)）に従ったオプトインGemソース推論パス向けの`dynamic.dependency-source.*`（例: `gem-not-found`）を含む。 |
 | `static.*` | 不完全推論カットオフを含む、証明に至らない静的チェック |
 | `flow.*` | 制御フローのナローイング失敗、等価性と述語のリファインメント問題、事実安定性の違反 |
 | `compat.*` | RBS、rbs-inline、Steep互換シグネチャの互換性 |
