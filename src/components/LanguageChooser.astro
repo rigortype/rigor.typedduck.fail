@@ -1,0 +1,94 @@
+---
+interface Props {
+  current: 'en' | 'ja';
+}
+
+const { current } = Astro.props;
+
+const languages = [
+  {
+    code: 'en' as const,
+    href: '/',
+    name: 'English',
+    description: 'Read in English',
+    ariaLabel: 'Switch to English',
+  },
+  {
+    code: 'ja' as const,
+    href: '/ja/',
+    name: '日本語',
+    description: '日本語で読む',
+    ariaLabel: '日本語に切り替える',
+  },
+];
+---
+
+<nav class="lang-chooser" aria-label={current === 'ja' ? '言語を選択' : 'Choose a language'}>
+  {languages.map((lang) => {
+    const isCurrent = lang.code === current;
+    return (
+      <a
+        class:list={['lang-chooser__btn', { 'is-current': isCurrent }]}
+        href={lang.href}
+        hreflang={lang.code}
+        lang={lang.code}
+        aria-current={isCurrent ? 'page' : undefined}
+        aria-label={isCurrent ? undefined : lang.ariaLabel}
+      >
+        <span class="lang-chooser__name">{lang.name}</span>
+        <span class="lang-chooser__desc">{lang.description}</span>
+      </a>
+    );
+  })}
+</nav>
+
+<style>
+  .lang-chooser {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin: 0 0 1.5rem;
+  }
+  .lang-chooser__btn {
+    flex: 1 1 14rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    padding: 1.1rem 1.5rem;
+    text-align: center;
+    text-decoration: none;
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 0.75rem;
+    background: var(--sl-color-gray-6);
+    color: var(--sl-color-white);
+    transition:
+      background-color 0.15s ease,
+      border-color 0.15s ease,
+      transform 0.1s ease;
+  }
+  .lang-chooser__btn:hover {
+    border-color: var(--sl-color-text-accent);
+    background: var(--sl-color-gray-5);
+  }
+  .lang-chooser__btn:active {
+    transform: translateY(1px);
+  }
+  .lang-chooser__btn.is-current {
+    border-color: var(--sl-color-text-accent);
+    background: var(--sl-color-accent-low, var(--sl-color-gray-5));
+    cursor: default;
+  }
+  .lang-chooser__btn.is-current:hover {
+    background: var(--sl-color-accent-low, var(--sl-color-gray-5));
+  }
+  .lang-chooser__name {
+    font-size: 1.25rem;
+    font-weight: 700;
+  }
+  .lang-chooser__desc {
+    font-size: var(--sl-text-sm);
+    color: var(--sl-color-gray-2);
+  }
+</style>
