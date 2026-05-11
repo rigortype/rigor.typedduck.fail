@@ -78,16 +78,54 @@ async function readUpstreamCommit() {
 async function readUpstreamRelease() {
   const commit = await readUpstreamCommit();
   let tag = await tagAtUpstreamHead();
-  if (!tag) {
+
+  // CI shallow clones don't carry tag refs by default. If no tags exist
+  // locally at all, fetch them explicitly — the implicit `--tags` form
+  // silently no-ops on a pinned-SHA shallow clone, so a refspec is required.
+  if (!tag && !(await hasAnyTags())) {
     try {
-      await execFileAsync('git', ['-C', sourceRoot, 'fetch', '--tags', '--depth=1', '--quiet']);
-    } catch {
-      // shallow clones in CI may not have a fetchable remote here; ignore.
+      await execFileAsync('git', [
+        '-C', sourceRoot,
+        'fetch', '--depth=1', 'origin',
+        '+refs/tags/*:refs/tags/*',
+      ]);
+    } catch (error) {
+      console.warn(`Failed to fetch upstream tags: ${error.message?.trim() ?? error}`);
     }
     tag = await tagAtUpstreamHead();
   }
+
+  // Between releases (HEAD is past the latest tag), show the most recently
+  // released tag we know about so the badge stays informative.
+  if (!tag) tag = await latestKnownTag();
+
   if (!tag) return { tag: null, date: null, commit };
   return { tag, date: await tagCreatedAt(tag), commit };
+}
+
+async function hasAnyTags() {
+  try {
+    const { stdout } = await execFileAsync('git', ['-C', sourceRoot, 'tag', '-l']);
+    return stdout.trim() !== '';
+  } catch {
+    return false;
+  }
+}
+
+async function latestKnownTag() {
+  try {
+    const { stdout } = await execFileAsync('git', [
+      '-C', sourceRoot,
+      'for-each-ref',
+      '--sort=-creatordate',
+      '--format=%(refname:short)',
+      'refs/tags',
+    ]);
+    const tags = stdout.split('\n').map((line) => line.trim()).filter(Boolean);
+    return tags.find((tag) => /^v?\d/.test(tag)) ?? tags[0] ?? null;
+  } catch {
+    return null;
+  }
 }
 
 async function tagAtUpstreamHead() {

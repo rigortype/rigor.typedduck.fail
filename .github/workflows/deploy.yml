@@ -26,8 +26,15 @@ jobs:
       # non-recursive — its references/* nested submodules include
       # ruby/ruby (multi-GB) and two git@github.com: SSH URLs that
       # the runner cannot authenticate, and we never read those.
+      #
+      # The explicit tag refspec is required: `git submodule update`
+      # does not fetch tags, and a shallow clone without tag refs makes
+      # `git tag --points-at HEAD` return empty, so sync-rigor-docs
+      # would otherwise omit the latest-release badge on every deploy.
       - name: Init upstream/rigor (shallow, non-recursive)
-        run: git submodule update --init --depth=1 upstream/rigor
+        run: |
+          git submodule update --init --depth=1 upstream/rigor
+          git -C upstream/rigor fetch --depth=1 origin '+refs/tags/*:refs/tags/*'
 
       - name: Set up pnpm
         uses: pnpm/action-setup@v4
