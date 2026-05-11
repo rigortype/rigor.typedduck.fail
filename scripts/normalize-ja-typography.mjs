@@ -83,5 +83,25 @@ function transformProse(text) {
 
   next = next.replace(new RegExp(`(${JP})\\?`, 'g'), '$1？');
   next = next.replace(new RegExp(`(${JP})!`, 'g'), '$1！');
+
+  // Move trailing 。 or … out of **bold** spans so the closing ** renders correctly.
+  // ！ and ？ are intentionally excluded — they stay inside the span (see rule below).
+  // e.g. **foo。**  →  **foo**。
+  next = next.replace(
+    /(\*\*(?:[^*\n]|\*(?!\*))+?)(。|…)(\*\*)/g,
+    '$1$3$2',
+  );
+
+  // After ？ or ！, insert a space before the next word character so that the
+  // following clause is not run together with the closing marker or the punctuation.
+  // Handles bare punctuation, *italic*, and **bold** closing markers alike.
+  //   *本当に？*そうです。  →  *本当に？* そうです。
+  //   **本当に？**そうです。  →  **本当に？** そうです。
+  //   本当に？そうです。  →  本当に？ そうです。
+  const WORD_START = '[A-Za-z0-9\\u3040-\\u30FF\\u4E00-\\u9FFF]';
+  next = next.replace(
+    new RegExp(`(？|！)(\\*{0,2})(?=${WORD_START})`, 'g'),
+    '$1$2 ',
+  );
   return next;
 }

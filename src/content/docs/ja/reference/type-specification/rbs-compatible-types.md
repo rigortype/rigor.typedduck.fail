@@ -53,11 +53,11 @@ RigorはRBS構文で文書化されたすべての型形式をサポートしま
 
 ### オプショナル
 
-`T?`は内部的に`T | nil`に正規化されます（[normalization.md](../normalization/)参照）。エクスポート時、Rigorは有効なときは`T?`構文を優先すべきです（SHOULD）; そうでなければ明示的なユニオンにフォールバックします。
+`T?`は内部的に`T | nil`に正規化されます（[normalization.md](../normalization/)参照）。エクスポート時、Rigorは有効なときは`T?`構文を優先すべきです（SHOULD）;そうでなければ明示的なユニオンにフォールバックします。
 
 ### レコードとタプル
 
-RBSレコード（`{ key: T }`）とタプル（`[A, B]`）は正確な形式として受け付けられます。Rigorの内部ハッシュと配列シェイプ（[structural-interfaces-and-object-shapes.md](../structural-interfaces-and-object-shapes/)参照）はこれらのRBS形式を必須/オプショナル/追加キーポリシーと読み取り専用マーカーで拡張します; それらの拡張は決定論的に消去されます（[rbs-erasure.md](../rbs-erasure/)参照）。
+RBSレコード（`{ key: T }`）とタプル（`[A, B]`）は正確な形式として受け付けられます。Rigorの内部ハッシュと配列シェイプ（[structural-interfaces-and-object-shapes.md](../structural-interfaces-and-object-shapes/)参照）はこれらのRBS形式を必須/オプショナル/追加キーポリシーと読み取り専用マーカーで拡張します;それらの拡張は決定論的に消去されます（[rbs-erasure.md](../rbs-erasure/)参照）。
 
 ### 型変数
 

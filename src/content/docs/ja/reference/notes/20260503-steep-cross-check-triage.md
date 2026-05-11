@@ -80,9 +80,9 @@ Symbolは`Numeric`の部分型ではないので不整合。
 
 - 検知すべきか: **Yes** — 戻り値の集合が宣言より広い、明確なstrict-on-returns違反。
 - 修正パスは2通り:
-  1. sigを`() -> (Integer | Float | Symbol)` （実体に合わせる）
+  1. sigを`() -> (Integer | Float | Symbol)`（実体に合わせる）
   2. implを`Float::INFINITY`番兵に置換しsigの`Numeric`を維持
-- どちらが望ましいかはADR 3 （型表現）と擦り合わせる必要があるが、現状
+- どちらが望ましいかはADR 3（型表現）と擦り合わせる必要があるが、現状
   Symbol番兵を採用している以上、当面はsig側更新が現実的。
 
 ### A-3. `record_declarations`の引数欠落（1件）
@@ -102,7 +102,7 @@ def self?.record_declarations: (untyped node, Array[String] qualified_prefix, Ha
 
 第4引数`discovered`がsigから落ちている、典型的なsig drift。
 
-- 修正: sigに`Array[untyped] discovered` （実型は要確認）を追加。
+- 修正: sigに`Array[untyped] discovered`（実型は要確認）を追加。
 
 ### A-4. `RbsLoader#instance_definition` / `singleton_definition`の重複宣言（3件）
 
@@ -138,11 +138,11 @@ def initialize: (?Array[String] argv, ?out: untyped, ?err: untyped) -> void
 ```
 
 sigは`argv`も`out:`も`err:`も全てoptionalだが、implは全て
-required （`out:`には既定値が無い）。callerがsigを信じて`CLI.new`
+required（`out:`には既定値が無い）。callerがsigを信じて`CLI.new`
 を引数なしで呼ぶと`ArgumentError`で落ちる。
 
 - 検知すべきか: **Yes** — 契約上のlenienceがimplで守られていない。
-- 解消方向: ADR 5 （Robustness Principle）に従えばimpl側を寛容化、
+- 解消方向: ADR 5（Robustness Principle）に従えばimpl側を寛容化、
   すなわち`def initialize(argv = [], out: $stdout, err: $stderr)`に
   揃えるのが筋。これで`self.start`の挙動も維持される。
 
@@ -180,7 +180,7 @@ end
 `fact.target`は`Target | Array[Target]`。Rubyの`Array()`カーネル
 メソッドは「`Array[T]`ならそのまま、`T`なら`[T]`でラップ」する規約
 なので、戻り値は当然`Array[Target]`。Steepは`Array()`の戻り値を
-`[T | Array[T]]` （要素1のタプル）と推論しており、ユニオン分岐越しの
+`[T | Array[T]]`（要素1のタプル）と推論しており、ユニオン分岐越しの
 specializationに踏み込めていない。
 
 - Rigor視点: `Kernel#Array`の組み込みカタログ(
@@ -214,16 +214,16 @@ specializationに踏み込めていない。
 
 優先度順:
 
-1. **`sig/rigor/type.rbs`の述語メソッド戻り値型修正** （A-1, 39件）
+1. **`sig/rigor/type.rbs`の述語メソッド戻り値型修正**（A-1, 39件）
    - 機械的置換に近い。`def (top|bot|dynamic): () -> Trinary`に揃える。
    - これだけで全54件中39件が消える。
-2. **`environment.rbs`の重複宣言整理** （A-4, 3件）
+2. **`environment.rbs`の重複宣言整理**（A-4, 3件）
    - 余分な行を削除し`untyped?`側に統一。
-3. **`scope_indexer`のsigに第4引数を追加** （A-3, 1件）
-4. **`IntegerRange#lower/upper`のsig修正** （A-2, 2件）
+3. **`scope_indexer`のsigに第4引数を追加**（A-3, 1件）
+4. **`IntegerRange#lower/upper`のsig修正**（A-2, 2件）
    - 短期: sigを`Integer | Float | Symbol`に。長期: ADR 3で番兵
      表現を再検討。
-5. **`CLI#initialize`の寛容化** （A-5, 3件）
+5. **`CLI#initialize`の寛容化**（A-5, 3件）
    - `def initialize(argv = [], out: $stdout, err: $stderr)`に修正。
 6. **カテゴリC系は当面lenient warningとして放置**。Rigor側の
    `Kernel#Array`モデリング / `Data.define`認識器が入った時点で再走
@@ -257,7 +257,7 @@ A-1〜A-5はすべてv0.1.xのTrack 4で着地済(`docs/MILESTONES.md` v0.1.1
 Track 4 item 11 / 13 / 12参照)。再走（`make steep-check`）の結果を
 v0.1.1リリース直前に再分類:
 
-- **入力:** `make steep-check` （v0.1.1リリース候補ブランチ）
+- **入力:** `make steep-check`（v0.1.1リリース候補ブランチ）
 - **集計:** 8件 / 2ファイル（warning 8件のみ、error 0件）
 
 | カテゴリ | 件数 | 内容 |
@@ -266,10 +266,10 @@ v0.1.1リリース直前に再分類:
 | B. Rigorでは検知しないのが適切 | 8 | `Data.define do ... end` override block / `Kernel#Array` narrowing / `def`のlambda default — SteepのRuby idiomサポートの限界に起因 |
 | C. 偽陽性（Rigorの精密化で消える） | 0 | カテゴリBに再分類 |
 
-### v0.1.1で解消したerror （1件）
+### v0.1.1で解消したerror（1件）
 
 - `sig/rigor.rbs:67` `RBS::UnknownTypeName: Rigor::Cache::Store` — `Rigor::Cache::Store`はv0.1.1時点でもsig未整備（`UNSIGNED_NAMESPACES`入り）なので、参照を`untyped`に変更して落とした。同時に`attr_reader plugin_registry: untyped`と`?plugin_requirer: untyped`を`Runner`宣言に追加（Track 2 slice 7で導入されたRunnerサーフェスをsigに反映）。
-- `Rigor::Cache::Store`の本格sigはv0.1.x維持タスクとしてdeferred （`UNSIGNED_NAMESPACES`から外す段階で書く）。
+- `Rigor::Cache::Store`の本格sigはv0.1.x維持タスクとしてdeferred（`UNSIGNED_NAMESPACES`から外す段階で書く）。
 
 ### 残る8件（warning）の分類
 

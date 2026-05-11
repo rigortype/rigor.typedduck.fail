@@ -10,7 +10,7 @@ sidebar:
   order: 20265509
 ---
 
-ステータス: **research, 2026-05-09。**Rigorプラグインの観点からdry-rb gemファミリーのワンショットサーベイ。gem間の依存関係と各gemが公開する型シェイピングサーフェスをまとめ、後続の設計ドキュメントが単一の`rigor-dry`プラグイン、`rigor-dry-*`ファミリー、または中粒度の分割のいずれを出荷するかを証拠に基づいて決定できるようにする。
+ステータス: **research, 2026-05-09**。Rigorプラグインの観点からdry-rb gemファミリーのワンショットサーベイ。gem間の依存関係と各gemが公開する型シェイピングサーフェスをまとめ、後続の設計ドキュメントが単一の`rigor-dry`プラグイン、`rigor-dry-*`ファミリー、または中粒度の分割のいずれを出荷するかを証拠に基づいて決定できるようにする。
 
 調査したコーパスは[`references/hanakai-rb/content/guides/dry/`](../../references/hanakai-rb/)のhanakai-rbガイドツリーで、hanami/dry/rom組織がhanakai-rbに統合された後のdry-rbの権威ある公開ガイド。以下の依存関係エッジはそのコーパス内の散文的な記述から取得した。gemspecの検証とバージョンピンの決定はプラグインごとの作成ステップに延期する。
 
@@ -20,9 +20,9 @@ sidebar:
 
 dry-rbは慣用的なRubyの中で最も型意識の高いDSLファミリー。3つの特性がRigorに関係する:
 
-1. **明示的な属性型付け。**`dry-struct`/`dry-initializer`/`dry-schema`はプラグインが構文的に辿ることのできる実際のRubyオブジェクト（`Types::String`、`Types::Coercible::Integer`等）を通じて属性ごとの型を宣言する。
-2. **構造化された戻り値シェイプ。**`dry-monads`と`dry-operation`はメソッドに既知のモナドエンベロープ（`Result[T, E]`、`Maybe[T]`等）を与え、メソッド境界を越えて生存する — ナローイングへの明確な恩恵。
-3. **合成的な基盤。**高レベルなgem（`dry-validation`、`dry-operation`、`dry-rails`）は低レベルなgem（`dry-types`、`dry-schema`、`dry-monads`）を合成する。ボトムアップのプラグイン順序は依存関係エッジに直接マッピングされる。クロスプラグインAPI（[ADR-9](../../adr/9-cross-plugin-api/)）はまさにマルチgemの`rigor-dry-*`ファミリーがファクト共有に消費するものである。
+1. **明示的な属性型付け**。`dry-struct`/`dry-initializer`/`dry-schema`はプラグインが構文的に辿ることのできる実際のRubyオブジェクト（`Types::String`、`Types::Coercible::Integer`等）を通じて属性ごとの型を宣言する。
+2. **構造化された戻り値シェイプ**。`dry-monads`と`dry-operation`はメソッドに既知のモナドエンベロープ（`Result[T, E]`、`Maybe[T]`等）を与え、メソッド境界を越えて生存する — ナローイングへの明確な恩恵。
+3. **合成的な基盤**。高レベルなgem（`dry-validation`、`dry-operation`、`dry-rails`）は低レベルなgem（`dry-types`、`dry-schema`、`dry-monads`）を合成する。ボトムアップのプラグイン順序は依存関係エッジに直接マッピングされる。クロスプラグインAPI（[ADR-9](../../adr/9-cross-plugin-api/)）はまさにマルチgemの`rigor-dry-*`ファミリーがファクト共有に消費するものである。
 
 このサーベイは特定のプラグインへの関与の前置。目標は後続のスコーピング決定を証拠に基づかせること。
 
@@ -45,15 +45,15 @@ dry-rbは慣用的なRubyの中で最も型意識の高いDSLファミリー。3
 
 ### dry-types
 
-**目的。**強制変換、制約、合成コンビネーターを持つ拡張可能な値型システム。
+**目的**。強制変換、制約、合成コンビネーターを持つ拡張可能な値型システム。
 
-**プラグイン関連DSL。**
+**プラグイン関連DSL**。
 
 - `Types = Dry.Types()`は名前付き型のモジュールを開く。
 - `Types::String`、`Types::Coercible::Integer`、`Types::Strict::*`はビルド済みキャリアのレジストリに到達する。
 - `T.optional`、`T.constrained(gteq: 18)`、`T.constructor { … }`、`T | U`、`T.default(0)`が日常的なコンビネーター。
 
-**プラグインが発行する静的ファクト。**
+**プラグインが発行する静的ファクト**。
 
 - 型式はRigorの型キャリアにマッピングされる:
   `Types::String` → `String`、`Types::Coercible::Integer` →
@@ -61,15 +61,15 @@ dry-rbは慣用的なRubyの中で最も型意識の高いDSLファミリー。3
 - `T.constrained(gteq: 18)`は静的型を`T`に保ちつつ、ダウンストリームのナローイングが消費できる述語ファクトを追加する — v0.1.1の正規表現→リファインメント認識器が出荷されたらRigorのリファインメント名機構の候補となる。
 - カスタム型ビルダー（`.constructor { ... }`）はキャリアをブロックの結果型にシフトする。そこでの精密な推論はv1のスコープ外であり、堅牢性の原則に従って`Dynamic[T]`に劣化できる。
 
-**ドキュメントに記載されたdry-*依存関係。**なし — dry-typesは基盤。
+**ドキュメントに記載されたdry-*依存関係**。なし — dry-typesは基盤。
 
-**プラグイン結合。**基盤。dry-struct、dry-schema、dry-validation、dry-initializer、dry-monads（その`Validated`モナド）がすべてダウンストリームに位置する。
+**プラグイン結合**。基盤。dry-struct、dry-schema、dry-validation、dry-initializer、dry-monads（その`Validated`モナド）がすべてダウンストリームに位置する。
 
 ### dry-struct
 
-**目的。**型付き属性で定義された不変値オブジェクト。
+**目的**。型付き属性で定義された不変値オブジェクト。
 
-**プラグイン関連DSL。**
+**プラグイン関連DSL**。
 
 ```
 class User < Dry::Struct
@@ -81,22 +81,22 @@ class User < Dry::Struct
 end
 ```
 
-**プラグインが発行する静的ファクト。**
+**プラグインが発行する静的ファクト**。
 
 - 各`attribute :name, T`はdry-typesプラグインが`T`から解決したキャリアを返すリーダー`#name`を宣言する。
 - ブロック形式の属性（`attribute :address do ... end`）はネストした匿名の`Dry::Struct`サブクラスを定義する。プラグインは内部クラスのシェイプとそのクラスを返す外部リーダーの両方を発行する。
 - コンストラクターシグネチャは宣言済み属性のユニオンから導出される。
 - `transform_keys(&:to_sym)`等は静的属性セットを変更しない。
 
-**ドキュメントに記載されたdry-*依存関係。**dry-typesの上に構築される。
+**ドキュメントに記載されたdry-*依存関係**。dry-typesの上に構築される。
 
-**プラグイン結合。**dry-typesファクトのハードコンシューマ。
+**プラグイン結合**。dry-typesファクトのハードコンシューマ。
 
 ### dry-schema
 
-**目的。**ハッシュ形式入力のバリデーションと強制変換。2つのフレーバー: `Schema.Params`（Webフォーム強制変換: 文字列 → 整数/ブール値）、`Schema.JSON`（文字列強制変換なし）。`_index.md`は明示的に「*`dry-schema`は`dry-types`の強制変換型を使用する*」と述べている。
+**目的**。ハッシュ形式入力のバリデーションと強制変換。2つのフレーバー: `Schema.Params`（Webフォーム強制変換: 文字列 → 整数/ブール値）、`Schema.JSON`（文字列強制変換なし）。`_index.md`は明示的に「*`dry-schema`は`dry-types`の強制変換型を使用する*」と述べている。
 
-**プラグイン関連DSL。**
+**プラグイン関連DSL**。
 
 ```
 UserSchema = Dry::Schema.Params do
@@ -109,22 +109,22 @@ UserSchema = Dry::Schema.Params do
 end
 ```
 
-**プラグインが発行する静的ファクト。**
+**プラグインが発行する静的ファクト**。
 
 - スキーマ定数は型付き入力 → 出力コントラクトにマッピングされる。
 - `schema.call(input)`の出力は、`#to_h`/`[]`のキーが宣言に従って型付けされた結果: `:name` → 非空文字列、`:age` → Integer、`:tags` → Array[String]、`:address.street` → 非空文字列。
 - 述語サフィックス（`gt?: 18`）はv0.1.1がランディングされたらRigorのリファインメント名カタログ（positive-int等）に供給される。
 - Params対JSONの区別が重要: Paramsのみが文字列を強制変換する — プラグインは強制変換型を解決する前にどのビルダーがスキーマを生成したかを記録しなければならない。
 
-**ドキュメントに記載されたdry-*依存関係。**dry-types（強制変換バックエンド）、dry-logic（述語エンジン）。
+**ドキュメントに記載されたdry-*依存関係**。dry-types（強制変換バックエンド）、dry-logic（述語エンジン）。
 
-**プラグイン結合。**dry-typesのハードコンシューマであり、dry-logicの（軽量な）コンシューマ。
+**プラグイン結合**。dry-typesのハードコンシューマであり、dry-logicの（軽量な）コンシューマ。
 
 ### dry-validation
 
-**目的。**ドメインバリデーションコントラクト: 型付きの`params { ... }`スキーマ（dry-schemaに委譲）にビジネスロジックのruleブロックを加えたもの。
+**目的**。ドメインバリデーションコントラクト: 型付きの`params { ... }`スキーマ（dry-schemaに委譲）にビジネスロジックのruleブロックを加えたもの。
 
-**プラグイン関連DSL。**
+**プラグイン関連DSL**。
 
 ```
 class NewUserContract < Dry::Validation::Contract
@@ -142,33 +142,33 @@ contract.call(email: 'jane@doe.org', age: '17')
 # => Dry::Validation::Result（型付きの:email/:age付き）
 ```
 
-**プラグインが発行する静的ファクト。**
+**プラグインが発行する静的ファクト**。
 
 - `Contract#call`は`Dry::Validation::Result`を返す。`#success?`と`#failure?`が結果をナローイングする。`.to_h`はスキーマ型付きハッシュを公開する。
 - `params { ... }`と`json { ... }`ブロックは本質的にdry-schemaのスキーマ — プラグインは内部シェイプのためにdry-schemaプラグインに処理を委ねられる。
 - `rule(:email) { ... }`は`:email`の型を変更しない。ビジネスルールのファクトのみを追加する。
 
-**ドキュメントに記載されたdry-*依存関係。**dry-schema（スキーマエンジン）、dry-types（強制変換）。
+**ドキュメントに記載されたdry-*依存関係**。dry-schema（スキーマエンジン）、dry-types（強制変換）。
 
-**プラグイン結合。**dry-schema（トランジティブにdry-types）のハードコンシューマ。
+**プラグイン結合**。dry-schema（トランジティブにdry-types）のハードコンシューマ。
 
 ### dry-logic
 
-**目的。**述語合成プリミティブ — `Rule::Predicate`、`&`/`|`コンビネーター、カリー化述語。dry-types（制約）とdry-schema（述語サフィックスDSL）が内部で使用する。
+**目的**。述語合成プリミティブ — `Rule::Predicate`、`&`/`|`コンビネーター、カリー化述語。dry-types（制約）とdry-schema（述語サフィックスDSL）が内部で使用する。
 
-**プラグイン関連DSL。**ユーザーコードで一般的に手書きされない。ライブラリ基盤。
+**プラグイン関連DSL**。ユーザーコードで一般的に手書きされない。ライブラリ基盤。
 
-**プラグインが発行する静的ファクト。**ユーザーコードサーフェスではなし。専用の`rigor-dry-logic`プラグインは価値が低い可能性が高い。dry-typesとdry-schemaのプラグインが必要な述語対応ロジックを内部で持てばよい。
+**プラグインが発行する静的ファクト**。ユーザーコードサーフェスではなし。専用の`rigor-dry-logic`プラグインは価値が低い可能性が高い。dry-typesとdry-schemaのプラグインが必要な述語対応ロジックを内部で持てばよい。
 
-**ドキュメントに記載されたdry-*依存関係。**なし。
+**ドキュメントに記載されたdry-*依存関係**。なし。
 
-**プラグイン結合。**dry-typesとdry-schemaに埋め込み。
+**プラグイン結合**。dry-typesとdry-schemaに埋め込み。
 
 ### dry-initializer
 
-**目的。**`extend Dry::Initializer; param :foo, T; option :bar, T`で継承なしに型付きコンストラクターとアクセサーを生成する。
+**目的**。`extend Dry::Initializer; param :foo, T; option :bar, T`で継承なしに型付きコンストラクターとアクセサーを生成する。
 
-**プラグイン関連DSL。**
+**プラグイン関連DSL**。
 
 ```
 class User
@@ -184,7 +184,7 @@ class User
 end
 ```
 
-**プラグインが発行する静的ファクト。**
+**プラグインが発行する静的ファクト**。
 
 - 各`param`/`option`はインスタンスリーダーを生成する。型は型制約引数。
 - 3種類のリーダー型ソースを処理する必要がある:
@@ -194,17 +194,17 @@ end
 - `optional: true`は`T | nil`に広げる（未セットのリーダーは`Dry::Initializer::UNDEFINED`をデフォルトにするが、ユーザー可視の境界では`nil`がRigorの適切な近似）。
 - ネストした`option ... do option ... end`はリーダー自体が型付きの内部匿名struct風クラスを定義する。
 
-**ドキュメントに記載されたdry-*依存関係。**ハードな依存なし。ユーザーがオプトインした場合はdry-typesと互換。
+**ドキュメントに記載されたdry-*依存関係**。ハードな依存なし。ユーザーがオプトインした場合はdry-typesと互換。
 
-**プラグイン結合。**dry-typesファクトのオプショナルコンシューマ。スタンドアロンの`rigor-dry-initializer`プラグインは`rigor-dry-types`なしでも有用。
+**プラグイン結合**。dry-typesファクトのオプショナルコンシューマ。スタンドアロンの`rigor-dry-initializer`プラグインは`rigor-dry-types`なしでも有用。
 
 ## 階層B — 制御フローシェイプ
 
 ### dry-monads
 
-**目的。**戻り値のための代数的データ型: `Result`（Success/Failure）、`Maybe`（Some/None）、`Try`（例外捕捉）、`List`、`Task`、`Validated`、`Unit`。バインドチェーンのための`do`記法も含む。
+**目的**。戻り値のための代数的データ型: `Result`（Success/Failure）、`Maybe`（Some/None）、`Try`（例外捕捉）、`List`、`Task`、`Validated`、`Unit`。バインドチェーンのための`do`記法も含む。
 
-**プラグイン関連DSL。**
+**プラグイン関連DSL**。
 
 ```
 include Dry::Monads[:result]
@@ -216,7 +216,7 @@ rescue ArgumentError => e
 end
 ```
 
-**プラグインが発行する静的ファクト。**
+**プラグインが発行する静的ファクト**。
 
 - `Success(x)`または`Failure(e)`を返すメソッドは、`T`が`Success`引数型のunionで`E`が`Failure`引数型のunionである戻り型`Result[T, E]`を持つ。
 - `Maybe(x)`は`Some[T] | None`（== `Maybe[T]`）を返す。
@@ -224,15 +224,15 @@ end
 - `case result; in Success[v]; ...; in Failure[k, v]; ...`はパターンマッチングで、Rigorのナローイングはプリミティブレベルで既に理解している — プラグインは`Success`/`Failure`のデコンストラクションを教える必要がある。
 - `do`記法（`yield Success(...)`）は`Failure`での暗黙のショートサーキットと共に値をバインドする。推論においては`bind`チェーンと等価。
 
-**ドキュメントに記載されたdry-*依存関係。**なし。
+**ドキュメントに記載されたdry-*依存関係**。なし。
 
-**プラグイン結合。**dry-operationの基盤。`rigor-dry-monads`がランディングされると`Result`/`Maybe`はすべてのdryユーザーのファーストクラスのナローイングターゲットになる。
+**プラグイン結合**。dry-operationの基盤。`rigor-dry-monads`がランディングされると`Result`/`Maybe`はすべてのdryユーザーのファーストクラスのナローイングターゲットになる。
 
 ### dry-operation
 
-**目的。**ビジネスオペレーションのステップベースDSL。各`step ...`は`Result`をアンラップし、`Failure`でショートサーキットする。
+**目的**。ビジネスオペレーションのステップベースDSL。各`step ...`は`Result`をアンラップし、`Failure`でショートサーキットする。
 
-**プラグイン関連DSL。**
+**プラグイン関連DSL**。
 
 ```
 class CreateUser < Dry::Operation
@@ -245,78 +245,78 @@ class CreateUser < Dry::Operation
 end
 ```
 
-**プラグインが発行する静的ファクト。**
+**プラグインが発行する静的ファクト**。
 
 - `Dry::Operation#call`は常に`Result[T, E]`を返す。`T`は`call`内の最終の非`step`式の型。`E`は内部の`step`呼び出しからの失敗型のunion。
 - `step expr`は`expr`を`Result[T, E]`から`T`（`Success`ペイロード）にナローイングする。
 - `call`末尾のベア値（上記の`user`）は暗黙的に`Success`にラップされる。
 
-**ドキュメントに記載されたdry-*依存関係。**dry-monads（ガイドが「*dry-monadsを中心とした軽量DSL*」で始まる）。
+**ドキュメントに記載されたdry-*依存関係**。dry-monads（ガイドが「*dry-monadsを中心とした軽量DSL*」で始まる）。
 
-**プラグイン結合。**dry-monadsファクトのハードコンシューマ。
+**プラグイン結合**。dry-monadsファクトのハードコンシューマ。
 
 ### dry-effects
 
-**目的。**代数的エフェクト — `Dry::Effects.State(:counter)`、`Dry::Effects::Handler.State(:counter)`等。合成可能なハンドラーを持つ副作用トラッキング。
+**目的**。代数的エフェクト — `Dry::Effects.State(:counter)`、`Dry::Effects::Handler.State(:counter)`等。合成可能なハンドラーを持つ副作用トラッキング。
 
-**プラグイン関連DSL。**エフェクトは`include Dry::Effects.X(...)`でミックスインし、`include Dry::Effects::Handler.X(...)`でハンドルする。
+**プラグイン関連DSL**。エフェクトは`include Dry::Effects.X(...)`でミックスインし、`include Dry::Effects::Handler.X(...)`でハンドルする。
 
-**プラグインが発行する静的ファクト。**エフェクトはメソッドの戻り型を変更しない。ケイパビリティ要件を課す（マッチするハンドラーが呼び出しサイトのスコープ内にあること）。Rigorの型ラティスでのモデリングは可能だが、v0.1.xキャリアとは直接整合しない。**推奨: 延期。**Rigorに明示的なエフェクトロウキャリアが現れた場合（現時点でこのADRはない）に再検討。
+**プラグインが発行する静的ファクト**。エフェクトはメソッドの戻り型を変更しない。ケイパビリティ要件を課す（マッチするハンドラーが呼び出しサイトのスコープ内にあること）。Rigorの型ラティスでのモデリングは可能だが、v0.1.xキャリアとは直接整合しない。**推奨: 延期**。Rigorに明示的なエフェクトロウキャリアが現れた場合（現時点でこのADRはない）に再検討。
 
-**ドキュメントに記載されたdry-*依存関係。**なし。
+**ドキュメントに記載されたdry-*依存関係**。なし。
 
-**プラグイン結合。**なし — ファミリーの残りに対して直交。
+**プラグイン結合**。なし — ファミリーの残りに対して直交。
 
 ## 階層C — DI/設定
 
 ### dry-auto_inject
 
-**目的。**`Import = Dry::AutoInject(Container); class X; include Import["users.repo"]; end` — `attr_reader :users_repo`とコンストラクターの配線を自動生成する。
+**目的**。`Import = Dry::AutoInject(Container); class X; include Import["users.repo"]; end` — `attr_reader :users_repo`とコンストラクターの配線を自動生成する。
 
-**プラグインが発行する静的ファクト。**
+**プラグインが発行する静的ファクト**。
 
 - `include Import["x.y.z"]`は、名前がキーのリーフコンポーネント（またはその正規化形式）であり、コンテナのそのキーに登録された型が戻り型であるインスタンスリーダーを宣言する。
 - リーダーの型はコンテナのイントロスペクションなしには解決できない → コンパニオンの`rigor-dry-container`/`rigor-dry-system`プラグイン、またはコンテナファクトを`FactStore`として消費するクロスプラグインAPI（[ADR-9](../../adr/9-cross-plugin-api/)）が必要。
 
-**ドキュメントに記載されたdry-*依存関係。**`Dry::Container`と`Dry::System`のコンテナと互換。
+**ドキュメントに記載されたdry-*依存関係**。`Dry::Container`と`Dry::System`のコンテナと互換。
 
-**プラグイン結合。**クロスプラグイン（コンテナファクトを消費）。
+**プラグイン結合**。クロスプラグイン（コンテナファクトを消費）。
 
 ### dry-configurable
 
-**目的。**クラスまたはモジュールスコープの設定のために`extend Dry::Configurable; setting :foo, default: 1, reader: true`で、オプションのクラスレベルリーダー生成を行う。
+**目的**。クラスまたはモジュールスコープの設定のために`extend Dry::Configurable; setting :foo, default: 1, reader: true`で、オプションのクラスレベルリーダー生成を行う。
 
-**プラグインが発行する静的ファクト。**
+**プラグインが発行する静的ファクト**。
 
 - `setting :foo, default: 1, reader: true`は`Integer`（デフォルトの型）を返す`Klass.foo`/`instance.foo`を生成する。
 - ネストした`setting :db do setting :dsn, default: '…' end`は`Klass.config.db.dsn`としてアクセスできるネストした設定オブジェクトを生成する。
 - `setting :foo, constructor: Types::String`（サポートされる場合）はdry-typesにフィードバックする。
 
-**ドキュメントに記載されたdry-*依存関係。**なし。
+**ドキュメントに記載されたdry-*依存関係**。なし。
 
-**プラグイン結合。**スタンドアロン。コンストラクター形式が使用される場合はdry-typesへのフック付き。
+**プラグイン結合**。スタンドアロン。コンストラクター形式が使用される場合はdry-typesへのフック付き。
 
 ### dry-system
 
-**目的。**コンポーネントディレクトリからの自動登録を持つ依存関係コンテナ — Hanamiスライスの基盤。
+**目的**。コンポーネントディレクトリからの自動登録を持つ依存関係コンテナ — Hanamiスライスの基盤。
 
-**プラグインが発行する静的ファクト。**
+**プラグインが発行する静的ファクト**。
 
 - `container.register(:key, instance)`とコンポーネントディレクトリの自動登録がコンテナのkey→型マップを埋める。
 - `container[:key]`/`container.resolve(:key)`は登録された型を返す。
 - Hanamiスライス（`Hanami.app["users.create"]`）は親のdry-systemコンテナを通じて解決される。
 
-**ドキュメントに記載されたdry-*依存関係。**dry-core（Container）、dry-auto_inject。
+**ドキュメントに記載されたdry-*依存関係**。dry-core（Container）、dry-auto_inject。
 
-**プラグイン結合。**dry-auto_injectプラグインが消費するファクトのプロデューサー。クロスプラグインAPI（[ADR-9](../../adr/9-cross-plugin-api/)）が必要になる可能性が高い。
+**プラグイン結合**。dry-auto_injectプラグインが消費するファクトのプロデューサー。クロスプラグインAPI（[ADR-9](../../adr/9-cross-plugin-api/)）が必要になる可能性が高い。
 
 ### dry-container
 
-**目的。**スタンドアロンのスレッドセーフDIコンテナ。現在dry-coreにバンドルされている。`dry-container` gem自体は薄い再エクスポート。
+**目的**。スタンドアロンのスレッドセーフDIコンテナ。現在dry-coreにバンドルされている。`dry-container` gem自体は薄い再エクスポート。
 
-**静的ファクト。**dry-systemのコンテナと同一のサーフェス（自動登録を除く）。
+**静的ファクト**。dry-systemのコンテナと同一のサーフェス（自動登録を除く）。
 
-**プラグイン結合。**実際にはdry-systemに包含される。
+**プラグイン結合**。実際にはdry-systemに包含される。
 
 ## 階層D — ユーティリティ（静的型シェイプへの影響なし）
 
@@ -395,21 +395,21 @@ dry-rails          -> dry-system       (runtime, plugin)
 
 階層AとB（オプションでC）をカバーするひとつのプラグインgem。
 
-- **賛成。**単一のGemfileエントリ、単一のsemver、プラグイン間ファクトプロトコル不要（すべてが1つのプラグインのプロセスに収まる）。
-- **賛成。**シンプルな初期作成 — v0.1.0プラグインコントラクトは実績がある。新しいクロスプラグインAPIサーフェスは不要。
-- **反対。**リリースが無関係な変更を結合する（dry-monadの微調整がdry-structの修正と一緒に出荷される）。
-- **反対。**部分的なdry-rb採用のユーザー（例: dry-struct + dry-typesのみ）がプラグインを明示的に内部でモジュラー化しない限り、使用していないgemの解析コストを負担する。
-- **反対。**上流のgemのバージョンロックステップが乖離した場合（そして実際に乖離する — `dry-types` 1.7対1.8は異なるケイデンスで出荷される）、モノリシックなプラグインは最も遅いgemに追従しなければならない。
+- **賛成**。単一のGemfileエントリ、単一のsemver、プラグイン間ファクトプロトコル不要（すべてが1つのプラグインのプロセスに収まる）。
+- **賛成**。シンプルな初期作成 — v0.1.0プラグインコントラクトは実績がある。新しいクロスプラグインAPIサーフェスは不要。
+- **反対**。リリースが無関係な変更を結合する（dry-monadの微調整がdry-structの修正と一緒に出荷される）。
+- **反対**。部分的なdry-rb採用のユーザー（例: dry-struct + dry-typesのみ）がプラグインを明示的に内部でモジュラー化しない限り、使用していないgemの解析コストを負担する。
+- **反対**。上流のgemのバージョンロックステップが乖離した場合（そして実際に乖離する — `dry-types` 1.7対1.8は異なるケイデンスで出荷される）、モノリシックなプラグインは最も遅いgemに追従しなければならない。
 
 ### 戦略2 — フルの`rigor-dry-*`ファミリー
 
 上流のgemごとにひとつのプラグイン（階層A: 5プラグイン、階層B: 2、階層C: 3 = dry-railsを除いて10個のgem）。
 
-- **賛成。**各プラグインが上流gemのバージョンケイデンスをきれいに追跡する。
-- **賛成。**ユーザーはアラカルトでオプトイン。Gemfileには実際に依存するdry-rbサーフェスのみをリスト。
-- **賛成。**dry-rbの組織原則を反映 — 合成する小さく焦点を絞ったユニット。
-- **反対。**`rigor-dry-validation`/`rigor-dry-auto_inject`等のプラグインがジョブをこなすには、クロスプラグインAPIが必要（[ADR-9](../../adr/9-cross-plugin-api/)）。ADR-9はv0.1.xにキューイングされているが未実装。
-- **反対。**10のプラグインリポジトリ、10のCIパイプライン、10のCHANGELOG、10のsubtreeスプリット。
+- **賛成**。各プラグインが上流gemのバージョンケイデンスをきれいに追跡する。
+- **賛成**。ユーザーはアラカルトでオプトイン。Gemfileには実際に依存するdry-rbサーフェスのみをリスト。
+- **賛成**。dry-rbの組織原則を反映 — 合成する小さく焦点を絞ったユニット。
+- **反対**。`rigor-dry-validation`/`rigor-dry-auto_inject`等のプラグインがジョブをこなすには、クロスプラグインAPIが必要（[ADR-9](../../adr/9-cross-plugin-api/)）。ADR-9はv0.1.xにキューイングされているが未実装。
+- **反対**。10のプラグインリポジトリ、10のCIパイプライン、10のCHANGELOG、10のsubtreeスプリット。
 
 ### 戦略3 — 中粒度バンドル
 
@@ -420,10 +420,10 @@ dry-rails          -> dry-system       (runtime, plugin)
 - `rigor-dry-system-family` — dry-container、dry-auto_inject、dry-system、dry-configurableをカバー（階層C）。
 - `rigor-dry-rails` — 3つすべてに依存するコーディネーターgem。
 
-- **賛成。**各バンドルは内部的に結束している: 共有された内部ファクトバス、ひとつのリリースサイクル、ひとりの作者がバンドル全体を頭の中に入れられる。
-- **賛成。**バンドル間の受け渡し（dry-railsでの階層A ↔ 階層C、またはdry-typesからプルするdry-validation）だけがクロスプラグインAPIを必要とする — 戦略2よりADR-9への依存が少ない。
-- **反対。**バンドル境界は部分的に慣習的。dry-structのみを使うユーザーでもschema/validationプラグインコードを引き込む。
-- **反対。**各バンドル内部のモジュラリティはまだ設計する必要がある — そうしなければバンドルはより小さいスケールで戦略1と同じバージョニングリスクを持つミニモノリスになる。
+- **賛成**。各バンドルは内部的に結束している: 共有された内部ファクトバス、ひとつのリリースサイクル、ひとりの作者がバンドル全体を頭の中に入れられる。
+- **賛成**。バンドル間の受け渡し（dry-railsでの階層A ↔ 階層C、またはdry-typesからプルするdry-validation）だけがクロスプラグインAPIを必要とする — 戦略2よりADR-9への依存が少ない。
+- **反対**。バンドル境界は部分的に慣習的。dry-structのみを使うユーザーでもschema/validationプラグインコードを引き込む。
+- **反対**。各バンドル内部のモジュラリティはまだ設計する必要がある — そうしなければバンドルはより小さいスケールで戦略1と同じバージョニングリスクを持つミニモノリスになる。
 
 ## Rigor v0.1.x作業への依存
 
@@ -441,11 +441,11 @@ dry-rails          -> dry-system       (runtime, plugin)
 
 2026-05-09のこのサーベイのランディング後の議論でキャプチャされた解決事項。オープンアイテムは真に未決定。
 
-1. **MVPタイミング — RESOLVED。**dryプラグインを急がない。まず[ADR-9クロスプラグインAPI](../../adr/9-cross-plugin-api/)をランディングし、その後パッケージングを再検討する。これによりADR-9以前の唯一の実行可能なパスとして戦略1を強いたプレッシャーが取り除かれる。戦略2と3はADR-9が出荷された後のライブ候補になる。
-2. **`rigor-dry-rails`の配置 — DELEGATED。**強い好みなし — 作成が容易なファミリー下で実装する。プラグインがスキャフォールドされる時点で決定できる。事前にコミットしない。
-3. **dry-effects — DEFERRED。**エフェクトシステムサポートは原則として望ましいが具体的な計画はない。Rigorの型ラティスにエフェクトロウキャリアまたは類似のものが現れた場合に再検討。
-4. **Hanami/romプラグイン — QUEUED。**dry-rbプラグインがランディングした後のバージョンを対象とする。Hanamiプラグインはdry-systemプラグインを引き込む。romプラグインのスコープはここでスコープ未定。
-5. **dry-rb gemspecの検証 — OPEN。**まだ強い意見なし。ADR-12でパッケージング戦略を確定する前に価値がある可能性が高いが、ブロッキングではない。
+1. **MVPタイミング — RESOLVED**。dryプラグインを急がない。まず[ADR-9クロスプラグインAPI](../../adr/9-cross-plugin-api/)をランディングし、その後パッケージングを再検討する。これによりADR-9以前の唯一の実行可能なパスとして戦略1を強いたプレッシャーが取り除かれる。戦略2と3はADR-9が出荷された後のライブ候補になる。
+2. **`rigor-dry-rails`の配置 — DELEGATED**。強い好みなし — 作成が容易なファミリー下で実装する。プラグインがスキャフォールドされる時点で決定できる。事前にコミットしない。
+3. **dry-effects — DEFERRED**。エフェクトシステムサポートは原則として望ましいが具体的な計画はない。Rigorの型ラティスにエフェクトロウキャリアまたは類似のものが現れた場合に再検討。
+4. **Hanami/romプラグイン — QUEUED**。dry-rbプラグインがランディングした後のバージョンを対象とする。Hanamiプラグインはdry-systemプラグインを引き込む。romプラグインのスコープはここでスコープ未定。
+5. **dry-rb gemspecの検証 — OPEN**。まだ強い意見なし。ADR-12でパッケージング戦略を確定する前に価値がある可能性が高いが、ブロッキングではない。
 
 ## 次のステップ
 

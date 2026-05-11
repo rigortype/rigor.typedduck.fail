@@ -44,10 +44,10 @@ User.new      # Nominal[User]
 
 定数ルックアップは4つのソースを順に辿ります:
 
-1. **字句スコープ**。 `Foo`が`class A; module B; ...`の内側で参照されている場合、Rigorは`A::B::Foo`、`A::Foo`、`Foo`を探します。
-2. **RBSコアとバンドルされたstdlib**。 `String`、`Integer`、`Symbol`、`Array`、`Pathname`、`URI`、`OptParse`、`JSON`、`YAML`など。
+1. **字句スコープ**。`Foo`が`class A; module B; ...`の内側で参照されている場合、Rigorは`A::B::Foo`、`A::Foo`、`Foo`を探します。
+2. **RBSコアとバンドルされたstdlib**。`String`、`Integer`、`Symbol`、`Array`、`Pathname`、`URI`、`OptParse`、`JSON`、`YAML`など。
 3. **プロジェクトRBS**。 プロジェクトの`sig/`ファイルがルックアップに追加されます。
-4. **インソースクラス探索**。 RBSが存在しない場合、Rigorは`class Foo`、`module Bar`、定数代入（`MAX = 100`）を辿ります。
+4. **インソースクラス探索**。RBSが存在しない場合、Rigorは`class Foo`、`module Bar`、定数代入（`MAX = 100`）を辿ります。
 
 ```ruby
 MAX = 100
@@ -190,7 +190,7 @@ end
 YAML = Psych
 ```
 
-右辺がクラス自体の場合、Rigorはレシーバー型付けのためにエイリアスを追います — `YAML.load(...)`は`Psych.load(...)`として扱われます。しかしメソッド存在チェックはエイリアス名に対して意図的に沈黙します; 解析器はより多くのコンテキストなしに意図的なエイリアスと偶発的なシャドウを区別できないので、`YAML.unknown`は`call.undefined-method`を発火しません。診断が必要な場合は正規名を使ってください。
+右辺がクラス自体の場合、Rigorはレシーバー型付けのためにエイリアスを追います — `YAML.load(...)`は`Psych.load(...)`として扱われます。しかしメソッド存在チェックはエイリアス名に対して意図的に沈黙します;解析器はより多くのコンテキストなしに意図的なエイリアスと偶発的なシャドウを区別できないので、`YAML.unknown`は`call.undefined-method`を発火しません。診断が必要な場合は正規名を使ってください。
 
 ## モジュール
 

@@ -73,7 +73,7 @@ hi  = "Hello, " + "world" # Constant<"Hello, world">
 sym = "foo".to_sym        # Constant<:foo>
 ```
 
-たたみ込みはNumeric、String、Symbol、Array、Hashの「純粋な」メソッドの長いリストに及びます。リストはこのハンドブックには載せていません（数ページにわたる）。[`docs/types.md`](../../types/)とクラス別カタログ [`data/builtins/ruby_core/`](../../data/builtins/ruby_core/)を参照してください。
+たたみ込みはNumeric、String、Symbol、Array、Hashの「純粋な」メソッドの長いリストに及びます。リストはこのハンドブックには載せていません（数ページにわたる）。[`docs/types.md`](../../types/)とクラス別カタログ[`data/builtins/ruby_core/`](../../data/builtins/ruby_core/)を参照してください。
 
 たたみ込みが**安全でない**とき（メソッドに副作用がある、環境に依存する、またはカタログに載っていない組み込みクラスにある）、Rigorは辞退して名前的型のキャリアか`Dynamic[Top]`を返します。
 

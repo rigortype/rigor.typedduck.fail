@@ -10,7 +10,7 @@ sidebar:
   order: 20265509
 ---
 
-ステータス: **notes, 2026-05-09。**`rigor-sorbet`（ADR-11）の設計作業中に浮上した設計比較をまとめ、RigorのエコシステムへのRBI-emitモードを次の表面として提案する — Tapiocaのカバレッジを置き換えるのではなく*補完する*。
+ステータス: **notes, 2026-05-09**。`rigor-sorbet`（ADR-11）の設計作業中に浮上した設計比較をまとめ、RigorのエコシステムへのRBI-emitモードを次の表面として提案する — Tapiocaのカバレッジを置き換えるのではなく*補完する*。
 
 このドキュメントは参考情報。プラグインコントラクトの拘束力のあるソースは[ADR-2](../../adr/2-extension-api/)。Sorbetインプットプラグインの拘束力のあるソースは[ADR-11](../../adr/11-sorbet-input-adapter/)。
 
@@ -20,7 +20,7 @@ sidebar:
   Sorbetのブラインドスポット（DSL生成メソッド、gemの内部実装、メタプログラミング由来のAPI）— だが**正反対の端からアプローチする**:
   - Tapioca: ランタイムでアプリをロードし、リフレクトし、RBIを生成する
   - Rigor: 静的にパースし、解析し、診断を出力する
-- **RigorはTapiocaを置き換える計画はない。**ふたつのツールは補完的。両方を使うプロジェクトはそれぞれのカバレッジの和集合を得る。
+- **RigorはTapiocaを置き換える計画はない**。ふたつのツールは補完的。両方を使うプロジェクトはそれぞれのカバレッジの和集合を得る。
 - **戦略的機会:** RigorにRBI-emitモードを追加し、Rigorの静的推論をTapiocaが書き込む`sorbet/rbi/`ツリーに流し込む。TapiocaのランタイムイントロスペクションOutputに*代わるのではなく補完する*。
 - **RigorのRBI emitが独自の価値を持つ場面:**
   - `Bundler.require`が失敗するか好ましくない、サンドボックス化された/ロード不可能なコードベース。
@@ -65,10 +65,10 @@ sidebar:
 - **Tapioca** → `.rbi`ファイルをディスクに出力
   （`sorbet/rbi/gems/<gem>@<version>.rbi`、
   `sorbet/rbi/dsl/<class>.rbi`等）。
-  **Tapiocaはコードジェネレーターである。**
+  **Tapiocaはコードジェネレーターである**。
 - **Rigor** → 診断をstdoutに出力（`rigor check`）、
   オプションでCIベースライン用にJSON形式。
-  **Rigorはアナライザーである。**
+  **Rigorはアナライザーである**。
 
 Tapiocaの出力はSorbetの`srb tc`が消費する。Rigorの出力はユーザー/エディターが直接消費する。
 
@@ -80,7 +80,7 @@ Tapiocaの出力はSorbetの`srb tc`が消費する。Rigorの出力はユーザ
 ### DSLカバレッジの広さ
 
 - **Tapioca**: 39の組み込みDSLコンパイラ（`AASM`、`ActionMailer`、`ActiveRecord*`ファミリー、`FrozenRecord`、`GraphQL`、`IdentityCache`、`JsonApiClient`、`Kredis`、`Protobuf`、`SidekiqWorker`、`SmartProperties`、`StateMachines`、`UrlHelpers`等）。Shopifyで本番稼働。長年のイテレーション。
-- **Rigor**: 7つの作業例プラグイン（`lisp-eval`、`pattern`、`units`、`statesman`、`deprecations`、`routes`、`activerecord`）と1つのエコシステムアダプター（`rigor-sorbet`、ADR-11）。Railsプラグインファミリーは[`docs/design/20260508-rails-plugins-roadmap.md`](../20260508-rails-plugins-roadmap/)でロードマップ化済み。**カバレッジではTapiocaが数年先行している。これは正直な評価。**
+- **Rigor**: 7つの作業例プラグイン（`lisp-eval`、`pattern`、`units`、`statesman`、`deprecations`、`routes`、`activerecord`）と1つのエコシステムアダプター（`rigor-sorbet`、ADR-11）。Railsプラグインファミリーは[`docs/design/20260508-rails-plugins-roadmap.md`](../20260508-rails-plugins-roadmap/)でロードマップ化済み**。カバレッジではTapiocaが数年先行している。これは正直な評価。**
 
 ### 信頼モデル
 
@@ -118,7 +118,7 @@ Rigorのプラグインコントラクトは**明示的にPHPStanをモデルに
 
 ## RigorがRBI出力を強化できる場面
 
-Rigorは現在**診断**を出力し、RBIは出力しない。**RBI-emitモード**を追加することでRigorの静的推論をTapiocaが書き込む`sorbet/rbi/`ツリーに流し込める。3つの独自の価値提案:
+Rigorは現在**診断**を出力し、RBIは出力しない**。RBI-emitモード**を追加することでRigorの静的推論をTapiocaが書き込む`sorbet/rbi/`ツリーに流し込める。3つの独自の価値提案:
 
 ### 1. Rigorの静的推論からのRBI（アプリロード不要）
 
@@ -160,18 +160,18 @@ Rigorの内部型はRBS（したがってRBI）が自然に記述できないリ
 
 ### 注意点
 
-- **SorbetのRBI語彙はRBSと異なる。**RigorにはRBIの方向のトランスレーターが必要になる（ADR-11スライス3の`rigor-sorbet`のインプット側変換の逆）。難しい部分: `T::Class[T]`/`T.attached_class`/`T.self_type`は慎重な近似が必要。Sorbetの`T.untyped`セマンティクスはRBSの`untyped`と異なる（グラデュアルvs.損失あり）。
-- **ADR-1の不変条件が適用される。**Rigor → RBIはRigor → RBS（`rbs-erasure.md`）とRBS → Rigor（情報無損失）と並ぶ第3の脚である。新しい脚には独自の規範的ドキュメントとラウンドトリップルールが必要。
-- **カバレッジのマッチは正直に示す。**Rigorの静的ウォークはランタイム専用の定義（ランタイム計算された名前に対する`define_method`、文字列の`class_eval`、`if Rails.env.production?`を通じて条件付きロードされるモジュール）を見ることができない。Tapiocaはこれらを捕捉する。RigorのRBI emitは捕捉しない。ドキュメントは明示的であるべき。
+- **SorbetのRBI語彙はRBSと異なる**。RigorにはRBIの方向のトランスレーターが必要になる（ADR-11スライス3の`rigor-sorbet`のインプット側変換の逆）。難しい部分: `T::Class[T]`/`T.attached_class`/`T.self_type`は慎重な近似が必要。Sorbetの`T.untyped`セマンティクスはRBSの`untyped`と異なる（グラデュアルvs.損失あり）。
+- **ADR-1の不変条件が適用される**。Rigor → RBIはRigor → RBS（`rbs-erasure.md`）とRBS → Rigor（情報無損失）と並ぶ第3の脚である。新しい脚には独自の規範的ドキュメントとラウンドトリップルールが必要。
+- **カバレッジのマッチは正直に示す**。Rigorの静的ウォークはランタイム専用の定義（ランタイム計算された名前に対する`define_method`、文字列の`class_eval`、`if Rails.env.production?`を通じて条件付きロードされるモジュール）を見ることができない。Tapiocaはこれらを捕捉する。RigorのRBI emitは捕捉しない。ドキュメントは明示的であるべき。
 
 ## Tapiocaが適切な場面
 
 正直な承認: Tapiocaはなくならない。RigorのRBI-emit野心はそれを変えない。
 
-- **重いメタプログラミング。**アプリケーションブート時に`define_method`、計算された文字列の`class_eval`、ランタイムレジストリ上の`method_missing`で生成されたメソッド。静的解析はここで根本的に限界がある。ランタイムイントロスペクションが適切なツール。
-- **現時点での広いDSLカバレッジ。**人気のRails/Shopifyスタックエコシステムのほとんどをカバーする39の組み込みコンパイラ。Rigorが追いつくには長年のプラグイン作成が必要。
-- **確立されたTapiocaパイプライン。**CIインテグレーション、カスタムコンパイラ、shim管理ワークフローを持つ大規模モノレポ。Rigorがtapiocaが根本的にできないことを提供しない限り、切り替えコストが便益を上回る。
-- **Sorbet固有の型strictness。**`# typed: strict`/`# typed: strong` — これらはSorbet-staticの機能であり、Rigorはそれを再現しない（Rigorは`severity_profile`を類似フィルタリングに使うが、ファイル単位モードモデルはSorbetのもの）。
+- **重いメタプログラミング**。アプリケーションブート時に`define_method`、計算された文字列の`class_eval`、ランタイムレジストリ上の`method_missing`で生成されたメソッド。静的解析はここで根本的に限界がある。ランタイムイントロスペクションが適切なツール。
+- **現時点での広いDSLカバレッジ**。人気のRails/Shopifyスタックエコシステムのほとんどをカバーする39の組み込みコンパイラ。Rigorが追いつくには長年のプラグイン作成が必要。
+- **確立されたTapiocaパイプライン**。CIインテグレーション、カスタムコンパイラ、shim管理ワークフローを持つ大規模モノレポ。Rigorがtapiocaが根本的にできないことを提供しない限り、切り替えコストが便益を上回る。
+- **Sorbet固有の型strictness**。`# typed: strict`/`# typed: strong` — これらはSorbet-staticの機能であり、Rigorはそれを再現しない（Rigorは`severity_profile`を類似フィルタリングに使うが、ファイル単位モードモデルはSorbetのもの）。
 
 ## 共存 — 推奨
 
@@ -221,7 +221,7 @@ Rigorは`rigor-sorbet`スライス4を通じてツリー全体を読む。プラ
 
 ## 一言まとめ
 
-> **TapiocaはアプリをRunしてRBIを書く。RigorはRBS（および`rigor-sorbet`経由でRBI）をソースをパースして読む。両者は正反対の端から同じ問題に取り組む。RigorのNEXT-tier野心は診断と並行してRBIを出力することであり、Tapiocaを置き換えることではなく、Tapiocaのランタイムパスが提供できない静的パスカバレッジや`RBS::Extended`精度を必要とするプロジェクトにとっての補完的存在となること。**
+> **TapiocaはアプリをRunしてRBIを書く。RigorはRBS（および`rigor-sorbet`経由でRBI）をソースをパースして読む。両者は正反対の端から同じ問題に取り組む。RigorのNEXT-tier野心は診断と並行してRBIを出力することであり、Tapiocaを置き換えることではなく、Tapiocaのランタイムパスが提供できない静的パスカバレッジや`RBS::Extended`精度を必要とするプロジェクトにとっての補完的存在となること**。
 
 ## 参照
 
