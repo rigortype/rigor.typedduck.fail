@@ -1,12 +1,283 @@
+/* ─────────────────────────────────────────────────────────────────────
+ *  Rigor design system → Starlight tokens
+ *
+ *  This file is a drop-in replacement for src/styles/custom.css. It
+ *  remaps Starlight's published CSS custom properties onto Rigor's
+ *  token layer and adds a thin layer of system-specific overrides.
+ *
+ *  Hard rules from the Rigor design system:
+ *    - Corner radii: 0 / 2 / 4 only. No pills.
+ *    - Type: JetBrains Mono · Source Serif 4 · Inter.
+ *    - Palette: parchment paper, near-black ink, MPL-red accent.
+ *    - No gradients, no shadows on cards, no neon.
+ * ──────────────────────────────────────────────────────────────────── */
+
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=Inter:wght@400;500;600;700&display=swap');
+
+/* ─── Rigor tokens ──────────────────────────────────────────────── */
 :root {
-  --sl-color-accent-low: #d7f4ee;
-  --sl-color-accent: #007f73;
-  --sl-color-accent-high: #003f3a;
+  --rigor-ink:        #0E1116;
+  --rigor-ink-2:      #2A2F38;
+  --rigor-ink-3:      #585F6B;
+  --rigor-ink-4:      #8A909B;
+
+  --rigor-paper:      #F6F4EE;
+  --rigor-paper-2:    #EFEBE0;
+  --rigor-paper-3:    #E6E1D2;
+  --rigor-rule:       #D6D2C7;
+
+  --rigor-term-bg:    #1A1D23;
+  --rigor-term-fg:    #E6E1D2;
+
+  --rigor-accent:     #7A2A2A;
+  --rigor-accent-2:   #5C1F1F;
+  --rigor-accent-3:   #F1E2DE;
+
+  --rigor-error:      #B5302B;
+  --rigor-warning:    #B07A1C;
+  --rigor-info:       #2D5C9E;
+  --rigor-success:    #2E6F3F;
+  --rigor-fallback:   #8A909B;
+
+  --rigor-type-nominal:   #2D5C9E;
+  --rigor-type-constant:  #7A2A2A;
+  --rigor-type-refined:   #6A3E8E;
+  --rigor-type-untyped:   #8A909B;
+
+  --rigor-font-mono:   'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  --rigor-font-serif:  'Source Serif 4', Charter, Georgia, 'Times New Roman', serif;
+  --rigor-font-sans:   'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  --rigor-transition:  120ms ease-out;
 }
 
+/* ─── Starlight surface tokens → Rigor (light, default) ─────────── */
+:root {
+  /* Greys + bg */
+  --sl-color-white:        var(--rigor-ink);
+  --sl-color-gray-1:       var(--rigor-ink);
+  --sl-color-gray-2:       var(--rigor-ink-2);
+  --sl-color-gray-3:       var(--rigor-ink-3);
+  --sl-color-gray-4:       var(--rigor-ink-4);
+  --sl-color-gray-5:       var(--rigor-rule);
+  --sl-color-gray-6:       var(--rigor-paper-2);
+  --sl-color-gray-7:       var(--rigor-paper-3);
+  --sl-color-black:        var(--rigor-paper);
+
+  --sl-color-bg:           var(--rigor-paper);
+  --sl-color-bg-nav:       var(--rigor-paper);
+  --sl-color-bg-sidebar:   var(--rigor-paper);
+  --sl-color-bg-inline-code: var(--rigor-paper-2);
+  --sl-color-hairline:        var(--rigor-rule);
+  --sl-color-hairline-light:  var(--rigor-rule);
+  --sl-color-hairline-shade:  var(--rigor-rule);
+
+  --sl-color-text:         var(--rigor-ink-2);
+  --sl-color-text-accent:  var(--rigor-accent);
+  --sl-color-text-invert:  var(--rigor-paper);
+
+  /* Accent */
+  --sl-color-accent-low:   var(--rigor-accent-3);
+  --sl-color-accent:       var(--rigor-accent);
+  --sl-color-accent-high:  var(--rigor-accent-2);
+
+  /* Type */
+  --sl-font:               var(--rigor-font-serif);
+  --sl-font-system:        var(--rigor-font-sans);
+  --sl-font-system-mono:   var(--rigor-font-mono);
+  --sl-font-mono:          var(--rigor-font-mono);
+
+  --sl-text-xs:    12px;
+  --sl-text-sm:    13px;
+  --sl-text-base:  16px;
+  --sl-text-lg:    18px;
+  --sl-text-xl:    22px;
+  --sl-text-2xl:   28px;
+  --sl-text-3xl:   36px;
+  --sl-text-h1:    36px;
+  --sl-text-h2:    28px;
+  --sl-text-h3:    22px;
+  --sl-text-h4:    18px;
+  --sl-text-h5:    16px;
+
+  --sl-line-height: 1.55;
+  --sl-line-height-headings: 1.2;
+
+  /* Layout */
+  --sl-content-width:  56rem;     /* ~896px; prose stays narrower via .sl-markdown-content */
+  --sl-sidebar-width:  17rem;
+  --sl-sidebar-pad-x:  1rem;
+  --sl-nav-height:     3.5rem;
+  --sl-nav-pad-x:      1.5rem;
+
+  /* Shadows: none — Rigor uses borders */
+  --sl-shadow-sm: none;
+  --sl-shadow-md: none;
+  --sl-shadow-lg: none;
+}
+
+/* ─── Dark theme ────────────────────────────────────────────────── */
 :root[data-theme='dark'] {
-  --sl-color-accent-low: #123833;
-  --sl-color-accent: #41d6c3;
-  --sl-color-accent-high: #c6fff6;
+  --sl-color-white:         #F6F4EE;
+  --sl-color-gray-1:        #F6F4EE;
+  --sl-color-gray-2:        #C7C2B4;
+  --sl-color-gray-3:        #8A909B;
+  --sl-color-gray-4:        #585F6B;
+  --sl-color-gray-5:        #2A2F38;
+  --sl-color-gray-6:        #1A1D23;
+  --sl-color-gray-7:        #14171C;
+  --sl-color-black:         #0E1116;
+
+  --sl-color-bg:            #14171C;
+  --sl-color-bg-nav:        #0E1116;
+  --sl-color-bg-sidebar:    #0E1116;
+  --sl-color-bg-inline-code:#1F232A;
+  --sl-color-hairline:        #2A2F38;
+  --sl-color-hairline-light:  #2A2F38;
+  --sl-color-hairline-shade:  #2A2F38;
+
+  --sl-color-text:          #C7C2B4;
+  --sl-color-text-accent:   #E0938C;
+  --sl-color-text-invert:   #0E1116;
+
+  --sl-color-accent-low:    #2A1818;
+  --sl-color-accent:        #C95C53;
+  --sl-color-accent-high:   #F2C8C2;
 }
 
+/* ─── Overrides Starlight's defaults don't cover ────────────────── */
+
+/* Corner radii: Rigor uses 0 / 2 / 4 only. Starlight ships a few pill
+ * shapes; flatten them. Inline code and fenced code keep 4px. */
+:root,
+:root[data-theme='dark'] {
+  --sl-border-radius:        0px;
+  --sl-border-radius-small:  2px;
+  --sl-border-radius-large:  0px;
+}
+
+/* Heading hierarchy uses Inter, not the serif body */
+.sl-markdown-content :is(h1, h2, h3, h4, h5, h6),
+header :is(h1, h2),
+.hero h1 {
+  font-family: var(--sl-font-system);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.sl-markdown-content h1,
+.hero h1 {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  font-family: var(--sl-font-mono);     /* Rigor wordmark style for h1 */
+}
+
+/* Body prose: serif with the tight Rigor measure */
+.sl-markdown-content {
+  font-family: var(--sl-font);
+  max-width: 45rem;                     /* 720px — Rigor prose width */
+}
+.sl-markdown-content p { text-wrap: pretty; }
+
+/* Inline code: paper-2 chip with hairline, 2px radius */
+.sl-markdown-content :not(pre) > code {
+  background: var(--sl-color-bg-inline-code);
+  border: 1px solid var(--sl-color-hairline);
+  border-radius: 2px;
+  padding: 1px 5px;
+  font-size: 0.88em;
+}
+
+/* Code blocks: 4px radius, hairline border, no shadow */
+.expressive-code,
+.sl-markdown-content pre {
+  border-radius: 4px;
+  border: 1px solid var(--sl-color-hairline);
+  box-shadow: none;
+}
+
+/* Links: underline-on-hover, no underline at rest. Starlight default
+ * underlines content links — switch to Rigor's behaviour. */
+.sl-markdown-content a,
+.content a {
+  color: var(--sl-color-text-accent);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color var(--rigor-transition);
+}
+.sl-markdown-content a:hover,
+.content a:hover {
+  text-decoration: none;
+  border-bottom-color: currentColor;
+}
+
+/* Blockquote: 3px ink rule + paper-2 inset, not italic */
+.sl-markdown-content blockquote {
+  border-left: 3px solid var(--sl-color-text);
+  background: var(--sl-color-gray-6);
+  padding: 0.75rem 1.25rem;
+  font-style: normal;
+  margin: 0 0 1.5rem;
+  border-radius: 0;
+}
+
+/* Hero (splash template) tightening */
+.hero {
+  padding-block: 2rem 3rem;
+}
+.hero .tagline {
+  font-family: var(--sl-font);
+  color: var(--sl-color-gray-2);
+  max-width: 38rem;
+}
+.hero .actions a {
+  border-radius: 2px;
+}
+
+/* Sidebar current item: oxblood left rule + tinted background */
+.sidebar a[aria-current='page'] {
+  color: var(--sl-color-text-accent);
+  background: var(--sl-color-accent-low);
+  border-inline-start: 2px solid var(--sl-color-text-accent);
+  font-weight: 600;
+}
+
+/* Search button (the top-bar pallet trigger): mono + hairline */
+site-search button,
+site-search input {
+  font-family: var(--sl-font-mono);
+  border-radius: 2px;
+}
+
+/* Pagination buttons: 0px radius, hairline */
+.pagination-links a {
+  border-radius: 0;
+  border: 1px solid var(--sl-color-hairline);
+  box-shadow: none;
+}
+.pagination-links a:hover {
+  border-color: var(--sl-color-white);
+}
+
+/* Tables: hairlines, Inter for headers */
+.sl-markdown-content table th {
+  font-family: var(--sl-font-system);
+  border-bottom: 1px solid var(--sl-color-white);
+}
+.sl-markdown-content table td,
+.sl-markdown-content table th {
+  border-bottom: 1px solid var(--sl-color-hairline);
+}
+
+/* ─── MDX utility classes — diagnostic severities ───────────────── */
+/* Use as <span class="r-error">error:</span> etc. inside MDX. */
+.r-error    { color: var(--rigor-error);    font-weight: 600; }
+.r-warning  { color: var(--rigor-warning);  font-weight: 600; }
+.r-info     { color: var(--rigor-info);     font-weight: 600; }
+.r-success  { color: var(--rigor-success);  font-weight: 600; }
+.r-fallback { color: var(--rigor-fallback); }
+
+/* Carrier highlights (inside .rb / inline type displays in MDX) */
+.r-t-nominal  { color: var(--rigor-type-nominal); }
+.r-t-constant { color: var(--rigor-type-constant); }
+.r-t-refined  { color: var(--rigor-type-refined); }
+.r-t-untyped  { color: var(--rigor-type-untyped); font-style: italic; }

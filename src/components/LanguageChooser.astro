@@ -44,51 +44,49 @@ const languages = [
 
 <style>
   .lang-chooser {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 1rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+    gap: 0.75rem;
     margin: 0 0 1.5rem;
+    max-width: 36rem;
   }
   .lang-chooser__btn {
-    flex: 1 1 14rem;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
     gap: 0.25rem;
-    padding: 1.1rem 1.5rem;
-    text-align: center;
+    padding: 1rem 1.25rem;
+    text-align: left;
     text-decoration: none;
-    border: 1px solid var(--sl-color-gray-5);
-    border-radius: 0.75rem;
-    background: var(--sl-color-gray-6);
+    border: 1px solid var(--sl-color-hairline);
+    border-radius: 0;                    /* Rigor: 0px on cards */
+    background: var(--sl-color-bg);
     color: var(--sl-color-white);
     transition:
-      background-color 0.15s ease,
-      border-color 0.15s ease,
-      transform 0.1s ease;
+      background-color 120ms ease-out,
+      border-color 120ms ease-out;
   }
   .lang-chooser__btn:hover {
-    border-color: var(--sl-color-text-accent);
-    background: var(--sl-color-gray-5);
-  }
-  .lang-chooser__btn:active {
-    transform: translateY(1px);
+    border-color: var(--sl-color-white);
+    background: var(--sl-color-gray-6);
   }
   .lang-chooser__btn.is-current {
     border-color: var(--sl-color-text-accent);
-    background: var(--sl-color-accent-low, var(--sl-color-gray-5));
+    background: var(--sl-color-accent-low);
     cursor: default;
   }
-  .lang-chooser__btn.is-current:hover {
-    background: var(--sl-color-accent-low, var(--sl-color-gray-5));
+  .lang-chooser__btn.is-current .lang-chooser__name {
+    color: var(--sl-color-text-accent);
   }
   .lang-chooser__name {
-    font-size: 1.25rem;
-    font-weight: 700;
+    font-family: var(--sl-font-system);
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: -0.005em;
   }
   .lang-chooser__desc {
-    font-size: var(--sl-text-sm);
-    color: var(--sl-color-gray-2);
+    font-family: var(--sl-font-mono);
+    font-size: 0.75rem;
+    color: var(--sl-color-gray-3);
+    letter-spacing: 0.01em;
   }
 </style>

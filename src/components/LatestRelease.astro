@@ -47,28 +47,31 @@ const label = lang === 'ja' ? '最新リリース' : 'Latest release';
     flex-wrap: wrap;
     gap: 0.5rem;
     margin: 0 0 1.5rem;
-    padding: 0.4rem 0.85rem;
-    border: 1px solid var(--sl-color-gray-5);
-    border-radius: 999px;
-    background: var(--sl-color-gray-6);
+    padding: 0.3rem 0.75rem;
+    border: 1px solid var(--sl-color-hairline);
+    border-radius: 2px;                  /* Rigor: 2px on capsules — no full pills */
+    background: var(--sl-color-bg);
+    font-family: var(--sl-font-mono);
     font-size: var(--sl-text-sm);
     line-height: 1.4;
   }
   .latest-release__label {
-    color: var(--sl-color-gray-2);
-    font-weight: 600;
+    color: var(--sl-color-gray-3);
+    font-weight: 500;
   }
   .latest-release__tag {
     font-family: var(--sl-font-mono);
     font-weight: 600;
     color: var(--sl-color-text-accent);
     text-decoration: none;
+    border-bottom: 1px solid transparent;
+    transition: border-color 120ms ease-out;
   }
   .latest-release__tag:hover {
-    text-decoration: underline;
+    border-bottom-color: var(--sl-color-text-accent);
   }
   .latest-release__sep {
-    color: var(--sl-color-gray-3);
+    color: var(--sl-color-gray-4);
   }
   .latest-release__date {
     color: var(--sl-color-gray-2);
