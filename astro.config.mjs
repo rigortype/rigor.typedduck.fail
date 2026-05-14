@@ -38,6 +38,27 @@ export default defineConfig({
         },
       ],
       customCss: ['./src/styles/custom.css'],
+      head: [
+        {
+          tag: 'script',
+          attrs: { type: 'application/ld+json' },
+          content: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'WebSite',
+            name: 'Rigor',
+            url: 'https://rigor.typedduck.fail',
+            description: 'Documentation for the Rigor Ruby static analyzer.',
+            potentialAction: {
+              '@type': 'SearchAction',
+              target: {
+                '@type': 'EntryPoint',
+                urlTemplate: 'https://rigor.typedduck.fail/search?q={search_term_string}',
+              },
+              'query-input': 'required name=search_term_string',
+            },
+          }),
+        },
+      ],
       sidebar: [
         {
           label: 'Reference',
