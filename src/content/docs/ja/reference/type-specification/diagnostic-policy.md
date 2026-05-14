@@ -3,8 +3,8 @@ title: "診断ポリシー"
 description: "rigortype/rigor docs/type-specification/diagnostic-policy.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/type-specification/diagnostic-policy.md"
 sourcePath: "docs/type-specification/diagnostic-policy.md"
-sourceSha: "7f4c268ab69f4dc7a37225a579a62c4e1036e92bbc2e3a344973ee0dcb09fac0"
-sourceCommit: "f87b68f852350994a182dca35c52464a59be6e53"
+sourceSha: "c6b21573826d8bd60b553ee06afe4552a4b4c426871d2c47d454f3fa2e421d9c"
+sourceCommit: "a7f0405346ea5833580c50f3610ccb0b97fea2d8"
 translationStatus: "translated"
 sidebar:
   order: 2050
@@ -47,6 +47,7 @@ Rigorは静かな拡幅よりも精密な診断を優先すべきです（SHOULD
 | `plugin.<plugin-id>.*` | プラグインが貢献した診断 |
 | `generated.<provider>.*` | 生成シグネチャプロバイダーの診断 |
 | `hint.*` | スタイルとリファクタリングの提案、設定でゲート（例: `hint.role-generalization.*`） |
+| `sig.*` | [ADR-14](../../adr/14-rbs-sig-generation/)に基づくRBSシグネチャ生成器のテレメトリ。`sig.generated.new-file` / `sig.generated.new-method` / `sig.generated.tighter-return`（`rigor sig-gen`コマンドがRBSを生成する際に発行するメソッドごとの分類）と、`sig.skipped.complex-shape` / `sig.skipped.user-authored` / `sig.skipped.untyped-return`（生成器が発行を控えたメソッドごとの理由）を予約する。スライス1のMVPはこれらの識別子を診断ストリームではなくコマンドのJSON出力で公開する。後続のスライスで`--write`パスがランディングした際に`:info`診断として接続する。 |
 
 ## `Dynamic[T]`の表示規則
 

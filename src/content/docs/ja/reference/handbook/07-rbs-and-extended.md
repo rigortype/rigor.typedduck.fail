@@ -3,8 +3,8 @@ title: "RBSと`RBS::Extended`"
 description: "rigortype/rigor docs/handbook/07-rbs-and-extended.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/handbook/07-rbs-and-extended.md"
 sourcePath: "docs/handbook/07-rbs-and-extended.md"
-sourceSha: "9da2f539030917ab8d77fac34aca92a7fd85e7364c2d8397183886968485412b"
-sourceCommit: "f87b68f852350994a182dca35c52464a59be6e53"
+sourceSha: "3bbbb0edb10289b396ae04dd179b0aac37f1e7e80cb433bc6434c851d30c765b"
+sourceCommit: "a7f0405346ea5833580c50f3610ccb0b97fea2d8"
 translationStatus: "translated"
 sidebar:
   order: 1007
@@ -118,6 +118,7 @@ s == "hello-world"  # bool — 等値ナローイングが適用される
 | 文字列述語 | `lowercase-string`、`uppercase-string`、`numeric-string`、`decimal-int-string`、`octal-int-string`、`hex-int-string`、`literal-string` |
 | ペアになった補完 | `non-lowercase-string`、`non-uppercase-string`、`non-numeric-string` |
 | 合成 | `non-empty-lowercase-string`、`non-empty-uppercase-string`、`non-empty-literal-string` |
+| シェイプ射影 | `pick_of[T, K]`、`omit_of[T, K]`、`partial_of[T]`、`required_of[T]`、`readonly_of[T]` — 既存の`HashShape`/`Tuple`から新しいキャリアを派生させます。[第4章 §「新しいシェイプを派生させる」](../04-tuples-and-shapes/#deriving-new-shapes--pick_of--omit_of--partial_of--required_of--readonly_of)を参照。 |
 
 ## 実例: アサーションゲート
 

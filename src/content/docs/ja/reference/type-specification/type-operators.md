@@ -3,8 +3,8 @@ title: "型演算子"
 description: "rigortype/rigor docs/type-specification/type-operators.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/type-specification/type-operators.md"
 sourcePath: "docs/type-specification/type-operators.md"
-sourceSha: "8ba167376731f3ac579742396ef4d2a9738aa1b008af43f426ded8634ffd9dda"
-sourceCommit: "9f40e22193647dc06e3ab70c5ba82768b0bfe738"
+sourceSha: "ecedbddbfe0e215997c775b5c46cb7eab6dc50dfcf6dc33f1e0c15678a80c68e"
+sourceCommit: "a7f0405346ea5833580c50f3610ccb0b97fea2d8"
 translationStatus: "translated"
 sidebar:
   order: 2050
@@ -25,6 +25,11 @@ Rigorの型演算子サーフェスはRBS互換演算子（`|`、`&`、`T?`、`[
 | `T - U` | 差分: `T`の値から`U`の値を除いたもの（内部） |
 | `key_of[T]` | レコード、ハッシュシェイプ、タプル、またはシェイプ的型の既知キー |
 | `value_of[T]` | レコード、ハッシュシェイプ、タプル、またはシェイプ的型の既知値のユニオン |
+| `pick_of[T, K]` | キーが`K`に含まれるものに制限されたレコード/シェイプ |
+| `omit_of[T, K]` | キーが`K`に含まれるエントリーが削除されたレコード/シェイプ |
+| `partial_of[T]` | `T`の必須エントリーすべてを任意にしたレコード/シェイプ |
+| `required_of[T]` | `T`の任意エントリーすべてを必須にしたレコード/シェイプ |
+| `readonly_of[T]` | `T`の各エントリーを現在のビューで読み取り専用としてマークしたレコード/シェイプ |
 | `T[K]` | タプル、レコード、オブジェクトシェイプ、またはジェネリックコンテナメタデータへのインデックスアクセス |
 | `if T <: U then X else Y` | 高度なライブラリモデリングが必要な場合の条件型 |
 
@@ -121,6 +126,65 @@ top - nil           # nilを除くすべてのRuby値
 - `value_of[T]`は`T`の既知値のユニオンを返します。
 
 これらの形式は`RBS::Extended`ペイロード（[rbs-extended.md](../rbs-extended/)参照）と解析器内のシェイプ対応ナローイングに有用です。RBSには保守的に消去されます（[rbs-erasure.md](../rbs-erasure/)参照）。
+
+## シェイプ射影（`pick_of`、`omit_of`、`partial_of`、`required_of`、`readonly_of`）
+
+シェイプ射影演算子は、レコード/HashShape/オブジェクトシェイプを、エントリーを制限・削除・再マークすることで変換します。これらは`key_of[T]` / `value_of[T]`の兄弟で、同じ`lower_snake[…]`命名規則に従います。[`rigor-typescript-utility-types`](../../adr/13-typenode-resolver-plugin/)プラグインがTypeScriptの`Pick<T, K>`、`Omit<T, K>`、`Partial<T>`、`Required<T>`、`Readonly<T>`を割り当てる、正準のRigorスペルです。
+
+### 制限と削除（`pick_of`、`omit_of`）
+
+`pick_of[T, K]`は`T`のうちキーが`K`にマッチするエントリーだけを残します。`omit_of[T, K]`はその双対: キーが`K`にマッチするすべてのエントリーを落とし、残りを保ちます。`K`はリテラルキー型のユニオン（典型的には`Symbol`または`String`のシングルトン型のユニオン、または明示的なリテラル型ユニオン）です。
+
+```text
+T = Record{name: String, age: Integer, email: String}
+
+pick_of[T, "name" | "email"] = Record{name: String, email: String}
+omit_of[T, "age"]            = Record{name: String, email: String}
+```
+
+`T`がタプルの場合、キーは整数インデックスです:
+
+```text
+T = Tuple[String, Integer, Symbol]
+pick_of[T, 0 | 2] = Tuple[String, Symbol]  # スライス5の実装次第。ADR-13を参照
+```
+
+`pick_of` / `omit_of`は**シェイプ対応**です。エントリーレベルのキー情報を持たない値（例: レコード形状射影のない素の`Hash[K, V]`）に適用された場合、保守的に縮退します: `pick_of[Hash[K, V], K_subset]`は`Hash[K, V]`に評価され、ユーザーが境界を監査できるように`dynamic.shape.lossy-projection``:info`診断を発火します。
+
+### 必須性反転（`partial_of`、`required_of`）
+
+`partial_of[T]`は`T`の必須エントリーすべてを任意に反転させます。`required_of[T]`はその逆: すべての任意エントリーを必須に反転させます。
+
+`partial_of`は値型に`nil`を**追加しません**。TypeScriptの`Partial<T>`は、JavaScriptにシェイプレベルの「キー不在」キャリアがないため暗黙的に`T | undefined`に広げます; Rigorの`HashShape`は[control-flow-analysis.md](../control-flow-analysis/)と[structural-interfaces-and-object-shapes.md](../structural-interfaces-and-object-shapes/)に従い、「キー不在」と「キーは存在し値が`nil`」を区別します。この2つの事実は合成します:
+
+```text
+T = Record{name: String, age: Integer}
+
+partial_of[T]  = Record{name?: String, age?: Integer}
+                 # キー不在 OR（キー存在 AND 値がString / Integer）
+
+required_of[partial_of[T]] = T
+                 # ラウンドトリップ
+```
+
+将来の利用者がTSスタイルのnil広がりバリアントを必要とする場合、それは別の`partial_nullable_of[T]`演算子として出荷されます（ADR-13 §「未解決の問題」を参照）。
+
+### ビュー層の読み取り専用（`readonly_of`）
+
+`readonly_of[T]`は`T`の各エントリーを**現在のビュー内で**読み取り専用としてマークします。静的型が`readonly_of[T]`である参照を通じた書き込みは「読み取り専用ビューを通じた書き込み」として診断されます;基底のRubyオブジェクトが凍結されていることは証明されません。これは[imported-built-in-types.md](../imported-built-in-types/)§「初期コレクションとシェイプリファインメント」で説明されている読み取り専用ハッシュシェイプエントリーセマンティクスと合成します。
+
+「読み取り専用ビューを通じた書き込み」の診断深刻度はアクティブな`severity_profile`に従います。著作デフォルトは`:warning`; strictプロファイルは`:error`に再スタンプします。
+
+### RBS消去
+
+シェイプ射影演算子は[rbs-erasure.md](../rbs-erasure/)に従いRBSに消去されます:
+
+- `pick_of[Record{…}, K]`は、`K`にないエントリーを削除した基底レコードのRBSスペルに消去されます（Rigorレコード構文が結果を直接サポート）。
+- `omit_of[Record{…}, K]`は、`K`エントリーを引いた同じレコードに消去されます。
+- `partial_of[Record{…}]`は、各エントリーに任意キーマーカーを付けたレコードに消去されます。
+- `required_of[Record{…}]`は、すべての任意キーマーカーを取り除いたレコードに消去されます。
+- `readonly_of[T]`は読み取り専用マーカーを削除して消去されます;基底のRBS型は静的ビューのRBS消費者が見るものです。
+- `pick_of[Hash[K, V], K_subset]`と他の損失のある縮退は`Hash[K, V]`に消去されます。
 
 ## 条件型
 

@@ -3,8 +3,8 @@ title: "RBS::Extendedアノテーション"
 description: "rigortype/rigor docs/type-specification/rbs-extended.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/type-specification/rbs-extended.md"
 sourcePath: "docs/type-specification/rbs-extended.md"
-sourceSha: "7e8016638d51a2aa10bd6d182eb68697d83704aeaa5fc48812a7ca3c58f5b207"
-sourceCommit: "9f40e22193647dc06e3ab70c5ba82768b0bfe738"
+sourceSha: "76c641a9dd236a4329ab7bb8b96f149c44afaa9aaf2ed92d6a8afdb6c057af66"
+sourceCommit: "a7f0405346ea5833580c50f3610ccb0b97fea2d8"
 translationStatus: "translated"
 sidebar:
   order: 2050
@@ -33,7 +33,7 @@ def assert_present!: (String value) -> void
 def check: (untyped value) -> bool
 ```
 
-`return:`、`param:`、`assert*`、`predicate-if-*`の右辺は、RBSスタイルのクラス名（`String`、`::Foo::Bar`）またはインポート済み組み込みカタログ（[`imported-built-in-types.md`](../imported-built-in-types/)）のkebab-caseリファインメントペイロードのいずれかを受け付けます。リファインメントペイロードは`Builtins::ImportedRefinements::Parser`を通じてパラメーター化形式`non-empty-array[Integer]`、`non-empty-hash[Symbol, Integer]`、`int<min, max>`をサポートします。クラス名ディレクティブは`~T`否定を使う場合があります（MAY）;リファインメント形式のディレクティブは現在使ってはなりません（MUST NOT）（差分対リファインメントの代数は将来のスライスのために予約されています）。
+`return:`、`param:`、`assert*`、`predicate-if-*`の右辺は、RBSスタイルのクラス名（`String`、`::Foo::Bar`）またはインポート済み組み込みカタログ（[`imported-built-in-types.md`](../imported-built-in-types/)）のkebab-caseリファインメントペイロードのいずれかを受け付けます。リファインメントペイロードは`Builtins::ImportedRefinements::Parser`を通じてパラメーター化形式`non-empty-array[Integer]`、`non-empty-hash[Symbol, Integer]`、`int<min, max>`をサポートします。型引数位置はSymbolおよびStringリテラルトークン（`:name` / `"name"`）と、それらの`|`によるユニオン（`:a | :b | "c"`）も受け付けます;パーサーは各リテラルを`Constant<value>`に持ち上げ、ユニオンを`Type::Combinator.union`を介して畳み込むため、`pick_of[T, :a | :b]`やプラグイン提供の`Pick[T, "name" | "email"]`のようなシェイプ射影ヘッドが合成ASTのワークアラウンドなしに端から端まで通ります。クラス名ディレクティブは`~T`否定を使う場合があります（MAY）;リファインメント形式のディレクティブは現在使ってはなりません（MUST NOT）（差分対リファインメントの代数は将来のスライスのために予約されています）。
 
 ## 著作ルール
 

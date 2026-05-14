@@ -3,8 +3,8 @@ title: "タプルとハッシュシェイプ"
 description: "rigortype/rigor docs/handbook/04-tuples-and-shapes.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/handbook/04-tuples-and-shapes.md"
 sourcePath: "docs/handbook/04-tuples-and-shapes.md"
-sourceSha: "8c4a50776a7c2836ef2df8bb050801c1bc94134b600932ec587713b28f1b31e3"
-sourceCommit: "b523ab36f62d89a1c16964a66864c27e3ebb0fe4"
+sourceSha: "46a35876ef987fc103be78e19de6f5b9930f4415a7e0b47bd3f2cca98b420401"
+sourceCommit: "a7f0405346ea5833580c50f3610ccb0b97fea2d8"
 translationStatus: "translated"
 sidebar:
   order: 1004
@@ -194,6 +194,68 @@ arr = [1, ARGV.first]
 ```
 
 キーが証明可能にシンボル/文字列リテラルでないハッシュも同様 — Rigorは`HashShape`ではなく`Hash[K, V]`を生成します。
+
+## 新しいシェイプを派生させる — `pick_of` / `omit_of` / `partial_of` / `required_of` / `readonly_of`
+
+`HashShape`（または`Tuple`）があって、フィールドの一部だけを残したい、特定のものを落としたい、必須/任意を反転させたい — そんなときのために、Rigorは`Type::Combinator`上に5つの**シェイプ射影型関数**を公開しています。これらはTypeScriptの`Pick`/`Omit`/`Partial`/`Required`/`Readonly`ユーティリティ型に対応しますが、TSの後付けではなく第一級のRigor操作です。各関数は、残したエントリーに対してソースの既存の分類（必須/任意/読み取り専用/追加キーのポリシー）を保ちます。
+
+| 射影 | 動作 | TypeScriptでの対応 |
+| --- | --- | --- |
+| `pick_of[T, K]` | リテラルキーユニオン`K`にキーが含まれるエントリーだけを残す。`Tuple`の場合、`K`は整数インデックスのユニオン。 | `Pick<T, K>` |
+| `omit_of[T, K]` | `K`にキーが含まれるエントリーを落とし、残りを保つ。 | `Omit<T, K>` |
+| `partial_of[T]` | 必須エントリーすべてを任意に反転させる。値型を`nil`に**広げない** — Rigorは「キーが存在しない」と「キーは存在し値が`nil`」を区別する。 | `Partial<T>` |
+| `required_of[T]` | `partial_of`の逆。任意エントリーすべてを必須に反転させる。 | `Required<T>` |
+| `readonly_of[T]` | 現在のビューで各エントリーを読み取り専用としてマークする。基底オブジェクトが凍結されていることを証明するもの**ではない** — あくまでビュー層のマーカー。 | `Readonly<T>` |
+
+これらは2つの表面に現れます:
+
+### `RBS::Extended`ディレクティブのペイロードとして
+
+射影名はディレクティブグラマーの一部であり、パーサーは型引数位置でSymbol/Stringリテラルと`|`ユニオンを受け付けるため、キー集合をその場で書けます:
+
+```rbs
+class UserView
+  # ランタイムはユーザーハッシュ全体を返すが、ビューは呼び出し元へ
+  # :nameと:emailだけを公開する。ディレクティブは戻り値側の
+  # HashShapeをその2エントリーに絞り込む。
+  %a{rigor:v1:return: pick_of[UserHash, :name | :email]}
+  def public_attrs: () -> ::Hash[::Symbol, ::String]
+end
+```
+
+解析対象のファイル内では、呼び出しサイトの結果型は、基底のRBSシグが宣伝する素の`Hash[Symbol, String]`ではなく、射影された`HashShape`になります。
+
+### オプトインのTypeScriptユーティリティ型プラグイン経由で
+
+ディレクティブでTSの綴り（`Pick<T, K>`など）を使いたい場合は、[`rigor-typescript-utility-types`](https://github.com/rigortype/rigor/blob/main/examples/rigor-typescript-utility-types/)プラグインをオプトインしてください。このプラグインは`Plugin::TypeNodeResolver`を登録し、各TS名を正準射影に変換します:
+
+```yaml
+# .rigor.yml
+plugins:
+  - gem: rigor-typescript-utility-types
+```
+
+```rbs
+%a{rigor:v1:return: Pick[UserHash, "name" | "email"]}
+```
+
+プラグインチェインは解析器が見る前に`Pick[…]`を`pick_of[…]`に解決します — 推論結果は直接`pick_of`と書いたときと同じです。プラグインは純粋に命名上の利便性のためのものです。
+
+### 損失のある射影
+
+射影は、シェイプ情報を保つキャリア（`HashShape`、および`pick_of`/`omit_of`の場合の`Tuple`）にのみ発火します。素の`Hash[K, V]`やその他の非シェイプ入力に適用するのは**損失のある（lossy）**処理です — 射影は静かに入力型へ縮退し、Rigorは[`dynamic.shape.lossy-projection`](../../type-specification/diagnostic-policy/)`:info`診断を記録するので、呼び出しサイトを監査できます。
+
+```rbs
+class C
+  # `User`はHashShapeではなく`Nominal[User]`なので、射影は何も
+  # 絞り込めない。ディレクティブは受理されるが、`:info`が損失のある
+  # 縮退を記録する。
+  %a{rigor:v1:return: pick_of[User, :name]}
+  def render: () -> ::User
+end
+```
+
+修正は通常、`HashShape`キャリアを書く（あるいは`Data.define`/`Struct`を使う）ことで、素の`Nominal`を使わないことです。
 
 ## 次に読むもの
 
