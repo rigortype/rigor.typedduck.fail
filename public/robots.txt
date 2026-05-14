@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://rigor.typedduck.fail/sitemap-index.xml
