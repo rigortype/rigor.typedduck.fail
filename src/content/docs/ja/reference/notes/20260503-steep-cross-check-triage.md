@@ -3,8 +3,8 @@ title: "Steep 2.0 cross-check triage (2026-05-03)"
 description: "Imported from rigortype/rigor docs/notes/20260503-steep-cross-check-triage.md."
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/notes/20260503-steep-cross-check-triage.md"
 sourcePath: "docs/notes/20260503-steep-cross-check-triage.md"
-sourceSha: "a641a8bcbfee8da1fc59206fcdb8b4bd132cc58daa722eddb0c323b6461c0e8c"
-sourceCommit: "9f40e22193647dc06e3ab70c5ba82768b0bfe738"
+sourceSha: "e7ea90ad1caf8ef2c8ede6a0dcf7a10157066379ea8d39afb070d1630bf7db60"
+sourceCommit: "035915291e331f3bcd5ce804a1e30dc284ffbd48"
 translationStatus: "translated"
 sidebar:
   order: 20266503
@@ -253,7 +253,7 @@ nix develop --command make steep ARGS="check --severity-level=error"
 
 ## v0.1.1リリース直前follow-up (2026-05-08)
 
-A-1〜A-5はすべてv0.1.xのTrack 4で着地済(`docs/MILESTONES.md` v0.1.1
+A-1〜A-5はすべてv0.1.xのTrack 4で着地済(`docs/ROADMAP.md` v0.1.1
 Track 4 item 11 / 13 / 12参照)。再走（`make steep-check`）の結果を
 v0.1.1リリース直前に再分類:
 

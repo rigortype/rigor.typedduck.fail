@@ -3,8 +3,8 @@ title: "dry-rb Ecosystem Plugins — Survey"
 description: "Imported from rigortype/rigor docs/design/20260509-dry-plugins-roadmap.md."
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/design/20260509-dry-plugins-roadmap.md"
 sourcePath: "docs/design/20260509-dry-plugins-roadmap.md"
-sourceSha: "63978932ca877414bf1b8e58102dfbce7c58406e5f8c13ef19a96b4a993979de"
-sourceCommit: "f87b68f852350994a182dca35c52464a59be6e53"
+sourceSha: "10aed4d2f0b36175ad523758cb877eb3c56cf8e2fb6f5773f290c12f670dbe4e"
+sourceCommit: "035915291e331f3bcd5ce804a1e30dc284ffbd48"
 translationStatus: "translated"
 sidebar:
   order: 20265509
@@ -261,7 +261,7 @@ end
 
 **プラグイン関連DSL**。エフェクトは`include Dry::Effects.X(...)`でミックスインし、`include Dry::Effects::Handler.X(...)`でハンドルする。
 
-**プラグインが発行する静的ファクト**。エフェクトはメソッドの戻り型を変更しない。ケイパビリティ要件を課す（マッチするハンドラーが呼び出しサイトのスコープ内にあること）。Rigorの型ラティスでのモデリングは可能だが、v0.1.xキャリアとは直接整合しない。**推奨: 延期**。Rigorに明示的なエフェクトロウキャリアが現れた場合（現時点でこのADRはない）に再検討。
+**プラグインが発行する静的ファクト**。エフェクトはメソッドの戻り型を変更しない。ケイパビリティ要件を課す（マッチするハンドラーが呼び出しサイトのスコープ内にあること）。Rigorの型ラティスでのモデリングは可能だが、v0.1.xキャリアとは直接整合しない**。推奨: 延期**。Rigorに明示的なエフェクトロウキャリアが現れた場合（現時点でこのADRはない）に再検討。
 
 **ドキュメントに記載されたdry-*依存関係**。なし。
 
@@ -432,7 +432,7 @@ dry-rails          -> dry-system       (runtime, plugin)
 - **ADR-9クロスプラグインAPI**（[`docs/adr/9-cross-plugin-api.md`](../../adr/9-cross-plugin-api/)）
   — 別のプラグインのファクトを消費するプラグイン（dry-schemaの強制変換シェイプを必要とするdry-validation、dry-systemのコンテナマップを必要とするdry-auto_inject）には必須。戦略1はそれを回避する。戦略2と3はクロスプラグインの受け渡しにブロックされる。
 - **v0.1.1正規表現→リファインメント名認識器**
-  （[`docs/MILESTONES.md`](../../milestones/)参照）
+  （[`docs/ROADMAP.md`](../../roadmap/)参照）
   — スライス1は未リリースでランディング済み。フルの認識器が出荷されると、`gt?: 18`や`format?: /\A.../`等のdry-schemaの述語がビルトインのリファインメント名にきれいにマッピングされる。それまでは述語ファクトは記録されるが型ナローイングはされない。
 
 どちらも、ドライを限定するMVP（dry-types + dry-struct + dry-monadsの3つのgem: 別のプラグインからファクトを消費する必要なくローカルにファクトを生成するもの）をブロックしない。その密接なサブセットは3つの戦略いずれでも妥当なv1である。

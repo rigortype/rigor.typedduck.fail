@@ -3,8 +3,8 @@ title: "ADR-2: 拡張API戦略"
 description: "Imported from rigortype/rigor docs/adr/2-extension-api.md."
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/adr/2-extension-api.md"
 sourcePath: "docs/adr/2-extension-api.md"
-sourceSha: "b348f37ad42dbba186dc173d65a772dd69cd9d38f0a8115edb55d56bc9dad3ff"
-sourceCommit: "9f40e22193647dc06e3ab70c5ba82768b0bfe738"
+sourceSha: "c1a5d3809a2e35e9422da3b1b984660f87c5d9f39a3aca43ec114fab4c07cad3"
+sourceCommit: "035915291e331f3bcd5ce804a1e30dc284ffbd48"
 translationStatus: "translated"
 sidebar:
   order: 4002
@@ -325,6 +325,7 @@ Rigorは同じ2つのテストスタイルを提供すべきです:
 
 ## オープンクエスチョン
 
+- **Ractor分離下のプラグイン契約（[ADR-15](../15-ractor-concurrency/)フェーズ3）**。`Analysis::Runner` Ractorワーカープールが着地するとき（フェーズ4）、プラグインインスタンスはRactorごとである必要があります: 各ワーカーは共有レジストリの凍結されたファクトリー + マニフェストメタデータから自身のプラグインを実体化します。`flow_contribution_for` / `diagnostics_for_file`フックで実行ごとの可変状態を蓄積するプラグイン（`rigor-sorbet`の`@reachable_absurd_nodes` / `@reveal_type_calls` / `@assert_type_mismatches` `compare_by_identity` Hashesが正典の例）は、その状態を`Plugin::FactStore`（すでにクロスRactor調整済み）経由でルーティングするか、Ractorごとの分離を受け入れる必要があります（MUST）。フェーズ3のADR-2修正案が選ばれた形状を固定します;現在テーブル上の3つの候補はADR-15 § OQ2に記録されています。
 - 動的戻り値拡張は最初に名前的レシーバー型のみで一致すべきか、それとも構造的インターフェースとオブジェクトシェイプでも一致すべきか？
 - 最初のプラグインマニフェスト形式と設定スキーマ言語は何か？
 - Rigorは最初のカスタムルールマイルストーンでルールに合成または仮想ASTノードを公開すべきか？
