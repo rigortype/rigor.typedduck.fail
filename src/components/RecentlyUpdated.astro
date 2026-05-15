@@ -1,0 +1,78 @@
+---
+import { getCollection } from 'astro:content';
+
+const isJa = Astro.currentLocale === 'ja';
+
+const sectionLabels: Record<string, { en: string; ja: string }> = {
+  handbook: { en: 'Handbook', ja: 'ハンドブック' },
+  'type-specification': { en: 'Type Specification', ja: '型仕様' },
+  'internal-spec': { en: 'Internal Specification', ja: '内部仕様' },
+  adr: { en: 'Architecture Decisions', ja: '設計判断' },
+  design: { en: 'Design Notes', ja: '設計ノート' },
+  notes: { en: 'Development Notes', ja: '開発ノート' },
+};
+
+const allDocs = await getCollection('docs');
+
+const jaIds = new Set(
+  allDocs.filter((e) => e.id.startsWith('ja/')).map((e) => e.id),
+);
+
+const entries = allDocs
+  .filter((e) => {
+    if (e.id.startsWith('ja/')) return false;
+    if (!e.id.startsWith('reference/')) return false;
+    if (e.id === 'reference/index') return false;
+    if (!e.data.sourceDate) return false;
+    return true;
+  })
+  .sort((a, b) => {
+    const da = a.data.sourceDate ?? '';
+    const db = b.data.sourceDate ?? '';
+    return db.localeCompare(da);
+  });
+
+function entryUrl(id: string, locale: 'en' | 'ja'): string {
+  const base = id.replace(/\/index$/, '');
+  return locale === 'ja' ? `/ja/${base}/` : `/${base}/`;
+}
+
+function formatDate(iso: string): string {
+  return iso.slice(0, 10);
+}
+
+function sectionLabel(id: string): string {
+  const segment = id.split('/')[1] ?? '';
+  const labels = sectionLabels[segment];
+  if (!labels) return segment;
+  return isJa ? labels.ja : labels.en;
+}
+---
+
+<table>
+  <thead>
+    <tr>
+      <th>{isJa ? 'タイトル' : 'Title'}</th>
+      <th>{isJa ? 'セクション' : 'Section'}</th>
+      <th>{isJa ? '更新日（原文基準）' : 'Last Updated (source)'}</th>
+    </tr>
+  </thead>
+  <tbody>
+    {entries.map((entry) => {
+      const jaId = `ja/${entry.id}`;
+      const url = isJa && jaIds.has(jaId)
+        ? entryUrl(entry.id, 'ja')
+        : entryUrl(entry.id, 'en');
+      const title = isJa && jaIds.has(jaId)
+        ? (allDocs.find((e) => e.id === jaId)?.data.title ?? entry.data.title)
+        : entry.data.title;
+      return (
+        <tr>
+          <td><a href={url}>{title}</a></td>
+          <td>{sectionLabel(entry.id)}</td>
+          <td>{formatDate(entry.data.sourceDate!)}</td>
+        </tr>
+      );
+    })}
+  </tbody>
+</table>

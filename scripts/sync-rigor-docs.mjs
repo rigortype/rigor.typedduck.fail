@@ -44,7 +44,8 @@ for (const file of markdownFiles) {
   const destinationPath = outputPathFor(relativePath);
   const sourcePath = path.relative(sourceRoot, file).split(path.sep).join('/');
   const source = await readFile(file, 'utf8');
-  const page = normalizeMarkdown(source, relativePath, sourcePath);
+  const sourceDate = await getFileLastCommitDate(sourcePath);
+  const page = normalizeMarkdown(source, relativePath, sourcePath, sourceDate);
 
   await mkdir(path.dirname(destinationPath), { recursive: true });
   await writeFile(destinationPath, page);
@@ -199,7 +200,19 @@ function outputPathFor(relativePath) {
   return path.join(outputRoot, ...segments.slice(0, -1), outputFileName);
 }
 
-function normalizeMarkdown(source, relativePath, sourcePath) {
+async function getFileLastCommitDate(sourcePath) {
+  try {
+    const { stdout } = await execFileAsync('git', [
+      '-C', sourceRoot,
+      'log', '-1', '--format=%aI', '--', sourcePath,
+    ]);
+    return stdout.trim() || null;
+  } catch {
+    return null;
+  }
+}
+
+function normalizeMarkdown(source, relativePath, sourcePath, sourceDate) {
   const { frontmatter, body } = splitFrontmatter(source);
   const heading = firstHeading(body);
   const title = heading?.text ?? titleFromFile(relativePath);
@@ -214,6 +227,7 @@ function normalizeMarkdown(source, relativePath, sourcePath) {
     order,
     sourceSha,
     sourceCommit,
+    sourceDate,
   });
 
   return `---\n${mergedFrontmatter}\n---\n\n${normalizedBody}`;
@@ -275,7 +289,7 @@ function normalizeCodeFences(body) {
   return body.replace(/^(```+)rbs(\s*)$/gim, '$1ruby$2');
 }
 
-function mergeFrontmatter(frontmatter, { title, sourcePath, order, sourceSha, sourceCommit }) {
+function mergeFrontmatter(frontmatter, { title, sourcePath, order, sourceSha, sourceCommit, sourceDate }) {
   const lines = frontmatter ? [frontmatter] : [];
   if (!hasFrontmatterKey(frontmatter, 'title')) {
     lines.push(`title: ${JSON.stringify(title)}`);
@@ -294,6 +308,9 @@ function mergeFrontmatter(frontmatter, { title, sourcePath, order, sourceSha, so
   }
   if (sourceCommit && !hasFrontmatterKey(frontmatter, 'sourceCommit')) {
     lines.push(`sourceCommit: ${JSON.stringify(sourceCommit)}`);
+  }
+  if (sourceDate && !hasFrontmatterKey(frontmatter, 'sourceDate')) {
+    lines.push(`sourceDate: ${JSON.stringify(sourceDate)}`);
   }
   if (!hasFrontmatterKey(frontmatter, 'sidebar')) {
     lines.push('sidebar:');

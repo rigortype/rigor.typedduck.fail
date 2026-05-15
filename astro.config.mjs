@@ -3,6 +3,7 @@ import mdx from '@astrojs/mdx';
 import starlight from '@astrojs/starlight';
 
 const sidebarTranslations = {
+  recentlyUpdated: { ja: '最近の更新' },
   reference: { ja: 'リファレンス' },
   handbook: { ja: 'ハンドブック' },
   typeSpecification: { ja: '型仕様' },
@@ -61,6 +62,11 @@ export default defineConfig({
       ],
       sidebar: [
         {
+          label: 'Recently Updated',
+          translations: sidebarTranslations.recentlyUpdated,
+          slug: 'recently-updated',
+        },
+        {
           label: 'Reference',
           translations: sidebarTranslations.reference,
           slug: 'reference',
@@ -100,7 +106,7 @@ export default defineConfig({
           collapsed: true,
           items: [
             { slug: 'reference/current-work' },
-            { slug: 'reference/milestones' },
+            { slug: 'reference/roadmap' },
             { slug: 'reference/types' },
             {
               label: 'Development Notes',
