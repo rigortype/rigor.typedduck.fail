@@ -22,9 +22,9 @@ Rigorの現状の2つの事実が応答を形作ります:
 
 1.  **Rigorの型演算子サーフェスはすでにいくつかのTypeScriptユーティリティ型をRBS正準演算子としてカバーしています**（[`type-operators.md`](../../type-specification/type-operators/)）: `T - U`は`Exclude`、`T & U`は`Extract`、`T - nil`は`NonNullable`、`T[K]`はインデックスアクセスをカバーします。[`imported-built-in-types.md`](../../type-specification/imported-built-in-types/)§「先送りまたは拒否されたインポート」のリストは、名前レベルのインポート（`Partial`、`Required`、`Readonly`、`Pick`、`Omit`、`Record`、`Parameters`、`ReturnType`、`InstanceType`）は「初期に」Rigor表面形式としてランディングしてはならない（MUST NOT）と明示しています。そのMUST NOTを反転するハードルは、正準サーフェスを汚染することなくユーザーがオプトインできる具体的な拡張ポイントです。
 
-2.  **Rigorにはプラグイン拡張可能な型ノード解決がありません**。 `%a{rigor:v1:return: …}` / `%a{rigor:v1:param: …}` / `%a{rigor:v1:assert: …}`ペイロードの現在の名前解決パスは`Rigor::Builtins::ImportedRefinements::Parser`にハードコードされています。新しいヘッド（`pick_of[…]`、`partial_of[…]`、…）の追加は現在、コア内のレジストリを編集する必要があります。プラグインは、基底のセマンティクスが既存のキャリアを通じて表現可能であっても、名前付き型語彙に貢献できません。
+2.  **Rigorにはプラグイン拡張可能な型ノード解決がありません**。`%a{rigor:v1:return: …}` / `%a{rigor:v1:param: …}` / `%a{rigor:v1:assert: …}`ペイロードの現在の名前解決パスは`Rigor::Builtins::ImportedRefinements::Parser`にハードコードされています。新しいヘッド（`pick_of[…]`、`partial_of[…]`、…）の追加は現在、コア内のレジストリを編集する必要があります。プラグインは、基底のセマンティクスが既存のキャリアを通じて表現可能であっても、名前付き型語彙に貢献できません。
 
-ユーザーの要求 — *「TypeScriptユーティリティ的な型を定義するAPIを提供し、TS等価のビルトインを出荷する」* — には2つの部分があります。**API**部分は上記の拡張性ギャップです**。ビルトイン**部分はTypeScript正準名をRigorコアに持ち込むべきではありません（仕様はすでにそれを拒否しています）;TS名をRigor正準演算子と型関数にマップするオプトインのプラグインとして出荷すべきです。
+ユーザーの要求 — *「TypeScriptユーティリティ的な型を定義するAPIを提供し、TS等価のビルトインを出荷する」* — には2つの部分があります。**API**部分は上記の拡張性ギャップです。 **ビルトイン**部分はTypeScript正準名をRigorコアに持ち込むべきではありません（仕様はすでにそれを拒否しています）;TS名をRigor正準演算子と型関数にマップするオプトインのプラグインとして出荷すべきです。
 
 ## 決定
 
@@ -195,11 +195,11 @@ ADR-1はRBSを正準のエクスポート契約として固定します。新し
 推奨される順序;各スライスは独立して出荷可能:
 
 1.  **`Rigor::TypeNode`値オブジェクト + spec**。純粋なDataクラス;パーサーの変更はまだなし。ドリフトスナップショットがランディング。
-2.  **`Plugin::TypeNodeResolver`基底クラス + マニフェストフック**。 `Plugin::Manifest#type_node_resolvers`リーダー;ローダーはプラグイン全体でリゾルバを集約。パーサー統合はまだなし。
+2.  **`Plugin::TypeNodeResolver`基底クラス + マニフェストフック**。`Plugin::Manifest#type_node_resolvers`リーダー;ローダーはプラグイン全体でリゾルバを集約。パーサー統合はまだなし。
 3.  **`ImportedRefinements::Parser`でのパーサー統合**。「プラグインリゾルバを参照する」ステップをルックアップチェーンの正しい位置に挿入。ペイロード全体の失敗に対する`dynamic.rbs-extended.unresolved`診断。
-4.  **コア型関数 — フェーズA（レコード / シェイプキャリア）**。 HashShapeとレコードキャリアに対する`pick_of[T, K]`、`omit_of[T, K]`、`partial_of[T]`、`required_of[T]`、`readonly_of[T]`。`type-operators.md`と`imported-built-in-types.md`にspec行を追加。
+4.  **コア型関数 — フェーズA（レコード / シェイプキャリア）**。HashShapeとレコードキャリアに対する`pick_of[T, K]`、`omit_of[T, K]`、`partial_of[T]`、`required_of[T]`、`readonly_of[T]`。`type-operators.md`と`imported-built-in-types.md`にspec行を追加。
 5.  **コア型関数 — フェーズB（タプル + オブジェクトシェイプ）**。フェーズAのカバレッジをタプルとオブジェクトシェイプキャリアに拡張;非シェイプ入力に対するlossy-projection診断。
-6.  **`examples/rigor-typescript-utility-types/`**。 `.codex/skills/rigor-plugin-author/SKILL.md`を介したプラグインスキャフォールド。v1カットでは5つのリゾルバ（Pick、Omit、Partial、Required、Readonly）;7つの「縮退」行は`plugin.typescript-utility-types.unsupported`戻り値として出荷。
+6.  **`examples/rigor-typescript-utility-types/`**。`.codex/skills/rigor-plugin-author/SKILL.md`を介したプラグインスキャフォールド。v1カットでは5つのリゾルバ（Pick、Omit、Partial、Required、Readonly）;7つの「縮退」行は`plugin.typescript-utility-types.unsupported`戻り値として出荷。
 7.  **ドキュメント更新**。ハンドブック章がプラグインを相互参照;`examples/README.md`比較テーブルがTypeScriptユーティリティ型行を得る。
 
 プラグインは契約が安定したら、既存のパターンに従い`git subtree split`経由で抽出されます（[Railsプラグインロードマップ][rails-roadmap]を参照）。
@@ -216,9 +216,9 @@ RBSのパーサーはRigorのペイロード構文（`pick_of[T, K]`、`int<a, b
 
 3つの理由:
 
-1.  **シェイプセマンティクスはコアに属します**。 HashShapeからのpick対Recordからのpick対Tupleからのpickは異なるルールを持ちます;lossy-projectionの崖は現実です。その決定を中央化することで、プラグインごとの発散を回避します。
-2.  **RBS消去契約**。 ADR-1はすべてのRigor型に決定論的なRBS消去を要求します。プラグイン提供型はリゾルバがコア型を返すパターンを通じてこれを満たします。`Pick<T, K>`がプラグイン内部の型キャリアを返した場合、消去パスもプラグインを参照する必要があります — 循環。
-3.  **他のプラグインもシェイプ射影を望みます**。 `rigor-units`（計量単位）と`rigor-rspec`（マッチャー型）は両方ともTypeScript名を必要とせずに`pick_of` / `omit_of`の恩恵を受けます。関数は単独で立ちます。
+1.  **シェイプセマンティクスはコアに属します**。HashShapeからのpick対Recordからのpick対Tupleからのpickは異なるルールを持ちます;lossy-projectionの崖は現実です。その決定を中央化することで、プラグインごとの発散を回避します。
+2.  **RBS消去契約**。ADR-1はすべてのRigor型に決定論的なRBS消去を要求します。プラグイン提供型はリゾルバがコア型を返すパターンを通じてこれを満たします。`Pick<T, K>`がプラグイン内部の型キャリアを返した場合、消去パスもプラグインを参照する必要があります — 循環。
+3.  **他のプラグインもシェイプ射影を望みます**。`rigor-units`（計量単位）と`rigor-rspec`（マッチャー型）は両方ともTypeScript名を必要とせずに`pick_of` / `omit_of`の恩恵を受けます。関数は単独で立ちます。
 
 ### WD3 — なぜ競合解決にオーソリティ階層ではなくプラグイン登録順を？
 
