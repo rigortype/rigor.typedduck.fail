@@ -3,9 +3,9 @@ title: "Rigor Roadmap"
 description: "rigortype/rigor docs/ROADMAP.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/ROADMAP.md"
 sourcePath: "docs/ROADMAP.md"
-sourceSha: "3c90dfe73bba05bb5bf4edd63dbb4037d05ab33eb5bb9ceddd694d750a51ffb2"
-sourceCommit: "dd1240d88f635b570b72ca36d1fccddc8df8ccd1"
-sourceDate: "2026-05-18T05:10:51+09:00"
+sourceSha: "f7ac0e3c3b421253b9aa684d45eda1c164fa2c7cc8757c43bee493c315f5206c"
+sourceCommit: "80912f56afb2f5cb8dae1a3678eaeb7a0e49c3a6"
+sourceDate: "2026-05-19T02:35:47+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9050
@@ -71,6 +71,31 @@ sidebar:
 - **エディタモードフォローアップ**（[`docs/design/20260516-editor-mode.md`](../design/20260516-editor-mode/) §「v1のスコープ外」）: ファイルごとの診断キャッシュ（単一ファイルスコープ（オプションA） → 代入付きプロジェクトスコープ（オプションB）にアップグレードするレバー）、プレパス再利用のためのプロジェクトコンテキストスナップショットキャッシュ、マルチバッファ（`--buffer A=B --buffer C=D`）、`--also=dep1,dep2`呼び出し元宣言のディペンデント、LSPデーモン / ファイルウォッチ。
 - **`rigor-graphql`スライス1+2a+2b+2c+2dすべて着地**（Tier 3D — `Schema::Object` + リストラッパー + `Schema::Enum` + `Schema::InputObject` + `Schema::Mutation`認識、4つのクロスプラグインファクトを公開;CHANGELOG `[Unreleased]` § Added）。残りの将来スライス（リゾルバメソッド型チェック、`<Type>.array` / `<Type>!`連鎖形、文字列形`field :foo, "User"`診断、`Schema.execute(...)`結果型付け）は需要駆動。
 - **O4レイヤー3 gemバージョンごとのキャッシュ**（スライス3アーキテクチャ;将来のRuby::BoxスタイルのBundler拡張が優先順位を上げる）。
+
+## v0.1.7 / v0.1.8 — ユーザー向けポジショニングトラック（コミット済み）
+
+3本柱のメッセージング枠組みがREADME / handbookのフロントマターを駆動し、v0.1.7 / v0.1.8のリリースナラティブを形作る。**柱1と柱3はすでにv0.1.5 / v0.1.6の推論 + プラグイン / 基板作業から出荷されており、v0.1.6以降のREADMEリードに反映されている;柱2はREADMEに昇格される前に下記の実装スライスを必要とする**。
+
+| 柱 | タグライン | ステータス |
+| --- | --- | --- |
+| 1. 願望ではなく事実としての型 | 「あなたのコードの型は事実を表明していますか、それとも実装に遅れを取っていますか？」 | 出荷済み（推論優先 + `rigor sig-gen` + `tighter-return`）。READMEリードはv0.1.6からこれを反映。 |
+| 2. specが型である | 「本当に型を書く必要がありますか？`spec/`はすでに型情報です。」 | 下記の実装トラック。スライス1〜3が着地したらREADMEに昇格。 |
+| 3. ユニオンを超えるプログラマブルな推論 | 「型安全性にユニオン型だけでは足りない。プログラマブルな推論がメタプログラミングと安全性を共存させる。」 | 出荷済み（キャリア群 + プラグイン契約 + ADR-16基板 + ADR-18呼び出しサイトごとの精度）。READMEリードはv0.1.6からこれを反映。 |
+
+### 柱2の実装トラック（ターゲット: v0.1.8）
+
+「specが型である」というナラティブを過剰約束せずに裏付けるには、既存の[`rigor-rspec`](../examples/rigor-rspec/)と[`rigor-factorybot`](../examples/rigor-factorybot/)プラグインの上に加法的な3つの具体的な能力が必要:
+
+- **スライス1 — RSpecアサーションからのspec由来フローファクト**。
+  `it`ブロック内の`expect(x).to be_a(T)` / `eq(literal)` / `be_kind_of(T)` / `be_instance_of(T)` / `be_nil` / `be_truthy|falsey`が、アサーション以降の`x`についてRigorのナローイングファクトに寄与する。`rigor check`がspecを不透明なRubyとして読み、spec内部バグ（間違った変数に対するアサーション）とspec由来契約（ナローイングされたレシーバーから恩恵を受ける同じ`it`本体の下流呼び出し）の両方を見逃す今日のギャップをクローズ。スライスは`rigor-rspec`を拡張する;コアエンジン変更なし。6マッチャーテーブルが自然なフロア。
+- **スライス2 — SUTへの`subject` / `let`クロスバインディング**。
+  `describe User do … end`本体が`subject { described_class.new(...) }`または`let(:user) { User.new(name: "a") }`を宣言するとき、コンストラクタarityと属性ごとの存在の証拠としてブロックを扱う;`rigor-activerecord` / `rigor-factorybot`の既存の`:model_index`チャネルにフィードバックし、`let`で導入されたローカルが下流の`it`本体で正しいキャリアに表面化するように。
+- **スライス3 — 構造体形ファクトとしてのファクトリ定義**。
+  `rigor-factorybot`は今日ファクトリ呼び出しを検証する;ファクトリごとの属性セットをADR-9ファクトとして公開しない。スライスは`spec/factories/`を`:factory_index` / `:factory_attributes`チャネルに昇格させ、`let(:user) { create(:user) }`がファクトリの属性形がローカルにバインドされた`User`キャリアを生み出すようにする。スライス2と組み合わせて`let` ↔ ファクトリチェーンに合成される。
+
+各スライスはオプトイン（マニフェストエントリまたは`.rigor.yml`トグル）;`rigor-rspec` / `rigor-factorybot`を実行していないユーザーには動作変更なし。スライスが着地したらREADMEの「2つの設計コミットメント」リードは3つに拡張される。
+
+v0.1.7カットはv0.1.6の最終化ウィンドウで最初に着地するスライスを吸収する;v0.1.8は3つすべての拘束力のあるシーリング。具体的なユーザー需要がより早く表面化した場合 — 例えば、spec重視のコードベースが`let`バインディングが`Dynamic[Top]`として読まれることを支配的な摩擦として報告した場合 — シーリングは前倒しされる。
 
 ## 将来のサイクル（特定のリリースにコミットされていない）
 
