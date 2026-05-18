@@ -80,7 +80,7 @@ type.string.yes?           # bool, the only ?-suffixed surface
 
 - Rubyの読み手は本能的に`type.string?`と入力して`NoMethodError`を得るかもしれません。明確なクラスレベルのドキュメンテーション文字列と（slice 1で）落とした`?`形式を提案するカスタム`method_missing`を追加することでこれを緩和します。
 
-Slice 1のレビューがOption C（双対API）の方が使いやすいと結論したら、ADR-3 OQ2は更新され、単一のフォローアップで`?`シュガーが型表層全体に追加されます。
+Slice 1のレビューがOption C（双対API）の方が使いやすいと結論したら、ADR-3 OQ2は更新され、単一のフォローアップで`?`糖衣構文が型表層全体に追加されます。
 
 ## 仮想ノードとメソッドディスパッチ境界
 
