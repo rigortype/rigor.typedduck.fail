@@ -3,8 +3,8 @@ title: "ADR-5: Robustness Principle for Rigor Types"
 description: "Imported from rigortype/rigor docs/adr/5-robustness-principle.md."
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/adr/5-robustness-principle.md"
 sourcePath: "docs/adr/5-robustness-principle.md"
-sourceSha: "3c379542e5b271633fddceaf5f63ef07822595765f0260ad716ae672eb7b8b3e"
-sourceCommit: "9f40e22193647dc06e3ab70c5ba82768b0bfe738"
+sourceSha: "422c6e3e2158b912b8d97a38b5cee98e14a7421a9329cb5bd243b3f64190cda0"
+sourceCommit: "dd1240d88f635b570b72ca36d1fccddc8df8ccd1"
 translationStatus: "translated"
 sidebar:
   order: 4005
@@ -164,3 +164,8 @@ fold_platform_specific_paths: true
 - [ADR-1: 型モデルとRBSスーパーセット戦略](../1-types/) — ADR-5が改訂するRBSラウンドトリップルールを確立する。
 - [ADR-3: 内部型表現](../3-type-representation/) — ADR-5が選択するキャリア（`Constant`、`Nominal`、`Union`、`Tuple`、`HashShape`、`IntegerRange`）を定義する。
 - [ADR-4: 型推論エンジン](../4-type-inference-engine/) — ユーザーメソッド型を推論するときにこの原則を観察するエンジン。
+
+## 背景となる研究ノート
+
+- [`docs/notes/20260518-matsumoto-2008-poly-records-rigor-review.md`](../../notes/20260518-matsumoto-2008-poly-records-rigor-review/) — 松本＆南出2008は*逆の*非対称性を採用している。負の位置（引数）はシグネチャのみだが、正の位置（返り値）にはRuby実装も*許容する*。「呼び出し側の生活を楽にする」という同じ本能、しかし返り値側のスタンスは逆である。「なぜこの非対称性であって、もう一方ではないのか？」という根拠セクションが暗黙のままにしている問いに対する有用な対比材料。
+- [`docs/notes/20260518-matsumoto-2010-cfa-rigor-review.md`](../../notes/20260518-matsumoto-2010-cfa-rigor-review/) — 松本＆南出2010はSemiRubyの健全性を証明している。Rigorは*意図的に*同レベルの形式的健全性を目指していない。このノートは、同著者による設計の系譜（2008年論文→2010年論文→Steep→現在）を記録しており、Rigorの堅牢性優先のスタンスを逸脱ではなく継続として正当化する。

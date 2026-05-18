@@ -3,9 +3,9 @@ title: "ADR-17 — プロジェクト側monkey-patchの事前評価"
 description: "rigortype/rigor docs/adr/17-monkey-patch-pre-evaluation.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/adr/17-monkey-patch-pre-evaluation.md"
 sourcePath: "docs/adr/17-monkey-patch-pre-evaluation.md"
-sourceSha: "6f0e73d0e24bb0d2e184b7b45f99c8a134f89b1359cd1a82cc562885d75cc0df"
-sourceCommit: "dac915a9ee49b89e89774c34c518e8501275f6a3"
-sourceDate: "2026-05-16T03:16:06+09:00"
+sourceSha: "99fa4f54465322591f372e4bda28ec766471875d7605ad1da4a603a1b45a90b5"
+sourceCommit: "dd1240d88f635b570b72ca36d1fccddc8df8ccd1"
+sourceDate: "2026-05-18T04:21:23+09:00"
 translationStatus: "translated"
 sidebar:
   order: 4017
@@ -196,6 +196,11 @@ Rigorのアナライザが起動すると次のように動作します。
 - **`pre_eval:`はディレクトリを受け入れるべきか？** ディレクトリをその下のすべての`.rb`ファイルに展開すれば`pre_eval: [lib/core_ext]`が典型的なユースケースの省略形になる。決定はスライス4（自動発見スライス）に先送り、同じglob機構が両方の形態を扱うため。
 - **`pre_eval:`はキャッシュの`--cache-stats`出力に参加すべきか？** おそらくyes — ユーザーはパッチ済みメソッドエントリがいくつ埋まっているか、スライスごとの無効化アクティビティがどう見えるかを見たい。決定はスライス3実装に先送り。
 - **事前評価はレジストリを検査するCLIフラグを必要とするか？** `rigor pre-eval --dump`は解決された`(class_name, method_name, source_path:line)`テーブルをデバッグ用に印刷する。決定は需要に先送り。
+
+## 背景となる研究ノート
+
+- [`docs/notes/20260518-matsumoto-2010-cfa-rigor-review.md`](../../notes/20260518-matsumoto-2010-cfa-rigor-review/)
+  — 松本＆南出2010のSemiRubyに対する半フロー感応CFAは、ADR-17がエンジニアリング側から攻略するのと同じmonkey-patch問題に対する*理論的*解である。論文はプログラムポイントごとに「メソッド設定」（このちょうどこの場所で可視な`def`はどれか）を追跡し、健全性を証明する。一方ADR-17は事前評価の明示的なコストを前払いし、結果として得られる（クラス、メソッド、種別）レジストリをディスパッチャ層に凍結し、解析器の残りはメソッド定義についてフロー非感応のままにする。論文は採用しなかった代替の道として読め、明示リストMVPがいつか不十分と判明したときに半フロー感応メソッド設定が信頼できる将来の精度引き上げパスとして残ることを記録している。
 
 ## 改訂履歴
 
