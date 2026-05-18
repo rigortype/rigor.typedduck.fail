@@ -13,6 +13,10 @@ const upstreamRoot = path.resolve(projectRoot, process.env.RIGOR_SOURCE_DIR ?? '
 const sourceLocaleRoot = path.join(docsRoot, 'reference');
 const targetLocale = process.env.RIGOR_LOCALE ?? 'ja';
 const targetLocaleRoot = path.join(docsRoot, targetLocale, 'reference');
+// For Japanese-native upstream sources, hand-edited English translations
+// live under translations/en/<output-path>. sync-rigor-docs.mjs reads
+// these and overlays them onto the gitignored EN tree.
+const enOfJaTranslationsRoot = path.resolve(projectRoot, 'translations/en');
 
 const args = process.argv.slice(2);
 const flags = parseArgs(args);
@@ -79,9 +83,43 @@ async function buildReport(records) {
   const ok = [];
   const stale = [];
   const missing = [];
+  const reverseOk = [];
+  const reverseStale = [];
+  const reverseMissing = [];
   const orphans = await findOrphans(records);
 
   for (const record of records) {
+    if (record.sourceLanguage === 'ja') {
+      // Reverse direction: upstream is JA; hand-edited EN translation
+      // lives under translations/en/<output-path>.
+      const targetPath = enTranslationPathFor(record.relativePath);
+      let targetSource;
+      try {
+        targetSource = await readFile(targetPath, 'utf8');
+      } catch (error) {
+        if (error.code === 'ENOENT') {
+          reverseMissing.push({ ...record, targetPath });
+          continue;
+        }
+        throw error;
+      }
+      const targetFrontmatter = readFrontmatter(targetSource);
+      const translatedSha = targetFrontmatter.sourceSha;
+      const translatedCommit = targetFrontmatter.sourceCommit;
+      const status = targetFrontmatter.translationStatus ?? 'translated';
+      if (!translatedSha) {
+        reverseStale.push({ ...record, targetPath, reason: 'missing-sourceSha', status, translatedCommit });
+      } else if (translatedSha !== record.sourceSha) {
+        reverseStale.push({ ...record, targetPath, reason: 'sha-mismatch', status, translatedSha, translatedCommit });
+      } else if (status !== 'translated') {
+        reverseStale.push({ ...record, targetPath, reason: `status:${status}`, status, translatedCommit });
+      } else {
+        reverseOk.push({ ...record, targetPath });
+      }
+      continue;
+    }
+
+    // Forward direction (default): upstream is EN; check JA mirror.
     const targetPath = mirrorPathFor(record.relativePath);
     let targetSource;
     try {
@@ -110,24 +148,30 @@ async function buildReport(records) {
     }
   }
 
-  return { ok, stale, missing, orphans };
+  return { ok, stale, missing, orphans, reverseOk, reverseStale, reverseMissing };
 }
 
-function printReport({ ok, stale, missing, orphans }) {
+function printReport({ ok, stale, missing, orphans, reverseOk, reverseStale, reverseMissing }) {
   const total = ok.length + stale.length + missing.length;
   console.log(`Translation status (${targetLocale}): ${ok.length}/${total} translated, ${stale.length} stale, ${missing.length} missing.`);
+
+  const reverseTotal = reverseOk.length + reverseStale.length + reverseMissing.length;
+  if (reverseTotal > 0) {
+    console.log(`Reverse translation status (en, of ja-native upstream): ${reverseOk.length}/${reverseTotal} translated, ${reverseStale.length} stale, ${reverseMissing.length} missing.`);
+  }
+
   if (orphans.length) {
     console.log(`Orphaned ${targetLocale} files (no English source): ${orphans.length}`);
     for (const orphan of orphans) console.log(`  - ${path.relative(projectRoot, orphan)}`);
   }
   if (missing.length) {
-    console.log(`\nMissing translations:`);
+    console.log(`\nMissing translations (${targetLocale}):`);
     for (const item of missing) {
       console.log(`  - ${path.posix.normalize(item.relativePath)}  (${item.sourcePath})`);
     }
   }
   if (stale.length) {
-    console.log(`\nStale translations:`);
+    console.log(`\nStale translations (${targetLocale}):`);
     for (const item of stale) {
       const detail = item.reason === 'sha-mismatch'
         ? `EN sha=${short(item.sourceSha)} vs translated sha=${short(item.translatedSha)} (last @ ${short(item.translatedCommit)})`
@@ -135,8 +179,23 @@ function printReport({ ok, stale, missing, orphans }) {
       console.log(`  - ${path.posix.normalize(item.relativePath)}  [${detail}]`);
     }
   }
-  if (!stale.length && !missing.length) {
-    console.log(`\nAll ${targetLocale} translations are up to date.`);
+  if (reverseMissing.length) {
+    console.log(`\nMissing reverse translations (en of ja-native upstream — write under translations/en/):`);
+    for (const item of reverseMissing) {
+      console.log(`  - ${path.posix.normalize(item.relativePath)}  (${item.sourcePath})`);
+    }
+  }
+  if (reverseStale.length) {
+    console.log(`\nStale reverse translations (en of ja-native upstream):`);
+    for (const item of reverseStale) {
+      const detail = item.reason === 'sha-mismatch'
+        ? `EN-source ja sha=${short(item.sourceSha)} vs translated sha=${short(item.translatedSha)} (last @ ${short(item.translatedCommit)})`
+        : item.reason;
+      console.log(`  - ${path.posix.normalize(item.relativePath)}  [${detail}]`);
+    }
+  }
+  if (!stale.length && !missing.length && !reverseStale.length && !reverseMissing.length) {
+    console.log(`\nAll translations are up to date.`);
   }
 }
 
@@ -247,12 +306,16 @@ async function buildSourceRecord(file) {
     sourcePath: frontmatter.sourcePath ?? '',
     sourceSha: frontmatter.sourceSha ?? '',
     sourceCommit: frontmatter.sourceCommit ?? '',
+    sourceLanguage: frontmatter.sourceLanguage ?? 'en',
     frontmatter,
     body,
   };
 }
 
 async function findOrphans(records) {
+  // Both EN-native and JA-native records have a JA-tree target:
+  // EN-native → hand-edited translation; JA-native → auto-overwritten
+  // copy of upstream (managed by sync-rigor-docs.mjs).
   const expected = new Set(records.map((record) => mirrorPathFor(record.relativePath)));
   const targetFiles = await collectMarkdownFilesSafely(targetLocaleRoot);
   return targetFiles.filter((file) => !expected.has(file));
@@ -284,6 +347,10 @@ async function collectMarkdownFiles(directory) {
 
 function mirrorPathFor(relativePath) {
   return path.join(targetLocaleRoot, ...relativePath.split('/'));
+}
+
+function enTranslationPathFor(relativePath) {
+  return path.join(enOfJaTranslationsRoot, ...relativePath.split('/'));
 }
 
 function readFrontmatter(source) {

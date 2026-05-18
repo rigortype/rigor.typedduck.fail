@@ -11,8 +11,25 @@ const execFileAsync = promisify(execFile);
 const projectRoot = fileURLToPath(new URL('..', import.meta.url));
 const sourceRoot = path.resolve(projectRoot, process.env.RIGOR_SOURCE_DIR ?? 'upstream/rigor');
 const outputRoot = path.resolve(projectRoot, 'src/content/docs/reference');
+// JA-native upstream files: the JA tree (`src/content/docs/ja/reference/`)
+// receives the upstream Japanese content verbatim — it's the canonical
+// JA presentation and stays in sync on every sync. Hand-edited JA
+// translations of EN-native upstream files also live in this directory
+// but the script never touches those (it only writes the JA-native paths).
+const jaOutputRoot = path.resolve(projectRoot, 'src/content/docs/ja/reference');
 const releaseOutputPath = path.resolve(projectRoot, 'src/data/rigor-release.json');
 const upstreamDocsDirs = ['docs', 'doc'];
+
+// When an upstream file is detected as Japanese-native (frontmatter
+// `sourceLanguage: ja` or CJK byte ratio above this threshold),
+// the script looks for a hand-edited English translation under
+// `translations/en/<output-path>`. If found, that translation is
+// written to `src/content/docs/reference/<output-path>` with the
+// upstream's sourceSha / sourceCommit / sourceDate stamped on top.
+// If absent, a "translation pending" stub containing the upstream
+// JA body is written instead so the page still renders.
+const translationsEnRoot = path.resolve(projectRoot, 'translations/en');
+const cjkLanguageThreshold = 0.4;
 
 const sectionOrder = new Map([
   ['handbook', 10],
@@ -39,16 +56,33 @@ await rm(outputRoot, { recursive: true, force: true });
 await mkdir(outputRoot, { recursive: true });
 
 const markdownFiles = await collectMarkdownFiles(docsRoot);
+let jaNativeCount = 0;
+let jaNativeWithTranslationCount = 0;
+let jaNativeStubCount = 0;
 for (const file of markdownFiles) {
   const relativePath = path.relative(docsRoot, file);
   const destinationPath = outputPathFor(relativePath);
   const sourcePath = path.relative(sourceRoot, file).split(path.sep).join('/');
   const source = await readFile(file, 'utf8');
   const sourceDate = await getFileLastCommitDate(sourcePath);
-  const page = normalizeMarkdown(source, relativePath, sourcePath, sourceDate);
+  const page = await normalizeMarkdown(source, relativePath, sourcePath, sourceDate);
 
   await mkdir(path.dirname(destinationPath), { recursive: true });
-  await writeFile(destinationPath, page);
+  await writeFile(destinationPath, page.content);
+
+  if (page.sourceLanguage === 'ja') {
+    jaNativeCount += 1;
+    if (page.translationApplied) jaNativeWithTranslationCount += 1;
+    else jaNativeStubCount += 1;
+    // Also write the JA tree page — for JA-native upstream the JA
+    // page IS the upstream content (sourceLanguage: ja, sourceSha
+    // = upstream sourceSha). check-translations skips this in the
+    // forward (en→ja) direction; findOrphans accepts these paths
+    // as expected.
+    const jaPath = jaOutputPathFor(relativePath);
+    await mkdir(path.dirname(jaPath), { recursive: true });
+    await writeFile(jaPath, page.jaTreeContent);
+  }
 }
 
 await writeFile(
@@ -61,6 +95,9 @@ await mkdir(path.dirname(releaseOutputPath), { recursive: true });
 await writeFile(releaseOutputPath, `${JSON.stringify(release, null, 2)}\n`);
 
 console.log(`Synced ${markdownFiles.length} Markdown files from ${path.relative(projectRoot, docsRoot)}.`);
+if (jaNativeCount > 0) {
+  console.log(`  Japanese-native upstream files: ${jaNativeCount} (${jaNativeWithTranslationCount} EN-translated, ${jaNativeStubCount} stub).`);
+}
 if (release.tag) {
   console.log(`Latest upstream release: ${release.tag} (${release.date ?? 'unknown date'}).`);
 } else {
@@ -200,6 +237,13 @@ function outputPathFor(relativePath) {
   return path.join(outputRoot, ...segments.slice(0, -1), outputFileName);
 }
 
+function jaOutputPathFor(relativePath) {
+  const segments = toOutputSegments(relativePath);
+  const fileName = segments.at(-1);
+  const outputFileName = fileName.toLowerCase() === 'readme.md' ? 'index.md' : fileName;
+  return path.join(jaOutputRoot, ...segments.slice(0, -1), outputFileName);
+}
+
 async function getFileLastCommitDate(sourcePath) {
   try {
     const { stdout } = await execFileAsync('git', [
@@ -212,25 +256,140 @@ async function getFileLastCommitDate(sourcePath) {
   }
 }
 
-function normalizeMarkdown(source, relativePath, sourcePath, sourceDate) {
+async function normalizeMarkdown(source, relativePath, sourcePath, sourceDate) {
   const { frontmatter, body } = splitFrontmatter(source);
   const heading = firstHeading(body);
-  const title = heading?.text ?? titleFromFile(relativePath);
+  const upstreamTitle = heading?.text ?? titleFromFile(relativePath);
   const strippedBody = heading ? removeFirstHeading(body, heading.index) : body;
   const rewrittenBody = rewriteMarkdownLinks(normalizeCodeFences(strippedBody), relativePath);
   const order = orderFor(relativePath);
   const normalizedBody = `${rewrittenBody.trimStart()}`;
   const sourceSha = createHash('sha256').update(normalizedBody).digest('hex');
-  const mergedFrontmatter = mergeFrontmatter(frontmatter, {
-    title,
+  const sourceLanguage = detectSourceLanguage(frontmatter, normalizedBody);
+
+  // EN-native upstream (the common case): emit upstream content as-is.
+  if (sourceLanguage !== 'ja') {
+    const mergedFrontmatter = mergeFrontmatter(frontmatter, {
+      title: upstreamTitle,
+      sourcePath,
+      order,
+      sourceSha,
+      sourceCommit,
+      sourceDate,
+      sourceLanguage: 'en',
+    });
+    return {
+      content: `---\n${mergedFrontmatter}\n---\n\n${normalizedBody}`,
+      sourceLanguage: 'en',
+      translationApplied: false,
+    };
+  }
+
+  // JA-native upstream: look for a hand-edited English translation.
+  // If present, use its body (with its own title/description) but stamp
+  // the upstream sourceSha / sourceCommit / sourceDate so check-translations
+  // can detect drift. If absent, emit a stub containing the upstream JA
+  // body so the page still renders.
+  const overridePath = path.join(translationsEnRoot, ...toOutputSegments(relativePath));
+  let overrideContent = null;
+  try {
+    overrideContent = await readFile(overridePath, 'utf8');
+  } catch (error) {
+    if (error.code !== 'ENOENT') throw error;
+  }
+
+  // The JA tree for a JA-native upstream file is just the upstream JA
+  // content, stamped with sourceLanguage: ja so the typography
+  // normalizer and check-translations skip it from the EN-source path.
+  const jaTreeFrontmatter = mergeFrontmatter(frontmatter, {
+    title: upstreamTitle,
     sourcePath,
     order,
     sourceSha,
     sourceCommit,
     sourceDate,
+    sourceLanguage: 'ja',
   });
+  const jaTreeContent = `---\n${jaTreeFrontmatter}\n---\n\n${normalizedBody}`;
 
-  return `---\n${mergedFrontmatter}\n---\n\n${normalizedBody}`;
+  if (overrideContent) {
+    const { frontmatter: overrideFrontmatter, body: overrideBody } = splitFrontmatter(overrideContent);
+    const overrideTitle = readFrontmatterValue(overrideFrontmatter, 'title') ?? upstreamTitle;
+    const mergedFrontmatter = mergeFrontmatter(overrideFrontmatter, {
+      title: overrideTitle,
+      sourcePath,
+      order,
+      sourceSha,
+      sourceCommit,
+      sourceDate,
+      sourceLanguage: 'ja',
+    }, { forceSourceMetadata: true });
+    return {
+      content: `---\n${mergedFrontmatter}\n---\n\n${overrideBody.trimStart()}`,
+      jaTreeContent,
+      sourceLanguage: 'ja',
+      translationApplied: true,
+    };
+  }
+
+  // No English translation yet — emit a stub. translationStatus:
+  // pending tells check-translations.mjs the page is in the
+  // ja-source-en-translation queue.
+  const stubFrontmatter = mergeFrontmatter(frontmatter, {
+    title: upstreamTitle,
+    sourcePath,
+    order,
+    sourceSha,
+    sourceCommit,
+    sourceDate,
+    sourceLanguage: 'ja',
+    translationStatus: 'pending',
+  });
+  const banner = `> [!NOTE]\n> This page was authored in Japanese upstream. An English translation is pending; the original Japanese text is shown below.`;
+  return {
+    content: `---\n${stubFrontmatter}\n---\n\n${banner}\n\n${normalizedBody}`,
+    jaTreeContent,
+    sourceLanguage: 'ja',
+    translationApplied: false,
+  };
+}
+
+function detectSourceLanguage(frontmatter, body) {
+  // Explicit marker wins.
+  const explicit = readFrontmatterValue(frontmatter, 'sourceLanguage');
+  if (explicit === 'ja' || explicit === 'en') return explicit;
+
+  // Auto-detect: ratio of non-ASCII bytes in the normalized body.
+  // Bodies with > cjkLanguageThreshold non-ASCII are treated as JA.
+  if (!body) return 'en';
+  const total = Buffer.byteLength(body, 'utf8');
+  if (total === 0) return 'en';
+  let asciiCount = 0;
+  for (let i = 0; i < body.length; i += 1) {
+    if (body.charCodeAt(i) < 128) asciiCount += 1;
+  }
+  // body.length counts code units, not bytes; use it as a fast proxy
+  // since ASCII is 1 byte/code-unit. For CJK characters, code units
+  // are 1 (BMP) but bytes are 3 (UTF-8), so byte-ratio diverges from
+  // codepoint-ratio. We approximate via byte ratio of non-ASCII.
+  const asciiBytes = asciiCount; // each ASCII char = 1 byte
+  const nonAsciiBytes = total - asciiBytes;
+  const ratio = nonAsciiBytes / total;
+  return ratio > cjkLanguageThreshold ? 'ja' : 'en';
+}
+
+function readFrontmatterValue(frontmatter, key) {
+  const match = new RegExp(`^${key}:\\s*(.*)$`, 'm').exec(frontmatter ?? '');
+  if (!match) return undefined;
+  let raw = match[1].trim();
+  if (raw.startsWith('"') && raw.endsWith('"')) {
+    try {
+      return JSON.parse(raw);
+    } catch {
+      return raw.slice(1, -1);
+    }
+  }
+  return raw;
 }
 
 function splitFrontmatter(source) {
@@ -289,34 +448,79 @@ function normalizeCodeFences(body) {
   return body.replace(/^(```+)rbs(\s*)$/gim, '$1ruby$2');
 }
 
-function mergeFrontmatter(frontmatter, { title, sourcePath, order, sourceSha, sourceCommit, sourceDate }) {
-  const lines = frontmatter ? [frontmatter] : [];
-  if (!hasFrontmatterKey(frontmatter, 'title')) {
+function mergeFrontmatter(
+  frontmatter,
+  { title, sourcePath, order, sourceSha, sourceCommit, sourceDate, sourceLanguage, translationStatus },
+  { forceSourceMetadata = false } = {}
+) {
+  // forceSourceMetadata: when overlaying upstream sourceSha / sourceCommit /
+  // sourceDate onto a hand-edited translation file's frontmatter, the
+  // translation's pre-existing sourceSha is the wrong value and must be
+  // replaced. The "if !hasFrontmatterKey" guard from the EN-native path
+  // would skip the replacement; forceSourceMetadata bypasses it.
+  let cleaned = frontmatter ?? '';
+  if (forceSourceMetadata) {
+    for (const key of ['sourcePath', 'sourceSha', 'sourceCommit', 'sourceDate']) {
+      cleaned = stripFrontmatterKey(cleaned, key);
+    }
+  }
+  const lines = cleaned ? [cleaned] : [];
+  if (!hasFrontmatterKey(cleaned, 'title')) {
     lines.push(`title: ${JSON.stringify(title)}`);
   }
-  if (!hasFrontmatterKey(frontmatter, 'description')) {
+  if (!hasFrontmatterKey(cleaned, 'description')) {
     lines.push(`description: ${JSON.stringify(`Imported from rigortype/rigor ${sourcePath}.`)}`);
   }
-  if (!hasFrontmatterKey(frontmatter, 'editUrl')) {
+  if (!hasFrontmatterKey(cleaned, 'editUrl')) {
     lines.push(`editUrl: ${JSON.stringify(`https://github.com/rigortype/rigor/edit/main/${sourcePath}`)}`);
   }
-  if (!hasFrontmatterKey(frontmatter, 'sourcePath')) {
+  if (!hasFrontmatterKey(cleaned, 'sourcePath')) {
     lines.push(`sourcePath: ${JSON.stringify(sourcePath)}`);
   }
-  if (sourceSha && !hasFrontmatterKey(frontmatter, 'sourceSha')) {
+  if (sourceSha && !hasFrontmatterKey(cleaned, 'sourceSha')) {
     lines.push(`sourceSha: ${JSON.stringify(sourceSha)}`);
   }
-  if (sourceCommit && !hasFrontmatterKey(frontmatter, 'sourceCommit')) {
+  if (sourceCommit && !hasFrontmatterKey(cleaned, 'sourceCommit')) {
     lines.push(`sourceCommit: ${JSON.stringify(sourceCommit)}`);
   }
-  if (sourceDate && !hasFrontmatterKey(frontmatter, 'sourceDate')) {
+  if (sourceDate && !hasFrontmatterKey(cleaned, 'sourceDate')) {
     lines.push(`sourceDate: ${JSON.stringify(sourceDate)}`);
   }
-  if (!hasFrontmatterKey(frontmatter, 'sidebar')) {
+  if (sourceLanguage && !hasFrontmatterKey(cleaned, 'sourceLanguage')) {
+    lines.push(`sourceLanguage: ${JSON.stringify(sourceLanguage)}`);
+  }
+  if (translationStatus && !hasFrontmatterKey(cleaned, 'translationStatus')) {
+    lines.push(`translationStatus: ${JSON.stringify(translationStatus)}`);
+  }
+  if (!hasFrontmatterKey(cleaned, 'sidebar')) {
     lines.push('sidebar:');
     lines.push(`  order: ${order}`);
   }
   return lines.join('\n');
+}
+
+function stripFrontmatterKey(frontmatter, key) {
+  if (!frontmatter) return frontmatter;
+  const lines = frontmatter.split('\n');
+  const out = [];
+  let skipBlockUntilDedent = false;
+  for (const line of lines) {
+    if (skipBlockUntilDedent) {
+      // skip indented continuation
+      if (/^\s/.test(line)) continue;
+      skipBlockUntilDedent = false;
+    }
+    if (new RegExp(`^${key}:`).test(line)) {
+      // If the key is a block (no value on same line), skip its
+      // indented continuation as well. For scalar keys (with a value
+      // on the same line) the next line is unrelated.
+      const valueAfterColon = line.slice(key.length + 1).trim();
+      if (valueAfterColon === '') skipBlockUntilDedent = true;
+      continue;
+    }
+    out.push(line);
+  }
+  return out.join('\n');
 }
 
 function hasFrontmatterKey(frontmatter, key) {
