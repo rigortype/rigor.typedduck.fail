@@ -51,7 +51,7 @@ Rubyのサブセット**SemiRuby**（class定義は事前所与・`def`はクラ
 | **インスタンス変数F[[l,@x]]** | Rigorのインスタンス変数推論（IVarのper-class shape） | 論文はロケーションごとに分割管理する点でRigorより細かい。Rigorはクラス単位＋初期化文脈で抑える。 |
 | **安全性解析（未定義メソッド・yield健全性）** | Rigorの`call.method-not-found`系（[diagnostic-policy](../../type-specification/diagnostic-policy/)） | 検査対象はほぼ同じ。Rigorは加えて`def.return-type-mismatch`系まで踏み込むが、論文側はそこまで型を持たない（値の集合のみ）。 |
 | **健全性の形式証明（保存 + Progress）** | **Rigorには存在しない** | 仕様コーパスはRFC 2119規範だが、機械検証も操作的意味論もない。論文側がスコープをSemiRubyに絞ったからこそ証明できた事実は重要。Rigorが同等の証明を狙うなら、まず「証明可能な核（Rigor Core）」の切り出しが先になる。 |
-| **実装：OCaml + BDDBDDB (Datalog)** | Rigor：手書きRuby推論エンジン + ファイルベース キャッシュ（[ADR-4](../../adr/4-type-inference-engine/), [ADR-6](../../adr/6-cache-persistence-backend/)） | 論文のDatalog化はメンテ性で美しいが、（a） RBSとの結合、（b） pluginの任意Rubyロジック、（c） Ractor並列化（[ADR-15](../../adr/15-ractor-concurrency/)）といったRigorの制約とは噛み合わない。設計トレードオフの差。 |
+| **実装：OCaml + BDDBDDB (Datalog)** | Rigor：手書きRuby推論エンジン + ファイルベース キャッシュ（[ADR-4](../../adr/4-type-inference-engine/), [ADR-6](../../adr/6-cache-persistence-backend/)） | 論文のDatalog化はメンテ性で美しいが、（a）RBSとの結合、（b）pluginの任意Rubyロジック、（c）Ractor並列化（[ADR-15](../../adr/15-ractor-concurrency/)）といったRigorの制約とは噛み合わない。設計トレードオフの差。 |
 
 ## 3. 論文がRigorに示唆する具体ポイント
 
@@ -108,5 +108,5 @@ Rubyのサブセット**SemiRuby**（class定義は事前所与・`def`はクラ
 
 ## 姉妹ノート
 
-- [Matsumoto & Minamide 2008 （Polymorphic Record型） Rigor観点考察](../20260518-matsumoto-2008-poly-records-rigor-review/)
+- [Matsumoto & Minamide 2008（Polymorphic Record型）Rigor観点考察](../20260518-matsumoto-2008-poly-records-rigor-review/)
   — 同著者の2008年論文（本論文の参考文献11）のRigor観点レビュー。
