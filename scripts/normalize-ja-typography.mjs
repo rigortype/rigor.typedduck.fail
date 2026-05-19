@@ -10,13 +10,6 @@ import { readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const projectRoot = fileURLToPath(new URL('..', import.meta.url));
-const targets = process.argv.slice(2).map((p) => path.resolve(projectRoot, p));
-if (!targets.length) {
-  console.error('usage: normalize-ja-typography.mjs <file>...');
-  process.exit(1);
-}
-
 const JP = '[\\u3000-\\u303F\\u3040-\\u30FF\\u4E00-\\u9FFF\\uFF00-\\uFFEF々ー]';
 const ASCII_RIGHT = '[A-Za-z0-9`(\\[*_]';
 // Intentionally omit `.` so Markdown ordered-list markers (`1. text`) keep
@@ -26,18 +19,38 @@ const ASCII_RIGHT = '[A-Za-z0-9`(\\[*_]';
 // keep their separating space.
 const ASCII_LEFT = '[A-Za-z0-9,;!?)\\]`*_]';
 
-for (const file of targets) {
-  const original = await readFile(file, 'utf8');
-  const transformed = transform(original);
-  if (transformed === original) {
-    console.log(`= ${path.relative(projectRoot, file)}`);
-    continue;
-  }
-  await writeFile(file, transformed);
-  console.log(`* ${path.relative(projectRoot, file)}`);
+if (import.meta.url === `file://${process.argv[1]}`) {
+  await runCli();
 }
 
-function transform(content) {
+async function runCli() {
+  const projectRoot = fileURLToPath(new URL('..', import.meta.url));
+  const targets = process.argv.slice(2).map((p) => path.resolve(projectRoot, p));
+  if (!targets.length) {
+    console.error('usage: normalize-ja-typography.mjs <file>...');
+    process.exit(1);
+  }
+
+  for (const file of targets) {
+    const original = await readFile(file, 'utf8');
+    const transformed = transform(original);
+    if (transformed === original) {
+      console.log(`= ${path.relative(projectRoot, file)}`);
+      continue;
+    }
+    await writeFile(file, transformed);
+    console.log(`* ${path.relative(projectRoot, file)}`);
+  }
+}
+
+function stripSpacesAroundJp(text) {
+  let next = text;
+  next = next.replace(new RegExp(`(${JP})[ ]+(?=${ASCII_RIGHT})`, 'g'), '$1');
+  next = next.replace(new RegExp(`(?<=${ASCII_LEFT})[ ]+(${JP})`, 'g'), '$1');
+  return next;
+}
+
+export function transform(content) {
   // Pull off the YAML frontmatter so its colon-delimited fields are
   // never touched. A frontmatter block is `---` on the first line,
   // a body of arbitrary lines, then a closing `---` on its own line.
@@ -62,8 +75,7 @@ function transform(content) {
 
 function transformProse(text) {
   let next = text;
-  next = next.replace(new RegExp(`(${JP})[ ]+(?=${ASCII_RIGHT})`, 'g'), '$1');
-  next = next.replace(new RegExp(`(?<=${ASCII_LEFT})[ ]+(${JP})`, 'g'), '$1');
+  next = stripSpacesAroundJp(next);
 
   const jpRe = new RegExp(JP);
   const parenRe = /(?<!\])\((?:[^()\n]|\([^()\n]*\))*\)/g;
@@ -80,6 +92,12 @@ function transformProse(text) {
       return match;
     });
   } while (next !== prev);
+
+  // Re-run space removal: half→full paren conversion above may have introduced
+  // `ASCII （JP` boundaries that the first pass couldn't see when the `(` was
+  // still half-width. e.g. `tracking (仕様…)` → `tracking （仕様…）`, and the
+  // remaining space between `tracking` and `（` needs to be dropped now.
+  next = stripSpacesAroundJp(next);
 
   next = next.replace(new RegExp(`(${JP})\\?`, 'g'), '$1？');
   next = next.replace(new RegExp(`(${JP})!`, 'g'), '$1！');

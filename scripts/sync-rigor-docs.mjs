@@ -5,6 +5,7 @@ import { mkdir, readdir, readFile, rm, stat, writeFile } from 'node:fs/promises'
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
+import { transform as normalizeJaTypography } from './normalize-ja-typography.mjs';
 
 const execFileAsync = promisify(execFile);
 
@@ -81,7 +82,7 @@ for (const file of markdownFiles) {
     // as expected.
     const jaPath = jaOutputPathFor(relativePath);
     await mkdir(path.dirname(jaPath), { recursive: true });
-    await writeFile(jaPath, page.jaTreeContent);
+    await writeFile(jaPath, normalizeJaTypography(page.jaTreeContent));
   }
 }
 
