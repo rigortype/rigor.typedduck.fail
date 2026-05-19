@@ -1,0 +1,24 @@
+---
+import Default from '@astrojs/starlight/components/Head.astro';
+
+const { entry } = Astro.locals.starlightRoute;
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'TechArticle',
+  headline: entry.data.title,
+  author: {
+    '@type': 'Person',
+    name: 'Kenta Usami',
+  },
+  copyrightHolder: {
+    '@type': 'Organization',
+    name: 'TypedDuck',
+  },
+  copyrightYear: String(new Date().getFullYear()),
+  copyrightNotice: "© 2026 TypedDuck. Licensed under CC BY-SA 4.0.",
+  license: 'https://creativecommons.org/licenses/by-sa/4.0/',
+};
+---
+
+<Default><slot /></Default>
+<script type="application/ld+json" set:html={JSON.stringify(jsonLd)} is:inline />

@@ -1,0 +1,35 @@
+---
+import Default from '@astrojs/starlight/components/Footer.astro';
+
+const { entryMeta } = Astro.locals.starlightRoute;
+const isJapanese = entryMeta.lang === 'ja';
+const licenseHref = isJapanese
+  ? 'https://creativecommons.org/licenses/by-sa/4.0/deed.ja'
+  : 'https://creativecommons.org/licenses/by-sa/4.0/';
+const year = new Date().getFullYear();
+---
+
+<Default><slot /></Default>
+<p class="license-notice" lang="en">
+  <a rel="license" href={licenseHref} class="license-badge-link"
+    ><img src="/cc-by-sa.svg" alt="" class="license-badge" width="120" height="42" /></a
+  >
+  <small>
+    © {year} TypedDuck. Licensed under <a rel="license" href={licenseHref}><abbr title="Creative Commons Attribution-ShareAlike 4.0 International License">CC BY-SA 4.0</abbr></a>.
+  </small>
+</p>
+
+<style>
+  .license-notice {
+    margin-top: 1.5rem;
+    text-align: center;
+    color: var(--sl-color-gray-3);
+  }
+  .license-notice a {
+    color: inherit;
+  }
+  .license-badge {
+    vertical-align: middle;
+    margin: 0 0.25em;
+  }
+</style>
