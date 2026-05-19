@@ -3,8 +3,8 @@ title: "マクロ／DSL展開 — ライブラリ別調査"
 description: "rigortype/rigor docs/notes/20260515-macro-expansion-library-survey.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/notes/20260515-macro-expansion-library-survey.md"
 sourcePath: "docs/notes/20260515-macro-expansion-library-survey.md"
-sourceSha: "8be777a6ee7d4db6e53c260835c9051a879625c0e729d776407ad05d9b750304"
-sourceCommit: "035915291e331f3bcd5ce804a1e30dc284ffbd48"
+sourceSha: "fc160a4af4c256b2aff73ee052233538907d17f8f7d14511a28ce97a3d4a6151"
+sourceCommit: "fe4e9a80df3829ee4f113e763e4bb9920c33da21"
 translationStatus: "translated"
 sidebar:
   order: 20266515
@@ -144,7 +144,7 @@ dry-struct）を追加するためリビジョン。
    - 継承: 親クラスの定義はサブクラスより前にリプレイされる必要がある（`aasm.rb:21-25`）。
    - 真に動的かつまれなもの: 状態名が非リテラル、`Proc`値の`initial_state`、ランタイムの`respond_to?(:aasm_create_scope)`にゲートされたARスコープ生成。述語／イベントメソッド生成はアダプタチェックに依存しない。
 
-5. **もっとも近い類似物** — **PHPStanのトレイトインライン展開／Lispマクロスタイル**の展開。`examples/rigor-statesman/`がすでに`state_machine_class.state :foo`を歩いているのと精神的に同一である。AASMはstatesmanと同じプラグインアプローチの射程内にある。
+5. **もっとも近い類似物** — **PHPStanのトレイトインライン展開／Lispマクロスタイル**の展開。`plugins/rigor-statesman/`がすでに`state_machine_class.state :foo`を歩いているのと精神的に同一である。AASMはstatesmanと同じプラグインアプローチの射程内にある。
 
 ---
 
@@ -311,7 +311,7 @@ dry-struct）を追加するためリビジョン。
    `initialize_with`ブロック（`factory.rb:140-146`）。
 
 5. **もっとも近い類似物** — **PHPStanスタイルの「リテラルなシンボル引数から戻り値型が計算される汎用メソッド」**。Railsの`find_by_*`ファミリやPHPStanの`DynamicMethodReturnTypeExtension`と同じ形である。Lisp／PHPStanトレイトの意味でのマクロ展開では**ない** — factory_botは`User`上にメソッドを生成しないので、ユーザークラスの呼び出し箇所でインラインするものがない。モデルは「ブート時に1回のレジストリウォーク＋ストラテジメソッドごとに1つの戻り値型ルール（最初のシンボル引数をキーとする）」である。
-   rigorはすでに`examples/rigor-factorybot/`に正しいフックを持っている。マクロ機構なしで到達可能な拡張には、`*_list` / `*_pair`のラッピング、`parent:`チェーンの解決、`aliases:`登録、トレイト名のバリデーションが含まれる。
+   rigorはすでに`plugins/rigor-factorybot/`に正しいフックを持っている。マクロ機構なしで到達可能な拡張には、`*_list` / `*_pair`のラッピング、`parent:`チェーンの解決、`aliases:`登録、トレイト名のバリデーションが含まれる。
 
 ---
 

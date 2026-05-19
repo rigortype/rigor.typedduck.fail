@@ -3,8 +3,8 @@ title: "ADR-16 — マクロ / DSL展開基板"
 description: "rigortype/rigor docs/adr/16-macro-expansion.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/adr/16-macro-expansion.md"
 sourcePath: "docs/adr/16-macro-expansion.md"
-sourceSha: "26b3d8043ea8d718d6dfdb83e8ca402ae5d6cf62b3c3238cf6f454e3d3e7d734"
-sourceCommit: "dd1240d88f635b570b72ca36d1fccddc8df8ccd1"
+sourceSha: "709dd0e86604e127ae72aadf01835cc8c4868a5aa49704d67ad655e527029aae"
+sourceCommit: "fe4e9a80df3829ee4f113e763e4bb9920c33da21"
 translationStatus: "translated"
 sidebar:
   order: 4016
@@ -96,7 +96,7 @@ ADR-16は**3つのステークホルダー役割**を区別し、それぞれ基
 - **GraphQL-Rubyを解決すること**。サーベイは、それが`Proc`と`String#constantize`遅延型をファーストクラス入力として持つスキーマグラフレコーダーであることを実証する。将来の`rigor-graphql`プラグインはマクロ展開ではなくスキーマ解決パスが必要。明示的に除外。
 - **Sequelカラムアクセサを解決すること**。ライブデータベーススキーマに依存。具体的なユーザー需要が表面化したときに別個のADRがスキーマオラクルに対処する。
 - **ERBテンプレート化された`.rb`ファイル**（`<%= … %>`補間を出荷するRailsジェネレーター`templates/*.rb`）。隣接するが別個: 基板が発火する*前*にファイル名パターン検出とERB対応パーサーパスが必要。このADRの基板を下流で消費する別個のROADMAP項目として追跡。
-- **すべての現在のプラグインを移行させること**。基板はオプトイン。`examples/rigor-activestorage/`などの既存のウォーカーは引き続き動作する;移行は基板のリーチを実証するフォローアップ演習。
+- **すべての現在のプラグインを移行させること**。基板はオプトイン。`plugins/rigor-activestorage/`などの既存のウォーカーは引き続き動作する;移行は基板のリーチを実証するフォローアップ演習。
 
 ## 決定
 
@@ -324,16 +324,16 @@ end
 
 各スライスはWD13フロア / シーリング契約を尊重する: 最初にフロア（パース + 識別子解決）を出荷し、段階的にシーリングへプロモートする。
 
-1. **Tier A — ブロック-as-メソッド**。✅ **着地**（スライス1a `584ae85`、1b `16460b5`、1c `92d4755`）。`Plugin::Macro::BlockAsMethod`値クラス + `Plugin::Manifest#block_as_methods`フィールド;`ExpressionTyper`のブロック戻り値パスに配線されたエンジンフック（`Rigor::Inference::MacroBlockSelfType`）;動作プラグイン`examples/rigor-sinatra/`。
-2. **Tier C — heredocテンプレート展開**。✅ **着地**（スライス2a `b77c101`、2b `9251916`、2c `e65ff9b`）。`Plugin::Macro::HeredocTemplate`値クラス + `Plugin::Manifest#heredoc_templates`フィールド;新しい`Rigor::Inference::SyntheticMethod` / `SyntheticMethodIndex` / `SyntheticMethodScanner`基板 + RBSとdep-sourceの間の新しい`try_synthetic_method`ディスパッチャーティア;動作プラグイン`examples/rigor-dry-struct/`。WD13フロアに従い: 合成メソッドは`Dynamic[T]`を返す;精密な戻り型プロモーションはスライス6の作業（先送り）。`rigor-dry-types`は将来のコンパニオン（現在の基板がまだモデル化していない別個のTier-C-as-`const_set`プリミティブ）として記載。
-3. **Tier B — トレイトインライニングレジストリ**。✅ **着地**（スライス3a `26b1fe4`、3b `17846a7`、3c `ba1b61a`）。`Plugin::Macro::TraitRegistry`値クラス + `Plugin::Manifest#trait_registries`フィールド;スキャナがincludeされた各モジュールのRBSインスタンスメソッドを既存の`SyntheticMethodIndex`にメソッドごとに展開して拡張する（将来の精度プロモーションのための`origin_module:`provenance付き）;動作プラグイン`examples/rigor-devise/`（バンドルされたレジストリがDeviseの`lib/devise/modules.rb`戦略テーブルをミラー — 11エントリーに加えて常にincludeされる`Devise::Models::Authenticatable`）。
+1. **Tier A — ブロック-as-メソッド**。✅ **着地**（スライス1a `584ae85`、1b `16460b5`、1c `92d4755`）。`Plugin::Macro::BlockAsMethod`値クラス + `Plugin::Manifest#block_as_methods`フィールド;`ExpressionTyper`のブロック戻り値パスに配線されたエンジンフック（`Rigor::Inference::MacroBlockSelfType`）;動作プラグイン`plugins/rigor-sinatra/`。
+2. **Tier C — heredocテンプレート展開**。✅ **着地**（スライス2a `b77c101`、2b `9251916`、2c `e65ff9b`）。`Plugin::Macro::HeredocTemplate`値クラス + `Plugin::Manifest#heredoc_templates`フィールド;新しい`Rigor::Inference::SyntheticMethod` / `SyntheticMethodIndex` / `SyntheticMethodScanner`基板 + RBSとdep-sourceの間の新しい`try_synthetic_method`ディスパッチャーティア;動作プラグイン`plugins/rigor-dry-struct/`。WD13フロアに従い: 合成メソッドは`Dynamic[T]`を返す;精密な戻り型プロモーションはスライス6の作業（先送り）。`rigor-dry-types`は将来のコンパニオン（現在の基板がまだモデル化していない別個のTier-C-as-`const_set`プリミティブ）として記載。
+3. **Tier B — トレイトインライニングレジストリ**。✅ **着地**（スライス3a `26b1fe4`、3b `17846a7`、3c `ba1b61a`）。`Plugin::Macro::TraitRegistry`値クラス + `Plugin::Manifest#trait_registries`フィールド;スキャナがincludeされた各モジュールのRBSインスタンスメソッドを既存の`SyntheticMethodIndex`にメソッドごとに展開して拡張する（将来の精度プロモーションのための`origin_module:`provenance付き）;動作プラグイン`plugins/rigor-devise/`（バンドルされたレジストリがDeviseの`lib/devise/modules.rb`戦略テーブルをミラー — 11エントリーに加えて常にincludeされる`Devise::Models::Authenticatable`）。
 4. **Concern再ターゲティングウォーカー**。✅ **着地**（`bdbccdd`）。`SyntheticMethodScanner`が`extend ActiveSupport::Concern` + `included do ... end`モジュールを認識;クラス本体が`include M`するとき、Mの遅延DSL呼び出しがincludeするクラスに対してリプレイされる。スライス4フロア: 定数パス`include M`のみ、1ホップのみ、`class_methods do ... end`は先送り。
 5. **Tier D — 外部ファイルインクルージョン**。⚠️ **契約のみ**（スライス5a `56706a5`）;スライス5bエンジン統合は**需要に先送り**。`Plugin::Macro::ExternalFile`値クラス + `Plugin::Manifest#external_files`フィールドが着地し`Manifest#to_h`経由でラウンドトリップ;マッチしたファイルを歩く + トップレベルの`self_type`をナローイング + `bound_ivars`を事前バインドするエンジンフックは、具体的なプラグインターゲット（Redmine webhookペイロード、tDiaryプラグインローダー）にトリガーされる将来のスライスにキュー。プラグイン作者は今日Tier Dエントリーを宣言できる;基板はまだそれらに作用しない。
 6. **精度プロモーション**。✅ **フロアで着地**（スライス6a-TierB `d174fff`、6b-TierC `d7b1943`）。2つのパス:
    - **6a-TierB**。SyntheticMethodがprovenance内に`origin_module:`を記録するとき（スライス3bスキャナからのTier B発行）、既存の`RbsDispatch`経由で`Nominal[origin_module]`上で呼び出しを再ディスパッチする。モジュールの著作RBS戻り型が勝つ;モジュールがenv内にないときは`Dynamic[T]`にフォールバック。Deviseの`valid_password?`は`untyped`ではなく`bool`を返す。
    - **6b-TierC**。SyntheticMethodが素の`return_type:`文字列を記録するとき（マニフェストの発行テーブルからのTier C発行）、`environment.nominal_for_name(return_type)`経由でルックアップする。合成リーダーはクラスがRBS env内にあるとき`Nominal[<class>]`を返す;それ以外は`Dynamic[T]`にフォールバック。Tier Bのプレースホルダー`"untyped"`とRBSスタイルの`"void"`はTier Cパスから除外され、それらはTier Bブランチまたはフロアに自己ルーティングする。
    パラメータ化形式（`Array[String]`、`Hash[K, V]`）とプラグイン提供のユーティリティ型名（`Pick<T, K>`）は、ADR-13の完全な`Plugin::TypeNodeResolver`チェイン経由でルーティングする必要がある — まだ**先送り**、ADR-13スライス3時点でチェインは`%a{rigor:v1:…}`ペイロード用にのみ配線されており、基板マニフェストの`returns:`文字列用ではないため。フォローアップは具体的なプラグイン作者がユーティリティ型形の基板戻り値を必要とするときにトリガーされる。
-7. **ドキュメント**。✅ **着地**（`0359152`）。ハンドブック章`docs/handbook/09-plugins.md` §「マクロ / DSL展開基板（ADR-16）」が4ティア + Concern再ターゲティング + フロア/シーリングフレーミング + 決定マトリックスを紹介;`.codex/skills/rigor-plugin-author/SKILL.md`フェーズ2が「ステップ2A — マクロ基板を最初に試す」 / 「ステップ2B — 手書きウォーカー」に分割;ROADMAP / CURRENT_WORK O2が「キュー」から「基板フロア着地」に再フレーム;`examples/README.md`比較テーブルが3つの新しい基板消費者行を成長。
+7. **ドキュメント**。✅ **着地**（`0359152`）。ハンドブック章`docs/handbook/09-plugins.md` §「マクロ / DSL展開基板（ADR-16）」が4ティア + Concern再ターゲティング + フロア/シーリングフレーミング + 決定マトリックスを紹介;`skills/rigor-plugin-author/SKILL.md`フェーズ2が「ステップ2A — マクロ基板を最初に試す」 / 「ステップ2B — 手書きウォーカー」に分割;ROADMAP / CURRENT_WORK O2が「キュー」から「基板フロア着地」に再フレーム;`examples/README.md`比較テーブルが3つの新しい基板消費者行を成長。
 
 **ADR-16スコープ外（将来のイテレーションに先送り）**。
 

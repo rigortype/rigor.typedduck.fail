@@ -3,14 +3,14 @@ title: "Sorbetとの共存"
 description: "rigortype/rigor docs/handbook/10-sorbet.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/handbook/10-sorbet.md"
 sourcePath: "docs/handbook/10-sorbet.md"
-sourceSha: "17c53394f5c79e35f05c0db9ed28340d3c73fd153b0c78da28a70187d5d5a99b"
-sourceCommit: "f87b68f852350994a182dca35c52464a59be6e53"
+sourceSha: "8c58222f62380675669bfdfcfe5b0e60c0763cd966d14772b123f3f9fd5defce"
+sourceCommit: "fe4e9a80df3829ee4f113e763e4bb9920c33da21"
 translationStatus: "translated"
 sidebar:
   order: 1010
 ---
 
-プロジェクトがすでに[Sorbet](https://sorbet.org/)を使っているなら、[`rigor-sorbet`](../../examples/rigor-sorbet/)プラグインを使えば、RigorがSorbetの既存の`sig`ブロック、RBIファイル、`T.let` / `T.cast` / `T.must` / `T.unsafe`アサーションを型ソースとして読み取れます。`rigor check`を`srb tc`と並行して実行するために、何もRBSに書き直す必要はありません。
+プロジェクトがすでに[Sorbet](https://sorbet.org/)を使っているなら、[`rigor-sorbet`](../../plugins/rigor-sorbet/)プラグインを使えば、RigorがSorbetの既存の`sig`ブロック、RBIファイル、`T.let` / `T.cast` / `T.must` / `T.unsafe`アサーションを型ソースとして読み取れます。`rigor check`を`srb tc`と並行して実行するために、何もRBSに書き直す必要はありません。
 
 この章はSorbetを使用しているプロジェクトから来たユーザー向けです。Sorbetを使ったことがなければ、スキップしてかまいません。第1〜9章のコアハンドブックがRigorのネイティブなRBSベースのパスをカバーしています。
 
@@ -218,7 +218,7 @@ demo.rb:42:5: warning: `T.absurd` is reachable: the discriminant did not
 
 プラグインは強制的な移行ではなく**グラデュアルな共存**のために設計されています。3つの一般的な形状:
 
-1. **両方の静的チェッカーを並行して実行する**。 `srb tc`がその診断を生成し続け、`rigor check`が独自の診断を生成します。両者はシェイプエラーで重複し、各ツールが発見するものを補完します——Sorbetは`T.let` / `T.cast` / RBIをより深くカバーし、Rigorはリテラル文字列ナロイング、リファインメントキャリア、プラグインDSL、依存関係ソース推論をカバーします。
+1. **両方の静的チェッカーを並行して実行する**。`srb tc`がその診断を生成し続け、`rigor check`が独自の診断を生成します。両者はシェイプエラーで重複し、各ツールが発見するものを補完します——Sorbetは`T.let` / `T.cast` / RBIをより深くカバーし、Rigorはリテラル文字列ナロイング、リファインメントキャリア、プラグインDSL、依存関係ソース推論をカバーします。
 2. **Sorbetはsig、Rigorはナロイング**。権威あるsigは`sig { ... }`ブロック（またはsorbet-runtime対応のRBIツリー）に残り、Rigorはそれらを入力として読み取り、その上に独自のナロイングを追加します。
 3. **時間をかけてSorbet → RBS**。新しいコードはRBSとして着地し、既存のSorbet sigは周囲のサブシステムが変更されるまで残ります。プラグインはSorbetサーフェスが縮小する間も実行され続けます。
 
@@ -228,6 +228,6 @@ Rigorの`rigor-sorbet`アダプターは**入力側のみ**です。Sorbetの構
 
 ## 次に読むもの
 
-- 全機能マトリックスとアーキテクチャサーフェスは[`examples/rigor-sorbet/README.md`](https://github.com/rigortype/rigor/blob/main/examples/rigor-sorbet/README.md)にあります。
+- 全機能マトリックスとアーキテクチャサーフェスは[`plugins/rigor-sorbet/README.md`](https://github.com/rigortype/rigor/blob/main/plugins/rigor-sorbet/README.md)にあります。
 - 設計根拠 + スライスプランは[`docs/adr/11-sorbet-input-adapter.md`](../../adr/11-sorbet-input-adapter/)にあります。
 - [`docs/notes/20260503-steep-cross-check-triage.md`](../../notes/20260503-steep-cross-check-triage/)のクロスチェッカートリアージレポートは、他の静的チェッカーが見逃すsigドリフトをRigorの解析器が日常的に表面化する方法を示しています——各ツールが実際に何を発見するかを比較するときに役立ちます。

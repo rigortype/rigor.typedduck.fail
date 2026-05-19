@@ -3,8 +3,8 @@ title: "ADR-19 — 言語サーバーのパッケージング"
 description: "rigortype/rigor docs/adr/19-language-server-packaging.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/adr/19-language-server-packaging.md"
 sourcePath: "docs/adr/19-language-server-packaging.md"
-sourceSha: "6398b64c1f5dc96f6f0827d335a10bcb571dfd94fdd428677653ad4e28fd57ef"
-sourceCommit: "dac915a9ee49b89e89774c34c518e8501275f6a3"
+sourceSha: "573423620f472b0c48ea66d279e83990a9a622c5895a5fe1d40c771eb59e325e"
+sourceCommit: "fe4e9a80df3829ee4f113e763e4bb9920c33da21"
 translationStatus: "translated"
 sidebar:
   order: 4019
@@ -76,7 +76,7 @@ Aの理由:
 
 トリガー条件が発火して分割が起こる場合:
 
-- **`rigor-lsp`** — 既存のRigorプラグインファミリーのプレフィックス（`rigor-rails-routes`、`rigor-dry-types`、`rigor-activerecord`など）に一致します。移行が漸進的なら、[`rigor-plugin-author`](https://github.com/rigortype/rigor/blob/main/.codex/skills/rigor-plugin-author/SKILL.md)SKILL規律に従って`examples/rigor-lsp/`の下にステージし、安定したら`git subtree split`で抽出します。
+- **`rigor-lsp`** — 既存のRigorプラグインファミリーのプレフィックス（`rigor-rails-routes`、`rigor-dry-types`、`rigor-activerecord`など）に一致します。移行が漸進的なら、[`rigor-plugin-author`](https://github.com/rigortype/rigor/blob/main/skills/rigor-plugin-author/SKILL.md)SKILL規律に従って`plugins/rigor-lsp/`の下にステージし、安定したら`git subtree split`で抽出します。
 - **`ruby-lsp-rigor`** — 分割がC（Ruby LSPアドオン）に向かう場合、Ruby LSPの`ruby-lsp-<name>`アドオン命名規則に従います。両方の形が共存するなら`rigor-lsp`（A）とは独立にリリースされます。
 - **`lsp-rigor`は不可** — Rigorの既存のプレフィックス体制と逆順;一貫性の理由で却下。
 

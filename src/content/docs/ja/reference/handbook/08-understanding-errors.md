@@ -3,8 +3,8 @@ title: "エラーの読み方"
 description: "rigortype/rigor docs/handbook/08-understanding-errors.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/handbook/08-understanding-errors.md"
 sourcePath: "docs/handbook/08-understanding-errors.md"
-sourceSha: "9fba72224757f90f19762cf2b5336dee749fcec73b54a4fae71846ed85a948ee"
-sourceCommit: "f87b68f852350994a182dca35c52464a59be6e53"
+sourceSha: "0213c7c5fb7d02d0ae3a3cecdf56035dddcde83a876e9b3f814d01475ac77e4c"
+sourceCommit: "fe4e9a80df3829ee4f113e763e4bb9920c33da21"
 translationStatus: "translated"
 sidebar:
   order: 1008
@@ -232,4 +232,4 @@ Rigorを採用したばかりのプロジェクトでの実用的なループ:
 
 ## 次に読むもの
 
-[第9章 — プラグイン](09-plugins/)は`examples/`ディレクトリへの1ページのポインタです。プラグインはプロジェクト固有のDSL（単位、ルートヘルパー、非推奨など）のためにRigorを拡張します。ほとんどのプロジェクトはプラグインを書くことはないでしょう;この章はそのオプションがあることを知っていただくために存在します。[第10章 — Sorbetとの共存](10-sorbet/)はSorbetコードベースから来たプロジェクト向けです: [`rigor-sorbet`](https://github.com/rigortype/rigor/blob/main/examples/rigor-sorbet/)アダプターが`sig { ... }`ブロック、RBIファイル、`T.let` / `T.cast` / `T.must` / `T.unsafe`アサーションを型ソースとして読み取ります。
+[第9章 — プラグイン](09-plugins/)は`examples/`ディレクトリへの1ページのポインタです。プラグインはプロジェクト固有のDSL（単位、ルートヘルパー、非推奨など）のためにRigorを拡張します。ほとんどのプロジェクトはプラグインを書くことはないでしょう;この章はそのオプションがあることを知っていただくために存在します。[第10章 — Sorbetとの共存](10-sorbet/)はSorbetコードベースから来たプロジェクト向けです: [`rigor-sorbet`](https://github.com/rigortype/rigor/blob/main/plugins/rigor-sorbet/)アダプターが`sig { ... }`ブロック、RBIファイル、`T.let` / `T.cast` / `T.must` / `T.unsafe`アサーションを型ソースとして読み取ります。

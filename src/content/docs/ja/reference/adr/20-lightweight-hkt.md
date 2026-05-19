@@ -3,8 +3,8 @@ title: "ADR-20: 軽量高階多相性（Lightweight HKT）"
 description: "rigortype/rigor docs/adr/20-lightweight-hkt.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/adr/20-lightweight-hkt.md"
 sourcePath: "docs/adr/20-lightweight-hkt.md"
-sourceSha: "4b8fb705fe0cb710310fed34656915fcdf64d68908a1143aa9f5a8810136b228"
-sourceCommit: "dd1240d88f635b570b72ca36d1fccddc8df8ccd1"
+sourceSha: "2764cc5154ae72bd5fc050cc58b95cc8fe470a120e8507392dd577de9ab3b0b2"
+sourceCommit: "fe4e9a80df3829ee4f113e763e4bb9920c33da21"
 translationStatus: "translated"
 sidebar:
   order: 4020
@@ -112,6 +112,27 @@ declare module 'fp-ts/HKT' {
 ```
 
 登録後、ジェネリックコードは`URI extends URIS`を量化し`Kind<URI, A>`経由で基底の型を回復できる。これは**本当のHKTではない** — TypeScriptには型コンストラクタレベルの抽象化はない — が、`Functor<F>`形のライブラリを書く目的には十分である。
+
+### 階層化された設計空間: L1 / L2 / L3
+
+本ADRの機構は、**3階層の設計空間の上位層**である。階層を明示的に命名しておくと、各下流消費者がどのレベルの機構を実際に必要としているかを判断しやすくなる。
+
+| 層 | サーフェス | 機構コスト |
+| --- | --- | --- |
+| **L1** | パラメトリックな再帰`type`エイリアス — `type json::value[K] = nil \| bool \| ... \| Array[json::value[K]] \| Hash[K, json::value[K]]`。Python PEP 695の`type Json[K] = ...`、TypeScriptの前方参照を持つ再帰エイリアスと精神的に同等。 | ゼロ。RBSはすでに再帰`type`エイリアスを受け入れる（§「JSON.parse問題」参照）。 |
+| **L2** | L1 + 呼び出しサイトごとの`return_override`ディレクティブ — 呼び出しサイトで`JSON.parse(s, symbolize_names: true) -> Json[Symbol]`と`Json[String]`を判別する。 | 1つのディレクティブ。`return_override`は`App[F, A]`キャリアから独立しており、HKTレジストリなしで出荷可能。ADR-18の基板修正と同じ形をユーザーRBSに昇格したもの（WD6）。 |
+| **L3** | L1 + L2 + URIレジストリ + `App[F, A]`キャリア + 条件型ボディ。 | ADR-20機構の全体（HktRegistry、HktReducer、HktBody、燃料予算、3層マージ）。アンロックするもの: （a）クロスプラグインの型コンストラクタ拡張性、（b）型レベル条件計算（rigor-lisp-evalの`eval`）、（c） `Result[T, E]` / `Maybe[T]`のための複数引数HKT。 |
+
+Pythonの型システムは**意図的にL1で止まる**: `json.loads`は`-> Any`と型付けされ、ユーザー著作の`Json[K]`エイリアスは呼び出し元が再`cast`する便宜のためにある。TypeScript / fp-tsは`URItoKind<A>`への宣言マージ + 組み込み条件型を通じて**L3**まで登る。
+
+ADR-20の重要性 — そしてL1+L2を先に着地させてL3を需要にゲートするのではなく初日からL3を出荷することの正当性 — は、**L1+L2では到達できない2つの第2レベル精度ターゲット**にかかっている:
+
+1. **条件型評価**。rigor-lisp-evalデモの`eval`は「リテラルASTの形`E`が結果型を決定する」をエンコードするために`App[lisp_type, E]`を必要とする。これを表現するL1形はない;条件型ボディ（D3）が必要であり、開いたレジストリがそれらの自然な居場所。
+2. **開いた型コンストラクタレジストリ**。`rigor-dry-monads`が`Result[T, E]`と`Maybe[T]`を名前付きコンストラクタとして出荷すれば、下流コードは*任意の*そうしたキャリアを抽象化したくなる（単一の`traverse`シグネチャ、ジェネリックな`Functor<F>`形のライブラリ）。L1の再帰エイリアスは閉じている;脱関数化されたタグ + URIレジストリこそが「アナライザを再コンパイルすることなく、将来の任意のプラグインが新しいコンストラクタを登録し、汎用コンビネータが適用される」ことを許す。
+
+JSON.parse形の再帰総和を**オプションごとの判別なしで**必要とするだけの消費者にはL1のみで十分 — そして今日すでに`type json::value[K] = …`経由で動作する。著作ガイダンスへの含意は: **L1から始め、単一のオプションが判別を必要としたらL2に登り、型レベル計算やクロスプラグイン拡張性が実際に関与するときにのみL3レジストリに手を伸ばす**。スライス5（WD5に従う再帰`type`エイリアス経由の糖衣構文）は、L3と並行してL1を人間工学的にするパス;入口ではなくフォローアップなのは意図的で、上記の第2レベル精度ターゲットがL3を必要とし、JSON.parseのショーケースが初日からL2の`return_override`を必要としたからである。
+
+ADR-20はしたがって**L1を内側の層として内包する**（スライス5がそれを直接公開する）のであって、置き換えるのではない: 包含は精度において単調であり、代替パスではない。`App[...]`や`%a{rigor:v1:hkt_*}`ディレクティブに決して手を伸ばさないライブラリ作者も再帰`type`エイリアスから恩恵を受け続けるし、Rigorのバンドル済みJSON_VALUE定義もスライス5の糖衣構文パーサが整い次第、単一の再帰エイリアスとして表現可能なままになる。
 
 ### Rigorがすでに持つ近いもの
 
@@ -384,6 +405,7 @@ end
 | **RBSでの完全なHKT** | RBSへのカインドシステム拡張（Rigorの権限外）か、ADR-1のスーパーセット姿勢を破るRigor専用RBS方言のいずれかを必要とする。 |
 | **呼び出しサイトでのインラインキャスト（`JSON.parse(s) as MySchema`）** | 作業をすべてのユーザーに押し付け、再帰的総和を推論する目的を打ち消す。最も近い現在の同等物は`rigor-sorbet`の`T.cast`、それを好むユーザーには引き続き利用可能。 |
 | **素のRBSでの列挙されたオーバーロード** | 1つのboolオプションを持つ`JSON.parse`に対しては動作、オプション数 × 判別される値の数で線形にスケール。再帰を持つLisp-evalデモの7アーム条件は表現不能。 |
+| **Python PEP 695スタイルの再帰`type`エイリアスのみ（L1キャップ）** | RBSはすでに再帰`type`エイリアスを受け入れるので、JSON.parseの再帰総和フロア（`type json::value[K] = nil \| ... \| Hash[K, json::value[K]]`）は新しい機構ゼロで今日出荷される — Pythonの`type Json[K] = ...`（PEP 695）やTypeScriptの前方参照を持つ再帰エイリアスと直接同等。次に対しては不十分: （a）呼び出しサイトごとのオプション判別（`symbolize_names: true` ↔ `K = Symbol` — Pythonはこれに`-> Any`で答える）、（b）型レベル条件評価（rigor-lisp-evalの`eval`がリテラルAST `E`上で）、（c）プラグイン登録の開いた型コンストラクタ（fp-tsの`URItoKind`ユースケース、`rigor-dry-monads`の`Result` / `Maybe`と将来の`Functor<F>`形のライブラリが必要とする）。ADR-20はこの層をその設計空間内のL1として*内包*し（スライス5 / WD5がそれの糖衣構文を出荷）、L2の`return_override`とL3の`App[F, A]`レジストリへ上方に拡張する;L1のみにキャップすると下流の精度がPythonの天井にロックされ、（a）〜（c）を放棄することになる。§「階層化された設計空間: L1 / L2 / L3」を参照。 |
 | **プラグインのみの`FlowContribution`** | 現在のrigor-lisp-evalアプローチ。プラグインごとには動作するが、ライブラリ著作のシグネチャに一般化しない;すべてのライブラリがプラグインを必要とする。ADR-20の著作サーフェスがこれを修正する。 |
 | **Liquid Types / SMT駆動リファインメントの実装** | § 非ゴールに従いスコープ外;SMT依存、一般に決定不可能、既存の確実性モデルと合成しない。 |
 | **fp-tsの`URItoKind`形をそのまま採用** | TypeScriptの宣言マージにはRBSの類似がない。`%a{rigor:v1:hkt_register}`アノテーションが道徳的同等物 — 明示的、言語拡張不要。 |
@@ -426,3 +448,4 @@ end
 - 2026-05-18 — **METHOD_RETURN_OVERRIDES拡張**、YAML.safe_load / YAML.safe_load_file / Psych.safe_load / Psych.safe_load_fileへ（JSON_VALUE_SPECを再利用）。4の新しいディスパッチケース（HKT spec合計: 138）。
 - 2026-05-18 — **HktDirectives kv-formリファクター**（バグ修正）。JSON-flowペイロードはRBSアノテーション文法と非互換;空白区切り`key=value`形式でbody=が末尾まで飲み込むようリファクター。22のディレクティブspec + 2のディレクティブ統合specが書き直された（HKT spec合計は変わらず138）。
 - 2026-05-18 — **スライス2e着地**。RbsLoader#each_class_decl_annotation + HktRegistry.scan_rbs_loader + Environment.for_project配線がユーザー著作ループをクローズする。ユーザー.rbsオーバーレイが今、env.hkt_registryに表面化する。4の新しい統合ケース（HKT spec合計: 142）。
+- 2026-05-19 — **L1 / L2 / L3階層フレーミングでコンテキストを拡張**。新しい §「階層化された設計空間」サブセクションが3階層を明示的に命名（L1 = Python PEP 695 / RBSネイティブ風のパラメトリック再帰`type`エイリアス;L2 = + `return_override`ディレクティブ;L3 = HKT機構の全体）し、L1+L2では到達できない2つの第2レベル精度ターゲット（条件型評価、開いた型コンストラクタレジストリ）に対してADR-20が初日からL3を選択することを正当化する。著作ガイダンス: L1から始め、単一オプションの判別のためにL2に登り、型レベル計算やクロスプラグイン拡張性が関与するときのみL3に手を伸ばす。新しい代替案行が「Python PEP 695スタイルの再帰`type`エイリアスのみ（L1キャップ）」を拒否されたバリアントとして固定 — ADR-20はこの層を内側の層として内包するのであって、置き換えるのではない。

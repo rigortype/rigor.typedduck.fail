@@ -3,8 +3,8 @@ title: "ADR-17 — プロジェクト側monkey-patchの事前評価"
 description: "rigortype/rigor docs/adr/17-monkey-patch-pre-evaluation.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/adr/17-monkey-patch-pre-evaluation.md"
 sourcePath: "docs/adr/17-monkey-patch-pre-evaluation.md"
-sourceSha: "99fa4f54465322591f372e4bda28ec766471875d7605ad1da4a603a1b45a90b5"
-sourceCommit: "dd1240d88f635b570b72ca36d1fccddc8df8ccd1"
+sourceSha: "b9f8c83128c3772fe05b7646f790e1ac759985d3638a6ef45e8be17fc74c475c"
+sourceCommit: "fe4e9a80df3829ee4f113e763e4bb9920c33da21"
 sourceDate: "2026-05-18T04:21:23+09:00"
 translationStatus: "translated"
 sidebar:
@@ -29,7 +29,7 @@ end
 プロジェクト内の他のファイルは通常のStringに対して`s.to_url`を呼び出し、静的解析がその呼び出しを定義済みとして扱うことを期待します。今日のRigorは助けなしにこの期待を満たすことができません。
 
 - **ファイル順序は救済にならない**。今日のファイルごとの推論はファイルを独立に歩く。`String`の中で`def to_url`を見つけるウォーカーは他のクラス本体発見と同様に走る — しかし、`String`が今や`#to_url`を持つという**ファクト**は、*他の*ファイルの推論エンジンが「`s.to_url`は解決するか？」と問うときに参照される、プロジェクト全体の「パッチ済みメソッドレジストリ」に外向きに伝播しない。
-- **RBSバンドルではプロジェクト専用パッチをカバーできない**。v0.1.5の`examples/rigor-activesupport-core-ext/`バンドルは*共通の*ActiveSupport `core_ext`セレクタをカバーする。プロジェクト専用パッチは定義上、バンドル可能なRBSの外側にある。
+- **RBSバンドルではプロジェクト専用パッチをカバーできない**。v0.1.5の`plugins/rigor-activesupport-core-ext/`バンドルは*共通の*ActiveSupport `core_ext`セレクタをカバーする。プロジェクト専用パッチは定義上、バンドル可能なRBSの外側にある。
 - **プラグイン著作は重すぎる**。ユーザーは発見されたメソッドをADR-9の`flow_contribution_for`経由で発行する単発のプラグインを著作できるが、その活性化面（単一プロジェクトの`lib/ext/`のためのgem形のプラグイン全体）は問題に対して不釣り合い。
 
 Redmineの実世界テストがこれを「Railsの`call.undefined-method`ロングテールを閉じる」ワークストリームの欠けた半分として浮上させました。もう半分（RBSバンドル）はv0.1.5でO1として着地;このADRはプロジェクト側の半分を切り出します。

@@ -3,8 +3,8 @@ title: "プラグイン"
 description: "rigortype/rigor docs/handbook/09-plugins.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/handbook/09-plugins.md"
 sourcePath: "docs/handbook/09-plugins.md"
-sourceSha: "f6ac5df7d7077881cf8a650517d1dcd48b84e39491883f4101668a63fafed0a4"
-sourceCommit: "035915291e331f3bcd5ce804a1e30dc284ffbd48"
+sourceSha: "48cd29af9085008b7fc377209ca9f28d8d01c55821c0a5cdefbcf23d21c6b659"
+sourceCommit: "fe4e9a80df3829ee4f113e763e4bb9920c33da21"
 translationStatus: "translated"
 sidebar:
   order: 1009
@@ -22,7 +22,7 @@ Lisp.eval([:<, 1, 2])           # ランタイムでbool
 Lisp.eval([:if, true, "a", 0])  # ランタイムでString | Integer
 ```
 
-戻り値型は引数配列の先頭のリテラルシンボルに依存します。RBSはここで`untyped`しか言えません; Rigorの推論にはどうしようもありません; `RBS::Extended`ディレクティブは引数のシェイプで変えられません。 **プラグインならできます**。
+戻り値型は引数配列の先頭のリテラルシンボルに依存します。RBSはここで`untyped`しか言えません; Rigorの推論にはどうしようもありません; `RBS::Extended`ディレクティブは引数のシェイプで変えられません。**プラグインならできます**。
 
 プラグインのニッチに当てはまる他の形状:
 
@@ -53,9 +53,9 @@ v0.1.2リリースは4つの実例（`rigor-lisp-eval`、`rigor-pattern`、`rigo
 
 | ティア | 形状 | マニフェスト宣言 | 動作例 |
 | --- | --- | --- | --- |
-| **A — ブロック-as-メソッド** | DSL呼び出しのブロックがレシーバークラス上のインスタンスメソッドとして実行される（`Sinatra::Base#generate_method`） | `block_as_methods: [Macro::BlockAsMethod.new(receiver_constraint:, verbs:)]` | [`rigor-sinatra`](https://github.com/rigortype/rigor/blob/main/examples/rigor-sinatra/) |
-| **B — トレイトインライニングレジストリ** | クラスレベルの呼び出しがシンボルを列挙 → バンドルされたレジストリが各々をモジュールにマップ → 基板がモジュールのRBSメソッドを呼び出し元クラスに展開 | `trait_registries: [Macro::TraitRegistry.new(receiver_constraint:, method_name:, modules_by_symbol:, always_included:)]` | [`rigor-devise`](https://github.com/rigortype/rigor/blob/main/examples/rigor-devise/) |
-| **C — heredocテンプレート** | クラスレベルの呼び出しがリテラルシンボルをメソッド名テンプレートに補間;基板が合成リーダーを発行 | `heredoc_templates: [Macro::HeredocTemplate.new(receiver_constraint:, method_name:, symbol_arg_position:, emit:)]` | [`rigor-dry-struct`](https://github.com/rigortype/rigor/blob/main/examples/rigor-dry-struct/) |
+| **A — ブロック-as-メソッド** | DSL呼び出しのブロックがレシーバークラス上のインスタンスメソッドとして実行される（`Sinatra::Base#generate_method`） | `block_as_methods: [Macro::BlockAsMethod.new(receiver_constraint:, verbs:)]` | [`rigor-sinatra`](https://github.com/rigortype/rigor/blob/main/plugins/rigor-sinatra/) |
+| **B — トレイトインライニングレジストリ** | クラスレベルの呼び出しがシンボルを列挙 → バンドルされたレジストリが各々をモジュールにマップ → 基板がモジュールのRBSメソッドを呼び出し元クラスに展開 | `trait_registries: [Macro::TraitRegistry.new(receiver_constraint:, method_name:, modules_by_symbol:, always_included:)]` | [`rigor-devise`](https://github.com/rigortype/rigor/blob/main/plugins/rigor-devise/) |
+| **C — heredocテンプレート** | クラスレベルの呼び出しがリテラルシンボルをメソッド名テンプレートに補間;基板が合成リーダーを発行 | `heredoc_templates: [Macro::HeredocTemplate.new(receiver_constraint:, method_name:, symbol_arg_position:, emit:)]` | [`rigor-dry-struct`](https://github.com/rigortype/rigor/blob/main/plugins/rigor-dry-struct/) |
 | **D — 外部ファイルインクルージョン** | globにマッチするファイルが、宣言されたクラスとして型付けされた`self`で実行される | `external_files: [Macro::ExternalFile.new(glob:, receiver_type:, bound_ivars:)]` | （v0.1.x時点では契約のみ — エンジン統合は需要駆動） |
 
 上記の3つのTier A/B/Cプラグインは各々60〜110 LoCの**純粋に宣言的な**Ruby — ウォーカーなし、`diagnostics_for_file`なし、プラグイン側の状態なし。基板のプレパス + ディスパッチャー統合が作業を行います。
@@ -92,12 +92,12 @@ ADR-16 § WD13に従い、v0.1.xの成果物は**フロア**: 合成メソッド
 | `クラスレベル呼び出し + リテラルシンボル引数 + レジストリ駆動のモジュールinclude` | ✓ Tier B | — |
 | `クラスレベル呼び出し + インスタンスメソッドとして実行されるdo…endブロック` | ✓ Tier A | — |
 | `宣言されたself下でinstance_eval'dされた外部Rubyファイル` | ✓ Tier D（v0.1.x時点では契約のみ） | — |
-| `戻り型が引数のシェイプに依存するドメインDSL` | — | `flow_contribution_for`（[`rigor-lisp-eval`](https://github.com/rigortype/rigor/blob/main/examples/rigor-lisp-eval/)） |
-| `クロスファイル検証（宣言を収集してから使用を検証）` | — | 2パスウォーカー（[`rigor-statesman`](https://github.com/rigortype/rigor/blob/main/examples/rigor-statesman/)） |
-| `外部プロジェクトファイル（ルート、スキーマ、ロケール）のパース` | — | `IoBoundary` + キャッシュプロデューサー（[`rigor-routes`](https://github.com/rigortype/rigor/blob/main/examples/rigor-routes/)） |
+| `戻り型が引数のシェイプに依存するドメインDSL` | — | `flow_contribution_for`（[`rigor-lisp-eval`](https://github.com/rigortype/rigor/blob/main/plugins/rigor-lisp-eval/)） |
+| `クロスファイル検証（宣言を収集してから使用を検証）` | — | 2パスウォーカー（[`rigor-statesman`](https://github.com/rigortype/rigor/blob/main/plugins/rigor-statesman/)） |
+| `外部プロジェクトファイル（ルート、スキーマ、ロケール）のパース` | — | `IoBoundary` + キャッシュプロデューサー（[`rigor-routes`](https://github.com/rigortype/rigor/blob/main/plugins/rigor-routes/)） |
 | `スキーマグラフレコーダー（GraphQL-Rubyスタイル）` | — | スキーマ解決パス（プラグインまだ未作成） |
 
-基板と手書きウォーカー契約は共存します — プラグインは`manifest`で宣言された基板エントリーを`diagnostics_for_file`ウォーカーと混在させられます。[`.codex/skills/rigor-plugin-author/SKILL.md`](https://github.com/rigortype/rigor/blob/main/.codex/skills/rigor-plugin-author/SKILL.md) SKILLが決定フローを詳細にキャプチャします;[`docs/notes/20260515-macro-expansion-library-survey.md`](../../notes/20260515-macro-expansion-library-survey/)のサーベイが、基板がどのRubyライブラリをカバーし、どのライブラリがスコープ外に該当するかを記録します。
+基板と手書きウォーカー契約は共存します — プラグインは`manifest`で宣言された基板エントリーを`diagnostics_for_file`ウォーカーと混在させられます。[`skills/rigor-plugin-author/SKILL.md`](https://github.com/rigortype/rigor/blob/main/skills/rigor-plugin-author/SKILL.md) SKILLが決定フローを詳細にキャプチャします;[`docs/notes/20260515-macro-expansion-library-survey.md`](../../notes/20260515-macro-expansion-library-survey/)のサーベイが、基板がどのRubyライブラリをカバーし、どのライブラリがスコープ外に該当するかを記録します。
 
 ## プラグインを書くべきか？
 
@@ -107,7 +107,7 @@ ADR-16 § WD13に従い、v0.1.xの成果物は**フロア**: 合成メソッド
 - アプリケーションと共にプラグインgemを保守する意欲がある。
 - チームがプラグインのソースを読める — それは誰も無視できるブラックボックスではありません。
 
-これらが当てはまるなら、[`examples/README.md`](https://github.com/rigortype/rigor/blob/main/examples/README.md)が出発点です。[`rigor-deprecations`](../../examples/rigor-deprecations/)の例は80行未満で、「最初のプラグインを書きたい」のための推奨テンプレートです。
+これらが当てはまるなら、[`examples/README.md`](https://github.com/rigortype/rigor/blob/main/examples/README.md)が出発点です。[`rigor-deprecations`](../../plugins/rigor-deprecations/)の例は80行未満で、「最初のプラグインを書きたい」のための推奨テンプレートです。
 
 ## 次に読むもの
 

@@ -3,8 +3,8 @@ title: "`rigor-tapioca`? — Tapioca DSL-RBI Coverage Investigation"
 description: "Imported from rigortype/rigor docs/design/20260509-rigor-tapioca-investigation.md."
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/design/20260509-rigor-tapioca-investigation.md"
 sourcePath: "docs/design/20260509-rigor-tapioca-investigation.md"
-sourceSha: "9f51b3183e6b34c652a60c53559fabd9abbe3044cd86908115306d13e0d0c26d"
-sourceCommit: "f87b68f852350994a182dca35c52464a59be6e53"
+sourceSha: "7f4164ef7ee2b2678f9e09f4b7dfaa63ffa7b900e7db49d45b0daf521d092c16"
+sourceCommit: "fe4e9a80df3829ee4f113e763e4bb9920c33da21"
 translationStatus: "translated"
 sidebar:
   order: 20265509
@@ -212,7 +212,7 @@ end
 
 ### ステップ4 — インテグレーションスペック
 
-`spec/integration/examples/sorbet_plugin_spec.rb`にTapioca形式のRBIフィクスチャを追加する:
+`spec/integration/plugins/sorbet_plugin_spec.rb`にTapioca形式のRBIフィクスチャを追加する:
 
 ```ruby
 let(:tapioca_dsl_rbi) do
@@ -240,7 +240,7 @@ end
 
 ### ステップ5 — README + CHANGELOG
 
-`examples/rigor-sorbet/README.md`に「Tapioca DSL RBI互換性」サブセクションを追加し、プラグインがサポートするようになったTapiocaコンパイラと、まだ作業が必要なもの（あれば）をリストアップする。
+`plugins/rigor-sorbet/README.md`に「Tapioca DSL RBI互換性」サブセクションを追加し、プラグインがサポートするようになったTapiocaコンパイラと、まだ作業が必要なもの（あれば）をリストアップする。
 
 ### 見積もり工数
 
@@ -256,7 +256,7 @@ end
 将来のユーザーリクエストが独立したプラグインを正当化するなら、**正しい最小スコープ**は:
 
 ```text
-examples/rigor-tapioca/
+plugins/rigor-tapioca/
 ├── README.md
 ├── rigor-tapioca.gemspec
 ├── lib/

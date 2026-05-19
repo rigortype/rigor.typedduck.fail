@@ -3,8 +3,8 @@ title: "Real-world Rails project survey (2026-05-15)"
 description: "rigortype/rigor docs/notes/20260515-real-world-rails-survey.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/notes/20260515-real-world-rails-survey.md"
 sourcePath: "docs/notes/20260515-real-world-rails-survey.md"
-sourceSha: "a70e60f49bd833c38eaf4130186307a1d418570e103267addf3ac410925e3441"
-sourceCommit: "035915291e331f3bcd5ce804a1e30dc284ffbd48"
+sourceSha: "a5baa91d29b3e946285c81ce3f14bfa066ae4fd54338740bbec31cf4f039f302"
+sourceCommit: "fe4e9a80df3829ee4f113e763e4bb9920c33da21"
 translationStatus: "translated"
 sidebar:
   order: 20266515
@@ -164,7 +164,7 @@ stoplight, ffi
 
 このデータポイントはコミット`f9b94d2`の設計判断を強化します。よく使われる半ダース程度のネイティブ拡張gemに対するベンダーRBSをrigor自身に同梱することが、現実的な「すぐ使える」道です。そうでなければエンドユーザーは`gem_rbs_collection`を`signature_paths:`にgemバージョン毎に手動で配線する必要があり、その配線はいずれにせよO7（後述）にぶつかります。
 
-**オープン項目O7（RBSのenvビルドの崖）は当初の評価より深刻です**。rigor自身のロード済みsig上にgem同梱の`sig/`ディレクトリを**1つだけ**（具体的にはprismのsig、約19個の.rbsファイル）追加すると、`RBS::Environment.from_loader`は5分以上ハングします（強制終了）。Diasporaの16-paths-coldの実験（11分以上）は同じ症状でパス数がより多いものです。もっともらしい説明: prismのsigはrigorの事前ロード済みprism RBS（rigorは内部でprismを使用）と重複するクラスを宣言しており、リゾルバが重複クラスのグラフ走査で爆発します。 **O7が修正されるまで、gem同梱のsig経路は使えません** — bundle installが成功してもです。
+**オープン項目O7（RBSのenvビルドの崖）は当初の評価より深刻です**。rigor自身のロード済みsig上にgem同梱の`sig/`ディレクトリを**1つだけ**（具体的にはprismのsig、約19個の.rbsファイル）追加すると、`RBS::Environment.from_loader`は5分以上ハングします（強制終了）。Diasporaの16-paths-coldの実験（11分以上）は同じ症状でパス数がより多いものです。もっともらしい説明: prismのsigはrigorの事前ロード済みprism RBS（rigorは内部でprismを使用）と重複するクラスを宣言しており、リゾルバが重複クラスのグラフ走査で爆発します**。O7が修正されるまで、gem同梱のsig経路は使えません** — bundle installが成功してもです。
 
 ### 最新の状態（コミット`f9b94d2`でベンダーRBSがランディング後）
 
@@ -488,7 +488,7 @@ y = x.expand_path(__dir__)   # __dir__ returns String | nil per RBS
 
 | ID | 状態 | 項目 |
 | --- | --- | --- |
-| O1 | ランディング済み（MVP、v2） | `examples/rigor-activesupport-core-ext/` — トップ約50個のActiveSupportコア拡張セレクタをカバーするコミュニティRBSバンドル。`signature_paths`経由でオプトイン。 |
+| O1 | ランディング済み（MVP、v2） | `plugins/rigor-activesupport-core-ext/` — トップ約50個のActiveSupportコア拡張セレクタをカバーするコミュニティRBSバンドル。`signature_paths`経由でオプトイン。 |
 | O2 | 待機中 | マクロテンプレート／ヒアドキュメントRuby展開。**tDiaryの`instance_eval`プラグインパターン（第3ラウンド）は、Railsジェネレータの`.rb`-as-ERBテンプレートと並ぶ具体的な動機付け事例**。 |
 | O3 | 問題なし | `next if x.nil?`／`return if x.nil?`は既に狭化済み — サーベイ残存のnilレシーバはほとんどが`Object#blank?`／`#present?`／`#try`のActiveSupport拡張で、O1のRBSバンドルがカバーする。 |
 | O4 | Layer 1+2ランディング済み | 対象プロジェクトのBundler認識。`bundler.bundle_path:`（明示）と`bundler.auto_detect:`（`.bundle/config` → `vendor/bundle/`）が、gem同梱の`sig/`を`signature_paths:`に自動投入する。auto-skipリストがprism／stdlib競合を防ぐ。Layer 3（`Gemfile.lock`のパース + `gem_rbs_collection`マッチング）はまだ待機中。 |

@@ -3,8 +3,8 @@ title: "ADR-11 — Sorbet input as a plugin adapter"
 description: "Imported from rigortype/rigor docs/adr/11-sorbet-input-adapter.md."
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/adr/11-sorbet-input-adapter.md"
 sourcePath: "docs/adr/11-sorbet-input-adapter.md"
-sourceSha: "175e75d95bba7dfcc3127a9f2ddbd34b0ac8c43743b2b2780012679e8defc3e5"
-sourceCommit: "f87b68f852350994a182dca35c52464a59be6e53"
+sourceSha: "e98c4f6436f00ec75348e97948d80d355a4e8292b6ce223b54136f279f41a1fe"
+sourceCommit: "fe4e9a80df3829ee4f113e763e4bb9920c33da21"
 translationStatus: "translated"
 sidebar:
   order: 4011
@@ -200,7 +200,7 @@ ADR-0は「RubyアプリケーションコードはRigor固有のアノテーシ
 
 ## 実装スライシング
 
-プラグインはコントラクトが安定するまで`examples/rigor-sorbet/`に置き、その後既存のパターン（[Railsプラグインロードマップ][rails-roadmap]参照）に従って`git subtree split`で抽出する。推奨順序:
+プラグインはコントラクトが安定するまで`plugins/rigor-sorbet/`に置き、その後既存のパターン（[Railsプラグインロードマップ][rails-roadmap]参照）に従って`git subtree split`で抽出する。推奨順序:
 
 1.  **`sig { params(...).returns(...) }`パーサー**。`Prism::CallNode`チェーンのミニインタープリタ。`params`/`returns`/`void`/`void.checked(...)`/`abstract`/`override`/`overridable`/`final`をカバー。プラグインはメソッド型を提供する。インテグレーションスペックでチェーンした呼び出しがsig経由で解決されることを証明する。
 2.  **`T.let` / `T.cast` / `T.must` / `T.bind`**。これらをプラグインの`flow_contribution_for`出力に持ち上げる認識器。既存の`%a{rigor:v1:assert:}`機構と合成される。
@@ -208,7 +208,7 @@ ADR-0は「RubyアプリケーションコードはRigor固有のアノテーシ
 4.  **RBIディレクトリウォーカー**。`sorbet/rbi/**/*.rbi`を読み込み、スタブメソッドボディのRubyソースとして扱い、パースしたsigをプロジェクトソースsigと同じファクトストアに供給する。
 5.  **シグル尊重 + ディスパッチャー階層順序**。`# typed:`シグルはプラグインがファイルごとに何を提供するかに影響する。RBS/プロジェクト`sig/` RBS/`RBS::Extended`に対する階層順序が文書化される（コンフリクト時はRBSが優先。Sorbetのsigはプロジェクト`sig/` RBSと同じ階層に位置する）。
 6.  **`T.absurd`網羅性配線**。`flow.unreachable-branch`と合成される。診断識別子: `plugin.sorbet.absurd-reachable`。
-7.  **ドキュメント更新**。新しい`examples/rigor-sorbet/README.md`と、Sorbetを使うプロジェクトから来るユーザー向けのアダプターをカバーする`docs/handbook/`のチャプター。[`docs/handbook/01-getting-started.md`](../../handbook/01-getting-started/)の「推論だけでは足りないとき」エスケープハッチからクロスリンク。
+7.  **ドキュメント更新**。新しい`plugins/rigor-sorbet/README.md`と、Sorbetを使うプロジェクトから来るユーザー向けのアダプターをカバーする`docs/handbook/`のチャプター。[`docs/handbook/01-getting-started.md`](../../handbook/01-getting-started/)の「推論だけでは足りないとき」エスケープハッチからクロスリンク。
 8.  **ミックスインチェーン解決（Tapioca DSL互換性）**。スライス4のRBIウォーカーは宣言クラス/モジュールの直下にsigを記録する。これは手書きのsig+defペアでは機能するが、sigを生成済みモジュールで宣言しそのモジュールをユーザークラスに`include`/`extend`するTapiocaの標準パターンを見逃す:
 
     ```rbi
