@@ -3,9 +3,9 @@ title: "Current Work — Inference Engine Checkpoint"
 description: "rigortype/rigor docs/CURRENT_WORK.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/CURRENT_WORK.md"
 sourcePath: "docs/CURRENT_WORK.md"
-sourceSha: "77ac2d5571bbf9d82e155c04133d4d44d3f81e8d2725fcbbe757b66f7412d552"
-sourceCommit: "fe4e9a80df3829ee4f113e763e4bb9920c33da21"
-sourceDate: "2026-05-19T02:16:29+09:00"
+sourceSha: "cad65841504efd65de385cd2f70747190afb8f38922b6a20cfec86bdf705ddd8"
+sourceCommit: "994b5435a3eeb1c178aad9a8b077e9950616b191"
+sourceDate: "2026-05-20T05:23:22+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9050
@@ -15,7 +15,7 @@ sidebar:
 
 ## ステータス
 
-**v0.1.5リリース済み（2026-05-16）**。スライスごとのまとめは`CHANGELOG.md` § `[0.1.5]`。完全なv0.1.0 → v0.1.5リリースログは`CHANGELOG.md`にあり;各カットを形作った計画エンベロープはgit履歴に保存されています（隣接リリースタグ間の任意のコミットで`git log -- docs/CURRENT_WORK.md docs/ROADMAP.md`）。
+**v0.1.6リリース済み（2026-05-19）**。スライスごとのまとめは`CHANGELOG.md` § `[0.1.6]`。アクティブなサイクル（`v0.1.7`）は**ベースラインメカニズム（ADR-22スライス1 + 2）**をヘッドライン機能として`master`に蓄積中 — 下記§「作業が再開される場所」を参照。
 
 v0.1.5のテーマ（タグで凍結、完全な詳細はCHANGELOG）:
 
@@ -24,60 +24,36 @@ v0.1.5のテーマ（タグで凍結、完全な詳細はCHANGELOG）:
 3. **[ADR-16](../adr/16-macro-expansion/)マクロ / DSL展開基板** — フロア + 精度プロモーション着地;3つの動作消費者プラグインを持つ4ティア基板（Tier Aブロック-as-メソッド / Tier Bトレイトインライニングレジストリ / Tier C heredocテンプレート / Tier D外部ファイル契約のみ）。WD13フロアでROADMAP O2をクローズ。
 4. **O4レイヤー3（スライス1+2+3）ターゲットプロジェクトRBSソースディスカバリ + DEFAULT_LIBRARIES拡張**。`Rigor::Environment::LockfileResolver`、`RbsCollectionDiscovery`、`RbsCoverageReport`、欠落gemの`:info`診断、+31のstdlibライブラリ自動ロード（1,273 → 1,427 RBSクラス）、`is_a?(C)`レキシカルネスティング定数解決。
 
-## 作業が再開される場所
+## 作業が再開される場所 — v0.1.7サイクル
 
-次のサイクル（`v0.1.6`）は`master`に蓄積中（リリース保留中）。今までに着地したスライス（コミット`3c99eed` → `8530856`）:
+`v0.1.7`は`master`上のアクティブなサイクル（v0.1.6リリース後、リリース保留中）。スライスごとの詳細は`CHANGELOG.md` § `[Unreleased]`。v0.1.7のヘッドラインテーマ:
 
-- **`data/vendored_gem_sigs/prism/` — prism gem用のRBS補足**。gem自身の`sig/`が省略するC拡張バインドのクラスメソッド（`StringQuery.{local?, constant?, method_name?}`）とRubyソースメソッド（`ParseResult#attach_comments!` / `#mark_newlines!`）を追加。gemのRBSと並べてロードされる（衝突なし — 新しい宣言のみを追加）。`VENDORED_GEM_NAMES`は6 → 7にバンプ。referencesサーベイ: 1747 → 1743（-4エラー）。✓
-- **エンジン — `eval_call`が引数位置のDefNodesを歩く（ruby2_keywords / private def / public def / module_function def）**。delegate.rbの`ruby2_keywords def method_missing`が駆動。各`Prism::DefNode`引数は今`eval_def`を通過するので、ボディのスコープインデックスは囲むクラスボディの`singleton(C)`ではなく適切なインスタンス/シングルトン`self_type`を見る。✓
-- **エンジン — `OverloadSelector`パス1.5（エイリアス解決済みstrict）**。`references/ruby/lib/ipaddr.rb:51`の`Array#*(Integer)`の誤解決が駆動。正準コアエイリアス（`::int` / `::string` / `::interned` / `::io` / `::encoding` / `::path` / `::boolean`）は、両候補がエイリアスを使うとき正しいオーバーロードが勝つよう、strictとgradualの間の新しいパスでstrict-armマッチを得る。✓
-- **エンジン — `class << Foo`（明示的定数のシングルトンクラス）はFooのシングルトンスコープを開く**。referencesサーベイ（`time.rb`の`class Time; class << Time; ...`）が駆動。新しい`singleton_class_prefix`ヘルパーがレシーバを解決し、囲むクラスにマッチすれば畳み、無関係なら接頭辞を置き換える。StatementEvaluator側にもミラーリング。time.rb: 13 → 1エラー。✓
-- **エンジン — `Rigor::Builtins::StaticReturnRefinements`ディスパッチャ層 + `Kernel#__dir__`エントリ**。`MethodDispatcher.dispatch`内のHKTとRBSの間の新しい層が、上流のRBSが文書化された挙動より広いstdlibメソッドのための`(owner, method, kind)`オーバーライドテーブルを参照する。`Kernel#__dir__`は今、3つの呼び出し形すべて（暗黙のself / `Kernel.__dir__` / `instance.__dir__`）で`non-empty-string | nil`を返す。`Kernel#caller`、`File.expand_path`などのための前方拡張サーフェス。✓
-- **エンジン — `def Foo.method`明示的レシーバ形が囲むクラス上のシングルトンとして認識される**。references/ruby/libサーベイ（open-uri.rbの`def OpenURI.check_options`など）が駆動。`ScopeIndexer` + `StatementEvaluator`が`def_receiver_targets_lexical_self?`ヘルパーを取得し、レシーバ定数が字句的に囲むクラスに解決されるときに`def C.method`をシングルトンに昇格させる。クロスクラス形（`module Foo`内の`def Bar.x`）は昇格されないまま。open-uri.rb: 24 → 15エラー。✓
-- **エンジン — 組み込みPrismリーフノードフォールバックハンドラ + リファインメント向上**。`rigor check --explain references/ruby/lib`サーベイが駆動;8つの新しい`PRISM_DISPATCH`エントリが`__FILE__` / `__LINE__` / バックティック / `%x{...}` / `END { … }` / shareable-constantコメント / `{ x: }`省略形 / `it`パラメータをカバー。Rubyのcore/stdlibリファレンスツリーで約60の`:info` fail-softフォールバックイベントが削除された。フォローアップコミット`e44cfee`が`__FILE__`を`non-empty-string`に、`__LINE__`を`positive-int`に絞り込んだ（正準のインポート済みリファインメント — パーサが見たパスは`""`にはなりえず、行番号は1始まり）。✓
-- **O4レイヤー3スライス3**（優雅な縮退カバレッジ診断）。✓
-- **`is_a?(C)`レキシカルネスティング定数解決**。✓
-- **DEFAULT_LIBRARIES拡張**（+31 stdlibライブラリ;1,273 → 1,427 RBSクラス）。✓
-- **[ADR-10]ウォーカーヒューリスティック戻り型抽出**（フェーズBフロア）。✓
-- **[ADR-12] dry-rbパッケージング** acceptance + `rigor-dry-types`スライス1+2+3（Tier A基礎;正準 + ネストカテゴリ + ユーザー著作のコンポジション;25番目の動作プラグイン）。✓
-- **[ADR-17] monkey-patch事前評価** acceptance + スライス1+2+3a+4（`pre_eval:`配管 + `ProjectPatchedMethods`レジストリ + ディスパッチャーティア + ヒューリスティック戻り型 + 重複宣言`:info` + globサポート）。✓
-- **[ADR-18]基板の呼び出しサイトごとの戻り型DSL** proposed + スライス1+2+3+5（`HeredocTemplate::Emit#returns_from_arg` + スキャナ抽出 + ファクトストアルックアップ + `rigor-dry-struct`消費者マニフェスト更新 — クロスプラグインファクト経由の最初のエンドツーエンドの精度向上）。✓
-- **エディタモードv1** — `rigor check` / `rigor type-of`がペアの`--tmp-file` / `--instead-of`フラグを獲得 + `BufferBinding`値オブジェクトがRunner / WorkerSession / プレパスを通してスレッド化 + 並行安全なエディタ呼び出しのための`Cache::Store(read_only: true)` + 単一ファイルスコープ（バッファのみがファイルごとの診断を生成）+ Ractorプール自動シーケンシャル縮退。7スライスカット、設計は[`docs/design/20260516-editor-mode.md`](../design/20260516-editor-mode/)。スコープ外フォローアップ（「オプションB」用のファイルごとの診断キャッシュ、プロジェクトコンテキストスナップショットキャッシュ、マルチバッファ、`--also`、LSPデーモン）はROADMAP §「エディタ / IDE統合」にキュー。✓
-- **言語サーバーv1** — `rigor lsp`サブコマンド + ADR-0の先送りされたコミットメントをクローズするインプロセスRuby LSP。8スライスカット、設計は[`docs/design/20260517-language-server.md`](../design/20260517-language-server/)。`initialize` / `shutdown` / `exit`ライフサイクル + stdio JSON-RPC + BufferTable + `textDocument/didOpen/Change/Close` + `textDocument/publishDiagnostics`（200msデバウンス） + `textDocument/hover` + `textDocument/documentSymbol` + `workspace/didChangeWatchedFiles` + ProjectContextキャッシング（ウォームEnvironment + 読み取り専用Cache::Store） + Debouncer（協調的キャンセル） + SynchronizedWriter（Mutexラップされたstdout）をカバー。新しいランタイム依存`language_server-protocol ~> 3.17`。パッケージング形は[ADR-19](../adr/19-language-server-packaging/)で決定（`rigortype`にバンドル）。✓
-- **言語サーバーv2** — 型認識hover + completion。8スライスカット、設計は[`docs/design/20260517-lsp-hover-completion.md`](../design/20260517-lsp-hover-completion/)。HoverがPrismノードクラスごとのディスパッチを獲得（CallNode → レシーバー + シグネチャ + 戻り値;Constant → FQN + シングルトン + 定義先;Local/Ivar → 名前 + 型 + 囲むクラス;リテラル → クリーンなType/Erased + リファインメント名表面化）。Completionは`[".", ":"]`トリガー文字を持つ`textDocument/completion`を出荷: `obj.|`のメソッド補完、`Foo::|`の定数パス補完、複合レシーバー処理（Refined/Tuple/HashShape → 基底のnominal;Union → メソッドの交差;Intersection → メソッドの和集合）、編集中の`.` / `::`バッファに対するセンチネル名パッチ経由のパースリカバリ。✓
-- **LSPフォローアップクラスター** — `textDocument/signatureHelp`（新しい`SignatureHelpProvider`;センチネルパッチされた`obj.foo(`リカバリ;カンマカウントによるactiveParameter;`signatureHelpProvider.triggerCharacters: ["(", ","]`をアドバタイズ） + `HashShape`キャリア向けのhash-key補完（スライスD1;`[:`センチネルパッチが`:foo` / `"bar"`キーをKIND_FIELDアイテムとして返す） + ユーザー向け[エディタ統合ガイド](../lsp-integration/)（Neovim / VSCode / Helix / Emacsのセットアップ、トラブルシューティング、パフォーマンス） + `Open3.popen3`経由で実際の`exe/rigor lsp`バイナリをスポーンするエンドツーエンドspec。✓
-- **LSPのポリッシュ + 新しい機能** — 6つの小さなスライス: signatureHelpマルチオーバーロード表示（C2） + hoverとsignatureHelpのRBSコメント（C3） + 設定された`SignatureInformation.parameters`（C4） + hoverの`range`フィールド（E1） + 新しい`textDocument/foldingRange`（F1） + 新しい`textDocument/selectionRange`（G1）。LSPは今9つの機能をアドバタイズする（textDocumentSync / hoverProvider / completionProvider / signatureHelpProvider / documentSymbolProvider / foldingRangeProvider / selectionRangeProvider + workspace/didChangeWatchedFiles + workspace/didChangeConfiguration）。✓
-- **`make verify`デフォルトで並列** — コミット`086e507`がspecフェーズをシーケンシャルな`bundle exec rspec`から`rake spec_parallel`（`PARALLEL_TEST_PROCESSORS`ワーカー全体でparallel_rspec）に切り替えた。12コアでwall時間217秒 → 60秒（3.6×）。Rakefileが`runner_pool_spec.rb`用のネイティブ`--exclude-pattern`を取得する（spec_helper.rbのRSpec設定側の除外はparallel_rspecがワーカーがspec_helperをロードする前にファイルを分割するため適用されなかった）。`make verify-sequential`は遅いflake耐性のあるフォールバックとして保持;`make verify-parallel`は後方互換のエイリアスとして保持。AGENTS.mdの検証プロトコルエントリーが更新。✓
-- **Specヘルパー — コンテンツキー化sigディレクトリ + 共有ワークスペース**（CHANGELOG `[Unreleased]` § Performance）。`runner_spec.rb` 39.6秒 → **25.4秒（-36%）**、孤立;`make verify`並列65.6秒 → **52.6秒（-20%）**、12コアで。✓
-- **Specヘルパー — `plugin_helpers#run_plugin`でのオプトイン共有キャッシュ**（CHANGELOG `[Unreleased]` § Performance）。`sorbet_plugin_spec` 13.1秒 → **4.7秒（-64%）**孤立;統合シーケンシャル90.2秒 → **78.6秒（-13%）**。✓
-- **LSP / エディタモード — プロジェクトコンテキストプレパススナップショットキャッシュ**（CHANGELOG `[Unreleased]` § Added）。新しい`Rigor::Analysis::ProjectScan`値オブジェクト + `Runner#prepare_project_scan(paths:)`ビルダー + `Runner.new(prebuilt:)`採用パス。LSPの`ProjectContext`はスナップショットを遅延ビルドし、`invalidate!`（監視ファイル / 設定変更）でドロップする。`DiagnosticPublisher`は各publishごとの`Runner.new`に渡すため、プラグイン`#prepare`、`Plugin::Loader.load`、`DependencySourceInference::Builder.build`、合成メソッド / プロジェクトパッチ済みスキャナはキーストロークごとに再実行されない。ボーナスの正確さ: キャッシュされたスキャナはバッファのみではなくプロジェクト全体を観察するため、他のファイルで宣言された合成メソッドはバッファ解析中に見える — スライス7 LSP設計からの既知のギャップをクローズ。✓
-- **プラグインキャッシュディスクリプタの正確性修正**（CHANGELOG `[Unreleased]` § Added）。新しい`Plugin::Base#glob_descriptor(roots, *patterns)`ヘルパーが`:digest` `FileEntry`行でglobマッチしたすべてのファイルを列挙する。3つのプラグインキャッシュプロデューサー（actioncableの`:channel_index`、actionmailerの`:mailer_index`、rails-i18nの`:locale_index`）はそれを`cache_for(..., descriptor: …)`を通して通すので、キャッシュキーはプロデューサー実行前のプロジェクト状態を反映する。3つの統合specsは今、共有キャッシュにオプトインする（修正が着地した証拠）。✓
-- **LSP / エディタモード — publish全体でのEnvironment共有**（CHANGELOG `[Unreleased]` § Added）。`Runner.new(environment:)`オプトインオーバーライド + publishごとのレポーター差し替えのための`Environment#attach_reporters!`。LSP `ProjectContext`は今、FULLな環境（プラグイン / scan / bundler / collection軸すべてが焼き付け）をキャッシュし、publishごとの`Runner.new`に渡すので、連続的な`analyze_files`は呼び出しごとの`Environment.for_project`構築をスキップする（vendoredなgemを持つRailsプロジェクトで10〜50 msの節約）。publishごとのレポーター隔離は可変な`Reporters`スロット経由で扱う——envは凍結、スロットは可変——なので診断イベントは1つのpublishにスコープされたまま。✓
-- **`plugins/rigor-dry-schema/`スライス1**（CHANGELOG `[Unreleased]` § Added）。`Foo = Dry::Schema.{Params,JSON,define} { ... }`宣言を認識し、`:dry_schema_table`クロスプラグインファクトを公開、`value(Types::Email)`参照を`:dry_type_aliases`経由で解決する。26番目の動作プラグイン。✓
-- **`plugins/rigor-graphql/`スライス1**（CHANGELOG `[Unreleased]` § Added）。`class T < GraphQL::Schema::Object`サブクラス + `field :name, Type, null: ...`宣言を認識し、`:graphql_type_table`クロスプラグインファクトを公開する。Railsプラグインロードマップに従い、最後の保留中Tier 3エコシステムプラグインをクローズ。メタデータレコーダー形（ADR-16基板ではない）。27番目の動作プラグイン。✓
-- **CLIエディタモードのディスクバック`ProjectScan`スナップショットキャッシュ — 設計ノートのみ**、[`docs/design/20260518-cli-disk-snapshot-cache.md`](../design/20260518-cli-disk-snapshot-cache/)。CLIシェルアウトニッチ向けに実装パスが文書化された（LSPはすでに最適化済み）。5フェーズ（Marshal可能なscan / キー導出 / キャッシュプロデューサー / Runner統合 / FactStoreスナップショットAPI）。具体的なエディタ拡張が`rigor check --tmp-file`にシェルアウトし約1秒の壁をUXペインとして報告するまで先送り。✓（設計のみ）
-- **rigor-dry-typesスライス4 — 推移的コンポジション参照の解決**。`AliasScanner#collect_compositions`内の2パス走査、サイクル検出付き。dry-typesエイリアスカバレッジはWD13フロアにおいて完全に — 認識可能なすべてのユーザー著作コンポジション（正準 / ネストカテゴリ / `.constrained` / `.optional` / `.default`チェーン / 多段`ManagerEmail = Email`チェーン）が基底のクラスに解決される。✓
-- **設計ノート — `rigor-dry-validation`のスライシング決定**（[`docs/design/20260517-dry-validation-slicing.md`](../design/20260517-dry-validation-slicing/)）。依存ツリー（dry-validationの前にdry-schema）を記録し、5スライス計画を提案し、validation自体にはADR-3修正が必要ないことを確認し、dry-monadsのための`Result[T, E]` / `Maybe[T]`キャリア決定をフレーミング。✓（設計のみ）
-- **`plugins/rigor-graphql/`スライス2a + 2b — リストラッパー + `Schema::Enum`**。リストラッパー（`field :tags, [String]`）が`{type:, nullable:, list: true}`として認識される;複数要素 / 空リストリテラルはドロップ。`Schema::Enum`サブクラスが`:graphql_enum_table`に寄与する（ソート済みの値名リスト）。マニフェストは`:graphql_type_table` + `:graphql_enum_table`の両方をアドバタイズする。✓
-- **`plugins/rigor-dry-schema/`スライス2 — `each(<T>)`リスト認識 + 対称な`list:`スロット**。行ごとの値形は今`{type:, list:}`（`each`が`list: true`を設定;`filled`/`value`/`maybe`が`list: false`を設定）。`rigor-graphql`のフィールドテーブル形と対称なので、将来のクロスプラグイン消費者（rigor-dry-validationスライス2）がリスト対スカラーを一様に推論できる。✓
-- **`plugins/rigor-graphql/`スライス2c + 2d — `Schema::InputObject` + `Schema::Mutation`**。4つの`Schema::*`種別に拡張。InputObjectとMutationの間で共有される新しいヘルパー`collect_arguments`が`argument :name, Type, required: ...`行をパースする（`required:`デフォルト`false`はgraphql-rubyの引数デフォルト極性をミラー、`field`の`null:`とは逆）。Mutation行は`arguments:`と`fields:`の両方のサブテーブルを運ぶ。プラグインは合計4つのファクトを公開する（`:graphql_type_table`、`:graphql_enum_table`、`:graphql_input_object_table`、`:graphql_mutation_table`）。✓
-- **`plugins/rigor-rails/`メタgemスキャフォールド — Tier 1+2 Railsエコシステムアンブレラ**。ADR-12 WD1に従う。`rigor-rails.gemspec`が7つのTier 1+2サブプラグイン依存を宣言 + `lib/rigor-rails.rb`がすべてを一度に`require`する。Gemfile-conveniencのみ;`.rigor.yml`アクティベーションはプラグインごとのまま。29番目の`examples/`エントリ。✓
-- **`plugins/rigor-dry-validation/`スライス1 — Contract認識 + RBSオーバーレイ**。`class T < Dry::Validation::Contract`サブクラス（フルパス + 字句的Dry形;素の`< Contract` + 同じtail異なるrootは拒否）を歩く。ソート＋凍結された`:dry_validation_contracts`ファクトを公開する。RBSオーバーレイ（`sig/dry_validation.rbs`）を出荷し`Contract#call → Result` + `Result#{success?, failure?, to_h, errors, []}`を型付けするので、`contract.call(input).to_h`チェーンがクリーンに解決する。28番目の動作プラグイン（今や27の動作 + 1つのRBSバンドル + 1つのメタgem = 29の`examples/`エントリ）。✓
-- **エンジン — `OverloadSelector`のレシーバーアフィニティ事前ソート + `Acceptance`の祖先チェーンフォールバック**。22のOSS Rubyライブラリにまたがる外部コードベースサーベイ（`rigor-survey/REPORT.md`）が駆動。7ライブラリ（`algorithms` / `parser` / `kramdown` / `protobuf` / `numo-narray` / `hamlit` / `haml`）で、`(i + 1).upto(n)`のような素のInteger算術に対して`undefined method 'upto' / '<<' / 'times' / 'to_i' / 'to_f' for BigDecimal | Numeric`の偽陽性が合計25件報告された。根本原因: rigor自身のプロセスは`bigdecimal`を一度も`require`しない（Ruby 3.4でgemがデフォルトから格下げ）ので、`Acceptance#accepts_nominal_from_constant` + `class_subtype_result`の`Object.const_get("BigDecimal")`が失敗し`:maybe`を返す;`bigdecimal` stdlib RBSはオーバーロードリストの**先頭**で`Integer#+`などを`(BigDecimal) -> BigDecimal`で再オープンする;`OverloadSelector`は`yes`または`maybe`マッチを受け入れて最初を選ぶ → BigDecimalが勝つ。2部の修正: (a) `Acceptance`はターゲットがロード不可能だが実際がロード可能なときに`actual.class.ancestors.map(&:name).include?(target_name)`にフォールバックする — `Integer.ancestors`は`"BigDecimal"`を除外するので、関係は確定的に`:no`;（b）新しい`Rigor::Inference::MethodDispatcher::ReceiverAffinity.reorder`が`OverloadSelector.select`の先頭で1度実行され、すべてのパラム型が`self_type.class_name`自体またはその真のRBS祖先の1つであるアームが先頭に来るよう、オーバーロードを安定的にパーティション分けする。サーベイ差分: コーパス全体でBigDecimal/Numericの偽陽性25 → 0;総エラー数 −24（protobuf 16 → 1、parser 11 → 8、hamlit 18 → 16、haml 15 → 13、algorithms 53 → 52、kramdown 42 → 41、concurrent-ruby 12 → 11）。Specカバレッジ: +2 acceptance_specケース（target-unloadable + 両方unloadable） + 1修正（Union maybeケース書き直し） + +4 overload_selector_specケース（Integer引数 / `Integer#+`経由のuntyped引数 / `Integer#-` / Float引数も依然Floatアームを選ぶことで安定性を証明）。`make verify`クリーン: 3789例 / 0失敗 / 2 pending;601リントファイルクリーン;セルフチェックはベースラインから変化なし。✓
+1. **[ADR-22](../adr/22-baseline-and-project-onboarding/)ベースラインメカニズム + プロジェクトオンボーディング**（提案済み;9つのワーキング決定、スライス1 + 2実装済み）。PHPStan形の`.rigor-baseline.yml`が`(file, qualified_rule, count)`スナップショットを記録し、Rigor側の調整を加える — ルールIDデフォルト + オプトインメッセージパターンモード（WD1）、ALL-or-NOTHINGバケット閾値セマンティクス（WD4）、`baseline:`設定キー経由の明示的ロードのみ（WD2（b））、最後の抑制レイヤーとしてのフィルター（WD6）、stderrサマリー行（WD7）、human-vs-tool-edit非対称性に基づくPHPStanのconfigインクルード再利用を選ばない専用スキーマ（`version: 1` + `ignored:`）の採択（WD9）。新しい`Rigor::Analysis::Baseline`値オブジェクト + `Rigor::CLI::BaselineCommand`サブコマンドルーター + `rigor check --baseline=PATH` / `--no-baseline` CLIフラグ + `.rigor.yml`の`baseline:`設定キー + JSONスキーマプロパティ**。スライス1**が`generate` + ロード/フィルタープリミティブを出荷**。スライス2**が`dump`（テキスト + JSON、`--rule` / `--file`フィルター） + `drift`（バケットごとのステータス`:within` / `:over` / `:cleared` / `:reducible`） + `prune`（クリアされたバケットをドロップ + `--dry-run`）を出荷。Specカバレッジ: 45例 / 0失敗。
+2. **実世界サーベイ駆動のプラグイン / エンジン修正（Dトラック）**。5プロジェクトサーベイ（[Mastodon / Redmine / Solidus / tdiary-core / dependabot-core](../notes/20260519-oss-library-survey/)）が合計約6,697 → 3,457診断（-48%）に対する修正を駆動。主な修正: rigor-rails-routes `only:`/`except:`シンボルコアーション + 不規則複数形処理 + `root :as => 'home'`パース;rigor-actionpackのconcernトランジティブinclude + render-template拡張（HAML / Slim / JBuilder）+ rigor-rails-routesとのクロスプラグイン重複排除;rigor-activerecordの`belongs_to`が`find_by`エイリアスとして;rigor-actionmailerのprivate + before_action除外;rigor-rails-i18n CLDRの複数形名前空間;rigor-activesupport-core-extの`Object#as_json`オーバーレイ;エンジンの汎用等価メソッド（`==` / `eql?` / `equal?` / `<=>`）がarg-type-mismatchをスキップ;ロードエラーをファイルごとから実行ごとに変更;CGIエクストラRBSオーバーレイ（`include CGI::QueryExtension`）。
+3. **microsoft/waza CLIおよびSKILL品質改善**。`microsoft/waza`（エージェントSKILL評価フレームワーク）をFlake devシェルに追加（[`5b4c179`](#)）。`waza check` + `waza quality` LLMジャッジフィードバックを通じてすべての4 SKILLを改善。`skills/rigor-plugin-author/`はプログレッシブディスクロージャー（`SKILL.md` + 4つの`references/`）に再編成 → 1430トークン（9658から）、Quality 4.67/5.0（3ジャッジの平均、4.13から向上）。その後、外部著者バリアントはv0.1.9のコミットメントになる（ADR-22 WD8に従い）ことを認識し、`.claude/skills/`に再ホーム。
 
-残りの作業の自然なエントリー（v0.1.6進行中スライス後）:
+v0.1.6のテーマ（タグで凍結、完全な詳細はCHANGELOG `[0.1.6]`）:
 
-1. **リリース準備候補**。ADR-12 / ADR-17 / ADR-18すべてがフロア + 動作消費者状態にあり、v0.1.6は実質的なユーザー可視サーフェスを出荷した。[`.claude/skills/rigor-release-prep/SKILL.md`](https://github.com/rigortype/rigor/blob/main/.claude/skills/rigor-release-prep/SKILL.md)に従った`bundle exec rake release`が自然な次の「出荷状態」決定;明示的なユーザー承認待ち。
-2. **rigor-dry-typesスライス4 — 推移的コンポジション参照 — 着地済み**。CHANGELOG `[Unreleased]` § Added「rigor-dry-typesスライス4」。`AliasScanner#collect_compositions`内の2パスウォーク、サイクル検出付き。dry-typesエイリアスカバレッジはWD13フロアで完全。
-3. **rigor-dry-rb継続**（[ADR-12](../adr/12-dry-rb-packaging/)ロードマップの継続;スライシング決定は[`docs/design/20260517-dry-validation-slicing.md`](../design/20260517-dry-validation-slicing/)）**。v0.1.6で着地**: dry-typesスライス1+2+3+4（完全なエイリアスカバレッジ）、dry-schemaスライス1+2（Schema宣言認識 + `each(<T>)`リストスロット）、dry-validationスライス1（Contract認識 + `Contract#call → Result`型付けのRBSオーバーレイ）**。残り（需要駆動）**: `each`を超えるdry-schemaスライス2+サーフェス（ADR-16 Tier C heredocテンプレート基板経由の型付き`result.to_h`合成 — Contractごとの精度向上）;dry-validationスライス2（`:dry_schema_table`消費経由のparamsブロック型付け） + スライス3（`json { ... }`パリティ）;dry-monads（依然`Result[T, E]` / `Maybe[T]`キャリア質問でブロック — 2つのルートが文書化済み（新しい`Rigor::Type::*`種別vs `Union`ベースの回避策）、決定は具体的な需要まで先送り）。
-4. **ADR-18フォローアップスライス**。スライス4（`returns_from_arg:`のTraitRegistryパリティ）と連鎖呼び出し引数拡張（`Types::String.constrained(...)` → チェインヘッド経由で解決）はどちらも需要駆動のまま。現在のフロアは正準著作ケースをカバーする`ConstantReadNode` / `ConstantPathNode`形状を処理する。
-5. **ADR-17フォローアップスライス**。スライス3b（`Cache::Descriptor::PreEvalEntry`）は測定された痛みまで先送り。スライス5（フルプロジェクト2パス発見）、スライス6（プラグインAPIフック）は需要駆動のまま。
-6. **gemソースからの呼び出しごとの戻り型精度**（ADR-10ウォーカー拡張、オプションC遅延 / オンデマンド）。フェーズBフロア（ヒューリスティックリテラルテール抽出）は`e40947c`で着地;オプションCは呼び出しサイトリクエストでgem推論を遅延配線する — ウォーカー / ディスパッチャー境界への実質的なアーキテクチャ変更、需要にゲート。
-7. **`rigor-graphql`スライス1+2a+2b+2c+2d着地済み**。最後の保留中Tier 3エコシステムプラグインがクローズ。`Schema::Object` + リストラッパー（`field :tags, [String]`） + `Schema::Enum` + `Schema::InputObject` + `Schema::Mutation`認識;4つのクロスプラグインファクトを公開。メタデータレコーダープラグイン形（ADR-16基板消費者ではない — サーベイ §「GraphQL-Ruby」を参照）。将来のスライス（リゾルバメソッド型チェック、ブラケット形を超える`<Type>.array` / `<Type>!`連鎖形、文字列形`field :foo, "User"`診断、`Schema.execute(...)`結果型付け）は需要駆動。CHANGELOG `[Unreleased]` § Added。
-8. **O4レイヤー3 gemバージョンごとのキャッシュ（スライス3アーキテクチャ）** — 測定された痛みまで先送り。Ruby::Boxの将来の方向性コンテキストについては下記「オープンエンジニアリング項目」を参照。
-9. **ADR-16需要駆動フォローアップ** — (a) **スライス5b** Tier Dエンジン統合（マッチした外部ファイルが`self_type`をナローイングされ`bound_ivars`が事前バインドされた状態で実行される）;(b) `returns:`文字列の完全なADR-13 `Plugin::TypeNodeResolver`チェイン配線（`Array[String]` / `Pick<T, K>`のようなユーティリティ型形の基板戻り値をアンロックする）。両方ともADR-16 § 実装スライシングフットノートで固定;具体的なプラグイン作者のケース待ち。
-10. **エディタモードフォローアップ** — [`docs/design/20260516-editor-mode.md`](../design/20260516-editor-mode/) §「v1のスコープ外」を参照。素早い次のステップは**プロジェクトコンテキストスナップショットキャッシュ**で、バッファされたファイルのみが変更されたときにプレパス（合成メソッドスキャナ、プロジェクトパッチ済みスキャナ、依存ソースウォーカー）がそのウォークをスキップするようにする;より大きなレバーは**ファイルごとの診断キャッシュ**で、エディタモードをオプションA（単一ファイルスコープ）からオプションB（PHPStan形: プロジェクトスコープと1つの代入されたファイル + インクリメンタル診断キャッシュ）にアップグレードする。両方とも需要駆動;v1 CLIサーフェスの最初の具体的なエディタ拡張消費者が自然と優先順位を表面化する。
-11. **LSPフォローアップ** — [`docs/design/20260517-language-server.md`](../design/20260517-language-server/)（v1） + [`docs/design/20260517-lsp-hover-completion.md`](../design/20260517-lsp-hover-completion/)（v2）を参照。最高レバレッジのキューされた項目: （a）並列マルチバッファpublishのための**Ractorプールディスパッチ**（v1スライス8の後半;`Analysis::Runner`が事前ビルドされた永続的Environmentを受け入れるリファクターが必要）;(b) **`textDocument/definition`**（v1スライス9;FILE:LINEでキー化されたReflection側のシンボルインデックスが必要）;(c) **インクリメンタル`didChange`同期**（v1スライス10;UTF-16オフセット帳簿）;(d) **`textDocument/signatureHelp`**（v2の自然な補完;`foo(|`のパースリカバリは独自のスライス）;(e) **hash-key補完** `HashShape`キャリア向け（Rigorが出荷できる最も型駆動の補完、`hash[:|]`パースリカバリにゲート）。スコープ外のまま（codeAction / rename / semanticTokens / inlayHint / snippets / 素の名前 / シンボル / マルチオーバーロード / `completionItem/resolve`）の各機能は独自の設計パスが必要;優先順位は具体的なエディタ統合需要から表面化する。
+1. **ADR-12 / ADR-17 / ADR-18フロア + 動作消費者**。`rigor-dry-types`スライス1〜4（推移的を含む完全なエイリアスカバレッジ）;`rigor-dry-schema`スライス1+2（認識 + `each`リストスロット）;`rigor-dry-validation`スライス1（Contract認識 + RBSオーバーレイ）;ADR-17スライス1+2+3a+4（pre-eval配管、monkey-patchレジストリ、ディスパッチャーティア、glob）;ADR-18スライス1+2+3+5（`returns_from_arg:` DSL + エンドツーエンドdry-struct向上）。ADR-10フェーズBヒューリスティック戻り型抽出。
+2. **エディタモードv1 + 言語サーバーv1/v2 + LSPポリッシュ/パフォーマンス**。`--tmp-file`/`--instead-of`ペアフラグ + `BufferBinding`;`rigor lsp`サブコマンド（8スライスv1;[ADR-19](../adr/19-language-server-packaging/)でのパッケージング）;v2型認識hover + `textDocument/completion`;LSPフォローアップ（signatureHelp + hash-key補完 + エディタガイド[`docs/lsp-integration.md`](../lsp-integration/) + e2e spec）;LSPポリッシュ（6スライス;9機能合計）;LSPパフォーマンス三冠（`ProjectScan`プレパスキャッシュ + Environment共有 + プラグインキャッシュディスクリプタ正確性修正）。設計ドキュメント: [`docs/design/20260516-editor-mode.md`](../design/20260516-editor-mode/)、[`docs/design/20260517-language-server.md`](../design/20260517-language-server/)、[`docs/design/20260517-lsp-hover-completion.md`](../design/20260517-lsp-hover-completion/)。
+3. **エコシステムプラグイン**。`rigor-graphql`スライス1+2a〜2d（Schema::Object / Enum / InputObject / Mutation;4つのクロスプラグインファクト;Tier 3D — 最後の保留中Tier 3スロットをクローズ）;`rigor-dry-schema` 1+2;`rigor-dry-validation` 1;`rigor-rails`メタgemスキャフォールド;`rigor-minitest`;`rigor-rspec-rails`;`rigor-shoulda-matchers`。合計29の`plugins/` + `examples/`エントリ。
+4. **ADR-20軽量HKT**。32コミット;キャリア + パーサー + 完全な§ D3条件文法;`JSON.parse` / `YAML.safe_load` / `CSV.parse` / `CSV.read`の`METHOD_RETURN_OVERRIDES`;3つのユーザー著作パス（`.rbs`ディレクティブ / プラグインマニフェスト / ビルトイン）。ハンドブック第12章。[ADR-20](../adr/20-lightweight-hkt/)を参照。
+5. **エンジン改善**。レシーバーアフィニティ事前ソート + `Acceptance`祖先チェーンフォールバック（BigDecimal/Numeric偽陽性 −25）;`StaticReturnRefinements`ティア;パラメータデフォルトスコープ修正（prism-1.9.0での偽陽性 −97%）;`Module.new`/`Class.new`ブロックウォーク;モジュールミックスインの`self_type`;クロスファイルクラス発見プレパス;`FlowContribution::Fact :local`;Pillar 2スライス1+2+3（rigor-rspecマッチャーナローイング + `let`/`subject`クロスバインディング + ファクトリモデルクラス）;RBSオーバーレイ（prism / bundler / rubygems / did_you_mean）。Referencesサーベイ（`references/ruby/lib`）1,756 → 354エラー（-80%）。
+6. **Spec-suite + リポジトリレイアウト**。デフォルトで並列（`217秒 → 60秒`、12コア）;コンテンツキー化sigディレクトリ（runner_spec 39.6秒 → 25.4秒）;オプトイン共有プラグインキャッシュ（sorbet_plugin_spec 13.1秒 → 4.7秒）;リポジトリレイアウト分割（27の本番プラグイン向け`plugins/<id>/`;5つのウォークスルー向け`examples/<id>/`）。
+
+v0.1.7以降の進行中スライスに対する残り作業の自然なエントリーポイント:
+
+1. **リリース候補（アクティブ）**。v0.1.7のヘッドライン（ADR-22ベースラインメカニズムスライス1 + 2）は完全なユニット + CLI統合カバレッジで実装完了。[`.claude/skills/rigor-release-prep/SKILL.md`](https://github.com/rigortype/rigor/blob/main/.claude/skills/rigor-release-prep/SKILL.md)に従った`bundle exec rake release`が自然な次の「出荷状態」決定;明示的なユーザー承認待ち。
+2. **ADR-22フォローアップスライス**。スライス5（`regenerate` + `--baseline-strict` CIゲート）は需要駆動。スライス3 + 4（外部ユーザーSKILLトリオ — `rigor-project-init` / `rigor-baseline-reduce` / 外部`rigor-plugin-author`）はWD8に従いv0.1.9にコミット済み;v0.1.7 / v0.1.8はSKILLトリオのデフォルトを設定するための実地からの実証的ベースラインデータ収集用に予約。
+3. **rigor-dry-rb継続**（[ADR-12](../adr/12-dry-rb-packaging/)ロードマップ継続;スライス決定は[`docs/design/20260517-dry-validation-slicing.md`](../design/20260517-dry-validation-slicing/)）。dry-typesスライス1〜4 + dry-schemaスライス1+2 + dry-validationスライス1がすべて着地**。残り（需要駆動）**: dry-schemaスライス2+（ADR-16 Tier C経由の型付き`result.to_h`合成）;dry-validationスライス2（`:dry_schema_table`経由のparams-blockタイピング） + スライス3（`json { ... }`パリティ）;dry-monads（`Result[T, E]` / `Maybe[T]`キャリア — ADR-3修正がブロック条件）。
+4. **ADR-18フォローアップスライス**。スライス4（`returns_from_arg:`の`TraitRegistry`パリティ）とチェインドコール引数拡張（`Types::String.constrained(...)` → チェインヘッド経由で解決）はいずれも需要駆動のまま。現在のフロアは標準的な著作ケースをカバーする`ConstantReadNode` / `ConstantPathNode`形を処理する。
+5. **ADR-17フォローアップスライス**。スライス3b（`Cache::Descriptor::PreEvalEntry`）は測定された痛みまで先送り。スライス5（全プロジェクト2パスディスカバリ）、スライス6（プラグインAPIフック）は需要駆動のまま。
+6. **gemソースからのコールごとの戻り型精度**（ADR-10ウォーカー拡張、オプションC遅延 / オンデマンド）。フェーズBフロアが着地;オプションCはコールサイトリクエスト時にgem推論を遅延配線 — ウォーカー / ディスパッチャー境界への実質的なアーキテクチャ変更、需要にゲート。
+7. **rigor-graphqlの将来スライス** — リゾルバーメソッドの型チェック、`<Type>.array` / `<Type>!`チェーン形、文字列形式`field :foo, "User"`診断、`Schema.execute(...)`結果タイピング。すべて需要駆動。
+8. **O4レイヤー3 gemバージョンごとのキャッシュ（スライス3アーキテクチャ）** — 測定された痛みまでDEFERRED。
+9. **ADR-16需要駆動フォローアップ** — （a）**スライス5b** Tier Dエンジン統合（マッチした外部ファイルが`self_type`ナローイング + `bound_ivars`事前バインドで実行）;（b）`returns:`文字列向けの完全なADR-13 `Plugin::TypeNodeResolver`チェイン配線（`Array[String]` / `Pick<T, K>`のようなユーティリティ型形状の基板戻り値）。両方ともADR-16 §「実装スライスの脚注」にピン留め;具体的なプラグイン著者ケース待ち。
+10. **エディタモードフォローアップ** — [`docs/design/20260516-editor-mode.md`](../design/20260516-editor-mode/) §「v1のスコープ外」を参照。主要レバー: **ファイルごとの診断キャッシュ**（オプションA → オプションBアップグレード）と**ディスクバックの`ProjectScan`スナップショットキャッシュ**（CLIシェルアウトパス向け;設計は[`docs/design/20260518-cli-disk-snapshot-cache.md`](../design/20260518-cli-disk-snapshot-cache/)）。両方とも需要駆動。
+11. **LSPフォローアップ** — [`docs/design/20260517-language-server.md`](../design/20260517-language-server/)（v1） + [`docs/design/20260517-lsp-hover-completion.md`](../design/20260517-lsp-hover-completion/)（v2）を参照。最高レバレッジのキュー項目: （a）並列マルチバッファパブリッシュのための**Ractorプールディスパッチ**;（b）**`textDocument/definition`**（FILE:LINEキーのReflection側シンボルインデックスが必要）;（c）**インクリメンタル`didChange`同期**（UTF-16オフセットブックキーピング）。スコープ外の機能（codeAction / rename / semanticTokens / inlayHint / スニペット / ベア名 / シンボル / マルチオーバーロード / `completionItem/resolve`）はそれぞれ独自の設計パスが必要。
 
 ## オープンエンジニアリング項目
 
@@ -111,112 +87,18 @@ v0.1.5のテーマ（タグで凍結、完全な詳細はCHANGELOG）:
 
    同じパターンは、ライブラリセットが拡張するにつれて他のstdlib RBSギャップに対しても再発する。決定ツリーは: 上流RBSギャップが単一の内部呼び出しサイトで表面化したとき、（a'）（disableディレクティブ）を好む;複数の呼び出しサイトまたはユーザー向けコードで表面化したとき、（b）または（c）にエスカレートする。
 
-### セッション終了の繰り越し（2026-05-17）
+### セッション終了の繰り越し（2026-05-19）
 
 スライスごとの着地リストを超えて、次の実装者へのメモ:
 
-1. **`make verify`は今デフォルトで並列**。AGENTS.md検証プロトコルが更新。並列のみのflakeを見たら、ワーカー分離か実際のバグかを確認するために`make verify-sequential`にフォールバックし、それから報告する。`runner_pool_spec.rb`は両方のパスから除外（シーケンシャルは`RSpec.config.exclude_pattern`経由、並列は`parallel_rspec --exclude-pattern`経由）;`RIGOR_INCLUDE_RACTOR_POOL=1`で両方ともオプトインに戻す。`make test-ractor-pool`で分離して再現可能なプールspecカバレッジを実行。
-2. **Spec-suiteのホットスポット — 部分的に最適化（2026-05-17）**。`spec/support/runner_helpers.rb`の**コンテンツキー化sigディレクトリ + 共有ワークスペース**レバー（CHANGELOG `[Unreleased]` § Performance）が`runner_spec.rb`を**25.4秒孤立**にカットし、`make verify`並列wall時間を**65.6秒 → 52.6秒（-20%）**に。残りのROADMAP §「パフォーマンス / スケーラビリティ → Spec-suiteランタイムブレークダウン」レバーはキューのまま: (a) `runner_spec.rb`での`before(:context)`スタイルのEnvironment共有;(b) `Analysis::Runner.run_source(source:, path:, ...)`インメモリエントリポイント。LSP-spec分割は調査され**拒否**。
-3. **LSP v1 + v2 + フォローアップが今9のアドバタイズされた機能を出荷**。lspサブシステムは「キーストロークの速いリンティング + hover + completion + signatureHelp + folding + selection」ループに対して機能完成。残りのLSP作業（codeAction / rename / semanticTokens / inlayHint / definition / インクリメンタル同期 / Ractorプールディスパッチ）はROADMAP §「エディタ / IDE統合」 — 各々が独自の設計パスを必要とし;優先順位は具体的なエディタ統合需要から表面化する。
-4. **v0.1.6はそのまま出荷可能**。蓄積された作業（ADR-12 / ADR-17 / ADR-18フロア + 動作消費者状態 + エディタモードv1 + LSP v1/v2 + LSPポリッシュ + spec-suite並列デフォルト）は純粋に加法的 — 既存のCLI消費者の動作変更なし。`rigor-release-prep` SKILLに従った`bundle exec rake release`が自然な次の決定;明示的なユーザー承認待ち。
-5. **`rigor-*`作業を追加するときに念頭に置くべきプラグインパッケージングADR**。[ADR-12（dry-rb）](../adr/12-dry-rb-packaging/)はgemごと + メタアンブレラパターンを設定;[ADR-19（LSP）](../adr/19-language-server-packaging/)はLSPが`rigortype`にバンドルされたまま（別個の`rigor-lsp` gemではない）と決定し、再評価のための明示的なトリガー条件を持つ。両方のADRがプロジェクトが取る「早すぎるgem分割なし」スタンスを文書化する。
-6. **プラグイン`cache_for(...)`ディスクリプタの完全性 — 着地済み（2026-05-17）**。CHANGELOG `[Unreleased]` § Added「プラグインキャッシュディスクリプタの正確性修正」で修正された。新しい`Plugin::Base#glob_descriptor(roots, *patterns)`ヘルパーが`:digest` `FileEntry`行でglobマッチしたすべてのファイルを列挙する;影響を受ける3つのプラグイン（actioncable / actionmailer / rails-i18n）は今、それを`cache_for(..., descriptor: …)`を通じてスレッド化するので、キャッシュキーはプロデューサー実行前のプロジェクト状態を反映する。3つの統合specsは今、`let(:default_run_plugin_cache_store) { :shared }`経由で共有キャッシュにオプトインしパスする — 以前同じオプトインが古いキャッシュの退行を表面化した、まさにこの修正が対処するバグ。
-
-### セッション終了の繰り越し（2026-05-18）
-
-スライスごとの着地リストを超えて、次の実装者へのメモ、2026-05-17の繰り越しの上に蓄積:
-
-1. **dry-rb基礎ペアはv0.1.6で完全になった**。`rigor-dry-types`（スライス1-4） + `rigor-dry-schema`（スライス1+2） + `rigor-dry-validation`（スライス1）がすべて着地;`rigor-dry-struct`（Tier C基板消費者）はすでにv0.1.5 + v0.2.0 ADR-18向上で出荷済み。クロスプラグイン形の対称性は意図的: スキーマ行 + graphqlフィールド/引数行は`{type:, list:, …}`スロットパターンを共有するので、将来の`rigor-dry-validation`スライス2（型付き`result.to_h`合成）が`:dry_schema_table`を一様に消費できる。優先順での残りのdry-rb作業: dry-schemaスライス2+ → dry-validationスライス2 → dry-validationスライス3 → dry-monads（ADR-3修正後）。すべて需要駆動。
-2. **Tier 3エコシステムプラグインはv0.1.6で完全になった**。`rigor-graphql`（Tier 3D）が最後の保留中Tier 3スロットをクローズ。プラグインファミリーインベントリ: Tier 1（4プラグイン） + Tier 2（3プラグイン） + Tier 3（graphqlを含む6プラグイン） + dry-rb（4プラグイン） + オプトインバンドル（2エントリ） + メタgem（1エントリ） = **29の`examples/`エントリ**（27の動作プラグイン + 1のRBS-onlyバンドル + 1のメタgem）。
-3. **`rigor-rails`メタgemスキャフォールドは公開可能**。gemspec + エントリポイント + README + 5ケース統合specがすべて揃った。野生でのアクティベーションはTier 1+2サブプラグインのsubtree-split + RubyGems公開を[`rigor-plugin-author`](https://github.com/rigortype/rigor/blob/main/skills/rigor-plugin-author/SKILL.md) SKILLに従って待つ。ADR-12 WD1に従い、アンブレラはGemfile-conveniencのみ — `.rigor.yml`アクティベーションはプラグインごとのまま。
-4. **v0.1.6はそのまま出荷可能**。蓄積された作業（ADR-12 / ADR-17 / ADR-18フロア + 動作消費者状態 + エディタモードv1 + LSP v1/v2 + LSPポリッシュ + LSPパフォーマンス三冠（`Analysis::ProjectScan`プレパスキャッシュ + Environment共有 + プラグインキャッシュディスクリプタの正確性修正） + spec-suiteパフォーマンス三冠（並列デフォルト + コンテンツキー化sigディレクトリ + plugin_helpersオプトイン共有キャッシュ） + 4つの新エコシステムプラグイン（dry-schema、graphql、dry-validation） + メタgemスキャフォールド + 2つの設計ノート）は純粋に加法的 — 既存のCLI消費者の動作変更なし。`rigor-release-prep` SKILLに従った`bundle exec rake release`が自然な次の決定;明示的なユーザー承認待ち。
-5. **CLIエディタモードのディスクバックスナップショットキャッシュは完全に設計されているが未実装**。[`docs/design/20260518-cli-disk-snapshot-cache.md`](../design/20260518-cli-disk-snapshot-cache/)が5フェーズの実装パス（Marshal可能なscan / キー導出 / Cache::Storeプロデューサー / Runner統合 / FactStoreスナップショットAPI）を記録する。具体的なエディタ拡張が`rigor check --tmp-file`にシェルアウトし約1秒の壁をUXペインとして報告するまで実装は先送り。LSPパスはすでにエディタケースの90%+をpublishあたり≤5 msでカバーしているので、このスライスは需要待ちのニッチな勝利。
-6. **[ADR-20軽量HKT](../adr/20-lightweight-hkt/) — スライス1 + 2a + 2b + 2c + 2d + 2e + 3 + 6 + § D3（プログラマティック + パーサー + メンバーシップ） + symbolize_names + YAML.safe_load + permitted_classes簡約後 + CSV.parse / CSV.read + kv-formリファクター + パーサー経由のバンドルボディ + パーサー引数リストのユニオン修正 + Ractor隔離修正 + 遅延hkt_registryホルダー + ハンドブック第12章すべてv0.1.6で着地 — 実質的なADR-20実装完了**。**このセッションで32コミット**（`0dbb388`から`a8932a1`）;185のHKT専用spec（181 + `JSON.load_file`フォローアップ）;`make verify`が3748例 / 0失敗 / 598リントファイル / rigor checkパスでクリーン（bool多相性 + HashShape-narrowing修正後、セルフチェック警告が6 → 3に;Steepの寛容プロファイルもクリーン、コード品質パリティのために2つのscratch-ivar nil-guardクリーンアップが着地）**。外部コードベース解析駆動のエンジン修正**（`88e6534`）: パラメータデフォルト値式は今メソッドのボディスコープ（インスタンス`self_type`）下で実行され、`prism-1.9.0`の偽陽性の97.2%をクローズ（938 → 26エラー）、`rbs-4.0.2`の22.7%（255 → 197）。バグはrigorのlib/examples/specで`def copy(x: self.x)`イディオムが0だったため、rigorのセルフチェックには表れなかった**。CLIで検証されたエンドツーエンドの形**: `JSON.parse(s)` → `Array[json::value[String]] \| Float \| Hash[String, json::value[String]] \| ...`;`JSON.parse(s, symbolize_names: true)` → `Hash[Symbol, json::value[Symbol]]`;`YAML.safe_load(s, permitted_classes: [Date])` → `Date \| ...`が追加;`Psych.safe_load`パリティ;`CSV.parse("a,b\n1,2\n")` → `Array[Array[String \| nil]]`**。ユーザー著作ループが3つの独立したレベルでクローズ**: （a）出荷された`.rbs`ファイルの`%a{rigor:v1:hkt_register / hkt_define}`ディレクティブ（`Environment.for_project`スキャン経由）、（b）プラグインマニフェスト`hkt_registrations: [...]` / `hkt_definitions: [...]`（`Plugin::Registry#hkt_overlay_registry`経由）、（c）stdlibメソッド向けのハードコードされたRigorバンドル`Builtins::HktBuiltins`。ボディ文法は完全なADR-20 § D3をカバー: union + アトム + nominal_app + app_ref + param + 条件（`<:`、`==`、`in [...]`テスト）、3値レデューサ評定（yes / no / WD7に従いmaybe-widens-to-union）。`env.hkt_registry`でのマージ順（last-write-wins）: builtins → プラグインオーバーレイ → RBS envスキャン**。残りのADR-20作業**（すべて需要駆動、何もスケジュールなし）: **スライス4**（dry-monadsの`Result[T, E]` / `Maybe[T]`キャリア — 最初の複数引数HKT検証、ADR-3修正がブロック条件）;**スライス5**（再帰的`type`エイリアス経由の糖衣構文 — 明示的`%a{...}`形が冗長すぎるというユーザーフィードバックでゲート）;**バインダ抽出を伴うパターンマッチ**（lisp-evalは`A` / `B`を新しいバインディングとする`(E <: [:+, A, B] ? lisp_type[A] : ...)`形を必要とする;残る最大のギャップで独自の設計パスが必要）;**rigor-lisp-evalデモ移行**（バインダ抽出にゲート）;`METHOD_RETURN_OVERRIDES`をより多くのstdlibメソッドに拡張（`JSON.load_file` / `JSON.load_file!`は`9013fe7`で着地;`Marshal.load`は真にTopを返すのでHKTエンベロープは適用されず;`JSON.[]`はparse-or-generate多相でまだサポートされていない第一引数判別が必要;さらなる追加は需要駆動）。次の実装者はADR-20を実質的に完了として扱い、具体的なユースケースが浮上したときのみ残りのリストから選ぶべき。
-
-### セッション終了の繰り越し（2026-05-18、後半セッション — references/ruby/libサーベイ）
-
-先の2026-05-18繰り越しの項目6の後を引き継ぐ。このブロックは`rigor check --explain references/ruby/lib`（Ruby同梱のcore + stdlib、626の`.rb`ファイル / エラーを表面化した257のファイル / 開始時1756エラー）を実行し、欠落RBSギャップではなくエンジンバグに見えるすべての診断をトリアージした。6つのエンジン修正 + 1つのC拡張RBSオーバーレイ + 1つのリファインメント層拡張がコミット`1adf5e3` → `26429df`にわたって着地（リファインメント向上のために`e44cfee`も）。最終的なreferences状態: **1743エラー / 255ファイル**（-13エラー / -2ファイル;また`eval_call` DefNodeウォーク修正で表面化した以前隠れていた12の実エラーに加え、約60の`:info` fail-softフォールバックイベント削除）。全期間を通じて`make verify` + lint + rigor-self-checkがクリーン。
-
-着地したエンジン項目（それぞれを表面化したreferencesファイル付き）:
-
-1. **Prismリーフノードハンドラ**（`1adf5e3`、`e44cfee`） — `__FILE__` / `__LINE__` / バックティック / `%x{}` / `END { }` / `ShareableConstantNode` / `{ x: }`の`ImplicitNode` / `ItParametersNode`。`__FILE__` → `non-empty-string`、`__LINE__` → `positive-int`。ソース: referencesにわたって遍在的。
-2. **`def Foo.method`形**（`12dfc45`） — レシーバ定数が字句的tailと一致するとき囲むクラス上のシングルトンに昇格させる。ソース: `open-uri.rb`（24→15エラー）。
-3. **`class << Foo`がFooのシングルトンスコープを開く**（`92d5fbd`） — 明示的定数`class << X`がシングルトンクラスではなくクラスボディとして扱われていた。ソース: `time.rb`（13→1エラー）。
-4. **`OverloadSelector`パス1.5**（`97590fe`） — strictとgradualパスの間でエイリアス解決済みstrictマッチング。両候補がトランスレーターが`Dynamic[Top]`に畳む正準コアエイリアス（`::int` / `::string`など）を使うとき正しいオーバーロードを選ぶ。ソース: `ipaddr.rb:51`（`Array#*(Integer)`）。
-5. **`eval_call`が引数位置のDefNodeを歩く**（`06923d3`） — `ruby2_keywords def m`、`private def m`などは今、囲むクラスボディシングルトンではなくdefのインスタンス / シングルトンスコープ下で本体を歩かれる。ソース: `delegate.rb:85`（`ruby2_keywords def method_missing` + `self.__getobj__`）。副次的な利益: `optparse.rb`の`private def parse_arg`本体に以前隠れていた12の実エラーを表面化（フロー絞り込み項目 — 下記キューリストを参照）。
-6. **`data/vendored_gem_sigs/prism/`**（`d79a640`） — prism gemのRBS補足。gem自身の`sig/`が省略するC拡張バインドのクラスメソッド（`StringQuery.{local?, constant?, method_name?}`） + Rubyソースメソッド（`ParseResult#attach_comments!` / `#mark_newlines!`）を追加。新しい宣言のみを追加するためクラスを再オープン、したがって`DEFAULT_LIBRARIES`経由でロードされるgem同梱RBSに対し`DuplicatedDeclarationError`なし。`VENDORED_GEM_NAMES`は6 → 7にバンプ。
-7. **`Rigor::Builtins::StaticReturnRefinements`ディスパッチャ層**（`26429df`） — `MethodDispatcher.dispatch`内のHKTとRBSの間の新しい`(owner, method, kind) => handler`テーブル。今日の唯一のエントリ: `Kernel#__dir__` → `non-empty-string | nil`。3つの呼び出し形すべて（暗黙のself、`Kernel.__dir__`、`instance.__dir__`）をカバー;`BasicObject`レシーバには拒否される。前方拡張サーフェス — キュー項目を参照。
-
-キューされたエンジン項目（需要駆動、サーベイで表面化、スケジュール**されていない**）:
-
-- **(a) `x = expr() or raise`が`x`をnonNilにナローイングしない**。`net/http/header.rb:531-540`（8+サイト）、`resolv.rb`、`optparse.rb`に影響。ナローイングはInference::Narrowing#analyse_or`内に存在 — LHSがローカル変数代入でRHSが非return（`raise` / `return` / `throw`）のとき、or後のスコープはLHSローカルをそのrvalueのfalsey部分を除去するようナローイングすべき。同じ形の内部需要: `rigor lib/`で0、referencesで複数。キュー;最小再現は`/tmp/rigor-refs-check/or_raise_narrow.rb`に記録。
-- **(b) `$1`（正規表現マッチ特殊変数）が`=~`成功チェックされた`unless ... raise`後にナローイングされない**。`net/http/header.rb:528`に影響。`Inference::Narrowing`が正規表現`=~`を成功分岐で`$~` / `$1..$N`を`String | nil`にバインドするものとしてモデル化し、`raise`-on-failureガード後に`$1`を`String`にナローイングする必要がある。最小再現は`/tmp/rigor-refs-check/regex_dollar1_narrow.rb`。
-- **(c) `rescue ... return`がpost-blockフローをナローイングしない**。`resolv.rb:430`（`Socket.ip_address_list` rescue + return + `list`の後の使用）に影響。rescue分岐の`return`はpost-blockフロー和集合からrescueパスを除去し、`list`を非rescue型のまま残すべき。最小再現は`/tmp/rigor-refs-check/rescue_return_flow.rb`。
-- **(d) `Hash === expr`（case equality）がナローイングされない**。`open3.rb:226`（`Hash === cmd.last; opts = cmd.pop.dup`）に影響。case-equality形は真偽分岐で`cmd.last`を`Hash`にナローイングすべき（ディスパッチは`cmd.last.is_a?(Hash)`と同じ）。
-- **(e) `Module.new do ... end`ブロック内容が歩かれない**。`resolv.rb`（`ClassHash`が内部に`def []=`を持つ`Module.new`である`ClassHash[[k,v]] = c`の約15サイト）に影響。ADR-16マクロ展開基板作業と接続 — block-as-メソッド形（Tier A）が`Module.new` / `Class.new`ブロック本体に拡張されたときにこれをカバーする。
-- **(f) Moduleミックスインの`self_type`が`Object` / `Kernel`メソッドを含まない**。`pp.rb:369-371`（`PP::ObjectMixin`本体の`self.inspect` / `self.respond_to?`）に影響。`module M`がミックスイン（オブジェクトにincludeされる）のとき、そのインスタンスメソッドの`self_type`はKernelメソッドを許容すべき。項目（e）とは別。
-
-キューされたStaticReturnRefinements拡張（1行ずつ、需要駆動）:
-
-- `Kernel#caller` / `Kernel#caller_locations` → `Array[String] | nil`（上流RBSは広い）。
-- `File.expand_path` / `File.dirname` / `File.basename` → `non-empty-string`（上流RBSは`String`を返す）。
-- `__method__` / `__callee__` → `Symbol | nil`（上流は`Symbol?`を返す）。
-
-行の追加は今、単一テーブル編集（`lib/rigor/builtins/static_return_refinements.rb`の`OVERRIDES`定数 + `static_return_refinements_spec.rb`ケース + `method_dispatcher_spec.rb`統合ケース）。マッチポリシーはすでにあらゆるKernel-mixed-inレシーバクラスを処理する。追加にエンジン作業は不要。
-
-### セッション終了の繰り越し（2026-05-19）
-
-2026-05-18後半セッションのreferencesサーベイ繰り越しの後を引き継ぐ。このセッションはv0.1.6の上に14の独立した改善を実行し（コミット`ae1b1c9`まで蓄積;**`origin/master`より20コミット先行、未プッシュ**）、ステージ移行ではなくユーザーが明示的に承認した単一の急進的なプリリリース**リポジトリレイアウト分割**でセッションを締めた（「正論ですが、いまはまだ正式リリース前でユーザーが居ないので、抜本的に修正するチャンスです」）。
-
-**主要イベント — リポジトリレイアウト分割（コミット`ae1b1c9`）**。`examples/`は2つの概念的に別個のカテゴリを運んでいたが、このコミットがそれらを分離する:
-
-- **`plugins/<id>/`（本番）** — 実gem / フレームワークをターゲットとする27プラグイン: Railsエコシステム（`rigor-actioncable`、`rigor-actionmailer`、`rigor-actionpack`、`rigor-activejob`、`rigor-activerecord`、`rigor-activestorage`、`rigor-activesupport-core-ext`、`rigor-rails-routes`、`rigor-rails-i18n`、`rigor-rails`）;テスト+マッチャー（`rigor-rspec`、`rigor-minitest`、`rigor-rspec-rails`、`rigor-shoulda-matchers`、`rigor-factorybot`）;dry-rb基礎（`rigor-dry-types`、`rigor-dry-schema`、`rigor-dry-struct`、`rigor-dry-validation`）;ADR-16基板消費者（`rigor-devise`、`rigor-sinatra`、`rigor-statesman`）;加えて`rigor-sorbet`、`rigor-sidekiq`、`rigor-pundit`、`rigor-graphql`、`rigor-typescript-utility-types`。
-- **`examples/<id>/`（ウォークスルー）** — 意図的に単純化された仮想ユースケース上の5つのプラグイン契約チュートリアル: `rigor-deprecations` / `rigor-lisp-eval` / `rigor-pattern` / `rigor-routes` / `rigor-units`。それぞれがプラグイン契約の単一のアーキテクチャ的サーフェスをスポットライトする。
-
-機構: `git mv`が履歴を保存;26の統合specが`spec/integration/plugins/<id>_plugin_spec.rb`に移動（5つのウォークスルーspecは`spec/integration/examples/`下に残る）;共有`PluginHelpers`が`spec/integration/support/`に移動;`define_derived_metadata`の正規表現が両ディレクトリにマッチするよう広げられた;新しい`plugins/README.md`が本番カタログを運ぶ（Tier 1 / Tier 2 / Tier 3 / テスト+マッチャー / dry-rb基礎 / ADR-16基板消費者 / クロスプラグインファクトチャネル表）;書き直された`examples/README.md`はウォークスルー + プラグイン著作のためのアーキテクチャ的サーフェスマップのみを運ぶ;`.rubocop.yml` `Exclude:`リストが`examples/**/*`から両ディレクトリに拡張;ルート`README.md`、`AGENTS.md`、`CLAUDE.md`、ROADMAP、CURRENT_WORK（このファイルの分割前部分）、ハンドブック章、ADR、設計ノート、`rigor-plugin-author` SKILLすべてが新しい二重レイアウトを参照するよう更新された**。次の実装者へのメンタルモデル更新**: 新しいプラグインを追加するとき、SKILLは今、「これは実gemをターゲットにするか」（→ `plugins/`）vs「これは1つのアーキテクチャ的サーフェスを教えるか」（→ `examples/`）に基づいて`plugins/` vs `examples/`を前もって決める。
-
-**セッションでより早く着地した14のエンジン + プラグイン改善**（個別にコミット、トピック順）:
-
-エンジン — 2026-05-18後半セッションのキューリストから新たにクローズされた項目:
-- **(b) `=~`成功ガード後の`$1..$9`正規表現ナローイング**。`Inference::Narrowing#analyse_regex_match_predicate`が`=~`を成功分岐で`$~` / `$1..$N`を`String | nil`にバインドするものとしてモデル化。
-- **(c) `rescue ... return`のpost-blockフローナローイング**。`StatementEvaluator#eval_begin`は今、すべてのrescue分岐が`raise` / `return` / `throw`で終わるとき、post-blockフロー和集合からrescueアームをドロップする。
-- **(e) `Module.new do ... end` / `Class.new do ... end`ブロック内容を歩く**。`ScopeIndexer#meta_new_block_body`がコンストラクタパターンを認識し、ブロック本体を新しいクラス / モジュールの定義スコープとして歩く。
-- **(f) Moduleミックスインの`self_type`が`Object` / `Kernel`メソッドを許容**。`MethodDispatcher#try_user_class_fallback`が、レシーバがオープンなミックスイン宛先を持つモジュール本体のときObject/Kernel解決にフォールバックする。`self_type_override:`が`RbsDispatch`を通してスレッド化、オーバーライドがプラグイン貢献に表面化する。`Analysis::CheckRules`がモジュールミックスイン診断を抑制し、ivar nilプレースホルダーを正準型として扱う。
-
-エンジン — Pillar 2イネーブラー:
-- **`FlowContribution::Fact`が`:local` `target_kind`を獲得**（既存の`:parameter` / `:self`と並んで）。`StatementEvaluator#apply_local_post_return_fact`がそれを消費する。これによりプラグイン発行の呼び出し後ローカル変数型のナローイングがアンロックされる — Pillar 2スライス1 / 2が着地に必要だったエンジン拡張。
-
-エンジン — その他:
-- **`Environment#rbs_module?(name)`** — プラグイン側のミックスイン分類用ヘルパー。
-- **`StaticReturnRefinements`拡張** — `File.expand_path` → `non-empty-string`;`File.dirname` → `non-empty-string`（2026-05-18後半セッションリストからのキュー項目）。
-- **`eval_and_or`早期return narrowing** — `expr && return`と`expr || return`がpost-expressionスコープに真偽 / falsey narrowingを伝播する。
-
-ベンダーgem sigs（`data/vendored_gem_sigs/`）:
-- **bundler/** — RubyGemsの真より広い型を埋める`Bundler`シングルトンメソッドスタブ。
-- **rubygems/** — 上流RBSが残すギャップを埋める`Gem`シングルトンの追加。
-- **did_you_mean/** — 提案APIのクラスレベル追加。
-- **この作業からのreferencesサーベイ差分**: `references/ruby/lib`エラー**1746 → 354（-1392、-80%）** — v0.1.6サイクルでreferenceコーパス上の単一セッションでの最大の改善。
-
-新プラグイン（今や`plugins/`下）:
-- **`plugins/rigor-minitest/`** — Minitest + Test::Unit + matchers_vaccine。新しい`:local` `target_kind`経由で`assert_kind_of(C, x)` / `assert_instance_of` / `assert_nil` / `refute_nil` / `_(x).must_be_kind_of`ナローイング。
-- **`plugins/rigor-rspec-rails/`** — `have_http_status(:ok)`フロア + ステータスコード検証。最初の動作rspec-rails形プラグイン。
-- **`plugins/rigor-shoulda-matchers/`** — model_index消費者;`validate_presence_of(:name)` / `belong_to(:user)`マッチャーがrigor-activerecord公開の`:model_index`ファクト経由で実モデルカラムを参照することを検証。
-
-Pillar 2（「specが型である」）トラック — 3つのスライス着地:
-- **スライス1** — `plugins/rigor-rspec/lib/rigor/plugin/rspec/matcher_analyzer.rb`。`expect(x).to be_a(C)` / `be_kind_of(C)` / `be_truthy` / `be_falsey` / `be_nil` + 複合マッチャーのマッチャーナローイング。新しい`:local` `target_kind`経由で`flow_contribution_for`を通してスレッド化。
-- **スライス2** — `plugins/rigor-rspec/lib/rigor/plugin/rspec/let_scope_index.rb` + `let_type_resolver.rb`。各`let(:foo) { … }` / `subject(:bar) { … }`本体は1度型解決され、推論された型は同じ`describe`/`context`下の`it`ブロック内でローカルシンボルにバインドされる。プラグインは`describe` / `context` / `xdescribe` / `fdescribe`ブロック本体を`let`宣言のために歩く。
-- **スライス3** — `plugins/rigor-factorybot/lib/rigor/plugin/factorybot/factory_index.rb`がエントリごとに`model_class`を獲得;`factory_discoverer.rb`が`class: User` kwargとファクトリ名のCamelCase化のフォールバック経由で抽出する。`:factory_index`クロスプラグインファクトは今モデルクラスを運ぶので、shoulda-matchers / spec側のバリデータが`create(:user).valid?`形のナローイングを連鎖できる。
-
-ADR-20フォローアップ:
-- [`docs/adr/20-lightweight-hkt.md`](../adr/20-lightweight-hkt/)への**L1 / L2 / L3階層フレーミング補遺**。3つの実装階層（L1ハードコードされたコアのみ、L2固定arity手書き、L3完全パラメータ化ユーザー著作可能）を命名し、Rigorが初日からL3を出荷し、L1 / L2をインクリメントしなかった理由を記録する — 部分的に、HKT機構の複雑性予算は階層に関わらずキャリア+パーサ層に住み、L3がADR-20を当初動機づけたユーザー著作ループ完成をクローズするから。
-
-**次の実装者への正味の状態**:
-
-1. **`origin/master`より20コミット先行、何もプッシュされていない;バージョンバンプなし**。プッシュ + リリース決定はAGENTS.mdのリリースケイデンスポリシーに従いユーザーにゲートされたまま。
-2. **次の実装者は`plugins/`が新しい`rigor-*`プラグイン作業の自然な居場所だと想定すべき**、`examples/`は新しいアーキテクチャ的サーフェスのウォークスルー用に予約。`rigor-plugin-author` SKILLは二重レイアウトを反映するよう更新された。
-3. **2026-05-18後半セッションのキューリストからのいくつかのエンジン項目がこのセッションでクローズ**（b / c / e / f）。項目（a）（`x = expr() or raise`ナローイング）と（d）（`Hash === expr`case-equalityナローイング）はキューのまま;最小再現器は依然`/tmp/rigor-refs-check/`にある。
-4. **`make verify`は全期間を通じてクリーン**（3789+例、0失敗;624リントファイルクリーン;`rigor check lib`ベースラインは以前の3つの既知のキュー警告のベースラインから変化なし）**。1つの環境的注意**: ホストRuby 4.0.4下で`make verify`が時折`cli_spec.rb` / `runner_pool_spec.rb`でハングする、このセッションの変更なしでmaster上で再現可能なRactorホスト側クラッシュのため;ターゲットを絞った`bundle exec rspec`実行が、セッション中の実用的な検証パスとして使用された。
-5. **v0.1.6の出荷準備状態は変化なし** — このセッションのすべての作業はv0.1.6の出荷可能状態の上に純粋に加法的。リポジトリレイアウト分割は最大のユーザー可視の変更だが機械的（動作変更なし）。`rigor-release-prep` SKILLに従った`bundle exec rake release`がユーザー承認後の自然な次の「出荷状態」決定。
+1. **`origin/master`より20コミット先行、未プッシュ**。プッシュ + リリース決定はAGENTS.mdのリリースケイデンスポリシーに従いユーザーにゲートされたまま。v0.1.6は純粋に加法的 — 既存のCLI消費者の動作変更なし。`rigor-release-prep` SKILLに従った`bundle exec rake release`が承認後の自然な次のステップ。
+2. **`make verify`はデフォルトで並列**（`rake spec_parallel`）。`runner_pool_spec.rb`は両パスから除外;`RIGOR_INCLUDE_RACTOR_POOL=1`でオプトインに戻す。Ruby 4.0.4下でRactorホスト側クラッシュのため`cli_spec.rb` / `runner_pool_spec.rb`で時折ハング（このセッションの変更なしでmasterで再現可能）;フォールバックとして`bundle exec rspec`を個別実行で使う。
+3. **LSPは9つのアドバタイズされた機能を出荷**（textDocumentSync / hover / completion / signatureHelp / documentSymbol / foldingRange / selectionRange + workspace/didChangeWatchedFiles + workspace/didChangeConfiguration）。キーストロークの速いリンティング + hover + completionループに対して機能完成。残りのLSP作業（codeAction / rename / semanticTokens / definition / インクリメンタル同期 / Ractorプールディスパッチ）はROADMAP §「エディタ / IDE統合」。
+4. **新しいプラグインホーム**: `plugins/<id>/`（本番プラグイン、27個、実gem / フレームワークをターゲット）;`examples/<id>/`はアーキテクチャ的サーフェスウォークスルー用に予約（5個）。`rigor-plugin-author` SKILLが二重レイアウトを反映。
+5. **キューされたナローイング項目がオープン**: （a）`x = expr() or raise`が`x`をnonNilにナローイングしない — `Inference::Narrowing#analyse_or`の拡張が必要、最小再現器は`/tmp/rigor-refs-check/or_raise_narrow.rb`;（d）`Hash === expr` case-equalityナローイング（`open3.rb:226`の形）。items (b) / (c) / (e) / （f）は2026-05-19セッションでクローズ。
+6. **キューされたStaticReturnRefinements追加**（1行ずつ — `OVERRIDES`定数 + 2つのspecケース）: `Kernel#caller` / `Kernel#caller_locations` → `Array[String] | nil`;`File.basename` → `non-empty-string`;`__method__` / `__callee__` → `Symbol | nil`。（`File.expand_path`と`File.dirname`は2026-05-19セッションで着地。）
+7. **`rigor-rails`メタgemは公開可能**;アクティベーションはTier 1+2サブプラグインのsubtree-split + RubyGems公開待ち。ADR-12 WD1に従いプラグインごとの`.rigor.yml`アクティベーションのまま。
+8. **ADR-20残り作業**（すべて需要駆動）: スライス4 dry-monads `Result[T, E]`/`Maybe[T]`（ADR-3修正がブロック条件）;スライス5 `type`エイリアス糖衣構文;パターンマッチングバインダー抽出（lisp-evalマイグレーションはこれにゲート）;`METHOD_RETURN_OVERRIDES`をより多くのstdlibメソッドに拡張（需要駆動）。
 
 ### サーベイ前の永続項目
 
