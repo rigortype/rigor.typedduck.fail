@@ -3,8 +3,8 @@ title: "ADR-15 — アナライザーのRactorベース並行性モデル"
 description: "rigortype/rigor docs/adr/15-ractor-concurrency.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/adr/15-ractor-concurrency.md"
 sourcePath: "docs/adr/15-ractor-concurrency.md"
-sourceSha: "cef5eeb88a949051ac806789e375c7e8a89d0f01c8d803e7603ea91351a6502c"
-sourceCommit: "035915291e331f3bcd5ce804a1e30dc284ffbd48"
+sourceSha: "8322bb8638a66221ac2efba9069d00f0cfcf2e5c4ceddfbb62f327993e94d913"
+sourceCommit: "626e04cb1ce26d1b1500ed80d078dac891053fd2"
 translationStatus: "translated"
 sidebar:
   order: 4015
@@ -66,6 +66,25 @@ Rigorは[`docs/design/20260514-ractor-migration.md`](../../design/20260514-racto
 
 [`spec/rigor/ractor_readiness_spec.rb`](https://github.com/rigortype/rigor/blob/main/spec/rigor/ractor_readiness_spec.rb)の監査specがフェーズ間の契約。マッチする`Ractor.shareable?`アサーションを書かずに新しい値オブジェクトクラスを追加するのはリグレッション。
 
+## Amendment（2026-05-20） — フォークがアクティブな並列バックエンドになる
+
+フェーズ4（Ractorワーカープール）は**着地したが動作しない**。Ruby 4.0.4と4.0.5に対して確認された2つの独立した欠陥がプールを使用不可能にする。完全な調査は[`docs/notes/20260520-ractor-pool-cruby-uaf.md`](../../notes/20260520-ractor-pool-cruby-uaf/)。
+
+1. **CRubyのheap-use-after-free（上流側、断続的）.**並列Ractorプールのもとで、あるRactor上のGCスイープが`T_DATA`オブジェクトを解放し、その同じメモリを`rb_vm_ci_lookup`（ランタイムのcall-infoパス、すべての`super`呼び出しから到達）が別のRactor上で並列に読む。AddressSanitizerがそれを特定;**Ruby Bug #22075**として上流に報告済み。`runner_pool_spec.rb`の≈70%のランがクラッシュし、クラッシュサイトがランごとに変動する。
+2. **`Ractor::IsolationError`（rigor側、決定論的）.**ワーカーRactorが非共有可能なプロセスグローバル定数（`RBS::EnvironmentLoader::DEFAULT_CORE_ROOT`、rigor自身の`Builtins::StaticReturnRefinements::OWNERS_BY_METHOD`と`Builtins::HktBuiltins::METHOD_RETURN_OVERRIDES`）を読む。アクセスが発生し、アナライザーがそれをファイルごとにキャッチし、プールが100%の`internal analyzer error`診断をemitする — 実際の解析はゼロ。Mastodonベンチマーク（1303ファイル）でシーケンシャルパスの488件の実診断に対して1296件のisolation-error診断が出た。
+
+### 決定
+
+**フォークベースの並列性が`workers > 0`のアクティブなバックエンドになる**。Ractorプール実装は保持される — それは#22075が修正されshareabilityギャップが閉じられた後の正しい長期方向だ — しかしデフォルトパス上にもはや存在しない;明示的なオプトイン（`RIGOR_POOL_BACKEND=ractor`）経由でのみ到達可能なので引き続きテスト可能。
+
+- `Runner#analyze_files_in_fork_pool`が親で一つの`WorkerSession`を構築し、COWでそれを継承するN個の子を`fork`し、各子がファイルスライスを解析してMarshal化された診断 + レポータードレインを返し、親がマージする。別プロセスは別のGCヒープと`vm->ci_table`を意味し（欠陥1から免疫）、COW継承された定数（shareability制約なし — 欠陥2から免疫）。
+- POSIXのみ。`fork`が利用できない場所（Windows）では`workers > 0`が`pool-degraded`診断付きでシーケンシャルに縮退する。
+- これは下記の**WD1を置き換える**:フォークはもはや「実現可能なフォールバック」にすぎない訳ではなく、それが出荷バックエンド。WD1の推論はRactor*設計*に対して有効だった;CRubyの並列Ractorメモリ安全性が4.0.xで本番レディでないとは予期していなかった。
+
+### フェーズのステータス
+
+フェーズ1〜3（shareabilityスキャフォールディング）は影響を受けず価値を保つ — `WorkerSession`基板（フェーズ4a）はバックエンド中立であり、フォークプールがそれを直接再利用する。フェーズ4b/4c（Ractorプール自体）はRuby Bug #22075に加えて定数shareabilityギャップで**ブロック**;両方が解決されたときに再訪する。
+
 ## リファレンス: 共有境界
 
 RactorはRactor境界を越えるすべてのオブジェクトが`Ractor.shareable?`である必要がある — 凍結 + すべてのフィールドが再帰的に共有可能。このADRがコミットする分割は:
@@ -93,6 +112,13 @@ RactorはRactor境界を越えるすべてのオブジェクトが`Ractor.sharea
 Rigorの特定の形 — すべてのファイル間で共有された単一のEnvironment、そのEnvironmentを与えられればステートレスなファイルごとのディスパッチ — に対して、Ractorはより近いフィットです: 共有しない境界が、まさにRigorのデータが分割されたい場所です。フォークは実行ごとにプロセスごとのEnvironment再構築を強制し、インプロセスメモが提供するキャッシュウォーム済みの恩恵を排除する。
 
 フェーズ3のプラグインリファクターが予想より侵襲的だと判明した場合、フォークパスは実行可能なフォールバックになります — フォークはプラグインが共有可能であることを要求しません。私たちはフォークに**反対**してコミットしているのではなく;Ractorに主要な方向性としてコミットしているのです。
+
+> **2026-05-20再検討 — 上記のAmendmentにより置き換え**。
+> フェーズ4でRuby 4.0.x上のRactorプールが使用不可能と測定された（Ruby Bug
+> #22075 + isolation-errorギャップ）ため、フォークが今はアクティブなバックエンドであり、
+> フォールバックではない。このテーブルの「4.xでのMRI成熟度 — 安定、共有可能性に注意点あり」行は
+> 並列Ractorのメモリ安全性に対して楽観的すぎと判明した。「フォークがプロセスごとのEnvironment再構築を強制する」コストも
+> 回避された:フォークプールが親の`WorkerSession`を一度構築し、子がCOWで継承する。
 
 ### WD2 — なぜ`RbsLoader`を共有可能にするのではなく分割するのか？
 
