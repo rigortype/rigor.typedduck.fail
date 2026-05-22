@@ -133,4 +133,6 @@ returns exit code 0.
 
 ## Copyrights
 
-<a href="https://rigor.partial-eval.fail/">Rigor Documents</a> © 2026 by <a href="https://github.com/zonuexe">USAMI Kenta</a> is licensed under <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a><img src="https://mirrors.creativecommons.org/presskit/icons/cc.svg" alt="" style="max-width: 1em;max-height:1em;margin-left: .2em;"><img src="https://mirrors.creativecommons.org/presskit/icons/by.svg" alt="" style="max-width: 1em;max-height:1em;margin-left: .2em;"><img src="https://mirrors.creativecommons.org/presskit/icons/sa.svg" alt="" style="max-width: 1em;max-height:1em;margin-left: .2em;">
+> [Rigor Documentation](https://rigor.partial-eval.fail/) by © 2026 [TypedDuck](https://github.com/rigortype) is licensed under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/).
+>
+> ![](https://rigor.typedduck.fail/cc-by-sa.svg)
