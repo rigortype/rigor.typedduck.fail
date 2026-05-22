@@ -132,7 +132,7 @@ result.errors.to_h # => Hash[Symbol, Array[String]]
 
 ## 必要なADR修正（あれば）
 
-上記のスライシングに対しては何もなし。dry-validationは`rigor-dry-monads`が必要とする`Result[T, E]`キャリア修正を必要としない（下記 §「オープン観察」を参照） — `Dry::Validation::Result`は総和型ではなくジェネリッククラス。その`#to_h`ペイロードが型付き形*そのもの*であり、`#success?` / `#failure?`述語は既存の`bool`フローファクトを通じて下流チェーンをナローイングする。
+上記のスライシングに対しては何もなし。dry-validationは`rigor-dry-monads`が必要とする`Result[T, E]`キャリア修正を必要としない（下記 §「オープン観察」を参照） — `Dry::Validation::Result`は直和型ではなくジェネリッククラス。その`#to_h`ペイロードが型付き形*そのもの*であり、`#success?` / `#failure?`述語は既存の`bool`フローファクトを通じて下流チェーンをナローイングする。
 
 ## オープン観察 — `rigor-dry-monads`は別途ブロックされている
 

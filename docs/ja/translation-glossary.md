@@ -16,6 +16,9 @@
 | syntactic sugar / sugar syntax | 糖衣構文 | 「シュガー構文」ではなく伝統的訳語の「糖衣構文」。単独の名詞「sugar」も文脈に応じて「糖衣構文」に展開 | プログラミング言語論の標準訳 |
 | acknowledge mode | acknowledgeモード | 初出: acknowledgeモード（容認モード、ベースライン採用） | ADR-22のベースライン採用モード。英単語＋「モード」。カタカナ化（アクノレッジ）しない |
 | strict mode（ADR-22の採用モード）| strictモード | 初出: strictモード（厳格モード、妥協なし） | ADR-22のacknowledgeモードと対になる採用モード。`severity_profile: strict`一般の文脈の「ストリクトモード」とは別物 |
+| sum type | 直和型 | 初出: 直和型（sum type） | 「総和型」は使わない。"recursive sum type" は「再帰的な直和型」（"再帰直和型" "再帰的総和型" は使わない） |
+| product type | 直積型 | 初出: 直積型（product type） | 「積型」単独は使わない。`A & B` のインターセクション型とは別物 |
+| intersection type | インターセクション型 | 初出: インターセクション型（intersection type、交叉型とも） | RBSの `A & B` 構文。「直積型」「積型」は誤訳なので使わない |
 
 ## 用語紹介の表記ルール
 

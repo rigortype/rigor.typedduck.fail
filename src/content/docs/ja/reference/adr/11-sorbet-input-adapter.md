@@ -124,7 +124,7 @@ RigorのプライマリType-sourceコントラクトはRBS（`RBS::Inline`コメ
 
 以下の構造はRigorに対応するものがなく、提供箇所で`dynamic.sorbet.unsupported`を発行する。呼び出し箇所はdynamic-originマーカーを保持するため、ユーザーは境界を監査できる:
 
-- **`T::Struct` / `T::ImmutableStruct`** — Sorbetの型付き積型。`HashShape`が最も近いキャリアだが、プロパティレベルのアノテーション（`prop`、`const`）はSorbet固有。`Nominal[<UserDefined>]`にベストエフォートのインスタンスメソッド推論を加えて扱う。フィールドレベルの型はプラグイン提供。
+- **`T::Struct` / `T::ImmutableStruct`** — Sorbetの型付き直積型。`HashShape`が最も近いキャリアだが、プロパティレベルのアノテーション（`prop`、`const`）はSorbet固有。`Nominal[<UserDefined>]`にベストエフォートのインスタンスメソッド推論を加えて扱う。フィールドレベルの型はプラグイン提供。
 - **`T::Enum`** — Sorbetの型付き列挙型。最も近いRigorの対応は有限集合での`Symbol`のリファインメントだが、ランタイムセマンティクスが異なる。`Nominal[<UserDefined>]`に`Singleton[T]`インスタンスとして公開された列挙定数を加えて変換。
 - **`T::Generic` `type_member` / `type_template`** — 分散マーカー（`:in`/`:out`/`:invariant`）とバウンド（`fixed`/`upper`/`lower`）はRBSで表現可能な場合に変換される。複雑なバウンド（`fixed: T.any(A, B)`）は影響するスロットが`Dynamic[top]`にフォールバック。
 - **`T.experimental_*`名前空間** — Sorbet自身のコントラクトとして不安定。プラグインはunsupportedとして扱う。

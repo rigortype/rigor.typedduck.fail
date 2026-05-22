@@ -10,7 +10,7 @@ sidebar:
   order: 1012
 ---
 
-`JSON.parse(str)`は「何らかのJSON値」を返します: `nil`、bool、数値、文字列、JSON値の配列、またはJSON値のハッシュ。RBSはこれを`untyped`として記述します。型コンストラクタを量化することなく再帰的な総和型を綴る方法がないからです。ほとんどの型チェッカーは肩をすくめ、`JSON.parse(str)`を`Dynamic[Top]`に消え去らせます。
+`JSON.parse(str)`は「何らかのJSON値」を返します: `nil`、bool、数値、文字列、JSON値の配列、またはJSON値のハッシュ。RBSはこれを`untyped`として記述します。型コンストラクタを量化することなく再帰的な直和型を綴る方法がないからです。ほとんどの型チェッカーは肩をすくめ、`JSON.parse(str)`を`Dynamic[Top]`に消え去らせます。
 
 Rigorはこれを正確にモデル化します:
 
@@ -40,7 +40,7 @@ assert_type(parsed,
 
 ## 今日バンドルされているもの
 
-Rigorは最初から1つのHKT登録を出荷しています: **`json::value[K]`**、再帰的なJSON値の総和です。2つの部分:
+Rigorは最初から1つのHKT登録を出荷しています: **`json::value[K]`**、再帰的なJSON値の直和です。2つの部分:
 
 ```ruby
 # 登録 — タグを命名し、そのarity、分散、消去境界を宣言する。
