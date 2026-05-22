@@ -14,6 +14,8 @@
 | lint scope（RuboCopの文脈）| リント対象 | 「リントスコープ」→「リント対象」 | RuboCop自体はリンターなので「リント」は残す。「スコープ」をカタカナで重ねない |
 | refinement type | リファインメント型 | 見出しはシンプルに「リファインメント型」、本文初出で「リファインメント型（refinement type、篩型とも）」と補足 | TAPL系の伝統的訳語「篩型」を併記する |
 | syntactic sugar / sugar syntax | 糖衣構文 | 「シュガー構文」ではなく伝統的訳語の「糖衣構文」。単独の名詞「sugar」も文脈に応じて「糖衣構文」に展開 | プログラミング言語論の標準訳 |
+| acknowledge mode | acknowledgeモード | 初出: acknowledgeモード（容認モード、ベースライン採用） | ADR-22のベースライン採用モード。英単語＋「モード」。カタカナ化（アクノレッジ）しない |
+| strict mode（ADR-22の採用モード）| strictモード | 初出: strictモード（厳格モード、妥協なし） | ADR-22のacknowledgeモードと対になる採用モード。`severity_profile: strict`一般の文脈の「ストリクトモード」とは別物 |
 
 ## 用語紹介の表記ルール
 
