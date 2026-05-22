@@ -3,8 +3,8 @@ title: "エラーの読み方"
 description: "rigortype/rigor docs/handbook/08-understanding-errors.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/handbook/08-understanding-errors.md"
 sourcePath: "docs/handbook/08-understanding-errors.md"
-sourceSha: "0213c7c5fb7d02d0ae3a3cecdf56035dddcde83a876e9b3f814d01475ac77e4c"
-sourceCommit: "fe4e9a80df3829ee4f113e763e4bb9920c33da21"
+sourceSha: "60365fc9caa4e27d685f6aed284369003a8076a4d4fd1a92f5fd7def580a1588"
+sourceCommit: "1d0381f3ade3f4b208d95b9d649f1e80c381b775"
 translationStatus: "translated"
 sidebar:
   order: 1008
@@ -175,12 +175,12 @@ disabled_rules:
 
 ```sh
 # 一度: 現在の診断サーフェスをキャプチャ。
-bundle exec rigor check --format=json > rigor.baseline.json
+rigor check --format=json > rigor.baseline.json
 git add rigor.baseline.json
 git commit
 
 # PRごと: コミットされたベースラインと比較。
-bundle exec rigor diff rigor.baseline.json
+rigor diff rigor.baseline.json
 ```
 
 `rigor diff`はベースラインになかった各診断の`+ NEW`行と、解消された各診断の`- FIXED`行を出力します。新しい診断が現れた場合の終了コードは`1`、そうでない場合は`0`です — したがって新しい違反を追加するとCIは失敗しますが、ベースラインに記録されたレガシー診断は問題ありません。
@@ -201,7 +201,7 @@ bundle exec rigor diff rigor.baseline.json
 疑わしいときは`--explain`で実行します:
 
 ```sh
-bundle exec rigor check --explain lib
+rigor check --explain lib
 ```
 
 これにより、エンジンが取ったすべてのfail-softフォールバックごとに`:info`診断が追加されます — それ以上見えなかったため`Dynamic[Top]`に拡幅した各箇所。現実的なコードでは出力がノイズになりますが、「ここで診断が来ると思っていた」デバッグには非常に価値があります。
@@ -225,7 +225,7 @@ Rigorを採用したばかりのプロジェクトでの実用的なループ:
    b. **欠落/間違ったRBS**。 シグを更新するか新しいものを追加します。
    c. **正当なノイズ**。 その行に`# rigor:disable <rule>`を追加するか、`.rigor.yml`に`disabled_rules:`を追加します。
 3. 再実行します。診断ストリームがきれいになるまで繰り返します。
-4. `balanced`プロファイル（またはより厳密）の下で`bundle exec rigor check lib`をCIに追加します。
+4. `rigor check lib`を`balanced`プロファイル（またはより厳密）の下でCIに追加します。
 5. プロジェクトの不変条件がより証明されるにつれて、`# rigor:disable`行を`RBS::Extended`ディレクティブに格上げして、解析器に実際のコントラクトを教えます。
 
 クリーンな`rigor check`の実行が目標です;グリーンのCIバッジは「発火するすべての診断は受け入れるものだ」を意味します。

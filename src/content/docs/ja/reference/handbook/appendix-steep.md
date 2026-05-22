@@ -3,8 +3,8 @@ title: "Appendix — Coming from Steep"
 description: "Imported from rigortype/rigor docs/handbook/appendix-steep.md."
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/handbook/appendix-steep.md"
 sourcePath: "docs/handbook/appendix-steep.md"
-sourceSha: "e70f613f36d433251b8ff7531fc2aa6cc3889d03836de39b54f58013988cf0fd"
-sourceCommit: "2834288850767f48c48c99dca26f6aa339322754"
+sourceSha: "ce278584bbffb0ac6669340feb3387ac0b0626ad66a70c8affcfd2bdadc7b3a7"
+sourceCommit: "1d0381f3ade3f4b208d95b9d649f1e80c381b775"
 translationStatus: "translated"
 sidebar:
   order: 1050
@@ -188,7 +188,7 @@ target :lib do
 end
 ```
 
-両ツールとも同じ`sig/`を読む。CIは`steep check`と`bundle exec rigor check lib`を独立したステップとして実行する。各ツールの出力は独自のアノテーションチャンネルに行く。同じ行について両者が意見が分かれるとき、立場上のルール: **Steepがフラグを立ててRigorが立てない場合は調査する**。Steepは通常、Rigorのリファインメントが意識的に吸収するsigのドリフトを示す傾向があり、Rigorは通常Steepが確認しないボディレベルの事実を示す傾向がある。
+両ツールとも同じ`sig/`を読む。CIは`steep check`と`rigor check lib`を独立したステップとして実行する。各ツールの出力は独自のアノテーションチャンネルに行く。同じ行について両者が意見が分かれるとき、立場上のルール: **Steepがフラグを立ててRigorが立てない場合は調査する**。Steepは通常、Rigorのリファインメントが意識的に吸収するsigのドリフトを示す傾向があり、Rigorは通常Steepが確認しないボディレベルの事実を示す傾向がある。
 
 ## マイグレーションvignette
 
@@ -197,7 +197,7 @@ end
 手順:
 
 1. **Rigorを開発依存関係として追加する**。`sig/`への変更なし。
-2. **`bundle exec rigor check lib`を一度実行する**。いくつかの新しい診断が出る — 通常はSteepが出さないナローイング対応の発見（`flow.always-truthy-condition`、`RBS::Extended`で締め付けられた戻りに対する`def.return-type-mismatch`）。バグかノイズかをトリアージする。
+2. **`rigor check lib`を一度実行する**。いくつかの新しい診断が出る — 通常はSteepが出さないナローイング対応の発見（`flow.always-truthy-condition`、`RBS::Extended`で締め付けられた戻りに対する`def.return-type-mismatch`）。バグかノイズかをトリアージする。
 3. **`# @type`アノテーションへの対応を決める**。Rigorはそれらを無視する（パーサーへのコメント）。ふたつの選択肢:
    a. そのままにする — Steepがそれを使い続け、Rigorは無視する。何もしない共存。
    b. Rigorにもそのアサーションを尊重させたい場合は`rigor-sorbet`プラグインの`T.let`/`T.cast`に変換する。

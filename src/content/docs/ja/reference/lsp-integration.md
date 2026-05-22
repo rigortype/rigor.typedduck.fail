@@ -3,8 +3,8 @@ title: "Rigor LSP — エディタ統合"
 description: "rigortype/rigor docs/lsp-integration.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/lsp-integration.md"
 sourcePath: "docs/lsp-integration.md"
-sourceSha: "08c3f6683a5c97f7caa60e7d6a80195d2217c4bd0860903da907e4ab5b0362f4"
-sourceCommit: "dac915a9ee49b89e89774c34c518e8501275f6a3"
+sourceSha: "b5a4c7c14bf58bf77b6b7df046f934cebae9d547645dbed8d74f92ce74cb9fa1"
+sourceCommit: "1d0381f3ade3f4b208d95b9d649f1e80c381b775"
 sourceDate: "2026-05-17T02:39:15+09:00"
 translationStatus: "translated"
 sidebar:
@@ -39,7 +39,7 @@ sidebar:
 
 - `bundle install`。
 
-LSPサーバーは`bundle exec rigor lsp`として実行される。別個のgemなし、アドオン登録なし — `rigor check` / `rigor type-of`と同じバイナリ。
+LSPサーバーは`rigor lsp`として実行される。別個のgemなし、アドオン登録なし — `rigor check` / `rigor type-of`と同じバイナリ。
 
 ## CLI
 

@@ -1,0 +1,136 @@
+---
+title: "Appendix — Running Rigor in CI"
+description: "Imported from rigortype/rigor docs/handbook/appendix-ci.md."
+editUrl: "https://github.com/rigortype/rigor/edit/main/docs/handbook/appendix-ci.md"
+sourcePath: "docs/handbook/appendix-ci.md"
+sourceSha: "c0ebf1bd6bcd586c5749e89de8975fd7593765fc8d1eeeb55868a25126ca9d21"
+sourceCommit: "1d0381f3ade3f4b208d95b9d649f1e80c381b775"
+translationStatus: "pending"
+sidebar:
+  order: 1050
+---
+
+> [!NOTE]
+> このページはまだ翻訳されていません。英語版の本文を参考表示しています。
+
+Rigor runs on Ruby 4.0 (see
+[Appendix — Installing Rigor](../appendix-installation/)). In CI that
+has one consequence worth stating up front; the rest of this page
+follows from it.
+
+## Run Rigor in its own job
+
+Run Rigor in a **separate CI job** from your test suite — better
+still, a separate workflow file. The reason is concrete:
+`ruby/setup-ruby` sets the *job's* active Ruby. A test job
+provisions the Ruby your project runs (often a 3.x version, or a
+matrix of several); Rigor needs Ruby 4.0. The two cannot share a job
+without the second `setup-ruby` call clobbering the first.
+
+A separate job gives Rigor a clean runner where provisioning Ruby
+4.0 conflicts with nothing. A separate workflow file additionally
+gets its own triggers, concurrency group, and status badge — and
+keeps the analyser out of the test workflow, which is good practice
+regardless.
+
+## A minimal GitHub Actions workflow
+
+```yaml
+# .github/workflows/rigor.yml
+name: rigor
+on: [push, pull_request]
+jobs:
+  rigor:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "4.0"
+      - run: gem install rigortype
+      - run: rigor check
+```
+
+That is the whole thing: check out the project, provision Ruby 4.0,
+install Rigor, run it.
+
+## Pinning Rigor's version
+
+The workflow above installs whatever `rigortype` is current at run
+time. To pin a version — and keep CI reproducible — choose one of:
+
+### A CI-only `Gemfile` (recommended)
+
+Commit a two-line `.github/rigor/Gemfile`:
+
+```ruby
+source "https://rubygems.org"
+gem "rigortype", "~> 0.1"
+```
+
+plus its `Gemfile.lock`, and point the Rigor job at it through
+`BUNDLE_GEMFILE`:
+
+```yaml
+jobs:
+  rigor:
+    runs-on: ubuntu-latest
+    env:
+      BUNDLE_GEMFILE: .github/rigor/Gemfile
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "4.0"
+          bundler-cache: true
+      - run: bundle exec rigor check
+```
+
+This `Gemfile` is read only by the Rigor job — it never enters your
+application's dependency resolution, and the committed lockfile
+pins Rigor and its dependencies for a reproducible run. Because it
+is an ordinary Bundler `Gemfile`, Dependabot can keep it current:
+add a `bundler` entry scoped to its directory in
+`.github/dependabot.yml`:
+
+```yaml
+version: 2
+updates:
+  - package-ecosystem: bundler
+    directory: /.github/rigor
+    schedule:
+      interval: weekly
+```
+
+### A pinned `gem install`
+
+`gem install rigortype -v "0.1.9"` in the workflow. Simpler, with no
+extra files — but Dependabot does not see a version inside a `run:`
+step, so updates to the pin are manual.
+
+## Container image
+
+A standalone image is published to GHCR with Ruby 4.0 and Rigor
+baked in. It suits CI runners with no Ruby toolchain — mount the
+project on `/src`:
+
+```sh
+docker run --rm -v "$PWD:/src" ghcr.io/rigortype/rigor check
+```
+
+`rigor` is the image entrypoint, so subcommands and flags follow the
+image name. Pin a version with an explicit tag —
+`ghcr.io/rigortype/rigor:0.1.9`.
+
+## Nix
+
+For CI that already runs Nix, the flake exposes Rigor as a package
+with Ruby 4.0 in its closure — a fully hermetic run with nothing
+else on the runner:
+
+```sh
+nix run github:rigortype/rigor#rigor -- check
+```
+
+See [ADR-27](../../adr/27-tool-distribution-model/) for the
+distribution model behind this page.

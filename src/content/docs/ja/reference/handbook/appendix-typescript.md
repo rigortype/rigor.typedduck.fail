@@ -3,8 +3,8 @@ title: "Appendix — Coming from TypeScript"
 description: "Imported from rigortype/rigor docs/handbook/appendix-typescript.md."
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/handbook/appendix-typescript.md"
 sourcePath: "docs/handbook/appendix-typescript.md"
-sourceSha: "18fd0983bd5c4958efd5c02f0bafa347a0da173da0d2977814e9b3b75393fffe"
-sourceCommit: "fe4e9a80df3829ee4f113e763e4bb9920c33da21"
+sourceSha: "7c6fc3d5416082bc4c93fe04724f356bed0581acce1a86ea14e75769a5b8cb44"
+sourceCommit: "1d0381f3ade3f4b208d95b9d649f1e80c381b775"
 translationStatus: "translated"
 sidebar:
   order: 1050
@@ -173,7 +173,7 @@ function length(s: string | null): number {
 | `// @ts-ignore` | `# rigor:disable <rule>` |
 | `// @ts-expect-error` | （現時点で対応なし） |
 | `// @ts-nocheck` | `# rigor:disable-file all` |
-| `tsc --noEmit` | `bundle exec rigor check lib` |
+| `tsc --noEmit` | `rigor check lib` |
 
 ## TypeScriptにあってRigorにないもの
 

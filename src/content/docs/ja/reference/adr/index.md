@@ -3,8 +3,8 @@ title: "Architecture Decision Records"
 description: "Imported from rigortype/rigor docs/adr/README.md."
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/adr/README.md"
 sourcePath: "docs/adr/README.md"
-sourceSha: "cca27c14ea012c2cc36006b7425dcd03cc89e49d105a69f17efba4ffbe17b615"
-sourceCommit: "75f1372f98e9b1b00cb79a72bf925849cead6956"
+sourceSha: "86d80e3a8a148ef15bf66b4c5767a26794e0469d6ffb93a62a37df33a95f0652"
+sourceCommit: "1d0381f3ade3f4b208d95b9d649f1e80c381b775"
 translationStatus: "translated"
 sidebar:
   order: 4000
@@ -23,33 +23,34 @@ sidebar:
 
 | # | Title | Status |
 | --- | --- | --- |
-| [0](0-concept/) | Foundation and Core Architecture of Rigor | Accepted |
-| [1](1-types/) | Type Model and RBS Superset Strategy | Draft |
-| [2](2-extension-api/) | Extension API Strategy | Draft |
-| [3](3-type-representation/) | Type Representation | — |
-| [4](4-type-inference-engine/) | Type Inference Engine | — |
-| [5](5-robustness-principle/) | Robustness Principle | — |
-| [6](6-cache-persistence-backend/) | Cache Persistence Backend | — |
-| [7](7-v0.1.0-slice-decisions/) | v0.1.0 Slice Decisions | — |
-| [8](8-steep-inspired-improvements/) | Steep-Inspired Improvements | — |
-| [9](9-cross-plugin-api/) | Cross-Plugin API | — |
-| [10](10-dependency-source-inference/) | Dependency Source Inference | — |
-| [11](11-sorbet-input-adapter/) | Sorbet Input Adapter | — |
-| [12](12-dry-rb-packaging/) | dry-rb Packaging | — |
-| [13](13-typenode-resolver-plugin/) | TypeNode Resolver Plugin | — |
-| [14](14-rbs-sig-generation/) | RBS Sig Generation | — |
-| [15](15-ractor-concurrency/) | Ractor Concurrency | — |
-| [16](16-macro-expansion/) | Macro Expansion | — |
-| [17](17-monkey-patch-pre-evaluation/) | Monkey Patch Pre-Evaluation | — |
-| [18](18-substrate-per-call-site-return-type/) | Substrate Per-Call-Site Return Type | — |
-| [19](19-language-server-packaging/) | Language Server Packaging | — |
-| [20](20-lightweight-hkt/) | Lightweight HKT | — |
-| [21](21-rubydex-evaluation/) | Rubydex Evaluation | — |
-| [22](22-baseline-and-project-onboarding/) | Baseline and Project Onboarding | — |
-| [23](23-diagnostic-triage-command/) | Diagnostic Triage Command | — |
-| [24](24-self-method-call-resolution/) | Self Method Call Resolution | — |
-| [25](25-plugin-contributed-rbs/) | Plugin Contributed RBS | — |
-| [26](26-activerecord-relation-typing/) | ActiveRecord Relation Typing | — |
+| ADR-0 | [Foundation and Core Architecture of Rigor](0-concept/) | Accepted |
+| ADR-1 | [Type Model and RBS Superset Strategy](1-types/) | Draft |
+| ADR-2 | [Extension API Strategy](2-extension-api/) | Draft |
+| ADR-3 | [Type Representation](3-type-representation/) | Draft |
+| ADR-4 | [Type Inference Engine](4-type-inference-engine/) | Draft |
+| ADR-5 | [Robustness Principle](5-robustness-principle/) | Draft |
+| ADR-6 | [Cache Persistence Backend](6-cache-persistence-backend/) | Draft |
+| ADR-7 | [v0.1.0 Slice Decisions](7-v0.1.0-slice-decisions/) | Accepted |
+| ADR-8 | [Steep-Inspired Improvements](8-steep-inspired-improvements/) | Accepted |
+| ADR-9 | [Cross-Plugin API](9-cross-plugin-api/) | Proposed |
+| ADR-10 | [Dependency Source Inference](10-dependency-source-inference/) | Proposed |
+| ADR-11 | [Sorbet Input Adapter](11-sorbet-input-adapter/) | Proposed |
+| ADR-12 | [dry-rb Packaging](12-dry-rb-packaging/) | Accepted |
+| ADR-13 | [TypeNode Resolver Plugin](13-typenode-resolver-plugin/) | Proposed |
+| ADR-14 | [RBS Sig Generation](14-rbs-sig-generation/) | Proposed |
+| ADR-15 | [Ractor Concurrency](15-ractor-concurrency/) | Proposed |
+| ADR-16 | [Macro Expansion](16-macro-expansion/) | Accepted |
+| ADR-17 | [Monkey Patch Pre-Evaluation](17-monkey-patch-pre-evaluation/) | Proposed |
+| ADR-18 | [Substrate Per-Call-Site Return Type](18-substrate-per-call-site-return-type/) | Proposed |
+| ADR-19 | [Language Server Packaging](19-language-server-packaging/) | Accepted |
+| ADR-20 | [Lightweight HKT](20-lightweight-hkt/) | Accepted |
+| ADR-21 | [Rubydex Evaluation](21-rubydex-evaluation/) | Proposed |
+| ADR-22 | [Baseline and Project Onboarding](22-baseline-and-project-onboarding/) | Proposed |
+| ADR-23 | [Diagnostic Triage Command](23-diagnostic-triage-command/) | Proposed |
+| ADR-24 | [Self Method Call Resolution](24-self-method-call-resolution/) | Proposed |
+| ADR-25 | [Plugin Contributed RBS](25-plugin-contributed-rbs/) | Accepted |
+| ADR-26 | [ActiveRecord Relation Typing](26-activerecord-relation-typing/) | Accepted |
+| ADR-27 | [Tool Distribution and Installation Model](27-tool-distribution-model/) | Proposed |
 
 ## 新しいADRの追加
 
@@ -58,7 +59,7 @@ sidebar:
 1. このディレクトリで次に空いている番号を見つけます。
 2. 既存のADRからテンプレートをコピーするか、同じ構造（Status、Context、Decisions、Consequences）に従って新しいファイルを作成します。
 3. 上記の索引テーブルにエントリを追加します。
-4. 適切な場所で、関連するコードコメント、他のADR、または`AGENTS.md`からそのADRを参照します。
+4. 適切なコードコメント、他のADR、または`AGENTS.md`からそのADRを参照します。
 
 ## 他のドキュメントとの関係
 

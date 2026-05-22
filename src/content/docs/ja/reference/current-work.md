@@ -3,8 +3,8 @@ title: "Current Work — Resume Bookmark"
 description: "rigortype/rigor docs/CURRENT_WORK.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/CURRENT_WORK.md"
 sourcePath: "docs/CURRENT_WORK.md"
-sourceSha: "d51c47ce4d0fa6029275ddb59ed4ba8deb2c6b4e037ab78b0af0eb1667636cae"
-sourceCommit: "75f1372f98e9b1b00cb79a72bf925849cead6956"
+sourceSha: "e7a869324a91ca7ac595784b2434015331700f9f2e40909d8467e857b012fc37"
+sourceCommit: "1d0381f3ade3f4b208d95b9d649f1e80c381b775"
 sourceDate: "2026-05-21T21:12:44+09:00"
 translationStatus: "translated"
 sidebar:
@@ -65,6 +65,14 @@ v0.1.7 / v0.1.8サイクルはリードアップだった — 実プロジェク
 - **Sig-genの`update_existing`**は兄弟の親 / 子クラスブロックを畳み込まない — `merge_class`は各候補の`class_name`を独立して解決するため、フラット兄弟レイアウトはフラットなまま。既存のファイルをネストレイアウトに再フローすることはスコープ外;回避策はターゲットsigファイルを削除してゼロから再生成すること。
 - **`Hash === expr` case-equalityナローイング**（`open3.rb:226`の形）— 引き続きオープン。
 - **インメモリの`Analysis::Runner.run_source(source:, path:, …)`エントリーポイント** — `RunnerHelpers#analyze`の呼び出しごとのtmpdir + chdirをバイパスする;約5%のspecスイートの勝利に加え、埋め込み者（LSP / エディタモード）向けのクリーンなパブリックAPI。需要駆動。
+
+### Type-coverage uplift — ライン状況（2026-05-23）
+
+`c9a535a`以降のtype-coverage-upliftラインがPhases 1〜4を`master`に着地させた（`CHANGELOG.md`の`[Unreleased]`）: String / Integer / Float / Comparableの中優先度fold、`MathFolding`（全28の`Math`関数）、11のHashShape中/低優先度ハンドラ、`Kernel#Integer` / `Float` folding、そして`Date` / `DateTime` / `Time`の`Constant`キャリア + コンストラクタfold。監査ドキュメント: `docs/notes/20260522-*-coverage.md`、`docs/notes/20260523-date-time-method-coverage.md`。残り項目はすべて**リリース未確定**:
+
+- **Struct / Data値fold** — 先送りすべきADR相当の機能（新しいキャリアが2つ必要）。`docs/ROADMAP.md` §「将来のサイクル」→「型言語 / エンジン」と[`docs/notes/20260523-struct-encoding-coverage.md`](../notes/20260523-struct-encoding-coverage/)を参照。`Encoding`値foldは同じ監査で* permanent exclusion *として記録済み。
+- **`MathFolding`結果の精緻化** — 28関数foldは値的に正確;結果への範囲精緻化の付与（`Math.exp` → `positive-float`、`Math.sqrt` / `hypot` → `non-negative-float`）は需要駆動のフォローアップ（[`docs/notes/20260522-stdlib-deterministic-module-coverage.md`](../notes/20260522-stdlib-deterministic-module-coverage/) § 1）。
+- **Hash `rassoc`シェイプハンドラ** — 唯一残っている低優先度Hashハンドラ（[`docs/notes/20260522-hash-method-coverage.md`](../notes/20260522-hash-method-coverage/)）;値 → `[k, v]`逆引き、全値が`Constant`のときにfold可能。需要駆動。
 
 ## 復帰する実装者のための読書順
 
