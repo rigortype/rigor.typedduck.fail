@@ -3,8 +3,8 @@ title: "VSCode extension — first-party marketplace client for `rigor lsp`"
 description: "Imported from rigortype/rigor docs/design/20260522-vscode-extension.md."
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/design/20260522-vscode-extension.md"
 sourcePath: "docs/design/20260522-vscode-extension.md"
-sourceSha: "085940f845a58f3d8e396c0fe8efc15ecede66073f4433f503100de3a03b70ed"
-sourceCommit: "75f1372f98e9b1b00cb79a72bf925849cead6956"
+sourceSha: "57945aa041e11bc586a5ab0246364e7c780b07c8a3d1d86c572fa6f846880aa4"
+sourceCommit: "f391fadebcb3c674444a346501d51664b046dec2"
 translationStatus: "translated"
 sidebar:
   order: 20265522
@@ -12,7 +12,7 @@ sidebar:
 
 **ステータス:**ドラフト。まだスライスされていない。将来ADRが開かれた場合にのみそれによって置き換えられる。
 
-Language Server（[`docs/design/20260517-language-server.md`](../20260517-language-server/)）はv0.1.6で着地し、`rigor lsp`サブコマンドとして`rigortype` gemにバンドルされている（[ADR-19](../../adr/19-language-server-packaging/)）。今日のVSCodeユーザーは、汎用LSPクライアントか手書きの最小限の拡張機能を通じてそれを配線するように案内されている — 現行の[`docs/lsp-integration.md`](../../lsp-integration/) §「VSCode」を参照。Neovimには文書化された`lspconfig`レシピがあり、Helixには`languages.toml`ブロックがあり、EmacsにはEglot / lsp-modeのスニペットがある。VSCode — Ruby人口の中で単独最大のエディタ — には「自分で書け」というプレースホルダがある。
+Language Server（[`docs/design/20260517-language-server.md`](../20260517-language-server/)）はv0.1.6で着地し、`rigor lsp`サブコマンドとして`rigortype` gemにバンドルされている（[ADR-19](../../adr/19-language-server-packaging/)）。今日のVSCodeユーザーは、汎用LSPクライアントか手書きの最小限の拡張機能を通じてそれを配線するように案内されている — 現行の[`docs/manual/09-editor-integration.md`](../../manual/09-editor-integration/) §「VSCode」を参照。Neovimには文書化された`lspconfig`レシピがあり、Helixには`languages.toml`ブロックがあり、EmacsにはEglot / lsp-modeのスニペットがある。VSCode — Ruby人口の中で単独最大のエディタ — には「自分で書け」というプレースホルダがある。
 
 このドキュメントは、マーケットプレイスに公開する**ファーストパーティのVSCode拡張機能**を設計する: ワンクリックインストール、設定UI、まともなサーバーディスカバリ、そしてステータスインジケータ。これはADR-19のgem側の決定に対する、エディタ側の対となるものである。
 
@@ -186,7 +186,7 @@ editors/vscode/
 
 ## ドキュメントのフォロースルー
 
-拡張機能が出荷されたら、[`docs/lsp-integration.md`](../../lsp-integration/) §「VSCode」を書き換える: 汎用クライアント / 手書き拡張機能のワークアラウンドを「マーケットプレイス（またはOpen VSX）から**Rigor**拡張機能をインストールする」に置き換え、手動配線のスニペットはサポート外のVSCodeフォークを使うユーザーのためのフォールバックとしてのみ残す。
+拡張機能が出荷されたら、[`docs/manual/09-editor-integration.md`](../../manual/09-editor-integration/) §「VSCode」を書き換える: 汎用クライアント / 手書き拡張機能のワークアラウンドを「マーケットプレイス（またはOpen VSX）から**Rigor**拡張機能をインストールする」に置き換え、手動配線のスニペットはサポート外のVSCodeフォークを使うユーザーのためのフォールバックとしてのみ残す。
 
 ## オープンクエスチョン
 

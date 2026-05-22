@@ -3,8 +3,8 @@ title: "Current Work — Resume Bookmark"
 description: "rigortype/rigor docs/CURRENT_WORK.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/CURRENT_WORK.md"
 sourcePath: "docs/CURRENT_WORK.md"
-sourceSha: "e7a869324a91ca7ac595784b2434015331700f9f2e40909d8467e857b012fc37"
-sourceCommit: "1d0381f3ade3f4b208d95b9d649f1e80c381b775"
+sourceSha: "1f117d9d4dc5c6a453b72c2439e0549896b73545c48c0bd83063b2fe25c54123"
+sourceCommit: "f391fadebcb3c674444a346501d51664b046dec2"
 sourceDate: "2026-05-21T21:12:44+09:00"
 translationStatus: "translated"
 sidebar:
@@ -43,14 +43,12 @@ v0.1.7 / v0.1.8サイクルはリードアップだった — 実プロジェク
 
 ### ADR-24 — 暗黙的selfメソッド呼び出し解決、残り
 
-スライス1+2+3に加えてinclude/prependされたモジュール解決がv0.1.8で着地;ADR-24祖先チェーン（WD1）は完了している（同クラス + トップレベル + スーパークラスチェーン + インクルードモジュール、クロスファイル）。残り:
-
 - **スライス4** — 解決されたclosed-classセルフ呼び出しに対するゲート付き`undefined-method` / アリティ診断。独自のFP評価ゲート（[ADR-24 WD4](../adr/24-self-method-call-resolution/)）— メタプログラミング密度の高いコードに対する大きな新しい偽陽性サーフェスのため、v1は意図的に精度加法的のみとした。
-- **クラスボディ内の非`Bot`一般採用** — v0.1.8はクラスボディ内で解決されたセルフ呼び出しの戻り型を、それが`Bot`（常に分岐するガードヘルパー）であるときのみ採用する。精確な非`Bot`戻り値の無条件採用は`rigor check lib`を16診断リグレッションさせた（既存の呼び出し先戻り推論の不精度が下流で表面化）;このフォローアップは、精確な型を採用してもそれらの不精度が表面化しないほど呼び出し先戻り推論が精確である必要がある。
+- **クラスボディ内の非`Bot`一般採用** — 解決されたセルフ呼び出しの戻り型は、それが`Bot`であるときのみ採用される。精確な非`Bot`戻り値の無条件採用は`rigor check lib`を16診断リグレッションさせた（既存の呼び出し先戻り推論の不精度が下流で表面化）;このフォローアップは、精確な型を採用してもそれらの不精度が表面化しないほど呼び出し先戻り推論が精確である必要がある。
 
 ### ADR-23 — `rigor triage`スライス4プラグインレコグナイザー
 
-スライス4の構造化`Diagnostic`フィールドの半分がv0.1.8で着地（`Analysis::Diagnostic`の`receiver_type` / `method_name`、`call.undefined-method`によって投入;カタログがそれらを読み、メッセージパースはフォールバックに）。残り: プラグインが自身のレコグナイザーを貢献できる`Plugin`フック（先送り）。スライス3（SKILL統合）は上記のv0.1.9 SKILLトリオ作業に折り込まれている。
+残り: プラグインが自身のレコグナイザーを貢献できる`Plugin`フック（先送り）。（`Analysis::Diagnostic`の`receiver_type` / `method_name`構造化フィールドはv0.1.8で出荷;SKILL統合はv0.1.9トリオとともに出荷。）
 
 ### フローフォールディング — ループミューテーション追跡（ギャップG1 / G2）
 
@@ -60,6 +58,15 @@ v0.1.7 / v0.1.8サイクルはリードアップだった — 実プロジェク
 
 上流の`ruby/rbs` RBSギャップが単一の内部Rigor呼び出しサイトで表面化したとき、**（a'）**インソースの`# rigor:disable`ディレクティブ + ライブラリのロードを好む;複数の呼び出しサイトまたはユーザー向けコードで表面化したとき、**（b）**Rigor自身の`sig/`下の焦点を絞ったRBSオーバーレイ、または**（c）**上流`ruby/rbs`修正にエスカレートする。`references/rbs`ブランチ`widen-strscan-resolv-stdlib-sigs`（`StringScanner#[]`、`Resolv#initialize`を拡張）は上流PR向けにステージされている — ブランチプッシュ + `ruby/rbs` PR作成はユーザーのタスク。
 
+### Mastodonクロスバージョンスイープ — FP発見事項（2026-05-23）
+
+v3.5.19→v4.5.10クロスバージョンリグレッションスイープ（[`docs/notes/20260523-mastodon-v4.5-regression-sweep-v0.1.9.md`](../notes/20260523-mastodon-v4.5-regression-sweep-v0.1.9/) §「何が増えているか」）は、エンジン側の偽陽性 / 誤推論のクラスターを4つ特定した。2つはすでに追跡済み;2つは新規:
+
+1. **`StringScanner#[]` Symbolオーバーロード**（FP、`signature_parser.rb`の3箇所）— `scanner[:key]`（Ruby 3.x以降の名前付きキャプチャSymbol引数）は`call.argument-type-mismatch`を引き起こす。RigorのRBSには`(Integer) -> String?`オーバーロードしか存在しないため。上記「Stdlib RBSカバレッジギャップパターン」項目で**すでに追跡済み** — `references/rbs`ブランチ`widen-strscan-resolv-stdlib-sigs`がまさにこれを拡張する。このスイープはその経験的確認;上流RBS PRがマージされたらクローズする。
+2. **ARの`scope`ボディのメソッド解決**（誤推論、新規）— `scope :x, -> { select(...).group(:uri) }`の中でラムダの`self`はモデルクラスだが、`select`が`ActiveRecord::Querying#select`（→ relation）ではなく`Enumerable#select`（→ `Array[String]`）に解決するため、連鎖する`.group`が`undefined-method`と判定される。**ADR-26**（`ActiveRecord::Relation`型付け）の経験的根拠;モデルクラス側のクエリサーフェスは`rigor-activerecord`プラグインの役割。新規ADRは不要 — ADR-26スライシングに折り込む。
+3. **Ivar nil-guard / ivar-write型付け**（誤推論、新規）— `@ivar.method`が`return if @ivar.nil?`ガードの**後**でも`undefined-method … for nil`を報告する: ガードがivarをナローイングせず、ivarの非`nil`代入も推論に見えないため、型が`nil`に潰れる。フローフォールディングギャップ**G2**（ivarの型がリテラル書き込みから取られ、更新されない）と同じファミリー。ivarナローイング + ivar-write推論修正が必要;G2作業に対してスコープを当てる。
+4. **フローフォールディングの過剰主張**（FP、`flow.always-truthy-condition`の3箇所）— 上記「フローフォールディング — ループミューテーション追跡（ギャップG1 / G2）」項目とクラスター4トリアージノートで**すでに追跡済み**。このスイープはクラスターがv3.5→v4.5ラインを通じて持続することを確認。
+
 ### より小さなキュー項目
 
 - **Sig-genの`update_existing`**は兄弟の親 / 子クラスブロックを畳み込まない — `merge_class`は各候補の`class_name`を独立して解決するため、フラット兄弟レイアウトはフラットなまま。既存のファイルをネストレイアウトに再フローすることはスコープ外;回避策はターゲットsigファイルを削除してゼロから再生成すること。
@@ -68,7 +75,7 @@ v0.1.7 / v0.1.8サイクルはリードアップだった — 実プロジェク
 
 ### Type-coverage uplift — ライン状況（2026-05-23）
 
-`c9a535a`以降のtype-coverage-upliftラインがPhases 1〜4を`master`に着地させた（`CHANGELOG.md`の`[Unreleased]`）: String / Integer / Float / Comparableの中優先度fold、`MathFolding`（全28の`Math`関数）、11のHashShape中/低優先度ハンドラ、`Kernel#Integer` / `Float` folding、そして`Date` / `DateTime` / `Time`の`Constant`キャリア + コンストラクタfold。監査ドキュメント: `docs/notes/20260522-*-coverage.md`、`docs/notes/20260523-date-time-method-coverage.md`。残り項目はすべて**リリース未確定**:
+Phases 1〜4着地済み（String / Integer / Float / Comparable / Math / HashShape / Date / DateTime / Time）。残り項目はすべて**リリース未確定**:
 
 - **Struct / Data値fold** — 先送りすべきADR相当の機能（新しいキャリアが2つ必要）。`docs/ROADMAP.md` §「将来のサイクル」→「型言語 / エンジン」と[`docs/notes/20260523-struct-encoding-coverage.md`](../notes/20260523-struct-encoding-coverage/)を参照。`Encoding`値foldは同じ監査で* permanent exclusion *として記録済み。
 - **`MathFolding`結果の精緻化** — 28関数foldは値的に正確;結果への範囲精緻化の付与（`Math.exp` → `positive-float`、`Math.sqrt` / `hypot` → `non-negative-float`）は需要駆動のフォローアップ（[`docs/notes/20260522-stdlib-deterministic-module-coverage.md`](../notes/20260522-stdlib-deterministic-module-coverage/) § 1）。

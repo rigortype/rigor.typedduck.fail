@@ -3,8 +3,8 @@ title: "日常的に出会う型"
 description: "rigortype/rigor docs/handbook/02-everyday-types.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/handbook/02-everyday-types.md"
 sourcePath: "docs/handbook/02-everyday-types.md"
-sourceSha: "5348d928ec18d04a1224b7b97d2c5de8ca4de875cb76a9a291b5587baf0578c7"
-sourceCommit: "b523ab36f62d89a1c16964a66864c27e3ebb0fe4"
+sourceSha: "49531d5e5b609d775ed74951fc5c5211f0ac314cde1030d27707a77bb9ae5c66"
+sourceCommit: "f391fadebcb3c674444a346501d51664b046dec2"
 translationStatus: "translated"
 sidebar:
   order: 1002
@@ -32,14 +32,23 @@ n = ARGV.size
 
 まとめると: プログラムのすべての地点にある各値は**キャリア**（carrier）で記述されます。キャリアは広い（`Integer`、`Dynamic[Top]`）場合もあれば、狭い（`Constant<3>`、`non-empty-string`）場合もあります。この章の残りはキャリアの図鑑です。
 
+## キャリアを自分で見る — `rigor annotate`
+
+以下のすべてのコード例では、各行の推論型を末尾の`#=> dump_type:`コメントとしてタグ付けしています:
+
+```ruby
+two = 1 + 1   #=> dump_type: Constant<2>
+```
+
+これは`rigor annotate FILE`が生成するコメント形式です: ソースファイルをその行が評価する式のキャリアでタグ付けして再出力します。自分のコードに対してこれを実行し、マージンにキャリアの図鑑が現れるのを確認してみてください。（`annotate`はキャリアをコンパクトな表示形式で出力するため、このハンドブックが`Constant<2>`とフルスペルで書くところを`2`と書きます。）
+
 ## 名前的型 — 馴染み深い出発点
 
 最もシンプルなキャリアは、すでに知っている`Nominal[ClassName]`です。名前的型（nominal type）は公称型とも呼ばれます。追加情報なしに「これはそのクラスのインスタンスである」と言うものです。
 
 ```ruby
-n = ARGV.first         # Nominal[String] | Constant<nil>
-                       # (RBSは `String?` と言う、つまり
-                       # String | nil)
+n = ARGV.first  #=> dump_type: Nominal[String] | Constant<nil>
+                # RBSは`String?`と言う — String | nil
 ```
 
 `Nominal[Integer]`、`Nominal[String]`、`Nominal[Symbol]`、`Nominal[Hash[K, V]]` — 期待通りです。表示形式は読みやすさのために`Nominal[]`ラッパーを省略します: `Integer`、`String`、`Hash[String, Integer]`。
@@ -51,26 +60,19 @@ RigorはRBSから名前的型を読みます。`def foo(s) -> ::String`と書く
 `Type::Constant`はRigorの「この値が正確にどれかを知っている」キャリアです。1つのRubyリテラルをラップします:
 
 ```ruby
-n = 42
-assert_type(n, "Constant<42>")
-
-s = "hello"
-assert_type(s, "Constant<\"hello\">")
-
-sym = :foo
-assert_type(sym, "Constant<:foo>")
-
-t = true
-assert_type(t, "Constant<true>")
+n   = 42       #=> dump_type: Constant<42>
+s   = "hello"  #=> dump_type: Constant<"hello">
+sym = :foo     #=> dump_type: Constant<:foo>
+t   = true     #=> dump_type: Constant<true>
 ```
 
 すべてのオペランドがConstantのとき、Rigorは算術と文字列合成を積極的にたたみ込みます:
 
 ```ruby
-two = 1 + 1               # Constant<2>
-ten = 5 * 2               # Constant<10>
-hi  = "Hello, " + "world" # Constant<"Hello, world">
-sym = "foo".to_sym        # Constant<:foo>
+two = 1 + 1               #=> dump_type: Constant<2>
+ten = 5 * 2               #=> dump_type: Constant<10>
+hi  = "Hello, " + "world" #=> dump_type: Constant<"Hello, world">
+sym = "foo".to_sym        #=> dump_type: Constant<:foo>
 ```
 
 たたみ込みはNumeric、String、Symbol、Array、Hashの「純粋な」メソッドの長いリストに及びます。リストはこのハンドブックには載せていません（数ページにわたる）。[`docs/types.md`](../../types/)とクラス別カタログ[`data/builtins/ruby_core/`](../../data/builtins/ruby_core/)を参照してください。
@@ -82,12 +84,12 @@ sym = "foo".to_sym        # Constant<:foo>
 整数値を持つ式の中には、単一のリテラル値を生成せずに既知の範囲を生成するものがあります。Rigorはそれらを`Type::IntegerRange`で記述し、`int<min, max>`と表示します:
 
 ```ruby
-n = ARGV.size               # int<0, max>
-m = n + 1                   # int<1, max>
-double = n * 2              # int<0, max>  — 乗算は下限を保持
+n = ARGV.size               #=> dump_type: int<0, max>
+m = n + 1                   #=> dump_type: int<1, max>
+double = n * 2              #=> dump_type: int<0, max>
 ```
 
-ここでの`max`は「正の無限大」を意味します — 上限は無制限です。
+ここでの`max`は「正の無限大」を意味します — 上限は無制限です。乗算は下限を保持するため、`n * 2`は`int<0, max>`のままです。
 
 よく使う範囲には短い名前があります:
 
@@ -143,19 +145,19 @@ double = n * 2              # int<0, max>  — 乗算は下限を保持
 ```ruby
 n = some_integer_call
 if n.zero?
-  # n: Constant<0>
+  n   #=> dump_type: Constant<0>
 else
-  assert_type(n, "non-zero-int")  # !.zero? によってナローイング
+  n   #=> dump_type: non-zero-int
 end
 ```
 
 ## `Dynamic[Top]` — グラデュアルキャリア
 
-Rigorが「これは任意のRuby値かもしれない」よりも厳密なことを証明できないことがあります。それが`Dynamic[Top]`で、RBS消去後のビューでは`untyped`と短縮されることが多いです。
+Rigorが「これは任意のRuby値かもしれない」よりも厳密なことを証明できないことがあります。例えばベアなパラメータは呼び出し元からの情報を持ちません。それが`Dynamic[Top]`で、RBS消去後のビューでは`untyped`と短縮されることが多いです。
 
 ```ruby
 def foo(x)
-  x.bar           # x: Dynamic[Top] — 呼び出し元からの情報がない
+  x.bar   #=> dump_type: Dynamic[Top]
 end
 ```
 
@@ -169,21 +171,21 @@ end
 
 ```ruby
 arr = [1, "two", :three]
-# Tuple[Constant<1>, Constant<"two">, Constant<:three>]
+#=> dump_type: Tuple[Constant<1>, Constant<"two">, Constant<:three>]
 
 first, second, third = arr
-assert_type(first,  "Constant<1>")
-assert_type(second, "Constant<\"two\">")
-assert_type(third,  "Constant<:three>")
+first   #=> dump_type: Constant<1>
+second  #=> dump_type: Constant<"two">
+third   #=> dump_type: Constant<:three>
 ```
 
 リテラルキーを持つハッシュも同様:
 
 ```ruby
 h = { name: "Alice", age: 30 }
-# HashShape{name: Constant<"Alice">, age: Constant<30>}
+#=> dump_type: HashShape{name: Constant<"Alice">, age: Constant<30>}
 
-assert_type(h[:name], "Constant<\"Alice\">")
+h[:name]  #=> dump_type: Constant<"Alice">
 ```
 
 タプルとハッシュシェイプはRBS境界を越えるときに`Array[…]`と`Hash[K, V]`に消去されます。Rigor内部では、位置ごと/キーごとの完全な型情報を持っているので、分解代入とスロットアクセスが精密に保たれます。
@@ -200,7 +202,7 @@ label = case n
         when 1..9   then :small
         else             :large
         end
-# Constant<:zero> | Constant<:small> | Constant<:large>
+#=> dump_type: Constant<:zero> | Constant<:small> | Constant<:large>
 ```
 
 定数のユニオンは、Rubyが直和型や識別可能ユニオンに最も近づく形です。Rigorはこれを真剣に扱います: `case`でリテラルユニオン値を切り替えると精密なナローイングが生まれます（[第3章](../03-narrowing/)参照）。
@@ -223,7 +225,7 @@ def classify(n)
 end
 
 result = classify(some_integer_input)
-assert_type(result, "Constant<:zero> | Constant<:positive> | Constant<:negative>")
+#=> dump_type: Constant<:zero> | Constant<:positive> | Constant<:negative>
 ```
 
 通常の型チェッカーは`result: Symbol`と言います。Rigorは正確な3要素のユニオンにナローイングします。後でこう書くと:

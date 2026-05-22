@@ -3,8 +3,8 @@ title: "はじめに"
 description: "rigortype/rigor docs/handbook/01-getting-started.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/handbook/01-getting-started.md"
 sourcePath: "docs/handbook/01-getting-started.md"
-sourceSha: "b812e394ee2739775bfe1d725ade52781e459934059ab48e987c078576ad99ea"
-sourceCommit: "5b252bbd814960f6b442a4df7dd41a0d0a79c995"
+sourceSha: "9b460932b49931cb3949e67ab188e9d5d0b68d4c36525cc0916b255251d49b19"
+sourceCommit: "f391fadebcb3c674444a346501d51664b046dec2"
 translationStatus: "translated"
 sidebar:
   order: 1001
@@ -23,7 +23,7 @@ mise use ruby@4.0
 mise use gem:rigortype
 ```
 
-miseがシェルでアクティベートされていると、`rigor`が`PATH`上に置かれます。シェルアクティベーションとshims、`asdf`、`gem install`、コンテナ内開発については[付録 — Rigorのインストール](../appendix-installation/)を、継続的インテグレーションについては[付録 — CIでのRigor実行](../appendix-ci/)を参照してください。
+miseがシェルでアクティベートされていると、`rigor`が`PATH`上に置かれます。シェルアクティベーションとshims、`asdf`、`gem install`、コンテナ内開発については[Rigorのインストール](../../manual/01-installation/)を、継続的インテグレーションについては[CIでのRigor実行](../../manual/10-ci/)を参照してください。
 
 ## `rigor check`は何を見ているのか？
 

@@ -2,8 +2,8 @@
 title: "リファレンス"
 description: "upstreamのrigortype/rigorリポジトリから取り込んだドキュメントです。"
 sourcePath: "(generated)"
-sourceSha: "728c9edb80f083a5e541a82d1ea7afb48c327c21d60fc9e0dbb9c721eb13bbd7"
-sourceCommit: "9f40e22193647dc06e3ab70c5ba82768b0bfe738"
+sourceSha: "e6990980fac4b0001158576589746dbb62a0a088a3a1cf0b17404db46c04e16c"
+sourceCommit: "f391fadebcb3c674444a346501d51664b046dec2"
 translationStatus: "translated"
 sidebar:
   order: 0

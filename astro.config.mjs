@@ -6,6 +6,7 @@ const sidebarTranslations = {
   recentlyUpdated: { ja: '最近の更新' },
   reference: { ja: 'リファレンス' },
   handbook: { ja: 'ハンドブック' },
+  userManual: { ja: 'ユーザーマニュアル' },
   typeSpecification: { ja: '型仕様' },
   internalSpec: { ja: '内部仕様' },
   architecture: { ja: '設計判断' },
@@ -93,15 +94,6 @@ export default defineConfig({
             { slug: 'reference/handbook/11-sig-gen' },
             { slug: 'reference/handbook/12-lightweight-hkt' },
             {
-              label: 'Appendix — Installation and CI',
-              translations: { ja: '付録 — インストールとCI' },
-              collapsed: false,
-              items: [
-                { slug: 'reference/handbook/appendix-installation' },
-                { slug: 'reference/handbook/appendix-ci' },
-              ],
-            },
-            {
               label: 'Appendix — Coming from another type checker',
               translations: { ja: '付録 — 他の型チェッカーから来た場合' },
               collapsed: false,
@@ -121,6 +113,12 @@ export default defineConfig({
               ],
             },
           ],
+        },
+        {
+          label: 'User Manual',
+          translations: sidebarTranslations.userManual,
+          collapsed: true,
+          items: [{ autogenerate: { directory: 'reference/manual', collapsed: false } }],
         },
         {
           label: 'Type Specification',
