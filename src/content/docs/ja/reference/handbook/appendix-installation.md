@@ -5,51 +5,31 @@ editUrl: "https://github.com/rigortype/rigor/edit/main/docs/handbook/appendix-in
 sourcePath: "docs/handbook/appendix-installation.md"
 sourceSha: "9e1934581008b993ffebe3f7080bc52ec5b5ed15a6cda6cf4450b9881c9c6594"
 sourceCommit: "1d0381f3ade3f4b208d95b9d649f1e80c381b775"
-translationStatus: "pending"
+translationStatus: "translated"
 sidebar:
   order: 1050
 ---
 
-> [!NOTE]
-> このページはまだ翻訳されていません。英語版の本文を参考表示しています。
+Rigorはライブラリではなくツールです。リンターやコンパイラと同様に、プロジェクトを解析しますが、そのランタイムの一部ではありません。**アプリケーションの`Gemfile`には追加しないでください**。`Gemfile`エントリを追加すると、プロジェクト全体がRigorのRubyバージョンに縛られ、Rigorの依存関係がアプリケーションの依存関係の解決に引き込まれてしまいます。Rigorは単独でインストールし、プロジェクトに向けて使用してください。
 
-Rigor is a tool, not a library — like a linter or a compiler, it
-analyses your project but is not part of its runtime. **Do not add
-it to your application's `Gemfile`.** A `Gemfile` entry would tie
-your whole project to Rigor's Ruby version and pull Rigor's
-dependencies into your application's dependency resolution. Install
-Rigor on its own and point it at your project.
+RigorはRuby 4.0上で動作します。これは自分のコードが対象とするRubyとは独立しています。`target_ruby:`設定キーは、*あなたの*プロジェクトが実行するRubyをRigorに伝えるものであり、両者が一致している必要はありません。Rigorはプロジェクト（ソースコード、`Gemfile.lock`、各gemの`.rbs`ファイル）をデータとして読み取るだけで、プロジェクトのgemを自身のプロセスに読み込むことは決してありません。そのため、個別にインストールしても何も失われません。
 
-Rigor runs on Ruby 4.0. That is independent of the Ruby your own
-code targets: the `target_ruby:` config key tells Rigor which Ruby
-*your* project runs, and the two need not match. Rigor reads your
-project — its source, its `Gemfile.lock`, its gems' `.rbs` files —
-as data; it never loads your project's gems into its own process,
-so nothing is lost by installing it separately.
+## 推奨 — ランタイムバージョンマネージャ
 
-## Recommended — a runtime version manager
-
-[`mise`](https://mise.jdx.dev/) installs both Ruby 4.0 and Rigor and
-pins them per project, with no `Gemfile` involvement:
+[`mise`](https://mise.jdx.dev/)はRuby 4.0とRigorの両方をインストールし、`Gemfile`を関与させることなく、プロジェクトごとにバージョンを固定します。
 
 ```sh
 mise use ruby@4.0
 mise use gem:rigortype
 ```
 
-`rigor` is then on your `PATH`. Commit the generated `mise.toml` so
-every contributor — and every CI run — uses the same versions.
+これで`rigor`が`PATH`上に置かれます。生成された`mise.toml`をコミットしておくことで、すべてのコントリビューターとCIの実行で同じバージョンが使用されます。
 
-An on-`PATH` `rigor` is also what editor integrations expect: they
-launch `rigor lsp` directly (see
-[`docs/lsp-integration.md`](../../lsp-integration/)), with no
-per-editor `bundle exec` prefix to configure.
+`PATH`上の`rigor`はエディタ統合が期待する形式でもあります。エディタ統合は`rigor lsp`を直接起動します（[`docs/lsp-integration.md`](../../lsp-integration/)を参照）。エディタごとに`bundle exec`プレフィックスを設定する必要はありません。
 
 ## asdf
 
-`asdf` follows the same model. Install a Ruby 4.0.x with the
-[`asdf-ruby`](https://github.com/asdf-vm/asdf-ruby) plugin, select
-it for the project, then install the gem into that Ruby:
+`asdf`も同じモデルに従います。[`asdf-ruby`](https://github.com/asdf-vm/asdf-ruby)プラグインでRuby 4.0.xをインストールし、プロジェクト用に選択してから、そのRubyにgemをインストールします。
 
 ```sh
 asdf install ruby latest:4.0
@@ -57,47 +37,34 @@ asdf local ruby latest:4.0
 gem install rigortype
 ```
 
-`asdf` has no general-purpose gem backend, so the gem itself is
-installed with `gem install` rather than an `asdf` command. `mise`
-(above) is the more integrated option because its `gem:` backend
-pins the gem the same way it pins Ruby.
+`asdf`には汎用のgemバックエンドがないため、gemは`asdf`コマンドではなく`gem install`でインストールします。上で紹介した`mise`は、`gem:`バックエンドがgemをRubyと同じ方法でピン留めするため、より統合された選択肢です。
 
-## Simple alternative — gem install
+## シンプルな代替手段 — gem install
 
-If you already have a Ruby 4.0 on your `PATH`:
+すでに`PATH`上にRuby 4.0がある場合は次のようにします。
 
 ```sh
 gem install rigortype
 ```
 
-The gem is named `rigortype` — `rigor` was already taken on
-RubyGems — and the executable it installs is `rigor`. This is the
-quickest path, but it records nothing per project: a version
-manager keeps the Rigor version pinned next to the project, so
-local runs and CI cannot drift apart.
+gemの名前は`rigortype`です。RubyGemsでは`rigor`がすでに使用されていたためです。インストールされる実行ファイルは`rigor`です。これが最速の方法ですが、プロジェクトごとに何も記録されません。バージョンマネージャを使えばRigorのバージョンをプロジェクトの隣に固定できるため、ローカルの実行とCIでバージョンが乖離することを防げます。
 
 ## Nix
 
-If you use Nix, Rigor's flake exposes the executable as a package,
-with Ruby 4.0 in its closure — nothing else need be on the host:
+Nixを使用している場合、RigorのflakeはRuby 4.0をクロージャに含むパッケージとして実行ファイルを公開しています。ホスト側に他のものをインストールする必要はありません。
 
 ```sh
-# Run without installing:
+# インストールせずに実行する場合:
 nix run github:rigortype/rigor#rigor -- check
 
-# Or install it into your profile:
+# プロファイルにインストールする場合:
 nix profile install github:rigortype/rigor
 ```
 
-## Developing inside a container
+## 開発コンテナ内での開発
 
-If you develop inside a dev container, install Rigor on the **host
-OS** rather than inside the container — running the analyser across
-the container's filesystem and process boundary adds overhead. On
-Windows, where a host-side Ruby 4.0 is harder to provide, installing
-Rigor inside the container is the better choice.
+開発コンテナ内で開発している場合は、コンテナ内ではなく**ホストOS**にRigorをインストールしてください。コンテナのファイルシステムやプロセス境界をまたいで解析器を実行するとオーバーヘッドが生じます。ホスト側でRuby 4.0を用意しにくいWindowsでは、コンテナ内にRigorをインストールするほうが適切です。
 
-## Continuous integration
+## 継続的インテグレーション
 
-Wiring Rigor into CI has its own appendix — see
-[Appendix — Running Rigor in CI](../appendix-ci/).
+RigorをCIに組み込む方法については、[付録 — CIでのRigor実行](../appendix-ci/)を参照してください。

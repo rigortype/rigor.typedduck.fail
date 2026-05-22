@@ -5,103 +5,67 @@ editUrl: "https://github.com/rigortype/rigor/edit/main/docs/notes/20260523-struc
 sourcePath: "docs/notes/20260523-struct-encoding-coverage.md"
 sourceSha: "987e521ddf75a22c49572336bf658940182df522d03f9172bb7f4e9597596875"
 sourceCommit: "1d0381f3ade3f4b208d95b9d649f1e80c381b775"
-translationStatus: "pending"
+translationStatus: "translated"
 sidebar:
   order: 20266523
 ---
 
-> [!NOTE]
-> このページはまだ翻訳されていません。英語版の本文を参考表示しています。
-
-Generated 2026-05-23 — the Phase 5 artifact of the post-`c9a535a`
-`rigor-type-coverage-uplift` line. Phase 5 was scoped as "the remaining
-low-priority carriers". The audit's conclusion for both types is a
-**decision**, not a dispatch slice: one is deferred as an ADR-worthy
-feature, the other is recommended for permanent exclusion.
+2026-05-23生成 — post-`c9a535a`の`rigor-type-coverage-uplift`ラインのPhase 5成果物。Phase 5のスコープは「残りの低優先度キャリア」であった。両型に対するauditの結論は**決定**であり、dispatchスライスではない。一方はADR化に値する機能として延期され、もう一方は恒久的な対象外として推奨される。
 
 ---
 
-## 1. Struct — deferred (needs a struct-shape carrier; ADR-worthy)
+## 1. Struct — 延期（struct-shapeキャリアが必要；ADR化に値する）
 
-### Current state
+### 現状
 
-`Struct.new(*members)` returns a fresh anonymous subclass. `STRUCT_CATALOG`
-is defensive (see `struct_catalog.rb`): it recognises `Struct` as a receiver
-class, classifies `Struct.new` `:block_dependent` (the optional class-body
-block), and blocklists `:[]` / `:hash` / `:initialize_copy` against a
-"hypothetical future `Constant<Struct>` carrier".
+`Struct.new(*members)`は新しい匿名サブクラスを返す。`STRUCT_CATALOG`は防衛的な設計になっている（`struct_catalog.rb`を参照）：`Struct`をレシーバクラスとして認識し、`Struct.new`をオプションのクラスボディブロックに対して`:block_dependent`に分類し、「仮想的な将来の`Constant<Struct>`キャリア」に対して`:[]` / `:hash` / `:initialize_copy`をブロックリスト登録済みとしている。
 
-`spec/integration/fixtures/struct_catalog.rb` fixes the status quo:
+`spec/integration/fixtures/struct_catalog.rb`は現状を固定している：
 
 ```ruby
 klass = Struct.new(:foo, :bar)   # => Nominal[Struct]
 inst  = Struct.new(:foo).new(1)  # => Dynamic[top]
 ```
 
-`inst.foo` cannot fold because nothing models the per-subclass member layout.
+`inst.foo`は畳み込みできない。サブクラスごとのメンバーレイアウトをモデル化するものが存在しないためである。
 
-### Why this is not a coverage-uplift slice
+### coverage-upliftスライスではない理由
 
-Precise Struct member access (`Point = Struct.new(:x, :y); p = Point.new(1, 2);
-p.x  # Constant[1]`) needs **two new carriers**, not a dispatch-tier entry:
+Structメンバーへの精密なアクセス（`Point = Struct.new(:x, :y); p = Point.new(1, 2); p.x  # Constant[1]`）には、dispatchティアへのエントリではなく、**2つの新しいキャリア**が必要である：
 
-1. A **struct-class carrier** — an anonymous `Struct` subclass parameterised by
-   its ordered member-name list (and `keyword_init:` flag).
-2. A **struct-instance carrier** — member-name → value-type, essentially a
-   `HashShape` with a class tag, so `.x` / `.x=` / `[]` / `to_h` / `deconstruct`
-   project precisely.
+1. **struct-classキャリア** — 順序付きメンバー名リスト（および`keyword_init:`フラグ）でパラメータ化された匿名`Struct`サブクラス。
+2. **struct-instanceキャリア** — メンバー名→値の型のマッピング。本質的にクラスタグを持つ`HashShape`であり、`.x` / `.x=` / `[]` / `to_h` / `deconstruct`が精密に射影される。
 
-That is a genuine feature with real design surface, none of which the
-coverage-uplift corpus has decided:
+これは本物の機能であり、実際の設計上の問題を含んでいる。そのいずれもcoverage-upliftコーパスでは決定されていない：
 
-- the `Struct.new` class-body block (`do … end`) may define extra methods —
-  the carrier must degrade gracefully when it does;
-- `keyword_init: true` structs, positional structs, and the Ruby 3.2 hybrid;
-- subclass-of-a-struct (`class Point3D < Point`);
-- the immutable sibling **`Data.define`** (Ruby 3.2+) — arguably a better first
-  target than `Struct` because `Data` instances are frozen, so the carrier
-  soundness story is simpler.
+- `Struct.new`のクラスボディブロック（`do … end`）は追加のメソッドを定義できる — キャリアはそれが発生した場合に安全にデグレードしなければならない；
+- `keyword_init: true`の構造体、位置引数版Struct、およびRuby 3.2のハイブリッド；
+- structのサブクラス（`class Point3D < Point`）；
+- イミュータブルな兄弟型**`Data.define`**（Ruby 3.2以降） — `Data`インスタンスはfrozenであるため、キャリアの健全性の議論がより単純になり、`Struct`よりも適切な最初のターゲットとも言える。
 
-### Recommendation
+### 推奨
 
-Treat Struct / Data value folding as a **dedicated feature with its own ADR**
-(carrier zoo addition + the `Struct.new` / `Data.define` block-degradation
-contract), not an autonomous coverage slice. The `HashShape` carrier is the
-obvious structural prior art. No implementation is authorised by this audit.
+Struct / Dataの値の畳み込みは、自律的なcoverageスライスではなく、**専用のADRを持つ独立した機能**（キャリア群への追加 + `Struct.new` / `Data.define`のブロックデグレードコントラクト）として扱うこと。`HashShape`キャリアは明らかな構造的先例である。このauditによる実装は認可されていない。
 
 ---
 
-## 2. Encoding — recommended for permanent exclusion
+## 2. Encoding — 恒久的な対象外として推奨
 
-### Current state
+### 現状
 
-`ENCODING_CATALOG` is defensive in the same shape as `STRUCT_CATALOG`:
-`Encoding` is a recognised receiver, the RBS tier answers `Nominal[Encoding]`,
-and the registry-walking singletons (`Encoding.find` / `.list` / `.aliases` /
-`.name_list`) plus the mutating setters (`default_external=` /
-`default_internal=`) are blocklisted as process-registry-dependent.
+`ENCODING_CATALOG`は`STRUCT_CATALOG`と同じ形で防衛的な設計になっている：`Encoding`は認識済みのレシーバであり、RBSティアは`Nominal[Encoding]`を返し、レジストリを走査するシングルトン（`Encoding.find` / `.list` / `.aliases` / `.name_list`）およびミューテーティングセッター（`default_external=` / `default_internal=`）はプロセスレジストリ依存としてブロックリスト登録済みである。
 
-### Why a carrier would not pay for itself
+### キャリアがコストに見合わない理由
 
-A `Constant[Encoding]` carrier could only fold a vanishingly small surface:
+`Constant[Encoding]`キャリアが畳み込めるのは、ごくわずかな表面に限られる：
 
-- `Encoding::UTF_8.name` → `Constant["UTF-8"]`, `.dummy?` → `Constant[false]`,
-  `.ascii_compatible?` → `Constant[true]`.
+- `Encoding::UTF_8.name` → `Constant["UTF-8"]`、`.dummy?` → `Constant[false]`、`.ascii_compatible?` → `Constant[true]`。
 
-Real programs do not perform static computation on `Encoding` objects — the
-type is used as an opaque tag passed to `String#encode` / `#force_encoding`.
-The blocklisted registry methods (the only ones with interesting return values)
-stay blocklisted because their answer depends on the analyzer process. The
-precision gain over the existing `Nominal[Encoding]` answer is negligible, and
-every new `SCALAR_CLASSES` member widens the carrier zoo (Ractor shareability,
-`describe`, `erase_to_rbs`, the `==` / `hash` contract) for no user benefit.
+実際のプログラムは`Encoding`オブジェクトに対して静的計算を行わない — この型は`String#encode` / `#force_encoding`に渡される不透明なタグとして使用される。ブロックリスト登録済みのレジストリメソッド（興味深い戻り値を持つ唯一のもの）は、その答えがアナライザプロセスに依存するため、ブロックリスト登録済みのままとなる。既存の`Nominal[Encoding]`の答えに対する精度向上は無視できる程度であり、新しい`SCALAR_CLASSES`のメンバーを追加するたびにキャリア群が拡大される（Ractorの共有可能性、`describe`、`erase_to_rbs`、`==` / `hash`コントラクト）が、ユーザーへの利益はない。
 
-### Recommendation
+### 推奨
 
-**Do not add an `Encoding` constant carrier.** The current
-`Nominal[Encoding]` answer is correct and sufficient; `ENCODING_CATALOG`'s
-defensive blocklist already covers the unsound paths. This is a deliberate
-permanent exclusion, recorded so the question is not re-litigated.
+**`Encoding`定数キャリアを追加しないこと**。現在の`Nominal[Encoding]`の答えは正確かつ十分であり、`ENCODING_CATALOG`の防衛的なブロックリストはすでに健全でないパスをカバーしている。これは意図的な恒久的な対象外であり、問題が再議論されないよう記録する。
 
 ---
 
@@ -109,9 +73,7 @@ permanent exclusion, recorded so the question is not re-litigated.
 
 | 型 | 判断 | 理由 |
 |----|------|------|
-| Struct / Data | 延期（ADR 化推奨） | struct-shape キャリア 2 種が前提。実機能であり coverage スライスではない。 |
-| Encoding | 恒久的に対象外 | キャリア新設のコストに見合う精度向上がない。`Nominal[Encoding]` で十分。 |
+| Struct / Data | 延期（ADR化推奨） | struct-shapeキャリア2種が前提。実機能でありcoverageスライスではない。 |
+| Encoding | 恒久的に対象外 | キャリア新設のコストに見合う精度向上がない。`Nominal[Encoding]`で十分。 |
 
-Phases 1–4 of the coverage-uplift line landed as dispatch / carrier slices;
-Phase 5 closes the line by recording that the two remaining candidates are a
-deferred feature and a permanent exclusion respectively.
+coverage-upliftラインのPhases 1–4はdispatch / carrierスライスとして着地した。Phase 5は、残りの2つの候補がそれぞれ延期された機能と恒久的な対象外であることを記録することで、このラインを締めくくる。

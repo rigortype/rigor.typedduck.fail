@@ -5,35 +5,20 @@ editUrl: "https://github.com/rigortype/rigor/edit/main/docs/handbook/appendix-ci
 sourcePath: "docs/handbook/appendix-ci.md"
 sourceSha: "c0ebf1bd6bcd586c5749e89de8975fd7593765fc8d1eeeb55868a25126ca9d21"
 sourceCommit: "1d0381f3ade3f4b208d95b9d649f1e80c381b775"
-translationStatus: "pending"
+translationStatus: "translated"
 sidebar:
   order: 1050
 ---
 
-> [!NOTE]
-> このページはまだ翻訳されていません。英語版の本文を参考表示しています。
+RigorはRuby 4.0で動作します（[Appendix — Installing Rigor](../appendix-installation/)を参照）。CIでこれが意味することが一つあり、まずそれを明記しておきます。このページの残りはそこから導かれます。
 
-Rigor runs on Ruby 4.0 (see
-[Appendix — Installing Rigor](../appendix-installation/)). In CI that
-has one consequence worth stating up front; the rest of this page
-follows from it.
+## Rigor専用ジョブで実行する
 
-## Run Rigor in its own job
+Rigorはテストスイートとは**別のCIジョブ**で実行してください——できればワークフローファイルも別にするのが理想的です。理由は明確です。`ruby/setup-ruby`はそのジョブのアクティブなRubyを設定します。テストジョブはプロジェクトが実行するRuby（多くは3.x系、あるいは複数バージョンのマトリクス）をプロビジョニングします。RigorはRuby 4.0を必要とします。2つ目の`setup-ruby`呼び出しが1つ目を上書きしてしまうため、同じジョブで両立させることはできません。
 
-Run Rigor in a **separate CI job** from your test suite — better
-still, a separate workflow file. The reason is concrete:
-`ruby/setup-ruby` sets the *job's* active Ruby. A test job
-provisions the Ruby your project runs (often a 3.x version, or a
-matrix of several); Rigor needs Ruby 4.0. The two cannot share a job
-without the second `setup-ruby` call clobbering the first.
+別ジョブにすることで、RigorはRuby 4.0のプロビジョニングが他と競合しないクリーンなランナーを得られます。ワークフローファイルを分けることで、さらに独自のトリガー・コンカレンシーグループ・ステータスバッジを持てるようになります——また、解析器をテストワークフローから分離できるため、これはそれ自体として良い実践です。
 
-A separate job gives Rigor a clean runner where provisioning Ruby
-4.0 conflicts with nothing. A separate workflow file additionally
-gets its own triggers, concurrency group, and status badge — and
-keeps the analyser out of the test workflow, which is good practice
-regardless.
-
-## A minimal GitHub Actions workflow
+## GitHub Actionsの最小構成ワークフロー
 
 ```yaml
 # .github/workflows/rigor.yml
@@ -51,25 +36,22 @@ jobs:
       - run: rigor check
 ```
 
-That is the whole thing: check out the project, provision Ruby 4.0,
-install Rigor, run it.
+これだけです。プロジェクトをチェックアウトし、Ruby 4.0をプロビジョニングし、Rigorをインストールして実行します。
 
-## Pinning Rigor's version
+## Rigorのバージョン固定
 
-The workflow above installs whatever `rigortype` is current at run
-time. To pin a version — and keep CI reproducible — choose one of:
+上記のワークフローは実行時点で最新の`rigortype`をインストールします。バージョンを固定してCIを再現可能にするには、次のいずれかを選択してください。
 
-### A CI-only `Gemfile` (recommended)
+### CI専用の`Gemfile`（推奨）
 
-Commit a two-line `.github/rigor/Gemfile`:
+`.github/rigor/Gemfile`を2行で作成してコミットします。
 
 ```ruby
 source "https://rubygems.org"
 gem "rigortype", "~> 0.1"
 ```
 
-plus its `Gemfile.lock`, and point the Rigor job at it through
-`BUNDLE_GEMFILE`:
+`Gemfile.lock`も合わせてコミットし、`BUNDLE_GEMFILE`を通じてRigorジョブがこのファイルを参照するように設定します。
 
 ```yaml
 jobs:
@@ -86,12 +68,7 @@ jobs:
       - run: bundle exec rigor check
 ```
 
-This `Gemfile` is read only by the Rigor job — it never enters your
-application's dependency resolution, and the committed lockfile
-pins Rigor and its dependencies for a reproducible run. Because it
-is an ordinary Bundler `Gemfile`, Dependabot can keep it current:
-add a `bundler` entry scoped to its directory in
-`.github/dependabot.yml`:
+この`Gemfile`はRigorジョブのみが読み込みます——アプリケーションの依存関係解決には一切関与せず、コミットされたロックファイルがRigorとその依存関係を固定して再現可能な実行を保証します。通常のBundlerの`Gemfile`なので、Dependabotによる更新管理も可能です。`.github/dependabot.yml`にディレクトリを指定した`bundler`エントリーを追加してください。
 
 ```yaml
 version: 2
@@ -102,35 +79,26 @@ updates:
       interval: weekly
 ```
 
-### A pinned `gem install`
+### 固定バージョンの`gem install`
 
-`gem install rigortype -v "0.1.9"` in the workflow. Simpler, with no
-extra files — but Dependabot does not see a version inside a `run:`
-step, so updates to the pin are manual.
+ワークフロー内で`gem install rigortype -v "0.1.9"`を実行する方法です。追加ファイルが不要でシンプルですが、Dependabotは`run:`ステップ内のバージョン指定を認識しないため、バージョンの更新は手動で行う必要があります。
 
-## Container image
+## コンテナイメージ
 
-A standalone image is published to GHCR with Ruby 4.0 and Rigor
-baked in. It suits CI runners with no Ruby toolchain — mount the
-project on `/src`:
+Ruby 4.0とRigorを組み込んだスタンドアロンイメージがGHCRに公開されています。Rubyツールチェーンを持たないCIランナーに適しており、プロジェクトを`/src`にマウントして使用します。
 
 ```sh
 docker run --rm -v "$PWD:/src" ghcr.io/rigortype/rigor check
 ```
 
-`rigor` is the image entrypoint, so subcommands and flags follow the
-image name. Pin a version with an explicit tag —
-`ghcr.io/rigortype/rigor:0.1.9`.
+`rigor`はイメージのエントリーポイントであるため、サブコマンドとフラグはイメージ名の後に続けます。バージョンを固定するには明示的なタグを指定してください——`ghcr.io/rigortype/rigor:0.1.9`のようにします。
 
 ## Nix
 
-For CI that already runs Nix, the flake exposes Rigor as a package
-with Ruby 4.0 in its closure — a fully hermetic run with nothing
-else on the runner:
+すでにNixを使用しているCIでは、flakeがRuby 4.0をクロージャに含むパッケージとしてRigorを公開しています——ランナー上に他の依存関係を必要としない完全に隔離された実行が可能です。
 
 ```sh
 nix run github:rigortype/rigor#rigor -- check
 ```
 
-See [ADR-27](../../adr/27-tool-distribution-model/) for the
-distribution model behind this page.
+このページの背景にある配布モデルについては[ADR-27](../../adr/27-tool-distribution-model/)を参照してください。

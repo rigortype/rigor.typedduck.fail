@@ -5,421 +5,176 @@ editUrl: "https://github.com/rigortype/rigor/edit/main/docs/adr/27-tool-distribu
 sourcePath: "docs/adr/27-tool-distribution-model.md"
 sourceSha: "c768bd072aa525b66afbb5a41634789994a54cb87598b42376fc855ef8cc309b"
 sourceCommit: "1d0381f3ade3f4b208d95b9d649f1e80c381b775"
-translationStatus: "pending"
+translationStatus: "translated"
 sidebar:
   order: 4027
 ---
 
-> [!NOTE]
-> このページはまだ翻訳されていません。英語版の本文を参考表示しています。
-
-Status: **proposed, 2026-05-22.** Records how Rigor is distributed
-to and installed by end users. The core principle — **Rigor is not
-added to the target project's `Gemfile`** — is ratified, as is the
-latest-Ruby-only stance it rests on (WD7). The channel
-recommendations follow: a runtime-version manager (`mise` / `asdf`)
-is the front-line path, a copy-pasteable standalone CI workflow
-template is the CI path (Nix is an alternative, not the headline),
-and a container image plus a self-contained single binary are the
-secondary / future options. Implementation is queued; no slice is
-scheduled by this ADR.
-
-## Context
-
-Rigor ships as the `rigortype` gem with an executable named `rigor`
-(the gem is `rigortype` because `rigor` was taken on RubyGems). The
-README's "Installation" section today recommends adding
-`gem "rigortype"` to the target project's `Gemfile` under
-`group :development`, with `gem install rigortype` as a one-off
-alternative.
-
-Two properties of the gem make the `Gemfile` path actively harmful:
-
-1. **`required_ruby_version = [">= 4.0.0", "< 4.1"]`.** Rigor's own
-   codebase targets Ruby 4.0 — the development Ruby pinned by
-   `flake.nix` / `.ruby-version` (see `AGENTS.md`). Almost no
-   production Ruby application currently runs on Ruby 4.0. A `Gemfile`
-   entry carrying this constraint forces the *entire analyzed
-   project* onto Ruby 4.0 — a non-starter for the audience Rigor is
-   meant to serve.
-
-2. **Three runtime dependencies** (`prism`, `rbs`,
-   `language_server-protocol`). Even with the Ruby pin set aside,
-   resolving these against the target project's own constraints
-   reproduces the well-known pain of putting Steep or a heavy linter
-   in an application `Gemfile` — version conflicts on shared gems
-   (`rbs` in particular), and pollution of the dependency graph of an
-   application that does not need Rigor at runtime.
-
-Rigor is a **tool**, not a library. Like a compiler or a linter it
-analyzes a project but is not part of that project's runtime. The
-correct mental model is "a tool that runs with its own Ruby, pointed
-at the project," not "a development dependency of the project." Rigor
-reads the target project as *data* — it parses `Gemfile.lock`, walks
-`vendor/bundle` `sig/` directories, reads `rbs_collection.lock.yaml`
-(ADR-25) — it never loads the project's gems into its own Ruby
-process. Nothing about analysis requires Rigor to share the project's
-bundle, so nothing is lost by installing it separately.
-
-The Ruby ecosystem already has prior art for this exact situation.
-`solargraph` is conventionally kept out of the application `Gemfile`;
-`ruby-lsp` (Shopify) explicitly recommends against a `Gemfile` entry
-and instead bootstraps a separate "composed bundle" so the language
-server's dependency tree is decoupled from the project's. Rigor faces
-the same constraint, only sharper because of the hard Ruby 4.0 pin.
-
-**Rigor deliberately targets only the latest Ruby**, and this ADR
-records that as a decision, not an assumption (WD7). The Ruby 4.0 pin
-is not an accident to be widened away: `ruby/rbs` — which Rigor is
-built on — tracks the latest Ruby, and Rigor relies on Ractor and
-other recent-runtime features (ADR-15). Supporting Ruby 3.3 / 3.4 is
-a considered-and-rejected alternative. The distribution model below
-is the *consequence* of that decision: because Rigor commits to a
-Ruby that most analyzed projects do not run, it must be distributed
-with its own Ruby. A tool should not dictate its host project's
-runtime.
-
-## Decision
-
-**Rigor is not installed into the target project's `Gemfile`.** The
-README and all onboarding material stop recommending the
-`group :development` entry. Every recommended channel installs Rigor
-*isolated from the target project's bundle*, so Rigor's Ruby and its
-three dependencies never enter the analyzed project's resolution.
-
-The recommended channels, in priority order:
-
-1. **Front-line — a runtime-version manager (`mise`, `asdf`).** The
-   headline recommendation. A version manager provisions *both*
-   Ruby 4.0 *and* a pinned `rigortype` version, per project, with no
-   `Gemfile` contamination (WD2).
-
-2. **CI — a standalone workflow template.** A copy-pasteable
-   `.github/workflows/rigor.yml` that runs Rigor in its own isolated
-   job (`ruby/setup-ruby` for Ruby 4.0, install, `rigor check`). Nix
-   is offered as an alternative hermetic CI path (WD3).
-
-3. **Secondary — container image.** A published OCI image with
-   Ruby 4.0 baked in, for CI and zero-Ruby environments where Nix is
-   not wanted (WD4).
-
-4. **Future — a self-contained single binary.** A single executable
-   bundling Ruby plus the gem, so distribution becomes "download one
-   file." `tebako` is the obvious tool; a lighter homegrown packaging
-   is worth a spike. Uncommitted (WD5).
-
-5. **Retained — global `gem install rigortype`.** Kept as a
-   documented simple path for users who already have a Ruby 4.0 on
-   `PATH`, but no longer the headline (WD6).
-
-Nix (a `packages` / `apps` flake output) is retained as an
-alternative for users and CI that already run Nix and want a
-hermetic closure; it is not a headline channel (WD3).
-
-## Working decisions
-
-### WD1 — Rigor is not a project `Gemfile` dependency
-
-The `group :development` `gem "rigortype"` recommendation is removed
-from the README and from every onboarding SKILL. The reasons are in
-§ Context: the Ruby 4.0 pin contaminates the host project's runtime,
-and the three runtime dependencies contaminate its resolution. This
-is the decision the rest of the ADR is built on.
-
-The standalone-but-still-`Gemfile`-based alternative — Rigor
-bootstrapping its own isolated bundle (`.rigor/Gemfile`, the
-`ruby-lsp` "composed bundle" pattern) — was considered. It solves the
-*resolution* contamination cleanly but **does not solve interpreter
-provisioning**: the user still needs a Ruby 4.0 available. A version
-manager (WD2) solves both at once, so the isolated-bundle bootstrap is
-not pursued as a separate mechanism. The pattern remains a valid
-fallback for a user who insists on a `bundle exec rigor` invocation
-shape, and may be documented as such, but it is not a recommended
-channel.
-
-### WD2 — A runtime-version manager is the front-line channel
-
-`mise` (and `asdf`, the same model) is the headline recommendation
-because it is the only channel that, with one tool the user already
-has for Ruby projects, solves *both* halves of the problem:
-
-- **Interpreter provisioning** — `mise` installs Ruby 4.0 itself, so
-  "the user must already have Ruby 4.0" stops being a precondition.
-- **Per-project version pinning** — `mise.toml` / `.tool-versions`
-  pins the `rigortype` version next to the Ruby version, committed to
-  the repo, reproducible between local and CI, with zero `Gemfile`
-  involvement.
-
-`mise` is on a clear trajectory toward being the community-standard
-runtime/tool manager for Ruby projects, which makes it both the most
-ergonomic and the most future-aligned front-line channel. `asdf`
-shares the model and is documented as the equivalent for users on it.
-
-The gem itself is installed into the version-manager-managed Ruby
-(the `gem` backend); the executable `rigor` is then on `PATH` inside
-that environment. An on-`PATH` `rigor` is also the editor-friendliest
-shape — editors launch `rigor lsp` over stdio (ADR-19), and a plain
-`PATH` lookup is the simplest thing for every editor integration to
-rely on.
-
-### WD3 — CI is a standalone workflow template, run in an isolated job
-
-The CI channel is a **copy-pasteable standalone workflow template**
-(`.github/workflows/rigor.yml`), not a `setup-rigor` GitHub Action.
-
-**Job isolation is mandatory.** Rigor runs in its own job — its own
-runner, a fresh environment. This is not a stylistic preference; it
-is the fix for a real conflict. `ruby/setup-ruby` sets the *job's*
-active Ruby, so a job that provisions the project's test Ruby (often
-a 3.2 / 3.3 / 3.4 matrix) cannot also provision Rigor's Ruby 4.0 —
-the second `setup-ruby` call clobbers the first. A separate job —
-better still a separate workflow file, for independent triggers,
-concurrency, and a status badge — gives Rigor a clean environment
-where `ruby/setup-ruby` for 4.0 conflicts with nothing. Splitting the
-analyzer out of the test workflow is good practice regardless.
-
-**A template, not an action.** Inside an isolated job the workflow is
-~8 transparent lines: `actions/checkout`, `ruby/setup-ruby`
-(`ruby-version: "4.0"`), install Rigor, `rigor check`. A composite
-`setup-rigor` action wrapping those lines would add a maintained
-artefact — marketplace presence, action versioning, a release
-process — for thin value; its only real advantage is hiding the
-`4.0` detail so a user cannot mis-edit it to match their project's
-Ruby. A template is transparent, needs no third-party-action review,
-and works on paste. The `setup-rigor` action is therefore **deferred
-to demand**, not a v1 deliverable; the single binary (WD5), if it
-lands, may change its value calculus.
-
-**Version pinning and updates.** Dependabot does not see a
-`gem install rigortype -v X` invocation inside a `run:` step — it
-tracks `Gemfile` / gemspec (the `bundler` ecosystem) and `uses:`
-action refs (the `github-actions` ecosystem), not arbitrary shell.
-The template therefore offers two pinning forms:
-
-- **Default — a CI-only isolated `Gemfile`.** A two-line
-  `.github/rigor/Gemfile` (`gem "rigortype", "~> 0.1"`) plus its
-  committed lockfile, consumed only by the Rigor job via
-  `BUNDLE_GEMFILE`. A Dependabot `bundler` entry scoped to
-  `directory: /.github/rigor` then auto-PRs Rigor updates, and the
-  lockfile pins the three transitive dependencies for full
-  reproducibility. This is the isolated-bundle pattern WD1 records as
-  a valid fallback — here CI-scoped and non-root, so it never enters
-  the application's resolution or constrains its Ruby.
-  `ruby/setup-ruby`'s `bundler-cache: true` caches it.
-- **Minimal — a pinned `gem install`.** `gem install rigortype -v
-  "X.Y.Z"` for users who will not commit two files; fully visible,
-  but updates are manual (Dependabot-invisible).
-
-Nix is retained as a **documented alternative** CI path for teams
-that already run Nix in CI and want a hermetic closure; it consumes
-the flake `packages` / `apps` output (slice 2). Building the CI
-channel *on* Nix plus a Cachix binary cache — modelled on
-[`nix-emacs-ci`](https://github.com/purcell/nix-emacs-ci) — was
-considered and rejected as the primary mechanism: `nix-emacs-ci`
-builds its own prebuilt-binary layer (the cache) because CI has no
-prebuilt Emacs, but Ruby already has that layer in `ruby/setup-ruby`,
-so the Nix route is heavier machinery than the problem warrants.
-
-One caveat to verify before shipping (slice 3): the template's speed
-depends on `ruby/setup-ruby` publishing a *prebuilt* Ruby 4.0 for the
-runner images. If a prebuilt 4.0 is not yet available, `setup-ruby`
-compiles from source — minutes per run — until it is. A transient
-timing risk (Ruby 4.0 is recent), not a structural one; the
-Nix-with-cache alternative bridges it for teams that need fast CI in
-that window.
-
-### WD4 — Container image is the secondary CI / zero-Ruby channel
-
-A published OCI image (`rigor check` as the entrypoint, the project
-bind-mounted) is offered for CI and zero-Ruby environments that do
-not want Nix. Ruby 4.0 is baked into the image; the host needs only a
-container runtime.
-
-It is *secondary*, not front-line, because the local-development and
-editor-integration ergonomics are poor: bind-mount UID/permission
-friction, a slow feedback loop, and `rigor lsp`-over-stdio through a
-container is awkward for editors. The image is a CI / batch
-convenience, not a development environment.
-
-### WD5 — A self-contained single binary is the future ideal
-
-The long-term ideal is a single self-contained executable bundling
-Ruby plus the gem — distribution collapses to "download one file and
-run it," the model Go and Rust tools enjoy, and the friction of every
-other channel disappears.
-
-`tebako` is the obvious existing tool. Its Ruby 4.0 support and build
-complexity are unverified, and a single-binary release implies a
-per-platform build matrix (the flake already targets four
-`{aarch64,x86_64}-{darwin,linux}` systems). A *lighter homegrown*
-packaging is explicitly worth a spike before committing to `tebako` —
-e.g. a relocatable Ruby plus the gem shipped as a tarball with a
-launcher script, or an AppImage / squashfs-style bundle. This is a
-genuine engineering project, not a packaging tweak; it is **queued,
-uncommitted**, with no milestone.
-
-### WD6 — Global `gem install` is retained but de-emphasised
-
-`gem install rigortype` stays documented as the simplest path for a
-user who already has a Ruby 4.0 on `PATH`. It is honest and useful
-for that audience, but it is no longer the headline: it provides no
-per-project version pinning (local/CI drift) and still presupposes a
-Ruby 4.0 the user mostly will not have. It sits below the
-version-manager channel in all onboarding material.
-
-### WD7 — Rigor stays latest-Ruby-only; 3.3 / 3.4 support is rejected
-
-Rigor's `required_ruby_version` stays `>= 4.0, < 4.1`. Lowering the
-floor to cover Ruby 3.3 / 3.4 — the versions most analyzed projects
-actually run — is a considered-and-rejected alternative:
-
-- **`ruby/rbs` tracks the latest Ruby.** Rigor is built on `rbs`;
-  following `rbs` means following the Ruby it targets.
-- **Ractor and other recent-runtime features.** Rigor's concurrency
-  direction (ADR-15) and engine work rely on the latest runtime.
-  A wider floor would forfeit those or force compatibility shims
-  across the engine.
-- The cost of a wider floor is paid on *every* contribution (avoiding
-  newer syntax / APIs) and constrains the engine; the benefit —
-  letting users run Rigor against their project's Ruby — is delivered
-  instead by this ADR's distribution model, which lets Rigor run on
-  its own Ruby regardless of the project's.
-
-This decision is the premise the rest of the ADR rests on (see
-§ Context). It may be revisited if the `rbs` or runtime-feature
-calculus changes; it is not revisited by widening the pin
-opportunistically.
-
-### WD8 — Install on the host OS, not inside the dev container
-
-A developer who works inside a development container (VS Code
-devcontainers, a Docker-based dev environment) *can* install Rigor
-inside that container, but the recommended placement on **non-Windows
-hosts is the host OS**, alongside the version manager (WD2). Running
-the analyzer inside the container adds inspection-overhead /
-throughput cost across the filesystem and process boundary between
-the analyzer and the host editor / files. On **Windows**, where a
-reliable host-OS Ruby 4.0 is the weaker option, installing Rigor
-inside the container is the recommended path.
-
-This is independent of WD4: WD4 is Rigor's *own* published image as a
-CI channel; WD8 is about where a developer places Rigor when they
-themselves develop inside a container.
-
-## Consequences
-
-### Positive
-
-- **Rigor stops dictating the host project's Ruby version.** The
-  Ruby 4.0 pin becomes Rigor's private concern, not a constraint
-  imposed on every analyzed project.
-- **No dependency-graph contamination.** `prism` / `rbs` /
-  `language_server-protocol` never enter the target project's
-  resolution; no Steep-in-`Gemfile`-class conflicts.
-- **Per-project reproducibility without `Gemfile` involvement.** The
-  version-manager channel pins Ruby 4.0 and the `rigortype` version
-  in `mise.toml` / `.tool-versions`, committed and reproducible.
-- **CI is a transparent, copy-paste workflow.** A standalone
-  `.github/workflows/rigor.yml` running Rigor in its own job is
-  legible to any Ruby CI maintainer — no third-party action, no Nix
-  or Cachix to adopt or operate.
-- **Editor integration is simple.** Every recommended channel leaves
-  `rigor` on `PATH`, which is all an editor needs to launch
-  `rigor lsp` (ADR-19).
-
-### Negative
-
-- **More channels to document and maintain.** The README and SKILLs
-  must explain a channel matrix instead of one `Gemfile` line. The
-  Nix alternative still adds a `gemset.nix` / `buildRubyGem`
-  maintenance burden (no binary cache is required now that Nix is an
-  alternative, not the CI headline).
-- **The familiar Ruby on-ramp is removed.** "Add it to your
-  `Gemfile`" is what Ruby developers expect; WD1 deliberately breaks
-  that expectation. The onboarding docs must explain *why* up front
-  so it does not read as an omission.
-- **No single recommended channel.** Local development, CI, and
-  zero-Ruby environments are pointed at different channels. Mitigated
-  by a clear priority order and a decision table in the docs.
-
-### Carry-over
-
-- The single-binary channel (WD5) is unresolved — `tebako` viability
-  on Ruby 4.0 versus a homegrown packaging is an open spike.
-- The CI-template timing risk (WD3) — whether `ruby/setup-ruby`
-  publishes a prebuilt Ruby 4.0 — must be verified at slice 3.
-- A `setup-rigor` composite action is deferred (WD3); revisit on
-  demand, or if the single binary (WD5) changes its value calculus.
-
-## Implementation slicing (proposed)
-
-No slice is scheduled by this ADR.
-
-### Slice 1 — documentation: de-recommend the `Gemfile` entry
-
-- Rewrite the README "Installation" section: lead with the
-  version-manager channel, present the channel matrix / decision
-  table, demote `gem install`, drop the `group :development`
-  recommendation.
-- A dedicated `docs/installation.md` is a candidate home for the full
-  matrix; `docs/lsp-integration.md` cross-references it.
-- Update the `rigor-project-init` SKILL so its first step is a
-  channel choice, not a `Gemfile` edit.
-
-### Slice 2 — flake `packages` / `apps` output
-
-- Add `packages.default` (Rigor as a derivation, Ruby 4.0 in the
-  closure) and `apps.rigor` to `flake.nix`.
-- `nix run github:rigortype/rigor -- check` and
-  `nix profile install` both work.
-
-### Slice 3 — the CI workflow template
-
-- Author a standalone `.github/workflows/rigor.yml` template — Rigor
-  in its own isolated job: `actions/checkout`, `ruby/setup-ruby`
-  (Ruby 4.0), install Rigor, `rigor check`.
-- Ship both pinning forms: the CI-only `.github/rigor/Gemfile` plus a
-  matching Dependabot config snippet (default), and a pinned
-  `gem install` (minimal variant).
-- Verify `ruby/setup-ruby` publishes a prebuilt Ruby 4.0; if not yet,
-  document the transient slow-build window and the Nix alternative.
-- Document the Nix alternative CI path (consumes the slice-2 flake
-  output) for teams that want a hermetic closure.
-
-### Slice 4 — container image
-
-- Add a `Dockerfile` and publish an image with `rigor` as the
-  entrypoint and Ruby 4.0 baked in.
-
-### Slice 5 — single-binary spike (uncommitted)
-
-- Evaluate `tebako` on Ruby 4.0 against a lighter homegrown
-  packaging; decide before committing to a build matrix.
-
-## References
-
-- [ADR-0](../0-concept/) — the zero-runtime-dependency, pure-Ruby,
-  CLI-first stance this distribution model serves.
-- [ADR-19](../19-language-server-packaging/) — the Language Server is
-  bundled in the `rigortype` gem as `rigor lsp`; an on-`PATH` `rigor`
-  is what editor integrations launch.
-- [ADR-25](../25-plugin-contributed-rbs/) — how Rigor reads the target
-  project's gem RBS as data, which is why isolated installation loses
-  nothing.
-- `rigortype.gemspec` — `required_ruby_version = [">= 4.0.0", "< 4.1"]`,
-  the constraint that makes the `Gemfile` channel untenable.
-- `flake.nix` — the existing `devShells`-only flake that slice 2
-  extends with `packages` / `apps`.
-- `README.md` § "Installation" — the current `Gemfile`-first text
-  slice 1 rewrites.
-- [`nix-emacs-ci`](https://github.com/purcell/nix-emacs-ci) — a Nix
-  tool distribution aimed at CI; examined in WD3 and *not* followed
-  as the primary CI route, because its binary-cache layer is one Ruby
-  already has via `ruby/setup-ruby`.
-- [`ruby/setup-ruby`](https://github.com/ruby/setup-ruby) — the
-  prebuilt-Ruby CI provisioning the workflow template builds on.
-- [Ruby branch / maintenance status](https://www.ruby-lang.org/en/downloads/branches/)
-  — the support-window context behind WD7's latest-Ruby-only stance.
-- Prior art for keeping a Ruby dev tool out of the application
-  `Gemfile`: `solargraph` (conventional) and `ruby-lsp`'s "composed
-  bundle" (explicit).
+ステータス: **提案済み、2026-05-22**。エンドユーザーへのRigorの配布・インストール方法を記録する。中心的な原則 — **RigorをターゲットプロジェクトのGemfileに追加しない** — は批准済みであり、それが依拠する最新Ruby専用の立場（WD7）も同様。チャンネル推奨事項は以下のとおり：ランタイムバージョンマネージャ（`mise` / `asdf`）が最前線のパス、コピー＆ペーストできるスタンドアロンCIワークフローテンプレートがCIパス（NixはヘッドラインではなくAlternative）、コンテナイメージと自己完結型シングルバイナリが二次的・将来的なオプション。実装はキューに積まれており、このADRではスライスは予定されていない。
+
+## コンテキスト
+
+Rigorは`rigor`という実行ファイルを持つ`rigortype` gemとして配布されている（RubyGemsに`rigor`がすでに存在するため、gem名は`rigortype`となっている）。READMEの「Installation」セクションは現在、`group :development`配下の`gem "rigortype"`をターゲットプロジェクトのGemfileに追加することを推奨しており、一回限りの代替手段として`gem install rigortype`を挙げている。
+
+このgemには、Gemfileパスが実害を及ぼす2つの特性がある：
+
+1. **`required_ruby_version = [">= 4.0.0", "< 4.1"]`**。 RigorのコードベースはRuby 4.0をターゲットにしている — `flake.nix` / `.ruby-version`でピン留めされた開発用Ruby（`AGENTS.md`参照）。現時点でRuby 4.0上で動作している本番Rubyアプリケーションはほぼ存在しない。この制約を持つGemfileエントリは、*解析対象プロジェクト全体*をRuby 4.0に縛りつける — これはRigorが対象とするユーザー層にとって受け入れがたい。
+
+2. **3つのランタイム依存関係**（`prism`、`rbs`、`language_server-protocol`）。Rubyのピン設定を脇に置いたとしても、これらをターゲットプロジェクト固有の制約に対して解決しようとすると、SteepやヘビーなリンターをアプリケーションのGemfileに追加する際のよく知られた問題が再現される — 共有gemのバージョン衝突（特に`rbs`）と、ランタイムにRigorを必要としないアプリケーションの依存関係グラフへの汚染。
+
+Rigorはライブラリではなく**ツール**である。コンパイラやリンターと同様に、プロジェクトを解析するがそのランタイムの一部ではない。正しいメンタルモデルは「プロジェクトのdevelopment依存関係」ではなく「自身のRubyを持ち、プロジェクトに向けて実行するツール」である。Rigorはターゲットプロジェクトを*データ*として読み取る — `Gemfile.lock`をパースし、`vendor/bundle`の`sig/`ディレクトリを走査し、`rbs_collection.lock.yaml`（ADR-25）を読み込む — が、プロジェクトのgemを自身のRubyプロセスに読み込むことは決してない。解析にRigorがプロジェクトのバンドルを共有する必要はなく、個別にインストールしても何も失われない。
+
+Rubyエコシステムには、この状況に対するまったく同じ先例がすでに存在する。`solargraph`は慣例的にアプリケーションのGemfileから除外されている；`ruby-lsp`（Shopify）はGemfileへのエントリを明示的に非推奨とし、代わりに別の「composed bundle」をブートストラップすることで、言語サーバーの依存関係ツリーをプロジェクトのものから切り離している。Rigorも同じ制約に直面しているが、Ruby 4.0のハードピンにより制約はより厳しい。
+
+**Rigorは意図的に最新Rubyのみをターゲットにしており**、このADRはそれを前提ではなく決定として記録する（WD7）。Ruby 4.0のピンは拡張して広げるべき偶発的なものではない：Rigorが構築されている`ruby/rbs`は最新Rubyを追跡しており、RigorはRactorとその他の最新ランタイム機能に依存している（ADR-15）。Ruby 3.3 / 3.4のサポートは検討の上で却下された代替案である。以下の配布モデルはその決定の*結果*である：Rigorが解析対象プロジェクトの多くが実行していないRubyにコミットしているため、自身のRubyと共に配布されなければならない。ツールはホストプロジェクトのランタイムを指定すべきでない。
+
+## 決定
+
+**RigorはターゲットプロジェクトのGemfileにインストールしない**。 READMEとすべてのオンボーディング資料は`group :development`エントリの推奨をやめる。推奨されるすべてのチャンネルは、Rigorをターゲットプロジェクトのバンドルから*隔離した状態で*インストールするため、RigorのRubyと3つの依存関係が解析対象プロジェクトの解決に入り込むことはない。
+
+推奨チャンネル（優先順）：
+
+1. **最前線 — ランタイムバージョンマネージャ（`mise`、`asdf`）**。ヘッドライン推奨。バージョンマネージャはRuby 4.0と固定された`rigortype`バージョンの*両方*をプロジェクトごとにプロビジョニングし、Gemfileへの汚染なし（WD2）。
+
+2. **CI — スタンドアロンワークフローテンプレート**。コピー＆ペーストできる`.github/workflows/rigor.yml`で、Rigorを独立したジョブで実行する（Ruby 4.0用`ruby/setup-ruby`、インストール、`rigor check`）。Nixはハーメチックなための代替CIパスとして提供される（WD3）。
+
+3. **二次的 — コンテナイメージ**。 Ruby 4.0を組み込んだ公開OCIイメージ。CIとNixが不要なゼロRuby環境向け（WD4）。
+
+4. **将来的 — 自己完結型シングルバイナリ**。 Ruby plus gemをバンドルした単一の実行ファイル。配布が「1ファイルをダウンロード」になる。`tebako`が明白なツール；軽量なホームグロウンパッケージングもスパイクに値する。未確定（WD5）。
+
+5. **継続 — グローバルな`gem install rigortype`**。 `PATH`上にRuby 4.0を持つユーザーへのシンプルなパスとして文書化を維持するが、ヘッドラインではなくなる（WD6）。
+
+Nix（`packages` / `apps` flakeアウトプット）は、すでにNixを実行しているユーザーとCIのための代替として維持される。ハーメチックなクロージャを必要とする場合のヘッドラインチャンネルではない（WD3）。
+
+## 作業決定
+
+### WD1 — Rigorはプロジェクトのgemfile依存関係ではない
+
+`group :development`の`gem "rigortype"`推奨はREADMEとすべてのオンボーディングSKILLから削除される。理由は§コンテキストにある：Ruby 4.0のピンはホストプロジェクトのランタイムを汚染し、3つのランタイム依存関係はその解決を汚染する。これはADRの残りが構築される基盤となる決定である。
+
+スタンドアロンではあるが依然としてGemfileベースの代替案 — Rigorが自身の隔離されたバンドルをブートストラップする（`.rigor/Gemfile`、`ruby-lsp`の「composed bundle」パターン） — は検討された。これは*解決の*汚染をきれいに解決するが、**インタプリタのプロビジョニングは解決しない**：ユーザーはまだRuby 4.0を利用可能にしておく必要がある。バージョンマネージャ（WD2）は両方を一度に解決するため、隔離バンドルブートストラップは個別のメカニズムとして追求されない。このパターンは`bundle exec rigor`の呼び出し形式にこだわるユーザーへの有効なフォールバックとして残り、そのように文書化される場合もあるが、推奨チャンネルではない。
+
+### WD2 — ランタイムバージョンマネージャが最前線チャンネル
+
+`mise`（および同じモデルの`asdf`）がヘッドライン推奨である。これはRubyプロジェクト向けにユーザーがすでに持っているツール1つで、問題の*両方*の側面を解決する唯一のチャンネルだからである：
+
+- **インタプリタのプロビジョニング** — `mise`はRuby 4.0自体をインストールするため、「ユーザーがすでにRuby 4.0を持っていなければならない」という前提条件がなくなる。
+- **プロジェクトごとのバージョンピン留め** — `mise.toml` / `.tool-versions`はリポジトリにコミットされ、ローカルとCIの間で再現可能な形で、`rigortype`バージョンをRubyバージョンの隣にピン留めする。Gemfileへの関与は不要。
+
+`mise`はRubyプロジェクトのコミュニティ標準ランタイム/ツールマネージャになる明確な軌跡をたどっており、最も人間工学的かつ最も将来に沿った最前線チャンネルとなっている。`asdf`は同じモデルを共有しており、それを使用するユーザー向けの同等品として文書化される。
+
+gemはバージョンマネージャが管理するRubyにインストールされ（`gem`バックエンド）、実行ファイル`rigor`はその環境内で`PATH`上に置かれる。`PATH`上の`rigor`はエディタとの親和性も高い — エディタはstdio経由で`rigor lsp`を起動し（ADR-19）、プレーンな`PATH`ルックアップはすべてのエディタ統合が依存できる最もシンプルなものである。
+
+### WD3 — CIはスタンドアロンワークフローテンプレート、隔離ジョブで実行
+
+CIチャンネルは`setup-rigor` GitHub Actionではなく、**コピー＆ペーストできるスタンドアロンワークフローテンプレート**（`.github/workflows/rigor.yml`）である。
+
+**ジョブの隔離は必須である**。 Rigorは独自のジョブで実行される — 独自のランナー、クリーンな環境。これはスタイルの好みではなく、実際の競合に対する修正である。`ruby/setup-ruby`はそのジョブのアクティブなRubyを設定するため、プロジェクトのテスト用Ruby（多くの場合3.2 / 3.3 / 3.4マトリクス）をプロビジョニングするジョブは、RigorのRuby 4.0を同時にプロビジョニングできない — 2番目の`setup-ruby`呼び出しが最初のものを上書きしてしまう。独立したジョブ — さらには独立したワークフローファイル（独立したトリガー、コンカレンシー、ステータスバッジのため） — はRigorにRuby 4.0のプロビジョニングが他と競合しないクリーンな環境を与える。解析器をテストワークフローから切り離すことはそれ自体として良い実践でもある。
+
+**アクションではなくテンプレート**。隔離されたジョブの内部では、ワークフローは約8行の透明な内容に収まる：`actions/checkout`、`ruby/setup-ruby`（`ruby-version: "4.0"`）、Rigorのインストール、`rigor check`。これらの行をラップするコンポジット`setup-rigor`アクションは、保守が必要なアーティファクト — マーケットプレイス上の存在、アクションのバージョン管理、リリースプロセス — を追加するが、得られる価値は薄い；実際の唯一のメリットは`4.0`の詳細を隠すことでユーザーがプロジェクトのRubyに合わせて誤編集できなくなることである。テンプレートは透明で、サードパーティアクションのレビューが不要で、ペーストで機能する。`setup-rigor`アクションは**需要に応じて延期**されており、v1の成果物ではない；シングルバイナリ（WD5）が実現すれば、その価値の計算式が変わる可能性がある。
+
+**バージョンのピン留めと更新**。 Dependabotは`run:`ステップ内の`gem install rigortype -v X`の呼び出しを認識しない — BundlerエコシステムとしてGemfile / gemspecを追跡し（`bundler`エコシステム）、GitHub Actionsエコシステムとして`uses:`のアクションRefを追跡するが、任意のシェルスクリプトは対象外。そのためテンプレートは2つのピン留め形式を提供する：
+
+- **デフォルト — CI専用の隔離されたGemfile**。 2行の`.github/rigor/Gemfile`（`gem "rigortype", "~> 0.1"`）とコミット済みロックファイル。Rigorジョブのみが`BUNDLE_GEMFILE`経由で使用する。Dependabotの`bundler`エントリを`directory: /.github/rigor`のスコープで設定すれば、RigorのアップデートをautoでPRできる。ロックファイルは3つの推移的依存関係をピン留めして完全な再現性を確保する。これはWD1が有効なフォールバックとして記録した隔離バンドルパターン — ここではCIスコープで非ルートのため、アプリケーションの解決に入り込まず、そのRubyを制約しない。`ruby/setup-ruby`の`bundler-cache: true`でキャッシュできる。
+- **最小構成 — ピン留めされた`gem install`**。 `gem install rigortype -v "X.Y.Z"`。ファイルを2つコミットしたくないユーザー向け；完全に可視だが、更新は手動（Dependabot非対応）。
+
+Nixは、CIでNixをすでに実行しているチームのためにハーメチックなクロージャが欲しい場合の**文書化された代替**CIパスとして維持される（スライス2のflake `packages` / `apps`アウトプットを消費する）。CIチャンネルをNixとCachixバイナリキャッシュの上に構築すること — [`nix-emacs-ci`](https://github.com/purcell/nix-emacs-ci)をモデルにした — は主要なメカニズムとして検討され却下された：`nix-emacs-ci`が事前ビルドされたバイナリレイヤー（キャッシュ）を構築するのは、CIに事前ビルドされたEmacsがないからだが、Rubyにはすでに`ruby/setup-ruby`にそのレイヤーが存在するため、Nixルートは問題に対して重すぎる仕組みとなる。
+
+出荷前に検証すべき注意点がある（スライス3）：テンプレートの速度は`ruby/setup-ruby`がランナーイメージ向けに*事前ビルドされた*Ruby 4.0を公開しているかどうかに依存する。事前ビルドされた4.0がまだ利用できない場合、`setup-ruby`はソースからコンパイルする — 利用可能になるまで実行ごとに数分かかる。構造的なものではなく、一時的なタイミングリスク（Ruby 4.0は最近のもの）；Nixとキャッシュの代替手段はその期間に速いCIを必要とするチームの橋渡しとなる。
+
+### WD4 — コンテナイメージは二次的なCI / ゼロRubyチャンネル
+
+公開OCIイメージ（エントリポイントが`rigor check`、プロジェクトはバインドマウント）はNixを必要としないCIとゼロRuby環境に提供される。Ruby 4.0はイメージに組み込まれており、ホストはコンテナランタイムのみを必要とする。
+
+ローカル開発とエディタ統合の人間工学が劣るため、*二次的*であり最前線ではない：バインドマウントのUID/パーミッション問題、遅いフィードバックループ、コンテナ経由のstdio経由`rigor lsp`はエディタにとって扱いにくい。イメージはCI / バッチの利便性であり、開発環境ではない。
+
+### WD5 — 自己完結型シングルバイナリが将来の理想
+
+長期的な理想はRuby plus gemをバンドルした単一の自己完結型実行ファイルである — 配布は「1ファイルをダウンロードして実行する」に集約され、GoやRustのツールが享受するモデルになり、他のすべてのチャンネルの摩擦が消える。
+
+`tebako`が明白な既存ツールである。Ruby 4.0のサポートとビルドの複雑さは未検証であり、シングルバイナリのリリースはプラットフォームごとのビルドマトリクスを意味する（flakeはすでに4つの`{aarch64,x86_64}-{darwin,linux}`システムをターゲットにしている）。`tebako`にコミットする前に、*軽量なホームグロウン*パッケージングが明示的にスパイクに値する — 例えばリロータブルなRubyとgemをランチャースクリプト付きtarballとして配布する方法、またはAppImage / squashfsstyleバンドル。これは本物のエンジニアリングプロジェクトであり、パッケージングの微調整ではない；マイルストーンなしで**キューに積まれており未確定**。
+
+### WD6 — グローバルな`gem install`は維持されるが優先度は下がる
+
+`gem install rigortype`は`PATH`上にRuby 4.0を持つユーザー向けの最もシンプルなパスとして文書化を維持する。その対象ユーザーにとって誠実で有用だが、ヘッドラインではなくなる：プロジェクトごとのバージョンピン留めを提供しない（ローカル/CI間のドリフト）し、ユーザーの多くが持っていないRuby 4.0をまだ前提とする。すべてのオンボーディング資料でバージョンマネージャチャンネルの下に位置づけられる。
+
+### WD7 — Rigorは最新Rubyのみに留まる；3.3 / 3.4のサポートは却下
+
+Rigorの`required_ruby_version`は`>= 4.0, < 4.1`のまま維持される。フロアをRuby 3.3 / 3.4をカバーするまで下げること — 解析対象プロジェクトの多くが実際に実行しているバージョン — は検討の上で却下された代替案である：
+
+- **`ruby/rbs`は最新Rubyを追跡する**。 RigorはRbsの上に構築されており、`rbs`に従うことは`rbs`がターゲットとするRubyに従うことを意味する。
+- **Ractorとその他の最新ランタイム機能**。 Rigorのコンカレンシー方向性（ADR-15）とエンジン作業は最新ランタイムに依存する。フロアを広げると、それらを諦めるかエンジン全体で互換性シムを強制することになる。
+- フロアを広げるコストはすべての*コントリビューション*（新しい構文/APIの回避）において支払われ、エンジンを制約する；メリット — ユーザーがプロジェクトのRubyに対してRigorを実行できるようにすること — は代わりにこのADRの配布モデルによって提供され、どのみちRigorをプロジェクトのRubyとは無関係に自身のRubyで実行できるようにする。
+
+この決定はADRの残りが依拠する前提である（§コンテキスト参照）。`rbs`またはランタイム機能の計算式が変わった場合は再検討される可能性があるが、機会主義的にピンを広げることで再検討されるものではない。
+
+### WD8 — ホストOSにインストールする；開発コンテナの内部ではない
+
+開発コンテナ（VS Code devcontainers、Dockerベースの開発環境）内で作業する開発者はRigorをそのコンテナ内にインストール*することができる*が、**Windows以外のホストでの推奨配置はホストOS**であり、バージョンマネージャ（WD2）と共に置くことになる。コンテナ内で解析器を実行すると、ホストエディタ / ファイルとの間のファイルシステムおよびプロセス境界を越える検査オーバーヘッドが増加する**。Windows**では、信頼性の高いホストOS Ruby 4.0がより弱い選択肢であり、コンテナ内にRigorをインストールすることが推奨パスとなる。
+
+これはWD4とは独立している：WD4はCIチャンネルとしてのRigor独自の公開イメージであり；WD8は開発者自身がコンテナ内で開発する際にRigorを置く場所についてである。
+
+## 結果
+
+### ポジティブ
+
+- **RigorがホストプロジェクトのRubyバージョンを指定しなくなる**。 Ruby 4.0のピンはRigor固有の問題となり、すべての解析対象プロジェクトに課せられる制約ではなくなる。
+- **依存関係グラフへの汚染なし**。 `prism` / `rbs` / `language_server-protocol`がターゲットプロジェクトの解決に入り込まない；GemfileにSteepを追加する類の衝突が発生しない。
+- **Gemfileを関与させないプロジェクトごとの再現性**。バージョンマネージャチャンネルはRuby 4.0と`rigortype`バージョンを`mise.toml` / `.tool-versions`にコミットし、再現可能にピン留めする。
+- **CIは透明でコピー＆ペーストできるワークフロー**。独自ジョブでRigorを実行するスタンドアロンの`.github/workflows/rigor.yml`は、どのRuby CIメンテナーにとっても読みやすい — サードパーティアクションなし、採用・運用すべきNixやCachixなし。
+- **エディタ統合がシンプル**。推奨されるすべてのチャンネルで`rigor`が`PATH`上に置かれ、エディタが`rigor lsp`を起動するために必要なのはそれだけ（ADR-19）。
+
+### ネガティブ
+
+- **文書化・維持すべきチャンネルが増える**。 READMEとSKILLは1行のGemfileエントリではなくチャンネルマトリクスを説明しなければならない。Nix代替案は依然として`gemset.nix` / `buildRubyGem`のメンテナンス負担を追加する（Nixがヘッドラインではなく代替手段になったため、バイナリキャッシュは必要なくなった）。
+- **おなじみのRubyオンランプが削除される**。「Gemfileに追加する」はRuby開発者が期待するものである；WD1はその期待を意図的に破る。オンボーディングドキュメントは*なぜ*そうするのかを前もって説明しなければならず、省略のように読まれないようにする必要がある。
+- **単一の推奨チャンネルがない**。ローカル開発、CI、ゼロRuby環境は異なるチャンネルに誘導される。明確な優先順位と決定テーブルをドキュメントに設けることで緩和される。
+
+### 持ち越し
+
+- シングルバイナリチャンネル（WD5）は未解決 — Ruby 4.0における`tebako`の実現可能性対ホームグロウンパッケージングは未調査のスパイク。
+- CIテンプレートのタイミングリスク（WD3） — `ruby/setup-ruby`が事前ビルドされたRuby 4.0を公開しているかどうか — はスライス3で検証が必要。
+- `setup-rigor`コンポジットアクションは延期（WD3）；需要に応じて再検討、またはシングルバイナリ（WD5）の実現で価値の計算式が変わった場合。
+
+## 実装スライス（提案）
+
+このADRではスライスは予定されていない。
+
+### スライス1 — ドキュメント：Gemfileエントリの非推奨化
+
+- README「Installation」セクションの書き直し：バージョンマネージャチャンネルを先頭に、チャンネルマトリクス / 決定テーブルを提示し、`gem install`を降格させ、`group :development`の推奨を削除する。
+- 専用の`docs/installation.md`がフルマトリクスの候補ホームとなる；`docs/lsp-integration.md`はそこをクロスリファレンスする。
+- `rigor-project-init` SKILLを更新し、最初のステップがGemfileの編集ではなくチャンネルの選択になるようにする。
+
+### スライス2 — flake `packages` / `apps`アウトプット
+
+- `packages.default`（Rigorをderivation、クロージャ内にRuby 4.0）と`apps.rigor`を`flake.nix`に追加する。
+- `nix run github:rigortype/rigor -- check`と`nix profile install`の両方が動作する。
+
+### スライス3 — CIワークフローテンプレート
+
+- スタンドアロンの`.github/workflows/rigor.yml`テンプレートを作成する — 独立したジョブでRigorを実行：`actions/checkout`、`ruby/setup-ruby`（Ruby 4.0）、Rigorのインストール、`rigor check`。
+- 両方のピン留め形式を提供：CI専用の`.github/rigor/Gemfile`と対応するDependabot設定スニペット（デフォルト）、固定された`gem install`（最小構成バリアント）。
+- `ruby/setup-ruby`が事前ビルドされたRuby 4.0を公開しているかを検証；まだの場合は、一時的な遅いビルド期間とNix代替手段を文書化する。
+- ハーメチックなクロージャを必要とするチームのためのNix代替CIパスを文書化する（スライス2のflakeアウトプットを消費）。
+
+### スライス4 — コンテナイメージ
+
+- `Dockerfile`を追加し、`rigor`をエントリポイントとしてRuby 4.0を組み込んだイメージを公開する。
+
+### スライス5 — シングルバイナリスパイク（未確定）
+
+- ビルドマトリクスにコミットする前に、Ruby 4.0における`tebako`と軽量なホームグロウンパッケージングを評価する。
+
+## 参照
+
+- [ADR-0](../0-concept/) — このADRの配布モデルが支えるゼロランタイム依存関係・pure Ruby・CLIファーストの立場。
+- [ADR-19](../19-language-server-packaging/) — Language Serverは`rigortype` gemに`rigor lsp`として同梱される；エディタ統合が起動する`PATH`上の`rigor`。
+- [ADR-25](../25-plugin-contributed-rbs/) — Rigorがターゲットプロジェクトのgem RBSをデータとして読み取る方法。これが隔離インストールで何も失われない理由。
+- `rigortype.gemspec` — `required_ruby_version = [">= 4.0.0", "< 4.1"]`。Gemfileチャンネルを実行不可能にする制約。
+- `flake.nix` — スライス2が`packages` / `apps`で拡張する既存の`devShells`のみのflake。
+- `README.md` §「Installation」 — スライス1が書き直す現在のGemfileファーストのテキスト。
+- [`nix-emacs-ci`](https://github.com/purcell/nix-emacs-ci) — CIを対象にしたNixツール配布；WD3で検討され、主要なCIルートとしては*採用されなかった*。バイナリキャッシュレイヤーはRubyがすでに`ruby/setup-ruby`経由で持っているものだから。
+- [`ruby/setup-ruby`](https://github.com/ruby/setup-ruby) — ワークフローテンプレートが構築する事前ビルドRuby CIプロビジョニング。
+- [Rubyブランチ / メンテナンス状況](https://www.ruby-lang.org/en/downloads/branches/) — WD7の最新Ruby専用立場の背後にあるサポートウィンドウのコンテキスト。
+- アプリケーションのGemfileからRuby開発ツールを除外することの先例：`solargraph`（慣例的）および`ruby-lsp`の「composed bundle」（明示的）。
