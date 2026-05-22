@@ -78,7 +78,49 @@ export default defineConfig({
         {
           label: 'Handbook',
           translations: sidebarTranslations.handbook,
-          items: [{ autogenerate: { directory: 'reference/handbook', collapsed: false } }],
+          items: [
+            { slug: 'reference/handbook' },
+            { slug: 'reference/handbook/01-getting-started' },
+            { slug: 'reference/handbook/02-everyday-types' },
+            { slug: 'reference/handbook/03-narrowing' },
+            { slug: 'reference/handbook/04-tuples-and-shapes' },
+            { slug: 'reference/handbook/05-methods-and-blocks' },
+            { slug: 'reference/handbook/06-classes' },
+            { slug: 'reference/handbook/07-rbs-and-extended' },
+            { slug: 'reference/handbook/08-understanding-errors' },
+            { slug: 'reference/handbook/09-plugins' },
+            { slug: 'reference/handbook/10-sorbet' },
+            { slug: 'reference/handbook/11-sig-gen' },
+            { slug: 'reference/handbook/12-lightweight-hkt' },
+            {
+              label: 'Appendix — Installation and CI',
+              translations: { ja: '付録 — インストールとCI' },
+              collapsed: false,
+              items: [
+                { slug: 'reference/handbook/appendix-installation' },
+                { slug: 'reference/handbook/appendix-ci' },
+              ],
+            },
+            {
+              label: 'Appendix — Coming from another type checker',
+              translations: { ja: '付録 — 他の型チェッカーから来た場合' },
+              collapsed: false,
+              items: [
+                { slug: 'reference/handbook/appendix-typescript' },
+                { slug: 'reference/handbook/appendix-phpstan' },
+                { slug: 'reference/handbook/appendix-mypy' },
+                { slug: 'reference/handbook/appendix-steep' },
+              ],
+            },
+            {
+              label: 'Appendix — Connections to type theory',
+              translations: { ja: '付録 — 型理論との接続' },
+              collapsed: false,
+              items: [
+                { slug: 'reference/handbook/appendix-type-theory' },
+              ],
+            },
+          ],
         },
         {
           label: 'Type Specification',

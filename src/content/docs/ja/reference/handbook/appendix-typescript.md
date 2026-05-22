@@ -1,5 +1,5 @@
 ---
-title: "Appendix — Coming from TypeScript"
+title: "付録 — TypeScriptから来た場合"
 description: "Imported from rigortype/rigor docs/handbook/appendix-typescript.md."
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/handbook/appendix-typescript.md"
 sourcePath: "docs/handbook/appendix-typescript.md"
@@ -8,6 +8,7 @@ sourceCommit: "1d0381f3ade3f4b208d95b9d649f1e80c381b775"
 translationStatus: "translated"
 sidebar:
   order: 1050
+  label: "TypeScriptから来た場合"
 ---
 
 静的型チェッカーを見て「ああ、TypeScriptみたいなものか」と感じるなら、この付録でRigorの語彙をすでに知っているTypeScriptの概念にマッピングする。「TypeScriptは分かる」から「Rigorも分かる」への最短経路。

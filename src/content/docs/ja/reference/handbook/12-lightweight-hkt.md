@@ -1,5 +1,5 @@
 ---
-title: "12. 軽量HKT（`JSON.parse`とその仲間たち）"
+title: "軽量HKT（`JSON.parse`とその仲間たち）"
 description: "rigortype/rigor docs/handbook/12-lightweight-hkt.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/handbook/12-lightweight-hkt.md"
 sourcePath: "docs/handbook/12-lightweight-hkt.md"

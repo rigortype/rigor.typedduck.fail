@@ -1,6 +1,6 @@
 ---
-title: "Architecture Decision Records"
-description: "Imported from rigortype/rigor docs/adr/README.md."
+title: "アーキテクチャ決定記録"
+description: "rigortype/rigor docs/adr/README.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/adr/README.md"
 sourcePath: "docs/adr/README.md"
 sourceSha: "abd5bae3b7abbc8e456b665bdeb66b71dedcfbde6842ba4f6ecd6f8d4a306110"

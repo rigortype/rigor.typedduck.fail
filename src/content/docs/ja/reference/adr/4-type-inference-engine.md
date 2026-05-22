@@ -1,6 +1,6 @@
 ---
 title: "ADR-4: 型推論エンジンと`Scope#type_of`クエリ"
-description: "Imported from rigortype/rigor docs/adr/4-type-inference-engine.md."
+description: "rigortype/rigor docs/adr/4-type-inference-engine.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/adr/4-type-inference-engine.md"
 sourcePath: "docs/adr/4-type-inference-engine.md"
 sourceSha: "8bc55a88130151445e3004a2ad7aa2ccb1664fef0801b83b3aee5fbb7cbcaef7"

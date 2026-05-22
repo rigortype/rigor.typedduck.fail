@@ -1,5 +1,5 @@
 ---
-title: "Appendix — Coming from PHPStan"
+title: "付録 — PHPStanから来た場合"
 description: "Imported from rigortype/rigor docs/handbook/appendix-phpstan.md."
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/handbook/appendix-phpstan.md"
 sourcePath: "docs/handbook/appendix-phpstan.md"
@@ -8,6 +8,7 @@ sourceCommit: "2834288850767f48c48c99dca26f6aa339322754"
 translationStatus: "translated"
 sidebar:
   order: 1050
+  label: "PHPStanから来た場合"
 ---
 
 PHPStanは、Rigorが他の言語で持つ最も近い精神的なピアツールである。両ツールは同じ優先事項を共有する: アナライザーが特徴付けられないコードには沈黙し、必須アノテーションよりも推論に依拠し、高信頼の診断の小さなカタログを示す。Rigorの多くの設計選択 — 設定ファイルの形状、ベースラインdiff、深刻度プロファイル、`assert`系ディレクティブ — はPHPStanから直接影響を受けた。

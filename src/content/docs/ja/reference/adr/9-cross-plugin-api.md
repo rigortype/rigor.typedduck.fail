@@ -1,6 +1,6 @@
 ---
-title: "ADR-9 — Cross-plugin API"
-description: "Imported from rigortype/rigor docs/adr/9-cross-plugin-api.md."
+title: "ADR-9 — クロスプラグインAPI"
+description: "rigortype/rigor docs/adr/9-cross-plugin-api.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/adr/9-cross-plugin-api.md"
 sourcePath: "docs/adr/9-cross-plugin-api.md"
 sourceSha: "e1e0ca181b4bded70ec696c11ff57b028366523ce499eb6b4d2ed45da72de3b8"

@@ -1,6 +1,6 @@
 ---
 title: "ADR-2: 拡張API戦略"
-description: "Imported from rigortype/rigor docs/adr/2-extension-api.md."
+description: "rigortype/rigor docs/adr/2-extension-api.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/adr/2-extension-api.md"
 sourcePath: "docs/adr/2-extension-api.md"
 sourceSha: "c1a5d3809a2e35e9422da3b1b984660f87c5d9f39a3aca43ec114fab4c07cad3"

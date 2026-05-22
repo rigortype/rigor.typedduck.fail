@@ -1,5 +1,5 @@
 ---
-title: "Appendix — Coming from Steep"
+title: "付録 — Steepから来た場合"
 description: "Imported from rigortype/rigor docs/handbook/appendix-steep.md."
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/handbook/appendix-steep.md"
 sourcePath: "docs/handbook/appendix-steep.md"
@@ -8,6 +8,7 @@ sourceCommit: "1d0381f3ade3f4b208d95b9d649f1e80c381b775"
 translationStatus: "translated"
 sidebar:
   order: 1050
+  label: "Steepから来た場合"
 ---
 
 [Steep](https://github.com/soutaro/steep)はRubyの確立した静的型チェッカーであり、RBS駆動の解析のデファクト標準実装である。Steepを使ったことがある場合、最も重要なことは**Rigorが同じ`.rbs`ファイルを読む**ということ — 既存のシグネチャはそのまま移植できる。ふたつのツールは排他的ではなく補完的。

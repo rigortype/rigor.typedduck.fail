@@ -1,6 +1,6 @@
 ---
 title: "ADR-3: 内部型表現"
-description: "Imported from rigortype/rigor docs/adr/3-type-representation.md."
+description: "rigortype/rigor docs/adr/3-type-representation.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/adr/3-type-representation.md"
 sourcePath: "docs/adr/3-type-representation.md"
 sourceSha: "c58da4af128ec26300eef7f74d7acbbeae3c704e6e390ff2240523f67c6f2a8e"

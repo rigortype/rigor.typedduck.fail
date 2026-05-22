@@ -1,6 +1,6 @@
 ---
-title: "ADR-8: Steep-inspired Improvements"
-description: "Imported from rigortype/rigor docs/adr/8-steep-inspired-improvements.md."
+title: "ADR-8: Steepに着想を得た改善"
+description: "rigortype/rigor docs/adr/8-steep-inspired-improvements.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/adr/8-steep-inspired-improvements.md"
 sourcePath: "docs/adr/8-steep-inspired-improvements.md"
 sourceSha: "c1c787c1909363d82352b01fc6cddfd097c4bd58355d77893900f309479b5679"

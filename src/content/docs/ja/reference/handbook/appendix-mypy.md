@@ -1,5 +1,5 @@
 ---
-title: "Appendix — Coming from mypy / Pyright"
+title: "付録 — mypy / Pyrightから来た場合"
 description: "Imported from rigortype/rigor docs/handbook/appendix-mypy.md."
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/handbook/appendix-mypy.md"
 sourcePath: "docs/handbook/appendix-mypy.md"
@@ -8,6 +8,7 @@ sourceCommit: "035915291e331f3bcd5ce804a1e30dc284ffbd48"
 translationStatus: "translated"
 sidebar:
   order: 1050
+  label: "mypy / Pyrightから来た場合"
 ---
 
 静的型付けのベースラインがPythonのmypyやPyrightであれば、この付録でRigorとの語彙をマッピングする。ふたつのエコシステムは見かけ以上に多くを共有している — グラデュアル型付け、「ランタイムを壊さない」哲学、独立した型スタブファイル（`.pyi`/`.rbs`） — だが、アノテーションをどこに置くか、推論をどこまで積極的にするかで異なる選択をしている。

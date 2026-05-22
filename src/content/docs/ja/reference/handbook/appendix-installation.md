@@ -1,5 +1,5 @@
 ---
-title: "Appendix — Installing Rigor"
+title: "付録 — Rigorのインストール"
 description: "Imported from rigortype/rigor docs/handbook/appendix-installation.md."
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/handbook/appendix-installation.md"
 sourcePath: "docs/handbook/appendix-installation.md"
@@ -8,6 +8,7 @@ sourceCommit: "5b252bbd814960f6b442a4df7dd41a0d0a79c995"
 translationStatus: "translated"
 sidebar:
   order: 1050
+  label: "Rigorのインストール"
 ---
 
 Rigorはライブラリではなくツールです。リンターやコンパイラと同様に、プロジェクトを解析しますが、そのランタイムの一部ではありません。**アプリケーションの`Gemfile`には追加しないでください**。`Gemfile`エントリを追加すると、プロジェクト全体がRigorのRubyバージョンに縛られ、Rigorの依存関係がアプリケーションの依存関係の解決に引き込まれてしまいます。Rigorは単独でインストールし、プロジェクトに向けて使用してください。

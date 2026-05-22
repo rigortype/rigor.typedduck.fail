@@ -1,6 +1,6 @@
 ---
-title: "ADR-5: Robustness Principle for Rigor Types"
-description: "Imported from rigortype/rigor docs/adr/5-robustness-principle.md."
+title: "ADR-5: Rigor型の堅牢性原則"
+description: "rigortype/rigor docs/adr/5-robustness-principle.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/adr/5-robustness-principle.md"
 sourcePath: "docs/adr/5-robustness-principle.md"
 sourceSha: "422c6e3e2158b912b8d97a38b5cee98e14a7421a9329cb5bd243b3f64190cda0"

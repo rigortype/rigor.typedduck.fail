@@ -1,5 +1,5 @@
 ---
-title: "Appendix — Running Rigor in CI"
+title: "付録 — CIでのRigor実行"
 description: "Imported from rigortype/rigor docs/handbook/appendix-ci.md."
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/handbook/appendix-ci.md"
 sourcePath: "docs/handbook/appendix-ci.md"
@@ -8,6 +8,7 @@ sourceCommit: "1d0381f3ade3f4b208d95b9d649f1e80c381b775"
 translationStatus: "translated"
 sidebar:
   order: 1050
+  label: "CIでのRigor実行"
 ---
 
 RigorはRuby 4.0で動作します（[Appendix — Installing Rigor](../appendix-installation/)を参照）。CIでこれが意味することが一つあり、まずそれを明記しておきます。このページの残りはそこから導かれます。

@@ -1,6 +1,6 @@
 ---
-title: "ADR-26 — ActiveRecord relation typing"
-description: "Imported from rigortype/rigor docs/adr/26-activerecord-relation-typing.md."
+title: "ADR-26 — ActiveRecord relationの型付け"
+description: "rigortype/rigor docs/adr/26-activerecord-relation-typing.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/adr/26-activerecord-relation-typing.md"
 sourcePath: "docs/adr/26-activerecord-relation-typing.md"
 sourceSha: "509f3799930609faaba0850d2129f0d53b05a419ddcbda5751201f4a8eb2a6d7"

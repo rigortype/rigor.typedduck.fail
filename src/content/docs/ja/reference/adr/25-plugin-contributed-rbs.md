@@ -1,6 +1,6 @@
 ---
-title: "ADR-25 — Plugin-contributed RBS signatures"
-description: "Imported from rigortype/rigor docs/adr/25-plugin-contributed-rbs.md."
+title: "ADR-25 — プラグインが提供するRBSシグネチャ"
+description: "rigortype/rigor docs/adr/25-plugin-contributed-rbs.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/adr/25-plugin-contributed-rbs.md"
 sourcePath: "docs/adr/25-plugin-contributed-rbs.md"
 sourceSha: "ec85adcb90e4f6e35cb7bc72b4f808d6b16bb37da546db987091208edc0c2594"
