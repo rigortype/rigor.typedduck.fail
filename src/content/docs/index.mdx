@@ -25,12 +25,22 @@ import LatestRelease from '../../components/LatestRelease.astro';
 
 <LatestRelease lang="en" />
 
-The reference pages are generated from the upstream `rigortype/rigor` repository submodule at build time. English source documents are published first, and Japanese pages can be added under the same paths in `src/content/docs/ja/` as translations are prepared.
+Rigor runs `rigor check` over your Ruby code and reports bugs — undefined methods on typed receivers, wrong argument counts, provable nil dereferences — with no type annotations required in source. Every type is inferred from what your code actually produces. Your team never needs to write a single annotation.
 
-## Documentation Layout
+**Get started in two commands:**
 
-- [**Handbook**](/reference/handbook/): task-oriented material for using Rigor day to day.
-- [**Type Specification**](/reference/type-specification/): the analyzer's type model, operators, and inference rules.
+```sh
+mise use ruby@4.0
+mise use gem:rigortype
+```
+
+Full options — asdf, plain `gem install`, CI workflow template, dev containers — are in the [installation guide](/reference/manual/01-installation/).
+
+## Documentation
+
+- [**Handbook**](/reference/handbook/): nine chapters on Rigor's type model — carriers, narrowing, tuples, RBS interop, and the reasoning behind each design choice.
+- [**User Manual**](/reference/manual/): the operational reference — installation, CLI, configuration, baselines, plugins, editor integration, CI, and troubleshooting.
+- [**Type Specification**](/reference/type-specification/): the normative type model, operators, and inference rules.
 - [**Internal Specification**](/reference/internal-spec/): implementation contracts for contributors.
-- **Architecture Decisions**: ADRs and design history from the upstream repository.
-
+- [**Architecture Decisions**](/reference/adr/): ADRs recording design rationale and trade-offs.
+- [**Design Notes**](/reference/design/): longer design documents and research notes.

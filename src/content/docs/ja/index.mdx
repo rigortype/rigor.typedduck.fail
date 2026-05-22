@@ -25,12 +25,22 @@ import LatestRelease from '../../../components/LatestRelease.astro';
 
 <LatestRelease lang="ja" />
 
-参照ドキュメントは、ビルド時に`rigortype/rigor`のsubmoduleから生成されます。英語版を先に公開し、日本語翻訳は同じパスで`src/content/docs/ja/`に追加していく構成です。
+Rigorはソースに型注釈を一切書かずに`rigor check`でRubyコードを解析し、型付きレシーバーへの未定義メソッド呼び出し、引数個数の誤り、証明可能なnilデリファレンスなどのバグを報告します。型はすべてコードが実際に生成する値から推論されます。チームに型注釈を書いてもらう必要はありません。
+
+**2つのコマンドで始められます:**
+
+```sh
+mise use ruby@4.0
+mise use gem:rigortype
+```
+
+他のインストール方法（asdf、`gem install`、CIワークフローテンプレート、devコンテナ）は[インストールガイド](/ja/reference/manual/01-installation/)を参照してください。
 
 ## ドキュメント構成
 
-- [**ハンドブック**](/ja/reference/handbook/): Rigorを日常的に使うための手順中心の資料です。
-- [**型仕様**](/ja/reference/type-specification/): 型モデル、型演算子、推論規則を扱います。
+- [**ハンドブック**](/ja/reference/handbook/): Rigorの型モデルを9章で解説——キャリア、ナローイング、タプル、RBS相互運用と、各設計判断の背景。
+- [**ユーザーマニュアル**](/ja/reference/manual/): オペレーションリファレンス——インストール、CLI、設定、ベースライン、プラグイン、エディター統合、CI、トラブルシューティング。
+- [**型仕様**](/ja/reference/type-specification/): 型モデル、型演算子、推論規則の規範的仕様です。
 - [**内部仕様**](/ja/reference/internal-spec/): コントリビューター向けの実装上の契約をまとめます。
-- **設計判断**: upstreamリポジトリにあるADRと設計履歴です。
-
+- [**設計判断（ADR）**](/ja/reference/adr/): 設計根拠とトレードオフを記録したADRです。
+- [**設計ノート**](/ja/reference/design/): より詳細な設計文書と研究ノートです。
