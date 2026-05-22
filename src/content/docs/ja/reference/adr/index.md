@@ -3,8 +3,8 @@ title: "Architecture Decision Records"
 description: "Imported from rigortype/rigor docs/adr/README.md."
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/adr/README.md"
 sourcePath: "docs/adr/README.md"
-sourceSha: "86d80e3a8a148ef15bf66b4c5767a26794e0469d6ffb93a62a37df33a95f0652"
-sourceCommit: "1d0381f3ade3f4b208d95b9d649f1e80c381b775"
+sourceSha: "abd5bae3b7abbc8e456b665bdeb66b71dedcfbde6842ba4f6ecd6f8d4a306110"
+sourceCommit: "5b252bbd814960f6b442a4df7dd41a0d0a79c995"
 translationStatus: "translated"
 sidebar:
   order: 4000
@@ -29,28 +29,29 @@ sidebar:
 | ADR-3 | [Type Representation](3-type-representation/) | Draft |
 | ADR-4 | [Type Inference Engine](4-type-inference-engine/) | Draft |
 | ADR-5 | [Robustness Principle](5-robustness-principle/) | Draft |
-| ADR-6 | [Cache Persistence Backend](6-cache-persistence-backend/) | Draft |
+| ADR-6 | [Cache Persistence Backend](6-cache-persistence-backend/) | Accepted |
 | ADR-7 | [v0.1.0 Slice Decisions](7-v0.1.0-slice-decisions/) | Accepted |
 | ADR-8 | [Steep-Inspired Improvements](8-steep-inspired-improvements/) | Accepted |
 | ADR-9 | [Cross-Plugin API](9-cross-plugin-api/) | Proposed |
-| ADR-10 | [Dependency Source Inference](10-dependency-source-inference/) | Proposed |
-| ADR-11 | [Sorbet Input Adapter](11-sorbet-input-adapter/) | Proposed |
+| ADR-10 | [Dependency Source Inference](10-dependency-source-inference/) | Accepted |
+| ADR-11 | [Sorbet Input Adapter](11-sorbet-input-adapter/) | Accepted |
 | ADR-12 | [dry-rb Packaging](12-dry-rb-packaging/) | Accepted |
-| ADR-13 | [TypeNode Resolver Plugin](13-typenode-resolver-plugin/) | Proposed |
-| ADR-14 | [RBS Sig Generation](14-rbs-sig-generation/) | Proposed |
-| ADR-15 | [Ractor Concurrency](15-ractor-concurrency/) | Proposed |
+| ADR-13 | [TypeNode Resolver Plugin](13-typenode-resolver-plugin/) | Accepted |
+| ADR-14 | [RBS Sig Generation](14-rbs-sig-generation/) | Accepted |
+| ADR-15 | [Ractor Concurrency](15-ractor-concurrency/) | Accepted (fork backend active; Ractor pool deferred) |
 | ADR-16 | [Macro Expansion](16-macro-expansion/) | Accepted |
 | ADR-17 | [Monkey Patch Pre-Evaluation](17-monkey-patch-pre-evaluation/) | Proposed |
 | ADR-18 | [Substrate Per-Call-Site Return Type](18-substrate-per-call-site-return-type/) | Proposed |
 | ADR-19 | [Language Server Packaging](19-language-server-packaging/) | Accepted |
-| ADR-20 | [Lightweight HKT](20-lightweight-hkt/) | Accepted |
+| ADR-20 | [Lightweight HKT](20-lightweight-hkt/) | Accepted (partial implementation) |
 | ADR-21 | [Rubydex Evaluation](21-rubydex-evaluation/) | Proposed |
-| ADR-22 | [Baseline and Project Onboarding](22-baseline-and-project-onboarding/) | Proposed |
-| ADR-23 | [Diagnostic Triage Command](23-diagnostic-triage-command/) | Proposed |
-| ADR-24 | [Self Method Call Resolution](24-self-method-call-resolution/) | Proposed |
+| ADR-22 | [Baseline and Project Onboarding](22-baseline-and-project-onboarding/) | Accepted |
+| ADR-23 | [Diagnostic Triage Command](23-diagnostic-triage-command/) | Accepted (slices 1+2+3+4 implemented) |
+| ADR-24 | [Self Method Call Resolution](24-self-method-call-resolution/) | Accepted (slice 4 gated) |
 | ADR-25 | [Plugin Contributed RBS](25-plugin-contributed-rbs/) | Accepted |
 | ADR-26 | [ActiveRecord Relation Typing](26-activerecord-relation-typing/) | Accepted |
 | ADR-27 | [Tool Distribution and Installation Model](27-tool-distribution-model/) | Proposed |
+| ADR-28 | [Path-scoped Method-Protocol Contracts](28-path-scoped-protocol-contracts/) | Accepted |
 
 ## 新しいADRの追加
 

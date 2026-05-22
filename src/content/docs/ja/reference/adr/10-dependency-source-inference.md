@@ -3,14 +3,14 @@ title: "ADR-10 — オプトイン依存関係ソース推論"
 description: "Imported from rigortype/rigor docs/adr/10-dependency-source-inference.md."
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/adr/10-dependency-source-inference.md"
 sourcePath: "docs/adr/10-dependency-source-inference.md"
-sourceSha: "51705d11ebfc4b2fe4c0101c0bc8b93971854d3bf99b32f036a69732f9a35d72"
-sourceCommit: "035915291e331f3bcd5ce804a1e30dc284ffbd48"
+sourceSha: "5cf5d6d75cecefdd21ef95c3d02736e91df891215ea1bedeb29c6dd5498b65f8"
+sourceCommit: "5b252bbd814960f6b442a4df7dd41a0d0a79c995"
 translationStatus: "translated"
 sidebar:
   order: 4010
 ---
 
-ステータス: **提案済み、2026-05-09**。v0.1.xコア作業がここを参照できるよう設計をここに固定します;実装は`docs/ROADMAP.md`のADR-9 Track 2（目標: v0.1.3以降——特定リリースには未コミット）にキューイングされています。
+ステータス: **accepted, 2026-05-09; v0.1.4で実装済み**。5つの実装スライスがすべてランド;`lib/rigor/analysis/dependency_source_inference/`が本番ネームスペース。呼び出しごとの戻り型精度フォローアップは需要駆動のまま。
 
 ## コンテキスト
 
@@ -133,16 +133,16 @@ ADR-2 §「プラグイントラストとI/Oポリシー」は**プラグイン*
 
 推奨順序;各スライスは独立して出荷可能です。スライス1–3が使用可能な機能を提供します;スライス4–5はポリッシュで延期できます。
 
-1. **設定配線**。
+1. **設定配線。— LANDED (v0.1.4)**
    `Configuration::Dependencies::Entry`、パーサー、ドリフトスナップショット、JSONスキーマエントリー。解析器の配線はまだなし——`dependencies.source_inference`を持つ設定のロードは成功しますが、推論はリストされたGemをデフォルトのRBS-or-`Dynamic[top]`境界として扱い続けます。
-2. **ウォーカー + ディスパッチティア**。
-   `Analysis::DependencySourceInference`がリストされたGemの`lib/`を走査し、推論された戻り型を今日のプラグインが使用する`flow_contribution_for`基板を通じて`Dynamic[T]`として提供します（ADR-9 Track 2スライス7がディスパッチャーティアを配線）。新しいティア順序: コアRBS > `RBS::Extended` > プラグイン > **依存関係ソース推論** > エンジンフォールバック。プラグインは作成されたコントラクトであり、Gemソース推論は日和見的なため、プラグインより下位。
-3. **キャッシュディスクリプター + 無効化**。
+2. **ウォーカー + ディスパッチティア。— LANDED (v0.1.4)**
+   `Analysis::DependencySourceInference`がリストされたGemの`lib/`を走査し、推論された戻り型を今日のプラグインが使用する`flow_contribution_for`基板を通じて`Dynamic[T]`として提供します。新しいティア順序: コアRBS > `RBS::Extended` > プラグイン > **依存関係ソース推論** > エンジンフォールバック。プラグインは作成されたコントラクトであり、Gemソース推論は日和見的なため、プラグインより下位。
+3. **キャッシュディスクリプター + 無効化。— LANDED (v0.1.4)**
    `Cache::Descriptor::DependencyEntry`がディスクリプターに着地します。リストされたGemの`bundle update`がそのGemのスライスのみを無効化します。
-4. **Gemごとのバジェット + バジェット超過診断**。
+4. **Gemごとのバジェット + バジェット超過診断。— LANDED (v0.1.4)**
    `dependencies.budget_per_gem`設定エントリー、Gemごとの別のバジェットプール、`dynamic.dependency-source.budget-exceeded`の発行。
-5. **ドキュメント更新**。
-   新しい`docs/internal-spec/dependency-source-inference.md`規範的ドキュメント。`inference-budgets.md`、`special-types.md`、`diagnostic-policy.md`からのクロスリンク。エンドユーザーハンドブック章はオプション（少なくとも1つのTier-2ユーザーGemがオプトイン推奨を提供するまで延期）。
+5. **ドキュメント更新。— LANDED (v0.1.4)**
+   `inference-budgets.md`、`special-types.md`、`diagnostic-policy.md`へのクロスリンクを追加。エンドユーザーハンドブック章はオプション（少なくとも1つのTier-2ユーザーGemがオプトイン推奨を提供するまで延期）。
 
 ## 作業上の決定
 
@@ -204,3 +204,4 @@ ADR-2 §「プラグイントラストとI/Oポリシー」は**プラグイン*
 ## 改訂履歴
 
 - 2026-05-09 — 初回提案。シグネチャーソースのないGemのためにRBSのみの外部境界を緩和するユーザーリクエストによって引き起こされました。
+- 2026-05-xx — accepted;5つのスライスすべてをv0.1.4で実装。`lib/rigor/analysis/dependency_source_inference/`が本番ネームスペース（6モジュール: builder、gem_resolver、index、return_type_heuristic、walker、boundary_cross_reporter）。

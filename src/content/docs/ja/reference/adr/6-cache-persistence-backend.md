@@ -3,8 +3,8 @@ title: "ADR-6: Cache Persistence Backend"
 description: "Imported from rigortype/rigor docs/adr/6-cache-persistence-backend.md."
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/adr/6-cache-persistence-backend.md"
 sourcePath: "docs/adr/6-cache-persistence-backend.md"
-sourceSha: "bc00e1cef94259ab850fa9163c83c96691a20168ce3f0f9359f3e86b27db2bfd"
-sourceCommit: "035915291e331f3bcd5ce804a1e30dc284ffbd48"
+sourceSha: "37c81acd65bd3b104514abae2c669a4fd1bcfa5a146b6554a644a9fa7e1a0f61"
+sourceCommit: "5b252bbd814960f6b442a4df7dd41a0d0a79c995"
 translationStatus: "translated"
 sidebar:
   order: 4006
@@ -12,7 +12,7 @@ sidebar:
 
 ## ステータス
 
-ドラフト。v0.0.8キャッシュ永続化スライスの固定ターゲットとして作業上の決定を記録する。最初のプロデューサー（RBS環境キャッシュ）がランドした時点で承認される。
+承認済み。v0.0.8実装向けに作業上の決定を記録;RBS環境キャッシュ、プロセスごとのメモ、Monitor-safeスレッドレイヤーがv0.1.4でランドした時点で承認された。
 
 ## コンテキスト
 

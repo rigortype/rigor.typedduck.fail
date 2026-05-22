@@ -3,14 +3,14 @@ title: "ADR-15 — アナライザーのRactorベース並行性モデル"
 description: "rigortype/rigor docs/adr/15-ractor-concurrency.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/adr/15-ractor-concurrency.md"
 sourcePath: "docs/adr/15-ractor-concurrency.md"
-sourceSha: "8322bb8638a66221ac2efba9069d00f0cfcf2e5c4ceddfbb62f327993e94d913"
-sourceCommit: "626e04cb1ce26d1b1500ed80d078dac891053fd2"
+sourceSha: "fee99923d3bbee0bfb8e468f9ec7a3f40854877c0a088a018927dceebf366ed9"
+sourceCommit: "5b252bbd814960f6b442a4df7dd41a0d0a79c995"
 translationStatus: "translated"
 sidebar:
   order: 4015
 ---
 
-Status: **proposed、2026-05-14**。フェーズ1と2aはこのADRが書かれる前に段階的に着地済み;ADRはコミットメントを形式化し、フェーズ2b〜4が安定した契約に対して着地するようにします。ADR-12（dry-rbパッケージング）は引き続き予約スロットを保持;このADRはそれから独立しています。
+Status: **accepted, 2026-05-14;フォークベースのバックエンドがアクティブな並行バックエンド（修正2026-05-20）**。フェーズ1 / 2a / 2b / 3a / 4a / 4b / 4b.x / 4cはすべてランド済み。Ractorプール（フェーズ4b/4cの配線）はRuby Bug #22075によりブロック中;`workers > 0`の出荷バックエンドはフォークプール。フェーズ3bとOQ1 / OQ2は需要駆動。
 
 ## コンテキスト
 

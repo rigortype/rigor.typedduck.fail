@@ -3,8 +3,8 @@ title: "ADR-24 — implicit-selfメソッド呼び出し解決"
 description: "rigortype/rigor docs/adr/24-self-method-call-resolution.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/adr/24-self-method-call-resolution.md"
 sourcePath: "docs/adr/24-self-method-call-resolution.md"
-sourceSha: "77f738b48137005d062c9530fe4091ed05c11e7b94b42989138418d895ec63e7"
-sourceCommit: "626e04cb1ce26d1b1500ed80d078dac891053fd2"
+sourceSha: "68bf00f2428b1bbaec581c6be28ed67187fd86abafd8a63aacd24240ffe24ad9"
+sourceCommit: "5b252bbd814960f6b442a4df7dd41a0d0a79c995"
 sourceDate: "2026-05-21T03:46:03+09:00"
 sourceLanguage: "en"
 translationStatus: "translated"
@@ -12,7 +12,7 @@ sidebar:
   order: 4024
 ---
 
-Status: **proposed、2026-05-20;スライス1 + 3は2026-05-20に実装済み、スライス2は2026-05-21に実装済み**。
+Status: **accepted、2026-05-20（スライス4は別途FP評価が必要なためゲート中）。スライス1+3は2026-05-20に実装済み、スライス2は2026-05-21に実装済み**。
 メソッドボディの内側で明示的なレシーバーなしに書かれた呼び出し（implicit-selfメソッド呼び出し）を、囲むクラス / モジュールのメソッドセット — 自身の定義、その祖先、クロスファイルのプロジェクトクラス — に対して解決するというプロジェクトの決定を記録する。これにより、解決されたメソッドの推論された戻り型とパラメーター契約が呼び出しサイトで可視になる。現状ではそのような呼び出しは`Dynamic[top]`として型付けされており、これは根本的な精度ギャップ。
 
 ## コンテキスト

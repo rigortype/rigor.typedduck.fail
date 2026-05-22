@@ -3,14 +3,14 @@ title: "ADR-11 — Sorbet input as a plugin adapter"
 description: "Imported from rigortype/rigor docs/adr/11-sorbet-input-adapter.md."
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/adr/11-sorbet-input-adapter.md"
 sourcePath: "docs/adr/11-sorbet-input-adapter.md"
-sourceSha: "e98c4f6436f00ec75348e97948d80d355a4e8292b6ce223b54136f279f41a1fe"
-sourceCommit: "fe4e9a80df3829ee4f113e763e4bb9920c33da21"
+sourceSha: "ee385d9f2b2e4b3a935f17cd5af4f4411d50b951ee4a39abe6824839d7e07d38"
+sourceCommit: "5b252bbd814960f6b442a4df7dd41a0d0a79c995"
 translationStatus: "translated"
 sidebar:
   order: 4011
 ---
 
-ステータス: **proposed, 2026-05-09**。将来の`rigor-sorbet`プラグイン実装者が安定したコントラクトに基づいて作業できるよう、設計をここで確定する。このADRの採用にRigorコアの変更は不要。実装はv0.1.x+にキューイング済み（確定マイルストーンなし）。
+ステータス: **accepted, 2026-05-09; v0.1.4で`plugins/rigor-sorbet/`として実装済み**（`examples/`ではなく本番プラグイン）。
 
 ## コンテキスト
 

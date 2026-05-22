@@ -3,8 +3,8 @@ title: "ADR-23 — 診断トリアージコマンド（`rigor triage`）"
 description: "rigortype/rigor docs/adr/23-diagnostic-triage-command.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/adr/23-diagnostic-triage-command.md"
 sourcePath: "docs/adr/23-diagnostic-triage-command.md"
-sourceSha: "2397e6a89ee36c04e8d51e503513b5b02e83381f04e457f5d66d40a7c6744d68"
-sourceCommit: "626e04cb1ce26d1b1500ed80d078dac891053fd2"
+sourceSha: "8687e96b13db47b874a67bb1dbe780ac3a24d5a8a4428a09d2be6f9949a713bb"
+sourceCommit: "5b252bbd814960f6b442a4df7dd41a0d0a79c995"
 sourceDate: "2026-05-21T05:31:38+09:00"
 sourceLanguage: "en"
 translationStatus: "translated"
@@ -12,7 +12,7 @@ sidebar:
   order: 4023
 ---
 
-Status: **proposed、2026-05-20**。`check`派生のサブコマンド設計を記録する。プロジェクトの診断ストリームを要約し — ルールIDの分布、ファイルごとのホットスポット、ヒューリスティックな「なぜ」ヒント（おそらくActiveSupportの`core_ext`、おそらくプロジェクトのmonkey-patch、RBSを同梱していないgemなど） — を提示する。[ADR-22](../22-baseline-and-project-onboarding/)の仲間:ADR-22は*今日あるもの*（ベースライン）を記録し;ADR-23はそれが*何を意味するか*と*次に何をすべきか*を説明する。
+Status: **accepted、2026-05-20;スライス1+2+3+4はv0.1.9で実装済み**。`lib/rigor/triage/`がカタログを担い、`rigor triage`は本番サブコマンド。プラグイン提供認識器（WD2拡張ポイント）は見送り。`check`派生のサブコマンド設計を記録する。プロジェクトの診断ストリームを要約し — ルールIDの分布、ファイルごとのホットスポット、ヒューリスティックな「なぜ」ヒントを提示する。[ADR-22](../22-baseline-and-project-onboarding/)の仲間:ADR-22は*今日あるもの*（ベースライン）を記録し;ADR-23はそれが*何を意味するか*と*次に何をすべきか*を説明する。
 
 ## コンテキスト
 
@@ -176,22 +176,20 @@ Hints — heuristics, verify before acting
 
 - プラグイン提供の認識器拡張ポイント（WD2）と構造化された`Diagnostic`フィールドの堅牢性修正（WD3 / スライス4）は見送りであり、却下ではない。
 
-## 実装のスライス分け（提案）
+## 実装のスライス分け
 
-需要駆動;このADRによってスケジュールされるスライスはない。
-
-### スライス1 — `rigor triage`スケルトン + 分布 + ホットスポット
+### スライス1 — `rigor triage`スケルトン + 分布 + ホットスポット — LANDED (v0.1.9)
 
 - `Runner#run`を再利用する新しい`Rigor::CLI` `triage`サブコマンド。
 - 新しい`Rigor::Triage`モジュール:分布集計 + ホットスポットランキング + text / jsonレンダラー。
 - ヒントはまだなし（`--no-hints`動作がコマンド全体）。
 
-### スライス2 — ヒューリスティックカタログ
+### スライス2 — ヒューリスティックカタログ — LANDED (v0.1.9)
 
 - `Rigor::Triage::Hint`認識器インターフェース + 6つのH1〜H6認識器。H1はセレクターセットを`rigor-activesupport-core-ext`バンドルの`sig/`から導出する。
 - 両レンダラーにヒントを配線。
 
-### スライス3 — ADR-22 SKILL統合
+### スライス3 — ADR-22 SKILL統合 — LANDED (v0.1.9)
 
 - `rigor-project-init`フェーズ7と`rigor-baseline-reduce`フェーズ1を`rigor triage --format json`呼び出しに書き換え。
 

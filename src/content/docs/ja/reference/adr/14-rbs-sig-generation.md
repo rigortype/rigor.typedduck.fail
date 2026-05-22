@@ -3,14 +3,14 @@ title: "ADR-14 — 推論からのRBSシグネチャ生成と拡張"
 description: "rigortype/rigor docs/adr/14-rbs-sig-generation.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/adr/14-rbs-sig-generation.md"
 sourcePath: "docs/adr/14-rbs-sig-generation.md"
-sourceSha: "b63ebf39e33e61742727651aa98d58ac13a54e522f6f9a173f8d991972dcdade"
-sourceCommit: "dd1240d88f635b570b72ca36d1fccddc8df8ccd1"
+sourceSha: "03a4b8ca2e8390beee8ca23abdb433d2caff4cc63c5a24d77c0b685b8081736f"
+sourceCommit: "5b252bbd814960f6b442a4df7dd41a0d0a79c995"
 translationStatus: "translated"
 sidebar:
   order: 4014
 ---
 
-Status: **proposed、2026-05-12**。`rigor sig-gen`コマンドが将来のv0.1.xスライスで安定した契約に対してランディングできるよう、設計をここで固定します。実装はキュー済み（コミット済みマイルストーンなし）。ADR-12（dry-rbパッケージング）は引き続き予約スロットを保持;このADRはそれから独立しています。
+Status: **accepted, 2026-05-12; MVPであるスライス1はv0.1.4で実装済み**。`rigor sig-gen --print` / `--diff`（戻り型のみ、`def`メソッド）は`lib/rigor/sig_gen/`に置かれる。スライス2〜5は需要駆動。
 
 ## コンテキスト
 

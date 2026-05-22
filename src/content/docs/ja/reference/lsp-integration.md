@@ -3,8 +3,8 @@ title: "Rigor LSP — エディタ統合"
 description: "rigortype/rigor docs/lsp-integration.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/main/docs/lsp-integration.md"
 sourcePath: "docs/lsp-integration.md"
-sourceSha: "b5a4c7c14bf58bf77b6b7df046f934cebae9d547645dbed8d74f92ce74cb9fa1"
-sourceCommit: "1d0381f3ade3f4b208d95b9d649f1e80c381b775"
+sourceSha: "8021bc38ce9ae73e23a2559875ac868aac4070471ade557b29a909e66171b5cf"
+sourceCommit: "5b252bbd814960f6b442a4df7dd41a0d0a79c995"
 sourceDate: "2026-05-17T02:39:15+09:00"
 translationStatus: "translated"
 sidebar:
@@ -77,9 +77,9 @@ lspconfig.rigor.setup({})
 
 これを`init.lua`（または`lua/plugins/`下）に配置する。Neovimを再起動し、Rigor設定済みのプロジェクト内でRubyファイルを開く;保存時に診断が表示され、`K`経由でhoverが動作するはず。
 
-### VSCode — 汎用LSPクライアント
+### VS Code — 汎用LSPクライアント
 
-まだファーストパーティのVSCode拡張機能はない。[`vscode-languageclient-generic`](https://marketplace.visualstudio.com/items?itemName=mads-hartmann.bash-ide-vscode-tooltips)のような汎用LSPクライアントラッパーを使うか、サーバーを登録する最小限の拡張機能を書く:
+まだファーストパーティのVS Code拡張機能はない。[`vscode-languageclient-generic`](https://marketplace.visualstudio.com/items?itemName=mads-hartmann.bash-ide-vscode-tooltips)のような汎用LSPクライアントラッパーを使うか、サーバーを登録する最小限の拡張機能を書く:
 
 ```ts
 // extension.ts (minimal example)
