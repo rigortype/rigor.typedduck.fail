@@ -1,8 +1,14 @@
 [submodule "upstream/rigor"]
 	path = upstream/rigor
 	url = https://github.com/rigortype/rigor.git
-	# Hint to git submodule update --recommend-shallow: we only need
-	# the docs/ tree, never history. Skip recursing into upstream's
-	# references/ submodules; see wrangler.toml's [build] command.
-	shallow = true
+	# We deliberately do NOT set `shallow = true` here:
+	# sync-rigor-docs runs `git log -1 -- <file>` against this
+	# submodule to stamp each synced page with the upstream file's
+	# last commit date. A shallow clone collapses every file's
+	# history to the HEAD commit and makes every sourceDate
+	# identical, breaking the RecentlyUpdated table on the site.
+	# The full upstream/rigor history is small (~20MB).
+	#
+	# Skip recursing into upstream's references/ submodules; see
+	# wrangler.toml's [build] command and .github/workflows/deploy.yml.
 	fetchRecurseSubmodules = false

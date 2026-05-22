@@ -22,19 +22,27 @@ jobs:
         with:
           submodules: false
 
-      # Init only the upstream/rigor submodule, shallow and
-      # non-recursive — its references/* nested submodules include
-      # ruby/ruby (multi-GB) and two git@github.com: SSH URLs that
-      # the runner cannot authenticate, and we never read those.
+      # Init only the upstream/rigor submodule, non-recursive — its
+      # references/* nested submodules include ruby/ruby (multi-GB)
+      # and two git@github.com: SSH URLs that the runner cannot
+      # authenticate, and we never read those.
       #
-      # The explicit tag refspec is required: `git submodule update`
-      # does not fetch tags, and a shallow clone without tag refs makes
-      # `git tag --points-at HEAD` return empty, so sync-rigor-docs
-      # would otherwise omit the latest-release badge on every deploy.
-      - name: Init upstream/rigor (shallow, non-recursive)
+      # We deliberately do NOT pass --depth=1: sync-rigor-docs runs
+      # `git log -1 -- <file>` against this submodule to stamp each
+      # synced page's sourceDate with the upstream file's last commit
+      # date. A shallow clone collapses every file's history to the
+      # single HEAD commit, making every sourceDate identical (the
+      # build date) — which breaks the RecentlyUpdated table on the
+      # site. The full upstream/rigor history is small (~20MB).
+      #
+      # The explicit tag refspec is kept as a safety net: `git clone`
+      # fetches tags by default, but past shallow-clone defaults
+      # taught us to be explicit about tag refs so `git tag
+      # --points-at HEAD` reliably returns the latest-release badge.
+      - name: Init upstream/rigor (full history, non-recursive)
         run: |
-          git submodule update --init --depth=1 upstream/rigor
-          git -C upstream/rigor fetch --depth=1 origin '+refs/tags/*:refs/tags/*'
+          git submodule update --init upstream/rigor
+          git -C upstream/rigor fetch origin '+refs/tags/*:refs/tags/*'
 
       - name: Set up pnpm
         uses: pnpm/action-setup@v4
