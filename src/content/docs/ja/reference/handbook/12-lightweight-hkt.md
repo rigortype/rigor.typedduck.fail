@@ -125,7 +125,7 @@ end
 | パラメータ参照 | `K`、`T`、`E`（`params`にあるとき） | 簡約時に代入される |
 | パラメータ化された名前的型 | `Array[K]`、`Hash[K, V]` | `Nominal[..., type_args: [...]]` |
 | 軽量HKT適用 | `App[json::value, K]` | 別の`Type::App`キャリア、遅延簡約される |
-| ユニオン | `A \| B \| C` | `Type::Union`（正規化済み） |
+| ユニオン | `A | B | C` | `Type::Union`（正規化済み） |
 | **条件** | `(K <: String ? Integer : Float)` | テスト評定で分岐 |
 
 曖昧性解消: `params`のひとつにマッチするUCNameは`Param`ノードになる。**ただし**それに`::`（qualifiedクラス継続）や`[`（パラメータ化適用）が続く場合は名前的型として扱う。だから`K`はparam参照、`K[X]`は`X`に適用されたクラス`K`になる。

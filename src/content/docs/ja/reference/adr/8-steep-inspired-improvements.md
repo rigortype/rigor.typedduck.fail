@@ -28,7 +28,7 @@ sidebar:
 
 ### 1. 診断IDファミリー階層
 
-**決定: ルール識別子を`family.rule-name`形式に正規化する**。 `family`は`[a-z][a-z0-9_]*`セグメントの小さな固定セットの1つだ。
+**決定: ルール識別子を`family.rule-name`形式に正規化する**。`family`は`[a-z][a-z0-9_]*`セグメントの小さな固定セットの1つだ。
 
 ファミリープレフィックス:
 
@@ -49,7 +49,7 @@ sidebar:
 
 プレフィックスなし形式は`Analysis::CheckRules`の固定エイリアステーブルを通じて解決される。ユーザーコードが移行した後でエイリアステーブルを削除することは将来のADRだ。
 
-**診断サーフェス**。 `Diagnostic#rule`は正規（`family.rule-name`）形式を公開する。`Diagnostic#qualified_rule`はデフォルト以外のsource_familyの場合にすでに`source_family`プレフィックスを付ける。組み合わせた形式は`source_family ∉ {:builtin}`の場合に`<source_family>.<family>.<rule>`だ。`Diagnostic#to_s`は既存の`[<qualified-rule>]`レンダリングを保つ。
+**診断サーフェス**。`Diagnostic#rule`は正規（`family.rule-name`）形式を公開する。`Diagnostic#qualified_rule`はデフォルト以外のsource_familyの場合にすでに`source_family`プレフィックスを付ける。組み合わせた形式は`source_family ∉ {:builtin}`の場合に`<source_family>.<family>.<rule>`だ。`Diagnostic#to_s`は既存の`[<qualified-rule>]`レンダリングを保つ。
 
 ### 2. 重大度プロファイル
 
@@ -99,7 +99,7 @@ severity_overrides:
 
 Steepに触発されたリストはまた次のものもフラグ立てした。
 
-- **LSP/langserverモード**。 v0.1.x以降に延期。キャッシュレイヤーは準備できている（B1のメソッドごとのキャッシュ+Steepが誘発したrescueの厳格化）が、モード自体には別の設計パスが必要だ。
+- **LSP/langserverモード**。v0.1.x以降に延期。キャッシュレイヤーは準備できている（B1のメソッドごとのキャッシュ+Steepが誘発したrescueの厳格化）が、モード自体には別の設計パスが必要だ。
 - **詳細テキストフォーマッター**。ソーススニペットレンダリングを持つオプションの`--format=detailed`。延期。デフォルトのテキストフォーマットはgrep/カウント互換性のためにシングルラインレイアウトを保つ。
 - **`Data.define`オーバーライド対応イニシャライザーディスパッチ**。このADRのスコープ外。CURRENT_WORKはすでにそれを並行安全なエントリーポイントとして追跡している。
 

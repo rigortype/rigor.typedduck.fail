@@ -74,7 +74,7 @@ Tracks which methods produce precise `HashShape` results and what is still open.
 | `each_with_object` | 🚫 | Enumerable。 |
 | `empty?` | ✅ | `hash_empty?` — 閉じた形状で`Constant[bool]`。 |
 | `entries` | ✅ | `to_a`の別名。HASH_SHAPE_HANDLERSに`entries: :hash_to_a`を登録。 |
-| `except` | ✅ | **高優先度**。 `slice`の補集合。静的キーリストから子HashShapeを生成。`ShapeDispatch#hash_except`。 |
+| `except` | ✅ | **高優先度**。`slice`の補集合。静的キーリストから子HashShapeを生成。`ShapeDispatch#hash_except`。 |
 | `fetch` | ✅ | `hash_lookup` — 静的キー。missing key時はRBS fallback。 |
 | `fetch_values` | ✅ | `values_at`と類似。静的キーリストから`Tuple[V_1…]`へ。missing keyがRBSではraiseなので`values_at`実装の隣に置ける。中優先度。 |
 | `filter` | 🔷 | `select`の別名。BlockFolding経由。 |
@@ -89,7 +89,7 @@ Tracks which methods produce precise `HashShape` results and what is still open.
 | `grep` | 🚫 | Enumerable。 |
 | `grep_v` | 🚫 | Enumerable。 |
 | `group_by` | 🚫 | Enumerable。返り値が`Hash[K, Array[V]]`で複雑。 |
-| `has_key?` | ✅ | **高優先度**。 `key?`/`member?`/`include?`と同義。静的キーで`Constant[true/false]`。`ShapeDispatch#hash_has_key?`。 |
+| `has_key?` | ✅ | **高優先度**。`key?`/`member?`/`include?`と同義。静的キーで`Constant[true/false]`。`ShapeDispatch#hash_has_key?`。 |
 | `has_value?` | ✅ | 全値Constantのとき`Constant[true/false]`。低優先度。 |
 | `include?` | ✅ | `has_key?`の別名。`ShapeDispatch#hash_has_key?`に同一ハンドラ登録。 |
 | `inject` | 🚫 | Enumerable accumulator。 |
@@ -124,7 +124,7 @@ Tracks which methods produce precise `HashShape` results and what is still open.
 | `select!` | 🚫 | 破壊的変更。 |
 | `shift` | 🚫 | 破壊的変更（先頭ペア削除）。 |
 | `size` | ✅ | `hash_size` — `Constant[pairs.size]`。 |
-| `slice` | ✅ | **高優先度**。 `slice(:k1, :k2)` → 対応する子HashShapeを返す。`ShapeDispatch#hash_slice`。 |
+| `slice` | ✅ | **高優先度**。`slice(:k1, :k2)` → 対応する子HashShapeを返す。`ShapeDispatch#hash_slice`。 |
 | `slice_after` | 🚫 | Enumerable。 |
 | `slice_before` | 🚫 | Enumerable。 |
 | `slice_when` | 🚫 | Enumerable。 |

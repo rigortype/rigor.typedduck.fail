@@ -42,7 +42,7 @@ sidebar:
 | `pre_eval_diagnostics` | ✅ | プレーンHashのArray。 |
 | `plugin_registry` | ❌ | プラグインインスタンスは`Plugin::Services`を保持し、`Cache::Store`（Mutex）、`IoBoundary`（Mutex）、`Plugin::FactStore`（これも可変）を持つ。 |
 
-**解決策**。 `Rigor::Analysis::MarshalableProjectScan`を導入する — 5つのMarshalフレンドリーなスロットPLUS `plugin_registry`が間接的に運んだ**プラグインごとに公開されたファクトスナップショット**（`#prepare`実行後の`Plugin::FactStore`の状態）。これはライブのプラグインインスタンスをドロップし、下流のディスパッチ層が実際に参照するデータのみを保持する。
+**解決策**。`Rigor::Analysis::MarshalableProjectScan`を導入する — 5つのMarshalフレンドリーなスロットPLUS `plugin_registry`が間接的に運んだ**プラグインごとに公開されたファクトスナップショット**（`#prepare`実行後の`Plugin::FactStore`の状態）。これはライブのプラグインインスタンスをドロップし、下流のディスパッチ層が実際に参照するデータのみを保持する。
 
 ```ruby
 MarshalableProjectScan = Data.define(

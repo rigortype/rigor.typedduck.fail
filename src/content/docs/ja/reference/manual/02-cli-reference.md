@@ -32,7 +32,7 @@ rigor check [paths...]
 | オプション | 説明 |
 | --- | --- |
 | `--config=PATH` | 自動探索の代わりに特定の設定ファイルを使用する。 |
-| `--format=text\|json` | 出力形式。デフォルトは`text`。 |
+| `--format=text|json` | 出力形式。デフォルトは`text`。 |
 | `--explain` | フェイルソフトフォールバックイベントを`info`診断として表示する。 |
 | `--no-cache` | この実行では永続キャッシュをスキップする。 |
 | `--clear-cache` | 実行前にキャッシュディレクトリを削除する。 |
@@ -122,10 +122,10 @@ rigor sig-gen [paths]
 | `--write` | RBSを`sig/<path>.rbs`ファイルに書き出す。 |
 | `--overwrite` | より厳密な戻り値の更新でユーザー作成のRBSを置き換えることを許可する。 |
 | `--include-private` | privateおよびprotectedメソッドも出力する。 |
-| `--params=untyped\|observed\|observed-strict` | パラメーター型付けポリシー。デフォルトは`untyped`。 |
+| `--params=untyped|observed|observed-strict` | パラメーター型付けポリシー。デフォルトは`untyped`。 |
 | `--observe=PATH` | コールサイト観察のために`PATH`をスキャンする。繰り返し可能。 |
 | `--new-files` / `--new-methods` / `--tighter-returns` | その分類のみ出力する。 |
-| `--format=text\|json` | 出力形式。 |
+| `--format=text|json` | 出力形式。 |
 
 ## `rigor lsp`
 
@@ -150,7 +150,7 @@ rigor baseline <generate|regenerate|dump|drift|prune> [options]
 | `generate` | 現在の診断から新しいベースラインを書き出す。`--force`なしで上書きを拒否する。 |
 | `regenerate` | 無条件にベースラインを書き直す——品質改善後に使用する。 |
 | `dump` | ベースラインの内容を表示する。`--rule`と`--file`でフィルタリング可能。 |
-| `drift` | 各バケットのドリフトを監査する。`--only=within\|over\|cleared\|reducible`でフィルタリング。 |
+| `drift` | 各バケットのドリフトを監査する。`--only=within|over|cleared|reducible`でフィルタリング。 |
 | `prune` | 診断に一致しなくなったバケットを削除する。`--dry-run`でプレビュー。 |
 
 `generate`と`regenerate`は`--output=PATH`と`--match-mode=rule|message`を受け付けます。

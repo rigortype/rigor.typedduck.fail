@@ -39,7 +39,7 @@ PHPStanとRigorには重複するリファインメント語彙がある — こ
 | `string` | `String` | |
 | `int` | `Integer` | |
 | `float` | `Float` | |
-| `bool` | `bool`（`Constant<true> \| Constant<false>`） | |
+| `bool` | `bool`（`Constant<true> | Constant<false>`） | |
 | `null` | `Constant<nil>` | Rubyには`nil`のみ。 |
 | `mixed` | `Top` | 「何でもあり」キャリア。 |
 | `never` | `Bot` | 空の型。 |
@@ -59,7 +59,7 @@ PHPStanとRigorには重複するリファインメント語彙がある — こ
 | `non-zero-int` | `non-zero-int` | 同一。 |
 | `non-empty-array<T>` | `non-empty-array[T]` | 同一。 |
 | `non-empty-list<T>` | （独立したキャリアなし — `non-empty-array[T]`でカバー） | Rubyにはlist/dict分割がない。 |
-| `T \| U` | `T \| U` | |
+| `T | U` | `T | U` | |
 | `T & U` | `Intersection[T, U]` | |
 | `literal-string` | `literal-string` | **概念が同一**。ソースコードのリテラルから構築されたことが証明可能。 |
 | `'hello'`（リテラル型） | `Constant<"hello">` | |

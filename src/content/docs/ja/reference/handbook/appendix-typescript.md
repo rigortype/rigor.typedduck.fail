@@ -34,18 +34,18 @@ sidebar:
 | --- | --- | --- |
 | `string` | `String` | 表示では`Nominal[]`を省略。 |
 | `number` | `Integer` / `Float` / `Numeric` | TSはintとfloatを同一視。Rigorはrubyのランタイムに従って分ける。 |
-| `boolean` | `bool`（`Constant<true> \| Constant<false>`） | `bool`は構造的にふたつの定数のunion。 |
+| `boolean` | `bool`（`Constant<true> | Constant<false>`） | `bool`は構造的にふたつの定数のunion。 |
 | `null` | `nil`（`Constant<nil>`） | Rubyには`nil`のみ。TSは`null`と`undefined`を区別する。 |
 | `undefined` | （対応なし） | Rubyで未設定のローカル変数は「undefined」ではなく`NameError`になる。 |
 | `any` | `Dynamic[Top]` | 「ここは黙っていて」キャリア。 |
 | `unknown` | `Top` | 両者ともナローイングするまでメソッドディスパッチを拒否。`unknown`は`Dynamic[Top]`より`Top`に近い。 |
 | `never` | `Bot` | 空の型 — 要素なし。到達不可能な分岐と`T.absurd`（Sorbet）/ raiseのみのボディに使う。 |
 | `void` | `void` | 同じ考え方 — 呼び出し元は値を消費してはならない。 |
-| `T \| U` | `T \| U` | 同形式。同じ表示。 |
+| `T | U` | `T | U` | 同形式。同じ表示。 |
 | `T & U` | `Intersection[T, U]` | Rigorではあまり一般的でない — リファインメントで代替されることが多い。 |
 | `"hello"`（リテラル型） | `Constant<"hello">` | 直接対応。Rigorではfoldingがより積極的。 |
 | `42`（リテラル型） | `Constant<42>` | 同様。 |
-| `42 \| 43 \| 44` | `Constant<42> \| Constant<43> \| Constant<44>` | 同様。 |
+| `42 | 43 | 44` | `Constant<42> | Constant<43> | Constant<44>` | 同様。 |
 | `[number, string]`（タプル） | `Tuple[Integer, String]` | 同じ位置ごとのモデル。 |
 | `{ name: string; age: number }` | `HashShape{name: String, age: Integer}` | 同じキーごとのモデル。RubyはSymbolキーを慣習的に使う。 |
 | `Array<T>` / `T[]` | `Array[T]` | 同様。 |
@@ -89,7 +89,7 @@ TypeScriptは「長さ≥1の文字列」をテンプレートリテラル型か
 | --- | --- | --- |
 | `non-empty-string` | `` `${string}${string}` ``（テンプレートリテラルのトリック）またはブランドの`NonEmptyString` | TSでは不格好。Rigorは`unless s.empty?`から自動的に生成する。 |
 | `positive-int` | ブランドの`PositiveInt` | TSユーザーはブランドをスキップしがち。Rigorは`n > 0`からナローイングする。 |
-| `int<1, 9>` | リテラル型のunion `1 \| 2 \| 3 \| ... \| 9` | Rigorのレンジキャリアは爆発なしに任意のバウンドを扱う。 |
+| `int<1, 9>` | リテラル型のunion `1 | 2 | 3 | ... | 9` | Rigorのレンジキャリアは爆発なしに任意のバウンドを扱う。 |
 | `numeric-string` | （実用的なものなし） | TSに対応なし。Rigorは数値パターンへの正規表現マッチからナローイングする。 |
 | `non-empty-array[T]` | `[T, ...T[]]`（タプル+残余） | TSにもエンコーディングはあるが使うAPIが少ない。Rigorは`unless arr.empty?`から生成する。 |
 

@@ -19,14 +19,14 @@ sidebar:
 コア型エンジンは以下をMUST公開しなければなりません。
 
 - **不変な`Scope`スナップショット**。ジョイン・ナローイング・無効化は、インプレース変更ではなく構造的共有によって新しいスナップショットを生成します。[control-flow-analysis.md](../../type-specification/control-flow-analysis/)を参照してください。
-- **エッジ対応の条件解析（truthy・falsey・normal・exceptional・unreachable出口）**。 [control-flow-analysis.md](../../type-specification/control-flow-analysis/)を参照してください。
-- **推論バジェットと、推論が停止した理由を保持する不完全推論結果**。 [inference-budgets.md](../../type-specification/inference-budgets/)を参照してください。
+- **エッジ対応の条件解析（truthy・falsey・normal・exceptional・unreachable出口）**。[control-flow-analysis.md](../../type-specification/control-flow-analysis/)を参照してください。
+- **推論バジェットと、推論が停止した理由を保持する不完全推論結果**。[inference-budgets.md](../../type-specification/inference-budgets/)を参照してください。
 - **ファクトストア**。値ファクト・否定ファクト・関係ファクト・メンバー存在ファクト・シェイプファクト・動的由来の来歴・安定性ファクト・エスケープファクト・キャプチャされたローカル書き込みファクトを表現できます。[control-flow-analysis.md](../../type-specification/control-flow-analysis/)を参照してください。
 - **エフェクトモデル**。レシーバーおよび引数の変更・ブロック呼び出しタイミング・クロージャエスケープ・純粋性・ファクト無効化を扱います。[control-flow-analysis.md](../../type-specification/control-flow-analysis/)と[rbs-extended.md](../../type-specification/rbs-extended/)を参照してください。
 - **ケイパビリティロール推論**。メソッドごとの要求サマリをキャッシュし、インデックス済み名前付きインターフェースが利用できる場合はそれに照合し、照合が曖昧またはコスト過多な場合は匿名シェイプを保持できます。[structural-interfaces-and-object-shapes.md](../../type-specification/structural-interfaces-and-object-shapes/)を参照してください。
 - **正規化**。ユニオン・インターセクション・補集合・差・不可能な絞り込みを対象とします。[normalization.md](../../type-specification/normalization/)を参照してください。
 - **拡張向けセマンティック型クエリ**。プラグイン作者が具体的な型クラスを検査するのではなく、ケイパビリティ質問を投げかけられるようにします。[rbs-extended.md](../../type-specification/rbs-extended/)を参照してください。
-- **保守的なRBS消去（オプションで精度損失の説明付き）**。 [rbs-erasure.md](../../type-specification/rbs-erasure/)を参照してください。
+- **保守的なRBS消去（オプションで精度損失の説明付き）**。[rbs-erasure.md](../../type-specification/rbs-erasure/)を参照してください。
 
 ## この構造が必要な理由
 

@@ -280,7 +280,7 @@ v0.1.1リリース直前に再分類:
 | 件数 | 場所 | 種類 | 性質 |
 | --- | --- | --- | --- |
 | 5 | `lib/rigor/analysis/fact_store.rb:26-32` | `Ruby::MethodParameterMismatch` | `Target = Data.define(...) do def initialize(kind:, name:); ...; end; end`のoverride-block内`def initialize`をSteepが外側`FactStore`の`initialize`宣言と照合してしまう。Data subclassのsigと紐付けられない既知のSteep限界。runtimeは`super(...)`で正しくData#initializeを呼び出している。 |
-| 1 | `lib/rigor/analysis/fact_store.rb:128` | `Ruby::MethodBodyTypeMismatch` | `Array(fact.target)`で`fact.target: Target \| Array[Target]`の`Kernel#Array`強制変換をSteepが`[Target \| Array[Target]]`ではなく`Array[Target]`にnarrowできない。書き換え（`fact.target.is_a?(Array) ? fact.target : [fact.target]`）で消えるが、可読性はむしろ落ちるので保留。 |
+| 1 | `lib/rigor/analysis/fact_store.rb:128` | `Ruby::MethodBodyTypeMismatch` | `Array(fact.target)`で`fact.target: Target | Array[Target]`の`Kernel#Array`強制変換をSteepが`[Target | Array[Target]]`ではなく`Array[Target]`にnarrowできない。書き換え（`fact.target.is_a?(Array) ? fact.target : [fact.target]`）で消えるが、可読性はむしろ落ちるので保留。 |
 | 2 | `lib/rigor/plugin/loader.rb:41` | `Ruby::MethodParameterMismatch` | `def self.load(configuration:, services:, requirer: ->(name) { require name })`のlambda defaultをSteepが`Kernel#require`のsig形と取り違える。Plugin名前空間にsigが無い（`UNSIGNED_NAMESPACES`）ことの副作用。 |
 
 ### 結論

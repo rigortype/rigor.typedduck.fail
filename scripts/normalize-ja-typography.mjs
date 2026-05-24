@@ -73,8 +73,19 @@ export function transform(content) {
   return frontmatter + transformedBody;
 }
 
+function unescapeTablePipes(text) {
+  // Table rows start with `|`. In GFM, a literal `|` inside a cell must be
+  // escaped as `\|` to avoid being parsed as a column separator. This site's
+  // renderer does NOT treat `\|` as an escape sequence and outputs it
+  // literally (backslash + pipe). Strip the backslash so `|` renders
+  // correctly. This applies to the whole row — including inside inline code
+  // spans, where `\` is also not processed as an escape character.
+  return text.replace(/^\|.*$/gm, (line) => line.replace(/\\\|/g, '|'));
+}
+
 function transformProse(text) {
   let next = text;
+  next = unescapeTablePipes(next);
   next = stripSpacesAroundJp(next);
 
   const jpRe = new RegExp(JP);

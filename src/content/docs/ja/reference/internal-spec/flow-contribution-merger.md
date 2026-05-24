@@ -102,7 +102,7 @@ sidebar:
 
 ## 合成ルール（ADR-2準拠）
 
-- **`:return_type`**。 `Rigor::Type::Combinator.intersection`でインターセクトします。マージャーは相互`accepts`三値論理でコラプスを検出します。どちらの側も相手を受け入れない（`a.accepts(b).no? && b.accepts(a).no?`）場合、値のドメインは互いに素でインターセクションは空です。同一ティアでのコラプスは`:return_type_collapse`を、下位ティアがトリガーしたコラプスは`:lower_tier_contradiction`を発生させます。結果は上位ティアの値をスロットに保持します。
+- **`:return_type`**。`Rigor::Type::Combinator.intersection`でインターセクトします。マージャーは相互`accepts`三値論理でコラプスを検出します。どちらの側も相手を受け入れない（`a.accepts(b).no? && b.accepts(a).no?`）場合、値のドメインは互いに素でインターセクションは空です。同一ティアでのコラプスは`:return_type_collapse`を、下位ティアがトリガーしたコラプスは`:lower_tier_contradiction`を発生させます。結果は上位ティアの値をスロットに保持します。
 - **`:truthy_fact` / `:falsey_fact` / `:post_return_fact`**。エッジローカル。プラグインのtrueエッジのファクトはfalseエッジの補集合を意味しません。同一ティアおよびクロスティアのファクトは、ペイロード等値性による重複排除をしながら蓄積されます。
 - **`:mutation` / `:invalidation` / `:role`**。ユニオン。等値性による重複排除。
 - **`:exception`**。単値。等しい例外エフェクトは黙ってコラプスします。等しくないエフェクトは`:exceptional_disagreement`（同一ティア）または`:lower_tier_contradiction`（下位ティアが上位ティアに挑戦）のいずれかを発生させます。
