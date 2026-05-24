@@ -73,19 +73,28 @@ export function transform(content) {
   return frontmatter + transformedBody;
 }
 
-function unescapeTablePipes(text) {
-  // Table rows start with `|`. In GFM, a literal `|` inside a cell must be
-  // escaped as `\|` to avoid being parsed as a column separator. This site's
-  // renderer does NOT treat `\|` as an escape sequence and outputs it
-  // literally (backslash + pipe). Strip the backslash so `|` renders
-  // correctly. This applies to the whole row — including inside inline code
-  // spans, where `\` is also not processed as an escape character.
-  return text.replace(/^\|.*$/gm, (line) => line.replace(/\\\|/g, '|'));
+function unescapePipes(text) {
+  // `\|` is used in GFM only to prevent `|` from being parsed as a table
+  // column separator. This site's renderer does NOT treat `\|` as an escape
+  // sequence anywhere and outputs the backslash literally. Strip it globally:
+  //
+  //   - In table rows the escape was GFM-required; removing it keeps `|`
+  //     safe because inline code spans (`` `|` ``) protect their content from
+  //     table parsing in any conformant renderer.
+  //   - In bullet lists and prose (e.g. **Join `T \| U`**) the escape was
+  //     never needed; the backslash was just carried over from the GFM source.
+  //   - Inside inline code spans the `\` is NOT a Markdown escape character,
+  //     so `` `T \| U` `` renders as `T \| U` literally — stripping it gives
+  //     the intended `` `T | U` ``.
+  //
+  // Fenced code blocks are already excluded by the caller (the `parts.split`
+  // in `transform`), so their content is never passed here.
+  return text.replace(/\\\|/g, '|');
 }
 
 function transformProse(text) {
   let next = text;
-  next = unescapeTablePipes(next);
+  next = unescapePipes(next);
   next = stripSpacesAroundJp(next);
 
   const jpRe = new RegExp(JP);
