@@ -3,8 +3,8 @@ title: "Rails Ecosystem Plugins — Roadmap"
 description: "Imported from rigortype/rigor docs/design/20260508-rails-plugins-roadmap.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/design/20260508-rails-plugins-roadmap.md"
 sourcePath: "docs/design/20260508-rails-plugins-roadmap.md"
-sourceSha: "7d0451fac2c194a82522899bc6a4f1c648bbb45786bb4fb8f16d538f2966844a"
-sourceCommit: "fe4e9a80df3829ee4f113e763e4bb9920c33da21"
+sourceSha: "c798f7c6e6d9937f89581273ae1c43f741518471371bd4d9d61b8a8d29428d10"
+sourceCommit: "203008e9741e8ffd61448e32cf9b89c19f1339da"
 translationStatus: "translated"
 sidebar:
   order: 20265508

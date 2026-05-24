@@ -3,8 +3,8 @@ title: "Redmine per-commit detection probe — does Rigor catch real bugs?"
 description: "Imported from rigortype/rigor docs/notes/20260521-redmine-per-commit-detection-probe.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260521-redmine-per-commit-detection-probe.md"
 sourcePath: "docs/notes/20260521-redmine-per-commit-detection-probe.md"
-sourceSha: "7696e52ba3137fbe5412cab22f022d77aa69cae206c17055f120e2244ee81807"
-sourceCommit: "75f1372f98e9b1b00cb79a72bf925849cead6956"
+sourceSha: "e09b5a8ceb1dc4a6459f006d9df18d743c2adfae6c36461f0214d2be1ab3db5c"
+sourceCommit: "203008e9741e8ffd61448e32cf9b89c19f1339da"
 translationStatus: "translated"
 sidebar:
   order: 20266521

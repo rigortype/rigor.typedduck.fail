@@ -3,8 +3,8 @@ title: "ADR-19 — 言語サーバーのパッケージング"
 description: "rigortype/rigor docs/adr/19-language-server-packaging.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/19-language-server-packaging.md"
 sourcePath: "docs/adr/19-language-server-packaging.md"
-sourceSha: "573423620f472b0c48ea66d279e83990a9a622c5895a5fe1d40c771eb59e325e"
-sourceCommit: "fe4e9a80df3829ee4f113e763e4bb9920c33da21"
+sourceSha: "f2a9e424c5fb71060cd03dc329806da63f408b9514b5a5fc27c199711305d84d"
+sourceCommit: "203008e9741e8ffd61448e32cf9b89c19f1339da"
 translationStatus: "translated"
 sidebar:
   order: 4019

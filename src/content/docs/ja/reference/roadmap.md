@@ -3,9 +3,9 @@ title: "Rigor Roadmap"
 description: "rigortype/rigor docs/ROADMAP.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/ROADMAP.md"
 sourcePath: "docs/ROADMAP.md"
-sourceSha: "12278bcac8f4b641ca57033665f46d4dcadc3270641094785838862f2fa390d5"
-sourceCommit: "f391fadebcb3c674444a346501d51664b046dec2"
-sourceDate: "2026-05-21T22:31:46+09:00"
+sourceSha: "2b8d643423082b9431927b82c9cd020ac0f283922c878e082a2868aad81046e6"
+sourceCommit: "203008e9741e8ffd61448e32cf9b89c19f1339da"
+sourceDate: "2026-05-23T05:06:44+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9050

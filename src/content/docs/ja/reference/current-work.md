@@ -3,9 +3,9 @@ title: "Current Work — Resume Bookmark"
 description: "rigortype/rigor docs/CURRENT_WORK.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/CURRENT_WORK.md"
 sourcePath: "docs/CURRENT_WORK.md"
-sourceSha: "1f117d9d4dc5c6a453b72c2439e0549896b73545c48c0bd83063b2fe25c54123"
-sourceCommit: "f391fadebcb3c674444a346501d51664b046dec2"
-sourceDate: "2026-05-21T21:12:44+09:00"
+sourceSha: "33515575e3e88b535958822e087ac5579a141f0f37ad6f449ca6c8baf6119635"
+sourceCommit: "203008e9741e8ffd61448e32cf9b89c19f1339da"
+sourceDate: "2026-05-23T05:57:26+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9050

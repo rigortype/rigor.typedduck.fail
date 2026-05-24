@@ -3,8 +3,8 @@ title: "ADR-21 — Rubydex評価（基礎、バックエンド、ツール？）
 description: "rigortype/rigor docs/adr/21-rubydex-evaluation.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/21-rubydex-evaluation.md"
 sourcePath: "docs/adr/21-rubydex-evaluation.md"
-sourceSha: "c4062843a5415d35aec6684e0e92b85e0d8a80da6793155a2d94db847c77e8bd"
-sourceCommit: "fe4e9a80df3829ee4f113e763e4bb9920c33da21"
+sourceSha: "c7279caa1f0550610a3ad34df5e00c3e18061a4be4cfcf35ea9fa0914cd2fff6"
+sourceCommit: "203008e9741e8ffd61448e32cf9b89c19f1339da"
 translationStatus: "translated"
 sidebar:
   order: 4021

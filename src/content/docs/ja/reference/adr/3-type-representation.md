@@ -3,8 +3,8 @@ title: "ADR-3: 内部型表現"
 description: "rigortype/rigor docs/adr/3-type-representation.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/3-type-representation.md"
 sourcePath: "docs/adr/3-type-representation.md"
-sourceSha: "c58da4af128ec26300eef7f74d7acbbeae3c704e6e390ff2240523f67c6f2a8e"
-sourceCommit: "dd1240d88f635b570b72ca36d1fccddc8df8ccd1"
+sourceSha: "f14b64b8f7d242ffcf00f8cbab034208bde139d02ec221fc5499065712661db8"
+sourceCommit: "203008e9741e8ffd61448e32cf9b89c19f1339da"
 translationStatus: "translated"
 sidebar:
   order: 4003

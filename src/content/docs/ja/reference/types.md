@@ -3,8 +3,8 @@ title: "Rigor型システム — クイックガイド"
 description: "rigortype/rigor docs/types.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/types.md"
 sourcePath: "docs/types.md"
-sourceSha: "4fc119458aecd87a0f68cd2932c8b0f1784d92489f57f2e8aa86ab7be4f63e6b"
-sourceCommit: "9f40e22193647dc06e3ab70c5ba82768b0bfe738"
+sourceSha: "f684f18972ee0ef4f905e03067d5c3b988a5a8433d74954d38896c89e580fbb1"
+sourceCommit: "203008e9741e8ffd61448e32cf9b89c19f1339da"
 translationStatus: "translated"
 sidebar:
   order: 9050

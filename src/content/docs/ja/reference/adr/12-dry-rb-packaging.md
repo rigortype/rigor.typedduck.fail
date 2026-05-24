@@ -3,9 +3,9 @@ title: "ADR-12 — dry-rbプラグインパッケージング"
 description: "rigortype/rigor docs/adr/12-dry-rb-packaging.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/12-dry-rb-packaging.md"
 sourcePath: "docs/adr/12-dry-rb-packaging.md"
-sourceSha: "dbb832bcd74374532d24d3ca940fe6587e13f047127977f2b45b254d8e6175bb"
-sourceCommit: "fe4e9a80df3829ee4f113e763e4bb9920c33da21"
-sourceDate: "2026-05-16T03:16:06+09:00"
+sourceSha: "5b6d2bbc3aa9d9e1000813928b0995b54e4032c9f96222a2f0207d4e1354c1b6"
+sourceCommit: "203008e9741e8ffd61448e32cf9b89c19f1339da"
+sourceDate: "2026-05-19T21:19:58+09:00"
 translationStatus: "translated"
 sidebar:
   order: 4012

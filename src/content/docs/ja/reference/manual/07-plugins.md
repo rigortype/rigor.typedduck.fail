@@ -3,8 +3,8 @@ title: "プラグインの使用"
 description: "rigortype/rigor docs/manual/07-plugins.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/07-plugins.md"
 sourcePath: "docs/manual/07-plugins.md"
-sourceSha: "d7cf5ef9157ada4bf634af71240d3fa24dfa5b9ea46195f5524cfb6df6df7a87"
-sourceCommit: "f391fadebcb3c674444a346501d51664b046dec2"
+sourceSha: "11f043660a76808b39b4cceb33e5059d0ced975801a3a664f7b63143c5f2da8b"
+sourceCommit: "203008e9741e8ffd61448e32cf9b89c19f1339da"
 translationStatus: "translated"
 sidebar:
   order: 9007

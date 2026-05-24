@@ -3,8 +3,8 @@ title: "VSCode extension — first-party marketplace client for `rigor lsp`"
 description: "Imported from rigortype/rigor docs/design/20260522-vscode-extension.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/design/20260522-vscode-extension.md"
 sourcePath: "docs/design/20260522-vscode-extension.md"
-sourceSha: "57945aa041e11bc586a5ab0246364e7c780b07c8a3d1d86c572fa6f846880aa4"
-sourceCommit: "f391fadebcb3c674444a346501d51664b046dec2"
+sourceSha: "208ebf33faea2bd08fd37126974cde182ba47d1940f8f96c539cbcdce3ad907f"
+sourceCommit: "203008e9741e8ffd61448e32cf9b89c19f1339da"
 translationStatus: "translated"
 sidebar:
   order: 20265522
