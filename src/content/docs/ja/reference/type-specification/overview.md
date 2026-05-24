@@ -1,7 +1,7 @@
 ---
 title: "概要"
 description: "rigortype/rigor docs/type-specification/overview.mdの翻訳です。"
-editUrl: "https://github.com/rigortype/rigor/edit/main/docs/type-specification/overview.md"
+editUrl: "https://github.com/rigortype/rigor/edit/master/docs/type-specification/overview.md"
 sourcePath: "docs/type-specification/overview.md"
 sourceSha: "347d1351cb6561e09108517efbe37ebb428463afae3d0745ce86d6388b035ae7"
 sourceCommit: "75f1372f98e9b1b00cb79a72bf925849cead6956"

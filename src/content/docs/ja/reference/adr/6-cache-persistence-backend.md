@@ -1,7 +1,7 @@
 ---
 title: "ADR-6: キャッシュ永続化バックエンド"
 description: "rigortype/rigor docs/adr/6-cache-persistence-backend.mdの翻訳です。"
-editUrl: "https://github.com/rigortype/rigor/edit/main/docs/adr/6-cache-persistence-backend.md"
+editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/6-cache-persistence-backend.md"
 sourcePath: "docs/adr/6-cache-persistence-backend.md"
 sourceSha: "37c81acd65bd3b104514abae2c669a4fd1bcfa5a146b6554a644a9fa7e1a0f61"
 sourceCommit: "5b252bbd814960f6b442a4df7dd41a0d0a79c995"

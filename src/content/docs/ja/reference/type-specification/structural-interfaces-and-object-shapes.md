@@ -1,7 +1,7 @@
 ---
 title: "構造的インターフェースとオブジェクトシェイプ"
 description: "rigortype/rigor docs/type-specification/structural-interfaces-and-object-shapes.mdの翻訳です。"
-editUrl: "https://github.com/rigortype/rigor/edit/main/docs/type-specification/structural-interfaces-and-object-shapes.md"
+editUrl: "https://github.com/rigortype/rigor/edit/master/docs/type-specification/structural-interfaces-and-object-shapes.md"
 sourcePath: "docs/type-specification/structural-interfaces-and-object-shapes.md"
 sourceSha: "8536d688c6d0bcfc93ad781cfe5209d656ea9c97d1966425afc618fd1c5b2a37"
 sourceCommit: "9f40e22193647dc06e3ab70c5ba82768b0bfe738"

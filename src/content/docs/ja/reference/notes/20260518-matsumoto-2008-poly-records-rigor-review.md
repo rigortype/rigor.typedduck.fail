@@ -1,9 +1,9 @@
 ---
 title: "Matsumoto & Minamide 2008 (多相レコード型 Ruby 型推論) — Rigor 観点考察"
 description: "Imported from rigortype/rigor docs/notes/20260518-matsumoto-2008-poly-records-rigor-review.md."
-editUrl: "https://github.com/rigortype/rigor/edit/main/docs/notes/20260518-matsumoto-2008-poly-records-rigor-review.md"
+editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260518-matsumoto-2008-poly-records-rigor-review.md"
 sourcePath: "docs/notes/20260518-matsumoto-2008-poly-records-rigor-review.md"
-sourceSha: "a6f7c8fa36298b3762d977ce7df503ffc45c28f0f604d38966563fc1222ba511"
+sourceSha: "7e67498f416c28f26cf9c97e8250b311107bcc573785882bd91e45fadee99992"
 sourceCommit: "203008e9741e8ffd61448e32cf9b89c19f1339da"
 sourceDate: "2026-05-18T04:22:22+09:00"
 sourceLanguage: "ja"
@@ -22,7 +22,7 @@ Status: research note, no design commitments.
   情報処理学会論文誌: プログラミングVol.49 No.SIG 3 (PRO 36),
   pp.39–54 (Mar. 2008)
 - 出典URL: <https://ipsj.ixsq.nii.ac.jp/records/16465>
-- ローカル写し: [IPSJ-TPRO4903005.md](https://github.com/rigortype/rigor/blob/main/IPSJ-TPRO4903005.md) /
+- ローカル写し: [IPSJ-TPRO4903005.md](https://github.com/rigortype/rigor/blob/master/IPSJ-TPRO4903005.md) /
   [IPSJ-TPRO4903005.pdf](../../IPSJ-TPRO4903005.pdf)
 
 ## 1. 論文要旨（一段落）
@@ -51,7 +51,7 @@ MLの型システムにGarrigueのカインド付き多相レコード型(maskab
 | **多相レコード型 + Garrigueカインド** | RBSの**公称型 + interface部分構造**ハイブリッド | Rigorは**公称型優位**。多相レコード型の構造的アプローチは取らない。論文が苦しんだ「型表記が肥大化する／57k型変数」問題は、RBSが公称名を前面に出すことで概ね回避できている。これはSteep時代に同著者がたどり着いた工学的結論と整合。 |
 | **命令的型変数（IVarの多相制限）** | Rigorのper-class IVar shape + initialization tracking（仕様は[internal-spec](../../internal-spec/inference-engine/)） | 問題領域は完全に同じ：副作用持つivarを多相に汚染させない。論文はTofte流の型変数分類、Rigorはper-class shapeの固定化＋カインド分離なしの実装で対処**。論文の解は理論的に綺麗、Rigorの解は実用的に十分**、というトレードオフの違い。 |
 | **正の位置／負の位置の非対称扱い** | [ADR-5ロバストネス原則](../../adr/5-robustness-principle/) | これは興味深い**正味同方向**の非対称性。論文「呼び出し側に課す要求（負位置）は少なめ、提供側として認める実装（正位置）は寛大に」。Rigor「引数（負位置）は寛容、返り値（正位置）は厳格」**。呼ぶ側に楽をさせる側**は両者一致、**返り値側の厳格／寛容の向き**が逆だが、これは「型推論ツールとして引っかかりを減らしたい（論文）」vs「型カタログとして信頼を作りたい（Rigor）」という目的差から自然に出てくる差。Rigorがロバストネス原則を選んだ正当化材料として、本論文の対義設計と比較するメモは[ADR-5](../../adr/5-robustness-principle/)に追記する価値がある。 |
-| **多相再帰の "クラス展開" 対応** | RBSの宣言済み公称型 + 個別ジェネリクス | 論文ではArray/String/Integerの相互再帰が単相に潰れ、誤検出を生むため`Array#0`/`Array#1`のように**手で展開**。Rigor側はそもそもRBSが`class Array[Elem]`を最初から多相で宣言できるので構造的な単相崩壊が起きない。Rigorが「**手書きRBS（および将来sig-gen）を信頼する**」（[ADR-14](../../adr/14-rbs-sig-generation/), [AGENTS.md § RBS Authorship](https://github.com/rigortype/rigor/blob/main/AGENTS.md)）と決めている理由の傍証。 |
+| **多相再帰の "クラス展開" 対応** | RBSの宣言済み公称型 + 個別ジェネリクス | 論文ではArray/String/Integerの相互再帰が単相に潰れ、誤検出を生むため`Array#0`/`Array#1`のように**手で展開**。Rigor側はそもそもRBSが`class Array[Elem]`を最初から多相で宣言できるので構造的な単相崩壊が起きない。Rigorが「**手書きRBS（および将来sig-gen）を信頼する**」（[ADR-14](../../adr/14-rbs-sig-generation/), [AGENTS.md § RBS Authorship](https://github.com/rigortype/rigor/blob/master/AGENTS.md)）と決めている理由の傍証。 |
 | **`map`の正則でない型（多相再帰 + 多相メソッド）** | RBSの`def map: [U] () { (Elem) -> U } -> Array[U]` | 論文は表現不能で「結果配列の要素型 = 入力配列の要素型」と保守的に近似 → 実用例`[1,2,3].map{|x|x.to_s}.map{|x|(x+"0").to_i}`で誤検出。RBS（Rigor）は自然に書ける**。ML型推論の限界が公称ジェネリクスでの宣言主義に押し出された理由**を本論文が明示している。 |
 | **異種混合コレクション** | RigorのUnion型（[value-lattice.md](../../type-specification/value-lattice/)） | 論文は要素型を「共通フィールドのみ持つ構造型」で扱う（フィールドアクセス可、識別不可）。RigorはUnion（識別可、絞り込み必要）。Unionの方が**narrowing/refinementと相性が良い**、Garrigue流の方が**アクセスの自由度が高い**、というのが本質的な差。Rigorがcontrol-flow narrowingを重視する設計なのでUnion寄りで正解。 |
 | **`as(Integer)`キャスト案** (§7) | RBS::Extendedの`%a{rigor:v1:assert_type ...}` / `%a{rigor:v1:return_override ...}` ([rbs-extended.md](../../type-specification/rbs-extended/)) | **同方向の発想が12年の隔たりを超えて再合流**している。論文の「`as`メソッドはランタイムでは何もしない・型推論側にだけ意味を持つ」設計は、Rigorのpredicate / assertion annotationと完全に同じ哲学。 |

@@ -1,7 +1,7 @@
 ---
 title: "インポートされた組み込み型"
 description: "rigortype/rigor docs/type-specification/imported-built-in-types.mdの翻訳です。"
-editUrl: "https://github.com/rigortype/rigor/edit/main/docs/type-specification/imported-built-in-types.md"
+editUrl: "https://github.com/rigortype/rigor/edit/master/docs/type-specification/imported-built-in-types.md"
 sourcePath: "docs/type-specification/imported-built-in-types.md"
 sourceSha: "ecda1996b03c7477e521788a0070b95191dee48e88d35f329d6ef769e9b21b42"
 sourceCommit: "a7f0405346ea5833580c50f3610ccb0b97fea2d8"

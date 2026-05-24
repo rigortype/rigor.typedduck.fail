@@ -1,7 +1,7 @@
 ---
 title: "Public API Stability Boundary"
 description: "Imported from rigortype/rigor docs/internal-spec/public-api.md."
-editUrl: "https://github.com/rigortype/rigor/edit/main/docs/internal-spec/public-api.md"
+editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/public-api.md"
 sourcePath: "docs/internal-spec/public-api.md"
 sourceSha: "9b8ac57d18f2752f2e1f2e91d81d89d8b096fcf02e92a3d54f054a70d07742b1"
 sourceCommit: "9f40e22193647dc06e3ab70c5ba82768b0bfe738"

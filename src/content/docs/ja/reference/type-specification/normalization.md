@@ -1,7 +1,7 @@
 ---
 title: "正規化"
 description: "rigortype/rigor docs/type-specification/normalization.mdの翻訳です。"
-editUrl: "https://github.com/rigortype/rigor/edit/main/docs/type-specification/normalization.md"
+editUrl: "https://github.com/rigortype/rigor/edit/master/docs/type-specification/normalization.md"
 sourcePath: "docs/type-specification/normalization.md"
 sourceSha: "bbe27b66f89c012ea66909301a98c503d318fbdc807d436fd171321eca576586"
 sourceCommit: "9f40e22193647dc06e3ab70c5ba82768b0bfe738"

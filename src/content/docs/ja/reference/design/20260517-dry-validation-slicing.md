@@ -1,7 +1,7 @@
 ---
 title: "`rigor-dry-validation` — スライシング決定"
 description: "rigortype/rigor docs/design/20260517-dry-validation-slicing.mdの翻訳です。"
-editUrl: "https://github.com/rigortype/rigor/edit/main/docs/design/20260517-dry-validation-slicing.md"
+editUrl: "https://github.com/rigortype/rigor/edit/master/docs/design/20260517-dry-validation-slicing.md"
 sourcePath: "docs/design/20260517-dry-validation-slicing.md"
 sourceSha: "c7acacf9e9a814a0c66315257f3ed7a0464fc03ea24376d78ac3ed54426f8714"
 sourceCommit: "dd1240d88f635b570b72ca36d1fccddc8df8ccd1"

@@ -1,7 +1,7 @@
 ---
 title: "Ractorワーカープールクラッシュ — CRubyの並列Ractor use-after-freeに根本原因を特定"
 description: "rigortype/rigor docs/notes/20260520-ractor-pool-cruby-uaf.mdの翻訳です。"
-editUrl: "https://github.com/rigortype/rigor/edit/main/docs/notes/20260520-ractor-pool-cruby-uaf.md"
+editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260520-ractor-pool-cruby-uaf.md"
 sourcePath: "docs/notes/20260520-ractor-pool-cruby-uaf.md"
 sourceSha: "7a194685c12478ca3727a4607bfc5f1dca70853fa66cd29bd96c9ff1ef9487fc"
 sourceCommit: "626e04cb1ce26d1b1500ed80d078dac891053fd2"

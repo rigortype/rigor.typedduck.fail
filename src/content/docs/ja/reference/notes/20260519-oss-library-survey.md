@@ -1,7 +1,7 @@
 ---
 title: "22ライブラリOSSサーベイ — 繰り返される偽陽性クラスター + 着地したBigDecimal-coerce修正"
 description: "rigortype/rigor docs/notes/20260519-oss-library-survey.mdの翻訳です。"
-editUrl: "https://github.com/rigortype/rigor/edit/main/docs/notes/20260519-oss-library-survey.md"
+editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260519-oss-library-survey.md"
 sourcePath: "docs/notes/20260519-oss-library-survey.md"
 sourceSha: "6f046e567c80bb13928c5632c995a18795cedabcdad31aba4c1da04e5fd578f5"
 sourceCommit: "fe4e9a80df3829ee4f113e763e4bb9920c33da21"

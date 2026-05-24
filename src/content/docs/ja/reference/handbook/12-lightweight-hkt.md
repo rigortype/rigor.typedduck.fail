@@ -1,7 +1,7 @@
 ---
 title: "軽量HKT（`JSON.parse`とその仲間たち）"
 description: "rigortype/rigor docs/handbook/12-lightweight-hkt.mdの翻訳です。"
-editUrl: "https://github.com/rigortype/rigor/edit/main/docs/handbook/12-lightweight-hkt.md"
+editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/12-lightweight-hkt.md"
 sourcePath: "docs/handbook/12-lightweight-hkt.md"
 sourceSha: "35cc7b91441225a36f4e95005de042daf4fc714ecc8cc8aedb27473748a54602"
 sourceCommit: "dd1240d88f635b570b72ca36d1fccddc8df8ccd1"
@@ -217,16 +217,16 @@ Union[ nil, true, false, Integer, Float, String,
 
 | レイヤー | 場所 |
 | --- | --- |
-| キャリア | [`lib/rigor/type/app.rb`](https://github.com/rigortype/rigor/blob/main/lib/rigor/type/app.rb) |
-| レジストリ値オブジェクト | [`lib/rigor/inference/hkt_registry.rb`](https://github.com/rigortype/rigor/blob/main/lib/rigor/inference/hkt_registry.rb) |
-| ボディ木ノード型 | [`lib/rigor/inference/hkt_body.rb`](https://github.com/rigortype/rigor/blob/main/lib/rigor/inference/hkt_body.rb) |
-| レデューサ（遅延自己参照 + 燃料） | [`lib/rigor/inference/hkt_reducer.rb`](https://github.com/rigortype/rigor/blob/main/lib/rigor/inference/hkt_reducer.rb) |
-| ボディ文字列文法パーサ | [`lib/rigor/inference/hkt_body_parser.rb`](https://github.com/rigortype/rigor/blob/main/lib/rigor/inference/hkt_body_parser.rb) |
-| ディレクティブパーサ（`hkt_register` / `hkt_define`） | [`lib/rigor/rbs_extended/hkt_directives.rb`](https://github.com/rigortype/rigor/blob/main/lib/rigor/rbs_extended/hkt_directives.rb) |
-| バンドルされた`json::value` + `METHOD_RETURN_OVERRIDES` | [`lib/rigor/builtins/hkt_builtins.rb`](https://github.com/rigortype/rigor/blob/main/lib/rigor/builtins/hkt_builtins.rb) |
-| ディスパッチャ層 | [`lib/rigor/inference/method_dispatcher.rb`](https://github.com/rigortype/rigor/blob/main/lib/rigor/inference/method_dispatcher.rb)（`try_hkt_builtin_return`） |
-| 環境統合 | [`lib/rigor/environment.rb`](https://github.com/rigortype/rigor/blob/main/lib/rigor/environment.rb)（`#hkt_registry` + `HktRegistryHolder`） |
-| RBSスキャン | [`lib/rigor/environment/rbs_loader.rb`](https://github.com/rigortype/rigor/blob/main/lib/rigor/environment/rbs_loader.rb)（`each_class_decl_annotation`） |
+| キャリア | [`lib/rigor/type/app.rb`](https://github.com/rigortype/rigor/blob/master/lib/rigor/type/app.rb) |
+| レジストリ値オブジェクト | [`lib/rigor/inference/hkt_registry.rb`](https://github.com/rigortype/rigor/blob/master/lib/rigor/inference/hkt_registry.rb) |
+| ボディ木ノード型 | [`lib/rigor/inference/hkt_body.rb`](https://github.com/rigortype/rigor/blob/master/lib/rigor/inference/hkt_body.rb) |
+| レデューサ（遅延自己参照 + 燃料） | [`lib/rigor/inference/hkt_reducer.rb`](https://github.com/rigortype/rigor/blob/master/lib/rigor/inference/hkt_reducer.rb) |
+| ボディ文字列文法パーサ | [`lib/rigor/inference/hkt_body_parser.rb`](https://github.com/rigortype/rigor/blob/master/lib/rigor/inference/hkt_body_parser.rb) |
+| ディレクティブパーサ（`hkt_register` / `hkt_define`） | [`lib/rigor/rbs_extended/hkt_directives.rb`](https://github.com/rigortype/rigor/blob/master/lib/rigor/rbs_extended/hkt_directives.rb) |
+| バンドルされた`json::value` + `METHOD_RETURN_OVERRIDES` | [`lib/rigor/builtins/hkt_builtins.rb`](https://github.com/rigortype/rigor/blob/master/lib/rigor/builtins/hkt_builtins.rb) |
+| ディスパッチャ層 | [`lib/rigor/inference/method_dispatcher.rb`](https://github.com/rigortype/rigor/blob/master/lib/rigor/inference/method_dispatcher.rb)（`try_hkt_builtin_return`） |
+| 環境統合 | [`lib/rigor/environment.rb`](https://github.com/rigortype/rigor/blob/master/lib/rigor/environment.rb)（`#hkt_registry` + `HktRegistryHolder`） |
+| RBSスキャン | [`lib/rigor/environment/rbs_loader.rb`](https://github.com/rigortype/rigor/blob/master/lib/rigor/environment/rbs_loader.rb)（`each_class_decl_annotation`） |
 
 ## 次に何を読むか
 
@@ -238,5 +238,5 @@ Union[ nil, true, false, Integer, Float, String,
   § 「Rigorがモデル化しないこと」。
 
 自前のオーバーレイをend-to-endで書きたいなら、
-[`spec/rigor/environment_spec.rb`](https://github.com/rigortype/rigor/blob/main/spec/rigor/environment_spec.rb)
+[`spec/rigor/environment_spec.rb`](https://github.com/rigortype/rigor/blob/master/spec/rigor/environment_spec.rb)
 （「ADR-20 HKTレジストリスキャン」コンテキスト）にある実例が最小の参照——ディレクティブペアを持つフィクスチャ`.rbs`ファイル、それらを留めるクラス宣言、そして`env.hkt_registry`経由で登録を表面化する`Environment.for_project`呼び出し。

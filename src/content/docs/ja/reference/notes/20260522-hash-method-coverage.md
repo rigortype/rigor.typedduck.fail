@@ -1,7 +1,7 @@
 ---
 title: "Hash method coverage — ShapeDispatch & block-fold audit"
 description: "Imported from rigortype/rigor docs/notes/20260522-hash-method-coverage.md."
-editUrl: "https://github.com/rigortype/rigor/edit/main/docs/notes/20260522-hash-method-coverage.md"
+editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260522-hash-method-coverage.md"
 sourcePath: "docs/notes/20260522-hash-method-coverage.md"
 sourceSha: "e9eafee6dbec672f69184e83528f8068343ecff13d2d573b281b57013aa915e7"
 sourceCommit: "203008e9741e8ffd61448e32cf9b89c19f1339da"

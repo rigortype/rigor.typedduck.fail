@@ -1,7 +1,7 @@
 ---
 title: "設定"
 description: "rigortype/rigor docs/manual/03-configuration.mdの翻訳です。"
-editUrl: "https://github.com/rigortype/rigor/edit/main/docs/manual/03-configuration.md"
+editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/03-configuration.md"
 sourcePath: "docs/manual/03-configuration.md"
 sourceSha: "16a21701d51da92c12e57ee17eb1cbc32324fa01e20031c217eb1a6c5ef04d17"
 sourceCommit: "f391fadebcb3c674444a346501d51664b046dec2"

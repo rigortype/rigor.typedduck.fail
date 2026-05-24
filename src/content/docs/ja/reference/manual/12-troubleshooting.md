@@ -1,7 +1,7 @@
 ---
 title: "トラブルシューティング"
 description: "rigortype/rigor docs/manual/12-troubleshooting.mdの翻訳です。"
-editUrl: "https://github.com/rigortype/rigor/edit/main/docs/manual/12-troubleshooting.md"
+editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/12-troubleshooting.md"
 sourcePath: "docs/manual/12-troubleshooting.md"
 sourceSha: "48e5dbd82ecec3240e4d2e1df2435c42d2ddf8cb902bae1fa38f9e390e3040cc"
 sourceCommit: "f391fadebcb3c674444a346501d51664b046dec2"

@@ -1,7 +1,7 @@
 ---
 title: "RBS互換型"
 description: "rigortype/rigor docs/type-specification/rbs-compatible-types.mdの翻訳です。"
-editUrl: "https://github.com/rigortype/rigor/edit/main/docs/type-specification/rbs-compatible-types.md"
+editUrl: "https://github.com/rigortype/rigor/edit/master/docs/type-specification/rbs-compatible-types.md"
 sourcePath: "docs/type-specification/rbs-compatible-types.md"
 sourceSha: "27080c9a84920fd39dc3afc7f0543b7f0d0709091d3a0916475d5d8ae9b2dddf"
 sourceCommit: "9f40e22193647dc06e3ab70c5ba82768b0bfe738"

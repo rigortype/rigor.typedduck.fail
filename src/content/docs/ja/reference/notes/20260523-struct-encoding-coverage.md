@@ -1,7 +1,7 @@
 ---
 title: "Struct / Encoding coverage audit"
 description: "Imported from rigortype/rigor docs/notes/20260523-struct-encoding-coverage.md."
-editUrl: "https://github.com/rigortype/rigor/edit/main/docs/notes/20260523-struct-encoding-coverage.md"
+editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260523-struct-encoding-coverage.md"
 sourcePath: "docs/notes/20260523-struct-encoding-coverage.md"
 sourceSha: "987e521ddf75a22c49572336bf658940182df522d03f9172bb7f4e9597596875"
 sourceCommit: "1d0381f3ade3f4b208d95b9d649f1e80c381b775"

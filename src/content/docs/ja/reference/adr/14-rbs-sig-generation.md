@@ -1,7 +1,7 @@
 ---
 title: "ADR-14 — 推論からのRBSシグネチャ生成と拡張"
 description: "rigortype/rigor docs/adr/14-rbs-sig-generation.mdの翻訳です。"
-editUrl: "https://github.com/rigortype/rigor/edit/main/docs/adr/14-rbs-sig-generation.md"
+editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/14-rbs-sig-generation.md"
 sourcePath: "docs/adr/14-rbs-sig-generation.md"
 sourceSha: "03a4b8ca2e8390beee8ca23abdb433d2caff4cc63c5a24d77c0b685b8081736f"
 sourceCommit: "5b252bbd814960f6b442a4df7dd41a0d0a79c995"

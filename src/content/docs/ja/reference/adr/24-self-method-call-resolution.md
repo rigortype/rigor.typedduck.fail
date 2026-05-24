@@ -1,7 +1,7 @@
 ---
 title: "ADR-24 — implicit-selfメソッド呼び出し解決"
 description: "rigortype/rigor docs/adr/24-self-method-call-resolution.mdの翻訳です。"
-editUrl: "https://github.com/rigortype/rigor/edit/main/docs/adr/24-self-method-call-resolution.md"
+editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/24-self-method-call-resolution.md"
 sourcePath: "docs/adr/24-self-method-call-resolution.md"
 sourceSha: "68bf00f2428b1bbaec581c6be28ed67187fd86abafd8a63aacd24240ffe24ad9"
 sourceCommit: "5b252bbd814960f6b442a4df7dd41a0d0a79c995"

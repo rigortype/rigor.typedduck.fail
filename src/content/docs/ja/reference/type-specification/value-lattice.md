@@ -1,7 +1,7 @@
 ---
 title: "値束（Value Lattice）"
 description: "rigortype/rigor docs/type-specification/value-lattice.mdの翻訳です。"
-editUrl: "https://github.com/rigortype/rigor/edit/main/docs/type-specification/value-lattice.md"
+editUrl: "https://github.com/rigortype/rigor/edit/master/docs/type-specification/value-lattice.md"
 sourcePath: "docs/type-specification/value-lattice.md"
 sourceSha: "fd81eaa7793c6405884c3324c0ccc997ab07959f3b42b9c61a6d9c157139e626"
 sourceCommit: "9f40e22193647dc06e3ab70c5ba82768b0bfe738"

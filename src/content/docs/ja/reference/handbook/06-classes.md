@@ -1,7 +1,7 @@
 ---
 title: "クラス"
 description: "rigortype/rigor docs/handbook/06-classes.mdの翻訳です。"
-editUrl: "https://github.com/rigortype/rigor/edit/main/docs/handbook/06-classes.md"
+editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/06-classes.md"
 sourcePath: "docs/handbook/06-classes.md"
 sourceSha: "8eeea260215e63f1d11cff4fabe0e7680152041d39daf42cfc1354eb323a2d5e"
 sourceCommit: "f87b68f852350994a182dca35c52464a59be6e53"

@@ -1,7 +1,7 @@
 ---
 title: "Plugin Registration / Loading (slice 1)"
 description: "Imported from rigortype/rigor docs/internal-spec/plugin.md."
-editUrl: "https://github.com/rigortype/rigor/edit/main/docs/internal-spec/plugin.md"
+editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/plugin.md"
 sourcePath: "docs/internal-spec/plugin.md"
 sourceSha: "de5199466f1a7841de23d7062c621f5e6f78dcf508413797d58d8904ba319612"
 sourceCommit: "9f40e22193647dc06e3ab70c5ba82768b0bfe738"

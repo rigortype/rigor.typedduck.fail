@@ -1,9 +1,9 @@
 ---
 title: "Matsumoto & Minamide 2010 (Ruby CFA) — Rigor 観点考察"
 description: "Imported from rigortype/rigor docs/notes/20260518-matsumoto-2010-cfa-rigor-review.md."
-editUrl: "https://github.com/rigortype/rigor/edit/main/docs/notes/20260518-matsumoto-2010-cfa-rigor-review.md"
+editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260518-matsumoto-2010-cfa-rigor-review.md"
 sourcePath: "docs/notes/20260518-matsumoto-2010-cfa-rigor-review.md"
-sourceSha: "770499cdaeb725316f13ab705e99538175d7a4597ceb5e06b723184357a94494"
+sourceSha: "bfb36c0210d6a3992c9c0461494f9e063bb62403a2d3b0359ec3267bcf7d0a14"
 sourceCommit: "203008e9741e8ffd61448e32cf9b89c19f1339da"
 sourceDate: "2026-05-18T04:21:23+09:00"
 sourceLanguage: "ja"
@@ -21,7 +21,7 @@ Status: research note, no design commitments.
   「Rubyプログラムの制御フロー解析とその健全性の証明」
   情報処理学会論文誌 プログラミングVol.3 No.2, pp.9–25 (Mar. 2010)
 - 出典URL: <https://ipsj.ixsq.nii.ac.jp/records/37907>
-- ローカル写し: [IPSJ-TPRO0302003.md](https://github.com/rigortype/rigor/blob/main/IPSJ-TPRO0302003.md) /
+- ローカル写し: [IPSJ-TPRO0302003.md](https://github.com/rigortype/rigor/blob/master/IPSJ-TPRO0302003.md) /
   [IPSJ-TPRO0302003.pdf](../../IPSJ-TPRO0302003.pdf)
 
 ## 1. 論文要旨（一段落）

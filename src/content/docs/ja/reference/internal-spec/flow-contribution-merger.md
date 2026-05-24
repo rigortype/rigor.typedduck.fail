@@ -1,7 +1,7 @@
 ---
 title: "Flow Contribution Merger (slice 3)"
 description: "Imported from rigortype/rigor docs/internal-spec/flow-contribution-merger.md."
-editUrl: "https://github.com/rigortype/rigor/edit/main/docs/internal-spec/flow-contribution-merger.md"
+editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/flow-contribution-merger.md"
 sourcePath: "docs/internal-spec/flow-contribution-merger.md"
 sourceSha: "98ef4389e62d174854430dec2052a0026eb9304597526cdb3470df582589af90"
 sourceCommit: "9f40e22193647dc06e3ab70c5ba82768b0bfe738"

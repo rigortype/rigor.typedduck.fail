@@ -1,7 +1,7 @@
 ---
 title: "Implementation Expectations"
 description: "Imported from rigortype/rigor docs/internal-spec/implementation-expectations.md."
-editUrl: "https://github.com/rigortype/rigor/edit/main/docs/internal-spec/implementation-expectations.md"
+editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/implementation-expectations.md"
 sourcePath: "docs/internal-spec/implementation-expectations.md"
 sourceSha: "5bf469a9f3ff7d97e94bc293744d332ae46267466ad08e0c104e1727fecc0a6b"
 sourceCommit: "9f40e22193647dc06e3ab70c5ba82768b0bfe738"

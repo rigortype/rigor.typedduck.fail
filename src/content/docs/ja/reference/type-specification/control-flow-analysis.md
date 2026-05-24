@@ -1,7 +1,7 @@
 ---
 title: "制御フロー解析"
 description: "rigortype/rigor docs/type-specification/control-flow-analysis.mdの翻訳です。"
-editUrl: "https://github.com/rigortype/rigor/edit/main/docs/type-specification/control-flow-analysis.md"
+editUrl: "https://github.com/rigortype/rigor/edit/master/docs/type-specification/control-flow-analysis.md"
 sourcePath: "docs/type-specification/control-flow-analysis.md"
 sourceSha: "b0195593040bdb622433e0903c52a5ecbadede93e161f56719a2b48324f330e6"
 sourceCommit: "9f40e22193647dc06e3ab70c5ba82768b0bfe738"

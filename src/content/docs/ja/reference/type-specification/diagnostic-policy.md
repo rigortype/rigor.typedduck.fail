@@ -1,7 +1,7 @@
 ---
 title: "診断ポリシー"
 description: "rigortype/rigor docs/type-specification/diagnostic-policy.mdの翻訳です。"
-editUrl: "https://github.com/rigortype/rigor/edit/main/docs/type-specification/diagnostic-policy.md"
+editUrl: "https://github.com/rigortype/rigor/edit/master/docs/type-specification/diagnostic-policy.md"
 sourcePath: "docs/type-specification/diagnostic-policy.md"
 sourceSha: "c6b21573826d8bd60b553ee06afe4552a4b4c426871d2c47d454f3fa2e421d9c"
 sourceCommit: "a7f0405346ea5833580c50f3610ccb0b97fea2d8"

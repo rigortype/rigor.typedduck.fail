@@ -1,7 +1,7 @@
 ---
 title: "Rational / Complex / Range / Set — ConstantFolding カバレッジ監査"
 description: "Imported from rigortype/rigor docs/notes/20260522-rational-complex-range-set-method-coverage.md."
-editUrl: "https://github.com/rigortype/rigor/edit/main/docs/notes/20260522-rational-complex-range-set-method-coverage.md"
+editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260522-rational-complex-range-set-method-coverage.md"
 sourcePath: "docs/notes/20260522-rational-complex-range-set-method-coverage.md"
 sourceSha: "c2d1008aadc260e382fdb2cf695e12706c704a9101202e2d5bc60d60781322b7"
 sourceCommit: "1d0381f3ade3f4b208d95b9d649f1e80c381b775"

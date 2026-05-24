@@ -1,7 +1,7 @@
 ---
 title: "Rails Ecosystem Plugins — Roadmap"
 description: "Imported from rigortype/rigor docs/design/20260508-rails-plugins-roadmap.md."
-editUrl: "https://github.com/rigortype/rigor/edit/main/docs/design/20260508-rails-plugins-roadmap.md"
+editUrl: "https://github.com/rigortype/rigor/edit/master/docs/design/20260508-rails-plugins-roadmap.md"
 sourcePath: "docs/design/20260508-rails-plugins-roadmap.md"
 sourceSha: "7d0451fac2c194a82522899bc6a4f1c648bbb45786bb4fb8f16d538f2966844a"
 sourceCommit: "fe4e9a80df3829ee4f113e763e4bb9920c33da21"
@@ -12,7 +12,7 @@ sidebar:
 
 ステータス: **計画中、2026-05-08**。このドキュメントはRailsアプリ向けの`rigor-*`プラグインファミリーの計画をキャプチャしています。情報提供目的であり、個々のプラグイン契約の拘束力のあるソースは各プラグインのディレクトリ下の`README.md`と統合仕様に残ります。
 
-このファミリーの最初のプラグイン——[`rigor-activerecord`](../../plugins/rigor-activerecord/)——は`master`（コミット`e8fda84`）に着地し、[`skills/rigor-plugin-author/SKILL.md`](https://github.com/rigortype/rigor/blob/main/skills/rigor-plugin-author/SKILL.md)の「モノリポでスタート、契約が安定したら`git subtree split`で抽出」規律に従ってモノリポにステージされています。
+このファミリーの最初のプラグイン——[`rigor-activerecord`](../../plugins/rigor-activerecord/)——は`master`（コミット`e8fda84`）に着地し、[`skills/rigor-plugin-author/SKILL.md`](https://github.com/rigortype/rigor/blob/master/skills/rigor-plugin-author/SKILL.md)の「モノリポでスタート、契約が安定したら`git subtree split`で抽出」規律に従ってモノリポにステージされています。
 
 ## 作業原則
 

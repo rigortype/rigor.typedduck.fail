@@ -1,7 +1,7 @@
 ---
 title: "Rigor内部仕様"
 description: "rigortype/rigor docs/internal-spec/README.mdの翻訳です。"
-editUrl: "https://github.com/rigortype/rigor/edit/main/docs/internal-spec/README.md"
+editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/README.md"
 sourcePath: "docs/internal-spec/README.md"
 sourceSha: "4830c935610a535ec01395f4f056a706f39c322f14ad7ea1091034f6f3e468d5"
 sourceCommit: "f87b68f852350994a182dca35c52464a59be6e53"

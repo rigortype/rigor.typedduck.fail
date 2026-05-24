@@ -1,7 +1,7 @@
 ---
 title: "はじめに"
 description: "rigortype/rigor docs/handbook/01-getting-started.mdの翻訳です。"
-editUrl: "https://github.com/rigortype/rigor/edit/main/docs/handbook/01-getting-started.md"
+editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/01-getting-started.md"
 sourcePath: "docs/handbook/01-getting-started.md"
 sourceSha: "9b460932b49931cb3949e67ab188e9d5d0b68d4c36525cc0916b255251d49b19"
 sourceCommit: "f391fadebcb3c674444a346501d51664b046dec2"

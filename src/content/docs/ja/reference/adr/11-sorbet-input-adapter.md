@@ -1,7 +1,7 @@
 ---
 title: "ADR-11 — プラグインアダプターとしてのSorbet入力"
 description: "rigortype/rigor docs/adr/11-sorbet-input-adapter.mdの翻訳です。"
-editUrl: "https://github.com/rigortype/rigor/edit/main/docs/adr/11-sorbet-input-adapter.md"
+editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/11-sorbet-input-adapter.md"
 sourcePath: "docs/adr/11-sorbet-input-adapter.md"
 sourceSha: "ee385d9f2b2e4b3a935f17cd5af4f4411d50b951ee4a39abe6824839d7e07d38"
 sourceCommit: "5b252bbd814960f6b442a4df7dd41a0d0a79c995"

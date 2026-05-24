@@ -1,7 +1,7 @@
 ---
 title: "特殊型"
 description: "rigortype/rigor docs/type-specification/special-types.mdの翻訳です。"
-editUrl: "https://github.com/rigortype/rigor/edit/main/docs/type-specification/special-types.md"
+editUrl: "https://github.com/rigortype/rigor/edit/master/docs/type-specification/special-types.md"
 sourcePath: "docs/type-specification/special-types.md"
 sourceSha: "03907b6b2ce006f7e2c07af7e718804c0bd274c9fb0483489943e72557c43d6c"
 sourceCommit: "f87b68f852350994a182dca35c52464a59be6e53"

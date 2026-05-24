@@ -1,7 +1,7 @@
 ---
 title: "RBS::Extendedアノテーション"
 description: "rigortype/rigor docs/type-specification/rbs-extended.mdの翻訳です。"
-editUrl: "https://github.com/rigortype/rigor/edit/main/docs/type-specification/rbs-extended.md"
+editUrl: "https://github.com/rigortype/rigor/edit/master/docs/type-specification/rbs-extended.md"
 sourcePath: "docs/type-specification/rbs-extended.md"
 sourceSha: "76c641a9dd236a4329ab7bb8b96f149c44afaa9aaf2ed92d6a8afdb6c057af66"
 sourceCommit: "a7f0405346ea5833580c50f3610ccb0b97fea2d8"

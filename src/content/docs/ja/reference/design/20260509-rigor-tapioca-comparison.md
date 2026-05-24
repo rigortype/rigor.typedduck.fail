@@ -1,7 +1,7 @@
 ---
 title: "Rigor and Tapioca — Comparison and Strategy"
 description: "Imported from rigortype/rigor docs/design/20260509-rigor-tapioca-comparison.md."
-editUrl: "https://github.com/rigortype/rigor/edit/main/docs/design/20260509-rigor-tapioca-comparison.md"
+editUrl: "https://github.com/rigortype/rigor/edit/master/docs/design/20260509-rigor-tapioca-comparison.md"
 sourcePath: "docs/design/20260509-rigor-tapioca-comparison.md"
 sourceSha: "30a15d15ee589cfad1a155afcad75f208ac7d5c388c527efbcc61bd62b02fcba"
 sourceCommit: "f87b68f852350994a182dca35c52464a59be6e53"

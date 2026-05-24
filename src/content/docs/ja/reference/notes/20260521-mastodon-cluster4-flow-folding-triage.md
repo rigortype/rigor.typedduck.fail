@@ -1,7 +1,7 @@
 ---
 title: "Mastodonサーベイ — クラスター4（フローフォールディング警告）トリアージ"
 description: "rigortype/rigor docs/notes/20260521-mastodon-cluster4-flow-folding-triage.mdの翻訳です。"
-editUrl: "https://github.com/rigortype/rigor/edit/main/docs/notes/20260521-mastodon-cluster4-flow-folding-triage.md"
+editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260521-mastodon-cluster4-flow-folding-triage.md"
 sourcePath: "docs/notes/20260521-mastodon-cluster4-flow-folding-triage.md"
 sourceSha: "55d1ab574e941144226811d09119cace592eff875e234539a1738a5081429c43"
 sourceCommit: "626e04cb1ce26d1b1500ed80d078dac891053fd2"

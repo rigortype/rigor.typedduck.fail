@@ -1,7 +1,7 @@
 ---
 title: "ベースライン"
 description: "rigortype/rigor docs/manual/06-baseline.mdの翻訳です。"
-editUrl: "https://github.com/rigortype/rigor/edit/main/docs/manual/06-baseline.md"
+editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/06-baseline.md"
 sourcePath: "docs/manual/06-baseline.md"
 sourceSha: "85023df7fa5405d89cf1ab0bac4e06cc09eebbd6a50db88221f6385ea5c17a18"
 sourceCommit: "f391fadebcb3c674444a346501d51664b046dec2"

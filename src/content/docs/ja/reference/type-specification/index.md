@@ -1,7 +1,7 @@
 ---
 title: "Rigor型仕様"
 description: "rigortype/rigor docs/type-specification/README.mdの翻訳です。"
-editUrl: "https://github.com/rigortype/rigor/edit/main/docs/type-specification/README.md"
+editUrl: "https://github.com/rigortype/rigor/edit/master/docs/type-specification/README.md"
 sourcePath: "docs/type-specification/README.md"
 sourceSha: "706de3f7f5dfd0734f39926413a4c07173121400d2fa8e8bc870f42f8a0927b8"
 sourceCommit: "9f40e22193647dc06e3ab70c5ba82768b0bfe738"

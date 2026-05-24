@@ -1,7 +1,7 @@
 ---
 title: "Cache slice taxonomy — pre-v0.1.0 design notes"
 description: "Imported from rigortype/rigor docs/design/20260505-cache-slice-taxonomy.md."
-editUrl: "https://github.com/rigortype/rigor/edit/main/docs/design/20260505-cache-slice-taxonomy.md"
+editUrl: "https://github.com/rigortype/rigor/edit/master/docs/design/20260505-cache-slice-taxonomy.md"
 sourcePath: "docs/design/20260505-cache-slice-taxonomy.md"
 sourceSha: "690d8986a2aacc55f108a210785bf17aebcbd005a18e370efe060ccc976d2bf9"
 sourceCommit: "035915291e331f3bcd5ce804a1e30dc284ffbd48"

@@ -1,7 +1,7 @@
 ---
 title: "ADR-17 — プロジェクト側monkey-patchの事前評価"
 description: "rigortype/rigor docs/adr/17-monkey-patch-pre-evaluation.mdの翻訳です。"
-editUrl: "https://github.com/rigortype/rigor/edit/main/docs/adr/17-monkey-patch-pre-evaluation.md"
+editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/17-monkey-patch-pre-evaluation.md"
 sourcePath: "docs/adr/17-monkey-patch-pre-evaluation.md"
 sourceSha: "b9f8c83128c3772fe05b7646f790e1ac759985d3638a6ef45e8be17fc74c475c"
 sourceCommit: "fe4e9a80df3829ee4f113e763e4bb9920c33da21"

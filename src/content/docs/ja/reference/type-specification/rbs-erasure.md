@@ -1,7 +1,7 @@
 ---
 title: "RBS消去"
 description: "rigortype/rigor docs/type-specification/rbs-erasure.mdの翻訳です。"
-editUrl: "https://github.com/rigortype/rigor/edit/main/docs/type-specification/rbs-erasure.md"
+editUrl: "https://github.com/rigortype/rigor/edit/master/docs/type-specification/rbs-erasure.md"
 sourcePath: "docs/type-specification/rbs-erasure.md"
 sourceSha: "fe78592983daebf0a92249608fbfa7a5755917a183792b46c3abf41cfdbc6169"
 sourceCommit: "9f40e22193647dc06e3ab70c5ba82768b0bfe738"

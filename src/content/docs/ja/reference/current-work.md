@@ -1,7 +1,7 @@
 ---
 title: "Current Work — Resume Bookmark"
 description: "rigortype/rigor docs/CURRENT_WORK.mdの翻訳です。"
-editUrl: "https://github.com/rigortype/rigor/edit/main/docs/CURRENT_WORK.md"
+editUrl: "https://github.com/rigortype/rigor/edit/master/docs/CURRENT_WORK.md"
 sourcePath: "docs/CURRENT_WORK.md"
 sourceSha: "1f117d9d4dc5c6a453b72c2439e0549896b73545c48c0bd83063b2fe25c54123"
 sourceCommit: "f391fadebcb3c674444a346501d51664b046dec2"
@@ -11,7 +11,7 @@ sidebar:
   order: 9050
 ---
 
-次の実装者のための一時的なブックマーク: 直近の次セッションのエントリーポイントに加え、他では完全には捕捉されていないエンジン内部の項目。**規範的な**契約は[`docs/internal-spec/inference-engine.md`](../internal-spec/inference-engine/)と[`docs/adr/4-type-inference-engine.md`](../adr/4-type-inference-engine/)に残ります;将来を見据えたコミットメントエンベロープ（リリース戦略 + 完全なバックログ）は[`docs/ROADMAP.md`](../roadmap/)にあり;リリース済みバージョンの記録は[`CHANGELOG.md`](https://github.com/rigortype/rigor/blob/main/CHANGELOG.md)です。このファイルがそれらのいずれかと矛盾する場合、仕様 / ADR / ロードマップが拘束力を持ち、このファイルは古くなっています。
+次の実装者のための一時的なブックマーク: 直近の次セッションのエントリーポイントに加え、他では完全には捕捉されていないエンジン内部の項目。**規範的な**契約は[`docs/internal-spec/inference-engine.md`](../internal-spec/inference-engine/)と[`docs/adr/4-type-inference-engine.md`](../adr/4-type-inference-engine/)に残ります;将来を見据えたコミットメントエンベロープ（リリース戦略 + 完全なバックログ）は[`docs/ROADMAP.md`](../roadmap/)にあり;リリース済みバージョンの記録は[`CHANGELOG.md`](https://github.com/rigortype/rigor/blob/master/CHANGELOG.md)です。このファイルがそれらのいずれかと矛盾する場合、仕様 / ADR / ロードマップが拘束力を持ち、このファイルは古くなっています。
 
 ## ステータス
 
@@ -89,6 +89,6 @@ v0.1.9 SKILLトリオ + ADR-22ベースラインスライス5はすべて`master
 2. [`docs/adr/22-baseline-and-project-onboarding.md`](../adr/22-baseline-and-project-onboarding/) — WD8 + 2つのオンボーディングSKILLスケッチ;ベースラインメカニズム。
 3. [`docs/adr/23-diagnostic-triage-command.md`](../adr/23-diagnostic-triage-command/) — `rigor triage`;WD5 / スライス3はtriage ↔ SKILLのデータレイヤー契約。
 4. `CHANGELOG.md` § `[Unreleased]` — バージョンバンプを待つv0.1.9サイクルの作業。
-5. [`.claude/skills/rigor-plugin-author/SKILL.md`](https://github.com/rigortype/rigor/blob/main/.claude/skills/rigor-plugin-author/SKILL.md) — コントリビューターSKILL;外部著者`skills/rigor-plugin-author/`バリアントのテンプレート。
+5. [`.claude/skills/rigor-plugin-author/SKILL.md`](https://github.com/rigortype/rigor/blob/master/.claude/skills/rigor-plugin-author/SKILL.md) — コントリビューターSKILL;外部著者`skills/rigor-plugin-author/`バリアントのテンプレート。
 6. [`docs/internal-spec/public-api.md`](../internal-spec/public-api/) — パブリック対内部の安定性境界。v0.2.0は外部`rigor-*` gem向けにプラグイン契約サーフェスを安定化させるので、ピン留めされた名前空間を拡張する前に`spec/rigor/public_api_drift_spec.rb`をクロスリファレンスする。
 7. [`docs/adr/2-extension-api.md`](../adr/2-extension-api/) — v0.2.0が安定化させなければならないプラグイン契約。

@@ -1,7 +1,7 @@
 ---
 title: "関係と確実性"
 description: "rigortype/rigor docs/type-specification/relations-and-certainty.mdの翻訳です。"
-editUrl: "https://github.com/rigortype/rigor/edit/main/docs/type-specification/relations-and-certainty.md"
+editUrl: "https://github.com/rigortype/rigor/edit/master/docs/type-specification/relations-and-certainty.md"
 sourcePath: "docs/type-specification/relations-and-certainty.md"
 sourceSha: "c16064db397769042a52fee79ef38d42c090229af0a2b7fac7a70f173f8ff696"
 sourceCommit: "9f40e22193647dc06e3ab70c5ba82768b0bfe738"

@@ -1,7 +1,7 @@
 ---
 title: "Changelog — 0.0.x archive"
 description: "Imported from rigortype/rigor docs/CHANGELOG-0.0.x.md."
-editUrl: "https://github.com/rigortype/rigor/edit/main/docs/CHANGELOG-0.0.x.md"
+editUrl: "https://github.com/rigortype/rigor/edit/master/docs/CHANGELOG-0.0.x.md"
 sourcePath: "docs/CHANGELOG-0.0.x.md"
 sourceSha: "24144fa17b531e91080dd0d31cd0e60cd87a72e7efd6d120f7a88016728ee3e7"
 sourceCommit: "9f40e22193647dc06e3ab70c5ba82768b0bfe738"
@@ -14,9 +14,9 @@ sidebar:
 
 フォーマットは[Keep a Changelog](https://keepachangelog.com/en/1.1.0/)に従い、プロジェクトは[Semantic Versioning](https://semver.org/spec/v2.0.0.html)に準拠しています。
 
-このファイルは`0.0.1`から`0.0.9`までの静的アーカイブであり、プロジェクトのアーカイブルールに従ってメインの[`CHANGELOG.md`](https://github.com/rigortype/rigor/blob/main/CHANGELOG.md)から移動されました: **先頭桁のバンプ後の最初のリリース（例: `0.0.x` → `0.1.x`バンプ後の最初のリリース`0.1.1`）の時点で、以前の桁の範囲全体が`docs/CHANGELOG-<old-prefix>.md`アーカイブファイルに移動されます**。
+このファイルは`0.0.1`から`0.0.9`までの静的アーカイブであり、プロジェクトのアーカイブルールに従ってメインの[`CHANGELOG.md`](https://github.com/rigortype/rigor/blob/master/CHANGELOG.md)から移動されました: **先頭桁のバンプ後の最初のリリース（例: `0.0.x` → `0.1.x`バンプ後の最初のリリース`0.1.1`）の時点で、以前の桁の範囲全体が`docs/CHANGELOG-<old-prefix>.md`アーカイブファイルに移動されます**。
 
-現在のサイクルのリリースノートは[`CHANGELOG.md`](https://github.com/rigortype/rigor/blob/main/CHANGELOG.md)に存在します; v0.1.0のリリースノートもそこに残ります。次の先頭桁バンプ（例: `0.3.1`でトリガーされる`0.2.x` → `0.3.x`）が着地すると、`0.2.x`ブロックが同じルールに従って`docs/CHANGELOG-0.2.x.md`に移動します。
+現在のサイクルのリリースノートは[`CHANGELOG.md`](https://github.com/rigortype/rigor/blob/master/CHANGELOG.md)に存在します; v0.1.0のリリースノートもそこに残ります。次の先頭桁バンプ（例: `0.3.1`でトリガーされる`0.2.x` → `0.3.x`）が着地すると、`0.2.x`ブロックが同じルールに従って`docs/CHANGELOG-0.2.x.md`に移動します。
 
 ## [0.0.9] - 2026-05-05
 

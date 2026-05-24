@@ -1,7 +1,7 @@
 ---
 title: "ADR-25 — プラグインが提供するRBSシグネチャ"
 description: "rigortype/rigor docs/adr/25-plugin-contributed-rbs.mdの翻訳です。"
-editUrl: "https://github.com/rigortype/rigor/edit/main/docs/adr/25-plugin-contributed-rbs.md"
+editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/25-plugin-contributed-rbs.md"
 sourcePath: "docs/adr/25-plugin-contributed-rbs.md"
 sourceSha: "ec85adcb90e4f6e35cb7bc72b4f808d6b16bb37da546db987091208edc0c2594"
 sourceCommit: "75f1372f98e9b1b00cb79a72bf925849cead6956"

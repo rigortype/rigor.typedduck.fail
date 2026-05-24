@@ -1,7 +1,7 @@
 ---
 title: "Ractor移行 — 段階化されたプラン"
 description: "rigortype/rigor docs/design/20260514-ractor-migration.mdの翻訳です。"
-editUrl: "https://github.com/rigortype/rigor/edit/main/docs/design/20260514-ractor-migration.md"
+editUrl: "https://github.com/rigortype/rigor/edit/master/docs/design/20260514-ractor-migration.md"
 sourcePath: "docs/design/20260514-ractor-migration.md"
 sourceSha: "ce7c51509c8ddd485d6e811d7033d1e1609d22978aa3cae6128ccff33555e942"
 sourceCommit: "035915291e331f3bcd5ce804a1e30dc284ffbd48"

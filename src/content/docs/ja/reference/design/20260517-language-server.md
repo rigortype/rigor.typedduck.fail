@@ -1,7 +1,7 @@
 ---
 title: "Language Server — Rigor向けインプロセスRuby LSP"
 description: "rigortype/rigor docs/design/20260517-language-server.mdの翻訳です。"
-editUrl: "https://github.com/rigortype/rigor/edit/main/docs/design/20260517-language-server.md"
+editUrl: "https://github.com/rigortype/rigor/edit/master/docs/design/20260517-language-server.md"
 sourcePath: "docs/design/20260517-language-server.md"
 sourceSha: "40a692f750611a6c1931aee02b470408715477210df59c7166b6388bd39f8bae"
 sourceCommit: "dac915a9ee49b89e89774c34c518e8501275f6a3"

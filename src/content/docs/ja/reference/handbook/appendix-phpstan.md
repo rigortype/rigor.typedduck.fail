@@ -1,7 +1,7 @@
 ---
 title: "付録 — PHPStanから来た場合"
 description: "Imported from rigortype/rigor docs/handbook/appendix-phpstan.md."
-editUrl: "https://github.com/rigortype/rigor/edit/main/docs/handbook/appendix-phpstan.md"
+editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/appendix-phpstan.md"
 sourcePath: "docs/handbook/appendix-phpstan.md"
 sourceSha: "305d8e48f20258a893d2d9e07ca8911d3f3b3dbe609f27d742be6974f89417fa"
 sourceCommit: "2834288850767f48c48c99dca26f6aa339322754"

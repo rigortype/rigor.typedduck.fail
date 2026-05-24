@@ -1,7 +1,7 @@
 ---
 title: "ADR-13 — `TypeNode`リゾルバプラグインフック + TypeScriptユーティリティ型アダプター"
 description: "rigortype/rigor docs/adr/13-typenode-resolver-plugin.mdの翻訳です。"
-editUrl: "https://github.com/rigortype/rigor/edit/main/docs/adr/13-typenode-resolver-plugin.md"
+editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/13-typenode-resolver-plugin.md"
 sourcePath: "docs/adr/13-typenode-resolver-plugin.md"
 sourceSha: "10050f4409110c565e1f2a851464438c892fd83d0ac32279eabe107cc7760802"
 sourceCommit: "5b252bbd814960f6b442a4df7dd41a0d0a79c995"

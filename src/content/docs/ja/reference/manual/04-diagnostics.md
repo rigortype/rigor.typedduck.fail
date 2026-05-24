@@ -1,7 +1,7 @@
 ---
 title: "診断"
 description: "rigortype/rigor docs/manual/04-diagnostics.mdの翻訳です。"
-editUrl: "https://github.com/rigortype/rigor/edit/main/docs/manual/04-diagnostics.md"
+editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/04-diagnostics.md"
 sourcePath: "docs/manual/04-diagnostics.md"
 sourceSha: "4b3681c9836b9ba1aa104cd32a5f1edd1337a254f1404c52b55ae0a1911e9bb9"
 sourceCommit: "f391fadebcb3c674444a346501d51664b046dec2"

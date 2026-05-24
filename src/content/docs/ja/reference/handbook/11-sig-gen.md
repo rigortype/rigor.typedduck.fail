@@ -1,7 +1,7 @@
 ---
 title: "`rigor sig-gen`でRBSを生成する"
 description: "rigortype/rigor docs/handbook/11-sig-gen.mdの翻訳です。"
-editUrl: "https://github.com/rigortype/rigor/edit/main/docs/handbook/11-sig-gen.md"
+editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/11-sig-gen.md"
 sourcePath: "docs/handbook/11-sig-gen.md"
 sourceSha: "1f603634bb569814f715469f2ff6429645496d2d9ecd2cc52fd23d376dd073f0"
 sourceCommit: "a7f0405346ea5833580c50f3610ccb0b97fea2d8"

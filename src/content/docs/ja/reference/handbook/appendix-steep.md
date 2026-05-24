@@ -1,7 +1,7 @@
 ---
 title: "付録 — Steepから来た場合"
 description: "Imported from rigortype/rigor docs/handbook/appendix-steep.md."
-editUrl: "https://github.com/rigortype/rigor/edit/main/docs/handbook/appendix-steep.md"
+editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/appendix-steep.md"
 sourcePath: "docs/handbook/appendix-steep.md"
 sourceSha: "ce278584bbffb0ac6669340feb3387ac0b0626ad66a70c8affcfd2bdadc7b3a7"
 sourceCommit: "1d0381f3ade3f4b208d95b9d649f1e80c381b775"

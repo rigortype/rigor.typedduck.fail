@@ -1,7 +1,7 @@
 ---
 title: "推論エンジン"
 description: "Imported from rigortype/rigor docs/internal-spec/inference-engine.md."
-editUrl: "https://github.com/rigortype/rigor/edit/main/docs/internal-spec/inference-engine.md"
+editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/inference-engine.md"
 sourcePath: "docs/internal-spec/inference-engine.md"
 sourceSha: "7961b7d9454a5e270db820e591c289acdd3e9d4a1caecfed778933f75d05b56b"
 sourceCommit: "f87b68f852350994a182dca35c52464a59be6e53"

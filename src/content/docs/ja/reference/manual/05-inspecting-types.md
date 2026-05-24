@@ -1,7 +1,7 @@
 ---
 title: "推論型の確認"
 description: "rigortype/rigor docs/manual/05-inspecting-types.mdの翻訳です。"
-editUrl: "https://github.com/rigortype/rigor/edit/main/docs/manual/05-inspecting-types.md"
+editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/05-inspecting-types.md"
 sourcePath: "docs/manual/05-inspecting-types.md"
 sourceSha: "522e4dc7a1d366aa97a69a1ac0cb968bdaebfb47f589838015b870a841536e65"
 sourceCommit: "f391fadebcb3c674444a346501d51664b046dec2"

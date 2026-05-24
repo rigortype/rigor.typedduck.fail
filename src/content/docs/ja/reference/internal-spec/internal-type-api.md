@@ -1,7 +1,7 @@
 ---
 title: "Internal Type API"
 description: "Imported from rigortype/rigor docs/internal-spec/internal-type-api.md."
-editUrl: "https://github.com/rigortype/rigor/edit/main/docs/internal-spec/internal-type-api.md"
+editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/internal-type-api.md"
 sourcePath: "docs/internal-spec/internal-type-api.md"
 sourceSha: "1c2cad782ba0ec561779cd7e05b0cf43557519fef9ca7a7ede8f95f90ec30672"
 sourceCommit: "9f40e22193647dc06e3ab70c5ba82768b0bfe738"

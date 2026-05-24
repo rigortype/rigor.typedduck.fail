@@ -1,7 +1,7 @@
 ---
 title: "Steep 2.0 cross-check triage (2026-05-03)"
 description: "Imported from rigortype/rigor docs/notes/20260503-steep-cross-check-triage.md."
-editUrl: "https://github.com/rigortype/rigor/edit/main/docs/notes/20260503-steep-cross-check-triage.md"
+editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260503-steep-cross-check-triage.md"
 sourcePath: "docs/notes/20260503-steep-cross-check-triage.md"
 sourceSha: "e7ea90ad1caf8ef2c8ede6a0dcf7a10157066379ea8d39afb070d1630bf7db60"
 sourceCommit: "203008e9741e8ffd61448e32cf9b89c19f1339da"

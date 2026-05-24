@@ -1,7 +1,7 @@
 ---
 title: "LSP v2 — 型を意識したhover + completionの設計"
 description: "rigortype/rigor docs/design/20260517-lsp-hover-completion.mdの翻訳です。"
-editUrl: "https://github.com/rigortype/rigor/edit/main/docs/design/20260517-lsp-hover-completion.md"
+editUrl: "https://github.com/rigortype/rigor/edit/master/docs/design/20260517-lsp-hover-completion.md"
 sourcePath: "docs/design/20260517-lsp-hover-completion.md"
 sourceSha: "935308ad39d8156162a4d7a0b1a0059bdd1d44a9301f8f57f923026a14a776f6"
 sourceCommit: "dac915a9ee49b89e89774c34c518e8501275f6a3"

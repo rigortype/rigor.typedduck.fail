@@ -1,7 +1,7 @@
 ---
 title: "付録 — mypy / Pyrightから来た場合"
 description: "Imported from rigortype/rigor docs/handbook/appendix-mypy.md."
-editUrl: "https://github.com/rigortype/rigor/edit/main/docs/handbook/appendix-mypy.md"
+editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/appendix-mypy.md"
 sourcePath: "docs/handbook/appendix-mypy.md"
 sourceSha: "c53baf580b35ca7fd5f4556ad253c629e0286a4c642179d7e366d4c8455d609e"
 sourceCommit: "035915291e331f3bcd5ce804a1e30dc284ffbd48"

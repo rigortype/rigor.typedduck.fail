@@ -1,7 +1,7 @@
 ---
 title: "Rigor拡張"
 description: "rigortype/rigor docs/type-specification/rigor-extensions.mdの翻訳です。"
-editUrl: "https://github.com/rigortype/rigor/edit/main/docs/type-specification/rigor-extensions.md"
+editUrl: "https://github.com/rigortype/rigor/edit/master/docs/type-specification/rigor-extensions.md"
 sourcePath: "docs/type-specification/rigor-extensions.md"
 sourceSha: "834d6737b6e22ed21a9c2b028e75b065d4a7662a3ac628f693665eba2ee417a2"
 sourceCommit: "9f40e22193647dc06e3ab70c5ba82768b0bfe738"

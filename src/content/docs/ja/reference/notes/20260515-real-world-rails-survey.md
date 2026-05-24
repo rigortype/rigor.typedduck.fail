@@ -1,7 +1,7 @@
 ---
 title: "Real-world Rails project survey (2026-05-15)"
 description: "rigortype/rigor docs/notes/20260515-real-world-rails-survey.mdの翻訳です。"
-editUrl: "https://github.com/rigortype/rigor/edit/main/docs/notes/20260515-real-world-rails-survey.md"
+editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260515-real-world-rails-survey.md"
 sourcePath: "docs/notes/20260515-real-world-rails-survey.md"
 sourceSha: "a5baa91d29b3e946285c81ce3f14bfa066ae4fd54338740bbec31cf4f039f302"
 sourceCommit: "fe4e9a80df3829ee4f113e763e4bb9920c33da21"

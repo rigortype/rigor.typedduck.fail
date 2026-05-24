@@ -1,7 +1,7 @@
 ---
 title: "メソッドとブロック"
 description: "rigortype/rigor docs/handbook/05-methods-and-blocks.mdの翻訳です。"
-editUrl: "https://github.com/rigortype/rigor/edit/main/docs/handbook/05-methods-and-blocks.md"
+editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/05-methods-and-blocks.md"
 sourcePath: "docs/handbook/05-methods-and-blocks.md"
 sourceSha: "429f52afb375caf7cbc7f11766e6bbe37e9d6fee94757186078c5eb859155da7"
 sourceCommit: "b523ab36f62d89a1c16964a66864c27e3ebb0fe4"

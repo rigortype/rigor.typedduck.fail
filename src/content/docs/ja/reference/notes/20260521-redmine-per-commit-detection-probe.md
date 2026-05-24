@@ -1,7 +1,7 @@
 ---
 title: "Redmine per-commit detection probe — does Rigor catch real bugs?"
 description: "Imported from rigortype/rigor docs/notes/20260521-redmine-per-commit-detection-probe.md."
-editUrl: "https://github.com/rigortype/rigor/edit/main/docs/notes/20260521-redmine-per-commit-detection-probe.md"
+editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260521-redmine-per-commit-detection-probe.md"
 sourcePath: "docs/notes/20260521-redmine-per-commit-detection-probe.md"
 sourceSha: "7696e52ba3137fbe5412cab22f022d77aa69cae206c17055f120e2244ee81807"
 sourceCommit: "75f1372f98e9b1b00cb79a72bf925849cead6956"
@@ -13,7 +13,7 @@ sidebar:
 **日付:** 2026-05-21**。Rigor:** v0.1.9（`master`）。
 **対象:** `redmine/redmine`、`6.0.0 → 6.1.2`の期間。
 
-[Redmineリリースタグsweep](../20260521-redmine-6.x-regression-sweep/)の姉妹編。あのsweepは — [Mastodonのもの](../20260521-mastodon-v4.5-regression-sweep/)と同じく — リリース済みのタグにわたるベースラインの**安定性**を測った。リリースタグはspecゲートを通過した母集団であるため、リリースタグsweepはRigorの**バグ検出**力を測れ*ない*（[`rigor-regression-sweep`](https://github.com/rigortype/rigor/blob/main/.claude/skills/rigor-regression-sweep/SKILL.md) SKILL §「Phase 1」がこれを記録している）。このprobeはより細かく — **バグ混入コミット**で — サンプリングし、検出という問いを直接ぶつける。
+[Redmineリリースタグsweep](../20260521-redmine-6.x-regression-sweep/)の姉妹編。あのsweepは — [Mastodonのもの](../20260521-mastodon-v4.5-regression-sweep/)と同じく — リリース済みのタグにわたるベースラインの**安定性**を測った。リリースタグはspecゲートを通過した母集団であるため、リリースタグsweepはRigorの**バグ検出**力を測れ*ない*（[`rigor-regression-sweep`](https://github.com/rigortype/rigor/blob/master/.claude/skills/rigor-regression-sweep/SKILL.md) SKILL §「Phase 1」がこれを記録している）。このprobeはより細かく — **バグ混入コミット**で — サンプリングし、検出という問いを直接ぶつける。
 
 ## 手法
 

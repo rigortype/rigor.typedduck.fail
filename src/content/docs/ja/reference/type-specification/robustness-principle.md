@@ -1,7 +1,7 @@
 ---
 title: "頑健性原則（型のためのPostelの法則）"
 description: "rigortype/rigor docs/type-specification/robustness-principle.mdの翻訳です。"
-editUrl: "https://github.com/rigortype/rigor/edit/main/docs/type-specification/robustness-principle.md"
+editUrl: "https://github.com/rigortype/rigor/edit/master/docs/type-specification/robustness-principle.md"
 sourcePath: "docs/type-specification/robustness-principle.md"
 sourceSha: "85136c840ac250ac55638947361417c2bdcf575af48edd991d5a2c87808a0a85"
 sourceCommit: "9f40e22193647dc06e3ab70c5ba82768b0bfe738"

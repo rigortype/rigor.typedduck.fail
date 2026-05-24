@@ -1,7 +1,7 @@
 ---
 title: "エディタモード — 単一ファイル高速応答解析"
 description: "rigortype/rigor docs/design/20260516-editor-mode.mdの翻訳です。"
-editUrl: "https://github.com/rigortype/rigor/edit/main/docs/design/20260516-editor-mode.md"
+editUrl: "https://github.com/rigortype/rigor/edit/master/docs/design/20260516-editor-mode.md"
 sourcePath: "docs/design/20260516-editor-mode.md"
 sourceSha: "c092e57b6caf152c7f2a670d36d7e7166c07850d8db84825572d45a9506d501f"
 sourceCommit: "dac915a9ee49b89e89774c34c518e8501275f6a3"
@@ -21,7 +21,7 @@ sidebar:
 は、今日フルLSPにコミットすることなくそのワークロードをサポートするた
 めにRigorが必要とするCLI表面とランナー側の置き換えを設計する。
 
-契約の形はPHPStanの「Editor Mode」（[`references/phpstan/website/src/user-guide/editor-mode.md`](https://github.com/rigortype/rigor/blob/main/references/phpstan/website/src/user-guide/editor-mode.md)を参照）を踏襲する。
+契約の形はPHPStanの「Editor Mode」（[`references/phpstan/website/src/user-guide/editor-mode.md`](https://github.com/rigortype/rigor/blob/master/references/phpstan/website/src/user-guide/editor-mode.md)を参照）を踏襲する。
 設計上の問題が同じだからである。すなわち、エディタは未保存のバッファを
 保持し、外部ツールがそれをテンポラリファイルへ書き出し、解析器はその
 テンポラリファイルがプロジェクト内の1つのファイルを置き換えたかのよう

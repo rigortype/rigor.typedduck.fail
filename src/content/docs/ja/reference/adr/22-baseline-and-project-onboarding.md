@@ -1,7 +1,7 @@
 ---
 title: "ADR-22 — ベースラインメカニズム + プロジェクトオンボーディングSKILL"
 description: "rigortype/rigor docs/adr/22-baseline-and-project-onboarding.mdの翻訳です。"
-editUrl: "https://github.com/rigortype/rigor/edit/main/docs/adr/22-baseline-and-project-onboarding.md"
+editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/22-baseline-and-project-onboarding.md"
 sourcePath: "docs/adr/22-baseline-and-project-onboarding.md"
 sourceSha: "111aef4c00096484fcb254a55a925c0abd3163d5defde6a065ab68b9336241eb"
 sourceCommit: "5b252bbd814960f6b442a4df7dd41a0d0a79c995"

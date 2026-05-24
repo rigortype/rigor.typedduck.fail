@@ -1,7 +1,7 @@
 ---
 title: "型演算子"
 description: "rigortype/rigor docs/type-specification/type-operators.mdの翻訳です。"
-editUrl: "https://github.com/rigortype/rigor/edit/main/docs/type-specification/type-operators.md"
+editUrl: "https://github.com/rigortype/rigor/edit/master/docs/type-specification/type-operators.md"
 sourcePath: "docs/type-specification/type-operators.md"
 sourceSha: "ecedbddbfe0e215997c775b5c46cb7eab6dc50dfcf6dc33f1e0c15678a80c68e"
 sourceCommit: "a7f0405346ea5833580c50f3610ccb0b97fea2d8"

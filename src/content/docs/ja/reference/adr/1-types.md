@@ -1,7 +1,7 @@
 ---
 title: "ADR-1: 型モデルとRBSスーパーセット戦略"
 description: "rigortype/rigor docs/adr/1-types.mdの翻訳です。"
-editUrl: "https://github.com/rigortype/rigor/edit/main/docs/adr/1-types.md"
+editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/1-types.md"
 sourcePath: "docs/adr/1-types.md"
 sourceSha: "968b4a7d0be1a71a924fe4387339784ee0e0306df9716b65ea2ac6dbab4fcc72"
 sourceCommit: "dd1240d88f635b570b72ca36d1fccddc8df8ccd1"

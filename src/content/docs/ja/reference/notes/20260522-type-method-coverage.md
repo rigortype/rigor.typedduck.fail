@@ -1,7 +1,7 @@
 ---
 title: "型別メソッドカバレッジ — ConstantFolding / ShapeDispatch / ExpressionTyper 監査"
 description: "Imported from rigortype/rigor docs/notes/20260522-type-method-coverage.md."
-editUrl: "https://github.com/rigortype/rigor/edit/main/docs/notes/20260522-type-method-coverage.md"
+editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260522-type-method-coverage.md"
 sourcePath: "docs/notes/20260522-type-method-coverage.md"
 sourceSha: "c0e4871892157285440bfce3bf36870dce470a1f1d85bee0766aab45176ee6f9"
 sourceCommit: "1d0381f3ade3f4b208d95b9d649f1e80c381b775"

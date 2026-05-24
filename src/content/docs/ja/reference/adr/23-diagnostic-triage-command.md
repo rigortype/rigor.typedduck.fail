@@ -1,7 +1,7 @@
 ---
 title: "ADR-23 — 診断トリアージコマンド（`rigor triage`）"
 description: "rigortype/rigor docs/adr/23-diagnostic-triage-command.mdの翻訳です。"
-editUrl: "https://github.com/rigortype/rigor/edit/main/docs/adr/23-diagnostic-triage-command.md"
+editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/23-diagnostic-triage-command.md"
 sourcePath: "docs/adr/23-diagnostic-triage-command.md"
 sourceSha: "8687e96b13db47b874a67bb1dbe780ac3a24d5a8a4428a09d2be6f9949a713bb"
 sourceCommit: "5b252bbd814960f6b442a4df7dd41a0d0a79c995"

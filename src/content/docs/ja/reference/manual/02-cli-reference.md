@@ -1,7 +1,7 @@
 ---
 title: "CLIコマンドリファレンス"
 description: "rigortype/rigor docs/manual/02-cli-reference.mdの翻訳です。"
-editUrl: "https://github.com/rigortype/rigor/edit/main/docs/manual/02-cli-reference.md"
+editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/02-cli-reference.md"
 sourcePath: "docs/manual/02-cli-reference.md"
 sourceSha: "fcdead70b8fef9166c3eedd3b8c7ddd0b9411bfc0ecbfeecf2c0ed5e3c74951f"
 sourceCommit: "f391fadebcb3c674444a346501d51664b046dec2"

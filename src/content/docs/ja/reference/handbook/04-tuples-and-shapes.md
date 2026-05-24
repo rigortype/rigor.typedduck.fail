@@ -1,7 +1,7 @@
 ---
 title: "タプルとハッシュシェイプ"
 description: "rigortype/rigor docs/handbook/04-tuples-and-shapes.mdの翻訳です。"
-editUrl: "https://github.com/rigortype/rigor/edit/main/docs/handbook/04-tuples-and-shapes.md"
+editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/04-tuples-and-shapes.md"
 sourcePath: "docs/handbook/04-tuples-and-shapes.md"
 sourceSha: "2fb4b6348453139c5fc820c3b06725c3ff89bbd1bf3291d80e2a4f9f6db1d5d1"
 sourceCommit: "fe4e9a80df3829ee4f113e763e4bb9920c33da21"
@@ -227,7 +227,7 @@ end
 
 ### オプトインのTypeScriptユーティリティ型プラグイン経由で
 
-ディレクティブでTSの綴り（`Pick<T, K>`など）を使いたい場合は、[`rigor-typescript-utility-types`](https://github.com/rigortype/rigor/blob/main/plugins/rigor-typescript-utility-types/)プラグインをオプトインしてください。このプラグインは`Plugin::TypeNodeResolver`を登録し、各TS名を正準射影に変換します:
+ディレクティブでTSの綴り（`Pick<T, K>`など）を使いたい場合は、[`rigor-typescript-utility-types`](https://github.com/rigortype/rigor/blob/master/plugins/rigor-typescript-utility-types/)プラグインをオプトインしてください。このプラグインは`Plugin::TypeNodeResolver`を登録し、各TS名を正準射影に変換します:
 
 ```yaml
 # .rigor.yml

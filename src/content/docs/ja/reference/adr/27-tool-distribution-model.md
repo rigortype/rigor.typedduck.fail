@@ -1,7 +1,7 @@
 ---
 title: "ADR-27 — ツール配布・インストールモデル"
 description: "rigortype/rigor docs/adr/27-tool-distribution-model.mdの翻訳です。"
-editUrl: "https://github.com/rigortype/rigor/edit/main/docs/adr/27-tool-distribution-model.md"
+editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/27-tool-distribution-model.md"
 sourcePath: "docs/adr/27-tool-distribution-model.md"
 sourceSha: "818aecd33a13f930cc144e1fec51e07bb6b8c094a8286d60d17895c380b8515e"
 sourceCommit: "f391fadebcb3c674444a346501d51664b046dec2"

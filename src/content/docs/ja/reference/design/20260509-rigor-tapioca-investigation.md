@@ -1,7 +1,7 @@
 ---
 title: "`rigor-tapioca`? — Tapioca DSL-RBI Coverage Investigation"
 description: "Imported from rigortype/rigor docs/design/20260509-rigor-tapioca-investigation.md."
-editUrl: "https://github.com/rigortype/rigor/edit/main/docs/design/20260509-rigor-tapioca-investigation.md"
+editUrl: "https://github.com/rigortype/rigor/edit/master/docs/design/20260509-rigor-tapioca-investigation.md"
 sourcePath: "docs/design/20260509-rigor-tapioca-investigation.md"
 sourceSha: "7f4164ef7ee2b2678f9e09f4b7dfaa63ffa7b900e7db49d45b0daf521d092c16"
 sourceCommit: "fe4e9a80df3829ee4f113e763e4bb9920c33da21"
@@ -16,7 +16,7 @@ sidebar:
 
 ## 実際のギャップ
 
-Tapiocaのリルコンパイラは特定の構造パターンを出力する。`body`カラムを持つActiveRecordモデル`Post`の場合、生成された`sorbet/rbi/dsl/post.rbi`は以下のようになる（[`compiler_activerecordcolumns.md`](https://github.com/rigortype/rigor/blob/main/references/tapioca/manual/compiler_activerecordcolumns.md)ドキュメント参照）:
+Tapiocaのリルコンパイラは特定の構造パターンを出力する。`body`カラムを持つActiveRecordモデル`Post`の場合、生成された`sorbet/rbi/dsl/post.rbi`は以下のようになる（[`compiler_activerecordcolumns.md`](https://github.com/rigortype/rigor/blob/master/references/tapioca/manual/compiler_activerecordcolumns.md)ドキュメント参照）:
 
 ```rbi
 # typed: true
@@ -282,6 +282,6 @@ plugins/rigor-tapioca/
   — この調査が基づく戦略的比較。
 - [ADR-11 — Sorbetインプットアダプターとしてのプラグイン](../../adr/11-sorbet-input-adapter/)
   — `rigor-sorbet`の拘束力のあるコントラクト。
-- [`tapioca/manual/compiler_activerecordcolumns.md`](https://github.com/rigortype/rigor/blob/main/references/tapioca/manual/compiler_activerecordcolumns.md)
+- [`tapioca/manual/compiler_activerecordcolumns.md`](https://github.com/rigortype/rigor/blob/master/references/tapioca/manual/compiler_activerecordcolumns.md)
   — この調査がテストしたTapioca生成DSL RBI形式のサンプル。
 - `tmp/rigor_tapioca_check.rb` — ギャップを確認した使い捨て再現スクリプト。コミットされていない。このドキュメントの「実際のギャップ」セクションから再作成できる。

@@ -1,7 +1,7 @@
 ---
 title: "キャッシング"
 description: "rigortype/rigor docs/manual/11-caching.mdの翻訳です。"
-editUrl: "https://github.com/rigortype/rigor/edit/main/docs/manual/11-caching.md"
+editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/11-caching.md"
 sourcePath: "docs/manual/11-caching.md"
 sourceSha: "ff44c24520ee1929d020d20ddae199645934cde7a726ecf4db351e07725a8b4b"
 sourceCommit: "f391fadebcb3c674444a346501d51664b046dec2"

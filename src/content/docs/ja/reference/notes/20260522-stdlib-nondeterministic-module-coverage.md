@@ -1,7 +1,7 @@
 ---
 title: "標準ライブラリ非決定論的・除外対象モジュール カバレッジ"
 description: "Imported from rigortype/rigor docs/notes/20260522-stdlib-nondeterministic-module-coverage.md."
-editUrl: "https://github.com/rigortype/rigor/edit/main/docs/notes/20260522-stdlib-nondeterministic-module-coverage.md"
+editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260522-stdlib-nondeterministic-module-coverage.md"
 sourcePath: "docs/notes/20260522-stdlib-nondeterministic-module-coverage.md"
 sourceSha: "7698c9205a21bc98d387e1e36c6448ace80a7e4a3f55f98e559bc8f91a489b07"
 sourceCommit: "203008e9741e8ffd61448e32cf9b89c19f1339da"

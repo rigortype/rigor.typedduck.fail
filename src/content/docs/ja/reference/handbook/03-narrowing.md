@@ -1,7 +1,7 @@
 ---
 title: "ナローイング"
 description: "rigortype/rigor docs/handbook/03-narrowing.mdの翻訳です。"
-editUrl: "https://github.com/rigortype/rigor/edit/main/docs/handbook/03-narrowing.md"
+editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/03-narrowing.md"
 sourcePath: "docs/handbook/03-narrowing.md"
 sourceSha: "3e1e3819482c7f6b589b0d10c3e42ddcee3c81c4eb0ac7f1f454484edb8bc8f1"
 sourceCommit: "035915291e331f3bcd5ce804a1e30dc284ffbd48"

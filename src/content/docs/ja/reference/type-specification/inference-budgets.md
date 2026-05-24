@@ -1,7 +1,7 @@
 ---
 title: "推論バジェットとユーザー提供の境界"
 description: "rigortype/rigor docs/type-specification/inference-budgets.mdの翻訳です。"
-editUrl: "https://github.com/rigortype/rigor/edit/main/docs/type-specification/inference-budgets.md"
+editUrl: "https://github.com/rigortype/rigor/edit/master/docs/type-specification/inference-budgets.md"
 sourcePath: "docs/type-specification/inference-budgets.md"
 sourceSha: "15098bb11c6d8210d0cd52dabfc0af9e103645195d4e9a6cc339f56198c29968"
 sourceCommit: "f87b68f852350994a182dca35c52464a59be6e53"

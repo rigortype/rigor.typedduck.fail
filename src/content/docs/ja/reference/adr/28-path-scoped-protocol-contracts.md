@@ -1,7 +1,7 @@
 ---
 title: "ADR-28 — パススコープのメソッドプロトコルコントラクト"
 description: "rigortype/rigor docs/adr/28-path-scoped-protocol-contracts.mdの翻訳です。"
-editUrl: "https://github.com/rigortype/rigor/edit/main/docs/adr/28-path-scoped-protocol-contracts.md"
+editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/28-path-scoped-protocol-contracts.md"
 sourcePath: "docs/adr/28-path-scoped-protocol-contracts.md"
 sourceSha: "d018134bb4a81d953c19306a7d1633ffde60efda274126d7d495fd24192cd53b"
 sourceCommit: "5b252bbd814960f6b442a4df7dd41a0d0a79c995"

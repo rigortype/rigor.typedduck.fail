@@ -1,7 +1,7 @@
 ---
 title: "アーキテクチャ決定記録"
 description: "rigortype/rigor docs/adr/README.mdの翻訳です。"
-editUrl: "https://github.com/rigortype/rigor/edit/main/docs/adr/README.md"
+editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/README.md"
 sourcePath: "docs/adr/README.md"
 sourceSha: "abd5bae3b7abbc8e456b665bdeb66b71dedcfbde6842ba4f6ecd6f8d4a306110"
 sourceCommit: "5b252bbd814960f6b442a4df7dd41a0d0a79c995"

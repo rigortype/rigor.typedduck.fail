@@ -1,7 +1,7 @@
 ---
 title: "標準ライブラリ決定論的モジュール関数カバレッジ"
 description: "Imported from rigortype/rigor docs/notes/20260522-stdlib-deterministic-module-coverage.md."
-editUrl: "https://github.com/rigortype/rigor/edit/main/docs/notes/20260522-stdlib-deterministic-module-coverage.md"
+editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260522-stdlib-deterministic-module-coverage.md"
 sourcePath: "docs/notes/20260522-stdlib-deterministic-module-coverage.md"
 sourceSha: "b0a707ad6fa1e16400ddc943b41326e4b994d2c58055e87eb213584e15348200"
 sourceCommit: "1d0381f3ade3f4b208d95b9d649f1e80c381b775"

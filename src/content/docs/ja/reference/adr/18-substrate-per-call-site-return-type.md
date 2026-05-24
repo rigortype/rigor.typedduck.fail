@@ -1,7 +1,7 @@
 ---
 title: "ADR-18 — 基板の呼び出しサイトごとの戻り型DSL"
 description: "rigortype/rigor docs/adr/18-substrate-per-call-site-return-type.mdの翻訳です。"
-editUrl: "https://github.com/rigortype/rigor/edit/main/docs/adr/18-substrate-per-call-site-return-type.md"
+editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/18-substrate-per-call-site-return-type.md"
 sourcePath: "docs/adr/18-substrate-per-call-site-return-type.md"
 sourceSha: "1f92f698a13a6cdc8c221f6dd2dfc31c30141894de38d5df99f57de8941e0bcf"
 sourceCommit: "dac915a9ee49b89e89774c34c518e8501275f6a3"

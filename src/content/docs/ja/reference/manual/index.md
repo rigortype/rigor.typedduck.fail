@@ -1,7 +1,7 @@
 ---
 title: "Rigorユーザーマニュアル"
 description: "rigortype/rigor docs/manual/README.mdの翻訳です。"
-editUrl: "https://github.com/rigortype/rigor/edit/main/docs/manual/README.md"
+editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/README.md"
 sourcePath: "docs/manual/README.md"
 sourceSha: "b6e818db04eb45e12261cca7eb6f2365d75bb35cdfdc8850b70f209783b5a03f"
 sourceCommit: "f391fadebcb3c674444a346501d51664b046dec2"

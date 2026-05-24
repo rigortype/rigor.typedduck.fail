@@ -1,7 +1,7 @@
 ---
 title: "ADR-10 — オプトイン依存関係ソース推論"
 description: "rigortype/rigor docs/adr/10-dependency-source-inference.mdの翻訳です。"
-editUrl: "https://github.com/rigortype/rigor/edit/main/docs/adr/10-dependency-source-inference.md"
+editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/10-dependency-source-inference.md"
 sourcePath: "docs/adr/10-dependency-source-inference.md"
 sourceSha: "5cf5d6d75cecefdd21ef95c3d02736e91df891215ea1bedeb29c6dd5498b65f8"
 sourceCommit: "5b252bbd814960f6b442a4df7dd41a0d0a79c995"

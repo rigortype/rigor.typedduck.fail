@@ -1,7 +1,7 @@
 ---
 title: "CLIエディタモード — ディスクバック`ProjectScan`スナップショットキャッシュ"
 description: "rigortype/rigor docs/design/20260518-cli-disk-snapshot-cache.mdの翻訳です。"
-editUrl: "https://github.com/rigortype/rigor/edit/main/docs/design/20260518-cli-disk-snapshot-cache.md"
+editUrl: "https://github.com/rigortype/rigor/edit/master/docs/design/20260518-cli-disk-snapshot-cache.md"
 sourcePath: "docs/design/20260518-cli-disk-snapshot-cache.md"
 sourceSha: "2bc1c7fdf024ff9e11bd361f94f63e1a8f3e03e1d1b56dc55596dd2de6a5f62a"
 sourceCommit: "dd1240d88f635b570b72ca36d1fccddc8df8ccd1"

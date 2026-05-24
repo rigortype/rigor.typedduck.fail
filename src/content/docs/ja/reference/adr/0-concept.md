@@ -1,7 +1,7 @@
 ---
 title: "ADR-0: Rigorの基盤とコアアーキテクチャ"
 description: "rigortype/rigor docs/adr/0-concept.mdの翻訳です。"
-editUrl: "https://github.com/rigortype/rigor/edit/main/docs/adr/0-concept.md"
+editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/0-concept.md"
 sourcePath: "docs/adr/0-concept.md"
 sourceSha: "f2d498d41850121d8a6d1bcc004ab4ddf2b0f033e6a319ad927a3d12f660bf96"
 sourceCommit: "9f40e22193647dc06e3ab70c5ba82768b0bfe738"

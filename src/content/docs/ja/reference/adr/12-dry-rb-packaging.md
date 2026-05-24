@@ -1,7 +1,7 @@
 ---
 title: "ADR-12 — dry-rbプラグインパッケージング"
 description: "rigortype/rigor docs/adr/12-dry-rb-packaging.mdの翻訳です。"
-editUrl: "https://github.com/rigortype/rigor/edit/main/docs/adr/12-dry-rb-packaging.md"
+editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/12-dry-rb-packaging.md"
 sourcePath: "docs/adr/12-dry-rb-packaging.md"
 sourceSha: "dbb832bcd74374532d24d3ca940fe6587e13f047127977f2b45b254d8e6175bb"
 sourceCommit: "fe4e9a80df3829ee4f113e763e4bb9920c33da21"
@@ -26,7 +26,7 @@ dry-rb gemファミリーは相補的なgemのツリーです: `dry-types`、`dr
 **Railsプラグインファミリーパターンに合致する、gemごとのプラグイン + メタアンブレラ**。
 
 - 各dry-* gemは独自のRigorプラグインを持つ: `rigor-dry-types`、`rigor-dry-struct`、`rigor-dry-validation`、`rigor-dry-monads`、`rigor-dry-schema`、… 上流のgem境界と1対1で対応する。
-- プラグインは[`rigor-plugin-author`](https://github.com/rigortype/rigor/blob/main/skills/rigor-plugin-author/SKILL.md) SKILLの規律に従い、`plugins/rigor-dry-<id>/`の下にステージングされる。
+- プラグインは[`rigor-plugin-author`](https://github.com/rigortype/rigor/blob/master/skills/rigor-plugin-author/SKILL.md) SKILLの規律に従い、`plugins/rigor-dry-<id>/`の下にステージングされる。
 - プラグインの契約が安定したら、Railsプラグインファミリーが使用するのと同じスケジュールとレディネスチェックリストで、`git subtree split`により独自の公開gemとして抽出される。
 - 将来の`rigor-dry-rb`メタgemがツリー内プラグインをgem依存として宣言し、Gemfile 1行でユーザーがスタック全体をオプトインできるようにする。
 

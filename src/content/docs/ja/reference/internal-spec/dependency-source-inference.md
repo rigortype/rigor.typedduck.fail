@@ -1,7 +1,7 @@
 ---
 title: "オプトイン依存関係ソース推論"
 description: "rigortype/rigor docs/internal-spec/dependency-source-inference.mdの翻訳です。"
-editUrl: "https://github.com/rigortype/rigor/edit/main/docs/internal-spec/dependency-source-inference.md"
+editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/dependency-source-inference.md"
 sourcePath: "docs/internal-spec/dependency-source-inference.md"
 sourceSha: "9407a177787175b265c6d8a2d78677046e6e43b0bf5db2e8413b499ca9e4f990"
 sourceCommit: "035915291e331f3bcd5ce804a1e30dc284ffbd48"
@@ -38,7 +38,7 @@ dependencies:
       mode: disabled
 ```
 
-この形状は[`Rigor::Configuration::Dependencies`](https://github.com/rigortype/rigor/blob/main/lib/rigor/configuration/dependencies.rb)でパースされます。[`schemas/rigor-config.schema.json`](https://github.com/rigortype/rigor/blob/main/schemas/rigor-config.schema.json)のJSONスキーマ行がパーサーを反映します。
+この形状は[`Rigor::Configuration::Dependencies`](https://github.com/rigortype/rigor/blob/master/lib/rigor/configuration/dependencies.rb)でパースされます。[`schemas/rigor-config.schema.json`](https://github.com/rigortype/rigor/blob/master/schemas/rigor-config.schema.json)のJSONスキーマ行がパーサーを反映します。
 
 | フィールド | 型 | 必須 | デフォルト | 注記 |
 | --- | --- | --- | --- | --- |
@@ -69,7 +69,7 @@ v0.1.3のディスパッチャーティアは`when_missing`と`full`を同じよ
 
 ## パブリックAPIドリフトサーフェス
 
-以下のすべての名前空間は[`spec/rigor/public_api_drift_spec.rb`](https://github.com/rigortype/rigor/blob/main/spec/rigor/public_api_drift_spec.rb)によってロックされています。シグネチャ変更は同じコミットで対応する`PublicApiDriftSnapshots::*`定数を更新します。
+以下のすべての名前空間は[`spec/rigor/public_api_drift_spec.rb`](https://github.com/rigortype/rigor/blob/master/spec/rigor/public_api_drift_spec.rb)によってロックされています。シグネチャ変更は同じコミットで対応する`PublicApiDriftSnapshots::*`定数を更新します。
 
 | サーフェス | モジュール | スライス |
 | --- | --- | --- |

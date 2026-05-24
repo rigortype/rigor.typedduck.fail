@@ -1,7 +1,7 @@
 ---
 title: "付録 — 型理論との接続"
 description: "rigortype/rigor docs/handbook/appendix-type-theory.mdの翻訳です。"
-editUrl: "https://github.com/rigortype/rigor/edit/main/docs/handbook/appendix-type-theory.md"
+editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/appendix-type-theory.md"
 sourcePath: "docs/handbook/appendix-type-theory.md"
 sourceSha: "ddbeba9fc09cbdaae77164cccb044ac897ffa8a19307793de9c58ebae0bd751f"
 sourceCommit: "fe4e9a80df3829ee4f113e763e4bb9920c33da21"
@@ -234,7 +234,7 @@ Rigorはこれに次のように対応する:
 | 動的型`?` | **`Dynamic[T]`** — 値を静的に検証されていないとマークしつつ「最善推測」型`T`を*ラップ*するキャリア。`Dynamic[Top]`は最大限に動的な形。 |
 | 一貫性`~` | 3値の確実性の`maybe`アーム — `T ~ U`が成立するときに`Dynamic[T] ~ U`が成立。 |
 | 静的／動的境界 | メソッドごと、ファイルごと、プラグインごとの寄与 — Rigorは値が`Dynamic[T]`になった*理由*を動的起源代数に記録する。 |
-| キャスト | ソース内キャスト演算子はない。オプトインの[`rigor-sorbet`](https://github.com/rigortype/rigor/blob/main/plugins/rigor-sorbet/)プラグインは`T.let` / `T.cast` / `T.must`をキャスト形式として読む;`RBS::Extended`の`assert_type`ディレクティブは`.rbs`から同じ役割を果たす。 |
+| キャスト | ソース内キャスト演算子はない。オプトインの[`rigor-sorbet`](https://github.com/rigortype/rigor/blob/master/plugins/rigor-sorbet/)プラグインは`T.let` / `T.cast` / `T.must`をキャスト形式として読む;`RBS::Extended`の`assert_type`ディレクティブは`.rbs`から同じ役割を果たす。 |
 
 Rigor固有の2つの拡張が重要:
 

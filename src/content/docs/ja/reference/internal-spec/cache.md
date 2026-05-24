@@ -1,7 +1,7 @@
 ---
 title: "Cache Layer — `Rigor::Cache`"
 description: "Imported from rigortype/rigor docs/internal-spec/cache.md."
-editUrl: "https://github.com/rigortype/rigor/edit/main/docs/internal-spec/cache.md"
+editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/cache.md"
 sourcePath: "docs/internal-spec/cache.md"
 sourceSha: "36378c7dfbb1e221069497873717a4072866483e97c3134ba9e4c24ef0029dc2"
 sourceCommit: "9f40e22193647dc06e3ab70c5ba82768b0bfe738"

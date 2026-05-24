@@ -1,7 +1,7 @@
 ---
 title: "ADR-16 — マクロ / DSL展開基板"
 description: "rigortype/rigor docs/adr/16-macro-expansion.mdの翻訳です。"
-editUrl: "https://github.com/rigortype/rigor/edit/main/docs/adr/16-macro-expansion.md"
+editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/16-macro-expansion.md"
 sourcePath: "docs/adr/16-macro-expansion.md"
 sourceSha: "709dd0e86604e127ae72aadf01835cc8c4868a5aa49704d67ad655e527029aae"
 sourceCommit: "fe4e9a80df3829ee4f113e763e4bb9920c33da21"

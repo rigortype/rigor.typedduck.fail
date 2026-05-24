@@ -1,7 +1,7 @@
 ---
 title: "マクロ／DSL展開 — ライブラリ別調査"
 description: "rigortype/rigor docs/notes/20260515-macro-expansion-library-survey.mdの翻訳です。"
-editUrl: "https://github.com/rigortype/rigor/edit/main/docs/notes/20260515-macro-expansion-library-survey.md"
+editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260515-macro-expansion-library-survey.md"
 sourcePath: "docs/notes/20260515-macro-expansion-library-survey.md"
 sourceSha: "fc160a4af4c256b2aff73ee052233538907d17f8f7d14511a28ce97a3d4a6151"
 sourceCommit: "fe4e9a80df3829ee4f113e763e4bb9920c33da21"

@@ -16,7 +16,7 @@ Kind: Rigor-perspective review of an external paper.
   "Control flow analysis of Ruby programs and a soundness proof,"
   IPSJ Transactions on Programming Vol.3 No.2, pp.9–25 (Mar. 2010)
 - Source URL: <https://ipsj.ixsq.nii.ac.jp/records/37907>
-- Local copy: [IPSJ-TPRO0302003.md](https://github.com/rigortype/rigor/blob/main/IPSJ-TPRO0302003.md) /
+- Local copy: [IPSJ-TPRO0302003.md](https://github.com/rigortype/rigor/blob/master/IPSJ-TPRO0302003.md) /
   [IPSJ-TPRO0302003.pdf](../../IPSJ-TPRO0302003.pdf)
 
 ## 1. Paper summary (one paragraph)

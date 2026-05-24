@@ -473,7 +473,7 @@ function mergeFrontmatter(
     lines.push(`description: ${JSON.stringify(`Imported from rigortype/rigor ${sourcePath}.`)}`);
   }
   if (!hasFrontmatterKey(cleaned, 'editUrl')) {
-    lines.push(`editUrl: ${JSON.stringify(`https://github.com/rigortype/rigor/edit/main/${sourcePath}`)}`);
+    lines.push(`editUrl: ${JSON.stringify(`https://github.com/rigortype/rigor/edit/master/${sourcePath}`)}`);
   }
   if (!hasFrontmatterKey(cleaned, 'sourcePath')) {
     lines.push(`sourcePath: ${JSON.stringify(sourcePath)}`);
@@ -539,7 +539,7 @@ function titleFromFile(relativePath) {
 }
 
 function githubBlobUrl(sourceRootRelativePath) {
-  return `https://github.com/rigortype/rigor/blob/main/${sourceRootRelativePath}`;
+  return `https://github.com/rigortype/rigor/blob/master/${sourceRootRelativePath}`;
 }
 
 function toOutputSegments(relativePath) {
