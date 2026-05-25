@@ -176,4 +176,4 @@ Rigorドキュメント:
 背景となる研究ノート（外部文献のRigor観点レビュー）:
 
 - [`docs/notes/20260518-matsumoto-2008-poly-records-rigor-review.md`](../../notes/20260518-matsumoto-2008-poly-records-rigor-review/) — 松本＆南出2008（Ruby向けGarrigueカインド付き多相レコード）のレビュー。80行のプログラムに対して約57k個の束縛型変数まで膨張する型変数爆発と、ADR-3の名前的型優先のキャリア選択が回避している構造的レコードの限界を記録する。
-- [`docs/notes/20260518-matsumoto-2010-cfa-rigor-review.md`](../../notes/20260518-matsumoto-2010-cfa-rigor-review/) — 松本＆南出2010（SemiRubyに対する半フロー感応Ruby CFA）のレビュー。Rigorのウォーカーごとの静的ディスパッチャ層と、論文のプログラムポイントごとのメソッド設定を対比する。
+- [`docs/notes/20260518-matsumoto-2010-cfa-rigor-review.md`](../../notes/20260518-matsumoto-2010-cfa-rigor-review/) — 松本＆南出2010（SemiRubyに対するセミフローセンシティブなRuby CFA）のレビュー。Rigorのウォーカーごとの静的ディスパッチャ層と、論文のプログラムポイントごとのメソッド設定を対比する。

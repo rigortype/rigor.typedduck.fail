@@ -113,6 +113,6 @@ result = puts("hello")
 
 `bool`は`true | false`です。
 
-Rubyの条件式は任意の値を真偽値として受け付けます: `false`と`nil`だけが偽です。Rigorはこれを型に対するフロー感度述語としてモデル化します（[control-flow-analysis.md](../control-flow-analysis/)参照）。すべての条件を`bool`に広げることはしません。
+Rubyの条件式は任意の値を真偽値として受け付けます: `false`と`nil`だけが偽です。Rigorはこれを型に対するフローセンシティブな述語としてモデル化します（[control-flow-analysis.md](../control-flow-analysis/)参照）。すべての条件を`bool`に広げることはしません。
 
 RBSの`boolish`は`top`のエイリアスです。Rigorは既存のRBSシグネチャと一致するとき、真偽性を受け付けるコールバック戻り値型を`boolish`に消去すべきですが（SHOULD）、内部的には可能な限り実際の戻り値型を保持すべきです（SHOULD）。
