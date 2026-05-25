@@ -4,7 +4,7 @@ description: "Imported from rigortype/rigor docs/notes/20260503-steep-cross-chec
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260503-steep-cross-check-triage.md"
 sourcePath: "docs/notes/20260503-steep-cross-check-triage.md"
 sourceSha: "e7ea90ad1caf8ef2c8ede6a0dcf7a10157066379ea8d39afb070d1630bf7db60"
-sourceCommit: "7a6f7dfa8db6c6b64b85a9c9ee208ae5656840e7"
+sourceCommit: "4f9b2b85a1864b48cf66a620859e5e403506cf8e"
 sourceDate: "2026-05-15T15:54:42+09:00"
 sourceLanguage: "ja"
 sidebar:

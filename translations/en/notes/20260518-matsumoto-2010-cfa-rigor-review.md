@@ -1,8 +1,8 @@
 ---
 title: "Matsumoto & Minamide 2010 (Ruby CFA) — Rigor perspective review"
 description: "English translation of a Rigor-perspective review of Matsumoto & Minamide's 2010 control-flow-analysis paper."
-sourceSha: "bfb36c0210d6a3992c9c0461494f9e063bb62403a2d3b0359ec3267bcf7d0a14"
-sourceCommit: "203008e9741e8ffd61448e32cf9b89c19f1339da"
+sourceSha: "ad8368722c9f7a5f3634d54f52213877965623c8cec997663a032bb21e2d1a90"
+sourceCommit: "4f9b2b85a1864b48cf66a620859e5e403506cf8e"
 translationStatus: "translated"
 ---
 
@@ -21,13 +21,13 @@ Kind: Rigor-perspective review of an external paper.
 
 ## 1. Paper summary (one paragraph)
 
-Defines an operational semantics for a subset of Ruby called **SemiRuby** (class definitions are given in advance, `def` is reduced to the triple of class name, method name, and definition identifier, blocks are lambda expressions, and `return`/`break` are translated to `throw`/`catch` pairs), and on top of that designs a **semi-flow-sensitive control-flow analysis**. Each program point is associated with a **method configuration**, a mapping "class × method name → method definition." This is updated at the evaluation of a `def` expression and combined as a set-union at `if`-merges. The novelty is the asymmetric design: values themselves are flow-insensitive, but *which definitions are visible* is flow-sensitive. Finally a Palsberg–Schwartzbach-style safety analysis (no undefined-method calls / `yield` targets are lambda expressions) is defined and **preservation + progress** soundness is proved. Implementation is OCaml + BDDBDDB (a Datalog processor).
+Defines an operational semantics for a subset of Ruby called **SemiRuby** (class definitions are given in advance, `def` is reduced to the triple of class name, method name, and definition identifier, blocks are lambda expressions, and `return`/`break` are translated to `throw`/`catch` pairs), and on top of that designs a **control-flow analysis that is control-flow-dependent with respect to method definitions (semi-flow-sensitive)**. Each program point is associated with a **method configuration**, a mapping "class × method name → method definition." This is updated at the evaluation of a `def` expression and combined as a set-union at `if`-merges. The novelty is the asymmetric design: values themselves are control-flow-independent, but *which definitions are visible* is control-flow-dependent. Finally a Palsberg–Schwartzbach-style safety analysis (no undefined-method calls / `yield` targets are lambda expressions) is defined and **preservation + progress** soundness is proved. Implementation is OCaml + BDDBDDB (a Datalog processor).
 
 ## 2. Correspondence with Rigor's current design
 
 | Paper-side concept | Rigor-side counterpart | Match / observation |
 | --- | --- | --- |
-| The guideline **semi-flow-sensitive** | [`docs/type-specification/control-flow-analysis.md`](../../type-specification/control-flow-analysis/)'s edge-sensitive narrowing, trinary certainty, fact stability | Match. The paper's pragmatism of avoiding full value-flow-sensitivity aligns with Rigor's certainty/effect model. |
+| The guideline **semi-flow-sensitive** | [`docs/type-specification/control-flow-analysis.md`](../../type-specification/control-flow-analysis/)'s edge-sensitive narrowing, trinary certainty, fact stability | Match. The paper's pragmatism of avoiding full value-flow-sensitivity as a property aligns with Rigor's certainty/effect model. |
 | **Method configuration D = {(C,f) → d}** | Rigor's dispatcher hierarchy (plugin → dependency-source → bundled) + Plugin::FactStore ([ADR-9](../../adr/9-cross-plugin-api/)) | Rigor only decides "which definitions are visible" statically per walker. The paper's D is more powerful in that it switches dynamically per program point. |
 | **Example 1: top-level class A re-open** | [ADR-17 `pre_eval:`](../../adr/17-monkey-patch-pre-evaluation/) | In the paper, the semi-flow-sensitive CFA **directly** distinguishes "x:Fixnum / y:String." Rigor's design approximates the same precision with a two-phase approach: "run once first to build a project-wide ProjectPatchedMethods." The paper's mechanism is more elegant analytically; ADR-17 is exposed as an engineering compromise. |
 | **Example 2: overriding def inside def** | Rigor effectively does not handle this | The paper's analysis handles this with precision. Rigor takes the ADR-5 robustness-principle (Postel-style asymmetric discipline) side and cuts this off as "doesn't happen that often in practice." At the cost of not closing the precision gap. |
@@ -42,7 +42,7 @@ Defines an operational semantics for a subset of Ruby called **SemiRuby** (class
 
 1. **The slice "only the visibility of method definitions is flow-sensitive"** clarifies one space where Rigor could gain precision. Today Rigor decides almost statically via the `:leaf` discipline + [ADR-17](../../adr/17-monkey-patch-pre-evaluation/) pre-evaluation, but the paper shows that the intermediate option **to have "method configurations" partially per program point** is theoretically justifiable. Subject to implementation cost and cache consistency (ADR-6).
 
-2. **Reinforcement material for the discussion "is the ADR-17 MVP (explicit file enumeration) sufficient?"** The paper's Example 1 (top-level overriding) is exactly the ADR-17 use case, and the paper shows it is "solvable with semi-flow-sensitive CFA." That is, ADR-17's "explicit list" path is reaffirmed as a cheap and correct first step that reliably raises the precision floor.
+2. **Reinforcement material for the discussion "is the ADR-17 MVP (explicit file enumeration) sufficient?"** The paper's Example 1 (top-level overriding) is exactly the ADR-17 use case, and the paper shows it can be solved with "an analysis that distinguishes control flow with respect to method definitions." That is, ADR-17's "explicit list" path is reaffirmed as a cheap and correct first step that reliably raises the precision floor.
 
 3. **The absence of a soundness proof** is a strategic blank that remains in Rigor. If, like the paper, a two-layer **core + perimeter** structure is taken (SemiRuby ↔ full Ruby), then Rigor should also be able to aim at preservation/progress for just a "Rigor Kernel." This is not in the [ROADMAP](../../roadmap/) at the moment, but is a long-term high-value track.
 

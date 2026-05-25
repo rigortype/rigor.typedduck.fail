@@ -3,9 +3,9 @@ title: "Matsumoto & Minamide 2010 (Ruby CFA) — Rigor 観点考察"
 description: "Imported from rigortype/rigor docs/notes/20260518-matsumoto-2010-cfa-rigor-review.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260518-matsumoto-2010-cfa-rigor-review.md"
 sourcePath: "docs/notes/20260518-matsumoto-2010-cfa-rigor-review.md"
-sourceSha: "bfb36c0210d6a3992c9c0461494f9e063bb62403a2d3b0359ec3267bcf7d0a14"
-sourceCommit: "7a6f7dfa8db6c6b64b85a9c9ee208ae5656840e7"
-sourceDate: "2026-05-18T04:21:23+09:00"
+sourceSha: "ad8368722c9f7a5f3634d54f52213877965623c8cec997663a032bb21e2d1a90"
+sourceCommit: "4f9b2b85a1864b48cf66a620859e5e403506cf8e"
+sourceDate: "2026-05-25T09:27:08+09:00"
 sourceLanguage: "ja"
 sidebar:
   order: 20266518
@@ -29,29 +29,23 @@ Status: research note, no design commitments.
 Rubyのサブセット**SemiRuby**（class定義は事前所与・`def`はクラス名・
 メソッド名・定義識別子の三つ組へ簡約・blockはラムダ式・`return`/`break`
 は`throw`/`catch`ペアに翻訳）に対して操作的意味論を与え、その上で
-**セミフローセンシティブ（semi-flow-sensitive）な制御フロー解析**を設計する。各
-プログラム点に「クラス×メソッド名 → メソッド定義」の写像である
-**メソッド状況（method configuration）**を関連付け、`def`式の評価で
-これを更新、`if`合流で集合的和をとる。値そのものはフローインセンシティブ、
-しかし*どの定義が見えているか*はフローセンシティブ、という非対称設計が新規性。
+**メソッド定義について制御フロー依存な制御フロー解析（semi-flow-sensitive）**
+を設計する。各プログラム点に「クラス×メソッド名 → メソッド定義」の写像
+である**メソッド状況（method configuration）**を関連付け、`def`式の
+評価でこれを更新、`if`合流で集合的和をとる。値そのものは制御フロー
+非依存、しかし*どの定義が見えているか*は制御フロー依存、という
+非対称設計が新規性。
 最後にPalsberg–Schwartzbach型の安全性解析（未定義メソッド呼び出し
 なし／`yield`の対象はラムダ式）を定義し、**保存 + Progress**で
 健全性を証明する。実装はOCaml + BDDBDDB（Datalog処理系）。
-
-> **訳語注**：本ノートでは "flow-sensitive" 系の語をRigorサイト全体の
-> 表記ルール（[`docs/ja/translation-glossary.md`](https://github.com/zonuexe/rigor.typedduck.fail/blob/master/docs/ja/translation-glossary.md)）
-> に合わせ「フローセンシティブ／フローインセンシティブ／
-> セミフローセンシティブ」のカタカナ表記で統一している。原典の論文
-> （松本＆南出2010）は同概念を**「制御フロー依存／制御フロー非依存」**
-> と訳している。論文本文を直接参照する際はそちらの訳語を優先するとよい。
 
 ## 2. Rigorの今の設計との対応関係
 
 | 論文側の概念 | Rigor側の対応物 | 一致度・所見 |
 | --- | --- | --- |
-| **セミフローセンシティブ**という指針 | [`docs/type-specification/control-flow-analysis.md`](../../type-specification/control-flow-analysis/)のエッジ感度ナローイング、trinary certainty、fact stability | 一致。値のフルフローセンシティブを避けるという論文の現実主義は、Rigorのcertainty/effectモデルとも整合。 |
+| **セミフローセンシティブ**という指針 | [`docs/type-specification/control-flow-analysis.md`](../../type-specification/control-flow-analysis/)のエッジ感度ナローイング、trinary certainty、fact stability | 一致。値のフルフローセンシティブ性を避けるという論文の現実主義は、Rigorのcertainty/effectモデルとも整合。 |
 | **メソッド状況D = {(C,f) → d}** | Rigorのdispatcher階層（plugin → dependency-source → bundled）+ Plugin::FactStore（[ADR-9](../../adr/9-cross-plugin-api/)） | Rigorは静的に "どの定義が見えるか" をper-walkerでしか決めていない。論文のDはプログラム点ごとに動的に切り替わる点でRigorより強力。 |
-| **例1：トップレベルclass A再オープン** | [ADR-17 `pre_eval:`](../../adr/17-monkey-patch-pre-evaluation/) | 論文ではセミフローセンシティブなCFAが "x:Fixnum / y:String" を**そのまま**区別する。Rigorは同等の精度を「先に一度走らせてproject-wideなProjectPatchedMethodsを作る」二段階アプローチで近似する設計。論文側の方が解析機構としては美しく、ADR-17は工学的妥協であることが浮き彫りになる。 |
+| **例1：トップレベルclass A再オープン** | [ADR-17 `pre_eval:`](../../adr/17-monkey-patch-pre-evaluation/) | 論文ではセミフローセンシティブCFAが "x:Fixnum / y:String" を**そのまま**区別する。Rigorは同等の精度を「先に一度走らせてproject-wideなProjectPatchedMethodsを作る」二段階アプローチで近似する設計。論文側の方が解析機構としては美しく、ADR-17は工学的妥協であることが浮き彫りになる。 |
 | **例2：defの中でdefを上書き** | Rigorでは事実上ハンドルしていない | 論文の解析はこれも精度よく解析する。RigorはADR-5 robustness principle（Postel流の非対称規律）で「実務でそう頻繁には起きない」と切る側。代償として精度差は埋まらない。 |
 | **例3：if分岐内のdef** | RigorのUnion narrowing | 双方とも保守的な和になる点で一致。論文もRigorも "本質的に静的解析不可能" と同じ判断。 |
 | **SemiRubyのthrow/catchによるreturn/breakモデル化** | Rigorのnon-local-exit扱い（diagnostic familyの制御部分） | 設計判断としては同型。 |
@@ -71,7 +65,8 @@ Rubyのサブセット**SemiRuby**（class定義は事前所与・`def`はクラ
 
 2. **ADR-17のMVP（明示的ファイル列挙）で十分か**の議論補強材料に
    なる。論文の例1のようなtop-level上書きはまさにADR-17のユース
-   ケースで、論文は「セミフローセンシティブなCFAで解ける」と示している。
+   ケースで、論文は「メソッド定義に関して制御フローを区別する」
+   解析でこれを解いて見せている。
    つまりADR-17の "explicit list" 路線は精度の下限を確実に押し上げる、
    安価で正しい第一歩であると追認される。
 
@@ -100,7 +95,7 @@ Rubyのサブセット**SemiRuby**（class定義は事前所与・`def`はクラ
 根本問題を、SemiRubyという最小核に絞ることで形式的に解いて見せた成果
 である。Rigorは工学的にはより広いRuby表面をカバーしているが、
 (a) `pre_eval`のような事前評価による近似に頼っており、（b）健全性の
-機械的証明を持たない。論文のセミフローセンシティブなCFAとその健全性証明は、Rigor
+機械的証明を持たない。論文のセミフローセンシティブCFAとその健全性証明は、Rigor
 の**将来の "Rigor Kernel" 切り出し**と**method configurationを部分
 採用するナローイング強化**の両方向に、信頼できる出発点を提供している。
 

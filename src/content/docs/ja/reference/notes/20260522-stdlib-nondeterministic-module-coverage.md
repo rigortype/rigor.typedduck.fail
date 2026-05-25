@@ -4,7 +4,7 @@ description: "Imported from rigortype/rigor docs/notes/20260522-stdlib-nondeterm
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260522-stdlib-nondeterministic-module-coverage.md"
 sourcePath: "docs/notes/20260522-stdlib-nondeterministic-module-coverage.md"
 sourceSha: "7698c9205a21bc98d387e1e36c6448ace80a7e4a3f55f98e559bc8f91a489b07"
-sourceCommit: "7a6f7dfa8db6c6b64b85a9c9ee208ae5656840e7"
+sourceCommit: "4f9b2b85a1864b48cf66a620859e5e403506cf8e"
 sourceDate: "2026-05-22T16:43:14+09:00"
 sourceLanguage: "ja"
 sidebar:
