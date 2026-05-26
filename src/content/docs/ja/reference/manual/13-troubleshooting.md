@@ -1,13 +1,13 @@
 ---
 title: "トラブルシューティング"
-description: "rigortype/rigor docs/manual/12-troubleshooting.mdの翻訳です。"
-editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/12-troubleshooting.md"
-sourcePath: "docs/manual/12-troubleshooting.md"
-sourceSha: "48e5dbd82ecec3240e4d2e1df2435c42d2ddf8cb902bae1fa38f9e390e3040cc"
-sourceCommit: "f391fadebcb3c674444a346501d51664b046dec2"
+description: "rigortype/rigor docs/manual/13-troubleshooting.mdの翻訳です。"
+editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/13-troubleshooting.md"
+sourcePath: "docs/manual/13-troubleshooting.md"
+sourceSha: "ca44fff7982921700583e5743dc2c00d637d4dbab0eac94edfab7ce68f2b9be3"
+sourceCommit: "fa9e1de7a00dc2aff56f6efa3045b4607650a647"
 translationStatus: "translated"
 sidebar:
-  order: 9012
+  order: 9013
 ---
 
 よくある問題とその解決策。エディタ固有の問題については[エディタ統合](../09-editor-integration/)を、「なぜこの診断が（発火しな）かったのか」については[ハンドブック第8章](../../handbook/08-understanding-errors/)を参照してください。
@@ -48,7 +48,7 @@ Rigorは動作するコードにフラグを立てないことを目指してい
 
 ## 結果が古く見える
 
-そうなるべきではありません——キャッシュエントリはコンテンツをキーとして自己無効化します（[キャッシュ](../11-caching/)を参照）。それでもキャッシュを疑う場合は、`rigor check --clear-cache`で除外できます。クリアされたキャッシュでも残る結果は、キャッシュのアーティファクトではなくアナライザーの本来の動作です。
+そうなるべきではありません——キャッシュエントリはコンテンツをキーとして自己無効化します（[キャッシュ](../12-caching/)を参照）。それでもキャッシュを疑う場合は、`rigor check --clear-cache`で除外できます。クリアされたキャッシュでも残る結果は、キャッシュのアーティファクトではなくアナライザーの本来の動作です。
 
 ## 実行が遅い
 

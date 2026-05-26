@@ -3,8 +3,8 @@ title: "RBSと`RBS::Extended`"
 description: "rigortype/rigor docs/handbook/07-rbs-and-extended.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/07-rbs-and-extended.md"
 sourcePath: "docs/handbook/07-rbs-and-extended.md"
-sourceSha: "9cf75606c3c0a484d4e79b9dd4d55bac45144df4c70d789d0ef069ae67fe3b63"
-sourceCommit: "203008e9741e8ffd61448e32cf9b89c19f1339da"
+sourceSha: "e7b4f58371660a7932a33d081af3f2c4e8d0e7421e704be8c656e3e1ee4d0e45"
+sourceCommit: "fa9e1de7a00dc2aff56f6efa3045b4607650a647"
 translationStatus: "translated"
 sidebar:
   order: 1007
@@ -201,6 +201,47 @@ end
 ```
 
 `.rb`ファイルの内側に置くことは**できません**。ディレクティブはRBSから読まれたときのみ発火します — これは設計上の選択です（ADR-5、堅牢性の原則: 戻り値に対して厳密、パラメーターに対して寛大を参照）。
+
+## RubyソースへのインラインRBS — `rigor-rbs-inline`プラグイン
+
+オプトイン型の別プラグインを使うと、Rubyファイル内の`def`の直上にメソッド型を直接書けます。上流の[rbs-inline](https://github.com/soutaro/rbs-inline)が定義するコメント語彙を使います:
+
+```rb
+# rbs_inline: enabled
+
+class AscDesc
+  # @rbs asc_or_desc: :asc | :desc
+  def ascdesc(asc_or_desc)
+    asc_or_desc
+  end
+end
+
+AscDesc.new.ascdesc(:bad)
+# => error: argument type mismatch at parameter `asc_or_desc' of
+#    `ascdesc' on AscDesc: expected :asc | :desc, got :bad
+```
+
+docスタイルの`# @rbs name: T`アノテーション、インラインメソッド型コメント`#: () -> T`、`# @rbs return: T`、属性`#:`キャスト、`# @rbs @ivar: T`、`# @rbs override`、`# @rbs!`生RBS埋め込みのいずれも動作します——上流rbs-inlineが受け入れるものはすべて、手書きの`.rbs`ファイルと同等の形でRigorのRBS環境に流れ込みます。
+
+これは**RBS::Extendedではありません**。`# @rbs`コメントは上流rbs-inlineの文法であり、プラグインがenv構築時にそれらを通常のRBSにトランスクライブします。これに対しRBS::Extendedの`%a{rigor:v1:…}`ディレクティブはRigor固有のアノテーションであり`.rbs`ファイルに記述します（その他のディレクティブについてはこの章の残りを参照）。
+
+有効にするには、プラグインgemをbundleに追加し、以下のように設定します:
+
+```yaml
+# .rigor.yml
+plugins:
+  - rigor-rbs-inline
+```
+
+ファイルごとに、先頭に上流の`# rbs_inline: enabled`マジックコメントを書いてオプトインします——それがないファイルは影響を受けません。
+
+注意事項:
+
+- コアの`rigortype`アナライザーはゼロランタイム依存のまま（ADR-0）。`rbs-inline`上流ライブラリはコアのgemspecではなくプラグインgemの依存関係なので、オプトインしないプロジェクトは何も支払いません。
+- 裸のトップレベル`def`は上流rbs-inlineを通じてRBS出力を生成しません。アノテーションを有効にするには、メソッド定義をクラスまたはモジュールでラップしてください。
+- rbs-inlineのパース失敗は`source-rbs-synthesis-failed` `:info`診断として表面化し、そのファイルはインラインRBSの貢献なしにフォールバックして解析が続行されます。
+
+完全なプラグインドキュメント、設定オプション（ブラウザプレイグラウンドが使用する`require_magic_comment: false`ホストコンテキストオーバーライドを含む）、キャッシュの契約については[`plugins/rigor-rbs-inline/README.md`](../../plugins/rigor-rbs-inline/)を参照してください。
 
 ## `untyped`へのフォールバック
 

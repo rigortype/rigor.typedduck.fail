@@ -3,8 +3,8 @@ title: "Rigorのインストール"
 description: "rigortype/rigor docs/manual/01-installation.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/01-installation.md"
 sourcePath: "docs/manual/01-installation.md"
-sourceSha: "ee9413bb9f332d5447fe4daa36eeb37187a05a25e64acac471a9e906a4567c9c"
-sourceCommit: "f391fadebcb3c674444a346501d51664b046dec2"
+sourceSha: "002fb35ca2a8dda15d3af5e7223975a447e27302f2175b59f4abd6697d950000"
+sourceCommit: "fa9e1de7a00dc2aff56f6efa3045b4607650a647"
 translationStatus: "translated"
 sidebar:
   order: 9001
@@ -90,4 +90,4 @@ devコンテナ内で開発している場合、コンテナ内ではなく**ホ
 
 ## 継続的インテグレーション
 
-RigorをCIに組み込む方法は専用の章で説明しています——[CIでのRigor実行](../10-ci/)を参照してください。
+RigorをCIに組み込む方法は専用の章で説明しています——[CIでのRigor実行](../11-ci/)を参照してください。

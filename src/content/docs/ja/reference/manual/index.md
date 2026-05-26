@@ -3,8 +3,8 @@ title: "Rigorユーザーマニュアル"
 description: "rigortype/rigor docs/manual/README.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/README.md"
 sourcePath: "docs/manual/README.md"
-sourceSha: "b6e818db04eb45e12261cca7eb6f2365d75bb35cdfdc8850b70f209783b5a03f"
-sourceCommit: "f391fadebcb3c674444a346501d51664b046dec2"
+sourceSha: "ed75283291fffbd15d7296c4eeea78335ab172664474c1b35574da88f6dcda8d"
+sourceCommit: "fa9e1de7a00dc2aff56f6efa3045b4607650a647"
 translationStatus: "translated"
 sidebar:
   order: 9000
@@ -36,9 +36,10 @@ Rigorのインストール、実行、設定、運用方法について説明し
 ### 統合と運用
 
 9. [エディタ統合](09-editor-integration/) — `rigor lsp`をNeovim、VS Code、Helix、Emacsに組み込む方法。
-10. [CIでのRigor実行](10-ci/) — 独立したCIジョブ、最小限のGitHub Actionsワークフロー、バージョンのピン留め。
-11. [キャッシュ](11-caching/) — キャッシュの場所、無効化の条件、削除方法。
-12. [トラブルシューティング](12-troubleshooting/) — よくある問題とその解決策。
+10. [MCPサーバー](10-mcp-server/) — `rigor mcp`によるAIコーディングエージェント（Claude Code、Cursor、Cline …）へのRigorの解析ツール公開。
+11. [CIでのRigor実行](11-ci/) — 独立したCIジョブ、最小限のGitHub Actionsワークフロー、バージョンのピン留め。
+12. [キャッシュ](12-caching/) — キャッシュの場所、無効化の条件、削除方法。
+13. [トラブルシューティング](13-troubleshooting/) — よくある問題とその解決策。
 
 ## 関連ドキュメント
 

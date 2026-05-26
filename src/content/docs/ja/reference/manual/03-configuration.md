@@ -3,8 +3,8 @@ title: "設定"
 description: "rigortype/rigor docs/manual/03-configuration.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/03-configuration.md"
 sourcePath: "docs/manual/03-configuration.md"
-sourceSha: "16a21701d51da92c12e57ee17eb1cbc32324fa01e20031c217eb1a6c5ef04d17"
-sourceCommit: "f391fadebcb3c674444a346501d51664b046dec2"
+sourceSha: "0b1b7332afae499c5b7e0884a4b11be14792dbbb3342bbe80a9be4076c9e5f6e"
+sourceCommit: "fa9e1de7a00dc2aff56f6efa3045b4607650a647"
 translationStatus: "translated"
 sidebar:
   order: 9003
@@ -82,7 +82,7 @@ cache:
 
 | キー | 型 | デフォルト | 意味 |
 | --- | --- | --- | --- |
-| `cache.path` | String | `.rigor/cache` | 永続キャッシュディレクトリ。[キャッシュ](../11-caching/)を参照。 |
+| `cache.path` | String | `.rigor/cache` | 永続キャッシュディレクトリ。[キャッシュ](../12-caching/)を参照。 |
 | `parallel.workers` | Integer | `0` | ファイルごとの解析用Ractorワーカー。`0`は逐次処理。CLI `--workers`と`RIGOR_RACTOR_WORKERS`が優先される。 |
 | `plugins_io.network` | String | `"disabled"` | プラグインネットワークポリシー——`disabled`または`allowlist`。 |
 | `plugins_io.allowed_paths` | Array | `[]` | プラグインが読み取り可能なファイルシステムパス。 |

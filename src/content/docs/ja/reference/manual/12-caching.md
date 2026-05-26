@@ -1,13 +1,13 @@
 ---
 title: "キャッシング"
-description: "rigortype/rigor docs/manual/11-caching.mdの翻訳です。"
-editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/11-caching.md"
-sourcePath: "docs/manual/11-caching.md"
+description: "rigortype/rigor docs/manual/12-caching.mdの翻訳です。"
+editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/12-caching.md"
+sourcePath: "docs/manual/12-caching.md"
 sourceSha: "ff44c24520ee1929d020d20ddae199645934cde7a726ecf4db351e07725a8b4b"
-sourceCommit: "f391fadebcb3c674444a346501d51664b046dec2"
+sourceCommit: "fa9e1de7a00dc2aff56f6efa3045b4607650a647"
 translationStatus: "translated"
 sidebar:
-  order: 9011
+  order: 9012
 ---
 
 Rigorはコストの高い中間結果——パース済みRBS環境、ファイルごとの解析成果物——をキャッシュするため、変更のないプロジェクトへの2回目以降の実行は高速です。キャッシュは設計上正しいものです: 古い結果を修正するためにキャッシュをクリアする必要はないはずです。このページは、キャッシュの場所が気になるときや領域を解放したいときのためのものです。
