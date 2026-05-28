@@ -3,8 +3,8 @@ title: "ADR-29 — ブラウザプレイグラウンド"
 description: "rigortype/rigor docs/adr/29-browser-playground.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/29-browser-playground.md"
 sourcePath: "docs/adr/29-browser-playground.md"
-sourceSha: "516dd42a32037576cd98a3c2297a14e6f5493d3f3364368579da86d1b65ab54a"
-sourceCommit: "fa9e1de7a00dc2aff56f6efa3045b4607650a647"
+sourceSha: "66680ea571124f77a94962d232d626d1aeae9599e32b7356f88996d5ff1d52a7"
+sourceCommit: "1881619b60b29439a03e7a1f8fee266031c9ca10"
 translationStatus: "translated"
 sidebar:
   order: 4029
@@ -80,7 +80,7 @@ Cloudflare Workerはリクエストをバックエンドにフォワードでき
 
 APIバックエンドは別のデプロイメント（Fly.ioの無料ティアまたはRailway）。Ruby 4.0 + `rigortype` + 薄いRack/Pumaレイヤーを実行する。バックエンドのCORSヘッダーがPagesドメインからのクロスオリジンリクエストを許可する。
 
-フロントエンドとバックエンドは、このリポジトリ内の新しいトップレベル`playground/`ツリー内の別々のサブディレクトリ——`playground/frontend/`と`playground/backend/`——で開発される。独立してデプロイされる;フロントエンドの`RIGOR_API_URL`はビルド時に環境変数として注入される。
+フロントエンドとバックエンドは`plugins/rigor-playground/`に同居する——静的アセット用の`frontend/`とRack/Pumaバックエンドのgemルート。独立してデプロイされる;フロントエンドの`RIGOR_API_URL`はビルド時に環境変数として注入される。
 
 ### WD2 — APIコントラクト
 
@@ -170,7 +170,7 @@ severity_profile: strict
 
 バックエンドはシングルのFly.io Machine（shared-CPU-1x、256 MB RAM）としてデプロイされる。2スレッドのシングルPumaワーカーで、期待されるプレイグラウンドトラフィックには十分。Fly.ioの無料枠がこの構成をコストなしでカバーする。
 
-トラフィックがスケーリングを要求する場合、Fly.ioのオートスケーリングまたは別ホストへの移行は簡単——バックエンドはホストへのステートフルな結合のないプレーンなRackアプリである。バックエンドのデプロイメントマニフェスト（`playground/backend/fly.toml`）はリポジトリにコミットされる。
+トラフィックがスケーリングを要求する場合、Fly.ioのオートスケーリングまたは別ホストへの移行は簡単——バックエンドはホストへのステートフルな結合のないプレーンなRackアプリである。バックエンドのデプロイメントマニフェスト（`plugins/rigor-playground/fly.toml`）はリポジトリにコミットされる。
 
 レート制限（IPごとに50リクエスト/分）は`fly.toml`の`http_service.rate_limiting`経由でFly.ioプロキシレイヤーで強制される。4インフライトリクエストのグローバル同時実行制限により、バーストがRBS環境ブート中にシングルマシンのCPUを独占するのを防ぐ。
 
@@ -198,8 +198,8 @@ severity_profile: strict
 
 | スライス | スコープ |
 | --- | --- |
-| 1 | `playground/backend/` — Rackアプリケーション、`/check`エンドポイント、リクエストごとの`Tempfile`分離、10秒タイムアウト、64 KB上限、固定`.rigor.yml`（WD4 / ADR-32 WD10に従い`require_magic_comment: false`で`rigor-rbs-inline`をロード）。Fly.ioにデプロイ。スライス1はADR-32スライス1（`source_rbs_synthesizer:`マニフェストフィールドと`rigor-rbs-inline`プラグインの存在）にゲートされる。 |
-| 2 | `playground/frontend/` — CodeMirror 6、デバウンスされた`/check`呼び出し、lintマーカー、Cloudflare Pagesデプロイ設定。 |
+| 1 | `plugins/rigor-playground/` — Rackアプリケーション、`/check`エンドポイント、リクエストごとの`Tempfile`分離、10秒タイムアウト、64 KB上限、固定`.rigor.yml`（WD4 / ADR-32 WD10に従い`require_magic_comment: false`で`rigor-rbs-inline`をロード）。Fly.ioにデプロイ。スライス1はADR-32スライス1（`source_rbs_synthesizer:`マニフェストフィールドと`rigor-rbs-inline`プラグインの存在）にゲートされる。 |
+| 2 | `plugins/rigor-playground/frontend/` — CodeMirror 6、デバウンスされた`/check`呼び出し、lintマーカー、Cloudflare Pagesデプロイ設定。 |
 | 3 | `/annotate`エンドポイント + フロントエンドトグルビュー。 |
 | 4 | `/type-of`エンドポイント + フロントエンドホバー統合。 |
 | 5 | （需要駆動）WD6条件が満たされたときのruby.wasm移行。 |

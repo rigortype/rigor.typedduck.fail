@@ -3,8 +3,8 @@ title: "プラグインの使用"
 description: "rigortype/rigor docs/manual/07-plugins.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/07-plugins.md"
 sourcePath: "docs/manual/07-plugins.md"
-sourceSha: "11f043660a76808b39b4cceb33e5059d0ced975801a3a664f7b63143c5f2da8b"
-sourceCommit: "203008e9741e8ffd61448e32cf9b89c19f1339da"
+sourceSha: "b0c01a3a1846aa19784e23729ea17ac1f7347979f934b72cf7a96a548f01fe26"
+sourceCommit: "1881619b60b29439a03e7a1f8fee266031c9ca10"
 translationStatus: "translated"
 sidebar:
   order: 9007
@@ -23,7 +23,7 @@ plugins:
   - rigor-rails-routes
 ```
 
-各名前はインストール済みで到達可能なプラグインgemです——公開済みであればGemfileを通じて、またはv0.1.xプレビュー期間中はgit/パスGemfileエントリ経由で。設定が必要なプラグインはオブジェクト形式を使います:
+各名前は`rigortype` gem内にバンドル済みのプラグインです——追加のインストールは不要です。`plugins:`の下に列挙するだけで有効化できます。設定が必要なプラグインはオブジェクト形式を使います:
 
 ```yaml
 plugins:

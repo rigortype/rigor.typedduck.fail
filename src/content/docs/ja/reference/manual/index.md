@@ -3,8 +3,8 @@ title: "Rigorユーザーマニュアル"
 description: "rigortype/rigor docs/manual/README.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/README.md"
 sourcePath: "docs/manual/README.md"
-sourceSha: "ed75283291fffbd15d7296c4eeea78335ab172664474c1b35574da88f6dcda8d"
-sourceCommit: "fa9e1de7a00dc2aff56f6efa3045b4607650a647"
+sourceSha: "19d3d1f045c8dc00b35004a2c27edb90f6987306510cf6b59415d282deba5b6b"
+sourceCommit: "1881619b60b29439a03e7a1f8fee266031c9ca10"
 translationStatus: "translated"
 sidebar:
   order: 9000
@@ -19,6 +19,7 @@ Rigorのインストール、実行、設定、運用方法について説明し
 ### 入門
 
 1. [Rigorのインストール](01-installation/) — `mise`、`asdf`、`gem install`、Nix、dev-containerのガイダンス。Rigorはツールであり、プロジェクトの依存関係ではありません。
+14. [Railsプロジェクトへのセットアップ — miseを使ったステップバイステップ](14-rails-quickstart/) — Ruby 4.0 + Rigorを`mise`でインストールし、Railsプラグインセットを有効化して`rigor check`を実行し、設定をチームで共有する——約10分で完了。
 
 ### リファレンス
 
