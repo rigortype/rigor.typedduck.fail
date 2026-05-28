@@ -3,8 +3,8 @@ title: "Rigor Roadmap"
 description: "rigortype/rigor docs/ROADMAP.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/ROADMAP.md"
 sourcePath: "docs/ROADMAP.md"
-sourceSha: "0722dbf0162a863b3987383271e888b989b06b008c25567e4e0bf92b67ee461c"
-sourceCommit: "1881619b60b29439a03e7a1f8fee266031c9ca10"
+sourceSha: "1e3c45f2ea57efece8a180f6e39b7025f685363f795a89e332db3981f5d9b2ba"
+sourceCommit: "9912e76c7eaca91151a5a172cd5dcc2ea61d8063"
 translationStatus: "translated"
 sidebar:
   order: 9050
@@ -31,6 +31,10 @@ sidebar:
 | v0.1.6 | 2026-05-19 | ADR-12 / ADR-17 / ADR-18フロア + 動作消費者;エディタモードv1 + 言語サーバーv1/v2;ADR-20軽量HKT;エコシステムプラグイン + `rigor-rails`メタgemスキャフォールド。`CHANGELOG.md` § `[0.1.6]`を参照。 |
 | v0.1.7 | 2026-05-20 | ADR-22ベースラインメカニズム（スライス1+2） + プロジェクトオンボーディング基盤;サーベイ駆動のプラグイン / エンジン偽陽性修正;Pillar 2「あなたのspecが型である」スライス1+2+3。`CHANGELOG.md` § `[0.1.7]`を参照。 |
 | v0.1.8 | 2026-05-21 | Mastodonサーベイ偽陽性削減: ADR-15フォークベースのワーカープール（アクティブな`workers > 0`バックエンド）、ADR-23 `rigor triage`診断トリアージサブコマンド、ADR-24暗黙的selfメソッド呼び出し解決。`CHANGELOG.md` § `[0.1.8]`を参照。 |
+| v0.1.9 | 2026-05-23 | 指定の「最後のプレビューカット」: 外部ユーザーSKILLトリオ（`rigor-project-init`、`rigor-baseline-reduce`、[ADR-22 WD8](../adr/22-baseline-and-project-onboarding/)に基づく外部著者`rigor-plugin-author`バリアント）;ADR-22ベースラインスライス5（`rigor baseline regenerate` + `--baseline-strict` CIゲート）;v0.1.7 / v0.1.8サーベイデータによる実証的デフォルトの引き締め。`CHANGELOG.md` § `[0.1.9]`を参照。 |
+| v0.1.10 | 2026-05-27 | `rigor mcp --transport stdio`（ADR-33、7つの読み取り専用ツール）;`rigor sig-gen --params=observed` attr_reader推論;`rigor coverage`精度ゲート;`rigor check --treat-all-as-inline-rbs`;`rigor-rbs-inline`プラグイン（ADR-32）;ブラウザプレイグラウンド（ADR-29スライス1〜4）;`rigor annotate`戻り型アノテーション;ADR-28パススコープのプロトコル契約 + `rigor-hanami`;定数畳み込み（Date/DateTime/Time、Math、String/Integer/Float中優先度、Hashシェイプハンドラー）;`return if @ivar.nil?` ivarガードナローイング修正。`CHANGELOG.md` § `[0.1.10]`を参照。 |
+| v0.1.11 | 2026-05-27 | プラグインを`rigortype` gemにバンドル;ポータブルベースラインパス;`rigor-rails-routes`でkaigionrails conference-app + Mastodonトライアルに基づく5つの偽陽性ソースを解消（`new_` / `edit_`プレフィックス順序、匿名`get`ルート、`scope as:`プレフィックス + arity、`draw(:name)`部分的読み込み、`concern`ボディnoop、末尾オプションハッシュ +1 arityルール）;`rigor-rails-i18n`コントローラー内のレイジー翻訳キー;Railsクイックスタートマニュアル。`CHANGELOG.md` § `[0.1.11]`を参照。 |
+| v0.1.12 | 2026-05-28 | Mastodon / Redmine / GitLab FOSSに対するOSSリアリズムサイクル: Mastodon`app + lib`エラー**789 → 6（−99.2%）**、Redmine**163 → 79（−51%）**、GitLab FOSS `app/{controllers,mailers,workers,services}`**〜670 → 〜140**。6つの`flow.always-truthy / always-falsey` FPパターンをクローズ（書き込み前読み取りnil、介在するメソッド呼び出し、retryエッジ、falsey-rvalue防御的初期化、極性認識ガード、ミューテーターの幅広げ）。新しいナローイングプリミティブ（`receiver[key] ||= default`、単一ホップメソッドチェーン`is_a?`）。`Class.new(Parent) { |c| ... }`と`Hash#each { |k, v| ... }`オートスプラット型付け。プラグインの包括的拡張: `rigor-rails-routes`がdevise_for / use_doorkeeper / mount / concern / with_options / member-collection-shorthand等を認識;`rigor-actionpack`のネストモジュール修飾付きフィルター & レンダー;`rigor-activerecord`のマイグレーション除外 / バーチャルテーブルモデル / Postgres配列カラム / スコープボディ解決;`rigor-actionmailer`のinclude-of-concerns;`rigor-rails-i18n`のRails同梱キープレフィックス。新しい`rigor plugins`サブコマンド。`CHANGELOG.md` § `[0.1.12]`を参照。 |
 
 ## リリース戦略 — v0.2.0への道
 
@@ -38,19 +42,19 @@ sidebar:
 
 | ライン | 役割 |
 | --- | --- |
-| `0.1.x` | プレビュー。**v0.1.9は最後のプレビューカット — 未解決のプレビュートラックのコミットメントをクローズする準完成版リリース**。 |
+| `0.1.x` | プレビュー。v0.1.9は当初の指定「最後のプレビューカット」だったが、Mastodon / Redmine / tdiary / GitLab FOSSに対するトライアル作業が偽陽性削減サイクルを経てラインをv0.1.10 / v0.1.11 / v0.1.12まで延長した。v0.1.12はMastodon`app + lib`を6件の無関係なエラーで残す（5件はテストフィクスチャのnil-receiver + 1件はstdlib RBSギャップ）。 |
 | `v0.2.0` | **最初の評価リリース**。実プロダクトでの試験デプロイを意図した最初のバージョンとして公式に発表される;評価期間を開き、外部のフィードバックを募る。 |
 | `0.2.x` | 評価ライン。まだフォーマルバージョンではないが、目標は**Ractor並行性トラックを除くすべての計画された機能**を高い完成度 / 本番品質に持っていくこと。 |
 
-### v0.1.9 — 最後のプレビュー（準完成）
+### v0.1.12以降の状況
 
-最後の`0.1.x`カット。プレビュートラックのコミットメントをクローズし、v0.2.0が準完成のベースから評価ラインを始められるようにする:
+v0.1.9の「最後のプレビューカット」の意図は達成済み（SKILLトリオ、ADR-22スライス5、実証的デフォルトの引き締めが出荷）し、ラインはMastodon / Redmine / GitLab FOSSのリアリズムストーリーによって追加のトライアル駆動パッチカット（v0.1.10 / v0.1.11 / v0.1.12）を経て*延長*された。プレビューラインはv0.2.0に向けた強いRCポスチャーに今ある:
 
-- **外部ユーザーSKILLトリオ** — `rigor-project-init`、`rigor-baseline-reduce`、そして外部著者`rigor-plugin-author`バリアント（[ADR-22 WD8](../adr/22-baseline-and-project-onboarding/)）;3つすべてが`skills/`に置かれ、**v0.1.9サイクルで着地済み**。
-- **ADR-22ベースラインスライス5** — `rigor baseline regenerate`に加え`--baseline-strict` CIゲート。
-- v0.1.7 / v0.1.8サイクルにわたって収集された実証的なプロジェクトサーベイデータに対するデフォルト（プラグイン / 重要度 / ベースラインルールの推奨）の引き締め。
+- 99.2%のMastodon FP削減が経験的に実証済み;Redmine 51%、GitLab FOSS〜80%（調査済みスコープ）。
+- 全3件のフローフォールディングG2フォローアップ（`retry`、介在する呼び出し、書き込み前読み取りnil）がクローズ済み（v0.1.12）。
+- `rigor plugins`有効化レディネスサブコマンドがプラグイン設定のサイレント失敗ギャップをクローズ（v0.1.12）。
 
-v0.2.0評価ラインのリリース候補として扱われる: バーは「既知のリリースブロッキング欠陥なし」であり、「すべての需要駆動バックログ項目がクローズ」ではない。
+残りのv0.2.0ゲートは以下に示す同じ3つ — 変わっていない。
 
 ### v0.2.0 — 最初の評価リリース
 
