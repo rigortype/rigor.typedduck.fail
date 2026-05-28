@@ -3,8 +3,8 @@ title: "ADR-29 — ブラウザプレイグラウンド"
 description: "rigortype/rigor docs/adr/29-browser-playground.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/29-browser-playground.md"
 sourcePath: "docs/adr/29-browser-playground.md"
-sourceSha: "66680ea571124f77a94962d232d626d1aeae9599e32b7356f88996d5ff1d52a7"
-sourceCommit: "1881619b60b29439a03e7a1f8fee266031c9ca10"
+sourceSha: "e665eb2c8ad2fbc627f9c6c7277e77d0504a25ef4153ccdc791ffff2b647da7d"
+sourceCommit: "152a3193d3ab92a112fe02c05215c618afe663c4"
 translationStatus: "translated"
 sidebar:
   order: 4029
@@ -13,6 +13,8 @@ sidebar:
 ステータス: **提案済み、2026-05-23**。ブラウザベースのRigorプレイグラウンド——リアルタイム診断と`annotate`スタイルの型コメントを表示するテキストエディター——を構築し、どのようにホストすべきかという決定を記録する。2つのアプローチを評価した: 完全にブラウザ内のWASMランタイム（`ruby.wasm`）と、静的サイトをフロントエンドとするサーバーサイドAPI**。サーバーサイドAPI**が採用された短期パスである;具体的なゲート条件のセット（WD6）が、ブラウザ内WASM完全移行が実行可能になる時期を定義する。
 
 **修正2026-05-25**: WD4がデフォルトのプラグインセットを空から`rigor-rbs-inline`有効（[ADR-32](../32-rbs-inline-comment-ingestion/)のWD10に従い、`require_magic_comment: false`で）へ変更した。これにより、`# @rbs`形コメントを含む貼り付けスニペットが最初のリクエストからインラインRBSとして解析され、ユーザー側の設定が不要になる。
+
+**修正2026-05-29**: [ADR-34](../34-toplevel-unresolved-self-call-default/)のWD7により、リクエストごとのサンドボックスは`severity_profile: strict`（または同等のルールごとのオーバーライド）を設定し、新しい`call.unresolved-toplevel`ルールが`foo 1`のような貼り付けスニペットで発火するようにする。`balanced`デフォルトを継承するとルールが`:warning`にマッピングされ——表面化はするが、プレイグラウンドとのユーザーの最初のインタラクションになる可能性が最も高い例を過小評価することになる。
 
 ## コンテキスト
 

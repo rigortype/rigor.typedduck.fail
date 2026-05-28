@@ -3,15 +3,17 @@ title: "ADR-17 — プロジェクト側monkey-patchの事前評価"
 description: "rigortype/rigor docs/adr/17-monkey-patch-pre-evaluation.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/17-monkey-patch-pre-evaluation.md"
 sourcePath: "docs/adr/17-monkey-patch-pre-evaluation.md"
-sourceSha: "b9f8c83128c3772fe05b7646f790e1ac759985d3638a6ef45e8be17fc74c475c"
-sourceCommit: "fe4e9a80df3829ee4f113e763e4bb9920c33da21"
-sourceDate: "2026-05-18T04:21:23+09:00"
+sourceSha: "e57e985d426d49bb8925430e0c5e1ba8d1874314f272b65abb3bbc8467421b65"
+sourceCommit: "152a3193d3ab92a112fe02c05215c618afe663c4"
+sourceDate: "2026-05-29T00:21:31+09:00"
 translationStatus: "translated"
 sidebar:
   order: 4017
 ---
 
 Status: **proposed, 2026-05-16.** v0.1.xコア作業がこれを参照できるよう設計をここに固定;実装はキュー済み（コミット済みマイルストーンなし）。最初に「explicit list MVP」のフロアを狙う;パターン発見とフルプロジェクト事前パスは需要駆動のまま。
+
+**注記2026-05-29** — [ADR-34](../34-toplevel-unresolved-self-call-default/)がこのメカニズムを「機会的な精度向上」から「トップレベルのunresolved-self-call診断のための正規エスケープハッチ」へと格上げする。ADR-34はADR-17スライス1+2を実装の必須前提条件として挙げている: `pre_eval:`レジストリが存在する前にデフォルトのフリップをリリースすることはできない——さもなければ、トップレベルのmonkey-patchを持つプロジェクトにはオプトアウト手段がなくなる。
 
 ## コンテキスト
 
