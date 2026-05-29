@@ -27,7 +27,7 @@ sidebar:
 | `Rigor::Plugin.register(plugin_class)` | プラグインgemがロード時に`Rigor::Plugin::Base`サブクラスをアドバタイズするために呼び出す。 |
 | `Rigor::Plugin.registered_for(id)` | マニフェストidによるローダー側のルックアップ。 |
 | `Rigor::Plugin.registered` | 凍結された`{ id => class }`スナップショット。 |
-| `Rigor::Plugin.unregister!(id = nil)` | テスト専用リセット。プラグインコントラクトはgem作成者にこれを呼び出すことを要求しない。 |
+| `Rigor::Plugin.unregister!(id = nil)` | テスト専用リセット。プラグイン契約はgem作成者にこれを呼び出すことを要求しない。 |
 
 レジストリはプロセスグローバルでmutexガードされています。同じクラスを2回登録することはno-opです；同じidで異なるクラスを登録すると`Rigor::Plugin::LoadError`が発生するため、2つのプラグインが互いをサイレントに上書きすることはできません。
 

@@ -45,7 +45,7 @@ lib/user.rb:42:7: error: undefined method `upcas' for "alice" [call.undefined-me
 | --- | --- | --- |
 | `call.undefined-method` | レシーバークラスが静的に既知で、メソッドがそれに定義されていない（RBSまたはインソース）。 | error |
 | `call.wrong-arity` | 位置引数の数がどのオーバーロードのアリティも満たさない。 | error |
-| `call.argument-type-mismatch` | 引数の型がパラメーターコントラクト（RBSまたは`RBS::Extended` `param:`）を証明可能に満たさない。 | error |
+| `call.argument-type-mismatch` | 引数の型がパラメーター契約（RBSまたは`RBS::Extended` `param:`）を証明可能に満たさない。 | error |
 | `call.possible-nil-receiver` | レシーバー型が`T | nil`で、メソッドが`NilClass`で定義されていない。 | warning |
 
 `call.*`ルールは実際のコードで最も量の多い診断です。また最も洗練されています — それぞれがRigorが根底にある事実を証明できる場合にのみ発火します。
@@ -63,7 +63,7 @@ lib/user.rb:42:7: error: undefined method `upcas' for "alice" [call.undefined-me
 
 ### `def.*` — メソッド定義ルール
 
-メソッドの本体が宣言されたコントラクトに違反するときに発火します。
+メソッドの本体が宣言された契約に違反するときに発火します。
 
 | ルール | 発火するとき | デフォルト深刻度 |
 | --- | --- | --- |
@@ -226,7 +226,7 @@ Rigorを採用したばかりのプロジェクトでの実用的なループ:
    c. **正当なノイズ**。 その行に`# rigor:disable <rule>`を追加するか、`.rigor.yml`に`disabled_rules:`を追加します。
 3. 再実行します。診断ストリームがきれいになるまで繰り返します。
 4. `rigor check lib`を`balanced`プロファイル（またはより厳密）の下でCIに追加します。
-5. プロジェクトの不変条件がより証明されるにつれて、`# rigor:disable`行を`RBS::Extended`ディレクティブに格上げして、解析器に実際のコントラクトを教えます。
+5. プロジェクトの不変条件がより証明されるにつれて、`# rigor:disable`行を`RBS::Extended`ディレクティブに格上げして、解析器に実際の契約を教えます。
 
 クリーンな`rigor check`の実行が目標です;グリーンのCIバッジは「発火するすべての診断は受け入れるものだ」を意味します。
 

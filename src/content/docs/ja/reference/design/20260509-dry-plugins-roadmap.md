@@ -14,7 +14,7 @@ sidebar:
 
 調査したコーパスは[`references/hanakai-rb/content/guides/dry/`](../../references/hanakai-rb/)のhanakai-rbガイドツリーで、hanami/dry/rom組織がhanakai-rbに統合された後のdry-rbの権威ある公開ガイド。以下の依存関係エッジはそのコーパス内の散文的な記述から取得した。gemspecの検証とバージョンピンの決定はプラグインごとの作成ステップに延期する。
 
-このドキュメントは参考情報。拘束力のあるプラグインコントラクトは各プラグインの`README.md`とインテグレーションスペックに存在する。Railsプラグインロードマップのディシプリン（[`docs/design/20260508-rails-plugins-roadmap.md`](../20260508-rails-plugins-roadmap/)）を踏襲する。
+このドキュメントは参考情報。拘束力のあるプラグイン契約は各プラグインの`README.md`とインテグレーションスペックに存在する。Railsプラグインロードマップのディシプリン（[`docs/design/20260508-rails-plugins-roadmap.md`](../20260508-rails-plugins-roadmap/)）を踏襲する。
 
 ## dry-rbがRigorにとって興味深い理由
 
@@ -111,7 +111,7 @@ end
 
 **プラグインが発行する静的ファクト**。
 
-- スキーマ定数は型付き入力 → 出力コントラクトにマッピングされる。
+- スキーマ定数は型付き入力 → 出力契約にマッピングされる。
 - `schema.call(input)`の出力は、`#to_h`/`[]`のキーが宣言に従って型付けされた結果: `:name` → 非空文字列、`:age` → Integer、`:tags` → Array[String]、`:address.street` → 非空文字列。
 - 述語サフィックス（`gt?: 18`）はv0.1.1がランディングされたらRigorのリファインメント名カタログ（positive-int等）に供給される。
 - Params対JSONの区別が重要: Paramsのみが文字列を強制変換する — プラグインは強制変換型を解決する前にどのビルダーがスキーマを生成したかを記録しなければならない。
@@ -122,7 +122,7 @@ end
 
 ### dry-validation
 
-**目的**。ドメインバリデーションコントラクト: 型付きの`params { ... }`スキーマ（dry-schemaに委譲）にビジネスロジックのruleブロックを加えたもの。
+**目的**。ドメインバリデーション契約: 型付きの`params { ... }`スキーマ（dry-schemaに委譲）にビジネスロジックのruleブロックを加えたもの。
 
 **プラグイン関連DSL**。
 
@@ -385,7 +385,7 @@ dry-rails          -> dry-system       (runtime, plugin)
                    -> dry-auto_inject  (runtime, plugin)
 ```
 
-フラグを立てるふたつのサイクル: **dry-system ↔ dry-auto_inject**（各gemのガイドが相手を参照）と**dry-types ↔ dry-schema ↔ dry-validation**（バリデーションコントラクトがdry-schemaがdry-types経由で解釈するアドホック型をインラインで宣言できる）。両者はプラグイン作者が順序付けで解決できる依存関係の*方向*: まずプロデューサープラグイン（`dry-types`、`dry-system`）を構築し、次にコンシューマー（`dry-schema`/`dry-validation`、`dry-auto_inject`）を構築する。
+フラグを立てるふたつのサイクル: **dry-system ↔ dry-auto_inject**（各gemのガイドが相手を参照）と**dry-types ↔ dry-schema ↔ dry-validation**（バリデーション契約がdry-schemaがdry-types経由で解釈するアドホック型をインラインで宣言できる）。両者はプラグイン作者が順序付けで解決できる依存関係の*方向*: まずプロデューサープラグイン（`dry-types`、`dry-system`）を構築し、次にコンシューマー（`dry-schema`/`dry-validation`、`dry-auto_inject`）を構築する。
 
 ## パッケージング戦略
 
@@ -396,7 +396,7 @@ dry-rails          -> dry-system       (runtime, plugin)
 階層AとB（オプションでC）をカバーするひとつのプラグインgem。
 
 - **賛成**。単一のGemfileエントリ、単一のsemver、プラグイン間ファクトプロトコル不要（すべてが1つのプラグインのプロセスに収まる）。
-- **賛成**。シンプルな初期作成 — v0.1.0プラグインコントラクトは実績がある。新しいクロスプラグインAPIサーフェスは不要。
+- **賛成**。シンプルな初期作成 — v0.1.0プラグイン契約は実績がある。新しいクロスプラグインAPIサーフェスは不要。
 - **反対**。リリースが無関係な変更を結合する（dry-monadの微調整がdry-structの修正と一緒に出荷される）。
 - **反対**。部分的なdry-rb採用のユーザー（例: dry-struct + dry-typesのみ）がプラグインを明示的に内部でモジュラー化しない限り、使用していないgemの解析コストを負担する。
 - **反対**。上流のgemのバージョンロックステップが乖離した場合（そして実際に乖離する — `dry-types` 1.7対1.8は異なるケイデンスで出荷される）、モノリシックなプラグインは最も遅いgemに追従しなければならない。

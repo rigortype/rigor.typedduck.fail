@@ -223,7 +223,7 @@ Rigorは`sig/`からRBSインターフェースを読む。RBS宣言されたパ
 - **メソッド呼び出しを通じた定数folding**。mypyもPyrightもリテラルをfoldするが、どちらも任意のビルトインメソッドを通じたfoldはしない。Rigorは`Numeric`、`String`、`Symbol`、`Array`、`Hash`上のカタログ化された純粋メソッドのセットを通じてfoldする。
 - **自動ナローイングを持つファーストクラスのリファインメントキャリア**。`non-empty-string`、`positive-int`、`numeric-string`、`int<min, max>` — 述語で制限された値が対応するRubyの述語メソッドでナローイングされる。
 - **false-positiveなしのスタンス**。mypyは`--no-warn-unused-ignores`や`--ignore-missing-imports`を設定しない限り動的コードについて警告する。Rigorは設定なしで`Dynamic[Top]`には沈黙する。
-- **引数シェイプによる戻り型変化のプラグインサイド**。Pyrightの「型エイリアスナローイング」とmypyのオーバーロードスタックがいくつかのケースをカバーする。Rigorのプラグインコントラクトはディスパッチポイントで完全なRubyコードを提供する。[`rigor-lisp-eval`](../../examples/rigor-lisp-eval/)の例が標準デモ — `Lisp.eval([:+, 1, 2])`は`Integer`を返し、`Lisp.eval([:<, 1, 2])`は`bool`を返す。
+- **引数シェイプによる戻り型変化のプラグインサイド**。Pyrightの「型エイリアスナローイング」とmypyのオーバーロードスタックがいくつかのケースをカバーする。Rigorのプラグイン契約はディスパッチポイントで完全なRubyコードを提供する。[`rigor-lisp-eval`](../../examples/rigor-lisp-eval/)の例が標準デモ — `Lisp.eval([:+, 1, 2])`は`Integer`を返し、`Lisp.eval([:<, 1, 2])`は`bool`を返す。
 
 ## マイグレーションvignette
 

@@ -104,7 +104,7 @@ Tapiocaの生成済みDSL RBIを特別扱いする並列プラグインを構築
 1. **コアのギャップに対処しない**。ミックスインチェーン解決が実際の修正。上記のすべてはボーナス機能。
 2. **ボーナス機能は小さい**。合わせてもおそらく100-200行のコード。プラグインを正当化しない。
 3. **エコシステムコスト**。プラグインにはREADME、デモ、インテグレーションスペック、gemspec — 薄いフィーチャーサーフェスに対してのオーバーヘッド。
-4. **クロスプラグイン調整コスト**。`rigor-tapioca`はRBIを読む（`rigor-sorbet`と重複）AND`Plugin::FactStore`（ADR-9）経由で`rigor-activerecord`の出力を参照する必要がある。双方向クロスプラグイン依存関係はコントラクトの最も脆弱な形状。
+4. **クロスプラグイン調整コスト**。`rigor-tapioca`はRBIを読む（`rigor-sorbet`と重複）AND`Plugin::FactStore`（ADR-9）経由で`rigor-activerecord`の出力を参照する必要がある。双方向クロスプラグイン依存関係は契約の最も脆弱な形状。
 
 ## `rigor-tapioca`が正当化される時
 
@@ -281,7 +281,7 @@ plugins/rigor-tapioca/
 - [`20260509-rigor-tapioca-comparison.md`](../20260509-rigor-tapioca-comparison/)
   — この調査が基づく戦略的比較。
 - [ADR-11 — Sorbetインプットアダプターとしてのプラグイン](../../adr/11-sorbet-input-adapter/)
-  — `rigor-sorbet`の拘束力のあるコントラクト。
+  — `rigor-sorbet`の拘束力のある契約。
 - [`tapioca/manual/compiler_activerecordcolumns.md`](https://github.com/rigortype/rigor/blob/master/references/tapioca/manual/compiler_activerecordcolumns.md)
   — この調査がテストしたTapioca生成DSL RBI形式のサンプル。
 - `tmp/rigor_tapioca_check.rb` — ギャップを確認した使い捨て再現スクリプト。コミットされていない。このドキュメントの「実際のギャップ」セクションから再作成できる。

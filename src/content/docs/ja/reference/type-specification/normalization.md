@@ -40,4 +40,4 @@ Rigorは比較と報告の前に型を正規化します。正規化は診断、
 
 ## 表示との相互作用
 
-正規化はエンジン内部の正規化です。差、補完、動的由来型の診断表示コントラクトは[type-operators.md](../type-operators/)と[diagnostic-policy.md](../diagnostic-policy/)にあります。表示規則は正規化された型をより読みやすく描画する場合がありますが（例: `true | false`の代わりに`bool`を表示）、基礎となる型の同一性を変更してはなりません（MUST NOT）。
+正規化はエンジン内部の正規化です。差、補完、動的由来型の診断表示契約は[type-operators.md](../type-operators/)と[diagnostic-policy.md](../diagnostic-policy/)にあります。表示規則は正規化された型をより読みやすく描画する場合がありますが（例: `true | false`の代わりに`bool`を表示）、基礎となる型の同一性を変更してはなりません（MUST NOT）。

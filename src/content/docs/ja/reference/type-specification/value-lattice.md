@@ -72,7 +72,7 @@ Dynamic[T] - U = Dynamic[T - U]
 
 ### ラウンドトリップ保持
 
-動的由来ラッパーはRBS境界で可逆です。`Dynamic[top]`は`untyped`にラウンドトリップし、保持されたジェネリックスロットは同じ形状でラウンドトリップします。これが`untyped`が参加する場合でもRBS→Rigor方向が無損失である理由です。無損失/有損失コントラクトについては[overview.md](../overview/)を、エクスポート側については[rbs-erasure.md](../rbs-erasure/)を参照してください。
+動的由来ラッパーはRBS境界で可逆です。`Dynamic[top]`は`untyped`にラウンドトリップし、保持されたジェネリックスロットは同じ形状でラウンドトリップします。これが`untyped`が参加する場合でもRBS→Rigor方向が無損失である理由です。無損失/有損失契約については[overview.md](../overview/)を、エクスポート側については[rbs-erasure.md](../rbs-erasure/)を参照してください。
 
 ## 束を使った作業
 

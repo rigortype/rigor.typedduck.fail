@@ -26,7 +26,7 @@ Rigorは特定の意味論的役割を持ち、互換性がない複数の特殊
 
 `bot`は制御フロー解析に有用です。なぜなら`bot`を実際のブランチとジョインしても実際のブランチが変わらないからです: `T | bot = T`。
 
-戻り値コントラクトについて、`bot`は通常の値が生成されないのですべての結果コントラクトを満たします。したがって、常に例外を投げる、終了する、または永遠にループするメソッド本体は`void`戻り値コントラクトと互換性があります。逆は真ではありません: `void`の結果は非リターン制御フローの証明では**なく**、`bot`戻り値コントラクトを満たし**ません**。
+戻り値契約について、`bot`は通常の値が生成されないのですべての結果契約を満たします。したがって、常に例外を投げる、終了する、または永遠にループするメソッド本体は`void`戻り値契約と互換性があります。逆は真ではありません: `void`の結果は非リターン制御フローの証明では**なく**、`bot`戻り値契約を満たし**ません**。
 
 ## `untyped`と`Dynamic[T]`
 
@@ -65,7 +65,7 @@ Rigorは診断のために動的由来のソースを区別すべきです（SHO
 - RBS、rbs-inline、またはSteep互換のアノテーションでの明示的な`untyped`
 - 外部シグネチャの欠落または暗黙の未知のライブラリ事実
 - 解析器の制限、推論の失敗、またはプラグインが宣言した動的挙動;
-- [ADR-10](../adr/10-dependency-source-inference/)に従ったオプトイン依存関係ソース推論（解析器コントラクト: [`docs/internal-spec/dependency-source-inference.md`](../internal-spec/dependency-source-inference/)）: `dependencies.source_inference:`下にリストされたGemのRuby実装をRBSティアより下位のフォールバックとしてRigorが走査する場合。ラッパーはプルーフがGemの作者がコミットしたコントラクトではなくサードパーティソースから来たという事実を保持します。このパスで発行される診断は`dynamic.dependency-source.*`プレフィックスファミリーを使用します（[diagnostic-policy.md](../diagnostic-policy/)参照）。
+- [ADR-10](../adr/10-dependency-source-inference/)に従ったオプトイン依存関係ソース推論（解析器契約: [`docs/internal-spec/dependency-source-inference.md`](../internal-spec/dependency-source-inference/)）: `dependencies.source_inference:`下にリストされたGemのRuby実装をRBSティアより下位のフォールバックとしてRigorが走査する場合。ラッパーはプルーフがGemの作者がコミットした契約ではなくサードパーティソースから来たという事実を保持します。このパスで発行される診断は`dynamic.dependency-source.*`プレフィックスファミリーを使用します（[diagnostic-policy.md](../diagnostic-policy/)参照）。
 
 診断はこれらの区別を使って、`Dynamic[T]`が意図的な漸進的境界から来たのか、シグネチャの欠落から来たのか、オプトインGemソース走査から来たのかを説明できます（MAY）。
 

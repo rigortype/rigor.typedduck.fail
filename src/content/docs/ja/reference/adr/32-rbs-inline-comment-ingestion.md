@@ -28,9 +28,9 @@ p ascdesc :desc
 p ascdesc :bad
 ```
 
-今日`asc_or_desc`を`Dynamic[Top]`として型付けし、`ascdesc :bad`は診断を発しない。原因は明確: Rigorのパイプラインは`# @rbs`コメントを見ない。`lib/`、`spec/`、`examples/`のgrepで確認済み;`MethodParameterBinder`はRBS環境、RBS::Extended `%a{rigor:v1:param:}`アノテーション、ADR-28プロトコルコントラクトのみを読む。
+今日`asc_or_desc`を`Dynamic[Top]`として型付けし、`ascdesc :bad`は診断を発しない。原因は明確: Rigorのパイプラインは`# @rbs`コメントを見ない。`lib/`、`spec/`、`examples/`のgrepで確認済み;`MethodParameterBinder`はRBS環境、RBS::Extended `%a{rigor:v1:param:}`アノテーション、ADR-28プロトコル契約のみを読む。
 
-下流の機構は既に揃っている。同じコントラクトを`.rbs`ファイルで再エンコードすると
+下流の機構は既に揃っている。同じ契約を`.rbs`ファイルで再エンコードすると
 
 ```ruby
 class AscDesc
