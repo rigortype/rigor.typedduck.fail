@@ -237,7 +237,7 @@ rigor --version
 8つのフェーズを順に実行します。
 
 1. **検出** — `Gemfile` / `Gemfile.lock`を読み込んでフレームワークファミリー（Rails、dry-rb、Sinatraなど）と存在するgemを識別します。
-2. **導入モードの選択** — *acknowledge*（acknowledgeモード——今日の診断をベースラインにスナップショット;以後のリグレッションを検出）か*strict*（strictモード——ゼロに抑える）かを提案します。最初の診断数が100件超のコードベースにはacknowledgeを推奨します。
+2. **導入モードの選択** — *acknowledge*（acknowledgeモード——今日の診断をベースライン（baseline）にスナップショット;以後のリグレッションを検出）か*strict*（strictモード——ゼロに抑える）かを提案します。最初の診断数が100件超のコードベースにはacknowledgeを推奨します。
 3. **プラグインの選択** — 検出されたスタックに対応するプラグインセットを提案します。確認またはリストの削減ができます。
 4. **`.rigor.dist.yml`の書き込み** — コミット対象の共有設定。選択したモードに合わせた`severity_profile:`が含まれます。
 5. **Sig引き上げ** — `rigor sig-gen --write`を実行し、Rigor自身の推論からベースラインの`sig/`を生成します。

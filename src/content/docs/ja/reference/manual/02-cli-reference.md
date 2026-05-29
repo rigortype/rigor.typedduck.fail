@@ -39,7 +39,7 @@ rigor check [paths...]
 | `--cache-stats` | 終了時にオンディスクキャッシュのインベントリを表示する。 |
 | `--[no-]stats` | 実行サマリー（ファイル数、クラス数、メモリ、経過時間）をstderrに表示する。デフォルトはオン。 |
 | `--workers=N` | `N`個のRactorワーカーに解析を分散する。デフォルトは`0`（逐次処理）。 |
-| `--baseline=PATH` | 設定を上書きしてベースラインファイルを読み込む。 |
+| `--baseline=PATH` | 設定を上書きしてベースライン（baseline）ファイルを読み込む。 |
 | `--no-baseline` | 設定されたベースラインを無視する。 |
 | `--baseline-strict` | ベースラインのドリフトで実行を失敗させる——CIゲートとして使用。 |
 | `--tmp-file=PATH --instead-of=PATH` | エディタモード: `--tmp-file`のバッファを使って`PATH`を解析する。両方必須。 |

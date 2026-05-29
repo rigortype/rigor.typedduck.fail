@@ -64,7 +64,7 @@ cache:
 | `disable` | Array | `[]` | プロジェクト全体で抑制するルールIDまたはファミリー。 |
 | `severity_profile` | String | `"balanced"` | `lenient`、`balanced`、または`strict`——[診断](../04-diagnostics/)を参照。 |
 | `severity_overrides` | Hash | `{}` | ルール/ファミリーごとの重要度。例: `{ call: warning, flow.always-truthy-condition: off }`。 |
-| `baseline` | String / `false` | `nil` | `.rigor-baseline.yml`へのパス、または`false`で継承されたベースラインを無効化。[ベースライン](../06-baseline/)を参照。 |
+| `baseline` | String / `false` | `nil` | `.rigor-baseline.yml`へのパス、または`false`で継承されたベースライン（baseline）を無効化。[ベースライン](../06-baseline/)を参照。 |
 
 ### 依存関係RBS探索
 

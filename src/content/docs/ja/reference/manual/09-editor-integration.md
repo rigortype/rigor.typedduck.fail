@@ -19,7 +19,7 @@ sidebar:
 | LSPメソッド | 動作 |
 |---|---|
 | `textDocument/publishDiagnostics` | `didChange`のたびにプッシュ、200msデバウンス。重要度 / ルール / ソースはRigorの診断分類に直接対応。 |
-| `textDocument/hover` | 型認識Markdown。ノードクラスごとのディスパッチで、メソッド呼び出しはレシーバー型+RBSシグネチャ、定数はFQN+シングルトン型+定義パス、ローカルはナローイングされた型+バインド位置、`Refined` / `Difference`キャリアには正規リファインメント名（`non-empty-string`、…）を表示。 |
+| `textDocument/hover` | 型認識Markdown。ノードクラスごとのディスパッチで、メソッド呼び出しはレシーバー型+RBSシグネチャ、定数はFQN+シングルトン型+定義パス、ローカルはナローイング（narrowing）された型+バインド位置、`Refined` / `Difference`キャリア（carrier）には正規リファインメント（refinement、篩型とも）名（`non-empty-string`、…）を表示。 |
 | `textDocument/completion` | `.`の後のメソッド補完（推論レシーバー型で動作）、`::`の後の定数パス補完。複合レシーバー（Union → メソッドの積集合、Tuple / HashShape → 祖先名前的、Refined → 基底名前的）を処理。パースリカバリーセンチネルにより、編集中の`obj.` / `Foo::バッファが動作する。 |
 | `textDocument/documentSymbol` | Prism ASTからのアウトラインツリー: ネストを含む`class` / `module` / `def`。 |
 | `workspace/didChangeWatchedFiles` | セッションごとの`Environment` + `Cache::Store`キャッシュを無効化し、保存済みファイルが再伝播するようにする。 |
