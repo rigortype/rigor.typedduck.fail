@@ -3,8 +3,8 @@ title: "アーキテクチャ決定記録"
 description: "rigortype/rigor docs/adr/README.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/README.md"
 sourcePath: "docs/adr/README.md"
-sourceSha: "abd5bae3b7abbc8e456b665bdeb66b71dedcfbde6842ba4f6ecd6f8d4a306110"
-sourceCommit: "5b252bbd814960f6b442a4df7dd41a0d0a79c995"
+sourceSha: "640030e2e5a891544b59094d4cae7e7f3c390bf8cf66d6575fb2e446408532c3"
+sourceCommit: "f05a17f2d493b5e0ae7f1066d9bcb7f90b04dc84"
 translationStatus: "translated"
 sidebar:
   order: 4000
@@ -52,6 +52,13 @@ sidebar:
 | ADR-26 | [ActiveRecord Relation Typing](26-activerecord-relation-typing/) | Accepted |
 | ADR-27 | [Tool Distribution and Installation Model](27-tool-distribution-model/) | Proposed |
 | ADR-28 | [Path-scoped Method-Protocol Contracts](28-path-scoped-protocol-contracts/) | Accepted |
+| ADR-29 | [Browser Playground](29-browser-playground/) | Proposed |
+| ADR-30 | [`rigor-ffi` Plugin Shape](30-rigor-ffi-plugin-shape/) | Proposed |
+| ADR-31 | [Contribution and Supply-chain Policy](31-contribution-and-supply-chain-policy/) | Proposed |
+| ADR-32 | [Inline-RBS Comment Ingestion](32-rbs-inline-comment-ingestion/) | Proposed |
+| ADR-33 | [MCP Server Packaging](33-mcp-server/) | Proposed |
+| ADR-34 | [Toplevel Unresolved Implicit-self Calls Warn by Default](34-toplevel-unresolved-self-call-default/) | Proposed |
+| ADR-35 | [Override Signature Compatibility (Liskov signature rule)](35-override-signature-compatibility/) | Accepted (slices 1–4 done; slice 5 deferred) |
 
 ## 新しいADRの追加
 

@@ -3,8 +3,8 @@ title: "Rigorハンドブック"
 description: "rigortype/rigor docs/handbook/README.mdからインポートされたドキュメントの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/README.md"
 sourcePath: "docs/handbook/README.md"
-sourceSha: "6634a87b6fd39f7e95071be9e72cbdb510b6c3e1ed42439f4cc67ad3155bb457"
-sourceCommit: "203008e9741e8ffd61448e32cf9b89c19f1339da"
+sourceSha: "38718e209c698b3e2665d9a4aca85303f98b81c07dd2fa22fe878947400b43d4"
+sourceCommit: "f05a17f2d493b5e0ae7f1066d9bcb7f90b04dc84"
 translationStatus: "translated"
 sidebar:
   order: 1000
@@ -78,6 +78,18 @@ Rigorの語彙と、プログラミング言語の教科書や別の型チェッ
   トレードオフ、そしてRigorが意図的にモデル化していない機能の
   短いリスト（HKT、higher-rank、完全な依存型……）— それぞれに
   対応するRigorの表面と仕様コーパスへのポインタを添える。
+- [**リスコフの置換原則**](appendix-liskov/) —
+  なぜLSPは、静的にチェックされる言語に対してよりもRubyに対して
+  *より*（少なくではなく）当てはまる*振る舞い的*な規律なのか
+  （「Rubyは静的型付けではないからLSPは任意だ」という主張は原則を
+  逆さまにとらえている）、Rigorの頑健性原則（厳密な戻り値、寛容な
+  パラメーター）がどのようにして、置換可能性の証明ではなくRuby採用の
+  エルゴノミクスからLSPのシグネチャ規則（共変な戻り値、反変な
+  パラメーター）を再導出するのか、なぜその収束がRigorのデフォルトを
+  ダックタイピングやSOLIDの「L」と喧嘩させないのか、そしてどの
+  振る舞い的部分型の義務（クロス階層のオーバーライド互換性、例外規則、
+  契約による設計、履歴制約）をRigorが静的に*強制しない*のか。この
+  ページに限り、「LSP」は言語サーバーではなくリスコフを意味する。
 
 ## 読み方
 

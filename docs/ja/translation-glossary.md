@@ -27,6 +27,22 @@
 | capability | ケイパビリティ | 初出: ケイパビリティ（capability） | 主表記カタカナ。`ケイパビリティロール`等はRigorの定義語。漢語「能力役割」「能力プロバイダ」「能力（capability）」はケイパビリティに統一。一般語「能力（ability）」（レビュー能力・クエリ能力等）は据え置き |
 | contract | 契約 | 初出: 契約（contract） | 「契約プログラミング」の語に合わせ漢語を主表記。カタカナ「コントラクト」は契約に統一。コード内（`RBS::Extended`等）は原文のまま |
 | flow-sensitive | フローセンシティブ | 初出: フローセンシティブ（flow-sensitive） | カタカナのみ。「フロー感応」「フロー感度」のような和語混じりは使わない。"flow-insensitive" は「フローインセンシティブ」、"semi-flow-sensitive" は「セミフローセンシティブ」（プレフィックスもカタカナで統一、「半」は使わない）。学術文献では「制御フロー依存／非依存」（松本＆南出2010ほか）の訳語も見られるが、Rigorサイト内ではカタカナ統一を優先する。論文を引用・参照する文脈では原典の訳語を併記してもよい |
+| Liskov Substitution Principle / LSP | リスコフの置換原則 | 初出: リスコフの置換原則（Liskov Substitution Principle、LSP） | LSPはこのサイトでは通常Language Server Protocol（言語サーバープロトコル）を指す。`handbook/appendix-liskov`ページ内に限りLSP＝リスコフの置換原則。同ページ冒頭の注記でこの衝突を明示する |
+| substitutability / substitution | 置換可能性／置換 | 初出: 置換可能性（substitutability） | LSP文脈。「代入可能性」は使わない |
+| behavioral subtyping | 振る舞い的部分型 | 初出: 振る舞い的部分型（behavioral subtyping） | Liskov & Wing 1994 の語。シグネチャ規則と振る舞い規則の両方を含む |
+| signature rule | シグネチャ規則 | 初出: シグネチャ規則（signature rule） | LSPのうち型システムで表現できる半分（パラメーター反変・戻り値共変） |
+| robustness principle | 頑健性原則 | 初出: 頑健性原則（robustness principle） | 既存の `type-specification/robustness-principle` ページ題に準拠。「堅牢性原則」「ロバストネス原則」は使わない。"Postel's law" は「Postelの法則」、句は「第1句／第2句」 |
+| covariant / contravariant / invariant（分散）| 共変／反変／不変 | 初出: 共変（covariant）／反変（contravariant）／不変（invariant） | `appendix-type-theory` に準拠。分散（variance）の文脈での invariant は「不変」、振る舞い規則の invariant（クラス不変条件）は「不変条件」と訳し分ける。variance自体は「分散」 |
+| precondition / postcondition | 事前条件／事後条件 | 初出: 事前条件（precondition）／事後条件（postcondition） | LSPの振る舞い規則。事前条件は強化不可、事後条件は弱化不可 |
+| invariant（クラス不変条件）/ history constraint | 不変条件／履歴制約 | 初出: 不変条件（invariant）／履歴制約（history constraint） | 分散の「不変」とは別概念。履歴制約はLiskov-Wingの振る舞い規則 |
+| Design by Contract | 契約による設計 | 初出: 契約による設計（Design by Contract） | Meyer / Eiffel。`require`/`ensure`/`invariant`。[契約](#訳語一覧)（contract）の訳に整合 |
+| override | オーバーライド | 初出: オーバーライド（override） | カタカナ。`def.override-*` ルール名は原文のまま |
+| duck typing | ダックタイピング | 初出: ダックタイピング（duck typing） | カタカナ定着語 |
+| arity | アリティ | 初出: アリティ（arity） | カタカナ。既存コーパスで定着（「項数」「引数の個数」は使わない）|
+| visibility | 可視性 | 初出: 可視性（visibility） | `public`/`protected`/`private`。`def.override-visibility-reduced` ルール名は原文のまま |
+| self type | self型 | 初出: self型（self type） | `appendix-type-theory` のセクション見出し「F有界多相とselfType」を参照するときはその表記に合わせる。RBSの `self` キーワードは原文のまま |
+| effect system | エフェクトシステム | 初出: エフェクトシステム（effect system） | カタカナ。既存コーパスで定着 |
+| occurrence typing | occurrence typing | — | 既存コーパスに倣い英語のまま据え置く（「オカレンス型付け」「出現型付け」は使わない）|
 
 ## 用語紹介の表記ルール
 
