@@ -58,7 +58,7 @@ def self.domain_in?(domain, domains)
 
 2件の見逃しは**ランダムではない** — それぞれが意図的なRigorの設計選択にたどり着く:
 
-- C1 → 解決されないメソッドの戻り値は`Dynamic`にフォールバックする（グラデュアル型付けの最後の手段）。
+- C1 → 解決されないメソッドの戻り値は`Dynamic`にフォールバックする（漸進的型付けの最後の手段）。
 - C2 → パラメータは寛容に型付けされる（ADR-5の第2項）。
 
 これは**フォルスポジティブ規律の裏面**である（[`overview.md`](../../type-specification/overview/) §「False-positive

@@ -190,7 +190,7 @@ rigor check
 
 - 任意 / rest / キーワード / ブロック / 転送パラメーターを持つメソッドはサイレントにスキップ（`sig.skipped.complex-shape`）。
 - `define_method`と`Data.define`固有の発行は先送りのフォローアップ（`Data.define`由来のリーダーはメソッド本体が存在すれば通過）。
-- 真の部分型チェックは今日グラデュアルモードの受理を使用;`Inference::Acceptance`に予約された`:strict`モードはフォローアップで到着。
+- 真の部分型チェックは今日漸進的モードの受理を使用;`Inference::Acceptance`に予約された`:strict`モードはフォローアップで到着。
 - `RBS::Writer`を介したラウンドトリップは使用されない（上流の設計でコメントを落とす）;ジェネレーターのバイト範囲挿入は触れない宣言をそのまま保持しますが、触れた宣言の範囲*内に*散りばめられたコメントは保持できません。
 
 これらはADR-14の先送り項目です;設計の根拠は[`docs/adr/14-rbs-sig-generation.md`](../../adr/14-rbs-sig-generation/)にあります。

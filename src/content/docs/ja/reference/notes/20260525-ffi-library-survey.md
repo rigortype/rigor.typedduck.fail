@@ -524,7 +524,7 @@ SassSeparator   = enum(:sass_comma, :sass_space)
 - `attach_function`、`callback`、`typedef`、`enum`、`bitmask`、`FFI::Struct.layout`、`FFI::Union.layout`呼び出しをウォークしてファクト（メソッドシグネチャ、コールバック型、enumシンボルセット、structフィールドオフセットと型）をエンジンに貢献する。
 - よく知られたFFIキャリア——`FFI::Pointer`、`FFI::MemoryPointer`、`FFI::Buffer`、`FFI::AutoPointer`、`FFI::Function`、`FFI::Struct` / `Union`サブクラス——を正確なメソッドシグネチャで型付けする（`read_string : (?Integer) -> String`、`put_bytes : (Integer, String, ?Integer, ?Integer) -> self`等）。
 - `LibZMQ.zmq_send(socket, "hello", 5, 0)`がエラーを出さないよう、呼び出し境界での**String ↔ `:string` / `:pointer`コーションをモデル化**する。
-- typedef済みポインターエイリアスを**別個のnominals**として扱い、入力のみでベースの`:pointer`をサブタイプとして受け付ける（ロバストネス）。
+- typedef済みポインターエイリアスを**別個のnominals**として扱い、入力のみでベースの`:pointer`を部分型として受け付ける（ロバストネス）。
 
 **ライブラリごとのサブプラグイン**（`rigor-rbnacl`、`rigor-ethon`、`rigor-ffi-rzmq`、`rigor-sassc`）に属するもの:
 

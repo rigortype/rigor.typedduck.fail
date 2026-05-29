@@ -63,7 +63,7 @@ sidebar:
 | `kramdown` | `undefined method 'times' for BigDecimal` | 1 |
 | `protobuf` | `undefined method 'to_i/to_f' for Numeric` | 12 |
 
-これらはユーザーが書いた`BigDecimal`算術ではない。呼び出しサイトを読むと（例: `algorithms/lib/algorithms/sort.rb:70`は`(arr.length - 1).upto(...)`）、レシーバは`Integer`算術の結果。推論は`Integer`を`Numeric`に広げ、それから`BigDecimal`（`upto`/`<<`定義のない最も制限的な`Numeric`サブタイプ）に間違ってナローイングしているように見える。
+これらはユーザーが書いた`BigDecimal`算術ではない。呼び出しサイトを読むと（例: `algorithms/lib/algorithms/sort.rb:70`は`(arr.length - 1).upto(...)`）、レシーバは`Integer`算術の結果。推論は`Integer`を`Numeric`に広げ、それから`BigDecimal`（`upto`/`<<`定義のない最も制限的な`Numeric`部分型）に間違ってナローイングしているように見える。
 
 おそらくの根本原因: `Integer - Integer`が何らかのパスで`Numeric`を返し、ユニオン射影が間違ったアームを選ぶ。`ExpressionTyper`で検証 — 最近のコミット`e44cfee`はすでに`__FILE__`/`__LINE__`を絞り込んでいる;リテラル上の算術も同じ精度に値する。
 
@@ -247,7 +247,7 @@ argument type mismatch at `<' on Integer: expected Numeric, got Dynamic[top] | n
 > `(i+1).upto(container.size-1) do |j|`
 > `error: undefined method 'upto' for BigDecimal`
 
-ここで`i`は外側の`0.upto(...)`のIntegerブロックパラメータ。根本原因仮説: `Integer#+(Integer)`オーバーロード選択が`(Integer) → Integer`アームではなく`Numeric → Numeric`フォールバックを選び、実体化された`Numeric`キャリアが`BigDecimal`（`upto`のない最も具体的なサブタイプ）に畳まれる。
+ここで`i`は外側の`0.upto(...)`のIntegerブロックパラメータ。根本原因仮説: `Integer#+(Integer)`オーバーロード選択が`(Integer) → Integer`アームではなく`Numeric → Numeric`フォールバックを選び、実体化された`Numeric`キャリアが`BigDecimal`（`upto`のない最も具体的な部分型）に畳まれる。
 
 
 ---

@@ -18,7 +18,7 @@ sidebar:
 
 - すべてのRuby値に対する最大型としての`top`。
 - 到達不能または不可能な値に対する空型としての`bot`。
-- その間にある公称型、構造型、リテラル型、ユニオン型、インターセクション型、タプル型、レコード型、proc型、リファインメント型。
+- その間にある名前的型、構造型、リテラル型、ユニオン型（union type、合併型とも）、インターセクション型（intersection type、交叉型とも）、タプル型、レコード型、proc型、リファインメント型（refinement type、篩型とも）。
 
 重要な同一性:
 
@@ -39,10 +39,10 @@ T & bot = bot
 
 `Dynamic[T]`は**表面RBS構文ではありません**。通常のユーザーが著作する型として受け付けてはなりません（MUST NOT）。これは2つの事実を組み合わせた内部実装形式です:
 
-- 値がグラデュアル境界を越えたか、チェックされていない情報から来た
+- 値が漸進的境界を越えたか、チェックされていない情報から来た
 - 現在の制御フロー解析がまだ静的ファセット`T`を証明できる
 
-`untyped`、`Dynamic[T]`、グラデュアル一貫性、および動的由来のprovenanceに基づくストリクトモードの詳細なセマンティクスは[special-types.md](../special-types/)にあります。関係自体は[relations-and-certainty.md](../relations-and-certainty/)にあります。
+`untyped`、`Dynamic[T]`、漸進的一貫性、および動的由来のprovenanceに基づくストリクトモードの詳細なセマンティクスは[special-types.md](../special-types/)にあります。関係自体は[relations-and-certainty.md](../relations-and-certainty/)にあります。
 
 ### 代数的規則
 
@@ -68,7 +68,7 @@ Dynamic[T] - U = Dynamic[T - U]
 
 ### ジェネリック位置
 
-ジェネリック位置は動的由来のスロットを保持します。例えば`Array[untyped]`は内部的に`Array[Dynamic[top]]`であり、**`Array[top]`ではありません**。要素を読み取ると`Dynamic[top]`が返ります。要素の書き込みはグラデュアル一貫性に従い、ストリクトモードはコレクションがチェックされていない値を保持することを報告できます（MAY）。同じルールがハッシュ、タプル、レコード、procのパラメーターと戻り値、シェイプメンバーに適用されます。
+ジェネリック位置は動的由来のスロットを保持します。例えば`Array[untyped]`は内部的に`Array[Dynamic[top]]`であり、**`Array[top]`ではありません**。要素を読み取ると`Dynamic[top]`が返ります。要素の書き込みは漸進的一貫性に従い、ストリクトモードはコレクションがチェックされていない値を保持することを報告できます（MAY）。同じルールがハッシュ、タプル、レコード、procのパラメーターと戻り値、シェイプメンバーに適用されます。
 
 ### ラウンドトリップ保持
 
@@ -76,6 +76,6 @@ Dynamic[T] - U = Dynamic[T - U]
 
 ## 束を使った作業
 
-- サブタイピングは`Dynamic[T]`の静的ファセットを使います。グラデュアル一貫性はチェックされていない越境を管理します（[relations-and-certainty.md](../relations-and-certainty/)参照）。
+- サブタイピングは`Dynamic[T]`の静的ファセットを使います。漸進的一貫性はチェックされていない越境を管理します（[relations-and-certainty.md](../relations-and-certainty/)参照）。
 - 正規化は診断、キャッシュ、エクスポートされたシグネチャが安定するように決定論的でなければなりません（MUST）。完全な正規化規則セットは[normalization.md](../normalization/)にあります。
 - ナローイングはエッジを意識したスコープを通じて束の上で動作します（[control-flow-analysis.md](../control-flow-analysis/)参照）。否定的事実は[type-operators.md](../type-operators/)の演算子を使って表現され、除外された値だけから正のドメインを導入することはありません。

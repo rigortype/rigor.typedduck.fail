@@ -160,7 +160,7 @@ Rigorの内部型はRBS（したがってRBI）が自然に記述できないリ
 
 ### 注意点
 
-- **SorbetのRBI語彙はRBSと異なる**。RigorにはRBIの方向のトランスレーターが必要になる（ADR-11スライス3の`rigor-sorbet`のインプット側変換の逆）。難しい部分: `T::Class[T]`/`T.attached_class`/`T.self_type`は慎重な近似が必要。Sorbetの`T.untyped`セマンティクスはRBSの`untyped`と異なる（グラデュアルvs.損失あり）。
+- **SorbetのRBI語彙はRBSと異なる**。RigorにはRBIの方向のトランスレーターが必要になる（ADR-11スライス3の`rigor-sorbet`のインプット側変換の逆）。難しい部分: `T::Class[T]`/`T.attached_class`/`T.self_type`は慎重な近似が必要。Sorbetの`T.untyped`セマンティクスはRBSの`untyped`と異なる（漸進的vs.損失あり）。
 - **ADR-1の不変条件が適用される**。Rigor → RBIはRigor → RBS（`rbs-erasure.md`）とRBS → Rigor（情報無損失）と並ぶ第3の脚である。新しい脚には独自の規範的ドキュメントとラウンドトリップルールが必要。
 - **カバレッジのマッチは正直に示す**。Rigorの静的ウォークはランタイム専用の定義（ランタイム計算された名前に対する`define_method`、文字列の`class_eval`、`if Rails.env.production?`を通じて条件付きロードされるモジュール）を見ることができない。Tapiocaはこれらを捕捉する。RigorのRBI emitは捕捉しない。ドキュメントは明示的であるべき。
 

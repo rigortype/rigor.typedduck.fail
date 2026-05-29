@@ -21,7 +21,7 @@ RigorのプライマリType-sourceコントラクトはRBS（`RBS::Inline`コメ
 1.  **SorbetはRBSと正確に一致しない独自の型システムセマンティクスを持つ**。[SorbetのRBS-commentsドキュメント][sorbet-rbs]はこの点を明示している — SorbetチームはRBSを「二級市民」のアノテーション形式として扱い、ふたつの型言語は「構文だけでなくセマンティクスでも異なる」と述べている。乖離の例:
     - Sorbetにリテラル型はない（`'foo'`は`String`）。
     - Sorbetはダックタイピングを設計上拒否する。RBSは構造的インターフェースを持つ。
-    - `T.untyped`はすべての型のスーパータイプかつサブタイプ（グラデュアルセマンティクス）。RBSの`untyped`は一方向のクリフ。
+    - `T.untyped`はすべての型のスーパータイプかつ部分型（漸進的セマンティクス）。RBSの`untyped`は一方向のクリフ。
     - `T.anything`は操作を持たない「真の」top（[anything.md][sorbet-anything]）。RBSの`top`は同じ制約を強制しない。
     - Sorbetの`T::Class[T]`と`T.attached_class`/`T.self_type`はRBSが直接表現できない文脈依存セマンティクスを持つ。
 

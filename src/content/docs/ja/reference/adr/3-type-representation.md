@@ -161,7 +161,7 @@ Rigorドキュメント:
 - [`docs/internal-spec/implementation-expectations.md`](../../internal-spec/implementation-expectations/) — 型オブジェクトを取り囲むエンジンサーフェスコントラクト。
 - [`docs/adr/1-types.md`](../1-types/) — 型モデルセマンティクス、動的起源代数、3値の確実性。
 - [`docs/adr/2-extension-api.md`](../2-extension-api/) — 型値を消費する拡張サーフェス。
-- [`docs/type-specification/relations-and-certainty.md`](../../type-specification/relations-and-certainty/) — サブタイピング、グラデュアル一貫性（gradual consistency）、3値の確実性。
+- [`docs/type-specification/relations-and-certainty.md`](../../type-specification/relations-and-certainty/) — サブタイピング、漸進的一貫性（gradual consistency）、3値の確実性。
 - [`docs/type-specification/value-lattice.md`](../../type-specification/value-lattice/) — 束のidentityと`Dynamic[T]`代数。
 - [`docs/type-specification/special-types.md`](../../type-specification/special-types/) — `top`、`bot`、`untyped`/`Dynamic[T]`、`void`、`nil`/`NilClass`、`bool`/`boolish`。
 - [`docs/type-specification/rbs-compatible-types.md`](../../type-specification/rbs-compatible-types/) — RBS形式と文脈的ルール。

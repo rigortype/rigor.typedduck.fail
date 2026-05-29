@@ -40,7 +40,7 @@ records = dns.getresources(domain, Resolv::DNS::Resource::IN::MX).to_a.map { |e|
 def getresources: (dns_name name, singleton(Resolv::DNS::Query) typeclass) -> Array[Resolv::DNS::Resource]
 ```
 
-要素型が上限の`Resolv::DNS::Resource`になっており、タイプクラスが決定するサブタイプが失われています。特定のサブクラスを渡す呼び出し側（`dns.getresources(name, IN::MX)` / `IN::A` / `IN::AAAA`という形式——実際にはほぼこれしか使わない）は型精度が落ちてしまいます。
+要素型が上限の`Resolv::DNS::Resource`になっており、タイプクラスが決定する部分型が失われています。特定のサブクラスを渡す呼び出し側（`dns.getresources(name, IN::MX)` / `IN::A` / `IN::AAAA`という形式——実際にはほぼこれしか使わない）は型精度が落ちてしまいます。
 
 ### 同じ形状の兄弟メソッド
 
