@@ -10,15 +10,15 @@ sidebar:
   order: 2050
 ---
 
-Rigorの型演算子サーフェスはRBS互換演算子（`|`、`&`、`T?`、`[…]`）を、負のファクト、差分型、シェイプ投影に使われる内部形式と組み合わせます。
+Rigorの型演算子サーフェスはRBS互換演算子（`|`、`&`、`T?`、`[…]`）を、負のファクト（fact）、差分型、シェイプ投影に使われる内部形式と組み合わせます。
 
-この文書はそれらの演算子のセマンティクス、診断表示コントラクト、および負のファクト診断を読みやすくするための省略ルールを定義します。リファインメントと型関数の予約済み組み込み名は[imported-built-in-types.md](../imported-built-in-types/)にカタログ化されています。これらの演算子が存在する束は[value-lattice.md](../value-lattice/)にあります。
+この文書はそれらの演算子のセマンティクス、診断表示コントラクト、および負のファクト診断を読みやすくするための省略ルールを定義します。リファインメント（refinement、篩型とも）と型関数の予約済み組み込み名は[imported-built-in-types.md](../imported-built-in-types/)にカタログ化されています。これらの演算子が存在する束は[value-lattice.md](../value-lattice/)にあります。
 
 ## 演算子カタログ
 
 | 形式 | 意味 |
 | --- | --- |
-| `T | U` | ユニオン（RBS互換） |
+| `T | U` | ユニオン（union、合併型とも）（RBS互換） |
 | `T & U` | 積集合（RBS互換） |
 | `T?` | `T | nil`（RBS互換） |
 | `~T` | 現在の既知ドメイン内での`T`の補完（内部） |
@@ -112,7 +112,7 @@ top - nil           # nilを除くすべてのRuby値
 省略コントラクトはデフォルトの診断が読みやすくなりながら説明が完全なままになるように具体的な形を持ちます:
 
 - デフォルト表示バジェットは上位3つの保持された除外を保持し、内部的にさらに除外が保持されているとき、レンダリングされたリストを`+N more`で終えます。表示バジェットは`budgets.negative_fact_display`であり、`.rigor.yml`で設定可能です。[inference-budgets.md](../inference-budgets/)を参照してください。
-- 選択はナローイング決定に最近参加した除外を優先し、次に名前的ベースより前のリテラル値を、次に出力が安定するようにレキシカル順を優先します。
+- 選択はナローイング（narrowing）決定に最近参加した除外を優先し、次に名前的ベースより前のリテラル値を、次に出力が安定するようにレキシカル順を優先します。
 - `+N more`サフィックスは診断識別子にリンクし、完全な詳細が利用可能であることをユーザーが知れるようにします。
 - `rigor explain <diagnostic-id>`（CLIの`--explain`も同様）はすべての保持された除外、超過したバジェット、選択の順序を表示します。これはPHPStanの解析説明に相当するRigorのものです。
 - プラグインは`Scope` APIを通じて保持された除外の完全なリストを読み取り、独自の上位層診断をそこからレンダリングできます（MAY）;デフォルト表示バジェットはプレゼンテーションルールであり、情報制限ではありません。
@@ -155,7 +155,7 @@ pick_of[T, 0 | 2] = Tuple[String, Symbol]  # スライス5の実装次第。ADR-
 
 `partial_of[T]`は`T`の必須エントリーすべてを任意に反転させます。`required_of[T]`はその逆: すべての任意エントリーを必須に反転させます。
 
-`partial_of`は値型に`nil`を**追加しません**。TypeScriptの`Partial<T>`は、JavaScriptにシェイプレベルの「キー不在」キャリアがないため暗黙的に`T | undefined`に広げます; Rigorの`HashShape`は[control-flow-analysis.md](../control-flow-analysis/)と[structural-interfaces-and-object-shapes.md](../structural-interfaces-and-object-shapes/)に従い、「キー不在」と「キーは存在し値が`nil`」を区別します。この2つの事実は合成します:
+`partial_of`は値型に`nil`を**追加しません**。TypeScriptの`Partial<T>`は、JavaScriptにシェイプレベルの「キー不在」キャリア（carrier）がないため暗黙的に`T | undefined`に広げます; Rigorの`HashShape`は[control-flow-analysis.md](../control-flow-analysis/)と[structural-interfaces-and-object-shapes.md](../structural-interfaces-and-object-shapes/)に従い、「キー不在」と「キーは存在し値が`nil`」を区別します。この2つの事実は合成します:
 
 ```text
 T = Record{name: String, age: Integer}

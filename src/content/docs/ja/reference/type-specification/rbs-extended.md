@@ -33,7 +33,7 @@ def assert_present!: (String value) -> void
 def check: (untyped value) -> bool
 ```
 
-`return:`、`param:`、`assert*`、`predicate-if-*`の右辺は、RBSスタイルのクラス名（`String`、`::Foo::Bar`）またはインポート済み組み込みカタログ（[`imported-built-in-types.md`](../imported-built-in-types/)）のkebab-caseリファインメントペイロードのいずれかを受け付けます。リファインメントペイロードは`Builtins::ImportedRefinements::Parser`を通じてパラメーター化形式`non-empty-array[Integer]`、`non-empty-hash[Symbol, Integer]`、`int<min, max>`をサポートします。型引数位置はSymbolおよびStringリテラルトークン（`:name` / `"name"`）と、それらの`|`によるユニオン（`:a | :b | "c"`）も受け付けます;パーサーは各リテラルを`Constant<value>`に持ち上げ、ユニオンを`Type::Combinator.union`を介して畳み込むため、`pick_of[T, :a | :b]`やプラグイン提供の`Pick[T, "name" | "email"]`のようなシェイプ射影ヘッドが合成ASTのワークアラウンドなしに端から端まで通ります。クラス名ディレクティブは`~T`否定を使う場合があります（MAY）;リファインメント形式のディレクティブは現在使ってはなりません（MUST NOT）（差分対リファインメントの代数は将来のスライスのために予約されています）。
+`return:`、`param:`、`assert*`、`predicate-if-*`の右辺は、RBSスタイルのクラス名（`String`、`::Foo::Bar`）またはインポート済み組み込みカタログ（[`imported-built-in-types.md`](../imported-built-in-types/)）のkebab-caseリファインメント（refinement、篩型とも）ペイロードのいずれかを受け付けます。リファインメントペイロードは`Builtins::ImportedRefinements::Parser`を通じてパラメーター化形式`non-empty-array[Integer]`、`non-empty-hash[Symbol, Integer]`、`int<min, max>`をサポートします。型引数位置はSymbolおよびStringリテラルトークン（`:name` / `"name"`）と、それらの`|`によるユニオン（union、合併型とも）（`:a | :b | "c"`）も受け付けます;パーサーは各リテラルを`Constant<value>`に持ち上げ、ユニオンを`Type::Combinator.union`を介して畳み込むため、`pick_of[T, :a | :b]`やプラグイン提供の`Pick[T, "name" | "email"]`のようなシェイプ射影ヘッドが合成ASTのワークアラウンドなしに端から端まで通ります。クラス名ディレクティブは`~T`否定を使う場合があります（MAY）;リファインメント形式のディレクティブは現在使ってはなりません（MUST NOT）（差分対リファインメントの代数は将来のスライス（slice）のために予約されています）。
 
 ## 著作ルール
 
@@ -45,7 +45,7 @@ def check: (untyped value) -> bool
 - バージョンプレフィックスはディレクティブIDの一部です。Rigor v1は`rigor:v1:`ディレクティブのみを読み取ります;サポートされていない`rigor:vN:`ディレクティブはRBSツールによって保存されますが、Rigorが解析するノードにある場合はサポートされていないメタデータとして報告されます。
 - 同じRBSノード上の複数のアノテーションはソース順序に依存せず決定論的に独立して解釈されなければなりません（MUST）。
 - 正確に重複するアノテーションは冪等です。
-- 互換性のあるアノテーションはディレクティブの種類、ターゲット、フローエッジによって合成されます。例えば、同じパラメーターの真エッジと偽エッジの述語ファクトは異なる効果スロットです。
+- 互換性のあるアノテーションはディレクティブの種類、ターゲット、フローエッジによって合成されます。例えば、同じパラメーターの真エッジと偽エッジの述語ファクト（fact）は異なる効果スロットです。
 - 競合するアノテーションは診断です。Rigorは最初優先または最後優先の挙動を使ってはなりません（MUST NOT）。競合は、ペイロード構文の非互換性、同じノードでのバージョンの非互換性、同じ効果スロットに対する2つの非同一シングルトンディレクティブ、積集合が`bot`である矛盾するリファインメント、通常のRBSコントラクトを超えるリファインメントを含みます。
 - 著者は明示的なユーザー著作差分型には`T - U`を優先し、負のファクトとコンパクトな診断表示には主に`~T`を使うべきです（SHOULD）（[type-operators.md](../type-operators/)参照）。
 - アノテーションがRBSシグネチャと競合する場合、Rigorは診断を報告しなければなりません（MUST）。

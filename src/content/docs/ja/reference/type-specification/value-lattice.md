@@ -10,7 +10,7 @@ sidebar:
   order: 2050
 ---
 
-この文書はRigorが内部で使う値束（value lattice）を定義します。サブタイピング、正規化、ナローイング、消去はすべてこれを基盤としています。
+この文書はRigorが内部で使う値束（value lattice）を定義します。サブタイピング（subtyping）、正規化、ナローイング（narrowing）、消去はすべてこれを基盤としています。
 
 ## 通常の値束
 
@@ -18,7 +18,7 @@ sidebar:
 
 - すべてのRuby値に対する最大型としての`top`。
 - 到達不能または不可能な値に対する空型としての`bot`。
-- その間にある名前的型、構造型、リテラル型、ユニオン型（union type、合併型とも）、インターセクション型（intersection type、交叉型とも）、タプル型、レコード型、proc型、リファインメント型（refinement type、篩型とも）。
+- その間にある名前的型（nominal type、公称型とも）、構造型（structural）、リテラル型、ユニオン型（union type、合併型とも）、インターセクション型（intersection type、交叉型とも）、タプル型、レコード型、proc型、リファインメント型（refinement type、篩型とも）。
 
 重要な同一性:
 
@@ -39,7 +39,7 @@ T & bot = bot
 
 `Dynamic[T]`は**表面RBS構文ではありません**。通常のユーザーが著作する型として受け付けてはなりません（MUST NOT）。これは2つの事実を組み合わせた内部実装形式です:
 
-- 値が漸進的境界を越えたか、チェックされていない情報から来た
+- 値が漸進的（gradual）境界を越えたか、チェックされていない情報から来た
 - 現在の制御フロー解析がまだ静的ファセット`T`を証明できる
 
 `untyped`、`Dynamic[T]`、漸進的一貫性、および動的由来のprovenanceに基づくストリクトモードの詳細なセマンティクスは[special-types.md](../special-types/)にあります。関係自体は[relations-and-certainty.md](../relations-and-certainty/)にあります。
