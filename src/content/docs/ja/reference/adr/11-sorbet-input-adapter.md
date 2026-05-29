@@ -21,7 +21,7 @@ RigorのプライマリType-sourceコントラクトはRBS（`RBS::Inline`コメ
 1.  **SorbetはRBSと正確に一致しない独自の型システムセマンティクスを持つ**。[SorbetのRBS-commentsドキュメント][sorbet-rbs]はこの点を明示している — SorbetチームはRBSを「二級市民」のアノテーション形式として扱い、ふたつの型言語は「構文だけでなくセマンティクスでも異なる」と述べている。乖離の例:
     - Sorbetにリテラル型はない（`'foo'`は`String`）。
     - Sorbetはダックタイピングを設計上拒否する。RBSは構造的インターフェースを持つ。
-    - `T.untyped`はすべての型のスーパータイプかつ部分型（漸進的セマンティクス）。RBSの`untyped`は一方向のクリフ。
+    - `T.untyped`はすべての型のスーパータイプかつ部分型（subtype）（漸進的（gradual）セマンティクス）。RBSの`untyped`は一方向のクリフ。
     - `T.anything`は操作を持たない「真の」top（[anything.md][sorbet-anything]）。RBSの`top`は同じ制約を強制しない。
     - Sorbetの`T::Class[T]`と`T.attached_class`/`T.self_type`はRBSが直接表現できない文脈依存セマンティクスを持つ。
 
@@ -58,7 +58,7 @@ RigorのプライマリType-sourceコントラクトはRBS（`RBS::Inline`コメ
 - **静的側（`rigor-sorbet`が提供するもの）**: `sig { ... }`ブロックと`T.let`/`T.cast`/`T.must`/`T.bind`/`T.absurd`をtype-sourceとして読み込み、メソッドシグネチャとフローアサーションをアナライザーに提供する。
 - **ランタイム側（Sorbetから変わらない）**: `sorbet-runtime`がロード時に`sig`付きメソッドをラップし、違反時にraiseする。Rigorはアプリケーションコードを実行しない（ADR-2 §「プラグインの信頼とI/Oポリシー」）ため、プラグインがロードされていてもランタイム強制はRigorの機能ではない。
 
-実際には: ランタイムチェックを重視するユーザーは`sorbet-runtime`をGemfileに保持する。同じ`sig`ブロックが両方の目的に使われる。Rigor + `rigor-sorbet`を追加することで、プロジェクト独自の型言語拡張（`RBS::Extended`リファインメント、プラグイン派生の動的メンバー等）が上に重なった第二の静的解析器を得られる。
+実際には: ランタイムチェックを重視するユーザーは`sorbet-runtime`をGemfileに保持する。同じ`sig`ブロックが両方の目的に使われる。Rigor + `rigor-sorbet`を追加することで、プロジェクト独自の型言語拡張（`RBS::Extended`リファインメント（refinement、篩型とも）、プラグイン派生の動的メンバー等）が上に重なった第二の静的解析器を得られる。
 
 ## 変換テーブル
 
@@ -70,7 +70,7 @@ RigorのプライマリType-sourceコントラクトはRBS（`RBS::Inline`コメ
 | --- | --- | --- |
 | `sig { params(x: T).returns(U) }` | RBS形式のメソッド型`(T) -> U` | 直接対応 |
 | `sig { void }` | `(...) -> void` | 直接対応 |
-| `sig { abstract.returns(T) }` | abstractメソッドファクト + 戻り型`T` | abstractマーカーを捕捉 |
+| `sig { abstract.returns(T) }` | abstractメソッドファクト（fact） + 戻り型`T` | abstractマーカーを捕捉 |
 | `sig { override.returns(T) }` | overrideファクト + 戻り型`T` | overrideチェックは既存の`def.return-type-mismatch`ルールに委ねる |
 | `sig { overridable.returns(T) }` | overridableファクト + 戻り型`T` | 直接対応 |
 | `sig(:final) { ... }` | finalメソッドファクト | [final.md][sorbet-final]参照 |
@@ -124,7 +124,7 @@ RigorのプライマリType-sourceコントラクトはRBS（`RBS::Inline`コメ
 
 以下の構造はRigorに対応するものがなく、提供箇所で`dynamic.sorbet.unsupported`を発行する。呼び出し箇所はdynamic-originマーカーを保持するため、ユーザーは境界を監査できる:
 
-- **`T::Struct` / `T::ImmutableStruct`** — Sorbetの型付き直積型。`HashShape`が最も近いキャリアだが、プロパティレベルのアノテーション（`prop`、`const`）はSorbet固有。`Nominal[<UserDefined>]`にベストエフォートのインスタンスメソッド推論を加えて扱う。フィールドレベルの型はプラグイン提供。
+- **`T::Struct` / `T::ImmutableStruct`** — Sorbetの型付き直積型（product type）。`HashShape`が最も近いキャリアだが、プロパティレベルのアノテーション（`prop`、`const`）はSorbet固有。`Nominal[<UserDefined>]`にベストエフォートのインスタンスメソッド推論を加えて扱う。フィールドレベルの型はプラグイン提供。
 - **`T::Enum`** — Sorbetの型付き列挙型。最も近いRigorの対応は有限集合での`Symbol`のリファインメントだが、ランタイムセマンティクスが異なる。`Nominal[<UserDefined>]`に`Singleton[T]`インスタンスとして公開された列挙定数を加えて変換。
 - **`T::Generic` `type_member` / `type_template`** — 分散マーカー（`:in`/`:out`/`:invariant`）とバウンド（`fixed`/`upper`/`lower`）はRBSで表現可能な場合に変換される。複雑なバウンド（`fixed: T.any(A, B)`）は影響するスロットが`Dynamic[top]`にフォールバック。
 - **`T.experimental_*`名前空間** — Sorbet自身のコントラクトとして不安定。プラグインはunsupportedとして扱う。
@@ -209,7 +209,7 @@ ADR-0は「RubyアプリケーションコードはRigor固有のアノテーシ
 5.  **シグル尊重 + ディスパッチャー階層順序**。`# typed:`シグルはプラグインがファイルごとに何を提供するかに影響する。RBS/プロジェクト`sig/` RBS/`RBS::Extended`に対する階層順序が文書化される（コンフリクト時はRBSが優先。Sorbetのsigはプロジェクト`sig/` RBSと同じ階層に位置する）。
 6.  **`T.absurd`網羅性配線**。`flow.unreachable-branch`と合成される。診断識別子: `plugin.sorbet.absurd-reachable`。
 7.  **ドキュメント更新**。新しい`plugins/rigor-sorbet/README.md`と、Sorbetを使うプロジェクトから来るユーザー向けのアダプターをカバーする`docs/handbook/`のチャプター。[`docs/handbook/01-getting-started.md`](../../handbook/01-getting-started/)の「推論だけでは足りないとき」エスケープハッチからクロスリンク。
-8.  **ミックスインチェーン解決（Tapioca DSL互換性）**。スライス4のRBIウォーカーは宣言クラス/モジュールの直下にsigを記録する。これは手書きのsig+defペアでは機能するが、sigを生成済みモジュールで宣言しそのモジュールをユーザークラスに`include`/`extend`するTapiocaの標準パターンを見逃す:
+8.  **ミックスインチェーン解決（Tapioca DSL互換性）**。スライス（slice）4のRBIウォーカーは宣言クラス/モジュールの直下にsigを記録する。これは手書きのsig+defペアでは機能するが、sigを生成済みモジュールで宣言しそのモジュールをユーザークラスに`include`/`extend`するTapiocaの標準パターンを見逃す:
 
     ```rbi
     class Post

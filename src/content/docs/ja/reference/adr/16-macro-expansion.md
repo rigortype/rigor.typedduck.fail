@@ -10,7 +10,7 @@ sidebar:
   order: 4016
 ---
 
-Status: **accepted — フロア + 精度プロモーション着地（スライス1〜7 + 6a/6b）、スライス5b + ユーティリティ型戻り値のためのADR-13リゾルバチェイン配線は需要に先送り**、2026-05-15。
+Status: **accepted — フロア + 精度プロモーション着地（スライス（slice）1〜7 + 6a/6b）、スライス5b + ユーティリティ型戻り値のためのADR-13リゾルバチェイン配線は需要に先送り**、2026-05-15。
 Rails（`ActiveSupport::Concern`、ActiveStorage attachedマクロ）、AASM、Devise、GraphQL-Ruby、factory_bot、Sinatra、Sequel、Redmineをカバーするライブラリごとのサーベイ[`docs/notes/20260515-macro-expansion-library-survey.md`](../../notes/20260515-macro-expansion-library-survey/)が発端。基板フロアは14のコミット（584ae85…d7b1943）にわたって配信;ADR-12（dry-rbパッケージング）は引き続き予約;このADRは並行して座り、それに依存しません。スライスごとのステータス詳細は § 実装のスライス分けに記載。
 
 ## コンテキスト
@@ -38,7 +38,7 @@ RigorのオープンワークアイテムO2（ROADMAP）はv0.1.5以降「マク
 - `rigor-activestorage`は`has_one_attached :name`呼び出しを歩き、合成アクセサに戻り型を貢献する。
 - `rigor-activerecord`は`belongs_to` / `has_one`を歩き、`Nominal[Target] | nil`を貢献する。
 - `rigor-factorybot`は`FactoryBot.create(:user)`を歩き、ファクトリレジストリから戻り型を貢献する。
-- `rigor-statesman`はステートマシンDSLを歩き、ステートごと / イベントごとのメソッドファクトを貢献する。
+- `rigor-statesman`はステートマシンDSLを歩き、ステートごと / イベントごとのメソッドファクト（fact）を貢献する。
 
 ウォーカーは基板を共有しない: 各々が（a）コールASTからのリテラルシンボル抽出、（b）名前補間、（c）レジストリストレージ、（d）`Plugin::Base#flow_contribution_for`との統合を再実装する。ウォーカーごとのアプローチはプラグイン数で線形にスケールし、サーベイが今や共通であることを実証する定型句を新しいプラグイン作者ごとに再導出することを強制する。
 
@@ -68,7 +68,7 @@ ADR-16は**3つのステークホルダー役割**を区別し、それぞれ基
 
 このパスは3つのハード制約に縛られる:
 
-- **パフォーマンスバウンド**。副次的認識は「未認識マクロを無視」ベースラインが払うであろう以上の測定可能なwall-clockコストを追加してはならない（MUST NOT）。ヒューリスティックがウォームキャッシュ`rigor check`プロファイルに測定可能な減速を強制するなら、それは落とされる。ADR-15に従い、アナライザーの推論コストが支配的なシェア（約50%）;副次的パスはそれを成長させられない。
+- **パフォーマンスバウンド**。副次的認識は「未認識マクロを無視」ベースライン（baseline）が払うであろう以上の測定可能なwall-clockコストを追加してはならない（MUST NOT）。ヒューリスティックがウォームキャッシュ`rigor check`プロファイルに測定可能な減速を強制するなら、それは落とされる。ADR-15に従い、アナライザーの推論コストが支配的なシェア（約50%）;副次的パスはそれを成長させられない。
 - **排除**。`rigor-foo`プラグインが有効化されているとき、副次的ヒューリスティックはそのライブラリの呼び出しサイトで**並行して**実行されない。2つは解釈コストを制限するため使用サイトで相互排他的。専用プラグインが常に勝つ;rigorは二重処理しない。
 - **正確性保証なし**。副次的パスは「ベストエフォート」;精密な型付けが必要なアプリケーション作者は専用プラグインをインストールする。ヒューリスティック由来のファクトは`macro.heuristic.<id>`provenanceマーカーを運び、下流の消費者（診断、`--explain`）がプラグイン著作のファクトとヒューリスティック由来のものを区別できるようにする。
 
@@ -198,7 +198,7 @@ class RigorActivestorage < Rigor::Plugin::Base
 end
 ```
 
-基板は合成`Type::Method`キャリア（v0.1.5の`Type::BoundMethod`作業で導入された内部の`Rigor::Type::Method`形状に従う）を生成し、それらを呼び出し元クラスのメソッドディスパッチャーに登録する。キャリアは診断provenanceのために`synthetic: true`としてフラグされる。
+基板は合成`Type::Method`キャリア（carrier、v0.1.5の`Type::BoundMethod`作業で導入された内部の`Rigor::Type::Method`形状に従う）を生成し、それらを呼び出し元クラスのメソッドディスパッチャーに登録する。キャリアは診断provenanceのために`synthetic: true`としてフラグされる。
 
 制約: すべての名前補間はソースから見えるリテラルSymbolまたはStringに解決されなければならない（MUST）。非リテラル引数（`has_one_attached(some_method)`）は既存のプラグインウォーカーフック（または処理なし）にフォールスルーする。
 
@@ -328,7 +328,7 @@ end
 2. **Tier C — heredocテンプレート展開**。✅ **着地**（スライス2a `b77c101`、2b `9251916`、2c `e65ff9b`）。`Plugin::Macro::HeredocTemplate`値クラス + `Plugin::Manifest#heredoc_templates`フィールド;新しい`Rigor::Inference::SyntheticMethod` / `SyntheticMethodIndex` / `SyntheticMethodScanner`基板 + RBSとdep-sourceの間の新しい`try_synthetic_method`ディスパッチャーティア;動作プラグイン`plugins/rigor-dry-struct/`。WD13フロアに従い: 合成メソッドは`Dynamic[T]`を返す;精密な戻り型プロモーションはスライス6の作業（先送り）。`rigor-dry-types`は将来のコンパニオン（現在の基板がまだモデル化していない別個のTier-C-as-`const_set`プリミティブ）として記載。
 3. **Tier B — トレイトインライニングレジストリ**。✅ **着地**（スライス3a `26b1fe4`、3b `17846a7`、3c `ba1b61a`）。`Plugin::Macro::TraitRegistry`値クラス + `Plugin::Manifest#trait_registries`フィールド;スキャナがincludeされた各モジュールのRBSインスタンスメソッドを既存の`SyntheticMethodIndex`にメソッドごとに展開して拡張する（将来の精度プロモーションのための`origin_module:`provenance付き）;動作プラグイン`plugins/rigor-devise/`（バンドルされたレジストリがDeviseの`lib/devise/modules.rb`戦略テーブルをミラー — 11エントリーに加えて常にincludeされる`Devise::Models::Authenticatable`）。
 4. **Concern再ターゲティングウォーカー**。✅ **着地**（`bdbccdd`）。`SyntheticMethodScanner`が`extend ActiveSupport::Concern` + `included do ... end`モジュールを認識;クラス本体が`include M`するとき、Mの遅延DSL呼び出しがincludeするクラスに対してリプレイされる。スライス4フロア: 定数パス`include M`のみ、1ホップのみ、`class_methods do ... end`は先送り。
-5. **Tier D — 外部ファイルインクルージョン**。⚠️ **契約のみ**（スライス5a `56706a5`）;スライス5bエンジン統合は**需要に先送り**。`Plugin::Macro::ExternalFile`値クラス + `Plugin::Manifest#external_files`フィールドが着地し`Manifest#to_h`経由でラウンドトリップ;マッチしたファイルを歩く + トップレベルの`self_type`をナローイング + `bound_ivars`を事前バインドするエンジンフックは、具体的なプラグインターゲット（Redmine webhookペイロード、tDiaryプラグインローダー）にトリガーされる将来のスライスにキュー。プラグイン作者は今日Tier Dエントリーを宣言できる;基板はまだそれらに作用しない。
+5. **Tier D — 外部ファイルインクルージョン**。⚠️ **契約のみ**（スライス5a `56706a5`）;スライス5bエンジン統合は**需要に先送り**。`Plugin::Macro::ExternalFile`値クラス + `Plugin::Manifest#external_files`フィールドが着地し`Manifest#to_h`経由でラウンドトリップ;マッチしたファイルを歩く + トップレベルの`self_type`をナローイング（narrowing） + `bound_ivars`を事前バインドするエンジンフックは、具体的なプラグインターゲット（Redmine webhookペイロード、tDiaryプラグインローダー）にトリガーされる将来のスライスにキュー。プラグイン作者は今日Tier Dエントリーを宣言できる;基板はまだそれらに作用しない。
 6. **精度プロモーション**。✅ **フロアで着地**（スライス6a-TierB `d174fff`、6b-TierC `d7b1943`）。2つのパス:
    - **6a-TierB**。SyntheticMethodがprovenance内に`origin_module:`を記録するとき（スライス3bスキャナからのTier B発行）、既存の`RbsDispatch`経由で`Nominal[origin_module]`上で呼び出しを再ディスパッチする。モジュールの著作RBS戻り型が勝つ;モジュールがenv内にないときは`Dynamic[T]`にフォールバック。Deviseの`valid_password?`は`untyped`ではなく`bool`を返す。
    - **6b-TierC**。SyntheticMethodが素の`return_type:`文字列を記録するとき（マニフェストの発行テーブルからのTier C発行）、`environment.nominal_for_name(return_type)`経由でルックアップする。合成リーダーはクラスがRBS env内にあるとき`Nominal[<class>]`を返す;それ以外は`Dynamic[T]`にフォールバック。Tier Bのプレースホルダー`"untyped"`とRBSスタイルの`"void"`はTier Cパスから除外され、それらはTier Bブランチまたはフロアに自己ルーティングする。

@@ -20,7 +20,7 @@ sidebar:
 
 1. SteepのレントIDは2セグメント（`Ruby::MethodParameterMismatch`、`RBS::DuplicatedMethodDefinition`）。Rigorはシングルセグメント（`undefined-method`、`wrong-arity`）。フラットな名前空間では、`# rigor:disable`や設定で関連する診断のファミリー（例：「すべての呼び出しサイトルール」）をターゲットにしにくい。
 2. Steepには組み込みの重大度プロファイル（`Steep::Diagnostic::Ruby.lenient`、`.strict`）が付属する。Rigorは`.rigor.yml`の`disable:`リストによるルールごとのオン/オフのみをサポートする。その結果、CIと開発での重大度チューニングが扱いにくい。
-3. Steepはメソッドボディの推論された返り値型が宣言された返り値型を満たせない場合に`Ruby::MethodBodyTypeMismatch`を出力する。Rigorには基盤（スライス4の`FlowContribution::Merger`、B1のメソッドごとのReflectionキャッシュ）はあるがルールはまだない——返り値側における既存の`argument-type-mismatch`の対称的な存在。
+3. Steepはメソッドボディの推論された返り値型が宣言された返り値型を満たせない場合に`Ruby::MethodBodyTypeMismatch`を出力する。Rigorには基盤（スライス（slice）4の`FlowContribution::Merger`、B1のメソッドごとのReflectionキャッシュ）はあるがルールはまだない——返り値側における既存の`argument-type-mismatch`の対称的な存在。
 
 このADRは実装がサーフェス設計を再検討せずにランドできるよう、各改善の選択された方向を記録する。
 
@@ -84,14 +84,14 @@ severity_overrides:
 - 比較は`declared.accepts(inferred)`:
   - `:yes` — サイレント。
   - `:no` — `:error`とルール`def.return-type-mismatch`で診断を出力する。
-  - `:maybe` — v0.1.x最初のカットではサイレント。実装上の規律: ドッグフーディングでRigor自身の`lib/`に16の警告が見つかり、すべてが同じ解析器精度ギャップのセット（`{}`が宣言された要素型を回復しない、`Set.new`が`Set[Symbol]`ではなく裸の`Set`を返す、…）から来ており、ボディの推論型がまだ十分に正確にピン留めできていない。`:maybe`を`:warning`（と`severity_profile: strict`下での`:error`）に引き上げることは、それらのケースが必要とするナローイング精度改善と一緒にランドするフォローアップにキューイングされている。
+  - `:maybe` — v0.1.x最初のカットではサイレント。実装上の規律: ドッグフーディングでRigor自身の`lib/`に16の警告が見つかり、すべてが同じ解析器精度ギャップのセット（`{}`が宣言された要素型を回復しない、`Set.new`が`Set[Symbol]`ではなく裸の`Set`を返す、…）から来ており、ボディの推論型がまだ十分に正確にピン留めできていない。`:maybe`を`:warning`（と`severity_profile: strict`下での`:error`）に引き上げることは、それらのケースが必要とするナローイング（narrowing）精度改善と一緒にランドするフォローアップにキューイングされている。
 
 最初のカットのスコープ外:
 
 - RBSシグのないメソッド（比較する宣言された契約がない）。
 - 複数返り値パス解析。最初のカットはボディの最後の式を推論された返り値のプロキシとして取る。ボディ途中の明示的な`return`、分岐する返り値、`raise`終了、`next`/`break`パスは今は素通りする。
 - ブロック返り値型。`IteratorDispatch`/`BlockFolding`の上の将来の作業。
-- メソッドオーバーロード——ルールはメソッドの`method_types`配列を参照し、宣言されたすべての返り値型のユニオンを比較ターゲットとして考慮する。
+- メソッドオーバーロード——ルールはメソッドの`method_types`配列を参照し、宣言されたすべての返り値型のユニオン（union、合併型とも）を比較ターゲットとして考慮する。
 
 根拠: これはSteepの`Ruby::MethodBodyTypeMismatch`スコープと一致する。ADR-5（堅牢性原則）は「返り値では厳格に」を要求する。このルールはそのポリシーの最初の具体的なコンシューマーだ。
 

@@ -10,7 +10,7 @@ sidebar:
   order: 4018
 ---
 
-Status: **proposed、2026-05-16**。[ADR-16](../16-macro-expansion/)のマクロ展開基板を改訂し、合成されるメソッドにおいて呼び出しサイトごとの戻り型をサポートします。v0.1.6で着地した`rigor-dry-types`（[ADR-12](../12-dry-rb-packaging/)）の作業とADR-9の`:dry_type_aliases`ファクトの上に構築されます。自然な消費者（`rigor-dry-struct`の精度向上）はこの改訂なしには着地できません。
+Status: **proposed、2026-05-16**。[ADR-16](../16-macro-expansion/)のマクロ展開基板を改訂し、合成されるメソッドにおいて呼び出しサイトごとの戻り型をサポートします。v0.1.6で着地した`rigor-dry-types`（[ADR-12](../12-dry-rb-packaging/)）の作業とADR-9の`:dry_type_aliases`ファクト（fact）の上に構築されます。自然な消費者（`rigor-dry-struct`の精度向上）はこの改訂なしには着地できません。
 
 ## コンテキスト
 
@@ -27,7 +27,7 @@ heredoc_templates: [
 ]
 ```
 
-`returns:`文字列は**テンプレートごとに静的**です — 第2引数のソース表現にかかわらず、すべての`attribute :city, X`呼び出しに対して同じ値です。スライス6bはこの文字列を`Environment#nominal_for_name`を通じてプロモートするので、今日のフロアは次のとおりです。
+`returns:`文字列は**テンプレートごとに静的**です — 第2引数のソース表現にかかわらず、すべての`attribute :city, X`呼び出しに対して同じ値です。スライス（slice）6bはこの文字列を`Environment#nominal_for_name`を通じてプロモートするので、今日のフロアは次のとおりです。
 
 > すべての`address.city`リーダーは、`:city`が`Types::String`、`Types::Integer`、`Types::Bool`のいずれで宣言されたかにかかわらず、`Nominal[Object]`を返す。
 

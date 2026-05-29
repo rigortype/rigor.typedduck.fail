@@ -13,7 +13,7 @@ sidebar:
 
 Status: **proposed, 2026-05-29.**可視のメソッドコントリビューターに対して解決に失敗するトップレベルのimplicit-self呼び出しサイトで、現在の無音な`Dynamic[top]`の挙動を反転させ、代わりに専用の`call.unresolved-toplevel`診断をemitするという決定を記録する。エスケープハッチ——monkey-patchingやメタプログラミングを通じてトップレベルメソッドを導入するプロジェクト向け——は[ADR-17](../17-monkey-patch-pre-evaluation/)の`pre_eval:`設定軸である。実装はADR-17のランディングが前提条件。
 
-このADRは意図的に狭い範囲に限定している: **トップレベル**スライスのみデフォルトを反転する。`class` / `module`ボディ内のimplicit-self呼び出しは[ADR-24 WD3](../24-self-method-call-resolution/)の下で寛容なままとなる;それらを診断に格上げすることは[ADR-24 WD4](../24-self-method-call-resolution/)の別途ゲートされた決定であり、**このADRによって開かれるものではない**。
+このADRは意図的に狭い範囲に限定している: **トップレベル**スライス（slice）のみデフォルトを反転する。`class` / `module`ボディ内のimplicit-self呼び出しは[ADR-24 WD3](../24-self-method-call-resolution/)の下で寛容なままとなる;それらを診断に格上げすることは[ADR-24 WD4](../24-self-method-call-resolution/)の別途ゲートされた決定であり、**このADRによって開かれるものではない**。
 
 ## コンテキスト
 

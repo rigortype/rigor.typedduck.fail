@@ -12,11 +12,11 @@ sidebar:
 
 ## ステータス
 
-**Accepted（部分実装、2026-05-18）**。当初2026-05-18にproposedとして提出されたが、同日中にスライス1、2a、2c、2d、3がエンドツーエンドで着地し、`JSON.parse`が`untyped`の代わりに再帰的な`json::value`ユニオンを返すようになった（`rigor type-of`で検証済み）ため、acceptedに昇格した。残りのオープンスライス（§ 実装スライス分けのスライス2b、4、5、6）はスケジュールコミットメントを持たず、需要駆動で出荷される。
+**Accepted（部分実装、2026-05-18）**。当初2026-05-18にproposedとして提出されたが、同日中にスライス（slice）1、2a、2c、2d、3がエンドツーエンドで着地し、`JSON.parse`が`untyped`の代わりに再帰的な`json::value`ユニオン（union、合併型とも）を返すようになった（`rigor type-of`で検証済み）ため、acceptedに昇格した。残りのオープンスライス（§ 実装スライス分けのスライス2b、4、5、6）はスケジュールコミットメントを持たず、需要駆動で出荷される。
 
 ### v0.1.6で着地したもの
 
-- **スライス1** — `Rigor::Type::App`の不透明キャリア（`uri`、`args`、`bound`）;`Rigor::Inference::HktRegistry`（`Registration` + `Definition`値オブジェクト + last-write-winsの`merge`）;`Rigor::RbsExtended::HktDirectives.parse_register` / `parse_define`（`%a{rigor:v1:hkt_register}` / `%a{rigor:v1:hkt_define}`ディレクティブ用のJSON-flowペイロードパーサー）。このスライスでは簡約なし、呼び出しサイトの配線なし。
+- **スライス1** — `Rigor::Type::App`の不透明キャリア（carrier）（`uri`、`args`、`bound`）;`Rigor::Inference::HktRegistry`（`Registration` + `Definition`値オブジェクト + last-write-winsの`merge`）;`Rigor::RbsExtended::HktDirectives.parse_register` / `parse_define`（`%a{rigor:v1:hkt_register}` / `%a{rigor:v1:hkt_define}`ディレクティブ用のJSON-flowペイロードパーサー）。このスライスでは簡約なし、呼び出しサイトの配線なし。
 - **スライス2a** — `Rigor::Inference::HktBody`（5つの`Data.define`ボディ木ノード型: `TypeLeaf`、`Param`、`AppRef`、`Union`、`NominalApp`）;遅延自己再帰処理のための呼び出しごとの進行中スタック（再帰的な直和が終了するための「結び目固め」トリック）と燃料予算（WD3に従いデフォルト64）を実装する`Rigor::Inference::HktReducer`によるD4評価ルール。`Definition#body_tree`スロットを追加;ボディ文字列はスライス2bパーサー用にそのまま並んで残る。`Type::App#reduce` + `HktRegistry#reduce`便宜ラッパー。
 - **スライス2b** — `Rigor::Inference::HktBodyParser`（最小文法: union + アトム + nominal_app + app_ref + param、`JSON.parse`の再帰的直和と類似の再帰データ形シグネチャに十分;条件 / インデックスアクセス形はフォローアップに残る）。`HktDirectives.parse_define`は今、自動的にパーサーを呼び出しボディ文字列から`body_tree`を埋める;パース失敗はfail-softで`body_tree: nil` + `:info`レポーターエントリになる。エンドツーエンドのレデューサ等価性がプログラマティックなJSON_VALUEボディに対して検証された。
 - **スライス2e** — `RbsLoader#each_class_decl_annotation` + `HktRegistry.scan_rbs_loader` + `Environment.for_project`配線。`%a{rigor:v1:hkt_register / hkt_define}`アノテーションを運ぶユーザー著作`.rbs`オーバーレイは今、`env.hkt_registry`に表面化し、バンドルされた組み込みの上にマージされる。URI衝突はlast-write-winsなので、ユーザーオーバーレイは望むならバンドルされたJSON_VALUEをオーバーライドできる。
@@ -47,10 +47,10 @@ def self?.parse: (string source, ?options opts) -> untyped
 `untyped`は上流のrbs gemの選択である。Rigorのアナライザにとってこれは:
 
 - すべての`JSON.parse(...)`呼び出しサイトが`Dynamic[Top]`に広がる。
-- 下流のナローイング（`is_a?`、`case/in`、`dig`）が情報を回復する唯一の方法。
+- 下流のナローイング（narrowing）（`is_a?`、`case/in`、`dig`）が情報を回復する唯一の方法。
 - `make check`は構造的に間違ったパース後アクセスを何もフラグできない — 型は*最大*の動的キャリアである。
 
-`JSON.parse`に対して実際に健全な最小精度フロアは**再帰的直和**:
+`JSON.parse`に対して実際に健全（soundness）な最小精度フロアは**再帰的直和**:
 
 ```ruby
 type json::value =
@@ -161,7 +161,7 @@ Rigor拡張カタログはすでに「ライブラリシグネチャ向けにMAY
 
 - **本物のHKT**。ユーザーサーフェスでの型コンストラクタの量化なし。軽量HKTは脱関数化エンコーディングであり、カインドシステムではない。
 - **higher-rank多相性**。[型理論付録](../../handbook/appendix-type-theory/) §「Rigorがモデル化しないこと」に従い、System F⊤はスコープ外のまま。
-- **SMT駆動のリファインメント評価**。ここでの型レベル計算は決定可能な構造的パターンマッチであり、Liquid Typesスタイルの述語ソルビングではない。
+- **SMT駆動のリファインメント（refinement、篩型とも）評価**。ここでの型レベル計算は決定可能な構造的パターンマッチであり、Liquid Typesスタイルの述語ソルビングではない。
 - **新しい「.rbsx」ファイル形式**。すべての著作は既存の`.rbs`ファイル内の`%a{rigor:v1:…}`アノテーション内で行われる（ADR-0境界）。
 - **Rubyコードからの新しいHKT登録の推論**。プラグインが登録に貢献する;アナライザがタグを発明することは決してない。
 - **自動モノモーフィゼーション**。軽量HKT型が呼び出しサイトで解決できないとき、それは合成モノモーフィックコピーではなく、宣言された境界（典型的には`Dynamic[Top]`）に消去される。
@@ -257,7 +257,7 @@ def self.eval: [E] (E expr) -> App[rigor_lisp_eval::lisp_type, E]
 
 1. **`F`を解決**。アナライザのHKTレジストリ経由で登録されたボディをルックアップする;不在の場合、D5（消去）にフォールスルー。
 2. **引数を代入**。形式パラメータを`A`で置き換える。
-3. **条件テストを評価**。各`<test>`に対し、標準のサブタイピング / 構造的チェック経由で決定する。テストが`maybe`（決定できない）のとき、囲む`?:`アームは両方の枝のユニオンに広げられる。
+3. **条件テストを評価**。各`<test>`に対し、標準のサブタイピング（subtyping） / 構造的チェック経由で決定する。テストが`maybe`（決定できない）のとき、囲む`?:`アームは両方の枝のユニオンに広げられる。
 4. **入れ子の`App`に再帰**。簡約は構造的;再帰深さは[`inference-budgets.md`](../../type-specification/inference-budgets/)に追加された**HKT-eval予算**で制限される。
 5. **キャッシュ**。簡約は参照透過;`(F, normalised(A))`ごとにアナライザパスごとにメモ化する。
 
