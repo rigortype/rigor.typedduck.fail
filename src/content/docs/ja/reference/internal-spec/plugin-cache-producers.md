@@ -10,7 +10,7 @@ sidebar:
   order: 3050
 ---
 
-ステータス：**v0.1.0スライス6規範的**。プラグイン作成者がキャッシュ済みプロデューサーを宣言するためのサーフェスを固定します——`Plugin::Base.producer` DSL・`Plugin::Base#cache_for`呼び出し可能オブジェクト・自動的な`PluginEntry`の追加・`plugin.<manifest.id>.`キャッシュidサンドボックス。これらのサーフェスの背後にある設計上の決定は[ADR-7 §「スライス6」](../../adr/7-v0.1.0-slice-decisions/)に記録されています；このドキュメントがADRと矛盾する場合、ADRが優先されます。
+ステータス：**v0.1.0スライス（slice）6規範的**。プラグイン作成者がキャッシュ済みプロデューサーを宣言するためのサーフェスを固定します——`Plugin::Base.producer` DSL・`Plugin::Base#cache_for`呼び出し可能オブジェクト・自動的な`PluginEntry`の追加・`plugin.<manifest.id>.`キャッシュidサンドボックス。これらのサーフェスの背後にある設計上の決定は[ADR-7 §「スライス6」](../../adr/7-v0.1.0-slice-decisions/)に記録されています；このドキュメントがADRと矛盾する場合、ADRが優先されます。
 
 ## なぜこれが存在するか
 

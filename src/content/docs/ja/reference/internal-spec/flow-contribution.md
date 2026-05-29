@@ -10,7 +10,7 @@ sidebar:
   order: 3050
 ---
 
-ステータス: **公開リード形（v0.0.9グループB）**。このドキュメントは、フローコントリビューションプロデューサー（現在は組み込みナローイングルール、v0.1.0以降は`RBS::Extended`アノテーションおよびプラグイン作者）が単一の呼び出しエッジでアナライザーに渡すサーフェスを固定します。これらのバンドルを消費するマージポリシーは[ADR-2 § "Plugin Contribution Merging"](../../adr/2-extension-api/)が所有します。v0.0.9ではバンドル構造体のみを提供し、マージャーはv0.1.0でプラグインAPIとともに導入されます。
+ステータス: **公開リード形（v0.0.9グループB）**。このドキュメントは、フローコントリビューションプロデューサー（現在は組み込みナローイング（narrowing）ルール、v0.1.0以降は`RBS::Extended`アノテーションおよびプラグイン作者）が単一の呼び出しエッジでアナライザーに渡すサーフェスを固定します。これらのバンドルを消費するマージポリシーは[ADR-2 § "Plugin Contribution Merging"](../../adr/2-extension-api/)が所有します。v0.0.9ではバンドル構造体のみを提供し、マージャーはv0.1.0でプラグインAPIとともに導入されます。
 
 ## 公開サーフェス
 
@@ -41,8 +41,8 @@ contribution = Rigor::FlowContribution.new(
 
 | スロット | 型 | 意味 |
 | --- | --- | --- |
-| `return_type` | 型キャリアまたは`nil` | 通常エッジの戻り型。プラグインは選択されたRBS契約の範囲内でMAYナローイングできます。非互換な戻り型はマージポリシーに従いコンフリクト診断になります。 |
-| `truthy_facts` | `Array`または`nil` | truthyな制御フローエッジでのみ成立するファクト。エッジローカル：truthyエッジのファクトは、コントリビューションが明示的に提供しない限り、falseyエッジの補集合をMUST NOT意味しません。 |
+| `return_type` | 型キャリア（carrier）または`nil` | 通常エッジの戻り型。プラグインは選択されたRBS契約の範囲内でMAYナローイングできます。非互換な戻り型はマージポリシーに従いコンフリクト診断になります。 |
+| `truthy_facts` | `Array`または`nil` | truthyな制御フローエッジでのみ成立するファクト（fact）。エッジローカル：truthyエッジのファクトは、コントリビューションが明示的に提供しない限り、falseyエッジの補集合をMUST NOT意味しません。 |
 | `falsey_facts` | `Array`または`nil` | `truthy_facts`の双対。 |
 | `post_return_facts` | `Array`または`nil` | 呼び出しがすべてのエッジで正常に戻った後に成立するファクト。アサーションスタイルのコントリビューション（`%a{rigor:v1:assert ...}`）のキャリアです。 |
 | `mutations` | `Array`または`nil` | レシーバーおよび引数の変更エフェクト。`pure`スタイルの宣言との矛盾は診断になります。 |
@@ -104,7 +104,7 @@ Rigor::FlowContribution::Provenance.new(
 )
 ```
 
-`source_family: :rbs_extended`はv0.0.8スライス5で導入された診断来歴プレフィックスと一致するため、`RBS::Extended`ディレクティブに由来する診断は同一の帰属文字列を持てます。
+`source_family: :rbs_extended`はv0.0.8スライス（slice）5で導入された診断来歴プレフィックスと一致するため、`RBS::Extended`ディレクティブに由来する診断は同一の帰属文字列を持てます。
 
 `param: <name>`ディレクティブは意図的にバンドルに含まれません。これらはフローファクトではなく呼び出しのシグネチャ契約を絞り込むものであり、ADR-2 § "Flow Contribution Bundle"スロットのセマンティクスに合いません。パラメーター契約を扱う呼び出し元は引き続き`RbsExtended.read_param_type_overrides` / `RbsExtended.param_type_override_map`を使用してください。
 
