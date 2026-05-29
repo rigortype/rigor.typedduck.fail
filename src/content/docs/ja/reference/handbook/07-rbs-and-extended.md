@@ -255,7 +255,7 @@ def deserialize: (String) -> untyped
 
 ## PHPStanから来た方へ — `@phpstan-assert`ファミリー
 
-PHPStanのPHPDocアノテーションに慣れている場合、RigorのRBS::Extendedディレクティブは、PHPStanが「アサート」や「型指定関数」と呼ぶポストリターン / 条件付きナロイングのプリミティブに直接マッピングされます。挙動は同一です:
+PHPStanのPHPDocアノテーションに慣れている場合、RigorのRBS::Extendedディレクティブは、PHPStanが「アサート」や「型指定関数」と呼ぶポストリターン / 条件付きナローイングのプリミティブに直接マッピングされます。挙動は同一です:
 
 > 「このメソッドが返した後、名前付き引数は`T`です。」
 
@@ -283,12 +283,12 @@ end
 # lib/configure.rb
 def configure(maybe)
   Asserts.not_nil(maybe)
-  # maybe: (~nil)、ナロイングされた型で.upcaseが解決される
+  # maybe: (~nil)、ナローイングされた型で.upcaseが解決される
   maybe.upcase
 end
 ```
 
-selfターゲット形式もサポートされています — PHPStanのアナログは`$this`をナロイングするメソッドになります。`target self`を使います:
+selfターゲット形式もサポートされています — PHPStanのアナログは`$this`をナローイングするメソッドになります。`target self`を使います:
 
 ```rbs
 class Connection
