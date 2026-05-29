@@ -10,7 +10,7 @@ sidebar:
   order: 1012
 ---
 
-`JSON.parse(str)`は「何らかのJSON値」を返します: `nil`、bool、数値、文字列、JSON値の配列、またはJSON値のハッシュ。RBSはこれを`untyped`として記述します。型コンストラクタを量化することなく再帰的な直和型を綴る方法がないからです。ほとんどの型チェッカーは肩をすくめ、`JSON.parse(str)`を`Dynamic[Top]`に消え去らせます。
+`JSON.parse(str)`は「何らかのJSON値」を返します: `nil`、bool、数値、文字列、JSON値の配列、またはJSON値のハッシュ。RBSはこれを`untyped`として記述します。型コンストラクタを量化することなく再帰的な直和型（sum type）を綴る方法がないからです。ほとんどの型チェッカーは肩をすくめ、`JSON.parse(str)`を`Dynamic[Top]`に消え去らせます。
 
 Rigorはこれを正確にモデル化します:
 
@@ -31,7 +31,7 @@ assert_type(parsed,
 | 概念 | Rigorでの綴り | 見かける場所 |
 | --- | --- | --- |
 | 型コンストラクタの「タグ」 | 名前空間付きシンボルURI（`:json::value`、`:dry_monads::result`） | `%a{rigor:v1:hkt_register: uri=…}`ディレクティブ |
-| 抽象適用`F<A>` | `Type::App[uri, args]` | ディスパッチャ出力のキャリア |
+| 抽象適用`F<A>` | `Type::App[uri, args]` | ディスパッチャ出力のキャリア（carrier） |
 | 型レベル定義 | `%a{rigor:v1:hkt_define: uri=… params=… body=…}`ディレクティブ | `.rbs`オーバーレイファイル |
 | `App[F, A]`を実型に簡約 | `env.hkt_registry.reduce(app)`（または`app.reduce(registry)`） | 既知のstdlibメソッドに対しディスパッチャ層が積極的に呼び出す |
 | メソッドへのフック | `Builtins::HktBuiltins::METHOD_RETURN_OVERRIDES`テーブル | プラグイン / Rigorバンドルの配線 |
@@ -89,7 +89,7 @@ parsed = YAML.safe_load(str, permitted_classes: [Date])
 # parsed: ... | Date | ...
 ```
 
-`:yaml_permitted_classes`の**簡約後フック**はレデューサの後で動き、結果を増補します。第二引数`HashShape`を歩いて、値がSingletonクラスのリテラルな`Tuple`または`Array`である`permitted_classes:`キーを探し、各々を`Nominal`にマップし、ベースの`json::value` Unionとユニオンします。`[Date, Symbol]`は両方のアームを加えます。
+`:yaml_permitted_classes`の**簡約後フック**はレデューサの後で動き、結果を増補します。第二引数`HashShape`を歩いて、値がSingletonクラスのリテラルな`Tuple`または`Array`である`permitted_classes:`キーを探し、各々を`Nominal`にマップし、ベースの`json::value` Unionとユニオン（union、合併型とも）します。`[Date, Symbol]`は両方のアームを加えます。
 
 リテラルでない`permitted_classes:`の値（変数、`Dynamic`、Singletonでない要素）は静かにno-opになるので、Rigorが静的に見られないクラスをでっち上げることはありません。
 
@@ -110,7 +110,7 @@ end
 - **ペイロード形式はスペース区切りの`key=value`ペア**。RBSの`%a{...}`アノテーション文法はクォートを拒否するので、JSONペイロードは動作しない——kv形式がRBSが実際に届ける形である。
 - **`body=`は特殊扱いで、ペイロードの末尾までを丸ごと飲み込む**ので、ボディ文字列はエスケープなしでスペース、`|`、`[]`などを含められる。
 - **`params=`はUCName識別子のカンマ区切りリスト**（`params=K`または`params=T,E`）。
-- **`bound=`は`untyped`（デフォルト）または素のクラス名を受け付ける**。より豊富なbound形式（パラメータ化ジェネリクス、ユニオン、リファインメント）はフォローアップスライスの式パーサ待ち。
+- **`bound=`は`untyped`（デフォルト）または素のクラス名を受け付ける**。より豊富なbound形式（パラメータ化ジェネリクス、ユニオン、リファインメント（refinement、篩型とも））はフォローアップスライスの式パーサ待ち。
 
 `Environment.for_project`がenvを構築するとき、ロードされたRBSをこれらのアノテーションでスキャンし、バンドルされた組み込みの上に`env.hkt_registry`にマージします。URI衝突はlast-write-winsなので、オーバーレイで`json::value`を上書きすることも望めば可能です。
 
@@ -123,7 +123,7 @@ end
 | アトム | `nil` / `true` / `false` / `bool` / `untyped` | 定数と`Dynamic[Top]`キャリア |
 | 名前的クラス | `Integer` / `String` / `Foo::Bar` / `::String` | `Nominal[class_name]` |
 | パラメータ参照 | `K`、`T`、`E`（`params`にあるとき） | 簡約時に代入される |
-| パラメータ化された名前的型 | `Array[K]`、`Hash[K, V]` | `Nominal[..., type_args: [...]]` |
+| パラメータ化された名前的型（nominal type、公称型とも） | `Array[K]`、`Hash[K, V]` | `Nominal[..., type_args: [...]]` |
 | 軽量HKT適用 | `App[json::value, K]` | 別の`Type::App`キャリア、遅延簡約される |
 | ユニオン | `A | B | C` | `Type::Union`（正規化済み） |
 | **条件** | `(K <: String ? Integer : Float)` | テスト評定で分岐 |
@@ -183,7 +183,7 @@ Union[ nil, true, false, Integer, Float, String,
        Hash[ String, Type::App[json::value, [String]] ] ]
 ```
 
-入れ子の`Type::App`は通常のRigor型です;下流の消費者（受容、ナローイング、ディスパッチ）はそれを`bound`（デフォルト`Dynamic[Top]`）に委譲して扱います。もう1段の展開が必要なら、再度`app.reduce(env.hkt_registry)`を呼びます——しかし典型的な消費者はそれを必要としません。
+入れ子の`Type::App`は通常のRigor型です;下流の消費者（受容、ナローイング（narrowing）、ディスパッチ）はそれを`bound`（デフォルト`Dynamic[Top]`）に委譲して扱います。もう1段の展開が必要なら、再度`app.reduce(env.hkt_registry)`を呼びます——しかし典型的な消費者はそれを必要としません。
 
 **燃料予算**（呼び出しサイト評価あたりデフォルト64簡約ステップ）が暴走する展開を制限します。枯渇は`app.bound`に巻き戻ります。
 

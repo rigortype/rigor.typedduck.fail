@@ -102,7 +102,7 @@ class Counter
 end
 ```
 
-各読み取り地点でのインスタンス変数型は、静的に見えるすべての書き込みのユニオンです — 同じクラスの別のメソッドからの書き込みも含みます。
+各読み取り地点でのインスタンス変数型は、静的に見えるすべての書き込みのユニオン（union、合併型とも）です — 同じクラスの別のメソッドからの書き込みも含みます。
 
 ## `Data.define`
 
@@ -156,7 +156,7 @@ class Foo
 end
 ```
 
-`singleton(Foo)`はクラスオブジェクト`Foo`の型です。`Singleton[Foo]`（Rigorの内部キャリア表示形式）も同じ概念です。（`Array[Foo]`での）`Foo`は「`Foo`のインスタンス」/ `Nominal[Foo]`を意味します。
+`singleton(Foo)`はクラスオブジェクト`Foo`の型です。`Singleton[Foo]`（Rigorの内部キャリア（carrier）表示形式）も同じ概念です。（`Array[Foo]`での）`Foo`は「`Foo`のインスタンス」/ `Nominal[Foo]`を意味します。
 
 `singleton(Foo)`でインスタンスメソッドを呼び出すのはエラーです。ただし`Foo`自体がそのシングルトンメソッドを定義している場合は除きます — `String`は`singleton(String)`で、`String#upcase`はインスタンスにあるので、`String.upcase`は`call.undefined-method`をフラグします。
 

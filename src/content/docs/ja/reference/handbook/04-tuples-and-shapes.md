@@ -10,7 +10,7 @@ sidebar:
   order: 1004
 ---
 
-`Tuple`と`HashShape`は、Rigorが異種配列と既知キーのハッシュに精密な型を与える方法です。外見上はRubyの`Array`と`Hash`によく似ており（RBS境界を越えるとこれらの名前的型に消去されます）、Rigorの内部では通常の`Array[T]` / `Hash[K, V]`が失ってしまう、位置ごと/キーごとの型情報を持ちます。
+`Tuple`と`HashShape`は、Rigorが異種配列と既知キーのハッシュに精密な型を与える方法です。外見上はRubyの`Array`と`Hash`によく似ており（RBS境界を越えるとこれらの名前的型（nominal type、公称型とも）に消去されます）、Rigorの内部では通常の`Array[T]` / `Hash[K, V]`が失ってしまう、位置ごと/キーごとの型情報を持ちます。
 
 ## タプル — 異種配列
 
@@ -52,7 +52,7 @@ arr[-1]  # Constant<:three>
 arr[5]   # Constant<nil> — 範囲外
 ```
 
-`[start, length]`や`[range]`でのスライスは、一致する要素のタプルを生成します:
+`[start, length]`や`[range]`でのスライス（slice）は、一致する要素のタプルを生成します:
 
 ```ruby
 arr = [10, 20, 30, 40, 50]
@@ -62,7 +62,7 @@ arr[2, 2]    # Tuple[Constant<30>, Constant<40>]
 
 ## `map`、`select`などを通じたタプル
 
-タプルに対してEnumerableメソッドを呼び出すと、Rigorはブロックを要素ごとの型を代入して各要素について1回評価し、結果をユニオンします:
+タプルに対してEnumerableメソッドを呼び出すと、Rigorはブロックを要素ごとの型を代入して各要素について1回評価し、結果をユニオン（union、合併型とも）します:
 
 ```ruby
 arr = [1, 2, 3]
@@ -243,7 +243,7 @@ plugins:
 
 ### 損失のある射影
 
-射影は、シェイプ情報を保つキャリア（`HashShape`、および`pick_of`/`omit_of`の場合の`Tuple`）にのみ発火します。素の`Hash[K, V]`やその他の非シェイプ入力に適用するのは**損失のある（lossy）**処理です — 射影は静かに入力型へ縮退し、Rigorは[`dynamic.shape.lossy-projection`](../../type-specification/diagnostic-policy/)`:info`診断を記録するので、呼び出しサイトを監査できます。
+射影は、シェイプ情報を保つキャリア（carrier）（`HashShape`、および`pick_of`/`omit_of`の場合の`Tuple`）にのみ発火します。素の`Hash[K, V]`やその他の非シェイプ入力に適用するのは**損失のある（lossy）**処理です — 射影は静かに入力型へ縮退し、Rigorは[`dynamic.shape.lossy-projection`](../../type-specification/diagnostic-policy/)`:info`診断を記録するので、呼び出しサイトを監査できます。
 
 ```rbs
 class C

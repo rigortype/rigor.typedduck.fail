@@ -98,7 +98,7 @@ T.reveal_type(n).even?  # info: T.reveal_type inferred type: Integer
                         # ✓ Integer#even?は引き続き解決される
 ```
 
-`T.assert_type!(expr, T)`は`T.cast`に静的部分型チェックを加えたものです。コールはアサートされた型を返すのでチェーンされたコールはそれを通じて解決されます。推論された型が証明可能に非互換（`Inference::Acceptance.accepts(...)`が`:no`を返す）の場合、プラグインは`plugin.sorbet.assert-type-mismatch`を`:error`として発行します。漸進的一貫性ルールが適用されます——`Dynamic[top]`推論型と`:maybe`互換のシェイプは、ランタイムチェックがカバーするためサイレントになります。
+`T.assert_type!(expr, T)`は`T.cast`に静的部分型（subtype）チェックを加えたものです。コールはアサートされた型を返すのでチェーンされたコールはそれを通じて解決されます。推論された型が証明可能に非互換（`Inference::Acceptance.accepts(...)`が`:no`を返す）の場合、プラグインは`plugin.sorbet.assert-type-mismatch`を`:error`として発行します。漸進的（gradual）一貫性ルールが適用されます——`Dynamic[top]`推論型と`:maybe`互換のシェイプは、ランタイムチェックがカバーするためサイレントになります。
 
 ```ruby
 T.assert_type!("hello", Integer)  # error: 証明可能に非互換
@@ -200,7 +200,7 @@ demo.rb:42:5: warning: `T.absurd` is reachable: the discriminant did not
                        [plugin.sorbet.absurd-reachable]
 ```
 
-検出の精度はRigorのフローセンシティブなナロイングに従います——`is_a?` / `kind_of?` / `nil?`は正確に機能します。シンボル列挙型に対するナロイングはv0.1.3時点ではそれほど正確ではないため、完全に網羅されたシンボルケースが偽陽性警告を発することがあります。
+検出の精度はRigorのフローセンシティブ（flow-sensitive）なナロイングに従います——`is_a?` / `kind_of?` / `nil?`は正確に機能します。シンボル列挙型に対するナロイングはv0.1.3時点ではそれほど正確ではないため、完全に網羅されたシンボルケースが偽陽性警告を発することがあります。
 
 ## ティア順序 — 競合時に何が勝つか
 
@@ -218,7 +218,7 @@ demo.rb:42:5: warning: `T.absurd` is reachable: the discriminant did not
 
 プラグインは強制的な移行ではなく**漸進的な共存**のために設計されています。3つの一般的な形状:
 
-1. **両方の静的チェッカーを並行して実行する**。`srb tc`がその診断を生成し続け、`rigor check`が独自の診断を生成します。両者はシェイプエラーで重複し、各ツールが発見するものを補完します——Sorbetは`T.let` / `T.cast` / RBIをより深くカバーし、Rigorはリテラル文字列ナロイング、リファインメントキャリア、プラグインDSL、依存関係ソース推論をカバーします。
+1. **両方の静的チェッカーを並行して実行する**。`srb tc`がその診断を生成し続け、`rigor check`が独自の診断を生成します。両者はシェイプエラーで重複し、各ツールが発見するものを補完します——Sorbetは`T.let` / `T.cast` / RBIをより深くカバーし、Rigorはリテラル文字列ナロイング、リファインメント（refinement、篩型とも）キャリア（carrier）、プラグインDSL、依存関係ソース推論をカバーします。
 2. **Sorbetはsig、Rigorはナロイング**。権威あるsigは`sig { ... }`ブロック（またはsorbet-runtime対応のRBIツリー）に残り、Rigorはそれらを入力として読み取り、その上に独自のナロイングを追加します。
 3. **時間をかけてSorbet → RBS**。新しいコードはRBSとして着地し、既存のSorbet sigは周囲のサブシステムが変更されるまで残ります。プラグインはSorbetサーフェスが縮小する間も実行され続けます。
 

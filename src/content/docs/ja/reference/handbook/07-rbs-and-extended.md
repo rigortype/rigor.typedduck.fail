@@ -96,7 +96,7 @@ s == "hello-world"  # bool — 等値ナローイングが適用される
 | ディレクティブ | 意味 |
 | --- | --- |
 | `%a{rigor:v1:return: <type>}` | メソッドの戻り値型を締め付ける。 |
-| `%a{rigor:v1:param: <name> is <type>}` | 呼び出し元でのパラメーターの受け入れ型を締め付け、かつ本体内のローカル変数をナローイングする。 |
+| `%a{rigor:v1:param: <name> is <type>}` | 呼び出し元でのパラメーターの受け入れ型を締め付け、かつ本体内のローカル変数をナローイング（narrowing）する。 |
 | `%a{rigor:v1:assert: <name> is <type>}` | このメソッドが返った後、呼び出し元スコープの名前付きローカル変数は`<type>`である。 |
 | `%a{rigor:v1:predicate-if-true: <name> is <type>}` | このメソッドが真値を返したとき、呼び出し元スコープの名前付きローカル変数は`<type>`である。（対称な`predicate-if-false`。） |
 | `%a{rigor:v1:assertion-on: <name>}` | メソッドをアサーションゲートとしてマークする — 本体の最後の式の型が`<name>`に関する事実になる。 |
@@ -104,7 +104,7 @@ s == "hello-world"  # bool — 等値ナローイングが適用される
 `<type>`スロットは以下を受け入れます:
 
 - **RBSクラス名** — `String`、`Integer`、`::Foo::Bar`。
-- **インポートされたリファインメント名** — `non-empty-string`、`lowercase-string`、`numeric-string`、`int<5, 10>`、`non-empty-array[Integer]`、`literal-string`など。
+- **インポートされたリファインメント（refinement、篩型とも）名** — `non-empty-string`、`lowercase-string`、`numeric-string`、`int<5, 10>`、`non-empty-array[Integer]`、`literal-string`など。
 - **否定`~T`** — `~lowercase-string`は「非小文字string」を意味します。
 
 ## リファインメント名
@@ -118,7 +118,7 @@ s == "hello-world"  # bool — 等値ナローイングが適用される
 | 文字列述語 | `lowercase-string`、`uppercase-string`、`numeric-string`、`decimal-int-string`、`octal-int-string`、`hex-int-string`、`literal-string` |
 | ペアになった補完 | `non-lowercase-string`、`non-uppercase-string`、`non-numeric-string` |
 | 合成 | `non-empty-lowercase-string`、`non-empty-uppercase-string`、`non-empty-literal-string` |
-| シェイプ射影 | `pick_of[T, K]`、`omit_of[T, K]`、`partial_of[T]`、`required_of[T]`、`readonly_of[T]` — 既存の`HashShape`/`Tuple`から新しいキャリアを派生させます。[第4章 §「新しいシェイプを派生させる」](../04-tuples-and-shapes/#deriving-new-shapes--pick_of--omit_of--partial_of--required_of--readonly_of)を参照。 |
+| シェイプ射影 | `pick_of[T, K]`、`omit_of[T, K]`、`partial_of[T]`、`required_of[T]`、`readonly_of[T]` — 既存の`HashShape`/`Tuple`から新しいキャリア（carrier）を派生させます。[第4章 §「新しいシェイプを派生させる」](../04-tuples-and-shapes/#deriving-new-shapes--pick_of--omit_of--partial_of--required_of--readonly_of)を参照。 |
 
 ## 実例: アサーションゲート
 

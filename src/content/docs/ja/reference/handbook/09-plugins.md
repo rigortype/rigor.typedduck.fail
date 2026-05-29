@@ -31,11 +31,11 @@ Lisp.eval([:if, true, "a", 0])  # ランタイムでString | Integer
 - **ステートマシン** — `transition_to(:foo)`は、`:foo`がどこかで宣言された`state_machine do ... end`ブロック内にある場合には有効ですが、そうでなければタイポです。
 - **カスタムバリデーター** — `validate(:email, value)`は解析時に名前付きパターンに一致しないリテラルを捕捉すべきです。
 
-これらのそれぞれに[`examples/`](https://github.com/rigortype/rigor/blob/master/examples/README.md)に実例があります。[`examples/README.md`](https://github.com/rigortype/rigor/blob/master/examples/README.md)ページは16の実例をアーキテクチャ軸（設定スキーマ、ファイルI/O、キャッシュプロデューサー、`Scope#type_of`を通じたエンジン連携、クロスプラグインファクト、戻り型コントリビューションなど）で比較し、読む順序を推奨しています。
+これらのそれぞれに[`examples/`](https://github.com/rigortype/rigor/blob/master/examples/README.md)に実例があります。[`examples/README.md`](https://github.com/rigortype/rigor/blob/master/examples/README.md)ページは16の実例をアーキテクチャ軸（設定スキーマ、ファイルI/O、キャッシュプロデューサー、`Scope#type_of`を通じたエンジン連携、クロスプラグインファクト（fact）、戻り型コントリビューションなど）で比較し、読む順序を推奨しています。
 
 ## プラグインが今日できること
 
-v0.1.0+プラグインコントラクト — [`docs/internal-spec/plugin.md`](../../internal-spec/plugin/)に固定されており、同ディレクトリのいくつかのスライス仕様に展開されています — はプラグインに5つの主要サーフェスを与えます:
+v0.1.0+プラグインコントラクト — [`docs/internal-spec/plugin.md`](../../internal-spec/plugin/)に固定されており、同ディレクトリのいくつかのスライス（slice）仕様に展開されています — はプラグインに5つの主要サーフェスを与えます:
 
 1. **`#diagnostics_for_file(path:, scope:, root:)`** — ファイルごとの出力フック。解析されたASTを辿り、`Rigor::Analysis::Diagnostic`行の配列を返します。ランナーは各行に`source_family: "plugin.<your-id>"`をスタンプします。
 2. **`#flow_contribution_for(call_node:, scope:)`** — コールサイトごとの戻り型コントリビューションフック（v0.1.1 Track 2スライス7）。プラグインはコールサイトでの推論された戻り型を命名した`Rigor::FlowContribution`バンドルを返します;解析器のディスパッチャーはコントリビューションをマージし、マージされた戻り型をRBS宣言済みかのように使います。

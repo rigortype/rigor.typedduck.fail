@@ -26,7 +26,7 @@ sidebar:
 | 「まだ分からない」のコスト | アノテーションするまで赤い波線 | 沈黙 — `Dynamic[Top]`は診断を出さない |
 | 診断が出るタイミング | 型が不健全なとき | Rigorが不健全さを**証明できる**ときだけ |
 
-ふたつのシステムは目標を共有する — プログラムを実行する前にバグを見つける — が、そこへの道筋で意見が分かれる。TypeScriptは健全性優先のオーサリングを好む（すべての値が検査された型を持ち、そうなるまでチェッカーが文句を言う）。Rigorはfalse-positiveなし推論を好む（証明できないものには沈黙し、推論が見通せない箇所でだけ`.rbs`を求める）。
+ふたつのシステムは目標を共有する — プログラムを実行する前にバグを見つける — が、そこへの道筋で意見が分かれる。TypeScriptは健全性（soundness）優先のオーサリングを好む（すべての値が検査された型を持ち、そうなるまでチェッカーが文句を言う）。Rigorはfalse-positiveなし推論を好む（証明できないものには沈黙し、推論が見通せない箇所でだけ`.rbs`を求める）。
 
 ## 型語彙マッピング
 
@@ -37,12 +37,12 @@ sidebar:
 | `boolean` | `bool`（`Constant<true> | Constant<false>`） | `bool`は構造的にふたつの定数のunion。 |
 | `null` | `nil`（`Constant<nil>`） | Rubyには`nil`のみ。TSは`null`と`undefined`を区別する。 |
 | `undefined` | （対応なし） | Rubyで未設定のローカル変数は「undefined」ではなく`NameError`になる。 |
-| `any` | `Dynamic[Top]` | 「ここは黙っていて」キャリア。 |
-| `unknown` | `Top` | 両者ともナローイングするまでメソッドディスパッチを拒否。`unknown`は`Dynamic[Top]`より`Top`に近い。 |
+| `any` | `Dynamic[Top]` | 「ここは黙っていて」キャリア（carrier）。 |
+| `unknown` | `Top` | 両者ともナローイング（narrowing）するまでメソッドディスパッチを拒否。`unknown`は`Dynamic[Top]`より`Top`に近い。 |
 | `never` | `Bot` | 空の型 — 要素なし。到達不可能な分岐と`T.absurd`（Sorbet）/ raiseのみのボディに使う。 |
 | `void` | `void` | 同じ考え方 — 呼び出し元は値を消費してはならない。 |
 | `T | U` | `T | U` | 同形式。同じ表示。 |
-| `T & U` | `Intersection[T, U]` | Rigorではあまり一般的でない — リファインメントで代替されることが多い。 |
+| `T & U` | `Intersection[T, U]` | Rigorではあまり一般的でない — リファインメント（refinement、篩型とも）で代替されることが多い。 |
 | `"hello"`（リテラル型） | `Constant<"hello">` | 直接対応。Rigorではfoldingがより積極的。 |
 | `42`（リテラル型） | `Constant<42>` | 同様。 |
 | `42 | 43 | 44` | `Constant<42> | Constant<43> | Constant<44>` | 同様。 |
@@ -60,7 +60,7 @@ sidebar:
 
 ## ナローイング — 親しみやすい部分
 
-TypeScriptのフローセンシティブなナローイングはRigorに直接対応するものがある。語彙は異なるが、動作は同じ。
+TypeScriptのフローセンシティブ（flow-sensitive）なナローイングはRigorに直接対応するものがある。語彙は異なるが、動作は同じ。
 
 | TypeScript | Rigor |
 | --- | --- |
