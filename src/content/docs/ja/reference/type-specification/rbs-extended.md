@@ -33,11 +33,11 @@ def assert_present!: (String value) -> void
 def check: (untyped value) -> bool
 ```
 
-`return:`、`param:`、`assert*`、`predicate-if-*`の右辺は、RBSスタイルのクラス名（`String`、`::Foo::Bar`）またはインポート済み組み込みカタログ（[`imported-built-in-types.md`](../imported-built-in-types/)）のkebab-caseリファインメント（refinement、篩型とも）ペイロードのいずれかを受け付けます。リファインメントペイロードは`Builtins::ImportedRefinements::Parser`を通じてパラメーター化形式`non-empty-array[Integer]`、`non-empty-hash[Symbol, Integer]`、`int<min, max>`をサポートします。型引数位置はSymbolおよびStringリテラルトークン（`:name` / `"name"`）と、それらの`|`によるユニオン（union、合併型とも）（`:a | :b | "c"`）も受け付けます;パーサーは各リテラルを`Constant<value>`に持ち上げ、ユニオンを`Type::Combinator.union`を介して畳み込むため、`pick_of[T, :a | :b]`やプラグイン提供の`Pick[T, "name" | "email"]`のようなシェイプ射影ヘッドが合成ASTのワークアラウンドなしに端から端まで通ります。クラス名ディレクティブは`~T`否定を使う場合があります（MAY）;リファインメント形式のディレクティブは現在使ってはなりません（MUST NOT）（差分対リファインメントの代数は将来のスライス（slice）のために予約されています）。
+`return:`、`param:`、`assert*`、`predicate-if-*`の右辺は、RBSスタイルのクラス名（`String`、`::Foo::Bar`）またはインポート済み組み込みカタログ（[`imported-built-in-types.md`](../imported-built-in-types/)）のkebab-caseリファインメント（refinement、篩型とも）ペイロードのいずれかを受け付けます。リファインメントペイロードは`Builtins::ImportedRefinements::Parser`を通じてパラメーター化形式`non-empty-array[Integer]`、`non-empty-hash[Symbol, Integer]`、`int<min, max>`をサポートします。型引数位置はSymbolおよびStringリテラルトークン（`:name` / `"name"`）と、それらの`|`によるユニオン（union、合併型とも）（`:a | :b | "c"`）も受け付けます;パーサーは各リテラルを`Constant<value>`に持ち上げ、ユニオンを`Type::Combinator.union`を介して畳み込むため、`pick_of[T, :a | :b]`やプラグイン提供の`Pick[T, "name" | "email"]`のようなシェイプ（shape）射影ヘッドが合成ASTのワークアラウンドなしに端から端まで通ります。クラス名ディレクティブは`~T`否定を使う場合があります（MAY）;リファインメント形式のディレクティブは現在使ってはなりません（MUST NOT）（差分対リファインメントの代数は将来のスライス（slice）のために予約されています）。
 
 ## 著作ルール
 
-- 通常のRBSシグネチャは互換性契約のままです。
+- 通常のRBSシグネチャは互換性契約（contract）のままです。
 - `RBS::Extended`アノテーションはRigorのためにその契約を絞り込むか説明します。
 - アノテーションキーはバージョン管理された`rigor:v1:`名前空間を使います（例: `rigor:v1:return`または`rigor:v1:predicate-if-true`）。
 - アノテーションキーが最初に来ます;残りのテキストはRigor固有のペイロードです。
@@ -122,7 +122,7 @@ def string?: (untyped) -> bool
 
 ## 明示的な適合ディレクティブ
 
-暗黙の構造的適合がデフォルトです。通常の代入、パラメーター渡し、メソッド呼び出しは、著者が見えるオプトインを必要とせずに関連するインターフェースまたはケイパビリティロールに対する構造的互換性チェックをトリガーします（[structural-interfaces-and-object-shapes.md](../structural-interfaces-and-object-shapes/)参照）。
+暗黙の構造的適合がデフォルトです。通常の代入、パラメーター渡し、メソッド呼び出しは、著者が見えるオプトインを必要とせずに関連するインターフェースまたはケイパビリティ（capability）ロールに対する構造的互換性チェックをトリガーします（[structural-interfaces-and-object-shapes.md](../structural-interfaces-and-object-shapes/)参照）。
 
 さらに、明示的な適合ディレクティブにより、クラスがその公開契約の一部として構造的インターフェースを満たすことを宣言できます:
 

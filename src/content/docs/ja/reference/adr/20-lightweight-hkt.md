@@ -24,7 +24,7 @@ sidebar:
 - **HktDirectives kv-formリファクター** — ペイロード形式がJSON-flow（`{"uri": "x", ...}`）からkv-form（`uri=x arity=1 ... body=...`）に移動、RBSの`%a{...}`アノテーション文法が`"`クォートを拒否するため。生のRBS::EnvironmentLoaderで検証済み。
 - **スライス2c** — `Environment#hkt_registry` attr_readerが凍結されたレジストリをすべてのアナライザ呼び出しを通してスレッド化する。`Environment.default` / `.for_project`は新しい`Rigor::Builtins::HktBuiltins.registry`モジュール経由でそれをシードする。
 - **スライス2d** — `%a{rigor:v1:return:}`ペイロード内の`App[<uri>, <ClassName>, ...]`ペイロード構文が`RbsExtended.parse_return_type_override`によってパースされ、envのレジストリを通じて積極的に簡約される。
-- **スライス3** — `JSON.parse` / `JSON.parse!` / `JSON.load`をカバーする`Rigor::Builtins::HktBuiltins::METHOD_RETURN_OVERRIDES`テーブル;`RbsDispatch.try_dispatch`の**上**に位置する新しい`Inference::MethodDispatcher.try_hkt_builtin_return`層、したがってテーブルが上流のrbs gemの`untyped`スロットに勝つ。判別子サーフェス（`:json_symbolize_names`）は、呼び出しがリテラルな`symbolize_names: true`オプションを運ぶときに`K = String`を`K = Symbol`に差し替える。アノテーションベースの著作（再宣言されたメソッド上の`%a{rigor:v1:return: App[...]}`経由の元のD8計画）はこのスライスで調査され拒否された、RBSは拡張形の`def m: ...`宣言から解決された`RBS::Definition::Method`に`%a{...}`アノテーションを伝播しないため;ハードコードされたテーブルは実用的なショートカットであり、一方でアノテーションベースのパスは新しいメソッドを**宣言**する（上流のメソッドを再宣言するのではない）ユーザー著作sig用の一般的な拡張サーフェスのままである。
+- **スライス3** — `JSON.parse` / `JSON.parse!` / `JSON.load`をカバーする`Rigor::Builtins::HktBuiltins::METHOD_RETURN_OVERRIDES`テーブル;`RbsDispatch.try_dispatch`の**上**に位置する新しい`Inference::MethodDispatcher.try_hkt_builtin_return`層、したがってテーブルが上流のrbs gemの`untyped`スロットに勝つ。判別子サーフェス（surface）（`:json_symbolize_names`）は、呼び出しがリテラルな`symbolize_names: true`オプションを運ぶときに`K = String`を`K = Symbol`に差し替える。アノテーションベースの著作（再宣言されたメソッド上の`%a{rigor:v1:return: App[...]}`経由の元のD8計画）はこのスライスで調査され拒否された、RBSは拡張形の`def m: ...`宣言から解決された`RBS::Definition::Method`に`%a{...}`アノテーションを伝播しないため;ハードコードされたテーブルは実用的なショートカットであり、一方でアノテーションベースのパスは新しいメソッドを**宣言**する（上流のメソッドを再宣言するのではない）ユーザー著作sig用の一般的な拡張サーフェスのままである。
 
 ### 残るオープン項目
 
@@ -389,7 +389,7 @@ end
 
 - **[ADR-0](../0-concept/)** — すべての軽量HKT著作は`.rbs`アノテーションに留まる。`.rb`ファイルはRigor専用構文がないままにとどまる。
 - **[ADR-1](../1-types/)** — すべての`App[F, A]`キャリアは登録された`bound:`経由のRBS消去を持たなければならない。ラウンドトリップは精度損失許容。
-- **[ADR-2](../2-extension-api/)** — プラグインマニフェストはオプションの`hkt_definitions:`エントリ（スライス6）を獲得する;契約は既存の`type_node_resolvers:`エントリと前方互換。
+- **[ADR-2](../2-extension-api/)** — プラグインマニフェストはオプションの`hkt_definitions:`エントリ（スライス6）を獲得する;契約（contract）は既存の`type_node_resolvers:`エントリと前方互換。
 - **[ADR-5](../5-robustness-principle/)** — 型関数評価が`maybe`のとき、堅牢性原則が位置ごとにジョインのどちら側が勝つかを選ぶ（負 = 寛容、正 = 厳密）。
 - **[ADR-6](../6-cache-persistence-backend/)** — HKT簡約はキャッシュキーの入力;タグごとのレジストリ変更は関連スライスを無効化する。
 - **[ADR-13](../13-typenode-resolver-plugin/)** — `App[F, A]`は、URIが登録されたHKTタグに一致する`Plugin::TypeNodeResolver`の自然な出力型。リゾルバチェーンが配線層。

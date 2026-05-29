@@ -14,7 +14,7 @@ sidebar:
 
 ## コンテキスト
 
-RigorのプライマリType-source契約はRBS（`RBS::Inline`コメントと`RBS::Extended`アノテーションを含む）である。ユーザーから[Sorbet][sorbet]の記述スタイルへの評価が寄せられた。インラインの`sig { ... }`ブロック、`T.let`/`T.cast`/`T.must`アサーション、そして**ランタイム強制**型チェック（`sorbet-runtime`が各アノテート済みメソッドをラップし、違反時に静的解析をすり抜けることなく実行時にraiseする）である。提案: Rigorがsorbetのsigと関連する`T::*`アサーションをtype-sourceとして消費できるようにする。できれば並行してRBSを維持することをユーザーに強いない形で。
+RigorのプライマリType-source契約（contract）はRBS（`RBS::Inline`コメントと`RBS::Extended`アノテーションを含む）である。ユーザーから[Sorbet][sorbet]の記述スタイルへの評価が寄せられた。インラインの`sig { ... }`ブロック、`T.let`/`T.cast`/`T.must`アサーション、そして**ランタイム強制**型チェック（`sorbet-runtime`が各アノテート済みメソッドをラップし、違反時に静的解析をすり抜けることなく実行時にraiseする）である。提案: Rigorがsorbetのsigと関連する`T::*`アサーションをtype-sourceとして消費できるようにする。できれば並行してRBSを維持することをユーザーに強いない形で。
 
 回答を形成するふたつの事実がある:
 
@@ -43,9 +43,9 @@ RigorのプライマリType-source契約はRBS（`RBS::Inline`コメントと`RB
 
 1.  **ADR-0 §「コアにインラインDSLなし」**。既存のルール — 「アプリケーションRubyコードにRigor固有のアノテーション構文は不要。RBS、rbs-inline、Steep互換アノテーションをtype-sourceとして受け付ける」 — はRigor*自身の*DSLについてのものだった。SorbetのDSLはRigor定義ではないが、コアで受け入れるとすべてのRigorユーザーがSorbetのセマンティクスを理解する必要が生じる。ADR-2のプラグイン契約はまさにこのような状況のために設計された: フレームワーク型またはサードパーティDSL型の知識はコアではなくプラグインに属する。
 
-2.  **ADR-1 §「RBSラウンドトリップは情報無損失」**。Rigor → RBS消去が標準的なエクスポート契約である。Sorbetの型はいくつかの構造（`T::Class[T]`、`T.attached_class`、`T.self_type`、`T.type_parameter`、sealed/abstractマーカー、構造的`T::Struct`シェイプ）について明確なRBSの綴りを持たない。Sorbetの語彙をコアに引き込むと、Rigorの内部キャリアを広げるか（ユーザーが既に作成したスペックコーパスと不整合）、損失のあるラウンドトリップを受け入れるか（ADR-1のハード保証と不整合）のいずれかになる。変換を*プラグイン*境界に留めることで、損失エッジがそこに収まる: プラグインはSorbet → Rigorをできる限りマッピングし、マッピングできないものは`dynamic.sorbet.*`プロヴェナンス付きで`Dynamic[top]`に劣化する。
+2.  **ADR-1 §「RBSラウンドトリップは情報無損失」**。Rigor → RBS消去が標準的なエクスポート契約である。Sorbetの型はいくつかの構造（`T::Class[T]`、`T.attached_class`、`T.self_type`、`T.type_parameter`、sealed/abstractマーカー、構造的`T::Struct`シェイプ（shape））について明確なRBSの綴りを持たない。Sorbetの語彙をコアに引き込むと、Rigorの内部キャリアを広げるか（ユーザーが既に作成したスペックコーパスと不整合）、損失のあるラウンドトリップを受け入れるか（ADR-1のハード保証と不整合）のいずれかになる。変換を*プラグイン*境界に留めることで、損失エッジがそこに収まる: プラグインはSorbet → Rigorをできる限りマッピングし、マッピングできないものは`dynamic.sorbet.*`プロヴェナンス付きで`Dynamic[top]`に劣化する。
 
-3.  **SorbetのDSLは実際のパーサープロジェクトである**。`sig { params(x: Integer, y: T.nilable(String)).returns(String) }`を静的にパースするには、`Prism::CallNode`チェーンを辿り`type_parameters`/`params`/`returns`/`void`/`bind`/`proc`/`class_of`/`attached_class`/`nilable`/`any`/`all`等の`T.*`定数を認識する流暢なAPIミニインタープリタが必要である。実装可能だが、サーフェス面積がコアでのメンテナンスにはコア推論の改善を圧迫するほど大きい。プロジェクト先例: [Sord][sord]がSorbet → RBS変換のためにほぼ同じことを行っている。我々はプラグイン内部にRigor向けの類似パーサーを構築する。
+3.  **SorbetのDSLは実際のパーサープロジェクトである**。`sig { params(x: Integer, y: T.nilable(String)).returns(String) }`を静的にパースするには、`Prism::CallNode`チェーンを辿り`type_parameters`/`params`/`returns`/`void`/`bind`/`proc`/`class_of`/`attached_class`/`nilable`/`any`/`all`等の`T.*`定数を認識する流暢なAPIミニインタープリタが必要である。実装可能だが、サーフェス（surface）面積がコアでのメンテナンスにはコア推論の改善を圧迫するほど大きい。プロジェクト先例: [Sord][sord]がSorbet → RBS変換のためにほぼ同じことを行っている。我々はプラグイン内部にRigor向けの類似パーサーを構築する。
 
 4.  **信頼済みgemのオプトインを再利用する**。ADR-2の信頼モデルはプラグインをユーザー選択のgemとして扱う。`rigor-sorbet`はそのモデルに直接適合する: ユーザーは`rigor-pattern`や`rigor-statesman`と全く同様に`.rigor.yml`の`plugins:`リストにgemを追加してオプトインする。新しい信頼次元は不要。
 

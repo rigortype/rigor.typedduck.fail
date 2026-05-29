@@ -19,7 +19,7 @@ dry-rb gemファミリーは相補的なgemのツリーです: `dry-types`、`dr
 
 [`rigor-dry-struct`](../../plugins/rigor-dry-struct/)はv0.1.5で最初のdry-*プラグインとして出荷され、[ADR-16](../16-macro-expansion/)のTier C（heredocテンプレート）基板を実践しました。`rigor-dry-types`、`rigor-dry-validation`、`rigor-dry-monads`の形態は`rigor-dry-struct`と十分に似ているため、次のプラグインが出荷される前にパッケージングの問い —**1つのメガgemか？ gemごとか？ 中粒度バンドルか？ メタアンブレラか？**— に明示的に答える必要があります。
 
-同じ問いはRailsプラグインファミリーについて[`docs/design/20260508-rails-plugins-roadmap.md`](../../design/20260508-rails-plugins-roadmap/)で答えられました: `plugins/rigor-<id>/`の下にステージングされたgemごとのプラグイン、各プラグインの契約が安定したら`git subtree split`で抽出、将来の`rigor-rails`メタgemがTier 1+2プラグインをgem依存として列挙する。同じパターンがdry-rbにも有効です。
+同じ問いはRailsプラグインファミリーについて[`docs/design/20260508-rails-plugins-roadmap.md`](../../design/20260508-rails-plugins-roadmap/)で答えられました: `plugins/rigor-<id>/`の下にステージングされたgemごとのプラグイン、各プラグインの契約（contract）が安定したら`git subtree split`で抽出、将来の`rigor-rails`メタgemがTier 1+2プラグインをgem依存として列挙する。同じパターンがdry-rbにも有効です。
 
 ## 決定
 

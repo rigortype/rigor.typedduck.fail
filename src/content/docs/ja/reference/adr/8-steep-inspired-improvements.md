@@ -22,7 +22,7 @@ sidebar:
 2. Steepには組み込みの重大度プロファイル（`Steep::Diagnostic::Ruby.lenient`、`.strict`）が付属する。Rigorは`.rigor.yml`の`disable:`リストによるルールごとのオン/オフのみをサポートする。その結果、CIと開発での重大度チューニングが扱いにくい。
 3. Steepはメソッドボディの推論された返り値型が宣言された返り値型を満たせない場合に`Ruby::MethodBodyTypeMismatch`を出力する。Rigorには基盤（スライス（slice）4の`FlowContribution::Merger`、B1のメソッドごとのReflectionキャッシュ）はあるがルールはまだない——返り値側における既存の`argument-type-mismatch`の対称的な存在。
 
-このADRは実装がサーフェス設計を再検討せずにランドできるよう、各改善の選択された方向を記録する。
+このADRは実装がサーフェス（surface）設計を再検討せずにランドできるよう、各改善の選択された方向を記録する。
 
 ## 決定
 
@@ -88,7 +88,7 @@ severity_overrides:
 
 最初のカットのスコープ外:
 
-- RBSシグのないメソッド（比較する宣言された契約がない）。
+- RBSシグのないメソッド（比較する宣言された契約（contract）がない）。
 - 複数返り値パス解析。最初のカットはボディの最後の式を推論された返り値のプロキシとして取る。ボディ途中の明示的な`return`、分岐する返り値、`raise`終了、`next`/`break`パスは今は素通りする。
 - ブロック返り値型。`IteratorDispatch`/`BlockFolding`の上の将来の作業。
 - メソッドオーバーロード——ルールはメソッドの`method_types`配列を参照し、宣言されたすべての返り値型のユニオン（union、合併型とも）を比較ターゲットとして考慮する。

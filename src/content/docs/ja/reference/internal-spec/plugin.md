@@ -10,7 +10,7 @@ sidebar:
   order: 3050
 ---
 
-ステータス：**v0.1.0スライス（slice）1規範的**。プラグイン作成者がプラグインの**登録**・**マニフェスト宣言**・`Analysis::Runner`による**ロード**に関して使用するパブリックサーフェスを固定します。貢献プロトコル（動的返却・型指定・動的リフレクション）は後続のv0.1.0スライスで追加されるため、ここでは定義しません。
+ステータス：**v0.1.0スライス（slice）1規範的**。プラグイン作成者がプラグインの**登録**・**マニフェスト宣言**・`Analysis::Runner`による**ロード**に関して使用するパブリックサーフェス（surface）を固定します。貢献プロトコル（動的返却・型指定・動的リフレクション）は後続のv0.1.0スライスで追加されるため、ここでは定義しません。
 
 拘束力のある設計サーフェスは[ADR-2](../../adr/2-extension-api/)です；v0.1.0の準備状況マップは[`docs/design/20260505-v0.1.0-readiness.md`](../../design/20260505-v0.1.0-readiness/)にあります。この仕様がADR-2と矛盾する場合、ADRが優先されます。
 
@@ -27,7 +27,7 @@ sidebar:
 | `Rigor::Plugin.register(plugin_class)` | プラグインgemがロード時に`Rigor::Plugin::Base`サブクラスをアドバタイズするために呼び出す。 |
 | `Rigor::Plugin.registered_for(id)` | マニフェストidによるローダー側のルックアップ。 |
 | `Rigor::Plugin.registered` | 凍結された`{ id => class }`スナップショット。 |
-| `Rigor::Plugin.unregister!(id = nil)` | テスト専用リセット。プラグイン契約はgem作成者にこれを呼び出すことを要求しない。 |
+| `Rigor::Plugin.unregister!(id = nil)` | テスト専用リセット。プラグイン契約（contract）はgem作成者にこれを呼び出すことを要求しない。 |
 
 レジストリはプロセスグローバルでmutexガードされています。同じクラスを2回登録することはno-opです；同じidで異なるクラスを登録すると`Rigor::Plugin::LoadError`が発生するため、2つのプラグインが互いをサイレントに上書きすることはできません。
 
@@ -140,7 +140,7 @@ plugins:
 
 ## スライス1の境界（意図的にカバーしていないもの）
 
-- **プラグイン貢献の発行**（`FlowContribution`バンドル、ケイパビリティロール、動的返却）。スライス3はスタンドアロンの{Rigor::FlowContribution::Merger}（[`flow-contribution-merger.md`](../flow-contribution-merger/)）を出荷済みです；バンドルを生成する`Rigor::Plugin::Base`上のプロトコルはスライス4（内部絞り込みを通じたFlowContribution接続）と並行して到着します。
+- **プラグイン貢献の発行**（`FlowContribution`バンドル、ケイパビリティ（capability）ロール、動的返却）。スライス3はスタンドアロンの{Rigor::FlowContribution::Merger}（[`flow-contribution-merger.md`](../flow-contribution-merger/)）を出荷済みです；バンドルを生成する`Rigor::Plugin::Base`上のプロトコルはスライス4（内部絞り込みを通じたFlowContribution接続）と並行して到着します。
 - **ロード失敗の`:plugin_loader`ファミリーを超えたプラグイン診断来歴**。スライス5はプラグインが発行した診断を`plugin.<id>.<rule>`プレフィックスを持つ`Diagnostic#source_family`を通じてルーティングします。
 - **プラグイントラスト/I/Oポリシー執行**。スライス2はプラグインが使用することが期待される宣言的な{Rigor::Plugin::TrustPolicy} + {Rigor::Plugin::IoBoundary}サーフェスを出荷します；[`plugin-trust.md`](../plugin-trust/)を参照。
 - **プラグイン側キャッシュプロデューサー**。スライス6は`PluginEntry`ディスクリプタを通じてプラグインに`Store#fetch_or_compute`を接続します。

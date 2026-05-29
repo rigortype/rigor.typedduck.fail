@@ -93,7 +93,7 @@ emit: [
   デフォルトは`nil`;既存のマニフェストは引き続き動作する。
 - `HeredocTemplate.new`の新しいバリデーター分岐。Emit行ごとに`returns:` / `returns_from_arg:`のうちちょうど1つが存在することを保証する（両方nilも有効;`Dynamic[Top]`にフォールバック）。
 - `Rigor::Inference::SyntheticMethod#return_type_source`スロット
-  （Symbol）。戻り型を解決したパスを記録する: `:static`、`:from_arg`、`:fallback`のいずれか。デバッグ用にキャッシュ記述子の`to_h`に表れる;重要な外部サーフェスではない。
+  （Symbol）。戻り型を解決したパスを記録する: `:static`、`:from_arg`、`:fallback`のいずれか。デバッグ用にキャッシュ記述子の`to_h`に表れる;重要な外部サーフェス（surface）ではない。
 - `Rigor::Inference::SyntheticMethodScanner`は、事前パス中に`returns_from_arg:`検索を解決するために、実行ごとの`Plugin::FactStore`を参照する。スキャナーは`fact_store:`キーワード引数を取得する（デフォルトは`nil` → すべての`returns_from_arg:`行は`returns:` / Dynamicにフォールバック）。
 
 すべての更新は実装スライスと同じコミットで[`spec/rigor/public_api_drift_spec.rb`](../../spec/rigor/public_api_drift_spec.rb)に着地します。
@@ -104,7 +104,7 @@ emit: [
 
 1. **`HeredocTemplate::Emit`フィールド + 検証**。`returns_from_arg:`スロットを追加;バリデーターが新しい形を受け入れる;マニフェストのシリアライズがラウンドトリップする。基板の動作変更はまだなし。
 2. **スキャナーの引数位置抽出**。事前パスが宣言された`position:`の引数ノードを読み、ソース表現（修飾された定数名）を発行された`SyntheticMethod`にしまう。
-3. **事前パス中のファクトストア検索**。スキャナーが`fact_store:`キーワードを取得;名前付きファクトの公開値を参照;`SyntheticMethod#return_type`を解決された基底クラス名で埋める。契約に従って静的`returns:` / Dynamicにフォールバックする。
+3. **事前パス中のファクトストア検索**。スキャナーが`fact_store:`キーワードを取得;名前付きファクトの公開値を参照;`SyntheticMethod#return_type`を解決された基底クラス名で埋める。契約（contract）に従って静的`returns:` / Dynamicにフォールバックする。
 4. **TraitRegistryのパリティ（オプション）**。需要が表面化すれば、同じ`returns_from_arg:`行が`Plugin::Macro::TraitRegistry`のemitテーブルにも適用される。
 5. **ドキュメント + 実例消費者**。ADR-16とハンドブックのプラグイン章を更新;対応する`rigor-dry-struct`マニフェスト更新を出荷し、その`attribute :city, Types::String`がこのパスを通じて精度向上するようにする。これがユーザーから見える成果を届けるスライス。
 

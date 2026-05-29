@@ -10,9 +10,9 @@ sidebar:
   order: 2050
 ---
 
-Rigorの型演算子サーフェスはRBS互換演算子（`|`、`&`、`T?`、`[…]`）を、負のファクト（fact）、差分型、シェイプ投影に使われる内部形式と組み合わせます。
+Rigorの型演算子サーフェス（surface）はRBS互換演算子（`|`、`&`、`T?`、`[…]`）を、負のファクト（fact）、差分型、シェイプ（shape）投影に使われる内部形式と組み合わせます。
 
-この文書はそれらの演算子のセマンティクス、診断表示契約、および負のファクト診断を読みやすくするための省略ルールを定義します。リファインメント（refinement、篩型とも）と型関数の予約済み組み込み名は[imported-built-in-types.md](../imported-built-in-types/)にカタログ化されています。これらの演算子が存在する束は[value-lattice.md](../value-lattice/)にあります。
+この文書はそれらの演算子のセマンティクス、診断表示契約（contract）、および負のファクト診断を読みやすくするための省略ルールを定義します。リファインメント（refinement、篩型とも）と型関数の予約済み組み込み名は[imported-built-in-types.md](../imported-built-in-types/)にカタログ化されています。これらの演算子が存在する束は[value-lattice.md](../value-lattice/)にあります。
 
 ## 演算子カタログ
 

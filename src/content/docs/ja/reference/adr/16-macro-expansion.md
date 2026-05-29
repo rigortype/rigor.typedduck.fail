@@ -78,7 +78,7 @@ ADR-16は**3つのステークホルダー役割**を区別し、それぞれ基
 
 **ライブラリごとの専用プラグインは引き続き望ましい形のまま**。各メタプログラミング提供ライブラリ（Rails、AASM、Devise、Sequel、dry-types、…）は独自の`rigor-<lib>`プラグインを取得する — 既存の`rigor-activestorage` / `rigor-activerecord` / `rigor-statesman`プラグインと同じモデル。ADR-16はそのデフォルトを変更しない;繰り返される名前補間 / レジストリ / 呼び出し形状の配管を基板に吸収することで、そのようなプラグインを著作するコストを下げる。
 
-**[`docs/notes/20260515-macro-expansion-library-survey.md`](../../notes/20260515-macro-expansion-library-survey/)で調査されたライブラリ**: 各々が将来のライブラリユーザー向けプラグインのターゲット。基板がそれらのプラグインを著作するのを安価にする。カバレッジマップは § 決定 § 計画されたライブラリごとのプラグインで固定。基板展開に合わないDSLを持つライブラリ（GraphQL-Ruby、Sequelカラムアクセサ）も将来のプラグインを取得する — 彼らは新しい基板の代わりに通常のADR-2プラグイン契約に乗るだけ。「基板なし」パスはファーストクラスの選択肢のまま。
+**[`docs/notes/20260515-macro-expansion-library-survey.md`](../../notes/20260515-macro-expansion-library-survey/)で調査されたライブラリ**: 各々が将来のライブラリユーザー向けプラグインのターゲット。基板がそれらのプラグインを著作するのを安価にする。カバレッジマップは § 決定 § 計画されたライブラリごとのプラグインで固定。基板展開に合わないDSLを持つライブラリ（GraphQL-Ruby、Sequelカラムアクセサ）も将来のプラグインを取得する — 彼らは新しい基板の代わりに通常のADR-2プラグイン契約（contract）に乗るだけ。「基板なし」パスはファーストクラスの選択肢のまま。
 
 ## ゴール
 
@@ -267,7 +267,7 @@ end
 | `rigor-factorybot` | なし — 基板を消費しない | factory_botセクション | 著作済み。ADR-2 + ADR-9（レジストリ + 動的戻り型）を使う。基板移行は計画されていない;形状が合わない。 |
 | `rigor-dry-types` | C（バンドルされた`core.rb`レジストリ経由の定数発行;`const_set`フレーバーでのtier C） + ADR-2 `Dry::Types[<literal>]`の動的戻り型 + `|` `&` `>` `.optional` `.constrained` `.constructor`のキャリア代数処理 | dry-typesセクション | まだ著作されていない。**基板スライス2の成果物**（`rigor-dry-struct`とペア）。`rigor-dry-schema`と`rigor-dry-struct`の共有依存関係、gem依存関係グラフをミラー。パッケージング戦略はADR-12にゲート。 |
 | `rigor-dry-struct` | C（`attribute :name, T` → 5行発行テーブル: リーダー / スキーマキー / `to_h`行 / `[:key]`アクセス / `.new(name:)` kwarg） + ネストされた`attribute :x do … end`ブロックのTier A | dry-structセクション | まだ著作されていない。**基板スライス2主要検証ターゲット**（教科書のTier C、競合するウォーカーなし）。属性ごとの`T`キャリアのために`rigor-dry-types`を**消費**する。 |
-| `rigor-dry-schema` | A（ブロックは`Dry::Schema::DSL`上で`instance_eval`を実行;素の単語サーフェスを宣言 — `required` / `optional` / `value` / `filled` / `maybe` / `each` / `array`） + `key → type`マップを構築するASTレコーダー + `Processor#call(input) -> Result[T]`上のADR-2動的戻り型ルール | dry-schemaセクション | まだ著作されていない。キーごとの型解決のために`rigor-dry-types`を**消費**する。スキーマクラス自体はメソッド拡張されない;価値はプロセッサーの戻り形状の型付けにある。 |
+| `rigor-dry-schema` | A（ブロックは`Dry::Schema::DSL`上で`instance_eval`を実行;素の単語サーフェス（surface）を宣言 — `required` / `optional` / `value` / `filled` / `maybe` / `each` / `array`） + `key → type`マップを構築するASTレコーダー + `Processor#call(input) -> Result[T]`上のADR-2動的戻り型ルール | dry-schemaセクション | まだ著作されていない。キーごとの型解決のために`rigor-dry-types`を**消費**する。スキーマクラス自体はメソッド拡張されない;価値はプロセッサーの戻り形状の型付けにある。 |
 | `rigor-activerecord`（既存） | —（WD13に従い移行先送り） | — | 著作済み。手書きウォーカーにとどまる。Tier B移行は将来作業で、ADR-16のスライシングの一部ではない。 |
 | `rigor-statesman`（既存） | —（WD13に従い移行先送り） | — | 著作済み。同上。 |
 

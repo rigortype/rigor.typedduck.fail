@@ -11,7 +11,7 @@ sidebar:
   order: 9050
 ---
 
-次の実装者のための一時的なブックマーク: 直近の次セッションのエントリーポイントに加え、他では完全には捕捉されていないエンジン内部の項目。**規範的な**契約は[`docs/internal-spec/inference-engine.md`](../internal-spec/inference-engine/)と[`docs/adr/4-type-inference-engine.md`](../adr/4-type-inference-engine/)に残ります;将来を見据えたコミットメントエンベロープ（リリース戦略 + 完全なバックログ）は[`docs/ROADMAP.md`](../roadmap/)にあり;リリース済みバージョンの記録は[`CHANGELOG.md`](https://github.com/rigortype/rigor/blob/master/CHANGELOG.md)です。このファイルがそれらのいずれかと矛盾する場合、仕様 / ADR / ロードマップが拘束力を持ち、このファイルは古くなっています。
+次の実装者のための一時的なブックマーク: 直近の次セッションのエントリーポイントに加え、他では完全には捕捉されていないエンジン内部の項目。**規範的な**契約（contract）は[`docs/internal-spec/inference-engine.md`](../internal-spec/inference-engine/)と[`docs/adr/4-type-inference-engine.md`](../adr/4-type-inference-engine/)に残ります;将来を見据えたコミットメントエンベロープ（リリース戦略 + 完全なバックログ）は[`docs/ROADMAP.md`](../roadmap/)にあり;リリース済みバージョンの記録は[`CHANGELOG.md`](https://github.com/rigortype/rigor/blob/master/CHANGELOG.md)です。このファイルがそれらのいずれかと矛盾する場合、仕様 / ADR / ロードマップが拘束力を持ち、このファイルは古くなっています。
 
 ## ステータス
 
@@ -35,7 +35,7 @@ Mastodonの残り6件のエラーはすべてエンジン精度とは無関係: 
 
 v0.1.12はv0.2.0の強いRCポスチャーでプレビューラインを残す。残りのゲートは[`docs/ROADMAP.md`](../roadmap/) §「v0.2.0 — 最初の評価リリース」に記載された3つ:
 
-1. ADR-2プラグイン契約サーフェスが、このモノレポ外の外部`rigor-*` gemをサポートできるほど安定化されている。
+1. ADR-2プラグイン契約サーフェス（surface）が、このモノレポ外の外部`rigor-*` gemをサポートできるほど安定化されている。
 2. subtree-split / RubyGems公開フローが少なくとも`rigor-rails`ファミリーに対して行使されている。
 3. SKILLトリオが出荷済み（v0.1.9、✓）。
 
@@ -106,7 +106,7 @@ Phases 1〜4着地済み（String / Integer / Float / Comparable / Math / HashSh
 
 - **Struct / Data値fold** — 先送りすべきADR相当の機能（新しいキャリア（carrier）が2つ必要）。`docs/ROADMAP.md` §「将来のサイクル」→「型言語 / エンジン」と[`docs/notes/20260523-struct-encoding-coverage.md`](../notes/20260523-struct-encoding-coverage/)を参照。`Encoding`値foldは同じ監査で*恒久的除外*として記録。
 - **`MathFolding`結果の精緻化** — 28関数のfoldは値精確;範囲精緻化の付与（`Math.exp` → `positive-float`、`Math.sqrt` / `hypot` → `non-negative-float`）は需要駆動のフォローアップ（[`docs/notes/20260522-stdlib-deterministic-module-coverage.md`](../notes/20260522-stdlib-deterministic-module-coverage/) § 1）。
-- **Hash `rassoc`シェイプハンドラ** — 唯一残っている低優先度Hashハンドラ（[`docs/notes/20260522-hash-method-coverage.md`](../notes/20260522-hash-method-coverage/)）;需要駆動。
+- **Hash `rassoc`シェイプ（shape）ハンドラ** — 唯一残っている低優先度Hashハンドラ（[`docs/notes/20260522-hash-method-coverage.md`](../notes/20260522-hash-method-coverage/)）;需要駆動。
 
 ## リリース後フォローアップ
 

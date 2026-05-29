@@ -98,7 +98,7 @@ T.reveal_type(n).even?  # info: T.reveal_type inferred type: Integer
                         # ✓ Integer#even?は引き続き解決される
 ```
 
-`T.assert_type!(expr, T)`は`T.cast`に静的部分型（subtype）チェックを加えたものです。コールはアサートされた型を返すのでチェーンされたコールはそれを通じて解決されます。推論された型が証明可能に非互換（`Inference::Acceptance.accepts(...)`が`:no`を返す）の場合、プラグインは`plugin.sorbet.assert-type-mismatch`を`:error`として発行します。漸進的（gradual）一貫性ルールが適用されます——`Dynamic[top]`推論型と`:maybe`互換のシェイプは、ランタイムチェックがカバーするためサイレントになります。
+`T.assert_type!(expr, T)`は`T.cast`に静的部分型（subtype）チェックを加えたものです。コールはアサートされた型を返すのでチェーンされたコールはそれを通じて解決されます。推論された型が証明可能に非互換（`Inference::Acceptance.accepts(...)`が`:no`を返す）の場合、プラグインは`plugin.sorbet.assert-type-mismatch`を`:error`として発行します。漸進的（gradual）一貫性ルールが適用されます——`Dynamic[top]`推論型と`:maybe`互換のシェイプ（shape）は、ランタイムチェックがカバーするためサイレントになります。
 
 ```ruby
 T.assert_type!("hello", Integer)  # error: 証明可能に非互換
@@ -116,7 +116,7 @@ end
 
 絞り込みはエンジンのプラグイン側`post_return_facts`配線で実装されます——将来のPHPStanスタイルのType-Specifying Extensionプラグインがカスタムアサーションコール後に引数変数を絞り込むために使うのと同じ基板です。
 
-`T.bind`は非`self`の第1引数をサイレントで拒否します（Sorbetの契約に一致——bindはself専用）。
+`T.bind`は非`self`の第1引数をサイレントで拒否します（Sorbetの契約（contract）に一致——bindはself専用）。
 
 ## RBIファイル
 
@@ -220,7 +220,7 @@ demo.rb:42:5: warning: `T.absurd` is reachable: the discriminant did not
 
 1. **両方の静的チェッカーを並行して実行する**。`srb tc`がその診断を生成し続け、`rigor check`が独自の診断を生成します。両者はシェイプエラーで重複し、各ツールが発見するものを補完します——Sorbetは`T.let` / `T.cast` / RBIをより深くカバーし、Rigorはリテラル文字列ナローイング、リファインメント（refinement、篩型とも）キャリア（carrier）、プラグインDSL、依存関係ソース推論をカバーします。
 2. **Sorbetはsig、Rigorはナローイング**。権威あるsigは`sig { ... }`ブロック（またはsorbet-runtime対応のRBIツリー）に残り、Rigorはそれらを入力として読み取り、その上に独自のナローイングを追加します。
-3. **時間をかけてSorbet → RBS**。新しいコードはRBSとして着地し、既存のSorbet sigは周囲のサブシステムが変更されるまで残ります。プラグインはSorbetサーフェスが縮小する間も実行され続けます。
+3. **時間をかけてSorbet → RBS**。新しいコードはRBSとして着地し、既存のSorbet sigは周囲のサブシステムが変更されるまで残ります。プラグインはSorbetサーフェス（surface）が縮小する間も実行され続けます。
 
 ## プラグインが置き換えないもの
 

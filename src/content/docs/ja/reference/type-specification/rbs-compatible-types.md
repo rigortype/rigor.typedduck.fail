@@ -12,7 +12,7 @@ sidebar:
 
 RigorはRBS構文で文書化されたすべての型形式をサポートします。この文書はRBS形式をRigorの解釈とRBS消去にマッピングする権威あるテーブルです。
 
-ハッシュシェイプ消去アルゴリズムを含む完全な消去規則は[rbs-erasure.md](../rbs-erasure/)にあります。RBSを超えるRigor専用の形式は[rigor-extensions.md](../rigor-extensions/)にリストされています。予約済み組み込みリファインメント（refinement、篩型とも）名は[imported-built-in-types.md](../imported-built-in-types/)にあります。
+ハッシュシェイプ（shape）消去アルゴリズムを含む完全な消去規則は[rbs-erasure.md](../rbs-erasure/)にあります。RBSを超えるRigor専用の形式は[rigor-extensions.md](../rigor-extensions/)にリストされています。予約済み組み込みリファインメント（refinement、篩型とも）名は[imported-built-in-types.md](../imported-built-in-types/)にあります。
 
 ## 形式テーブル
 

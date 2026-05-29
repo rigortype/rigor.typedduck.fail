@@ -23,7 +23,7 @@ sidebar:
 | バージョン | リリース日 | テーマ |
 | --- | --- | --- |
 | v0.0.3 — v0.0.9 | 2026-05-02 → 2026-05-05 | 型語彙、推論エンジン、永続キャッシュ。[`docs/CHANGELOG-0.0.x.md`](../changelog-0.0.x/)を参照。 |
-| v0.1.0 | 2026-05-07 | 最初のプラグイン契約（6スライス（slice））;7つの動作例。`CHANGELOG.md` § `[0.1.0]`を参照。 |
+| v0.1.0 | 2026-05-07 | 最初のプラグイン契約（contract）（6スライス（slice））;7つの動作例。`CHANGELOG.md` § `[0.1.0]`を参照。 |
 | v0.1.1 | 2026-05-08 | リテラル文字列ナローイング（narrowing）の深化、クロスプラグインAPI、プラグイン作成DX。`CHANGELOG.md` § `[0.1.1]`を参照。 |
 | v0.1.2 | 2026-05-09 | プラグイン例の戻り型移行、エンジン深化フォローアップ。`CHANGELOG.md` § `[0.1.2]`を参照。 |
 | v0.1.4 | 2026-05-14 | ADR-10 / ADR-11 / ADR-13の延期キュー、ADR-14 `rigor sig-gen`エンドツーエンド、`Type::BoundMethod`キャリア（carrier）、18の動作プラグイン例。（v0.1.3のコミットメントエンベロープがカット前に追加のトラックを吸収し、v0.1.4として出荷。）`CHANGELOG.md` § `[0.1.4]`を参照。 |
@@ -32,7 +32,7 @@ sidebar:
 | v0.1.7 | 2026-05-20 | ADR-22ベースライン（baseline）メカニズム（スライス1+2） + プロジェクトオンボーディング基盤;サーベイ駆動のプラグイン / エンジン偽陽性修正;Pillar 2「あなたのspecが型である」スライス1+2+3。`CHANGELOG.md` § `[0.1.7]`を参照。 |
 | v0.1.8 | 2026-05-21 | Mastodonサーベイ偽陽性削減: ADR-15フォークベースのワーカープール（アクティブな`workers > 0`バックエンド）、ADR-23 `rigor triage`診断トリアージサブコマンド、ADR-24暗黙的selfメソッド呼び出し解決。`CHANGELOG.md` § `[0.1.8]`を参照。 |
 | v0.1.9 | 2026-05-23 | 指定の「最後のプレビューカット」: 外部ユーザーSKILLトリオ（`rigor-project-init`、`rigor-baseline-reduce`、[ADR-22 WD8](../adr/22-baseline-and-project-onboarding/)に基づく外部著者`rigor-plugin-author`バリアント）;ADR-22ベースラインスライス5（`rigor baseline regenerate` + `--baseline-strict` CIゲート）;v0.1.7 / v0.1.8サーベイデータによる実証的デフォルトの引き締め。`CHANGELOG.md` § `[0.1.9]`を参照。 |
-| v0.1.10 | 2026-05-27 | `rigor mcp --transport stdio`（ADR-33、7つの読み取り専用ツール）;`rigor sig-gen --params=observed` attr_reader推論;`rigor coverage`精度ゲート;`rigor check --treat-all-as-inline-rbs`;`rigor-rbs-inline`プラグイン（ADR-32）;ブラウザプレイグラウンド（ADR-29スライス1〜4）;`rigor annotate`戻り型アノテーション;ADR-28パススコープのプロトコル契約 + `rigor-hanami`;定数畳み込み（Date/DateTime/Time、Math、String/Integer/Float中優先度、Hashシェイプハンドラー）;`return if @ivar.nil?` ivarガードナローイング修正。`CHANGELOG.md` § `[0.1.10]`を参照。 |
+| v0.1.10 | 2026-05-27 | `rigor mcp --transport stdio`（ADR-33、7つの読み取り専用ツール）;`rigor sig-gen --params=observed` attr_reader推論;`rigor coverage`精度ゲート;`rigor check --treat-all-as-inline-rbs`;`rigor-rbs-inline`プラグイン（ADR-32）;ブラウザプレイグラウンド（ADR-29スライス1〜4）;`rigor annotate`戻り型アノテーション;ADR-28パススコープのプロトコル契約 + `rigor-hanami`;定数畳み込み（Date/DateTime/Time、Math、String/Integer/Float中優先度、Hashシェイプ（shape）ハンドラー）;`return if @ivar.nil?` ivarガードナローイング修正。`CHANGELOG.md` § `[0.1.10]`を参照。 |
 | v0.1.11 | 2026-05-27 | プラグインを`rigortype` gemにバンドル;ポータブルベースラインパス;`rigor-rails-routes`でkaigionrails conference-app + Mastodonトライアルに基づく5つの偽陽性ソースを解消（`new_` / `edit_`プレフィックス順序、匿名`get`ルート、`scope as:`プレフィックス + arity、`draw(:name)`部分的読み込み、`concern`ボディnoop、末尾オプションハッシュ +1 arityルール）;`rigor-rails-i18n`コントローラー内のレイジー翻訳キー;Railsクイックスタートマニュアル。`CHANGELOG.md` § `[0.1.11]`を参照。 |
 | v0.1.12 | 2026-05-28 | Mastodon / Redmine / GitLab FOSSに対するOSSリアリズムサイクル: Mastodon`app + lib`エラー**789 → 6（−99.2%）**、Redmine**163 → 79（−51%）**、GitLab FOSS `app/{controllers,mailers,workers,services}`**〜670 → 〜140**。6つの`flow.always-truthy / always-falsey` FPパターンをクローズ（書き込み前読み取りnil、介在するメソッド呼び出し、retryエッジ、falsey-rvalue防御的初期化、極性認識ガード、ミューテーターの幅広げ）。新しいナローイングプリミティブ（`receiver[key] ||= default`、単一ホップメソッドチェーン`is_a?`）。`Class.new(Parent) { |c| ... }`と`Hash#each { |k, v| ... }`オートスプラット型付け。プラグインの包括的拡張: `rigor-rails-routes`がdevise_for / use_doorkeeper / mount / concern / with_options / member-collection-shorthand等を認識;`rigor-actionpack`のネストモジュール修飾付きフィルター & レンダー;`rigor-activerecord`のマイグレーション除外 / バーチャルテーブルモデル / Postgres配列カラム / スコープボディ解決;`rigor-actionmailer`のinclude-of-concerns;`rigor-rails-i18n`のRails同梱キープレフィックス。新しい`rigor plugins`サブコマンド。`CHANGELOG.md` § `[0.1.12]`を参照。 |
 
@@ -60,7 +60,7 @@ v0.1.9の「最後のプレビューカット」の意図は達成済み（SKILL
 
 実プロダクトでの試験デプロイを意図した最初の公式発表バージョン。v0.2.0は**評価**リリースであり、GA / フォーマルバージョンではない — 評価期間を開き、外部のフィードバックを募る。ゲート条件（このリリースが吸収するv0.1.xの「今日はスコープ外」リスト）:
 
-- ADR-2プラグイン契約サーフェスが、このモノレポ外の外部`rigor-*` gemをサポートできるほど安定化されている。
+- ADR-2プラグイン契約サーフェス（surface）が、このモノレポ外の外部`rigor-*` gemをサポートできるほど安定化されている。
 - subtree-split / RubyGems公開フローが少なくとも`rigor-rails`ファミリーに対して行使されている。
 - SKILLトリオが出荷済み（v0.1.9）で、新参者がオンボーディングパスを持つ。
 

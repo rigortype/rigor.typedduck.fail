@@ -20,7 +20,7 @@ sidebar:
 
 ## [0.0.9] - 2026-05-05
 
-第9プレビュー。テーマ: **キャッシュサーフェスの完成、型語彙の拡張、v0.1.0プラグイン契約に向けたパブリックAPIのロック**。v0.0.9はすべての残存するpre-`0.1.0`サブストレートスライス（slice）を完了します: 永続キャッシュが`rigor check`にエンドツーエンドで配線され（ウォーム実行はディスクバックのテーブルにヒットし; `--cache-stats`は実際のヒット / ミス / 書き込みカウントを報告し; `--no-cache`でオフにできます）、型語彙は対補完`~T`ナローイング（narrowing）と補間 / `+` / `*` / `<<`を通じた`literal-string`フロー追跡を取り込み、[`RBS::Extended`](../docs/type-specification/rbs-extended/)ディレクティブサーフェスはメソッド上のすべての認識済みディレクティブを1つの`Rigor::FlowContribution`バンドルにまとめ、6つの新しい組み込みカタログが`Random`、`Struct`（+ `Data`）、`Encoding`、`Regexp` / `MatchData`、`Proc` / `Method` / `UnboundMethod`、`Exception`をカバーします。
+第9プレビュー。テーマ: **キャッシュサーフェス（surface）の完成、型語彙の拡張、v0.1.0プラグイン契約（contract）に向けたパブリックAPIのロック**。v0.0.9はすべての残存するpre-`0.1.0`サブストレートスライス（slice）を完了します: 永続キャッシュが`rigor check`にエンドツーエンドで配線され（ウォーム実行はディスクバックのテーブルにヒットし; `--cache-stats`は実際のヒット / ミス / 書き込みカウントを報告し; `--no-cache`でオフにできます）、型語彙は対補完`~T`ナローイング（narrowing）と補間 / `+` / `*` / `<<`を通じた`literal-string`フロー追跡を取り込み、[`RBS::Extended`](../docs/type-specification/rbs-extended/)ディレクティブサーフェスはメソッド上のすべての認識済みディレクティブを1つの`Rigor::FlowContribution`バンドルにまとめ、6つの新しい組み込みカタログが`Random`、`Struct`（+ `Data`）、`Encoding`、`Regexp` / `MatchData`、`Proc` / `Method` / `UnboundMethod`、`Exception`をカバーします。
 
 `0.0.9`の次のリリースは`0.1.0`です——一桁バージョンコンポーネントポリシー、`0.0.10`なし。v0.1.0がプラグイン契約を本格的に開始します; v0.0.9はその契約が設計される基板をリリースします。
 
@@ -100,7 +100,7 @@ sidebar:
 - **`sum` / `min` / `max`**はすべてのConstant要素に対して数値 / 比較可能な極値にフォールドします。
 - **`sort` / `reverse`**は適切な順序で位置ごとのTupleを返します。
 - **`to_a`**はレシーバーTupleをそのまま返します。
-- **`zip`**はレシーバーの位置ごとの要素を他の各Tupleシェイプ引数の位置ごとの要素とペアにします;短い他のTupleは`Constant[nil]`でパディングします;複数引数の`zip`はより広い位置ごとのTupleを生成します（8でキャップ）。
+- **`zip`**はレシーバーの位置ごとの要素を他の各Tupleシェイプ（shape）引数の位置ごとの要素とペアにします;短い他のTupleは`Constant[nil]`でパディングします;複数引数の`zip`はより広い位置ごとのTupleを生成します（8でキャップ）。
 
 #### HashShape精密性
 

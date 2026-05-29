@@ -45,7 +45,7 @@ lib/user.rb:42:7: error: undefined method `upcas' for "alice" [call.undefined-me
 | --- | --- | --- |
 | `call.undefined-method` | レシーバークラスが静的に既知で、メソッドがそれに定義されていない（RBSまたはインソース）。 | error |
 | `call.wrong-arity` | 位置引数の数がどのオーバーロードのアリティも満たさない。 | error |
-| `call.argument-type-mismatch` | 引数の型がパラメーター契約（RBSまたは`RBS::Extended` `param:`）を証明可能に満たさない。 | error |
+| `call.argument-type-mismatch` | 引数の型がパラメーター契約（contract）（RBSまたは`RBS::Extended` `param:`）を証明可能に満たさない。 | error |
 | `call.possible-nil-receiver` | レシーバー型が`T | nil`で、メソッドが`NilClass`で定義されていない。 | warning |
 
 `call.*`ルールは実際のコードで最も量の多い診断です。また最も洗練されています — それぞれがRigorが根底にある事実を証明できる場合にのみ発火します。

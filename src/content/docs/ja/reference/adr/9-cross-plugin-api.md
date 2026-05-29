@@ -14,7 +14,7 @@ sidebar:
 
 ## コンテキスト
 
-v0.1.0プラグイン契約（[ADR-2](../2-extension-api/)）は、すべてのプラグインに独自のファイルごと解析フック（`#diagnostics_for_file(path:, scope:, root:)`）、ファイル読み取り用の独自の`IoBoundary`、キャッシュ用の独自の`Plugin::Base.producer`名前空間を提供する。プラグインは**完全に独立している** — 1つのプラグインが別のプラグインの解析状態を読めず、プロデューサー名前空間（`plugin.<id>.<producer>`）は[ADR-7 § 「スライス6-C」](../7-v0.1.0-slice-decisions/)に従って意図的にプラグインごとにサンドボックス化されている。
+v0.1.0プラグイン契約（contract）（[ADR-2](../2-extension-api/)）は、すべてのプラグインに独自のファイルごと解析フック（`#diagnostics_for_file(path:, scope:, root:)`）、ファイル読み取り用の独自の`IoBoundary`、キャッシュ用の独自の`Plugin::Base.producer`名前空間を提供する。プラグインは**完全に独立している** — 1つのプラグインが別のプラグインの解析状態を読めず、プロデューサー名前空間（`plugin.<id>.<producer>`）は[ADR-7 § 「スライス6-C」](../7-v0.1.0-slice-decisions/)に従って意図的にプラグインごとにサンドボックス化されている。
 
 この独立性はプラグインが未実証だったv0.1.0の正しいデフォルトだった。7つの実装例がランドし、Railsエコシステムロードマップ（[`docs/design/20260508-rails-plugins-roadmap.md`](../../design/20260508-rails-plugins-roadmap/)）が記録されると、制約は具体的に障害になっている。
 

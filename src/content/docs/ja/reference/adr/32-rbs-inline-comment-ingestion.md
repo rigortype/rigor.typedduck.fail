@@ -28,7 +28,7 @@ p ascdesc :desc
 p ascdesc :bad
 ```
 
-今日`asc_or_desc`を`Dynamic[Top]`として型付けし、`ascdesc :bad`は診断を発しない。原因は明確: Rigorのパイプラインは`# @rbs`コメントを見ない。`lib/`、`spec/`、`examples/`のgrepで確認済み;`MethodParameterBinder`はRBS環境、RBS::Extended `%a{rigor:v1:param:}`アノテーション、ADR-28プロトコル契約のみを読む。
+今日`asc_or_desc`を`Dynamic[Top]`として型付けし、`ascdesc :bad`は診断を発しない。原因は明確: Rigorのパイプラインは`# @rbs`コメントを見ない。`lib/`、`spec/`、`examples/`のgrepで確認済み;`MethodParameterBinder`はRBS環境、RBS::Extended `%a{rigor:v1:param:}`アノテーション、ADR-28プロトコル契約（contract）のみを読む。
 
 下流の機構は既に揃っている。同じ契約を`.rbs`ファイルで再エンコードすると
 
@@ -54,7 +54,7 @@ end
 
 この文法をRigor内で再実装すると、非自明な上流の努力を複製しすべてのrbs-inlineリリースで分岐するリスクがある。既に整形RBSを出力する上流ライブラリを呼び出す方が、大幅に小さく耐久性の高いエンジニアリング選択である。
 
-しかしRigorのコアはゼロランタイム依存スタンスを表明しており（ADR-0）、`rbs-inline`は非自明なgemである（`prism`と`rbs`に依存するが、それら自体は既に必要;ただし独自のバージョン管理サーフェスを導入する）。それをコアのランタイム依存として追加することはADR-0と矛盾する。
+しかしRigorのコアはゼロランタイム依存スタンスを表明しており（ADR-0）、`rbs-inline`は非自明なgemである（`prism`と`rbs`に依存するが、それら自体は既に必要;ただし独自のバージョン管理サーフェス（surface）を導入する）。それをコアのランタイム依存として追加することはADR-0と矛盾する。
 
 このADRはADR-25が類似の「envへのRBS貢献」フック用に既に使っている**プラグインをオプトイン境界として**採用することで緊張を解消する: インラインRBSリーダーは`rigor-rbs-inline`プラグインgemに住み、プラグインのgemspecが`rbs-inline`依存を宣言し、プロジェクトは`.rigor.yml`の`plugins:`に1行追加することで動作を有効化する。
 

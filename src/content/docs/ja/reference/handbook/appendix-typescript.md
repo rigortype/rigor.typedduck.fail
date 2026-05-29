@@ -52,7 +52,7 @@ sidebar:
 | `Record<K, V>` | `Hash[K, V]` | 同様。 |
 | `Readonly<T>` | `readonly_of[T]`（オプトインの[`rigor-typescript-utility-types`](https://github.com/rigortype/rigor/blob/master/plugins/rigor-typescript-utility-types/)プラグイン経由） | `HashShape`の各エントリーに対するビュー層の読み取り専用マーカー。基底オブジェクトが凍結されていることを証明する**ものではない** — ADR-13 §「Readonly」。 |
 | `Partial<T>` / `Required<T>` | `partial_of[T]` / `required_of[T]`（同じプラグイン） | `HashShape`の各エントリーの必須性を反転させる。`Partial`は値型を`nil`に**広げない** — Rigorの`HashShape`は「キーが存在しない」と「キーは存在し値が`nil`」を区別する（ADR-13の必須性反転に関するWDを参照）。 |
-| `Pick<T, K>` / `Omit<T, K>` | `pick_of[T, K]` / `omit_of[T, K]`（同じプラグイン） | リテラルキーユニオンで`HashShape`のエントリーを制限/削除する。Tupleレシーバーは整数インデックスで射影。非シェイプキャリアは保守的に縮退し、`dynamic.shape.lossy-projection`を発火する。 |
+| `Pick<T, K>` / `Omit<T, K>` | `pick_of[T, K]` / `omit_of[T, K]`（同じプラグイン） | リテラルキーユニオンで`HashShape`のエントリーを制限/削除する。Tupleレシーバーは整数インデックスで射影。非シェイプ（shape）キャリアは保守的に縮退し、`dynamic.shape.lossy-projection`を発火する。 |
 | 条件型`T extends U ? A : B` | （コアにはない。プラグインの提供で） | プラグインは引数のシェイプによって戻り型を変えられる。 |
 | `keyof T` | （なし） | `HashShape`は内部的にキーセットを公開するが型演算子としては公開しない。 |
 | `T['k']` | `T[k]`インデックスアクセス | Rigorは`HashShape`と`Tuple`のリテラルインデックスアクセスをサポートする（型仕様を参照）。 |

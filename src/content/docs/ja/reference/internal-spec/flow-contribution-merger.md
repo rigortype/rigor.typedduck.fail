@@ -10,7 +10,7 @@ sidebar:
   order: 3050
 ---
 
-ステータス: **v0.1.0スライス3規範文書**。組み込みナローイング（narrowing）ルール・`RBS::Extended`アノテーション・プラグインからの`FlowContribution`バンドルを単一の`MergeResult`にまとめるマージポリシーを固定します。設計サーフェスの根拠: [ADR-2 § "Plugin Contribution Merging"](../../adr/2-extension-api/)。
+ステータス: **v0.1.0スライス3規範文書**。組み込みナローイング（narrowing）ルール・`RBS::Extended`アノテーション・プラグインからの`FlowContribution`バンドルを単一の`MergeResult`にまとめるマージポリシーを固定します。設計サーフェス（surface）の根拠: [ADR-2 § "Plugin Contribution Merging"](../../adr/2-extension-api/)。
 
 ## この仕組みが必要な理由
 
@@ -68,7 +68,7 @@ sidebar:
 
 ### `Rigor::FlowContribution::Fact`（スライス4-A）
 
-4つのエッジ対応ファクトスロット（`truthy_facts`・`falsey_facts`・`post_return_facts`、および将来のロール/変更のFactシェイプバリアント）向けの標準スロットペイロード。[ADR-7 § "Slice 4-A"](../../adr/7-v0.1.0-slice-decisions/)でピン留めされており、4つの並列コントリビューションキャリアを単一の比較可能なシェイプに統一することで、マージャーの重複排除/インターセクションルールが均質なペイロード型の上で動作できるようになります。
+4つのエッジ対応ファクトスロット（`truthy_facts`・`falsey_facts`・`post_return_facts`、および将来のロール/変更のFactシェイプ（shape）バリアント）向けの標準スロットペイロード。[ADR-7 § "Slice 4-A"](../../adr/7-v0.1.0-slice-decisions/)でピン留めされており、4つの並列コントリビューションキャリアを単一の比較可能なシェイプに統一することで、マージャーの重複排除/インターセクションルールが均質なペイロード型の上で動作できるようになります。
 
 | フィールド | 役割 |
 | ------------- | --- |
@@ -92,7 +92,7 @@ sidebar:
 
 | ティア | ソースファミリー | 備考 |
 | ---- | ------------------------ | ----- |
-| 0    | `:builtin`               | Rubyのコアセマンティクス＋受け入れ済みRBS契約。権威あるもの。 |
+| 0    | `:builtin`               | Rubyのコアセマンティクス＋受け入れ済みRBS契約（contract）。権威あるもの。 |
 | 1    | `:rbs_extended`          | `RBS::Extended`ディレクティブバンドル（v0.0.9グループD参照実装）。 |
 | 1    | `:generated`             | 生成されたシグネチャ/メタデータ。 |
 | 2    | `:plugin`、`plugin.<id>` | プラグインコントリビューション。 |

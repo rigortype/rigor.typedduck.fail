@@ -195,7 +195,7 @@ Union[ nil, true, false, Integer, Float, String,
   （`E <: [:if, _, A, B] ? lisp_type[A] | lisp_type[B] : ...`）。
   上で述べた条件文法はyes/no/maybeをテストするが、
   パターンから新しい型変数を束縛しない。
-  `rigor-lisp-eval`は完全なASTシェイプ判別のために
+  `rigor-lisp-eval`は完全なASTシェイプ（shape）判別のために
   バインダ抽出を必要とする;パターンバインディングが着地するまでは
   診断エミッターパスに留まる。
 - **非再帰コンテナのための複数引数HKT**
