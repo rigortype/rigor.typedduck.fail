@@ -58,6 +58,16 @@ Rigor固有語または定訳のない語は、意図的にカタカナを主表
 本文の言いまわしによって漢語が自然な箇所もあるため、**主表記は保留**。
 個別精査のうえ決定する。
 
+## 翻訳対象外（upstream所有のja-nativeページ）
+
+フロントマターに `sourceLanguage: "ja"` を持つページ（`notes/` 配下の
+一部など）は、upstream/rigorがja-nativeで所有し、`pnpm sync:docs`
+（`prebuild`で自動実行）がupstreamから上書き再生成する。当リポジトリの
+翻訳対象ではないため、**用語統一・英語併記・表記正規化の対象にしない**。
+編集してもビルド時に巻き戻る。該当ファイルは
+`grep -rl 'sourceLanguage: "ja"' src/content/docs/ja` で一覧できる
+（2026-05時点で `notes/` の6ファイル）。
+
 ## 変更しないもの
 
 - RFC 2119 キーワード（MUST, SHOULD, MAY, MUST NOT, SHOULD NOT）は英語大文字のまま
