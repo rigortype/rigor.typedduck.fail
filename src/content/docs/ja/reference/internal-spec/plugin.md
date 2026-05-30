@@ -66,14 +66,29 @@ end
 | `id` | `/\A[a-z][a-z0-9._-]*\z/`に一致する`String` | 安定した識別子；`PluginEntry#id`と`plugin.<id>.<rule>`診断プレフィックスとして使用される。 |
 | `version` | 空でない`String` | プラグインバージョン；キャッシュ無効化のため`PluginEntry#version`に格納される。 |
 | `description` | `String?` | 人間が読めるサマリー。 |
-| `protocols` | `Array<Symbol>` | このプラグインが実装するプロトコル名。スライス1ではこれを空にする；プロトコルスライスが埋める。 |
+| `protocols` | `Array<Symbol>` | このプラグインが実装するプロトコル名。 |
 | `config_schema` | `{ String => Symbol }` | 受け入れられるconfigキーと値の種類（`:string`・`:boolean`・`:integer`・`:array`・`:hash`・`:any`）のマッピング。 |
 
-`#validate_config(config)`はエラー文字列の配列を返します；ローダーは空でない結果を`LoadError`に変換します。
+以下の**拡張フィールド**は`0.1.x`サイクルを通じて追加されました。すべてオプションで、1.0前のプラグイン契約に対して追加的です;これらを1つも宣言しないプラグインはただのファイルごとのアナライザーです:
+
+| フィールド | 型 | 目的 |
+| --- | --- | --- |
+| `produces` | `Array<Symbol>` | このプラグインが公開するクロスプラグインファクト（ADR-9）。 |
+| `consumes` | `Array<Consumption>` | このプラグインが読むクロスプラグインファクト（`{ plugin_id:, name:, optional: }`）;ローダーのトポロジカル順序付けを駆動する（ADR-9）。 |
+| `signature_paths` | `Array<String>` | プラグインが貢献するRBSシグネチャディレクトリ、プラグインgemルートからの相対;`Loader`が解決し環境にマージする（ADR-25）。 |
+| `owns_receivers` | `Array<String>` | ディスパッチルーティングのためにこのプラグインが所有するレシーバークラス名。 |
+| `open_receivers` | `Array<String>` | `call.undefined-method`から免除されるレシーバークラス名（そのメソッド表面が無制限 — 例: `ActiveRecord::Relation`）（ADR-26）。 |
+| `type_node_resolvers` | `Array` | カスタムなRBS型名解決を貢献する`Plugin::TypeNodeResolver`エントリ（ADR-13）。 |
+| `protocol_contracts` | `Array<ProtocolContract>` | パススコープの振る舞い契約（`path_glob` + `method_name` + param/return型 + 重大度）;provide-and-check（ADR-28）。 |
+| `source_rbs_synthesizer` | `#call(path) -> String?` | env構築時にプロジェクトソースファイルからRBSを合成する呼び出し可能オブジェクト（例: rbs-inline取り込み）（ADR-32）。 |
+| `block_as_methods`, `heredoc_templates`, `trait_registries`, `external_files` | `Array` | ADR-16のマクロ / DSL展開基板の4つのティア（A / C / B / D）。 |
+| `hkt_registrations`, `hkt_definitions` | `Array` | 軽量HKTの型関数登録（ADR-20）。 |
+
+`#validate_config(config)`はエラー文字列の配列を返します；ローダーは空でない結果を`LoadError`に変換します。各拡張フィールドは`Manifest#initialize`で独自のバリデーションを持ちます。
 
 ### `Rigor::Plugin::Services`
 
-すべてのプラグインの`#initialize`と`#init`に渡される凍結DIコンテナ。スライス1のサーフェス：
+すべてのプラグインの`#initialize`・`#init`・`#prepare`に渡される凍結DIコンテナ：
 
 | サービス | 型 |
 | --- | --- |
@@ -81,6 +96,8 @@ end
 | `type` | `Rigor::Type::Combinator`（モジュール）。 |
 | `configuration` | `Rigor::Configuration`（読み取り専用のプロジェクトconfig）。 |
 | `cache_store` | `Rigor::Cache::Store`または`nil`（スライス6がこれを通じてプラグイン側キャッシュプロデューサーを接続する）。 |
+| `trust_policy` | `Rigor::Plugin::TrustPolicy`（スライス2;[`plugin-trust.md`](plugin-trust/)を参照）。 |
+| `fact_store` | `Rigor::Plugin::FactStore`（ADR-9 / v0.1.1）— 実行ごとのクロスプラグインファクトストア;`#prepare`が公開し、`#diagnostics_for_file` / `#flow_contribution_for`が読む。 |
 
 診断フォーマッタがプログレスチャンネルを持つようになったとき、ロガーサービスがこのリストに追加されます。
 
@@ -138,10 +155,12 @@ plugins:
 
 `rigor check`は解析を続行します；正常にロードされたプラグインは後のv0.1.0スライスに引き続き参加します。
 
-## スライス1の境界（意図的にカバーしていないもの）
+## 各機能が着地した場所（歴史的スライスマップ）
 
-- **プラグイン貢献の発行**（`FlowContribution`バンドル、ケイパビリティ（capability）ロール、動的返却）。スライス3はスタンドアロンの{Rigor::FlowContribution::Merger}（[`flow-contribution-merger.md`](../flow-contribution-merger/)）を出荷済みです；バンドルを生成する`Rigor::Plugin::Base`上のプロトコルはスライス4（内部絞り込みを通じたFlowContribution接続）と並行して到着します。
-- **ロード失敗の`:plugin_loader`ファミリーを超えたプラグイン診断来歴**。スライス5はプラグインが発行した診断を`plugin.<id>.<rule>`プレフィックスを持つ`Diagnostic#source_family`を通じてルーティングします。
-- **プラグイントラスト/I/Oポリシー執行**。スライス2はプラグインが使用することが期待される宣言的な{Rigor::Plugin::TrustPolicy} + {Rigor::Plugin::IoBoundary}サーフェスを出荷します；[`plugin-trust.md`](../plugin-trust/)を参照。
-- **プラグイン側キャッシュプロデューサー**。スライス6は`PluginEntry`ディスクリプタを通じてプラグインに`Store#fetch_or_compute`を接続します。
-- **メソッドごとのリフレクションキャッシュ**。v0.0.9からの持ち越し；スライス6と並行して到着します。
+v0.1.0のプラグイン契約は6つのスライスで出荷されました;以下はすべていまや整っており、それぞれ独自の仕様で文書化されています:
+
+- **プラグイン貢献の発行**（`FlowContribution`バンドル、ケイパビリティ（capability）ロール、動的返却）。スタンドアロンの{Rigor::FlowContribution::Merger}（[`flow-contribution-merger.md`](../flow-contribution-merger/)）はスライス3で出荷;`Rigor::Plugin::Base`上の`#flow_contribution_for`（戻り値貢献ティア）はスライス4で出荷され、v0.1.1のクロスプラグイン作業（ADR-9）で拡張されました。
+- **プラグイン診断来歴**。スライス5はプラグインが発行した診断を`plugin.<id>.<rule>`プレフィックスを持つ`Diagnostic#source_family`を通じてルーティングします。
+- **プラグイントラスト/I/Oポリシー執行**。スライス2は宣言的な{Rigor::Plugin::TrustPolicy} + {Rigor::Plugin::IoBoundary}サーフェスを出荷しました；[`plugin-trust.md`](../plugin-trust/)を参照。
+- **プラグイン側キャッシュプロデューサー**。スライス6は`PluginEntry`ディスクリプタを通じてプラグインに`Store#fetch_or_compute`を接続します；[`plugin-cache-producers.md`](../plugin-cache-producers/)を参照。
+- **クロスプラグインファクト + 事前パス**。`#prepare(services)` + `services.fact_store` + `manifest(produces:/consumes:)`がv0.1.1で出荷されました（ADR-9）。上記の`Manifest`テーブルの拡張フィールド（`signature_paths:`、`open_receivers:`、`protocol_contracts:`、`source_rbs_synthesizer:`、マクロ基板、HKT）は`0.1.x`サイクルを通じて堆積しました。
