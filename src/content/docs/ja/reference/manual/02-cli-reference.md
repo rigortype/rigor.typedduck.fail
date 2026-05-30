@@ -42,6 +42,7 @@ rigor check [paths...]
 | `--baseline=PATH` | 設定を上書きしてベースライン（baseline）ファイルを読み込む。 |
 | `--no-baseline` | 設定されたベースラインを無視する。 |
 | `--baseline-strict` | ベースラインのドリフトで実行を失敗させる——CIゲートとして使用。 |
+| `--treat-all-as-inline-rbs` | `rigor-rbs-inline`を`require_magic_comment: false`で強制ロードし、解析されるすべてのファイルを`# rbs_inline: enabled`コメントなしでインラインRBSとして扱う（ADR-32）。 |
 | `--tmp-file=PATH --instead-of=PATH` | エディタモード: `--tmp-file`のバッファを使って`PATH`を解析する。両方必須。 |
 
 エラー重要度の診断がない場合は`0`で終了、診断がある場合は`1`で終了、使用法エラーの場合は`64`で終了します。
@@ -164,6 +165,79 @@ rigor triage [paths]
 ```
 
 `--top=N`はホットスポット数を設定し（デフォルト10）、`--hints-only`と`--no-hints`は表示するセクションを選択します。`triage`は参考情報であり、常に`0`で終了します——ビルドをゲートすることはありません。
+
+## `rigor coverage`
+
+型精度カバレッジ — 精密な型に解決する呼び出しサイトと`Dynamic`へフォールバックする呼び出しサイトの比率 — を報告します。「Rigorが実際にどれだけ推論しているか」の品質ゲートです。
+
+```sh
+rigor coverage [paths]
+```
+
+`--format=text|json`が出力形式を選び、`--config=PATH`が設定探索をオーバーライドします。`--threshold=RATIO`は精度比率が`RATIO`（`0.0`〜`1.0`）を下回ると`1`で終了し、CIゲートになります。
+
+## `rigor mcp`
+
+RigorのMCP（Model Context Protocol）サーバーをstdio上で実行し、AIコーディングアシスタントがRigorツールを直接呼び出せるようにします。[MCPサーバー](../10-mcp-server/)を参照してください。
+
+```sh
+rigor mcp [--transport=stdio] [--config=PATH]
+```
+
+`stdio`が唯一のトランスポートです。サーバーは純Ruby製のJSON-RPC 2.0実装で、7つの読み取り専用ツール（`rigor_check`、`rigor_type_of`、`rigor_triage`、`rigor_annotate`、`rigor_sig_gen`、`rigor_explain`、`rigor_coverage`）を公開します。
+
+## `rigor lsp`対`rigor mcp`
+
+`lsp`はエディタへLanguage Server Protocolを話し;`mcp`はAIアシスタントへModel Context Protocolを話します。両方ともstdio上で動き、同じ解析エンジンをラップします。
+
+## `rigor plugins`
+
+`.rigor.yml`に設定された各プラグインの有効化状態 — ロード済み、ロードエラー（理由付き）、各プラグインの宣言した拡張サーフェス — を報告します。[プラグイン](../07-plugins/)を参照してください。
+
+```sh
+rigor plugins [--format=text|json] [--strict] [--config=PATH]
+```
+
+`--strict`なしでは常に`0`で終了し、`--strict`では1つでもプラグインのロードに失敗すると`1`で終了します（CIゲート）。単数形の`rigor plugin`と混同しないこと。
+
+## `rigor plugin`
+
+ツールチェーンにバンドルされたプラグインのオンディスクのソースをブラウズし、自前のプラグインを著作する際に本物の動作するプラグインを作業例として読めるようにします。
+
+```sh
+rigor plugin <list|path|print|root> [name]
+```
+
+| サブコマンド | 目的 |
+| --- | --- |
+| `list` | バンドルされた各プラグイン・例の名前 + 絶対ディレクトリパスの表（サブコマンドなしのデフォルト）。 |
+| `path <name>` | プラグインのディレクトリへの1行の絶対パス。 |
+| `print <name>` | ヘッダー（dir / lib / sig / READMEパス）に続けてプラグインの主ソース本体をインライン展開。 |
+| `root` | `rigortype` gemルートとその主要サブディレクトリ。 |
+
+パスはgemの場所から実行時に解決されます（コンテナ / クロスファイルシステム構成では文書化された注意点）。
+
+## `rigor playground`
+
+ブラウザプレイグラウンド（リアルタイム診断付きのCodeMirrorエディタ）を起動します。別の`rigor-playground` gemが必要で、未インストールならインストールヒントを出力して`64`で終了します。
+
+```sh
+rigor playground
+```
+
+## `rigor skill`
+
+`rigortype` gemの内部に出荷されたバンドル済みAgent Skillsを一覧・出力し、Rigorと並んでインストールされたAIコーディングエージェントが、プロジェクト側のソースチェックアウトなしにそれらを発見・追従できるようにします。[スキル](../08-skills/)を参照してください。
+
+```sh
+rigor skill <list|print|path> [name]
+```
+
+| サブコマンド | 目的 |
+| --- | --- |
+| `list` | バンドルされた各スキルの名前 + 絶対パスの表;サブコマンドなしのデフォルト。 |
+| `print <name>` | `SKILL.md`本体をstdoutへ出力。スキルの`references/`ディレクトリを指すヘッダー付き。 |
+| `path <name>` | 1行の絶対`SKILL.md`パスを出力。ファイル読み取りツールへの入力に適する。 |
 
 ## 終了コード
 

@@ -185,6 +185,6 @@ LSP v1の設計ターゲット（ウォームセッション、5Kファイルプ
 
 ## ステータス + ロードマップ
 
-LSP v1 + v2はv0.1.6で提供されます（`master`に蓄積中）。キュー待ちのフォローアップ（`textDocument/signatureHelp`、ハッシュキー補完、`textDocument/definition`、インクリメンタル`didChange`同期、Ractorプールディスパッチ、codeAction / rename / semanticTokens / inlayHint）は需要駆動です。現在のキューはROADMAPの「Editor / IDE integration」セクションを参照してください。
+LSP v1 + v2はv0.1.6で着地し、`0.1.x`ラインで出荷されています。キュー待ちのフォローアップ（`textDocument/signatureHelp`、ハッシュキー補完、`textDocument/definition`、インクリメンタル`didChange`同期、Ractorプールディスパッチ、codeAction / rename / semanticTokens / inlayHint）は需要駆動です。現在のキューはROADMAPの「Editor / IDE integration」セクションを参照してください。
 
 キュー待ちの機能をリクエストするかLSPの問題を報告するには、次の情報を添えてGitHub issueを開いてください: エディタ + バージョン、Rigorバージョン（`rigor version`）、LSPログ（`--log=PATH`）、最小限の再現手順。

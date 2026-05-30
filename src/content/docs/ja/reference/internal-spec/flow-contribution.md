@@ -108,9 +108,9 @@ Rigor::FlowContribution::Provenance.new(
 
 `param: <name>`ディレクティブは意図的にバンドルに含まれません。これらはフローファクトではなく呼び出しのシグネチャ契約を絞り込むものであり、ADR-2 § "Flow Contribution Bundle"スロットのセマンティクスに合いません。パラメーター契約を扱う呼び出し元は引き続き`RbsExtended.read_param_type_overrides` / `RbsExtended.param_type_override_map`を使用してください。
 
-## 要素リストへの展開（延期）
+## 要素リストへの展開
 
-ADR-2では、各バンドルを`(target, flow edge, effect kind)`をキーとするタグ付き要素リストに展開するアナライザー内部処理について言及しています。その表現はマージポリシーが消費する実装サーフェスです。v0.0.9では意図的に提供されません。マージャーと要素リストフォームはv0.1.0で一緒に導入されます。プラグイン作者は要素リストフォームに依存MUST NOTしてはなりません。
+ADR-2では、各バンドルを`(target, flow edge, effect kind)`をキーとするタグ付き要素リストに展開するアナライザー内部処理について言及しています。その表現はマージポリシーが消費する実装サーフェスです。それは`FlowContribution#to_element_list`として**v0.1.0で出荷されました**（マージャーとともに。[flow-contribution-merger.md](flow-contribution-merger/)を参照）。要素リストフォームはアナライザー内部のサーフェスです — プラグイン作者は依然として`FlowContribution`バンドルを構築すべきであり、要素リストの形状に直接依存すべきではありません。
 
 ## 安定性
 

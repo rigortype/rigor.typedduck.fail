@@ -15,7 +15,13 @@ sidebar:
 
 ## ステータス
 
-**v0.1.12リリース済み（2026-05-28）**。v0.1.11以降の28スライス（slice）がカットに封入された — Mastodon / Redmine / GitLab FOSSに対するOSSリアリズムサイクルと、3つのG2フローフォールディングフォローアップすべて（`retry`エッジ、介在するメソッド呼び出し、書き込み前読み取りnil）。`bundle exec rake release`が実行済み;gemはRubyGems上にある。バージョンごとの詳細は`CHANGELOG.md` § `[0.1.12]`にある。
+**v0.1.15リリース済み（2026-05-29）**。プレビューラインはv0.1.12のOSSリアリズムカットの後、さらに3つのパッチカットで延長された:
+
+- **v0.1.13** — AI支援オンボーディング（`rigor skill`） + 単一ファイルスクリプト解析: `call.unresolved-toplevel`（[ADR-34](../adr/34-toplevel-unresolved-self-call-default/)） + `pre_eval:`プロジェクトモンキーパッチ事前評価メカニズム（[ADR-17](../adr/17-monkey-patch-pre-evaluation/)）。
+- **v0.1.14** — 機械可読インストールガイド（`docs/install.md`、[ADR-27](../adr/27-tool-distribution-model/)）;`rbs collection install`後の`RBS::DuplicatedDeclarationError`修正。
+- **v0.1.15** — リスコフのオーバーライド互換性診断ファミリー（`def.override-*`、[ADR-35](../adr/35-override-signature-compatibility/)、スライス1〜4）;`rigor plugin`ソースブラウジングコマンド;未インストールのプロジェクトモンキーパッチ / 生成DSLに対するより鋭い未定義メソッド報告。
+
+`bundle exec rake release`が各回で実行済み;gemはRubyGems上にある。バージョンごとの詳細は`CHANGELOG.md` § `[0.1.13]` / `[0.1.14]` / `[0.1.15]`にある。v0.1.12カット時点の累積サーベイ結果（v0.1.13〜v0.1.15は新しいフルサーベイを実行せずオンボーディングと`def.override-*`ファミリーを追加したため、依然これがヘッドラインのリアリズム数値。ただしADR-35スライス4はMastodonコーパスを再検証した）:
 
 v0.1.12カット時点の累積サーベイ結果:
 
