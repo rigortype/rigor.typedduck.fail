@@ -3,14 +3,14 @@ title: "ADR-29 — ブラウザプレイグラウンド"
 description: "rigortype/rigor docs/adr/29-browser-playground.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/29-browser-playground.md"
 sourcePath: "docs/adr/29-browser-playground.md"
-sourceSha: "e665eb2c8ad2fbc627f9c6c7277e77d0504a25ef4153ccdc791ffff2b647da7d"
-sourceCommit: "152a3193d3ab92a112fe02c05215c618afe663c4"
+sourceSha: "7a6042d24d9e2c200ab1c90db3c0e4b69f0a932676ebf2a979e78bab1436c860"
+sourceCommit: "db8d01bf94926a72e6a2aaf15639d1591b7e142e"
 translationStatus: "translated"
 sidebar:
   order: 4029
 ---
 
-ステータス: **提案済み、2026-05-23**。ブラウザベースのRigorプレイグラウンド——リアルタイム診断と`annotate`スタイルの型コメントを表示するテキストエディター——を構築し、どのようにホストすべきかという決定を記録する。2つのアプローチを評価した: 完全にブラウザ内のWASMランタイム（`ruby.wasm`）と、静的サイトをフロントエンドとするサーバーサイドAPI**。サーバーサイドAPI**が採用された短期パスである;具体的なゲート条件のセット（WD6）が、ブラウザ内WASM完全移行が実行可能になる時期を定義する。
+ステータス: **accepted、2026-05-23; v0.1.10〜0.1.11で実装**。ブラウザベースのRigorプレイグラウンド——リアルタイム診断と`annotate`スタイルの型コメントを表示するテキストエディター——を構築し、どのようにホストすべきかという決定を記録する。2つのアプローチを評価した: 完全にブラウザ内のWASMランタイム（`ruby.wasm`）と、静的サイトをフロントエンドとするサーバーサイドAPI**。サーバーサイドAPI**が採用された短期パスである;具体的なゲート条件のセット（WD6）が、ブラウザ内WASM完全移行が実行可能になる時期を定義する。サーバーサイドAPI + 静的フロントエンドは`plugins/rigor-playground/`プラグインと`rigor playground`コマンド（ローカルサービング、WD4 / ADR-32 WD10に従い`rigor-rbs-inline`を`require_magic_comment: false`でロード）として出荷された;それをCloudflare Pages / Fly.ioへデプロイするのはops作業であり、ruby.wasm移行はWD6にゲートされたままである。
 
 **修正2026-05-25**: WD4がデフォルトのプラグインセットを空から`rigor-rbs-inline`有効（[ADR-32](../32-rbs-inline-comment-ingestion/)のWD10に従い、`require_magic_comment: false`で）へ変更した。これにより、`# @rbs`形コメントを含む貼り付けスニペットが最初のリクエストからインラインRBSとして解析され、ユーザー側の設定が不要になる。
 

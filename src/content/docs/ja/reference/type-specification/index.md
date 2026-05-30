@@ -3,8 +3,8 @@ title: "Rigor型仕様"
 description: "rigortype/rigor docs/type-specification/README.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/type-specification/README.md"
 sourcePath: "docs/type-specification/README.md"
-sourceSha: "706de3f7f5dfd0734f39926413a4c07173121400d2fa8e8bc870f42f8a0927b8"
-sourceCommit: "9f40e22193647dc06e3ab70c5ba82768b0bfe738"
+sourceSha: "8c510b0c05349a820c016b57f3050980651c74cc3ac16869b1810374aa015154"
+sourceCommit: "db8d01bf94926a72e6a2aaf15639d1591b7e142e"
 translationStatus: "translated"
 sidebar:
   order: 2000
@@ -20,7 +20,7 @@ sidebar:
 
 設計の根拠、決定の履歴、却下/保留された選択肢、未解決事項は`docs/adr/1-types.md`（およびプラグイン拡張APIの決定は`docs/adr/2-*`、内部型表現の根拠は`docs/adr/3-*`）にあります。仕様とADRが解析器の挙動について矛盾しているように見えるときは、**仕様が拘束**し、ADRを修正すべきです。
 
-本仕様は長期的な型モデルを扱います。最終的な解析器の挙動について規範性を持ちますが、最初のユーザー向けリリース（v1）は意図的に範囲を絞ったスライス（slice）を出荷します。v1とv1.1を区別する節は、その差を本文中に明示します。
+本仕様は長期的な型モデルを扱います。最終的な解析器の挙動について規範性を持ちますが、最初のユーザー向けリリース（v1）は意図的に範囲を絞ったスライス（slice）を出荷します。出荷済みのサーフェスと、なお保留の作業を区別する節は、その差を本文中に明示します。
 
 ## 規約
 

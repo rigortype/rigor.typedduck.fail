@@ -3,8 +3,8 @@ title: "Rigor MCPサーバー — AIエージェント統合"
 description: "rigortype/rigor docs/manual/10-mcp-server.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/10-mcp-server.md"
 sourcePath: "docs/manual/10-mcp-server.md"
-sourceSha: "e735e28c9f33a60a87303d0f0984244614d1e58e8e674e6ae22c7d738943b31b"
-sourceCommit: "fa9e1de7a00dc2aff56f6efa3045b4607650a647"
+sourceSha: "1fb376295adc2360f8bdc05b1d39029ff04b667e99238af49159cd7e432c3ff4"
+sourceCommit: "db8d01bf94926a72e6a2aaf15639d1591b7e142e"
 translationStatus: "translated"
 sidebar:
   order: 9010
@@ -152,7 +152,7 @@ Clineパネル → MCPサーバー → サーバーを追加 → カスタムを
 
 ```
 →  {"jsonrpc":"2.0","id":0,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"my-agent","version":"1.0"}}}
-←  {"jsonrpc":"2.0","id":0,"result":{"protocolVersion":"2024-11-05","capabilities":{"tools":{"listChanged":false}},"serverInfo":{"name":"rigor","version":"0.1.9"}}}
+←  {"jsonrpc":"2.0","id":0,"result":{"protocolVersion":"2024-11-05","capabilities":{"tools":{"listChanged":false}},"serverInfo":{"name":"rigor","version":"0.1.15"}}}
 →  {"jsonrpc":"2.0","method":"notifications/initialized"}
 →  {"jsonrpc":"2.0","id":1,"method":"tools/list"}
 ←  {"jsonrpc":"2.0","id":1,"result":{"tools":[...]}}
@@ -274,7 +274,7 @@ Clineパネル → MCPサーバー → サーバーを追加 → カスタムを
 
 ```ruby
 module Rigor
-  VERSION = "0.1.9"  #=> dump_type: "0.1.9"
+  VERSION = "0.1.15"  #=> dump_type: "0.1.15"
 end
 ```
 

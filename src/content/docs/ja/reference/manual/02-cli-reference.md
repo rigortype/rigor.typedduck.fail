@@ -3,8 +3,8 @@ title: "CLIコマンドリファレンス"
 description: "rigortype/rigor docs/manual/02-cli-reference.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/02-cli-reference.md"
 sourcePath: "docs/manual/02-cli-reference.md"
-sourceSha: "fcdead70b8fef9166c3eedd3b8c7ddd0b9411bfc0ecbfeecf2c0ed5e3c74951f"
-sourceCommit: "f391fadebcb3c674444a346501d51664b046dec2"
+sourceSha: "30dc219f37481e66085b94e32618edc37fd3b2c646dda432fcff40a58e9bb1c7"
+sourceCommit: "db8d01bf94926a72e6a2aaf15639d1591b7e142e"
 translationStatus: "translated"
 sidebar:
   order: 9002

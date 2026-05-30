@@ -3,8 +3,8 @@ title: "頑健性原則（型のためのPostelの法則）"
 description: "rigortype/rigor docs/type-specification/robustness-principle.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/type-specification/robustness-principle.md"
 sourcePath: "docs/type-specification/robustness-principle.md"
-sourceSha: "85136c840ac250ac55638947361417c2bdcf575af48edd991d5a2c87808a0a85"
-sourceCommit: "9f40e22193647dc06e3ab70c5ba82768b0bfe738"
+sourceSha: "570fe76a2bb3e3ebbd5e585eaaec17e2d03589fe1bd3f8ece67908d9630aa35b"
+sourceCommit: "db8d01bf94926a72e6a2aaf15639d1591b7e142e"
 translationStatus: "translated"
 sidebar:
   order: 2050
@@ -125,6 +125,7 @@ render(nullable_field.to_s)
 - **ナローイング（[control-flow-analysis.md](../control-flow-analysis/)）**: 第2句の広げ方はナローイング層と意図的にペアになります。広いパラメーターはナローイングで回復された精密な本体を供給します — これら2つは別々ではなく一緒に設計されています。
 - **消去（[rbs-erasure.md](../rbs-erasure/)）**: 厳密な戻り値はエクスポート時により広いRBS形式に消去される場合があります（MAY）。第1句は*内部的に*厳密なキャリアを生成します;消去はエクスポートルールが要求するものを提示します。`rigor type-of`によるユーザーのビューは厳密な形式を示します。
 - **推論バジェット（[inference-budgets.md](../inference-budgets/)）**: 第1句はエンジンの残りと同じバジェットで制限されます。無限計算を必要とする厳密な戻り値はバジェットに譲歩しなければなりません（MUST）;原則は無制限の推論を認可しません。
+- **オーバーライドシグネチャチェック（[ADR-35](../../adr/35-override-signature-compatibility/)、v0.1.15で出荷）**: この原則が*推論された*シグネチャを置換可能性へ偏らせるのに対し、`def.override-*`ルールファミリーはプロジェクト定義の階層をまたいで*著作された*ものを検証します — `def.override-return-widened`は第1句の戻り値共変性の対応物、`def.override-param-narrowed`は第2句のパラメーター反変性の対応物です。これらのルールはオーバーライドと影にされた祖先の両方が著者提供のシグネチャを持つときにのみ発火し（どちらかの側が推論のみなら沈黙を保つので、原則の著作上の選択そのものが決してフラグされることはありません）、重大度は`severity_profile:`を通じてマップされます。
 
 ## 仕様レベルのまとめ
 

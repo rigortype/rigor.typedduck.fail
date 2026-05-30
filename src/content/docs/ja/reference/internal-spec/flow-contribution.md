@@ -3,8 +3,8 @@ title: "Flow Contribution Bundle — `Rigor::FlowContribution`"
 description: "Imported from rigortype/rigor docs/internal-spec/flow-contribution.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/flow-contribution.md"
 sourcePath: "docs/internal-spec/flow-contribution.md"
-sourceSha: "58cb27213f942ae171f157c291094d33b1180dfd4f06d22d6ba99aefb7530b97"
-sourceCommit: "9f40e22193647dc06e3ab70c5ba82768b0bfe738"
+sourceSha: "7355abd3cedadd1a8a7191190ed133f1b8943bc2935153628379400a70bb3290"
+sourceCommit: "db8d01bf94926a72e6a2aaf15639d1591b7e142e"
 translationStatus: "translated"
 sidebar:
   order: 3050

@@ -3,8 +3,8 @@ title: "Rigor拡張"
 description: "rigortype/rigor docs/type-specification/rigor-extensions.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/type-specification/rigor-extensions.md"
 sourcePath: "docs/type-specification/rigor-extensions.md"
-sourceSha: "834d6737b6e22ed21a9c2b028e75b065d4a7662a3ac628f693665eba2ee417a2"
-sourceCommit: "9f40e22193647dc06e3ab70c5ba82768b0bfe738"
+sourceSha: "ec912f5361c46e4a09cf6a9f415c43b253f979f3776049bd352acae77fa4d3a7"
+sourceCommit: "db8d01bf94926a72e6a2aaf15639d1591b7e142e"
 translationStatus: "translated"
 sidebar:
   order: 2050
@@ -32,6 +32,7 @@ RigorはRBSが直接表現できない型を推論できます（MAY）。これ
 | 条件型 | ライブラリシグネチャに必要なとき型レベルの分岐をモデル化 | 保守的なユニオンまたは境界 |
 | インデックスアクセス型 | メンバー、タプル、レコード、またはシェイプコンポーネントの型を投影 | 表現可能な場合は投影されたRBS型、そうでなければ保守的なベース |
 | テンプレートリテラル的な文字列リファインメント | フォーマットされた文字列ファミリーを追跡 | `String` |
+| 高階型適用、例えば`App[json::value, K]` | 登録された型コンストラクタを引数に脱関数化適用し、シグネチャ内の型レベル計算に用いる（ADR-20）。`.rbs`では`%a{rigor:v1:hkt_register}` / `%a{rigor:v1:hkt_define}`ディレクティブで著作する — [rbs-extended.md](../rbs-extended/)を参照。 | 定義時に解決された境界型、そうでなければ`untyped` |
 
 ## 著作規則
 

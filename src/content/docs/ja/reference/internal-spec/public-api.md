@@ -3,8 +3,8 @@ title: "Public API Stability Boundary"
 description: "Imported from rigortype/rigor docs/internal-spec/public-api.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/public-api.md"
 sourcePath: "docs/internal-spec/public-api.md"
-sourceSha: "9b8ac57d18f2752f2e1f2e91d81d89d8b096fcf02e92a3d54f054a70d07742b1"
-sourceCommit: "9f40e22193647dc06e3ab70c5ba82768b0bfe738"
+sourceSha: "48fc87e3c67671e4968734caed471da550b9442134fb49a13b4e96fcb68d54e3"
+sourceCommit: "db8d01bf94926a72e6a2aaf15639d1591b7e142e"
 translationStatus: "translated"
 sidebar:
   order: 3050

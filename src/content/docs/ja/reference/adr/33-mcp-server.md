@@ -3,14 +3,14 @@ title: "ADR-33 — MCPサーバーパッケージング"
 description: "rigortype/rigor docs/adr/33-mcp-server.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/33-mcp-server.md"
 sourcePath: "docs/adr/33-mcp-server.md"
-sourceSha: "b7a909aec89f788eca2e3b6ca8e511bb89dbe5b8aa40120b9a432705e50aaf5f"
-sourceCommit: "fa9e1de7a00dc2aff56f6efa3045b4607650a647"
+sourceSha: "de314abc08021e4a2f147ea09aaefbbd3f3d61695d416d4ddda22e95b253dffb"
+sourceCommit: "db8d01bf94926a72e6a2aaf15639d1591b7e142e"
 translationStatus: "translated"
 sidebar:
   order: 4033
 ---
 
-**ステータス:**提案済み（2026-05-27）
+**ステータス:**Accepted（2026-05-27）; v0.1.10で実装。`rigor mcp --transport stdio`サブコマンドが、7つのツール — `rigor_check`、`rigor_type_of`、`rigor_triage`、`rigor_annotate`、`rigor_sig_gen`、`rigor_explain`、`rigor_coverage` — を公開する純Ruby製のJSON-RPC 2.0 MCPサーバーを出荷する。HTTPトランスポートとセッションごとの環境キャッシュは保留のままである。
 
 ## コンテキスト
 

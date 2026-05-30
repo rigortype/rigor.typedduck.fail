@@ -3,14 +3,14 @@ title: "ADR-27 — ツール配布・インストールモデル"
 description: "rigortype/rigor docs/adr/27-tool-distribution-model.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/27-tool-distribution-model.md"
 sourcePath: "docs/adr/27-tool-distribution-model.md"
-sourceSha: "818aecd33a13f930cc144e1fec51e07bb6b8c094a8286d60d17895c380b8515e"
-sourceCommit: "f391fadebcb3c674444a346501d51664b046dec2"
+sourceSha: "e1f9efd11266d403583f893dc0baa322435019bad2012d0f15af601ecb783b35"
+sourceCommit: "db8d01bf94926a72e6a2aaf15639d1591b7e142e"
 translationStatus: "translated"
 sidebar:
   order: 4027
 ---
 
-ステータス: **提案済み、2026-05-22**。エンドユーザーへのRigorの配布・インストール方法を記録する。中心的な原則 — **RigorをターゲットプロジェクトのGemfileに追加しない** — は批准済みであり、それが依拠する最新Ruby専用の立場（WD7）も同様。チャンネル推奨事項は以下のとおり：ランタイムバージョンマネージャ（`mise` / `asdf`）が最前線のパス、コピー＆ペーストできるスタンドアロンCIワークフローテンプレートがCIパス（NixはヘッドラインではなくAlternative）、コンテナイメージと自己完結型シングルバイナリが二次的・将来的なオプション。実装はキューに積まれており、このADRではスライス（slice）は予定されていない。
+ステータス: **accepted、2026-05-22;部分実装**。エンドユーザーへのRigorの配布・インストール方法を記録する。中心的な原則 — **RigorをターゲットプロジェクトのGemfileに追加しない** — は批准済みであり、それが依拠する最新Ruby専用の立場（WD7）も同様。チャンネル推奨事項は以下のとおり：ランタイムバージョンマネージャ（`mise` / `asdf`）が最前線のパス、コピー＆ペーストできるスタンドアロンCIワークフローテンプレートがCIパス（NixはヘッドラインではなくAlternative）、コンテナイメージと自己完結型シングルバイナリが二次的・将来的なオプション**。ここまでに出荷:** Nix flakeの`packages` / `apps`出力、公開されたコンテナイメージ（`Dockerfile` + `.github/workflows/container.yml`）、そして`Gemfile`エントリを非推奨にする機械可読インストールガイド（`docs/install.md`、v0.1.14）**。なお保留:**コピー＆ペーストできるスタンドアロンCIワークフローテンプレートと、自己完結型シングルバイナリ。
 
 ## コンテキスト
 

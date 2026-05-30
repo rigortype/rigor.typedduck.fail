@@ -3,8 +3,8 @@ title: "ADR-2: 拡張API戦略"
 description: "rigortype/rigor docs/adr/2-extension-api.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/2-extension-api.md"
 sourcePath: "docs/adr/2-extension-api.md"
-sourceSha: "c1a5d3809a2e35e9422da3b1b984660f87c5d9f39a3aca43ec114fab4c07cad3"
-sourceCommit: "035915291e331f3bcd5ce804a1e30dc284ffbd48"
+sourceSha: "162817bb30184b6aa18e7fcb75ee74efed8c8fe1e4a0dffbf4c4fd58ea874b6c"
+sourceCommit: "db8d01bf94926a72e6a2aaf15639d1591b7e142e"
 translationStatus: "translated"
 sidebar:
   order: 4002
@@ -12,7 +12,7 @@ sidebar:
 
 ## ステータス
 
-ドラフト。進行中のv0.1.0実装スライス（slice）（4 — 内部ナローイング（narrowing）を通じたFlowContributionの配線、5 — プラグイン診断エミッションプロトコル、6 — プラグイン側キャッシュプロデューサー）の作業決定は[ADR-7](../7-v0.1.0-slice-decisions/)に固定されています。
+Accepted;実装・出荷済み。v0.1.0実装スライス（slice）（4 — 内部ナローイング（narrowing）を通じたFlowContributionの配線、5 — プラグイン診断エミッションプロトコル、6 — プラグイン側キャッシュプロデューサー、作業決定は[ADR-7](../7-v0.1.0-slice-decisions/)に固定）はすべてランディングした。拡張APIはその後、[ADR-9](../9-cross-plugin-api/)（クロスプラグインファクト）、[ADR-13](../13-typenode-resolver-plugin/)（TypeNodeリゾルバ）、[ADR-16](../16-macro-expansion/)（マクロ基板）、[ADR-25](../25-plugin-contributed-rbs/)（`signature_paths:`）、[ADR-26](../26-activerecord-relation-typing/)（`open_receivers:`）、[ADR-28](../28-path-scoped-protocol-contracts/)（`protocol_contracts:`）、[ADR-32](../32-rbs-inline-comment-ingestion/)（`source_rbs_synthesizer:`）で記録されたサーフェスを成長させてきた。*何を*解析器がするかについては型モデルと仕様コーパスが権威を持ち続ける;本ADRは*なぜ*を記録する。
 
 ## コンテキスト
 

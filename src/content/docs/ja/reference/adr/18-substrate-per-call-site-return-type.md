@@ -3,14 +3,14 @@ title: "ADR-18 — 基板の呼び出しサイトごとの戻り型DSL"
 description: "rigortype/rigor docs/adr/18-substrate-per-call-site-return-type.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/18-substrate-per-call-site-return-type.md"
 sourcePath: "docs/adr/18-substrate-per-call-site-return-type.md"
-sourceSha: "1f92f698a13a6cdc8c221f6dd2dfc31c30141894de38d5df99f57de8941e0bcf"
-sourceCommit: "dac915a9ee49b89e89774c34c518e8501275f6a3"
+sourceSha: "fcf25d7fe6387eb42321a6945641111f0ec8446eccaafd23c11f2a780f64c7e3"
+sourceCommit: "db8d01bf94926a72e6a2aaf15639d1591b7e142e"
 translationStatus: "translated"
 sidebar:
   order: 4018
 ---
 
-Status: **proposed、2026-05-16**。[ADR-16](../16-macro-expansion/)のマクロ展開基板を改訂し、合成されるメソッドにおいて呼び出しサイトごとの戻り型をサポートします。v0.1.6で着地した`rigor-dry-types`（[ADR-12](../12-dry-rb-packaging/)）の作業とADR-9の`:dry_type_aliases`ファクト（fact）の上に構築されます。自然な消費者（`rigor-dry-struct`の精度向上）はこの改訂なしには着地できません。
+Status: **accepted、2026-05-16; v0.1.6で実装**。[ADR-16](../16-macro-expansion/)のマクロ展開基板を改訂し、合成されるメソッドにおいて呼び出しサイトごとの戻り型をサポートする。`Plugin::Macro::HeredocTemplate::Emit`行の`returns_from_arg:` / `lookup_via:` DSLが出荷され、その最初の動作する消費者 — `rigor-dry-struct`が`rigor-dry-types`（[ADR-12](../12-dry-rb-packaging/)）の公開するADR-9の`:dry_type_aliases`ファクト（fact）を通じて`attribute :city, Types::String`を解決すること — が同じリリースでエンドツーエンドに着地した（ディスパッチャーで`Nominal[String]`、ファクトが不在または呼び出し形が解決不能なときは静かに`Dynamic[Top]`へフォールバック）。
 
 ## コンテキスト
 

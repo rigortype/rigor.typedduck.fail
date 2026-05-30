@@ -3,8 +3,8 @@ title: "Plugin Trust and I/O Policy (slice 2)"
 description: "Imported from rigortype/rigor docs/internal-spec/plugin-trust.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/plugin-trust.md"
 sourcePath: "docs/internal-spec/plugin-trust.md"
-sourceSha: "e27edd049eb44db71bd103023279d70edb1e0322072ed661ef148f781b6d0a95"
-sourceCommit: "9f40e22193647dc06e3ab70c5ba82768b0bfe738"
+sourceSha: "015d3d1c4d18bce8ebd3c81f11a477e2381d8796337296288c8be1ced4b30abf"
+sourceCommit: "db8d01bf94926a72e6a2aaf15639d1591b7e142e"
 translationStatus: "translated"
 sidebar:
   order: 3050

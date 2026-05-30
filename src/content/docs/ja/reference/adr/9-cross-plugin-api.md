@@ -3,14 +3,14 @@ title: "ADR-9 — クロスプラグインAPI"
 description: "rigortype/rigor docs/adr/9-cross-plugin-api.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/9-cross-plugin-api.md"
 sourcePath: "docs/adr/9-cross-plugin-api.md"
-sourceSha: "e1e0ca181b4bded70ec696c11ff57b028366523ce499eb6b4d2ed45da72de3b8"
-sourceCommit: "9f40e22193647dc06e3ab70c5ba82768b0bfe738"
+sourceSha: "eebaf0329bf99b0bdd97311df2725c0c31ea583d0ced98e1b52d779c95a7e36b"
+sourceCommit: "db8d01bf94926a72e6a2aaf15639d1591b7e142e"
 translationStatus: "translated"
 sidebar:
   order: 4009
 ---
 
-ステータス: **提案中、2026-05-08**。実装はv0.1.xのためにキューイング済み。このADRは設計を固定し、Tier 1プラグイン作成がそのランドを待たずに進められるようにする。
+ステータス: **accepted、2026-05-08; v0.1.1で実装**。v0.1.1のトラック2が`Plugin::FactStore`、`Plugin::Base#prepare(services)`、`manifest(produces:/consumes:)`、トポロジカルソートされたプラグインロード、`#flow_contribution_for`戻り値型ティア（スライス1 → 5 + スライス7）を出荷した。クロスプラグインファクト（fact）チャネル（`:model_index`、`:factory_index`、`:dry_type_aliases`、`:graphql_type_table`、……）は、いまやバンドルされたプラグイン全体で活発に使われている。
 
 ## コンテキスト
 

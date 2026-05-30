@@ -3,14 +3,14 @@ title: "ADR-31 — 貢献およびサプライチェーンポリシー"
 description: "Imported from rigortype/rigor docs/adr/31-contribution-and-supply-chain-policy.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/31-contribution-and-supply-chain-policy.md"
 sourcePath: "docs/adr/31-contribution-and-supply-chain-policy.md"
-sourceSha: "4532ec4e98765a6b73506fc1368a83adde157ce786f4a5faf52208f0ca8ebaa4"
-sourceCommit: "4f9b2b85a1864b48cf66a620859e5e403506cf8e"
+sourceSha: "ee1603d2679d908c9fa53657662417ae9245cf1bbad324aed93790a459280ec4"
+sourceCommit: "db8d01bf94926a72e6a2aaf15639d1591b7e142e"
 translationStatus: "translated"
 sidebar:
   order: 4031
 ---
 
-Status: **proposed, 2026-05-25**。プロジェクト全体の貢献ポリシーを**変更の大きさ**で整理して記録する:
+Status: **accepted, 2026-05-25;発効中**。このポリシーは[`CONTRIBUTING.md`](https://github.com/rigortype/rigor/blob/master/CONTRIBUTING.md)、`AGENTS.md`、および`rigor-plugin-author` / `rigor-ffi-plugin-author` SKILL（Phase 0.5ルーティング）に反映されている。プロジェクト全体の貢献ポリシーを**変更の大きさ**で整理して記録する:
 
 - **リポジトリ内のあらゆる場所での軽微で焦点の絞られた変更** — コード、ドキュメント、テスト、フィクスチャ、ツーリング — は通常レビューでの直接プルリクエストとして歓迎される。
 - **広範な変更** — 再アーキテクチャ、コードスタイル一括変更、大規模リファクター、新規アナライザー機能、新規バンドルプラグイン — は**issue先行**の提案ルートを経る。受け入れられた場合、Rigorチームが実装し、提案者は実装コミットの`Co-authored-by:`でクレジットされる。

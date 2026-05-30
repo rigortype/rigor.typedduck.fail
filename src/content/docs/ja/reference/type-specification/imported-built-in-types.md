@@ -3,8 +3,8 @@ title: "インポートされた組み込み型"
 description: "rigortype/rigor docs/type-specification/imported-built-in-types.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/type-specification/imported-built-in-types.md"
 sourcePath: "docs/type-specification/imported-built-in-types.md"
-sourceSha: "ecda1996b03c7477e521788a0070b95191dee48e88d35f329d6ef769e9b21b42"
-sourceCommit: "a7f0405346ea5833580c50f3610ccb0b97fea2d8"
+sourceSha: "88a8a265f1e175d52a54d0cd33db6a6655f30920576a91d140c7a876ea620ec8"
+sourceCommit: "db8d01bf94926a72e6a2aaf15639d1591b7e142e"
 translationStatus: "translated"
 sidebar:
   order: 2050
@@ -35,6 +35,8 @@ Rigorは明確なRubyの意味を持つ場合にのみ、PHPStan、TypeScript、
 | `literal-string` | ソースリテラルとリテラルのみの合成から来ることが既知の文字列。v0.0.9はすべてのオペランド自体がリテラルを持つ`String#+` / `String#*`による文字列補間`"#{...}"`を通じて、また`String#<<` / `String#concat`（その戻り値はレシーバーであるため、リテラルを持つレシーバーとリテラルを持つ引数はliteral-stringのままです）を通じてキャリア（carrier）を追跡します。 | `String` |
 | `numeric-string` | RigorのRuby数値文字列述語が受け付けるString | `String` |
 | `decimal-int-string` | RigorのRuby10進整数文字列述語が受け付けるString | `String` |
+| `octal-int-string` | RigorのRuby8進整数文字列述語が受け付けるString | `String` |
+| `hex-int-string` | RigorのRuby16進整数文字列述語が受け付けるString | `String` |
 | `lowercase-string` | 小文字正規化と等しいString | `String` |
 | `non-lowercase-string` | 小文字正規化と等しくないString（つまり少なくとも1つの非小文字文字を含む）。`~T`の下での`lowercase-string`のペア補完 | `String` |
 | `uppercase-string` | 大文字正規化と等しいString | `String` |

@@ -3,8 +3,8 @@ title: "オプトイン依存関係ソース推論"
 description: "rigortype/rigor docs/internal-spec/dependency-source-inference.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/dependency-source-inference.md"
 sourcePath: "docs/internal-spec/dependency-source-inference.md"
-sourceSha: "9407a177787175b265c6d8a2d78677046e6e43b0bf5db2e8413b499ca9e4f990"
-sourceCommit: "035915291e331f3bcd5ce804a1e30dc284ffbd48"
+sourceSha: "6d85bf33f81db9b180c00c54907035c2e8a905b443a0df10b9c1b85de3dded17"
+sourceCommit: "db8d01bf94926a72e6a2aaf15639d1591b7e142e"
 translationStatus: "translated"
 sidebar:
   order: 3050

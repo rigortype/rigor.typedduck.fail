@@ -3,8 +3,8 @@ title: "ADR-4: 型推論エンジンと`Scope#type_of`クエリ"
 description: "rigortype/rigor docs/adr/4-type-inference-engine.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/4-type-inference-engine.md"
 sourcePath: "docs/adr/4-type-inference-engine.md"
-sourceSha: "8bc55a88130151445e3004a2ad7aa2ccb1664fef0801b83b3aee5fbb7cbcaef7"
-sourceCommit: "035915291e331f3bcd5ce804a1e30dc284ffbd48"
+sourceSha: "d99c57c6847bd782a8ea6a6dbed4d7a504a61ad8f8cc1f4b9db5af22c7ce8f67"
+sourceCommit: "db8d01bf94926a72e6a2aaf15639d1591b7e142e"
 translationStatus: "translated"
 sidebar:
   order: 4004
@@ -12,7 +12,7 @@ sidebar:
 
 ## ステータス
 
-ドラフト。
+Accepted;実装・出荷済み。推論エンジン（`Scope`、ファクトストア、副作用効果モデル、ケイパビリティロール推論、正規化、RBS消去ルーティング）はライブである;[`docs/internal-spec/inference-engine.md`](../../internal-spec/inference-engine/)契約（contract）がその規範的サーフェスである。
 
 ADR-4は、静的型モデル（ADR-1・ADR-3）を動作する推論エンジンに変える設計決定を記録します。中心となる具体的な成果物は、Prism ASTノードと不変な`Rigor::Scope`を取り、その式がそのプログラム位置で生成すると証明された`Rigor::Type`を返す解析器クエリです。これはPHPStanの`$scope->getType($node)`に対するRuby/Rigorの対応物であり、すべてのCLI規則・プラグイン・リファクタツールが最終的に呼び出すクエリです。
 

@@ -3,8 +3,8 @@ title: "ADR-1: 型モデルとRBSスーパーセット戦略"
 description: "rigortype/rigor docs/adr/1-types.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/1-types.md"
 sourcePath: "docs/adr/1-types.md"
-sourceSha: "968b4a7d0be1a71a924fe4387339784ee0e0306df9716b65ea2ac6dbab4fcc72"
-sourceCommit: "dd1240d88f635b570b72ca36d1fccddc8df8ccd1"
+sourceSha: "5a363f1255fe5c7e5ed7a2cceaf96093e26eaffe96ab2651fd0ff5d490fae57d"
+sourceCommit: "db8d01bf94926a72e6a2aaf15639d1591b7e142e"
 translationStatus: "translated"
 sidebar:
   order: 4001
@@ -12,7 +12,7 @@ sidebar:
 
 ## ステータス
 
-ドラフト。
+Accepted;実装・出荷済み。型モデルは解析器全体でライブである。*何を*解析器がするかについては`docs/type-specification/`と`docs/types.md`が、*なぜ*そうするかについては本ADRが権威を持つ。
 
 ADR-1は型モデルの設計決定とその根拠を記録します。コンパニオンドキュメント`docs/types.md`は型仕様です。すなわち正規化・ナローイング（narrowing）・消去・シグネチャ処理・診断サーフェス（surface）のレベルで解析器がどう振る舞うかを定義します。2つのドキュメントが同じ領域を議論するとき:
 
