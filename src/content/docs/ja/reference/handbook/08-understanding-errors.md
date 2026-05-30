@@ -3,8 +3,8 @@ title: "エラーの読み方"
 description: "rigortype/rigor docs/handbook/08-understanding-errors.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/08-understanding-errors.md"
 sourcePath: "docs/handbook/08-understanding-errors.md"
-sourceSha: "60365fc9caa4e27d685f6aed284369003a8076a4d4fd1a92f5fd7def580a1588"
-sourceCommit: "1d0381f3ade3f4b208d95b9d649f1e80c381b775"
+sourceSha: "265e48def588e0ee04610571e20e493074391c6e0e811ca735366d81ba2d0f9e"
+sourceCommit: "db8d01bf94926a72e6a2aaf15639d1591b7e142e"
 translationStatus: "translated"
 sidebar:
   order: 1008
@@ -47,6 +47,7 @@ lib/user.rb:42:7: error: undefined method `upcas' for "alice" [call.undefined-me
 | `call.wrong-arity` | 位置引数の数がどのオーバーロードのアリティも満たさない。 | error |
 | `call.argument-type-mismatch` | 引数の型がパラメーター契約（contract）（RBSまたは`RBS::Extended` `param:`）を証明可能に満たさない。 | error |
 | `call.possible-nil-receiver` | レシーバー型が`T | nil`で、メソッドが`NilClass`で定義されていない。 | warning |
+| `call.unresolved-toplevel` | トップレベル（どの`def` / `class` / `module`の外側でもない）の暗黙的self呼び出しが、同一ファイルの`def`、`pre_eval:`モンキーパッチ、`Kernel` / `Object`のメソッドのいずれにも解決しない — スタンドアロンスクリプトのタイポを顕在化させる。 | `balanced`でwarning、`strict`でerror、`lenient`で抑制 |
 
 `call.*`ルールは実際のコードで最も量の多い診断です。また最も洗練されています — それぞれがRigorが根底にある事実を証明できる場合にのみ発火します。
 
@@ -70,6 +71,11 @@ lib/user.rb:42:7: error: undefined method `upcas' for "alice" [call.undefined-me
 | `def.return-type-mismatch` | 本体の最後の式の推論された型がRBS宣言の戻り値型を満たせない。`%a{rigor:v1:return: <refinement>}`オーバーライドを尊重。 | `balanced`プロファイルでwarning、`strict`でerror |
 | `def.ivar-write-mismatch` | 同じクラスボディ内で後の`@var = ...`書き込みの具体クラスが最初の書き込みのクラスと異なる（NilClass-to-clearはアローリスト）。 | error |
 | `def.method-visibility-mismatch` | 明示的レシーバーのコールが、周囲のクラスボディで`：private`として発見されたメソッドを持つ`Nominal[X]`をターゲットにする。 | error |
+| `def.override-visibility-reduced` | オーバーライドが、プロジェクト定義の祖先から継承した可視性を縮小する（public → protected/private、protected → private）。上位型を保持する呼び出し元を壊す。 | `balanced`でwarning、`strict`でerror、`lenient`で抑制 |
+| `def.override-return-widened` | オーバーライドの宣言された戻り値が、継承した戻り値を広げる（共変性）。両側が著作されたRBSシグネチャを持つ場合の、証明可能な違反でのみ発火する。 | `balanced`でwarning、`strict`でerror、`lenient`で抑制 |
+| `def.override-param-narrowed` | オーバーライドが、継承したパラメーター型を狭める（反変性）。一致する位置パラメーターどうしを比較する。両側に著作された単一オーバーロードのRBSシグネチャが必要。 | `balanced`でwarning、`strict`でerror、`lenient`で抑制 |
+
+3つの`def.override-*`ルールは、プロジェクト定義のクラス/モジュール階層（上位クラスチェーン + include/prependされたモジュール、クロスファイルで解決）をまたいで適用されたリスコフの置換原則のシグネチャ規則です。これらは[付録: リスコフの置換](appendix-liskov/)の概念的な主題です。
 
 ### `assert.*` — ランタイムアサーションルール
 

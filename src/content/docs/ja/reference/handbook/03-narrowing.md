@@ -3,8 +3,8 @@ title: "ナローイング"
 description: "rigortype/rigor docs/handbook/03-narrowing.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/03-narrowing.md"
 sourcePath: "docs/handbook/03-narrowing.md"
-sourceSha: "3e1e3819482c7f6b589b0d10c3e42ddcee3c81c4eb0ac7f1f454484edb8bc8f1"
-sourceCommit: "035915291e331f3bcd5ce804a1e30dc284ffbd48"
+sourceSha: "d2f24053f636f71829268f5623e1d8b45e194ab82817d6f2fc702acc118a4b17"
+sourceCommit: "db8d01bf94926a72e6a2aaf15639d1591b7e142e"
 translationStatus: "translated"
 sidebar:
   order: 1003
@@ -191,7 +191,7 @@ def parse_date(s)
 end
 ```
 
-（将来のリリースでは、真値エッジがさらに特定のリファインメントキャリアにナローイングされる予定です — `\d{4}`は`decimal-int-string`を生成するはずです。[`docs/ROADMAP.md`](../../roadmap/) § "v0.1.1 — Planned"でトラッキングされています。）
+（真値エッジをさらに特定のリファインメントキャリアにナローイングすること — `\d{4}`なら`decimal-int-string`を生成する — は、正規表現パターン → リファインメント名の認識器のトラックにおける需要駆動のフォローアップです。[`docs/ROADMAP.md`](../../roadmap/)を参照。）
 
 ## `!=`と`unless`
 

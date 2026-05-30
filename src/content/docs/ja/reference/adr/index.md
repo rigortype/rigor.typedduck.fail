@@ -3,8 +3,8 @@ title: "アーキテクチャ決定記録"
 description: "rigortype/rigor docs/adr/README.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/README.md"
 sourcePath: "docs/adr/README.md"
-sourceSha: "640030e2e5a891544b59094d4cae7e7f3c390bf8cf66d6575fb2e446408532c3"
-sourceCommit: "f05a17f2d493b5e0ae7f1066d9bcb7f90b04dc84"
+sourceSha: "2ba6b1caf3f243102ac4eef43569de82b589091fffe10a13a94d2fd24bf721cd"
+sourceCommit: "db8d01bf94926a72e6a2aaf15639d1591b7e142e"
 translationStatus: "translated"
 sidebar:
   order: 4000
@@ -17,22 +17,22 @@ sidebar:
 - **ADR-0**は基礎ドキュメントです — プロジェクトの中核的な原則とアーキテクチャを知るには、ここから始めてください。
 - **ADR-1**から**ADR-3**は型モデル、拡張API、型表現を定義します — アナライザーの概念的な中核です。
 - 番号の大きいADRは基礎の上に構築されており、必要に応じて読むことができます。
-- 各ADRには**Status**フィールドがあります：`Accepted`、`Draft`、`Superseded`のいずれかです。
+- 各ADRには**Status**フィールドがあります：`Accepted`、`Proposed`、`Superseded`のいずれかです。実装がまだ進行中のAcceptedなADRは、括弧書きの注記（例: *partially implemented*、*slice N deferred*）を持ちます。
 
 ## 索引
 
 | # | Title | Status |
 | --- | --- | --- |
 | ADR-0 | [Foundation and Core Architecture of Rigor](0-concept/) | Accepted |
-| ADR-1 | [Type Model and RBS Superset Strategy](1-types/) | Draft |
-| ADR-2 | [Extension API Strategy](2-extension-api/) | Draft |
-| ADR-3 | [Type Representation](3-type-representation/) | Draft |
-| ADR-4 | [Type Inference Engine](4-type-inference-engine/) | Draft |
-| ADR-5 | [Robustness Principle](5-robustness-principle/) | Draft |
+| ADR-1 | [Type Model and RBS Superset Strategy](1-types/) | Accepted |
+| ADR-2 | [Extension API Strategy](2-extension-api/) | Accepted |
+| ADR-3 | [Type Representation](3-type-representation/) | Accepted |
+| ADR-4 | [Type Inference Engine](4-type-inference-engine/) | Accepted |
+| ADR-5 | [Robustness Principle](5-robustness-principle/) | Accepted |
 | ADR-6 | [Cache Persistence Backend](6-cache-persistence-backend/) | Accepted |
 | ADR-7 | [v0.1.0 Slice Decisions](7-v0.1.0-slice-decisions/) | Accepted |
 | ADR-8 | [Steep-Inspired Improvements](8-steep-inspired-improvements/) | Accepted |
-| ADR-9 | [Cross-Plugin API](9-cross-plugin-api/) | Proposed |
+| ADR-9 | [Cross-Plugin API](9-cross-plugin-api/) | Accepted (implemented in v0.1.1) |
 | ADR-10 | [Dependency Source Inference](10-dependency-source-inference/) | Accepted |
 | ADR-11 | [Sorbet Input Adapter](11-sorbet-input-adapter/) | Accepted |
 | ADR-12 | [dry-rb Packaging](12-dry-rb-packaging/) | Accepted |
@@ -40,8 +40,8 @@ sidebar:
 | ADR-14 | [RBS Sig Generation](14-rbs-sig-generation/) | Accepted |
 | ADR-15 | [Ractor Concurrency](15-ractor-concurrency/) | Accepted (fork backend active; Ractor pool deferred) |
 | ADR-16 | [Macro Expansion](16-macro-expansion/) | Accepted |
-| ADR-17 | [Monkey Patch Pre-Evaluation](17-monkey-patch-pre-evaluation/) | Proposed |
-| ADR-18 | [Substrate Per-Call-Site Return Type](18-substrate-per-call-site-return-type/) | Proposed |
+| ADR-17 | [Monkey Patch Pre-Evaluation](17-monkey-patch-pre-evaluation/) | Accepted (implemented in v0.1.13) |
+| ADR-18 | [Substrate Per-Call-Site Return Type](18-substrate-per-call-site-return-type/) | Accepted (implemented in v0.1.6) |
 | ADR-19 | [Language Server Packaging](19-language-server-packaging/) | Accepted |
 | ADR-20 | [Lightweight HKT](20-lightweight-hkt/) | Accepted (partial implementation) |
 | ADR-21 | [Rubydex Evaluation](21-rubydex-evaluation/) | Proposed |
@@ -50,14 +50,14 @@ sidebar:
 | ADR-24 | [Self Method Call Resolution](24-self-method-call-resolution/) | Accepted (slice 4 gated) |
 | ADR-25 | [Plugin Contributed RBS](25-plugin-contributed-rbs/) | Accepted |
 | ADR-26 | [ActiveRecord Relation Typing](26-activerecord-relation-typing/) | Accepted |
-| ADR-27 | [Tool Distribution and Installation Model](27-tool-distribution-model/) | Proposed |
+| ADR-27 | [Tool Distribution and Installation Model](27-tool-distribution-model/) | Accepted (partially implemented; CI template + single binary deferred) |
 | ADR-28 | [Path-scoped Method-Protocol Contracts](28-path-scoped-protocol-contracts/) | Accepted |
-| ADR-29 | [Browser Playground](29-browser-playground/) | Proposed |
-| ADR-30 | [`rigor-ffi` Plugin Shape](30-rigor-ffi-plugin-shape/) | Proposed |
-| ADR-31 | [Contribution and Supply-chain Policy](31-contribution-and-supply-chain-policy/) | Proposed |
-| ADR-32 | [Inline-RBS Comment Ingestion](32-rbs-inline-comment-ingestion/) | Proposed |
-| ADR-33 | [MCP Server Packaging](33-mcp-server/) | Proposed |
-| ADR-34 | [Toplevel Unresolved Implicit-self Calls Warn by Default](34-toplevel-unresolved-self-call-default/) | Proposed |
+| ADR-29 | [Browser Playground](29-browser-playground/) | Accepted (implemented in v0.1.10–0.1.11; cloud deploy + ruby.wasm deferred) |
+| ADR-30 | [`rigor-ffi` Plugin Shape](30-rigor-ffi-plugin-shape/) | Proposed (not implemented) |
+| ADR-31 | [Contribution and Supply-chain Policy](31-contribution-and-supply-chain-policy/) | Accepted (in force) |
+| ADR-32 | [Inline-RBS Comment Ingestion](32-rbs-inline-comment-ingestion/) | Accepted (implemented in v0.1.10) |
+| ADR-33 | [MCP Server Packaging](33-mcp-server/) | Accepted (implemented in v0.1.10) |
+| ADR-34 | [Toplevel Unresolved Implicit-self Calls Warn by Default](34-toplevel-unresolved-self-call-default/) | Accepted (implemented in v0.1.13; Playground severity wiring deferred) |
 | ADR-35 | [Override Signature Compatibility (Liskov signature rule)](35-override-signature-compatibility/) | Accepted (slices 1–4 done; slice 5 deferred) |
 
 ## 新しいADRの追加

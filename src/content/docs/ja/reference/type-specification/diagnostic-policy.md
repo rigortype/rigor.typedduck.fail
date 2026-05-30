@@ -3,8 +3,8 @@ title: "診断ポリシー"
 description: "rigortype/rigor docs/type-specification/diagnostic-policy.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/type-specification/diagnostic-policy.md"
 sourcePath: "docs/type-specification/diagnostic-policy.md"
-sourceSha: "c6b21573826d8bd60b553ee06afe4552a4b4c426871d2c47d454f3fa2e421d9c"
-sourceCommit: "a7f0405346ea5833580c50f3610ccb0b97fea2d8"
+sourceSha: "890e5c5fe5004149b06e3d6271618fdc394a6bbbed611fd6167dd7e9e0808bb5"
+sourceCommit: "db8d01bf94926a72e6a2aaf15639d1591b7e142e"
 translationStatus: "translated"
 sidebar:
   order: 2050
@@ -59,26 +59,23 @@ Rigorは静かな拡幅よりも精密な診断を優先すべきです（SHOULD
 
 ## 抑制マーカー
 
-Rigorは既存のエコシステムと相互運用しながらクリーンなRigorネイティブ形式を維持できるように、3つのファミリーの抑制マーカーを認識しなければなりません（MUST）。
-
-### Steepスタイルのマーカー
-
-`# steep:ignore`のようなSteepスタイルのマーカーはデフォルトで認識されます。行スコープのSteepマーカーのみが受け付けられ、RigorはそれらをRigor自身の診断抑制にマッピングします。Steepのマーカー文法のいずれもRigor設定として再解釈されません。
-
-### SorbetおよびRuboCopスタイルのマーカー（オプトイン）
-
-Sorbetスタイルのファイルレベルマーカー（`# typed:`）とRuboCopスタイルの抑制コメント（`# rubocop:disable`、`# rubocop:enable`）はオプトインです。プロジェクトは`.rigor.yml`の`compat.sorbet_ignore`と`compat.rubocop_disable`スイッチで有効にします。Sorbetの型付きモードポリシーとRuboCopのリント対象はRigorの診断抑制と同じではないため、デフォルトでオンにすると懸念事項が混在します。
+Rigorは、特定の診断を1行単位またはファイル全体で抑制するための、ソース内コメント文法を認識します。以下のRigorネイティブのマーカーが出荷済みの表面です。他のエコシステムのマーカーの認識は、設計済みだが未出荷の互換性拡張です。
 
 ### Rigorネイティブのマーカー
 
 Rigorネイティブのマーカーは、PHPStanのアノテーションの感覚を踏まえながらアプリケーション側の型DSLを発明しないRubyコメント文法を使います。
 
-- **行形式**: `# rigor:ignore[<diagnostic.id>]`
-- **ブロック形式**: `# rigor:ignore-start[<diagnostic.id>]`と`# rigor:ignore-end`のペア
+- **行形式**: `# rigor:disable <rule1>, <rule2>` — その物理行で列挙したルールを抑制します。`# rigor:disable all`はその行のすべてのルールを抑制します。
+- **ファイルレベル形式**（v0.1.2）: `# rigor:disable-file <rule1>, <rule2>` — ファイル内のすべての行について列挙したルールを抑制します。`# rigor:disable-file all`はファイル内のすべての診断を抑制します。
 
-診断識別子リストは上記のプレフィックスを使います。
+ルールリストはカンマ区切りおよび/または空白区切りで、上記のルールIDプレフィックス（`call.undefined-method`）を使います。リテラルの`all`キーワードと短い旧来のエイリアスは、`rigor explain`が使うのと同じ展開を通じて解決されます。ブロックスコープ（`start` / `end`）の形式はありません。
+
+インラインマーカーは、設定された`severity_profile:`より前、そしてプロジェクトベースライン（ADR-22、最後の抑制レイヤー）より前に適用されます。運用ガイドはユーザーマニュアル § 「診断」を参照してください。
+
+### エコシステム互換マーカー（計画中、未実装）
+
+他のエコシステムのマーカーの認識 — Steepの行スコープの`# steep:ignore`、および`.rigor.yml`の`compat.*`スイッチによるオプトインのSorbet `# typed:` / RuboCop `# rubocop:disable` — は、設計済みだが未出荷の互換性表面です。それがランディングするまでは、上記のRigorネイティブのマーカーのみが尊重され、外来のマーカーは通常のコメントとして扱われます。
 
 ### 有効性規則
 
-- 未知の診断識別子を名前に挙げるマーカーはリファクタリング中に死んだ抑制が浮上するように警告を生成しなければなりません（MUST）。
-- 識別子リストなしのマーカーはデフォルトで診断でなければなりません（MUST）;ストリクトモードは完全に拒否しなければなりません（MUST）。
+- 未知または空のマーカーは、現在のところフラグされるのではなく通常のコメントとして扱われます（黙って無視されます）。死んだ（未知ルールの）抑制をリファクタリング中に浮上させるために警告することは、計画中の改良です。
