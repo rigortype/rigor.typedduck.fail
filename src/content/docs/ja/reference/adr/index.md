@@ -3,8 +3,8 @@ title: "アーキテクチャ決定記録"
 description: "rigortype/rigor docs/adr/README.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/README.md"
 sourcePath: "docs/adr/README.md"
-sourceSha: "2ba6b1caf3f243102ac4eef43569de82b589091fffe10a13a94d2fd24bf721cd"
-sourceCommit: "db8d01bf94926a72e6a2aaf15639d1591b7e142e"
+sourceSha: "27e8e7b6f589cfcc489f7c1ad57356a24dbb077634774eda3b34e58b97f2af51"
+sourceCommit: "dd55ede4decf11e2a57ac53e62d5732ad629a229"
 translationStatus: "translated"
 sidebar:
   order: 4000
@@ -59,6 +59,7 @@ sidebar:
 | ADR-33 | [MCP Server Packaging](33-mcp-server/) | Accepted (implemented in v0.1.10) |
 | ADR-34 | [Toplevel Unresolved Implicit-self Calls Warn by Default](34-toplevel-unresolved-self-call-default/) | Accepted (implemented in v0.1.13; Playground severity wiring deferred) |
 | ADR-35 | [Override Signature Compatibility (Liskov signature rule)](35-override-signature-compatibility/) | Accepted (slices 1–4 done; slice 5 deferred) |
+| ADR-36 | [Macro-substrate Nested-class Emission Tier (Mangrove `Enum`)](36-mangrove-enum-nested-class-emission/) | Accepted (Slice A implemented; `is_a?` exhaustiveness deferred) |
 
 ## 新しいADRの追加
 

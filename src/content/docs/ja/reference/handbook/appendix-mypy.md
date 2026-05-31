@@ -3,8 +3,8 @@ title: "付録 — mypy / Pyrightから来た場合"
 description: "Imported from rigortype/rigor docs/handbook/appendix-mypy.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/appendix-mypy.md"
 sourcePath: "docs/handbook/appendix-mypy.md"
-sourceSha: "c53baf580b35ca7fd5f4556ad253c629e0286a4c642179d7e366d4c8455d609e"
-sourceCommit: "035915291e331f3bcd5ce804a1e30dc284ffbd48"
+sourceSha: "81de00504d85f55d4f25b0f2d1e0dcf86936854074a3d3bdf0b8f9e58445f02f"
+sourceCommit: "dd55ede4decf11e2a57ac53e62d5732ad629a229"
 translationStatus: "translated"
 sidebar:
   order: 1050
@@ -277,4 +277,4 @@ def shout: (String s) -> non-empty-string
 - [第3章 — ナローイング](../03-narrowing/) — フローセンシティブなルール — mypyのナローイングの直接対応物。
 - [第7章 — RBSと`RBS::Extended`](../07-rbs-and-extended/) — ディレクティブ文法 — `predicate-if-true`はRigorの`TypeGuard`/`TypeIs`。
 
-他のツールと比較したい場合は、兄弟付録ページが[TypeScript](../appendix-typescript/)、[PHPStan](../appendix-phpstan/)、[Steep](../appendix-steep/)をカバーしている。
+他のツールと比較したい場合は、兄弟付録ページが[TypeScript](../appendix-typescript/)、[PHPStan](../appendix-phpstan/)、[Steep](../appendix-steep/)、[TypeProf](../appendix-typeprof/)をカバーしている。

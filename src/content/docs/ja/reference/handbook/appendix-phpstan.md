@@ -3,8 +3,8 @@ title: "付録 — PHPStanから来た場合"
 description: "Imported from rigortype/rigor docs/handbook/appendix-phpstan.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/appendix-phpstan.md"
 sourcePath: "docs/handbook/appendix-phpstan.md"
-sourceSha: "305d8e48f20258a893d2d9e07ca8911d3f3b3dbe609f27d742be6974f89417fa"
-sourceCommit: "2834288850767f48c48c99dca26f6aa339322754"
+sourceSha: "5865c7c522c714e2feec08468787f1c5e666e70be4aef26cc1fc38042f9ded99"
+sourceCommit: "dd55ede4decf11e2a57ac53e62d5732ad629a229"
 translationStatus: "translated"
 sidebar:
   order: 1050
@@ -234,4 +234,4 @@ end
 - [第8章 — エラーの読み方](../08-understanding-errors/) — ルールカタログ、深刻度プロファイル、ベースラインdiff — すべてのPHPStanオンボーディング対応物。
 - [第9章 — プラグイン](../09-plugins/) — Type-Specifying / Dynamic-Return対応物のために。
 
-他のツールと比較したい場合は、兄弟付録ページが[TypeScript](../appendix-typescript/)、[mypy](../appendix-mypy/)、[Steep](../appendix-steep/)をカバーしている。
+他のツールと比較したい場合は、兄弟付録ページが[TypeScript](../appendix-typescript/)、[mypy](../appendix-mypy/)、[Steep](../appendix-steep/)、[TypeProf](../appendix-typeprof/)をカバーしている。
