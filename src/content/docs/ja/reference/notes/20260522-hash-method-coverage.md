@@ -4,7 +4,7 @@ description: "Imported from rigortype/rigor docs/notes/20260522-hash-method-cove
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260522-hash-method-coverage.md"
 sourcePath: "docs/notes/20260522-hash-method-coverage.md"
 sourceSha: "e9eafee6dbec672f69184e83528f8068343ecff13d2d573b281b57013aa915e7"
-sourceCommit: "a5d648b126d5ed7b1e04a16a87927bca7883e069"
+sourceCommit: "d966039262656ed4e9d1900ebe003c332990a0ce"
 sourceDate: "2026-05-23T00:42:39+09:00"
 sourceLanguage: "ja"
 sidebar:
@@ -93,7 +93,7 @@ Tracks which methods produce precise `HashShape` results and what is still open.
 | `has_value?` | ✅ | 全値Constantのとき`Constant[true/false]`。低優先度。 |
 | `include?` | ✅ | `has_key?`の別名。`ShapeDispatch#hash_has_key?`に同一ハンドラ登録。 |
 | `inject` | 🚫 | Enumerable accumulator。 |
-| `invert` | ✅ | `hash_invert` — 全値がConstant[Symbol/String]のとき反転HashShapeを返す。 |
+| `invert` | ✅ | `hash_invert` — 全値がConstant[Symbol/String] のとき反転HashShapeを返す。 |
 | `keep_if` | 🚫 | 破壊的変更（`select!`相当）。 |
 | `key` | ✅ | 値 → キー逆引き。全値Constantで一意なら`Constant[k]`。低優先度。 |
 | `key?` | ✅ | `has_key?`と同義。高優先度。`ShapeDispatch#hash_has_key?`に同一ハンドラ登録。 |

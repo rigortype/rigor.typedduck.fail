@@ -4,7 +4,7 @@ description: "Imported from rigortype/rigor docs/notes/20260601-revenge-of-the-t
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260601-revenge-of-the-types-runtime-checker-survey.md"
 sourcePath: "docs/notes/20260601-revenge-of-the-types-runtime-checker-survey.md"
 sourceSha: "a9aeca94487d27fc96ccc09b315fc708006d5a78be979a432c4b3c8bbfc12aef"
-sourceCommit: "a5d648b126d5ed7b1e04a16a87927bca7883e069"
+sourceCommit: "d966039262656ed4e9d1900ebe003c332990a0ce"
 sourceDate: "2026-06-01T22:49:16+09:00"
 sourceLanguage: "ja"
 sidebar:
@@ -51,10 +51,10 @@ Rigor/PHPStan/TypeScript/Python型チェッカー)。
 
 | | ランタイムの設計 | チェッカーの答え |
 | --- | --- | --- |
-| Python | Py2はstr/unicodeを混同 → **Py3が`bytes`/`str`を完全分離**（ランタイム側の大手術） | mypy/pyrightが別型として追跡・narrowing**。最もきれいな「答え」**: 重い区別をランタイムが先にやり、チェッカーは強制するだけ |
+| Python | Py2はstr/unicodeを混同 → **Py3が`bytes`/`str`を完全分離**（ランタイム側の大手術） | mypy/pyrightが別型として追跡・narrowing。**最もきれいな「答え」**: 重い区別をランタイムが先にやり、チェッカーは強制するだけ |
 | JavaScript | 文字列はUTF-16テキスト、バイナリは`Uint8Array`/`Buffer`で別物 | TypeScriptが`string` vs `Uint8Array`を別型に。Py3に近い「区別済み」型 |
 | PHP | 文字列は**バイト列そのもの**。テキスト/バイナリの区別が言語に無い（`mb_*`で迂回） | PHPStanも区別を作れない。代わりに`non-empty-string`/`numeric-string`/`literal-string`の**直交する精緻化**へ逃げる（SQLi対策の`literal-string`が好例） |
-| Ruby | Stringは**バイト列+encoding属性**を1オブジェクトに同居。encodingは**型でなくランタイム属性**（`force_encoding`で動的に変化） | RBSにもRigorにもencodingの区別は無い**。Ruby/RigorはPy2モデルのまま**で核心例に答えられていない。Rigorの精緻化は`non-empty-string`/`positive-int`（PHPStanと語彙一致）だが、これは長さ/符号の軸でバイト/テキスト軸ではない |
+| Ruby | Stringは**バイト列+encoding属性**を1オブジェクトに同居。encodingは**型でなくランタイム属性**（`force_encoding`で動的に変化） | RBSにもRigorにもencodingの区別は無い。**Ruby/RigorはPy2モデルのまま**で核心例に答えられていない。Rigorの精緻化は`non-empty-string`/`positive-int`（PHPStanと語彙一致）だが、これは長さ/符号の軸でバイト/テキスト軸ではない |
 
 **示唆**: 核心への回答力は**Python3 ≈ JS/TS > PHP/PHPStan > Ruby/Rigor**。
 これはRigorの優劣ではなく**RubyのString設計(encodingをオブジェクト
@@ -151,7 +151,7 @@ ArminはJSの「奇抜でも明確に定義された意味論」を評価し、P
 ## 総括
 
 - **核心（str/bytes）に最もよく答えたのはPython3とJS/TS** — ただし
-  チェッカーの功績でなく**ランタイムが区別を作った**から**。Ruby/Rigorは
+  チェッカーの功績でなく**ランタイムが区別を作った**から。**Ruby/Rigorは
   ここが弱く、RubyのString設計が天井を決めている**。Rigorがencodingを
   型に持ち込まないのはfalse-positive規律との衝突回避という合理判断
   （記事の「後付けでは直らない」を裏から実証）。
@@ -165,6 +165,6 @@ ArminはJSの「奇抜でも明確に定義された意味論」を評価し、P
 - **Rigorの立ち位置**: 「型をソース外に置くTypeScript流のRuby版」で、
   Arminが後付け型に求めた条件（言語不変・推論優先・gradual）を最も素直に
   満たす一方、**看板問題（str/bytes）だけはRubyランタイムの制約で構造的に
-  解けていない**。誠実な要約は「**Arminの"やり方"の懸念には最もよく答え、
+  解けていない。**誠実な要約は「**Arminの"やり方"の懸念には最もよく答え、
   "その言語固有の型の作りの悪さ"の懸念には答えられない**(後者はランタイム
   設計に由来し、チェッカーの管轄外)」。
