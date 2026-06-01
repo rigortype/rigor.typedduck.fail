@@ -48,8 +48,19 @@ async function runCli() {
 
 function stripSpacesAroundJp(text) {
   let next = text;
+  // Protect the space of a Markdown unordered-list bullet marker. `*` is an
+  // ASCII_LEFT char (needed to collapse closing-emphasis↔Japanese, e.g.
+  // **太字**こと), but at line-start it is also a bullet marker, and a bullet
+  // whose first word is Japanese — `* 項目` — would otherwise collapse to
+  // `*項目`, which Markdown renders as a literal `*` instead of a list item.
+  // (`-`/`+` are already safe — they are not in ASCII_LEFT.) Mask the single
+  // marker space, run the strip, then restore it. Mirrors AGENTS.md rule 6.
+  // Matches only a lone `*` + one space (not `**bold` or `*italic*`).
+  const BULLET = '\0B\0';
+  next = next.replace(/^([ \t]*\*)[ ](?=\S)/gm, `$1${BULLET}`);
   next = next.replace(new RegExp(`(${JP})[ ]+(?=${ASCII_RIGHT})`, 'g'), '$1');
   next = next.replace(new RegExp(`(?<=${ASCII_LEFT})[ ]+(${JP})`, 'g'), '$1');
+  next = next.split(BULLET).join(' ');
   return next;
 }
 
