@@ -95,7 +95,7 @@ sidebar:
 
 - **redmine — 3319件の`undefined-method` / 1665件の`project-monkey-patch`**。ほぼすべてがRedmineによるコア / stdlib / モデルクラスの再オープンと、クロスファイルでのメソッド追加である: `User.current`、`Mailer.deliver_*`、`Setting.lost_password?`、`Token.find_token`、`User.find_by_mail`、……。これらはまさに*以前にチューニングされた*redmineの設定が`pre_eval:`に列挙していた箇所である（そしてベースラインへスナップショットしていた）。トリアージの`project-monkey-patch`ヒント（件数1665）がこれを正しくフラグしている。**これはコールドの数値であり、Phase 6aの`pre_eval:`がこれを潰す**。
 - **mastodon — 1894件の`info`、`error`はわずか3件**。大半は*情報的な*プラグイン認識である: `plugin.activerecord.model-call`（555）、`plugin.actionpack.filter-call`（527）、`plugin.rails-routes.helper`（350）、`plugin.rails-i18n.translation-call`（233）。これらはRigorがRailsのDSL呼び出しを*認識している*ものであって、バグをフラグしているのではない。**mastodonの実際のエラー件数は3件**（後述）。
-- **tdiary-core / pycall — `unresolved-toplevel`（234 / 10）**。 tdiaryのプラグインシステムは、プラグインファイルをまたいで消費されるヘルパー（`h`、`to_native`、`bot?`）をトップレベル / Kernelメソッドとして定義する。pycallの`iruby_helper`は`register_python_object_formatter`を呼ぶ。ADR-34の診断は設計どおりちょうど発火し、メッセージはすでに修正法（ADR-17に従う`pre_eval:`）を指し示している。すべて`balanced`の下で警告となる。
+- **tdiary-core / pycall — `unresolved-toplevel`（234 / 10）**。tdiaryのプラグインシステムは、プラグインファイルをまたいで消費されるヘルパー（`h`、`to_native`、`bot?`）をトップレベル / Kernelメソッドとして定義する。pycallの`iruby_helper`は`register_python_object_formatter`を呼ぶ。ADR-34の診断は設計どおりちょうど発火し、メッセージはすでに修正法（ADR-17に従う`pre_eval:`）を指し示している。すべて`balanced`の下で警告となる。
 
 ### 2. 「genuine-bugs」ヒント — ライブラリレビューの山
 
@@ -143,10 +143,10 @@ sidebar:
 
 レシーバー別に、何が解消され何が残ったか:
 
-- **解消された — `User.current`（486 → 0）**。 `user.rb`内にリテラルな`def self.current`として定義されている。`pre_eval:`のウォーカーがそれを見て、すべての呼び出し元が解決する。この単一のクラスタが削減の約80%である。`Mailer.deliver_*`、`Token.find_*`、`Redmine::Configuration[]`も同様。
-- **解消されなかった — `Setting.default_language` / `app_title` / …（依然それぞれ約20/18件）**。 `Setting`はそのアクセサを静的な`def`ではなく`method_missing`経由で公開する — そのためファイルの事前パスを歩いても登録すべきものが見つからない。**これはエスカレーションパスAの境界である:** `method_missing`によるDSLは`pre_eval:`ではなく*プロジェクトプラグイン*を必要とする。
+- **解消された — `User.current`（486 → 0）**。`user.rb`内にリテラルな`def self.current`として定義されている。`pre_eval:`のウォーカーがそれを見て、すべての呼び出し元が解決する。この単一のクラスタが削減の約80%である。`Mailer.deliver_*`、`Token.find_*`、`Redmine::Configuration[]`も同様。
+- **解消されなかった — `Setting.default_language` / `app_title` / …（依然それぞれ約20/18件）**。`Setting`はそのアクセサを静的な`def`ではなく`method_missing`経由で公開する — そのためファイルの事前パスを歩いても登録すべきものが見つからない。**これはエスカレーションパスAの境界である:** `method_missing`によるDSLは`pre_eval:`ではなく*プロジェクトプラグイン*を必要とする。
 - **解消されなかった — モデルのシングルトン上の`table_name` / `where` / `visible` / スコープ（`table_name`単独でIssue/Project/TimeEntry/…にまたがり約470件）**。これらはActiveRecordの*クラス*メソッドである。`rigor-activerecord`は現状これらを`singleton(Model)`上に供給しない。モンキーパッチではなく、プラグイン/RBSのカバレッジギャップである。**これが支配的な残余**であり、redmineが`pre_eval:`後も4桁にとどまる真の理由である。
-- **解消されなかった — `Redmine::Export::PDF::ITCPDF`上の`SetFontStyle` / `RDMCell` / `ln`**。 RBSのない`rbpdf`/TCPDF gemのサブクラス → `gem-without-rbs`。
+- **解消されなかった — `Redmine::Export::PDF::ITCPDF`上の`SetFontStyle` / `RDMCell` / `ln`**。RBSのない`rbpdf`/TCPDF gemのサブクラス → `gem-without-rbs`。
 
 したがって率直な読み方はこうだ: `pre_eval:`は**証明済みで静的に定義された**モンキーパッチのクラスタに対する正しいツールであり（それをきれいに除去する）、しかしredmineではそれはコールド件数の*少数派*である。多数派はActiveRecordのクラスメソッドのカバレッジ + `method_missing`によるDSL + RBSのないPDF gemであり — これらをacknowledgeモードのワークフローは**ベースライン**へ送り込む（以前のチューニング済みredmine設定がまさにそれを行っていた: `pre_eval:` + 約37 KBのベースラインが、*顕在化された*件数をほぼゼロに近づけた）。`pre_eval:`はベースラインを縮小するのであって、それを置き換えるのではない。
 
@@ -160,7 +160,7 @@ sidebar:
 
 ## 留意点
 
-- **コールドの数値**。 `pre_eval:`なし、ベースラインなし。redmine/mastodonの合計は未オンボーディングの状態を反映する。上記のファミリー別分析は、それを勘案したあとの率直なシグナルである。
+- **コールドの数値**。`pre_eval:`なし、ベースラインなし。redmine/mastodonの合計は未オンボーディングの状態を反映する。上記のファミリー別分析は、それを勘案したあとの率直なシグナルである。
 - **ライブラリのプラグインは意図的に省略**。いくつかのライブラリはActiveSupportに依存しており（jbuilder、haml、hamlit、mail）、トリアージはそれらに`activesupport-core-ext`をフラグした。そのプラグインを追加すればいくつかの`undefined-method`件数は縮小する。生のコアシグナルを保つためにここでは外した。
 - **0.1.14のスナップショット**。後のエンジンで再実行すればドリフトする（rglのADR-24の勝利を参照）。キャプチャはdiff用に`_reports/init/`配下に置いてある。
 - 以前のチューニング済み設定のバックアップ: `_reports/init/_backup/`。

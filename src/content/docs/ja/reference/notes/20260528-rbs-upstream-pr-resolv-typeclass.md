@@ -20,7 +20,7 @@ upstream `stdlib/strscan/0/string_scanner.rbs:501`（`fcc16851`時点のHEAD）:
 def []: (Integer | String | Symbol) -> String?
 ```
 
-バンドル済みの`rbs-3.10.0`（Rigorが現在使用しているバージョン）にはまだ狭い`(Integer) -> String?`のシグネチャしかなく、これがMastodonトライアルで`signature_parser.rb`の`scanner[:key]`呼び出し箇所が誤検知する原因です。**修正はupstream PRではなく、Rigor側での`rbs` gemバージョン引き上げです**。 upstreamセッションのスコープ外です。
+バンドル済みの`rbs-3.10.0`（Rigorが現在使用しているバージョン）にはまだ狭い`(Integer) -> String?`のシグネチャしかなく、これがMastodonトライアルで`signature_parser.rb`の`scanner[:key]`呼び出し箇所が誤検知する原因です。**修正はupstream PRではなく、Rigor側での`rbs` gemバージョン引き上げです**。upstreamセッションのスコープ外です。
 
 ## 2. `Resolv::DNS#getresources` / `#getresource` / `#each_resource` — タイプクラスによる戻り値型の絞り込み
 
