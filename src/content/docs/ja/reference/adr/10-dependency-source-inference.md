@@ -10,7 +10,7 @@ sidebar:
   order: 4010
 ---
 
-ステータス: **accepted, 2026-05-09; v0.1.4で実装済み**。5つの実装スライス（slice）がすべてランド;`lib/rigor/analysis/dependency_source_inference/`が本番ネームスペース。呼び出しごとの戻り型精度フォローアップは需要駆動のまま。
+ステータス: **accepted, 2026-05-09; v0.1.4で実装済み**。5つの実装スライス（slice）がすべて着地済み;`lib/rigor/analysis/dependency_source_inference/`が本番ネームスペース。呼び出しごとの戻り型精度フォローアップは需要駆動のまま。
 
 ## コンテキスト
 
@@ -62,7 +62,7 @@ dependencies:
 コールサイトが`dependencies:`下にリストされたGemのメソッドに解決され、モードがGemソースの走査を許可する場合:
 
 - 解析器は`paths:`を走査するのと同じエンジンを使用してGemの`.rb`ファイルを走査します。メソッドディスパッチ、ナローイング、ファクト（fact）ストア、バジェット適用が変更なく実行されます。
-- Gem境界を越える推論された戻り型は[`docs/type-specification/special-types.md`](../../type-specification/special-types/) §「Dynamic-originと未チェック情報」に従って**`Dynamic[T]`でラップされます**。静的ファセット`T`は推論型です; Dynamic-originマーカーはプルーフがGemの作者がコミットした契約ではなくサードパーティソースから来たという事実を保持します。
+- Gem境界を越える推論された戻り型は[`docs/type-specification/special-types.md`](../../type-specification/special-types/) §「Dynamic-originと未チェック情報」に従って**`Dynamic[T]`でラップされます**。静的ファセット`T`は推論型です; Dynamic-originマーカーは、証明がGemの作者がコミットした契約ではなくサードパーティソースから来たという事実を保持します。
 - このパスで発行される診断は`dynamic.dependency-source.*`プレフィックスファミリーを使用します（[`docs/type-specification/diagnostic-policy.md`](../../type-specification/diagnostic-policy/) §「診断識別子分類法」に新しいエントリーが追加されます——以下の「パブリックAPIドリフトサーフェス」を参照）。
 - Gem走査でのバジェット消尽はプロジェクトソース走査と同様に`Dynamic[top]`にフォールバックします。Gemのバジェットが切れた場合に捏造された精密な型をサイレントに発行することはありません。
 
@@ -86,7 +86,7 @@ Gemソース推論の結果はADR-6の既存のシャードされた永続化バ
 - リストされたGemのピン留めされたバージョンを変更する`bundle update`はそのGemのキャッシュスライスのみを無効化します。他のGemのスライスとユーザーのプロジェクトスライスは有効なままです。
 - `dependencies.source_inference`自体の変更は現在リストされているGemと以前リストされていたGemのユニオンを無効化します（比較はすでに使用中の`Cache::Descriptor::ConfigEntry`の一部です）。
 
-`Cache::Descriptor::PluginEntry`は新しいフィールドを必要としません; GemソースParsは核であり、プラグインコントリビューションではありません。新しい`Cache::Descriptor::DependencyEntry`値オブジェクトが`(gem_name, gem_version, mode)`を運び、既存の`gems:`スロットの隣のディスクリプタにスロットインされます（[ADR-2 §「キャッシュ依存関係は明示的なディスクリプタであるべき」](../2-extension-api/)）。
+`Cache::Descriptor::PluginEntry`は新しいフィールドを必要としません; Gemソース推論はコアであり、プラグインコントリビューションではありません。新しい`Cache::Descriptor::DependencyEntry`値オブジェクトが`(gem_name, gem_version, mode)`を運び、既存の`gems:`スロットの隣のディスクリプタにスロットインされます（[ADR-2 §「キャッシュ依存関係は明示的なディスクリプタであるべき」](../2-extension-api/)）。
 
 ### バジェット相互作用
 
@@ -151,7 +151,7 @@ ADR-2 §「プラグイントラストとI/Oポリシー」は**プラグイン*
 オプトアウト（デフォルト = 除外されない限りすべてのGemを走査）が検討されて却下されました:
 
 - **サーフェスエリア**。典型的なRailsアプリのバンドルは数百のGemです。すべてを走査するとGemごとのバジェット上限があっても解析バジェットとキャッシュフットプリントが爆発します。
-- **安定性**。GemソースからのParsed型は毎パッチリリースで変わります。オプトアウトデフォルトはユーザーに`bundle update`での偽陽性チャーンの長いテールを渡します。
+- **安定性**。Gemソースから推論された型は毎パッチリリースで変わります。オプトアウトデフォルトはユーザーに`bundle update`での偽陽性チャーンの長いテールを渡します。
 - **同意**。ADR-2のトラストモデルは明示的です: ユーザーはRigorが読むGemを選択します。オプトアウトはプラグインではなくソース推論のためにそれを逆にしますが、これは一貫性がありません。
 
 オプトインはデフォルト動作を同一に保ち（RBS-or-nothing）、ユーザーがバジェットコストを支払いたい箇所でのみGemごとに機能を拡張できます。
@@ -178,7 +178,7 @@ ADR-2 §「プラグイントラストとI/Oポリシー」は**プラグイン*
 
 ### WD6 — Gem走査はプラグインより厳密に下位のティアに着地
 
-プラグインは作成された契約です: プラグイン作成者は形状にコミットします。Gemソース推論は日和見的です: GemWriterはそのようなコミットメントをしませんでした。ディスパッチャーティア順序（コアRBS > `RBS::Extended` > プラグイン > 依存関係ソース推論 > エンジンフォールバック）はそれを反映します。GemのParsed戻り型に矛盾するプラグインが勝ちます;解析器はユーザーが監査できるよう乖離を`dynamic.dependency-source.boundary-cross`として報告します。
+プラグインは作成された契約です: プラグイン作成者は形状にコミットします。Gemソース推論は日和見的です: GemWriterはそのようなコミットメントをしませんでした。ディスパッチャーティア順序（コアRBS > `RBS::Extended` > プラグイン > 依存関係ソース推論 > エンジンフォールバック）はそれを反映します。Gemの推論された戻り型に矛盾するプラグインが勝ちます;解析器はユーザーが監査できるよう乖離を`dynamic.dependency-source.boundary-cross`として報告します。
 
 ### WD7 — Gem推論された形状はRBSとしてラウンドトリップしない
 

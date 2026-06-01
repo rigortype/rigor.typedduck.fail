@@ -1,5 +1,5 @@
 ---
-title: "ADR-5: Rigor型の堅牢性原則"
+title: "ADR-5: Rigor型のロバストネス原則"
 description: "rigortype/rigor docs/adr/5-robustness-principle.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/5-robustness-principle.md"
 sourcePath: "docs/adr/5-robustness-principle.md"
@@ -77,7 +77,7 @@ PHPStanの経験も同じだ。リテラル型の返り値（`array{name: string
 
 ### 寛大なパラメータがコアーションノイズを避ける
 
-逆に、パブリック境界での過度に厳格なパラメータ型は、すべての呼び出し側に税を課す。`def render(content: String)`と宣言されたメソッドが`String | nil`の呼び出し側を拒否する場合——たとえメソッドが内部でnilをガードしていても——呼び出し側は`render(content || "")`と書かざるを得ない。この回避策はコードベース全体に広がり、意図を隠し、ラッパー式が呼び出し側の実際のセマンティクスからずれるにつれてメンテナーンス負荷を生み出す。
+逆に、パブリック境界での過度に厳格なパラメータ型は、すべての呼び出し側に税を課す。`def render(content: String)`と宣言されたメソッドが`String | nil`の呼び出し側を拒否する場合——たとえメソッドが内部でnilをガードしていても——呼び出し側は`render(content || "")`と書かざるを得ない。この回避策はコードベース全体に広がり、意図を隠し、ラッパー式が呼び出し側の実際のセマンティクスからずれるにつれてメンテナンス負荷を生み出す。
 
 適切なツールは構造的インターフェースまたはケイパビリティロールだ。`_ToStr`、`_ConvertibleToString`、またはメソッドがnilを処理する場合は単純に`String | nil`。呼び出しサイトでの解析器の仕事は、引数がメソッドで*使用可能か*どうかを検証することであって、特定の名前的キャリアを持っているかどうかではない。
 
@@ -168,4 +168,4 @@ fold_platform_specific_paths: true
 ## 背景となる研究ノート
 
 - [`docs/notes/20260518-matsumoto-2008-poly-records-rigor-review.md`](../../notes/20260518-matsumoto-2008-poly-records-rigor-review/) — 松本＆南出2008は*逆の*非対称性を採用している。負の位置（引数）はシグネチャのみだが、正の位置（返り値）にはRuby実装も*許容する*。「呼び出し側の生活を楽にする」という同じ本能、しかし返り値側のスタンスは逆である。「なぜこの非対称性であって、もう一方ではないのか？」という根拠セクションが暗黙のままにしている問いに対する有用な対比材料。
-- [`docs/notes/20260518-matsumoto-2010-cfa-rigor-review.md`](../../notes/20260518-matsumoto-2010-cfa-rigor-review/) — 松本＆南出2010はSemiRubyの健全性を証明している。Rigorは*意図的に*同レベルの形式的健全性を目指していない。このノートは、同著者による設計の系譜（2008年論文→2010年論文→Steep→現在）を記録しており、Rigorの堅牢性優先のスタンスを逸脱ではなく継続として正当化する。
+- [`docs/notes/20260518-matsumoto-2010-cfa-rigor-review.md`](../../notes/20260518-matsumoto-2010-cfa-rigor-review/) — 松本＆南出2010はSemiRubyの健全性を証明している。Rigorは*意図的に*同レベルの形式的健全性を目指していない。このノートは、同著者による設計の系譜（2008年論文→2010年論文→Steep→現在）を記録しており、Rigorのロバストネス優先のスタンスを逸脱ではなく継続として正当化する。

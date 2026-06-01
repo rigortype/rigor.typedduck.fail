@@ -332,7 +332,7 @@ Slice 6は2つのフェーズで着地します。Phase 1は`IfNode`/`UnlessNode
 1. `Rigor::Analysis::FactStore`は各`Scope`スナップショットが運ぶ不変なファクト束です。初期のバケット語彙（`local_binding`・`captured_local`・`object_content`・`global_storage`・`dynamic_origin`・`relational`）・target/fact値オブジェクト・targetの無効化・両方の入力エッジに存在するファクトのみを保持する保守的なジョインを定義します。`Scope#with_local`は再束縛されたローカルのファクトを無効化します。`Scope#with_fact`・`Scope#local_facts`・`Scope#facts_for`は、可変なバケットストレージを公開せずに狭いクエリサーフェスを公開します。
 2. `Rigor::Inference::Narrowing`は`narrow_equal(type, literal)`と`narrow_not_equal(type, literal)`を成長させます。String/Symbol/Integerリテラルは、すでに有限な信頼できるリテラルドメイン内でのみ絞り込みます。nil/true/falseのシングルトン値は、`Integer | nil`のような混合ドメインから抽出できます。Floatリテラルと広いドメイン（`String`・`Dynamic[Top]`）は、捏造されたリテラル精度を獲得しません。
 3. `Narrowing.predicate_scopes`は信頼できる静的リテラルについて`local == literal`・`literal == local`・`!=`ミラーを認識します。等価エッジは新しいプリミティブを通じてローカルを再束縛し、`FactStore::Fact`を記録します。すなわち型が変わったときは`local_binding`、比較が記憶されるが値型を絞り込むのに十分信頼されないときは`relational`です。
-4. `StatementEvaluator#eval_and_or`は今や`a && b`を`union(narrow_falsey(a), b)`として、`a || b`を`union(narrow_truthy(a), b)`として型付けします。これは既存のRHSエントリーナローイングとnil注入された後置スコープジョインを保ちながら、Rubyのスキップされたなぁ-LHS値セマンティクスと一致します。
+4. `StatementEvaluator#eval_and_or`は今や`a && b`を`union(narrow_falsey(a), b)`として、`a || b`を`union(narrow_truthy(a), b)`として型付けします。これは既存のRHSエントリーナローイングとnil注入された後置スコープジョインを保ちながら、RubyのスキップされたLHS値セマンティクスと一致します。
 5. クラスメンバーシップナローイングは今や`Environment#class_ordering`を使います。これは静的レジストリを参照し、それから`RBS::Definition#ancestors`に対する`RbsLoader#class_ordering`を参照します。述語ナローイングはもはやアドホックな`Object.const_get`を行いません。RBS専用のプロジェクトクラスは、解析器ホストによってロードされなくても階層ナローイングに参加できます。
 
 クロージャに捕捉されたローカルの無効化はSlice 6 phase C sub-phase 3に委ねられたままです。このサブフェーズはそれが必要とするFactStoreターゲット／無効化サーフェスを与えます。

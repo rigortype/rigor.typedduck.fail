@@ -18,7 +18,7 @@ sidebar:
 
 `lib/`に対してSteep 2.0を実行する（`make steep-check`に従って）と、RigorがSteepと比較して持つ3つの構造的なギャップが表面化した。
 
-1. SteepのレントIDは2セグメント（`Ruby::MethodParameterMismatch`、`RBS::DuplicatedMethodDefinition`）。Rigorはシングルセグメント（`undefined-method`、`wrong-arity`）。フラットな名前空間では、`# rigor:disable`や設定で関連する診断のファミリー（例：「すべての呼び出しサイトルール」）をターゲットにしにくい。
+1. Steepの診断IDは2セグメント（`Ruby::MethodParameterMismatch`、`RBS::DuplicatedMethodDefinition`）。Rigorは単一セグメント（`undefined-method`、`wrong-arity`）。フラットな名前空間では、`# rigor:disable`や設定で関連する診断のファミリー（例：「すべての呼び出しサイトルール」）をターゲットにしにくい。
 2. Steepには組み込みの重大度プロファイル（`Steep::Diagnostic::Ruby.lenient`、`.strict`）が付属する。Rigorは`.rigor.yml`の`disable:`リストによるルールごとのオン/オフのみをサポートする。その結果、CIと開発での重大度チューニングが扱いにくい。
 3. Steepはメソッドボディの推論された返り値型が宣言された返り値型を満たせない場合に`Ruby::MethodBodyTypeMismatch`を出力する。Rigorには基盤（スライス（slice）4の`FlowContribution::Merger`、B1のメソッドごとのReflectionキャッシュ）はあるがルールはまだない——返り値側における既存の`argument-type-mismatch`の対称的な存在。
 
@@ -93,7 +93,7 @@ severity_overrides:
 - ブロック返り値型。`IteratorDispatch`/`BlockFolding`の上の将来の作業。
 - メソッドオーバーロード——ルールはメソッドの`method_types`配列を参照し、宣言されたすべての返り値型のユニオン（union、合併型とも）を比較ターゲットとして考慮する。
 
-根拠: これはSteepの`Ruby::MethodBodyTypeMismatch`スコープと一致する。ADR-5（堅牢性原則）は「返り値では厳格に」を要求する。このルールはそのポリシーの最初の具体的なコンシューマーだ。
+根拠: これはSteepの`Ruby::MethodBodyTypeMismatch`スコープと一致する。ADR-5（ロバストネス原則）は「返り値では厳格に」を要求する。このルールはそのポリシーの最初の具体的なコンシューマーだ。
 
 ### 4. スコープ外の項目（記録のために）
 
@@ -109,7 +109,7 @@ Steepに触発されたリストはまた次のものもフラグ立てした。
 
 - 診断ファミリーワイルドカードは`# rigor:disable call`とファミリーごとのCIゲートを明確に表現可能にする。
 - 重大度プロファイルはSteepユーザーが日常的に採用するstrict-CI/lenient-developmentパターンのブロックを解除する。
-- `def.return-type-mismatch`は既存の`argument-type-mismatch`（パラメータ）と返り値側の間の対称的なギャップを閉じ、ADR-5の「返り値では厳格に」の約束を果たす。
+- `def.return-type-mismatch`は既存の`argument-type-mismatch`（パラメータ）と返り値側の間の対称的なギャップを閉じ、ADR-5の「返り値では厳格に」という約束を果たす。
 
 ### ネガティブ
 
@@ -120,7 +120,7 @@ Steepに触発されたリストはまた次のものもフラグ立てした。
 ## 参照
 
 - [Steepクロスチェックトリアージ2026-05-03](../../notes/20260503-steep-cross-check-triage/)
-- [ADR-5: 堅牢性原則](../5-robustness-principle/)
+- [ADR-5: ロバストネス原則](../5-robustness-principle/)
 - [ADR-7: v0.1.0スライス4〜6の作業上の決定](../7-v0.1.0-slice-decisions/)
 - [`docs/internal-spec/inference-engine.md`](../../internal-spec/inference-engine/)
 - [`docs/internal-spec/flow-contribution-merger.md`](../../internal-spec/flow-contribution-merger/)
