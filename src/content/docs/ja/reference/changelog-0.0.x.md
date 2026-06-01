@@ -56,7 +56,7 @@ sidebar:
 
 ## [0.0.8] - 2026-05-04
 
-第8プレビュー。テーマ: **最初のキャッシュ関連コードスライス** — v0.0.7のキャッシュスライスタクソノミー設計ドキュメントがスキーマを固定した永続化レイヤーを着地させ、Marshalクリーンなプロデューサーをエンドツーエンドで配線します。バックエンドの選択は[ADR-6](../docs/adr/6-cache-persistence-backend/)によって固定: カスタム正規フォーマットを通じて書き込まれるバイナリエントリーのシャードディレクトリ、**新しいgem依存関係ゼロ**。
+第8プレビュー。テーマ: **最初のキャッシュ関連コードスライス** — v0.0.7のキャッシュスライス分類体系設計ドキュメントがスキーマを固定した永続化レイヤーを着地させ、Marshalクリーンなプロデューサーをエンドツーエンドで配線します。バックエンドの選択は[ADR-6](../docs/adr/6-cache-persistence-backend/)によって固定: カスタム正規フォーマットを通じて書き込まれるバイナリエントリーのシャードディレクトリ、**新しいgem依存関係ゼロ**。
 
 ### 追加
 
@@ -65,11 +65,11 @@ sidebar:
 - **最初のキャッシュプロデューサー——`Rigor::Cache::RbsConstantTable`**。すべてのRBS宣言定数（例: `"::Math::PI"`）をその翻訳済み`Rigor::Type`にマッピングする`Hash<String, Rigor::Type>`をキャッシュします。ディスクリプタ: ロックバージョンを持つ`rbs` gem、`signature_paths`下のすべての`.rbs`ファイルの`:digest`エントリー、ライブラリリストの設定エントリー。スライス計画は最初のプロデューサーとして元々RBS環境ローダー（`build_env`）を指名していましたが、実装により`RBS::Environment`はMarshalクリーンでない（`RBS::Location`は`_dump_data`を持たないC拡張クラス）ことが発見されました。[ADR-6 § 8](../docs/adr/6-cache-persistence-backend/)がその発見を文書化しています;スライスは代わりに翻訳後のアーティファクトをキャッシュします。`RbsLoader#constant_names`が追加され、プロデューサーがローダーのプライベート状態に触れることなく定数を列挙できます。
 - **`rigor check --cache-stats`**。ランの最終にオンディスクインベントリを出力します（プロデューサーごとのエントリーカウント、合計バイト、スキーマバージョンマーカー）。新しい`Rigor::Cache::Store.disk_inventory(root:)`クラスメソッドから取得。ランごとのヒット / ミスカウンタはプロダクションコードがキャッシュを配線するまで延期。
 - **`rigor check --clear-cache`**。解析ランの前に`.rigor/cache`ディレクトリ（CWD相対）を削除します。`Cleared cache: .rigor/cache`または`Cache already empty: .rigor/cache`を出力します。チェック自体は完了まで実行されます。
-- **診断ソースファミリープロビナンス**。`Rigor::Analysis::Diagnostic`に`source_family:` kwarg（デフォルト`:builtin`）と非デフォルトファミリーには`"#{source_family}.#{rule}"`を、組み込み診断には`rule`を返す`qualified_rule`アクセサが追加されました。JSON出力（`to_h`）は`source_family`と生の`rule`の両方を並べて持ちます。プラグインAPI自体にコミットすることなくADR-2のプラグイン可観測性ストーリーを準備します; v0.0.8でデフォルト以外のソースファミリーを設定するプロダクション呼び出し元はありません。
+- **診断ソースファミリー由来**。`Rigor::Analysis::Diagnostic`に`source_family:` kwarg（デフォルト`:builtin`）と非デフォルトファミリーには`"#{source_family}.#{rule}"`を、組み込み診断には`rule`を返す`qualified_rule`アクセサが追加されました。JSON出力（`to_h`）は`source_family`と生の`rule`の両方を並べて持ちます。プラグインAPI自体にコミットすることなくADR-2のプラグイン可観測性ストーリーを準備します; v0.0.8でデフォルト以外のソースファミリーを設定するプロダクション呼び出し元はありません。
 
 ### 内部
 
-- 新しい規範的仕様[`docs/internal-spec/cache.md`](../docs/internal-spec/cache/)がキャッシュレイヤーのパブリック読み取り形状を追跡します（Descriptor API、Store API、ファイルフォーマット、アトミシティとロック、スキーマバージョン不一致動作、ディスクインベントリ、診断プロビナンス）。
+- 新しい規範的仕様[`docs/internal-spec/cache.md`](../docs/internal-spec/cache/)がキャッシュレイヤーのパブリック読み取り形状を追跡します（Descriptor API、Store API、ファイルフォーマット、アトミシティとロック、スキーマバージョン不一致動作、ディスクインベントリ、診断由来）。
 
 ## [0.0.7] - 2026-05-05
 
@@ -129,7 +129,7 @@ sidebar:
 - **`Rigor::Reflection`読み取り側ファサード** — Rigorの3つのリフレクションソース（`ClassRegistry` + `RbsLoader` + `Scope`発見ファクト（fact））を1つの読み取りAPIの下に結合します。9つのクエリ: `class_known?`、`class_ordering`、`nominal_for_name`、`singleton_for_name`、`constant_type_for`（インソースがRBSとの衝突に勝つ）、`instance_method_definition`、`singleton_method_definition`、`discovered_class?`、`discovered_method?`。v0.1.0プラグインAPI準備のためのパブリック読み取り形状;仕様は[`docs/internal-spec/reflection.md`](../docs/internal-spec/reflection/)。
 - **リフレクションコンシューマー移行**。5つのエンジン内部コーラー（`Analysis::CheckRules`、`Inference::Narrowing`、`Inference::StatementEvaluator`、`Inference::MethodDispatcher`、`Inference::MethodParameterBinder`、`Inference::MethodDispatcher::RbsDispatch`）が生の`scope.environment.rbs_loader`アクセスからファサードに移行します。ファサードは`rbs_class_known?`、`instance_definition` / `singleton_definition`、`class_type_param_names`、ディスパッチャーコールパスのために`Scope`を持たない場合に`environment:` kwargバリアントを獲得します。機械的なリファクタ;動作変更なし。
 - **v0.1.0準備設計ドキュメント** — [`docs/design/20260505-v0.1.0-readiness.md`](../docs/design/20260505-v0.1.0-readiness/)。すべてのADR-2サーフェスを今日の実装にマッピングし、7つの主要なpre-v0.1.0作業項目のシーケンスを定め、ADR-2の未解決の問題を調和させ、v0.0.xドットリリースとして着地できる項目を列挙します。
-- **キャッシュスライスタクソノミー設計ドキュメント** — [`docs/design/20260505-cache-slice-taxonomy.md`](../docs/design/20260505-cache-slice-taxonomy/)。スロットごとのエントリー形状（`:digest` / `:mtime` / `:exists`比較器を持つ`FileEntry`、`GemEntry`、`PluginEntry`、`ConfigEntry`）、コンポジションルール、正規キャッシュキー導出、粒度ガイダンス、スキーマバージョニングを固定します。v0.1.0でリリースされる永続化レイヤーの前提条件契約。
+- **キャッシュスライス分類体系設計ドキュメント** — [`docs/design/20260505-cache-slice-taxonomy.md`](../docs/design/20260505-cache-slice-taxonomy/)。スロットごとのエントリー形状（`:digest` / `:mtime` / `:exists`比較器を持つ`FileEntry`、`GemEntry`、`PluginEntry`、`ConfigEntry`）、コンポジションルール、正規キャッシュキー導出、粒度ガイダンス、スキーマバージョニングを固定します。v0.1.0でリリースされる永続化レイヤーの前提条件契約。
 
 ## [0.0.6] - 2026-05-05
 

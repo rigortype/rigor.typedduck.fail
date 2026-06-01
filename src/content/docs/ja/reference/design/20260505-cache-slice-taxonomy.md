@@ -87,7 +87,7 @@ GemEntry := { name: String, requirement: String, locked: String? }
 PluginEntry := { id: String, version: String, config_hash: String? }
 ```
 
-- `id`はプラグイン識別子です（ADR-2 §「プラグイン診断プロビナンス」が予約する名前空間`plugin.<plugin-id>`にマッチします）。
+- `id`はプラグイン識別子です（ADR-2 §「プラグイン診断由来」が予約する名前空間`plugin.<plugin-id>`にマッチします）。
 - `version`は解決済みのプラグインgemバージョンです。必須——プラグインのコードが変わった場合はプラグイン由来のファクトを再計算しなければなりません（MUST）。
 - `config_hash`はプラグインの正規化された設定（ソート済みキー、JSON直列化された値）のSHA-256です。2つのプラグインエントリーが設定のみで異なる場合、`:strict_mode`に依存するキャッシュスライスは`:include_paths`に依存するスライスとは独立して無効化されます。
 
