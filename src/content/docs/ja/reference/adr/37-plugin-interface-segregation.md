@@ -3,14 +3,16 @@ title: "ADR-37 — Plugin interface segregation (narrow extension protocols)"
 description: "Imported from rigortype/rigor docs/adr/37-plugin-interface-segregation.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/37-plugin-interface-segregation.md"
 sourcePath: "docs/adr/37-plugin-interface-segregation.md"
-sourceSha: "41bedbe9fd464f79981646a69f7021466aaf9db6e37329b94e54bd4c1eea78b0"
-sourceCommit: "d966039262656ed4e9d1900ebe003c332990a0ce"
+sourceSha: "6f8bd24bb3a89653b04ffe5e2ee0a575f7f72a536ef9b8f85653f1c6a90e9dbb"
+sourceCommit: "d44040344e305fd14f3536f0ce3d499fb8821bb1"
 translationStatus: "translated"
 sidebar:
   order: 4037
 ---
 
-Status: **Proposed, 2026-06-02.**
+Status: **Proposed, 2026-06-02; Slice 1 (NodeRule) implemented.**
+
+**スライス1実装済み（2026-06-02）:** `Plugin::Base`上の`node_rule`クラスDSL＋`Base#node_rule_diagnostics`（エンジン所有の走査）＋ランナー／ワーカーセッション配線。プラグインは`node_rule(Prism::CallNode) { |node, scope, path| … }`を宣言します。エンジンは各ファイルのASTを（`Source::NodeWalker`経由で）一度だけ走査し、到達可能なすべてのノードを、その`node_type`を満たすルールへディスパッチし、プラグインインスタンス上で`instance_exec`します。そのため作者は走査を一切手作りしません。これはレガシーな`diagnostics_for_file`（今や概念的には`FileRule`脱出弁）と並んで動作し、ルールを宣言しないプラグインにとってはゼロコストのno-opであり、同じプラグインごとの`rescue`境界で隔離されます。スライス1cは2パス（収集してから検証する）プラグイン向けに`node_file_context`を追加します。スライス1のワーキングデシジョンを以下にピン留めします。**未完了:** `flow_contribution_for`の分割（スライス2）、`FactProvider`のネーミング（スライス3）、同梱プラグインの完全移行（スライス4。これまでに`rigor-deprecations`・`rigor-rspec-rails`・`rigor-statesman`を移行）、そしてケイパビリティカタログ。
 
 [ADR-2](../2-extension-api/)が着手したインターフェース分離の作業を仕上げる決定を記録します。残る2つの*命令型*プラグインフック（`flow_contribution_for`、`diagnostics_for_file`）を、PHPStanのゲート／ペイロード不変条件に倣って、**狭く・マニフェスト登録され・エンジンがゲートする拡張プロトコル**の小さな集合へと分割します。肥大化した`Plugin::Base`フックは、後方互換性のための非推奨の脱出弁として残します。このADRはADR-2の*フックモデル*を改訂するものであり、ADR-1が所有するフロー貢献のセマンティクスは変更しません。
 
@@ -20,15 +22,15 @@ Status: **Proposed, 2026-06-02.**
 
 Rigorのプラグイン契約（contract）には、2つの拡張スタイルが併存するまでに成長しました。
 
-1. **宣言的なマニフェストフィールド（10個）**。 `block_as_methods`、`trait_registries`、`heredoc_templates`、`nested_class_templates`、`type_node_resolvers`、`protocol_contracts`、`hkt_registrations`、`hkt_definitions`、`source_rbs_synthesizer`、`owns_receivers`、`open_receivers`。それぞれが`registry.plugins`から集約され、**エンジン自身がインデックスする**構造（`SyntheticMethodScanner`、`TypeNode::ResolverChain`、`Registry#contracts_for_path`、HKTオーバーレイ、…）になり、**エンジンが**動詞／レシーバー／クラス／パスで**ゲートします**。これはすでにPHPStan型です。エンジンがマッチするノードについてのみ参照する、狭いケイパビリティです。
+1. **宣言的なマニフェストフィールド（10個）**。`block_as_methods`、`trait_registries`、`heredoc_templates`、`nested_class_templates`、`type_node_resolvers`、`protocol_contracts`、`hkt_registrations`、`hkt_definitions`、`source_rbs_synthesizer`、`owns_receivers`、`open_receivers`。それぞれが`registry.plugins`から集約され、**エンジン自身がインデックスする**構造（`SyntheticMethodScanner`、`TypeNode::ResolverChain`、`Registry#contracts_for_path`、HKTオーバーレイ、…）になり、**エンジンが**動詞／レシーバー／クラス／パスで**ゲートします**。これはすでにPHPStan型です。エンジンがマッチするノードについてのみ参照する、狭いケイパビリティです。
 
-2. **命令型フック（2個）**。 `flow_contribution_for(call_node:, scope:)`と`diagnostics_for_file(path:, scope:, root:)`。エンジンは**すべての**未解決の呼び出しノード／すべてのファイルについて**ロード済みのすべてのプラグイン**を呼び出し、各プラグインは内部の`if`で**自分自身をゲートします**。このディスパッチループは`inference/method_dispatcher.rb`と`inference/statement_evaluator.rb`にそっくりそのまま複製されています（後者のコメントは「Mirrors … exactly（…をそっくり真似ている）」と認めています）。両方の箇所が`rescue StandardError; nil`しているため、ゲートを誤ったプラグインは何のシグナルもなく何も貢献しません。
+2. **命令型フック（2個）**。`flow_contribution_for(call_node:, scope:)`と`diagnostics_for_file(path:, scope:, root:)`。エンジンは**すべての**未解決の呼び出しノード／すべてのファイルについて**ロード済みのすべてのプラグイン**を呼び出し、各プラグインは内部の`if`で**自分自身をゲートします**。このディスパッチループは`inference/method_dispatcher.rb`と`inference/statement_evaluator.rb`にそっくりそのまま複製されています（後者のコメントは「Mirrors … exactly（…をそっくり真似ている）」と認めています）。両方の箇所が`rescue StandardError; nil`しているため、ゲートを誤ったプラグインは何のシグナルもなく何も貢献しません。
 
 ファンアウトして自己ゲートするスタイルこそが、設計上最もコストのかかる部分であり、そのコストはプラグインアーキテクチャに対してプロジェクトが掲げる目標 — **AIエージェントにとっての可読性**と**インターフェース単位のテスト容易性** — にちょうど対応します。
 
-- **AI／人間の理解**。 `registry.plugins.each { |p| p.flow_contribution_for(...) }`は、*どの*プラグインが参加するのか、*どの*レシーバー／メソッドに関心があるのかについて何も語りません。その選択性は各プラグインの自己ゲートする`if`の内側に存在するため、grepもできず列挙もできません。宣言的なフィールドはその正反対です。マニフェストのフィールド名が、それをどのサブシステムが消費するのかを読者（やツール）にそのまま伝えます。
+- **AI／人間の理解**。`registry.plugins.each { |p| p.flow_contribution_for(...) }`は、*どの*プラグインが参加するのか、*どの*レシーバー／メソッドに関心があるのかについて何も語りません。その選択性は各プラグインの自己ゲートする`if`の内側に存在するため、grepもできず列挙もできません。宣言的なフィールドはその正反対です。マニフェストのフィールド名が、それをどのサブシステムが消費するのかを読者（やツール）にそのまま伝えます。
 - **テスト容易性**。今日の唯一のハーネスは`spec/integration/support/plugin_helpers.rb`の`run_plugin`です。デモファイルを書き、**完全な**`Analysis::Runner`を実行し、`result.diagnostics`をアサートします。「このフックはこのノードに対して型Xを返す」「このルールはここで発火する」を単独でアサートする方法はありません。フック名を冠したスペックでさえ、エンジン全体が生成する下流の`call.undefined-method`メッセージをアサートしています。対照的にPHPStanは`RuleTestCase`（フィクスチャに対するエラー集合をアサート）と`TypeInferenceTestCase`（インラインの`assertType()`で推論された型をアサート）を提供します。インターフェース単位のハーネスは、フックが狭くなって初めて可能になります。
-- **ボイラープレート**。 `diagnostics_for_file`が生の`root`を渡し、ドキュメントが作者に「`root`を自分で走査せよ」と指示している（`plugin/base.rb`）ため、約25個のプラグインが同じ再帰的なAST走査器を作り直しています。この走査器は、エンジンが走査を所有していない*という理由だけで*存在します。
+- **ボイラープレート**。`diagnostics_for_file`が生の`root`を渡し、ドキュメントが作者に「`root`を自分で走査せよ」と指示している（`plugin/base.rb`）ため、約25個のプラグインが同じ再帰的なAST走査器を作り直しています。この走査器は、エンジンが走査を所有していない*という理由だけで*存在します。
 - **パフォーマンス（副次的）**。コストは事前フィルタなしに`plugins × files × nodes`にスケールします。レビューのブリーフによれば重要ではなく — キャッシュが緩和します — エンジンがフックをインデックスすれば無償で解決します。
 
 **この窓**。フックのシグネチャは1.0で公開契約として凍結されます。命令型フックを1.0より後で分割するのは破壊的変更です。低コストでこれを行う最後の機会が今です。
@@ -138,6 +140,26 @@ end
 4. **同梱プラグインをレガシーフックから移行**する。プラグインファミリーごとに、移行済みのプラグインで作者ヘルパー層（レビュー§1.3）が不要になるにつれてプラグインごとの走査器を削除する。
 
 スライス1〜3はエンジン側であり後方互換です。スライス4は機械的かつ漸進的です。
+
+### スライス1のワーキングデシジョン（実装済み）
+
+- **登録はマニフェストフィールドではなくクラスDSL**。 `node_rule`は既存の`producer` DSLを踏襲します。ブロックは`instance_exec`を通じて走るので、プラグインインスタンス（`config`、`services`、`io_boundary`、`diagnostic`、`services.fact_store`）がスコープに入ります。ルールはインスタンスを必要とする*ロジック*を運ぶので、`block_as_methods`などのようにクラスロード時に構築される純粋なマニフェスト値オブジェクトにはできません。
+- **エンジンはランナーではなく`Base#node_rule_diagnostics`で走査を所有します**。それを（`Source::NodeWalker`の上で）`Base`に置くと、単一のディスパッチ地点がランナーとワーカーセッションの両方からそれぞれ1行の呼び出しで共有され、走査が単独でテスト可能になります。
+- **`node_type`は（厳密なクラスではなく）`node.is_a?(node_type)`でマッチします**。そのため、ルールはすべてを見るために`Prism::Node`を登録することも、一般的なケース向けに具体的なクラスを登録することもできます。
+- **`diagnostics_for_file`に対して加算的です**。両方が走ります。レガシーフックは`FileRule`脱出弁であり、変更されません。どのプラグインも移行を強いられません。
+- **ブロックは`(node, scope, path)`を受け取ります**。 ADR-2が約束したが結局提供しなかったリッチな`ContextInfo`（字句的なクラス／メソッド／可視性）は先送りのままです — `scope`はすでに`self_type`とほとんどのルールが必要とするナローイングファクトを運びます。`path`は`diagnostic(node, path:)`のために供給されます。
+- **2パス（収集してから検証する）プラグイン** — *スライス1cで解決済み（下記参照）*。ノードごとの`NodeRule`は、エンジンの単一の前方走査の中でファイルローカルな収集パスを表現できません（参照が宣言に先行しうる）ので、`node_file_context`プリパスフックがそれを供給します。
+
+### スライス1c — 2パスサポート（`node_file_context`、実装済み）
+
+`node_file_context { |root, scope| … }`は、いずれのノードルールが発火するよりも前に、ファイルごとに一度（`instance_exec`経由で）走り、すべての`node_rule`ブロックにその**第4引数**として通される任意のファイルローカルな値を返します。これこそが、*同一ファイル*の2パスプラグインに手作りの検証走査を捨てさせるものです。収集パスが閉じた名前空間を一度計算し（検証の前に完了しなければなりません）、エンジンが検証走査を所有します。第4ブロック引数は後方互換です — 既存の3パラメータのブロックはそれを無視します。
+
+2つの2パス形状の間の分割は意図的です。
+
+- **同一ファイル収集**（例: statesmanが宣言された状態を集める） → `node_file_context`を使う。収集パス自体が共有の`Source::NodeWalker`を使うので、手作りの走査は残りません。
+- **クロスファイル収集**（例: activerecordの`db/schema.rb`＋`app/models`からのモデルインデックス） → すでに`#prepare`＋`services.fact_store`（`FactProvider`サーフェス）に属します。ノードルールは公開されたファクトを直接読み、ファイルごとのコンテキストを必要としません。
+
+`rigor-statesman`が最初の2パス消費側として移行されました。その`collect`は`node_file_context`に、`validate`は`node_rule(Prism::CallNode)`になり、手作りの走査は両方とも消えました（挙動は不変、統合スペックはグリーン）。
 
 ## Relationship to other ADRs
 

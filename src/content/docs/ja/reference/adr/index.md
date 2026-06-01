@@ -3,8 +3,8 @@ title: "アーキテクチャ決定記録"
 description: "rigortype/rigor docs/adr/README.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/README.md"
 sourcePath: "docs/adr/README.md"
-sourceSha: "268fee88ea5c48a88494ca8db6422e57d70485d40339cf80edaf935dd5673f37"
-sourceCommit: "d966039262656ed4e9d1900ebe003c332990a0ce"
+sourceSha: "a54c803eede29a393dbdeee1abf2eea0dbcaa17d72cd3eefc9817e0459b03c4d"
+sourceCommit: "d44040344e305fd14f3536f0ce3d499fb8821bb1"
 translationStatus: "translated"
 sidebar:
   order: 4000
@@ -60,7 +60,7 @@ sidebar:
 | ADR-34 | [Toplevel Unresolved Implicit-self Calls Warn by Default](34-toplevel-unresolved-self-call-default/) | Accepted (implemented in v0.1.13; Playground severity wiring deferred) |
 | ADR-35 | [Override Signature Compatibility (Liskov signature rule)](35-override-signature-compatibility/) | Accepted (slices 1–4 done; slice 5 deferred) |
 | ADR-36 | [Macro-substrate Nested-class Emission Tier (Mangrove `Enum`)](36-mangrove-enum-nested-class-emission/) | Accepted (Slice A implemented; `is_a?` exhaustiveness deferred) |
-| ADR-37 | [Plugin Interface Segregation (narrow extension protocols)](37-plugin-interface-segregation/) | Proposed |
+| ADR-37 | [Plugin Interface Segregation (narrow extension protocols)](37-plugin-interface-segregation/) | Proposed (Slice 1 `NodeRule` implemented) |
 | ADR-38 | [Plugin-declared Additional Initializers](38-additional-initializers/) | Proposed |
 
 ## 新しいADRの追加
