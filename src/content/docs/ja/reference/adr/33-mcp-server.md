@@ -10,7 +10,7 @@ sidebar:
   order: 4033
 ---
 
-**ステータス:**Accepted（2026-05-27）; v0.1.10で実装。`rigor mcp --transport stdio`サブコマンドが、7つのツール — `rigor_check`、`rigor_type_of`、`rigor_triage`、`rigor_annotate`、`rigor_sig_gen`、`rigor_explain`、`rigor_coverage` — を公開する純Ruby製のJSON-RPC 2.0 MCPサーバーを出荷する。HTTPトランスポートとセッションごとの環境キャッシュは保留のままである。
+**ステータス:** Accepted（2026-05-27）; v0.1.10で実装。`rigor mcp --transport stdio`サブコマンドが、7つのツール — `rigor_check`、`rigor_type_of`、`rigor_triage`、`rigor_annotate`、`rigor_sig_gen`、`rigor_explain`、`rigor_coverage` — を公開する純Ruby製のJSON-RPC 2.0 MCPサーバーを出荷する。HTTPトランスポートとセッションごとの環境キャッシュは保留のままである。
 
 ## コンテキスト
 

@@ -258,7 +258,7 @@ IntegerRange向け専用ハンドラ群は別途`shape_dispatch.rb`に存在。
 | メソッド | 状態 | 備考 |
 |----------|------|------|
 | `+`, `-`, `*`, `/`, `%` | ✅ | NUMERIC_BINARY。 |
-| `**` | ✅ | NUMERIC_BINARY追加で`Constant[Float]`**。高優先度**。 |
+| `**` | ✅ | NUMERIC_BINARY追加で`Constant[Float]`。**高優先度**。 |
 | `<=>`, `<`, `<=`, `>`, `>=`, `==`, `!=` | ✅ | NUMERIC_BINARY → `Constant[bool|Integer]`。 |
 | `-@`, `+@` | ✅ | FLOAT_UNARY。 |
 | `abs` / `magnitude` | ✅ | FLOAT_UNARY → `Constant[Float]`。 |

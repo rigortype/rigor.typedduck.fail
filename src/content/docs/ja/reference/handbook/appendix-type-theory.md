@@ -867,7 +867,7 @@ RBSは`Dynamic[T]`レシーバー上の不明なメソッドを**オープンワ
   Typechecking for Higher-Rank Polymorphism." *ICFP 2013.*
   双方向型チェックの現代の標準的な参照先——§「双方向型チェック」の背景。
 - Tobin-Hochstadt & Felleisen. "The Design and Implementation
-  of Typed Scheme." *POPL 2008.*occurrence typingの起源。
+  of Typed Scheme." *POPL 2008.* occurrence typingの起源。
 - Maranget, L. "Warnings for Pattern Matching." *Journal of
   Functional Programming*、2007。OCamlがパターンマッチ網羅性に使うアルゴリズム——§「パターンマッチと網羅性」の背景。
 - Rondon, Kawaguchi & Jhala. "Liquid Types." *PLDI 2008.*
@@ -875,7 +875,7 @@ RBSは`Dynamic[T]`レシーバー上の不明なメソッドを**オープンワ
 - Lucassen & Gifford. "Polymorphic Effect Systems."
   *POPL 1988.*エフェクトシステムの起源。
 - Plotkin & Pretnar. "Handlers of Algebraic Effects."
-  *ESOP 2009.*Koka、Eff、OCaml 5のエフェクトシステムが下る代数的エフェクトハンドラの設計——§「より小さな接続（概略）」の代数的対モナド的エフェクトの注記の背景。
+  *ESOP 2009.* Koka、Eff、OCaml 5のエフェクトシステムが下る代数的エフェクトハンドラの設計——§「より小さな接続（概略）」の代数的対モナド的エフェクトの注記の背景。
 - Wrigstad, Nardelli, Lebresne, Östlund & Vitek. "Integrating
   Typed and Untyped Code in a Scripting Language."
   *POPL 2010.*型消去vs具現化漸進的システムの分類——§「より小さな接続（概略）」のRubyの完全に具現化された動的側に関する注記の背景。

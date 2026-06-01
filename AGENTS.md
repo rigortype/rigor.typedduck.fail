@@ -53,3 +53,30 @@ The script is safe to re-run; it skips fenced code blocks and
 Markdown link URLs. Newly bootstrapped skeleton pages contain the
 English body verbatim, so translators must apply the convention as
 they replace the body — the script catches any oversight.
+
+### Emphasis markers (`**`/`*`) next to punctuation
+
+CommonMark's emphasis "flanking" rules count CJK punctuation
+(`。、「」（）` etc.) as Unicode punctuation, so `**`/`*` wedged between
+punctuation and a letter fails to open/close and the raw marker leaks
+into the HTML. Two distinct cases:
+
+1. **CJK punctuation adjacency** (e.g. `読める。**最大`, `分岐点は**「型`).
+   Handled automatically by the `remark-cjk-friendly` remark plugin wired
+   into `astro.config.mjs` — no manual workaround needed.
+2. **ASCII punctuation immediately before a closing delimiter, followed by
+   a non-space** (e.g. `**ステータス:**Accepted`, `*POPL 2008.*occurrence`).
+   The plugin does **not** cover this — it breaks in plain English
+   CommonMark too. The no-space sweep above can *introduce* it by deleting
+   the space the English source had. Fix by keeping a space after the
+   label/citation (`**ステータス:** Accepted`, `*POPL 2008.* occurrence` —
+   an ASCII↔ASCII boundary, so the space is correct) or moving the
+   punctuation outside the markers.
+
+`node scripts/scan-leaked-emphasis.mjs` (run after `pnpm build`) scans the
+built HTML and reports any `**`/`*` that leaked into rendered prose; the
+expected baseline is zero (intentional literal `\*` globs aside).
+
+The separate `<strong>` workaround documented in the translation glossary
+(for `**` adjacent to `<ruby>`/`</ruby>` tags) is unrelated to the plugin
+and still applies — that is ASCII `<`/`>` adjacency, not CJK punctuation.
