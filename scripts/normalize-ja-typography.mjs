@@ -16,8 +16,11 @@ const ASCII_RIGHT = '[A-Za-z0-9`(\\[*_]';
 // their required space; the digit before the period is enough to anchor
 // other "filename / version / abbreviation" cases. Likewise omit `:` so
 // YAML-style and Markdown label patterns (`text: 内容`, `**型仕様**: 型モデル`)
-// keep their separating space.
-const ASCII_LEFT = '[A-Za-z0-9,;!?)\\]`*_]';
+// keep their separating space. And omit `]` for the same label-separator
+// reason: a bracketed tag like the language-picker label `[ja] 日本語` keeps
+// its space so the CJK entries stay consistent with the Latin-script siblings
+// (`[fr] Français`, `[pt-BR] Português`) that the rule never touches.
+const ASCII_LEFT = '[A-Za-z0-9,;!?)`*_]';
 
 if (import.meta.url === `file://${process.argv[1]}`) {
   await runCli();
@@ -122,13 +125,35 @@ function transformProse(text) {
   next = next.replace(new RegExp(`(${JP})\\?`, 'g'), '$1？');
   next = next.replace(new RegExp(`(${JP})!`, 'g'), '$1！');
 
-  // Move trailing 。 or … out of **bold** spans so the closing ** renders correctly.
-  // ！ and ？ are intentionally excluded — they stay inside the span (see rule below).
-  // e.g. **foo。**  →  **foo**。
-  next = next.replace(
-    /(\*\*(?:[^*\n]|\*(?!\*))+?)(。|…)(\*\*)/g,
-    '$1$3$2',
+  // Move trailing 。 or … out of **bold** spans so the closing ** renders
+  // correctly. ！ and ？ are intentionally excluded — they stay inside the
+  // span (see the rule below). e.g. **foo。** → **foo**。
+  //
+  // Two hazards this guards against:
+  //   1. A literal ** / * documented inside an inline-code span (e.g. the `**`
+  //      power operator in a method-coverage table) is NOT an emphasis marker.
+  //      Mask inline code first so it cannot anchor a bogus span.
+  //   2. A naive `**…。**` match can pair one span's CLOSING ** with the NEXT
+  //      span's OPENING ** when the first span carries no trailing 。 (e.g.
+  //      `**訂正告知**。…述べていた。**それは誤りだった**`), dragging an unrelated
+  //      sentence-final 。 inside. Match COMPLETE spans left-to-right instead,
+  //      and relocate 。/… only when it is the span's own final character.
+  const codeSpans = [];
+  // NUL never occurs in Markdown source, so a NUL-delimited index is a
+  // collision-free placeholder: the bold-span regex treats it as opaque
+  // content, and the restore step matches it back exactly.
+  let masked = next.replace(/`[^`\n]*`/g, (m) => {
+    codeSpans.push(m);
+    return `\0${codeSpans.length - 1}\0`;
+  });
+  masked = masked.replace(
+    /\*\*((?:[^*\n]|\*(?!\*))+?)\*\*/g,
+    (m, inner) => {
+      const mv = inner.match(/^([\s\S]*?)(。|…)$/);
+      return mv ? `**${mv[1]}**${mv[2]}` : m;
+    },
   );
+  next = masked.replace(/\0(\d+)\0/g, (_, i) => codeSpans[Number(i)]);
 
   // After ？ or ！, insert a space before the next word character so that the
   // following clause is not run together with the closing marker or the punctuation.

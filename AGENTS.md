@@ -42,6 +42,12 @@ page:
    or `text: ハンドブックを読む` rely on the space after `:` for
    readability and (in YAML) for parseability. The normaliser drops `:`
    from its ASCII boundary set for this reason.
+8. **Bracketed tag labels keep their space.** A `[tag] ラベル` separator —
+   notably the language-picker entries `[ja] 日本語` / `[zh-Hans] 简体中文` —
+   keeps the space so the CJK entries stay consistent with the Latin-script
+   siblings (`[fr] Français`, `[pt-BR] Português`) that the no-space rule
+   never touches. The normaliser drops `]` from its ASCII boundary set for
+   this reason.
 
 `scripts/normalize-ja-typography.mjs` applies these rules in bulk:
 

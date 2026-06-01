@@ -34,7 +34,14 @@ const KEEP = ['プロデューサ', 'コンシューマ', 'ウォーカ', 'メ�
 
 const transformRun = (run) => {
   let s = run;
-  for (const k of KEEP) s = s.replace(new RegExp(k + '(?!ー)', 'g'), k + 'ー');
+  // Insert the long vowel only when the base is word-final within its
+  // katakana run — i.e. NOT followed by another katakana. Guarding only
+  // against a trailing ー is insufficient: a KEEP base can be the prefix
+  // of an unrelated word (メンテナ↛メンテナンス "maintenance") or a compound
+  // boundary (レシーバ↛レシーバイディオム "receiver idiom"), where inserting
+  // ー corrupts the text. Agent-noun long vowels are word-final, so a
+  // following katakana means it is not the word we mean to lengthen.
+  for (const k of KEEP) s = s.replace(new RegExp(k + '(?![ァ-ヶー])', 'g'), k + 'ー');
   for (const d of DROP) s = s.split(d).join(d.slice(0, -1));
   return s;
 };
