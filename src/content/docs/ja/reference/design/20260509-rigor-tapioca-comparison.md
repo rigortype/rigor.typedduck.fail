@@ -227,7 +227,7 @@ Rigorは`rigor-sorbet`スライス4を通じてツリー全体を読む。プラ
 
 - [ADR-2 — 拡張APIストラテジー](../../adr/2-extension-api/)
   — 規範的プラグイン契約。
-- [ADR-11 — Sorbetインプットアダプタとしてのプラグイン](../../adr/11-sorbet-input-adapter/)
+- [ADR-11 — Sorbet入力アダプタとしてのプラグイン](../../adr/11-sorbet-input-adapter/)
   — 共存を実現するインプット側変換。
 - [Railsプラグインロードマップ](../20260508-rails-plugins-roadmap/)
   — Rigorが構築中のDSL対応プラグインのカタログ。

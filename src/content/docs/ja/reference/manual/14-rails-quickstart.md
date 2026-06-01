@@ -398,7 +398,7 @@ git add .rigor-baseline.yml   # ステップ6で生成した場合
 git commit -m "Add Rigor type checker"
 ```
 
-`mise.toml`はRuby 4.0とRigorのバージョンをすべてのコントリビューター向けにピン留めします——別のマシンで`mise install`を実行すれば、プロジェクトの`Gemfile`を変更することなく完全に同じツール群が復元されます。
+`mise.toml`はRuby 4.0とRigorのバージョンをすべての貢献者向けにピン留めします——別のマシンで`mise install`を実行すれば、プロジェクトの`Gemfile`を変更することなく完全に同じツール群が復元されます。
 
 ---
 

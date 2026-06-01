@@ -11,7 +11,7 @@ sidebar:
   order: 4034
 ---
 
-Status: **accepted, 2026-05-29; v0.1.13で実装**。可視のメソッドコントリビューターに対して解決に失敗するトップレベルのimplicit-self呼び出しサイトで、現在の無音な`Dynamic[top]`の挙動を反転させ、代わりに専用の`call.unresolved-toplevel`診断をemitするという決定を記録する。エスケープハッチ——monkey-patchingやメタプログラミングを通じてトップレベルメソッドを導入するプロジェクト向け——は[ADR-17](../17-monkey-patch-pre-evaluation/)の`pre_eval:`設定軸であり、同じリリースでランディングした。`call.unresolved-toplevel`ルールと`Scope#toplevel?`述語が出荷され、重大度は`severity_profile:`を通じてマップされ、クロスファイルのトップレベル`def`インデックスも整っている;ADR-29のPlaygroundデフォルト重大度の配線が残りのスライス（slice）である。
+Status: **accepted, 2026-05-29; v0.1.13で実装**。可視のメソッド貢献者に対して解決に失敗するトップレベルのimplicit-self呼び出しサイトで、現在の無音な`Dynamic[top]`の挙動を反転させ、代わりに専用の`call.unresolved-toplevel`診断をemitするという決定を記録する。エスケープハッチ——monkey-patchingやメタプログラミングを通じてトップレベルメソッドを導入するプロジェクト向け——は[ADR-17](../17-monkey-patch-pre-evaluation/)の`pre_eval:`設定軸であり、同じリリースでランディングした。`call.unresolved-toplevel`ルールと`Scope#toplevel?`述語が出荷され、重大度は`severity_profile:`を通じてマップされ、クロスファイルのトップレベル`def`インデックスも整っている;ADR-29のPlaygroundデフォルト重大度の配線が残りのスライス（slice）である。
 
 このADRは意図的に狭い範囲に限定している: **トップレベル**スライス（slice）のみデフォルトを反転する。`class` / `module`ボディ内のimplicit-self呼び出しは[ADR-24 WD3](../24-self-method-call-resolution/)の下で寛容なままとなる;それらを診断に格上げすることは[ADR-24 WD4](../24-self-method-call-resolution/)の別途ゲートされた決定であり、**このADRによって開かれるものではない**。
 

@@ -280,7 +280,7 @@ plugins/rigor-tapioca/
 
 - [`20260509-rigor-tapioca-comparison.md`](../20260509-rigor-tapioca-comparison/)
   — この調査が基づく戦略的比較。
-- [ADR-11 — Sorbetインプットアダプタとしてのプラグイン](../../adr/11-sorbet-input-adapter/)
+- [ADR-11 — Sorbet入力アダプタとしてのプラグイン](../../adr/11-sorbet-input-adapter/)
   — `rigor-sorbet`の拘束力のある契約。
 - [`tapioca/manual/compiler_activerecordcolumns.md`](https://github.com/rigortype/rigor/blob/master/references/tapioca/manual/compiler_activerecordcolumns.md)
   — この調査がテストしたTapioca生成DSL RBI形式のサンプル。

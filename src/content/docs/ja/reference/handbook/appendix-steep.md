@@ -166,7 +166,7 @@ Rigorは、デフォルトで推論できるものを推論し、できないと
 - **自動ナローイングを持つリファインメントキャリア**。`unless s.empty?`からの`non-empty-string`、`n > 0`からの`positive-int`等。
 - **メソッド呼び出しを通じた定数folding**。`"foo".upcase`は`String`ではなく`Constant<"FOO">`に解決される。Steepのリテラル型はRigorのものより狭い。
 - **プラグインサイドの戻り型提供**。Steepには`flow_contribution_for`に対応するものがない — ドメインDSLの戻り型がリテラルの最初の引数に依存する場合、Rigorはそれをモデル化するが、Steepはしない。
-- **Sorbetインプットアダプタ**。`rigor-sorbet`の移行はSorbet中間のプロジェクトにとってコストゼロ（`sig { ... }`ブロックとRBIファイルがRigorのカタログへの入力になる）。SteepはSorbetのsigを読まない。
+- **Sorbet入力アダプタ**。`rigor-sorbet`の移行はSorbet中間のプロジェクトにとってコストゼロ（`sig { ... }`ブロックとRBIファイルがRigorのカタログへの入力になる）。SteepはSorbetのsigを読まない。
 - **キャッシュ駆動のインクリメンタル解析**。Rigorのファイルごとのキャッシュは実行をまたいでマシン境界をまたいで生存する（ADR-6）。Steepのインクリメンタルストーリーは改善中だがまだ同等ではない。
 
 ## 共存パターン

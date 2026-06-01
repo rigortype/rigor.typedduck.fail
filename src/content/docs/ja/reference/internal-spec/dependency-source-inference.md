@@ -205,7 +205,7 @@ Rigor::Cache::Descriptor::DependencyEntry.new(
 | `gem_version` | String | 実行の`Resolved.version`（`Gem::Version`をStringにレンダリング）。 |
 | `mode` | `:disabled` / `:when_missing` / `:full` | {Configuration::Dependencies::VALID_MODES}を反映。 |
 
-合成（`Cache::Descriptor.compose`）は`gem_name`でグループ化し、2つのコントリビューターが`gem_version`または`mode`で不一致の場合に`Conflict`を発生させます。有効なデプロイメントではBundlerはgemごとに1バージョンをインストールし、パーサはgemごとに1エントリーを生成するため、競合パスは例外的です。
+合成（`Cache::Descriptor.compose`）は`gem_name`でグループ化し、2つの貢献者が`gem_version`または`mode`で不一致の場合に`Conflict`を発生させます。有効なデプロイメントではBundlerはgemごとに1バージョンをインストールし、パーサはgemごとに1エントリーを生成するため、競合パスは例外的です。
 
 `Index#cache_descriptor`はすべての`Resolved`行を`DependencyEntry`に変換し、`dependencies:`スロットが設定されたフリーズされた`Cache::Descriptor`を返します。ADR-10推論出力を観察するキャッシュプロデューサーはこのディスクリプタを自身のもの（`RbsDescriptor`、プラグインディスクリプタ、ファイルダイジェスト）と`Cache::Descriptor.compose`を通じて合成するため、列挙されたgemの`bundle update`がそのgemのスライスだけを無効化し、キャッシュの残りをホットのままにします。
 

@@ -58,8 +58,11 @@
   併記。コード `BindingRecognizer` は据え置き）。
 - `comparator`（コンパレーター）→ **比較器**（定義ページ
   `design/…cache-slice-taxonomy` 初出パーレン併記。CS標準訳）。
-- 候補（未確定・保留）：input adapter → 入力アダプタ／contributor → 貢献者／
-  early return narrowing → 前半を和訳。
+- `input adapter`（インプットアダプタ）→ **入力アダプタ**（「Sorbet入力アダプタ」）。
+- `contributor`（コントリビューター）→ **貢献者**（「マルチコントリビューター」→
+  「複数貢献者」。別語の contribution＝コントリビューションは対象外）。
+- `early return`（アーリーリターン）→ **早期リターン**（narrowing はナローイング維持。
+  adr/24・notes の既存表記に統一）。
 
 ## 未決定の末尾ー語（2026-06 時点）
 
