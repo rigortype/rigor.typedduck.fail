@@ -1,6 +1,6 @@
 ---
 name: sync-upstream
-description: Pull the latest upstream Rigor docs into this site, detect translation drift, translate stale or missing Japanese pages, and ship the change as two commits — one for the submodule bump, one for the translation updates. Use when the user asks to "follow the latest Rigor", "track v0.x.y", "pull upstream", or any equivalent.
+description: Pull the latest upstream Rigor docs into this site, detect translation drift, translate stale or missing Japanese pages, ship the change as two commits — one for the submodule bump, one for the translation updates — and push them by default. Use when the user asks to "follow the latest Rigor", "track v0.x.y", "pull upstream", or any equivalent.
 ---
 
 # Sync upstream Rigor docs and propagate translations
@@ -299,15 +299,39 @@ pages changed, list them in the body. If you touched both
 directions (forward + reverse), say so in the body so reviewers
 know to look under both `src/content/docs/ja/` and `translations/en/`.
 
-## Step 6 — report to the user
+## Step 6 — push
+
+By default, push the new commits once the work is committed and
+`check-translations.mjs` is green:
+
+```sh
+git push
+```
+
+This pushes both commits (the submodule bump and the translation
+update) to the current branch's upstream in one go. Notes:
+
+- **Push even for a bump-only run** (submodule moved but no translation
+  drift) — the pointer change should still land.
+- **Nothing to push** when the submodule had no new commits (the
+  "Already up to date" edge case) — skip silently.
+- **Do not** open a PR; pushing to the working branch is the publish
+  flow for this repo. Open a PR only if the user explicitly asks.
+- If `git push` fails (no upstream tracking, non-fast-forward, auth),
+  stop and report the failure with the local commit SHAs so the user
+  can push manually — do not force-push.
+
+If the user said "commit but don't push" (or similar) for this run,
+honour that and skip the push.
+
+## Step 7 — report to the user
 
 Tell the user:
 - which upstream ref was checked out;
 - how many pages changed (translated / still stale / still missing);
 - the two commit SHAs;
+- whether the commits were pushed (and to which branch);
 - anything deferred and why.
-
-Do not push or open a PR unless the user explicitly asks.
 
 ## Edge cases
 
