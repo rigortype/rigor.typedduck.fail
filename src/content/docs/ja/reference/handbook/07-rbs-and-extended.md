@@ -19,7 +19,7 @@ Rigorの推論が型を証明できないとき、次の逃げ道はRBS — Ruby
 以下の場合にRBSファイルを追加する必要があるでしょう:
 
 - メソッド本体の戻り値型が、Rigorのバンドルされたstdlibがカバーしていない外部gemに依存している。
-- 引数シェイプ（shape）エラーに対して`call.argument-type-mismatch`を発火させたい（インソース`def`はパラメーター契約を強制しません; RBS宣言メソッドのみが強制します）。
+- 引数シェイプ（shape）エラーに対して`call.argument-type-mismatch`を発火させたい（インソース`def`はパラメータ契約を強制しません; RBS宣言メソッドのみが強制します）。
 - 本体の推論された戻り値が宣言された戻り値からずれたときに`def.return-type-mismatch`を発火させたい。
 - 将来のRBS対応ツール（Steep、ruby-lsp）が同じファイルを読んで、契約から恩恵を受けるでしょう。
 
@@ -64,7 +64,7 @@ end
 Slug.new.normalise(42)
 ```
 
-は`call.argument-type-mismatch`を発火させます: `42`はIntegerで、パラメーターは`String`です。
+は`call.argument-type-mismatch`を発火させます: `42`はIntegerで、パラメータは`String`です。
 
 ## RBSシェイプが広すぎるとき
 
@@ -96,7 +96,7 @@ s == "hello-world"  # bool — 等値ナローイングが適用される
 | ディレクティブ | 意味 |
 | --- | --- |
 | `%a{rigor:v1:return: <type>}` | メソッドの戻り値型を締め付ける。 |
-| `%a{rigor:v1:param: <name> is <type>}` | 呼び出し元でのパラメーターの受け入れ型を締め付け、かつ本体内のローカル変数をナローイング（narrowing）する。 |
+| `%a{rigor:v1:param: <name> is <type>}` | 呼び出し元でのパラメータの受け入れ型を締め付け、かつ本体内のローカル変数をナローイング（narrowing）する。 |
 | `%a{rigor:v1:assert: <name> is <type>}` | このメソッドが返った後、呼び出し元スコープの名前付きローカル変数は`<type>`である。 |
 | `%a{rigor:v1:predicate-if-true: <name> is <type>}` | このメソッドが真値を返したとき、呼び出し元スコープの名前付きローカル変数は`<type>`である。（対称な`predicate-if-false`。） |
 | `%a{rigor:v1:assertion-on: <name>}` | メソッドをアサーションゲートとしてマークする — 本体の最後の式の型が`<name>`に関する事実になる。 |
@@ -161,7 +161,7 @@ end
 
 これは、エンジンの組み込み`is_a?` / `nil?`ルールが認識できないカスタム型述語メソッドについてRigorに教えるためのサポートされた方法です。
 
-## 実例: パラメーターオーバーライド
+## 実例: パラメータオーバーライド
 
 ```ruby
 class Slug
@@ -173,9 +173,9 @@ end
 これには2つの効果があります:
 
 1. **呼び出し元チェック**。`Slug.new.normalise("")`は`Constant<"">`が`non-empty-string`を満たさないため、`call.argument-type-mismatch`になります。
-2. **本体側ナローイング**。`normalise`のメソッド本体内側で、パラメーター`id`は`non-empty-string`です。したがって`id.empty?`は`Constant<false>`に還元され、`id.size`は`positive-int`に還元されます。
+2. **本体側ナローイング**。`normalise`のメソッド本体内側で、パラメータ`id`は`non-empty-string`です。したがって`id.empty?`は`Constant<false>`に還元され、`id.size`は`positive-int`に還元されます。
 
-## ランタイムが強制できないパラメーターオーバーライドが必要なとき
+## ランタイムが強制できないパラメータオーバーライドが必要なとき
 
 ランタイム関数が不正な入力で例外を投げない場合 — nilを返す、デフォルトを返す、またはエラーを飲み込む — があります。Rigorの`param:`ディレクティブは依然として呼び出し元の契約を締め付けます:
 
@@ -200,7 +200,7 @@ class Slug
 end
 ```
 
-`.rb`ファイルの内側に置くことは**できません**。ディレクティブはRBSから読まれたときのみ発火します — これは設計上の選択です（ADR-5、堅牢性の原則: 戻り値に対して厳密、パラメーターに対して寛大を参照）。
+`.rb`ファイルの内側に置くことは**できません**。ディレクティブはRBSから読まれたときのみ発火します — これは設計上の選択です（ADR-5、堅牢性の原則: 戻り値に対して厳密、パラメータに対して寛大を参照）。
 
 ## RubyソースへのインラインRBS — `rigor-rbs-inline`プラグイン
 
@@ -251,7 +251,7 @@ plugins:
 def deserialize: (String) -> untyped
 ```
 
-`untyped`は契約フリーのハッチ — あらゆるメソッドがそれに存在し、あらゆる引数シェイプが受け入れられます。Rigorの診断は`untyped`レシーバーに対して沈黙します。正当に動的な境界（デシリアライズ、`eval`、プラグインエントリポイント）に使います。失う静的解析は「これは何でもあり得る」と認めることの誠実さで補われます。
+`untyped`は契約フリーのハッチ — あらゆるメソッドがそれに存在し、あらゆる引数シェイプが受け入れられます。Rigorの診断は`untyped`レシーバーに対して沈黙します。正当に動的な境界（デシリアライズ、`eval`、プラグインエントリーポイント）に使います。失う静的解析は「これは何でもあり得る」と認めることの誠実さで補われます。
 
 ## PHPStanから来た方へ — `@phpstan-assert`ファミリー
 
@@ -297,7 +297,7 @@ class Connection
 end
 ```
 
-RigorのディレクティブのグラマーはPHPStanが`@phpstan-assert*`ファミリーで提供するものをカバーします。ディレクティブは**RBSからのみ**発火します（ADR-5に従い: 戻り値では厳格に、パラメーターでは寛容に）; PHPStan側では関数のすぐ上のPHPDocに`@phpstan-assert`を直接書けます — Rigorでの等価表現は同じRBSファイルの`def`行です。
+RigorのディレクティブのグラマーはPHPStanが`@phpstan-assert*`ファミリーで提供するものをカバーします。ディレクティブは**RBSからのみ**発火します（ADR-5に従い: 戻り値では厳格に、パラメータでは寛容に）; PHPStan側では関数のすぐ上のPHPDocに`@phpstan-assert`を直接書けます — Rigorでの等価表現は同じRBSファイルの`def`行です。
 
 **コールシェイプ**によってアサーションを認識するプラグイン側の等価表現が必要な場合（PHPStanの「型指定拡張」）は[第9章](09-plugins/)を参照してください。プラグイン契約はディレクティブが使うのと同じ`Fact(target_kind: :self)`と`Fact(target_kind: :parameter)`キャリアを提供しているため、プラグイン作者はRubyからPHPStanの`StaticMethodTypeSpecifyingExtension`に相当するものを書けます。
 

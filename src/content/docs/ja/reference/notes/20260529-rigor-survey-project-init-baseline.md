@@ -102,7 +102,7 @@ sidebar:
 すべてのライブラリが`genuine-bugs`ヒント（少数で散在するルール）を得た。繰り返し現れる形:
 
 - **`call.possible-nil-receiver`** — 単独で最も多い*ライブラリ*の所見（algorithms 33、ox 10、hamlit 10、numo-narray 5）。[`feedback_false_positive_discipline`]に従えば、大半はテストスイートが安全だと証明しているコードに対する最悪ケース健全な`T | nil`の読み取りであり、強制的な修正ではなくベースライン材料である。少数（例: nil許容のインデックスに対する`ox/element.rb`の比較チェーン）は人間が見る価値がある。
-- **stdlib / ネイティブレシーバ上の`call.undefined-method`** — 大半は**RBSカバレッジのギャップ**であり、バグではない:
+- **stdlib / ネイティブレシーバー上の`call.undefined-method`** — 大半は**RBSカバレッジのギャップ**であり、バグではない:
   - `oj`: `singleton(JSON::Ext::Generator::State)`上の`from_state`（ネイティブ）。
   - `faraday`: `URI`上の`find_proxy`、`Class`上の`options_for` / `member_set`。
   - `protobuf`: `Numeric`上の`to_i` / `to_f`（×13 — 抽象的な`Numeric`は`to_i`を持たない。値は実行時には具体的にInteger/Floatである）。
@@ -141,7 +141,7 @@ sidebar:
 
 `pre_eval:`には、トリアージのヒントが指した6つのファイル（`app/models/{user,setting,mailer,token}.rb`、`lib/redmine/{configuration,twofa}.rb`）を列挙した。結果: **`undefined-method`が−613件**（3319 → 2706）、`project-monkey-patch`ヒントは1665 → 1108に縮小した。
 
-レシーバ別に、何が解消され何が残ったか:
+レシーバー別に、何が解消され何が残ったか:
 
 - **解消された — `User.current`（486 → 0）**。 `user.rb`内にリテラルな`def self.current`として定義されている。`pre_eval:`のウォーカーがそれを見て、すべての呼び出し元が解決する。この単一のクラスタが削減の約80%である。`Mailer.deliver_*`、`Token.find_*`、`Redmine::Configuration[]`も同様。
 - **解消されなかった — `Setting.default_language` / `app_title` / …（依然それぞれ約20/18件）**。 `Setting`はそのアクセサを静的な`def`ではなく`method_missing`経由で公開する — そのためファイルの事前パスを歩いても登録すべきものが見つからない。**これはエスカレーションパスAの境界である:** `method_missing`によるDSLは`pre_eval:`ではなく*プロジェクトプラグイン*を必要とする。

@@ -16,13 +16,13 @@ sidebar:
 
 ### v0.1.6で着地したもの
 
-- **スライス1** — `Rigor::Type::App`の不透明キャリア（carrier）（`uri`、`args`、`bound`）;`Rigor::Inference::HktRegistry`（`Registration` + `Definition`値オブジェクト + last-write-winsの`merge`）;`Rigor::RbsExtended::HktDirectives.parse_register` / `parse_define`（`%a{rigor:v1:hkt_register}` / `%a{rigor:v1:hkt_define}`ディレクティブ用のJSON-flowペイロードパーサー）。このスライスでは簡約なし、呼び出しサイトの配線なし。
-- **スライス2a** — `Rigor::Inference::HktBody`（5つの`Data.define`ボディ木ノード型: `TypeLeaf`、`Param`、`AppRef`、`Union`、`NominalApp`）;遅延自己再帰処理のための呼び出しごとの進行中スタック（再帰的な直和が終了するための「結び目固め」トリック）と燃料予算（WD3に従いデフォルト64）を実装する`Rigor::Inference::HktReducer`によるD4評価ルール。`Definition#body_tree`スロットを追加;ボディ文字列はスライス2bパーサー用にそのまま並んで残る。`Type::App#reduce` + `HktRegistry#reduce`便宜ラッパー。
-- **スライス2b** — `Rigor::Inference::HktBodyParser`（最小文法: union + アトム + nominal_app + app_ref + param、`JSON.parse`の再帰的直和と類似の再帰データ形シグネチャに十分;条件 / インデックスアクセス形はフォローアップに残る）。`HktDirectives.parse_define`は今、自動的にパーサーを呼び出しボディ文字列から`body_tree`を埋める;パース失敗はfail-softで`body_tree: nil` + `:info`レポーターエントリになる。エンドツーエンドのレデューサ等価性がプログラマティックなJSON_VALUEボディに対して検証された。
+- **スライス1** — `Rigor::Type::App`の不透明キャリア（carrier）（`uri`、`args`、`bound`）;`Rigor::Inference::HktRegistry`（`Registration` + `Definition`値オブジェクト + last-write-winsの`merge`）;`Rigor::RbsExtended::HktDirectives.parse_register` / `parse_define`（`%a{rigor:v1:hkt_register}` / `%a{rigor:v1:hkt_define}`ディレクティブ用のJSON-flowペイロードパーサ）。このスライスでは簡約なし、呼び出しサイトの配線なし。
+- **スライス2a** — `Rigor::Inference::HktBody`（5つの`Data.define`ボディ木ノード型: `TypeLeaf`、`Param`、`AppRef`、`Union`、`NominalApp`）;遅延自己再帰処理のための呼び出しごとの進行中スタック（再帰的な直和が終了するための「結び目固め」トリック）と燃料予算（WD3に従いデフォルト64）を実装する`Rigor::Inference::HktReducer`によるD4評価ルール。`Definition#body_tree`スロットを追加;ボディ文字列はスライス2bパーサ用にそのまま並んで残る。`Type::App#reduce` + `HktRegistry#reduce`便宜ラッパー。
+- **スライス2b** — `Rigor::Inference::HktBodyParser`（最小文法: union + アトム + nominal_app + app_ref + param、`JSON.parse`の再帰的直和と類似の再帰データ形シグネチャに十分;条件 / インデックスアクセス形はフォローアップに残る）。`HktDirectives.parse_define`は今、自動的にパーサを呼び出しボディ文字列から`body_tree`を埋める;パース失敗はfail-softで`body_tree: nil` + `:info`レポーターエントリーになる。エンドツーエンドのレデューサ等価性がプログラマティックなJSON_VALUEボディに対して検証された。
 - **スライス2e** — `RbsLoader#each_class_decl_annotation` + `HktRegistry.scan_rbs_loader` + `Environment.for_project`配線。`%a{rigor:v1:hkt_register / hkt_define}`アノテーションを運ぶユーザー著作`.rbs`オーバーレイは今、`env.hkt_registry`に表面化し、バンドルされた組み込みの上にマージされる。URI衝突はlast-write-winsなので、ユーザーオーバーレイは望むならバンドルされたJSON_VALUEをオーバーライドできる。
-- **スライス6** — プラグインマニフェスト宣言のHKT登録。`Plugin::Manifest`が`hkt_registrations:` / `hkt_definitions:`フィールドを獲得;`Plugin::Registry#hkt_overlay_registry`がロードされたすべてのプラグインのエントリを集約;`Environment#hkt_registry`は**builtins → プラグインオーバーレイ → RBS envスキャン**の順にマージ、URI衝突はlast-write-wins。
-- **HktDirectives kv-formリファクター** — ペイロード形式がJSON-flow（`{"uri": "x", ...}`）からkv-form（`uri=x arity=1 ... body=...`）に移動、RBSの`%a{...}`アノテーション文法が`"`クォートを拒否するため。生のRBS::EnvironmentLoaderで検証済み。
-- **スライス2c** — `Environment#hkt_registry` attr_readerが凍結されたレジストリをすべてのアナライザ呼び出しを通してスレッド化する。`Environment.default` / `.for_project`は新しい`Rigor::Builtins::HktBuiltins.registry`モジュール経由でそれをシードする。
+- **スライス6** — プラグインマニフェスト宣言のHKT登録。`Plugin::Manifest`が`hkt_registrations:` / `hkt_definitions:`フィールドを獲得;`Plugin::Registry#hkt_overlay_registry`がロードされたすべてのプラグインのエントリーを集約;`Environment#hkt_registry`は**builtins → プラグインオーバーレイ → RBS envスキャン**の順にマージ、URI衝突はlast-write-wins。
+- **HktDirectives kv-formリファクタ** — ペイロード形式がJSON-flow（`{"uri": "x", ...}`）からkv-form（`uri=x arity=1 ... body=...`）に移動、RBSの`%a{...}`アノテーション文法が`"`クォートを拒否するため。生のRBS::EnvironmentLoaderで検証済み。
+- **スライス2c** — `Environment#hkt_registry` attr_readerが凍結されたレジストリをすべてのアナライザー呼び出しを通してスレッド化する。`Environment.default` / `.for_project`は新しい`Rigor::Builtins::HktBuiltins.registry`モジュール経由でそれをシードする。
 - **スライス2d** — `%a{rigor:v1:return:}`ペイロード内の`App[<uri>, <ClassName>, ...]`ペイロード構文が`RbsExtended.parse_return_type_override`によってパースされ、envのレジストリを通じて積極的に簡約される。
 - **スライス3** — `JSON.parse` / `JSON.parse!` / `JSON.load`をカバーする`Rigor::Builtins::HktBuiltins::METHOD_RETURN_OVERRIDES`テーブル;`RbsDispatch.try_dispatch`の**上**に位置する新しい`Inference::MethodDispatcher.try_hkt_builtin_return`層、したがってテーブルが上流のrbs gemの`untyped`スロットに勝つ。判別子サーフェス（surface）（`:json_symbolize_names`）は、呼び出しがリテラルな`symbolize_names: true`オプションを運ぶときに`K = String`を`K = Symbol`に差し替える。アノテーションベースの著作（再宣言されたメソッド上の`%a{rigor:v1:return: App[...]}`経由の元のD8計画）はこのスライスで調査され拒否された、RBSは拡張形の`def m: ...`宣言から解決された`RBS::Definition::Method`に`%a{...}`アノテーションを伝播しないため;ハードコードされたテーブルは実用的なショートカットであり、一方でアノテーションベースのパスは新しいメソッドを**宣言**する（上流のメソッドを再宣言するのではない）ユーザー著作sig用の一般的な拡張サーフェスのままである。
 
@@ -44,7 +44,7 @@ sidebar:
 def self?.parse: (string source, ?options opts) -> untyped
 ```
 
-`untyped`は上流のrbs gemの選択である。Rigorのアナライザにとってこれは:
+`untyped`は上流のrbs gemの選択である。Rigorのアナライザーにとってこれは:
 
 - すべての`JSON.parse(...)`呼び出しサイトが`Dynamic[Top]`に広がる。
 - 下流のナローイング（narrowing）（`is_a?`、`case/in`、`dig`）が情報を回復する唯一の方法。
@@ -128,7 +128,7 @@ Pythonの型システムは**意図的にL1で止まる**: `json.loads`は`-> An
 ADR-20の重要性 — そしてL1+L2を先に着地させてL3を需要にゲートするのではなく初日からL3を出荷することの正当性 — は、**L1+L2では到達できない2つの第2レベル精度ターゲット**にかかっている:
 
 1. **条件型評価**。rigor-lisp-evalデモの`eval`は「リテラルASTの形`E`が結果型を決定する」をエンコードするために`App[lisp_type, E]`を必要とする。これを表現するL1形はない;条件型ボディ（D3）が必要であり、開いたレジストリがそれらの自然な居場所。
-2. **開いた型コンストラクタレジストリ**。`rigor-dry-monads`が`Result[T, E]`と`Maybe[T]`を名前付きコンストラクタとして出荷すれば、下流コードは*任意の*そうしたキャリアを抽象化したくなる（単一の`traverse`シグネチャ、ジェネリックな`Functor<F>`形のライブラリ）。L1の再帰エイリアスは閉じている;脱関数化されたタグ + URIレジストリこそが「アナライザを再コンパイルすることなく、将来の任意のプラグインが新しいコンストラクタを登録し、汎用コンビネータが適用される」ことを許す。
+2. **開いた型コンストラクタレジストリ**。`rigor-dry-monads`が`Result[T, E]`と`Maybe[T]`を名前付きコンストラクタとして出荷すれば、下流コードは*任意の*そうしたキャリアを抽象化したくなる（単一の`traverse`シグネチャ、ジェネリックな`Functor<F>`形のライブラリ）。L1の再帰エイリアスは閉じている;脱関数化されたタグ + URIレジストリこそが「アナライザーを再コンパイルすることなく、将来の任意のプラグインが新しいコンストラクタを登録し、汎用コンビネータが適用される」ことを許す。
 
 JSON.parse形の再帰直和を**オプションごとの判別なしで**必要とするだけの消費者にはL1のみで十分 — そして今日すでに`type json::value[K] = …`経由で動作する。著作ガイダンスへの含意は: **L1から始め、単一のオプションが判別を必要としたらL2に登り、型レベル計算やクロスプラグイン拡張性が実際に関与するときにのみL3レジストリに手を伸ばす**。スライス5（WD5に従う再帰`type`エイリアス経由の糖衣構文）は、L3と並行してL1を人間工学的にするパス;入口ではなくフォローアップなのは意図的で、上記の第2レベル精度ターゲットがL3を必要とし、JSON.parseのショーケースが初日からL2の`return_override`を必要としたからである。
 
@@ -163,7 +163,7 @@ Rigor拡張カタログはすでに「ライブラリシグネチャ向けにMAY
 - **higher-rank多相性**。[型理論付録](../../handbook/appendix-type-theory/) §「Rigorがモデル化しないこと」に従い、System F⊤はスコープ外のまま。
 - **SMT駆動のリファインメント（refinement、篩型とも）評価**。ここでの型レベル計算は決定可能な構造的パターンマッチであり、Liquid Typesスタイルの述語ソルビングではない。
 - **新しい「.rbsx」ファイル形式**。すべての著作は既存の`.rbs`ファイル内の`%a{rigor:v1:…}`アノテーション内で行われる（ADR-0境界）。
-- **Rubyコードからの新しいHKT登録の推論**。プラグインが登録に貢献する;アナライザがタグを発明することは決してない。
+- **Rubyコードからの新しいHKT登録の推論**。プラグインが登録に貢献する;アナライザーがタグを発明することは決してない。
 - **自動モノモーフィゼーション**。軽量HKT型が呼び出しサイトで解決できないとき、それは合成モノモーフィックコピーではなく、宣言された境界（典型的には`Dynamic[Top]`）に消去される。
 
 ## 決定（提案された形）
@@ -175,7 +175,7 @@ Rigor拡張カタログはすでに「ライブラリシグネチャ向けにMAY
 - `F`は**URI**である — 型コンストラクタを一意に識別するシンボル。URIはプラグイン間の衝突を防ぐため`<author>::<name>`として名前空間化される（例: `:json::value`、`:dry_monads::result`、`:rigor_lisp_eval::lisp_type`）。
 - `A`は引数リスト（空かもしれない、fp-tsの`Kind2` / `Kind3`の先例に従い複数引数かもしれない）。
 
-`App`は**不透明**である、（a）URIの登録がアナライザに既知で簡約が成功するまで、その場合`App`は登録された具体型に展開する;または（b）URIが未知または簡約がブロックされるとき、その場合`App`は宣言された境界に消去する。
+`App`は**不透明**である、（a）URIの登録がアナライザーに既知で簡約が成功するまで、その場合`App`は登録された具体型に展開する;または（b）URIが未知または簡約がブロックされるとき、その場合`App`は宣言された境界に消去する。
 
 ### D2 — タグ登録
 
@@ -212,7 +212,7 @@ type json::value[K] =
   | Hash[K, json::value[K]]
 ```
 
-— アナライザがRHSで自身を名指す再帰的`type`エイリアスをタグの暗黙的登録として認識することで。これは*糖衣構文*パス;明示的な`%a{rigor:v1:hkt_register}` / `%a{rigor:v1:hkt_define}`ペイロードが正準形のまま。
+— アナライザーがRHSで自身を名指す再帰的`type`エイリアスをタグの暗黙的登録として認識することで。これは*糖衣構文*パス;明示的な`%a{rigor:v1:hkt_register}` / `%a{rigor:v1:hkt_define}`ペイロードが正準形のまま。
 
 ### D3 — 条件型による型レベル関数
 
@@ -255,11 +255,11 @@ def self.eval: [E] (E expr) -> App[rigor_lisp_eval::lisp_type, E]
 
 `App[F, A]`の簡約は次のように進行する:
 
-1. **`F`を解決**。アナライザのHKTレジストリ経由で登録されたボディをルックアップする;不在の場合、D5（消去）にフォールスルー。
+1. **`F`を解決**。アナライザーのHKTレジストリ経由で登録されたボディをルックアップする;不在の場合、D5（消去）にフォールスルー。
 2. **引数を代入**。形式パラメータを`A`で置き換える。
 3. **条件テストを評価**。各`<test>`に対し、標準のサブタイピング（subtyping） / 構造的チェック経由で決定する。テストが`maybe`（決定できない）のとき、囲む`?:`アームは両方の枝のユニオンに広げられる。
 4. **入れ子の`App`に再帰**。簡約は構造的;再帰深さは[`inference-budgets.md`](../../type-specification/inference-budgets/)に追加された**HKT-eval予算**で制限される。
-5. **キャッシュ**。簡約は参照透過;`(F, normalised(A))`ごとにアナライザパスごとにメモ化する。
+5. **キャッシュ**。簡約は参照透過;`(F, normalised(A))`ごとにアナライザーパスごとにメモ化する。
 
 ### D5 — RBSへの消去
 
@@ -298,7 +298,7 @@ class MyPlugin
 end
 ```
 
-ボディコールバックはアナライザの環境とすでに簡約された引数型を受け取る;`Type`値を返す。これは、条件 / インデックスアクセス式として綴れないボディを持つ型レベル関数のための**エスケープハッチ** — 一部の統合に必要だが、宣言的形が動作する場所では推奨されない。
+ボディコールバックはアナライザーの環境とすでに簡約された引数型を受け取る;`Type`値を返す。これは、条件 / インデックスアクセス式として綴れないボディを持つ型レベル関数のための**エスケープハッチ** — 一部の統合に必要だが、宣言的形が動作する場所では推奨されない。
 
 ### D8 — JSON.parse特に
 
@@ -336,7 +336,7 @@ end
 
 ## 作業上の決定
 
-- **WD1.** URIは`:<author>::<name>`形の名前空間化されたシンボル。アナライザはURIが`::`を含まないHKT登録を拒否する。理由: プラグイン間の衝突回避。
+- **WD1.** URIは`:<author>::<name>`形の名前空間化されたシンボル。アナライザーはURIが`::`を含まないHKT登録を拒否する。理由: プラグイン間の衝突回避。
 - **WD2.**デフォルト消去境界は`Top`ではなく`untyped`。理由: `untyped`は既存のRBS認識ツール（Steep、ruby LSP）がすでに優雅に処理する;`Top`は`Dynamic[Top]`を下流全体に表面化させ、同じ`.rbs`の非Rigor消費者の体験を低下させる。
 - **WD3.** HKT-eval予算はデフォルトで**呼び出しサイト評価あたり64簡約ステップ**。枯渇は境界に消去し、`info`深刻度の診断`hkt.budget-exhausted`を発する。理由: 構造的再帰チェックを強制せずに終了を境界する;64はlisp-evalデモの1レベルの再帰を持つ7アームの条件に対して十分寛大。
 - **WD4.** `%a{rigor:v1:hkt_register}`の分散注釈はサブタイピング時に尊重される: `App[F, Sub] <: App[F, Sup]`は`F`がその引数で`out`-variantに登録されている*かつ*`Sub <: Sup`のとき。デフォルトは`inv`（不変）、RBSジェネリクスに一致。
@@ -348,7 +348,7 @@ end
 
 すべてのスライスは、v0.1.x安定化中`dependencies.lightweight_hkt: true`オプトインの背後で出荷される;最初のv0.2.xリリースまでにデフォルトで`true`になる。
 
-### スライス1 — キャリア + パーサーのみ
+### スライス1 — キャリア + パーサのみ
 
 - 簡約ロジックなしの`Type::App[uri, args]`キャリアを追加。
 - `%a{rigor:v1:hkt_register}` / `%a{rigor:v1:hkt_define}`アノテーションをインプロセスレジストリにパース。
@@ -373,7 +373,7 @@ end
 
 - 2つのURI登録経由で`Result[T, E]`と`Maybe[T]`を追加。
 - 2引数HKT登録が動作することを検証（fp-tsの`Kind2`をミラー）。
-- [ADR-12](../12-dry-rb-packaging/)下にキューされたdry-monadsアダプタープラグインのブロックを解除。
+- [ADR-12](../12-dry-rb-packaging/)下にキューされたdry-monadsアダプタプラグインのブロックを解除。
 
 ### スライス5 — 糖衣構文（再帰的`type`エイリアス）
 
@@ -382,14 +382,14 @@ end
 
 ### スライス6 — プラグイン側のリゾルバフックアップ
 
-- `Plugin::TypeNodeResolver`（ADR-13）をD7に記述された`hkt_definitions:`マニフェストエントリで拡張。
+- `Plugin::TypeNodeResolver`（ADR-13）をD7に記述された`hkt_definitions:`マニフェストエントリーで拡張。
 - 需要駆動;プラグインがそれを必要とするときのみ出荷（最初の消費者として最も可能性が高い: スキーマ駆動クエリ結果型のための`rigor-graphql`）。
 
 ## 既存ADRとの境界
 
 - **[ADR-0](../0-concept/)** — すべての軽量HKT著作は`.rbs`アノテーションに留まる。`.rb`ファイルはRigor専用構文がないままにとどまる。
 - **[ADR-1](../1-types/)** — すべての`App[F, A]`キャリアは登録された`bound:`経由のRBS消去を持たなければならない。ラウンドトリップは精度損失許容。
-- **[ADR-2](../2-extension-api/)** — プラグインマニフェストはオプションの`hkt_definitions:`エントリ（スライス6）を獲得する;契約（contract）は既存の`type_node_resolvers:`エントリと前方互換。
+- **[ADR-2](../2-extension-api/)** — プラグインマニフェストはオプションの`hkt_definitions:`エントリー（スライス6）を獲得する;契約（contract）は既存の`type_node_resolvers:`エントリーと前方互換。
 - **[ADR-5](../5-robustness-principle/)** — 型関数評価が`maybe`のとき、堅牢性原則が位置ごとにジョインのどちら側が勝つかを選ぶ（負 = 寛容、正 = 厳密）。
 - **[ADR-6](../6-cache-persistence-backend/)** — HKT簡約はキャッシュキーの入力;タグごとのレジストリ変更は関連スライスを無効化する。
 - **[ADR-13](../13-typenode-resolver-plugin/)** — `App[F, A]`は、URIが登録されたHKTタグに一致する`Plugin::TypeNodeResolver`の自然な出力型。リゾルバチェーンが配線層。
@@ -440,12 +440,12 @@ end
 ## リビジョン履歴
 
 - 2026-05-18 — 初回提案。ユーザーの要求が発端、[ROADMAP](../../roadmap/) § 将来のサイクル（「DSLシグネチャでの軽量HKT（高階型）」）にキューされた軽量HKT方向の設計を開始する、`JSON.parse`の`untyped`スロットを置き換えるという具体的な目標で。スコープはユーザーが選んだ参考文献（Yallop & White 2014論文とfp-tsの`HKT.ts`）で設定された。
-- 2026-05-18 — **スライス1着地**。キャリア + レジストリ + パーサー。56のspec例。まだ簡約なし。
+- 2026-05-18 — **スライス1着地**。キャリア + レジストリ + パーサ。56のspec例。まだ簡約なし。
 - 2026-05-18 — **スライス2a着地**。HktBodyノード型 + 遅延自己再帰 + 燃料予算を持つHktReducer。33の新しいspec例（HKT spec合計: 89）。
-- 2026-05-18 — **スライス2c + 2d + 3着地 + ステータスがacceptedに昇格**。Environment#hkt_registry;%a{rigor:v1:return:}内のApp[uri, args]構文;METHOD_RETURN_OVERRIDESテーブル + ディスパッチャ層。エンドツーエンドのJSON.parse目標達成（`rigor type-of`で検証済み）。9の新しい統合specケース（HKT spec合計: 98）。
+- 2026-05-18 — **スライス2c + 2d + 3着地 + ステータスがacceptedに昇格**。Environment#hkt_registry;%a{rigor:v1:return:}内のApp[uri, args]構文;METHOD_RETURN_OVERRIDESテーブル + ディスパッチャー層。エンドツーエンドのJSON.parse目標達成（`rigor type-of`で検証済み）。9の新しい統合specケース（HKT spec合計: 98）。
 - 2026-05-18 — **スライス3フォローアップ着地**。`:json_symbolize_names`判別子が呼び出しがリテラルsymbolize_names: trueを運ぶときK = StringをK = Symbolに差し替える。3つの新しいspecケース（HKT spec合計: 101）。
-- 2026-05-18 — **スライス2b着地**。最小実行可能文法（union + アトム + nominal_app + app_ref + param）を持つボディ文字列文法パーサー。HktDirectives.parse_defineは今、ボディ文字列から自動的にbody_treeを埋める。33の新しいspecケース（HKT spec合計: 134）。
+- 2026-05-18 — **スライス2b着地**。最小実行可能文法（union + アトム + nominal_app + app_ref + param）を持つボディ文字列文法パーサ。HktDirectives.parse_defineは今、ボディ文字列から自動的にbody_treeを埋める。33の新しいspecケース（HKT spec合計: 134）。
 - 2026-05-18 — **METHOD_RETURN_OVERRIDES拡張**、YAML.safe_load / YAML.safe_load_file / Psych.safe_load / Psych.safe_load_fileへ（JSON_VALUE_SPECを再利用）。4の新しいディスパッチケース（HKT spec合計: 138）。
-- 2026-05-18 — **HktDirectives kv-formリファクター**（バグ修正）。JSON-flowペイロードはRBSアノテーション文法と非互換;空白区切り`key=value`形式でbody=が末尾まで飲み込むようリファクター。22のディレクティブspec + 2のディレクティブ統合specが書き直された（HKT spec合計は変わらず138）。
+- 2026-05-18 — **HktDirectives kv-formリファクタ**（バグ修正）。JSON-flowペイロードはRBSアノテーション文法と非互換;空白区切り`key=value`形式でbody=が末尾まで飲み込むようリファクタ。22のディレクティブspec + 2のディレクティブ統合specが書き直された（HKT spec合計は変わらず138）。
 - 2026-05-18 — **スライス2e着地**。RbsLoader#each_class_decl_annotation + HktRegistry.scan_rbs_loader + Environment.for_project配線がユーザー著作ループをクローズする。ユーザー.rbsオーバーレイが今、env.hkt_registryに表面化する。4の新しい統合ケース（HKT spec合計: 142）。
 - 2026-05-19 — **L1 / L2 / L3階層フレーミングでコンテキストを拡張**。新しい §「階層化された設計空間」サブセクションが3階層を明示的に命名（L1 = Python PEP 695 / RBSネイティブ風のパラメトリック再帰`type`エイリアス;L2 = + `return_override`ディレクティブ;L3 = HKT機構の全体）し、L1+L2では到達できない2つの第2レベル精度ターゲット（条件型評価、開いた型コンストラクタレジストリ）に対してADR-20が初日からL3を選択することを正当化する。著作ガイダンス: L1から始め、単一オプションの判別のためにL2に登り、型レベル計算やクロスプラグイン拡張性が関与するときのみL3に手を伸ばす。新しい代替案行が「Python PEP 695スタイルの再帰`type`エイリアスのみ（L1キャップ）」を拒否されたバリアントとして固定 — ADR-20はこの層を内側の層として内包するのであって、置き換えるのではない。

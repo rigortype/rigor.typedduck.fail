@@ -359,7 +359,7 @@ IntegerRange向け専用ハンドラ群は別途`shape_dispatch.rb`に存在。
 | `chunk` / `chunk_while` | 🚫 | Enumerable。 |
 | `collect` / `map` | ✅ | `PER_ELEMENT_TUPLE_METHODS` — ブロック毎要素適用で新Tuple。 |
 | `combination` / `permutation` | 🚫 | Enumerable。 |
-| `compact` | ✅ | `Constant[nil]`エントリを除去したTuple。**高優先度**。`tuple_compact`実装。 |
+| `compact` | ✅ | `Constant[nil]`エントリーを除去したTuple。**高優先度**。`tuple_compact`実装。 |
 | `count` | ✅ | `tuple_count` — ブロックなしで`Constant[Integer]`。 |
 | `cycle` | 🚫 | Enumerable。 |
 | `deconstruct` | 🔲 | パターンマッチ用 — `to_a`と等価。低優先度。 |
@@ -475,7 +475,7 @@ IntegerRange向け専用ハンドラ群は別途`shape_dispatch.rb`に存在。
 
 ---
 
-## 優先度サマリ
+## 優先度サマリー
 
 2026-05-22時点の高優先度タスクは全件実装済み。
 

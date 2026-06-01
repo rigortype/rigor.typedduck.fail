@@ -46,7 +46,7 @@ sidebar:
 - `Rigor::Reflection.singleton_method_definition(class_name, method_name, scope: Scope.empty)` — RBS側のシングルトン（クラス側）メソッド定義、または`nil`。
 - `Rigor::Reflection.instance_definition(class_name, scope: nil, environment: nil)` — インスタンス側の完全な`RBS::Definition`（メソッドテーブル / メンバーリスト全体）、または`nil`。1メソッドではなくクラスを歩く呼び出し元向け。
 - `Rigor::Reflection.singleton_definition(class_name, scope: nil, environment: nil)` — シングルトン側の完全な`RBS::Definition`、または`nil`。
-- `Rigor::Reflection.class_type_param_names(class_name, scope: nil, environment: nil)` — RBS宣言された型パラメーター名を`Array<Symbol>`で（例: `Array[Elem]`なら`[:Elem]`）、非ジェネリックまたは未知のクラスなら`[]`。ジェネリックなメソッド型を具体的なレシーバにバインドするときに使う。
+- `Rigor::Reflection.class_type_param_names(class_name, scope: nil, environment: nil)` — RBS宣言された型パラメータ名を`Array<Symbol>`で（例: `Array[Elem]`なら`[:Elem]`）、非ジェネリックまたは未知のクラスなら`[]`。ジェネリックなメソッド型を具体的なレシーバーにバインドするときに使う。
 
 RBSを参照するメソッドは`scope:` **または** `environment:`の**どちらか**を受け付ける（後者は`Scope`を持たないディスパッチャー呼び出しサイト向け）;どちらも与えられないときは`Scope.empty`の環境にフォールバックする。
 

@@ -224,7 +224,7 @@ demo.rb:42:5: warning: `T.absurd` is reachable: the discriminant did not
 
 ## プラグインが置き換えないもの
 
-Rigorの`rigor-sorbet`アダプターは**入力側のみ**です。Sorbetの構文を読み取り語彙を翻訳しますが、Sorbetの型チェッカーを実行せず、`sorbet-runtime`を同梱せず、Sorbetのランタイム保証を強制しません。`Gemfile`から`sorbet`と`sorbet-runtime`を削除すると、プラグインは引き続きsigsを読み取ります（アダプターのミニインタープリターはSorbetをロードしません）が、少なくともランタイムgem（またはトップレベルの`T`定数で4つのシングルトンメソッドをスタブする——プラグインのデモが独自のユニットテストでこれを行っています）を保持しないかぎり、`T.let` / `T.cast` / `T.must` / `T.unsafe`コールはランタイムで`NameError`を発生させます。
+Rigorの`rigor-sorbet`アダプタは**入力側のみ**です。Sorbetの構文を読み取り語彙を翻訳しますが、Sorbetの型チェッカーを実行せず、`sorbet-runtime`を同梱せず、Sorbetのランタイム保証を強制しません。`Gemfile`から`sorbet`と`sorbet-runtime`を削除すると、プラグインは引き続きsigsを読み取ります（アダプタのミニインタープリタはSorbetをロードしません）が、少なくともランタイムgem（またはトップレベルの`T`定数で4つのシングルトンメソッドをスタブする——プラグインのデモが独自のユニットテストでこれを行っています）を保持しないかぎり、`T.let` / `T.cast` / `T.must` / `T.unsafe`コールはランタイムで`NameError`を発生させます。
 
 ## 次に読むもの
 

@@ -1,5 +1,5 @@
 ---
-title: "Rigor LSP — エディター統合"
+title: "Rigor LSP — エディタ統合"
 description: "rigortype/rigor docs/manual/09-editor-integration.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/09-editor-integration.md"
 sourcePath: "docs/manual/09-editor-integration.md"
@@ -10,7 +10,7 @@ sidebar:
   order: 9009
 ---
 
-`rigor lsp`は`rigortype` gemにバンドルされたインプロセスランゲージサーバーです。stdioで[Language Server Protocol](https://microsoft.github.io/language-server-protocol/)を話し、Rigorのアナライザーをライブエディタ体験として公開します——キーストロークごとの診断、ホバーで型表示、アウトラインビュー、型認識補完。
+`rigor lsp`は`rigortype` gemにバンドルされたインプロセス言語サーバーです。stdioで[Language Server Protocol](https://microsoft.github.io/language-server-protocol/)を話し、Rigorのアナライザーをライブエディタ体験として公開します——キーストロークごとの診断、ホバーで型表示、アウトラインビュー、型認識補完。
 
 このページはエディタに組み込むためのエントリーポイントです。設計と機能マトリックスは[`docs/design/20260517-language-server.md`](../../design/20260517-language-server/)（v1）と[`docs/design/20260517-lsp-hover-completion.md`](../../design/20260517-lsp-hover-completion/)（v2）にあります。パッケージング根拠は[`docs/adr/19-language-server-packaging.md`](../../adr/19-language-server-packaging/)にあります。
 

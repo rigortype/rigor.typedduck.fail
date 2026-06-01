@@ -24,7 +24,7 @@ sidebar:
 | `assert` | `assert_type`チェック。 |
 | `dump` | `dump_type`通知。 |
 
-`rigor explain <rule>`は任意のIDのカタログエントリ全体を表示します。引数なしの`rigor explain`はすべてを一覧表示します。
+`rigor explain <rule>`は任意のIDのカタログエントリー全体を表示します。引数なしの`rigor explain`はすべてを一覧表示します。
 
 ### カタログ
 
@@ -32,7 +32,7 @@ sidebar:
 | --- | --- |
 | `call.undefined-method` | メソッドが受信側の静的に既知のクラスで定義されていない。 |
 | `call.wrong-arity` | 位置引数の数がどのシグネチャとも一致しない。 |
-| `call.argument-type-mismatch` | 引数の型がパラメーター契約（contract）に違反することが証明できる。 |
+| `call.argument-type-mismatch` | 引数の型がパラメータ契約（contract）に違反することが証明できる。 |
 | `call.possible-nil-receiver` | 受信側が`T | nil`で、メソッドが`NilClass`で定義されていない。 |
 | `flow.always-raises` | 式が到達可能なすべてのパスで例外を投げることが証明できる。 |
 | `flow.unreachable-branch` | `if` / `unless` / 三項演算子のブランチが静的に到達不能。 |

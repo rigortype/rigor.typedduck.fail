@@ -20,7 +20,7 @@ sidebar:
 
 ### `Rigor::Plugin`
 
-プラグイン登録のモジュールレベルエントリ。
+プラグイン登録のモジュールレベルエントリー。
 
 | メソッド | 目的 |
 | --- | --- |
@@ -78,7 +78,7 @@ end
 | `signature_paths` | `Array<String>` | プラグインが貢献するRBSシグネチャディレクトリ、プラグインgemルートからの相対;`Loader`が解決し環境にマージする（ADR-25）。 |
 | `owns_receivers` | `Array<String>` | ディスパッチルーティングのためにこのプラグインが所有するレシーバークラス名。 |
 | `open_receivers` | `Array<String>` | `call.undefined-method`から免除されるレシーバークラス名（そのメソッド表面が無制限 — 例: `ActiveRecord::Relation`）（ADR-26）。 |
-| `type_node_resolvers` | `Array` | カスタムなRBS型名解決を貢献する`Plugin::TypeNodeResolver`エントリ（ADR-13）。 |
+| `type_node_resolvers` | `Array` | カスタムなRBS型名解決を貢献する`Plugin::TypeNodeResolver`エントリー（ADR-13）。 |
 | `protocol_contracts` | `Array<ProtocolContract>` | パススコープの振る舞い契約（`path_glob` + `method_name` + param/return型 + 重大度）;provide-and-check（ADR-28）。 |
 | `source_rbs_synthesizer` | `#call(path) -> String?` | env構築時にプロジェクトソースファイルからRBSを合成する呼び出し可能オブジェクト（例: rbs-inline取り込み）（ADR-32）。 |
 | `block_as_methods`, `heredoc_templates`, `trait_registries`, `external_files` | `Array` | ADR-16のマクロ / DSL展開基板の4つのティア（A / C / B / D）。 |
@@ -117,13 +117,13 @@ end
 
 ### `Rigor::Plugin::LoadError`
 
-プラグインエントリが解決できない場合にローダー内で発生するパブリック例外。`plugin_ref`（問題のあるgem名またはプラグインid）と`cause_class`（該当する場合の基底例外クラス）を持ちます。ランナーはそれぞれを`source_family: :plugin_loader`・`rule: "load-error"`を持つ`Rigor::Analysis::Diagnostic`に変換します。
+プラグインエントリーが解決できない場合にローダー内で発生するパブリック例外。`plugin_ref`（問題のあるgem名またはプラグインid）と`cause_class`（該当する場合の基底例外クラス）を持ちます。ランナーはそれぞれを`source_family: :plugin_loader`・`rule: "load-error"`を持つ`Rigor::Analysis::Diagnostic`に変換します。
 
 ## 内部サーフェス（パブリックではない）
 
-- `Rigor::Plugin::Loader` — ローダーは内部インフラです。プラグイン作成者はそのプライベートヘルパーをサブクラス化したり依存したりすべきではありません；パブリックエントリポイントは`Loader.load(configuration:, services:, requirer:)`です。
+- `Rigor::Plugin::Loader` — ローダーは内部インフラです。プラグイン作成者はそのプライベートヘルパーをサブクラス化したり依存したりすべきではありません；パブリックエントリーポイントは`Loader.load(configuration:, services:, requirer:)`です。
 
-## `.rigor.yml`のプラグインエントリ
+## `.rigor.yml`のプラグインエントリー
 
 設定の`plugins:`フィールドは短縮形と明示形の両方を受け入れます：
 
@@ -136,15 +136,15 @@ plugins:
       include_specs: true
 ```
 
-`Configuration`はすべてのエントリをその2つの形式のどちらかに正規化し、`Configuration#plugins`を通じて公開します。
+`Configuration`はすべてのエントリーをその2つの形式のどちらかに正規化し、`Configuration#plugins`を通じて公開します。
 
 ## ロード順序
 
-ローダーはユーザーが記述した順序で`.rigor.yml`の`plugins:`エントリを処理します。複数の登録済みプラグインクラスに解決されるエントリ（1つのgemが1つ以上のプラグインを登録している場合）の場合、明示的な`id:`フィールドが曖昧さを解消します；なければローダーは推測するのではなく`LoadError`を発行します。エントリ間での重複するidはエラーであり、サイレントな重複排除ではありません。
+ローダーはユーザーが記述した順序で`.rigor.yml`の`plugins:`エントリーを処理します。複数の登録済みプラグインクラスに解決されるエントリー（1つのgemが1つ以上のプラグインを登録している場合）の場合、明示的な`id:`フィールドが曖昧さを解消します；なければローダーは推測するのではなく`LoadError`を発行します。エントリー間での重複するidはエラーであり、サイレントな重複排除ではありません。
 
 ## 障害の隔離（ADR-2 §「プラグイントラストとI/Oポリシー」に従う）
 
-ロードはすべてのプラグインエントリを独立して処理します；1つのエントリの失敗は他のエントリを中断しません。各失敗は結果レジストリの`LoadError`として収集され、次に`Analysis::Runner#run`が以下を持つ`:error`の`Diagnostic`として表面化します：
+ロードはすべてのプラグインエントリーを独立して処理します；1つのエントリーの失敗は他のエントリーを中断しません。各失敗は結果レジストリの`LoadError`として収集され、次に`Analysis::Runner#run`が以下を持つ`:error`の`Diagnostic`として表面化します：
 
 - `path`: `".rigor.yml"`
 - `line`: `1`

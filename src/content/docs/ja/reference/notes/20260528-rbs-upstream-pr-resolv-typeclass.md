@@ -50,14 +50,14 @@ def getresources: (dns_name name, singleton(Resolv::DNS::Query) typeclass) -> Ar
 |---:|---|---|
 | 302 | `getresource` | 1件の`Resource`を返す |
 | 311 | `getresources` | `Array[Resource]`を返す |
-| 221 | `each_resource` | ブロックパラメーターが`Resource` |
-| 223 | `extract_resources` | ブロックパラメーターが`Resource` |
+| 221 | `each_resource` | ブロックパラメータが`Resource` |
+| 223 | `extract_resources` | ブロックパラメータが`Resource` |
 
 `fetch_resource`（230行目）もタイプクラス引数を受け取りますが、`Resource`を返す・ブロックに渡すわけではありません——ブロックには`(Message, Name)`が渡されます。スコープ外です。
 
 ### 提案する修正——有界ジェネリクスメソッド
 
-RBSは有界型パラメーターをサポートしています（先例: `core/random.rbs:97`の`def rand: ... | [T < Numeric] (::Range[T]) -> T`、`core/encoding.rbs:136 / :182`、`core/dir.rbs:919`、`core/kernel.rbs:679 / :1407 / :1449 / :2279`、`core/marshal.rbs:154`、`core/ractor.rbs:557`）。メソッドごとに1行のジェネリクスにするのが最もすっきりした形です。
+RBSは有界型パラメータをサポートしています（先例: `core/random.rbs:97`の`def rand: ... | [T < Numeric] (::Range[T]) -> T`、`core/encoding.rbs:136 / :182`、`core/dir.rbs:919`、`core/kernel.rbs:679 / :1407 / :1449 / :2279`、`core/marshal.rbs:154`、`core/ractor.rbs:557`）。メソッドごとに1行のジェネリクスにするのが最もすっきりした形です。
 
 ```ruby
 def getresources: [T < Resolv::DNS::Resource] (dns_name name, singleton(T) typeclass) -> Array[T]
@@ -71,7 +71,7 @@ def extract_resources: [T < Resolv::DNS::Resource] (Resolv::DNS::Message msg, dn
 
 ### エッジケース — `Resolv::DNS::Resource::ANY`
 
-`Resolv::DNS::Resource::ANY < Resolv::DNS::Query`（`stdlib/resolv/0/resolv.rbs:833`）は`Resolv::DNS::Resource`のサブクラスでは**ありません**——`Query`配下で`Resource`と並列の位置にあります。`ANY`をタイプクラスとして渡すと、マッチするリソース型の異種混合が返され、静的には裸の`Resource`エンベロープになります。有界パラメーター`[T < Resolv::DNS::Resource]`は`ANY`を除外するため、旧来の広いオーバーロードがフォールバックとして並存します。
+`Resolv::DNS::Resource::ANY < Resolv::DNS::Query`（`stdlib/resolv/0/resolv.rbs:833`）は`Resolv::DNS::Resource`のサブクラスでは**ありません**——`Query`配下で`Resource`と並列の位置にあります。`ANY`をタイプクラスとして渡すと、マッチするリソース型の異種混合が返され、静的には裸の`Resource`エンベロープになります。有界パラメータ`[T < Resolv::DNS::Resource]`は`ANY`を除外するため、旧来の広いオーバーロードがフォールバックとして並存します。
 
 ```ruby
 def getresources: [T < Resolv::DNS::Resource] (dns_name name, singleton(T) typeclass) -> Array[T]

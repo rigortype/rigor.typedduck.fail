@@ -65,22 +65,22 @@ sidebar:
 - **Tapioca** → `.rbi`ファイルをディスクに出力
   （`sorbet/rbi/gems/<gem>@<version>.rbi`、
   `sorbet/rbi/dsl/<class>.rbi`等）。
-  **Tapiocaはコードジェネレーターである**。
+  **Tapiocaはコードジェネレータである**。
 - **Rigor** → 診断をstdoutに出力（`rigor check`）、
   オプションでCIベースライン用にJSON形式。
   **Rigorはアナライザーである**。
 
-Tapiocaの出力はSorbetの`srb tc`が消費する。Rigorの出力はユーザー/エディターが直接消費する。
+Tapiocaの出力はSorbetの`srb tc`が消費する。Rigorの出力はユーザー/エディタが直接消費する。
 
 ### Sorbetとの結合度
 
-- **Tapioca**: 密に結合。RBIが唯一の出力。SorbetがTo唯一のコンシューマ。TapiocaはSorbetのために存在する。
+- **Tapioca**: 密に結合。RBIが唯一の出力。SorbetがTo唯一のコンシューマー。TapiocaはSorbetのために存在する。
 - **Rigor**: スタンドアロン。RBS（Rubyチームの公式型言語）が標準的な入力。Sorbetサポートはプラグイン（`rigor-sorbet`、ADR-11）であり、プラグイン境界でSorbetの語彙をRigorのRBSスーパーセット内部キャリアに変換する。
 
 ### DSLカバレッジの広さ
 
 - **Tapioca**: 39の組み込みDSLコンパイラ（`AASM`、`ActionMailer`、`ActiveRecord*`ファミリー、`FrozenRecord`、`GraphQL`、`IdentityCache`、`JsonApiClient`、`Kredis`、`Protobuf`、`SidekiqWorker`、`SmartProperties`、`StateMachines`、`UrlHelpers`等）。Shopifyで本番稼働。長年のイテレーション。
-- **Rigor**: 7つの作業例プラグイン（`lisp-eval`、`pattern`、`units`、`statesman`、`deprecations`、`routes`、`activerecord`）と1つのエコシステムアダプター（`rigor-sorbet`、ADR-11）。Railsプラグインファミリーは[`docs/design/20260508-rails-plugins-roadmap.md`](../20260508-rails-plugins-roadmap/)でロードマップ化済み**。カバレッジではTapiocaが数年先行している。これは正直な評価**。
+- **Rigor**: 7つの作業例プラグイン（`lisp-eval`、`pattern`、`units`、`statesman`、`deprecations`、`routes`、`activerecord`）と1つのエコシステムアダプタ（`rigor-sorbet`、ADR-11）。Railsプラグインファミリーは[`docs/design/20260508-rails-plugins-roadmap.md`](../20260508-rails-plugins-roadmap/)でロードマップ化済み**。カバレッジではTapiocaが数年先行している。これは正直な評価**。
 
 ### 信頼モデル
 
@@ -208,7 +208,7 @@ Rigorは`rigor-sorbet`スライス4を通じてツリー全体を読む。プラ
 | --- | --- | --- |
 | 実行モデル | ランタイムイントロスペクション（`require` + リフレクト） | 静的AST解析（Prism、実行なし） |
 | 出力 | RBIファイル（`sorbet/rbi/**/*.rbi`） | 診断（`rigor check`）。将来: RBI emit |
-| 対象コンシューマ | Sorbetの`srb tc` | エンドユーザー（CLI/エディタ） |
+| 対象コンシューマー | Sorbetの`srb tc` | エンドユーザー（CLI/エディタ） |
 | プラグイン作成 | リフレクション駆動（短いが、ランタイムが必要） | AST駆動（長いが、ランタイム依存なし） |
 | 信頼スタンス | コードが実行されることを信頼 | コードを実行しない |
 | RBSサポート | なし（Sorbet-RBIのみ） | ネイティブ（RBSが標準） |
@@ -227,7 +227,7 @@ Rigorは`rigor-sorbet`スライス4を通じてツリー全体を読む。プラ
 
 - [ADR-2 — 拡張APIストラテジー](../../adr/2-extension-api/)
   — 規範的プラグイン契約。
-- [ADR-11 — Sorbetインプットアダプターとしてのプラグイン](../../adr/11-sorbet-input-adapter/)
+- [ADR-11 — Sorbetインプットアダプタとしてのプラグイン](../../adr/11-sorbet-input-adapter/)
   — 共存を実現するインプット側変換。
 - [Railsプラグインロードマップ](../20260508-rails-plugins-roadmap/)
   — Rigorが構築中のDSL対応プラグインのカタログ。

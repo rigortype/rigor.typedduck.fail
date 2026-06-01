@@ -35,7 +35,7 @@ sidebar:
 - `Inference::ScopeIndexer.discovered_def_index_for_paths`が、すべてのプロジェクトファイルにまたがって`method_visibilities`も収集するようになった。
 - `merge_project_method_indexes`が、ファイル単位の可視性をクロスファイルのシードに**上書きする**形でマージする（現在のファイルが自身のクラスについて権威を持ち、兄弟の親は保持される）。
 - `Analysis::Runner#seed_project_scope`がクロスファイルのテーブルをシードする。
-- `CheckRules`はエントリ欠落から`:public`を捏造しなくなった — 親の可視性が不明な場合は沈黙へ退避する（WD7に従い偽陽性に対して安全）。
+- `CheckRules`はエントリー欠落から`:public`を捏造しなくなった — 親の可視性が不明な場合は沈黙へ退避する（WD7に従い偽陽性に対して安全）。
 
 修正後: **160 → 35**となり、クロスファイルの*本物の*ケース（あるファイルでpublicな親、別のファイルでprivateなオーバーライド）が正しく発火するようになった（以前は`|| :public`という幸運な偶然によってのみ「動いて」いた）。
 
@@ -51,7 +51,7 @@ sidebar:
 
 ## キャリブレーションの決定
 
-3つのルールすべてについて、出荷した重大度マッピングを維持する: `lenient → off`、`balanced → :warning`、`strict → :error`。`balanced → :error`への昇格は**しない** — 残余の真陽性は典型的なRailsでは十分よく見られるため、`balanced`なプロジェクトをエラーにすると偽陽性の規律という価値とトレードオフになる。厳格なLSP可視性強制を望むチームは、`severity_profile: strict`またはルール単位の`severity_overrides:`エントリでオプトインする。
+3つのルールすべてについて、出荷した重大度マッピングを維持する: `lenient → off`、`balanced → :warning`、`strict → :error`。`balanced → :error`への昇格は**しない** — 残余の真陽性は典型的なRailsでは十分よく見られるため、`balanced`なプロジェクトをエラーにすると偽陽性の規律という価値とトレードオフになる。厳格なLSP可視性強制を望むチームは、`severity_profile: strict`またはルール単位の`severity_overrides:`エントリーでオプトインする。
 
 ## リーチに関する注記（バグではない — 文書化された限界）
 

@@ -106,7 +106,7 @@ end
 
 ## `Data.define`
 
-`Data.define`は小さなイミュータブルな構造体を生成します。Rigorは宣言を認識し、コンストラクターのアリティ、フィールドごとのアクセサー、結果のクラス型を公開します:
+`Data.define`は小さなイミュータブルな構造体を生成します。Rigorは宣言を認識し、コンストラクタのアリティ、フィールドごとのアクセサ、結果のクラス型を公開します:
 
 ```ruby
 Point = Data.define(:x, :y)
@@ -117,11 +117,11 @@ assert_type(p.x, "Constant<3>")
 assert_type(p.y, "Constant<4>")
 ```
 
-探索は`define_method`スタイルのブロック本体も辿るので、`Point = Data.define(:x, :y) do ... end`でも動作します。合成されたキーワード引数コンストラクターをオーバーライドするブロック定義の`def initialize(...)`も含みます（v0.1.2）。同じルールが`Const = Struct.new(*Symbol) do ... end`にも適用されます — ブロックボディのメソッド発見が両方の形式にわたって均一に組み合わせられます。
+探索は`define_method`スタイルのブロック本体も辿るので、`Point = Data.define(:x, :y) do ... end`でも動作します。合成されたキーワード引数コンストラクタをオーバーライドするブロック定義の`def initialize(...)`も含みます（v0.1.2）。同じルールが`Const = Struct.new(*Symbol) do ... end`にも適用されます — ブロックボディのメソッド発見が両方の形式にわたって均一に組み合わせられます。
 
 ## `Struct.new`
 
-`Struct.new(*Symbol)`は位置引数コンストラクターに加えて`Data.define`と同じアクセサーを生成します。Rigorは両方の形式を処理します:
+`Struct.new(*Symbol)`は位置引数コンストラクタに加えて`Data.define`と同じアクセサを生成します。Rigorは両方の形式を処理します:
 
 ```ruby
 Coord = Struct.new(:x, :y)
@@ -131,7 +131,7 @@ assert_type(c.x, "Constant<10>")
 assert_type(c.y, "Constant<20>")
 ```
 
-`Struct`はミュータビリティを追加します（アクセサーはライターでもある）ので、インスタンス変数スタイルの蓄積が適用されます。`Data`は読み取り専用です。
+`Struct`はミュータビリティを追加します（アクセサはライターでもある）ので、インスタンス変数スタイルの蓄積が適用されます。`Data`は読み取り専用です。
 
 ## 継承とメソッド解決
 

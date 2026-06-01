@@ -16,7 +16,7 @@ sidebar:
 
 同一の呼び出しに対して複数のフローコントリビューションが発生しうる場合があります。組み込みナローイングルールとプラグイン提供ファクト（fact）が同一サイトに適用されることも、2つのプラグインが同一レシーバーファミリーに登録されることも、`RBS::Extended`アノテーションが独自のファクトを追加することもあります。ADR-2は先着優先/後着優先の動作を禁じています。コントリビューションは**決定論的にマージ**され、コントリビューション間の**矛盾**は黙って上書きするのではなく**診断**として表面化しなければなりません。
 
-スライス3はスタンドアロンのマージャーを提供します。スライス4は組み込みナローイングをマージャー経由でルーティングし、スライス5はプラグイン診断の来歴を結果に通し、スライス6はマージャーの`{provenances, conflicts}`を使ってプラグイン側のキャッシュエントリを帰属させます。
+スライス3はスタンドアロンのマージャーを提供します。スライス4は組み込みナローイングをマージャー経由でルーティングし、スライス5はプラグイン診断の来歴を結果に通し、スライス6はマージャーの`{provenances, conflicts}`を使ってプラグイン側のキャッシュエントリーを帰属させます。
 
 ## 公開名前空間（ドリフトピン済み）
 
@@ -37,11 +37,11 @@ sidebar:
 | `exceptional`       | `exceptional` | `exception`         | `:raise`                |
 | `role_conformance`  | `normal`      | `role`              | ロールごと               |
 
-ファクトごとのターゲットは、ペイロードに`#target`アクセサーが存在する場合（型付きファクトキャリア（carrier）、変更エフェクト）はそこから取得し、ない場合はペイロード自体がマージキーになります。この展開は機械的・決定論的で、逆変換可能です。結果を`Merger.merge`に戻すと同等のバンドルが得られます。
+ファクトごとのターゲットは、ペイロードに`#target`アクセサが存在する場合（型付きファクトキャリア（carrier）、変更エフェクト）はそこから取得し、ない場合はペイロード自体がマージキーになります。この展開は機械的・決定論的で、逆変換可能です。結果を`Merger.merge`に戻すと同等のバンドルが得られます。
 
 ### `Rigor::FlowContribution::Element`
 
-フリーズされた`Data.define(:target, :edge, :kind, :payload, :provenance)`値オブジェクト。コンストラクターは`edge`と`kind`を`ELEMENT_VALID_EDGES` / `ELEMENT_VALID_KINDS`のenumに照らして検証します。`#merge_key`はマージャーがグルーピングに使う`[target, edge, kind]`タプルを返します。
+フリーズされた`Data.define(:target, :edge, :kind, :payload, :provenance)`値オブジェクト。コンストラクタは`edge`と`kind`を`ELEMENT_VALID_EDGES` / `ELEMENT_VALID_KINDS`のenumに照らして検証します。`#merge_key`はマージャーがグルーピングに使う`[target, edge, kind]`タプルを返します。
 
 ### `Rigor::FlowContribution::Conflict`
 
@@ -51,7 +51,7 @@ sidebar:
 - `:exceptional_disagreement` — 同一ティアで非`nil`の例外エフェクトが一致しない。
 - `:lower_tier_contradiction` — 下位ティアのコントリビューションが上位ティアの証明を弱めるまたは矛盾する。
 
-`provenances`にはすべての貢献した{FlowContribution::Provenance}が入ります（通常は2つ — 上位ティアと矛盾する側）。`#to_h`は診断/フォーマッター出力向けにコンフリクトをレンダリングします。
+`provenances`にはすべての貢献した{FlowContribution::Provenance}が入ります（通常は2つ — 上位ティアと矛盾する側）。`#to_h`は診断/フォーマッタ出力向けにコンフリクトをレンダリングします。
 
 `#to_diagnostic(path:, line:, column:, severity: :error)`（スライス5-C）はコンフリクトを`Rigor::Analysis::Diagnostic`に変換します。`source_family: :contribution_merge`と、コンフリクト理由から派生したケバブケースの`rule`（`return_type_collapse` → `return-type-collapse`）を持ちます。スライス4の配線がコンフリクトを発行すると、qualified ruleは標準の`rigor check`テキストストリームで`[contribution_merge.return-type-collapse]`としてレンダリングされます。
 
@@ -61,10 +61,10 @@ sidebar:
 
 ### `Rigor::FlowContribution::Merger`
 
-ステートレスなモジュールレベルのエントリポイント。2つの公開メソッドを持ちます。
+ステートレスなモジュールレベルのエントリーポイント。2つの公開メソッドを持ちます。
 
 - `Merger.merge(contributions)` — バンドルの配列をマージポリシーに沿って畳み込み、`MergeResult`を返します。
-- `Merger.tier_for(provenance)` — マージャーが内部で使用するティアマッピングを公開します（診断フォーマッターに有用）。
+- `Merger.tier_for(provenance)` — マージャーが内部で使用するティアマッピングを公開します（診断フォーマッタに有用）。
 
 ### `Rigor::FlowContribution::Fact`（スライス4-A）
 
@@ -73,11 +73,11 @@ sidebar:
 | フィールド | 役割 |
 | ------------- | --- |
 | `target_kind` | `:parameter`または`:self`。将来のkind（`:local`・`:ivar`・`:result`）はマージャーを変更せずに追加可能。 |
-| `target_name` | `Symbol` — 宣言されたパラメーター名、またはリテラル`:self`。非nilなので`#target`は常に定義済みです。 |
+| `target_name` | `Symbol` — 宣言されたパラメータ名、またはリテラル`:self`。非nilなので`#target`は常に定義済みです。 |
 | `type`        | `Rigor::Type::*` — ターゲットがナローイングされる型（`negative`がtrueの場合は除外方向）。 |
 | `negative`    | `~T`形式（`predicate-if-true x is ~Integer`）の場合は`true`、通常の正形式の場合は`false`。 |
 
-`#target`はself対象のファクトには`:self`を返し、それ以外には`[:parameter, name]`を返します。この値は`Element#target`に入り、マージバケットキーになります。つまり異なるソースファミリーから同じパラメーターをナローイングする2つのファクトは、ソースファミリーに関係なく同じグループにまとめられます。
+`#target`はself対象のファクトには`:self`を返し、それ以外には`[:parameter, name]`を返します。この値は`Element#target`に入り、マージバケットキーになります。つまり異なるソースファミリーから同じパラメータをナローイングする2つのファクトは、ソースファミリーに関係なく同じグループにまとめられます。
 
 ### 変換境界
 
@@ -110,7 +110,7 @@ sidebar:
 ## スライス3が意図的に行わないこと
 
 - **組み込みナローイングをマージャー経由でルーティングすること**。スライス4の仕事です。
-- **コンフリクトを`:contribution_merge` `Diagnostic`行として診断すること**。スライス5がプラグイン診断の来歴をフォーマッターに通します。スライス4が解析中にコンフリクトを表面化させます。
+- **コンフリクトを`:contribution_merge` `Diagnostic`行として診断すること**。スライス5がプラグイン診断の来歴をフォーマッタに通します。スライス4が解析中にコンフリクトを表面化させます。
 - **マージ結果から`Cache::Descriptor`行を合成すること**。スライス6がプラグイン側のキャッシュプロデューサーと並行してそれを担います。
 - **より豊かな戻り型コラプスケースの検出**。スライス3のヒューリスティックは`accepts`三値論理を使います。非名前的キャリア（コラプスするタプルインターセクション、すべての定数を排除する絞り込み述語との構造的インターセクション）は今のところ非コラプスとして処理されます。スライス4がキャリアの全行列を検証し、見逃したケースをマージャーにフォールドバックします。
 

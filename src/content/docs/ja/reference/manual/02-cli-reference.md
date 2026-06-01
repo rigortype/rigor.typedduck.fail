@@ -90,7 +90,7 @@ rigor type-scan PATH...
 
 ## `rigor explain`
 
-診断ルールのカタログエントリを表示します。引数なしで呼び出すとすべてのルールを一覧表示します。
+診断ルールのカタログエントリーを表示します。引数なしで呼び出すとすべてのルールを一覧表示します。
 
 ```sh
 rigor explain [rule]
@@ -123,14 +123,14 @@ rigor sig-gen [paths]
 | `--write` | RBSを`sig/<path>.rbs`ファイルに書き出す。 |
 | `--overwrite` | より厳密な戻り値の更新でユーザー作成のRBSを置き換えることを許可する。 |
 | `--include-private` | privateおよびprotectedメソッドも出力する。 |
-| `--params=untyped|observed|observed-strict` | パラメーター型付けポリシー。デフォルトは`untyped`。 |
+| `--params=untyped|observed|observed-strict` | パラメータ型付けポリシー。デフォルトは`untyped`。 |
 | `--observe=PATH` | コールサイト観察のために`PATH`をスキャンする。繰り返し可能。 |
 | `--new-files` / `--new-methods` / `--tighter-returns` | その分類のみ出力する。 |
 | `--format=text|json` | 出力形式。 |
 
 ## `rigor lsp`
 
-stdioでランゲージサーバーを実行します。[エディタ統合](../09-editor-integration/)を参照してください。
+stdioで言語サーバーを実行します。[エディタ統合](../09-editor-integration/)を参照してください。
 
 ```sh
 rigor lsp [--transport=stdio] [--log=PATH] [--config=PATH]

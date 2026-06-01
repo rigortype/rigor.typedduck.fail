@@ -31,9 +31,9 @@ assert_type(parsed,
 | 概念 | Rigorでの綴り | 見かける場所 |
 | --- | --- | --- |
 | 型コンストラクタの「タグ」 | 名前空間付きシンボルURI（`:json::value`、`:dry_monads::result`） | `%a{rigor:v1:hkt_register: uri=…}`ディレクティブ |
-| 抽象適用`F<A>` | `Type::App[uri, args]` | ディスパッチャ出力のキャリア（carrier） |
+| 抽象適用`F<A>` | `Type::App[uri, args]` | ディスパッチャー出力のキャリア（carrier） |
 | 型レベル定義 | `%a{rigor:v1:hkt_define: uri=… params=… body=…}`ディレクティブ | `.rbs`オーバーレイファイル |
-| `App[F, A]`を実型に簡約 | `env.hkt_registry.reduce(app)`（または`app.reduce(registry)`） | 既知のstdlibメソッドに対しディスパッチャ層が積極的に呼び出す |
+| `App[F, A]`を実型に簡約 | `env.hkt_registry.reduce(app)`（または`app.reduce(registry)`） | 既知のstdlibメソッドに対しディスパッチャー層が積極的に呼び出す |
 | メソッドへのフック | `Builtins::HktBuiltins::METHOD_RETURN_OVERRIDES`テーブル | プラグイン / Rigorバンドルの配線 |
 
 次節以降でこれらをひとつずつ動作とともに示します。
@@ -63,7 +63,7 @@ params=K body=
 - `YAML.safe_load` / `YAML.safe_load_file`
 - `Psych.safe_load` / `Psych.safe_load_file`
 
-HKT組み込みディスパッチャ層は標準RBSディスパッチの**上**に位置するので、上流のRBSが`JSON.parse: (string, ?options) -> untyped`と宣言していても、Rigorの答えは簡約されたUnionになります。`YAML.load` / `YAML.unsafe_load`は意図的に外しています——これらはどんなRubyオブジェクトでも返しうるので、有用なHKTエンベロープを持たないからです。
+HKT組み込みディスパッチャー層は標準RBSディスパッチの**上**に位置するので、上流のRBSが`JSON.parse: (string, ?options) -> untyped`と宣言していても、Rigorの答えは簡約されたUnionになります。`YAML.load` / `YAML.unsafe_load`は意図的に外しています——これらはどんなRubyオブジェクトでも返しうるので、有用なHKTエンベロープを持たないからです。
 
 ## 呼び出しサイトの2種類の判別
 
@@ -79,7 +79,7 @@ JSON.parse(str, symbolize_names: true)
 # parsed: ... | Hash[Symbol, json::value[Symbol]] | ...
 ```
 
-`:json_symbolize_names`判別子は、呼び出しの第二引数`HashShape`を覗き、リテラルな`symbolize_names: true`エントリを探します。マッチするとレデューサ実行前に`K = String`を`K = Symbol`に差し替えます。リテラルでない`symbolize_names: x`（変数、`Constant<true>`でない値）はデフォルトの`String`枝に残ります。
+`:json_symbolize_names`判別子は、呼び出しの第二引数`HashShape`を覗き、リテラルな`symbolize_names: true`エントリーを探します。マッチするとレデューサ実行前に`K = String`を`K = Symbol`に差し替えます。リテラルでない`symbolize_names: x`（変数、`Constant<true>`でない値）はデフォルトの`String`枝に残ります。
 
 ### `permitted_classes:`が追加のアームをユニオンする
 
@@ -191,12 +191,12 @@ Union[ nil, true, false, Integer, Float, String,
 
 軽量HKTは——まあ、軽量です。意識的な非目標:
 
-- **バインダ抽出を伴うパターンマッチ**
+- **バインダー抽出を伴うパターンマッチ**
   （`E <: [:if, _, A, B] ? lisp_type[A] | lisp_type[B] : ...`）。
   上で述べた条件文法はyes/no/maybeをテストするが、
   パターンから新しい型変数を束縛しない。
   `rigor-lisp-eval`は完全なASTシェイプ（shape）判別のために
-  バインダ抽出を必要とする;パターンバインディングが着地するまでは
+  バインダー抽出を必要とする;パターンバインディングが着地するまでは
   診断エミッターパスに留まる。
 - **非再帰コンテナのための複数引数HKT**
   （`Result[T, E]` / `Maybe[T]`）——レジストリは複数引数URIを
@@ -224,7 +224,7 @@ Union[ nil, true, false, Integer, Float, String,
 | ボディ文字列文法パーサ | [`lib/rigor/inference/hkt_body_parser.rb`](https://github.com/rigortype/rigor/blob/master/lib/rigor/inference/hkt_body_parser.rb) |
 | ディレクティブパーサ（`hkt_register` / `hkt_define`） | [`lib/rigor/rbs_extended/hkt_directives.rb`](https://github.com/rigortype/rigor/blob/master/lib/rigor/rbs_extended/hkt_directives.rb) |
 | バンドルされた`json::value` + `METHOD_RETURN_OVERRIDES` | [`lib/rigor/builtins/hkt_builtins.rb`](https://github.com/rigortype/rigor/blob/master/lib/rigor/builtins/hkt_builtins.rb) |
-| ディスパッチャ層 | [`lib/rigor/inference/method_dispatcher.rb`](https://github.com/rigortype/rigor/blob/master/lib/rigor/inference/method_dispatcher.rb)（`try_hkt_builtin_return`） |
+| ディスパッチャー層 | [`lib/rigor/inference/method_dispatcher.rb`](https://github.com/rigortype/rigor/blob/master/lib/rigor/inference/method_dispatcher.rb)（`try_hkt_builtin_return`） |
 | 環境統合 | [`lib/rigor/environment.rb`](https://github.com/rigortype/rigor/blob/master/lib/rigor/environment.rb)（`#hkt_registry` + `HktRegistryHolder`） |
 | RBSスキャン | [`lib/rigor/environment/rbs_loader.rb`](https://github.com/rigortype/rigor/blob/master/lib/rigor/environment/rbs_loader.rb)（`each_class_decl_annotation`） |
 

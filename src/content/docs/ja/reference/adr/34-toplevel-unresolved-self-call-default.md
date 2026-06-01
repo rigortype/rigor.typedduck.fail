@@ -43,10 +43,10 @@ type:    Dynamic[top]
 **トップレベルスコープ**（囲む`def`なし、囲む`class` / `module`ボディなし）でのimplicit-self呼び出しにおいて、呼び出し名が以下のいずれにも解決しない場合:
 
 1. 同じファイルまたは解析された`paths:`のいずれかのファイル内のトップレベル`def`、
-2. `(Object, name, instance)`の下の[ADR-17](../17-monkey-patch-pre-evaluation/)の`Inference::ProjectPatchedMethods`レジストリ内のエントリ、
+2. `(Object, name, instance)`の下の[ADR-17](../17-monkey-patch-pre-evaluation/)の`Inference::ProjectPatchedMethods`レジストリ内のエントリー、
 3. ロードされたRBS環境から引いた標準的な`Kernel` / `Object`プライベートメソッド表面（`puts`、`p`、`require`、`loop`、`raise`、…）、
 
-エンジンは新しい`call.unresolved-toplevel`診断をemitする。ヒットした場合、解決されたメソッドの戻り型とパラメーター契約（contract）はADR-24スライス1〜3と同様に伝播する。
+エンジンは新しい`call.unresolved-toplevel`診断をemitする。ヒットした場合、解決されたメソッドの戻り型とパラメータ契約（contract）はADR-24スライス1〜3と同様に伝播する。
 
 新しいルールのデフォルト重大度は`severity_profile:`に連動する:
 
@@ -72,7 +72,7 @@ type:    Dynamic[top]
 
 ### WD2 — エスケープハッチはADR-17の`pre_eval:`
 
-monkey-patchingを通じてトップレベルメソッドを正当に導入するプロジェクト（ブート時にロードされる`String`-on-`Object`シェイプ（shape）のパッチ、`lib/core_ext/*.rb`ヘルパー、フレームワークトップレベルヘルパー）は、`.rigor.yml`の`pre_eval:`配列（ADR-17に従う）にそれらのファイルを宣言する。事前評価パスが`ProjectPatchedMethods`を投入し、WD1ディスパッチャーがレジストリを参照し、解決されたエントリに対して診断が発火しない。
+monkey-patchingを通じてトップレベルメソッドを正当に導入するプロジェクト（ブート時にロードされる`String`-on-`Object`シェイプ（shape）のパッチ、`lib/core_ext/*.rb`ヘルパー、フレームワークトップレベルヘルパー）は、`.rigor.yml`の`pre_eval:`配列（ADR-17に従う）にそれらのファイルを宣言する。事前評価パスが`ProjectPatchedMethods`を投入し、WD1ディスパッチャーがレジストリを参照し、解決されたエントリーに対して診断が発火しない。
 
 **Why:**ユーザーはまさにこの形を提案した——「基本的には警告するようにして、monkeypatchやメタプログラミングの供給源は設定で明示的に先行評価させる」——そしてそれは変更なしにADR-17の既存の契約に一致する。メカニズムはすでに存在する;このADRはそれを「機会的な精度向上」から「WD1デフォルトフリップの正規オプトアウト」へと格上げするだけだ。
 
@@ -120,7 +120,7 @@ WD1デフォルトフリップは、ADR-17のスライス1〜2がランドする
 2. ADR-17スライス2（事前評価ウォーカー + レジストリ + ディスパッチャーティア）。
 3. ADR-34スライス1（このADRの診断emit、今存在するレジストリを参照）。
 
-ADR-17スライス3（キャッシュディスクリプター）は独立しており、ADR-34スライス1の前後どちらでもランドできる。
+ADR-17スライス3（キャッシュディスクリプタ）は独立しており、ADR-34スライス1の前後どちらでもランドできる。
 
 ### WD6 — ハードコードされた重大度ではなく、重大度プロファイルマッピング
 

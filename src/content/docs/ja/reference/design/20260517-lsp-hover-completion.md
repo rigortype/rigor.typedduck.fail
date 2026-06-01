@@ -19,7 +19,7 @@ sidebar:
 
 LSP v1の`textDocument/hover`は最小限のmarkdownボディ
 （`type:`、`erased:`、`node:`）を返す。動作はするものの、まだ解析器の
-持つ完全な型情報を活かしきれていない。メソッド呼び出しのレシーバ型、
+持つ完全な型情報を活かしきれていない。メソッド呼び出しのレシーバー型、
 RBSコメント、シグネチャ、定数定義箇所へのsource-of-truthリンクなどである。
 Completionはv1では完全に存在しない（設計ドキュメントの
 §「Out of scope for v1」でキューに積まれている）。
@@ -48,18 +48,18 @@ Completionはv1では完全に存在しない（設計ドキュメントの
 - **Completionのスコープv1**: `.`の後のメソッド補完と、`::`の後の
   定数パス補完。裸の名前による補完（ローカル変数 + 暗黙のself上のメソッド）と
   ハッシュキー補完（HashShapeキャリア）はv2のフォローアップにキューイングする。
-- **トリガ文字**: `.`と`::`（LSP capabilityの
+- **トリガー文字**: `.`と`::`（LSP capabilityの
   `completionProvider.triggerCharacters: [".", ":"]`。`::`の2番目の
-  `:`がトリガとなり、1文字前を覗き見る）。
+  `:`がトリガーとなり、1文字前を覗き見る）。
 - **メソッド列挙は`Reflection.instance_definition` /
   `singleton_definition`経由** — Rigorの既存のRBSクエリ表面である。
   新しい公開APIは追加しない。
 - **CompletionItemのdetailフィールドはRBSシグネチャ**であり、
   `rigor sig-gen`と同じ方法でレンダリングする。シグネチャ1行、
   kebab-caseの精製は展開する。
-- **サーバサイドでのファジーマッチングは行わない**。LSPクライアント
+- **サーバーサイドでのファジーマッチングは行わない**。LSPクライアント
   （VSCode / Neovim / Emacs）が`CompletionItem[]`をユーザーの入力プレフィックスに
-  対して自前でフィルタする。サーバは候補集合をまるごと返し、クライアントに
+  対して自前でフィルタする。サーバーは候補集合をまるごと返し、クライアントに
   フィルタさせる。こちらの方がシンプルで安価であり、エディタごとの
   ファジーマッチ設定を尊重できる。
 
@@ -81,7 +81,7 @@ node:   Prism::IntegerNode
 
 | ノードクラス | hoverボディの形状 |
 |---|---|
-| `Prism::CallNode`（`obj.foo(args)`） | レシーバ型 + メソッドシグネチャ（パラメータ + 戻り値）+ RBSコメント（あれば）+ ソース位置へのリンク。 |
+| `Prism::CallNode`（`obj.foo(args)`） | レシーバー型 + メソッドシグネチャ（パラメータ + 戻り値）+ RBSコメント（あれば）+ ソース位置へのリンク。 |
 | `Prism::ConstantReadNode` / `Prism::ConstantPathNode` | 解決済みのクラス／モジュールFQN + シングルトン型 + クラスのRBSコメント + ソース位置へのリンク。 |
 | `Prism::LocalVariableReadNode` / `LocalVariableWriteNode` | 変数名 + 推論／絞り込み済みの型 + 直近のバインディングの行。 |
 | `Prism::InstanceVariableReadNode` / `InstanceVariableWriteNode`（`@foo`） | スコープのインスタンスコンテキスト絞り込みによるivar型 + 囲んでいるクラス。 |
@@ -108,7 +108,7 @@ def upcase: () -> String
 core (ruby/rbs)
 ```
 
-1行目は**レシーバ型**のdescribe形式。2行目はRBSシグネチャで、
+1行目は**レシーバー型**のdescribe形式。2行目はRBSシグネチャで、
 `Reflection.instance_method_definition(class_name: receiver.describe,
 method_name: node.name)`で参照し、sig-genが使っているのと同じ消去パスを
 通してレンダリングする（v1は単一オーバーロード表示。複数オーバーロードの
@@ -186,7 +186,7 @@ params: {
 returns: CompletionItem[] | CompletionList | null
 ```
 
-サーバはフラットな配列（incomplete-list挙動なし）を返すか、nullを返す
+サーバーはフラットな配列（incomplete-list挙動なし）を返すか、nullを返す
 （補完候補が得られない — 空配列とは区別され、空配列は「試したが何も
 得られなかった」を意味する）。
 
@@ -205,14 +205,14 @@ returns: CompletionItem[] | CompletionList | null
 }
 ```
 
-`sortText`はサーバにランクのレバーを与える。v1のランキングは以下の通り:
+`sortText`はサーバーにランクのレバーを与える。v1のランキングは以下の通り:
 
-1. **所有クラスの近さ** — レシーバの厳密なクラス上のメソッドが、
+1. **所有クラスの近さ** — レシーバーの厳密なクラス上のメソッドが、
    継承元の祖先のメソッドよりも上位にランクされる。
 2. **可視性** — public > protected > private。
 3. **辞書順** — ランクグループ内のタイブレーク用。
 
-経験的に、これはエディタ利用者の期待と一致する（Stringレシーバ上で
+経験的に、これはエディタ利用者の期待と一致する（Stringレシーバー上で
 入力しているとき、`String#upcase`が`Object#hash`に勝つ）。
 
 ### メソッド補完（`obj.|`）
@@ -222,33 +222,33 @@ returns: CompletionItem[] | CompletionList | null
 1. **バッファをパースする**。Prismのエラー回復が部分的なASTを
    出力する。カーソルは、`name`が空または部分識別子である`CallNode`の
    上か直後にある。
-2. **レシーバを特定する**。ASTをカーソル位置のノードへと辿る。
-   レシーバはそのcallノードの`receiver`である。
-3. **レシーバの型を推論する**。hoverプロバイダがすでに使っているのと
+2. **レシーバーを特定する**。ASTをカーソル位置のノードへと辿る。
+   レシーバーはそのcallノードの`receiver`である。
+3. **レシーバーの型を推論する**。hoverプロバイダがすでに使っているのと
    同じ`Scope#type_of`パスを使う。
 4. **メソッドを列挙する**。名前的型については
    `Reflection.instance_definition(class_name)`で、Union / Intersectionに
-   ついては各メンバについて列挙する（intersection: メンバのメソッドの和集合。
-   union: 意味論的にはメンバのメソッドの積集合 — ただしcompletionのUX
+   ついては各メンバーについて列挙する（intersection: メンバーのメソッドの和集合。
+   union: 意味論的にはメンバーのメソッドの積集合 — ただしcompletionのUX
    としては「*有効でありうる*ものすべて」の和集合が欲しい）。
-5. **可視性でフィルタする**。レシーバが`self`でない場合、
+5. **可視性でフィルタする**。レシーバーが`self`でない場合、
    privateメソッドを落とす。
 6. **各メソッドをCompletionItemに変換する**。
 
-レシーバ型 → 列挙の行列:
+レシーバー型 → 列挙の行列:
 
-| レシーバキャリア | 列挙ソース |
+| レシーバーキャリア | 列挙ソース |
 |---|---|
 | `Nominal[C]` | `Reflection.instance_definition(C).methods` |
 | `Singleton[C]` | `Reflection.singleton_definition(C).methods` |
 | `Constant<v>` | `Nominal[class_of(v)]`として列挙する |
 | `Tuple<...>` / `HashShape<...>` | 名前的祖先（`Array` / `Hash`） |
 | `Refined[...]` | 基底の名前的型を列挙する |
-| `Union[A, B, ...]` | 各メンバのメソッドの積集合（あらゆるunionケースで確実にディスパッチされるメソッドのみ） |
+| `Union[A, B, ...]` | 各メンバーのメソッドの積集合（あらゆるunionケースで確実にディスパッチされるメソッドのみ） |
 | `Dynamic[T]` | `T`がTopでなければ`T`のメソッドを列挙する。さもなくば何もなし（`Dynamic[Top]`について有用な補完はない）。 |
 
 Union / Intersectionの列挙は記録しておく価値のある設計ポイントである。
-素朴な「メソッドの和集合」は偽陽性を多く生む（レシーバが`Integer | String`
+素朴な「メソッドの和集合」は偽陽性を多く生む（レシーバーが`Integer | String`
 のときに`Integer#upcase`が表示される）。「メソッドの積集合」は安全な集合を
 与える。v1では積集合を採用する。UXフィードバックによって緩和すべきか
 判断する。
@@ -268,7 +268,7 @@ Union / Intersectionの列挙は記録しておく価値のある設計ポイン
 4. それぞれをCompletionItemに変換する。`kind: 7`（Class）／
    `kind: 9`（Module）／`kind: 21`（Constant）。
 
-### トリガ文字
+### トリガー文字
 
 LSP capabilities:
 
@@ -282,12 +282,12 @@ completionProvider: {
 なぜ`resolveProvider: true`にしないのか？`completionItem/resolve`は、
 ユーザーが特定の項目をハイライトするまで`detail`と`documentation`
 フィールドの送信を遅延させ、大規模な補完集合での帯域を節約できる。
-Rigorの典型的な補完集合（大半のレシーバで50メソッド未満）では帯域節約は
+Rigorの典型的な補完集合（大半のレシーバーで50メソッド未満）では帯域節約は
 ごくわずかであり、ラウンドトリップが遅延を増やす。v1ではすべてを
 先頭で送信し、特に大規模な列挙（`BasicObject`の子孫など）が出荷される
 段階になればresolveが関連してくる。
 
-トリガ文字が`:`のときは、直前の文字をMUST確認する — 意味のあるトリガは
+トリガー文字が`:`のときは、直前の文字をMUST確認する — 意味のあるトリガーは
 `::`（定数パス）のみであり、裸の`:`はシンボルリテラルの開始であって、
 v1ではシンボルを自動補完しない。
 
@@ -299,32 +299,32 @@ v1ではシンボルを自動補完しない。
 
 失敗モード:
 
-- Prismは使えるASTを返すが、呼び出しサイトのレシーバ型が
+- Prismは使えるASTを返すが、呼び出しサイトのレシーバー型が
   `Dynamic[Top]`（推論で絞り込めなかった） → 空の補完リストを返す
   （LSPとして正しい「試したが何も得られなかった」）。
 - Prismが部分的なASTすら作れない → **レキシカルコンテキスト検出**に
   フォールバックする。カーソル直前の200文字を読み、メソッド補完は
   `/(\S+)\.(\w*)$/`、定数パスは`/(::?[A-Z]\w*)+(::)?(\w*)$/`で
   マッチさせる。どちらにも一致しなければnilを返す。
-- レシーバがリテラルの`nil` → `NilClass`のパブリックメソッド
+- レシーバーがリテラルの`nil` → `NilClass`のパブリックメソッド
   （`nil?`、`inspect`、`to_s`）のみを返す。
 
-### フィルタリング: サーバサイドかクライアントサイドか？
+### フィルタリング: サーバーサイドかクライアントサイドか？
 
 LSPクライアント（VSCode、Neovimの`nvim-cmp`、Emacsの`lsp-mode`）は
 すべて、ユーザーの入力プレフィックスに対して`CompletionItem[].label`の
-ファジーフィルタリングを行う。サーバが厳密なプレフィックス一致で事前
+ファジーフィルタリングを行う。サーバーが厳密なプレフィックス一致で事前
 フィルタすることもできるが、そうすると:
 
 - `isIncomplete: true`フラグが強制され、クライアントがキーストロークごとに
   再取得することになる。
 - ファジー／部分文字列マッチというエディタのイディオムと合わない。
-- 大して節約にならない。サーバはすでにすべて列挙しており、N件のラベルの
+- 大して節約にならない。サーバーはすでにすべて列挙しており、N件のラベルの
   フィルタリングは安価である。
 
-**決定**: v1はレシーバの候補集合をフィルタせずまるごと返す。
-クライアントがUXに応じてフィルタする。サーバは可視性フィルタ
-（`self`でないレシーバ上のprivateメソッド）を適用する。これは
+**決定**: v1はレシーバーの候補集合をフィルタせずまるごと返す。
+クライアントがUXに応じてフィルタする。サーバーは可視性フィルタ
+（`self`でないレシーバー上のprivateメソッド）を適用する。これは
 UXの好みではなく正しさの境界だからである。
 
 ## 実装スライス
@@ -338,7 +338,7 @@ hoverで4、completionで4。hoverスライスが先に着地する。理由は
 
 1. **`HoverRenderer`コラボレータ + case-on-nodeディスパッチの足場**。
    デフォルトボディはslice-5の出力とbit-for-bitで一致させる。
-   特殊化を1つ着地させる（`Prism::CallNode` → レシーバ + シグネチャ）。
+   特殊化を1つ着地させる（`Prism::CallNode` → レシーバー + シグネチャ）。
    specはデフォルトとcall分岐の両方をカバーする。
 2. **定数のレンダリング**（`ConstantReadNode` / `ConstantPathNode`）。
    FQN + シングルトン型 + ソース位置。
@@ -352,12 +352,12 @@ hoverで4、completionで4。hoverスライスが先に着地する。理由は
 ### Completionスライス
 
 5. **`textDocument/completion`の登録 + `obj.|`に対するメソッド補完**
-   （レシーバ型が既知の場合）。新しい`CompletionProvider`コラボレータ +
+   （レシーバー型が既知の場合）。新しい`CompletionProvider`コラボレータ +
    `Server`への新しいディスパッチ行。capabilityを広告する。specは
    `"x = 'hi'; x.|"`というバッファで`String`のメソッドが返ることをカバーする。
 6. **定数パス補完** `Foo::|`について。
    `Environment::Reflection#known_classes`を親FQNの子に絞り込んで列挙する。
-7. **Union / Intersection / Refinedレシーバの扱い**。Unionには
+7. **Union / Intersection / Refinedレシーバーの扱い**。Unionには
    メソッドの積集合、Refinedには基底の名前的型、shapeキャリアには
    祖先の名前的型を用いる。
 8. **パース回復 + レキシカルフォールバック**。Prismが回復できない
@@ -381,7 +381,7 @@ hoverで4、completionで4。hoverスライスが先に着地する。理由は
 
 - **`textDocument/signatureHelp`** — completionの自然な補完であり、
   引数リスト内でのパラメータリストヒント。表面が独立しているためキューイング
-  する。hover + completionはカーソル停止とトリガ文字のケースをカバーするが、
+  する。hover + completionはカーソル停止とトリガー文字のケースをカバーするが、
   signatureHelpは引数リスト内のケースをカバーし、それ自身のUX +
   パース回復の問題を持つ。
 - **スニペット展開** — 例えば`def foo` → 複数行の`def foo`ボディ
@@ -404,8 +404,8 @@ hoverで4、completionで4。hoverスライスが先に着地する。理由は
 
 ## オープンクエスチョン
 
-- **Unionレシーバの補完**: メソッドの積集合は保守的だが、ユーザーを
-  驚かせる可能性がある（「レシーバが`Integer | Float`のとき、なぜ
+- **Unionレシーバーの補完**: メソッドの積集合は保守的だが、ユーザーを
+  驚かせる可能性がある（「レシーバーが`Integer | Float`のとき、なぜ
   `Integer#zero?`はリストにないのか？`Float`にも`zero?`があるからで —
   実際あるので、この例は機能する」）。保守的なデフォルトを選択し、
   UXフィードバックが反対であれば改訂する。
@@ -440,5 +440,5 @@ hoverで4、completionで4。hoverスライスが先に着地する。理由は
   ミスステップ（パース回復、壊れた構文上でのAST歩行）は壊しうる。
 
 スライス5はcompletionのMVP（メソッド補完のみ）を着地させる。
-6-8で定数パス、union / shapeレシーバ、パース回復へと拡張する。
+6-8で定数パス、union / shapeレシーバー、パース回復へと拡張する。
 各スライスは独立してリバート可能である。

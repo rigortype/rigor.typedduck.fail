@@ -10,7 +10,7 @@ sidebar:
   order: 20265517
 ---
 
-**ステータス:**設計ノート。`rigor-dry-types`スライス4コミットで2026-05-17に著作。`rigor-dry-types`と`rigor-dry-struct`（両方ともv0.1.6で着地）を超えた次のdry-rbアダプターのスライス順序を決定する。
+**ステータス:**設計ノート。`rigor-dry-types`スライス4コミットで2026-05-17に著作。`rigor-dry-types`と`rigor-dry-struct`（両方ともv0.1.6で着地）を超えた次のdry-rbアダプタのスライス順序を決定する。
 
 ## スコープ
 
@@ -80,7 +80,7 @@ end
 
 ## `rigor-dry-schema`の最小実行可能形
 
-dry-pluginsロードマップ §「dry-schema」エントリに従い:
+dry-pluginsロードマップ §「dry-schema」エントリーに従い:
 
 ```ruby
 NewUserSchema = Dry::Schema.Params do
@@ -113,7 +113,7 @@ result.errors.to_h # => Hash[Symbol, Array[String]]
 - `X#call(Hash[Symbol, untyped]) → Result`を合成する（ジェネリックな`Result`、まだスキーマ認識なし）。
 - `Dry::Validation::Result#{success?, failure?, to_h}`の手書きRBSオーバーレイ、そのため`contract.call(...).to_h`チェーンが`Hash[Symbol, untyped]`に解決する。
 
-フロア: すべてのcontract呼び出しサイトは下流のメソッドチェーン推論のために型付きの`Result`レシーバを持つ。
+フロア: すべてのcontract呼び出しサイトは下流のメソッドチェーン推論のために型付きの`Result`レシーバーを持つ。
 
 ### スライス2 — `params { ... }`のdry-schemaとの統合
 
@@ -124,7 +124,7 @@ result.errors.to_h # => Hash[Symbol, Array[String]]
 
 フロア: `NewUserContract.new.call(email: "x@y", age: 17).to_h`が`HashShape[{email: String, age: Integer}]`に解決する。
 
-### スライス3 — `json { ... }`アダプターパリティ
+### スライス3 — `json { ... }`アダプタパリティ
 
 `json { ... }`ブロックは`params`と同じ形だがより厳密な型期待を適用する（文字列から整数への強制なし）。同じウォーカーを適用;同じファクトを別のキー（`:dry_validation_json`または`kind:`判別子を持つ共有された`:dry_validation_schema`）で発行。
 
@@ -153,7 +153,7 @@ result.errors.to_h # => Hash[Symbol, Array[String]]
 2. `rigor-dry-schema`スライス2+（スキーマごとの形合成）
 3. `rigor-dry-validation`スライス1（Contract認識 + `Result`キャリア）
 4. `rigor-dry-validation`スライス2（paramsのdry-schema統合）
-5. `rigor-dry-validation`スライス3（jsonアダプターパリティ）
+5. `rigor-dry-validation`スライス3（jsonアダプタパリティ）
 6. `rigor-dry-monads` — （a）または（b）が`Result` / `Maybe`キャリア質問を解決した後にのみ
 
 合計: 5〜6の小〜中スライス。特定の層に対する具体的なユーザー需要はそれを前倒しすることを正当化する。

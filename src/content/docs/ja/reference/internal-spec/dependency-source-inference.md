@@ -38,7 +38,7 @@ dependencies:
       mode: disabled
 ```
 
-この形状は[`Rigor::Configuration::Dependencies`](https://github.com/rigortype/rigor/blob/master/lib/rigor/configuration/dependencies.rb)でパースされます。[`schemas/rigor-config.schema.json`](https://github.com/rigortype/rigor/blob/master/schemas/rigor-config.schema.json)のJSONスキーマ行がパーサーを反映します。
+この形状は[`Rigor::Configuration::Dependencies`](https://github.com/rigortype/rigor/blob/master/lib/rigor/configuration/dependencies.rb)でパースされます。[`schemas/rigor-config.schema.json`](https://github.com/rigortype/rigor/blob/master/schemas/rigor-config.schema.json)のJSONスキーマ行がパーサを反映します。
 
 | フィールド | 型 | 必須 | デフォルト | 注記 |
 | --- | --- | --- | --- | --- |
@@ -107,7 +107,7 @@ Builder.build(dependencies)        ▼
 
 | 結果 | 意味 |
 | --- | --- |
-| `Resolved(gem_name:, version:, gem_dir:, mode:, roots:)` | RubyGemsがスペックを特定した; `version`はキャッシュディスクリプターに往復するためStringとしてのスペックバージョン。 |
+| `Resolved(gem_name:, version:, gem_dir:, mode:, roots:)` | RubyGemsがスペックを特定した; `version`はキャッシュディスクリプタに往復するためStringとしてのスペックバージョン。 |
 | `Unresolvable(gem_name:, reason: :not_in_bundle)` | スペックが不在。ランナーは`dynamic.dependency-source.gem-not-found` `:warning`診断を表面化し、gemは実行に何も貢献しない。 |
 
 `Builder.build`はエントリーを分割します: `Resolved`行はウォーカーにフィード、`Unresolvable`行は上記の診断として表面化。`mode: :disabled`のエントリーは解決前にスキップされます（意図的に列挙-オフされたgemに対して欠落gemの診断なし）。
@@ -161,7 +161,7 @@ call.undefined-method                                 ── 最終
 
 `try_dependency_source`はレシーバーがカタログエントリーとクラス名 + メソッド名がマッチする`Type::Nominal` / `Type::Singleton`を持つ場合、`Type::Combinator.untyped`（つまり`Dynamic[top]`）を返します。このティアは**プラグインより厳密に下位に**座ります: プラグイン契約はADR-10 WD6に従って競合時に勝ちます（プラグインは作成済み契約; gem-source推論は日和見的）。
 
-スライス2b-iiは`Dynamic[top]`で意図的に停止します。メソッドごとの戻り型精度（つまり非`top`静的ファセットを持つ`Dynamic[T]`）は後のスライスにキューに入れられており、まだ`try_dependency_source`エンベロープを通じて表面化しません。現在の可視のペイオフは、オプトインgemメソッドコール上の`call.undefined-method`の不在です（Rigorが`Nominal[T]`でレシーバーを認識できる場合、通常ユーザーがRBSスケルトンを作成したか、RBSがコンストラクターコールを解決したため）。
+スライス2b-iiは`Dynamic[top]`で意図的に停止します。メソッドごとの戻り型精度（つまり非`top`静的ファセットを持つ`Dynamic[T]`）は後のスライスにキューに入れられており、まだ`try_dependency_source`エンベロープを通じて表面化しません。現在の可視のペイオフは、オプトインgemメソッドコール上の`call.undefined-method`の不在です（Rigorが`Nominal[T]`でレシーバーを認識できる場合、通常ユーザーがRBSスケルトンを作成したか、RBSがコンストラクタコールを解決したため）。
 
 ## 予算強制（スライス4）
 
@@ -205,9 +205,9 @@ Rigor::Cache::Descriptor::DependencyEntry.new(
 | `gem_version` | String | 実行の`Resolved.version`（`Gem::Version`をStringにレンダリング）。 |
 | `mode` | `:disabled` / `:when_missing` / `:full` | {Configuration::Dependencies::VALID_MODES}を反映。 |
 
-合成（`Cache::Descriptor.compose`）は`gem_name`でグループ化し、2つのコントリビューターが`gem_version`または`mode`で不一致の場合に`Conflict`を発生させます。有効なデプロイメントではBundlerはgemごとに1バージョンをインストールし、パーサーはgemごとに1エントリーを生成するため、競合パスは例外的です。
+合成（`Cache::Descriptor.compose`）は`gem_name`でグループ化し、2つのコントリビューターが`gem_version`または`mode`で不一致の場合に`Conflict`を発生させます。有効なデプロイメントではBundlerはgemごとに1バージョンをインストールし、パーサはgemごとに1エントリーを生成するため、競合パスは例外的です。
 
-`Index#cache_descriptor`はすべての`Resolved`行を`DependencyEntry`に変換し、`dependencies:`スロットが設定されたフリーズされた`Cache::Descriptor`を返します。ADR-10推論出力を観察するキャッシュプロデューサーはこのディスクリプターを自身のもの（`RbsDescriptor`、プラグインディスクリプター、ファイルダイジェスト）と`Cache::Descriptor.compose`を通じて合成するため、列挙されたgemの`bundle update`がそのgemのスライスだけを無効化し、キャッシュの残りをホットのままにします。
+`Index#cache_descriptor`はすべての`Resolved`行を`DependencyEntry`に変換し、`dependencies:`スロットが設定されたフリーズされた`Cache::Descriptor`を返します。ADR-10推論出力を観察するキャッシュプロデューサーはこのディスクリプタを自身のもの（`RbsDescriptor`、プラグインディスクリプタ、ファイルダイジェスト）と`Cache::Descriptor.compose`を通じて合成するため、列挙されたgemの`bundle update`がそのgemのスライスだけを無効化し、キャッシュの残りをホットのままにします。
 
 `Unresolvable`エントリーは何も貢献しません——キーにするバージョンがなく、ランナーはすでにそれらを`dynamic.dependency-source.gem-not-found`診断として表面化しています。解決済み-無効エントリーは{Builder}によって上流でフィルタリングされ、インデックスに到達しません。
 

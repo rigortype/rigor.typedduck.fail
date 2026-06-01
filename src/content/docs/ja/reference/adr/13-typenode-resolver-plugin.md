@@ -1,5 +1,5 @@
 ---
-title: "ADR-13 — `TypeNode`リゾルバプラグインフック + TypeScriptユーティリティ型アダプター"
+title: "ADR-13 — `TypeNode`リゾルバプラグインフック + TypeScriptユーティリティ型アダプタ"
 description: "rigortype/rigor docs/adr/13-typenode-resolver-plugin.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/13-typenode-resolver-plugin.md"
 sourcePath: "docs/adr/13-typenode-resolver-plugin.md"
@@ -75,14 +75,14 @@ Rigor::TypeNode::Generic    = Data.define(:head, :args)
 
 `Rigor::TypeNode::NameScope`は次を公開します:
 
-- `resolver` — 拡張が自身の引数を再帰的に解決するための再エントリーポイント（`scope.resolver.resolve(args[0], scope)`）。PHPStanの`TypeNodeResolverAwareExtension`パターンを循環参照ワークアラウンドなしでミラーします（Rigorはコンストラクター注入ではなく引数でリゾルバを渡します）。
+- `resolver` — 拡張が自身の引数を再帰的に解決するための再エントリーポイント（`scope.resolver.resolve(args[0], scope)`）。PHPStanの`TypeNodeResolverAwareExtension`パターンを循環参照ワークアラウンドなしでミラーします（Rigorはコンストラクタ注入ではなく引数でリゾルバを渡します）。
 - `class_context` — 周囲のクラス / モジュール名（あれば）。
 - `type_alias_table` — 前方参照用のプロジェクトのRBS型エイリアスの読み取り専用ビュー。
 
 リゾルバの呼び出し順序は:
 
 1.  `Builtins::ImportedRefinements.lookup(name)` — 引数なしのビルトインリファインメント（`non-empty-string`など）。
-2.  `Builtins::ImportedRefinements::Parser` — ビルトインのパラメーター化形式（`non-empty-array[T]`、`int<a, b>`、`pick_of[T, K]`、…;この行は決定（2）からの新しい型関数を得ます）。
+2.  `Builtins::ImportedRefinements::Parser` — ビルトインのパラメータ化形式（`non-empty-array[T]`、`int<a, b>`、`pick_of[T, K]`、…;この行は決定（2）からの新しい型関数を得ます）。
 3.  **プラグインリゾルバ、プラグイン登録順**。各プラグインの`TypeNodeResolver#resolve(node, scope)`が呼び出されます;最初の非nil戻り値が勝ちます。
 4.  通常のクラスインスタンス、エイリアス、ジェネリックに対するRBSフォールバック（`RBS::Parser.parse_type`）。
 5.  解決失敗 → `dynamic.rbs-extended.unresolved`診断;影響を受けるスロットは`Dynamic[top]`に縮退します。
@@ -181,7 +181,7 @@ ADR-1はRBSを正準のエクスポート契約として固定します。新し
 - `Rigor::TypeNode::Generic`（新しい凍結Data）。
 - `Rigor::TypeNode::NameScope`（`#resolver`、`#class_context`、`#type_alias_table`を持つ新しい値オブジェクト）。
 - `Rigor::Plugin::Manifest#type_node_resolvers`（新しいattr_reader;デフォルト`[]`）。
-- `Rigor::Builtins::ImportedRefinements::Parser`は5つの新しい型関数ヘッド（`pick_of`、`omit_of`、`partial_of`、`required_of`、`readonly_of`）を得ます。パーサー自体はパブリックAPIサーフェスの一部ではありませんが、そのパース出力は`Type::*`キャリアを通じて観察可能です。
+- `Rigor::Builtins::ImportedRefinements::Parser`は5つの新しい型関数ヘッド（`pick_of`、`omit_of`、`partial_of`、`required_of`、`readonly_of`）を得ます。パーサ自体はパブリックAPIサーフェスの一部ではありませんが、そのパース出力は`Type::*`キャリアを通じて観察可能です。
 - 新しい診断識別子:
   - `dynamic.rbs-extended.unresolved`（解決失敗フォールバック）。
   - `dynamic.shape.lossy-projection`（非シェイプキャリア上の`pick_of` / `omit_of`）。
@@ -195,10 +195,10 @@ ADR-1はRBSを正準のエクスポート契約として固定します。新し
 推奨される順序;各スライスは独立して出荷可能:
 
 1.  **`Rigor::TypeNode`値オブジェクト + spec。— LANDED (v0.1.4)**
-    純粋なDataクラス;パーサーの変更はまだなし。ドリフトスナップショットがランディング。
+    純粋なDataクラス;パーサの変更はまだなし。ドリフトスナップショットがランディング。
 2.  **`Plugin::TypeNodeResolver`基底クラス + マニフェストフック。— LANDED (v0.1.4)**
-    `Plugin::Manifest#type_node_resolvers`リーダー;ローダーはプラグイン全体でリゾルバを集約。パーサー統合はまだなし。
-3.  **`ImportedRefinements::Parser`でのパーサー統合。— LANDED (v0.1.4)**
+    `Plugin::Manifest#type_node_resolvers`リーダー;ローダーはプラグイン全体でリゾルバを集約。パーサ統合はまだなし。
+3.  **`ImportedRefinements::Parser`でのパーサ統合。— LANDED (v0.1.4)**
     「プラグインリゾルバを参照する」ステップをルックアップチェーンの正しい位置に挿入。ペイロード全体の失敗に対する`dynamic.rbs-extended.unresolved`診断。
 4.  **コア型関数 — フェーズA（レコード / シェイプキャリア）。— LANDED (v0.1.4)**
     HashShapeとレコードキャリアに対する`pick_of[T, K]`、`omit_of[T, K]`、`partial_of[T]`、`required_of[T]`、`readonly_of[T]`。`type-operators.md`と`imported-built-in-types.md`にspec行を追加。
@@ -215,7 +215,7 @@ ADR-1はRBSを正準のエクスポート契約として固定します。新し
 
 ### WD1 — なぜ`RBS::Types::*`を再利用するのではなく新しいDataクラスASTを？
 
-RBSのパーサーはRigorのペイロード構文（`pick_of[T, K]`、`int<a, b>`）を知りません。`ImportedRefinements::Parser`の既存パーサーは手書きのStringScannerウォークで、RBS形のツリーではありません。既存パーサーの上にプラグイン拡張性を追加するのは、リゾルバが**Rigorの**ミニASTを見る場合に最も安価です（モックRBSのものではなく）。2つのDataクラス（`Identifier`、`Generic`）はパーサーが発行するすべての文法生成をカバーします。
+RBSのパーサはRigorのペイロード構文（`pick_of[T, K]`、`int<a, b>`）を知りません。`ImportedRefinements::Parser`の既存パーサは手書きのStringScannerウォークで、RBS形のツリーではありません。既存パーサの上にプラグイン拡張性を追加するのは、リゾルバが**Rigorの**ミニASTを見る場合に最も安価です（モックRBSのものではなく）。2つのDataクラス（`Identifier`、`Generic`）はパーサが発行するすべての文法生成をカバーします。
 
 ### WD2 — なぜコアが`pick_of`などを出荷するのか、プラグインに任せないのか？
 
@@ -231,7 +231,7 @@ ADR-2§「プラグイン貢献マージング」は**フロー貢献**（戻り
 
 ### WD4 — なぜ関数型射影（`Parameters<F>`、`ReturnType<F>`）はこのADRにランディングしないのか？
 
-シェイプ型ではなく関数 / proc型から射影する別のコア演算子（`params_of[F]`、`return_of[F]`）が必要です。セマンティクスは明確に定義されていますが、実装はパーサーだけでなくディスパッチャーに触れます。フォローアップとしてキュー — ランディングすると、`rigor-typescript-utility-types`プラグインは2行成長します。
+シェイプ型ではなく関数 / proc型から射影する別のコア演算子（`params_of[F]`、`return_of[F]`）が必要です。セマンティクスは明確に定義されていますが、実装はパーサだけでなくディスパッチャーに触れます。フォローアップとしてキュー — ランディングすると、`rigor-typescript-utility-types`プラグインは2行成長します。
 
 ### WD5 — なぜ「最高優先度プラグインが勝つ」ではなく「最初の非nilが勝つ」？
 
@@ -246,9 +246,9 @@ ADR-2§「Scopeオブジェクト」と同じ答え: 拡張は解析器の状態
 | 候補 | ステータス | 理由 |
 | --- | --- | --- |
 | TS正準名（`Pick`、`Omit`、…）を`ImportedRefinements::REGISTRY`に直接追加 | 拒否 | `imported-built-in-types.md:101`は初期に追加してはならない（MUST NOT）と明示。それを反転するには仕様変更がいずれにせよ必要で、プラグインパスはコアを汚染せずに同じUXを達成。 |
-| 生のペイロード文字列をプラグインに渡し、プラグインにパースさせる | 拒否 | 各プラグインがStringScannerウォークとパースエラー処理を重複させる。ミニASTはパーサー側の複雑性を吸収する小さなサーフェス。 |
+| 生のペイロード文字列をプラグインに渡し、プラグインにパースさせる | 拒否 | 各プラグインがStringScannerウォークとパースエラー処理を重複させる。ミニASTはパーサ側の複雑性を吸収する小さなサーフェス。 |
 | RBSの既存`RBS::Types::*` ASTを使う | 拒否（WD1） | ペイロード文法はRBSではない;RBS ASTに通すことを強制すると、偽の`RBS::Types::Application`ノードを合成する必要がある。 |
-| すべてのTS、Flow、JSDocユーティリティ型バリアントを出荷する1つのメガプラグイン | 拒否 | 3つの独立した型言語アダプターを結合。各々を独自のプラグインgemとして保ち;コア演算子を共有。 |
+| すべてのTS、Flow、JSDocユーティリティ型バリアントを出荷する1つのメガプラグイン | 拒否 | 3つの独立した型言語アダプタを結合。各々を独自のプラグインgemとして保ち;コア演算子を共有。 |
 | `Plugin::TypeNodeResolver`を`Plugin::Base`のメソッドとして構築（別個のクラスなし） | 拒否 | プラグインは複数の独立したリゾルバを登録したい場合がある（名前ごとに1つ）。名前付きクラスとして分離することで、各リゾルバを分離してテスト可能に保ち、マニフェストが明示的にそれらをリストできる。 |
 | TSユーティリティ型を超える2番目の消費者が現れるまでフックを先送り | 拒否 | ユーザーは明示的にフックを求めた;先送りすると即時のユースケース（`Pick`など）をコアに行を追加することで解決することになり、仕様はすでにそれを拒否した。フックは最も摩擦の少ないアンブロックである。 |
 

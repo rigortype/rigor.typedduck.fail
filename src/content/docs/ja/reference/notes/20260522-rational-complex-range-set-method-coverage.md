@@ -198,7 +198,7 @@ sidebar:
 | `to_a` | ✅ | `[1, 2, 3, 4, 5]` | `range_to_a_tuple` → `Tuple[Constant…]` |
 | `to_set` | ✅ | `Set[1, 2, 3, 4, 5]` | `meta_new`の`set_new_lift`経由 → `Constant[Set]` |
 | `include?` | ✅ | `true` | カタログ`:leaf` + binary fold |
-| `member?` | ✅ | `true` | `include?`の別名（カタログに同エントリ） |
+| `member?` | ✅ | `true` | `include?`の別名（カタログに同エントリー） |
 | `cover?` | ✅ | `true` | カタログ`:leaf` + binary fold |
 | `===` | ✅ | `true` | カタログ`:leaf` + binary fold |
 | `inspect` | 🔷 | `String` | `purity: dispatch`（begin/endの`inspect`を呼ぶ）。fold不可 |

@@ -23,7 +23,7 @@ sidebar:
 - **推論バジェットと、推論が停止した理由を保持する不完全推論結果**。[inference-budgets.md](../../type-specification/inference-budgets/)を参照してください。
 - **ファクト（fact）ストア**。値ファクト・否定ファクト・関係ファクト・メンバー存在ファクト・シェイプ（shape）ファクト・動的由来の来歴・安定性ファクト・エスケープファクト・キャプチャされたローカル書き込みファクトを表現できます。[control-flow-analysis.md](../../type-specification/control-flow-analysis/)を参照してください。
 - **エフェクトモデル**。レシーバーおよび引数の変更・ブロック呼び出しタイミング・クロージャエスケープ・純粋性・ファクト無効化を扱います。[control-flow-analysis.md](../../type-specification/control-flow-analysis/)と[rbs-extended.md](../../type-specification/rbs-extended/)を参照してください。
-- **ケイパビリティ（capability）ロール推論**。メソッドごとの要求サマリをキャッシュし、インデックス済み名前付きインターフェースが利用できる場合はそれに照合し、照合が曖昧またはコスト過多な場合は匿名シェイプを保持できます。[structural-interfaces-and-object-shapes.md](../../type-specification/structural-interfaces-and-object-shapes/)を参照してください。
+- **ケイパビリティ（capability）ロール推論**。メソッドごとの要求サマリーをキャッシュし、インデックス済み名前付きインターフェースが利用できる場合はそれに照合し、照合が曖昧またはコスト過多な場合は匿名シェイプを保持できます。[structural-interfaces-and-object-shapes.md](../../type-specification/structural-interfaces-and-object-shapes/)を参照してください。
 - **正規化**。ユニオン（union、合併型とも）・インターセクション・補集合・差・不可能な絞り込みを対象とします。[normalization.md](../../type-specification/normalization/)を参照してください。
 - **拡張向けセマンティック型クエリ**。プラグイン作者が具体的な型クラスを検査するのではなく、ケイパビリティ質問を投げかけられるようにします。[rbs-extended.md](../../type-specification/rbs-extended/)を参照してください。
 - **保守的なRBS消去（オプションで精度損失の説明付き）**。[rbs-erasure.md](../../type-specification/rbs-erasure/)を参照してください。
@@ -42,4 +42,4 @@ sidebar:
 
 `Scope`の公開サーフェス・プラグインに公開される型クエリAPI・診断識別子プレフィックス（[diagnostic-policy.md](../../type-specification/diagnostic-policy/)を参照）は、メジャーバージョン内で安定しています。内部レイアウト（ファクトバケット・インデックス済みインターフェース照合テーブル・ケイパビリティロールキャッシュ）は、変更MAYされる実装詳細です。
 
-プラグイン・リファクタリングツール・その他のコンシューマは、クエリにはMUST公開サーフェスを使用しなければなりません。仕様書が公開契約として文書化していない内部データ構造にMUST NOT依存してはなりません。
+プラグイン・リファクタリングツール・その他のコンシューマーは、クエリにはMUST公開サーフェスを使用しなければなりません。仕様書が公開契約として文書化していない内部データ構造にMUST NOT依存してはなりません。

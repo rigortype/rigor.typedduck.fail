@@ -61,7 +61,7 @@ RBSレコード（`{ key: T }`）とタプル（`[A, B]`）は正確な形式と
 
 ### 型変数
 
-RBSからの型変数の境界と宣言サイトの変性は保持されます。メソッド本体を通じたジェネリック保持 — 例えばメソッドが受け取ったのと同じパラメーターオブジェクトを返すとき`[S < _RewindableStream] (S stream) -> S`を推論する — はRigorの推論挙動であり、新しい表面形式ではありません。[structural-interfaces-and-object-shapes.md](../structural-interfaces-and-object-shapes/)を参照してください。
+RBSからの型変数の境界と宣言サイトの変性は保持されます。メソッド本体を通じたジェネリック保持 — 例えばメソッドが受け取ったのと同じパラメータオブジェクトを返すとき`[S < _RewindableStream] (S stream) -> S`を推論する — はRigorの推論挙動であり、新しい表面形式ではありません。[structural-interfaces-and-object-shapes.md](../structural-interfaces-and-object-shapes/)を参照してください。
 
 ### `bool`対真偽性
 

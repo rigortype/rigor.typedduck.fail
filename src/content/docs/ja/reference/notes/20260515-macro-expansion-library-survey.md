@@ -56,7 +56,7 @@ dry-struct）を追加するためリビジョン。
 4. **静的展開可能性** — 部分的に展開可能:
    - **自明に展開可能** — `ClassMethods`の`extend`とインスタンスメソッドの`include`の半分。ウォーカーは`include M`を「`M::ClassMethods`を`extend`＋`M`のdefをHostにミックスインする」と扱える。
    - **再帰的に展開可能** — `@_dependencies`チェーンは純粋にレキシカルである（モジュール本体内の`include OtherConcern`）。
-   - **ブロック展開はブロック本体に依存する**。`included do … end`は*遅延`class_eval`*である: ブロックASTを逐語的にインライン展開し、インクルードする側に再バインドする。他のrigorウォーカーがすでに理解しているDSL呼び出し（例: `has_one_attached`、`has_many`、`scope`）は、*インクルードする側*でそれらのウォーカーを再トリガする。
+   - **ブロック展開はブロック本体に依存する**。`included do … end`は*遅延`class_eval`*である: ブロックASTを逐語的にインライン展開し、インクルードする側に再バインドする。他のrigorウォーカーがすでに理解しているDSL呼び出し（例: `has_one_attached`、`has_many`、`scope`）は、*インクルードする側*でそれらのウォーカーを再トリガーする。
    - **困難なケース**: `included do`内での`Rails.env` / `defined?(…)`による分岐、補間されたヒアドキュメントの`class_eval`、ランタイムに具体的なbaseに対して実行される4引数の`included(base)`本体。
 
 5. **もっとも近い類似物** — **PHPStanのトレイトインライン展開**。内容は静的なテキストでホストクラスに再バインドされる。Rustのderiveマクロと異なり、展開のターゲットはConcern自身ではなく*インクルードする側*である。展開はinclude箇所で発火し、concernの定義箇所では発火しない。
@@ -287,7 +287,7 @@ dry-struct）を追加するためリビジョン。
    （`strategy_syntax_method_registrar.rb:55-63`）。`_list` / `_pair`バリアントは単数形を`Array.new(amount) { … }`でラップする（`:35-52`）。
 
 3. **生成されるもの** — ユーザーのモデルクラスには*何も*生成されない。生成されるのは2つ:
-   - **シンボルでキー付けされたレジストリ内のファクトリ定義**。
+   - **シンボルでキー付けされたレジストリ内のファクトリー定義**。
      `Factory#build_class`は`class_name.to_s.camelize.constantize`を介してターゲットクラスを遅延解決する。`class:`が指定されない場合は`name`をデフォルトとする（`factory.rb:24-32, 109-111`）。
    - **`FactoryBot::Syntax::Methods`上のトップレベルストラテジメソッド**:
      `build`、`create`、`attributes_for`、`build_stubbed`、加えて
@@ -298,7 +298,7 @@ dry-struct）を追加するためリビジョン。
      - `_list`→`Array[T]`、`_pair`→サイズ2の`Array[T]`。
 
 4. **静的展開可能性** — `create(:user)`に型を付けるには3つの材料で十分:
-   1. **ファクトリ名→モデルクラスのマップ**。
+   1. **ファクトリー名→モデルクラスのマップ**。
       `FactoryBot.define { factory :foo[, class: Bar][, parent: :baz] … }`ブロックを歩く。戻り値型の問いに対してブロック本体の評価は不要。
       `class:`はリテラル。指定がなければ`name.to_s.camelize.constantize`。
       `parent:`はクラス継承を連鎖させる。
@@ -310,7 +310,7 @@ dry-struct）を追加するためリビジョン。
    ランタイムを必要とするもの: `FactoryBot.modify`、`define`の外での動的登録、ユーザー登録のカスタムストラテジ、インスタンス化セマンティクスを変える`to_create` /
    `initialize_with`ブロック（`factory.rb:140-146`）。
 
-5. **もっとも近い類似物** — **PHPStanスタイルの「リテラルなシンボル引数から戻り値型が計算される汎用メソッド」**。Railsの`find_by_*`ファミリやPHPStanの`DynamicMethodReturnTypeExtension`と同じ形である。Lisp／PHPStanトレイトの意味でのマクロ展開では**ない** — factory_botは`User`上にメソッドを生成しないので、ユーザークラスの呼び出し箇所でインラインするものがない。モデルは「ブート時に1回のレジストリウォーク＋ストラテジメソッドごとに1つの戻り値型ルール（最初のシンボル引数をキーとする）」である。
+5. **もっとも近い類似物** — **PHPStanスタイルの「リテラルなシンボル引数から戻り値型が計算される汎用メソッド」**。Railsの`find_by_*`ファミリーやPHPStanの`DynamicMethodReturnTypeExtension`と同じ形である。Lisp／PHPStanトレイトの意味でのマクロ展開では**ない** — factory_botは`User`上にメソッドを生成しないので、ユーザークラスの呼び出し箇所でインラインするものがない。モデルは「ブート時に1回のレジストリウォーク＋ストラテジメソッドごとに1つの戻り値型ルール（最初のシンボル引数をキーとする）」である。
    rigorはすでに`plugins/rigor-factorybot/`に正しいフックを持っている。マクロ機構なしで到達可能な拡張には、`*_list` / `*_pair`のラッピング、`parent:`チェーンの解決、`aliases:`登録、トレイト名のバリデーションが含まれる。
 
 ---
@@ -359,7 +359,7 @@ dry-struct）を追加するためリビジョン。
 4. **静的展開可能性** — 非常に扱いやすい。ブロック本体は手を加えていないRubyである。内部の`self`はアプリクラスのインスタンスである。機械的な展開: `class X < Sinatra::Base`内の任意の`<verb>(path, opts = {}, &block)`を、ブロック本体をインライン化し`self`を`X`として型付けした、`X`上の合成プライベートインスタンスメソッドとして扱う。`Sinatra::Base`のインスタンスメソッド表面をスコープに注入する。classicモードのトップレベルでは、`Sinatra::Delegator`を認識し、剥き出しの`get`を`Sinatra::Application.get`として扱う必要もある。
 
 5. **もっとも近い類似物** — RubyのDSL動物園でもっともきれいなケース: **ブロックがすでにメソッド本体である、バイトごとに**。Lispマクロ（構文を書き換える）やPHPStanのトレイトインライン（ASTをコピーする）と異なり、Sinatraは書き換えを必要としない — `generate_method`は文字通り`define_method(name, &block)`である。
-   アナライザが「このブロックは`Sinatra::Base`のインスタンスメソッドとして実行される」と受け入れれば、展開は不要である。
+   アナライザーが「このブロックは`Sinatra::Base`のインスタンスメソッドとして実行される」と受け入れれば、展開は不要である。
 
 ---
 
@@ -406,7 +406,7 @@ dry-struct）を追加するためリビジョン。
    （`:2198-2202`）。受け取るモジュールはデフォルトで`overridable_methods_module`である。
 
 4. **静的展開可能性**:
-   - **DBスキーマ依存**。カラムアクセサはライブの`get_db_schema_array`呼び出しの後にのみ存在する。静的アナライザはユーザー供給のDDL、データベース発行の`DESCRIBE`、あるいはマイグレーションから推論されたソースのいずれかを消費しなければならない。素のSequelには正準な静的スキーマソースはない。
+   - **DBスキーマ依存**。カラムアクセサはライブの`get_db_schema_array`呼び出しの後にのみ存在する。静的アナライザーはユーザー供給のDDL、データベース発行の`DESCRIBE`、あるいはマイグレーションから推論されたソースのいずれかを消費しなければならない。素のSequelには正準な静的スキーマソースはない。
    - **プラグインのシーケンシングは順序依存かつ副作用的である**。
      `Model.plugin`（`base.rb:496-520`）は`apply`を1回実行し、その後`extend
      ClassMethods`、`include InstanceMethods`、`dataset_extend(DatasetMethods)`を行い、呼び出しごとに`configure`を実行する。プラグインは`apply` / `configure`の内部からさらに`define_method` /
@@ -423,7 +423,7 @@ dry-struct）を追加するためリビジョン。
 5. **もっとも近い類似物** — **ハイブリッド: 関連付けレイヤーはPHPStanのトレイトスタイル＋カラムレイヤーはスキーマソース依存＋プラグインリプレイエンジン**。
    - `one_to_many` / `many_to_one` / `many_to_many`はトレイトインライン展開スタイル: 固定テーブルからの名前駆動メソッド合成、機械的に展開可能。
    - カラムアクセサは純粋なマクロではない — スキーマオラクルを必要とする（PHPStanのPDOリフレクション拡張、または`kphp`の`.sql`取り込みにもっとも近い）。ADR-10スタイルのオプトイン推論は役に立たない。カラムはRubyの外、no-RBS依存の中ではなく、Rubyの外に存在するからである。
-   - プラグインシステムは「副作用的なapplyフックを持つトレイトインライン展開」にもっとも近い — モジュールは静的に既知だが、`apply` / `configure`ブロックはアナライザがシンボリックに実行するか、宣言的にモデル化する必要のあるランタイムデータを運ぶ。
+   - プラグインシステムは「副作用的なapplyフックを持つトレイトインライン展開」にもっとも近い — モジュールは静的に既知だが、`apply` / `configure`ブロックはアナライザーがシンボリックに実行するか、宣言的にモデル化する必要のあるランタイムデータを運ぶ。
 
    小さな「Sequel関連付け」プラグインは関連付けDSLをきれいに展開できる。
    完全なSequelチェッカーには次が必要: （a）スキーマソースアダプタ — おそらく
@@ -509,13 +509,13 @@ end
 - **B** — 完全に展開可能。5つのリテラルシンボル→5つの
   `def event_datetime / event_title / event_description / event_author /
   event_type`が同じ式を返す。
-- **C** — アナライザが`config/settings.yml`（約70の設定キー）を読み、
+- **C** — アナライザーが`config/settings.yml`（約70の設定キー）を読み、
   `Redmine::Plugin.register :id do settings :default => {...} end`ブロックを歩く場合にのみ展開可能。
   各`name`は3つのクラスメソッド（`name`、`name?`、`name=`）を生成する。
   形は静的に既知だが、キーの*集合*はYAMLとプラグインのinit.rbファイルを読む必要がある。これはユーザーの
   「activesupport-core-ext＋プロジェクト側のmonkey-patch事前評価」メモが記述するケースである。
 - **D** — *見かけ上*扱えないが、実際は（b′）である: `USER_FORMATS`はソース可視の定数で、その`:string` / `:initials`値は静的なテンプレート文字列である。マクロ展開器は`eval('"' + f[:string] + '"')`を9個のテンプレートに渡る`String`の∨に変えられる。その特例なしでは、`Dynamic[String]`を発行する。
-- **E** — パターン（c）。設定されたパスでwebhook payloadの`.rb`テンプレートを読む必要がある。`self`は呼び出し側によって`@`ivarが注入された`WebhookPayload`インスタンスである。アナライザがpayloadテンプレートディレクトリを追加のソースルートとして扱う場合、扱える（PHPStanのスタブファイルパターン）。
+- **E** — パターン（c）。設定されたパスでwebhook payloadの`.rb`テンプレートを読む必要がある。`self`は呼び出し側によって`@`ivarが注入された`WebhookPayload`インスタンスである。アナライザーがpayloadテンプレートディレクトリを追加のソースルートとして扱う場合、扱える（PHPStanのスタブファイルパターン）。
 - **F** — リテラルシンボル引数でのブロック形式`class_eval`＋`define_method`。自明に展開可能: 各名前にgetter/setterのペアを発行する（セマンティクスは`attr_accessor`と異なる）。
 - **G** — includerのスコープを再オープンするブロック形式`class_eval`。文字列evalではない。標準の`included`フック。
 
@@ -618,7 +618,7 @@ end
    `DSL`の本物のインスタンスメソッドである（`dsl.rb:144-188`）。
 
    `required(:email)`→`key(:email, macro: Macros::Required)`
-   （`dsl.rb:144-146`）は`Macros::Required`を構築し、`set_type`で`:email`のプレースホルダ型として`Types::Any`を保存し
+   （`dsl.rb:144-146`）は`Macros::Required`を構築し、`set_type`で`:email`のプレースホルダー型として`Types::Any`を保存し
    （`dsl.rb:176, 316-321`）、マクロを`@macros`にプッシュする
    （`dsl.rb:186-187`）。`.filled(:string)`は`Macros::DSL#filled`
    （`lib/dry/schema/macros/dsl.rb:80-86`）である。これは
@@ -805,12 +805,12 @@ dry-struct}**で合成する。
 したがって`rigor-dry-types`は他の2つの**共有依存**であり、gem依存グラフを1対1でミラーする。それなしでは、下流gem内の属性ごと／キーごとの型表現は
 `Dynamic[T]`に劣化する。それがあれば、下流プラグインは薄いASTレコーダーである。
 
-dry-rbファミリは**マクロ基盤への強い適合**である:
+dry-rbファミリーは**マクロ基盤への強い適合**である:
 dry-structはTier Cにきれいにスロットインする。dry-schemaはTier A＋Tier A駆動のレコーダーにスロットインする。dry-typesは同梱定数レジストリ（Tier-C-as-method-definitionよりもTier-C-as-`const_set`に近い）＋`Dry::Types[…]`のための`dynamic_return_type`拡張としてもっともよくモデル化される。3つのどれにもGraphQL-Ruby形式の扱えなさや、Sequel-column-accessor形式のスキーマオラクル要件は現れない。
 
 ---
 
-## ライブラリ横断のサマリ
+## ライブラリ横断のサマリー
 
 静的展開／リプレイの扱いやすさの降順でソート。「shape」列はexpanderが扱う必要のあるメタプログラミングプリミティブを命名する。「rigor today」列は現在のプラグイン／処理状態を記録する。
 

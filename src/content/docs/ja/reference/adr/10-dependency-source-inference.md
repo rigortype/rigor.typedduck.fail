@@ -80,13 +80,13 @@ dependencies:
 
 ### キャッシュと無効化
 
-Gemソース推論の結果はADR-6の既存のシャードされた永続化バックエンドを使用してキャッシュされます。Gem名、Gemバージョン、モードごとのディスクリプターエントリーを持ちます:
+Gemソース推論の結果はADR-6の既存のシャードされた永続化バックエンドを使用してキャッシュされます。Gem名、Gemバージョン、モードごとのディスクリプタエントリーを持ちます:
 
 - キャッシュキーは`(gem_name, gem_version, source_inference_mode)`と既存の解析器 / RBS環境フィンガープリントを含みます。
 - リストされたGemのピン留めされたバージョンを変更する`bundle update`はそのGemのキャッシュスライスのみを無効化します。他のGemのスライスとユーザーのプロジェクトスライスは有効なままです。
 - `dependencies.source_inference`自体の変更は現在リストされているGemと以前リストされていたGemのユニオンを無効化します（比較はすでに使用中の`Cache::Descriptor::ConfigEntry`の一部です）。
 
-`Cache::Descriptor::PluginEntry`は新しいフィールドを必要としません; GemソースParsは核であり、プラグインコントリビューションではありません。新しい`Cache::Descriptor::DependencyEntry`値オブジェクトが`(gem_name, gem_version, mode)`を運び、既存の`gems:`スロットの隣のディスクリプターにスロットインされます（[ADR-2 §「キャッシュ依存関係は明示的なディスクリプターであるべき」](../2-extension-api/)）。
+`Cache::Descriptor::PluginEntry`は新しいフィールドを必要としません; GemソースParsは核であり、プラグインコントリビューションではありません。新しい`Cache::Descriptor::DependencyEntry`値オブジェクトが`(gem_name, gem_version, mode)`を運び、既存の`gems:`スロットの隣のディスクリプタにスロットインされます（[ADR-2 §「キャッシュ依存関係は明示的なディスクリプタであるべき」](../2-extension-api/)）。
 
 ### バジェット相互作用
 
@@ -107,7 +107,7 @@ ADR-2 §「プラグイントラストとI/Oポリシー」は**プラグイン*
 
 ### 堅牢性原則（ADR-5）との境界
 
-[`docs/type-specification/robustness-principle.md`](../../type-specification/robustness-principle/)はRigorで作成された型が**戻り値では厳格に、パラメーターでは寛容に**であることを求めます。他の誰かの実装に対するGemソース推論は偶発的に**狭い**戻り型を生成します——推論された戻り型は現在の実装を反映し、GemWriterがコミットした契約ではありません。
+[`docs/type-specification/robustness-principle.md`](../../type-specification/robustness-principle/)はRigorで作成された型が**戻り値では厳格に、パラメータでは寛容に**であることを求めます。他の誰かの実装に対するGemソース推論は偶発的に**狭い**戻り型を生成します——推論された戻り型は現在の実装を反映し、GemWriterがコミットした契約ではありません。
 
 このADRはその緊張を**狭い推論型を作成されたものとして決して公開しない**ことで解決します:
 
@@ -134,11 +134,11 @@ ADR-2 §「プラグイントラストとI/Oポリシー」は**プラグイン*
 推奨順序;各スライスは独立して出荷可能です。スライス1–3が使用可能な機能を提供します;スライス4–5はポリッシュで延期できます。
 
 1. **設定配線。— LANDED (v0.1.4)**
-   `Configuration::Dependencies::Entry`、パーサー、ドリフトスナップショット、JSONスキーマエントリー。解析器の配線はまだなし——`dependencies.source_inference`を持つ設定のロードは成功しますが、推論はリストされたGemをデフォルトのRBS-or-`Dynamic[top]`境界として扱い続けます。
+   `Configuration::Dependencies::Entry`、パーサ、ドリフトスナップショット、JSONスキーマエントリー。解析器の配線はまだなし——`dependencies.source_inference`を持つ設定のロードは成功しますが、推論はリストされたGemをデフォルトのRBS-or-`Dynamic[top]`境界として扱い続けます。
 2. **ウォーカー + ディスパッチティア。— LANDED (v0.1.4)**
    `Analysis::DependencySourceInference`がリストされたGemの`lib/`を走査し、推論された戻り型を今日のプラグインが使用する`flow_contribution_for`基板を通じて`Dynamic[T]`として提供します。新しいティア順序: コアRBS > `RBS::Extended` > プラグイン > **依存関係ソース推論** > エンジンフォールバック。プラグインは作成された契約であり、Gemソース推論は日和見的なため、プラグインより下位。
-3. **キャッシュディスクリプター + 無効化。— LANDED (v0.1.4)**
-   `Cache::Descriptor::DependencyEntry`がディスクリプターに着地します。リストされたGemの`bundle update`がそのGemのスライスのみを無効化します。
+3. **キャッシュディスクリプタ + 無効化。— LANDED (v0.1.4)**
+   `Cache::Descriptor::DependencyEntry`がディスクリプタに着地します。リストされたGemの`bundle update`がそのGemのスライスのみを無効化します。
 4. **Gemごとのバジェット + バジェット超過診断。— LANDED (v0.1.4)**
    `dependencies.budget_per_gem`設定エントリー、Gemごとの別のバジェットプール、`dynamic.dependency-source.budget-exceeded`の発行。
 5. **ドキュメント更新。— LANDED (v0.1.4)**
@@ -172,7 +172,7 @@ ADR-2 §「プラグイントラストとI/Oポリシー」は**プラグイン*
 
 共有プールは形状の悪い1つのGemがユーザー自身の解析を枯渇させることを許します。Gemごとのプールは任意の単一オプトインの最悪ケースの貢献を上限とします: GemのバジェットがトリップするとユーザーはそのGemのみの`Dynamic[top]`と名前を挙げた単一の診断を取得します。ユーザー自身の`paths:`走査は影響を受けません。
 
-### WD5 — キャッシュディスクリプタースコープ: Gemバージョンごと
+### WD5 — キャッシュディスクリプタスコープ: Gemバージョンごと
 
 `(gem_name, gem_version, mode)`でキー付けされたキャッシュスライスにより`bundle update`が影響を受けたGemのみを無効化できます。より広いキー（例: `Gemfile.lock`ダイジェスト）はいずれか単一のGemのアップグレードですべてのGemのスライスを無効化します——正確性のためには問題ありませんが、Railsモノレポでの増分リビルドには無駄です。狭いキーはADR-2 §「キャッシュ無効化には宣言的APIが必要」と一致します。
 

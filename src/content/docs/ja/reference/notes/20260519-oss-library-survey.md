@@ -1,5 +1,5 @@
 ---
-title: "22ライブラリOSSサーベイ — 繰り返される偽陽性クラスター + 着地したBigDecimal-coerce修正"
+title: "22ライブラリOSSサーベイ — 繰り返される偽陽性クラスタ + 着地したBigDecimal-coerce修正"
 description: "rigortype/rigor docs/notes/20260519-oss-library-survey.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260519-oss-library-survey.md"
 sourcePath: "docs/notes/20260519-oss-library-survey.md"
@@ -12,9 +12,9 @@ sidebar:
 
 **日付**。2026-05-18 → 2026-05-19。サーベイは`e44cfee`;修正は`acc9882`（`OverloadSelector: receiver-affinity pre-sort + Acceptance ancestor fallback`）で着地。
 
-**スコープ**。rigorリポジトリ外（`~/repo/ruby/rigor-survey/`）にクローンされ`rigor check`で解析された22の広く使われているOSS Ruby gem。目標: rigor自身のセルフチェックコーパスでは再現しない繰り返される偽陽性クラスターを特定し、ユーザー可視のインパクトでランク付けし、回帰カバレッジ付きで少なくとも1つの具体的な修正をエンドツーエンドで着地させる。
+**スコープ**。rigorリポジトリ外（`~/repo/ruby/rigor-survey/`）にクローンされ`rigor check`で解析された22の広く使われているOSS Ruby gem。目標: rigor自身のセルフチェックコーパスでは再現しない繰り返される偽陽性クラスタを特定し、ユーザー可視のインパクトでランク付けし、回帰カバレッジ付きで少なくとも1つの具体的な修正をエンドツーエンドで着地させる。
 
-**結果**。3ラウンドのサーベイ（ラウンド1: 11の汎用ライブラリ;ラウンド2: 11のテンプレート / シリアライゼーションライブラリ;ラウンド3: 修正着地）。ファミリー3（BigDecimal誤推論）はコーパス全体で完全に消失 — 7ライブラリで25回 → 0 — 7ファイルの変更を通じて（2 lib + 1新モジュール + 2 spec + CHANGELOG + CURRENT_WORK）。他の5つの診断クラスターはキューのまま;このノートはサーベイ方法論とライブラリごとの結果を記録し、将来の実装者が同じデータを手元に持って次のスライスを選べるようにする。
+**結果**。3ラウンドのサーベイ（ラウンド1: 11の汎用ライブラリ;ラウンド2: 11のテンプレート / シリアライゼーションライブラリ;ラウンド3: 修正着地）。ファミリー3（BigDecimal誤推論）はコーパス全体で完全に消失 — 7ライブラリで25回 → 0 — 7ファイルの変更を通じて（2 lib + 1新モジュール + 2 spec + CHANGELOG + CURRENT_WORK）。他の5つの診断クラスタはキューのまま;このノートはサーベイ方法論とライブラリごとの結果を記録し、将来の実装者が同じデータを手元に持って次のスライスを選べるようにする。
 
 **コンパニオン成果物**。ライブラリごとの生`rigor check`出力とクローン作業ツリーは、このリポジトリ外の`~/repo/ruby/rigor-survey/_reports/<lib>.txt`に保持される（チェックインされていない — クローンは大きすぎ、診断は下記§6のレシピから再現可能）。
 
@@ -24,7 +24,7 @@ sidebar:
 | --- | --- | --- | --- | --- | --- | --- |
 | `rgl` | 28 | 1.0秒 | 296 MB | 2 | 0 | ミックスインメソッドが`Object`として解決される |
 | `algorithms` | 14 | 1.5秒 | 314 MB | 53 | 11 | ツリーコンテナ: nilナローイング + 数値推論 |
-| `faraday` | 33 | 1.3秒 | 320 MB | 18 | 7 | クラスメソッドナローイング + nilレシーバクラスター |
+| `faraday` | 33 | 1.3秒 | 320 MB | 18 | 7 | クラスメソッドナローイング + nilレシーバークラスタ |
 | `rbnacl` | 37 | 1.2秒 | 300 MB | 0 | 1 | コーパス中最もクリーンな結果 |
 | `protobuf` (ruby) | 24 | 1.1秒 | 365 MB | 16 | 0 | `Numeric#to_i` / `Struct.new`ディスパッチバグ |
 | `parser` | 56 | 1.4秒 | 309 MB | 11 | 5 | `<< for BigDecimal`（Integer→BigDecimal誤推論） |
@@ -45,12 +45,12 @@ sidebar:
 
 その後の`--clear-cache`実行は、内部エラーなしで53の通常の診断を生成した。したがってバグは、このセッションでの先行する`rigor check`実行からの一時的なウォームキャッシュ状態に依存する。追跡する価値がある理由:
 
-1. ユーザーはリファクター後の最初のアナライザ呼び出しでこれに当たる。
+1. ユーザーはリファクタ後の最初のアナライザー呼び出しでこれに当たる。
 2. メッセージ自体がプログラミングエラー（タイプミス / 定義漏れ） — `MethodDispatcher.try_static_refinement`ルックアップが何らかのコードパスから到達可能;メソッドが未定義か、定義されるべきか。
 
-**アクション**: コードベースを`try_static_refinement`の呼び出し元でgrepする。トリガー条件は: キャッシュミス + プラグイン駆動のディスパッチャーエントリ。[`内部仕様の推論エンジンドキュメント`](../internal-spec/inference-engine/)契約もこれを列挙すべき。
+**アクション**: コードベースを`try_static_refinement`の呼び出し元でgrepする。トリガー条件は: キャッシュミス + プラグイン駆動のディスパッチャーエントリー。[`内部仕様の推論エンジンドキュメント`](../internal-spec/inference-engine/)契約もこれを列挙すべき。
 
-## 3. 繰り返される偽陽性 / 改善クラスター
+## 3. 繰り返される偽陽性 / 改善クラスタ
 
 これらは複数のライブラリにまたがって現れる — ランクは合計出現数で、おおよそ「ユーザーが自分のコードベースでどれだけのノイズを見るか」に比例する。
 
@@ -63,7 +63,7 @@ sidebar:
 | `kramdown` | `undefined method 'times' for BigDecimal` | 1 |
 | `protobuf` | `undefined method 'to_i/to_f' for Numeric` | 12 |
 
-これらはユーザーが書いた`BigDecimal`算術ではない。呼び出しサイトを読むと（例: `algorithms/lib/algorithms/sort.rb:70`は`(arr.length - 1).upto(...)`）、レシーバは`Integer`算術の結果。推論は`Integer`を`Numeric`に広げ、それから`BigDecimal`（`upto`/`<<`定義のない最も制限的な`Numeric`部分型）に間違ってナローイングしているように見える。
+これらはユーザーが書いた`BigDecimal`算術ではない。呼び出しサイトを読むと（例: `algorithms/lib/algorithms/sort.rb:70`は`(arr.length - 1).upto(...)`）、レシーバーは`Integer`算術の結果。推論は`Integer`を`Numeric`に広げ、それから`BigDecimal`（`upto`/`<<`定義のない最も制限的な`Numeric`部分型）に間違ってナローイングしているように見える。
 
 おそらくの根本原因: `Integer - Integer`が何らかのパスで`Numeric`を返し、ユニオン射影が間違ったアームを選ぶ。`ExpressionTyper`で検証 — 最近のコミット`e44cfee`はすでに`__FILE__`/`__LINE__`を絞り込んでいる;リテラル上の算術も同じ精度に値する。
 
@@ -76,13 +76,13 @@ sidebar:
 | `faraday` | `Object`/`URI`上の`merge!`、`update`、`find_proxy` |
 | `rubocop-ast` | `Object`/`Binding`上の`compile_terms`、`union_bind` |
 
-パターン: モジュールが`include`される（またはクラスレベルで`extend`される）が、そのメソッドはディスパッチ中にレシーバのメソッドテーブルに追加されない。`rgl`では、影響を受けるメソッドは`Mutable#each_vertex`が呼び出し元に`cycles_with_vertex`と`remove_vertex`の両方を提供することを期待するミックスインパターンに由来する。ScopeIndexerはinclude / extend / prepend解決に対して確認すべき。
+パターン: モジュールが`include`される（またはクラスレベルで`extend`される）が、そのメソッドはディスパッチ中にレシーバーのメソッドテーブルに追加されない。`rgl`では、影響を受けるメソッドは`Mutable#each_vertex`が呼び出し元に`cycles_with_vertex`と`remove_vertex`の両方を提供することを期待するミックスインパターンに由来する。ScopeIndexerはinclude / extend / prepend解決に対して確認すべき。
 
 これはまた、ユーザーが「Rigorはミックスインを理解しない」と最もよく誤読する症状でもある。焦点を絞った修正 + ハンドブックでの呼び出しの価値がある。
 
 ### 3c. パターンガードを通じて収束しないnilナローイング
 
-| ライブラリ | クラスター | 回数 |
+| ライブラリ | クラスタ | 回数 |
 | --- | --- | --- |
 | `kramdown` | `nil`上の`el.type`/`el.options`/`el.children`/`el.value` | ≥33 |
 | `algorithms` | `nil`上の`node.key`/`.left`/`.right`/`.value` | ≥45 |
@@ -91,7 +91,7 @@ sidebar:
 
 これらは絶対エラー数を支配するが、多くは真陽性の可能性が高い — ツリーアルゴリズムは浅いチェックの後に真に`node.left`を参照解除する。問題は出力でそれらがすべて*同じに見える*こと。2つの改善:
 
-1. nilレシーバ診断を単一のロールアップ下にグループ化し、ユーザーが`algorithms/lib/containers/splay_tree_map.rb`を見たときに20の別々の行ではなく「`node`上の20のnilレシーバエラー」を見るように。
+1. nilレシーバー診断を単一のロールアップ下にグループ化し、ユーザーが`algorithms/lib/containers/splay_tree_map.rb`を見たときに20の別々の行ではなく「`node`上の20のnilレシーバーエラー」を見るように。
 2. 一般的なイディオムを尊重する: `return unless node` / `node or return` / `node && node.left`は帰結内でナローイングすべき。
 
 `splay_tree_map.rb:156`（上記§3cで引用）をスポットチェックすると、ガードが使用から多くの行上にある深くネストされたメソッドが見える — これは明示的なアノテーションなしにフローナローイングが維持できるエッジ。
@@ -107,7 +107,7 @@ sidebar:
 | `kramdown` | 2 |
 | `rubocop-ast` | 2 |
 
-多くは§3a/§3cの下流 — レシーバ型が間違うと、囲む`if`/`unless`は定数に畳まれる。3a/3cを修正することでこのカテゴリは機械的に減る。残りの真陽性（デッドブランチ）は価値があるが、偽陽性の中で溺れやすい。
+多くは§3a/§3cの下流 — レシーバー型が間違うと、囲む`if`/`unless`は定数に畳まれる。3a/3cを修正することでこのカテゴリーは機械的に減る。残りの真陽性（デッドブランチ）は価値があるが、偽陽性の中で溺れやすい。
 
 ### 3e. `Mail::Message`の`literal predicate is always falsey` ×11
 
@@ -143,7 +143,7 @@ sidebar:
 ## 5. 上位3つの実行可能な改善（推奨順）
 
 1. **`Integer`算術 → `BigDecimal`誤推論を修正（§3a）** — 最小の修正、最大のノイズ削減。11ライブラリのうち≥4に影響。
-2. **`ScopeIndexer`を通じたmixin/`include`ルックアップを解決（§3b）** — 中程度の労力、最も「バグとして誤解されるカテゴリ」を修正。「Rigorは私のコードを理解しない」という認識を減らす。
+2. **`ScopeIndexer`を通じたmixin/`include`ルックアップを解決（§3b）** — 中程度の労力、最も「バグとして誤解されるカテゴリー」を修正。「Rigorは私のコードを理解しない」という認識を減らす。
 3. **`try_static_refinement`コールドキャッシュクラッシュを追跡し、修正するか文書化する（§2）** — 小さな修正、新ユーザーが当たれば高い当惑コスト。
 
 §3cのnilナローイング改善はより価値が高いが、より大きなスコープ — 次のリリースに急ぐのではなく、独自の設計パス（おそらく[`control-flow-analysis`](../type-specification/control-flow-analysis/)仕様に結びつく）の価値がある。
@@ -181,7 +181,7 @@ nix --extra-experimental-features 'nix-command flakes' develop --command \
 | `numo-narray` | 2 | 0.9秒 | 287 MB | 8 | 2 | C-ext gem;1つの.rbファイル。BigDecimal誤推論が再発 |
 | `ox` | 15 | 0.8秒 | 311 MB | 12 | 0 | `nil`上の比較演算子;`Dynamic[top] | nil` |
 | `oj` | 11 | 0.8秒 | 285 MB | 5 | 0 | `JSON::Ext::Generator::State.from_state`がRBSに欠落 |
-| `jbuilder` | 14 | 0.9秒 | 290 MB | 126 | 2 | **ジェネレーター`.rb` ERBテンプレートがRubyとしてパースされる（118/126）** |
+| `jbuilder` | 14 | 0.9秒 | 290 MB | 126 | 2 | **ジェネレータ`.rb` ERBテンプレートがRubyとしてパースされる（118/126）** |
 | `slim` | 27 | 1.0秒 | 345 MB | 9 | 8 | 2つのivar型乖離;`read for nil` |
 | `hamlit` | 61 | 1.0秒 | 321 MB | 18 | 8 | `html_safe for String`（ActiveSupport extn）;BigDecimal |
 | `haml` | 51 | 1.0秒 | 307 MB | 15 | 6 | hamlitと同じ;`merge_attributes!` Object上のmixin |
@@ -191,11 +191,11 @@ nix --extra-experimental-features 'nix-command flakes' develop --command \
 
 ## 8. ラウンド2からの新しい発見
 
-### 8a. `.rb`拡張子を持つジェネレーターERBテンプレート（新規、高インパクト）
+### 8a. `.rb`拡張子を持つジェネレータERBテンプレート（新規、高インパクト）
 
-`jbuilder/lib/generators/rails/templates/{api_,}controller.rb`はERBテンプレート（`<%= namespaced_path %>`）で、Railsジェネレーターがそれを期待するため`.rb`拡張子で保存されている。Rigorはそれらをrubyとしてパースし、126のjbuilderエラーのうち118を生成する（`unexpected '<', '>'`、`'@' without identifiers is not allowed`）。残りの8エラーは`jbuilder.rb`内の実際の発見。
+`jbuilder/lib/generators/rails/templates/{api_,}controller.rb`はERBテンプレート（`<%= namespaced_path %>`）で、Railsジェネレータがそれを期待するため`.rb`拡張子で保存されている。Rigorはそれらをrubyとしてパースし、126のjbuilderエラーのうち118を生成する（`unexpected '<', '>'`、`'@' without identifiers is not allowed`）。残りの8エラーは`jbuilder.rb`内の実際の発見。
 
-このパターンはジェネレーターを出荷するRailsスタイルのgemに普遍的。2つの緩和策:
+このパターンはジェネレータを出荷するRailsスタイルのgemに普遍的。2つの緩和策:
 
 1. **デフォルト除外**、ターゲットに`.rigor.yml`がないときの`lib/generators/**/templates/**/*.rb`。
 2. ソースバイト内でERBマーカー（`<%`/`%>`）を**検出**し、118のパースエラーの代わりに単一の「スキップ: テンプレートファイル」`:info`診断を表面化。
@@ -270,7 +270,7 @@ argument type mismatch at `<' on Integer: expected Numeric, got Dynamic[top] | n
 
 **(a)** `lib/rigor/inference/acceptance.rb` — `resolve_class(target)`が失敗するが`resolve_class(actual)`が成功するとき、`actual.ancestors.map(&:name).include?(target_name)`にフォールバックし、権威的な`:yes` / `:no`回答を与える。定数の値は実行時に常にロード可能（値が存在する）なので、`Constant<1>.value.class`は`Integer`で`Integer.ancestors`は`"BigDecimal"`を含まない → 関係は`:maybe`ではなく`:no`。`class_subtype_result`の`Nominal.accepts(Nominal)`軸にも同じフォールバックを追加。完全に解決不能（両方ともユーザークラス）なケースは`:maybe`のまま。
 
-**(b)** `lib/rigor/inference/method_dispatcher/receiver_affinity.rb` — 新しいモジュール + `OverloadSelector.select`の先頭での新しい事前ソート、すべての位置パラム型が`self_type.class_name`自体またはその真のRBS祖先の1つであるアームが先頭に来るよう、オーバーロードを安定的にパーティション分けする。envが`class_ordering`に答えられレシーバがクラス名を運ぶときに事前ソートが発火する;「引数がuntypedを含む」にはゲートされていない、何もマッチしないときの誤順序な`overloads.first`フォールバックも同様に間違っているため。
+**(b)** `lib/rigor/inference/method_dispatcher/receiver_affinity.rb` — 新しいモジュール + `OverloadSelector.select`の先頭での新しい事前ソート、すべての位置パラム型が`self_type.class_name`自体またはその真のRBS祖先の1つであるアームが先頭に来るよう、オーバーロードを安定的にパーティション分けする。envが`class_ordering`に答えられレシーバーがクラス名を運ぶときに事前ソートが発火する;「引数がuntypedを含む」にはゲートされていない、何もマッチしないときの誤順序な`overloads.first`フォールバックも同様に間違っているため。
 
 ## 13. サーベイ差分（22ライブラリコーパス）
 
@@ -287,7 +287,7 @@ argument type mismatch at `<' on Integer: expected Numeric, got Dynamic[top] | n
 | `mail`/`net-ssh`/その他 | （変更なし） | （変更なし） | 0 |
 | **合計** | 421 | 397 | **−24** |
 
-\* `numo-narray`の残りの8エラーは今、異なるカテゴリ（ex-BigDecimal-timesエラーの1つが`Integer#times`オーバーロード選択問題を表面化: ブロックなしでは、RBSの`() -> Enumerator`が勝つべきだが、アナライザは依然ブロック付きアームを選んでいる）。別個のバグ;キュー。
+\* `numo-narray`の残りの8エラーは今、異なるカテゴリー（ex-BigDecimal-timesエラーの1つが`Integer#times`オーバーロード選択問題を表面化: ブロックなしでは、RBSの`() -> Enumerator`が勝つべきだが、アナライザーは依然ブロック付きアームを選んでいる）。別個のバグ;キュー。
 
 コーパス全体でBigDecimal/Numericの偽陽性は**7ライブラリで25回 → 0**に削減。
 
@@ -304,7 +304,7 @@ argument type mismatch at `<' on Integer: expected Numeric, got Dynamic[top] | n
 
 1. **§3cパターンガードを通じたnilナローイング** — 22ライブラリのうち16にまたがる約140回出現。絶対量で支配的なカテゴリー;多くの真陽性（ツリーコードが浅いチェック後に`node.left`を参照解除する）、しかし深くネストされたケースは`return unless node` / `node && node.x`イディオムに対するフロー絞り込みの地平線を露呈する。`control-flow-analysis`仕様に結びつく;迅速な修正ではなく専用の設計スライスに値する。
 2. **§3b `Object` / `Class`として解決されるミックスイン提供メソッド** — `rgl`、`faraday`、`liquid`、`rubocop-ast`、`haml`。ユーザーが「Rigorはミックスインを理解しない」と最もよく誤読する症状。ScopeIndexerのinclude/extend/prepend解決の監査。
-3. **§8a Rubyとしてパースされるrailsジェネレーター`.rb` ERBテンプレート** — jbuilderが126エラーのうち118（94%）を占める。`lib/generators/**/templates/**/*.rb`をデフォルト除外、またはソースバイト内のERBマーカーを検出。単一修正で高インパクト。
+3. **§8a Rubyとしてパースされるrailsジェネレータ`.rb` ERBテンプレート** — jbuilderが126エラーのうち118（94%）を占める。`lib/generators/**/templates/**/*.rb`をデフォルト除外、またはソースバイト内のERBマーカーを検出。単一修正で高インパクト。
 4. **§8b `String#html_safe`が認識されない** — hamlit + haml。`activesupport`がターゲットの`Gemfile.lock`にあるときに`rigor-activesupport-core-ext`プラグインを`:info`診断で昇格させる。
 5. **§3d `condition is always falsey/truthy`ノイズ** — §11〜12の修正経由で機械的に約5ケース削減（正しい数値ナローイングの下流）。残りのケースはほとんど真のデッドブランチ + §3c関連の残余。
 6. **§3gインスタンス変数型乖離ノイズ** — 設計判断（`initialize`からの`nil | T`パターンを抑制、または`:hint`ファミリーに分割）。
