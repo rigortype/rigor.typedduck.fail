@@ -122,6 +122,36 @@ Decide what to act on:
 - **`translated`** entries (both directions) are up to date.
   Skip them.
 
+### Handbook sidebar drift (manual)
+
+The **Handbook** is the one sidebar group in
+[`astro.config.mjs`](../../../astro.config.mjs) whose pages are
+listed **explicitly** (chapters `01`–`NN` plus the appendix
+sub-groups) rather than via `autogenerate`. Every other section
+(`manual`, `type-specification`, `internal-spec`, `adr`, `design`,
+`notes`) discovers its pages automatically, so new upstream pages
+there appear without config edits. The handbook does **not** — a
+new, renamed, or removed handbook chapter or appendix will be
+silently absent from (or 404 in) the sidebar until you update the
+`items` array by hand.
+
+So whenever this sync touched anything under
+`src/content/docs/reference/handbook/`, diff the directory against
+the config:
+
+```sh
+ls upstream/rigor/docs/handbook/*.md
+```
+
+Compare the file list (ignoring `README.md`, which maps to the
+group root `reference/handbook` slug) against the handbook `items`
+in `astro.config.mjs`. For each added page, insert a
+`{ slug: 'reference/handbook/<name>' }` entry in the right group
+(numbered chapters in order; "Coming from another type checker" vs
+"Connections to type theory" appendices per the upstream README's
+table of contents). Remove entries for deleted pages. Fold this
+config edit into the **second** commit alongside the translations.
+
 ## Step 4 — translate the stale / missing pages
 
 ### Forward direction (en → ja, the common case)
@@ -229,6 +259,7 @@ Then commit:
 
 ```sh
 git add src/content/docs/ja/ translations/en/
+# Also stage astro.config.mjs if the handbook sidebar changed (Step 3).
 git commit -m "Translate <area> for <target-ref>"
 ```
 
