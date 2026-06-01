@@ -40,7 +40,7 @@ RigorはすでにRBSで表現できる以上の精度で型を推論している
 
 - パラメータチェックを無関係な型を受け入れるという意味で寛大にすること。この原則は安全性を弱めない。名前的のみの契約（contract）より構造的・ケイパビリティ（capability）に基づくパラメータ契約を優先し、RBSで広げた返り値よりも精度の高い返り値ファセットを優先する。
 - すべての推論返り値型を改良形にすることを義務付けること。Rigorの既存キャリア（`Constant`、`IntegerRange`、`Tuple`、`HashShape`、`Union`）が精度ツールであり、この原則は新しいものを導入しない。
-- 格子演算（サブタイピング（subtyping）、漸進的一貫性（gradual consistency）、ナローイング）を変えること。それらのルールは[ADR-1](../1-types/)と`docs/type-specification/`以下の仕様にある。
+- 格子演算（サブタイピング（subtyping）、<ruby>漸進的一貫性<rp>（</rp><rt>gradual consistency</rt><rp>）</rp></ruby>、ナローイング）を変えること。それらのルールは[ADR-1](../1-types/)と`docs/type-specification/`以下の仕様にある。
 
 ## 作業上の決定
 

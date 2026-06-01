@@ -77,7 +77,7 @@ sidebar:
 フェイルソフト経路はMUST以下を満たします。
 
 - MUST NOTraiseします。呼び出し元はPrismが生成する任意の式ノード、および`Rigor::AST::Node`を含む任意の合成ノードについて`Scope#type_of`にMAY依存できます。
-- [`value-lattice.md`](../../type-specification/value-lattice/)の動的起源代数をMUST保ちます。返された型に対する下流クエリは、他のあらゆる`Dynamic[T]`が観測するのと同じ漸進的型付け（gradual typing）規則をMUST観測します。
+- [`value-lattice.md`](../../type-specification/value-lattice/)の動的起源代数をMUST保ちます。返された型に対する下流クエリは、他のあらゆる`Dynamic[T]`が観測するのと同じ<ruby>漸進的型付け<rp>（</rp><rt>gradual typing</rt><rp>）</rp></ruby>規則をMUST観測します。
 - 後述の*フォールバックトレーサー*契約を通じて、計装にMUST観測可能です。
 
 スライスがあるノード種別のサポートを導入するとき、その種別のフェイルソフト経路は同じスライス内でMUST除去されます。型付け器は、誤って型付けされたノードをマスクするフォールバックをMUST NOT残しません。

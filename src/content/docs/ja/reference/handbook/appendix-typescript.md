@@ -183,7 +183,7 @@ function length(s: string | null): number {
 - **条件型**。`T extends U ? A : B`にコアのRigorの対応物はない。プラグインは引数のシェイプによって戻り型を変えられる（第9章参照）が、型レベルの式ではなくRubyコードで記述する。
 - **マップ型**。`Pick`、`Omit`、`Partial`、`Required`、`Readonly`は、オプトインのプラグイン提供語彙として[`rigor-typescript-utility-types`](https://github.com/rigortype/rigor/blob/master/plugins/rigor-typescript-utility-types/)経由で提供される。これらは、`HashShape`上のRigor正準シェイプ射影型関数`pick_of` / `omit_of` / `partial_of` / `required_of` / `readonly_of`（および`Tuple`上の`pick_of` / `omit_of`）にマップされる。テンプレートリテラル操作やその他のマップ型バリアント（`Uppercase<S>` / `Lowercase<S>` / `Capitalize<S>`）はRigorの表面の外にとどまる。
 - **型レベルの計算**。TypeScriptの型システムはチューリング完全。Rigorのものは意図的にそうではない。これは制限ではなく特徴 — アナライザーは実際のRubyプロジェクトで高速でなければならない。
-- **ソース内メソッドボディからの推論された戻り型**。`tsc`は関数ボディから戻り型を推論し、呼び出し元に公開する。Rigorはソース内`def`に対して同じことをするが、RBS宣言されたメソッドは宣言された戻りに呼び出し元をバインドする — 意図的な境界-ディシプリンの選択（ADR-5、堅牢性の原則を参照）。
+- **ソース内メソッドボディからの推論された戻り型**。`tsc`は関数ボディから戻り型を推論し、呼び出し元に公開する。Rigorはソース内`def`に対して同じことをするが、RBS宣言されたメソッドは宣言された戻りに呼び出し元をバインドする — 意図的な境界<ruby>規律<rp>（</rp><rt>discipline</rt><rp>）</rp></ruby>の選択（ADR-5、堅牢性の原則を参照）。
 - **エディターIntelliSenseの同等性**。TypeScriptのツールには20年の投資がある。Rigorのエディター統合は若い。現在のアナライザーは診断と`rigor type-of`を提供し、LSP経由のエディター統合はロードマップにある。
 
 ## RigorにあってTypeScriptにないもの

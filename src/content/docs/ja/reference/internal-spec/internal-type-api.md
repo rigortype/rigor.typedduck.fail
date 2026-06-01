@@ -101,7 +101,7 @@ sidebar:
 - `consistent_with(other)` — `Rigor::Trinary`を返す；セマンティクスは[`relations-and-certainty.md`](../../type-specification/relations-and-certainty/)を参照。
 - `equal_value(other)` — `Rigor::Trinary`を返す；型セット等価性ではなく値等価性の絞り込みを意図している。
 
-関係クエリは[`value-lattice.md`](../../type-specification/value-lattice/)に従って`Dynamic[T]`の静的ファセットを扱わなければなりません（MUST）。動的な値が型付き境界を越えるかどうかを支配するのは、サブタイピング（subtyping）ではなく漸進的一貫性（gradual consistency）です。
+関係クエリは[`value-lattice.md`](../../type-specification/value-lattice/)に従って`Dynamic[T]`の静的ファセットを扱わなければなりません（MUST）。動的な値が型付き境界を越えるかどうかを支配するのは、サブタイピング（subtyping）ではなく<ruby>漸進的一貫性<rp>（</rp><rt>gradual consistency</rt><rp>）</rp></ruby>です。
 
 ### 構造クエリ
 

@@ -14,7 +14,7 @@ sidebar:
 
 調査したコーパスは[`references/hanakai-rb/content/guides/dry/`](../../references/hanakai-rb/)のhanakai-rbガイドツリーで、hanami/dry/rom組織がhanakai-rbに統合された後のdry-rbの権威ある公開ガイド。以下の依存関係エッジはそのコーパス内の散文的な記述から取得した。gemspecの検証とバージョンピンの決定はプラグインごとの作成ステップに延期する。
 
-このドキュメントは参考情報。拘束力のあるプラグイン契約は各プラグインの`README.md`とインテグレーションスペックに存在する。Railsプラグインロードマップのディシプリン（[`docs/design/20260508-rails-plugins-roadmap.md`](../20260508-rails-plugins-roadmap/)）を踏襲する。
+このドキュメントは参考情報。拘束力のあるプラグイン契約は各プラグインの`README.md`とインテグレーションスペックに存在する。Railsプラグインロードマップの<ruby>規律<rp>（</rp><rt>discipline</rt><rp>）</rp></ruby>（[`docs/design/20260508-rails-plugins-roadmap.md`](../20260508-rails-plugins-roadmap/)）を踏襲する。
 
 ## dry-rbがRigorにとって興味深い理由
 

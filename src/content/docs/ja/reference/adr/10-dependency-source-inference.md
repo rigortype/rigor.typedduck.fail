@@ -66,7 +66,7 @@ dependencies:
 - このパスで発行される診断は`dynamic.dependency-source.*`プレフィックスファミリーを使用します（[`docs/type-specification/diagnostic-policy.md`](../../type-specification/diagnostic-policy/) §「診断識別子分類法」に新しいエントリーが追加されます——以下の「パブリックAPIドリフトサーフェス」を参照）。
 - Gem走査でのバジェット消尽はプロジェクトソース走査と同様に`Dynamic[top]`にフォールバックします。Gemのバジェットが切れた場合に捏造された精密な型をサイレントに発行することはありません。
 
-このラッピングが設計を安全にするものです: GemメソッドからDynamic[Integer]を読む消費者はそれをグラウンドトゥルースの`Integer`として扱うことができません。[`docs/type-specification/value-lattice.md`](../../type-specification/value-lattice/) §「Dynamic-origin代数」の漸進的一貫性（gradual consistency）ルールを持つ値——型付き境界を越えて使用可能ですが来歴は診断のために保持されます——を取得します。Gemの実装が後で今日の推論が認める以上の広い値を返した場合、ラッパーがユーザーのコールサイトをサイレントに壊すのではなく乖離を吸収します。
+このラッピングが設計を安全にするものです: GemメソッドからDynamic[Integer]を読む消費者はそれをグラウンドトゥルースの`Integer`として扱うことができません。[`docs/type-specification/value-lattice.md`](../../type-specification/value-lattice/) §「Dynamic-origin代数」の<ruby>漸進的一貫性<rp>（</rp><rt>gradual consistency</rt><rp>）</rp></ruby>ルールを持つ値——型付き境界を越えて使用可能ですが来歴は診断のために保持されます——を取得します。Gemの実装が後で今日の推論が認める以上の広い値を返した場合、ラッパーがユーザーのコールサイトをサイレントに壊すのではなく乖離を吸収します。
 
 ### 強制除外
 
