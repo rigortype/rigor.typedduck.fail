@@ -102,6 +102,7 @@ export default defineConfig({
                 { slug: 'reference/handbook/appendix-phpstan' },
                 { slug: 'reference/handbook/appendix-mypy' },
                 { slug: 'reference/handbook/appendix-steep' },
+                { slug: 'reference/handbook/appendix-typeprof' },
               ],
             },
             {
@@ -110,6 +111,7 @@ export default defineConfig({
               collapsed: false,
               items: [
                 { slug: 'reference/handbook/appendix-type-theory' },
+                { slug: 'reference/handbook/appendix-liskov' },
               ],
             },
           ],
