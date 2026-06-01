@@ -172,7 +172,7 @@ RBSバックのティアは、レシーバー型を`kind`が`:instance`または
 
 解決されたRBSメソッドが複数のオーバーロードを持つとき、Slice 4 phase 2cは`Rigor::Inference::MethodDispatcher::OverloadSelector`を通じてその1つを選択します。セレクタはMUST以下を行います。
 
-- 位置引数のアリティでオーバーロードをフィルタします。実際の`arg_types.size`はMUST`required_positionals.size + trailing_positionals.size <= n`を満たし、かつ`rest_positionals`が存在するか`n <= required + optional + trailing`のいずれかです。
+- 位置引数のアリティ（arity）でオーバーロードをフィルタします。実際の`arg_types.size`はMUST`required_positionals.size + trailing_positionals.size <= n`を満たし、かつ`rest_positionals`が存在するか`n <= required + optional + trailing`のいずれかです。
 - `required_keywords`が空でないオーバーロードをスキップします。Slice 4 phase 2cはキーワード引数を呼び出し位置に通さないため、キーワード必須のオーバーロードは現在の呼び出し形状から到達不能です。
 - 残ったオーバーロードのうち、すべての（仮引数、実引数）位置ペアについてMUST`param_type.accepts(arg_type, mode: :gradual)`を参照します（rest位置引数は1つの宣言を繰り返し消費します）。すべてのペアが`yes`または`maybe`を返すとき、オーバーロードはマッチします。
 - 宣言順で最初にマッチしたオーバーロードを取ります。どのオーバーロードもマッチしないとき、`method_types.first`にフォールバックします。このフォールバックは「最初のマッチが勝つ」からの唯一の規範的な逸脱です。これは、（`untyped`に劣化したインターフェイス・ジェネリクス・まだ配線していない呼び出し元のため）実際の引数型がどのオーバーロードにもマッチしない呼び出し位置について、Slice 4 phase 1 / 2bのフェイルソフト契約を保ちます。

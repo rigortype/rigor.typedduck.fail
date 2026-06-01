@@ -192,7 +192,7 @@ rigor mcp [--transport=stdio] [--config=PATH]
 
 ## `rigor plugins`
 
-`.rigor.yml`に設定された各プラグインの有効化状態 — ロード済み、ロードエラー（理由付き）、各プラグインの宣言した拡張サーフェス — を報告します。[プラグイン](../07-plugins/)を参照してください。
+`.rigor.yml`に設定された各プラグインの有効化状態 — ロード済み、ロードエラー（理由付き）、各プラグインの宣言した拡張サーフェス（surface） — を報告します。[プラグイン](../07-plugins/)を参照してください。
 
 ```sh
 rigor plugins [--format=text|json] [--strict] [--config=PATH]

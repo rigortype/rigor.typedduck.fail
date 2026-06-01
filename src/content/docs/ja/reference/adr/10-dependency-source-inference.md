@@ -63,7 +63,7 @@ dependencies:
 
 コールサイトが`dependencies:`下にリストされたGemのメソッドに解決され、モードがGemソースの走査を許可する場合:
 
-- 解析器は`paths:`を走査するのと同じエンジンを使用してGemの`.rb`ファイルを走査します。メソッドディスパッチ、ナローイング、ファクト（fact）ストア、バジェット適用が変更なく実行されます。
+- 解析器は`paths:`を走査するのと同じエンジンを使用してGemの`.rb`ファイルを走査します。メソッドディスパッチ、ナローイング（narrowing）、ファクト（fact）ストア、バジェット適用が変更なく実行されます。
 - Gem境界を越える推論された戻り型は[`docs/type-specification/special-types.md`](../../type-specification/special-types/) §「Dynamic-originと未チェック情報」に従って**`Dynamic[T]`でラップされます**。静的ファセット`T`は推論型です; Dynamic-originマーカーは、証明がGemの作者がコミットした契約ではなくサードパーティソースから来たという事実を保持します。
 - このパスで発行される診断は`dynamic.dependency-source.*`プレフィックスファミリーを使用します（[`docs/type-specification/diagnostic-policy.md`](../../type-specification/diagnostic-policy/) §「診断識別子分類法」に新しいエントリーが追加されます——以下の「パブリックAPIドリフトサーフェス」を参照）。
 - Gem走査でのバジェット消尽はプロジェクトソース走査と同様に`Dynamic[top]`にフォールバックします。Gemのバジェットが切れた場合に捏造された精密な型をサイレントに発行することはありません。

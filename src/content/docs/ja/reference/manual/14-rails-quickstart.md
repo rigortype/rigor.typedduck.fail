@@ -369,7 +369,7 @@ rigor triage
 
 > **Railsルートの診断**。`rigor-rails-routes`はルートヘルパーを静的にチェックします。標準的なRailsパターンのほとんどはサポートされていますが、v0.1.xではいくつかが`unknown-helper`の誤検知（false positive）を生成します。
 >
-> - `concern :name do ... end`ブロック内にのみ定義されたルート。concernの本体は定義時にスキップされます（アリティ違いの誤検知を避けるため）。`concerns: :name`で注入されたヘルパーは未知として表示されます。
+> - `concern :name do ... end`ブロック内にのみ定義されたルート。concernの本体は定義時にスキップされます（アリティ（arity）違いの誤検知を避けるため）。`concerns: :name`で注入されたヘルパーは未知として表示されます。
 > - `devise_for :users`やその他のエンジンマクロが生成するルート——パーサはRubyコードを実行しません。
 >
 > 存在するはずのルートで`unknown-helper`のクラスタが見える場合、acknowledgeモードが正しいアプローチです——それらをベースラインに記録し、残った診断で実際の問題を見つけましょう。

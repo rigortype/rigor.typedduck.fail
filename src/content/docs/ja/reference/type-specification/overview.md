@@ -25,7 +25,7 @@ Rigorは相互運用面としてRBSを使い、推論・制御フロー解析・
 RigorはPHPStan、TypeScript、Pythonのtyping仕様からアイデアを借りますが、それらはRubyらしい形に整えられます:
 
 - RBSのクラスとモジュールは**名前的**（nominal）のままです。
-- RBSインターフェースとRigorのオブジェクトシェイプは構造的なダックタイピングを提供します（[structural-interfaces-and-object-shapes.md](../structural-interfaces-and-object-shapes/)を参照）。
+- RBSインターフェースとRigorのオブジェクトシェイプは構造的なダックタイピング（duck typing）を提供します（[structural-interfaces-and-object-shapes.md](../structural-interfaces-and-object-shapes/)を参照）。
 - Rubyの真偽性（truthiness）は`false`と`nil`のみが偽 — それだけです。
 - Rubyの等価性、case等価性、`respond_to?`、`method_missing`、特異メソッド、モジュール包含は実行時の挙動であり、他言語からコピーするのではなく、Rubyのセマンティクス、RBS署名、プラグイン事実を通じてモデル化しなければなりません。
 - アプリケーションのRubyコードにRigor専用の注釈構文は持ち込みません。既存のRBS、rbs-inline、Steep互換の注釈は型のソースとして受け付けられ、Rigor固有の構文として扱われることはありません。

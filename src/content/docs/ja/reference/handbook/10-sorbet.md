@@ -200,7 +200,7 @@ demo.rb:42:5: warning: `T.absurd` is reachable: the discriminant did not
                        [plugin.sorbet.absurd-reachable]
 ```
 
-検出の精度はRigorのフローセンシティブ（flow-sensitive）なナローイングに従います——`is_a?` / `kind_of?` / `nil?`は正確に機能します。シンボル列挙型に対するナローイングはv0.1.3時点ではそれほど正確ではないため、完全に網羅されたシンボルケースが偽陽性警告を発することがあります。
+検出の精度はRigorのフローセンシティブ（flow-sensitive）なナローイング（narrowing）に従います——`is_a?` / `kind_of?` / `nil?`は正確に機能します。シンボル列挙型に対するナローイングはv0.1.3時点ではそれほど正確ではないため、完全に網羅されたシンボルケースが偽陽性警告を発することがあります。
 
 ## ティア順序 — 競合時に何が勝つか
 

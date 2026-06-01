@@ -43,7 +43,7 @@ v0.1.0+プラグイン契約（contract） — [`docs/internal-spec/plugin.md`](
 4. **`Plugin::Base.producer` + `#cache_for`** — プラグイン側キャッシュプロデューサー。クロスランキャッシングが欲しいほど高コストなパース/ルックアップに使います。IoBoundaryが結果を構築している間に読んだすべてのファイルのダイジェスト（およびURLのコンテンツハッシュ）で自動的に無効化されます。
 5. **`Plugin::FactStore` + `#prepare(services)`** — クロスプラグインファクト公開サーフェス（v0.1.1 Track 2、ADR-9）。プラグインは`prepare`でファクトを公開します;下流のプラグインは`services.fact_store`を通じてそれらを消費するため、プロデューサー側の解析（例: `config/routes.rb`）をすべてのコンシューマーで再利用できます。
 
-v0.1.2リリースは4つの実例（`rigor-lisp-eval`、`rigor-pattern`、`rigor-units`、`rigor-activerecord`）を「診断専用」から「`flow_contribution_for`を通じてナローイングされた戻り型」に移行したため、プラグイン型の値へのチェーンされたコールがRBSレベルの`untyped`エンベロープではなく解析器の通常のディスパッチで解決されます。各プラグインのREADMEを参照して、それぞれがどのサーフェスをデモしているか確認してください。
+v0.1.2リリースは4つの実例（`rigor-lisp-eval`、`rigor-pattern`、`rigor-units`、`rigor-activerecord`）を「診断専用」から「`flow_contribution_for`を通じてナローイング（narrowing）された戻り型」に移行したため、プラグイン型の値へのチェーンされたコールがRBSレベルの`untyped`エンベロープではなく解析器の通常のディスパッチで解決されます。各プラグインのREADMEを参照して、それぞれがどのサーフェスをデモしているか確認してください。
 
 ## マクロ / DSL展開基板（ADR-16）
 
