@@ -18,7 +18,8 @@
   "dependencies": {
     "@astrojs/mdx": "5.0.6",
     "@astrojs/starlight": "0.39.2",
-    "astro": "6.3.5"
+    "astro": "6.3.5",
+    "remark-cjk-friendly": "^2.0.1"
   },
   "devDependencies": {
     "@astrojs/check": "0.9.9",

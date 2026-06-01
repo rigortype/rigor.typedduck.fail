@@ -1,6 +1,7 @@
 import { defineConfig } from 'astro/config';
 import mdx from '@astrojs/mdx';
 import starlight from '@astrojs/starlight';
+import remarkCjkFriendly from 'remark-cjk-friendly';
 
 const sidebarTranslations = {
   recentlyUpdated: { ja: '最近の更新' },
@@ -17,6 +18,15 @@ const sidebarTranslations = {
 
 export default defineConfig({
   site: 'https://rigor.typedduck.fail',
+  // CommonMark's emphasis flanking rules treat full-width CJK punctuation
+  // (。、「」（） etc.) as Unicode punctuation, so a `**`/`*` adjacent to it
+  // (e.g. 読める。**最大 or 分岐点は**「型) fails to open/close and the raw
+  // marker leaks into the HTML. remark-cjk-friendly makes the flanking rules
+  // CJK-aware. The MDX integration inherits this markdown config by default,
+  // so both .md and .mdx are covered.
+  markdown: {
+    remarkPlugins: [remarkCjkFriendly],
+  },
   integrations: [
     starlight({
       title: 'Rigor',
