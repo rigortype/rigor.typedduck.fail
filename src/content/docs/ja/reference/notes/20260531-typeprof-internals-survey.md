@@ -3,8 +3,8 @@ title: "TypeProf内部調査 — 推論ロジック + 内部型表現"
 description: "Imported from rigortype/rigor docs/notes/20260531-typeprof-internals-survey.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260531-typeprof-internals-survey.md"
 sourcePath: "docs/notes/20260531-typeprof-internals-survey.md"
-sourceSha: "94576a604597a9405283d7d086555c2d704b5447cff3515b189f088acd281516"
-sourceCommit: "9512274ab492510e555dc52fb0e13086a64959ac"
+sourceSha: "bcff87317d07b6c2d67abefd465b2bcb216be058001604cc53dbe3a9cd19d902"
+sourceCommit: "0d2c591d814d0b3ee35b0fbded686c726b2e0c2f"
 translationStatus: "translated"
 sidebar:
   order: 20266531
@@ -130,7 +130,7 @@ end
 - **ローカル変数:** `LocalEnv`（`@locals[name] => Vertex`）に**変数ごと・レキシカルスコープごとに1頂点**で格納される。読み取りはその頂点を返し、書き込みはRHSをそこへエッジでつなぐ。完全なSSAではないが、外側の変数を変異させうるブロックには新しい頂点が差し込まれる（`new_var`/`set_var`）ので、クロージャの効果がモデル化される。
 - **メソッド呼び出し**（`ast/call.rb`）: `ActualArguments`（位置／キーワード／スプラット／ブロックの頂点）を構築し、`MethodCallBox`を発行する。ボックスの`@ret`が呼び出しの値頂点である。
 - **`def`**（`ast/method.rb`）: `MethodDefBox`を登録する。ボディスコープ内で仮パラメーターごとに1頂点を作成する。
-- **`if`／分岐**（`ast/control.rb`）: **両アームの結果頂点が**`if`の結果へと**ユニオン化される**。**値／フローのナローイング（narrowing）は実質的に存在しない**——`if x.is_a?(String)`は、Rigorの制御フロー解析がするようにアーム内で`x`を`String`に再型付けしない。これはRigorのリファインメント（refinement、篩型とも）に対する現実の精度ギャップであり、付録の「Rigorが持つもの: 自動ナローイングを伴うリファインメントキャリア（carrier）。TypeProfはそれらを拡大して消す」の行はここに根拠を持つ。（ナローイングのサポートはバージョンを追って狭い範囲で成長してきた。v0.31.1には一般的なoccurrence typingのパスは見つからなかった——後述でフラグを立てる。）
+- **`if`／分岐**（`ast/control.rb`）: **TypeProfはフローセンシティブにナローイング（narrowing）を行う**。`BranchNode#install0`は`@cond.narrowings`（`[then_narrowing, else_narrowing]`のペア）を呼び、各アームごとに変更される変数1つにつき新鮮な頂点をクローンし、アーム内でナローイング制約を`AST.with_narrowing`経由で適用したうえで、アームの結果を`if`の値へとユニオン化する。したがって`if x.is_a?(String)`は、then-アーム内で`x`を`String`へ**実際に**再型付けする。完全なメカニズムは§10aを参照——これは本ノートの初期ドラフトが誤って「フローナローイングなし」と主張していたのを訂正するものである。
 
 ---
 
@@ -138,7 +138,7 @@ end
 
 `doc/doc.md:93-135`（「Abstract values」）+ ソースより:
 
-- **クラスへ抽象化（値は捨てられる）:**クラスのインスタンス——`42` → `Integer`、`"str"` → `String`、`nil`/`true`/`false` → `NilClass`/`TrueClass`/`FalseClass`のインスタンス型（`type.rb:99-107`が`show`でこれらを特別にレンダリングする）**。`Constant<1>`に相当するものはない。**これがRigorとの最大の内部表現の違いである。
+- **クラスへ抽象化（値は捨てられる）:**クラスのインスタンス——`42` → `Integer`、`"str"` → `String`、`nil`/`true`/`false` → `NilClass`/`TrueClass`/`FalseClass`のインスタンス型（`type.rb:99-107`が`show`でこれらを特別にレンダリングする）**。`Constant<1>`に相当するものはない**。これがRigorとの最大の内部表現の違いである。
 - **具体的に保持:**
   - **クラスオブジェクト**——`Integer`、`String`の定数は`Type::Singleton`であり、`Class`へ*抽象化されない*。定数参照とクラスメソッドのディスパッチがその同一性を必要とするためである（`doc.md:113-116`）。
   - **シンボル**——`:foo`は`Type::Symbol(:foo)`のまま留まる。キーワード引数・JSONキー・`attr_reader`名などのために具体値が必要だからである（`doc.md:118-120`）。ただし*動的な*シンボル（`:"foo_#{x}"`、`String#to_sym`の結果）は`Symbol`インスタンス型にフォールバックする。
@@ -183,49 +183,6 @@ end
 
 ---
 
-## これが付録の主張にどう対応するか
-
-| 付録の主張 | 検証されたメカニズム |
-| --- | --- |
-| 「プログラム全体の抽象インタープリター」 | 不動点までのワークリストのデータフローグラフ。手続き間はエッジによる（§1、§3） |
-| 「呼び出しサイトからパラメーターを推論する: はい」 | 実引数頂点 → 仮パラメーター頂点のエッジ。パラメーター = すべての呼び出し元のユニオン（§3） |
-| 「呼び出し先のボディを再解釈する」（Rigorのカタログ参照に対して） | `MethodDefBox`がグラフノードとして再実行される。サマリーキャッシュなし（§2、§3） |
-| 「リテラル精度: 名前的型へ拡大」 | `install0`で`42`→`Integer`。`Constant`なし（§5） |
-| 「リファインメント／ナローイングキャリアなし」 | `if`アームがユニオン化される。v0.31.1には一般的なoccurrence typingなし（§4） |
-| 「RBSが出力製品である」 | `Vertex#show` / `MethodDefBox#show`がRBSをレンダリングする。エラーは副産物（§6、§8） |
-| 「必須の燃料としてのテスト」 | パラメーターは呼び出しサイト（またはドライバー）が引数を供給して初めて型を得る（§3） |
-| インクリメンタル／IDEファースト（v2） | ChangeSetのdiffロールバック + 参照カウントされた頂点 + `update_rb_file`（§1） |
-
-付録のどの主張もソースによって矛盾させられなかった。付録がいつか拡張される場合に取り込む価値のある2つの細部: (a) **シンボルはリテラル値として保持される**（付録の表が言及していない、TypeProfが*実際に持つ*小さな精度）、（b）v2の設計は単なる「バッチのプロトタイプ生成器」ではなく明示的に**インクリメンタル／IDEファースト**である——CLIはLSPの形をしたコアの上に乗ったひとつのフロントエンドである。
-
----
-
-## 完全には確認できなかった点（正直なフラグ）
-
-- **ブロック／`yield`パラメーターのファンアウト:**ブロックが`Type::Proc`頂点であり配線されていることは確認したが、正確な複数パラメーターのyield分配は1行ずつ追跡していない。
-- **ナローイング:** v0.31.1に一般的なoccurrence typing／フローナローイングのパスは見つからなかったが、`ast/control.rb`を網羅的には読んでいない。特別扱いされたナローイングが存在するかもしれない。
-- **正確な行番号**は、私の読み取りとExploreサブエージェントの読み取りの間でずれる。引用したメカニズムは検証済みだが、個々の行番号は±数行と捉え、規範的なドキュメントで引用する前に再grepすること。
-- TypeProfは**Ruby 3.3+**を要求し、パーサーとして**Prism**を使う（gemspec／README）——ここでは再導出していない。
-
----
-
-## ソース
-
-一次（ベンダリング済み、v0.31.1にとって権威ある）:
-- `references/typeprof/lib/typeprof/core/{env,service,builtin,type}.rb`
-- `references/typeprof/lib/typeprof/core/graph/{vertex,box,change_set}.rb`
-- `references/typeprof/lib/typeprof/core/ast/*.rb`
-- [`references/typeprof/doc/doc.md`](https://github.com/rigortype/rigor/blob/master/references/typeprof/doc/doc.md) — 「What is TypeProf」+「Abstract values」
-
-二次（設計意図／歴史——補強であり、権威ではない）:
-- [GitHub: ruby/typeprof](https://github.com/ruby/typeprof) — 「experimental type-level Ruby interpreter」
-- 遠藤侑介（Mame）、[Revisiting TypeProf — IDE support as a primary feature, RubyKaigi 2023](https://rubykaigi.org/2023/presentations/mametter.html) — v2／インクリメンタルのリブート
-- 遠藤侑介、[TypeProf for IDE, RubyKaigi Takeout 2021](https://rubykaigi.org/2021-takeout/presentations/mametter.html)
-- 遠藤侑介、[Good first issues of TypeProf, RubyKaigi 2024](https://speakerdeck.com/mame/good-first-issues-of-typeprof) — Source/Vertex/Boxアーキテクチャのスライド
-- [Ruby News: TypeProf — Abductive Reasoning for Abstract Interpretation](https://ruby.news/2021/08/23/TypeProf-Abductive-Reasoning-for-Abstract-Interpretation.html)
-
----
-
 ## 9. Rigor ↔ TypeProf: フィードバックvs根本的な分岐
 
 このセクションは比較をRigorの側からとらえ直す: *Rigorの設計はTypeProfに何を教えられるか*、そして*Rigorの設計はどこで根本的に異なっていて、そのギャップが直すべきバグではなく異なる賭けの帰結なのか*。この区別が重要なのは、両者が同じゴールを持つ競合相手ではないからである——TypeProfは*コードを理解する*こと（RBSを推論・出力、IDEファースト、寛容）、Rigorは*コードを判定する*こと（バグを証明、偽陽性ディシプリン、リポジトリ全体にわたってスケール）。以下の各行は§1〜§8で確立したメカニズムに固定されている。
@@ -259,12 +216,119 @@ end
 2. **判定vs理解——偽陽性ディシプリンの核**。
    Rigorの最上位の価値は「最悪ケースの静的解釈よりもプログラムが動くことが上位。動いているコードを決して脅かさない」である。バグが*証明可能*でない限り沈黙を保つ。TypeProfの核は「不確実なときは`untyped`を推論する」（§5、`doc.md:122`）であり——寛容で、明示的に*ゲートではない*。偽陽性ディシプリンを**デフォルト**の姿勢にすること（9a.2のオプトインのリント層に対して）は、メカニズムの変更ではなく*目的*の変更である。デフォルトでCIをゲートするTypeProfは、別の名前を持つ別のツールである。
 
-3. **ナローイングがないことは構造的であり、単に未実装なのではない**。
-   Rigorのリファインメントナローイング（`unless s.empty?`からの`non-empty-string`、分岐ごとのフローセンシティブ（flow-sensitive）な再型付け）は第一級の制御フロー解析である。TypeProfは両方の`if`アームをユニオン化する（§4、`control.rb`）。そのグラフが「スコープごと・変数ごとに1頂点」だからである——フローセンシティビティは、単調なデータフロースケルトンの上に重ねたSSAスタイルの頂点分割を必要とする。これは*追加可能*である（先行する分析で9aに隣接する難項目として挙げられている）が、チューニングのつまみではなく構造的なレトロフィットである——「重い投資を伴えば移植可能」と「既存のグラフモデルと戦う」の境界に位置する。
+3. **リファインメント型の*キャリア*——フローナローイングそのものではない（訂正）**。
+   初期ドラフトはここに「ナローイングなし」と書いていた。それは誤りである: TypeProfは型同一性述語（`is_a?`／`nil?`／`case-when`／`&&`／`||`。§10a）に対して既にフローセンシティブ（flow-sensitive）なoccurrence typingを行う——分岐ごとに頂点をクローンし、`IsAFilter`／`NilFilter`を適用する。真の分岐はもっと狭い: Rigorは**値述語**（`s.empty?`、`n > 0`）を、リファインメントの束（lattice）から引かれた**名前付きのリファインメントキャリア**（`non-empty-string`、`positive-int`）へとナローイングし、それらのキャリアを推論とRBS::Extendedに通す。TypeProfにはリファインメントキャリアの概念がない——そのナローイングはクラス同一性とnil性でフィルタするのであって、値述語で名付けられた部分型でフィルタするのではない。したがってこれは「原理上は移植可能だが大きな追加」（新しい制約／フィルタのファミリー + キャリアの束）であって、初期ドラフトがほのめかした構造的な不可能性ではない。
 
 4. **アナライザ全体の法則としての非対称な著述（厳格な戻り／寛容なパラメーター）**。
    Rigorにとってこれは、単なる出力フォーマッタではなく、*すべての*著述された型と受理述語の全体を形づくる広範な原則（ADR-5）である。TypeProfには著述の非対称性という概念がない——フローを対称的に記録する（引数が入り、戻りが出て、どちらも観測される）。9a.3は*出力側の半分*を後付けできるが、内部の受理ディシプリンとしての原則は、「流れたものを記録する」インタープリターには居場所がない。
 
 ### 9c. 1行の総合
 
-TypeProfは**精度**（9a.1のリテラル／リファインメント、9a.3に隣接するナローイング）と**出力の作法**（9a.2の診断、9a.3の頑健性、9a.4のプラグイン）でRigorへ近づける——いずれもそのアイデンティティを手放すことなく**。スケール**（9b.1）や**判定の哲学**（9b.2）でRigorへ近づくことは、別のツールにならずには**できない**。なぜならそれらは、まさにRigorがプログラム全体の型レベル実行ではなくローカル推論＋カタログに賭けることで手に入れたものだからである。この移植不可能性こそが、一方が他方を包摂するのではなく*両者が共存する理由*（付録の並列パターン）である。
+TypeProfは**精度**（9a.1のリテラルキャリア。9b.3に沿ったリファインメントキャリアのナローイング——TypeProfは既に型同一性のoccurrence typingを持つ、§10a）と**出力の作法**（9a.2の診断、9a.3の頑健性、9a.4のプラグイン）でRigorへ近づける——いずれもそのアイデンティティを手放すことなく**。スケール**（9b.1）や**判定の哲学**（9b.2）でRigorへ近づくことは、別のツールにならずには**できない**。なぜならそれらは、まさにRigorがプログラム全体の型レベル実行ではなくローカル推論＋カタログに賭けることで手に入れたものだからである。この移植不可能性こそが、一方が他方を包摂するのではなく*両者が共存する理由*（付録の並列パターン）である。
+
+---
+
+## 10. 検証パス（2026-06-01）——正直なフラグの解消
+
+フラグを立てた4項目をベンダリング済みソースに対して直接再検証した。このセッションのツール出力は断続的に壊れていた（Readが誤ったオフセットを返す。複数マッチのgrepが1行に切り詰められる）ため、**首尾一貫し、再現性があり、内部的に整合した**コード抜粋に裏づけられた発見のみを確認済みとして記録し、残りは明示的に部分的なままとする。
+
+> **訂正告知**。この§10の最初の版（同日早くにコミット）は「確認: フローセンシティブなナローイングはゼロ」と述べていた。**それは誤りだった**——劣化したセッションに起因する検証ミスであり、その中で`grep narrow`が空を返し（コマンドが実際には走っていなかった）、`ast/control.rb`は一度も完全には読まれなかった。クリーンな2回目のパス（`control.rb`の直接の完全読解 + 2つの独立したサブエージェントのトレース、すべて一致）は、TypeProf v0.31.1が**実質的なoccurrence typingのナローイングサブシステム**を持つことを示している。以下のテキストは訂正後の発見である。本ノートは規範的なリファレンスを意図しているため、この教訓を正直に記録する。
+
+### 10a. ナローイング——存在を確認（型同一性述語に対するoccurrence typing）
+
+`ast/control.rb`（737行）に加えて`env/narrowing.rb`と`graph/filter.rb`が、実際のフローセンシティブなナローイングパスを実装している。`grep -rin "narrow" lib/`は**94**件の出現を返す。
+
+**エンジン**（`AST.with_narrowing`、`control.rb:17-50`）: `Narrowing`（`{var => Constraint}`のマップ）が与えられると、各変数の現在の頂点を保存し、`narrowed_vtx = original_vtx.new_vertex(...)`を導出してから`constraint.narrow(...)`し、ナローイングされた頂点をローカル環境にセットし、`yield`経由で分岐ボディを実行し、その後復元する。インスタンス変数はpush/popのナローイングスタックを使う（`env.rb:403-416`）。
+
+**制約**（`env/narrowing.rb`）: `IsAConstraint`、`NilConstraint`、加えて合成のための`AndConstraint`／`OrConstraint`**。フィルタ**（`graph/filter.rb`）: `IsAFilter`（クラス同一性によって保持／除外）、`NilFilter`（`nil`を保持／除去）、`BotFilter`（到達不能なアームを刈る）。
+
+**ナローイングがどこから来るか**（`narrowings`は`[then, else]`のペアを返す）:
+- `CallNode#narrowings`（`call.rb:266-305`）: `recv.is_a?(Klass)` → レシーバーに対する`IsAConstraint`（then = is-a、else = is-not-a）。`recv.nil?` → `NilConstraint`。`!e`はペアを入れ替える。**レシーバーがローカル変数またはインスタンス変数の読み取りである場合に限る**——任意の式ではない。
+- `LocalVariableReadNode#narrowings`／ivar／`it`（`variable.rb:21-24, 71-74, 107-110`）: 裸の真偽`if x` → then-アームに対する`NilConstraint(false)`（`nil`を除去）。
+- `AndNode`／`OrNode`（`control.rb:461-467, 506-512`）: 子のナローイングを`.and`／`.or`で合成し、インストール時に左オペランドのナローイングを右オペランドへ適用する（`control.rb:446-453, 490-498`）。
+
+**消費側:**
+- `BranchNode#install0`（if/unless、`control.rb:70-124`）: アームごとの頂点クローン + `with_narrowing`。その後アームは`BotFilter`で刈られて結合される。
+- `CaseNode`／`WhenNode`（`control.rb:254-395`）: **ピボットナローイング**——`case x; when Konst`は節の内側で`x`を`IsAFilter`によってナローイングする（`static_ret`を持つ`ConstantReadNode`条件に限り、かつピボットがローカル変数の場合に限る）。`else`節は否定された除外フィルタを適用する。
+- `LoopNode`（while/until、`control.rb:159-162`）: 裸の変数条件に対する真偽の`NilFilter`。
+
+**これがRigorの比較にとって何を意味するか（重要な訂正）:** TypeProfは「ナローイングなし」では**ない**。**型同一性述語**（`is_a?`、`nil?`、`case/when`でのクラスマッチ、`&&`／`||`の伝播）に対するoccurrence typingを持つ。Rigorに比べて欠けているのは**リファインメント型のキャリア**である——*値述語*（`s.empty?`、`n > 0`）を**名前付きのリファインメント型**（`non-empty-string`、`positive-int`）へとナローイングすること。Rigorの際立ったサーフェス（surface）はリファインメントの束（lattice）であって、「そもそもナローイングを持つこと」ではない。付録の文言はこのより微妙な線を反映しなければならない（本ノートと併せて付録で修正済み）。
+
+正直な既知の限界: 述語ナローイングはレシーバー／対象が裸の変数読み取りであることを要求する。`case/in`のパターンマッチング（`CaseMatchNode`、`control.rb:397-425`）はパターンをインストールして節の結果をユニオン化するが、**ピボットナローイングは示さない**。リファインメントスタイルの値述語はモデル化されていない。
+
+### 10b. パーサー——確認: Prism ≥ 1.4.0、Ruby ≥ 3.3
+
+`ast.rb`は`Prism.parse(src)`（`ast.rb:~4`）でパースし、`AST.create_node`はPrismのノード型シンボルでディスパッチする——`:if_node`／`:unless_node` → `IfNode`／`UnlessNode`、`:and_node`／`:or_node` → `AndNode`／`OrNode`、`:case_node` → `CaseNode`、`:case_match_node` → `CaseMatchNode`、`:while_node`／`:until_node` → `WhileNode`／`UntilNode`（`ast.rb:85-92`）。gemspec: `required_ruby_version >= 3.3`、`add_runtime_dependency "prism", ">= 1.4.0"`と`"rbs", ">= 3.6.0"`（`typeprof.gemspec:17, 31`）。
+
+### 10c. yield／ブロックパラメーターのファンアウト——確認
+
+呼び出しサイトで渡されたブロックは`ast/call.rb`でパースされる: ブロックの仮パラメーターは`blk_f_args`（それぞれ1頂点）に加えて`blk_f_ary_arg`の配列頂点となり、`Block.new(self, blk_f_ary_arg, blk_f_args, block_body.lenv.next_boxes)`としてラップされ、`Source.new(Type::Proc.new(genv, block))`として運ばれる（`call.rb:191`）。`Block`クラスは`env/method.rb:254-280`にある。
+
+ファンアウト（`Block#accept_args`、`env/method.rb:265-273`）は、`a_args.positionals`を伴う`builtin.rb`の`proc_call`（`builtin.rb:28-29`）が駆動する:
+
+```ruby
+def accept_args(genv, changes, caller_positionals)
+  if caller_positionals.size == 1 && @f_args.size >= 2
+    changes.add_edge(genv, caller_positionals[0], @f_ary_arg)   # yield [x,y] → |a,b| auto-destructure
+  else
+    caller_positionals.zip(@f_args) do |a_arg, f_arg|           # yield x,y → |a,b| : a<-x, b<-y
+      changes.add_edge(genv, a_arg, f_arg) if f_arg
+    end
+  end
+end
+```
+
+つまり: 通常のケースでは位置引数の1対1の`.zip`。**単一のyield引数が≥2パラメーターのブロックに入ると**、`@f_ary_arg`（ブロックのインストール時に`SplatBox`を介して各`@f_args[i]`へ配線される）を通じて**自動分解（auto-destructure）される**。余分なyield引数は捨てられる（`if f_arg`ガード）。このパスに明示的なアリティ（arity）不一致の診断はない。ブロックの戻りは`Block#add_ret`（`env/method.rb:275-279`）を介して戻り、各ブロックボディのエスケープボックスの戻り（`box.a_ret`）を`yield`式の`ret`頂点へエッジする。
+
+### 10d. 診断に関する注記
+
+ブロックのファンアウトとナローイングの発見は§8を変えない: 診断はボックス実行の副産物のままである。
+
+### 10e. 行番号の監査——正確であることを確認
+
+§1〜§8の引用をソースに対してスポットチェックした: すべて±数行以内、ほとんどは正確。`env.rb`の`add_run` 176／`run_all` 183-194 ✓。`vertex.rb`の`on_type_added` 145-166 ✓、`BasicVertex#show` 24-66 ✓。`box.rb`の`MethodCallBox` 1006／`run0` 1024-1083／コンストラクタのエッジ1010-1015 ✓、`MethodDefBox` 669 ✓、`MethodDeclBox` 237 ✓。`type.rb`の`Type::Symbol` 229-244 ✓、`Type::Array` 110-169 ✓。`value.rb`の`IntegerNode#install0` → `Source.new(genv.int_type)`（~66）✓、`SymbolNode#install0`はリテラルシンボルを保持（~98）✓。
+
+---
+
+## これが付録の主張にどう対応するか
+
+| 付録の主張 | 検証されたメカニズム |
+| --- | --- |
+| 「プログラム全体の抽象インタープリター」 | 不動点までのワークリストのデータフローグラフ。手続き間はエッジによる（§1、§3） |
+| 「呼び出しサイトからパラメーターを推論する: はい」 | 実引数頂点 → 仮パラメーター頂点のエッジ。パラメーター = すべての呼び出し元のユニオン（§3） |
+| 「呼び出し先のボディを再解釈する」（Rigorのカタログ参照に対して） | `MethodDefBox`がグラフノードとして再実行される。サマリーキャッシュなし（§2、§3） |
+| 「リテラル精度: 名前的型へ拡大」 | `install0`で`42`→`Integer`。`Constant`なし（§5） |
+| 「リファインメント*キャリア*なし」（訂正——TypeProfはoccurrence typingのナローイングを持つ） | TypeProfは`is_a?`／`nil?`／`!`／`case-when`／`&&`／`\|\|`でナローイングする（§10a）。Rigorに比べて欠けているのは*リファインメント型のキャリア*（値述語 → `non-empty-string`のような名前付き型）であって、フローナローイングそのものではない |
+| 「RBSが出力製品である」 | `Vertex#show` / `MethodDefBox#show`がRBSをレンダリングする。エラーは副産物（§6、§8） |
+| 「必須の燃料としてのテスト」 | パラメーターは呼び出しサイト（またはドライバー）が引数を供給して初めて型を得る（§3） |
+| インクリメンタル／IDEファースト（v2） | ChangeSetのdiffロールバック + 参照カウントされた頂点 + `update_rb_file`（§1） |
+
+付録のどの主張もソースによって矛盾させられなかった。付録がいつか拡張される場合に取り込む価値のある2つの細部: (a) **シンボルはリテラル値として保持される**（付録の表が言及していない、TypeProfが*実際に持つ*小さな精度）、（b）v2の設計は単なる「バッチのプロトタイプ生成器」ではなく明示的に**インクリメンタル／IDEファースト**である——CLIはLSPの形をしたコアの上に乗ったひとつのフロントエンドである。
+
+---
+
+## 完全には確認できなかった点（正直なフラグ）
+
+2026-06-01の検証パス後のステータス（次のセクションを参照）: **ナローイング**と**パーサー**は一次資料で確認済みとなった**。yield分配**と**行番号の監査**は部分的なままである。なぜならそのセッションでは作業環境のツール出力が劣化しており（誤ったReadオフセット、複数マッチgrepの切り詰め）、壊れた出力から細部を記録することは規範的なノートの目的に反するからである。
+
+- **ブロック／`yield`パラメーターのファンアウト——解決済み**。§10cを参照。位置引数の`.zip`ファンアウトと、単一引数／複数パラメーターの自動分解の分岐。戻りはエスケープボックス経由。
+- **ナローイング——解決済み（不在ではなく存在を確認）**。§10aを参照。本ノートの初期ドラフトは誤って「ナローイングゼロ」と述べていた。TypeProf v0.31.1は完全なoccurrence typingのナローイングサブシステムを持つ（`env/narrowing.rb`、`graph/filter.rb`、分岐ごとの頂点クローン）。
+- **パーサー——解決済み（gemspecからPrism ≥ 1.4.0、Ruby ≥ 3.3を確認）**。§10bを参照。
+- **正確な行番号——解決済み**。スポット監査は引用したすべてのエンティティが±数行以内（ほとんどは正確）であることを見出した。§10eを参照。
+
+---
+
+## ソース
+
+一次（ベンダリング済み、v0.31.1にとって権威ある）:
+- `references/typeprof/lib/typeprof/core/{env,service,builtin,type}.rb`
+- `references/typeprof/lib/typeprof/core/graph/{vertex,box,change_set}.rb`
+- `references/typeprof/lib/typeprof/core/ast/*.rb`
+- [`references/typeprof/doc/doc.md`](https://github.com/rigortype/rigor/blob/master/references/typeprof/doc/doc.md) — 「What is TypeProf」+「Abstract values」
+
+二次（設計意図／歴史——補強であり、権威ではない）:
+- [GitHub: ruby/typeprof](https://github.com/ruby/typeprof) — 「experimental type-level Ruby interpreter」
+- 遠藤侑介（Mame）、[Revisiting TypeProf — IDE support as a primary feature, RubyKaigi 2023](https://rubykaigi.org/2023/presentations/mametter.html) — v2／インクリメンタルのリブート
+- 遠藤侑介、[TypeProf for IDE, RubyKaigi Takeout 2021](https://rubykaigi.org/2021-takeout/presentations/mametter.html)
+- 遠藤侑介、[Good first issues of TypeProf, RubyKaigi 2024](https://speakerdeck.com/mame/good-first-issues-of-typeprof) — Source/Vertex/Boxアーキテクチャのスライド
+- [Ruby News: TypeProf — Abductive Reasoning for Abstract Interpretation](https://ruby.news/2021/08/23/TypeProf-Abductive-Reasoning-for-Abstract-Interpretation.html)
