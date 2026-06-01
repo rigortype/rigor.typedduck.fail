@@ -3,8 +3,8 @@ title: "TypeProf内部調査 — 推論ロジック + 内部型表現"
 description: "Imported from rigortype/rigor docs/notes/20260531-typeprof-internals-survey.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260531-typeprof-internals-survey.md"
 sourcePath: "docs/notes/20260531-typeprof-internals-survey.md"
-sourceSha: "bcff87317d07b6c2d67abefd465b2bcb216be058001604cc53dbe3a9cd19d902"
-sourceCommit: "0d2c591d814d0b3ee35b0fbded686c726b2e0c2f"
+sourceSha: "ea7ec282c998dc1f37ae85a0d8b209a4114210444371973d1b3460d13ad4bc26"
+sourceCommit: "cb6b329f5b70369b8e4ebdd4f4a69f28aa85937d"
 translationStatus: "translated"
 sidebar:
   order: 20266531
@@ -300,7 +300,7 @@ end
 | 「リテラル精度: 名前的型へ拡大」 | `install0`で`42`→`Integer`。`Constant`なし（§5） |
 | 「リファインメント*キャリア*なし」（訂正——TypeProfはoccurrence typingのナローイングを持つ） | TypeProfは`is_a?`／`nil?`／`!`／`case-when`／`&&`／`\|\|`でナローイングする（§10a）。Rigorに比べて欠けているのは*リファインメント型のキャリア*（値述語 → `non-empty-string`のような名前付き型）であって、フローナローイングそのものではない |
 | 「RBSが出力製品である」 | `Vertex#show` / `MethodDefBox#show`がRBSをレンダリングする。エラーは副産物（§6、§8） |
-| 「必須の燃料としてのテスト」 | パラメーターは呼び出しサイト（またはドライバー）が引数を供給して初めて型を得る（§3） |
+| 「呼び出しサイトがパラメーター推論を駆動する（テストは呼び出しサイトの一種にすぎず——TypeProfに「テスト」という概念はない）」 | パラメーターはいずれかの呼び出しサイトが引数を供給して初めて型を得る。テストは通常の呼び出しサイトの供給源であり、特別に認識されるわけではない（§3） |
 | インクリメンタル／IDEファースト（v2） | ChangeSetのdiffロールバック + 参照カウントされた頂点 + `update_rb_file`（§1） |
 
 付録のどの主張もソースによって矛盾させられなかった。付録がいつか拡張される場合に取り込む価値のある2つの細部: (a) **シンボルはリテラル値として保持される**（付録の表が言及していない、TypeProfが*実際に持つ*小さな精度）、（b）v2の設計は単なる「バッチのプロトタイプ生成器」ではなく明示的に**インクリメンタル／IDEファースト**である——CLIはLSPの形をしたコアの上に乗ったひとつのフロントエンドである。

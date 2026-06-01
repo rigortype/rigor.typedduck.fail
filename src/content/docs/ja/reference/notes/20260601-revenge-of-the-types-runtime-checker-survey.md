@@ -4,7 +4,7 @@ description: "Imported from rigortype/rigor docs/notes/20260601-revenge-of-the-t
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260601-revenge-of-the-types-runtime-checker-survey.md"
 sourcePath: "docs/notes/20260601-revenge-of-the-types-runtime-checker-survey.md"
 sourceSha: "2fb09209bbf77293eb286ddea83d12b6ec9d1885f731e7ad93e2406e6c89aa20"
-sourceCommit: "9f5010ab7b1916b07154e383346d8cd64ba34370"
+sourceCommit: "cb6b329f5b70369b8e4ebdd4f4a69f28aa85937d"
 sourceDate: "2026-06-01T12:50:12+09:00"
 sourceLanguage: "ja"
 sidebar:
