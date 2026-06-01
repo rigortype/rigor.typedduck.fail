@@ -125,9 +125,13 @@ function transformProse(text) {
   next = next.replace(new RegExp(`(${JP})\\?`, 'g'), '$1？');
   next = next.replace(new RegExp(`(${JP})!`, 'g'), '$1！');
 
-  // Move trailing 。 or … out of **bold** spans so the closing ** renders
-  // correctly. ！ and ？ are intentionally excluded — they stay inside the
-  // span (see the rule below). e.g. **foo。** → **foo**。
+  // Move a leading or trailing 。/… out of a **bold** span: a bold span should
+  // neither begin nor end with sentence punctuation. ！ and ？ are intentionally
+  // excluded — they stay inside the span (see the rule below).
+  //   **foo。**       → **foo**。      (trailing)
+  //   です**。内部**   → です。**内部**  (leading; this exact shape is what the
+  //                                     earlier buggy version of THIS rule
+  //                                     produced, so the rule now self-heals it)
   //
   // Two hazards this guards against:
   //   1. A literal ** / * documented inside an inline-code span (e.g. the `**`
@@ -137,7 +141,7 @@ function transformProse(text) {
   //      span's OPENING ** when the first span carries no trailing 。 (e.g.
   //      `**訂正告知**。…述べていた。**それは誤りだった**`), dragging an unrelated
   //      sentence-final 。 inside. Match COMPLETE spans left-to-right instead,
-  //      and relocate 。/… only when it is the span's own final character.
+  //      and relocate punctuation only at the span's own edges.
   const codeSpans = [];
   // NUL never occurs in Markdown source, so a NUL-delimited index is a
   // collision-free placeholder: the bold-span regex treats it as opaque
@@ -149,8 +153,14 @@ function transformProse(text) {
   masked = masked.replace(
     /\*\*((?:[^*\n]|\*(?!\*))+?)\*\*/g,
     (m, inner) => {
-      const mv = inner.match(/^([\s\S]*?)(。|…)$/);
-      return mv ? `**${mv[1]}**${mv[2]}` : m;
+      let lead = '';
+      let trail = '';
+      let body = inner;
+      const lm = body.match(/^([。…]+)([\s\S]+)$/);
+      if (lm) { lead = lm[1]; body = lm[2]; }
+      const tm = body.match(/^([\s\S]+?)([。…]+)$/);
+      if (tm) { body = tm[1]; trail = tm[2]; }
+      return lead || trail ? `${lead}**${body}**${trail}` : m;
     },
   );
   next = masked.replace(/\0(\d+)\0/g, (_, i) => codeSpans[Number(i)]);

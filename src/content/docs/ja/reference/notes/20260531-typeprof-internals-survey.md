@@ -115,12 +115,12 @@ end
 
 `run0`では、**レシーバー型を**具体的な`Type::Instance` / `Singleton`へ**解決し**、**メソッド探索チェーン**（prependされたモジュール → 自身のクラス → includeされたモジュール → スーパークラス）を歩き、解決された各呼び出し先について`MethodDecl`（RBS）または`MethodDef`（Ruby）のいずれかをyieldする。続いて:
 
-- **Ruby defパス（推論）:**呼び出し先の`MethodDefBox`が**各実引数頂点 → 対応する仮パラメータ頂点**を接続する（`changes.add_edge(genv, a_args.positionals[i], f_vtx)`）。`Vertex`はすべての入力エッジから型の*多重集合*を蓄積するため、パラメータの推論された型は**すべての呼び出しサイトからの引数型のユニオン**になる。呼び出し先の戻り頂点（すべての`return`／暗黙パスのユニオン）が呼び出しサイトの`@ret`へとエッジで戻される**。これがプログラム全体の手続き間フローである**: 型はグラフのエッジによって呼び出し元→呼び出し先（引数）および呼び出し先→呼び出し元（戻り）へと流れ、別個のサマリーや制約集合は存在しない。
+- **Ruby defパス（推論）:**呼び出し先の`MethodDefBox`が**各実引数頂点 → 対応する仮パラメータ頂点**を接続する（`changes.add_edge(genv, a_args.positionals[i], f_vtx)`）。`Vertex`はすべての入力エッジから型の*多重集合*を蓄積するため、パラメータの推論された型は**すべての呼び出しサイトからの引数型のユニオン**になる。呼び出し先の戻り頂点（すべての`return`／暗黙パスのユニオン）が呼び出しサイトの`@ret`へとエッジで戻される。**これがプログラム全体の手続き間フローである**: 型はグラフのエッジによって呼び出し元→呼び出し先（引数）および呼び出し先→呼び出し元（戻り）へと流れ、別個のサマリーや制約集合は存在しない。
 - **RBS declパス（検査）:** `MethodDeclBox#resolve_overloads`が実引数を宣言された仮引数型に対してマッチさせ（`match_arguments?`）、マッチすると**宣言された**戻り型を呼び出しの`@ret`へエッジで渡す。ここでは引数は*検査される*のであって、*そこから学習される*のではない——宣言が権威を持つ。
 
 **ブロック／`yield`:**ブロック引数は`Type::Proc`値を保持する頂点として運ばれる（`type.rb:196-210`、Procはブロックのコードオブジェクトをラップする）。ブロックパラメータも同じエッジのやり方で配線される。`yield`はyieldされた引数をブロックのパラメータへ流し、ブロックの結果を戻す。正確なファンアウト（位置引数の`.zip`、単一引数の自動分解、エスケープボックス経由の戻り）は§10cで追跡する。
 
-**付録にとっての帰結:** `String`でしか呼ばれないアノテートされていないパラメータは`(String)`を推論する**。ロバストネスに基づく拡大は存在しない**——TypeProfは流れたものを報告する。これはまさに「推論の燃料としてのテスト」セクションが描くADR-5の対比である: Rigorの`--params=observed`は、その同じ観測を契約（contract）ではなく*レビューすべき提案*として意図的に扱う。
+**付録にとっての帰結:** `String`でしか呼ばれないアノテートされていないパラメータは`(String)`を推論する。**ロバストネスに基づく拡大は存在しない**——TypeProfは流れたものを報告する。これはまさに「推論の燃料としてのテスト」セクションが描くADR-5の対比である: Rigorの`--params=observed`は、その同じ観測を契約（contract）ではなく*レビューすべき提案*として意図的に扱う。
 
 ---
 
@@ -128,7 +128,7 @@ end
 
 `lib/typeprof/core/ast.rb`（+ `ast/*.rb`）はPrismのASTノードをグラフのフラグメントへと落とし込む。各`AST::Node`は、その値を表す頂点を返す`install0(genv)`を実装する。
 
-- **リテラル**（`ast/value.rb`）: `IntegerNode#install0` → `Source.new(genv.int_type)`、`FloatNode` → `Source.new(genv.float_type)`**。値は捨てられる**——`42`は`Integer`インスタンス型になる。例外は`SymbolNode#install0` → `Source.new(Type::Symbol.new(genv, @lit))`であり、これは**リテラルのシンボルを保持する**。（§5を参照。）
+- **リテラル**（`ast/value.rb`）: `IntegerNode#install0` → `Source.new(genv.int_type)`、`FloatNode` → `Source.new(genv.float_type)`。**値は捨てられる**——`42`は`Integer`インスタンス型になる。例外は`SymbolNode#install0` → `Source.new(Type::Symbol.new(genv, @lit))`であり、これは**リテラルのシンボルを保持する**。（§5を参照。）
 - **ローカル変数:** `LocalEnv`（`@locals[name] => Vertex`）に**変数ごと・レキシカルスコープごとに1頂点**で格納される。読み取りはその頂点を返し、書き込みはRHSをそこへエッジでつなぐ。完全なSSAではないが、外側の変数を変異させうるブロックには新しい頂点が差し込まれる（`new_var`/`set_var`）ので、クロージャの効果がモデル化される。
 - **メソッド呼び出し**（`ast/call.rb`）: `ActualArguments`（位置／キーワード／スプラット／ブロックの頂点）を構築し、`MethodCallBox`を発行する。ボックスの`@ret`が呼び出しの値頂点である。
 - **`def`**（`ast/method.rb`）: `MethodDefBox`を登録する。ボディスコープ内で仮パラメータごとに1頂点を作成する。
@@ -140,7 +140,7 @@ end
 
 `doc/doc.md:93-135`（「Abstract values」）+ ソースより:
 
-- **クラスへ抽象化（値は捨てられる）:**クラスのインスタンス——`42` → `Integer`、`"str"` → `String`、`nil`/`true`/`false` → `NilClass`/`TrueClass`/`FalseClass`のインスタンス型（`type.rb:99-107`が`show`でこれらを特別にレンダリングする）**。`Constant<1>`に相当するものはない**。これがRigorとの最大の内部表現の違いである。
+- **クラスへ抽象化（値は捨てられる）:**クラスのインスタンス——`42` → `Integer`、`"str"` → `String`、`nil`/`true`/`false` → `NilClass`/`TrueClass`/`FalseClass`のインスタンス型（`type.rb:99-107`が`show`でこれらを特別にレンダリングする）。**`Constant<1>`に相当するものはない**。これがRigorとの最大の内部表現の違いである。
 - **具体的に保持:**
   - **クラスオブジェクト**——`Integer`、`String`の定数は`Type::Singleton`であり、`Class`へ*抽象化されない*。定数参照とクラスメソッドのディスパッチがその同一性を必要とするためである（`doc.md:113-116`）。
   - **シンボル**——`:foo`は`Type::Symbol(:foo)`のまま留まる。キーワード引数・JSONキー・`attr_reader`名などのために具体値が必要だからである（`doc.md:118-120`）。ただし*動的な*シンボル（`:"foo_#{x}"`、`String#to_sym`の結果）は`Symbol`インスタンス型にフォールバックする。
@@ -194,7 +194,7 @@ end
 これらは、Rigorが実証した精度／エルゴノミクスのアイデアであり、TypeProfが**プログラム全体の型レベル実行を放棄することなく**採用できるものである。それらはTypeProfを、それが既にそうであるものとして強化する。
 
 1. **出力時拡大を伴うリテラル／リファインメントキャリア**。
-   TypeProfは`install0`でリテラル値を捨てる（`42`→`Integer`、`value.rb`）が、それでも具体的なシンボル（`Type::Symbol(:foo)`）や構造的なArrayの`@elems`／Recordのフィールド（§5）を*既に*保持している。つまり「具体値を運ぶTypeサブクラス」という前例が内部に存在する。Rigorの貢献は*その周辺の規律*である: 内部的に保持されるが**境界で名前的型のRBSへ消去される**`Constant`/`Refined`/`IntegerRange`キャリア（RigorのRBS消去契約、§6が自然な消去ポイント——`Vertex#show`）。TypeProfはホバー精度と組み込みの定数foldingのためだけに`IntegerLiteral`/`StringLiteral`を追加し、`show`で拡大できるだろう**。注意点:**型の多重集合が膨れ上がる（`42`と`43`は別個の型）——TypeProfのプログラム全体のグラフは、Rigorのバジェット付きメソッドごとエンジンよりもはるかに膨張に敏感なので、これにはRigorがほぼスキップできる明示的な「N個のリテラルの後に拡大する」戦略が*必要になる*。
+   TypeProfは`install0`でリテラル値を捨てる（`42`→`Integer`、`value.rb`）が、それでも具体的なシンボル（`Type::Symbol(:foo)`）や構造的なArrayの`@elems`／Recordのフィールド（§5）を*既に*保持している。つまり「具体値を運ぶTypeサブクラス」という前例が内部に存在する。Rigorの貢献は*その周辺の規律*である: 内部的に保持されるが**境界で名前的型のRBSへ消去される**`Constant`/`Refined`/`IntegerRange`キャリア（RigorのRBS消去契約、§6が自然な消去ポイント——`Vertex#show`）。TypeProfはホバー精度と組み込みの定数foldingのためだけに`IntegerLiteral`/`StringLiteral`を追加し、`show`で拡大できるだろう。**注意点:**型の多重集合が膨れ上がる（`42`と`43`は別個の型）——TypeProfのプログラム全体のグラフは、Rigorのバジェット付きメソッドごとエンジンよりもはるかに膨張に敏感なので、これにはRigorがほぼスキップできる明示的な「N個のリテラルの後に拡大する」戦略が*必要になる*。
 
 2. **オプトインのキュレートされた診断層 + 重大度モデル**。
    TypeProfのエラーは`run0`の途中で発行される副産物（§8）であり、キュレーションも重大度プロファイルも抑制文法もない。Rigorの`diagnostic-policy`（ドット区切り識別子の分類体系、`severity_profile`、`# rigor:disable`）は**同じシグナルの上に乗った純粋な層**であり——推論の内部には一切触れない。TypeProfはこれをデフォルトでは判定者にならずに*オプションのリントモード*として出荷できるだろう（「デフォルトで」がなぜそれを壊すかは9b.2を参照）。
@@ -226,7 +226,7 @@ end
 
 ### 9c. 1行の総合
 
-TypeProfは**精度**（9a.1のリテラルキャリア。9b.3に沿ったリファインメントキャリアのナローイング——TypeProfは既に型同一性のoccurrence typingを持つ、§10a）と**出力の作法**（9a.2の診断、9a.3のロバストネス、9a.4のプラグイン）でRigorへ近づける——いずれもそのアイデンティティを手放すことなく**。スケール**（9b.1）や**判定の哲学**（9b.2）でRigorへ近づくことは、別のツールにならずには**できない**。なぜならそれらは、まさにRigorがプログラム全体の型レベル実行ではなくローカル推論＋カタログに賭けることで手に入れたものだからである。この移植不可能性こそが、一方が他方を包摂するのではなく*両者が共存する理由*（付録の並列パターン）である。
+TypeProfは**精度**（9a.1のリテラルキャリア。9b.3に沿ったリファインメントキャリアのナローイング——TypeProfは既に型同一性のoccurrence typingを持つ、§10a）と**出力の作法**（9a.2の診断、9a.3のロバストネス、9a.4のプラグイン）でRigorへ近づける——いずれもそのアイデンティティを手放すことなく。**スケール**（9b.1）や**判定の哲学**（9b.2）でRigorへ近づくことは、別のツールにならずには**できない**。なぜならそれらは、まさにRigorがプログラム全体の型レベル実行ではなくローカル推論＋カタログに賭けることで手に入れたものだからである。この移植不可能性こそが、一方が他方を包摂するのではなく*両者が共存する理由*（付録の並列パターン）である。
 
 ---
 
@@ -242,7 +242,7 @@ TypeProfは**精度**（9a.1のリテラルキャリア。9b.3に沿ったリフ
 
 **エンジン**（`AST.with_narrowing`、`control.rb:17-50`）: `Narrowing`（`{var => Constraint}`のマップ）が与えられると、各変数の現在の頂点を保存し、`narrowed_vtx = original_vtx.new_vertex(...)`を導出してから`constraint.narrow(...)`し、ナローイングされた頂点をローカル環境にセットし、`yield`経由で分岐ボディを実行し、その後復元する。インスタンス変数はpush/popのナローイングスタックを使う（`env.rb:403-416`）。
 
-**制約**（`env/narrowing.rb`）: `IsAConstraint`、`NilConstraint`、加えて合成のための`AndConstraint`／`OrConstraint`**。フィルタ**（`graph/filter.rb`）: `IsAFilter`（クラス同一性によって保持／除外）、`NilFilter`（`nil`を保持／除去）、`BotFilter`（到達不能なアームを刈る）。
+**制約**（`env/narrowing.rb`）: `IsAConstraint`、`NilConstraint`、加えて合成のための`AndConstraint`／`OrConstraint`。**フィルタ**（`graph/filter.rb`）: `IsAFilter`（クラス同一性によって保持／除外）、`NilFilter`（`nil`を保持／除去）、`BotFilter`（到達不能なアームを刈る）。
 
 **ナローイングがどこから来るか**（`narrowings`は`[then, else]`のペアを返す）:
 - `CallNode#narrowings`（`call.rb:266-305`）: `recv.is_a?(Klass)` → レシーバーに対する`IsAConstraint`（then = is-a、else = is-not-a）。`recv.nil?` → `NilConstraint`。`!e`はペアを入れ替える。**レシーバーがローカル変数またはインスタンス変数の読み取りである場合に限る**——任意の式ではない。

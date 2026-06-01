@@ -164,7 +164,7 @@ stoplight, ffi
 
 このデータポイントはコミット`f9b94d2`の設計判断を強化します。よく使われる半ダース程度のネイティブ拡張gemに対するベンダーRBSをrigor自身に同梱することが、現実的な「すぐ使える」道です。そうでなければエンドユーザーは`gem_rbs_collection`を`signature_paths:`にgemバージョン毎に手動で配線する必要があり、その配線はいずれにせよO7（後述）にぶつかります。
 
-**オープン項目O7（RBSのenvビルドの崖）は当初の評価より深刻です**。rigor自身のロード済みsig上にgem同梱の`sig/`ディレクトリを**1つだけ**（具体的にはprismのsig、約19個の.rbsファイル）追加すると、`RBS::Environment.from_loader`は5分以上ハングします（強制終了）。Diasporaの16-paths-coldの実験（11分以上）は同じ症状でパス数がより多いものです。もっともらしい説明: prismのsigはrigorの事前ロード済みprism RBS（rigorは内部でprismを使用）と重複するクラスを宣言しており、リゾルバが重複クラスのグラフ走査で爆発します**。O7が修正されるまで、gem同梱のsig経路は使えません** — bundle installが成功してもです。
+**オープン項目O7（RBSのenvビルドの崖）は当初の評価より深刻です**。rigor自身のロード済みsig上にgem同梱の`sig/`ディレクトリを**1つだけ**（具体的にはprismのsig、約19個の.rbsファイル）追加すると、`RBS::Environment.from_loader`は5分以上ハングします（強制終了）。Diasporaの16-paths-coldの実験（11分以上）は同じ症状でパス数がより多いものです。もっともらしい説明: prismのsigはrigorの事前ロード済みprism RBS（rigorは内部でprismを使用）と重複するクラスを宣言しており、リゾルバが重複クラスのグラフ走査で爆発します。**O7が修正されるまで、gem同梱のsig経路は使えません** — bundle installが成功してもです。
 
 ### 最新の状態（コミット`f9b94d2`でベンダーRBSがランディング後）
 

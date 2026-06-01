@@ -40,7 +40,7 @@ attr_reader :name
 
 rigor-sorbetのカタログウォーカーは`sig`を後続の`def`としか対応付けなかったため、`attr_reader` / `attr_writer` / `attr_accessor`に対するsigは宙に浮いたsigとして読まれた。これは広く使われる正当なSorbetパターン（生成されたアクセサに型を付ける）であり、10ファイルで85件の誤った警告が出た。**修正済み**（コミットb1fe2aaf）: ウォーカーは属性マクロをsigの対象として認識し、アクセサのシグネチャを記録するようになった（readerは`name`、writerは`name=`、`attr_accessor`では両方、複数名形式では各名前を記録）し、警告を出さなくなった。サブセットの診断は**87 → 2**に減少した。
 
-同じ根本原因の2件目（sigが裸の`def`としか対応付けられない）: **可視性でラップされたdef**の上にあるsig — `private def foo`、`private_class_method def self.bar`、`module_function def baz`（および`public` / `protected` / `public_class_method`の各バリアント） — も宙に浮いたsigとして読まれた。dependabotの`registry_client.rb`は`private_class_method def self.x`を使っている**。修正済み**（コミット保留中）: ウォーカーはマクロを剥がして内側のdefに型を付ける。両方の修正により、**`common/lib`の34ファイルのサブセットは多数の誤ったparse-errorから0件になった**（`rbs.coverage.missing-gem`のinfoが1件残るのみ）。
+同じ根本原因の2件目（sigが裸の`def`としか対応付けられない）: **可視性でラップされたdef**の上にあるsig — `private def foo`、`private_class_method def self.bar`、`module_function def baz`（および`public` / `protected` / `public_class_method`の各バリアント） — も宙に浮いたsigとして読まれた。dependabotの`registry_client.rb`は`private_class_method def self.x`を使っている。**修正済み**（コミット保留中）: ウォーカーはマクロを剥がして内側のdefに型を付ける。両方の修正により、**`common/lib`の34ファイルのサブセットは多数の誤ったparse-errorから0件になった**（`rbs.coverage.missing-gem`のinfoが1件残るのみ）。
 
 ## Finding 3 — 運用上のメモ
 

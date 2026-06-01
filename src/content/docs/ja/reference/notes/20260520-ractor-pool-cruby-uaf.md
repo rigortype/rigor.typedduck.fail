@@ -151,7 +151,7 @@ Mastodonコードベース（`github.com/mastodon/mastodon`、`app/` + `lib/` = 
 
 - **#21200** — *Ractor spuriously hangs, segfaults or errors on `TestEtc#test_ractor_parallel`*（Assigned）。同じ**クラス**のバグ:並列Ractorが散発的なセグフォルト / ハングを生成。そちらのクラッシュシグネチャ（`pthread_mutex_lock: EINVAL`、`SEGV at 0xfffffffffffffff8`）は我々のものとは異なり、根本原因は**未特定** — 共通の根本原因は確認も否定もできない。関連課題としてリンク。
 - **#21204** — *`TestEtc#test_ractor_parallel` is still flaky with ModGC/MMTk*（Assigned）。同じクラスのヒープ破損（`malloc_consolidate(): unaligned fastbin chunk`）だが、報告者が**MMTk GCにスコープを限定**（「失敗はModGCワークフローでのみ発生」）。我々のASANバックトレースは明示的に`gc/default/default.c`にある — すなわちデフォルトGCでも同じ破損クラスが再現する。我々の報告がそのデータポイントを追加;関連としてリンク。
-- **#21999** — *Segfault / FPE with Ractor code involving BigDecimal*（Closed、「Third Party's Issue」）**。除外** — BigDecimalのfloat解析バグと確認済み、BigDecimalリポジトリで修正済み（PR #528）、Ractorコアの問題ではない。同じ破損の誤帰属の可能性という以前の推測は誤りだった。
+- **#21999** — *Segfault / FPE with Ractor code involving BigDecimal*（Closed、「Third Party's Issue」）。**除外** — BigDecimalのfloat解析バグと確認済み、BigDecimalリポジトリで修正済み（PR #528）、Ractorコアの問題ではない。同じ破損の誤帰属の可能性という以前の推測は誤りだった。
 
 ファイナライザーテーマの課題（#21368 *Moving objects with finalizer between Ractors crashes*、#21315 *Finalizers violate `rb_ractor_confirm_belonging`*）は**おそらく別**:我々のASANの解放パスはプレーンな`gc_sweep_plane` → `rb_data_free`であり、ファイナライザーは関与していない。
 

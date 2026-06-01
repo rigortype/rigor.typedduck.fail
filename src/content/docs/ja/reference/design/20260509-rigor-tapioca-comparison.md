@@ -80,7 +80,7 @@ Tapiocaの出力はSorbetの`srb tc`が消費する。Rigorの出力はユーザ
 ### DSLカバレッジの広さ
 
 - **Tapioca**: 39の組み込みDSLコンパイラ（`AASM`、`ActionMailer`、`ActiveRecord*`ファミリー、`FrozenRecord`、`GraphQL`、`IdentityCache`、`JsonApiClient`、`Kredis`、`Protobuf`、`SidekiqWorker`、`SmartProperties`、`StateMachines`、`UrlHelpers`等）。Shopifyで本番稼働。長年のイテレーション。
-- **Rigor**: 7つの作業例プラグイン（`lisp-eval`、`pattern`、`units`、`statesman`、`deprecations`、`routes`、`activerecord`）と1つのエコシステムアダプタ（`rigor-sorbet`、ADR-11）。Railsプラグインファミリーは[`docs/design/20260508-rails-plugins-roadmap.md`](../20260508-rails-plugins-roadmap/)でロードマップ化済み**。カバレッジではTapiocaが数年先行している。これは正直な評価**。
+- **Rigor**: 7つの作業例プラグイン（`lisp-eval`、`pattern`、`units`、`statesman`、`deprecations`、`routes`、`activerecord`）と1つのエコシステムアダプタ（`rigor-sorbet`、ADR-11）。Railsプラグインファミリーは[`docs/design/20260508-rails-plugins-roadmap.md`](../20260508-rails-plugins-roadmap/)でロードマップ化済み。**カバレッジではTapiocaが数年先行している。これは正直な評価**。
 
 ### 信頼モデル
 
@@ -118,7 +118,7 @@ Rigorのプラグイン契約は**明示的にPHPStanをモデルにしている
 
 ## RigorがRBI出力を強化できる場面
 
-Rigorは現在**診断**を出力し、RBIは出力しない**。RBI-emitモード**を追加することでRigorの静的推論をTapiocaが書き込む`sorbet/rbi/`ツリーに流し込める。3つの独自の価値提案:
+Rigorは現在**診断**を出力し、RBIは出力しない。**RBI-emitモード**を追加することでRigorの静的推論をTapiocaが書き込む`sorbet/rbi/`ツリーに流し込める。3つの独自の価値提案:
 
 ### 1. Rigorの静的推論からのRBI（アプリロード不要）
 
