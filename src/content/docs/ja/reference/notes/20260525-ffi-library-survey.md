@@ -504,7 +504,7 @@ SassSeparator   = enum(:sass_comma, :sass_space)
    - **プラグイン提供RBS**（[ADR-25](../../adr/25-plugin-contributed-rbs/)）——`rigor-ffi-rzmq`内に手でキュレートされた`LibZMQ`スタブを出荷。
    - **依存関係ソース推論**（[ADR-10](../../adr/10-dependency-source-inference/)）——`ffi-rzmq-core`の`attach_function`呼び出しのオプトインウォーク。
 
-   ADR-25が低FPパス;ADR-10が低メンテナーンスパス。
+   ADR-25が低FPパス;ADR-10が低メンテナンスパス。
 
 3. **enumによってディスパッチされるvarargs**（ethonの`easy_setopt`）。`va_type`は外部カタログを通じて2番目の引数のenum値によって決まる。オプションディスパッチャーをモデル化しないと3番目の引数は`Dynamic[Top]`として型付けされる;カタログがあるとオプションごとの小さなユニオンとして型付けされる。ライブラリごとの特別扱いが多すぎて`rigor-ffi`コアに属せない——ライブラリごとのプラグイン（`rigor-ethon`、`rigor-rbnacl`）の上位に属する。
 
@@ -547,7 +547,7 @@ SassSeparator   = enum(:sass_comma, :sass_space)
 ### 設計ADRへのオープンクエスチョン
 
 - DSL認識器形状: `rigor-ffi`はプラガブルな認識器テーブルを持つ単一プラグインか、それとも`sodium_function`は`rigor-ffi`提供の貢献APIを消費する`rigor-rbnacl`が出荷するか？（ADR-13のTypeNodeリゾルバチェーン議論の反響。）
-- クロスgemシグネチャ取得: ffi-rzmq-coreケースでADR-25（プラグイン提供RBS）に頼るか、ADR-10（依存関係ソース推論）を待つか？ 2つは異なるメンテナーンスコスト / 精度のトレードオフを持つ。
+- クロスgemシグネチャ取得: ffi-rzmq-coreケースでADR-25（プラグイン提供RBS）に頼るか、ADR-10（依存関係ソース推論）を待つか？ 2つは異なるメンテナンスコスト / 精度のトレードオフを持つ。
 - typedef済み不透明ポインタはデフォルトでnominalサブタイピングにすべきか、それとも`typedef`呼び出しごとのオプトインか（例: `typedef :pointer, :sass_data_context_ptr, nominal: true`）？ 純「常にnominal」はドキュメントのみの目的でtypedefを使うgemを壊すリスクがある。
 - プラグインは`FFI::Function.new`とブロックをどの程度積極的にモデル化すべきか？ 匿名Proc推論はエンジン全体の作業であり、FFI固有ではない。
 
