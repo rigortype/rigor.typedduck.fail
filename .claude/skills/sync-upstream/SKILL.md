@@ -204,6 +204,37 @@ For each JA-native upstream file that needs an English translation
    tree; the JA-native page count should report `EN-translated`
    instead of `stub`.
 
+### Japanese term & typography rules
+
+Two layers enforce the Japanese conventions — apply both:
+
+**Front-loaded (judgement, while translating).** The translation memory
+[`../../../docs/ja/translation-glossary.md`](../../../docs/ja/translation-glossary.md)
+is `@`-imported by `CLAUDE.md`, so it is already in your context. Apply
+its decision criteria as you translate — which terms to translate vs keep
+katakana (by audience establishment / clarity / misunderstanding risk),
+ruby vs paren glossing, and the **sense-divergent** terms that must stay
+katakana (アイデンティティ≠同一性, アサーション≠表明, リレーション≠関係,
+bare 頑健性 as a generic word, …). A script cannot make these calls.
+
+**Post-correction (deterministic, after translating).** Two idempotent,
+code-aware normalisers enforce the settled mechanical rules so your free
+translation does not have to remember every mapping:
+
+```sh
+node scripts/normalize-ja-terms.mjs <files...>       # long-vowel ー + settled 1:1 訳語
+node scripts/normalize-ja-typography.mjs <files...>  # CJK/ASCII spacing, full-width parens, ？！
+```
+
+`normalize-ja-terms.mjs` enforces the katakana long-vowel DROP/KEEP rule
+and the settled katakana→kanji translations (評価器, 認識器, 比較器, 走査,
+実体化, 単一化, 多重集合, 分類体系, 由来, ロバストネス原則, 言語サーバー, …);
+the full per-term ledger is
+[`../../../docs/ja/katakana-longvowel-ledger.md`](../../../docs/ja/katakana-longvowel-ledger.md).
+It does **not** add ruby/paren glosses — place those by hand on the first
+occurrence while translating. New settled terms get added to its lists +
+the ledger.
+
 ### Japanese typography rules
 
 Always follow the conventions documented in
@@ -217,17 +248,15 @@ Always follow the conventions documented in
 - **Markdown list markers** keep their required space (`1. text`,
   `- text`). Code fences and frontmatter are exempt.
 
-After translating, run the normaliser on the touched files:
-
-```sh
-node scripts/normalize-ja-typography.mjs <files...>
-```
-
-It is idempotent — safe to run on already-normalised content. For
+Run both normalisers (above) on the touched files after translating —
+they are idempotent and safe on already-normalised content. For
 JA-native upstream files whose `src/content/docs/ja/reference/<path>`
-just got auto-overwritten by `sync-rigor-docs.mjs`, also run the
-normaliser on those — upstream may not follow this site's
-typography convention.
+just got auto-overwritten by `sync-rigor-docs.mjs`, run the
+**typography** normaliser on those too (upstream may not follow this
+site's spacing). The **terms** normaliser intentionally skips
+`sourceLanguage: "ja"` pages — word-choice / long-vowel unification is
+not applied to upstream-owned JA-native content (see
+translation-glossary.md § 翻訳対象外).
 
 ### When NOT to fully translate this turn
 
