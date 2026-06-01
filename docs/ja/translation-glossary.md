@@ -45,6 +45,8 @@
 | occurrence typing | occurrence typing | — | 既存コーパスに倣い英語のまま据え置く（「オカレンス型付け」「出現型付け」は使わない）|
 | evaluator | 評価器 | 見出し・コードは素の「評価器」。ページ初出（地の文）はルビ `<ruby>評価器<rt>evaluator</rt></ruby>` | カタカナ「エバリュエーター」は未定着で漢訳が明快なため廃止。`adr/16` の「Lisp風マクロ評価器」等。`class_eval`等コードは原文のまま |
 | language server | 言語サーバー | 初出: 言語サーバー（language server） | カタカナ「ランゲージサーバー」を廃止し「ランゲージ」→「言語」。server は長音規則どおり「サーバー」。`Language Server Protocol`／`rigor lsp`／コードは原文のまま |
+| recognizer | 認識器 | 定義ページ（`adr/30`）初出にパーレン併記 `認識器（recognizer）`、他は素の「認識器」 | カタカナ「レコグナイザー」は未定着・漢訳が明快なため廃止。「DSL認識器」等。コード識別子 `BindingRecognizer`／`Plugin::FFI::BindingRecognizer` は別物・原文のまま |
+| comparator | 比較器 | 定義ページ（`design/…cache-slice-taxonomy`）初出にパーレン併記 `比較器（comparator）`、他は素の「比較器」 | カタカナ「コンパレーター」は分かりにくく漢訳が明快なため廃止。CS標準訳。コード（enum値等）は原文のまま |
 | discipline | 規律 | ページ初出（地の文）の1回だけ ruby で併記: `<ruby>規律<rp>（</rp><rt>discipline</rt><rp>）</rp></ruby>`。2回目以降は素の「規律」 | TAPLの「型付け規律」に準拠。コーパス全体（`type-specification/overview` の偽陽性の規律、`internal-spec` の不変スコープ規律ほか）で定着済み。カタカナ「ディシプリン」は廃止。"false-positive discipline" は「偽陽性の規律」、形式的な型付け規律と「徹底した運用・作法」の両義を「規律」が担う。リンクテキスト・見出し・コードは ruby 併記の対象外（素の「規律」のままにする） |
 
 ## 用語紹介の表記ルール

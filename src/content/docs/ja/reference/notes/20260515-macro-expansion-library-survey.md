@@ -155,7 +155,7 @@ dry-struct）を追加するためリビジョン。
      （`lib/devise/models.rb:79`）。
    - ルーティング: `Rails.application.routes.draw`内の`devise_for :users`
      （`lib/devise/rails/routes.rb:226`）。
-   - コントローラ（暗黙的）: `current_user`、`user_signed_in?`、
+   - コントローラー（暗黙的）: `current_user`、`user_signed_in?`、
      `authenticate_user!`、`user_session`が`Devise::Controllers::Helpers.define_helpers`により合成される
      （`lib/devise/controllers/helpers.rb:113`）。
 
@@ -182,7 +182,7 @@ dry-struct）を追加するためリビジョン。
    `after_update :send_email_changed_notification`、
    `lib/devise/models/database_authenticatable.rb:34-40`）、インスタンスメソッド（`password=`、`valid_password?`、…）、`ClassMethods`（例: `Recoverable.reset_password_by_token`）。
 
-   `devise_for :users`の場合: すべてのコントローラに`mapping.name`によってパラメータ化された**4つ**のメソッドが着地する: `authenticate_user!`、`user_signed_in?`、`current_user`、`user_session`。
+   `devise_for :users`の場合: すべてのコントローラーに`mapping.name`によってパラメータ化された**4つ**のメソッドが着地する: `authenticate_user!`、`user_signed_in?`、`current_user`、`user_session`。
 
 4. **静的展開可能性** — 4つの正準な障害物すべてが現実である:
    - シンボル→`String#classify`経由の定数は機械的である（復元可能）。
@@ -825,7 +825,7 @@ dry-structはTier Cにきれいにスロットインする。dry-schemaはTier A
 | dry-types `include Dry.Types()` | 同梱名前レジストリ＋`const_set`発行 | トレイトインライン展開（Tier-C-as-`const_set`）＋`Dry::Types[…]`の動的戻り値型 | プラグインなし |
 | factory_bot | レジストリ＋リテラルシンボル引数から計算される戻り値型 | PHPStanの`DynamicMethodReturnTypeExtension` | `rigor-factorybot` |
 | Deviseモデル側 | 同梱レジストリ駆動のtrait includeシーケンス | PHPStanトレイトインライン展開＋レジストリ | プラグインなし |
-| Deviseルート／コントローラ | `mapping.singular`でパラメータ化されたヒアドキュメント | トレイトインライン展開（ルートウォーカーが必要） | プラグインなし |
+| Deviseルート／コントローラー | `mapping.singular`でパラメータ化されたヒアドキュメント | トレイトインライン展開（ルートウォーカーが必要） | プラグインなし |
 | Sequelの関連付け | リテラルシンボルからの名前テーブル発行 | トレイトインライン展開（statesman風） | プラグインなし |
 | dry-schema `Dry::Schema.Params do … end` | ブロック`instance_eval`＋`required` / `optional` / 型仕様のリテラルシンボルレコーダー | Tier A＋ASTレコーダー＋`Processor#call`の動的戻り値型 | プラグインなし |
 | ActiveSupport::Concern | ブロックの遅延`class_eval`、ターゲット=includer | トレイトインライン展開＋DSL再ターゲット | 部分的（再ターゲット後に下流ウォーカーが発火） |

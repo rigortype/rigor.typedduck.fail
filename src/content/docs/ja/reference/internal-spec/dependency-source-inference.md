@@ -149,7 +149,7 @@ Builder.build(dependencies)        ▼
 
 ```text
 定数フォールドティア
-シェイプ / カーネル / イテレーター / ブロックフォールド精度ティア
+シェイプ / カーネル / イテレータ / ブロックフォールド精度ティア
 RbsDispatch.try_dispatch                              ── RBS / RBS::Inline / スタブ / プラグイン
                                                          ↓ （契約なし）
 try_dependency_source(receiver_type, method_name)     ── ADR-10（このティア）

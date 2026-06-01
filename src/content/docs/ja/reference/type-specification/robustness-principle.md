@@ -59,7 +59,7 @@ Rigorの既存のキャリアは、原則が解析器に使うよう指示する
 ### 具体的なパターン
 
 - **コンテナクエリからの有界整数**。`Array#size`、`String#length`、`Hash#size`、`Range#size`、`Set#size`は`Nominal[Integer]`ではなく`non-negative-int`を返すべきです（SHOULD）。境界は構造的な真実（負のサイズはない）であり、すべての後続比較を通じて伝播します。
-- **イテレーターブロックパラメータ**。`Integer#times`、`Integer#upto`、`Integer#downto`、`Range#each`などは、コンテナの要素型だけではなく、反復ドメインの精密な`IntegerRange`にブロックのインデックスパラメータをバインドすべきです（SHOULD）。
+- **イテレータブロックパラメータ**。`Integer#times`、`Integer#upto`、`Integer#downto`、`Range#each`などは、コンテナの要素型だけではなく、反復ドメインの精密な`IntegerRange`にブロックのインデックスパラメータをバインドすべきです（SHOULD）。
 - **タプル形状の戻り値**。 固定アリティの異種配列を返すメソッド（例: `Integer#divmod`）は、多重代入先で各スロットの型がローカル変数に流れるように`Tuple[…]`として公開すべきです（SHOULD）。
 - **カタログ下の定数たたみ込み**。 レシーバーと引数が具体的な定数である`:leaf` / `:trivial` / `:leaf_when_numeric`として分類されたすべてのメソッドは`Constant`にたたみ込まれるべきです（SHOULD）。`MethodCatalog`層は最も広いメソッドサーフェスにわたって第1句を観察するツールチェーンです。
 

@@ -67,7 +67,7 @@ dry-rb gemファミリーは相補的なgemのツリーです: `dry-types`、`dr
 
 - `:dry_type_aliases` — `rigor-dry-types`が発行、`rigor-dry-struct` / `rigor-dry-validation` / `rigor-dry-schema`が消費し、`MyTypes::Email = Types::String.constrained(format: …)`エイリアスがプラグイン横断で可視となる。
 - `:dry_struct_attributes` — `rigor-dry-struct`が発行、各structの属性リストを知る必要がある下流プラグイン（例: シリアライザプラグイン）が消費。
-- `:dry_validation_keys` — `rigor-dry-validation`が発行、コントローラがparams検証をdry-validation Contractに委譲した場合の`rigor-actionpack` strong-params認識器が消費。
+- `:dry_validation_keys` — `rigor-dry-validation`が発行、コントローラーがparams検証をdry-validation Contractに委譲した場合の`rigor-actionpack` strong-params認識器が消費。
 
 正確なfact-storeペイロード形状はプラグインごとに決定する;このADRはプラグイン横断の協調パターンにのみコミットする。
 
