@@ -12,7 +12,7 @@ sidebar:
 
 ## ステータス
 
-Accepted;実装・出荷済み。頑健性原則（robustness principle、戻り値に厳密・パラメータに寛容）はRigorが著作するシグネチャと推論を支配する;規範的なコンパニオンは[`docs/type-specification/robustness-principle.md`](../../type-specification/robustness-principle/)である。
+Accepted;実装・出荷済み。ロバストネス原則（robustness principle、戻り値に厳密・パラメータに寛容）はRigorが著作するシグネチャと推論を支配する;規範的なコンパニオンは[`docs/type-specification/robustness-principle.md`](../../type-specification/robustness-principle/)である。
 
 ADR-5は、ポステルの法則——*出力には厳格に、入力には寛大に*——をRigorの型カタログと推論シグネチャの指針原則として採用した設計根拠を記録する。対応する規範的ドキュメントは[`docs/type-specification/robustness-principle.md`](../../type-specification/robustness-principle/)である。両ドキュメントが観測可能な挙動で乖離した場合は、仕様が優先され、ADR-5を修正すべきである。
 

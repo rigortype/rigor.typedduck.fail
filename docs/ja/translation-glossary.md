@@ -31,7 +31,7 @@
 | substitutability / substitution | 置換可能性／置換 | 初出: 置換可能性（substitutability） | LSP文脈。「代入可能性」は使わない |
 | behavioral subtyping | 振る舞い的部分型 | 初出: 振る舞い的部分型（behavioral subtyping） | Liskov & Wing 1994 の語。シグネチャ規則と振る舞い規則の両方を含む |
 | signature rule | シグネチャ規則 | 初出: シグネチャ規則（signature rule） | LSPのうち型システムで表現できる半分（パラメーター反変・戻り値共変） |
-| robustness principle | 頑健性原則 | 初出: 頑健性原則（robustness principle） | 既存の `type-specification/robustness-principle` ページ題に準拠。「堅牢性原則」「ロバストネス原則」は使わない。"Postel's law" は「Postelの法則」、句は「第1句／第2句」 |
+| robustness / robustness principle | ロバストネス／ロバストネス原則 | 定義ページ（`type-specification/robustness-principle`）の初出1回だけパーレン `ロバストネス（堅牢性、頑健性、Robustness）`。他ページは素の「ロバストネス（原則）」 | **2026-06に反転**：旧「頑健性原則」を廃止しカタカナを主表記に。漢語「頑健性」「堅牢性」は（一般語の「頑健性」を除き）使わない。"Postel's law" は「Postelの法則」、句は「第1句／第2句」 |
 | covariant / contravariant / invariant（分散）| 共変／反変／不変 | 初出: 共変（covariant）／反変（contravariant）／不変（invariant） | `appendix-type-theory` に準拠。分散（variance）の文脈での invariant は「不変」、振る舞い規則の invariant（クラス不変条件）は「不変条件」と訳し分ける。variance自体は「分散」 |
 | precondition / postcondition | 事前条件／事後条件 | 初出: 事前条件（precondition）／事後条件（postcondition） | LSPの振る舞い規則。事前条件は強化不可、事後条件は弱化不可 |
 | invariant（クラス不変条件）/ history constraint | 不変条件／履歴制約 | 初出: 不変条件（invariant）／履歴制約（history constraint） | 分散の「不変」とは別概念。履歴制約はLiskov-Wingの振る舞い規則 |

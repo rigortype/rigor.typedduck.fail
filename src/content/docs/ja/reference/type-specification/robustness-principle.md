@@ -1,5 +1,5 @@
 ---
-title: "頑健性原則（型のためのPostelの法則）"
+title: "ロバストネス原則（型のためのPostelの法則）"
 description: "rigortype/rigor docs/type-specification/robustness-principle.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/type-specification/robustness-principle.md"
 sourcePath: "docs/type-specification/robustness-principle.md"
@@ -14,13 +14,13 @@ sidebar:
 
 規範的（Normative）。
 
-この文書は、Rigorが著作するすべての型 — 組み込みカタログエントリー、推論されたユーザーメソッドシグネチャ、または`RBS::Extended`ペイロード — が守らなければならない頑健性原則を定義します。設計の根拠と未解決事項は[`docs/adr/5-robustness-principle.md`](../../adr/5-robustness-principle/)にあります。
+この文書は、Rigorが著作するすべての型 — 組み込みカタログエントリー、推論されたユーザーメソッドシグネチャ、または`RBS::Extended`ペイロード — が守らなければならないロバストネス（堅牢性、頑健性、Robustness）原則を定義します。設計の根拠と未解決事項は[`docs/adr/5-robustness-principle.md`](../../adr/5-robustness-principle/)にあります。
 
 ## 原則
 
 > **戻り値は健全性（soundness）を損なわずに証明できる限り厳密であるべきです（SHOULD）。パラメータは本体の正しい動作が許す限り寛容であるべきです（SHOULD）**。
 
-これは型システムにおけるPostelの法則（「頑健性原則」）の解釈です: *生み出すものについては保守的に、受け入れるものについては寛大に*。Rigorに限定すると:
+これは型システムにおけるPostelの法則（「ロバストネス原則」）の解釈です: *生み出すものについては保守的に、受け入れるものについては寛大に*。Rigorに限定すると:
 
 1. **厳密な戻り値**は推論エンジンが下流に伝播できる事実の精度を最大化します。`non-negative-int`の戻り値は値に依存するすべての後続ナローイング（narrowing）チェーンを締め付けます;それを`Integer`に広げることはすべての消費者にとって情報を捨てることになります。
 2. **寛容なパラメータ**は過度に厳格なシグネチャが呼び出し元に防衛的な型強制（`x.to_s`、`x || default`、`Array(x)`）をすべての呼び出し元に貼り付けることを強いるのを防ぎます。メソッド本体内部のナローイング層が実装が実際に必要とする精密な型を回復します。
