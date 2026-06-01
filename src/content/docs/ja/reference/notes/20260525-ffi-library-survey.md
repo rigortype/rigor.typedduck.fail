@@ -3,14 +3,16 @@ title: "FFIライブラリ使用状況調査 — `rigor-ffi`設計の基礎（20
 description: "rigortype/rigor docs/notes/20260525-ffi-library-survey.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260525-ffi-library-survey.md"
 sourcePath: "docs/notes/20260525-ffi-library-survey.md"
-sourceSha: "3f1b028b24a631a99cd41206305d376fd493e700c1de29e3556f00e334a89316"
-sourceCommit: "1881619b60b29439a03e7a1f8fee266031c9ca10"
+sourceSha: "b226bd099fdfa4cf709b01c45a6a5160381c8a730791f418326516bef374ea51"
+sourceCommit: "a5d648b126d5ed7b1e04a16a87927bca7883e069"
 translationStatus: "translated"
 sidebar:
   order: 20266525
 ---
 
-ステータス: 調査ノート、設計コミットメントなし。FFIバインディングgemを[ADR-0](../../adr/0-concept/) / [ADR-1](../../adr/1-types/)と[ロバストネス原則](../../type-specification/robustness-principle/)が要求するレベルで静的解析可能にする将来の`rigor-ffi`プラグインの前提条件。
+ステータス: **調査ノート、設計コミットメントなし**。
+
+FFIバインディングgemを[ADR-0](../../adr/0-concept/) / [ADR-1](../../adr/1-types/)と[ロバストネス原則](../../type-specification/robustness-principle/)が要求するレベルで静的解析可能にする将来の`rigor-ffi`プラグインの前提条件。
 
 最終目標はこれらのgemを**使用するRubyコードの型チェック** — つまり、`Ethon::Easy#perform`、`RbNaCl::SecretBox#encrypt`、`ZMQ::Context#socket`等を呼び出すユーザーコード。中間目標（FFIプラグイン）は、`Dynamic[Top]`に全面的に頼らずに型情報がFFI境界を越えて流れるための静的基板。
 

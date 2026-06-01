@@ -3,14 +3,16 @@ title: "ADR-30 — `rigor-ffi`プラグインの形状"
 description: "rigortype/rigor docs/adr/30-rigor-ffi-plugin-shape.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/30-rigor-ffi-plugin-shape.md"
 sourcePath: "docs/adr/30-rigor-ffi-plugin-shape.md"
-sourceSha: "c132cd02b7f4dd3230d3b597dabb8d020b9e1344f639ec6638d457d639a81caf"
-sourceCommit: "1881619b60b29439a03e7a1f8fee266031c9ca10"
+sourceSha: "43d9e784ba272fe71737aa28f153a6eecc9759586ef7c4458e9269bd036607a6"
+sourceCommit: "a5d648b126d5ed7b1e04a16a87927bca7883e069"
 translationStatus: "translated"
 sidebar:
   order: 4030
 ---
 
-ステータス: **提案済み、2026-05-25**。ネイティブライブラリを`ffi` gemでラップするRuby gemに共通の`ffi`マシナリーをカバーするコア`rigor-ffi`プラグインと、ライブラリごとのサブプラグインファミリー（`rigor-rbnacl`、`rigor-ethon`、`rigor-ffi-rzmq`、`rigor-sassc`）を出荷し、同じコアがtenderloveの`ffx` gem（インストール時にCエクステンションにトランスパイルする厳格なFFIサブセット）をターゲットにするプロジェクトにも対応できる境界を設けるという決定を記録する。
+ステータス: **提案済み、2026-05-25**。
+
+ネイティブライブラリを`ffi` gemでラップするRuby gemに共通の`ffi`マシナリーをカバーするコア`rigor-ffi`プラグインと、ライブラリごとのサブプラグインファミリー（`rigor-rbnacl`、`rigor-ethon`、`rigor-ffi-rzmq`、`rigor-sassc`）を出荷し、同じコアがtenderloveの`ffx` gem（インストール時にCエクステンションにトランスパイルする厳格なFFIサブセット）をターゲットにするプロジェクトにも対応できる境界を設けるという決定を記録する。
 
 根拠となるサーベイは[`docs/notes/20260525-ffi-library-survey.md`](../../notes/20260525-ffi-library-survey/)にある（5つの実`ffi`消費者 + tenderloveの4リポジトリ補遺）。
 

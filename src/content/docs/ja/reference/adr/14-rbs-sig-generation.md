@@ -3,14 +3,16 @@ title: "ADR-14 — 推論からのRBSシグネチャ生成と拡張"
 description: "rigortype/rigor docs/adr/14-rbs-sig-generation.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/14-rbs-sig-generation.md"
 sourcePath: "docs/adr/14-rbs-sig-generation.md"
-sourceSha: "03a4b8ca2e8390beee8ca23abdb433d2caff4cc63c5a24d77c0b685b8081736f"
-sourceCommit: "5b252bbd814960f6b442a4df7dd41a0d0a79c995"
+sourceSha: "ec43dc0d78960418b161ded0d66b5ef2f04e7bc0c15dd6e193e2a24cd0dcaa86"
+sourceCommit: "a5d648b126d5ed7b1e04a16a87927bca7883e069"
 translationStatus: "translated"
 sidebar:
   order: 4014
 ---
 
-Status: **accepted, 2026-05-12; MVPであるスライス（slice）1はv0.1.4で実装済み**。`rigor sig-gen --print` / `--diff`（戻り型のみ、`def`メソッド）は`lib/rigor/sig_gen/`に置かれる。スライス2〜5は需要駆動。
+ステータス: **Accepted, 2026-05-12; MVPであるスライス（slice）1はv0.1.4で実装済み**。
+
+`rigor sig-gen --print` / `--diff`（戻り型のみ、`def`メソッド）は`lib/rigor/sig_gen/`に置かれる。スライス2〜5は需要駆動。
 
 ## コンテキスト
 

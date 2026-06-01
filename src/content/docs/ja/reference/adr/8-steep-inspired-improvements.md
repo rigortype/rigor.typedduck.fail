@@ -3,16 +3,16 @@ title: "ADR-8: Steepに着想を得た改善"
 description: "rigortype/rigor docs/adr/8-steep-inspired-improvements.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/8-steep-inspired-improvements.md"
 sourcePath: "docs/adr/8-steep-inspired-improvements.md"
-sourceSha: "c1c787c1909363d82352b01fc6cddfd097c4bd58355d77893900f309479b5679"
-sourceCommit: "74ac0f8722e98525410373ffc22f93595bc15e65"
+sourceSha: "90e705ab4e8ae44bd29e300f193dfdaf6b364d5245e9058a418c589bcb09828f"
+sourceCommit: "a5d648b126d5ed7b1e04a16a87927bca7883e069"
 translationStatus: "translated"
 sidebar:
   order: 4008
 ---
 
-## ステータス
+ステータス: **承認（作業上の決定）**。
 
-承認（作業上の決定）。Rigor自己解析レポート（非公式）と[`docs/notes/20260503-steep-cross-check-triage.md`](../../notes/20260503-steep-cross-check-triage/)にあるv0.0.5 Steepクロスチェックトリアージの付属物。診断IDファミリー階層、重大度プロファイル、`return-type-mismatch`ルールファミリーという3つのSteepに触発された改善の実装選択を記録する。
+Rigor自己解析レポート（非公式）と[`docs/notes/20260503-steep-cross-check-triage.md`](../../notes/20260503-steep-cross-check-triage/)にあるv0.0.5 Steepクロスチェックトリアージの付属物。診断IDファミリー階層、重大度プロファイル、`return-type-mismatch`ルールファミリーという3つのSteepに触発された改善の実装選択を記録する。
 
 ## コンテキスト
 

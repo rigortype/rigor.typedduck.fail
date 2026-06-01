@@ -3,14 +3,16 @@ title: "ADR-15 — アナライザーのRactorベース並行性モデル"
 description: "rigortype/rigor docs/adr/15-ractor-concurrency.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/15-ractor-concurrency.md"
 sourcePath: "docs/adr/15-ractor-concurrency.md"
-sourceSha: "fee99923d3bbee0bfb8e468f9ec7a3f40854877c0a088a018927dceebf366ed9"
-sourceCommit: "5b252bbd814960f6b442a4df7dd41a0d0a79c995"
+sourceSha: "a93db95e01a62d0f27cde7e188b21827e205701a52e043883a2fa29fc75d9b72"
+sourceCommit: "a5d648b126d5ed7b1e04a16a87927bca7883e069"
 translationStatus: "translated"
 sidebar:
   order: 4015
 ---
 
-Status: **accepted, 2026-05-14;フォークベースのバックエンドがアクティブな並行バックエンド（修正2026-05-20）**。フェーズ1 / 2a / 2b / 3a / 4a / 4b / 4b.x / 4cはすべてランド済み。Ractorプール（フェーズ4b/4cの配線）はRuby Bug #22075によりブロック中;`workers > 0`の出荷バックエンドはフォークプール。フェーズ3bとOQ1 / OQ2は需要駆動。
+ステータス: **Accepted, 2026-05-14;フォークベースのバックエンドがアクティブな並行バックエンド（修正2026-05-20）**。
+
+フェーズ1 / 2a / 2b / 3a / 4a / 4b / 4b.x / 4cはすべてランド済み。Ractorプール（フェーズ4b/4cの配線）はRuby Bug #22075によりブロック中;`workers > 0`の出荷バックエンドはフォークプール。フェーズ3bとOQ1 / OQ2は需要駆動。
 
 ## コンテキスト
 

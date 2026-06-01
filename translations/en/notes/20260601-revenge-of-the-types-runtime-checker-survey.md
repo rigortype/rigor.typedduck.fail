@@ -1,13 +1,15 @@
 ---
 title: "\"Revenge of the Types\" (Armin Ronacher) — runtime × type-checker cross-cut review"
 description: "English translation of a cross-cut review of Armin Ronacher's essay \"Revenge of the Types\" across runtimes and type checkers."
-sourceSha: "2fb09209bbf77293eb286ddea83d12b6ec9d1885f731e7ad93e2406e6c89aa20"
-sourceCommit: "9f5010ab7b1916b07154e383346d8cd64ba34370"
+sourceSha: "a9aeca94487d27fc96ccc09b315fc708006d5a78be979a432c4b3c8bbfc12aef"
+sourceCommit: "a5d648b126d5ed7b1e04a16a87927bca7883e069"
 translationStatus: "translated"
 ---
 
 Date: 2026-06-01.
-Status: research note, no design commitments.
+
+Status: **research note, no design commitments.**
+
 Kind: cross-cut review of an external essay (Ruby/PHP/Python/JavaScript runtimes
 × Rigor/PHPStan/TypeScript/Python type checkers).
 Trilogy (external essays × retrofitting types onto existing languages):

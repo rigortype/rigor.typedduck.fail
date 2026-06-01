@@ -3,16 +3,18 @@ title: "ADR-20: 軽量高階多相性（Lightweight HKT）"
 description: "rigortype/rigor docs/adr/20-lightweight-hkt.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/20-lightweight-hkt.md"
 sourcePath: "docs/adr/20-lightweight-hkt.md"
-sourceSha: "2764cc5154ae72bd5fc050cc58b95cc8fe470a120e8507392dd577de9ab3b0b2"
-sourceCommit: "fe4e9a80df3829ee4f113e763e4bb9920c33da21"
+sourceSha: "2d4090c78d66c52bdca8e487f87f3eba87dbdbf5e3ec4dab0907c410dcad72e5"
+sourceCommit: "a5d648b126d5ed7b1e04a16a87927bca7883e069"
 translationStatus: "translated"
 sidebar:
   order: 4020
 ---
 
-## ステータス
+ステータス: **Accepted（部分実装、2026-05-18）**。
 
-**Accepted（部分実装、2026-05-18）**。当初2026-05-18にproposedとして提出されたが、同日中にスライス（slice）1、2a、2c、2d、3がエンドツーエンドで着地し、`JSON.parse`が`untyped`の代わりに再帰的な`json::value`ユニオン（union、合併型とも）を返すようになった（`rigor type-of`で検証済み）ため、acceptedに昇格した。残りのオープンスライス（§ 実装スライス分けのスライス2b、4、5、6）はスケジュールコミットメントを持たず、需要駆動で出荷される。
+当初2026-05-18にproposedとして提出されたが、同日中にスライス（slice）1、2a、2c、2d、3がエンドツーエンドで着地し、`JSON.parse`が`untyped`の代わりに再帰的な`json::value`ユニオン（union、合併型とも）を返すようになった（`rigor type-of`で検証済み）ため、acceptedに昇格した。残りのオープンスライス（§ 実装スライス分けのスライス2b、4、5、6）はスケジュールコミットメントを持たず、需要駆動で出荷される。
+
+## 実装ステータス
 
 ### v0.1.6で着地したもの
 

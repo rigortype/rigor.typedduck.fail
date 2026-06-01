@@ -1,13 +1,15 @@
 ---
 title: "Matsumoto & Minamide 2010 (Ruby CFA) — Rigor perspective review"
 description: "English translation of a Rigor-perspective review of Matsumoto & Minamide's 2010 control-flow-analysis paper."
-sourceSha: "ad8368722c9f7a5f3634d54f52213877965623c8cec997663a032bb21e2d1a90"
-sourceCommit: "4f9b2b85a1864b48cf66a620859e5e403506cf8e"
+sourceSha: "39dcddde6821e3340a65cd98c79a8d811df13e02ad64baadffade603dff37ca9"
+sourceCommit: "a5d648b126d5ed7b1e04a16a87927bca7883e069"
 translationStatus: "translated"
 ---
 
 Date: 2026-05-18.
-Status: research note, no design commitments.
+
+Status: **research note, no design commitments.**
+
 Kind: Rigor-perspective review of an external paper.
 
 ## Paper

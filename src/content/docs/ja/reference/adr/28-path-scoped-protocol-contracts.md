@@ -3,8 +3,8 @@ title: "ADR-28 — パススコープのメソッドプロトコル契約"
 description: "rigortype/rigor docs/adr/28-path-scoped-protocol-contracts.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/28-path-scoped-protocol-contracts.md"
 sourcePath: "docs/adr/28-path-scoped-protocol-contracts.md"
-sourceSha: "d018134bb4a81d953c19306a7d1633ffde60efda274126d7d495fd24192cd53b"
-sourceCommit: "5b252bbd814960f6b442a4df7dd41a0d0a79c995"
+sourceSha: "160f80010ae57664b8027f2823f5a6d7516e300d83a15dbc73e76219977ee23a"
+sourceCommit: "a5d648b126d5ed7b1e04a16a87927bca7883e069"
 sourceDate: "2026-05-23T03:19:23+09:00"
 sourceLanguage: "en"
 translationStatus: "translated"
@@ -12,7 +12,9 @@ sidebar:
   order: 4028
 ---
 
-ステータス: **accepted、2026-05-23;同一コミットクラスタ（コミット481d810、a54cd2d）で実装済み**。プラグインが*ふるまいのプロトコル* — 「このディレクトリのすべてのクラスがこの形のメソッドを定義しなければならない」— を、クラス側のオプトインなしに静的に強制できるプラグイン拡張ポイントを追加する決定を記録する。メカニズムは新しい`Manifest`フィールド（`protocol_contracts:`）で、`Rigor::Plugin::ProtocolContract`値オブジェクトを運ぶ。2つのエンジンサイトで消費される: `Inference::MethodParameterBinder`でのパラメータ型**提供**（provide）と、貢献プラグインの`#diagnostics_for_file`フックでのメソッド存在 + 戻り型**チェック**（check）。2つの動作消費者が同梱される: `examples/rigor-web/`（RigWebフレームワークチュートリアル）と`plugins/rigor-hanami/`（本番Hanamiプラグイン）。
+ステータス: **Accepted、2026-05-23;同一コミットクラスタ（コミット481d810、a54cd2d）で実装済み**。
+
+プラグインが*ふるまいのプロトコル* — 「このディレクトリのすべてのクラスがこの形のメソッドを定義しなければならない」— を、クラス側のオプトインなしに静的に強制できるプラグイン拡張ポイントを追加する決定を記録する。メカニズムは新しい`Manifest`フィールド（`protocol_contracts:`）で、`Rigor::Plugin::ProtocolContract`値オブジェクトを運ぶ。2つのエンジンサイトで消費される: `Inference::MethodParameterBinder`でのパラメータ型**提供**（provide）と、貢献プラグインの`#diagnostics_for_file`フックでのメソッド存在 + 戻り型**チェック**（check）。2つの動作消費者が同梱される: `examples/rigor-web/`（RigWebフレームワークチュートリアル）と`plugins/rigor-hanami/`（本番Hanamiプラグイン）。
 
 ## コンテキスト
 

@@ -3,14 +3,14 @@ title: "ADR-11 — プラグインアダプタとしてのSorbet入力"
 description: "rigortype/rigor docs/adr/11-sorbet-input-adapter.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/11-sorbet-input-adapter.md"
 sourcePath: "docs/adr/11-sorbet-input-adapter.md"
-sourceSha: "ee385d9f2b2e4b3a935f17cd5af4f4411d50b951ee4a39abe6824839d7e07d38"
-sourceCommit: "5b252bbd814960f6b442a4df7dd41a0d0a79c995"
+sourceSha: "c98d19cb89fba68a402d608eed0672e75f53b99874694b084104383fa3bf5360"
+sourceCommit: "a5d648b126d5ed7b1e04a16a87927bca7883e069"
 translationStatus: "translated"
 sidebar:
   order: 4011
 ---
 
-ステータス: **accepted, 2026-05-09; v0.1.4で`plugins/rigor-sorbet/`として実装済み**（`examples/`ではなく本番プラグイン）。
+ステータス: **Accepted, 2026-05-09; v0.1.4で`plugins/rigor-sorbet/`として実装済み**（`examples/`ではなく本番プラグイン）。
 
 ## コンテキスト
 

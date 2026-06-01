@@ -3,16 +3,18 @@ title: "「Revenge of the Types」(Armin Ronacher) — ランタイム × 型チ
 description: "Imported from rigortype/rigor docs/notes/20260601-revenge-of-the-types-runtime-checker-survey.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260601-revenge-of-the-types-runtime-checker-survey.md"
 sourcePath: "docs/notes/20260601-revenge-of-the-types-runtime-checker-survey.md"
-sourceSha: "2fb09209bbf77293eb286ddea83d12b6ec9d1885f731e7ad93e2406e6c89aa20"
-sourceCommit: "ba90134ecd594337e70cd23d220fb27a3444d43b"
-sourceDate: "2026-06-01T12:50:12+09:00"
+sourceSha: "a9aeca94487d27fc96ccc09b315fc708006d5a78be979a432c4b3c8bbfc12aef"
+sourceCommit: "a5d648b126d5ed7b1e04a16a87927bca7883e069"
+sourceDate: "2026-06-01T22:49:16+09:00"
 sourceLanguage: "ja"
 sidebar:
   order: 20266601
 ---
 
 Date: 2026-06-01.
-Status: research note, no design commitments.
+
+Status: **research note, no design commitments.**
+
 種別: 外部論説の横断レビュー(Ruby/PHP/Python/JavaScriptランタイム ×
 Rigor/PHPStan/TypeScript/Python型チェッカー)。
 三部作（外部論説 × 既存言語への型後付け）:

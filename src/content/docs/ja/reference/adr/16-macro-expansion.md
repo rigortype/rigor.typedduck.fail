@@ -3,14 +3,15 @@ title: "ADR-16 — マクロ / DSL展開基板"
 description: "rigortype/rigor docs/adr/16-macro-expansion.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/16-macro-expansion.md"
 sourcePath: "docs/adr/16-macro-expansion.md"
-sourceSha: "709dd0e86604e127ae72aadf01835cc8c4868a5aa49704d67ad655e527029aae"
-sourceCommit: "fe4e9a80df3829ee4f113e763e4bb9920c33da21"
+sourceSha: "2cb3e51f54a2b9b122fbd03f34a49a1ab104854c0762d08b79d1144ffc7c2160"
+sourceCommit: "a5d648b126d5ed7b1e04a16a87927bca7883e069"
 translationStatus: "translated"
 sidebar:
   order: 4016
 ---
 
-Status: **accepted — フロア + 精度プロモーション着地（スライス（slice）1〜7 + 6a/6b）、スライス5b + ユーティリティ型戻り値のためのADR-13リゾルバチェイン配線は需要に先送り**、2026-05-15。
+ステータス: **Accepted — フロア + 精度プロモーション着地（スライス（slice）1〜7 + 6a/6b）、スライス5b + ユーティリティ型戻り値のためのADR-13リゾルバチェイン配線は需要に先送り**、2026-05-15。
+
 Rails（`ActiveSupport::Concern`、ActiveStorage attachedマクロ）、AASM、Devise、GraphQL-Ruby、factory_bot、Sinatra、Sequel、Redmineをカバーするライブラリごとのサーベイ[`docs/notes/20260515-macro-expansion-library-survey.md`](../../notes/20260515-macro-expansion-library-survey/)が発端。基板フロアは14のコミット（584ae85…d7b1943）にわたって配信;ADR-12（dry-rbパッケージング）は引き続き予約;このADRは並行して座り、それに依存しません。スライスごとのステータス詳細は § 実装のスライス分けに記載。
 
 ## コンテキスト

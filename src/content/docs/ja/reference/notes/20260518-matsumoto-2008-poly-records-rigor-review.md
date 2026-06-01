@@ -3,16 +3,18 @@ title: "Matsumoto & Minamide 2008 (多相レコード型 Ruby 型推論) — Rig
 description: "Imported from rigortype/rigor docs/notes/20260518-matsumoto-2008-poly-records-rigor-review.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260518-matsumoto-2008-poly-records-rigor-review.md"
 sourcePath: "docs/notes/20260518-matsumoto-2008-poly-records-rigor-review.md"
-sourceSha: "7e67498f416c28f26cf9c97e8250b311107bcc573785882bd91e45fadee99992"
-sourceCommit: "ba90134ecd594337e70cd23d220fb27a3444d43b"
-sourceDate: "2026-05-18T04:22:22+09:00"
+sourceSha: "fb1892514eb3cfb0d8a6ea74578fe0db5d49db60c5dc4180b0adaf2ab0a3c12a"
+sourceCommit: "a5d648b126d5ed7b1e04a16a87927bca7883e069"
+sourceDate: "2026-06-01T22:49:16+09:00"
 sourceLanguage: "ja"
 sidebar:
   order: 20266518
 ---
 
 Date: 2026-05-18.
-Status: research note, no design commitments.
+
+Status: **research note, no design commitments.**
+
 種別: 外部文献のRigor観点レビュー。
 
 ## 対象論文

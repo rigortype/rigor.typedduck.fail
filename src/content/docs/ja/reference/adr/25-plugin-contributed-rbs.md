@@ -3,14 +3,16 @@ title: "ADR-25 — プラグインが提供するRBSシグネチャ"
 description: "rigortype/rigor docs/adr/25-plugin-contributed-rbs.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/25-plugin-contributed-rbs.md"
 sourcePath: "docs/adr/25-plugin-contributed-rbs.md"
-sourceSha: "ec85adcb90e4f6e35cb7bc72b4f808d6b16bb37da546db987091208edc0c2594"
-sourceCommit: "75f1372f98e9b1b00cb79a72bf925849cead6956"
+sourceSha: "dcf37e63462a16b04085b7ef86cb0325df8ce5a6d7defc85f5a8cd2e213c3f6d"
+sourceCommit: "a5d648b126d5ed7b1e04a16a87927bca7883e069"
 translationStatus: "translated"
 sidebar:
   order: 4025
 ---
 
-Status: **accepted、2026-05-21**。プラグインgemが、そのマニフェストを通じてRigorの解析環境にRBSシグネチャディレクトリを提供できるようにする決定を記録する — 今日、RBSのみの「バンドル」gemを手書きの`signature_paths:`パスで配線せざるをえないギャップを解消する。WD1（`signature_gems:`設定キーではなく`Manifest`フィールド）が承認された。却下された設定キー案は、書面上の前提として記録しておく。
+ステータス: **Accepted、2026-05-21**。
+
+プラグインgemが、そのマニフェストを通じてRigorの解析環境にRBSシグネチャディレクトリを提供できるようにする決定を記録する — 今日、RBSのみの「バンドル」gemを手書きの`signature_paths:`パスで配線せざるをえないギャップを解消する。WD1（`signature_gems:`設定キーではなく`Manifest`フィールド）が承認された。却下された設定キー案は、書面上の前提として記録しておく。
 
 ## コンテキスト
 

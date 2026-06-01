@@ -3,16 +3,16 @@ title: "ADR-2: 拡張API戦略"
 description: "rigortype/rigor docs/adr/2-extension-api.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/2-extension-api.md"
 sourcePath: "docs/adr/2-extension-api.md"
-sourceSha: "162817bb30184b6aa18e7fcb75ee74efed8c8fe1e4a0dffbf4c4fd58ea874b6c"
-sourceCommit: "db8d01bf94926a72e6a2aaf15639d1591b7e142e"
+sourceSha: "6ba7426d4fa453cb43664303921a327024d63ff0d02e78b48886608bc1e1cd9d"
+sourceCommit: "a5d648b126d5ed7b1e04a16a87927bca7883e069"
 translationStatus: "translated"
 sidebar:
   order: 4002
 ---
 
-## ステータス
+ステータス: **Accepted;実装・出荷済み**。
 
-Accepted;実装・出荷済み。v0.1.0実装スライス（slice）（4 — 内部ナローイング（narrowing）を通じたFlowContributionの配線、5 — プラグイン診断エミッションプロトコル、6 — プラグイン側キャッシュプロデューサー、作業決定は[ADR-7](../7-v0.1.0-slice-decisions/)に固定）はすべてランディングした。拡張APIはその後、[ADR-9](../9-cross-plugin-api/)（クロスプラグインファクト）、[ADR-13](../13-typenode-resolver-plugin/)（TypeNodeリゾルバ）、[ADR-16](../16-macro-expansion/)（マクロ基板）、[ADR-25](../25-plugin-contributed-rbs/)（`signature_paths:`）、[ADR-26](../26-activerecord-relation-typing/)（`open_receivers:`）、[ADR-28](../28-path-scoped-protocol-contracts/)（`protocol_contracts:`）、[ADR-32](../32-rbs-inline-comment-ingestion/)（`source_rbs_synthesizer:`）で記録されたサーフェスを成長させてきた。*何を*解析器がするかについては型モデルと仕様コーパスが権威を持ち続ける;本ADRは*なぜ*を記録する。
+v0.1.0実装スライス（slice）（4 — 内部ナローイング（narrowing）を通じたFlowContributionの配線、5 — プラグイン診断エミッションプロトコル、6 — プラグイン側キャッシュプロデューサー、作業決定は[ADR-7](../7-v0.1.0-slice-decisions/)に固定）はすべてランディングした。拡張APIはその後、[ADR-9](../9-cross-plugin-api/)（クロスプラグインファクト）、[ADR-13](../13-typenode-resolver-plugin/)（TypeNodeリゾルバ）、[ADR-16](../16-macro-expansion/)（マクロ基板）、[ADR-25](../25-plugin-contributed-rbs/)（`signature_paths:`）、[ADR-26](../26-activerecord-relation-typing/)（`open_receivers:`）、[ADR-28](../28-path-scoped-protocol-contracts/)（`protocol_contracts:`）、[ADR-32](../32-rbs-inline-comment-ingestion/)（`source_rbs_synthesizer:`）で記録されたサーフェスを成長させてきた。*何を*解析器がするかについては型モデルと仕様コーパスが権威を持ち続ける;本ADRは*なぜ*を記録する。
 
 ## コンテキスト
 

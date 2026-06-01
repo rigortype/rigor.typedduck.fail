@@ -3,16 +3,16 @@ title: "ADR-5: Rigor型のロバストネス原則"
 description: "rigortype/rigor docs/adr/5-robustness-principle.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/5-robustness-principle.md"
 sourcePath: "docs/adr/5-robustness-principle.md"
-sourceSha: "0bc5e9b60e4b3a004806130439d8c981457b947d5db03235fca2042f8a7e5ce9"
-sourceCommit: "db8d01bf94926a72e6a2aaf15639d1591b7e142e"
+sourceSha: "283164daa08dcdde323e72f5a32542cab3c4febc0e4941add613457f75fdba35"
+sourceCommit: "a5d648b126d5ed7b1e04a16a87927bca7883e069"
 translationStatus: "translated"
 sidebar:
   order: 4005
 ---
 
-## ステータス
+ステータス: **Accepted;実装・出荷済み**。
 
-Accepted;実装・出荷済み。ロバストネス原則（robustness principle、戻り値に厳密・パラメータに寛容）はRigorが著作するシグネチャと推論を支配する;規範的なコンパニオンは[`docs/type-specification/robustness-principle.md`](../../type-specification/robustness-principle/)である。
+ロバストネス原則（robustness principle、戻り値に厳密・パラメータに寛容）はRigorが著作するシグネチャと推論を支配する;規範的なコンパニオンは[`docs/type-specification/robustness-principle.md`](../../type-specification/robustness-principle/)である。
 
 ADR-5は、ポステルの法則——*出力には厳格に、入力には寛大に*——をRigorの型カタログと推論シグネチャの指針原則として採用した設計根拠を記録する。対応する規範的ドキュメントは[`docs/type-specification/robustness-principle.md`](../../type-specification/robustness-principle/)である。両ドキュメントが観測可能な挙動で乖離した場合は、仕様が優先され、ADR-5を修正すべきである。
 

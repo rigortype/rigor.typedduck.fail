@@ -3,14 +3,15 @@ title: "ADR-36 — Macro-substrate nested-class emission tier (Mangrove `Enum`)"
 description: "Imported from rigortype/rigor docs/adr/36-mangrove-enum-nested-class-emission.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/36-mangrove-enum-nested-class-emission.md"
 sourcePath: "docs/adr/36-mangrove-enum-nested-class-emission.md"
-sourceSha: "56d3f42e046ba108b089e1547dacb28a8ab5adbd229aa42f36796a7ebff91dd7"
-sourceCommit: "dd55ede4decf11e2a57ac53e62d5732ad629a229"
+sourceSha: "ddcbbc35cd845f925d63ed2f80a4c13ee93b409a806ad2446df444f8e8c748fc"
+sourceCommit: "a5d648b126d5ed7b1e04a16a87927bca7883e069"
 translationStatus: "translated"
 sidebar:
   order: 4036
 ---
 
-Status: **accepted, 2026-05-30; Slice A implemented.**
+ステータス: **Accepted, 2026-05-30; Slice A implemented.**
+
 [ADR-16](../16-macro-expansion/)のマクロ展開基層（substrate）を、クラスレベルのDSLブロックから（メソッドだけでなく）**ネストしたサブクラス**を生成する新しいティアで拡張するという決定を記録する。動機となったのは[Mangrove](https://github.com/kazzix14/mangrove)の`Enum` DSLである。Mangroveサポートのうち出荷可能で契約（contract）の範囲内にある部分（アンラップ呼び出しサイトでのキャリア（carrier）ジェネリックなインスタンス化）は`plugins/rigor-mangrove`として別途ランディングした。このADRは、今日のプラグイン契約が表現できなかった部分をスコープする。
 
 **Slice A実装済み（2026-05-30）:** `Plugin::Macro::NestedClassTemplate`（マニフェストスロット`nested_class_templates:`）と`SyntheticMethodScanner`内のスキャナパスを追加した。これは、`receiver_constraint`を`extend`するクラス上の`<block_method> do … end`ブロック内の各`variant <Const>, <Type>`行について、バリアントサブクラス名を記録し（よって`Environment#class_known?`がそれを解決する → 定数参照 + `meta_new`経由の`.new`ディスパッチ）、既存の`SyntheticMethodIndex`を通じてリテラル定数のペイロード型を返す`#inner`リーダーを合成する。`Mangrove::Enum`のために`rigor-mangrove`へ配線した。`Shape::Circle.new(1.0).inner`はいまや`Float`と型付けされる**。保留（WD3の上限）:** `sealed`な親ファクト（fact）+ `is_a?`によるバリアント横断の網羅的ナローイング（narrowing）。これには合成クラスの階層を`Environment#class_ordering`へスレッディングする必要がある。また、非定数な内部シェイプ（shape、シェイプハッシュ）も保留で、今日は`Dynamic[Top]`へ退化する。
@@ -84,8 +85,8 @@ nested_class_templates: [
 実装前にADR本文で確定すべき作業上の決定:
 
 - **WD1 — emitプリミティブ**。プリパスは、各`variant Const, Type`行について、囲むクラスを親とする名前的型（nominal type、公称型とも）`<<Enclosing>>::<<Const>>`を合成し、ディスパッチャーがすでに参照する同じ`SyntheticMethodIndex`基層に登録する — ただし定数リゾルバと`.new`ディスパッチの両方が見られる**クラス**エントリーとしてキー付けする。これが新しい基層のケイパビリティ（capability）である。
-- **WD2 — `#inner`の戻り値精度**。 `inner_arg_position`はADR-18の`returns_from_arg:`機構を再利用する。リテラルな第2引数（`Float`、シェイプハッシュ、`NilClass`）は`Environment#nominal_for_name`（またはシェイプリテラル）を通じてバリアントの`#inner`戻り値へ解決する。ADR-16のWD13に従う下限: リゾルバチェーンが配線されるまでは`Dynamic[T]`。
-- **WD3 — sealed性**。 `sealed: true`は親 → バリアント集合を公開し、エンジンの制御フローナローイング（保留中の`is_a?`サーフェス）が後でバリアント集合を網羅的として扱えるようにする。ファクトをemitすることはスコープ内で、ナローイングのためにそれを消費することはスコープ外である。
+- **WD2 — `#inner`の戻り値精度**。`inner_arg_position`はADR-18の`returns_from_arg:`機構を再利用する。リテラルな第2引数（`Float`、シェイプハッシュ、`NilClass`）は`Environment#nominal_for_name`（またはシェイプリテラル）を通じてバリアントの`#inner`戻り値へ解決する。ADR-16のWD13に従う下限: リゾルバチェーンが配線されるまでは`Dynamic[T]`。
+- **WD3 — sealed性**。`sealed: true`は親 → バリアント集合を公開し、エンジンの制御フローナローイング（保留中の`is_a?`サーフェス）が後でバリアント集合を網羅的として扱えるようにする。ファクトをemitすることはスコープ内で、ナローイングのためにそれを消費することはスコープ外である。
 - **WD4 — 需要ゲーティング**。今日のティアDと同様に、まず値クラス + バリデーションを出荷し、バンドルされたコンシューマー（`rigor-mangrove`のEnumスライス（slice））がそれに対して構築されるときにプリパス + ディスパッチャー統合を配線する。
 
 ## 帰結

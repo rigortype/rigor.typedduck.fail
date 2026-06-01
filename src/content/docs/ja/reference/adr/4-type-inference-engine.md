@@ -3,16 +3,16 @@ title: "ADR-4: 型推論エンジンと`Scope#type_of`クエリ"
 description: "rigortype/rigor docs/adr/4-type-inference-engine.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/4-type-inference-engine.md"
 sourcePath: "docs/adr/4-type-inference-engine.md"
-sourceSha: "d99c57c6847bd782a8ea6a6dbed4d7a504a61ad8f8cc1f4b9db5af22c7ce8f67"
-sourceCommit: "db8d01bf94926a72e6a2aaf15639d1591b7e142e"
+sourceSha: "de249c52cf36a4ae69c35cfadef38e4f9aa70cd210455d4b603b52bd4e331360"
+sourceCommit: "a5d648b126d5ed7b1e04a16a87927bca7883e069"
 translationStatus: "translated"
 sidebar:
   order: 4004
 ---
 
-## ステータス
+ステータス: **Accepted;実装・出荷済み**。
 
-Accepted;実装・出荷済み。推論エンジン（`Scope`、ファクトストア、副作用効果モデル、ケイパビリティロール推論、正規化、RBS消去ルーティング）はライブである;[`docs/internal-spec/inference-engine.md`](../../internal-spec/inference-engine/)契約（contract）がその規範的サーフェスである。
+推論エンジン（`Scope`、ファクトストア、副作用効果モデル、ケイパビリティロール推論、正規化、RBS消去ルーティング）はライブである;[`docs/internal-spec/inference-engine.md`](../../internal-spec/inference-engine/)契約（contract）がその規範的サーフェスである。
 
 ADR-4は、静的型モデル（ADR-1・ADR-3）を動作する推論エンジンに変える設計決定を記録します。中心となる具体的な成果物は、Prism ASTノードと不変な`Rigor::Scope`を取り、その式がそのプログラム位置で生成すると証明された`Rigor::Type`を返す解析器クエリです。これはPHPStanの`$scope->getType($node)`に対するRuby/Rigorの対応物であり、すべてのCLI規則・プラグイン・リファクタツールが最終的に呼び出すクエリです。
 

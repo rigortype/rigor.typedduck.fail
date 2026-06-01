@@ -3,15 +3,18 @@ title: "実アプリでのSorbet/Tapioca調査 — strap + dependabot-core"
 description: "Imported from rigortype/rigor docs/notes/20260530-sorbet-real-app-survey.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260530-sorbet-real-app-survey.md"
 sourcePath: "docs/notes/20260530-sorbet-real-app-survey.md"
-sourceSha: "f6966d9bf2c75bf86fac63b2fb56bd94d7aab49e23e1c2efd5eba67cfa7e2dda"
-sourceCommit: "dd55ede4decf11e2a57ac53e62d5732ad629a229"
+sourceSha: "b271585d43050af6e9e8d9990aa64a63482551231a38c968ed1ef2e541c3a97d"
+sourceCommit: "a5d648b126d5ed7b1e04a16a87927bca7883e069"
 translationStatus: "translated"
 sidebar:
   order: 20266530
 ---
 
 日付: 2026-05-30。
-ステータス: 調査ノート。出荷済みのrigor-sorbet修正を1件主導し（attr-accessorのsig、コミットb1fe2aaf）、ユーザー定義ジェネリクスの変換変更（48f0719b）が実コード上で偽陽性（false positive）を生まないか検証した。
+
+ステータス: **調査ノート**。
+
+出荷済みのrigor-sorbet修正を1件主導し（attr-accessorのsig、コミットb1fe2aaf）、ユーザー定義ジェネリクスの変換変更（48f0719b）が実コード上で偽陽性（false positive）を生まないか検証した。
 
 対象（`~/repo/ruby/rigor-survey/`配下にクローン）:
 

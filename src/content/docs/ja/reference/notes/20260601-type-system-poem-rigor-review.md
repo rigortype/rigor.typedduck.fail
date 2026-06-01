@@ -3,16 +3,18 @@ title: "「型システムポエム」(myuon) — Rigor 観点考察"
 description: "Imported from rigortype/rigor docs/notes/20260601-type-system-poem-rigor-review.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260601-type-system-poem-rigor-review.md"
 sourcePath: "docs/notes/20260601-type-system-poem-rigor-review.md"
-sourceSha: "b12a01bb6b29e68b36c27c28ef54b7670a0c5509d6d417b4a258e496af3e585b"
-sourceCommit: "ba90134ecd594337e70cd23d220fb27a3444d43b"
-sourceDate: "2026-06-01T12:50:12+09:00"
+sourceSha: "1c1801eec239e486b3697192f6e9965a4a2bbb7de0dfdf227a9e306dc39fd4cc"
+sourceCommit: "a5d648b126d5ed7b1e04a16a87927bca7883e069"
+sourceDate: "2026-06-01T22:49:16+09:00"
 sourceLanguage: "ja"
 sidebar:
   order: 20266601
 ---
 
 Date: 2026-06-01.
-Status: research note, no design commitments.
+
+Status: **research note, no design commitments.**
+
 種別: 外部論説のRigor観点レビュー。
 三部作（外部論説 × 既存言語への型後付け）:
 - 本ノート（myuon「型システムポエム」）

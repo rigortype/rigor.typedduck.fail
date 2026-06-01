@@ -3,14 +3,14 @@ title: "Cache Layer — `Rigor::Cache`"
 description: "Imported from rigortype/rigor docs/internal-spec/cache.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/cache.md"
 sourcePath: "docs/internal-spec/cache.md"
-sourceSha: "564b72ebe8ddcc6608d26e770a84b20aea6d285159595ca3fb12d355c82c54f3"
-sourceCommit: "db8d01bf94926a72e6a2aaf15639d1591b7e142e"
+sourceSha: "5cd9ecba49a47e71a9854a065b0182ae1811b90c870577d126fbd27efd5ee046"
+sourceCommit: "a5d648b126d5ed7b1e04a16a87927bca7883e069"
 translationStatus: "translated"
 sidebar:
   order: 3050
 ---
 
-ステータス: **安定（v0.0.8で導入;現行ディスクリプタスキーマv2）**。このドキュメントはキャッシュレイヤーの公開リード形を追跡します。以下のスライス（slice）はすべて着地し、v0.1.x全体で安定しています;ディスクリプタの`SCHEMA_VERSION`はADR-10のgemバージョンごとの`dependencies`スロットのために`2`へ引き上げられました。スライス1と2がすでに完成しています。`Rigor::Cache::Descriptor`（すべてのキャッシュ済み値が付随する基板）と`Rigor::Cache::Store`（ディスクリプタ・プロデューサー・パラメータを消費してキャッシュ済みまたは新規計算済みの値を返すファイルシステムバックのストレージ）です。後続のスライスでは最初のキャッシュ済みプロデューサー（RBS環境ローダー）とCLI可観測フラグ（`--cache-stats`・`--clear-cache`）を追加します。
+ステータス: **安定（v0.0.8で導入;現行ディスクリプタスキーマv3）**。このドキュメントはキャッシュレイヤーの公開リード形を追跡します。以下のスライス（slice）はすべて着地し、v0.1.x全体で安定しています;ディスクリプタの`SCHEMA_VERSION`はADR-10のgemバージョンごとの`dependencies`スロットのために`2`へ、そして`RbsLoader.build_env_for`が欠落した`signature_paths:`名前空間を合成し始めたときに`3`へ引き上げられました（古いRigorによってmarshalされたRBS環境——それらのシグネチャを不活性なまま残してしまう——は再構築されます）。スライス1と2がすでに完成しています。`Rigor::Cache::Descriptor`（すべてのキャッシュ済み値が付随する基板）と`Rigor::Cache::Store`（ディスクリプタ・プロデューサー・パラメータを消費してキャッシュ済みまたは新規計算済みの値を返すファイルシステムバックのストレージ）です。後続のスライスでは最初のキャッシュ済みプロデューサー（RBS環境ローダー）とCLI可観測フラグ（`--cache-stats`・`--clear-cache`）を追加します。
 
 このモジュールが実装するスキーマは以下によって固定されています。
 
@@ -51,7 +51,7 @@ ConfigEntry :: { key: String, value_hash: String }
 
 プロデューサー・入力・ディスクリプタの組み合わせに対して標準的なhex SHA-256キャッシュキーを返します。キーは以下を組み込みます。
 
-1. `Descriptor::SCHEMA_VERSION`（現在は`2` — v2はADR-10のgemバージョンごとのキャッシュスライスのために`dependencies`スロットを追加した）。この定数をバンプするとすべてのキャッシュ済み値が無効化されます。
+1. `Descriptor::SCHEMA_VERSION`（現在は`3` — v2はADR-10のgemバージョンごとのキャッシュスライスのために`dependencies`スロットを追加した;v3は`build_env_for`が欠落した`signature_paths:`名前空間を合成し始める前にmarshalされたRBS環境を無効化する）。この定数をバンプするとすべてのキャッシュ済み値が無効化されます。
 2. `producer_id`（キャッシュスライスの名前空間となる安定した文字列）。
 3. `params`（プロデューサーの入力ハッシュ）。再帰的に正規化されます。ハッシュキーは文字列化してソートし、シンボルは文字列化し、配列は順序を保持します。
 4. ディスクリプタの正規ハッシュ形式。

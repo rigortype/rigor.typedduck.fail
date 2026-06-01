@@ -3,14 +3,16 @@ title: "ADR-26 — ActiveRecord relationの型付け"
 description: "rigortype/rigor docs/adr/26-activerecord-relation-typing.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/26-activerecord-relation-typing.md"
 sourcePath: "docs/adr/26-activerecord-relation-typing.md"
-sourceSha: "509f3799930609faaba0850d2129f0d53b05a419ddcbda5751201f4a8eb2a6d7"
-sourceCommit: "75f1372f98e9b1b00cb79a72bf925849cead6956"
+sourceSha: "026c930b6c906dece209f4c500a9d08619043e882534efc4eb026db46a24c4ca"
+sourceCommit: "a5d648b126d5ed7b1e04a16a87927bca7883e069"
 translationStatus: "translated"
 sidebar:
   order: 4026
 ---
 
-Status: **accepted、2026-05-22 — implemented**。`rigor-activerecord`における`ActiveRecord::Relation`を返す呼び出しサイト（`has_many`アクセサ、`Model.where`、`scope`）の型付けの設計を記録する — 最初の実装試行がプロジェクトの偽陽性に関する規律をリグレッションさせ、リバートされた後のものである。この決定は4部構成の設計であり、エンジン側の変更はプラグインが宣言する「オープン」なレシーバークラスに対する狭い`call.undefined-method`の免除のみである。5つの実装スライス（slice）すべてが投入され、Mastodonの`app/models`（237モデル）に対してリレーションへのscope呼び出しの偽陽性ゼロで再検証された。
+ステータス: **Accepted、2026-05-22 — implemented**。
+
+`rigor-activerecord`における`ActiveRecord::Relation`を返す呼び出しサイト（`has_many`アクセサ、`Model.where`、`scope`）の型付けの設計を記録する — 最初の実装試行がプロジェクトの偽陽性に関する規律をリグレッションさせ、リバートされた後のものである。この決定は4部構成の設計であり、エンジン側の変更はプラグインが宣言する「オープン」なレシーバークラスに対する狭い`call.undefined-method`の免除のみである。5つの実装スライス（slice）すべてが投入され、Mastodonの`app/models`（237モデル）に対してリレーションへのscope呼び出しの偽陽性ゼロで再検証された。
 
 ## コンテキスト
 

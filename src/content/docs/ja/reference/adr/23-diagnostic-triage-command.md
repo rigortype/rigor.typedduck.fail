@@ -3,8 +3,8 @@ title: "ADR-23 — 診断トリアージコマンド（`rigor triage`）"
 description: "rigortype/rigor docs/adr/23-diagnostic-triage-command.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/23-diagnostic-triage-command.md"
 sourcePath: "docs/adr/23-diagnostic-triage-command.md"
-sourceSha: "8687e96b13db47b874a67bb1dbe780ac3a24d5a8a4428a09d2be6f9949a713bb"
-sourceCommit: "5b252bbd814960f6b442a4df7dd41a0d0a79c995"
+sourceSha: "750a83dd3be2da516686ae429f6ee9a34f88944755c39d0f60b8784b34794bd3"
+sourceCommit: "a5d648b126d5ed7b1e04a16a87927bca7883e069"
 sourceDate: "2026-05-21T05:31:38+09:00"
 sourceLanguage: "en"
 translationStatus: "translated"
@@ -12,7 +12,9 @@ sidebar:
   order: 4023
 ---
 
-Status: **accepted、2026-05-20;スライス（slice）1+2+3+4はv0.1.9で実装済み**。`lib/rigor/triage/`がカタログを担い、`rigor triage`は本番サブコマンド。プラグイン提供認識器（WD2拡張ポイント）は見送り。`check`派生のサブコマンド設計を記録する。プロジェクトの診断ストリームを要約し — ルールIDの分布、ファイルごとのホットスポット、ヒューリスティックな「なぜ」ヒントを提示する。[ADR-22](../22-baseline-and-project-onboarding/)の仲間:ADR-22は*今日あるもの*（ベースライン（baseline））を記録し;ADR-23はそれが*何を意味するか*と*次に何をすべきか*を説明する。
+ステータス: **Accepted、2026-05-20;スライス（slice）1+2+3+4はv0.1.9で実装済み**。
+
+`lib/rigor/triage/`がカタログを担い、`rigor triage`は本番サブコマンド。プラグイン提供認識器（WD2拡張ポイント）は見送り。`check`派生のサブコマンド設計を記録する。プロジェクトの診断ストリームを要約し — ルールIDの分布、ファイルごとのホットスポット、ヒューリスティックな「なぜ」ヒントを提示する。[ADR-22](../22-baseline-and-project-onboarding/)の仲間:ADR-22は*今日あるもの*（ベースライン（baseline））を記録し;ADR-23はそれが*何を意味するか*と*次に何をすべきか*を説明する。
 
 ## コンテキスト
 

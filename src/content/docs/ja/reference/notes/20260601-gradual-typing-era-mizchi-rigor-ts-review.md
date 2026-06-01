@@ -3,16 +3,18 @@ title: "「漸進的型付け言語の時代に必要なもの」(mizchi) — Ri
 description: "Imported from rigortype/rigor docs/notes/20260601-gradual-typing-era-mizchi-rigor-ts-review.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260601-gradual-typing-era-mizchi-rigor-ts-review.md"
 sourcePath: "docs/notes/20260601-gradual-typing-era-mizchi-rigor-ts-review.md"
-sourceSha: "dbfec287dd4c49f6930172ffa72ebe066f1632504595613b0388312d50eac172"
-sourceCommit: "ba90134ecd594337e70cd23d220fb27a3444d43b"
-sourceDate: "2026-06-01T12:50:12+09:00"
+sourceSha: "127fc561e29d6d7b2630ce0699180e19922fe79dc9ab89c8b6a1f41cfefc27e7"
+sourceCommit: "a5d648b126d5ed7b1e04a16a87927bca7883e069"
+sourceDate: "2026-06-01T22:49:16+09:00"
 sourceLanguage: "ja"
 sidebar:
   order: 20266601
 ---
 
 Date: 2026-06-01.
-Status: research note, no design commitments.
+
+Status: **research note, no design commitments.**
+
 種別: 外部論説のRigor / TypeScript観点レビュー。
 三部作（外部論説 × 既存言語への型後付け）:
 - [20260601-type-system-poem-rigor-review.md](../20260601-type-system-poem-rigor-review/)（myuon「型システムポエム」）

@@ -3,14 +3,16 @@ title: "ADR-19 — 言語サーバーのパッケージング"
 description: "rigortype/rigor docs/adr/19-language-server-packaging.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/19-language-server-packaging.md"
 sourcePath: "docs/adr/19-language-server-packaging.md"
-sourceSha: "f2a9e424c5fb71060cd03dc329806da63f408b9514b5a5fc27c199711305d84d"
-sourceCommit: "203008e9741e8ffd61448e32cf9b89c19f1339da"
+sourceSha: "d3deda0e78d70680d936d3c2ff55a1be02f522ebbf666019d45001003c702441"
+sourceCommit: "a5d648b126d5ed7b1e04a16a87927bca7883e069"
 translationStatus: "translated"
 sidebar:
   order: 4019
 ---
 
-Status: **accepted、2026-05-17**。Rigorの言語サーバー実装のパッケージング形を決定し、将来のLSP作業（リファクタリング機能、追加のケイパビリティ（capability）、エコシステム統合）が、毎サイクルgem境界の問題を蒸し返すのではなく、明文化された前提から始まるようにします。
+ステータス: **Accepted、2026-05-17**。
+
+Rigorの言語サーバー実装のパッケージング形を決定し、将来のLSP作業（リファクタリング機能、追加のケイパビリティ（capability）、エコシステム統合）が、毎サイクルgem境界の問題を蒸し返すのではなく、明文化された前提から始まるようにします。
 
 ## コンテキスト
 

@@ -1,13 +1,15 @@
 ---
 title: "\"What the Era of Gradual Typing Languages Needs\" (mizchi) — Rigor / TypeScript perspective review"
 description: "English translation of a Rigor/TypeScript-perspective review of mizchi's essay \"What the Era of Gradual Typing Languages Needs.\""
-sourceSha: "dbfec287dd4c49f6930172ffa72ebe066f1632504595613b0388312d50eac172"
-sourceCommit: "9f5010ab7b1916b07154e383346d8cd64ba34370"
+sourceSha: "127fc561e29d6d7b2630ce0699180e19922fe79dc9ab89c8b6a1f41cfefc27e7"
+sourceCommit: "a5d648b126d5ed7b1e04a16a87927bca7883e069"
 translationStatus: "translated"
 ---
 
 Date: 2026-06-01.
-Status: research note, no design commitments.
+
+Status: **research note, no design commitments.**
+
 Kind: Rigor / TypeScript-perspective review of an external essay.
 Trilogy (external essays × retrofitting types onto existing languages):
 - [20260601-type-system-poem-rigor-review.md](../20260601-type-system-poem-rigor-review/) (myuon, "Type System Poem")

@@ -3,8 +3,8 @@ title: "診断ポリシー"
 description: "rigortype/rigor docs/type-specification/diagnostic-policy.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/type-specification/diagnostic-policy.md"
 sourcePath: "docs/type-specification/diagnostic-policy.md"
-sourceSha: "890e5c5fe5004149b06e3d6271618fdc394a6bbbed611fd6167dd7e9e0808bb5"
-sourceCommit: "db8d01bf94926a72e6a2aaf15639d1591b7e142e"
+sourceSha: "8756a9f6ce797f993ad4c6f0fe0b0a4050e6c62ab8dfcccb1601e8133b2bbcad"
+sourceCommit: "a5d648b126d5ed7b1e04a16a87927bca7883e069"
 translationStatus: "translated"
 sidebar:
   order: 2050
@@ -44,6 +44,7 @@ Rigorは静かな拡幅よりも精密な診断を優先すべきです（SHOULD
 | `flow.*` | 制御フローのナローイング失敗、等価性と述語のリファインメント問題、事実安定性の違反 |
 | `compat.*` | RBS、rbs-inline、Steep互換シグネチャの互換性 |
 | `rbs_extended.*` | `RBS::Extended`ペイロードの有効性、バージョン互換性、競合レポート |
+| `rbs.coverage.*` | RBS環境のカバレッジ／整形式性テレメトリ。`rbs.coverage.missing-gem`は利用可能なRBSがないロック済みgemを報告する;`rbs.coverage.synthesized-namespace`はプロジェクトの`signature_paths:` RBSが、囲む名前空間なしに修飾名（`class Foo::Bar`）を宣言しているものを報告する——これはupstreamでは不正であり（`rbs validate`が拒否する）、Rigorはシグネチャが依然として解決できるよう`module`を合成する。どちらも`:info`で発行する。 |
 | `plugin.<plugin-id>.*` | プラグインが貢献した診断 |
 | `generated.<provider>.*` | 生成シグネチャプロバイダの診断 |
 | `hint.*` | スタイルとリファクタリングの提案、設定でゲート（例: `hint.role-generalization.*`） |

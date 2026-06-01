@@ -3,16 +3,16 @@ title: "ADR-3: 内部型表現"
 description: "rigortype/rigor docs/adr/3-type-representation.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/3-type-representation.md"
 sourcePath: "docs/adr/3-type-representation.md"
-sourceSha: "4d22c6b768aa230c9da01207885cde423c2dbbac5d3d00b1392e2b882b198c54"
-sourceCommit: "db8d01bf94926a72e6a2aaf15639d1591b7e142e"
+sourceSha: "d6704739c293954b532d52bc02863fdd80425357ce924b1be6c24ae81fa79903"
+sourceCommit: "a5d648b126d5ed7b1e04a16a87927bca7883e069"
 translationStatus: "translated"
 sidebar:
   order: 4003
 ---
 
-## ステータス
+ステータス: **Accepted;実装・出荷済み**。
 
-Accepted;実装・出荷済み。内部の型オブジェクトレイアウト（OQ1〜OQ3の作業決定を含む）はライブである;`Rigor::Type::*`キャリア（carrier）と[`docs/internal-spec/internal-type-api.md`](../../internal-spec/internal-type-api/)契約（contract）がそれを実現する。
+内部の型オブジェクトレイアウト（OQ1〜OQ3の作業決定を含む）はライブである;`Rigor::Type::*`キャリア（carrier）と[`docs/internal-spec/internal-type-api.md`](../../internal-spec/internal-type-api/)契約（contract）がそれを実現する。
 
 ADR-3は、Rigorの内部型オブジェクトレイアウト（型モデルを実装するRubyのクラス、モジュール、メソッド、値オブジェクト）の設計空間を記録します。ADR-3はセマンティクスを再定義**しません**——それはADR-1と型仕様が所有します——そしてプラグイン契約（contract）も定義**しません**——それはADR-2が所有します。ADR-3は、ADR-1とADR-2が付着する解析器側のデータ形状を取り巻く根拠とオープンクエスチョンを捉えます。
 

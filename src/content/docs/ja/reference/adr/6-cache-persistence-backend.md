@@ -3,16 +3,16 @@ title: "ADR-6: キャッシュ永続化バックエンド"
 description: "rigortype/rigor docs/adr/6-cache-persistence-backend.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/6-cache-persistence-backend.md"
 sourcePath: "docs/adr/6-cache-persistence-backend.md"
-sourceSha: "37c81acd65bd3b104514abae2c669a4fd1bcfa5a146b6554a644a9fa7e1a0f61"
-sourceCommit: "5b252bbd814960f6b442a4df7dd41a0d0a79c995"
+sourceSha: "e3f9a3590560be0b8e6fa0620c7b54d997a8ff13d6aa2518f2f92cd16f51c7fc"
+sourceCommit: "a5d648b126d5ed7b1e04a16a87927bca7883e069"
 translationStatus: "translated"
 sidebar:
   order: 4006
 ---
 
-## ステータス
+ステータス: **承認済み**。
 
-承認済み。v0.0.8実装向けに作業上の決定を記録;RBS環境キャッシュ、プロセスごとのメモ、Monitor-safeスレッドレイヤーがv0.1.4でランドした時点で承認された。
+v0.0.8実装向けに作業上の決定を記録;RBS環境キャッシュ、プロセスごとのメモ、Monitor-safeスレッドレイヤーがv0.1.4でランドした時点で承認された。
 
 ## コンテキスト
 

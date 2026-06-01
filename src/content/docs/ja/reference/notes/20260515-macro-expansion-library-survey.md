@@ -3,8 +3,8 @@ title: "マクロ／DSL展開 — ライブラリ別調査"
 description: "rigortype/rigor docs/notes/20260515-macro-expansion-library-survey.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260515-macro-expansion-library-survey.md"
 sourcePath: "docs/notes/20260515-macro-expansion-library-survey.md"
-sourceSha: "fc160a4af4c256b2aff73ee052233538907d17f8f7d14511a28ce97a3d4a6151"
-sourceCommit: "fe4e9a80df3829ee4f113e763e4bb9920c33da21"
+sourceSha: "3c562bff75c129acaf6cb56405be6ff3c8711aa6791e3e7d5be1f8a4dac8355a"
+sourceCommit: "a5d648b126d5ed7b1e04a16a87927bca7883e069"
 translationStatus: "translated"
 sidebar:
   order: 20266515
@@ -12,7 +12,9 @@ sidebar:
 
 日付: 2026-05-15。2026-05-15にdry-rbトリオ（dry-types, dry-schema,
 dry-struct）を追加するためリビジョン。
-ステータス: 調査メモであり、設計上のコミットメントではない。
+
+ステータス: **調査メモであり、設計上のコミットメントではない**。
+
 [ROADMAP](../../roadmap/)のO2作業項目（「マクロテンプレート＋ヒアドキュメントRuby展開」）の前提条件であり、
 [ADR-16](../../adr/16-macro-expansion/)（マクロ展開基盤）の根拠となる証拠。
 

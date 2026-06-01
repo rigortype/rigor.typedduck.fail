@@ -3,14 +3,16 @@ title: "ADR-9 — クロスプラグインAPI"
 description: "rigortype/rigor docs/adr/9-cross-plugin-api.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/9-cross-plugin-api.md"
 sourcePath: "docs/adr/9-cross-plugin-api.md"
-sourceSha: "eebaf0329bf99b0bdd97311df2725c0c31ea583d0ced98e1b52d779c95a7e36b"
-sourceCommit: "db8d01bf94926a72e6a2aaf15639d1591b7e142e"
+sourceSha: "4c54d9d0e3aa5c07f713a98eb1b70fc6ac3a527663b2de47839dd3a0d800d2e4"
+sourceCommit: "a5d648b126d5ed7b1e04a16a87927bca7883e069"
 translationStatus: "translated"
 sidebar:
   order: 4009
 ---
 
-ステータス: **accepted、2026-05-08; v0.1.1で実装**。v0.1.1のトラック2が`Plugin::FactStore`、`Plugin::Base#prepare(services)`、`manifest(produces:/consumes:)`、トポロジカルソートされたプラグインロード、`#flow_contribution_for`戻り値型ティア（スライス1 → 5 + スライス7）を出荷した。クロスプラグインファクト（fact）チャネル（`:model_index`、`:factory_index`、`:dry_type_aliases`、`:graphql_type_table`、……）は、いまやバンドルされたプラグイン全体で活発に使われている。
+ステータス: **Accepted、2026-05-08; v0.1.1で実装**。
+
+v0.1.1のトラック2が`Plugin::FactStore`、`Plugin::Base#prepare(services)`、`manifest(produces:/consumes:)`、トポロジカルソートされたプラグインロード、`#flow_contribution_for`戻り値型ティア（スライス1 → 5 + スライス7）を出荷した。クロスプラグインファクト（fact）チャネル（`:model_index`、`:factory_index`、`:dry_type_aliases`、`:graphql_type_table`、……）は、いまやバンドルされたプラグイン全体で活発に使われている。
 
 ## コンテキスト
 

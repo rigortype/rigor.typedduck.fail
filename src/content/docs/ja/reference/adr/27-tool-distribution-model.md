@@ -3,14 +3,16 @@ title: "ADR-27 — ツール配布・インストールモデル"
 description: "rigortype/rigor docs/adr/27-tool-distribution-model.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/27-tool-distribution-model.md"
 sourcePath: "docs/adr/27-tool-distribution-model.md"
-sourceSha: "e1f9efd11266d403583f893dc0baa322435019bad2012d0f15af601ecb783b35"
-sourceCommit: "db8d01bf94926a72e6a2aaf15639d1591b7e142e"
+sourceSha: "540e6eecf31f7d839e5ea116bf7cc92d69251037d6d9815d53b2a71b562238a0"
+sourceCommit: "a5d648b126d5ed7b1e04a16a87927bca7883e069"
 translationStatus: "translated"
 sidebar:
   order: 4027
 ---
 
-ステータス: **accepted、2026-05-22;部分実装**。エンドユーザーへのRigorの配布・インストール方法を記録する。中心的な原則 — **RigorをターゲットプロジェクトのGemfileに追加しない** — は批准済みであり、それが依拠する最新Ruby専用の立場（WD7）も同様。チャンネル推奨事項は以下のとおり：ランタイムバージョンマネージャー（`mise` / `asdf`）が最前線のパス、コピー＆ペーストできるスタンドアロンCIワークフローテンプレートがCIパス（Nixは代替であってヘッドラインではない）、コンテナイメージと自己完結型シングルバイナリが二次的・将来的なオプション。**ここまでに出荷:** Nix flakeの`packages` / `apps`出力、公開されたコンテナイメージ（`Dockerfile` + `.github/workflows/container.yml`）、そして`Gemfile`エントリーを非推奨にする機械可読インストールガイド（`docs/install.md`、v0.1.14）。**なお保留:** コピー＆ペーストできるスタンドアロンCIワークフローテンプレートと、自己完結型シングルバイナリ。
+ステータス: **Accepted、2026-05-22;部分実装**。
+
+エンドユーザーへのRigorの配布・インストール方法を記録する。中心的な原則 — **RigorをターゲットプロジェクトのGemfileに追加しない** — は批准済みであり、それが依拠する最新Ruby専用の立場（WD7）も同様。チャンネル推奨事項は以下のとおり：ランタイムバージョンマネージャー（`mise` / `asdf`）が最前線のパス、コピー＆ペーストできるスタンドアロンCIワークフローテンプレートがCIパス（Nixは代替であってヘッドラインではない）、コンテナイメージと自己完結型シングルバイナリが二次的・将来的なオプション**。ここまでに出荷:** Nix flakeの`packages` / `apps`出力、公開されたコンテナイメージ（`Dockerfile` + `.github/workflows/container.yml`）、そして`Gemfile`エントリーを非推奨にする機械可読インストールガイド（`docs/install.md`、v0.1.14）**。なお保留:**コピー＆ペーストできるスタンドアロンCIワークフローテンプレートと、自己完結型シングルバイナリ。
 
 ## コンテキスト
 

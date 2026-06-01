@@ -3,15 +3,17 @@ title: "ADR-17 — プロジェクト側monkey-patchの事前評価"
 description: "rigortype/rigor docs/adr/17-monkey-patch-pre-evaluation.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/17-monkey-patch-pre-evaluation.md"
 sourcePath: "docs/adr/17-monkey-patch-pre-evaluation.md"
-sourceSha: "fbad34aa4e3d2ccdac4e25950a786bfb87a94a1147f5fdfb335015b10303afe8"
-sourceCommit: "db8d01bf94926a72e6a2aaf15639d1591b7e142e"
+sourceSha: "4488e8f6d9c61101ac09d8377f855b917a28a50d4429996638533634047a638f"
+sourceCommit: "a5d648b126d5ed7b1e04a16a87927bca7883e069"
 sourceDate: "2026-05-29T00:21:31+09:00"
 translationStatus: "translated"
 sidebar:
   order: 4017
 ---
 
-Status: **accepted, 2026-05-16; v0.1.13で実装**。 `pre_eval:`設定軸とプロジェクト全体の`Inference::ProjectPatchedMethods`レジストリが出荷され、境界のある事前パスによって投入され、プラグインと依存ソース推論の間のディスパッチャーティアで参照されるほか、`call.undefined-method` / `call.unresolved-toplevel`（[ADR-34](../34-toplevel-unresolved-self-call-default/)）の発行でも参照される。「explicit list MVP」のフロアとglob展開がランディングした;プラグインAPI発見フックとフルプロジェクト2パスは需要駆動のままである。
+ステータス: **Accepted, 2026-05-16; v0.1.13で実装**。
+
+`pre_eval:`設定軸とプロジェクト全体の`Inference::ProjectPatchedMethods`レジストリが出荷され、境界のある事前パスによって投入され、プラグインと依存ソース推論の間のディスパッチャーティアで参照されるほか、`call.undefined-method` / `call.unresolved-toplevel`（[ADR-34](../34-toplevel-unresolved-self-call-default/)）の発行でも参照される。「explicit list MVP」のフロアとglob展開がランディングした;プラグインAPI発見フックとフルプロジェクト2パスは需要駆動のままである。
 
 **注記2026-05-29** — [ADR-34](../34-toplevel-unresolved-self-call-default/)がこのメカニズムを「機会的な精度向上」から「トップレベルのunresolved-self-call診断のための正規エスケープハッチ」へと格上げする。ADR-34はADR-17スライス（slice）1+2を実装の必須前提条件として挙げている: `pre_eval:`レジストリが存在する前にデフォルトのフリップをリリースすることはできない——さもなければ、トップレベルのmonkey-patchを持つプロジェクトにはオプトアウト手段がなくなる。
 
