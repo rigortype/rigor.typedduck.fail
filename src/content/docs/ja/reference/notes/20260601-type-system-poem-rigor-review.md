@@ -4,7 +4,7 @@ description: "Imported from rigortype/rigor docs/notes/20260601-type-system-poem
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260601-type-system-poem-rigor-review.md"
 sourcePath: "docs/notes/20260601-type-system-poem-rigor-review.md"
 sourceSha: "b12a01bb6b29e68b36c27c28ef54b7670a0c5509d6d417b4a258e496af3e585b"
-sourceCommit: "cb6b329f5b70369b8e4ebdd4f4a69f28aa85937d"
+sourceCommit: "ba90134ecd594337e70cd23d220fb27a3444d43b"
 sourceDate: "2026-06-01T12:50:12+09:00"
 sourceLanguage: "ja"
 sidebar:
