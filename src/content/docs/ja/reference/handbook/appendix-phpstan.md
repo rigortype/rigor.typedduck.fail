@@ -3,8 +3,8 @@ title: "付録 — PHPStanから来た場合"
 description: "Imported from rigortype/rigor docs/handbook/appendix-phpstan.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/appendix-phpstan.md"
 sourcePath: "docs/handbook/appendix-phpstan.md"
-sourceSha: "aab31522efc7cb17a89a01914affb5ee1cb4e48e78ddc4560fa370153c75bd4a"
-sourceCommit: "0af2862f84982d9cfad4a1c0619340e15ba2f1bc"
+sourceSha: "75723817897931c3f2383f31294fa69f5a813005771dc2f2f878565c4a82a60c"
+sourceCommit: "5854b02cbe92b9099e0cd6907a44780069243119"
 translationStatus: "translated"
 sidebar:
   order: 1050
@@ -14,6 +14,19 @@ sidebar:
 PHPStanは、Rigorが他の言語で持つ最も近い精神的なピアツールである。両ツールは同じ優先事項を共有する: アナライザーが特徴付けられないコードには沈黙し、必須アノテーションよりも推論に依拠し、高信頼の診断の小さなカタログを示す。Rigorの多くの設計選択 — 設定ファイルの形状、ベースライン（baseline）diff、深刻度プロファイル、`assert`系ディレクティブ — はPHPStanから直接影響を受けた。
 
 PHPStanを使ったことがあれば、メンタルモデルはほぼそのまま持ち越せる。この付録は語彙をマッピングする。
+
+> **この付録の内容**
+> [5秒ピッチ](#5秒ピッチ) ·
+> [型語彙マッピング](#型語彙マッピング) ·
+> [`@phpstan-assert`ファミリー](#phpstan-assertファミリー) ·
+> [Type-Specifying Extensions ↔ プラグイン](#type-specifying-extensions--プラグイン) ·
+> [設定](#設定) ·
+> [スタブ ↔ RBS](#スタブ--rbs) ·
+> [深刻度プロファイルvsレベル](#深刻度プロファイルvs-phpstanレベル) ·
+> [「アノテーション不要」](#アノテーション不要-そうだがスタブは必要) ·
+> [PHPStanにあってRigorにないもの](#phpstanにあってrigorにないもの) ·
+> [RigorにあってPHPStanにないもの](#rigorにあってphpstanにないもの) ·
+> [マイグレーションvignette](#マイグレーションvignette)
 
 ## 5秒ピッチ
 

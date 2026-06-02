@@ -3,8 +3,8 @@ title: "付録 — TypeScriptから来た場合"
 description: "Imported from rigortype/rigor docs/handbook/appendix-typescript.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/appendix-typescript.md"
 sourcePath: "docs/handbook/appendix-typescript.md"
-sourceSha: "5bec34df310f889c0d955c48cd20d4127224f33a6d3753a2a187fe40d9a4eca7"
-sourceCommit: "dd55ede4decf11e2a57ac53e62d5732ad629a229"
+sourceSha: "8f5feaf49c41c25398a4fbc9ec3f57842ce81edb5af3380e8be170fd7d869c80"
+sourceCommit: "5854b02cbe92b9099e0cd6907a44780069243119"
 translationStatus: "translated"
 sidebar:
   order: 1050
@@ -14,6 +14,19 @@ sidebar:
 静的型チェッカーを見て「ああ、TypeScriptみたいなものか」と感じるなら、この付録でRigorの語彙をすでに知っているTypeScriptの概念にマッピングする。「TypeScriptは分かる」から「Rigorも分かる」への最短経路。
 
 このページはチュートリアルではない。変換テーブルと、ふたつのシステムが本質的に異なる選択をしている箇所の簡単な考察だ — そこがTypeScriptで身についた反射的な理解の邪魔をする場所になる。
+
+> **この付録の内容**
+> [5秒ピッチ](#5秒ピッチ) ·
+> [型語彙マッピング](#型語彙マッピング) ·
+> [ナローイング](#ナローイング--親しみやすい部分) ·
+> [リファインメントキャリア](#リファインメントキャリア--typescriptにない部分) ·
+> [「アノテーション不要」](#アノテーション不要の実際) ·
+> [ジェネリクス](#ジェネリクス) ·
+> [Null可能性](#null可能性) ·
+> [深刻度とstrictモード](#深刻度抑制strictモード) ·
+> [TypeScriptにあってRigorにないもの](#typescriptにあってrigorにないもの) ·
+> [RigorにあってTypeScriptにないもの](#rigorにあってtypescriptにないもの) ·
+> [マイグレーションvignette](#マイグレーションvignette)
 
 ## 5秒ピッチ
 
