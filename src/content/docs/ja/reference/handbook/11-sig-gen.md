@@ -3,8 +3,8 @@ title: "`rigor sig-gen`でRBSを生成する"
 description: "rigortype/rigor docs/handbook/11-sig-gen.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/11-sig-gen.md"
 sourcePath: "docs/handbook/11-sig-gen.md"
-sourceSha: "1f603634bb569814f715469f2ff6429645496d2d9ecd2cc52fd23d376dd073f0"
-sourceCommit: "a7f0405346ea5833580c50f3610ccb0b97fea2d8"
+sourceSha: "7dcaa7b992a5bf29d2f402f2d5db6a8fe17e9bf6641860d09bc21f5619bf195d"
+sourceCommit: "115824d2e84dbb9f14d031172159de8ab07e0619"
 translationStatus: "translated"
 sidebar:
   order: 1011
@@ -14,13 +14,25 @@ sidebar:
 
 この章では、コマンドのUX、分類モデル、3つの出力モード、そして[ADR-5](../../adr/5-robustness-principle/)の非対称な「戻り値には厳格、パラメータには寛容」ルールから直接出てきた`--params`ポリシーのトレードオフを順に見ていきます。
 
+> **この章の内容**
+> [使いたくなる場面](#使いたくなる場面) ·
+> [初回の実行](#初回の実行) ·
+> [出力モード](#3つの出力モード) ·
+> [分類モデル](#分類モデル) ·
+> [対応するメソッド形状](#ジェネレータが対応するメソッド形状) ·
+> [`--params`ポリシーとADR-5](#--paramsポリシーとadr-5) ·
+> [RSpecを意識した観察](#rspecを意識した観察) ·
+> [`--write`が行うこと](#安全性---writeが行うことと行わないこと) ·
+> [まとめ](#まとめ) ·
+> [今日の制限](#今日の制限)
+
 ## 使いたくなる場面
 
 - RBSカバレッジがゼロのRubyプロジェクトを引き継ぎ、`rbs prototype rb`の構文的なスケルトンよりも誠実な出発点が欲しい。
 - メソッドを追加し、`rigor check`がそれを認識した。今度はシグネチャを手で打ち直すことなく対応するsigファイルを更新したい。
 - 既存のRBSは`() -> Numeric`と宣言しているが、Rigorは`() -> Integer`を証明している。レビューの後、より厳密な綴りを`sig/`に適用したい。
 
-そうで**ない**もの: ソースコードに表れていない意図を捉える手書きのRBSの置き換え。公開メソッドが「`to_s`に応答するものなら何でも」という契約（contract）のために`_ToStr`を受け付けるべきでも、現在の呼び出し元がたまたま`String`しか渡していない場合、`sig-gen`は`_ToStr`をあなたのために発明しません — 後述の節1と2でその理由を説明します。
+そうで**ない**もの: ソースコードに表れていない意図を捉える手書きのRBSの置き換え。公開メソッドが「`to_s`に応答するものなら何でも」という契約（contract）のために`_ToStr`を受け付けるべきでも、現在の呼び出し元がたまたま`String`しか渡していない場合、`sig-gen`は`_ToStr`をあなたのために発明しません — 後述の[`--params`ポリシー](#--paramsポリシーとadr-5)セクションとADR-5がその理由を説明します。
 
 ## 初回の実行
 
@@ -72,7 +84,7 @@ end
 | `new-file` | レシーバークラスを宣言するRBSファイルが一切ない。 |
 | `new-method` | RBSファイルがクラスを宣言しているが、このメソッドは宣言していない。 |
 | `tighter-return` | RBSファイルがメソッドを宣言しているが、推論された戻り値が宣言された戻り値の真の部分型（subtype）。 |
-| `equivalent` | 推論された戻り値と宣言された戻り値が同一（または推論された戻り値が真の部分型ではない）。サイレントにスキップ。 |
+| `equivalent` | 推論された戻り値が宣言された戻り値の真の部分型ではない — 同一・より広い・無関係のいずれか — ので、締めるものがない。サイレントにスキップ。 |
 | `skipped` | 以下のいずれかの理由で対象外。 |
 
 3つの`sig.skipped.*`理由は:

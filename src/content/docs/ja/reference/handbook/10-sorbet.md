@@ -3,8 +3,8 @@ title: "Sorbetとの共存"
 description: "rigortype/rigor docs/handbook/10-sorbet.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/10-sorbet.md"
 sourcePath: "docs/handbook/10-sorbet.md"
-sourceSha: "fe9efcecb2f50ba99bd4fc768aa4cc9df303084caa0801cb7115e1f36b78562d"
-sourceCommit: "203008e9741e8ffd61448e32cf9b89c19f1339da"
+sourceSha: "906e21bb35e6f81cd34c518249f5105ffa9dd4ad6bfe12caba9cbce097354421"
+sourceCommit: "115824d2e84dbb9f14d031172159de8ab07e0619"
 translationStatus: "translated"
 sidebar:
   order: 1010
@@ -13,6 +13,18 @@ sidebar:
 プロジェクトがすでに[Sorbet](https://sorbet.org/)を使っているなら、[`rigor-sorbet`](../../plugins/rigor-sorbet/)プラグインを使えば、RigorがSorbetの既存の`sig`ブロック、RBIファイル、`T.let` / `T.cast` / `T.must` / `T.unsafe`アサーションを型ソースとして読み取れます。`rigor check`を`srb tc`と並行して実行するために、何もRBSに書き直す必要はありません。
 
 この章はSorbetを使用しているプロジェクトから来たユーザー向けです。Sorbetを使ったことがなければ、スキップしてかまいません。第1〜9章のコアハンドブックがRigorのネイティブなRBSベースのパスをカバーしています。
+
+> **この章の内容**
+> [何が翻訳されるか](#何が翻訳されるか) ·
+> [Sorbetの型語彙](#sorbetの型語彙) ·
+> [インライン型アサーション（`T.let` / `T.must` / …）](#インライン型アサーション) ·
+> [RBIファイル](#rbiファイル) ·
+> [`# typed:`シジル](#sorbet--typedシジル) ·
+> [Tapioca DSLミックスイン](#tapioca-dsl--ミックスインパターン) ·
+> [`T.absurd`網羅性](#tabsurd網羅性) ·
+> [競合時のティア順序](#ティア順序--競合時に何が勝つか) ·
+> [移行パターン](#移行パターン) ·
+> [置き換えないもの](#プラグインが置き換えないもの)
 
 ## 何が翻訳されるか
 
@@ -98,7 +110,7 @@ T.reveal_type(n).even?  # info: T.reveal_type inferred type: Integer
                         # ✓ Integer#even?は引き続き解決される
 ```
 
-`T.assert_type!(expr, T)`は`T.cast`に静的部分型（subtype）チェックを加えたものです。コールはアサートされた型を返すのでチェーンされたコールはそれを通じて解決されます。推論された型が証明可能に非互換（`Inference::Acceptance.accepts(...)`が`:no`を返す）の場合、プラグインは`plugin.sorbet.assert-type-mismatch`を`:error`として発行します。漸進的（gradual）一貫性ルールが適用されます——`Dynamic[top]`推論型と`:maybe`互換のシェイプ（shape）は、ランタイムチェックがカバーするためサイレントになります。
+`T.assert_type!(expr, T)`は`T.cast`に静的部分型（subtype）チェックを加えたものです。コールはアサートされた型を返すのでチェーンされたコールはそれを通じて解決されます。推論された型が証明可能に非互換（`Inference::Acceptance.accepts(...)`が`:no`を返す）の場合、プラグインは`plugin.sorbet.assert-type-mismatch`を`:error`として発行します。漸進的（gradual）一貫性ルールが適用されます——`Dynamic[Top]`推論型と`:maybe`互換のシェイプ（shape）は、ランタイムチェックがカバーするためサイレントになります。
 
 ```ruby
 T.assert_type!("hello", Integer)  # error: 証明可能に非互換
@@ -132,7 +144,7 @@ plugins:
 
 プロジェクトsig（`paths:`以下の`.rb`ファイル）とRBI sig（`rbi_paths:`以下の`.rbi`ファイル）は同じ実行ごとのカタログにフィードされるため、どちらのソースで宣言されたメソッドもコールサイトで同じように解決されます。
 
-## `# typed:`シジル
+## Sorbet `# typed:`シジル
 
 プラグインは各ファイルの先頭からSorbetの`# typed:`マジックコメントを読み取ります。挙動は`enforce_sigil`設定ノブ（デフォルト`true`）に依存します:
 

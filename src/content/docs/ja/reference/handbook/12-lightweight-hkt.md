@@ -3,8 +3,8 @@ title: "軽量HKT（`JSON.parse`とその仲間たち）"
 description: "rigortype/rigor docs/handbook/12-lightweight-hkt.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/12-lightweight-hkt.md"
 sourcePath: "docs/handbook/12-lightweight-hkt.md"
-sourceSha: "35cc7b91441225a36f4e95005de042daf4fc714ecc8cc8aedb27473748a54602"
-sourceCommit: "dd1240d88f635b570b72ca36d1fccddc8df8ccd1"
+sourceSha: "920a29380caf0dc5dc5b3fa0bc36e8c04f01f9da24a8bcae337d730c50a775d2"
+sourceCommit: "115824d2e84dbb9f14d031172159de8ab07e0619"
 translationStatus: "translated"
 sidebar:
   order: 1012
@@ -26,6 +26,18 @@ assert_type(parsed,
 [fp-tsの`URItoKind`](https://github.com/gcanti/fp-ts/blob/master/src/HKT.ts)
 スタイルでの、高階型の脱関数化エンコーディングです。本章ではそれが何をするのか、いつ使うべきか、自前のオーバーレイをどう作るかを順に見ていきます。
 
+本章はハンドブックの中で最も高度な章です。ほとんどの読者に必要なのは最初の2つのセクション——キャリアがどう見えるか、そしてどのstdlibメソッドが最初から配線されているか——だけです。「自前のオーバーレイを書く」以降はすべて、自分自身の再帰的な直和型をモデル化したいという稀なケースのためのものです。
+
+> **この章の内容**
+> [5秒で分かる要点](#5秒で分かる要点) ·
+> [今日バンドルされているもの](#今日バンドルされているもの) ·
+> [呼び出しサイトの判別](#呼び出しサイトの2種類の判別) ·
+> [自前のオーバーレイを書く](#自前のオーバーレイを書く) ·
+> [ボディの文法](#ボディの文法) ·
+> [簡約のセマンティクス](#簡約のセマンティクス遅延結び目固め) ·
+> [まだしないこと](#まだしないこと) ·
+> [コード上の場所](#コード上の場所)
+
 ## 5秒で分かる要点
 
 | 概念 | Rigorでの綴り | 見かける場所 |
@@ -40,7 +52,7 @@ assert_type(parsed,
 
 ## 今日バンドルされているもの
 
-Rigorは最初から1つのHKT登録を出荷しています: **`json::value[K]`**、再帰的なJSON値の直和です。2つの部分:
+Rigorは最初から2つのHKT登録を出荷しています。主要なものは**`json::value[K]`**、再帰的なJSON値の直和です（2つ目の`csv::parsed[K]`は本セクションの最後で扱います）。`json::value`は2つの部分から成ります:
 
 ```ruby
 # 登録 — タグを命名し、そのarity、分散、消去境界を宣言する。
@@ -57,13 +69,15 @@ params=K body=
   | Hash[K, App[json::value, K]]
 ```
 
-8つのstdlibメソッドがこれを経由します:
+9つのstdlibメソッドがこれを経由します:
 
-- `JSON.parse` / `JSON.parse!` / `JSON.load`
+- `JSON.parse` / `JSON.parse!` / `JSON.load` / `JSON.load_file` / `JSON.load_file!`
 - `YAML.safe_load` / `YAML.safe_load_file`
 - `Psych.safe_load` / `Psych.safe_load_file`
 
 HKT組み込みディスパッチャー層は標準RBSディスパッチの**上**に位置するので、上流のRBSが`JSON.parse: (string, ?options) -> untyped`と宣言していても、Rigorの答えは簡約されたUnionになります。`YAML.load` / `YAML.unsafe_load`は意図的に外しています——これらはどんなRubyオブジェクトでも返しうるので、有用なHKTエンベロープを持たないからです。
+
+2つ目のバンドル登録**`csv::parsed[K]`**は、`CSV.parse` / `CSV.read`を`Array[Array[K | nil]]`——ヘッダーなしの形状——としてモデル化します。`headers: true`を渡す呼び出し（`CSV::Table`を返す）と`CSV.foreach`（返すのではなくyieldする）は上流のRBS型にフォールスルーします。
 
 ## 呼び出しサイトの2種類の判別
 

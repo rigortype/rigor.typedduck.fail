@@ -4,7 +4,7 @@ description: "Imported from rigortype/rigor docs/design/20260601-plugin-mechanis
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/design/20260601-plugin-mechanism-pre-1.0-review.md"
 sourcePath: "docs/design/20260601-plugin-mechanism-pre-1.0-review.md"
 sourceSha: "f821e03e74e572d258dbdaf1b374be82d2f0f05d0748059721dfece423e867b6"
-sourceCommit: "0af2862f84982d9cfad4a1c0619340e15ba2f1bc"
+sourceCommit: "115824d2e84dbb9f14d031172159de8ab07e0619"
 sourceDate: "2026-06-01T23:48:19+09:00"
 sourceLanguage: "ja"
 sidebar:

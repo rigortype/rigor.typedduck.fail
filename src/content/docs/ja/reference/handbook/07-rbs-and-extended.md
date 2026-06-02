@@ -3,8 +3,8 @@ title: "RBSと`RBS::Extended`"
 description: "rigortype/rigor docs/handbook/07-rbs-and-extended.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/07-rbs-and-extended.md"
 sourcePath: "docs/handbook/07-rbs-and-extended.md"
-sourceSha: "e7b4f58371660a7932a33d081af3f2c4e8d0e7421e704be8c656e3e1ee4d0e45"
-sourceCommit: "fa9e1de7a00dc2aff56f6efa3045b4607650a647"
+sourceSha: "1b5ca2cf332a16b746d3dd7ca8837b320ab901897dd49329e01321671b7f58c1"
+sourceCommit: "115824d2e84dbb9f14d031172159de8ab07e0619"
 translationStatus: "translated"
 sidebar:
   order: 1007
@@ -13,6 +13,20 @@ sidebar:
 Rigorの推論が型を証明できないとき、次の逃げ道はRBS — Rubyのシグネチャ言語 — です。RBSが求める精密な契約（contract）を表現できないとき、`RBS::Extended`がその上に小さなアノテーション表面を追加します。
 
 この章では、通常手を伸ばす順序でその両方を扱います。
+
+> **この章の内容**
+> [RBSが必要なとき](#rbsが必要なとき) ·
+> [最初のシグ](#最初のシグ) ·
+> [RBSシェイプが広すぎるとき](#rbsシェイプが広すぎるとき) ·
+> [ディレクティブ文法](#ディレクティブ文法) ·
+> [リファインメント名](#リファインメント名) ·
+> 実例 — [アサーションゲート](#実例-アサーションゲート) · [型述語](#実例-型述語) · [パラメータオーバーライド](#実例-パラメータオーバーライド) ·
+> [ランタイムが強制できないオーバーライド](#ランタイムが強制できないパラメータオーバーライドが必要なとき) ·
+> [アノテーションの置き場所](#アノテーションの置き場所) ·
+> [インラインRBS（`rigor-rbs-inline`）](#rubyソースへのインラインrbs--rigor-rbs-inlineプラグイン) ·
+> [`untyped`へのフォールバック](#untypedへのフォールバック) ·
+> [PHPStanから来た方へ](#phpstanから来た方へ--phpstan-assertファミリー) ·
+> [プラグインの逃げ道](#rbsが助けにならないとき--プラグインの逃げ道)
 
 ## RBSが必要なとき
 
@@ -200,7 +214,7 @@ class Slug
 end
 ```
 
-`.rb`ファイルの内側に置くことは**できません**。ディレクティブはRBSから読まれたときのみ発火します — これは設計上の選択です（ADR-5、堅牢性の原則: 戻り値に対して厳密、パラメータに対して寛大を参照）。
+これらの`%a{rigor:v1:…}`ディレクティブを`.rb`ファイルの内側に置くことは**できません**。ディレクティブはRBSから読まれたときのみ発火します — これは設計上の選択です（ADR-5、堅牢性の原則: 戻り値に対して厳密、パラメータに対して寛大を参照）。
 
 ## RubyソースへのインラインRBS — `rigor-rbs-inline`プラグイン
 
@@ -288,7 +302,7 @@ def configure(maybe)
 end
 ```
 
-selfターゲット形式もサポートされています — PHPStanのアナログは`$this`をナローイングするメソッドになります。`target self`を使います:
+selfターゲット形式もサポートされています — PHPStanのアナログは`$this`をナローイングするメソッドになります。レシーバーを`self`で名指しします:
 
 ```rbs
 class Connection
