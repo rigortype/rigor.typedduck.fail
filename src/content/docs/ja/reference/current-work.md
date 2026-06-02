@@ -3,8 +3,8 @@ title: "Current Work — Resume Bookmark"
 description: "rigortype/rigor docs/CURRENT_WORK.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/CURRENT_WORK.md"
 sourcePath: "docs/CURRENT_WORK.md"
-sourceSha: "ae4ce19deea6e57cec2388c9d80975684432c9a9b9dbcd01c7dafa251eaf7786"
-sourceCommit: "db8d01bf94926a72e6a2aaf15639d1591b7e142e"
+sourceSha: "7b2131d0182b6c75d6a54f2239bc194ae8b46565bdb3dc2f3e27d586fcf04562"
+sourceCommit: "d5d6614800bfc53f00e23b51f4c914d0e42f237f"
 sourceDate: "2026-05-28T23:05:38+09:00"
 translationStatus: "translated"
 sidebar:
@@ -33,9 +33,22 @@ v0.1.12カット時点の累積サーベイ結果:
 
 Mastodonの残り6件のエラーはすべてエンジン精度とは無関係: 5件はテストフィクスチャ内のnil-receiver + 1件は上流`ruby/rbs`の`Resolv::DNS#getresources`型クラスナローイング（narrowing）ギャップ（[`docs/notes/20260528-rbs-upstream-pr-resolv-typeclass.md`](../notes/20260528-rbs-upstream-pr-resolv-typeclass/)を参照）。
 
+**進行中（v0.1.15以降、`[Unreleased]`に蓄積中）: プラグイン契約のインターフェース分離（ADR-37 / ADR-38）——リリースゲート充足**。 1.0前のプラグインメカニズムレビューが、2つの太いプラグインフック（`flow_contribution_for`・`diagnostics_for_file`）を、狭く・宣言的にゲートされ・エンジンがインデックス化し・インターフェースごとにテスト可能な拡張サーフェス（PHPStanスタイル）へ分割する大規模なリファクタリングを促した。これにはプラグイン横断のボイラープレートを削る作成者ヘルパー層が伴う。**リリースゲートは現在クローズ済み:**バンドルされた14個の診断発行プラグインはすべて`node_rule`へ移行された（最後の`rigor-actionpack`は`NodeContext.ancestors`経由で、ゴールデンマスタースペックをグリーンにして着地）。スライス2（`dynamic_return`／`type_specifier`）はきれいに収まるコンシューマーを担い、スライス3は`rigor plugins --capabilities`カタログを出荷し、**ADR-37 / ADR-38はAccepted**である。残るのは非ゲートのエルゴノミクスのフォローオンのみ——下記のブランチDを参照。
+
 ## 復帰する実装者のための読書順
 
-`make verify`はクリーン。`[Unreleased]`は空（v0.1.12カットがそれまでに積み上がったものをすべて封入した）。3つのブランチがキューされており、特定の順序は強制されない。
+`make verify`はクリーン。**`[Unreleased]`は、現在ほぼ完成したプラグインメカニズムのインターフェース分離作業を保持している**（ADR-37 / ADR-38——§「Status」を参照）。リリースゲートは充足され、ADRはAcceptedである。下記のブランチDは残余の（非ゲートの）エルゴノミクス、ブランチA〜Cはその他のキューされたトラックである。
+
+### ブランチD — プラグインインターフェース分離（ADR-37 / ADR-38）: リリースゲート完了、残るはエルゴノミクスのみ
+
+着地済みと残りの全体像は[`docs/ROADMAP.md`](../roadmap/) §「Plugin contract — interface segregation + ergonomics (ADR-37 / ADR-38) — RELEASE GATES MET」にある。1画面サマリー:
+
+- **着地済み**（`[Unreleased]`）: ADR-38の`additional_initializers:`（Accepted、def形式）;作成者ヘルパー層（`Source::Literals`・`Diagnostic.from_node`／`from_location`・`Base#diagnostic`）;ADR-37スライス1/1c/1d（`node_rule`エンジン所有ウォーク + `node_file_context` + `NodeContext`）と、`diagnostics_for_file`ウォーカーから移行された**バンドルの14個の診断発行プラグインすべて**——`rigor-actionpack`（最後;4フェーズ、名前空間修飾に敏感、コントローラー名を`NodeContext.ancestors`から再導出、ゴールデンマスタースペックグリーン）がセットをクローズした;スライス2（`dynamic_return` + `type_specifier`） + 3つのコンシューマー（mangrove / minitest / rspec-matcher）;スライス3（`rigor plugins --capabilities`カタログ）。**ADR-37 Accepted**。
+- **残り（すべて非ゲート、需要駆動;それぞれが独自の振る舞いを保存するスライス——コミット前に検証）:**ボイラープレートのフェーズ0c（`Base.suggest`／SpellChecker——**着地済み**、statesman/rails-routes/activerecordのlevenshteinコピーを退役;自己チェックの同名衝突を避けるためのクラスメソッド）、サンプルプラグイン`rigor-lisp-eval`／`rigor-pattern`（`node_rule`へ**着地済み**、手書きの`Walker`を削除——SKILL整合性のギャップはクローズ）、0d（`config_schema`の`{kind:,default:}`デフォルト——小さなADRが必要、約17プラグイン）、0e（`Plugin::Inflector`——**[ADR-39](../adr/39-plugin-target-library-invocation/)経由で着地済み、Accepted:**許可リスト+rescueハーネスの背後で実際の`ActiveSupport::Inflector`を呼び出し、3つのコンシューマーすべてを移行、Redmine+Mastodonでバイト単位同一;**残り:** ADR-39スライス3（プロジェクト独自の語形変化のための`config/initializers/inflections.rb`の静的取り込み） + ADR-39スライス5（**選択可能な分離戦略**——`Plugin::Isolation`: `RIGOR_PLUGIN_ISOLATION`／`.rigor.yml`の`plugins_isolation:`経由で`none`／`ruby_box`／`process`、**3つすべて着地、`process`がデフォルト**（一度だけforkして再利用、クラッシュ封じ込め;`fork`なしでは`none`にフォールバック）。デフォルトはRedmine + 全スペックスイートでバイト単位同一、segfaultなしと検証済み;`ruby_box`はゲート付き実験的で、上流`Ruby::Box` VMのsegfaultでブロック中。残り: 正確なgemバージョンのロード + Rackカタログを`Isolation`経由でルーティング））;`Source::Literals`のシンボル専用バリアント;`dynamic_return`の一般化（脱出弁コンシューマーの移行パス）;ADR-38ブロック形式;`NodeRuleTest`／`DynamicReturnTest`ハーネス。
+- **明示的にスコープ外**（現状維持）: 脱出弁コンシューマー（sorbet/activerecord/activestorage/rspec-let——`flow_contribution_for`は、それらのメソッドゲート戻り値／動的レシーバー形状に対する、サポートされた非推奨バルブ）、純粋なFactProviderプラグイン（dry-*/graphql）、hanami/web（ADR-28ベース、別軸）。
+- **検証規律**（確立された移行パターン、残りのボイラープレートスライス向け）: それぞれが振る舞いを保存する——変更したプラグインの`spec/integration/plugins/<id>_plugin_spec.rb`を実行し、その後（Flake内で）`make verify`をコミット前に実行;解析器／メインプラグインの分割は`Analyzer.diagnose` → `Analyzer.*_violations_for`（ノードごと、ウォークなし）で位置情報のない`Violation`を返し、メインプラグインが`node_rule` + `Base#diagnostic`経由でラップする。
+
+これらすべての動機となった1.0前レビュー: [`docs/design/20260601-plugin-mechanism-pre-1.0-review.md`](../design/20260601-plugin-mechanism-pre-1.0-review/);フェーズ別計画: [`docs/design/20260602-plugin-boilerplate-reduction-plan.md`](../design/20260602-plugin-boilerplate-reduction-plan/)。
 
 ### ブランチA — v0.2.0評価リリース
 

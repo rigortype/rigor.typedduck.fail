@@ -3,8 +3,8 @@ title: "CLIコマンドリファレンス"
 description: "rigortype/rigor docs/manual/02-cli-reference.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/02-cli-reference.md"
 sourcePath: "docs/manual/02-cli-reference.md"
-sourceSha: "30dc219f37481e66085b94e32618edc37fd3b2c646dda432fcff40a58e9bb1c7"
-sourceCommit: "db8d01bf94926a72e6a2aaf15639d1591b7e142e"
+sourceSha: "288a991949e96584fee5e6e4789b4c7e33b30d85829221c5b0f1dc0215901449"
+sourceCommit: "d5d6614800bfc53f00e23b51f4c914d0e42f237f"
 translationStatus: "translated"
 sidebar:
   order: 9002
@@ -195,10 +195,12 @@ rigor mcp [--transport=stdio] [--config=PATH]
 `.rigor.yml`に設定された各プラグインの有効化状態 — ロード済み、ロードエラー（理由付き）、各プラグインの宣言した拡張サーフェス（surface） — を報告します。[プラグイン](../07-plugins/)を参照してください。
 
 ```sh
-rigor plugins [--format=text|json] [--strict] [--config=PATH]
+rigor plugins [--format=text|json] [--strict] [--capabilities] [--config=PATH]
 ```
 
-`--strict`なしでは常に`0`で終了し、`--strict`では1つでもプラグインのロードに失敗すると`1`で終了します（CIゲート）。単数形の`rigor plugin`と混同しないこと。
+`--strict`なしでは常に`0`で終了し、`--strict`では1つでもプラグインのロードに失敗すると`1`で終了します（CIゲート）。
+
+`--capabilities`は**拡張プロトコルカタログ**（[ADR-37](../adr/37-plugin-interface-segregation/)）に切り替えます。これは、ロードされた各プラグインが何を提供するか——その`node_rule`がマッチするASTノード型、その`dynamic_return`がゲートするレシーバークラス、その`type_specifier`がナローイングするメソッド、そしてそれが`produces`／`consumes`するファクト——を集約した、焦点を絞った機械可読なマップです。ツール連携のために`--format=json`と組み合わせます（AIエージェントはプラグインのソースを1行も読まずに、すべてのプラグインの振る舞いを列挙できます）。同じ狭いサーフェスはデフォルトのフルレポートにも現れます。単数形の`rigor plugin`と混同しないこと。
 
 ## `rigor plugin`
 

@@ -3,8 +3,8 @@ title: "ADR-2: 拡張API戦略"
 description: "rigortype/rigor docs/adr/2-extension-api.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/2-extension-api.md"
 sourcePath: "docs/adr/2-extension-api.md"
-sourceSha: "6ba7426d4fa453cb43664303921a327024d63ff0d02e78b48886608bc1e1cd9d"
-sourceCommit: "a5d648b126d5ed7b1e04a16a87927bca7883e069"
+sourceSha: "125728d3e524910fbbd484953bd96cca8d15c8e131071b85496cf082b65cca17"
+sourceCommit: "d5d6614800bfc53f00e23b51f4c914d0e42f237f"
 translationStatus: "translated"
 sidebar:
   order: 4002
@@ -35,7 +35,7 @@ Rigorはアーキテクチャをモデル化すべきであり、PHPの名前、
 
 RigorのExtension APIはPHPStanのようにすべきです: 設定またはプラグインマニフェストによって登録された小さく型付けされた拡張プロトコルのセット。各拡張はASTノード、`Scope`、リフレクションオブジェクト、`Type`値などの不変の解析コンテキストオブジェクトを受け取り、精密な貢献または`nil`/空の結果を返してコア解析器がデフォルト動作を続けられるようにします。
 
-プラグインはアプリケーションコードを実行してはなりません（MUST NOT）。解析されたRuby、RBS、生成されたシグネチャ、設定、依存関係メタデータ、キャッシュされたプラグインメタデータを検査できます（MAY）。
+プラグインはアプリケーションコードを実行してはなりません（MUST NOT）。解析されたRuby、RBS、生成されたシグネチャ、設定、依存関係メタデータ、キャッシュされたプラグインメタデータを検査できます（MAY）。（[ADR-39](../39-plugin-target-library-invocation/)がこの境界を明確化します。プラグインは宣言した*純粋で許可リストに載った**ターゲットライブラリ**のメソッド*を呼び出してよく（MAY）——これは信頼されたgem依存であり、エンジンの定数畳み込み層がすでにコア／標準ライブラリのメソッドを呼び出しているのと同じであり、PHPStan拡張が実際のフレームワークを呼び出すのと同じです——、それでも解析対象である*アプリケーション自身*のコードは依然として一切実行されません。）
 
 コアAPIは型推論とメタプログラミングサポートを改善する拡張ポイントから始まるべきです:
 

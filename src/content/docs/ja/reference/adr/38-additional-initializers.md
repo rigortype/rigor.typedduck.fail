@@ -3,14 +3,14 @@ title: "ADR-38 — Plugin-declared additional initializers"
 description: "Imported from rigortype/rigor docs/adr/38-additional-initializers.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/38-additional-initializers.md"
 sourcePath: "docs/adr/38-additional-initializers.md"
-sourceSha: "cb7a2b7dccb1e4f3d4499e719f3c0be1dbca4702d4f510e0b8560e14ded4c97c"
-sourceCommit: "d966039262656ed4e9d1900ebe003c332990a0ce"
+sourceSha: "6180dcd54d1b393d3db4ff65664b553f39d96266bd3f773d3300f7cec08b6104"
+sourceCommit: "d5d6614800bfc53f00e23b51f4c914d0e42f237f"
 translationStatus: "translated"
 sidebar:
   order: 4038
 ---
 
-Status: **Proposed, 2026-06-02.**
+Status: **Accepted, 2026-06-02.** def形式の`additional_initializers:`フィールドと`ScopeIndexer`のnil健全性ゲートの配線が実装され、`rigor-minitest`が最初の宣言（`Minitest::Test`／`ActiveSupport::TestCase`／`Test::Unit::TestCase` → `setup`）を出荷しました。ブロック形式の変種（RSpecの`before { }`／`let { }`。そのivar書き込みは`DefNode`ではなく呼び出しブロック内に存在します）は後続スライスへ延期されます——ivar書き込み収集器が宣言された呼び出しブロックへ降りていく必要があるためです。
 
 プラグインの`Manifest`フィールド`additional_initializers:`を追加する決定を記録します。これは、制約付きクラス上の`initialize`以外のどのメソッドもインスタンス変数の状態を確立する、とプラグインが宣言できるようにするものです — PHPStanの[`AdditionalConstructorsExtension`](https://github.com/rigortype/rigor/blob/master/references/phpstan/website/src/developing-extensions/additional-constructors-extensions.md)のRubyにおける対応物です。このフィールドは既存のエンジンゲート1つ（`ScopeIndexer`の書き込み前読み込みnil健全性ゲート）に供給されるので、フレームワークのライフサイクルメソッド（`setup`、`after_initialize`、依存性注入のセッター）で設定されるivarが、兄弟メソッドの本体で`nil`に拡幅されなくなります。
 

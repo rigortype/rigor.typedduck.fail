@@ -3,16 +3,16 @@ title: "ADR-37 — Plugin interface segregation (narrow extension protocols)"
 description: "Imported from rigortype/rigor docs/adr/37-plugin-interface-segregation.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/37-plugin-interface-segregation.md"
 sourcePath: "docs/adr/37-plugin-interface-segregation.md"
-sourceSha: "6f8bd24bb3a89653b04ffe5e2ee0a575f7f72a536ef9b8f85653f1c6a90e9dbb"
-sourceCommit: "d44040344e305fd14f3536f0ce3d499fb8821bb1"
+sourceSha: "34071af7f34c2c1488976a7f38f57919098876f85a6b7422d22c6212ecc98df1"
+sourceCommit: "d5d6614800bfc53f00e23b51f4c914d0e42f237f"
 translationStatus: "translated"
 sidebar:
   order: 4037
 ---
 
-Status: **Proposed, 2026-06-02; Slice 1 (NodeRule) implemented.**
+Status: **Accepted, 2026-06-02;スライス1〜3実装済み**。同梱プラグインセット全体に対して検証済み: 診断を発行するすべてのプラグインが`diagnostics_for_file`ウォーカーから`node_rule`へ移行され（最後にして最も複雑な`rigor-actionpack`——4フェーズ、名前空間修飾に敏感——は`NodeContext`の祖先経由で着地）、`flow_contribution_for`の分割（`dynamic_return`／`type_specifier`）はきれいに収まるコンシューマーを担い、機械可読なケイパビリティカタログ（`rigor plugins --capabilities`）が出荷される。太いフックはサポートされた非推奨の脱出弁として残る。**延期（非ゲート、需要駆動）:** 4つの脱出弁コンシューマー（rspec-`let`／sorbet／activerecord／activestorage）を`flow_contribution_for`から移行できるようにする`dynamic_return`の一般化、および作成者ヘルパーのボイラープレート削減フォローオン（`Base#suggest`・`config_schema`デフォルト・`Plugin::Inflector`——[ボイラープレート計画](../../design/20260602-plugin-boilerplate-reduction-plan/)フェーズ0c〜0e）。以下に挙げるインターフェースごとのテストハーネス（`NodeRuleTest`／`DynamicReturnTest`）も同様に、プラグイン作成者が必要とするまで延期される;ノードごとのテスト可能性は、移行が確立した`Analyzer.*_violations_for`分割を通じて既に到達可能である。
 
-**スライス1実装済み（2026-06-02）:** `Plugin::Base`上の`node_rule`クラスDSL＋`Base#node_rule_diagnostics`（エンジン所有の走査）＋ランナー／ワーカーセッション配線。プラグインは`node_rule(Prism::CallNode) { |node, scope, path| … }`を宣言します。エンジンは各ファイルのASTを（`Source::NodeWalker`経由で）一度だけ走査し、到達可能なすべてのノードを、その`node_type`を満たすルールへディスパッチし、プラグインインスタンス上で`instance_exec`します。そのため作者は走査を一切手作りしません。これはレガシーな`diagnostics_for_file`（今や概念的には`FileRule`脱出弁）と並んで動作し、ルールを宣言しないプラグインにとってはゼロコストのno-opであり、同じプラグインごとの`rescue`境界で隔離されます。スライス1cは2パス（収集してから検証する）プラグイン向けに`node_file_context`を追加します。スライス1のワーキングデシジョンを以下にピン留めします。**未完了:** `flow_contribution_for`の分割（スライス2）、`FactProvider`のネーミング（スライス3）、同梱プラグインの完全移行（スライス4。これまでに`rigor-deprecations`・`rigor-rspec-rails`・`rigor-statesman`を移行）、そしてケイパビリティカタログ。
+**スライス1実装済み（2026-06-02）:** `Plugin::Base`上の`node_rule`クラスDSL＋`Base#node_rule_diagnostics`（エンジン所有の走査）＋ランナー／ワーカーセッション配線。プラグインは`node_rule(Prism::CallNode) { |node, scope, path| … }`を宣言します。エンジンは各ファイルのASTを（`Source::NodeWalker`経由で）一度だけ走査し、到達可能なすべてのノードを、その`node_type`を満たすルールへディスパッチし、プラグインインスタンス上で`instance_exec`します。そのため作者は走査を一切手作りしません。これはレガシーな`diagnostics_for_file`（今や概念的には`FileRule`脱出弁）と並んで動作し、ルールを宣言しないプラグインにとってはゼロコストのno-opであり、同じプラグインごとの`rescue`境界で隔離されます。スライス1cは2パス（収集してから検証する）プラグイン向けに`node_file_context`を追加します。スライス1のワーキングデシジョンを以下にピン留めします。スライス1dは`NodeContext`（ノードルールのためのレキシカルコンテキスト）を追加します。**スライス2の設計**（`flow_contribution_for` → `dynamic_return` + `type_specifier`）は以下に記録されており、その**エンジンサーフェスは実装済み**です（2つのDSL + 2つのランナーメソッド + レシーバークラス／メソッド名のゲーティングが、非推奨の`flow_contribution_for`ファンアウトと並んで両ディスパッチサイトで参照される——完全に後方互換で、既存のすべてのコンシューマーは変更なくグリーン）。スライス2bはきれいに収まるすべてのコンシューマーを移行しました（`rigor-mangrove` → `dynamic_return`;`rigor-minitest`と`rigor-rspec`のマッチャーナローイング → `type_specifier`）;残りは正当な理由で非推奨の`flow_contribution_for`脱出弁に留まります（狭いDSLが表現しない2つの貢献形状——`rigor-rspec`の`let`バインディング、`rigor-sorbet`、`rigor-activerecord`、`rigor-activestorage`;スライス2 §「Outcome」を参照）。**スライス3（2026-06-02）:** `FactProvider`命名 + 機械可読なケイパビリティカタログ（`rigor plugins --capabilities`、§「機械可読なケイパビリティカタログ」を参照）が着地し、最後にして最も複雑な`diagnostics_for_file`ウォーカーである`rigor-actionpack`が`node_rule`へ移行されたので、**同梱の診断発行プラグインはすべてレガシーウォーカーから外れました**（14個が`node_rule`上）。**未完了（非ゲート、需要駆動）:** 4つの脱出弁コンシューマーを移行できるようにする延期された`dynamic_return`の一般化、および作成者ヘルパーのボイラープレート削減フォローオン（フェーズ0c〜0e）。
 
 [ADR-2](../2-extension-api/)が着手したインターフェース分離の作業を仕上げる決定を記録します。残る2つの*命令型*プラグインフック（`flow_contribution_for`、`diagnostics_for_file`）を、PHPStanのゲート／ペイロード不変条件に倣って、**狭く・マニフェスト登録され・エンジンがゲートする拡張プロトコル**の小さな集合へと分割します。肥大化した`Plugin::Base`フックは、後方互換性のための非推奨の脱出弁として残します。このADRはADR-2の*フックモデル*を改訂するものであり、ADR-1が所有するフロー貢献のセマンティクスは変更しません。
 
@@ -143,11 +143,11 @@ end
 
 ### スライス1のワーキングデシジョン（実装済み）
 
-- **登録はマニフェストフィールドではなくクラスDSL**。 `node_rule`は既存の`producer` DSLを踏襲します。ブロックは`instance_exec`を通じて走るので、プラグインインスタンス（`config`、`services`、`io_boundary`、`diagnostic`、`services.fact_store`）がスコープに入ります。ルールはインスタンスを必要とする*ロジック*を運ぶので、`block_as_methods`などのようにクラスロード時に構築される純粋なマニフェスト値オブジェクトにはできません。
+- **登録はマニフェストフィールドではなくクラスDSL**。`node_rule`は既存の`producer` DSLを踏襲します。ブロックは`instance_exec`を通じて走るので、プラグインインスタンス（`config`、`services`、`io_boundary`、`diagnostic`、`services.fact_store`）がスコープに入ります。ルールはインスタンスを必要とする*ロジック*を運ぶので、`block_as_methods`などのようにクラスロード時に構築される純粋なマニフェスト値オブジェクトにはできません。
 - **エンジンはランナーではなく`Base#node_rule_diagnostics`で走査を所有します**。それを（`Source::NodeWalker`の上で）`Base`に置くと、単一のディスパッチ地点がランナーとワーカーセッションの両方からそれぞれ1行の呼び出しで共有され、走査が単独でテスト可能になります。
 - **`node_type`は（厳密なクラスではなく）`node.is_a?(node_type)`でマッチします**。そのため、ルールはすべてを見るために`Prism::Node`を登録することも、一般的なケース向けに具体的なクラスを登録することもできます。
 - **`diagnostics_for_file`に対して加算的です**。両方が走ります。レガシーフックは`FileRule`脱出弁であり、変更されません。どのプラグインも移行を強いられません。
-- **ブロックは`(node, scope, path)`を受け取ります**。 ADR-2が約束したが結局提供しなかったリッチな`ContextInfo`（字句的なクラス／メソッド／可視性）は先送りのままです — `scope`はすでに`self_type`とほとんどのルールが必要とするナローイングファクトを運びます。`path`は`diagnostic(node, path:)`のために供給されます。
+- **ブロックは`(node, scope, path)`を受け取ります**。ADR-2が約束したが結局提供しなかったリッチな`ContextInfo`（字句的なクラス／メソッド／可視性）は先送りのままです — `scope`はすでに`self_type`とほとんどのルールが必要とするナローイングファクトを運びます。`path`は`diagnostic(node, path:)`のために供給されます。
 - **2パス（収集してから検証する）プラグイン** — *スライス1cで解決済み（下記参照）*。ノードごとの`NodeRule`は、エンジンの単一の前方走査の中でファイルローカルな収集パスを表現できません（参照が宣言に先行しうる）ので、`node_file_context`プリパスフックがそれを供給します。
 
 ### スライス1c — 2パスサポート（`node_file_context`、実装済み）
@@ -160,6 +160,53 @@ end
 - **クロスファイル収集**（例: activerecordの`db/schema.rb`＋`app/models`からのモデルインデックス） → すでに`#prepare`＋`services.fact_store`（`FactProvider`サーフェス）に属します。ノードルールは公開されたファクトを直接読み、ファイルごとのコンテキストを必要としません。
 
 `rigor-statesman`が最初の2パス消費側として移行されました。その`collect`は`node_file_context`に、`validate`は`node_rule(Prism::CallNode)`になり、手作りの走査は両方とも消えました（挙動は不変、統合スペックはグリーン）。
+
+### スライス2 — `flow_contribution_for`の分割（設計）
+
+2つ目の命令型フック`flow_contribution_for(call_node:, scope:)`は、スライス1が`diagnostics_for_file`を分割したのと同じやり方で分割されます。すなわち、エンジンがインデックス化する狭く宣言的にゲートされるクラスDSLにし、太いフックは非推奨の脱出弁として残します。
+
+**前提となる事実**。 `FlowContribution`は9つのスロットを持ちますが、エンジンはプラグインの`flow_contribution_for`をちょうど2箇所で参照し、ちょうど2つのスロットを読みます:
+
+- `Inference::MethodDispatcher#try_plugin_contribution`はすべてのプラグインの貢献をマージし、`.return_type`（呼び出しサイトごとの戻り型、`RbsDispatch`に先行）のみを使います。
+- `Inference::StatementEvaluator#apply_plugin_assertions`はすべてのプラグインの貢献をマージし、`.post_return_facts`（アサーションエッジのナローイング）のみを使います。
+
+したがって分割はクリーンで、2つの消費サイトと1:1です:
+
+**`dynamic_return`（→ `return_type`、レシーバーゲート）**。 `node_rule`／`producer`を反映するクラスDSL:
+
+```ruby
+dynamic_return receivers: ["ActiveRecord::Base"] do |call_node, scope|
+  # self = plugin instance; return a Rigor::Type or nil
+end
+```
+
+エンジンは、呼び出しのレシーバー型のクラスが宣言された`receivers:`エントリと等しいか、それを継承する場合にのみブロックを呼びます（`Environment#class_ordering`——今や標準のメカニズム——経由でマッチ）。メソッド名と型形状の精緻化（例: Mangroveキャリアの`type_args`）はブロック内に留まります。`Type`を返します（辞退する場合は`nil`）。`receivers:`はgrep可能でインデックス可能なゲートです——エンジンはすべての呼び出しについてすべてのプラグインに尋ねる代わりに、拡張をクラスごとにグループ化できます。
+
+**`type_specifier`（→ `post_return_facts`、メソッドゲート）**。
+
+```ruby
+type_specifier methods: [:assert_kind_of, :assert_instance_of] do |call_node, scope|
+  # return an Array of post-return facts, or nil
+end
+```
+
+エンジンは`call_node.name`が宣言された`methods:`に含まれる場合にのみブロックを呼びます。マージャーが既に適用しているのと同じ`post_return_facts`を返します。（`truthy_facts`／`falsey_facts`のエッジスロットは、プラグインからの条件エッジナローイングが配線されたときのために同じサーフェスの一部です;今日消費されるのは`post_return_facts`のみなので、フロアはそれを対象とします。）
+
+**登録とゲーティング**。どちらも`producer`スタイルのクラスDSLであり（プラグインインスタンスを必要とするロジックを持つため、マニフェストの値オブジェクトではありません）、クラス上に格納され、`Plugin::Registry`によってレシーバークラスインデックス（`dynamic_return`）とメソッド名インデックス（`type_specifier`）へ集約されます。エンジンは、重複した`collect_plugin_contributions`ファンアウトの代わりに、既存の2サイトでマッチするサブセットを参照します——そのファンアウトは`method_dispatcher.rb`と`statement_evaluator.rb`の両方から削除されます（スライス1レビューが指摘した2つのコピー）。
+
+**後方互換性**。 `flow_contribution_for`は非推奨のまま残り、エンジンは依然として両サイトでそれを（太いファンアウトとして）参照し、インデックス化された結果とマージします。そのため未移行のコンシューマー——`rigor-sorbet`・`rigor-activerecord`・`rigor-activestorage`・`rigor-mangrove`・`rigor-rspec`・`rigor-minitest`、およびサンプルプラグイン——は手付かずで動作し続けます;`dynamic_return`／`type_specifier`への移行は、プラグインファミリーごとに1つずつ、それぞれをゴールデンマスター統合スペックでガードしながら段階的に行われます。フロー貢献は型ナローイング（ひいては診断）に供給されるため、すべての移行は着地前に振る舞いを保存することが検証されます——偽陽性フロアが拘束条件です。
+
+**コンシューマーのマッピング**（各々がどのサーフェスを使うか）:
+
+- `dynamic_return`: **mangrove**（アンラップ → 担われた`type_args[0]`）——*移行済み*。
+- `type_specifier`: **minitest**（アサーションナローイング）——*移行済み*;rspecのマッチャーナローイング——適合するが移行は保留中。
+
+**結果／脱出弁は重要な役割を担う**。コンシューマーの移行によって、狭いDSLが意図的に*表現しない*2つの貢献形状がよくあるものだと判明し、それらのコンシューマーは正当な理由で非推奨の`flow_contribution_for`に留まります（まさにPHPStanが推奨しない`ExpressionTypeResolverExtension`の総当たりが果たす役割と同じです）:
+
+- **メソッドゲートの戻り型**。 rspecの`let(:x) { create(:x) }`／`subject`バインディングは、レシーバークラスではなく*メソッド名*（`let`／`subject`）でゲートされた呼び出しの*戻り型*を設定します。`dynamic_return`はレシーバーゲートであり、`type_specifier`は（戻り型ではなく）ファクトを生成するため、どちらも適合しません。sorbetの`sig`駆動の戻り値も同様です——固定のレシーバークラスではなく、呼ばれたメソッドがsigを持つことをキーとします。
+- **動的レシーバー**。 activestorageは、プロジェクトの*発見されたモデル*クラスに`Attached::One`／`::Many`を貢献します——`dynamic_return`が宣言する静的な`receivers:`リストではなく、プロジェクトごとの集合です。
+
+これらは設計上、脱出弁に留まります。将来の`dynamic_return`の一般化（メソッドゲートの戻り値のためのオプションの`methods:`ゲート、および／または動的レシーバー述語）がそれらを移行するためのパスであり、需要が狭いサーフェスの拡張を正当化するまで延期されます。
 
 ## Relationship to other ADRs
 

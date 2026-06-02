@@ -3,8 +3,8 @@ title: "Rigor Roadmap"
 description: "rigortype/rigor docs/ROADMAP.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/ROADMAP.md"
 sourcePath: "docs/ROADMAP.md"
-sourceSha: "4b1365be5062d37faff22221c7f54163992b056039d47304efcf71bb475c06b0"
-sourceCommit: "db8d01bf94926a72e6a2aaf15639d1591b7e142e"
+sourceSha: "4266a2ccfb93aceee61dd6bd68e40535b80eb541991042d6aa49cc23ee74bb48"
+sourceCommit: "d5d6614800bfc53f00e23b51f4c914d0e42f237f"
 translationStatus: "translated"
 sidebar:
   order: 9050
@@ -76,6 +76,28 @@ v0.1.9の「最後のプレビューカット」の意図は達成済み（SKILL
 ## 将来のサイクル（特定のリリースにコミットされていない）
 
 v0.1.x作業を通じて浮かび上がった項目で、次の実装者がフルスレッドを再読することなく見ておくべきもの。
+
+### プラグイン契約——インターフェース分離 + エルゴノミクス（ADR-37 / ADR-38）——リリースゲート充足
+
+1.0前のプラグインメカニズムレビュー（[`docs/design/20260601-plugin-mechanism-pre-1.0-review.md`](../design/20260601-plugin-mechanism-pre-1.0-review/)）が、大規模なインターフェース分離作業を駆動した。目標は、エンジンがASTウォークを所有し各狭い拡張を宣言的にゲートする（PHPStanスタイル）、AI可読でインターフェースごとにテスト可能なプラグイン契約であり、古い太いフックは非推奨の脱出弁として残す。**リリースゲートは現在充足された**——バンドルされたウォーカープラグインはすべて移行され、両ADRがAcceptedである;残るのは下記の非ゲートのエルゴノミクスのフォローオンのみ。フェーズ別計画: [`docs/design/20260602-plugin-boilerplate-reduction-plan.md`](../design/20260602-plugin-boilerplate-reduction-plan/)。
+
+**今サイクルで着地（`CHANGELOG.md` § `[Unreleased]`を参照）:**
+
+- **[ADR-38](../adr/38-additional-initializers/)**の`additional_initializers:`マニフェストフィールド（def形式） + `rigor-minitest`コンシューマー。**Accepted**（ブロック形式は延期）。
+- **作成者ヘルパー層**（ボイラープレート計画フェーズ0a/0b）: `Rigor::Source::Literals`・`Diagnostic.from_node` / `.from_location`・`Plugin::Base#diagnostic`。
+- **[ADR-37](../adr/37-plugin-interface-segregation/)スライス1/1c/1d**: `node_rule`（エンジン所有ウォーク） + `node_file_context`（同一ファイル2パス） + `NodeContext`（レキシカル祖先——長らく約束されてきたADR-2の`ContextInfo`）。`diagnostics_for_file`ウォーカーから移行された**バンドルの14個の診断発行プラグインすべて**——最後にして最も複雑な`rigor-actionpack`（4フェーズ、名前空間修飾に敏感、コントローラー名を`NodeContext.ancestors`から再導出;ゴールデンマスタースペックに対して振る舞いを保存）を含む。
+- **スライス2**: `dynamic_return(receivers:)` + `type_specifier(methods:)`エンジンサーフェス（加法的、後方互換） + きれいに収まるコンシューマーを移行（mangrove → `dynamic_return`;minitest + rspec-matcher → `type_specifier`）。
+- **スライス3**: `FactProvider`命名 + 機械可読な**`rigor plugins --capabilities`**カタログ（プラグインごと: node_ruleノード型、dynamic_returnレシーバー、type_specifierメソッド、生成／消費ファクト）——AI可読性のフィナーレであり、PHPStanにはない差別化要素。
+- **[ADR-37](../adr/37-plugin-interface-segregation/) Accepted**、移行済みセット全体に対して検証済み;`spec/rigor/public_api_drift_spec.rb`がすべての新しいサーフェスを固定する。
+
+**残り（すべて非ゲート、需要駆動のエルゴノミクス）:**
+
+1. **ボイラープレート計画フェーズ0c〜0e**（決定は既になされている——再議論しない;それぞれがプラグインごとのスペック変動を伴う独自の振る舞いを保存するスライスなので、着地前に各々を検証する）: **0c着地済み**——`Rigor::Plugin::Base.suggest`（クラスメソッド、`DidYouMean::SpellChecker`）がstatesman/rails-routes/activerecordの手書きlevenshteinを退役させた（FP安全: 提案テキストのみ）。**0d** `config_schema`の`{kind:, default:}`拡張により`Base#config`が宣言されたデフォルトをマージし、`DEFAULT_*`定数イディオムを退役させる（小さなADR）;**0e** `Plugin::Inflector`——**[ADR-39](../adr/39-plugin-target-library-invocation/)経由で着地済み**（スライス2 + 4）: `Rigor::Plugin::Inflector`が許可リスト + rescueハーネスを通して**実際の`ActiveSupport::Inflector`**を呼び出し（不在時は組み込みフォールバック）、`rigor-actionpack` / `rigor-activerecord` / `rigor-rails-routes`がそれへ移行され、手書きの近似が削除される。Redmine + Mastodonの`app + lib`でバイト単位同一と検証済み。**残りのフォローオン:** ADR-39スライス3（プロジェクト独自の語形変化のための`config/initializers/inflections.rb`の静的取り込み——デフォルトのASルールセットが一般的なケースを既にカバー）とADR-39スライス5（**選択可能な分離戦略**——`none` / `ruby_box` / `process`バックエンドを持つ`Plugin::Isolation`、`RIGOR_PLUGIN_ISOLATION` / `.rigor.yml`の`plugins_isolation:`経由で選択;**3つすべて着地、`process`がデフォルト**、`fork`なしでは`none`にフォールバック）。`process`（forkされた永続ワーカー、一度だけforkして再利用、クラッシュ封じ込め）はデフォルトかつ本番対応——フルRedmine実行**および全スペックスイート**でsegfaultなしのバイト単位同一と検証済み;`ruby_box`（`RUBY_BOX=1`再exec）はゲート付き実験的で、上流`Ruby::Box` VMのsegfaultバグでブロック中。残りのフォローオン: 最大忠実度の正確なgemバージョンロード（ターゲットの`Gemfile.lock`に固定された`ruby_box`／`process`ワーカー）と、Rackカタログを`Isolation`経由でルーティングすること。そして**`Source::Literals`のシンボル専用バリアント**（Q1決定: それらを追加し、セマンティクスを保存してプラグインを移行——`.value`／`.unescaped`はリテラルシンボルでは等価）。
+2. **`dynamic_return`の一般化**（オプションの`methods:`ゲート／動的レシーバー述語）——脱出弁コンシューマー（rspecの`let`バインディング、sorbet、activerecord、activestorage）を移行するためのパス。`flow_contribution_for`はサポートされた非推奨の脱出弁であり、それらのコンシューマーは変更なく動作する;これは狭いサーフェスを広げるだけである。
+3. **[ADR-38](../adr/38-additional-initializers/)ブロック形式**の`additional_initializers`（ivar書き込みが`DefNode`ではなく呼び出しブロック内に存在するrspecの`before`／`let`）——ivar書き込み収集器が宣言された呼び出しブロックへ降りていく必要がある。
+4. **インターフェースごとのテストハーネス**（`NodeRuleTest` / `DynamicReturnTest`）——プラグイン作成者が必要とするまで延期;`Analyzer.*_violations_for`分割が既にノードごとのロジックをユニットテスト可能にしている。
+
+脱出弁コンシューマー（sorbet / activerecord / activestorage / rspec-let）、dry-rb/graphqlの純粋なFactProviderプラグイン（`diagnostics_for_file`なし、移行するものなし）、hanami/web（ADR-28 ProtocolContractChecker——別の共通ベース軸）は、**node_rule／スライス2移行のスコープ外**であり、現状のまま留まる。
 
 ### 型言語 / エンジン
 - **O2 — マクロテンプレート / heredoc-Ruby展開（ADR-16）**。需要駆動の残り項目: **スライス5b**（Tier Dエンジン統合 — マッチした外部ファイルに対してトップレベルの`self_type`をナローイングし`bound_ivars`を事前バインド）と合成メソッドティア向けの**完全なADR-13リゾルバチェイン配線**（パラメータ化形式`Array[String]` / `Hash[K, V]`とプラグイン提供のユーティリティ型名をリゾルバチェイン経由でルーティング）。基礎サーベイは[`docs/notes/20260515-macro-expansion-library-survey.md`](../notes/20260515-macro-expansion-library-survey/)。
