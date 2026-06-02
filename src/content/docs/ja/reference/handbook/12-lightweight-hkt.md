@@ -3,8 +3,8 @@ title: "軽量HKT（`JSON.parse`とその仲間たち）"
 description: "rigortype/rigor docs/handbook/12-lightweight-hkt.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/12-lightweight-hkt.md"
 sourcePath: "docs/handbook/12-lightweight-hkt.md"
-sourceSha: "920a29380caf0dc5dc5b3fa0bc36e8c04f01f9da24a8bcae337d730c50a775d2"
-sourceCommit: "115824d2e84dbb9f14d031172159de8ab07e0619"
+sourceSha: "fbcd45f614ec1a1b920b8d492a60aec6636364a17308ae43a763950498a45fc6"
+sourceCommit: "6bcf38aa850fa4324ea959b2ce5cfdb61a88aa28"
 translationStatus: "translated"
 sidebar:
   order: 1012
@@ -16,10 +16,11 @@ Rigorはこれを正確にモデル化します:
 
 ```ruby
 parsed = JSON.parse('{"name": "Alice"}')
-assert_type(parsed,
+assert_type(
   "Array[json::value[String]] | Float | " \
   "Hash[String, json::value[String]] | Integer | " \
-  "String | false | nil | true")
+  "String | false | nil | true",
+  parsed)
 ```
 
 この背後にある仕組み——そして自前のDSLやstdlibメソッドに同じ形状を配線できるようにするもの——が**軽量HKT**（[ADR-20](../../adr/20-lightweight-hkt/)）です。Rigorによる、[Yallop & White 2014](https://www.cl.cam.ac.uk/~jdy22/papers/lightweight-higher-kinded-polymorphism.pdf) /

@@ -3,14 +3,24 @@ title: "Rigor MCPサーバー — AIエージェント統合"
 description: "rigortype/rigor docs/manual/10-mcp-server.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/10-mcp-server.md"
 sourcePath: "docs/manual/10-mcp-server.md"
-sourceSha: "1fb376295adc2360f8bdc05b1d39029ff04b667e99238af49159cd7e432c3ff4"
-sourceCommit: "db8d01bf94926a72e6a2aaf15639d1591b7e142e"
+sourceSha: "724c55575fdcbf10e7100be934482338bb7faaf56f00079d949583ea34e752ac"
+sourceCommit: "6bcf38aa850fa4324ea959b2ce5cfdb61a88aa28"
 translationStatus: "translated"
 sidebar:
   order: 9010
 ---
 
 `rigor mcp`は`rigortype` gemに同梱されているModel Context Protocol（MCP）サーバーです。Rigorの解析ツールを改行区切りstdioストリーム上のJSON-RPC 2.0ツール呼び出しとして公開するため、AIコーディングアシスタント——Claude Code、Cursor、Cline、VS Code Copilot Chat、その他のMCP対応エージェント——がセッション中にRigorを直接呼び出せます。
+
+> **この章の内容**
+> [MCP対LSP](#mcp対lsp--適切な統合の選択) ·
+> [ツール一覧](#ツール一覧) ·
+> [前提条件](#前提条件) ·
+> [CLI](#cli) ·
+> クライアント設定 — [Claude Desktop](#claude-desktop) · [Claude Code](#claude-code-cli) · [Cursor](#cursor) · [Cline](#clinevs-code拡張) · [汎用](#汎用--カスタムmcpクライアント) ·
+> ツールリファレンス — [`rigor_check`](#rigor_check) · [`rigor_type_of`](#rigor_type_of) · [`rigor_triage`](#rigor_triage) · [`rigor_annotate`](#rigor_annotate) · [`rigor_sig_gen`](#rigor_sig_gen) · [`rigor_explain`](#rigor_explain) · [`rigor_coverage`](#rigor_coverage) ·
+> [トラブルシューティング](#トラブルシューティング) ·
+> [ステータスとロードマップ](#ステータスとロードマップ)
 
 ## MCP対LSP — 適切な統合の選択
 

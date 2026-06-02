@@ -3,8 +3,8 @@ title: "Rigorハンドブック"
 description: "rigortype/rigor docs/handbook/README.mdからインポートされたドキュメントの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/README.md"
 sourcePath: "docs/handbook/README.md"
-sourceSha: "54194737adc757659871c04b9527df56447ceca840320592dbf2887684ebf439"
-sourceCommit: "dd55ede4decf11e2a57ac53e62d5732ad629a229"
+sourceSha: "34455c8c08c4c205c9125fad44fc9b6ebc301b2d602453a1363d423dbe4542c6"
+sourceCommit: "6bcf38aa850fa4324ea959b2ce5cfdb61a88aa28"
 translationStatus: "translated"
 sidebar:
   order: 1000
@@ -103,7 +103,7 @@ Rigorの語彙と、プログラミング言語の教科書や別の型チェッ
 
 ```ruby
 n = 1 + 2
-assert_type(n, "Constant<3>")  # Rigor がリテラル和をたたみ込む
+assert_type("Constant<3>", n)  # Rigor がリテラル和をたたみ込む
 ```
 
 これは「`assert_type`呼び出しの位置で、Rigorの`n`に対する推論が`Constant<3>`、つまりリテラル値`3`を持つ`Type::Constant`キャリアになっている」という意味です。

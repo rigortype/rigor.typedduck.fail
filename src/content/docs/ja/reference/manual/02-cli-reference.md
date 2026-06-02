@@ -3,8 +3,8 @@ title: "CLIコマンドリファレンス"
 description: "rigortype/rigor docs/manual/02-cli-reference.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/02-cli-reference.md"
 sourcePath: "docs/manual/02-cli-reference.md"
-sourceSha: "288a991949e96584fee5e6e4789b4c7e33b30d85829221c5b0f1dc0215901449"
-sourceCommit: "d5d6614800bfc53f00e23b51f4c914d0e42f237f"
+sourceSha: "9a24145294695b8430a33d66213f7a508e29d1197603d8f9fc9dc19b0d8b0032"
+sourceCommit: "6bcf38aa850fa4324ea959b2ce5cfdb61a88aa28"
 translationStatus: "translated"
 sidebar:
   order: 9002
@@ -17,6 +17,18 @@ rigor <command> [options] [arguments]
 ```
 
 `rigor help`はコマンド一覧を表示し、`rigor version`はインストール済みバージョンを表示します。不明なコマンドや不正なオプションの場合、`64`で終了します——これは慣例的な「使用法エラー」コードです。
+
+> **コマンド**
+> [check](#rigor-check) · [init](#rigor-init) ·
+> [annotate](#rigor-annotate) · [type-of](#rigor-type-of) ·
+> [type-scan](#rigor-type-scan) · [explain](#rigor-explain) ·
+> [diff](#rigor-diff) · [sig-gen](#rigor-sig-gen) ·
+> [lsp](#rigor-lsp) · [baseline](#rigor-baseline) ·
+> [triage](#rigor-triage) · [coverage](#rigor-coverage) ·
+> [mcp](#rigor-mcp) · [plugins](#rigor-plugins) ·
+> [plugin](#rigor-plugin) · [playground](#rigor-playground) ·
+> [skill](#rigor-skill) · [lsp対mcp](#rigor-lsp対rigor-mcp) ·
+> [終了コード](#終了コード)
 
 ## `rigor check`
 
@@ -38,7 +50,7 @@ rigor check [paths...]
 | `--clear-cache` | 実行前にキャッシュディレクトリを削除する。 |
 | `--cache-stats` | 終了時にオンディスクキャッシュのインベントリを表示する。 |
 | `--[no-]stats` | 実行サマリー（ファイル数、クラス数、メモリ、経過時間）をstderrに表示する。デフォルトはオン。 |
-| `--workers=N` | `N`個のRactorワーカーに解析を分散する。デフォルトは`0`（逐次処理）。 |
+| `--workers=N` | `N`個の並列ワーカープロセスに解析を分散する（現在はfork方式のプール、ADR-15）。デフォルトは`0`（逐次処理）。 |
 | `--baseline=PATH` | 設定を上書きしてベースライン（baseline）ファイルを読み込む。 |
 | `--no-baseline` | 設定されたベースラインを無視する。 |
 | `--baseline-strict` | ベースラインのドリフトで実行を失敗させる——CIゲートとして使用。 |
@@ -62,7 +74,7 @@ rigor init [--path=PATH] [--force]
 ファイルを再表示し、各行に評価する式の型を末尾の`#=> dump_type:`コメントとしてタグ付けします。[推論型の検査](../05-inspecting-types/)を参照してください。
 
 ```sh
-rigor annotate [--no-color] [--config=PATH] FILE
+rigor annotate [--[no-]color] [--config=PATH] FILE
 ```
 
 `FILE`は必須です。カラーはttyの場合に自動検出され、`NO_COLOR`を尊重します。`--color` / `--no-color`で上書きできます。パースエラーやファイル不在の場合は`1`で終了します。

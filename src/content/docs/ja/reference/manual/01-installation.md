@@ -3,8 +3,8 @@ title: "Rigorのインストール"
 description: "rigortype/rigor docs/manual/01-installation.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/01-installation.md"
 sourcePath: "docs/manual/01-installation.md"
-sourceSha: "002fb35ca2a8dda15d3af5e7223975a447e27302f2175b59f4abd6697d950000"
-sourceCommit: "fa9e1de7a00dc2aff56f6efa3045b4607650a647"
+sourceSha: "3e6497f93501c84dc98175f41a536d95a66c574d106a1822bb6d48a15dcdde1e"
+sourceCommit: "6bcf38aa850fa4324ea959b2ce5cfdb61a88aa28"
 translationStatus: "translated"
 sidebar:
   order: 9001
@@ -13,6 +13,16 @@ sidebar:
 Rigorはライブラリではなくツールです——リンターやコンパイラと同様に、プロジェクトを解析しますがランタイムの一部ではありません。**アプリケーションの`Gemfile`に追加しないでください**。`Gemfile`に記述すると、プロジェクト全体がRigorのRubyバージョンに縛られ、Rigorの依存関係がアプリケーションの依存関係解決に混入します。Rigorは独立してインストールし、プロジェクトに向けて使用してください。
 
 RigorはRuby 4.0で動作します。これは自分のコードが対象とするRubyとは独立しています: `target_ruby:`設定キーでRigorに**自分の**プロジェクトが実行するRubyを伝えますが、両者は一致している必要はありません。Rigorはプロジェクト——ソース、`Gemfile.lock`、gemの`.rbs`ファイル——をデータとして読み込み、プロジェクトのgemを自身のプロセスにロードすることはありません。独立してインストールしても何も失われません。
+
+> **AIコーディングエージェントを使っていますか？** Rigorのインストールとプロジェクトの設定を代わりにやってくれます — [Railsクイックスタート](../14-rails-quickstart/)のPath Aを参照してください。下記のチャンネルは手動のルートです。
+
+> **インストールチャンネル** —
+> [mise（推奨）](#推奨--ランタイムバージョンマネージャー) ·
+> [asdf](#asdf) ·
+> [gem install](#シンプルな代替手段--gem-install) ·
+> [Nix](#nix) ·
+> [devコンテナ](#コンテナ内での開発) ·
+> [CI](#継続的インテグレーション)
 
 ## 推奨 — ランタイムバージョンマネージャー
 

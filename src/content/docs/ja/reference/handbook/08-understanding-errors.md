@@ -3,8 +3,8 @@ title: "エラーの読み方"
 description: "rigortype/rigor docs/handbook/08-understanding-errors.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/08-understanding-errors.md"
 sourcePath: "docs/handbook/08-understanding-errors.md"
-sourceSha: "6d23ddfb1baa155dd6c0e4d77c8db4b0d386ebffb27e573dd973abf61a18edf2"
-sourceCommit: "0af2862f84982d9cfad4a1c0619340e15ba2f1bc"
+sourceSha: "1977527686b9694a261b7ecec5dde36ba429dc14247b94f6307b2316b9526c32"
+sourceCommit: "6bcf38aa850fa4324ea959b2ce5cfdb61a88aa28"
 translationStatus: "translated"
 sidebar:
   order: 1008
@@ -92,7 +92,7 @@ lib/user.rb:42:7: error: undefined method `upcas' for "alice" [call.undefined-me
 
 | ルール | 発火するとき | デフォルト深刻度 |
 | --- | --- | --- |
-| `assert.type-mismatch` | `assert_type(value, "expected")`呼び出しの実際の推論された型が期待文字列と一致しない。 | error |
+| `assert.type-mismatch` | `assert_type("expected", value)`呼び出しの実際の推論された型が期待文字列と一致しない。 | error |
 
 ### `dump.*` — デバッグヘルパー
 

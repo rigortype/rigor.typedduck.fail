@@ -3,8 +3,8 @@ title: "設定"
 description: "rigortype/rigor docs/manual/03-configuration.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/03-configuration.md"
 sourcePath: "docs/manual/03-configuration.md"
-sourceSha: "0b1b7332afae499c5b7e0884a4b11be14792dbbb3342bbe80a9be4076c9e5f6e"
-sourceCommit: "fa9e1de7a00dc2aff56f6efa3045b4607650a647"
+sourceSha: "34dc558b081dac4137325e33f08280984d01003d872bbfcd9faeeeefee03710b"
+sourceCommit: "6bcf38aa850fa4324ea959b2ce5cfdb61a88aa28"
 translationStatus: "translated"
 sidebar:
   order: 9003
@@ -83,7 +83,7 @@ cache:
 | キー | 型 | デフォルト | 意味 |
 | --- | --- | --- | --- |
 | `cache.path` | String | `.rigor/cache` | 永続キャッシュディレクトリ。[キャッシュ](../12-caching/)を参照。 |
-| `parallel.workers` | Integer | `0` | ファイルごとの解析用Ractorワーカー。`0`は逐次処理。CLI `--workers`と`RIGOR_RACTOR_WORKERS`が優先される。 |
+| `parallel.workers` | Integer | `0` | ファイルごとの解析用の並列ワーカープロセス（現在はfork方式のプール、ADR-15）。`0`は逐次処理。CLI `--workers`と`RIGOR_RACTOR_WORKERS`が優先される。 |
 | `plugins_io.network` | String | `"disabled"` | プラグインネットワークポリシー——`disabled`または`allowlist`。 |
 | `plugins_io.allowed_paths` | Array | `[]` | プラグインが読み取り可能なファイルシステムパス。 |
 | `plugins_io.allowed_url_hosts` | Array | `[]` | `network: allowlist`のときプラグインがフェッチ可能なURLホスト。 |

@@ -3,8 +3,8 @@ title: "クラス"
 description: "rigortype/rigor docs/handbook/06-classes.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/06-classes.md"
 sourcePath: "docs/handbook/06-classes.md"
-sourceSha: "81260b6f91be514900904bfaee8926c9d5601b57c805e0b40df03c525318430b"
-sourceCommit: "0af2862f84982d9cfad4a1c0619340e15ba2f1bc"
+sourceSha: "58caabb5dac1956589ddfbb43f76123f27021511472764321df5b0c66dc54888"
+sourceCommit: "6bcf38aa850fa4324ea959b2ce5cfdb61a88aa28"
 translationStatus: "translated"
 sidebar:
   order: 1006
@@ -126,9 +126,9 @@ end
 Point = Data.define(:x, :y)
 
 p = Point.new(x: 3, y: 4)
-assert_type(p, "Nominal[Point]")
-assert_type(p.x, "Constant<3>")
-assert_type(p.y, "Constant<4>")
+assert_type("Nominal[Point]", p)
+assert_type("Constant<3>", p.x)
+assert_type("Constant<4>", p.y)
 ```
 
 探索は`define_method`スタイルのブロック本体も辿るので、`Point = Data.define(:x, :y) do ... end`でも動作します。合成されたキーワード引数コンストラクタをオーバーライドするブロック定義の`def initialize(...)`も含みます（v0.1.2）。同じルールが`Const = Struct.new(*Symbol) do ... end`にも適用されます — ブロックボディのメソッド発見が両方の形式にわたって均一に組み合わせられます。
@@ -141,8 +141,8 @@ assert_type(p.y, "Constant<4>")
 Coord = Struct.new(:x, :y)
 
 c = Coord.new(10, 20)
-assert_type(c.x, "Constant<10>")
-assert_type(c.y, "Constant<20>")
+assert_type("Constant<10>", c.x)
+assert_type("Constant<20>", c.y)
 ```
 
 `Struct`はミュータビリティを追加します（アクセサはライターでもある）ので、インスタンス変数スタイルの蓄積が適用されます。`Data`は読み取り専用です。

@@ -3,8 +3,8 @@ title: "はじめに"
 description: "rigortype/rigor docs/handbook/01-getting-started.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/01-getting-started.md"
 sourcePath: "docs/handbook/01-getting-started.md"
-sourceSha: "1f8d4682c9f06a4303834054ac2e0bf787cbade3915c1eafc990ce0124d5f494"
-sourceCommit: "0af2862f84982d9cfad4a1c0619340e15ba2f1bc"
+sourceSha: "78e0ed9177d281e7fa7b3c6670e132639cbea1a213972fef6cd8e7344519791b"
+sourceCommit: "6bcf38aa850fa4324ea959b2ce5cfdb61a88aa28"
 translationStatus: "translated"
 sidebar:
   order: 1001
@@ -144,7 +144,7 @@ lib/demo.rb:1:9: error: undefined method `no_such_method' for "hello" [call.unde
 ```ruby
 n = 100
 m = n + 1
-assert_type(m, "Constant<101>")     # 算術がたたみ込まれる
+assert_type("Constant<101>", m)     # 算術がたたみ込まれる
 ```
 
 ```ruby
@@ -154,7 +154,7 @@ def kind(x)
   when String  then :str
   end
 end
-assert_type(kind(7), "Constant<:int>")  # ナローイングが case をたたみ込む
+assert_type("Constant<:int>", kind(7))  # ナローイングが case をたたみ込む
 ```
 
 ```ruby

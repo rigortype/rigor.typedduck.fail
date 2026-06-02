@@ -3,8 +3,8 @@ title: "キャッシング"
 description: "rigortype/rigor docs/manual/12-caching.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/12-caching.md"
 sourcePath: "docs/manual/12-caching.md"
-sourceSha: "ff44c24520ee1929d020d20ddae199645934cde7a726ecf4db351e07725a8b4b"
-sourceCommit: "fa9e1de7a00dc2aff56f6efa3045b4607650a647"
+sourceSha: "a05d935ddf7e9a272013e106c8e59b82bd4ed31cdf02ad906f2d311e3ccb9e0a"
+sourceCommit: "6bcf38aa850fa4324ea959b2ce5cfdb61a88aa28"
 translationStatus: "translated"
 sidebar:
   order: 9012
@@ -48,4 +48,4 @@ cache:
 
 ## 並行性
 
-キャッシュは安全に共有できます。並列Ractorワーカー（`--workers=N`）と同じプロジェクトに対する複数のエディタLSPセッションはアトミックなロック書き込みを通じて協調します。LSPはキャッシュを読み取り専用で開くため、並行して実行中の`rigor check`と競合することはありません。
+キャッシュは安全に共有できます。並列ワーカープロセス（`--workers=N`）と同じプロジェクトに対する複数のエディタLSPセッションはアトミックなロック書き込みを通じて協調します。LSPはキャッシュを読み取り専用で開くため、並行して実行中の`rigor check`と競合することはありません。

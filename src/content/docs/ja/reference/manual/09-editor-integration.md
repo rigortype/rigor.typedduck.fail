@@ -3,8 +3,8 @@ title: "Rigor LSP — エディタ統合"
 description: "rigortype/rigor docs/manual/09-editor-integration.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/09-editor-integration.md"
 sourcePath: "docs/manual/09-editor-integration.md"
-sourceSha: "7d54465de8f9ad1c68fd828e3e4a2ad672a46cc27e9f8aa6f9c2cc117356a19e"
-sourceCommit: "db8d01bf94926a72e6a2aaf15639d1591b7e142e"
+sourceSha: "d830bc8f1e3dc14dcf9f055cf246bd00a3dba9361d660d88cfe2ff939a4a5b74"
+sourceCommit: "6bcf38aa850fa4324ea959b2ce5cfdb61a88aa28"
 translationStatus: "translated"
 sidebar:
   order: 9009
@@ -13,6 +13,15 @@ sidebar:
 `rigor lsp`は`rigortype` gemにバンドルされたインプロセス言語サーバーです。stdioで[Language Server Protocol](https://microsoft.github.io/language-server-protocol/)を話し、Rigorのアナライザーをライブエディタ体験として公開します——キーストロークごとの診断、ホバーで型表示、アウトラインビュー、型認識補完。
 
 このページはエディタに組み込むためのエントリーポイントです。設計と機能マトリックスは[`docs/design/20260517-language-server.md`](../../design/20260517-language-server/)（v1）と[`docs/design/20260517-lsp-hover-completion.md`](../../design/20260517-lsp-hover-completion/)（v2）にあります。パッケージング根拠は[`docs/adr/19-language-server-packaging.md`](../../adr/19-language-server-packaging/)にあります。
+
+> **この章の内容**
+> [機能](#機能一覧) ·
+> [前提条件](#前提条件) ·
+> [CLI](#cli) ·
+> エディタ設定 — [Neovim](#neovim--nvim-lspconfig) · [VS Code](#vs-code--汎用lspクライアント) · [Helix](#helix) · [Emacs / Eglot](#emacs--eglot) · [Emacs / lsp-mode](#emacs--lsp-mode) ·
+> [トラブルシューティング](#トラブルシューティング) ·
+> [パフォーマンス](#パフォーマンス指標) ·
+> [ステータス + ロードマップ](#ステータス--ロードマップ)
 
 ## 機能一覧
 
@@ -75,9 +84,7 @@ lspconfig.rigor.setup({})
 
 ### VS Code — 汎用LSPクライアント
 
-まだ公式のVS Code拡張機能はありません。次のような汎用LSPクライアントラッパーを使用するか:
-[`vscode-languageclient-generic`](https://marketplace.visualstudio.com/items?itemName=mads-hartmann.bash-ide-vscode-tooltips)
-またはサーバーを登録する最小限の拡張機能を作成します:
+まだ公式のVS Code拡張機能はありません。汎用LSPクライアントラッパー拡張機能を使用するか、サーバーを登録する最小限の拡張機能を作成します:
 
 ```ts
 // extension.ts (minimal example)

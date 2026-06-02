@@ -3,8 +3,8 @@ title: "ナローイング"
 description: "rigortype/rigor docs/handbook/03-narrowing.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/03-narrowing.md"
 sourcePath: "docs/handbook/03-narrowing.md"
-sourceSha: "a9c93c6cf6dae30e4ed3619576a3c9260f1e50088b9e22104b219a994ad586ec"
-sourceCommit: "0af2862f84982d9cfad4a1c0619340e15ba2f1bc"
+sourceSha: "dd84834d0848841d221fce78caa911225e927dedcfcdce902dd2308f68eed2ba"
+sourceCommit: "6bcf38aa850fa4324ea959b2ce5cfdb61a88aa28"
 translationStatus: "translated"
 sidebar:
   order: 1003
@@ -254,7 +254,7 @@ end
 
 `dump_type(...)`はイントロスペクションヘルパーです。ランタイムではno-op（Rigorのテストハーネスが使う`Kernel`拡張に存在）で、推論された型を名前付きの`dump.type`診断として出力します。ナローイングが発火したことを確認するデバッグ時に使います。
 
-`assert_type(value, "expected-string")`はより厳密な兄弟です: 推論された型が文字列に**一致しない**とき診断を出力します。ハンドブックの例が動作を固定するために使っています。
+`assert_type("expected-string", value)`はより厳密な兄弟です: 推論された型が文字列に**一致しない**とき診断を出力します。ハンドブックの例が動作を固定するために使っています。
 
 ## 次に読むもの
 

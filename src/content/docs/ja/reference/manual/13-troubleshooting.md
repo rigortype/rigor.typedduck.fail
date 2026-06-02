@@ -3,14 +3,24 @@ title: "トラブルシューティング"
 description: "rigortype/rigor docs/manual/13-troubleshooting.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/13-troubleshooting.md"
 sourcePath: "docs/manual/13-troubleshooting.md"
-sourceSha: "ca44fff7982921700583e5743dc2c00d637d4dbab0eac94edfab7ce68f2b9be3"
-sourceCommit: "fa9e1de7a00dc2aff56f6efa3045b4607650a647"
+sourceSha: "adfe32cf0e4cf5caf9c055a8a75f6c20274a9771f7c792e7ff14a8c38cf480c6"
+sourceCommit: "6bcf38aa850fa4324ea959b2ce5cfdb61a88aa28"
 translationStatus: "translated"
 sidebar:
   order: 9013
 ---
 
 よくある問題とその解決策。エディタ固有の問題については[エディタ統合](../09-editor-integration/)を、「なぜこの診断が（発火しな）かったのか」については[ハンドブック第8章](../../handbook/08-understanding-errors/)を参照してください。
+
+> **症状から探す**
+> [command not found](#rigor-command-not-found) ·
+> [checkが何も解析しない](#rigor-checkが何も解析しない) ·
+> [すべてが`untyped`](#すべてがuntyped--dynamictopになる) ·
+> [診断が多すぎる](#対処できないほど多くの診断が出る) ·
+> [診断が誤っている](#診断が誤っている偽陽性) ·
+> [結果が古く見える](#結果が古く見える) ·
+> [実行が遅い](#実行が遅い) ·
+> [バグの報告](#バグの報告)
 
 ## `rigor: command not found`
 
@@ -54,7 +64,7 @@ Rigorは動作するコードにフラグを立てないことを目指してい
 
 - キャッシュをウォームアップしてください——最初の実行が最も遅いものです。
 - `paths:`を狭め、`exclude:`を広げて、Rigorが生成されたまたはベンダーされたコードを走査しないようにします。
-- 大きなプロジェクトでは、`rigor check --workers=N`でファイルごとの解析をRactorワーカーに分散します。
+- 大きなプロジェクトでは、`rigor check --workers=N`でファイルごとの解析を並列ワーカープロセスに分散します。
 
 ## バグの報告
 

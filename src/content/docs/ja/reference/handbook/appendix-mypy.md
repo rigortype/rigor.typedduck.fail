@@ -3,8 +3,8 @@ title: "付録 — mypy / Pyrightから来た場合"
 description: "Imported from rigortype/rigor docs/handbook/appendix-mypy.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/appendix-mypy.md"
 sourcePath: "docs/handbook/appendix-mypy.md"
-sourceSha: "05e6737e88bd88fe5f77a5e6eed16cca056d9e1470156cb18cce72930acffbd2"
-sourceCommit: "5854b02cbe92b9099e0cd6907a44780069243119"
+sourceSha: "a2bbd1bf7eeeee5c1459eb9353b401c918d633b011a1cef1950079574c12018d"
+sourceCommit: "6bcf38aa850fa4324ea959b2ce5cfdb61a88aa28"
 translationStatus: "translated"
 sidebar:
   order: 1050
@@ -122,7 +122,7 @@ Pythonの`.pyi`ファイルとRigorの`.rbs`ファイルは同じ役割を果た
 | `mypy_path`設定 | `.rigor.yml`の`signature_paths:` |
 | `py.typed`マーカー | （対応なし — Rigorは`paths:`以下の任意のファイルを確認する） |
 | `from __future__ import annotations` | （対応なし — RBSはファイル分離の性質上常に遅延） |
-| 型を明らかにする: `reveal_type(x)` | `dump_type(x)`（info診断）/ `assert_type(x, "...")` |
+| 型を明らかにする: `reveal_type(x)` | `dump_type(x)`（info診断）/ `assert_type("...", x)` |
 
 `reveal_type`と`dump_type`は名前が異なる同じツール — 両者ともcall-siteで推論された型を診断として発行し、どちらも慣用的なテストハーネスではランタイムでno-opで、どちらも「チェッカーはここで何を見ているか？」を調べる正規のプローブ。
 
@@ -183,7 +183,7 @@ def classify(n)
 end
 
 result = classify(7)
-assert_type(result, "Constant<:zero> | Constant<:positive> | Constant<:negative>")
+assert_type("Constant<:zero> | Constant<:positive> | Constant<:negative>", result)
 ```
 
 同じ精度。片方はパラメータとreturnのアノテーションを書くが、もう片方は書かない。

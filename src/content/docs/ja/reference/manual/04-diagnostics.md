@@ -3,8 +3,8 @@ title: "診断"
 description: "rigortype/rigor docs/manual/04-diagnostics.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/04-diagnostics.md"
 sourcePath: "docs/manual/04-diagnostics.md"
-sourceSha: "4b3681c9836b9ba1aa104cd32a5f1edd1337a254f1404c52b55ae0a1911e9bb9"
-sourceCommit: "f391fadebcb3c674444a346501d51664b046dec2"
+sourceSha: "60ae5cd100542eb005132e545f978aa76b11a7a8c6b6042a7fee5cc8e31a56b2"
+sourceCommit: "6bcf38aa850fa4324ea959b2ce5cfdb61a88aa28"
 translationStatus: "translated"
 sidebar:
   order: 9004
@@ -34,6 +34,7 @@ sidebar:
 | `call.wrong-arity` | 位置引数の数がどのシグネチャとも一致しない。 |
 | `call.argument-type-mismatch` | 引数の型がパラメータ契約（contract）に違反することが証明できる。 |
 | `call.possible-nil-receiver` | 受信側が`T | nil`で、メソッドが`NilClass`で定義されていない。 |
+| `call.unresolved-toplevel` | トップレベルの暗黙的self呼び出しが、同一ファイルの`def`、`pre_eval:`パッチ、`Kernel` / `Object`メソッドのいずれにも解決されない。 |
 | `flow.always-raises` | 式が到達可能なすべてのパスで例外を投げることが証明できる。 |
 | `flow.unreachable-branch` | `if` / `unless` / 三項演算子のブランチが静的に到達不能。 |
 | `flow.always-truthy-condition` | 条件が証明可能に常に真または常に偽。 |
@@ -41,6 +42,9 @@ sidebar:
 | `def.return-type-mismatch` | メソッドボディの結果が宣言されたRBSの戻り型に違反する。 |
 | `def.ivar-write-mismatch` | インスタンス変数が最初の書き込みと異なる型で書かれる。 |
 | `def.method-visibility-mismatch` | 明示的レシーバーの呼び出しがprivateメソッドに到達する。 |
+| `def.override-visibility-reduced` | オーバーライドが、プロジェクト定義の祖先から継承した可視性を下げる。 |
+| `def.override-return-widened` | オーバーライドの宣言された戻り型が、継承した戻り型を広げる（共変性）。 |
+| `def.override-param-narrowed` | オーバーライドが、継承したパラメータ型を狭める（反変性）。 |
 | `assert.type-mismatch` | `assert_type`の期待値が推論型と一致しない。 |
 | `dump.type` | `dump_type`呼び出し — 情報として推論型を出力する。 |
 

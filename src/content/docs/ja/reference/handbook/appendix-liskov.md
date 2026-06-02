@@ -3,8 +3,8 @@ title: "Appendix — The Liskov Substitution Principle"
 description: "Imported from rigortype/rigor docs/handbook/appendix-liskov.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/appendix-liskov.md"
 sourcePath: "docs/handbook/appendix-liskov.md"
-sourceSha: "7df952942bc6d5e6ed841ebbebf6b5e3a9ffb057354b8e856d3a2e2c86e12945"
-sourceCommit: "5854b02cbe92b9099e0cd6907a44780069243119"
+sourceSha: "4df1df88fa6093aa8ab7851f42e681e05726876dd1fac12e561800ecdedf6b3f"
+sourceCommit: "6bcf38aa850fa4324ea959b2ce5cfdb61a88aa28"
 translationStatus: "translated"
 sidebar:
   order: 1050
@@ -132,7 +132,7 @@ end
 # 広げられた Object ではなく `self`（Array[Integer]）を返す。
 # Object を返すと事後条件を*弱化*することになる。
 copy = [1, 2, 3].dup
-assert_type(copy, "Array[Integer]")
+assert_type("Array[Integer]", copy)
 ```
 
 型理論の付録の<strong><ruby>漸進的保証<rp>（</rp><rt>gradual guarantee</rt><rp>）</rp></ruby></strong>（[§「ブレーム、漸進的保証、そして信頼境界」](../appendix-type-theory/)）との関連は直接的である: シグネチャ規則を構成によって尊重するシステムは、「アノテーションを追加しても以前にパスしていた呼び出しサイトを決して壊さない」も満たす。なぜなら、正しく広げられたパラメータと正しく狭められた戻り値こそ、置換可能性を保つアノテーションだからである。
