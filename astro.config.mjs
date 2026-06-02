@@ -13,7 +13,7 @@ const sidebarTranslations = {
   architecture: { ja: '設計判断' },
   designNotes: { ja: '設計ノート' },
   project: { ja: 'プロジェクト' },
-  developmentNotes: { ja: '開発ノート' },
+  developmentNotes: { ja: '開発レポート' },
 };
 
 export default defineConfig({
@@ -164,12 +164,13 @@ export default defineConfig({
             { slug: 'reference/current-work' },
             { slug: 'reference/roadmap' },
             { slug: 'reference/types' },
-            {
-              label: 'Development Notes',
-              translations: sidebarTranslations.developmentNotes,
-              items: [{ autogenerate: { directory: 'reference/notes', collapsed: true } }],
-            },
           ],
+        },
+        {
+          label: 'Development Notes',
+          translations: sidebarTranslations.developmentNotes,
+          collapsed: true,
+          items: [{ autogenerate: { directory: 'reference/notes', collapsed: true } }],
         },
       ],
     }),
