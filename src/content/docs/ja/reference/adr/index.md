@@ -3,8 +3,8 @@ title: "アーキテクチャ決定記録"
 description: "rigortype/rigor docs/adr/README.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/README.md"
 sourcePath: "docs/adr/README.md"
-sourceSha: "bad99474ea12ded94126e0381e1a251f6a57f96a6ddeb03454a5e04da6b3a849"
-sourceCommit: "d5d6614800bfc53f00e23b51f4c914d0e42f237f"
+sourceSha: "5ecb2bea4200bd068022921e3f6a3c53481fc2d8e72e73e35087ac463fe1343c"
+sourceCommit: "0af2862f84982d9cfad4a1c0619340e15ba2f1bc"
 translationStatus: "translated"
 sidebar:
   order: 4000
@@ -63,6 +63,7 @@ sidebar:
 | ADR-37 | [Plugin Interface Segregation (narrow extension protocols)](37-plugin-interface-segregation/) | Accepted (Slices 1–3 implemented; all bundled walker plugins migrated) |
 | ADR-38 | [Plugin-declared Additional Initializers](38-additional-initializers/) | Accepted (def-form implemented; block-form deferred) |
 | ADR-39 | [Plugins may invoke their target library's safe methods directly](39-plugin-target-library-invocation/) | Accepted (Plugin::Inflector + 3 consumers migrated; slice 3 deferred) |
+| ADR-40 | [`config_schema` declared defaults (`{kind:, default:}`)](40-config-schema-defaults/) | Accepted (mechanism + 13 plugins migrated off the `DEFAULT_*` idiom) |
 
 ## 新しいADRの追加
 

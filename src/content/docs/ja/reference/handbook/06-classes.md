@@ -3,14 +3,28 @@ title: "クラス"
 description: "rigortype/rigor docs/handbook/06-classes.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/06-classes.md"
 sourcePath: "docs/handbook/06-classes.md"
-sourceSha: "8eeea260215e63f1d11cff4fabe0e7680152041d39daf42cfc1354eb323a2d5e"
-sourceCommit: "f87b68f852350994a182dca35c52464a59be6e53"
+sourceSha: "81260b6f91be514900904bfaee8926c9d5601b57c805e0b40df03c525318430b"
+sourceCommit: "0af2862f84982d9cfad4a1c0619340e15ba2f1bc"
 translationStatus: "translated"
 sidebar:
   order: 1006
 ---
 
-この章はクラス側の型付けを扱います — 異なる位置での`self`の意味、定数の解決、そしてRigorが`attr_*`と`Data.define`宣言をどう読むか。
+この章はクラス側の型付けを扱います — 異なる位置での`self`の意味、定数の解決、そしてRigorが`attr_*`、`Data.define`、`Struct.new`宣言をどう読むか。物語というよりリファレンスです: 一度通して読み、必要なセクションに戻ってきてください。
+
+> **この章の内容**
+> [インスタンス側とクラス側の`self`](#インスタンス側とクラス側のself) ·
+> [定数](#定数) ·
+> [`attr_*`](#attr_readerattr_writerattr_accessor) ·
+> [インスタンス変数](#メソッドをまたいだインスタンス変数) ·
+> [`Data.define`](#datadefine) ·
+> [`Struct.new`](#structnew) ·
+> [継承](#継承とメソッド解決) ·
+> [`class` / `singleton(C)`型](#class型とsingletonc型) ·
+> [カスタム`===`](#カスタムcase_eq) ·
+> [エイリアスクラス](#定数宣言エイリアスクラス) ·
+> [モジュール](#モジュール) ·
+> [`protected` / `private`](#protectedとprivate)
 
 ## インスタンス側とクラス側の`self`
 

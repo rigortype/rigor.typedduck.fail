@@ -3,14 +3,23 @@ title: "プラグイン"
 description: "rigortype/rigor docs/handbook/09-plugins.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/09-plugins.md"
 sourcePath: "docs/handbook/09-plugins.md"
-sourceSha: "51f5ea18b118a06eb1aa4f86cafc65c2738fe3f8ab6d78a3bea185fe3858ab77"
-sourceCommit: "203008e9741e8ffd61448e32cf9b89c19f1339da"
+sourceSha: "70b065f0c323988586abde9282b3e99b00bbeaecff871fd8a388a3b0d57b6b9f"
+sourceCommit: "0af2862f84982d9cfad4a1c0619340e15ba2f1bc"
 translationStatus: "translated"
 sidebar:
   order: 1009
 ---
 
-これが最も短い章です。プラグインが存在する理由はひとつ: 一部のメソッドの型が、どんなRBSシグでも表現できない方法で**ランタイムでの引数のシェイプ（shape）に依存する**からです。
+プラグインが存在する理由はひとつ: 一部のメソッドの型が、どんなRBSシグでも表現できない方法で**ランタイムでの引数のシェイプ（shape）に依存する**からです。この章は、それがプラグインに値するのはいつか — そして同じくらい多くの場合、値しないのはいつか — を判断する助けになります。
+
+この章はプラグインの*作成*は教え**ません**。それは[`examples/`](https://github.com/rigortype/rigor/blob/master/examples/README.md)にあります — 16個のチュートリアルウォークスルーで、それぞれが1つの拡張サーフェスにスポットを当てています — 一方、実際のフレームワーク向けのすぐにインストールできるgemは[`plugins/`](https://github.com/rigortype/rigor/blob/master/plugins/README.md)にあります。プラグインが必要かどうかを判断するには読み進めてください;作成したくなったら`examples/`へ、既存のものをインストールするなら`plugins/`へ進んでください。
+
+> **この章の内容**
+> [プラグインを使うとき](#プラグインを使うとき) ·
+> [プラグインを書くべきか？](#プラグインを書くべきか) — まずこれを読む ·
+> [プラグインが今日できること](#プラグインが今日できること) ·
+> [マクロ / DSL展開基板](#マクロ--dsl展開基板adr-16) ·
+> [次に読むもの](#次に読むもの)
 
 ## プラグインを使うとき
 
@@ -34,6 +43,8 @@ Lisp.eval([:if, true, "a", 0])  # ランタイムでString | Integer
 これらのそれぞれに[`examples/`](https://github.com/rigortype/rigor/blob/master/examples/README.md)に実例があります。[`examples/README.md`](https://github.com/rigortype/rigor/blob/master/examples/README.md)ページは16の実例をアーキテクチャ軸（設定スキーマ、ファイルI/O、キャッシュプロデューサー、`Scope#type_of`を通じたエンジン連携、クロスプラグインファクト（fact）、戻り型コントリビューションなど）で比較し、読む順序を推奨しています。
 
 ## プラグインが今日できること
+
+> まだここにいますか？ ほとんどの読者はまず[プラグインを書くべきか？](#プラグインを書くべきか)へ飛ぶべきです — 答えはたいてい「いいえ、RBSと`RBS::Extended`で事足ります」です。下記のサーフェスは、本当に「はい」のときのためのものです。
 
 v0.1.0+プラグイン契約（contract） — [`docs/internal-spec/plugin.md`](../../internal-spec/plugin/)に固定されており、同ディレクトリのいくつかのスライス（slice）仕様に展開されています — はプラグインに5つの主要サーフェス（surface）を与えます:
 

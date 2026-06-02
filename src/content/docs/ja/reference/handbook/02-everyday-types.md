@@ -3,14 +3,27 @@ title: "日常的に出会う型"
 description: "rigortype/rigor docs/handbook/02-everyday-types.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/02-everyday-types.md"
 sourcePath: "docs/handbook/02-everyday-types.md"
-sourceSha: "49531d5e5b609d775ed74951fc5c5211f0ac314cde1030d27707a77bb9ae5c66"
-sourceCommit: "f391fadebcb3c674444a346501d51664b046dec2"
+sourceSha: "3a9ef0f378f40b4a46de5959705e57268232be09c5a6b128a678baebf5105096"
+sourceCommit: "0af2862f84982d9cfad4a1c0619340e15ba2f1bc"
 translationStatus: "translated"
 sidebar:
   order: 1002
 ---
 
-この章が最も重要です。以下のキャリアを把握してしまえば、ハンドブックの残りはそれらに適用されるルールの話だけになります。
+この章が最も重要です。以下のキャリアを把握してしまえば、ハンドブックの残りはそれらに適用されるルールの話だけになります。また、用語集として戻ってくるページでもあります — 下の表がキャリアの図鑑全体を一望できます。
+
+> **この章の内容**
+> [なぜ「型」では粒度が荒いのか](#なぜ型では粒度が荒いのか) ·
+> [キャリアを見る（`rigor annotate`）](#キャリアを自分で見る--rigor-annotate) ·
+> [名前的型](#名前的型--馴染み深い出発点) ·
+> [定数](#定数--単一のruby値) ·
+> [整数範囲](#整数範囲--有界な区間) ·
+> [リファインメント](#リファインメント--述語で制約された値) ·
+> [差分](#差分--ベースから単一の値を引いた) ·
+> [`Dynamic[Top]`](#dynamictop--漸進的キャリア) ·
+> [タプルとハッシュシェイプ](#タプルとハッシュシェイプ--異種構造) ·
+> [ユニオン](#ユニオン--このどれか) ·
+> [実例](#実例)
 
 ## なぜ「型」では粒度が荒いのか
 
@@ -31,6 +44,8 @@ n = ARGV.size
 これが重要な理由: Rigorが出したい診断のほとんどは、より狭い事実を必要とします。「Integer」だけでは`n / 0`が常に例外を投げると証明できませんが、`Constant<0>`なら証明できます。「Array」だけでは`arr.first.upcase`が安全と証明できませんが、`non-empty-array[String]`なら証明できます。
 
 まとめると: プログラムのすべての地点にある各値は**キャリア**（carrier）で記述されます。キャリアは広い（`Integer`、`Dynamic[Top]`）場合もあれば、狭い（`Constant<3>`、`non-empty-string`）場合もあります。この章の残りはキャリアの図鑑です。
+
+図鑑に入る前に記法を一つ: 山括弧は具体的な値または境界を保持し（`Constant<3>`、`int<0, max>`）、角括弧はRBSと全く同じく型パラメータを保持します（`Nominal[String]`、`Hash[K, V]`、`Dynamic[Top]`）。
 
 ## キャリアを自分で見る — `rigor annotate`
 
@@ -89,7 +104,7 @@ m = n + 1                   #=> dump_type: int<1, max>
 double = n * 2              #=> dump_type: int<0, max>
 ```
 
-ここでの`max`は「正の無限大」を意味します — 上限は無制限です。乗算は下限を保持するため、`n * 2`は`int<0, max>`のままです。
+ここでの`max`は「正の無限大」を意味します — 上限は無制限です。下の表に出てくる`min`はその鏡像で、「負の無限大」です。乗算は下限を保持するため、`n * 2`は`int<0, max>`のままです。
 
 よく使う範囲には短い名前があります:
 

@@ -4,7 +4,7 @@ description: "Imported from rigortype/rigor docs/notes/20260518-matsumoto-2008-p
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260518-matsumoto-2008-poly-records-rigor-review.md"
 sourcePath: "docs/notes/20260518-matsumoto-2008-poly-records-rigor-review.md"
 sourceSha: "fb1892514eb3cfb0d8a6ea74578fe0db5d49db60c5dc4180b0adaf2ab0a3c12a"
-sourceCommit: "d5d6614800bfc53f00e23b51f4c914d0e42f237f"
+sourceCommit: "0af2862f84982d9cfad4a1c0619340e15ba2f1bc"
 sourceDate: "2026-06-01T22:49:16+09:00"
 sourceLanguage: "ja"
 sidebar:

@@ -3,8 +3,8 @@ title: "Rails Ecosystem Plugins — Roadmap"
 description: "Imported from rigortype/rigor docs/design/20260508-rails-plugins-roadmap.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/design/20260508-rails-plugins-roadmap.md"
 sourcePath: "docs/design/20260508-rails-plugins-roadmap.md"
-sourceSha: "c798f7c6e6d9937f89581273ae1c43f741518471371bd4d9d61b8a8d29428d10"
-sourceCommit: "203008e9741e8ffd61448e32cf9b89c19f1339da"
+sourceSha: "31333bc9cb5ce86e47b3433bfc35e583eb9e138ffcecd8b19f6fb9f67f34c91d"
+sourceCommit: "0af2862f84982d9cfad4a1c0619340e15ba2f1bc"
 translationStatus: "translated"
 sidebar:
   order: 20265508
@@ -12,7 +12,9 @@ sidebar:
 
 ステータス: **計画中、2026-05-08**。このドキュメントはRailsアプリ向けの`rigor-*`プラグインファミリーの計画をキャプチャしています。情報提供目的であり、個々のプラグイン契約の拘束力のあるソースは各プラグインのディレクトリ下の`README.md`と統合仕様に残ります。
 
-このファミリーの最初のプラグイン——[`rigor-activerecord`](../../plugins/rigor-activerecord/)——は`master`（コミット`e8fda84`）に着地し、[`skills/rigor-plugin-author/SKILL.md`](https://github.com/rigortype/rigor/blob/master/skills/rigor-plugin-author/SKILL.md)の「モノリポでスタート、契約が安定したら`git subtree split`で抽出」規律に従ってモノリポにステージされています。
+> **覆された前提（2026-06-02）: サブツリー分割の配布モデルは廃止されました**。このロードマップは、各プラグインが最終的に`git subtree split`で独自の個別公開gemへ抽出されることを前提に書かれました。そのモデルは**取り下げられました** — バンドルされたプラグインは現在、単一の`rigortype` gemの中で出荷され（プラグインごとのgemspecはコミット`9769f5fa`で削除）、[ADR-31](../../adr/31-contribution-and-supply-chain-policy/)はサードパーティプラグインを作者自身のリポジトリに置くものとし（WD4）、サブツリー*マージ*は稀な予約済みインポートオプション（WD5）としてのみ残し、計画された送出フローとしては残しませんでした。以下の「作業原則」のサブツリー分割に関する記述、「サブツリー分割の準備チェックリスト」、そしてプラグインごとの「抽出」ステップは、現在の計画ではなく**歴史的文脈**として読んでください。ティアテーブル、依存グラフ、プラグインごとの動作スケッチは正確で有用なままです;変わったのは*配布*の前提だけです。
+
+このファミリーの最初のプラグイン——[`rigor-activerecord`](../../plugins/rigor-activerecord/)——は`master`（コミット`e8fda84`）に着地し、[`skills/rigor-plugin-author/SKILL.md`](https://github.com/rigortype/rigor/blob/master/skills/rigor-plugin-author/SKILL.md)の「モノリポでスタート」規律に従ってモノリポにステージされています。（元の「契約が安定したら`git subtree split`で抽出」という規律の後半は廃止されました — 上記の覆された前提の注記を参照してください。）
 
 ## 作業原則
 
