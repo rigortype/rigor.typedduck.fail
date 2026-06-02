@@ -3,8 +3,8 @@ title: "プラグイン"
 description: "rigortype/rigor docs/handbook/09-plugins.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/09-plugins.md"
 sourcePath: "docs/handbook/09-plugins.md"
-sourceSha: "70b065f0c323988586abde9282b3e99b00bbeaecff871fd8a388a3b0d57b6b9f"
-sourceCommit: "0af2862f84982d9cfad4a1c0619340e15ba2f1bc"
+sourceSha: "b80e4b99eb33c2e29443816c19e0712eda013813dab15153095bc1b2975ad933"
+sourceCommit: "5c304b2c680eccdbfaffc114c0f31ce89f740ad4"
 translationStatus: "translated"
 sidebar:
   order: 1009
@@ -93,7 +93,7 @@ end
 
 ### フロア / シーリング
 
-ADR-16 § WD13に従い、v0.1.xの成果物は**フロア**: 合成メソッドが名前で発行されるため、クロスファイルディスパッチが解決される（`call.undefined-method`なし）。戻り型は`Dynamic[T]`（Tier C）または`untyped`（Tier B）に縮退します。[ADR-13](../../adr/13-typenode-resolver-plugin/)リゾルバチェイン経由の精密な戻り型プロモーションは**シーリング**で、具体的なプラグイン作者が必要とするときの後のイテレーションのために予約されます。基板はADR-5の堅牢性に従い、精度を*捏造*しません。
+ADR-16 § WD13に従い、**フロア**は合成メソッドが名前で発行されることであり、これによってクロスファイルディスパッチが解決されます（`call.undefined-method`なし）。一般的なケースでは精密な戻り型も回復されます: **Tier B**は由来モジュールが著作したRBSに再ディスパッチし（Deviseの`valid_password?`は`Dynamic[T]`ではなく`bool`に解決される）、**Tier C**は素のクラス名の戻り値をその`Nominal`に解決します。依然`Dynamic[T]`に縮退するのは、パラメータ化された／ユーティリティ型形のTier Cの戻り値（`Array[String]`、`Pick<T, K>`）です;それらを[ADR-13](../../adr/13-typenode-resolver-plugin/)リゾルバチェイン経由でルーティングすることが**シーリング**で、需要駆動です。基板はADR-5のロバストネスに従い、精度を*捏造*しません。
 
 ### 基板と手書きウォーカーの選択
 

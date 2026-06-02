@@ -3,8 +3,8 @@ title: "Current Work — Resume Bookmark"
 description: "rigortype/rigor docs/CURRENT_WORK.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/CURRENT_WORK.md"
 sourcePath: "docs/CURRENT_WORK.md"
-sourceSha: "d4d7be6696b5850ece8340eecf4eb8bac8311a21c31d411c7520fb1cd386f5fc"
-sourceCommit: "0af2862f84982d9cfad4a1c0619340e15ba2f1bc"
+sourceSha: "479fa3b7367c7d6542f704a778b09e1c4460354a0e1fe13e32bc5bea0938247e"
+sourceCommit: "5c304b2c680eccdbfaffc114c0f31ce89f740ad4"
 sourceDate: "2026-05-28T23:05:38+09:00"
 translationStatus: "translated"
 sidebar:
@@ -40,6 +40,8 @@ Mastodonの残り6件のエラーはすべてエンジン精度とは無関係: 
 
 残るのは非ゲートのエルゴノミクスのフォローオンのみ——下記のブランチDを参照。
 
+**同じく進行中（ドキュメント限定、並行トラック）:**ユーザー向けドキュメント（ハンドブック + マニュアル + `docs/types.md`、現在はプラグインごとのドキュメントへ流れ込んでいる）のユーザーフレンドリー化オーバーホール。これは上記のエンジン／プラグイン契約作業とは独立しており、このファイルの末尾に独自の復帰セクションを持つ——[§「ドキュメントのオーバーホール」](#ドキュメントのオーバーホール並行トラック--進行中ドキュメント限定)を参照。
+
 ## 復帰する実装者のための読書順
 
 `make verify`はクリーン。**`[Unreleased]`は、現在ほぼ完成したプラグインメカニズムのインターフェース分離 + エルゴノミクス作業を保持している**（ADR-37 / ADR-38 / ADR-39——§「Status」を参照）。リリースゲートは充足され、3つのADRすべてがAcceptedである。下記のブランチDは残余の（非ゲートの）エルゴノミクス——最大の2つのボイラープレート項目は完了した: **0a（`Source::Literals`）着地済み**（グリッド完成 + 10プラグイン + 1例が移行）と**0d（`config_schema`デフォルト、[ADR-40](../adr/40-config-schema-defaults/)）着地済み**（メカニズム + 13プラグインが`DEFAULT_*`から移行）。ブランチDに残るのはより小さく需要駆動のもの（ADR-39の語形変化フォローオン、`dynamic_return`の一般化、ADR-38ブロック形式、インターフェースごとのテストハーネス）。ブランチA〜Cはその他のキューされたトラックである。**次セッションのエントリーポイント: 残りのブランチD項目は独立した需要駆動スライス;より大きな戦略的レバーはブランチAの単一の残りゲート——v0.2.0ゲート1、*外部*のサードパーティ`rigor-*` gemのためのプラグイン契約安定化である（サブツリー分割／公開ゲートは単一バンドルgemモデルに置き換えられた）。これはもう1つの漸進的スライスではなく明示的な計画を必要とする**。
@@ -57,7 +59,7 @@ Mastodonの残り6件のエラーはすべてエンジン精度とは無関係: 
 
 **残り（すべて非ゲート、需要駆動;それぞれが独自の振る舞いを保存するスライス——コミット前に検証）:**
 1. **ボイラープレート0a——`Source::Literals`採用——着地済み**。前提条件のシンボル専用 + String返却バリアントが出荷された（抽出グリッドは両軸にわたって完成: `symbol`／`symbol_name`／`symbol_or_string_name` + 元の`symbol_or_string`、公開APIドリフトスペック + RBSシグで固定）。10個のバンドルプラグイン + 1個の例がヘルパーへ移行された（statesman／rspec／activestorage／factorybot／actionpack／rails-routes／graphql／actionmailer／dry-schema／activerecord + patternの例）、各々ゴールデンマスタースペックに対して振る舞いを保存;`make verify`クリーン。**残りのテール（需要駆動）:** assocキーの*名前一致*イディオム（`el.key.is_a?(SymbolNode) && el.key.unescaped == "x"`）は値抽出ではなくキー比較である——4ヘルパーグリッドの外;専用の`symbol_named?(node, name)`ヘルパーがそれを吸収できるが、独自のスライスである。
-2. **ボイラープレート0d——`config_schema`の`{kind:, default:}`——着地済み（[ADR-40](../adr/40-config-schema-defaults/)）**。 `Base#config`がユーザー設定の下にマニフェスト宣言のデフォルトをマージする;13個のバンドルプラグインが`DEFAULT_*`定数イディオムから移行された（statesman／pundit／actioncable／activejob／sidekiq／actionpack／activestorage／factorybot／rails-i18n／actionmailer／activerecord／rails-routes／sorbet）、各々振る舞いを保存;`make verify`クリーン。動的デフォルト（sorbetの`paths`）は設計上`fetch`-with-defaultのまま。**残りのテール（需要駆動）:** `rigor-playground`コマンド（チェッカープラグインではない）と、同じ形式に乗る将来の設定可能なプラグイン作成者。
+2. **ボイラープレート0d——`config_schema`の`{kind:, default:}`——着地済み（[ADR-40](../adr/40-config-schema-defaults/)）**。`Base#config`がユーザー設定の下にマニフェスト宣言のデフォルトをマージする;13個のバンドルプラグインが`DEFAULT_*`定数イディオムから移行された（statesman／pundit／actioncable／activejob／sidekiq／actionpack／activestorage／factorybot／rails-i18n／actionmailer／activerecord／rails-routes／sorbet）、各々振る舞いを保存;`make verify`クリーン。動的デフォルト（sorbetの`paths`）は設計上`fetch`-with-defaultのまま。**残りのテール（需要駆動）:** `rigor-playground`コマンド（チェッカープラグインではない）と、同じ形式に乗る将来の設定可能なプラグイン作成者。
 3. **ADR-39フォローオン:**スライス3（プロジェクト独自の語形変化のために`config/initializers/inflections.rb`を静的取り込み——ASデフォルトルールセットが一般的なケースを既にカバー;未解決の設計点は長命なLSPプロセスにおけるプロジェクトごとのルール分離）;`rigor-rspec-rails`のRackカタログも`Isolation`経由でルーティング（低価値——一度きりのフェッチ）;最大忠実度の正確なgemバージョンのロード（ターゲットの`Gemfile.lock`に固定されたワーカー）;分離パフォーマンスチェック（大規模プロジェクトでの`process`デフォルト下のコールごとIPC） + ADR-15のforkバックエンド内でのforkのネスト。
 4. **`dynamic_return`の一般化**（オプションの`methods:`ゲート／動的レシーバー述語）——脱出弁コンシューマーを`flow_contribution_for`から移行するパス。
 5. **ADR-38ブロック形式**の`additional_initializers`（ivar書き込みが呼び出しブロック内に存在するrspecの`before`／`let`）——ivar書き込み収集器が宣言された呼び出しブロックへ降りていく必要がある。
@@ -147,3 +149,96 @@ Phases 1〜4着地済み（String / Integer / Float / Comparable / Math / HashSh
 ## リリース後フォローアップ
 
 - **`data/oss-sweep/mastodon-thresholds.json`** — 保存済み閾値をv0.1.12のベースライン（baseline）に対してリフレッシュし、週次OSSスイープゲートが新しい〜6ベースラインを反映するようにする。現在のファイルは未較正（`max_diagnostics: 999999`）。
+
+## ドキュメントのオーバーホール（並行トラック — 進行中、ドキュメント限定）
+
+`doc-coauthoring`ワークフローで実行する、**ユーザー向け**ドキュメントに対するユーザーフレンドリー化パス。ドキュメント限定;エンジン／仕様コードには触れない。すべてのコミットは`master`上にあり、**プッシュされていない**。`make verify`は影響を受けない（コードは変更されていない）;ここでの規律はファイルごとのMarkdown + コールドリード検証サブエージェントであって、テストスイートではない。
+
+> **プラグイン移行を続けますか？** 完全で自己完結した手順——（ii）レイアウト、**コピーするな・突き合わせよルール + 繰り返し現れる陳腐パターンのカタログ**、ハウススタイル、リンクパス規約、検証、推奨される（ハイブリッドスカウト）実行形——は[`docs/notes/20260603-plugin-doc-migration-playbook.md`](../notes/20260603-plugin-doc-migration-playbook/)にある。それと下記のチェックリストを読むこと;両者を合わせれば発端となったセッションの蓄積コンテキストを置き換えられるので、新規／巻き戻したセッションが同じ品質で続行できる。
+
+### 完了（コミット済み）
+
+- **ハンドブック——全19ファイル**（`docs/handbook/`）: 12章 + 7付録。各々に章のオリエンテーション + 「この章の内容」ミニ目次を付けた;すべてのアンカーをコールドリード検証した（github-sluggerルール——すべて解決し、先頭／末尾のハイフンなし、衝突なし）。
+- **マニュアル——全14章**（`docs/manual/`）: 長い章（cli-reference、mcp-server、rails-quickstart、editor-integration、troubleshootingのsymptom-index）にミニ目次;短い章は既に良いものは検証して据え置いた（skills / plugins / inspecting-types / ci / baseline）。
+- **`docs/types.md`**: 「キャリアを一望する」例ブロックを追加（このページはキャリアの動物園を約束しながら何も見せていなかった） + 山括弧vs角括弧の規約。
+
+### 確立されたハウススタイル（さらなるドキュメント作業で再利用）
+
+長い／複数セクションのページにはオリエンテーションブロック + 「この章の内容」インラインミニ目次（短い単一トピックのページではスキップ——比例的に）;スキルファーストのオンボーディング;実際のコマンド出力を見せる;エッジケースは仕様／マニュアルに委ねる;**すべてのページのアンカーはコールドリードサブエージェントが検証する**（そのファイルだけを与え、他のコンテキストは与えない;github-sluggerアンカーを計算させ、解決しないリンク + 事実誤りをフラグさせる）。短く既に正しいページは、埋め草を足すのではなく変更せず残す。
+
+### 道中で着地したコード検証済みの事実修正（これらはスタイルではなく本物のドキュメントバグ）
+
+各々編集前にソースに対して確認済み:
+- **`assert_type`引数順序** — エンジンは`assert_type("type-string", expr)`を要求する（文字列が先頭;`check_rules.rb`は引数0が`StringNode`であることを要求する）。ハンドブックは**41個**すべての呼び出しで値先頭を使っていた → すべての例が黙ってnoopしていた。41個すべてを文字列先頭に反転した（コミット`a3dabfeb`）;マニュアル / `rule_catalog` / `Rigor::Testing`は既に正しかった。
+- **`disable`設定キー** — ドキュメントは`disabled_rules:`を示していたが、ローダーは`data.fetch("disable")`しか読まない;コピーされた`disabled_rules:`ブロックは黙って無視される。ハンドブック + マニュアルにわたって修正した。
+- **ワーカーバックエンド** — `--workers=N` / `parallel.workers`は「Ractorワーカー」ではなく**fork**ベース（ADR-15;Ractorプールは延期）。caching / troubleshooting / configuration / cli-referenceで修正した。（環境変数`RIGOR_RACTOR_WORKERS`は本当にその名前——据え置き。）
+- **診断カタログ** — マニュアルは出荷済みの4つのルール（`call.unresolved-toplevel`、`def.override-*`）を欠いていた;追加した。
+- **HKT章** — バンドル登録が「1つ / 8メソッド」と記述されていた;実際は**2つ**（`json::value` + `csv::parsed`） / **9**メソッド。`hkt_builtins.rb`からリフレッシュした。
+- **RBS章** — 「`target self`を使う」 → 本物の`self is T`形（仕様検証済み）。
+- **迷子のタグ** — `</content>` / `</invoke>`が`appendix-typeprof.md`に漏れ込んでいた;削除した。
+- **その他** — VS Codeの誤ったマーケットプレイスリンク（editor-integration）;rails-quickstartのベースライン有効化が「ステップ5の後」と言っていたが実際はステップ6で生成される;mypy付録の`object`の語釈。
+
+### 進行中——プラグインごとのドキュメント再構成（「（ii）」分割）
+
+決定（ユーザーと共に）: ユーザー向けプラグインドキュメントは公開マニュアルへ移す;ツリー内のREADMEは開発者／契約資料を保持する——単一ソース化、重複なし。
+
+- **レイアウト**: ユーザー向け → `docs/manual/plugins/<id>.md`（何をチェックするか / 設定 / 何を推論するか / 制限）;開発者／内部は`plugins/<id>/README.md`に留まる（レイアウト / アーキテクチャ / 作成サーフェス / デモ）、トップにユーザーページへのポインタを置く;`docs/manual/plugins/README.md`が索引（`docs/manual/README.md`の項目7に配線）。
+- **ハンドブックの章が既にプラグインを深くカバーしている場合**（Sorbet = ハンドブック第10章）、マニュアルページは薄く保ち、重複させる代わりにその章を指す。
+- **移行チェックリスト——31プラグイン中24**。`[x]` = ユーザーページが`docs/manual/plugins/<id>.md`下に存在する（+ READMEをスリム化／陳腐化解消）;`[ ]` = まだ。（移行済みはコミットを表示。）
+
+  _Railsコア + メタ:_
+  - [x] `rigor-activerecord` — `22900dac`（+ 陳腐化修正`5ace10bd`）
+  - [x] `rigor-rails-routes` — `9e9fa052`
+  - [x] `rigor-rails-i18n` — `d4d16ef1`
+  - [x] `rigor-actionpack` — `094b8d0e`
+  - [x] `rigor-activejob` — `3df0af7c`
+  - [x] `rigor-activestorage` — `5c725e78`
+  - [x] `rigor-actionmailer` — `aba3d882`
+  - [x] `rigor-factorybot` — `aba3d882`
+  - [x] `rigor-rails` — `aba3d882`（requireアグリゲーターのフレーミング）
+
+  _dry-rb:_
+  - [x] `rigor-dry-types` — `aba3d882`
+  - [x] `rigor-dry-struct` — `cac2a102`
+  - [x] `rigor-dry-schema` — `cac2a102`
+  - [x] `rigor-dry-validation` — `cac2a102`（RBSオーバーレイ / ADR-25ギャップをフラグ——下記を参照）
+
+  _その他（完了）:_
+  - [x] `rigor-rspec` — `66226ee1`
+  - [x] `rigor-sorbet` — `7d64f493`（ハンドブックポインタスタイル）
+  - [x] `rigor-sinatra` — `a6825064`
+
+  _まだ未移行（15）——フレームワーク / Tier-3のテール:_
+  - [x] `rigor-devise` — `43ca0366`
+  - [x] `rigor-statesman` — `43ca0366`
+  - [x] `rigor-mangrove` — `43ca0366`
+  - [x] `rigor-pundit` — `43ca0366`
+  - [x] `rigor-sidekiq` — `650822a0`
+  - [x] `rigor-actioncable` — `650822a0`
+  - [x] `rigor-minitest` — `650822a0`
+  - [x] `rigor-graphql` — `650822a0`
+  - [ ] `rigor-rspec-rails`
+  - [ ] `rigor-shoulda-matchers`
+  - [ ] `rigor-hanami`
+  - [ ] `rigor-typescript-utility-types`
+  - [ ] `rigor-rbs-inline`
+  - [ ] `rigor-activesupport-core-ext`
+  - [ ] `rigor-playground` — ブラウザプレイグラウンドバックエンド、**チェッカープラグインではない**（依然プラグインごとのgemspecを唯一持つ）;おそらく完全なユーザーページではなく短いREADMEポインタ。到達したら決める。
+- **CRITICAL——コピーするな、突き合わせよ**。RailsファミリーのREADMEは**v0.1.0の着地時点で凍結**されており、出荷された挙動に対して実質的に陳腐化している（v0.1.11/v0.1.12のOSSサーベイ + ADR-39がREADMEに一切言及のない多くを追加した;一部のREADMEは今やサポート済みの機能を「スコープ外」の下に列挙すらしている）。READMEをマニュアルにコピーすると**陳腐な主張を公開**してしまう——既に一度発生した（activerecordの「regular plurals only」、その後修正）。ユーザーは**移行しながら突き合わせる**ことを選んだ: 各プラグインについて、現在の挙動を`CHANGELOG.md`（プラグインIDをgrep） + プラグインソース（マニフェストの`config_schema`、パーサ／アナライザーが実際に扱うもの）に対して確認し、凍結された`(v0.1.0)`スコープリストを破棄して*現在の*能力／制限セットを書く。同じパスでREADME自身の開発セクションも陳腐化解消する（完了済みの「Future direction」項目を落とし、ADR-37移行済みの箇所で`diagnostics_for_file`→`node_rule`を修正し、`.gemspec`行を削除）。
+- **既に完了したクリーンアップ（コミット`85e27336`）:** 10個の本番プラグインから陳腐な「— example Rigor plugin」タイトルを落とした;退役した「post-extraction / subtree-split」の表現を削除した（subtree-splitは2026-06-02に退役——プラグインは`rigortype`にバンドルされて出荷、プラグインごとのgemspecは消滅）。各移行はそのプラグインのREADMEレイアウトから今や削除された`.gemspec`行も剥がす。
+
+### 次セッションのエントリーポイント（ドキュメントトラック）
+
+上記の移行チェックリストの未チェックの`[ ]`ボックスを処理する——**7つ残る**、すべてフレームワーク / Tier-3のテール（rspec-rails、shoulda-matchers、hanami、typescript-utility-types、rbs-inline、activesupport-core-ext、playground）。プラグインごとのレシピ: READMEを読む;**`CHANGELOG.md`（プラグインIDをgrep） + プラグインソースに対して突き合わせる**（上記のCRITICAL注記——READMEのスコープリストを信用しない）;ユーザー↔開発者を分割する;正確な`docs/manual/plugins/<id>.md`を書く;READMEを内部資料にスリム化＋陳腐化解消し、ユーザーガイドへのポインタを足す;`.gemspec`行があれば剥がす;`docs/manual/plugins/README.md`に索引エントリーを足す;リンクを検証する（コールドリードチェック）。残りのTier-3プラグインの多くはRailsコアより単純（**診断なし / 設定なし**のファクトプロバイダまたはマクロ基板消費者）なので、ページは短い——だが依然突き合わせること、一部のREADMEは後のスライスより前のものなので。
+
+**移行中にフラグした未解決のコード／ドキュメントギャップ（次セッションの判断）:** `rigor-dry-validation`はRBSオーバーレイを出荷するが、そのREADME／使用法はユーザーに`signature_paths: vendor/bundle/.../rigor-dry-validation-0.1.0/sig`を配線するよう指示している——バンドルモデルの下では存在しないパス。`rigor-activerecord`（マニフェストで`signature_paths: ["sig"]`を宣言し、[ADR-25](../adr/25-plugin-contributed-rbs/)に従ってRBSを自動ロードする）とは異なり、dry-validationはそれを採用していない。1行の修正はマニフェストに`signature_paths: ["sig"]`を足すこと（その後手動配線のドキュメントを落とす）;認識 + `:dry_validation_contracts`ファクトはそれなしで既に動作する。そのユーザーページとREADMEの両方でフラグした;変更していない（プラグインコードの編集、意図的にレビュー用に残した）。
+
+残りの作業のための決着済みの決定:
+- **`rigor-rails`**は**`require`便宜アグリゲーターのみ**である——`plugins/rigor-rails/lib/rigor-rails.rb`で検証済み（7つのサブプラグインをrequireする;それらを自動有効化**しない**し、`plugins:`内の`- rigor-rails`はセットを有効化しない——有効化は`.rigor.yml`でプラグインごとのまま）。それとして正確に文書化すること;セットを有効化する設定グループとしてフレーミング**しない**。そのREADME + マニュアルの`07-plugins.md`の「メタgem」言及はどちらもバンドルモデルより前のもので、この訂正が必要。
+- **`rigor-playground`**はチェッカープラグインではなくブラウザプレイグラウンドバックエンドである（依然プラグインごとのgemspecを唯一残して持つ）——そもそもユーザーページに値するか決める（おそらくREADMEポインタのみ）。
+
+### オープン項目（ドキュメントトラック）
+
+- **CHANGELOG?**上記のドキュメント正確性修正（特に`assert_type`順序、`disable`キー）はドキュメントに従うユーザーに影響する;`[Unreleased]`のドキュメント修正エントリーを検討する。ユーザーに先送り——このパスは`docs/` + `plugins/*/README.md`のみに触れた。
+- **プッシュされていない**。約36個すべてのコミットは`master`上にローカル。
+- このトラックの将来を見据えた1行説明は[`docs/ROADMAP.md`](../roadmap/) §「将来のサイクル」→「ドキュメント」にある。

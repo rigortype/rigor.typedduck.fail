@@ -3,8 +3,8 @@ title: "Rigorユーザーマニュアル"
 description: "rigortype/rigor docs/manual/README.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/README.md"
 sourcePath: "docs/manual/README.md"
-sourceSha: "19d3d1f045c8dc00b35004a2c27edb90f6987306510cf6b59415d282deba5b6b"
-sourceCommit: "1881619b60b29439a03e7a1f8fee266031c9ca10"
+sourceSha: "48b33128e49b9e534eb0f68c48d4c4c0514b49afd2d979aab464c8f139c51e25"
+sourceCommit: "5c304b2c680eccdbfaffc114c0f31ce89f740ad4"
 translationStatus: "translated"
 sidebar:
   order: 9000
@@ -31,7 +31,7 @@ Rigorのインストール、実行、設定、運用方法について説明し
 ### プロジェクトへのRigor導入
 
 6. [ベースライン](06-baseline/)（baseline） — `.rigor-baseline.yml`、`rigor baseline`サブコマンド、`rigor triage`。
-7. [プラグインの使い方](07-plugins/) — `plugins:`設定キーによるフレームワーク・gemプラグインの有効化。
+7. [プラグインの使い方](07-plugins/) — `plugins:`設定キーによるフレームワーク・gemプラグインの有効化。プラグインごとのユーザードキュメントは[プラグインリファレンス](plugins/)にあります。
 8. [提供スキル](08-skills/) — オンボーディングとベースライン削減のための付属エージェントスキル。
 
 ### 統合と運用
