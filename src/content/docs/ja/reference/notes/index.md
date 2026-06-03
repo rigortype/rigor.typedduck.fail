@@ -3,8 +3,8 @@ title: "Research & Survey Notes"
 description: "Imported from rigortype/rigor docs/notes/README.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/README.md"
 sourcePath: "docs/notes/README.md"
-sourceSha: "d5dfe873d629f33c2d20b8f60fd8c13dfbe474b62a1134249fca71b0d2279d14"
-sourceCommit: "d966039262656ed4e9d1900ebe003c332990a0ce"
+sourceSha: "abe221c3be9cced280b6dc9547268fb8e3396b84be60c5ad28b890dbde57a4c7"
+sourceCommit: "bc51e4fe0718731d0592d42696a438b0574c9339"
 translationStatus: "translated"
 sidebar:
   order: 6000
@@ -27,6 +27,7 @@ sidebar:
 | 2026-05-30 | [Mangrove (Result / Option / Enum) — library survey + `rigor-mangrove` shape](20260530-mangrove-library-survey/) |
 | 2026-05-30 | [Real Sorbet/Tapioca app survey — strap + dependabot-core](20260530-sorbet-real-app-survey/) |
 | 2026-05-31 | [TypeProf internals survey — inference logic + internal type representation](20260531-typeprof-internals-survey/) |
+| 2026-06-03 | [PHPStan内部の型演算（TypeCombinator / TypeUtils / 二項演算評価）とRigorの比較](20260603-phpstan-type-algebra-comparison/) |
 
 ## 型カバレッジ監査
 

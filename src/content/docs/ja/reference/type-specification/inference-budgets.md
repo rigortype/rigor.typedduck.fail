@@ -3,8 +3,8 @@ title: "推論バジェットとユーザー提供の境界"
 description: "rigortype/rigor docs/type-specification/inference-budgets.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/type-specification/inference-budgets.md"
 sourcePath: "docs/type-specification/inference-budgets.md"
-sourceSha: "15098bb11c6d8210d0cd52dabfc0af9e103645195d4e9a6cc339f56198c29968"
-sourceCommit: "f87b68f852350994a182dca35c52464a59be6e53"
+sourceSha: "522046fc49fde529ac317a7ef62939f80865c173eb91ec191a2e614a97b108d6"
+sourceCommit: "bc51e4fe0718731d0592d42696a438b0574c9339"
 translationStatus: "translated"
 sidebar:
   order: 2050
@@ -79,6 +79,17 @@ CLIの挙動には2つのモードが必要です（MUST）:
 `hash_erasure_values`のデフォルトは意図的に`hash_erasure_keys`より小さいです: ハッシュキーは値よりも識別子的な意味を持つため、より広いキーユニオンを保持することは広い値ユニオンを保持するよりも診断と消去において有用です。バジェットが消去された型をどう形成するかについては[rbs-erasure.md](../rbs-erasure/)を参照してください。
 
 `negative_fact_display`バジェットは[type-operators.md](../type-operators/)に文書化された省略契約を制御します。
+
+## 実装状況（2026-06-03）
+
+上記のバジェット表は**v1の規範的な意図です。本稿執筆時点で、設定可能な`budgets:`サーフェス（surface）はまだ配線されていません** — `budgets:`キーはパースされず、表の各行は強制されていません。今日エンジンが実際に適用しているカットオフは次のとおりです:
+
+- **再帰**カットオフ。設定可能な`recursion_depth`ではなく、`(receiver, method)`の再入ガード（実効的な深さ1、`Dynamic[top]`を返す）として動作します。
+- 暗黙的selfのメソッド解決における**祖先ウォーク**上限（100ノード）。上記の表には載っていません。
+- **HKTリデューサーのfuel**バジェット（64ステップ、[ADR-20](../adr/20-lightweight-hkt/)）。上記には載っていません。
+- `dependencies.budget_per_gem`（[ADR-10](../adr/10-dependency-source-inference/)） — 唯一の設定可能なバジェットで、`dependencies.source_inference:`によるオプトインです。
+
+残りの行 — コストを担う`union_size`と`structural_growth`を含む — はまだ強制されていません。ターゲットとなる設計、配線計画（Layer 1のドキュメント/仕様の衛生、Layer 2の計測ゲート付き配線）、およびヒット時の`static.*`診断ポリシーは[ADR-41](../adr/41-inference-budget-design/)に記録されています。裏付けとなる調査は[`docs/notes/20260603-inference-budget-reality-survey.md`](../notes/20260603-inference-budget-reality-survey/)です。`RIGOR_BUDGET_TRACE`は配線済みの3つのガードについて実行ごとのカウントを公開します。
 
 ## カットオフカテゴリー
 

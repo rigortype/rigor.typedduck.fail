@@ -3,8 +3,8 @@ title: "設定"
 description: "rigortype/rigor docs/manual/03-configuration.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/03-configuration.md"
 sourcePath: "docs/manual/03-configuration.md"
-sourceSha: "34dc558b081dac4137325e33f08280984d01003d872bbfcd9faeeeefee03710b"
-sourceCommit: "6bcf38aa850fa4324ea959b2ce5cfdb61a88aa28"
+sourceSha: "8e087d69262c4c6d777a64b37256a4fec1d9713cd7508ed8c13c9e372aab992a"
+sourceCommit: "bc51e4fe0718731d0592d42696a438b0574c9339"
 translationStatus: "translated"
 sidebar:
   order: 9003
@@ -76,7 +76,7 @@ cache:
 | `rbs_collection.auto_detect` | Boolean | `true` | `rbs_collection.lock.yaml`を自動探索する。 |
 | `rbs_collection.lockfile` | String | `nil` | 明示的な`rbs_collection.lock.yaml`パス。 |
 | `dependencies.source_inference` | Array | `[]` | gem単位のソース推論モード（ADR-10）。 |
-| `dependencies.budget_per_gem` | Integer | `1000` | gem単位の推論時間予算（ミリ秒）。 |
+| `dependencies.budget_per_gem` | Integer | `5000` | gem単位のソースウォーク上限。時間ではなく**メソッド定義**の個数で数えます。ウォーカーはgemのカタログを収集する際、この個数の`def`に達するとそれ以上の収集を停止し、`dynamic.dependency-source.budget-exceeded`を発行して残りを`Dynamic[top]`に縮退させます。範囲は1250〜20000です。 |
 
 ### 実行
 
