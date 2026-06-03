@@ -86,3 +86,10 @@ expected baseline is zero (intentional literal `\*` globs aside).
 The separate `<strong>` workaround documented in the translation glossary
 (for `**` adjacent to `<ruby>`/`</ruby>` tags) is unrelated to the plugin
 and still applies — that is ASCII `<`/`>` adjacency, not CJK punctuation.
+
+## English labels
+
+Sidebar/section labels and other English output should read as native,
+idiomatic English, not a calque of the Japanese — e.g. 開発レポート is
+`Development Notes` (matching the upstream `notes/` directory), not
+`Development Reports`.
