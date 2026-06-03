@@ -3,8 +3,8 @@ title: "Plugin Registration / Loading (slice 1)"
 description: "Imported from rigortype/rigor docs/internal-spec/plugin.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/plugin.md"
 sourcePath: "docs/internal-spec/plugin.md"
-sourceSha: "1d88134447997dda9ef4b3aecb1492c44f64c5518c67282d2d1aba555f60c417"
-sourceCommit: "ea8ac6950eae8c643cd2811da2569fd4809f89c8"
+sourceSha: "594dbdd63a29a8405ae96d36e33b9377fa40a658c0109d3176be1e9975d2aba3"
+sourceCommit: "b5c25bc5a9e53d495e4f515a9506f10fd4bef8d7"
 translationStatus: "translated"
 sidebar:
   order: 3050
@@ -55,6 +55,8 @@ end
 
 `#initialize(services:, config: {})`は注入されたサービスとユーザーのconfigの凍結コピーを格納します。`#init(services)`はプラグインがサービスコンテナから状態を接続するために使用するオーバーライドフックで、デフォルト実装はno-opです。
 
+`Base`の完全なサーフェスはRBS（[`sig/rigor/plugin/base.rbs`](../../sig/rigor/plugin/base.rbs)）で宣言され、**自己チェック**されます。すなわちバンドルされたプラグイン／サンプルlibツリーが`rigor check`（`make verify`とCIにチェーンされた`make check-plugins`ゲート）を通ります。プラグインの部分型が継承する契約呼び出し（`manifest.…`・`io_boundary.…`）を`Base`のRBSに対して解決する[ADR-43](../../adr/43-rbs-complete-ancestor-resolution/)のRBS完全祖先解決と組み合わせることで、契約サーフェスを誤用するプラグイン（契約が宣言しないメソッドや、名前変更されたヘルパーを呼ぶプラグイン）は`call.undefined-method`でビルドを失敗させます。補完的な構造スペック（[`spec/integration/plugin_contract_conformance_spec.rb`](../../spec/integration/plugin_contract_conformance_spec.rb)）がもう半分をカバーします。すなわち各フックのオーバーライド（`init` / `prepare` / `flow_contribution_for` / `diagnostics_for_file`）はエンジンの呼び出しでMUST呼び出し可能であり続けます ── エンジンが供給するパラメータを落とすナローイングオーバーライドは失敗します（パラメータ／アリティのリスコフ互換性、ADR-5）。
+
 `#diagnostics_for_file(path:, scope:, root:)`（スライス5）は**ファイル全体**の診断フックです。デフォルトは空の配列を返します。プラグイン作成者はこれをオーバーライドして`root`（解析された`Prism::Node`）を自分で走査し、`Rigor::Analysis::Diagnostic`行の配列を返してもよい（MAY）ですが、ノードスコープのチェックに推奨されるサーフェスは`node_rule`（下記）であり、これはエンジンに走査を所有させます。`#diagnostics_for_file`は真にファイルスコープな診断——単一のロードエラー行、または解析済みファイル全体を一度に必要とするチェック——のために予約されています。ランナーはADR-7 §「スライス5-B」に従って返されたすべての診断を`source_family: "plugin.<manifest.id>"`で再スタンプするため、プラグイン作成者が誤って別のプラグインのidで公開することはありません。フック内のプラグイン例外は`rigor check`をクラッシュさせるのではなく、`:plugin_loader`の`runtime-error`診断として隔離されます。
 
 #### ノードスコープのルール — `node_rule` / `#node_rule_diagnostics`（ADR-37）
@@ -96,6 +98,7 @@ end
 `flow_contribution_for`はちょうど2つのエンジンサイトで参照され、それぞれが返されたバンドルのちょうど1スロットを読んでいました: `MethodDispatcher`は`.return_type`（呼び出しサイトごとの戻り型）を読み、`StatementEvaluator`は`.post_return_facts`（アサーションエッジのナローイング）を読みます。ADR-37スライス2は、これら2つの消費サイトを2つの狭く宣言的にゲートされるクラスDSL——`producer`スタイルの形状なので、ブロックはロジックを担い`instance_exec`を通して実行されます——へ分割します:
 
 - `dynamic_return(receivers:) { |call_node, scope| Type | nil }` — レシーバーのクラスでゲートされた、呼び出しサイトごとの**戻り型**。エンジンは、呼び出しのレシーバー型のクラスが宣言された`receivers:`エントリーと等しいか、それを継承する場合にのみブロックを呼びます（`Environment#class_ordering`経由でマッチ）;最初の非`nil`が勝ちます。エンジンはそれを`#dynamic_return_type(call_node:, scope:, receiver_type:)`を通して呼び出します。`rigor-mangrove`（アンラップ → 担われた`type_args[0]`）が実装済みのコンシューマーです。
+  - **二項演算子はここでは通常の呼び出しです**。 Rubyの`a + b`は`:+`という名前の`Prism::CallNode`に解析されるため、他のあらゆる呼び出しと同様にこのフックへ到達します。すなわち`dynamic_return(receivers: ["Money"])`規則は`call_node.name ∈ {:+, :-, :*, :/, :<=>, …}`で分岐して演算子の結果型を返すことができ ── これはself／左オペランドのケースに対するPHPStanの`OperatorTypeSpecifyingExtension`のRigor版であり、演算子固有の拡張ポイントを持ちません。`spec/integration/plugin_operator_dynamic_return_spec.rb`によって確認済みです。**注意（coerce方向）：**ゲートは*レシーバー*のクラスにかかり、Rubyは`1 + money`を`Integer`でディスパッチするため、`["Money"]`規則はそこでは発火しません。その結果は`Integer`として左バイアスで型付けされます（ADR-42を参照）。
 - `type_specifier(methods:) { |call_node, scope| facts | nil }` — `call_node.name`が宣言された`methods:`に含まれることでゲートされた、**戻り値後のナローイングファクト**。エンジンはそれを`#type_specifier_facts(call_node:, scope:)`を通して呼び出します。`rigor-minitest`（アサーションナローイング）と`rigor-rspec`のマッチャーナローイングが実装済みのコンシューマーです。
 
 `receivers:` / `methods:`は、`rigor plugins --capabilities`カタログ（ADR-37 §「機械可読なケイパビリティカタログ」）が列挙する、grep可能でインデックス可能なゲートです。
@@ -124,7 +127,7 @@ end
 }
 ```
 
-5つのケイパビリティ配列は、まさに上記の狭いプロトコルの宣言的ゲートです: `node_rule_types`は各`node_rule`ノード型から、`dynamic_return_receivers`は`dynamic_return(receivers:)`から、`type_specifier_methods`は`type_specifier(methods:)`から、`produces` / `consumes`はADR-9のマニフェストフィールドから来ます。プラグインがそのサーフェスに対して何も宣言しないとき配列は空になり、テキストビューは空のサーフェスを完全に省きます。これは、プラグインコードをロードせずにゲートをgrep可能・インデックス可能に保つ契約（contract）です。
+5つのケイパビリティ配列は、まさに上記の狭いプロトコルの宣言的ゲートです: `node_rule_types`は各`node_rule`ノード型から、`dynamic_return_receivers`は`dynamic_return(receivers:)`から、`type_specifier_methods`は`type_specifier(methods:)`から、`produces` / `consumes`はADR-9のマニフェストフィールドから来ます。プラグインがそのサーフェスに対して何も宣言しないとき配列は空になり、テキストビューは空のサーフェスを完全に省きます。これは、プラグインコードをロードせずにゲートをgrep可能・インデックス可能に保つ契約です。
 
 ### ターゲットライブラリの呼び出し — `Plugin::Inflector` / `Plugin::Isolation` / `Plugin::Box`（ADR-39）
 

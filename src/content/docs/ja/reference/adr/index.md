@@ -3,8 +3,8 @@ title: "アーキテクチャ決定記録"
 description: "rigortype/rigor docs/adr/README.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/README.md"
 sourcePath: "docs/adr/README.md"
-sourceSha: "6c05cc5e1045c05b68c1d531997b6504779f4b60fd0e3787f4bb3aa2fd9621f9"
-sourceCommit: "bc51e4fe0718731d0592d42696a438b0574c9339"
+sourceSha: "c9a1f138a7de2460fdd2d49c9a5ff39882fdf5f8e75b1fb797360b81288059ef"
+sourceCommit: "b5c25bc5a9e53d495e4f515a9506f10fd4bef8d7"
 translationStatus: "translated"
 sidebar:
   order: 4000
@@ -65,7 +65,8 @@ sidebar:
 | ADR-39 | [Plugins may invoke their target library's safe methods directly](39-plugin-target-library-invocation/) | Accepted (Plugin::Inflector + 3 consumers migrated; slice 3 deferred) |
 | ADR-40 | [`config_schema` declared defaults (`{kind:, default:}`)](40-config-schema-defaults/) | Accepted (mechanism + 13 plugins migrated off the `DEFAULT_*` idiom) |
 | ADR-41 | [Inference budget design (wiring, on-hit policy, measurement-gated defaults)](41-inference-budget-design/) | Proposed (spec table unwired; Layer 1 doc hygiene + Layer 2 measurement-gated wiring queued) |
-| ADR-42 | [Plugin-contributed binary-operator return types (coerce-direction)](42-plugin-binary-operator-return-types/) | Proposed, low priority (self/left-operand case already works via `dynamic_return`; coerce direction is harmless fail-soft, not a false positive — precision-only, prefer the ADR-20 HKT route; demand-gated) |
+| ADR-42 | [Plugin-contributed binary-operator return types (coerce-direction)](42-plugin-binary-operator-return-types/) | Proposed, low priority (self/left-operand case already works via `dynamic_return`, spec-confirmed; coerce direction is a narrow false positive — cheapest fix is the WD-D engine mitigation, precision via the ADR-20 HKT route; demand-gated) |
+| ADR-43 | [RBS-complete ancestor resolution (allow-list inherited-method dispatch)](43-rbs-complete-ancestor-resolution/) | Accepted — fully landed (WD1–WD6; `rigor check` resolves a Ruby subclass's inherited calls against an allow-listed RBS-complete ancestor (seed `Plugin::Base`) so contract misuse warns standalone, without Steep's own-helper FP wall; zero net FP on the plugin lib tree; blanket resolution rejected on Rails-controller FP grounds; `make check-plugins` gate in `verify` + CI, teeth verified) |
 
 ## 新しいADRの追加
 
