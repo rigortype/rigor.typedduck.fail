@@ -3,8 +3,8 @@ title: "Plugin Registration / Loading (slice 1)"
 description: "Imported from rigortype/rigor docs/internal-spec/plugin.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/plugin.md"
 sourcePath: "docs/internal-spec/plugin.md"
-sourceSha: "77ca7bd238cae718ee68b6660fec7fab98fc433ae0728c59e408817eca01c3db"
-sourceCommit: "d5d6614800bfc53f00e23b51f4c914d0e42f237f"
+sourceSha: "1d88134447997dda9ef4b3aecb1492c44f64c5518c67282d2d1aba555f60c417"
+sourceCommit: "ea8ac6950eae8c643cd2811da2569fd4809f89c8"
 translationStatus: "translated"
 sidebar:
   order: 3050
@@ -73,16 +73,58 @@ end
 
 `#prepare(services)`（ADR-9）はプロジェクト全体の事前パスフックで、ファイルごとの解析が始まる前に一度呼ばれます。クロスプラグインファクト（`manifest(produces:)`）を公開するプラグインはこれをオーバーライドしてプロジェクトを走査し、`services.fact_store.publish(...)`を呼びます;ローダーのトポロジカル順序付けが、プロデューサーの`prepare`がいずれのコンシューマーのものよりも先に実行されることを保証します。デフォルトはno-opです。
 
+#### 引数リテラルの抽出 — `Source::Literals`（ボイラープレート計画 §0a）
+
+`Rigor::Source::Literals`は、「このPrism引数ノードはリテラルの`:sym` / `"str"`か、もしそうなら何を名指しているか？」——ほぼすべてのDSLウォーカーが問う質問（`state :draft`・`has_one_attached :avatar`・`validate_presence_of(:name)`）——への共有の答えです。手書きの`node.unescaped.to_sym if SymbolNode || StringNode`よりも推奨される抽出器で、パブリックAPIドリフト仕様（`SOURCE_LITERALS_SINGLETON`）に固定され、[`public-api.md`](../public-api/)の「`Rigor::Source::*`は内部である」ルールから免除されています。メソッドは`module_function`なので、それぞれ`Rigor::Source::Literals.symbol(node)`として呼び出せます。
+
+単一ノードのサーフェスは2つの軸——どのノード種別を受け入れるか、呼び出し側が何を返してほしいか——にわたるグリッドで、それ以外のいかなるノード（`nil`を含む）に対しても`nil`を返します:
+
+| 受け入れ | → `Symbol` | → `String` |
+| --- | --- | --- |
+| `:sym`のみ | `.symbol(node)` | `.symbol_name(node)` |
+| `:sym`または`"str"` | `.symbol_or_string(node)` | `.symbol_or_string_name(node)` |
+
+`SymbolNode`のみの形式が存在するのは、`state :draft`と`state "draft"`を区別するDSLが、サイレントに拡幅するのではなくその区別を保てるようにするためです。`#value`ではなく`#unescaped`が使われるのは、補間のない`"foo"` / `:foo`が両方のノード種別で一貫して`:foo` / `"foo"`へラウンドトリップするようにするためです。
+
+グリッドの上に2つの呼び出し引数ヘルパーが乗ります:
+
+- `.symbol_arguments(call_node)` → `Array[Symbol]` — ソース順のすべてのリテラルなSymbol/String位置引数;非リテラルの引数は捨てられます;呼び出しが引数リストを持たないときは`[]`。
+- `.symbol_arg(call_node, index)` → `Symbol?` — 位置`index`のリテラル、または呼び出しが引数リストを持たない・インデックスが範囲外・その引数がリテラルなSymbol/Stringでないときは`nil`。
+
 #### 戻り型とナローイングの貢献 — `dynamic_return` / `type_specifier`（ADR-37スライス2）
 
 `flow_contribution_for`はちょうど2つのエンジンサイトで参照され、それぞれが返されたバンドルのちょうど1スロットを読んでいました: `MethodDispatcher`は`.return_type`（呼び出しサイトごとの戻り型）を読み、`StatementEvaluator`は`.post_return_facts`（アサーションエッジのナローイング）を読みます。ADR-37スライス2は、これら2つの消費サイトを2つの狭く宣言的にゲートされるクラスDSL——`producer`スタイルの形状なので、ブロックはロジックを担い`instance_exec`を通して実行されます——へ分割します:
 
-- `dynamic_return(receivers:) { |call_node, scope| Type | nil }` — レシーバーのクラスでゲートされた、呼び出しサイトごとの**戻り型**。エンジンは、呼び出しのレシーバー型のクラスが宣言された`receivers:`エントリと等しいか、それを継承する場合にのみブロックを呼びます（`Environment#class_ordering`経由でマッチ）;最初の非`nil`が勝ちます。エンジンはそれを`#dynamic_return_type(call_node:, scope:, receiver_type:)`を通して呼び出します。`rigor-mangrove`（アンラップ → 担われた`type_args[0]`）が実装済みのコンシューマーです。
+- `dynamic_return(receivers:) { |call_node, scope| Type | nil }` — レシーバーのクラスでゲートされた、呼び出しサイトごとの**戻り型**。エンジンは、呼び出しのレシーバー型のクラスが宣言された`receivers:`エントリーと等しいか、それを継承する場合にのみブロックを呼びます（`Environment#class_ordering`経由でマッチ）;最初の非`nil`が勝ちます。エンジンはそれを`#dynamic_return_type(call_node:, scope:, receiver_type:)`を通して呼び出します。`rigor-mangrove`（アンラップ → 担われた`type_args[0]`）が実装済みのコンシューマーです。
 - `type_specifier(methods:) { |call_node, scope| facts | nil }` — `call_node.name`が宣言された`methods:`に含まれることでゲートされた、**戻り値後のナローイングファクト**。エンジンはそれを`#type_specifier_facts(call_node:, scope:)`を通して呼び出します。`rigor-minitest`（アサーションナローイング）と`rigor-rspec`のマッチャーナローイングが実装済みのコンシューマーです。
 
 `receivers:` / `methods:`は、`rigor plugins --capabilities`カタログ（ADR-37 §「機械可読なケイパビリティカタログ」）が列挙する、grep可能でインデックス可能なゲートです。
 
 `#flow_contribution_for(call_node:, scope:)`（ADR-9 / ADR-2）は、元の太い戻り型貢献フックで、狭いDSLと**並んで**同じ2サイトで参照されます。認識された呼び出しエッジに対して`Rigor::FlowContribution`（精密な`return_type`および／またはナローイングファクトを担う）を返すか、辞退する場合は`nil`を返します（デフォルト）。これは**非推奨の脱出弁**であり、狭いDSLが意図的に表現しない2つの貢献形状——メソッドゲートの戻り型（`rigor-rspec`の`let` / `subject`バインディング;`rigor-sorbet`のsig駆動の戻り値）と動的なプロジェクトごとのレシーバー集合（発見されたモデルクラス上の`rigor-activestorage`の`Attached::One` / `::Many`）——のために残されています。新しいプラグインは`dynamic_return` / `type_specifier`を優先すべきです;`flow_contribution_for`は文書化された最後の手段です（PHPStanの`ExpressionTypeResolverExtension`が果たす役割）。
+
+#### 機械可読なケイパビリティカタログ — `rigor plugins --capabilities`（ADR-37スライス3）
+
+`rigor plugins --capabilities`は、各プラグインが何をするのかをエージェントが学ぶために列挙する、プラグインごとの拡張プロトコルゲートを出力します。**ロードされた**プラグインのみが現れます（ロードに失敗したプラグインはケイパビリティ（capability）を一切貢献しません）。`--format json`では出力は次のとおりです:
+
+```json
+{
+  "configuration": "<path to .rigor.yml, or null>",
+  "capabilities": [
+    {
+      "id": "<plugin id>",
+      "gem": "<gem name>",
+      "version": "<plugin version>",
+      "node_rule_types": ["<Prism node class name>", "..."],
+      "dynamic_return_receivers": ["<receiver class name>", "..."],
+      "type_specifier_methods": ["<method name>", "..."],
+      "produces": ["<fact id>", "..."],
+      "consumes": ["<plugin_id/fact_name>", "..."]
+    }
+  ]
+}
+```
+
+5つのケイパビリティ配列は、まさに上記の狭いプロトコルの宣言的ゲートです: `node_rule_types`は各`node_rule`ノード型から、`dynamic_return_receivers`は`dynamic_return(receivers:)`から、`type_specifier_methods`は`type_specifier(methods:)`から、`produces` / `consumes`はADR-9のマニフェストフィールドから来ます。プラグインがそのサーフェスに対して何も宣言しないとき配列は空になり、テキストビューは空のサーフェスを完全に省きます。これは、プラグインコードをロードせずにゲートをgrep可能・インデックス可能に保つ契約（contract）です。
 
 ### ターゲットライブラリの呼び出し — `Plugin::Inflector` / `Plugin::Isolation` / `Plugin::Box`（ADR-39）
 
@@ -107,7 +149,7 @@ end
 | `version` | 空でない`String` | プラグインバージョン；キャッシュ無効化のため`PluginEntry#version`に格納される。 |
 | `description` | `String?` | 人間が読めるサマリー。 |
 | `protocols` | `Array<Symbol>` | このプラグインが実装するプロトコル名。 |
-| `config_schema` | `{ String => Symbol }` | 受け入れられるconfigキーと値の種類（`:string`・`:boolean`・`:integer`・`:array`・`:hash`・`:any`）のマッピング。 |
+| `config_schema` | `{ String => Symbol | { kind:, default: } }` | 受け入れられるconfigキーと値の**種類**（kind、`:string`・`:boolean`・`:integer`・`:array`・`:hash`・`:any`）のマッピングで、宣言された**デフォルト**（default）をオプションで担う（ADR-40;下記の_宣言されたconfigデフォルト_を参照）。 |
 
 以下の**拡張フィールド**は`0.1.x`サイクルを通じて追加されました。すべてオプションで、1.0前のプラグイン契約に対して追加的です;これらを1つも宣言しないプラグインはただのファイルごとのアナライザーです:
 
@@ -121,12 +163,49 @@ end
 | `type_node_resolvers` | `Array` | カスタムなRBS型名解決を貢献する`Plugin::TypeNodeResolver`エントリー（ADR-13）。 |
 | `protocol_contracts` | `Array<ProtocolContract>` | パススコープの振る舞い契約（`path_glob` + `method_name` + param/return型 + 重大度）;provide-and-check（ADR-28）。 |
 | `source_rbs_synthesizer` | `#call(path) -> String?` | env構築時にプロジェクトソースファイルからRBSを合成する呼び出し可能オブジェクト（例: rbs-inline取り込み）（ADR-32）。 |
-| `block_as_methods`, `heredoc_templates`, `trait_registries`, `external_files` | `Array` | ADR-16のマクロ / DSL展開基板の4つのティア（A / C / B / D）。 |
-| `nested_class_templates` | `Array` | enum形状のブロックDSL（`variant <Const>, <Type>`）からのネストされたサブクラス放出;メソッドだけでなくクラスを生み出すマクロ基板ティア（ADR-36）。 |
+| `block_as_methods`, `heredoc_templates`, `trait_registries`, `external_files` | `Array<Plugin::Macro::*>` | ADR-16のマクロ / DSL展開基板の4つのティア（A / C / B / D）。値オブジェクトの形状は[`macro-substrate.md`](../macro-substrate/)で仕様化されています。 |
+| `nested_class_templates` | `Array<Plugin::Macro::NestedClassTemplate>` | enum形状のブロックDSL（`variant <Const>, <Type>`）からのネストされたサブクラス放出;メソッドだけでなくクラスを生み出すマクロ基板ティア（ADR-36）。[`macro-substrate.md`](../macro-substrate/)で仕様化されています。 |
 | `hkt_registrations`, `hkt_definitions` | `Array` | 軽量HKTの型関数登録（ADR-20）。 |
 | `additional_initializers` | `Array<AdditionalInitializer>` | クラス（およびそのサブクラス）上のどの`initialize`以外の`def`形式メソッドがivar状態も確立するかを宣言する`{ receiver_constraint:, methods: }`ペアで、`ScopeIndexer`の書き込み前読み込みnil健全性ゲートに供給する（ADR-38）。 |
 
 `#validate_config(config)`はエラー文字列の配列を返します；ローダーは空でない結果を`LoadError`に変換します。各拡張フィールドは`Manifest#initialize`で独自のバリデーションを持ちます。
+
+#### 宣言されたconfigデフォルト — `config_schema`の`{ kind:, default: }`（ADR-40）
+
+`config_schema`の値は、元の**素の種類**（`Symbol`/`String` — `"flag" => :boolean`）でも、`kind:`（必須）とオプションの`default:`を担う`Hash`でもよい（MAY）です:
+
+```ruby
+config_schema: {
+  "dsl_method"   => :string,                                  # bare kind, no default
+  "state_method" => { kind: :string, default: "state" },      # kind + declared default
+  "events"       => { kind: :array,  default: [] }
+}
+```
+
+2つの形式は1つの文法の純粋なスーパーセットです;エンジンは以下の契約を守らなければなりません（MUST）:
+
+- **種類マップは形状が変わらない**。`Manifest#config_schema`は`{ String => Symbol }`（種類のみ）のままでなければならず（MUST）、そのため`#validate_config`・`#to_h`・`#==`・`#hash`は、キーがどちらの形式を使ったかに影響されません。`{ kind:, default: }`エントリーは、素の種類とまったく同じように`kind:`をこのマップへ貢献します。
+- **`Manifest#config_defaults`**は、`default:`を宣言した**キーのみ**を保持する凍結された`{ String => value }`マップを公開しなければなりません（MUST）。これはパブリックリーダー（パブリックAPIドリフト仕様 + RBS sigに固定）です。宣言されたデフォルトを持たないキーは現れません。
+- **宣言された`default:`は、マニフェスト構築時にその`kind:`に対してバリデートされなければなりません（MUST）**（`#validate_config`がユーザー値に適用するのと同じ`value_matches?`チェック）。誤った型のデフォルト（`kind: :string`のもとでの`default: 5`）は、使用時にサイレントに失敗するのではなく、ロード時に`ArgumentError`を発生させなければなりません（MUST）。
+- **`Plugin::Base#config`はユーザーconfigの下にデフォルトをマージします**: `#initialize`は`manifest.config_defaults.merge(user_config)`（凍結済み）を`#config`として格納するので、それが設定するいかなるキーでも**ユーザーconfigが勝ちます**。したがってプラグインは`config.fetch("state_method")`（または`config["state_method"]`）を読み、`DEFAULT_*`定数も2番目の`fetch`引数もなしに宣言されたデフォルトを得ます;プラグインがなお望む強制変換（`.to_sym`・`Array(...)`）は読み取りサイトに留まります。マニフェストなしで宣言されたクラス（テストダブル）は、生のconfigを変更せずに保ちます。
+
+この形式はconfigのエルゴノミクスのみです: ルールも型も変えないので、診断を導入することはできません。これはキャッシュセーフでもあります——デフォルトはプラグインの*コード*（その`version`）の一部であり、それは`Cache::Descriptor::PluginEntry`キーがすでに捕捉しています;`config_defaults`は`Manifest#to_h`/`#==`/`#hash`に参加しますが、キャッシュキーには決して参加しません。
+
+### `Rigor::Plugin::TypeNodeResolver`（ADR-13）
+
+RBS::Extendedの`%a{rigor:v1:…}`ペイロードに現れるカスタムな**名前的／ジェネリック型語彙**——RBS文法に組み込みのないTypeScriptユーティリティスタイルの型関数（`Pick[T, K]`・`Omit[T, K]`）をプラグインがRigorに教えられるようにするサーフェス——の、プラグイン提供のリゾルバのための基底クラスです。リゾルバはマニフェストの`type_node_resolvers:`スロット（インスタンスの`Array`）を通じて登録されます。
+
+サブクラスは1つのメソッドをオーバーライドします:
+
+```
+#resolve(node, scope) -> Rigor::Type::Base | nil
+```
+
+- `node`はパーサが放出した`Rigor::TypeNode::Identifier`または`Rigor::TypeNode::Generic`——チェーンが尋ねている名前的型またはジェネリック型のヘッドです。
+- `scope`は、RBS::Extendedディレクティブパーサが下へ通す、付随する`Rigor::TypeNode::NameScope`（リゾルバチェーン・クラスコンテキスト・型エイリアステーブルを担う）です。
+- メソッドは、ノードがこのリゾルバがカバーする語彙に一致するとき`Rigor::Type::Base`を返さなければならず（MUST）、または次のリゾルバ（最終的には組み込み／RBSフォールバック）へ**フォールスルーするために`nil`**を返します。基底実装は`nil`を返すので、未実装のサブクラスは安全なno-opです。
+
+エンジンは、ロードされたすべてのプラグインのリゾルバを——**プラグイン登録順**（`Registry#type_node_resolvers`がプラグインにわたってflat-mapする）で——単一の`Rigor::TypeNode::ResolverChain`へ集約し、それは順番にそれらを参照して**最初の非`nil`**の答えを返します。チェーンは`Analysis::Runner.run`ごとに一度構成されます;どのプラグインもリゾルバを貢献しないとき、エンジンはショートサーキットする（`NameScope`は構築されません）ので、パーサはリゾルバなしのデフォルトとビット単位で同じように振る舞います。リゾルバはステートレスで再入可能であるべきです（SHOULD）——チェーンは同じノードに対してリゾルバを複数回参照してもよい（MAY）です。実装済みのコンシューマーは`rigor-typescript-utility-types`（`Pick` / `Omit`）です。
 
 ### `Rigor::Plugin::Services`
 
@@ -197,6 +276,14 @@ plugins:
 
 `rigor check`は解析を続行します；正常にロードされたプラグインは後のv0.1.0スライスに引き続き参加します。
 
+## 並行性と値オブジェクトの共有可能性（ADR-15）
+
+Rigorは並列ワーカーをまたいでファイルを解析します。出荷されているバックエンドは**forkされた永続ワーカー**プール（[ADR-15](../../adr/15-ractor-concurrency/)の修正;Ractorプールは延期されたターゲット）ですが、契約はそのターゲットが到達可能なままになるよう、より厳格なRactor境界に対して書かれています。したがってプラグインコードへの永続的な要求は次のとおりです:
+
+- **マニフェストが担うすべての値オブジェクトは、構築時に深く凍結され、`Ractor.shareable?`でなければなりません（MUST）**。これは`Manifest`自体と、それが保持するすべてのネストされたキャリア（carrier）——`Macro::*`基板ティア（[`macro-substrate.md`](../macro-substrate/)）・`ProtocolContract`・`AdditionalInitializer`・`Consumption`、および作成者が提供するいかなる`TypeNodeResolver` / `source_rbs_synthesizer`呼び出し可能オブジェクト（作成者は呼び出し可能オブジェクトが捕捉した状態のスレッドセーフティを所有する）——をカバーします。本仕様全体にわたるクラスごとの「`#initialize`後に`Ractor.shareable?`がtrueを返す」という注記は、この単一のルールのインスタンスであり、別個の保証ではありません。
+- **プラグインの*インスタンス*はワーカーごとに構築され、決して共有されません**。境界を越えるのは`Rigor::Plugin::Blueprint`キャリア（凍結済み、`Ractor.shareable?`）です: それはプラグインクラスの**定数パスString**（クラスオブジェクトではない——gemはいずれのワーカーがスポーンする前にメインRactor上で`require`されるので、各ワーカーは`Object.const_get`経由で同じ定数を解決する）に加えて、深くコピーされ共有可能にされた`config` Hashを保持します。各ワーカーは起動時に一度`Blueprint#materialize(services:)`を呼び——`const_get` → `klass.new(services:, config:)` → `#init(services)`で、`Loader#instantiate`を写し取る——、それからワーカーの生存期間にわたって自身のプラグインインスタンスとそれらの可変な実行ごとのアキュムレータを所有します。したがって可変なプラグイン状態が境界を越えることは決してなく、凍結されたBlueprintだけが越えます。
+- **文書化された例外:** `Environment::Reflection`（パブリックな`Rigor::Reflection`ファサードを支える内部の読み取り側キャリア）は凍結されていますが`Ractor.shareable?`では**ありません**——その背後のテーブルが共有可能でない`RBS::Location`オブジェクトを通すためです（[ADR-15](../../adr/15-ractor-concurrency/) WD6）。その結果、境界をまたいで共有されるのではなく、共有された`Cache::Store`からワーカーごとに再構築されます。これはエンジン内部のキャリアであり、プラグインサーフェスではありません（[`public-api.md`](../public-api/)を参照）。
+
 ## 各機能が着地した場所（歴史的スライスマップ）
 
 v0.1.0のプラグイン契約は6つのスライスで出荷されました;以下はすべていまや整っており、それぞれ独自の仕様で文書化されています:
@@ -210,5 +297,5 @@ v0.1.0のプラグイン契約は6つのスライスで出荷されました;以
   - *スライス1 / 1c / 1d* — `node_rule`クラスDSL + `#node_rule_diagnostics`（エンジン所有のウォーク） + `node_file_context`（2パスサポート） + `NodeContext`（レキシカル祖先） + `#diagnostic` / `Diagnostic.from_node` / `.from_location`作成者ヘルパー。これらは`#diagnostics_for_file`をファイル全体の脱出弁として再定義します;**同梱の診断発行プラグインはすべて`node_rule`へ移行されました**——`rigor-actionpack`（4フェーズ、名前空間修飾に敏感）が最後でした。
   - *スライス2* — `#flow_contribution_for`の、レシーバーゲートの`dynamic_return` + メソッドゲートの`type_specifier` DSL（上記で文書化）への分割で、今や非推奨の太いフックと並んで参照されます;きれいに収まるコンシューマー（mangrove / minitest / rspec-matcher）は移行され、メソッドゲートの戻り値／動的レシーバーのコンシューマーは設計上、脱出弁に留まります。
   - *スライス3* — `FactProvider`命名 + 機械可読な`rigor plugins --capabilities`カタログ（プラグインごと: node_ruleノード型、dynamic_returnレシーバー、type_specifierメソッド、生成／消費ファクト）。
-- **書き込み前読み込みnilゲート**。 `additional_initializers:`（[ADR-38](../../adr/38-additional-initializers/)）は、プラグインが`ScopeIndexer`の`initialize`のみのivarシードゲートをフレームワークのライフサイクルメソッド（`setup`・`after_initialize`・DIセッター）へ拡張できるようにし、そこで設定され兄弟メソッドで読まれるivarが`nil`で拡幅されないようにします。
+- **書き込み前読み込みnilゲート**。`additional_initializers:`（[ADR-38](../../adr/38-additional-initializers/)）は、プラグインが`ScopeIndexer`の`initialize`のみのivarシードゲートをフレームワークのライフサイクルメソッド（`setup`・`after_initialize`・DIセッター）へ拡張できるようにし、そこで設定され兄弟メソッドで読まれるivarが`nil`で拡幅されないようにします。
 - **ターゲットライブラリの呼び出し**（[ADR-39](../../adr/39-plugin-target-library-invocation/)、Accepted）。プラグインは、信頼されたターゲットライブラリの純粋で許可リストに載ったメソッドを直接呼び出せます（実際の`ActiveSupport::Inflector`の上の`Plugin::Inflector`;Railsファミリー + factorybotのコンシューマーは手書きの語形変化から移行）。これは選択可能な分離戦略（`Plugin::Isolation`: `process`デフォルト / `none` / `ruby_box`;上記で文書化）のもとで行われます。ボイラープレート計画の作成者ヘルパー`Base.suggest`（§0c）とインフレクターが、残りの手書き重複項目をクローズします。

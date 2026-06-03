@@ -3,9 +3,9 @@ title: "Current Work — Resume Bookmark"
 description: "rigortype/rigor docs/CURRENT_WORK.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/CURRENT_WORK.md"
 sourcePath: "docs/CURRENT_WORK.md"
-sourceSha: "64f1dfaa0c288cf283e4edd74d920e0dfe793fc501925949dd2d9e2fada646f2"
-sourceCommit: "6e5bd55274e20dfb59183559c4971d34f878c907"
-sourceDate: "2026-06-03T06:16:30+09:00"
+sourceSha: "31a18addc17ed5d0f5e041c3cbf51a4bf0182eff13301d6593b418a794a93813"
+sourceCommit: "ea8ac6950eae8c643cd2811da2569fd4809f89c8"
+sourceDate: "2026-06-03T10:34:33+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9050
@@ -243,6 +243,6 @@ Phases 1〜4着地済み（String / Integer / Float / Comparable / Math / HashSh
 
 ### オープン項目（ドキュメントトラック）
 
-- **CHANGELOG?**上記のドキュメント正確性修正（特に`assert_type`順序、`disable`キー）はドキュメントに従うユーザーに影響する;`[Unreleased]`のドキュメント修正エントリーを検討する。ユーザーに先送り——このパスは`docs/` + `plugins/*/README.md`のみに触れた。
-- **プッシュされていない**。約36個すべてのコミットは`master`上にローカル。
+- ✅ **CHANGELOG——完了**。ドキュメント正確性修正（`assert_type`順序、`disable`キー、Ractorではなくforkワーカー、欠けていた診断ルール、HKT/RBS訂正）は`[Unreleased]` § Fixed下の`**[docs]**`エントリーとして記録された。
+- **プッシュ済み**。`master`は`origin/master`と同期している（0 ahead / 0 behind）——ドキュメントオーバーホールのコミットはもうローカル限定ではない。
 - このトラックの将来を見据えた1行説明は[`docs/ROADMAP.md`](../roadmap/) §「将来のサイクル」→「ドキュメント」にある。

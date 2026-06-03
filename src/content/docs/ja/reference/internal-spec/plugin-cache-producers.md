@@ -3,8 +3,8 @@ title: "Plugin-side Cache Producers (slice 6)"
 description: "Imported from rigortype/rigor docs/internal-spec/plugin-cache-producers.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/plugin-cache-producers.md"
 sourcePath: "docs/internal-spec/plugin-cache-producers.md"
-sourceSha: "ea961e2962b2ef9424fd1004086de1209e5fc7faf221299d6d57544ed16d286d"
-sourceCommit: "9f40e22193647dc06e3ab70c5ba82768b0bfe738"
+sourceSha: "24d20ff988908b66b40248b97f2e1453b9d0aab4545c7e6469fddd31691208ac"
+sourceCommit: "ea8ac6950eae8c643cd2811da2569fd4809f89c8"
 translationStatus: "translated"
 sidebar:
   order: 3050
@@ -34,7 +34,11 @@ ADR-7 §「スライス6」は3つの実装上の選択を固定します：
 
 ### `Rigor::Plugin::Base#io_boundary`
 
-プラグインごとにメモ化された`Rigor::Plugin::IoBoundary`（スライス2）。境界が蓄積した`FileEntry`行が`cache_for`ラウンドトリップのキャッシュ無効化に使われます：`cache_for`が呼び出される**前に**`io_boundary`を通じて行われたファイル読み込みはそのファイルのダイジェストをディスクリプタに含めます。以下の「無効化契約」を参照してください。
+プラグインごとにメモ化された`Rigor::Plugin::IoBoundary`（スライス2）。境界が蓄積したエントリーが`cache_for`ラウンドトリップのキャッシュ無効化に使われます: `cache_for`が呼び出される**前に**`io_boundary`を通じて行われた読み込みはディスクリプタに折り込まれます。`#read_file(path)`は`:digest`の`FileEntry`を記録します;`#open_url(url)`は`"url:#{url}"`でキーされた`ConfigEntry`を記録し、その`value_hash`はレスポンスボディのSHA-256です。これにより、変更されたリモートペイロードは変更されたファイルと同じ方法でスライス（slice）を無効化します。以下の「無効化契約」を参照してください。
+
+### `Rigor::Plugin::Base#glob_descriptor(roots, *patterns)`
+
+`roots`下で`patterns`のいずれかにマッチして見つかったファイルごとに`:digest`の`FileEntry`を1つ`files:`スロットに持つ`Cache::Descriptor`を返す発見グロブヘルパーです（`File.join(root, pattern)`で結合;複数パターンはユニオン（union、合併型とも）になります）。結果を`cache_for`の`descriptor:`として渡すと、発見されたファイルの*集合*をスキャンするプロデューサー（あらゆるファクトリー、あらゆる`app/policies/**/*.rb`）が、いずれかのファイルのコンテンツ変更・追加・削除で無効化されます——これは、コールドコールでプロデューサーがまだファイルを読んでいないために`IoBoundary`単独では取り逃すケースです。`roots`はプロジェクトルートからの相対か絶対です。ヘルパーはマッチしたファイルごとに呼び出し時点で1回のSHA-256読み込みを支払います;10〜100ファイル範囲の発見グロブでは、ミス時のプロデューサーのパース＆ウォークに比べて無視できる程度です。これは手書きの発見ダイジェストディスクリプタ（`rigor-factorybot`がヘルパーへ移行する前に独自に再発明していたもの）の代わりにサポートされる方法です。
 
 ### `Rigor::Plugin::Base#cache_for(producer_id, params: {}, descriptor: nil)`
 

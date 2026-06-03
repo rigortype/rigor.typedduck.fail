@@ -3,8 +3,8 @@ title: "Cache Layer — `Rigor::Cache`"
 description: "Imported from rigortype/rigor docs/internal-spec/cache.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/cache.md"
 sourcePath: "docs/internal-spec/cache.md"
-sourceSha: "5cd9ecba49a47e71a9854a065b0182ae1811b90c870577d126fbd27efd5ee046"
-sourceCommit: "a5d648b126d5ed7b1e04a16a87927bca7883e069"
+sourceSha: "ae20a54f507d38976f0cf87583ec66b7367a5bebe0aad8669b2641d90f289993"
+sourceCommit: "ea8ac6950eae8c643cd2811da2569fd4809f89c8"
 translationStatus: "translated"
 sidebar:
   order: 3050
@@ -24,15 +24,16 @@ sidebar:
 ### スロットエントリー
 
 ```
-FileEntry   :: { path: String, comparator: :digest|:mtime|:exists, value: String }
-GemEntry    :: { name: String, requirement: String, locked: String? }
-PluginEntry :: { id: String, version: String, config_hash: String? }
-ConfigEntry :: { key: String, value_hash: String }
+FileEntry       :: { path: String, comparator: :digest|:mtime|:exists, value: String }
+GemEntry        :: { name: String, requirement: String, locked: String? }
+PluginEntry     :: { id: String, version: String, config_hash: String? }
+ConfigEntry     :: { key: String, value_hash: String }
+DependencyEntry :: { gem_name: String, gem_version: String, mode: :disabled|:when_missing|:full }
 ```
 
-各エントリーはキーワード引数で構築され、即座にフリーズされます。`FileEntry#new`はcomparatorのenumを検証し、未知の値に対して`ArgumentError`を発生させます。他のエントリーは任意の文字列コンテンツを受け入れます（その値は慣例上すでに正規化されたハッシュです）。
+各エントリーはキーワード引数で構築され、即座にフリーズされます。`FileEntry#new`はcomparatorのenumを検証し、`DependencyEntry#new`は`mode`のenumを検証し、それぞれ未知の値に対して`ArgumentError`を発生させます。他のエントリーは任意の文字列コンテンツを受け入れます（その値は慣例上すでに正規化されたハッシュです）。`DependencyEntry`はADR-10のgemバージョンごとのスロットです: その`(gem_name, gem_version, mode)`のトリプルがオプトインの依存関係ソース推論キャッシュスライス（slice）をキー付けるので、`Gemfile.lock`のバンプや`source_inference:`モード変更（[`dependency-source-inference.md`](dependency-source-inference.md)）がちょうど影響を受けるgemだけを無効化します。
 
-### `Descriptor.new(files: [], gems: [], plugins: [], configs: [])`
+### `Descriptor.new(files: [], gems: [], plugins: [], configs: [], dependencies: [])`
 
 ディスクリプタを構築します。すべてのスロットはデフォルトで空配列になります。スロットはdupされてフリーズされるため、構築後に呼び出し元が変更することはできません。ディスクリプタ自体もフリーズされます。
 
