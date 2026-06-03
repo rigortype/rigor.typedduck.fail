@@ -3,8 +3,8 @@ title: "Rigorハンドブック"
 description: "rigortype/rigor docs/handbook/README.mdからインポートされたドキュメントの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/README.md"
 sourcePath: "docs/handbook/README.md"
-sourceSha: "db3e02e584e5f1c753ad01ea559c4df54cf2dcfba673c4c3186b3b39d42b1957"
-sourceCommit: "f5dbc21061d54b2f49a504a97f85ba835db00f4a"
+sourceSha: "b1808d9ed3e0658312b960854bd2e233123aa0502739f53406bf4140453fd0dd"
+sourceCommit: "37d70ab9071b4a25e954d0157818f0b6ae88e2c2"
 translationStatus: "translated"
 sidebar:
   order: 1000
@@ -114,6 +114,8 @@ assert_type("Constant<3>", n)  # Rigor がリテラル和をたたみ込む
 ```
 
 これは「`assert_type`呼び出しの位置で、Rigorの`n`に対する推論が`Constant<3>`、つまりリテラル値`3`を持つ`Type::Constant`キャリアになっている」という意味です。
+
+用語の約束 ── **「interface」**: Rubyには`interface`キーワードがないため、ほとんどの読者はこの言葉の意味を別の言語から持ち込みます。そしてJava／PHPの*名前的*な意味（クラスが`implements`を宣言する）が支配的です。RBSの`interface`はその逆 ── *構造的*であり、Goの`interface`やPythonの`Protocol`のように、メソッドを持っていることだけで満たされ、宣言は不要です。誤読を避けるため、どの章でも初出時にはこの言葉を**「構造的インターフェース」**または**「RBSインターフェース」**と限定し、素の「interface」を使わないでください。[プロトコルと構造的型付けの付録](appendix-protocols-and-structural-typing/)が正規の解説です。
 
 ある章でより形式的な文書に言及するとき、リンクはハンドブックを離れて拘束力のある仕様コーパスやADRに移ります:
 

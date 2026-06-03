@@ -3,8 +3,8 @@ title: "推論エンジン"
 description: "Imported from rigortype/rigor docs/internal-spec/inference-engine.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/inference-engine.md"
 sourcePath: "docs/internal-spec/inference-engine.md"
-sourceSha: "25ab42e4d1ef53b7b895f3e9015e74b5b6b198488facf8c10b3967bf46de3de3"
-sourceCommit: "b5c25bc5a9e53d495e4f515a9506f10fd4bef8d7"
+sourceSha: "1ab1743f692f543397a82a85861143345d3dba3c2d8b48aa9b83351fe4d974db"
+sourceCommit: "37d70ab9071b4a25e954d0157818f0b6ae88e2c2"
 translationStatus: "translated"
 sidebar:
   order: 3050
@@ -164,6 +164,18 @@ Rigor::Inference::MethodDispatcher.dispatch(
 `nil`の戻り値は意図的な「規則なし」のシグナルです。呼び出し元はフェイルソフトフォールバックをMUST所有します（`ExpressionTyper`は`FallbackTracer`イベントを記録して`Dynamic[Top]`を返します）。ディスパッチャー自体はトレーサーにMUST NOT触れず、認識されない入力でMUST NOTraiseします。
 
 ディスパッチャーはMUST以下の順序でティアを参照します: 精密ティア（定数畳み込み、形状認識、ファイル畳み込み、カーネル畳み込み、ブロック畳み込み）を最初に、次にプラグイン戻り型コントリビューションティア（v0.1.1 Track 2スライス7、[ADR-2](../../adr/2-extension-api/) §「プラグインコントリビューションマージ」に従う）、次にHKT組み込み戻り値ティア（[ADR-20](../../adr/20-lightweight-hkt/)）とRigorバンドルの静的リファインメントティア、次にRBSバックのディスパッチティア、次に[ADR-16](../../adr/16-macro-expansion/)合成メソッドティア（基板Tier B / Tier Cのemitテーブル — ユーザー著作のRBSはなおその上で勝つ）、次に[ADR-17](../../adr/17-monkey-patch-pre-evaluation/)プロジェクトパッチメソッドティア（`pre_eval:`宣言された再オープンクラスのメソッドのために`Environment#project_patched_methods`を参照し、`Dynamic[Top]`を返して呼び出しが`call.undefined-method`なしにクロスファイルで解決されるようにする）、次に依存関係ソース推論ティア（v0.1.3 / [ADR-10](../../adr/10-dependency-source-inference/)スライス2b-ii — オプトインGemの`(class_name, method_name)`カタログエントリーのために`Environment#dependency_source_index`を参照し、ヒット時に`Dynamic[Top]`を返してコールサイトが動的由来マーカーを持つようにする）、次に発見済みメソッドティア（[ADR-24](../../adr/24-self-method-call-resolution/)に従うクロスファイルのユーザー定義`def`解決、上記の`Scope#user_def_for` / 祖先サーフェス経由）、最後にRigorが名前で知っているがRBSでは知らないレシーバーに対して`Object` / `Class`に対して再試行するユーザークラス祖先フォールバック。非`nil`の`Rigor::Type`を返す最初のティアが勝ちます。ヒット時に後続のティアはMUST NOT参照されません。ディスパッチャーは、Prismの子ノードまたは（上記の*仮想ノード*契約を介した）合成`Rigor::AST::Node`引数のいずれかを運べる統一された呼び出し形状として入力をMUST取り、これによって合成された式と実際の式が単一のディスパッチ経路を共有します。
+
+### Dispatch tier contract
+
+上記の各ティアは*構造的インターフェース*です ── ダックタイプされた継ぎ目であり、RBS／Goの意味でのインターフェースであって、ADR-28のプロトコル契約ではありません。これは[`sig/rigor/inference.rbs`](../../sig/rigor/inference.rbs)において`interface _DispatchTier`として成文化されています。ティアは単一のエントリーポイントをMUST公開します。
+
+```
+try_dispatch(context) #=> Rigor::Type, or nil to defer to the next tier
+```
+
+`context`は不変の`Rigor::Inference::MethodDispatcher::CallContext`値オブジェクト（`Data`）であり、ティアが一つのコールサイトを畳み込むのに必要なすべてを運びます。すなわち呼び出しの四つ組（`receiver`・`method_name`・`args`）に加え、省略可能な`block_type`・`environment`・`call_node`・`scope`・`self_type_override`・`public_only`フィールドです。`dispatch`はコンテキストを一度だけ構築し、それを ── 変更せずに ── すべてのティアへMUSTスレッドします。異なるレシーバーや派生フラグ（ユーザークラスフォールバックの`public_only`再試行、由来モジュールの再ディスパッチ）を必要とするティアは、与えられたものを変更するのではなく、コピー（`CallContext#with`）によってか新しいものを構築することによって、新鮮なコンテキストをMUST取得します（値オブジェクトは凍結されています）。純粋なティア（定数畳み込み、形状認識、シングルトン畳み込み）は`receiver` / `method_name` / `args`のみをMUST読み、残りを無視します。上記の「最初の非`nil`が勝つ」ルールがこれらのティアの順序付けされた参照を統べます。
+
+この契約は宣言的です。すなわち基底クラスや`implements`句（Rubyには存在しません）によって強制されるものではなく、バンドルされたティアはSteepの寛容モードの下で未型付けのままです。実装は`_DispatchTier`に適合させて正しい優先度に挿入することでティアをMAY追加できます。エントリーポイントのキーワードサーフェスを再び広げてはMUST NOTなりません（値オブジェクトはまさにティアごとのシグネチャを一様に保つために存在します）。
 
 RBSバックのティアは、レシーバー型を`kind`が`:instance`または`:singleton`である`(class_name, kind)`ペアにMUST解決します。
 

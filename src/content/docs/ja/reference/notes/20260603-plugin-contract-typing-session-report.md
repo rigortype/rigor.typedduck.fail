@@ -3,8 +3,8 @@ title: "Session report — typing the plugin contract (2026-06-03)"
 description: "Imported from rigortype/rigor docs/notes/20260603-plugin-contract-typing-session-report.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260603-plugin-contract-typing-session-report.md"
 sourcePath: "docs/notes/20260603-plugin-contract-typing-session-report.md"
-sourceSha: "26934414cc4fd999e60c6ed2db4d2f63f1e79726dfde05811eccb16c74485795"
-sourceCommit: "f5dbc21061d54b2f49a504a97f85ba835db00f4a"
+sourceSha: "6d0b653ed549c32f9d5387679e5034ae87dfc4e968daeccdf68a175a83371fd4"
+sourceCommit: "37d70ab9071b4a25e954d0157818f0b6ae88e2c2"
 translationStatus: "translated"
 sidebar:
   order: 20266603
@@ -54,7 +54,8 @@ sidebar:
 ## 未解決項目
 
 - **ADR-43 WD4 ── 許可リストのソーシング**。許可リストは`Rigor::Plugin::Base`で種付けされたハードコードの定数です。マニフェスト宣言（ADR-37／ADR-40の宣言的な経路）を介して、サードパーティープラグイン自身の`Base`風クラスへそれを開放することは、消費者がそれを必要とするまで先送りします。
-- **用語：`protocol`（軸は決定済み、一部着手済み）**。 Rigorはこの言葉を四つのものにわたって多重定義していました。（A）RBSの`interface` ── 構造的型付けの概念（Pythonの`typing.Protocol`の対応物）。正しく**interface**と名付けられ、衝突なし。（B）不活性な`protocols:`マニフェストフィールド（宣言されているが、どこでも**消費されていない** ── 痕跡的なADR-2のメタデータ）。（C）ADR-28の`protocol_contracts:`（パススコープな振る舞い的メソッド契約 ── 実在し消費される機能）。（D）ADR-37の説明文中の「extension protocols」（狭義のプラグインフック）。**決定：**軸は**interface＝構造的型**、**protocol contract＝振る舞い的なメソッド要求契約**（Smalltalk／Swiftの意味を保持）です。**（B）は廃止**（`Manifest`サーフェスから削除 ── 振る舞いを伴わないまま、衝突を招きやすい素の「protocol」という言葉を担っていた）。**（C）は正確な名のもとで保持**。（A）／（D）は変更なし。**ユーザー向け文書**もランディング済みです。ハンドブック付録[プロトコル、インターフェース、構造的型付け](../../handbook/appendix-protocols-and-structural-typing/)がこの区別を鋭く描き（横並びの表＋「自分が欲しいのはどちら？」ガイド）、mypy付録から相互リンクされています。先送りのまま残っているのはADR-43 WD4（許可リストのソーシング）だけです。
+- **用語：`protocol`（軸は決定済み、一部着手済み）**。Rigorはこの言葉を四つのものにわたって多重定義していました。（A）RBSの`interface` ── 構造的型付けの概念（Pythonの`typing.Protocol`の対応物）。正しく**interface**と名付けられ、衝突なし。（B）不活性な`protocols:`マニフェストフィールド（宣言されているが、どこでも**消費されていない** ── 痕跡的なADR-2のメタデータ）。（C）ADR-28の`protocol_contracts:`（パススコープな振る舞い的メソッド契約 ── 実在し消費される機能）。（D）ADR-37の説明文中の「extension protocols」（狭義のプラグインフック）。**決定：**軸は**interface＝構造的型**、**protocol contract＝振る舞い的なメソッド要求契約**（Smalltalk／Swiftの意味を保持）です。**（B）は廃止**（`Manifest`サーフェスから削除 ── 振る舞いを伴わないまま、衝突を招きやすい素の「protocol」という言葉を担っていた）。**（C）は正確な名のもとで保持**。（A）／（D）は変更なし。**ユーザー向け文書**もランディング済みです。ハンドブック付録[プロトコル、インターフェース、構造的型付け](../../handbook/appendix-protocols-and-structural-typing/)がこの区別を鋭く描き（横並びの表＋「自分が欲しいのはどちら？」ガイド）、mypy付録から相互リンクされています。先送りのまま残っているのはADR-43 WD4（許可リストのソーシング）だけです。
+- **用語のフォローアップ：素の「interface」という言葉そのものが曖昧である**。二つの独立したSonnetサブエージェントを中立的なプロンプト（セッションコンテキストなし）で走らせたところ、高い確信度で一致しました。すなわち、Rubyには`interface`キーワードがなく、Ruby人口はJava／PHP寄りに偏っているため、素の「interface」は*名前的*な（明示的に`implements`する）種類として読まれ、RBSが実際に実装している*構造的*なRBS／Go／Protocolの種類としては読まれない（RBSの適合は構造的である ── ruby/rbsの`docs/syntax.md`、Steep、コミュニティのソースに対して検証済み。RBSの`include _Foo`は省略可能な便宜であって必須ではない）、ということです。**決定：初出時に「interface」を限定する**ことにし、「構造的インターフェース」／「RBSインターフェース」とします。実施済み：付録冒頭の一行コールアウト＋ハンドブックREADMEの約束事に記した用語の約束。付録が正規の解説です。ハンドブックの残りに対する初出時の広範なスイープは*行われていません*（先送り ── 優先度低）。
 
 ## ポインタ
 

@@ -3,8 +3,8 @@ title: "Internal Type API"
 description: "Imported from rigortype/rigor docs/internal-spec/internal-type-api.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/internal-type-api.md"
 sourcePath: "docs/internal-spec/internal-type-api.md"
-sourceSha: "1c2cad782ba0ec561779cd7e05b0cf43557519fef9ca7a7ede8f95f90ec30672"
-sourceCommit: "9f40e22193647dc06e3ab70c5ba82768b0bfe738"
+sourceSha: "4bbe815f89f44ab60ac313ede75fc76894acfc4cc7417f0e9b170d4ea1e6f79c"
+sourceCommit: "37d70ab9071b4a25e954d0157818f0b6ae88e2c2"
 translationStatus: "translated"
 sidebar:
   order: 3050
@@ -38,6 +38,9 @@ sidebar:
 - `hash`は同じ構造的データから導出されなければならず（MUST）、`eql?`で等しいインスタンスは同一の`hash`値を生成しなければなりません（MUST）。
 - 等価性はオブジェクト同一性に依存してはなりません（MUST NOT）。同じRubyオブジェクトでなくても、等しい構造を持つ2つの型インスタンスは等しいと比較されなければなりません（MUST）。
 - 型インスタンスはハッシュキーとして再利用してもかまいません（MAY）。実装はキャッシュが有効な場合に共通インスタンスをフライウェイト化してもかまいませんが（MAY）、フライウェイト化を正確さのために依存してはなりません（MUST NOT）。
+- 「構造的に等価なデータ」には、キャリアが自身の同一性に畳み込むあらゆる判別子が含まれます。とりわけ`Constant`はラップした値のRubyクラスをMUST区別します。したがって`1 == 1.0`であっても`Constant[1]`（Integer）と`Constant[1.0]`（Float）は等しくありません。フィールドごとの比較だけではこの二つを混同してしまうからです。
+
+この同一性契約は[`sig/rigor/type.rbs`](../../sig/rigor/type.rbs)において構造的インターフェース`_Type`として成文化されています ── これは構造的インターフェース（RBS／Goの意味での）であり、ADR-28のプロトコル契約ではありません。同一性が素のフィールドごとの比較であるキャリアは、`==` / `eql?` / `hash`の三つ組をそのフィールドリストから生成してもかまいません（MAY）（`Rigor::ValueSemantics`の`value_fields`マクロ）。これにより三つのメソッドは構成上一致した状態に保たれます。一方、洗練された同一性を持つキャリア（上記の`Constant`のクラス判別子、フィールドを持たない`Top` / `Bot`シングルトン）は三つ組を手書きします。生成のメカニズムは実装であり、拘束力を持つ契約は上記の三つのルールです。
 
 ## 三値結果値
 
