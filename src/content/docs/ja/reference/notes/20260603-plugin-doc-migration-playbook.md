@@ -3,8 +3,8 @@ title: "Plugin doc migration playbook (the \"(ii)\" split)"
 description: "Imported from rigortype/rigor docs/notes/20260603-plugin-doc-migration-playbook.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260603-plugin-doc-migration-playbook.md"
 sourcePath: "docs/notes/20260603-plugin-doc-migration-playbook.md"
-sourceSha: "ac292f095ef67ff952924c0203eb0952dc09b8ebd9010f61f5f4ff62343f105f"
-sourceCommit: "5c304b2c680eccdbfaffc114c0f31ce89f740ad4"
+sourceSha: "0a5ef516c683a52363e1e144b3a7af07f3259c15a5de28ff1e12225879cb2150"
+sourceCommit: "6e5bd55274e20dfb59183559c4971d34f878c907"
 translationStatus: "translated"
 sidebar:
   order: 20266603
@@ -33,8 +33,10 @@ sidebar:
 - **インデックス** → `docs/manual/plugins/README.md`（プラグインごとに1行）。
   すでに`docs/manual/README.md`の項目7に組み込み済み。
 
-31個中24個が完了し、7個（Tier-3の末尾）が残っています。正確な`[x]`/`[ ]`の
-リストはCURRENT_WORKチェックリストを参照してください。
+**完了——31個中31個**（すべてのチェッカープラグインがページを持つ;
+`rigor-playground`は意図的にページなしのインフラ）。このプレイブックは、
+将来のプラグイン追加のための手法リファレンスとして保持されています——
+プラグインごとのコミットはCURRENT_WORKチェックリストを参照してください。
 
 ## 重要: コピーするのではなく、突き合わせる
 
@@ -60,7 +62,7 @@ sidebar:
 これらはとくにRailsファミリー全体で繰り返し現れます。それぞれ、このパスの
 最中に行われた実際の修正です:
 
-1. **タイトルの不要物**。 `# rigor-<id> — example Rigor plugin`（「example」
+1. **タイトルの不要物**。`# rigor-<id> — example Rigor plugin`（「example」
    というサフィックス。`85e27336`で10個のプラグインを修正済み）。また、すべて
    のフェーズが着地済みなのに部分的であるかのように示唆する`(Phase N — …)`の
    パーレン（actionpack）。目標: 素の`# rigor-<id>`、または正確な記述子。
@@ -72,7 +74,7 @@ sidebar:
    字句的コンテキスト ── 囲んでいるクラス／アクション ── を必要とする場合は
    `NodeContext`も）に移行しました。その行を`node_rule`（＋`NodeContext`）に
    置き換える。
-4. **手書きの活用変化（inflection）**。 ADR-39はrails-routes /
+4. **手書きの活用変化（inflection）**。ADR-39はrails-routes /
    activerecord / actionpack / actionmailer / factorybotを
    `Plugin::Inflector`（**本物の`ActiveSupport::Inflector`**）に移行しました。
    したがって「regular plurals only; `Person→people` needs `table_name`」の
@@ -80,7 +82,7 @@ sidebar:
    本当に残っているギャップ: プロジェクト独自の
    `config/initializers/inflections.rb`のルールが取り込まれない
    （ADR-39スライス（slice）3）。
-5. **廃止された配布モデル**。 subtree-splitは廃止されました（2026-06-02）。
+5. **廃止された配布モデル**。subtree-splitは廃止されました（2026-06-02）。
    プラグインは**`rigortype`にバンドルされて**出荷されます。プラグインごとの
    gemはありません。陳腐化: `gem "rigor-<id>"`のインストール行、
    「Publication status」、「extract via `git subtree split`」、
@@ -97,7 +99,7 @@ sidebar:
    authored」）、dry-types（スライス3で追加されたにもかかわらず「does NOT
    do: user-authored compositions」）。より新しい／真であるセクションを採用
    して解決する。
-8. **RBSオーバーレイの結線**。 `signature_paths: vendor/bundle/…/rigor-<id>-0.1.0/sig`
+8. **RBSオーバーレイの結線**。`signature_paths: vendor/bundle/…/rigor-<id>-0.1.0/sig`
    はバンドリング下では陳腐化しています。クリーンな形はマニフェストの
    `signature_paths: ["sig"]`（ADR-25）です ── activerecordはこうしています。
    **dry-validationはまだそうなっていません**（オープン項目としてフラグ済み

@@ -3,8 +3,8 @@ title: "rigor-dry-validation"
 description: "Imported from rigortype/rigor docs/manual/plugins/rigor-dry-validation.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/plugins/rigor-dry-validation.md"
 sourcePath: "docs/manual/plugins/rigor-dry-validation.md"
-sourceSha: "6f5fcd12ebfb09d49651da7f1ab8e2c16d5c5db26d11779b5a0b59930ca46b2a"
-sourceCommit: "5c304b2c680eccdbfaffc114c0f31ce89f740ad4"
+sourceSha: "984a523cdcbba53d7630055aaa888e6208475e17689fce78b6ed82918bac27e0"
+sourceCommit: "6e5bd55274e20dfb59183559c4971d34f878c907"
 translationStatus: "translated"
 sidebar:
   order: 9050
@@ -42,9 +42,7 @@ result.to_h                                # Hash[Symbol, untyped]
 
 ## RBSオーバーレイ
 
-このプラグインは、上記の結果APIに型を付けるRBSオーバーレイ（`sig/dry_validation.rbs`）を同梱しています。これをロードするには、オーバーレイの`sig/`ディレクトリが`signature_paths:`に含まれている必要があります。
-
-> **注記（現在のギャップ）**。 [`rigor-activerecord`](../rigor-activerecord/)などの兄弟プラグインは、マニフェストの`signature_paths:`宣言を通じて、バンドルされたRBSを自動的に提供します（[ADR-25](../../../adr/25-plugin-contributed-rbs/)）。`rigor-dry-validation`はまだこれを採用していないため、そのオーバーレイは自動的にはロードされません。採用されるまで、`Result` APIの型は`untyped`にフォールバックします。契約の認識と`:dry_validation_contracts`ファクトはそれに関わらず機能します。
+このプラグインは、上記の結果APIに型を付けるRBSオーバーレイ（`sig/dry_validation.rbs`）を同梱しており、**それを自動的に提供します**——プラグインのマニフェストが`signature_paths: ["sig"]`を宣言する（[ADR-25](../../../adr/25-plugin-contributed-rbs/)）ので、`rigor-dry-validation`を有効化するだけで十分です;プロジェクト側の`signature_paths:`配線は不要です。
 
 ## diagnosticもconfigもなし
 

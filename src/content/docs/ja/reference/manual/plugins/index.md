@@ -3,8 +3,8 @@ title: "Plugin reference"
 description: "Imported from rigortype/rigor docs/manual/plugins/README.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/plugins/README.md"
 sourcePath: "docs/manual/plugins/README.md"
-sourceSha: "9bc72a6dc075cff1703e6ea9c5cb0f8046a1729fd690050d40b27bf1ffc971af"
-sourceCommit: "5c304b2c680eccdbfaffc114c0f31ce89f740ad4"
+sourceSha: "0cca1a12a0650b0371237b570fadbe424713dfbdc12155d9db9473823be21208"
+sourceCommit: "6e5bd55274e20dfb59183559c4971d34f878c907"
 translationStatus: "translated"
 sidebar:
   order: 9000
@@ -40,5 +40,13 @@ sidebar:
 - [rigor-actioncable](rigor-actioncable/) — `broadcast_to`のチャネルの存在と、`ActionCable.server.broadcast`のストリーム名の検証。
 - [rigor-minitest](rigor-minitest/) — Minitest／Test::Unitのアサーションおよびspecマッチャーを通したローカル変数のナローイング。
 - [rigor-graphql](rigor-graphql/) — GraphQL-Rubyの型／enum／input／mutationのテーブルの公開（プラグイン横断のファクト、診断なし）。
+- [rigor-rspec-rails](rigor-rspec-rails/) — `have_http_status`の引数検証（範囲外のコード、未知のステータスシンボル）。
+- [rigor-shoulda-matchers](rigor-shoulda-matchers/) — ARモデル索引に対するshouldaマッチャーのカラム／関連の検証。
+- [rigor-hanami](rigor-hanami/) — Hanami::Actionの`#handle`プロトコル強制 + リクエスト／レスポンスパラメータの型付け（ADR-28）。
+- [rigor-typescript-utility-types](rigor-typescript-utility-types/) — `Pick`／`Omit`／`Partial`／…をRigorのシェイプ（shape）射影にマップする。
+- [rigor-rbs-inline](rigor-rbs-inline/) — `# @rbs`インラインコメントを強制されるRBS契約（contract）として取り込む（ADR-32）。
+- [rigor-activesupport-core-ext](rigor-activesupport-core-ext/) — ActiveSupportのcore_ext向けのオプトインRBSバンドル（最大のRails偽陽性ソース）。
 
-_プラグインごとのページは、各プラグインのツリー内`README.md`からここへ移行中です。あるプラグインが上記のページを持つまで、そのユーザー向けドキュメントは[`plugins/<name>/README.md`](https://github.com/rigortype/rigor/blob/master/plugins/README.md)にあります。_
+ブラウザ**プレイグラウンド**（`rigor playground`）はチェッカープラグインではなくインフラです——ここにページはありません;[CLIリファレンス](../02-cli-reference/)と[ADR-29](../../adr/29-browser-playground/)を参照してください。
+
+_バンドルされたすべてのチェッカープラグインは上記のページを持ちます;各プラグインのツリー内[`README.md`](https://github.com/rigortype/rigor/blob/master/plugins/README.md)は今やその内部資料（レイアウト、アーキテクチャ、行使する契約サーフェス）を扱い、ここの自身のページへリンクアップします。_
