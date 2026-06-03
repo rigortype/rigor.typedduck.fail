@@ -3,8 +3,8 @@ title: "付録 — mypy / Pyrightから来た場合"
 description: "Imported from rigortype/rigor docs/handbook/appendix-mypy.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/appendix-mypy.md"
 sourcePath: "docs/handbook/appendix-mypy.md"
-sourceSha: "a2bbd1bf7eeeee5c1459eb9353b401c918d633b011a1cef1950079574c12018d"
-sourceCommit: "6bcf38aa850fa4324ea959b2ce5cfdb61a88aa28"
+sourceSha: "22a7035b4a95bdfb6a938bd159d7af39b8a4b90a6be950c1e8ebf185d19ca2cd"
+sourceCommit: "f5dbc21061d54b2f49a504a97f85ba835db00f4a"
 translationStatus: "translated"
 sidebar:
   order: 1050
@@ -224,6 +224,8 @@ end
 `close`を定義するクラス（正しいシグネチャで）は両方を満たす。どちらのシステムもクラスに継承を宣言することを要求しない — 構造的なマッチは暗黙的。
 
 Rigorは`sig/`からRBSインターフェースを読む。RBS宣言されたパラメータが`_SupportsClose`の場合、Rigorはmypy/Pyrightが`Protocol`に対してチェックするのと同じように、call-siteの引数を構造的にチェックする。
+
+Pythonから持ち越した注意点をひとつ: Rigorにおいて「protocol」はこれを**意味しない**。構造的型付け（structural typing）の概念はRBSの`interface`であり、「protocol」は別の、プラグインが宣言する機能（パススコープの振る舞い契約）のために予約されている。[プロトコルと構造的型付けの付録](appendix-protocols-and-structural-typing.md)がこの区別を詳しく解説する。
 
 ## mypy / PyrightにあってRigorにないもの
 

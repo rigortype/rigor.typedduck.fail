@@ -3,8 +3,8 @@ title: "Plugin Registration / Loading (slice 1)"
 description: "Imported from rigortype/rigor docs/internal-spec/plugin.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/plugin.md"
 sourcePath: "docs/internal-spec/plugin.md"
-sourceSha: "594dbdd63a29a8405ae96d36e33b9377fa40a658c0109d3176be1e9975d2aba3"
-sourceCommit: "b5c25bc5a9e53d495e4f515a9506f10fd4bef8d7"
+sourceSha: "5c9df6d72234a1886026d63eefa359e0928c2f28354e1f31eb992f53e89304b6"
+sourceCommit: "f5dbc21061d54b2f49a504a97f85ba835db00f4a"
 translationStatus: "translated"
 sidebar:
   order: 3050
@@ -41,7 +41,6 @@ class MyPlugin < Rigor::Plugin::Base
     id: "my-plugin",
     version: "0.1.0",
     description: "...",
-    protocols: [],
     config_schema: { "flag" => :boolean }
   )
 
@@ -98,7 +97,7 @@ end
 `flow_contribution_for`はちょうど2つのエンジンサイトで参照され、それぞれが返されたバンドルのちょうど1スロットを読んでいました: `MethodDispatcher`は`.return_type`（呼び出しサイトごとの戻り型）を読み、`StatementEvaluator`は`.post_return_facts`（アサーションエッジのナローイング）を読みます。ADR-37スライス2は、これら2つの消費サイトを2つの狭く宣言的にゲートされるクラスDSL——`producer`スタイルの形状なので、ブロックはロジックを担い`instance_exec`を通して実行されます——へ分割します:
 
 - `dynamic_return(receivers:) { |call_node, scope| Type | nil }` — レシーバーのクラスでゲートされた、呼び出しサイトごとの**戻り型**。エンジンは、呼び出しのレシーバー型のクラスが宣言された`receivers:`エントリーと等しいか、それを継承する場合にのみブロックを呼びます（`Environment#class_ordering`経由でマッチ）;最初の非`nil`が勝ちます。エンジンはそれを`#dynamic_return_type(call_node:, scope:, receiver_type:)`を通して呼び出します。`rigor-mangrove`（アンラップ → 担われた`type_args[0]`）が実装済みのコンシューマーです。
-  - **二項演算子はここでは通常の呼び出しです**。 Rubyの`a + b`は`:+`という名前の`Prism::CallNode`に解析されるため、他のあらゆる呼び出しと同様にこのフックへ到達します。すなわち`dynamic_return(receivers: ["Money"])`規則は`call_node.name ∈ {:+, :-, :*, :/, :<=>, …}`で分岐して演算子の結果型を返すことができ ── これはself／左オペランドのケースに対するPHPStanの`OperatorTypeSpecifyingExtension`のRigor版であり、演算子固有の拡張ポイントを持ちません。`spec/integration/plugin_operator_dynamic_return_spec.rb`によって確認済みです。**注意（coerce方向）：**ゲートは*レシーバー*のクラスにかかり、Rubyは`1 + money`を`Integer`でディスパッチするため、`["Money"]`規則はそこでは発火しません。その結果は`Integer`として左バイアスで型付けされます（ADR-42を参照）。
+  - **二項演算子はここでは通常の呼び出しです**。Rubyの`a + b`は`:+`という名前の`Prism::CallNode`に解析されるため、他のあらゆる呼び出しと同様にこのフックへ到達します。すなわち`dynamic_return(receivers: ["Money"])`規則は`call_node.name ∈ {:+, :-, :*, :/, :<=>, …}`で分岐して演算子の結果型を返すことができ ── これはself／左オペランドのケースに対するPHPStanの`OperatorTypeSpecifyingExtension`のRigor版であり、演算子固有の拡張ポイントを持ちません。`spec/integration/plugin_operator_dynamic_return_spec.rb`によって確認済みです。**注意（coerce方向）：**ゲートは*レシーバー*のクラスにかかり、Rubyは`1 + money`を`Integer`でディスパッチするため、`["Money"]`規則はそこでは発火しません。その結果は`Integer`として左バイアスで型付けされます（ADR-42を参照）。
 - `type_specifier(methods:) { |call_node, scope| facts | nil }` — `call_node.name`が宣言された`methods:`に含まれることでゲートされた、**戻り値後のナローイングファクト**。エンジンはそれを`#type_specifier_facts(call_node:, scope:)`を通して呼び出します。`rigor-minitest`（アサーションナローイング）と`rigor-rspec`のマッチャーナローイングが実装済みのコンシューマーです。
 
 `receivers:` / `methods:`は、`rigor plugins --capabilities`カタログ（ADR-37 §「機械可読なケイパビリティカタログ」）が列挙する、grep可能でインデックス可能なゲートです。
@@ -151,7 +150,6 @@ end
 | `id` | `/\A[a-z][a-z0-9._-]*\z/`に一致する`String` | 安定した識別子；`PluginEntry#id`と`plugin.<id>.<rule>`診断プレフィックスとして使用される。 |
 | `version` | 空でない`String` | プラグインバージョン；キャッシュ無効化のため`PluginEntry#version`に格納される。 |
 | `description` | `String?` | 人間が読めるサマリー。 |
-| `protocols` | `Array<Symbol>` | このプラグインが実装するプロトコル名。 |
 | `config_schema` | `{ String => Symbol | { kind:, default: } }` | 受け入れられるconfigキーと値の**種類**（kind、`:string`・`:boolean`・`:integer`・`:array`・`:hash`・`:any`）のマッピングで、宣言された**デフォルト**（default）をオプションで担う（ADR-40;下記の_宣言されたconfigデフォルト_を参照）。 |
 
 以下の**拡張フィールド**は`0.1.x`サイクルを通じて追加されました。すべてオプションで、1.0前のプラグイン契約に対して追加的です;これらを1つも宣言しないプラグインはただのファイルごとのアナライザーです:

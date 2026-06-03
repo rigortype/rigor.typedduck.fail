@@ -117,6 +117,14 @@ export default defineConfig({
               ],
             },
             {
+              label: 'Appendix — Protocols and structural typing',
+              translations: { ja: '付録 — プロトコルと構造的型付け' },
+              collapsed: false,
+              items: [
+                { slug: 'reference/handbook/appendix-protocols-and-structural-typing' },
+              ],
+            },
+            {
               label: 'Appendix — Connections to type theory',
               translations: { ja: '付録 — 型理論との接続' },
               collapsed: false,

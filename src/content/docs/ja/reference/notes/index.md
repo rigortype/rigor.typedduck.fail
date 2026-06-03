@@ -3,8 +3,8 @@ title: "Research & Survey Notes"
 description: "Imported from rigortype/rigor docs/notes/README.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/README.md"
 sourcePath: "docs/notes/README.md"
-sourceSha: "7ee4109d2e799d24daf1359ef4268ff75c45b65fa307baf76d001e45c5d06f32"
-sourceCommit: "b5c25bc5a9e53d495e4f515a9506f10fd4bef8d7"
+sourceSha: "dfecffb1b76040d5f0cec64543c6238f8a752c0ca5ece17e8a77728b84ea7c69"
+sourceCommit: "f5dbc21061d54b2f49a504a97f85ba835db00f4a"
 translationStatus: "translated"
 sidebar:
   order: 6000
@@ -72,6 +72,7 @@ sidebar:
 | 2026-05-20 | [Ractor worker pool crash — CRuby concurrent-Ractor use-after-free](20260520-ractor-pool-cruby-uaf/) |
 | 2026-05-28 | [Upstream `ruby/rbs` PR — `Resolv::DNS` typeclass-narrowed return](20260528-rbs-upstream-pr-resolv-typeclass/) |
 | 2026-06-03 | [プラグインファイルを`Plugin::Base`契約に対して型付けする — スパイク調査の所見](20260603-plugin-contract-self-typing-spike/) |
+| 2026-06-03 | [セッションレポート — プラグイン契約を型付けする（6コミットの着地）](20260603-plugin-contract-typing-session-report/) |
 
 ## ノートの追加
 
