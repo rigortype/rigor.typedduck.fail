@@ -3,8 +3,8 @@ title: "Research & Survey Notes"
 description: "Imported from rigortype/rigor docs/notes/README.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/README.md"
 sourcePath: "docs/notes/README.md"
-sourceSha: "dfecffb1b76040d5f0cec64543c6238f8a752c0ca5ece17e8a77728b84ea7c69"
-sourceCommit: "f5dbc21061d54b2f49a504a97f85ba835db00f4a"
+sourceSha: "9425e904396880283d19b4861f760ed88a78c863480a6d0553309d7a4368e8bd"
+sourceCommit: "1e82fa4a127682abbd0aa1b9030cabd425ed2754"
 translationStatus: "translated"
 sidebar:
   order: 6000
@@ -64,6 +64,7 @@ sidebar:
 | 2026-06-01 | [「漸進的型付け言語の時代に必要なもの」（mizchi） — Rigor / TypeScript観点考察](20260601-gradual-typing-era-mizchi-rigor-ts-review/) |
 | 2026-06-01 | [「Revenge of the Types」（Armin Ronacher） — ランタイム × 型チェッカー横断考察](20260601-revenge-of-the-types-runtime-checker-survey/) |
 | 2026-06-01 | [「型システムポエム」（myuon） — Rigor観点考察](20260601-type-system-poem-rigor-review/) |
+| 2026-06-04 | [Elixir v1.20の勾配的集合論型システム — Rigor観点考察](20260604-elixir-v1.20-type-system-rigor-review/) |
 
 ## インフラストラクチャ・upstream
 

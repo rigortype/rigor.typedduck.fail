@@ -3,8 +3,8 @@ title: "アーキテクチャ決定記録"
 description: "rigortype/rigor docs/adr/README.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/README.md"
 sourcePath: "docs/adr/README.md"
-sourceSha: "c9a1f138a7de2460fdd2d49c9a5ff39882fdf5f8e75b1fb797360b81288059ef"
-sourceCommit: "b5c25bc5a9e53d495e4f515a9506f10fd4bef8d7"
+sourceSha: "c7f0ca5a1d25cc81356369fc734bd80d2b2d41737d35f8324ca2e5521baedd08"
+sourceCommit: "1e82fa4a127682abbd0aa1b9030cabd425ed2754"
 translationStatus: "translated"
 sidebar:
   order: 4000
@@ -67,6 +67,9 @@ sidebar:
 | ADR-41 | [Inference budget design (wiring, on-hit policy, measurement-gated defaults)](41-inference-budget-design/) | Proposed (spec table unwired; Layer 1 doc hygiene + Layer 2 measurement-gated wiring queued) |
 | ADR-42 | [Plugin-contributed binary-operator return types (coerce-direction)](42-plugin-binary-operator-return-types/) | Proposed, low priority (self/left-operand case already works via `dynamic_return`, spec-confirmed; coerce direction is a narrow false positive — cheapest fix is the WD-D engine mitigation, precision via the ADR-20 HKT route; demand-gated) |
 | ADR-43 | [RBS-complete ancestor resolution (allow-list inherited-method dispatch)](43-rbs-complete-ancestor-resolution/) | Accepted — fully landed (WD1–WD6; `rigor check` resolves a Ruby subclass's inherited calls against an allow-listed RBS-complete ancestor (seed `Plugin::Base`) so contract misuse warns standalone, without Steep's own-helper FP wall; zero net FP on the plugin lib tree; blanket resolution rejected on Rails-controller FP grounds; `make check-plugins` gate in `verify` + CI, teeth verified) |
+| ADR-44 | [Per-dispatch / per-narrow allocation churn (Scope, CallContext)](44-dispatch-allocation-churn/) | Accepted — landed: collapsed the ~12-deep body-scope `with_*` chains into a single `Scope.new` (GC runs −29%, diagnostics byte-identical) + `owners_for` shared-empty + `CallContext` positional `new`; mutable pooled Scope/CallContext **rejected** (re-entrant dispatch → silent narrowing corruption → false positives); `ProjectScope` field-regrouping downgraded (object-shape benchmark: 3–24 ivars all allocate one object, so it cuts size not count) |
+| ADR-45 | [Unchanged-project fast path (run-result cache)](45-unchanged-project-fast-path/) | Accepted — landed. A pre-analysis whole-run fingerprint was **rejected as unsound** (plugins like Pundit read project files *during* analysis → stale hit, caught by the cross-process `pundit_plugin_spec` regression). The sound **record-and-validate** cache (`Cache::Store#fetch_or_validate` + `Descriptor#fresh?`): key on the inputs known up front, store the result with the dependency set the run actually read, re-digest it on the next run. Unchanged Mastodon `app/models` (248 files) 11.6 s → 1.8 s (~6×), diagnostics byte-identical; gate runs `--no-cache` |
+| ADR-46 | [Incremental analysis via a cross-file dependency graph](46-incremental-dependency-graph/) | Proposed — design. The per-file incremental successor to ADR-45's coarse whole-run cache: record, per file, what it read from other files (declarations, inferred-return bodies, plugin reads) through the `Scope` accessor choke point; invert into a `dependents` index; on an edit re-analyze only `ΔF ∪ dependents`, serving the rest from a per-file cache. A leaf `PostsController` edit → 1 file; a `Post` model edit → model + its ~dozen callers. Two tiers (declaration-structure fingerprint for body edits vs structural edits); soundness gated by a mandatory `--verify-incremental` byte-identical cross-check; conservative fallback to full re-analysis on any uncertainty |
 
 ## 新しいADRの追加
 
