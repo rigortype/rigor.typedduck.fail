@@ -3,8 +3,8 @@ title: "ADR-46 — Incremental analysis via a cross-file dependency graph"
 description: "Imported from rigortype/rigor docs/adr/46-incremental-dependency-graph.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/46-incremental-dependency-graph.md"
 sourcePath: "docs/adr/46-incremental-dependency-graph.md"
-sourceSha: "ced2eb7b0582b89a9e6b2cc673f7c79d269a6b2c3b621c267e6788a5644447e2"
-sourceCommit: "1e82fa4a127682abbd0aa1b9030cabd425ed2754"
+sourceSha: "93fbf8aebc50d70ac3584b38706f7bb8c914404e13fca0d67ff7b1b0a58a88ae"
+sourceCommit: "ac5165db83b00444114436bacaee34625a50573f"
 translationStatus: "translated"
 sidebar:
   order: 4046
@@ -22,11 +22,11 @@ ADR-45は*変更なし*のプロジェクトを高速化した（全体実行の
 
 AのASTと、Aの解析が消費したすべてのファイル横断（cross-file）ファクトを純粋関数として受け取り、Aの診断結果が得られる。エンジンに照らしてファイル横断ファクトの種類を列挙すると次のとおりだ:
 
-1. **クラス・メソッド・定数の宣言**。 Aは`Post`、`Post#publish`、`Admin::Report`をプロジェクト全体の`discovered_classes` / `discovered_def_nodes` / `discovered_superclasses` / `discovered_includes`インデックス（`seed_project_scope`によって各ファイルの`Scope`に注入される）に対して解決する。エンジン内の66箇所のファイル横断読み取りは、`user_def_for`、`user_def_site_for`、`superclass_of`、`includes_of`、`top_level_def_for`、及びdiscovered-classルックアップという少数の`Scope`アクセサーに集約される。これがこの設計が計装する**チョークポイント（choke point）**だ。
-2. **推論された戻り値のボディ（深いエッジ）**。 `infer_user_method_return`は`Post#publish`の`DefNode`を解決し、呼び出しの戻り型を推論するために**そのボディを評価する**。したがってAは`Post#publish`の存在だけでなく、その**ボディ**にも依存する。推論された戻り型を変える本体編集は、Aの診断結果を変える。
+1. **クラス・メソッド・定数の宣言**。Aは`Post`、`Post#publish`、`Admin::Report`をプロジェクト全体の`discovered_classes` / `discovered_def_nodes` / `discovered_superclasses` / `discovered_includes`インデックス（`seed_project_scope`によって各ファイルの`Scope`に注入される）に対して解決する。エンジン内の66箇所のファイル横断読み取りは、`user_def_for`、`user_def_site_for`、`superclass_of`、`includes_of`、`top_level_def_for`、及びdiscovered-classルックアップという少数の`Scope`アクセサーに集約される。これがこの設計が計装する**チョークポイント（choke point）**だ。
+2. **推論された戻り値のボディ（深いエッジ）**。`infer_user_method_return`は`Post#publish`の`DefNode`を解決し、呼び出しの戻り型を推論するために**そのボディを評価する**。したがってAは`Post#publish`の存在だけでなく、その**ボディ**にも依存する。推論された戻り型を変える本体編集は、Aの診断結果を変える。
 3. **クラス状態の推論**。プロジェクト全体の`class_ivars` / `class_cvars` / `program_globals` / `in_source_constants`は、あるファイルで代入され別のファイルで読み取られる型を持つ。
 4. **プラグインの寄与**。プラグインは解析の途中でプロジェクトファイルを読み込み（`rigor-pundit`ポリシー）、診断結果や戻り型を提供することがある。各プラグインの`io_boundary.cache_descriptor`（ADR-45）を通じてファイルダイジェストとして既に捕捉されている。
-5. **グローバル入力**。 RBS環境（gems + `sig/`）、解決済みの設定、`Rigor::VERSION` — ADR-45のフィンガープリント（fingerprint）。
+5. **グローバル入力**。RBS環境（gems + `sig/`）、解決済みの設定、`Rigor::VERSION` — ADR-45のフィンガープリント（fingerprint）。
 
 主要な種類についてはソースの帰属（attribution）が既に存在する。`discovered_def_sources`は`(class, method) → "path:line"`をマッピングするため、メソッド宣言や推論戻り値の依存関係は現時点でもファイルに帰属させられる。クラス・スーパークラス・includeの帰属はまだ記録されていないが、追加コストは低い。プリパスでは各ファイルをマージしながら`path`を保持しており（`merge_discovered_defs`はすでにメソッドに対してこれを行っている）。
 
@@ -73,7 +73,8 @@ AのASTと、Aの解析が消費したすべてのファイル横断（cross-fil
 ## ステージング
 
 1. **帰属 + 記録**。クラス・スーパークラス・includeのソースマップを追加し、`Scope`アクセサーに依存関係レコーダーを通し、`deps` / `dependents`とファイル単位の診断エントリを永続化する。`--verify-incremental`がMastodon + GitLabでグリーンの状態で、デフォルトオフのフラグの後ろにランディングする。
-   - **スライス1aランディング済み** — `Analysis::DependencyRecorder`（スレッドローカルアキュムレーター + 無効化時のファストパスが単純な整数読み取りになるようモジュールレベルの有効化カウント、計装済みアクセサーはディスパッチのホットパス上にあるため）は、ファイルごとに解析がメソッド・ボディを読み取ったソースファイルと、未解決（ネガティブ）のクロスクラスメソッドルックアップを記録する。`Scope#user_def_for` — メソッド解決・`infer_user_method_return`のチョークポイント — が計装され、既存の`discovered_def_sources`を通じて帰属する。`Runner.new(record_dependencies: true)`でオプトイン、`runner.file_dependencies`として公開。デフォルトはオフ（診断結果はバイト同一、`make verify`グリーン）。このスライスの残り: クラス・スーパークラス・includeのソースマップ + そのアクセサー、永続化、`--verify-incremental`。
+   - **スライス1aランディング済み** — `Analysis::DependencyRecorder`（スレッドローカルアキュムレーター + 無効化時のファストパスが単純な整数読み取りになるようモジュールレベルの有効化カウント、計装済みアクセサーはディスパッチのホットパス上にあるため）は、ファイルごとに解析がメソッド・ボディを読み取ったソースファイルと、未解決（ネガティブ）のクロスクラスメソッドルックアップを記録する。`Scope#user_def_for` — メソッド解決・`infer_user_method_return`のチョークポイント — が計装され、既存の`discovered_def_sources`を通じて帰属する。`Runner.new(record_dependencies: true)`でオプトイン、`runner.file_dependencies`として公開。デフォルトはオフ（診断結果はバイト同一、`make verify`グリーン）。
+   - **スライス1bランディング済み** —— 祖先エッジ。ファイルごとの`class_sources`マップ（`class_name → Set<宣言ファイル>`、ある名前に`def` / スーパークラス / `include` / 素の宣言を寄与するすべてのファイルから`accumulate_project_index`で構築）が記録スコープにシードされ、`Scope#superclass_of` / `#includes_of`が祖先エッジを解決するときに宣言ファイルの完全な集合を記録する —— つまり複数ファイルにまたがって再オープンされたクラスは、その祖先を読む消費者を*すべての*再オープンに依存させる（設計上の過剰記録、保守的な方向）。これを修正する過程で潜在的なスライス1aのギャップが表面化した: ADR-44の単一アロケーションボディスコープ（`ExpressionTyper#build_user_method_body_scope`、`StatementEvaluator#build_fresh_body_scope`）が`discovered_def_sources`を落としていたため、メソッドボディエッジ（`user_def_for` → `def_sources`）が暗黙的selfの祖先解決呼び出しに対してサイレントに*記録されていなかった*（スライス1aのスペックは明示的なレシーバーのみをカバーしていた）。両ボディスコープは現在`def_sources` + 新しい`class_sources`を持つ;デフォルトはオフ、`make verify`グリーン、診断結果はバイト同一。このスライスの残り: 永続化（`deps` / `dependents` + ファイル単位の診断エントリ）と`--verify-incremental`。
 2. **ボディティア**。宣言フィンガープリント不変のパス（ΔF ∪ dependentsを再解析）を繋ぎ込む。これだけでMVCの恩恵が得られる。
 3. **構造的ティア**。ネガティブ依存関係の追跡により、シンボルの追加時に全体へフォールバックするのではなく、そのシンボルの候補リゾルバーだけを再チェックするようにする。
 4. **シンボル粒度（オプション）**。ファイルレベルの依存関係を`(file, symbol)`に精緻化し、1つのモデルメソッドを編集したときにモデルの全呼び出し元ではなく、*そのメソッド*の呼び出し元だけを再チェックするようにする。
@@ -87,6 +88,6 @@ AのASTと、Aの解析が消費したすべてのファイル横断（cross-fil
 
 ## リスク
 
-- **記録の完全性は正確さの不変条件であり、パフォーマンスのノブではない**。 `--verify-incremental`ゲートは必須であり、オプションではない。
+- **記録の完全性は正確さの不変条件であり、パフォーマンスのノブではない**。`--verify-incremental`ゲートは必須であり、オプションではない。
 - **推論戻り値の揮発性**。メソッドの推論戻り値を変えるボディ編集はすべての呼び出し元に波及する。深いコールグラフは「影響を受けるクロージャー」を大きくしうる。戻り型**サマリー**（依存先の推論サマリーが変わった場合のみdependentを再チェックする）がこれを抑えるが、それ自体が独立したスライスだ。
-- **永続化コスト**。 `deps` / `dependents` / ファイル単位エントリはプロジェクトとともに肥大する。これらはADR-6の退避なしバックエンドを共有しており、サイズに関する方針が必要だ（ファイル単位エントリは安定したパスをキーとしているため、ADR-45のスロットと同様に蓄積ではなく上書きになる）。
+- **永続化コスト**。`deps` / `dependents` / ファイル単位エントリはプロジェクトとともに肥大する。これらはADR-6の退避なしバックエンドを共有しており、サイズに関する方針が必要だ（ファイル単位エントリは安定したパスをキーとしているため、ADR-45のスロットと同様に蓄積ではなく上書きになる）。
