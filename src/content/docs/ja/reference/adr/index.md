@@ -3,8 +3,8 @@ title: "アーキテクチャ決定記録"
 description: "rigortype/rigor docs/adr/README.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/README.md"
 sourcePath: "docs/adr/README.md"
-sourceSha: "c7f0ca5a1d25cc81356369fc734bd80d2b2d41737d35f8324ca2e5521baedd08"
-sourceCommit: "1e82fa4a127682abbd0aa1b9030cabd425ed2754"
+sourceSha: "43f0bea7118ade052acdfc9a6dfbde1918bf28e4e550b9f2dd1cbc17cd3d683b"
+sourceCommit: "9a4902b92ddbe883b915858b6dcb577785630502"
 translationStatus: "translated"
 sidebar:
   order: 4000
@@ -70,6 +70,7 @@ sidebar:
 | ADR-44 | [Per-dispatch / per-narrow allocation churn (Scope, CallContext)](44-dispatch-allocation-churn/) | Accepted — landed: collapsed the ~12-deep body-scope `with_*` chains into a single `Scope.new` (GC runs −29%, diagnostics byte-identical) + `owners_for` shared-empty + `CallContext` positional `new`; mutable pooled Scope/CallContext **rejected** (re-entrant dispatch → silent narrowing corruption → false positives); `ProjectScope` field-regrouping downgraded (object-shape benchmark: 3–24 ivars all allocate one object, so it cuts size not count) |
 | ADR-45 | [Unchanged-project fast path (run-result cache)](45-unchanged-project-fast-path/) | Accepted — landed. A pre-analysis whole-run fingerprint was **rejected as unsound** (plugins like Pundit read project files *during* analysis → stale hit, caught by the cross-process `pundit_plugin_spec` regression). The sound **record-and-validate** cache (`Cache::Store#fetch_or_validate` + `Descriptor#fresh?`): key on the inputs known up front, store the result with the dependency set the run actually read, re-digest it on the next run. Unchanged Mastodon `app/models` (248 files) 11.6 s → 1.8 s (~6×), diagnostics byte-identical; gate runs `--no-cache` |
 | ADR-46 | [Incremental analysis via a cross-file dependency graph](46-incremental-dependency-graph/) | Proposed — design. The per-file incremental successor to ADR-45's coarse whole-run cache: record, per file, what it read from other files (declarations, inferred-return bodies, plugin reads) through the `Scope` accessor choke point; invert into a `dependents` index; on an edit re-analyze only `ΔF ∪ dependents`, serving the rest from a per-file cache. A leaf `PostsController` edit → 1 file; a `Post` model edit → model + its ~dozen callers. Two tiers (declaration-structure fingerprint for body edits vs structural edits); soundness gated by a mandatory `--verify-incremental` byte-identical cross-check; conservative fallback to full re-analysis on any uncertainty |
+| ADR-47 | [Narrowing-driven clause reachability (`flow.unreachable-clause`)](47-narrowing-driven-clause-reachability/) | Proposed — design. Extends Rigor's two existing `if`/`unless` reachability rules (`flow.unreachable-branch` literal-only + `flow.always-truthy-condition` inferred-constant) to `case`/`when` clauses, inspired by Elixir v1.20's redundant-clause reporting. The flow engine already narrows `case` (`eval_case_when_branches` threads a `falsey_scope` across `when` branches via `Narrowing.case_when_scopes`); a clause is unreachable exactly when its computed `body_scope` narrows the subject to `bot` (per-clause disjointness) or its entry `falsey_scope` already carries a `bot` subject (prior-exhaustion). Reuses `always-truthy-condition`'s FP envelope (subject must narrow, skip loops/blocks, skip defensive shapes, never fire on `Dynamic[T]`); `in`/pattern clauses gated behind `InNode` exhaustiveness (ADR-36 neighbour); corpus FP gate before default-on |
 
 ## 新しいADRの追加
 
