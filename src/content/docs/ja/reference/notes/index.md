@@ -3,8 +3,8 @@ title: "Research & Survey Notes"
 description: "Imported from rigortype/rigor docs/notes/README.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/README.md"
 sourcePath: "docs/notes/README.md"
-sourceSha: "405b8d7ecd8775a5391f218e7afdfb4d08b65d168a12111ff7d0b0326083390b"
-sourceCommit: "86367f26f62593f19f649f7cb9c8e1a00a751282"
+sourceSha: "b8e49d5c2365f17a87d3a31ce6ba714f551122161fc4f345f6b0f2dee7caab0c"
+sourceCommit: "73d7a0a2d4628b0614948fe2fa043945b45d5de4"
 translationStatus: "translated"
 sidebar:
   order: 6000
@@ -75,6 +75,12 @@ sidebar:
 | 2026-05-28 | [Upstream `ruby/rbs` PR — `Resolv::DNS` typeclass-narrowed return](20260528-rbs-upstream-pr-resolv-typeclass/) |
 | 2026-06-03 | [プラグインファイルを`Plugin::Base`契約に対して型付けする — スパイク調査の所見](20260603-plugin-contract-self-typing-spike/) |
 | 2026-06-03 | [セッションレポート — プラグイン契約を型付けする（6コミットの着地）](20260603-plugin-contract-typing-session-report/) |
+
+## プロセス・メタ
+
+| Date | Note |
+| --- | --- |
+| 2026-06-05 | [ADR corpus rubric audit — scoring ADR-0…49 against ADR-49](20260605-adr-corpus-rubric-audit/) |
 
 ## ノートの追加
 

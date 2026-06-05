@@ -3,8 +3,8 @@ title: "ADR-24 — implicit-selfメソッド呼び出し解決"
 description: "rigortype/rigor docs/adr/24-self-method-call-resolution.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/24-self-method-call-resolution.md"
 sourcePath: "docs/adr/24-self-method-call-resolution.md"
-sourceSha: "3655fa0df48b425570ab2f88e9bd1781c1f100c54c72237325ff5e52250b92a1"
-sourceCommit: "86367f26f62593f19f649f7cb9c8e1a00a751282"
+sourceSha: "f4383d8cc7ddabe6b6fb35a47a004711873abeb1beca6db5a3dc2001304a6f73"
+sourceCommit: "73d7a0a2d4628b0614948fe2fa043945b45d5de4"
 sourceDate: "2026-05-29T00:21:31+09:00"
 sourceLanguage: "en"
 translationStatus: "translated"
@@ -12,7 +12,7 @@ sidebar:
   order: 4024
 ---
 
-ステータス: **Accepted、2026-05-20（スライス（slice）4は別途FP評価が必要なためゲート中）。スライス1+3は2026-05-20に実装済み、スライス2は2026-05-21に実装済み。スライス4アテンプト1（check-rules再実装）は2026-06-05にプロトタイプされ差し戻し — Rigorの`lib`で135件のフォルスポジティブ；正しい経路は評価時レコーダーであり、以下のスライス4を参照**。
+ステータス: **Accepted、2026-05-20（スライス（slice）4は別途FP評価が必要なためゲート中）。スライス1+3は2026-05-20に実装済み、スライス2は2026-05-21に実装済み。スライス4アテンプト1（check-rules再実装）は2026-06-05にプロトタイプされ差し戻し — Rigorの`lib`で135件のフォルスポジティブ。スライス4a（評価時レコーダー）+`call.self-undefined-method`ルール（スタンドアロンクラスゲート、`:off`でship済み）は2026-06-05に実装済み — ミニコーパス467→15件のレコーダーミス、アテンプト1のFPクラスはゼロ、ルールはRigorの`lib`でFPクリーン（かつ実在の潜在バグを検出）。デフォルトON前の外部WD4コーパスFPゲート + スーパークラス/インクルードチェーンへのゲート拡張が残存。以下のスライス4を参照**。
 メソッドボディの内側で明示的なレシーバーなしに書かれた呼び出し（implicit-selfメソッド呼び出し）を、囲むクラス / モジュールのメソッドセット — 自身の定義、その祖先、クロスファイルのプロジェクトクラス — に対して解決するというプロジェクトの決定を記録する。これにより、解決されたメソッドの推論された戻り型とパラメータ契約（contract）が呼び出しサイトで可視になる。現状ではそのような呼び出しは`Dynamic[top]`として型付けされており、これは根本的な精度ギャップ。
 
 ## コンテキスト
@@ -161,6 +161,20 @@ WD4に従って閉じたクラスself呼び出しに対する`call.undefined-met
 - **テンプレートメソッドモジュール / バリューセマンティクス** — `CLI::Renderable`（`render_text`は抽象メソッドでincluderが実装）、`ValueSemantics::ClassMethods`：閉じていると判定するゲートの「インクルードなし」チェックが*呼び出し先*側から捕捉できないミックスイン契約（contract）を通じてのみ存在するメソッド。
 
 **結論：`CheckRules`でself呼び出し解決を再実装してはならない**。エンジンは精度の観点でこれらのケースをすでにすべて正しく解決している（ADR-24スライス1〜2：`module_function`、合成アクセサ、祖先ウォーク） — FPはルール内の二番目のより弱い解決経路がエンジンの実際の経路と乖離したことだけに起因する。正しい設計（ADR-46 / ADR-47の教訓：「評価時に収集し、再計算しない」）は**評価時レコーダー**である：エンジン自身のself呼び出し解決が`Dynamic[top]`に落ちる単一のポイント（`ExpressionTyper#try_user_method_inference`ミス＋ディスパッチャーRBSティアミス）で未解決の呼び出しノードを記録し、`CheckRules`は閉じているゲートとコーパスFPトリアージだけを適用する。これによりエンジンの実際のメソッドセットが再利用されるため、`module_function` / `Data.define` / ミックスインメソッドが「未解決」としてルールに到達することはない。これはより大がかりな手術（ディスパッチのチョークポイントに`DependencyRecorder`のように通すレコーダー）であり、デフォルトONにする前にWD4コーパスゲートも依然必要だが — 偽陽性の規律を守る唯一の経路である。差し戻したプロトタイプのspecと135件FP内訳が次のアテンプトのエビデンスとなる。
+
+**スライス4a（2026-06-05） — 評価時レコーダー、LANDED、デフォルトOFF、ルールはまだなし**。`Analysis::SelfCallResolutionRecorder`は、implicit-self呼び出しがすべての解決ティアを使い果たす単一のエンジンチョークポイント（`ExpressionTyper#call_type_for` → `fallback_for`）で、何にも解決しない呼び出しを記録する。`Runner.new(record_self_calls: true)`でオプトイン;通常の実行では整数の読み出し（`active?`）1回のコストのみで何も記録しない。純粋に観察的であり、診断はバイト単位で同一。
+
+アテンプト1からの決定的な設計修正:チョークポイントは*型*ミスで発火するため、**存在する**がエンジンが戻り型を推論できないメソッド — まさにアテンプト1のFPを引き起こした`module_function`の兄弟（`Narrowing`、`Combinator`）— を過剰捕捉する。そこでレコーダーは記録前にエンジン自身の**存在**シグナルでゲートする:`resolve_user_def_through_ancestors`（def存在、祖先対応）+ **両方**の`:instance`と`:singleton`の下での`Scope#discovered_method?`（`module_function`はdefを`:singleton`で登録する）。記録は「収集し、再計算しない」の教訓に従いエンジンの実際の解決を再利用するため、プロジェクトシグナルが見られる任意の方法で解決可能な名前はレコーダーに到達しない。
+
+`ScopeIndexer`の付随修正が`class X < Data.define(:a, …)` / `< Struct.new(:a, …)`の合成メンバーリーダーを発見済みメソッド存在テーブル（`record_meta_superclass_members`）に登録する — これらは`def` / `attr_*`宣言を持たないため、この修正なしでは未解決として読み取られる。
+
+**ミニコーパス計測（Rigorの`lib`、265ファイル）:**生のレコーダー467ミス → 存在ガード + メンバー登録後**15件**、アテンプト1のFPクラスは**ゼロ**（`Narrowing` 31→0、`Combinator` 24→0）。残存15件はタイポを含まない予測通りの既約難ケース:`attr_reader(*CONSTANT)`スプラットアクセサ（`FlowContribution`、名前が静的に決定不可）、メソッドをincluderが実装するテンプレートメソッドモジュール（`CLI::Renderable`）、ミックスイン契約メソッドセット（`ValueSemantics::ClassMethods`）。これらがルールスライスがまだ必要とする閉じたクラスゲートを定義する:モジュール / ミックスイン契約レシーバーと、スプラット属性または`Data` / `Struct`（メンバーモデリングなし）の形状を持つクラスを除外する。ブロック形式の`Const = Data.define(:a) do … end`のメンバーは`self`を`Object`として読み取る（エンジンはメタブロックメソッド向けに`self`を定数に再バインドしない）ため、その過剰捕捉は`Object` — 自信を持って閉じられることは決してない — に落ち、ゲートが自動的にフィルタリングする。
+
+**スライス4ルール（2026-06-05） — `call.self-undefined-method`、LANDED、`:off`でship済み**。`CheckRules`コレクター（`self_undefined_method_diagnostics`）がレコーダースナップショット（`Runner#analyze_file_body` → `CheckRules.diagnose(self_call_misses:)`経由でファイルごとにスレッド処理され、ルールが発火シビアリティに解決するときのみ記録が有効）を消費し、閉じているかどうかのポリシーのみを適用する — 解決を再計算しない。v1ゲートは最も保守的な自信を持って閉じられた形状:**スタンドアロンプロジェクトクラス** — スーパークラスも`include` / `prepend`もなし、したがってファイル内のメソッドサーフェスは完全 — かつ`module`（ミックスイン契約）でなく、`method_missing`を定義せず、動的な`attr_*(*splat)`アクセサなし（`SelfClosednessScanner`、同一ファイルに対する1パスのAST走査）、かつADR-26のオープンレシーバーでない。これにより残存15件が包含される:モジュールとスプラット属性 / `Data` / `Struct`クラスはすべて除外され、後者はスーパークラスなし節によっても除外される。
+
+Rigorの`lib`で検証:ルールは**ゼロ**件のフォルスポジティブを発火 — かつ1件の実在の潜在バグを検出（`BlockParameterBinder#bind_trailing_positionals`が未定義の`required_name`を呼び出していたため、`|a, *b, c|`形状のブロックパラメータが`NoMethodError`を発生させていた;修正済み）。`:warning`で作成されているが、すべてのプロファイルで`:off`にマッピングされており、`severity_overrides:`でオプトイン。
+
+**残存:**デフォルトON前の外部WD4コーパスFPゲート、次にスーパークラス / インクルードチェーンへのゲート拡張（各々、エンジンが完全な祖先チェーンを解決済みと確認することが必要 — その完全性をレコーダーで記録し、同じ「収集し、再計算しない」経路を使う）。
 
 ## 再評価トリガー
 

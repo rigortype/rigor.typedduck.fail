@@ -3,8 +3,8 @@ title: "診断"
 description: "rigortype/rigor docs/manual/04-diagnostics.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/04-diagnostics.md"
 sourcePath: "docs/manual/04-diagnostics.md"
-sourceSha: "60ae5cd100542eb005132e545f978aa76b11a7a8c6b6042a7fee5cc8e31a56b2"
-sourceCommit: "6bcf38aa850fa4324ea959b2ce5cfdb61a88aa28"
+sourceSha: "bf92990100f6ef8efda3735e1b591b09a51a6ef43f73a17760ac11403ce1dd45"
+sourceCommit: "73d7a0a2d4628b0614948fe2fa043945b45d5de4"
 translationStatus: "translated"
 sidebar:
   order: 9004
@@ -31,6 +31,7 @@ sidebar:
 | ルール | 発火条件 |
 | --- | --- |
 | `call.undefined-method` | メソッドが受信側の静的に既知のクラスで定義されていない。 |
+| `call.self-undefined-method` | レシーバーのない暗黙的self呼び出しが、確実にクローズドな単独クラス上のどのメソッドにも解決されない。`:off`で出荷;`severity_overrides`でオプトインする。 |
 | `call.wrong-arity` | 位置引数の数がどのシグネチャとも一致しない。 |
 | `call.argument-type-mismatch` | 引数の型がパラメータ契約（contract）に違反することが証明できる。 |
 | `call.possible-nil-receiver` | 受信側が`T | nil`で、メソッドが`NilClass`で定義されていない。 |
@@ -45,6 +46,7 @@ sidebar:
 | `def.override-visibility-reduced` | オーバーライドが、プロジェクト定義の祖先から継承した可視性を下げる。 |
 | `def.override-return-widened` | オーバーライドの宣言された戻り型が、継承した戻り型を広げる（共変性）。 |
 | `def.override-param-narrowed` | オーバーライドが、継承したパラメータ型を狭める（反変性）。 |
+| `rbs_extended.unsatisfied-conformance` | クラスがRBSで`%a{rigor:v1:conforms-to _Interface}`を宣言しているが、インターフェースが要求するメソッドを欠いている。存在ベース: 明確に欠落している必須メソッドのみが発火する。 |
 | `assert.type-mismatch` | `assert_type`の期待値が推論型と一致しない。 |
 | `dump.type` | `dump_type`呼び出し — 情報として推論型を出力する。 |
 

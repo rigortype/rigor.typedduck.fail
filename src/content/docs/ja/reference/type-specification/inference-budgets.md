@@ -3,8 +3,8 @@ title: "推論バジェットとユーザー提供の境界"
 description: "rigortype/rigor docs/type-specification/inference-budgets.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/type-specification/inference-budgets.md"
 sourcePath: "docs/type-specification/inference-budgets.md"
-sourceSha: "522046fc49fde529ac317a7ef62939f80865c173eb91ec191a2e614a97b108d6"
-sourceCommit: "bc51e4fe0718731d0592d42696a438b0574c9339"
+sourceSha: "f80f6a5b7b59fbc2eeac378012fcf0453b8d1da29e8f0a9d4db1ddf38e505f63"
+sourceCommit: "73d7a0a2d4628b0614948fe2fa043945b45d5de4"
 translationStatus: "translated"
 sidebar:
   order: 2050
@@ -82,14 +82,16 @@ CLIの挙動には2つのモードが必要です（MUST）:
 
 ## 実装状況（2026-06-03）
 
-上記のバジェット表は**v1の規範的な意図です。本稿執筆時点で、設定可能な`budgets:`サーフェス（surface）はまだ配線されていません** — `budgets:`キーはパースされず、表の各行は強制されていません。今日エンジンが実際に適用しているカットオフは次のとおりです:
+上記のバジェット表は**v1の規範的な意図です。本稿執筆時点で、設定可能な`budgets:`サーフェス（surface）はまだ配線されていません** — `budgets:`キーはパースされず、表の各行は強制されていません。今日エンジンが実際に適用しているカットオフは以下の4つです。3つのハードコードされたガードは意図的に上記の`budgets:`表の行に**していない**ことに注意してください —— あの表は*設定可能な*サーフェスであり、これらは固定された終了フロアなので、代わりにここに記載しています:
 
-- **再帰**カットオフ。設定可能な`recursion_depth`ではなく、`(receiver, method)`の再入ガード（実効的な深さ1、`Dynamic[top]`を返す）として動作します。
-- 暗黙的selfのメソッド解決における**祖先ウォーク**上限（100ノード）。上記の表には載っていません。
-- **HKTリデューサーのfuel**バジェット（64ステップ、[ADR-20](../adr/20-lightweight-hkt/)）。上記には載っていません。
-- `dependencies.budget_per_gem`（[ADR-10](../adr/10-dependency-source-inference/)） — 唯一の設定可能なバジェットで、`dependencies.source_inference:`によるオプトインです。
+| ガード | 値 | 場所 | 設定可能？ |
+|---|---|---|---|
+| 再帰の再入 | 実効的な深さ1 → `Dynamic[top]` | `ExpressionTyper#infer_user_method_return`（`BudgetTrace::RECURSION_GUARD`） | いいえ —— `(receiver, method)`の再入ガードで、表が想定する設定可能な`recursion_depth`の精度アンロールとは別物 |
+| 祖先ウォーク上限 | 100ノード | `ExpressionTyper::ANCESTOR_WALK_LIMIT`（暗黙的selfのメソッド解決） | いいえ |
+| HKTリデューサーのfuel | 64ステップ | `Inference::HktReducer::DEFAULT_FUEL`（[ADR-20](../adr/20-lightweight-hkt/)） | いいえ（呼び出しごとの`fuel:`引数で、`.rigor.yml`ではない） |
+| `dependencies.budget_per_gem` | 5000メソッド定義（範囲1250〜20000） | [ADR-10](../adr/10-dependency-source-inference/)のソースウォーク上限 | **はい** —— `.rigor.yml`の`dependencies.budget_per_gem:`、`dependencies.source_inference:`によるオプトイン |
 
-残りの行 — コストを担う`union_size`と`structural_growth`を含む — はまだ強制されていません。ターゲットとなる設計、配線計画（Layer 1のドキュメント/仕様の衛生、Layer 2の計測ゲート付き配線）、およびヒット時の`static.*`診断ポリシーは[ADR-41](../adr/41-inference-budget-design/)に記録されています。裏付けとなる調査は[`docs/notes/20260603-inference-budget-reality-survey.md`](../notes/20260603-inference-budget-reality-survey/)です。`RIGOR_BUDGET_TRACE`は配線済みの3つのガードについて実行ごとのカウントを公開します。
+残りの表の行 — コストを担う`union_size`と`structural_growth`を含む — はまだ強制されていません。ターゲットとなる設計、配線計画（Layer 1のドキュメント/仕様の衛生、Layer 2の計測ゲート付き配線）、およびヒット時の`static.*`診断ポリシーは[ADR-41](../adr/41-inference-budget-design/)に記録されています。裏付けとなる調査は[`docs/notes/20260603-inference-budget-reality-survey.md`](../notes/20260603-inference-budget-reality-survey/)です。`RIGOR_BUDGET_TRACE`は配線済みの3つのガードについて実行ごとのカウントを公開します。
 
 ## カットオフカテゴリー
 
