@@ -3,8 +3,8 @@ title: "制御フロー解析"
 description: "rigortype/rigor docs/type-specification/control-flow-analysis.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/type-specification/control-flow-analysis.md"
 sourcePath: "docs/type-specification/control-flow-analysis.md"
-sourceSha: "5d717f5b4050937bfe2d2bafa39c04dfc2e16d15fffc0bd051c11a6da11bbb68"
-sourceCommit: "db8d01bf94926a72e6a2aaf15639d1591b7e142e"
+sourceSha: "700c7976f00da037c158dd49b2afc5353804df6f422408d7a0585aa81bcac42b"
+sourceCommit: "86367f26f62593f19f649f7cb9c8e1a00a751282"
 translationStatus: "translated"
 sidebar:
   order: 2050
@@ -75,6 +75,8 @@ end
 - 真偽性チェック（`nil`と`false`が偽ブランチを絞り込みます）。
 - `is_a?`、`kind_of?`、`instance_of?`、クラスとモジュールの比較。
 - メソッド名が静的に既知の場合の`respond_to?`チェック。可視性ルールは[structural-interfaces-and-object-shapes.md](../structural-interfaces-and-object-shapes/)を参照してください。
+- リテラルなSymbol/Stringキーに対する`Hash#key?` / `#has_key?`で、レシーバーがそのキーをオプショナルとして持つハッシュシェイプ（shape）の場合。真の分岐はキーを必須に昇格させるため、後続のインデックス読み取りはオプショナル性の`nil`を落とす（値自身の本質的な`nil`は保持される —— キーの存在は格納された値が非nilであることを含意しない）。偽の分岐は保守的なノーオペ。これは集合論的な`is_map_key`スタイルのキー存在リファインメントのRuby版だ。
+- レシーバーが`Array[T]`の場合の`Array#empty?` / `#any?` / `#none?`（むき出し、ブロックも引数もなし）。「少なくとも1要素」を含意するエッジ —— `empty?` / `none?`の偽エッジ、`any?`の真エッジ —— はレシーバーを`non-empty-array[T]`にリファインするため、長さを返すメソッド（`size` / `length` / `count`）は`positive-int`を読む。反対側のエッジはノーオペ（`any?` / `none?`が偽でも空であることは含意しない）。非空（`tuple_size`スタイル）のコレクションリファインメントのRuby版だ。
 - パターンマッチとcase解析。
 - Rigorプラグインによって登録された述語メソッド。
 - `RBS::Extended`アノテーションに記述されたアサーションとガード（[rbs-extended.md](../rbs-extended/)参照）。

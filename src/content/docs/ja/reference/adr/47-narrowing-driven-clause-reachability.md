@@ -3,14 +3,20 @@ title: "ADR-47 — Narrowing-driven clause reachability (`flow.unreachable-claus
 description: "Imported from rigortype/rigor docs/adr/47-narrowing-driven-clause-reachability.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/47-narrowing-driven-clause-reachability.md"
 sourcePath: "docs/adr/47-narrowing-driven-clause-reachability.md"
-sourceSha: "484bafae5b630df75f835bab97312dd83ea1e38ed8f41321d53bb3e8da7b805d"
-sourceCommit: "9a4902b92ddbe883b915858b6dcb577785630502"
+sourceSha: "399007a008d8407bc09b6dcb3f3e745bfe0a71e542e852c06b9719dd70d8682c"
+sourceCommit: "86367f26f62593f19f649f7cb9c8e1a00a751282"
 translationStatus: "translated"
 sidebar:
   order: 4047
 ---
 
-ステータス: **Proposed —— 設計。Rigorの既存の2つの`if`/`unless`到達可能性ルールを、フロー（flow）エンジンが既に計算しているナローイング（narrowing）を用いて`case`/`when`（および条件付きで`case`/`in`）節に拡張する。Elixir v1.20の冗長な`case`節報告に触発されたもの;Rigorの偽陽性（false positive）エンベロープ内に収まるようスコープを限定する**。
+ステータス: **Accepted —— WD1 + WD2 + WD3a実装済み。Rigorの既存の2つの`if`/`unless`到達可能性ルールを、フロー（flow）エンジンが既に計算しているナローイング（narrowing）を用いて`case`/`when`および`case`/`in`節に拡張する。Elixir v1.20の冗長な`case`節報告に触発されたもの;Rigorの偽陽性エンベロープ内に収まるようスコープを限定する**。
+
+**WD1 landed（v0.1.17）**。 `flow.unreachable-clause`は、`case <local>`節のクラス/モジュール定数条件（`when String` / `when MyClass`）が対象を`Type::Bot`に絞り込むときに発火する —— `scope_index`（評価器自身の節ごとの`body_scope`）から読み返すため、ルールとボディ型付けは乖離しえない。単一の`body_scope == bot`シグナルが設計で挙げる両方の形をカバーする（節ごとのdisjointnessと先行網羅の両方。網羅済みの入口スコープも`bot`に絞り込まれるため）。偽陽性エンベロープを強制: 対象は絞り込み済みのローカルでなければならず、`Dynamic`（<ruby>漸進的保証<rp>（</rp><rt>gradual guarantee</rt><rp>）</rp></ruby>）でも既に`Bot`（デッドコード）でもいけない。クラス/モジュール定数条件のみ（`when nil` / 範囲 / 正規表現 / 式は除外）、ループ/ブロック内の節はスキップ。**WD4**に従い、lenient + balanced（デフォルト）では`:info`、strictのみ`:warning`で出荷。balanced→`:warning`昇格は回帰コーパスFPゲートを待つ;Rigor自身の`lib` + `plugins` + `examples`でクリーン（ゼロ発火）。
+
+**WD2 landed（v0.1.17）**。メッセージ精度向上 + デッドな末尾`else`。デッドな`when`はWD1の`:disjoint`表現に対して`:prior_exhaustion`（「より前の`when`で既にカバー済み」）と表現されるようになった。節に入る時点のスコープで区別する: `eval_case_when_branches`は節の最初の条件ノードにその入口`falsey_scope`を記録し（`on_enter`のみ、新しい型付けなし;`propagate`が保持）、コレクターはそのエントリーが既に対象を`bot`に絞り込んでいたかどうかで分類する。末尾の`else`で、最終的な`falsey_scope`が対象を`bot`に絞り込む場合も`:exhausted_else`としてフラグされる —— ただし防御的な`else`ボディ（むき出しの`raise` / `fail` / `throw` / `abort` / `exit`）は除く。これは意図的なガードであり、削除可能なデッドコードではないからだ（偽陽性規律のカーブアウト）。新しいナローイングなし;エンジン自身のスコープを読む。Rigor自身のコーパスでもクリーン;同じ`:info`/`:warning`の重大度姿勢。
+
+**WD3a landed（v0.1.17）**。 **裸のクラスパターンのみ**の`case`/`in`（`CaseMatchNode`）—— `in C` / `in C => x`はマッチが正確に`C === subject`（純粋な`is_a?`、分解なし）のため、`when C`と同様に健全に絞り込まれる。`eval_case_when_branches`は裸クラスの`in`を`Narrowing.case_when_scopes`にルーティングし（`bare_class_pattern_node`が`ConstantReadNode` / `ConstantPathNode`と、それをラップする`CapturePatternNode`を認識）;コレクターは同じ`body_scope == bot`シグナルで`CaseMatchNode` + `InNode`を処理する。これはその場限りの網羅性ではない —— 真偽両方のナローイングが健全な、唯一のパターン形状に限定して、既存の健全な`when`クラスナローイングを再利用する。Rigor自身のコーパスでクリーン。**WD4 run（v0.1.17）**。 16のOSSコーパスをスイープ（[`docs/notes/20260605-adr47-unreachable-clause-corpus-sweep.md`](../../notes/20260605-adr47-unreachable-clause-corpus-sweep/)を参照）—— ゼロ発火、偽陽性ゼロ。ヒットなしの空虚なパス（vacuous pass）はデフォルトをより大きくする積極的根拠にはならないため、**balancedは`:info`のまま**（strictは`:warning`を維持）;昇格は実際の発火を待つ。**残り:** WD3b（分解 / 値 / 変数キャッチオールパターンの網羅性 —— ADR-36の`is_a?`網羅性隣接プロジェクトである真に大規模な作業;その場限りで推論して出荷**しない**こと;ゼロ発火スイープで優先度を下げ）。
 
 ## 動機
 
@@ -61,14 +67,15 @@ Rigorはこの作業の難しい半分を既に行っている。欠けている
 - **対象は絞り込まれなければならない**。`case_when_scopes`は、対象が既知の型を持つ`LocalVariableReadNode`でない限り、既に入口スコープにバイルアウトする（[`narrowing.rb:364`](../../lib/rigor/inference/narrowing.rb)）。ナローイングなし ⇒ 発火なし。これだけで大半の危険な形が除外される。
 - **ループ / ブロック内をスキップ** —— 同じミューテーション追跡のギャップ。
 - **防御的な形の対象 / 節をスキップ** —— エンジンがnilになりえないと信じているRBS厳格な戻り値に対して防御する`when nil`を咎めない。
-- **具体的な絞り込み済みキャリアを要求する** —— `Nominal` / `Constant` / `Tuple` / 互いに素なユニオン（union、合併型とも）で発火する;`Dynamic[T]`や未解決のシェイプ（shape）では決して発火しない。`Dynamic`に対するdisjointnessは決して証明できないため、そこでは決して発火しない —— <ruby>漸進的保証<rp>（</rp><rt>gradual guarantee</rt><rp>）</rp></ruby>が保たれる。
+- **具体的な絞り込み済みキャリアを要求する** —— `Nominal` / `Constant` / `Tuple` / 互いに素なユニオン（union、合併型とも）で発火する;`Dynamic[T]`や未解決のシェイプ（shape）では決して発火しない。`Dynamic`に対するdisjointnessは決して証明できないため、そこでは決して発火しない —— 漸進的保証が保たれる。
 
 ## 作業決定スライス
 
 - **WD1 —— `when`のdisjointness（節ごと）**。狭く価値の高い中核: `body_scope`の対象が`bot`になる`when C`。リテラルクラスの`when`を最初に（`when String` / `when MyClass`）、`case_when_scopes`が既に認識する形。
-- **WD2 —— 先行網羅**。先行する節の和によってデッドになった`when`（および末尾の`else`）をフラグする。`falsey_scope`の`bot`チェックが必要;同じアキュムレータで、新しいナローイングは不要。
-- **WD3 —— `in`節（ゲート付き）**。`branch_body_and_falsey_scopes`が`InNode`のパターン網羅性を学習した後でのみ拡張する。その作業の後ろに先送り;パターンのdisjointnessはより大きく独立した精度プロジェクトだ（先送りされたADR-36の`is_a?`網羅性が隣接する）。網羅性をその場限りで推論してWD3を出荷**しない**こと。
-- **WD4 —— コーパスFPゲート**。デフォルトオンにする前に、回帰コーパス（[`reference_survey_external_projects`]によるMastodon / GitLab / Redmine）に対して`--no-cache`でルールを実行し、すべてのヒットをトリアージしてネットの偽陽性をゼロにする —— ADR-43が`check-plugins`をゲートしたのとまったく同じやり方だ。そのゲートが緑になるまでは`info`（またはフラグの背後）で出荷する。
+- **WD2 —— 先行網羅のメッセージ精度向上 + デッドな`else`（landed、v0.1.17）**。デッドな`when`は`:prior_exhaustion`（「より前の`when`で既にカバー済み」）対`:disjoint`（WD1の表現）と読めるようになった。節に入る時点のスコープで区別する: `eval_case_when_branches`は節の最初の条件ノードにその入口`falsey_scope`を記録し（`record_clause_entry_scope`、`on_enter`のみで部分式が新たに型付けされることはない;`propagate`が保持）、コレクターはそのエントリーが既に対象を`bot`に絞り込んでいたかどうかで分類する。末尾の`else`で、最終的な`falsey_scope`（`else`ノードに既に記録済み）が対象を`bot`に絞り込む場合もフラグされる —— ただし防御的な`else`ボディ（むき出しの`raise` / `fail` / `throw` / `abort` / `exit`）は除く。これは意図的なガードであり、削除可能なデッドコードではない（偽陽性規律のカーブアウト）。新しいナローイングなし;エンジン自身のスコープを読む。
+- **WD3a —— `in`裸クラスパターン（landed、v0.1.17）**。`in C` / `in C => x`は`C === subject`（純粋な`is_a?`、分解なし）でマッチするため、`when C`と全く同様に健全に絞り込まれる。`branch_body_and_falsey_scopes`は裸クラスの`in`を`Narrowing.case_when_scopes`にルーティングする（`bare_class_pattern_node`が`ConstantReadNode` / `ConstantPathNode`と、それをラップする`CapturePatternNode`を認識）;コレクターは同じ`body_scope == bot`シグナルで`CaseMatchNode` + `InNode`を処理する。これはその場限りの網羅性ではない —— 真偽両方のナローイングが健全な、唯一のパターン形状に限定して、既存の健全な`when`クラスナローイングを再利用する。
+- **WD3b —— 分解 / 値 / 変数キャッチオールパターン（先送り）**。配列 / ハッシュ / findパターン、値パターン、`in x`キャッチオールは実際の`InNode`パターン網羅性が必要だ —— より大きく独立した精度プロジェクトだ（先送りされたADR-36の`is_a?`網羅性が隣接する）。網羅性をその場限りで推論して出荷**しない**こと;現在これらは保守的なfalsey変更なし形状を維持しているため、より前の裸クラス節が既に対象を網羅した場合にのみ発火する。
+- **WD4 —— コーパスFPゲート（run、v0.1.17;balancedは`:info`のまま）**。16のOSSコーパスをスイープ（Mastodon + Redmineの`app lib`;parser、rubocop-ast、kramdown、mail、liquid、haml、hamlit、herb、slim、oj、ox、protobuf、textbringer、rglの`lib`）を`--no-cache`で —— [`docs/notes/20260605-adr47-unreachable-clause-corpus-sweep.md`](../../notes/20260605-adr47-unreachable-clause-corpus-sweep/)。**どこもゼロ発火**（GitLab FOSSは`lib`全体スコープで遅すぎるため中断、カウントなし）。ゼロヒット ⇒ 偽陽性ゼロだが、*空虚な*パスは不在証拠であり安全性の証拠ではない: トリアージする実際の発火がない状態では、デフォルトをより大きくすることが正当化されるシグナルがないため、balancedは**`:info`のまま**（strictは`:warning`を維持）。昇格は検査すべき実際のコーパス発火を待つ。保守的エンベロープがその仕事をしている —— キャッチ可能な形（具体的型を持つローカルがdisjointな / 既にカバー済みのクラスにマッチされる）はプログラマーが滅多に書かない。明らかに冗長だからだ。
 
 ## 却下 / 先送りした代替案
 

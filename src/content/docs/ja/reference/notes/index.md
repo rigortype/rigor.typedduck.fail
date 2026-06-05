@@ -3,8 +3,8 @@ title: "Research & Survey Notes"
 description: "Imported from rigortype/rigor docs/notes/README.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/README.md"
 sourcePath: "docs/notes/README.md"
-sourceSha: "be234b082140ac0b3f8154972f4e0681befd0b6ae07f1963f1ac0b888e5d7d2f"
-sourceCommit: "ac5165db83b00444114436bacaee34625a50573f"
+sourceSha: "405b8d7ecd8775a5391f218e7afdfb4d08b65d168a12111ff7d0b0326083390b"
+sourceCommit: "86367f26f62593f19f649f7cb9c8e1a00a751282"
 translationStatus: "translated"
 sidebar:
   order: 6000
@@ -54,6 +54,7 @@ sidebar:
 | 2026-05-23 | [Mastodon regression sweeps — re-run on Rigor v0.1.9](20260523-mastodon-v4.5-regression-sweep-v0.1.9/) |
 | 2026-05-29 | [ADR-35 override-rules — Mastodon false-positive verification](20260529-adr35-mastodon-fp-verification/) |
 | 2026-05-29 | [rigor-survey project-init baseline sweep](20260529-rigor-survey-project-init-baseline/) |
+| 2026-06-05 | [ADR-47 `flow.unreachable-clause` — corpus FP sweep (WD4)](20260605-adr47-unreachable-clause-corpus-sweep/) |
 
 ## 外部研究・エッセイレビュー
 

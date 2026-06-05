@@ -3,8 +3,8 @@ title: "CLIコマンドリファレンス"
 description: "rigortype/rigor docs/manual/02-cli-reference.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/02-cli-reference.md"
 sourcePath: "docs/manual/02-cli-reference.md"
-sourceSha: "9a24145294695b8430a33d66213f7a508e29d1197603d8f9fc9dc19b0d8b0032"
-sourceCommit: "6bcf38aa850fa4324ea959b2ce5cfdb61a88aa28"
+sourceSha: "01140a50488671005a11c355bb0ab527d2f88ad96820fe77ebd37cf5663dab1d"
+sourceCommit: "86367f26f62593f19f649f7cb9c8e1a00a751282"
 translationStatus: "translated"
 sidebar:
   order: 9002
@@ -47,6 +47,8 @@ rigor check [paths...]
 | `--format=text|json` | 出力形式。デフォルトは`text`。 |
 | `--explain` | フェイルソフトフォールバックイベントを`info`診断として表示する。 |
 | `--no-cache` | この実行では永続キャッシュをスキップする。 |
+| `--incremental` | 前回の実行以降に変更されたファイルと、それに依存するファイルだけを再解析し、残りはクロスプロセスのディスクスナップショットから提供する（ADR-46）。診断結果はフル実行と同一;設定 / gem / バージョンの変更（またはファイルの追加・削除）があれば透過的にフル再解析へ切り替わる。[キャッシュ](12-caching/)を参照。 |
+| `--verify-incremental` | 受け入れゲート: インクリメンタルアナライザーをフルの`--no-cache`実行と突き合わせ、診断結果がバイト単位で同一であることを表明してから終了する（一致なら0、不一致なら差分の診断結果とともに1）。CIで`--incremental`が古い結果を決して提供しないことを保証するために使う。 |
 | `--clear-cache` | 実行前にキャッシュディレクトリを削除する。 |
 | `--cache-stats` | 終了時にオンディスクキャッシュのインベントリを表示する。 |
 | `--[no-]stats` | 実行サマリー（ファイル数、クラス数、メモリ、経過時間）をstderrに表示する。デフォルトはオン。 |
