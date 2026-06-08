@@ -3,8 +3,8 @@ title: "付録 — PHPStanから来た場合"
 description: "Imported from rigortype/rigor docs/handbook/appendix-phpstan.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/appendix-phpstan.md"
 sourcePath: "docs/handbook/appendix-phpstan.md"
-sourceSha: "75723817897931c3f2383f31294fa69f5a813005771dc2f2f878565c4a82a60c"
-sourceCommit: "5854b02cbe92b9099e0cd6907a44780069243119"
+sourceSha: "846cb49bfebeb2d7760f1dd249f85e658bc75a41f9a37003e4d68cc67d0efde4"
+sourceCommit: "c64342708cd0effeb20265e84fe912ae22635159"
 translationStatus: "translated"
 sidebar:
   order: 1050
@@ -247,4 +247,4 @@ end
 - [第8章 — エラーの読み方](../08-understanding-errors/) — ルールカタログ、深刻度プロファイル、ベースラインdiff — すべてのPHPStanオンボーディング対応物。
 - [第9章 — プラグイン](../09-plugins/) — Type-Specifying / Dynamic-Return対応物のために。
 
-他のツールと比較したい場合は、兄弟付録ページが[TypeScript](../appendix-typescript/)、[mypy](../appendix-mypy/)、[Steep](../appendix-steep/)、[TypeProf](../appendix-typeprof/)をカバーしている。
+他のツールと比較したい場合は、兄弟付録ページが[TypeScript](../appendix-typescript/)、[mypy](../appendix-mypy/)、[Steep](../appendix-steep/)、[TypeProf](../appendix-typeprof/)、[Java / C#](../appendix-java-csharp/)、[Rust](../appendix-rust/)、[Go](../appendix-go/)、[Elixir](../appendix-elixir/)をカバーしている。

@@ -3,8 +3,8 @@ title: "付録 — Steepから来た場合"
 description: "Imported from rigortype/rigor docs/handbook/appendix-steep.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/appendix-steep.md"
 sourcePath: "docs/handbook/appendix-steep.md"
-sourceSha: "45d427507e627c7fa03f371b330eddd1d8087df3660dbaa3e45965b80ac43201"
-sourceCommit: "5854b02cbe92b9099e0cd6907a44780069243119"
+sourceSha: "54dc731dc057e8a92b40586f6221bfe72c8444bd9846b7f30e705d2fcfad930b"
+sourceCommit: "c64342708cd0effeb20265e84fe912ae22635159"
 translationStatus: "translated"
 sidebar:
   order: 1050
@@ -230,4 +230,4 @@ end
 - [第8章 — エラーの読み方](../08-understanding-errors/) — ルールカタログ、深刻度プロファイル、ベースライン（baseline）diff — Steepの診断設定の対応物。
 - [`docs/notes/20260503-steep-cross-check-triage.md`](../../notes/20260503-steep-cross-check-triage/) — 同じプロジェクトでSteepとRigorを並行実行した作業例（このプロジェクト自体）。
 
-他のツールと比較したい場合は、兄弟付録ページが[TypeScript](../appendix-typescript/)、[PHPStan](../appendix-phpstan/)、[mypy](../appendix-mypy/)、そしてRubyの推論優先（inference-first）ツールでありRigor自身の`sig-gen`に最も近い親戚である[TypeProf](../appendix-typeprof/)をカバーしている。
+他のツールと比較したい場合は、兄弟付録ページが、Rubyの推論優先（inference-first）ツールでありRigor自身の`sig-gen`に最も近い親戚である[TypeProf](../appendix-typeprof/)に加え、[TypeScript](../appendix-typescript/)、[PHPStan](../appendix-phpstan/)、[mypy](../appendix-mypy/)、[Java / C#](../appendix-java-csharp/)、[Rust](../appendix-rust/)、[Go](../appendix-go/)、[Elixir](../appendix-elixir/)をカバーしている。

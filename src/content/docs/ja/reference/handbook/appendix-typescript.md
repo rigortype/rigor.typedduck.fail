@@ -3,8 +3,8 @@ title: "付録 — TypeScriptから来た場合"
 description: "Imported from rigortype/rigor docs/handbook/appendix-typescript.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/appendix-typescript.md"
 sourcePath: "docs/handbook/appendix-typescript.md"
-sourceSha: "4920dfc202a20e83ae04f840908d5291242a6660b5b55d0a7afc0af0d429ee2a"
-sourceCommit: "6bcf38aa850fa4324ea959b2ce5cfdb61a88aa28"
+sourceSha: "cba8fb369b3913406b0d63603c639313e08cf10d79ae17e6dd104152ebcf24cc"
+sourceCommit: "c64342708cd0effeb20265e84fe912ae22635159"
 translationStatus: "translated"
 sidebar:
   order: 1050
@@ -257,4 +257,4 @@ def pick: [K, V] (Hash[K, V] obj, Array[K] keys) -> Hash[K, V]
 - [第7章 — RBSと`RBS::Extended`](../07-rbs-and-extended/) — ディレクティブ文法（カスタム型述語をRigorに教える方法）。
 - [第10章 — Sorbetとの共存](../10-sorbet/) — プロジェクトが実際にSorbetをすでに使っている場合。`T.let`、`T.cast`、`T.must`に直接対応するものがあり、ゼロから始めるよりスムーズに移行できる。
 
-他のツールと比較したい場合は、兄弟付録ページが[PHPStan](../appendix-phpstan/)、[mypy](../appendix-mypy/)、[Steep](../appendix-steep/)、[TypeProf](../appendix-typeprof/)をカバーしている。
+他のツールと比較したい場合は、兄弟付録ページが[PHPStan](../appendix-phpstan/)、[mypy](../appendix-mypy/)、[Steep](../appendix-steep/)、[TypeProf](../appendix-typeprof/)、[Java / C#](../appendix-java-csharp/)、[Rust](../appendix-rust/)、[Go](../appendix-go/)、[Elixir](../appendix-elixir/)をカバーしている。

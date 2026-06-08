@@ -114,6 +114,10 @@ export default defineConfig({
                 { slug: 'reference/handbook/appendix-mypy' },
                 { slug: 'reference/handbook/appendix-steep' },
                 { slug: 'reference/handbook/appendix-typeprof' },
+                { slug: 'reference/handbook/appendix-java-csharp' },
+                { slug: 'reference/handbook/appendix-rust' },
+                { slug: 'reference/handbook/appendix-go' },
+                { slug: 'reference/handbook/appendix-elixir' },
               ],
             },
             {
@@ -158,6 +162,7 @@ export default defineConfig({
             { slug: 'reference/manual/09-editor-integration' },
             { slug: 'reference/manual/10-mcp-server' },
             { slug: 'reference/manual/11-ci' },
+            { slug: 'reference/manual/ci-templates' },
             { slug: 'reference/manual/12-caching' },
             { slug: 'reference/manual/13-troubleshooting' },
             { slug: 'reference/manual/14-rails-quickstart' },
