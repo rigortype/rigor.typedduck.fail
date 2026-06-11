@@ -3,8 +3,8 @@ title: "付録 — mypy / Pyrightから来た場合"
 description: "Imported from rigortype/rigor docs/handbook/appendix-mypy.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/appendix-mypy.md"
 sourcePath: "docs/handbook/appendix-mypy.md"
-sourceSha: "8f602b4c4cd9f394a246d56d307a896d275a3f910bf97deb942bfbe1fbb05d49"
-sourceCommit: "c64342708cd0effeb20265e84fe912ae22635159"
+sourceSha: "840758e65bcddd048532a8e07eecb6de9824f3698903cfb0d45eab7e6c7058e0"
+sourceCommit: "18ef11c9f393b495cd9a6ed7277846069c08c516"
 translationStatus: "translated"
 sidebar:
   order: 1050
@@ -183,7 +183,6 @@ def classify(n)
 end
 
 result = classify(7)
-assert_type("Constant<:zero> | Constant<:positive> | Constant<:negative>", result)
 ```
 
 同じ精度。片方はパラメータとreturnのアノテーションを書くが、もう片方は書かない。

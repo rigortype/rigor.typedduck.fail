@@ -3,8 +3,8 @@ title: "付録 — Java / C#から来た場合"
 description: "Imported from rigortype/rigor docs/handbook/appendix-java-csharp.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/appendix-java-csharp.md"
 sourcePath: "docs/handbook/appendix-java-csharp.md"
-sourceSha: "3de88e7ebcb31560ca529199ac4d2de544a35b7363bab32068e5445def006fde"
-sourceCommit: "c64342708cd0effeb20265e84fe912ae22635159"
+sourceSha: "8b68f4db5c920fc88119f2ba38ece311137471be5a71b462e368e45c0483c85e"
+sourceCommit: "18ef11c9f393b495cd9a6ed7277846069c08c516"
 translationStatus: "translated"
 sidebar:
   order: 1050
@@ -87,7 +87,6 @@ def classify(n)
 end
 
 result = classify(7)
-assert_type("Constant<:zero> | Constant<:positive> | Constant<:negative>", result)
 ```
 
 C#の対応物はパラメータ型と戻り型を作者が書くアノテーションとして要求し、両方を書いても`switch`は3分岐のリテラルユニオン型ではなく`string`を返す — C#にはそれを運ぶリテラル型がない:
@@ -118,7 +117,7 @@ sigを書く必要が本当にあるとき — パブリック境界で、ボデ
 
 捨てるべき反射は**キャスト**だ。Java/C#では、コンパイラと意見が食い違うたびに`(Foo) x`やC#のnull-forgivingな`x!`に手を伸ばす。Rigorにはソース内キャストがない。等価物は:
 
-1. **ガードを足す**。 `unless x.nil?; x.upcase; end`が慣用的な手 — そして`x!`と違い、これはアサートではなくチェックされる。
+1. **ガードを足す**。`unless x.nil?; x.upcase; end`が慣用的な手 — そして`x!`と違い、これはアサートではなくチェックされる。
 2. **`.rbs`を絞る**。多くの場合、根本的な問題はライブラリのsigが緩すぎることだ。
 3. **`rigor-sorbet`プラグインを使う**。ソース内アサーションが欲しければ`T.let` / `T.cast` / `T.must`を採用する。[第10章](../10-sorbet/)を参照。
 
@@ -145,14 +144,14 @@ var q = p with { X = 9 };  // non-destructive mutation
 ```ruby
 Point = Data.define(:x, :y)
 p = Point.new(1, 2)
-assert_type("Constant<1>", p.x)   # member value is folded, not just Integer
+assert_type("1", p.x)   # member value is folded, not just Integer
 q = p.with(x: 9)                  # Data#with ↔ C#'s `with` expression
 ```
 
 どちらの言語よりも踏み込んでいる点がふたつ:
 
-- **メンバー値がfoldされる**。 `Point.new(1, 2).x`は単なる`Integer`ではなく`Constant<1>`だ。JavaとC#は構築時にリテラルを消去する。Rigorはそれを保持する（通常のfolding予算に従う）。
-- **`with`がファーストクラス**。 Rubyの`Data#with`はC#の`with`式の直接対応物であり、Rigorはオーバーライドされたメンバーをfold込んで結果に型を付ける。（Javaには組み込みのwitherがない。）
+- **メンバー値がfoldされる**。`Point.new(1, 2).x`は単なる`Integer`ではなく`1`だ。JavaとC#は構築時にリテラルを消去する。Rigorはそれを保持する（通常のfolding予算に従う）。
+- **`with`がファーストクラス**。Rubyの`Data#with`はC#の`with`式の直接対応物であり、Rigorはオーバーライドされたメンバーをfold込んで結果に型を付ける。（Javaには組み込みのwitherがない。）
 
 `Struct` — Rubyの*ミュータブル*な兄弟 — は意図的にまだ同じようにfoldされない。そのミュータビリティが値foldingの健全性のストーリーを壊すからだ。[第6章](../06-classes/)を参照。
 
@@ -252,22 +251,22 @@ JavaもC#も「長さ≥1の文字列」や「1..9の整数」を型レベルで
 何を諦めるのかについて正直になろう:
 
 - **強制される網羅性**。バリアントを取りこぼすシールドな`switch`はJava/C#ではコンパイルエラーだ。Rigorは*到達不能*な節を報告し、*欠けている*節は報告しない — 設計上そうだ（上記参照）。
-- **コンパイラが強制するヌル許容性**。 C#のNRTはnullを処理するよう*警告*する。Rigorはnilをナローイングするが、必要だと証明できないガードを決して強制しない。
-- **検査例外**。 Javaの`throws`にRigorの類似物はない。
-- **値型の意味論**。 C#の`struct` / `record struct`の値モデルはRigorのサーフェスの外だ。
-- **型レベル計算**。 JavaもC#も例えばTypeScriptほど型レベルで表現力が高くはないが、両者ともRBSが公開するよりも多くのジェネリック機構（高階種っぽいパターン、複雑なバウンド）を持つ。Rigorのジェネリクスは、アナライザーが実際のRubyで高速に保たれるよう意図的に控えめだ。
+- **コンパイラが強制するヌル許容性**。C#のNRTはnullを処理するよう*警告*する。Rigorはnilをナローイングするが、必要だと証明できないガードを決して強制しない。
+- **検査例外**。Javaの`throws`にRigorの類似物はない。
+- **値型の意味論**。C#の`struct` / `record struct`の値モデルはRigorのサーフェスの外だ。
+- **型レベル計算**。JavaもC#も例えばTypeScriptほど型レベルで表現力が高くはないが、両者ともRBSが公開するよりも多くのジェネリック機構（高階種っぽいパターン、複雑なバウンド）を持つ。Rigorのジェネリクスは、アナライザーが実際のRubyで高速に保たれるよう意図的に控えめだ。
 - **IDEの完成度**。数十年のIntelliJ / Visual Studioへの投資がJavaとC#を支える。Rigorは今日、診断と`rigor type-of`を出荷している。LSPベースのエディタ統合はロードマップにある。
 
 ## RigorにあってJava / C#にないもの
 
 逆方向 — そしてこの2言語については、どちらもリテラル型を持たないため、リストはあなたが思うより長い:
 
-- **リテラル / 定数型**。 `Constant<42>`、`Constant<:zero>`、`Constant<"FOO">`。JavaとC#はリテラル型を*持たない* — 最も近いのは`enum`で、それも手で宣言した集合しかカバーしない。Rigorは通常の値からそれらを推論する。
-- **メソッド呼び出しを通じた定数folding**。 `"foo".upcase`は`String`ではなく`Constant<"FOO">`だ。Rigorはどのビルトインメソッドが純粋かをカタログ化し、それを通じてfoldする。
-- **ファーストクラスのリファインメント**。 `non-empty-string`、`positive-int`、`int<1, 9>`、`numeric-string` — 通常の型に乗る不変条件で、値クラスのラッパーはない。
+- **リテラル / 定数型**。`Constant<42>`、`Constant<:zero>`、`Constant<"FOO">`。JavaとC#はリテラル型を*持たない* — 最も近いのは`enum`で、それも手で宣言した集合しかカバーしない。Rigorは通常の値からそれらを推論する。
+- **メソッド呼び出しを通じた定数folding**。`"foo".upcase`は`String`ではなく`Constant<"FOO">`だ。Rigorはどのビルトインメソッドが純粋かをカタログ化し、それを通じてfoldする。
+- **ファーストクラスのリファインメント**。`non-empty-string`、`positive-int`、`int<1, 9>`、`numeric-string` — 通常の型に乗る不変条件で、値クラスのラッパーはない。
 - **宣言なしの構造的ファセット**。正しいメソッドを持つRubyオブジェクトはRBSの`interface`を満たす（*構造的*なインターフェース — Goの`interface`であって、Javaの名前的な`implements`ではない）。適合を宣言する必要はない。Rigorが形状を推論する。[構造的型付けの付録](../appendix-protocols-and-structural-typing/)を参照。
-- **偽陽性なしのスタンス**。 Rigorは`Dynamic[Top]`レシーバーについて文句を言うのではなく沈黙する。正直な答えが「まあ、技術的にはチェッカーには分からない」であるようなRigor診断を目にすることは決してない。
-- **アノテーション税なし**。 `.rbs`ファイルがゼロのRubyプロジェクトに対する`rigor check`でも、推論から有用な診断が得られる。JavaとC#は`var`ローカルしか推論しない。それ以外はすべてあなたが書く。Rigorに`.rbs`を足すのはインクリメンタルだ — スキップしたファイルは境界で`Dynamic[Top]`になるのであって、エラーにはならない。
+- **偽陽性なしのスタンス**。Rigorは`Dynamic[Top]`レシーバーについて文句を言うのではなく沈黙する。正直な答えが「まあ、技術的にはチェッカーには分からない」であるようなRigor診断を目にすることは決してない。
+- **アノテーション税なし**。`.rbs`ファイルがゼロのRubyプロジェクトに対する`rigor check`でも、推論から有用な診断が得られる。JavaとC#は`var`ローカルしか推論しない。それ以外はすべてあなたが書く。Rigorに`.rbs`を足すのはインクリメンタルだ — スキップしたファイルは境界で`Dynamic[Top]`になるのであって、エラーにはならない。
 
 ## マイグレーションvignette
 

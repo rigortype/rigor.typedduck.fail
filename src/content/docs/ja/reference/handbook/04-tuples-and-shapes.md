@@ -3,8 +3,8 @@ title: "タプルとハッシュシェイプ"
 description: "rigortype/rigor docs/handbook/04-tuples-and-shapes.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/04-tuples-and-shapes.md"
 sourcePath: "docs/handbook/04-tuples-and-shapes.md"
-sourceSha: "5aff0340bc7127194f6056c19385fd34fc3fb155467f2cb547b3557fa4246a40"
-sourceCommit: "6bcf38aa850fa4324ea959b2ce5cfdb61a88aa28"
+sourceSha: "6e5ea98bdda63e4e994fffc9466cc1afc46cd20488192bc38179e65c64aa06ac"
+sourceCommit: "18ef11c9f393b495cd9a6ed7277846069c08c516"
 translationStatus: "translated"
 sidebar:
   order: 1004
@@ -38,18 +38,18 @@ arr = [1, "two", :three]
 ```ruby
 # 多重代入の分解は位置ごと
 first, second, third = [10, 20, 30]
-assert_type("Constant<10>", first)
-assert_type("Constant<20>", second)
-assert_type("Constant<30>", third)
+assert_type("10", first)
+assert_type("20", second)
+assert_type("30", third)
 
 # divmodは2要素タプルを返す
 quotient, remainder = 17.divmod(5)
-assert_type("Constant<3>", quotient)
-assert_type("Constant<2>", remainder)
+assert_type("3", quotient)
+assert_type("2", remainder)
 
 # each_with_indexは2要素タプルをyieldする
 %w[a b c].each_with_index do |elt, idx|
-  assert_type("Constant<\"a\"> | Constant<\"b\"> | Constant<\"c\">", elt)
+  assert_type("\"a\" | \"b\" | \"c\"", elt)
   assert_type("non-negative-int", idx)
 end
 ```
@@ -100,11 +100,11 @@ strings = mixed.map { |x| x.to_s }
 
 ```ruby
 user = { name: "Alice", age: 30, admin: false }
-# HashShape{name: Constant<"Alice">, age: Constant<30>, admin: Constant<false>}
+# { name: "Alice", age: 30, admin: false }
 
-assert_type("Constant<\"Alice\">", user[:name])
-assert_type("Constant<30>", user[:age])
-assert_type("Constant<false>", user[:admin])
+assert_type("\"Alice\"", user[:name])
+assert_type("30", user[:age])
+assert_type("false", user[:admin])
 ```
 
 ハッシュシェイプ（shape）にはタプルよりいくつか追加の次元があります:
@@ -179,8 +179,8 @@ final = { **defaults, **overrides }
 ```ruby
 case [10, 20, 30]
 in [first, _, third]
-  assert_type("Constant<10>", first)
-  assert_type("Constant<30>", third)
+  assert_type("Dynamic[top]", first)   # パターン束縛は定数たたみ込みされない
+  assert_type("Dynamic[top]", third)
 end
 ```
 
@@ -189,8 +189,8 @@ end
 ```ruby
 case { name: "Alice", age: 30 }
 in { name:, age: }
-  assert_type("Constant<\"Alice\">", name)
-  assert_type("Constant<30>", age)
+  assert_type("Dynamic[top]", name)   # パターン束縛は定数たたみ込みされない
+  assert_type("Dynamic[top]", age)
 end
 ```
 

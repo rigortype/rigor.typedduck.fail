@@ -3,8 +3,8 @@ title: "Research & Survey Notes"
 description: "Imported from rigortype/rigor docs/notes/README.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/README.md"
 sourcePath: "docs/notes/README.md"
-sourceSha: "b8e49d5c2365f17a87d3a31ce6ba714f551122161fc4f345f6b0f2dee7caab0c"
-sourceCommit: "73d7a0a2d4628b0614948fe2fa043945b45d5de4"
+sourceSha: "2c42d8c2a8724752c6c031a40b6ee91eb2b0a3d55eaf55bde035d2aa87790792"
+sourceCommit: "18ef11c9f393b495cd9a6ed7277846069c08c516"
 translationStatus: "translated"
 sidebar:
   order: 6000
@@ -76,11 +76,22 @@ sidebar:
 | 2026-06-03 | [プラグインファイルを`Plugin::Base`契約に対して型付けする — スパイク調査の所見](20260603-plugin-contract-self-typing-spike/) |
 | 2026-06-03 | [セッションレポート — プラグイン契約を型付けする（6コミットの着地）](20260603-plugin-contract-typing-session-report/) |
 
+## パフォーマンス・プロファイリング
+
+| Date | Note |
+| --- | --- |
+| 2026-06-04 | [Profiling `rigor check` on Mastodon — allocation-bound analysis](20260604-mastodon-allocation-profile/) |
+| 2026-06-04 | [Profiling `rigor check` on GitLab — plugin-contribution churn](20260604-gitlab-plugin-contribution-allocation/) |
+| 2026-06-10 | [プラグインアーキテクチャ構造監査 — per-call消費経路の最適化余地](20260610-plugin-architecture-perf-audit/) |
+| 2026-06-10 | [lib/rigor内部アーキテクチャ再検討 — 正式リリース前の構造監査](20260610-lib-rigor-architecture-rereview/) |
+| 2026-06-10 | [キャッシュ機構監査 — ディスク使用量とwarm-runロードコスト](20260610-cache-disk-runtime-audit/) |
+
 ## プロセス・メタ
 
 | Date | Note |
 | --- | --- |
 | 2026-06-05 | [ADR corpus rubric audit — scoring ADR-0…49 against ADR-49](20260605-adr-corpus-rubric-audit/) |
+| 2026-06-10 | [ユーザー向けドキュメント レビュー・バッテリー設計 — chibirigor-reviewの移植検討](20260610-user-docs-review-battery-design/) |
 
 ## ノートの追加
 

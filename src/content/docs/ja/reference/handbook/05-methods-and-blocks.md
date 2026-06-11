@@ -3,8 +3,8 @@ title: "メソッドとブロック"
 description: "rigortype/rigor docs/handbook/05-methods-and-blocks.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/05-methods-and-blocks.md"
 sourcePath: "docs/handbook/05-methods-and-blocks.md"
-sourceSha: "79649bc88fa1aec11fbcc5cdb98fc1f70bb1e5da8a4514b00732fe8b2046f71a"
-sourceCommit: "6bcf38aa850fa4324ea959b2ce5cfdb61a88aa28"
+sourceSha: "bb62f751cb99c114644f66e9237a0a94b539e4d745b0056fb41b11a53fae33a3"
+sourceCommit: "18ef11c9f393b495cd9a6ed7277846069c08c516"
 translationStatus: "translated"
 sidebar:
   order: 1005
@@ -167,17 +167,17 @@ end
 
 ```ruby
 [1, 2, 3].each do |n|
-  assert_type("Constant<1> | Constant<2> | Constant<3>", n)
+  assert_type("1 | 2 | 3", n)
 end
 
 %w[a b c].each_with_index do |word, idx|
-  assert_type("Constant<\"a\"> | Constant<\"b\"> | Constant<\"c\">", word)
+  assert_type("\"a\" | \"b\" | \"c\"", word)
   assert_type("non-negative-int", idx)
 end
 
 {name: "Alice", age: 30}.each_pair do |key, value|
-  assert_type("Constant<:name> | Constant<:age>", key)
-  assert_type("Constant<\"Alice\"> | Constant<30>", value)
+  assert_type(":age | :name", key)
+  assert_type("\"Alice\" | 30", value)
 end
 ```
 
@@ -209,7 +209,7 @@ x = 100
   # x: Constant<2> | Constant<4> | Constant<6>
 end
 
-assert_type("Constant<100>", x)  # 外側のxは変更されていない
+assert_type("100", x)  # 外側のxは変更されていない
 ```
 
 ## クロージャエスケープとキャプチャされたローカル変数

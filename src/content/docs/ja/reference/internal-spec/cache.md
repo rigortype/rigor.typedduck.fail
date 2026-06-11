@@ -3,8 +3,8 @@ title: "Cache Layer — `Rigor::Cache`"
 description: "Imported from rigortype/rigor docs/internal-spec/cache.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/cache.md"
 sourcePath: "docs/internal-spec/cache.md"
-sourceSha: "e914e3ffff4a4ac37f6d360cee0e352679a1b10cd89ac2f397c3aee9be4c39c4"
-sourceCommit: "37d70ab9071b4a25e954d0157818f0b6ae88e2c2"
+sourceSha: "4df6232bfb62c391aaa4066a80f55276b0120f551f92a6f513de7d76b1515163"
+sourceCommit: "18ef11c9f393b495cd9a6ed7277846069c08c516"
 translationStatus: "translated"
 sidebar:
   order: 3050
@@ -109,13 +109,13 @@ DependencyEntry :: { gem_name: String, gem_version: String, mode: :disabled|:whe
 
 ### スキーマバージョンマーカー
 
-`<root>/schema_version.txt`には単一の整数（現在は`Rigor::Cache::Descriptor::SCHEMA_VERSION`）が格納されます。すべての`fetch_or_compute`呼び出し時に以下を実行します。
+`<root>/schema_version.txt`には`Store.schema_marker_value` ── `"<Descriptor::SCHEMA_VERSION>.<Store::FORMAT_VERSION>"`（現在は`3.2`）が格納され、2つの無効化軸、すなわちディスクリプタスキーマとオンディスクのバイトレイアウトの両方をカバーします。`Store`インスタンスごとに1度（最初の`fetch_or_compute` / `fetch_or_validate`時に）チェックされます。
 
-- マーカーがない → 現在のバージョンを書き込み、続行する。
+- マーカーがない → 現在の値を書き込み、続行する。
 - マーカーが一致する → 続行する。
 - マーカーが異なる → `<root>`以下のすべてのエントリーを削除し（`FileUtils.rm_rf`で各子を`unlink`）、マーカーを書き直し、キャッシュが空であるかのように続行する。
 
-`SCHEMA_VERSION`のバンプにより、明示的なマイグレーションステップなしに次回実行でキャッシュファイルがすべて削除されます。
+したがっていずれかのバージョンのバンプにより、明示的なマイグレーションステップなしに次回の書き込み可能な実行でキャッシュファイルがすべて削除されます。フォーマットバージョン側はディスク回収のために重要です。フォーマットのバンプ単独では古いエントリーが読めなくなる（ヘッダーの不一致 → ミス）だけで、それらを削除することは決してありません ── エビクション上限を下回ったまま無期限に居座りうるのです。それらのバイトを回収するのはマーカーの不一致です（ADR-54）。
 
 ### ディスク上のレイアウト
 
@@ -147,19 +147,21 @@ DependencyEntry :: { gem_name: String, gem_version: String, mode: :disabled|:whe
 単一のエントリーファイルは以下のレイアウトです。
 
 ```
-"RIGOR\x00\x01"      6 bytes — 5バイトマジック、1バイト区切り、1バイトフォーマットバージョン
+"RIGOR\x00\x02"      7 bytes — 5バイトマジック、1バイト区切り、1バイトフォーマットバージョン
 varint               ディスクリプターペイロードのバイト長
 descriptor payload   正規JSON Descriptor（UTF-8、転送のためにバイナリエンコード）
 varint               値ペイロードのバイト長
-value payload        プロデューサーが返したオブジェクトのMarshal.dump
+value payload        zlibでdeflateされたシリアライズ済みバイト（デフォルトでMarshal.dump）
 sha256               32バイト — 直前のすべてのバイトの整合性ハッシュ
 ```
 
-ディスクリプタと値は別々に格納されるため、将来のキャッシュ検査ツールが`Marshal.load`のコストを払わずにディスクリプタだけを読み取れます。フォーマットバージョン（現在は`1`）は`Descriptor::SCHEMA_VERSION`とは異なります。前者はバイトレイアウトを対象とし、後者はディスクリプタスキーマを対象とします。フォーマットバージョンのバンプは読み込みパスでエントリーを無効化します（ヘッダーの不一致 → キャッシュミス）。
+ディスクリプタと値は別々に格納されるため、将来のキャッシュ検査ツールがinflate + `Marshal.load`のコストを払わずにディスクリプタだけを読み取れます。フォーマットバージョン（現在は`2`）は`Descriptor::SCHEMA_VERSION`とは異なります。前者はバイトレイアウトを対象とし、後者はディスクリプタスキーマを対象とします。フォーマットバージョンのバンプは読み込みパスでエントリーを無効化します（ヘッダーの不一致 → キャッシュミス）。
+
+フォーマットv2（[ADR-54](../adr/54-cache-slimming.md) WD2）は書き込み時に値ペイロードをdeflateし、読み込み時にinflateします。ディスクリプタペイロードとSHA-256トレーラー（格納された圧縮後バイトに対して計算される）は変わりません。圧縮はプロデューサーには不可視です。カスタムの`serialize:` / `deserialize:`ペアは依然として厳密にそのバイトをラウンドトリップします。v1エントリーはヘッダーチェックに失敗し静かなミスとして読まれます ── マイグレーションはありません。
 
 ## バンドルされたRBSプロデューサー契約
 
-以下に記述されるバンドルされたRBS由来のプロデューサー（`RbsConstantTable`・`RbsKnownClassNames`・`RbsClassAncestorTable`・`RbsClassTypeParamNames`・`RbsInstanceDefinitions` / `RbsSingletonDefinitions`・`RbsEnvironment`）はいずれも一つのシェイプを満たします ── すなわち`fetch(loader:, store:)`に応答し、キャッシュ済みまたは新たに計算された値を返すクラスオブジェクトです。これは[`sig/rigor/cache.rbs`](../../sig/rigor/cache.rbs)において構造的インターフェース`_CacheProducer`として成文化されています。これは構造的インターフェース（RBS／Goの意味での）であり、ADR-28のプロトコル契約ではなく、また[`plugin-cache-producers.md`](plugin-cache-producers/)のプラグイン側プロデューサーサーフェスとも区別されます。
+以下に記述されるバンドルされたRBS由来のプロデューサー（`RbsConstantTable`・`RbsKnownClassNames`・`RbsClassAncestorTable`・`RbsClassTypeParamNames`・`RbsEnvironment`）はいずれも一つのシェイプを満たします ── すなわち`fetch(loader:, store:)`に応答し、キャッシュ済みまたは新たに計算された値を返すクラスオブジェクトです。これは[`sig/rigor/cache.rbs`](../../sig/rigor/cache.rbs)において構造的インターフェース`_CacheProducer`として成文化されています。これは構造的インターフェース（RBS／Goの意味での）であり、ADR-28のプロトコル契約ではなく、また[`plugin-cache-producers.md`](plugin-cache-producers/)のプラグイン側プロデューサーサーフェスとも区別されます。
 
 `fetch`本体はプロデューサー間で同一です。すなわちRBSディスクリプタ（`RbsDescriptor.build(loader)`）を構築し、それから`store.fetch_or_compute(producer_id:, params: {}, descriptor:)`を呼び出してプロデューサーの`compute(loader)`へyieldします。異なるのは`PRODUCER_ID`定数と`compute`本体だけです。その共有された配線は`Rigor::Cache::RbsCacheProducer`基底クラスに置かれます。プロデューサーはそれをサブクラス化し、自身の`PRODUCER_ID`と（privateな）`self.compute(loader)`をMUST宣言します。基底クラスは`self::PRODUCER_ID`を読むため、定数は具象サブクラス上で解決されます。以下のプロデューサーごとのセクションは、各プロデューサーの`PRODUCER_ID`、`compute`の出力型、およびそれを読む`cache_store`コンシューマーを規定します。
 

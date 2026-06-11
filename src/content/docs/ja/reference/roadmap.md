@@ -3,8 +3,8 @@ title: "Rigor Roadmap"
 description: "rigortype/rigor docs/ROADMAP.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/ROADMAP.md"
 sourcePath: "docs/ROADMAP.md"
-sourceSha: "b3df882b803c06a31ebfc1169c21912b8eb119ad575d542e1400057ea3324fe7"
-sourceCommit: "c64342708cd0effeb20265e84fe912ae22635159"
+sourceSha: "73ef8583bfdfd393270a006ecc40db3a24e1d87c4b3050d703ade7f1f36f1f8b"
+sourceCommit: "18ef11c9f393b495cd9a6ed7277846069c08c516"
 translationStatus: "translated"
 sidebar:
   order: 9050
@@ -162,6 +162,58 @@ v0.1.17パフォーマンスサイクル。出荷済みの詳細は`CHANGELOG.md
 - **[ADR-45](../adr/45-unchanged-project-fast-path/) — 未変更プロジェクトの高速パス（着地済み）**。record-and-validate全体実行診断キャッシュ。粗い: 解析対象ファイルが変更されれば全体を再実行。**CIの注意点:**コード変更時、キャッシュは約113秒のGitLab実行で<1秒しか節約しない（計測済み）ため、CIで`.rigor/cache`を永続化するのはほぼ無意味;勝利はローカル開発 / エディタ / 同一SHA再実行。CIのレバーはADR-46。
 - **[ADR-46](../adr/46-incremental-dependency-graph/) — ファイル横断の依存グラフによるインクリメンタル解析（ボディ層COMPLETE、着地済み）**。`rigor check --incremental`は`ΔF ∪ dependents[ΔF]`のみを再解析し、残りをフィンガープリント付きクロスプロセスディスクスナップショットから提供する;ファイル単位の依存を`Scope`アクセサのチョークポイントで記録 → `dependents`インデックス;健全性は`--verify-incremental`（`make check-incremental`、全体実行に対してバイト単位同一）でCIゲート。未変更 / リーフ編集実行で約6〜9倍を計測。**スライス3+4着地、構造層はファイル追加/削除を含め完全完成:**スライス4（シンボル粒度: `(file, symbol)`依存）とスライス3（構造層ネガティブ依存追跡 —— 2つのウォームセッション健全性ギャップをクローズ: ある`helper()`が後続の定義後に古い`call.unresolved-toplevel`を提供し、あるサブクラスがスーパークラスが後から定義された後に古い欠落`def.override-*`を提供していた;`top_level_def_for` + オーバーライドチェッカーがポジティブ/ネガティブエッジを記録し、`#recheck`が出現シンボル/クラスのネガティブディペンデントで対象を拡張する）。**ファイル追加/削除がインクリメンタルになった** —— スナップショットのフィンガープリントが（ファイルリストではなく）解析ルートにキー化されているため、ファイルを追加/削除してもスナップショットはウォームなまま、`#recheck`がデルタを調整する（追加 → 解析 + 今定義された名前の消費者を再チェック;削除 → 退出 + ポジティブディペンデントを再チェック）、全体実行とバイト単位同一。**残り（需要ゲート付き）:**推論された戻り値のファンアウトを抑制する戻り型サマリー。構成要素: `Analysis::{DependencyRecorder,Incremental,IncrementalSession}`、`Cache::IncrementalSnapshot`。ADR §「Staging」 + `docs/CURRENT_WORK.md` §「次セッションのエントリーポイント」を参照。
 
+### パフォーマンス / スケーラビリティ — コンパイル済みプラグイン貢献ディスパッチ（ADR-52、accepted —— スライス1+2+3部分+4部分着地;次 = rigor-sorbet）
+
+**[ADR-52](../adr/52-compiled-plugin-contribution-dispatch/)** —— プラグイン消費パスにおけるADR-44のスポット修正の構造的後継であり、[2026-06-10の構造監査](../notes/20260610-plugin-architecture-perf-audit/)に基づく。基準: per-call / per-def / per-file / per-nodeのすべてのプラグイン参照は、エンジンが既に保持するキーでゲートされ、レジストリ構築時に実行ごとに1回コンパイルされるテーブルを経由する;プラグインコードは候補ヒット時のみ走る。スライス: （1）コンパイル済み貢献テーブル + エンジン呼び出しサイトの再配線（契約変更なし）—— **着地**（`67a552de` + `1deecb2f`;コーパスバイト同一、レガシーフックが移行するまでウォールタイム中立）;（2）静的メソッド名のみ`dynamic_return`（レシーバーレス）→ `rigor-units`を移行 —— **着地**（`c3550b00` + `cd5d5990`）;監査修正: 静的ゲートに適合する本番プラグインはなかった（activesupport-core-extはフックを出荷せず、sorbetのカタログはランタイム名前セット）;（3）ランタイム**レシーバーセット**callable（遅延`instance_exec`メモ、インスタンスディスパッチパスで解決、セットはブロックフィルタの安全な過大近似）→ `rigor-activestorage`を移行（GitLabバイト同一）—— **エンジン + activestorage着地**（`fb5aea04`/`0f1a64b2` + `be4c532c`）;**rigor-activerecordはブロック中**（そのクラス側ディスパッチはレシーバー型ではなくAST定数 / `self_type`を読み、プロジェクトモデル定数は`Dynamic`として型付けされる —— 移行の試みはリバートされた;AST-keyedゲート形式または発見されたクラスのエンジンSingleton型付けが必要、ADRの「rigor-activerecord blocker」を参照）;（4）ランタイム**メソッド名**セット（ContributionIndexの名前ゲートに触れる）—— **エンジン + 設定ゲートのlisp-eval/patternの例が着地**（`79dc790d` + `46b14280`、エンドツーエンドspec/デモバイト同一）;**次はrigor-sorbet**（2026-06-11に移行可能と検証 —— そのカタログはレシーバー型ではなくメソッド名でゲートするので、ARの`Dynamic`定数ブロッカーは適用されない;`Catalog#method_names`列挙子 + フックの副作用をブロックに再配置 + バイト同一ゲート用のSorbetを使うコーパスが必要、CURRENT_WORK §「ADR-52」を参照）、その後rigor-rspec（ファイルごと）;(5)`flow_contribution_for`を**削除**（意図的なpre-1.0 BC破壊;ADR-2/37のステータス更新 + プラグイン作者向けスキル + CHANGELOG移行ノート）;（6）ファイルごとに単一のエンジン所有ノードルールウォーク（独立）。すべてのスライスはMastodon（6プラグイン）/ GitLab（11プラグイン）コーパスでのバイト同一診断 + stackprofデルタ + `make bench-perf`でゲートする。スライス5は**v1.0契約凍結の前に**着地しなければならない（ADR-50）—— そのタイミングの非対称性が、これがさらなる需要ゲートのスポット修正ではなく1つのまとまった再構築である理由である。
+
+### パフォーマンス / スケーラビリティ — キャッシュディスク + ウォームロードのスリム化（ADR-54、SHIPPED 2026-06-10）
+
+**[ADR-54](../adr/54-cache-slimming/)** —— ADR-44/45/46サイクルが手をつけなかったキャッシュ層のディスク/ロード軸をクローズした、[2026-06-10のキャッシュ監査](../notes/20260610-cache-disk-runtime-audit/)に基づく。以前: あらゆるプロジェクトの`.rigor/cache`は約32 MB（3つのRBS Marshalブロブ;sigなしプロジェクト間でバイト同一 → サーベイコーパスマシンで1 GB超が重複）あり、ウォーム実行はそれらを実体化するために約700 msの`Marshal.load`を払っていた。基準: キャッシュ層は、ウォームパスで次に安い層からの再計算を上回る場合にのみそのバイトを正当化する。**4つのWDすべてが着地**（コミット`5f53db09` / `0c671e04` / `d2465fe1` / `5ced88f1`）: (1)`rbs.instance_definitions` / `rbs.singleton_definitions`ディスクブロブを廃止 —— キャッシュされたenvを考えるとネットでネガティブと計測（ロード366 ms対build-all 137 ms;23.4 MB/プロジェクト）;ディスパッチパスは既存のプロセスごとメモ上でクラスごとに遅延、ADR-15のprewarm/Reflection消費者はキャッシュされたenvから構築されたeagerなフルテーブルを保つ;（2）あらゆるエントリーの値ペイロードを`Store::HEADER`フォーマットバイトのbumpの背後でzlib-deflate（envブロブはraw比16 %の1.76 MBに着地;古いエントリーはサイレントミスとして読まれる、移行コードなし）;(3)`cache.max_bytes`はデフォルト256 MBになり`evict!`が恒久的なno-opでなくなった —— rigorリポジトリ自身のキャッシュは約2 MBのアクティブセットに対して約180 MBのオーファンを蓄積していた（明示的な`null`で無制限を復元）;(4)`RbsDescriptor.build`をローダーごとにメモ化。着地したエンベロープ: プロジェクトごと約33.7 MB → 約2 MB（−94 %）;definitionsに触れるウォーム実行は最大約550 ms / 1.6 Mアロケーションを節約;コールド実行はeagerなbuild-all + 23 MB書き込みを削減。ADR-7 § Slice 6-Dを部分的に置き換える。先送り/却下: クロスプロジェクト共有キャッシュルート（スリム化後の重複は約1.7 MB × N —— 2つ目のルートに見合わない）、`fresh?` mtime高速パス（健全性）、zstd（新規依存）。各スライスは診断同一の自己チェック（`--no-cache`/コールド/ウォーム）+ Mastodonコーパス実行でゲート。
+
+### 内部アーキテクチャ — 正式リリース前の再検討（次の作業ターゲット）
+
+[2026-06-10のlib/rigorアーキテクチャ再検討](../notes/20260610-lib-rigor-architecture-rereview/)は、
+リリースラインを前に2つの軸でエンジン全体を再チェックした —— 役割分離の
+明快さ、そしてホット呼び出しパスの無駄 —— そして基盤が健全であることを
+見出した（非循環的なレイヤリング、不変Scopeの規律、統一されたディスパッチ層）。
+残るものは次の作業ターゲットとしてここにキューされる、4つのフェーズで
+（完全な根拠と`file:line`の裏付けはノートに）:
+
+1. **Phase 1 —— 機械的な修正。完了（2026-06-11）**。
+   (a)`rigor-sorbet`のパブリックAPI境界違反を`Type#accepts`へ書き換え
+   （`9946b3ea`）;（b）ユーザークラスフォールバックの`CallContext`
+   再構築をエントリコンテキストから`#with`経由で導出（`495cdf5a`;Tier-B
+   昇格の再構築は意図的に残す —— コンテキストがそこに到達せず、1つを
+   スレッド化すると挙動上の利得なしにシグネチャがカスケードする）;(c)`rigor check`
+   を`CLI::CheckCommand`に抽出（`d5b0e108`、cli.rb約990 → 約320行）。
+   フラグしたフォローアップ、未実施: cli.rbは今や推移的に未使用となった
+   requireをいくつか保持する（埋め込み者向けに挙動隣接、別スライス）。
+2. **Phase 2 —— [ADR-52](../adr/52-compiled-plugin-contribution-dispatch/)
+   の実装: 完了（ADRは完了、スライス1〜6が2026-06-10/11着地）。
+   ビルトイン層のアデンダムも完了**：8つのstdlibシングルトン
+   フォルダーは今や`Singleton`レシーバーに対してのみ参照される凍結された
+   クラス名 → フォルダーテーブルの背後に座る（構成上相互排他 —— 各
+   フォルダーの最初のチェックは`Singleton[<そのただ1つのクラス>]` ——
+   なので畳み込みは観測上同一;テーブルは8つがフラットリストにあった場所に
+   座る）。非シングルトン呼び出しは8つのno-opトライアルすべてをスキップする。
+3. **Phase 3 —— 構造的、挙動保存。完了（2026-06-11）**。
+   (a)`Analysis::Runner`を
+   `runner/{pool_coordinator,project_pre_passes,diagnostic_aggregator,run_snapshots}`
+   に分解（約2000 → 約970行のオーケストレーター;reader-proc注入が読み取り
+   タイミングを保持する;キューに入ったLSPの事前構築Environment
+   リファクタの足場でもある）。（b）Narrowingが今や確実性判断の唯一の
+   所有者 —— `predicate_certainty` / `class_pattern_certainty` /
+   `value_pattern_certainty`を自身のフラグメントから導出する;Typerと
+   Evaluatorは呼び出し側（`&&`/`||`の`constant_value_polarity`ゲートは
+   意図的にConstant専用のまま —— そこでのフルプローブ精度は挙動変更で
+   あり、需要ゲートとしてキューされる）。
+4. **Phase 4 —— [ADR-53](../adr/53-scope-discovery-index-separation/):
+   Track A完了（A1 `031f161e` + A2 `063823e4`、2026-06-10/11）;Track B
+   残り。** Track B = 必須のシャドウラン等価ハーネスの背後にある単一の
+   エンジン所有チェックルールウォーク（B1ハーネス → B2フローコレクター
+   マージ → B3完全統合 → B4 ADR-52 WD4の今や着地した
+   `Plugin::NodeRuleWalk`との収束）。基準とゲートはADRを参照。
+
 ### パフォーマンス / スケーラビリティ — その他のレバー
 - **O4レイヤー3 — `Gemfile.lock`パース + `gem_rbs_collection`バージョンマッチング**。v0.1.5の`BundleSigDiscovery` MVPの上に座る。MVPの自動スキップリスト（`SKIPPED_GEMS_BY_DEFAULT`）はバージョン管理された解決テーブルになる;rigorは`Bundler::LockfileParser`出力を消費 + `ruby/gem_rbs_collection`で最適マッチバージョンをクエリする。O7の失敗メモでアンブロック（競合は今ハングするのではなく警告する）。
 - **`rigor check`のフォークベースのファイルレベル並列性**。ウォーム`rigor check lib`のStackprofは推論約50%、`Marshal.load`約22%、GC約17%を示す。フェーズ4bのRactorパスがv0.1.5の並列性ストーリー;フォークベースのパスは、Ractorが利用不可能なホスト、または事前ウォームされた`Environment`ブロブのCOW共有がRactorごとのenv構築より良い場合の並行（非排他的）オプションのまま。
@@ -188,6 +240,76 @@ v0.1.17パフォーマンスサイクル。出荷済みの詳細は`CHANGELOG.md
 ### ドキュメント — ユーザー向けドキュメントのオーバーホール（COMPLETE）
 
 ユーザー向けドキュメントに対する[`doc-coauthoring`](../.claude/skills/)ユーザーフレンドリー化パスは**完了しプッシュ済み**: ハンドブック（全19ファイル）、マニュアル（全14章 + バンドルされた30個のチェッカープラグインすべてのプラグインごとのページ——「（ii）」分割: 公開マニュアルにコンシューマービュー、開発者／契約資料はスリム化された`plugins/<id>/README.md`に）、そして[`docs/types.md`](../types/)に対し、章のオリエンテーション + ミニ目次、コールドリード検証済みのアンカー、コード検証済みのドキュメント正確性修正の一括（`CHANGELOG.md` § `[0.1.16]`のFixedに記録）。それが表面化させた2件のプラグイン*コード*ギャップ（`rigor-dry-validation`のRBSオーバーレイ配線、`rigor-shoulda-matchers`の二重プレフィックスのルールID）は修正され、v0.1.16に入っている。移行の*手法*は将来のプラグイン追加のために[`docs/notes/20260603-plugin-doc-migration-playbook.md`](../notes/20260603-plugin-doc-migration-playbook/)に保存されている。
+
+### ドキュメント — ユーザー向けドキュメントレビューバッテリー（キュー済み）
+
+[`docs/manual/`](../manual/)と[`docs/handbook/`](../handbook/)に対する継続的な品質
+ゲートで、chibirigor本に使われたマルチレンズレビューバッテリーから適応された
+もの。設計ノート:
+[`docs/notes/20260610-user-docs-review-battery-design.md`](../notes/20260610-user-docs-review-battery-design/)。
+
+本のバッテリーとの主な違い: **これは本ではなくソフトウェアドキュメントである** ——
+散文の深さは美徳ではなく、バッテリーの仕事は正確さと必要な明快さであり、
+物語の豊かさではない。「読みのバランス」層は*反転している*（深さブースターではなく
+肥大検出器）。最大の構造的追加は**機械的なL0層**である —— スニペットとCLIサーフェスに
+関する判断は決定論的に検証可能なので、本のバッテリーが再現性レビュアーに委ねる仕事を
+`spec/docs/`ハーネスが行う。
+
+5つの層、順番に実行（マイルストーンでフルサイクル;個々の層はオンデマンドで）:
+
+1. **L0機械 —— `spec/docs/`ハーネス（永続的なゲート、レンズではない）**。`make docs-check`として配線された3つのチェッカー:
+   - **スニペット実行:**ハンドブック章から` ```ruby `ブロックを抽出し、
+     `rigor check`経由で実行し、`assert_type` / `dump_type`の主張を実際の
+     推論出力に対して検証する。chibirigorのスコアリングハーネスの直接の類似だが、
+     対象は読者の再実装ではなくドキュメント自身である。
+   - **CLI/設定ドリフト:** `docs/manual/02-cli-reference.md`のフラグ +
+     サブコマンドをCLIオプションパーサーに対して、`03-configuration.md`の
+     キーを設定スキーマに対して、`04-diagnostics.md` /
+     `08-understanding-errors.md`のルールIDをルールレジストリに対して
+     クロスリファレンスする。
+   - **リンク整合性:**相対リンク + ADR番号参照が実際のターゲットに解決される。
+   L0は`make verify`と並んでCIで走る;LLMバッテリーはL0がグリーンのときのみ走る。
+
+2. **L1真 —— 意味的忠実性（LLMレンズ）**。機械的に検証できない主張:
+   キャッシュ無効化条件、診断の発火条件、severityプロファイルのマッピング。
+   ハンドブックの主張は[仕様コーパス](../type-specification/)に対してチェック
+   （仕様が拘束）;マニュアルの主張は実装 + 実際のCLI挙動に対してチェック。
+   レビュアーは`lib/rigor/`への読み取りアクセスを持ち、CLIを実行できる。
+   型理論エキスパートレンズは`appendix-type-theory.md`とクロスチェッカー
+   アペンディックスにのみ適用される。
+
+3. **L2伝 —— 読者レンズ（LLMレンズ、並列）**。3つのサブレンズ:
+   - **Rubyのみの読者** —— ハンドブックREADMEが述べる対象読者（静的型付けの
+     背景を仮定しないRubyプログラマー）。chibirigorレンズ8からそのまま移植、
+     「過度に単純化しない」制約を含む。
+   - **手順再現** —— マニュアル章01と14（インストール + Railsクイックスタート）:
+     読者はテキストだけから手順を完了できるか？ 実行モードレンズ。
+   - **アペンディックス読者** —— 「Coming from X」アペンディックス: 変更された
+     アペンディックスでサンプリングし、その言語背景を持つ読者が読む。
+     フルサイクルでは9つすべて;ターゲットパスでは変更されたものだけ。
+
+4. **L3簡 —— 肥大検出器（LLMレンズ、本のバッテリーから反転）**。薄い散文を
+   フラグ**しない** —— それはL2の仕事。*太い*方向のみをフラグする:
+   - マニュアル / ハンドブックの重複（READMEが宣言する分割が基準）。
+   - 表または注釈付きコードブロックがより精確に表現できる散文。
+   - ハンドブックの非ゴール違反: 「数時間で通読できる」を超えるコンテンツ、
+     仕様コーパスに属するコンテンツ、プラグイン著作ガイダンス（`examples/`に属する）。
+
+5. **L4整 —— 英語のコピーエディット + 規約遵守（LLMレンズ、常に最後）**。
+   技術文章の品質（AIっぽい言い回し、受動態へのドリフト）、`interface` →
+   *structural interface* / *RBS interface*の命名ルール（半機械化可能）、
+   `docs/manual` ↔ `docs/handbook`のクロスリファレンス衛生。
+
+**出力ノート:**レンズの所見はドキュメントディレクトリ自身ではなく
+`docs/notes/YYYYMMDD-docs-review-<scope>.md`へ行く。
+
+**保留中の作業、優先度順:**
+1. L0ハーネスを`spec/docs/`として実装し、`make docs-check`をCIに配線する。
+2. `.claude/skills/rigor-docs-review/SKILL.md`を著作する（L1〜L4のレンズ
+   ペルソナ + 層ゲートプロトコルを固定）。
+3. 最初のフルサイクルを実行する;L1はADR-51のCIフォーマットのフォロー
+   スルーギャップを表面化させると予想される（`11-ci.md`はv0.1.16の
+   コード検証パス後に書き直された）。
 
 ## Railsエコシステムプラグイン（v0.1.xコア作業に並行した実行トラック）
 

@@ -3,8 +3,8 @@ title: "付録 — Elixirから来た場合"
 description: "Imported from rigortype/rigor docs/handbook/appendix-elixir.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/appendix-elixir.md"
 sourcePath: "docs/handbook/appendix-elixir.md"
-sourceSha: "f1f9cd02ad07a3e720fd892cbd8ab896aa38c6686fb9cca6640994656c178833"
-sourceCommit: "c64342708cd0effeb20265e84fe912ae22635159"
+sourceSha: "b751eea73b925a30ca7dcc9886a129120cc558d56655dc04c599ce3548ce7697"
+sourceCommit: "18ef11c9f393b495cd9a6ed7277846069c08c516"
 translationStatus: "translated"
 sidebar:
   order: 1050
@@ -131,7 +131,7 @@ ElixirのアトムとRubyのシンボルは同じ発想 — インターンさ�
 
 ```ruby
 status = :ok
-assert_type("Constant<:ok>", status)
+assert_type(":ok", status)
 
 # a discriminated union over atoms/symbols:
 def describe(s)         # s : Constant<:ok> | Constant<:error>
@@ -160,7 +160,7 @@ Elixirの2つの概念がRigorの構造的型付けにマッピングされる�
 ```ruby
 def reciprocal(n)
   return nil unless n > 0
-  assert_type("positive-int", n)   # narrowed by the guard
+  # n is positive-int here when typed as Integer; untyped params stay Dynamic[top]
   1.0 / n
 end
 ```

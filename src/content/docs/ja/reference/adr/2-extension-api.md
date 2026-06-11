@@ -3,8 +3,8 @@ title: "ADR-2: 拡張API戦略"
 description: "rigortype/rigor docs/adr/2-extension-api.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/2-extension-api.md"
 sourcePath: "docs/adr/2-extension-api.md"
-sourceSha: "125728d3e524910fbbd484953bd96cca8d15c8e131071b85496cf082b65cca17"
-sourceCommit: "d5d6614800bfc53f00e23b51f4c914d0e42f237f"
+sourceSha: "c41901e1785d4495eed48aedbd7bbb4c64ae132739d4fc2c66022c5d7832fbc8"
+sourceCommit: "18ef11c9f393b495cd9a6ed7277846069c08c516"
 translationStatus: "translated"
 sidebar:
   order: 4002
@@ -325,7 +325,7 @@ Rigorは同じ2つのテストスタイルを提供すべきです:
 
 ## オープンクエスチョン
 
-- **Ractor分離下のプラグイン契約（[ADR-15](../15-ractor-concurrency/)フェーズ3）**。`Analysis::Runner` Ractorワーカープールが着地するとき（フェーズ4）、プラグインインスタンスはRactorごとである必要があります: 各ワーカーは共有レジストリの凍結されたファクトリー + マニフェストメタデータから自身のプラグインを実体化します。`flow_contribution_for` / `diagnostics_for_file`フックで実行ごとの可変状態を蓄積するプラグイン（`rigor-sorbet`の`@reachable_absurd_nodes` / `@reveal_type_calls` / `@assert_type_mismatches` `compare_by_identity` Hashesが正典の例）は、その状態を`Plugin::FactStore`（すでにクロスRactor調整済み）経由でルーティングするか、Ractorごとの分離を受け入れる必要があります（MUST）。フェーズ3のADR-2修正案が選ばれた形状を固定します;現在テーブル上の3つの候補はADR-15 § OQ2に記録されています。
+- **Ractor分離下のプラグイン契約（[ADR-15](../15-ractor-concurrency/)フェーズ3）**。`Analysis::Runner` Ractorワーカープールが着地するとき（フェーズ4）、プラグインインスタンスはRactorごとである必要があります: 各ワーカーは共有レジストリの凍結されたファクトリー + マニフェストメタデータから自身のプラグインを実体化します。`diagnostics_for_file`フック（`flow_contribution_for`は**ADR-52 WD3、2026-06-11で削除**されました——`dynamic_return` / `type_specifier`へ移行してください；CHANGELOGの`### Removed`を参照）で実行ごとの可変状態を蓄積するプラグイン（`rigor-sorbet`の`@reachable_absurd_nodes` / `@reveal_type_calls` / `@assert_type_mismatches` `compare_by_identity` Hashesが正典の例）は、その状態を`Plugin::FactStore`（すでにクロスRactor調整済み）経由でルーティングするか、Ractorごとの分離を受け入れる必要があります（MUST）。フェーズ3のADR-2修正案が選ばれた形状を固定します;現在テーブル上の3つの候補はADR-15 § OQ2に記録されています。
 - 動的戻り値拡張は最初に名前的レシーバー型のみで一致すべきか、それとも構造的インターフェースとオブジェクトシェイプでも一致すべきか？
 - 最初のプラグインマニフェスト形式と設定スキーマ言語は何か？
 - Rigorは最初のカスタムルールマイルストーンでルールに合成または仮想ASTノードを公開すべきか？

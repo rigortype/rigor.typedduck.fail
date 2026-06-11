@@ -3,8 +3,8 @@ title: "推論型の確認"
 description: "rigortype/rigor docs/manual/05-inspecting-types.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/05-inspecting-types.md"
 sourcePath: "docs/manual/05-inspecting-types.md"
-sourceSha: "522e4dc7a1d366aa97a69a1ac0cb968bdaebfb47f589838015b870a841536e65"
-sourceCommit: "f391fadebcb3c674444a346501d51664b046dec2"
+sourceSha: "df47efa90d676ea3d1cba6e78575d51cc54c6953ad09d28267b8c431cf39aed6"
+sourceCommit: "18ef11c9f393b495cd9a6ed7277846069c08c516"
 translationStatus: "translated"
 sidebar:
   order: 9005
@@ -57,11 +57,24 @@ rigor type-of lib/example.rb:12:8
 
 `--format=json`はツール向けのマシン可読な結果を出力します。これはエディタ統合がホバー時に回答するのと同じクエリです。
 
+## `rigor trace` — 推論が進む様子を眺める
+
+`annotate`と`type-of`が*答え*を見せるのに対し、`rigor trace FILE`は*導出*を見せます。エンジンをファイル上で再実行し、記録された推論イベントをステップ実行のターミナルアニメーションとしてリプレイするのです——ローカル変数がスコープに入る瞬間、2つの分岐型がユニオン型へ合流する瞬間、メソッドコールが解決される（あるいは`Dynamic[top]`へフェイルソフトする）瞬間。
+
+```sh
+rigor trace lib/example.rb            # キー押下で進む
+rigor trace --delay=0.5 lib/example.rb # 自動再生
+rigor trace --format=json lib/example.rb # 生のイベントストリーム
+```
+
+`--verbose`はタイパーが訪れるすべての式にenter / resultフレームを追加します。デフォルトでは教育的な3種類のイベントだけを残します。JSONストリームは、教材や図を組み立てられる程度に安定しています。
+
 ## 使い分け
 
 | したいこと | 使うもの |
 | --- | --- |
 | シェルから一つの式の型を確認したい | `rigor type-of` |
 | ファイルの全行を概観したい | `rigor annotate` |
+| 導出を一歩ずつリプレイしたい | `rigor trace` |
 | 解析途中にコンテキスト内で型を出力したい | `dump_type` |
 | 型を**アサート**してリグレッションチェックしたい | `assert_type` |

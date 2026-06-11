@@ -3,8 +3,8 @@ title: "推論エンジン"
 description: "Imported from rigortype/rigor docs/internal-spec/inference-engine.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/inference-engine.md"
 sourcePath: "docs/internal-spec/inference-engine.md"
-sourceSha: "1ab1743f692f543397a82a85861143345d3dba3c2d8b48aa9b83351fe4d974db"
-sourceCommit: "37d70ab9071b4a25e954d0157818f0b6ae88e2c2"
+sourceSha: "25f4f105a1aa54f4611e7a8bafd28cd32c8a8c3589cc65ae15e3a669228593a5"
+sourceCommit: "18ef11c9f393b495cd9a6ed7277846069c08c516"
 translationStatus: "translated"
 sidebar:
   order: 3050
@@ -69,6 +69,16 @@ sidebar:
 - `FactStore#join(other)`は両方のストアに存在する構造的に等しいファクトのみをMUST保持します。
 
 ファクトストアのバケットは内部的な最適化境界です。`Scope`はファクトクエリとファクト追加遷移を公開してかまいませんが、呼び出し元はバケットストレージをin-placeでMUST NOT変更しません。
+
+### ディスカバリインデックス（ADR-53トラックA）
+
+フロー状態と並んで、すべての`Rigor::Scope`スナップショットは単一の不変な**ディスカバリインデックス**（`Rigor::Scope::DiscoveryIndex`）を保持します。これはシード時のディスカバリテーブル群 ── `declared_types`・`class_ivars`・`class_cvars`・`program_globals`・`discovered_classes`・`in_source_constants`・`discovered_methods`・`discovered_def_nodes`・`discovered_def_sources`・`discovered_method_visibilities`・`discovered_superclasses`・`discovered_includes`・`discovered_class_sources`・`data_member_layouts` ── を保持します。メンバーシップは[ADR-53](../adr/53-scope-discovery-index-separation.md)の基準で固定されます。あるフィールドがインデックスに属するのは、**いかなるフロー遷移も、そのフィールドの値がシードと異なるスコープを生成しないとき、かつそのときに限り**です。
+
+- インデックスはMUST不変です。シードされたインデックスは`DiscoveryIndex#with`を通じて導出されます。
+- すべてのフロー遷移（`with_local`・`with_fact`・`join`・…）は、レシーバーのインデックスを参照で、検査せずに結果へMUST引き継がねばなりません。`Scope#==`はインデックスをMUST NOT比較しません（これはフロー状態ではなく環境コンテキストです）。
+- `Scope`はテーブルごとのリーダー（`user_def_for`・`superclass_of`・`includes_of`・`discovered_method?`・`data_member_layout`・`class_ivars_for`・…）をデリゲートとしてMUST公開し続けます。これにより、エンジンの呼び出し位置やプラグインがストレージの分割から独立します。ADR-46の依存記録インストルメンテーションはこれらのデリゲートに存在し、それらがMUST唯一の読み取り経路であり続けねばなりません。
+- `Scope#with_discovery(index)`は正規のシード遷移です。テーブルごとの`with_discovered_*`ライターはそれに対する互換シムです（ADR-53スライスA2で除去予定）。
+- ネストされた本体（メソッドエントリー、クラス本体、または再型付けされたユーザーメソッド本体）のために構築されたスコープは、親スコープのインデックスを丸ごとMUST継承せねばなりません ── 決してテーブルごとのコピーではなく。テーブルごとのコピーは、抽出前に`data_member_layouts`が2度静かに脱落した原因です。
 
 ## フェイルソフトポリシー
 

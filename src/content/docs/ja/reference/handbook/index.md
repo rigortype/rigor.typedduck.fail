@@ -3,8 +3,8 @@ title: "Rigorハンドブック"
 description: "rigortype/rigor docs/handbook/README.mdからインポートされたドキュメントの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/README.md"
 sourcePath: "docs/handbook/README.md"
-sourceSha: "a9655d1e4e29cdd6dc13f4932a0a8c798c91ac43f0960503ab4f5cbc7ed54391"
-sourceCommit: "c64342708cd0effeb20265e84fe912ae22635159"
+sourceSha: "cbe00850ffb7332d441bac9d206de1faada34759abc866487daf904b88adb7bd"
+sourceCommit: "18ef11c9f393b495cd9a6ed7277846069c08c516"
 translationStatus: "translated"
 sidebar:
   order: 1000
@@ -118,10 +118,10 @@ Rigorの語彙と、プログラミング言語の教科書や別の型チェッ
 
 ```ruby
 n = 1 + 2
-assert_type("Constant<3>", n)  # Rigor がリテラル和をたたみ込む
+assert_type("3", n)  # Rigor がリテラル和をたたみ込む
 ```
 
-これは「`assert_type`呼び出しの位置で、Rigorの`n`に対する推論が`Constant<3>`、つまりリテラル値`3`を持つ`Type::Constant`キャリアになっている」という意味です。
+これは「`assert_type`呼び出しの位置で、Rigorの`n`に対する推論が`3`、つまりたたみ込まれたリテラル値になっている」という意味です。
 
 用語の約束 ── **「interface」**: Rubyには`interface`キーワードがないため、ほとんどの読者はこの言葉の意味を別の言語から持ち込みます。そしてJava／PHPの*名前的*な意味（クラスが`implements`を宣言する）が支配的です。RBSの`interface`はその逆 ── *構造的*であり、Goの`interface`やPythonの`Protocol`のように、メソッドを持っていることだけで満たされ、宣言は不要です。誤読を避けるため、どの章でも初出時にはこの言葉を**「構造的インターフェース」**または**「RBSインターフェース」**と限定し、素の「interface」を使わないでください。[プロトコルと構造的型付けの付録](appendix-protocols-and-structural-typing/)が正規の解説です。
 

@@ -3,8 +3,8 @@ title: "診断"
 description: "rigortype/rigor docs/manual/04-diagnostics.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/04-diagnostics.md"
 sourcePath: "docs/manual/04-diagnostics.md"
-sourceSha: "bf92990100f6ef8efda3735e1b591b09a51a6ef43f73a17760ac11403ce1dd45"
-sourceCommit: "73d7a0a2d4628b0614948fe2fa043945b45d5de4"
+sourceSha: "35754d710ddc375a54e4bc89aa62f9487c07917d1c6cd096c8f85dbdf18ed03f"
+sourceCommit: "18ef11c9f393b495cd9a6ed7277846069c08c516"
 translationStatus: "translated"
 sidebar:
   order: 9004
@@ -40,6 +40,7 @@ sidebar:
 | `flow.unreachable-branch` | `if` / `unless` / 三項演算子のブランチが静的に到達不能。 |
 | `flow.always-truthy-condition` | 条件が証明可能に常に真または常に偽。 |
 | `flow.dead-assignment` | ローカル変数が同じメソッド内で書かれるが読まれない。 |
+| `flow.unreachable-clause` | `case`/`when`または`case`/`in`の節が静的に到達不能。すなわちその対象の型がパターンと素であるか、先行する節がすでに対象を網羅している。 |
 | `def.return-type-mismatch` | メソッドボディの結果が宣言されたRBSの戻り型に違反する。 |
 | `def.ivar-write-mismatch` | インスタンス変数が最初の書き込みと異なる型で書かれる。 |
 | `def.method-visibility-mismatch` | 明示的レシーバーの呼び出しがprivateメソッドに到達する。 |

@@ -3,8 +3,8 @@ title: "設定"
 description: "rigortype/rigor docs/manual/03-configuration.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/03-configuration.md"
 sourcePath: "docs/manual/03-configuration.md"
-sourceSha: "8e087d69262c4c6d777a64b37256a4fec1d9713cd7508ed8c13c9e372aab992a"
-sourceCommit: "bc51e4fe0718731d0592d42696a438b0574c9339"
+sourceSha: "051a88abfb655b28a13b4fbdece0e71c9a2ee9c31b3df0fd827f8c34ed9e9cc4"
+sourceCommit: "18ef11c9f393b495cd9a6ed7277846069c08c516"
 translationStatus: "translated"
 sidebar:
   order: 9003
@@ -83,6 +83,7 @@ cache:
 | キー | 型 | デフォルト | 意味 |
 | --- | --- | --- | --- |
 | `cache.path` | String | `.rigor/cache` | 永続キャッシュディレクトリ。[キャッシュ](../12-caching/)を参照。 |
+| `cache.max_bytes` | Integerまたは`null` | `268435456`（256 MB） | キャッシュディレクトリのLRU退避の上限。`null`で退避を無効化する。[キャッシュ § サイズと退避](../12-caching/#サイズと退避)を参照。 |
 | `parallel.workers` | Integer | `0` | ファイルごとの解析用の並列ワーカープロセス（現在はfork方式のプール、ADR-15）。`0`は逐次処理。CLI `--workers`と`RIGOR_RACTOR_WORKERS`が優先される。 |
 | `plugins_io.network` | String | `"disabled"` | プラグインネットワークポリシー——`disabled`または`allowlist`。 |
 | `plugins_io.allowed_paths` | Array | `[]` | プラグインが読み取り可能なファイルシステムパス。 |

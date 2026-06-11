@@ -3,8 +3,8 @@ title: "Worker Session Protocol"
 description: "Imported from rigortype/rigor docs/internal-spec/worker-session.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/worker-session.md"
 sourcePath: "docs/internal-spec/worker-session.md"
-sourceSha: "008ba113cd1360a47645ff140eef0ef92bb142edb0f57b5cf13910813d90f7e5"
-sourceCommit: "ea8ac6950eae8c643cd2811da2569fd4809f89c8"
+sourceSha: "ec86710857d42926516ee9e29b318ea5f4a77ff2a836f76915a1dbdbde28fe3f"
+sourceCommit: "18ef11c9f393b495cd9a6ed7277846069c08c516"
 translationStatus: "translated"
 sidebar:
   order: 3050
@@ -26,7 +26,7 @@ sidebar:
 - `plugin_blueprints` ── `Array<Rigor::Plugin::Blueprint>`
   （`Ractor.shareable?`）。ワーカーごとのプラグインインスタンスはこれらから具体化されます（[`plugin.md`](../plugin/#concurrency-and-value-object-shareability-adr-15)を参照）。
 - `explain` ── Boolean。
-- `synthetic_method_index` / `project_patched_methods` ── 任意、デフォルトは`nil`。これらは`Ractor.shareable?`では**ありません**。そのためRactorプールはこれらを未設定のままにします。forkバックエンド（親プロセスでfork前にセッションを構築する）はランナーのプロジェクトスキャン結果をここに通し、ファイルごとの推論が逐次パスと正確に一致するようにします。
+- `synthetic_method_index` / `project_patched_methods` / `project_scope_seed` ── 任意、デフォルトは`nil` / `{}`。これらは`Ractor.shareable?`では**ありません**（シードテーブルがPrismのdefノードを保持するため）。そのためRactorプールはこれらを未設定のままにします。forkバックエンド（親プロセスでfork前にセッションを構築する）はランナーのプロジェクトスキャン結果をここに通し、ファイルごとの推論が逐次パスと正確に一致するようにします。`project_scope_seed`はランナーのクロスファイル事前パステーブル群（`Runner#project_scope_seed_tables` ── 逐次パスで`seed_project_scope`が適用するのと同じテーブル群）です。これを渡さずに構築したセッションは、プロジェクト内の他ファイルで定義されたメソッドへの呼び出しを解決できず、偽の`call.undefined-method`診断を出して等価性契約に違反します。
 
 ## 所有権の境界
 

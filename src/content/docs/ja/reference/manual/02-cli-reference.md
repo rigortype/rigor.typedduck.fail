@@ -3,8 +3,8 @@ title: "CLIコマンドリファレンス"
 description: "rigortype/rigor docs/manual/02-cli-reference.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/02-cli-reference.md"
 sourcePath: "docs/manual/02-cli-reference.md"
-sourceSha: "01140a50488671005a11c355bb0ab527d2f88ad96820fe77ebd37cf5663dab1d"
-sourceCommit: "86367f26f62593f19f649f7cb9c8e1a00a751282"
+sourceSha: "b0cc332425fb8f6e056aba4c2c27d86672459576a2e491d26ba36d597df66d40"
+sourceCommit: "18ef11c9f393b495cd9a6ed7277846069c08c516"
 translationStatus: "translated"
 sidebar:
   order: 9002
@@ -21,6 +21,7 @@ rigor <command> [options] [arguments]
 > **コマンド**
 > [check](#rigor-check) · [init](#rigor-init) ·
 > [annotate](#rigor-annotate) · [type-of](#rigor-type-of) ·
+> [trace](#rigor-trace) ·
 > [type-scan](#rigor-type-scan) · [explain](#rigor-explain) ·
 > [diff](#rigor-diff) · [sig-gen](#rigor-sig-gen) ·
 > [lsp](#rigor-lsp) · [baseline](#rigor-baseline) ·
@@ -91,6 +92,16 @@ rigor type-of FILE LINE COL
 ```
 
 位置は単一の`file:line:col`トリプルまたは3つの引数として受け付けます。`--format=json`はマシン可読な形式を出力し、`--trace`はフェイルソフトフォールバックを記録します。`check`と同様にエディタモードの`--tmp-file` / `--instead-of`ペアも受け付けます。
+
+## `rigor trace`
+
+エンジンがファイルをどのように型付けしたかを、ターミナルアニメーションとして一歩ずつリプレイします——`rigor check`が実行するのと同じ推論をたどる、教育用のプローブです。
+
+```sh
+rigor trace [--delay=SECONDS] [--line=N] [--verbose] [--format=json] FILE
+```
+
+各フレームは、次に評価されるソース範囲をそのスコープのローカル変数とともにハイライトし、1つの推論の瞬間を描き出します。すなわち、スコープに入るローカル束縛（`bind`）、合流する分岐型（`union`）、解決される——あるいは`Dynamic[top]`へフェイルソフトする（`dispatch`）メソッドコールです。ttyではキー押下でリプレイが進みます（`q`で終了）。`--delay`は自動再生します。`--verbose`はすべての式のenter / resultフレームを追加し、`--line=N`は1行上のイベントだけを残し、`--format=json`はツールや教材向けに生のイベントストリームを出力します。[推論型の検査](../05-inspecting-types/)を参照してください。
 
 ## `rigor type-scan`
 

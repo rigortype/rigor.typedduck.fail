@@ -3,8 +3,8 @@ title: "付録 — TypeScriptから来た場合"
 description: "Imported from rigortype/rigor docs/handbook/appendix-typescript.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/appendix-typescript.md"
 sourcePath: "docs/handbook/appendix-typescript.md"
-sourceSha: "cba8fb369b3913406b0d63603c639313e08cf10d79ae17e6dd104152ebcf24cc"
-sourceCommit: "c64342708cd0effeb20265e84fe912ae22635159"
+sourceSha: "9001a0894227801808b1f7a998d5a55b211c193d34680475f7f0e6d50e5366d9"
+sourceCommit: "18ef11c9f393b495cd9a6ed7277846069c08c516"
 translationStatus: "translated"
 sidebar:
   order: 1050
@@ -133,7 +133,6 @@ def classify(n)
 end
 
 result = classify(7)
-assert_type("Constant<:zero> | Constant<:positive> | Constant<:negative>", result)
 ```
 
 両チェッカーとも同じ正確なunionを推論する。TypeScriptバージョンはパラメータ型と戻り型のオーサードアノテーションが必要だが、Rigorバージョンはどちらも不要。
