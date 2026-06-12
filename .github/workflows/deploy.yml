@@ -44,6 +44,14 @@ jobs:
           git submodule update --init upstream/rigor
           git -C upstream/rigor fetch origin '+refs/tags/*:refs/tags/*'
 
+      # Init upstream/chibirigor for sync-chibirigor-docs. As with
+      # upstream/rigor, we do NOT pass --depth=1: the sync script runs
+      # `git log -1 -- <file>` to stamp each book page's sourceDate with
+      # the upstream file's last commit date, which a shallow clone would
+      # collapse to a single uniform date.
+      - name: Init upstream/chibirigor (full history, non-recursive)
+        run: git submodule update --init upstream/chibirigor
+
       - name: Set up pnpm
         uses: pnpm/action-setup@v4
 

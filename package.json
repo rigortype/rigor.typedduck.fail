@@ -6,11 +6,13 @@
   "packageManager": "pnpm@10.33.2",
   "scripts": {
     "sync:docs": "node scripts/sync-rigor-docs.mjs",
+    "sync:chibirigor": "node scripts/sync-chibirigor-docs.mjs",
+    "sync:all": "pnpm run sync:docs && pnpm run sync:chibirigor",
     "check:translations": "node scripts/check-translations.mjs",
     "bootstrap:translations": "node scripts/check-translations.mjs --bootstrap",
-    "predev": "pnpm run sync:docs",
+    "predev": "pnpm run sync:all",
     "dev": "astro dev",
-    "prebuild": "pnpm run sync:docs",
+    "prebuild": "pnpm run sync:all",
     "build": "astro build",
     "preview": "astro preview",
     "check": "astro check"
@@ -19,7 +21,8 @@
     "@astrojs/mdx": "5.0.6",
     "@astrojs/starlight": "0.39.2",
     "astro": "6.3.5",
-    "remark-cjk-friendly": "^2.0.1"
+    "remark-cjk-friendly": "^2.0.1",
+    "starlight-sidebar-topics": "^0.8.0"
   },
   "devDependencies": {
     "@astrojs/check": "0.9.9",

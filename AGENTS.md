@@ -9,6 +9,36 @@ content this repository owns. The translation workflow (sourceSha-based
 drift detection, `pnpm check:translations`, `pnpm bootstrap:translations`)
 is documented in [README.md](README.md).
 
+## chibirigor book (separate navigation topic)
+
+The [chibirigor](https://github.com/rigortype/chibirigor) online book is
+hosted alongside the reference docs as an independent navigation
+**topic** (via the `starlight-sidebar-topics` plugin in
+`astro.config.mjs`): the sidebar/topic switcher is separate from the
+reference docs, but full-text search stays shared. Only the book prose
+under `book/v1/ja/` is published.
+
+- **Source:** the `upstream/chibirigor` submodule.
+  `scripts/sync-chibirigor-docs.mjs` (run by `pnpm sync:chibirigor`, and
+  by `prebuild`/`predev` via `pnpm sync:all`) generates the pages into
+  `src/content/docs/ja/chibirigor/` and copies the SVG figures into
+  `public/chibirigor/figures/`. Both outputs are git-ignored and
+  regenerated on every build — do not edit or commit them.
+- **Upstream-owned, JA-native.** The pages are stamped
+  `sourceLanguage: "ja"`. Like the `notes/` JA-native reference pages,
+  they are NOT translation targets and are NOT subject to the Japanese
+  typography / terminology normalizers (those would be clobbered on the
+  next sync). Fixes belong upstream in `rigortype/chibirigor`.
+- **Source links go to GitHub.** The sync script rewrites links to the
+  Ruby example sources (`*/examples/`, `*/dist/`, `*.rb`) to point at the
+  chibirigor GitHub repo; inter-page `.md` links become on-site
+  `/ja/chibirigor/…` routes; figure `.svg` links become
+  `/chibirigor/figures/…`.
+- **JA-only today.** An English edition is planned. When it lands, add
+  its pages and switch the topic from the `/ja/chibirigor/` link to a
+  locale-agnostic `/chibirigor/` root (see the comments in
+  `astro.config.mjs`).
+
 ## Japanese typography convention
 
 Body prose in Japanese pages follows the no-space-between-CJK-and-Latin

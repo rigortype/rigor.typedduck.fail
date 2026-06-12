@@ -12,3 +12,6 @@
 	# Skip recursing into upstream's references/ submodules; see
 	# wrangler.toml's [build] command and .github/workflows/deploy.yml.
 	fetchRecurseSubmodules = false
+[submodule "upstream/chibirigor"]
+	path = upstream/chibirigor
+	url = https://github.com/rigortype/chibirigor.git
