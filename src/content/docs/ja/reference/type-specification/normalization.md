@@ -3,8 +3,8 @@ title: "正規化"
 description: "rigortype/rigor docs/type-specification/normalization.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/type-specification/normalization.md"
 sourcePath: "docs/type-specification/normalization.md"
-sourceSha: "bbe27b66f89c012ea66909301a98c503d318fbdc807d436fd171321eca576586"
-sourceCommit: "9f40e22193647dc06e3ab70c5ba82768b0bfe738"
+sourceSha: "9fadd038d43edb06ae0dc97e74fb2d74ac54bc6f5097bfe489bdf47c6542c994"
+sourceCommit: "636f8725dd79aab2f711249ace6357a98b7e73a4"
 translationStatus: "translated"
 sidebar:
   order: 2050
@@ -27,6 +27,7 @@ Rigorは比較と報告の前に型を正規化します。正規化は診断、
 - RBS消去まで（[rbs-erasure.md](../rbs-erasure/)参照）ハッシュシェイプ（shape）の開放性と読み取り専用マーカーを保持する。
 - より明確な場合は**表示**のために`true | false`を`bool`に折り畳む。
 - リテラルの精度が大きくなりすぎるか高コストになるまで保持する;その後は名前的ベースに広げる。
+- 値ピン留めされたユニオンメンバーを、同居する名前的ベースへ包摂折り畳みしない: `1 | Integer`は`1 | Integer`のまま。値ピン留めされたメンバーは、独自の由来を持つ到達可能な正確値を記録している——典型的にはゼロ反復シードまたは再帰の基底ケース（`0..N`反復のアキュムレータ本体に先行する`result = 1`;再帰的戻り値サマリーの`n <= 1`アーム）——折り畳めばその証拠が表示からも値認識のコンシューマーからも消える一方、得るものは何もない（ユニオンは既にベースと外延的に等しい）。そうしたメンバーを広げるのは明示的なキャップ/バジェット拡大規則の仕事であり、ユニオン構築の仕事ではない。
 - `untyped`を`top`に正規化するのではなく、動的由来のラッパーを明示的に保持する。
 - 動的由来のユニオン、積、差は静的ファセットを変換してラッパーを保持することで正規化する。
 

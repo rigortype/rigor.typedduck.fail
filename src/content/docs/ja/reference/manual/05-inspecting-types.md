@@ -3,8 +3,8 @@ title: "推論型の確認"
 description: "rigortype/rigor docs/manual/05-inspecting-types.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/05-inspecting-types.md"
 sourcePath: "docs/manual/05-inspecting-types.md"
-sourceSha: "df47efa90d676ea3d1cba6e78575d51cc54c6953ad09d28267b8c431cf39aed6"
-sourceCommit: "18ef11c9f393b495cd9a6ed7277846069c08c516"
+sourceSha: "fefa2aa2ec5764781063d5008107657351f2885c77a121949ffae6cb03c158ba"
+sourceCommit: "636f8725dd79aab2f711249ace6357a98b7e73a4"
 translationStatus: "translated"
 sidebar:
   order: 9005
@@ -38,14 +38,14 @@ assert_type("Integer",     1 + 2)   # assert.type-mismatch
 
 ## `rigor annotate` — マージンの型
 
-`rigor annotate FILE`はファイル全体を再表示し、各行に評価する式の型を末尾の`#=> dump_type:`コメントとしてタグ付けします:
+`rigor annotate FILE`はファイル全体を再表示し、各行に評価する式の型を末尾の`#=>`コメント（xmpfilter / seeing_is_believingの慣習）としてタグ付けします:
 
 ```ruby
-two = 1 + 1   #=> dump_type: 2
-name = gets   #=> dump_type: String | nil
+two = 1 + 1   #=> 2
+name = gets   #=> String | nil
 ```
 
-ファイルを概観する最速の方法です。アノテーションは冪等です——再実行すると前のコメントを積み重ねる代わりに置き換えます。ttyの場合は出力がシンタックスハイライトされます。`--no-color`（および`NO_COLOR`環境変数）でカラーを無効化できます。
+ファイルを概観する最速の方法です。アノテーションは冪等です——再実行すると前の`#=>`コメント（手書きのもの、およびv0.2.0以前の`#=> dump_type:`綴りを含む）を積み重ねる代わりに置き換えます。ttyの場合は出力がシンタックスハイライトされます——[`bat`](https://github.com/sharkdp/bat)が`PATH`上に見つかればbat経由で（`--no-bat`でオプトアウト）、見つからなければ組み込みのカラライザーで行われます。`--no-color`（および`NO_COLOR`環境変数）でカラーを無効化できます。
 
 ## `rigor type-of` — 1つの位置
 

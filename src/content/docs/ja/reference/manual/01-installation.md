@@ -3,8 +3,8 @@ title: "Rigorのインストール"
 description: "rigortype/rigor docs/manual/01-installation.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/01-installation.md"
 sourcePath: "docs/manual/01-installation.md"
-sourceSha: "3e6497f93501c84dc98175f41a536d95a66c574d106a1822bb6d48a15dcdde1e"
-sourceCommit: "6bcf38aa850fa4324ea959b2ce5cfdb61a88aa28"
+sourceSha: "559eb5670ce3d6f0bd3c00fad85adfe2cbc7c58a02a0598a5c2535273a61e52b"
+sourceCommit: "636f8725dd79aab2f711249ace6357a98b7e73a4"
 translationStatus: "translated"
 sidebar:
   order: 9001
@@ -14,7 +14,185 @@ Rigorはライブラリではなくツールです——リンターやコンパ
 
 RigorはRuby 4.0で動作します。これは自分のコードが対象とするRubyとは独立しています: `target_ruby:`設定キーでRigorに**自分の**プロジェクトが実行するRubyを伝えますが、両者は一致している必要はありません。Rigorはプロジェクト——ソース、`Gemfile.lock`、gemの`.rbs`ファイル——をデータとして読み込み、プロジェクトのgemを自身のプロセスにロードすることはありません。独立してインストールしても何も失われません。
 
-> **AIコーディングエージェントを使っていますか？** Rigorのインストールとプロジェクトの設定を代わりにやってくれます — [Railsクイックスタート](../14-rails-quickstart/)のPath Aを参照してください。下記のチャンネルは手動のルートです。
+> **AIコーディングエージェントを使っていますか？** Rigorのインストールとプロジェクトの設定を代わりにやってくれます — 次のプロンプトを渡してください:
+>
+> ```
+> Install Rigor in this project by following the instructions at
+> https://raw.githubusercontent.com/rigortype/rigor/refs/heads/master/docs/install.md
+> ```
+>
+> エージェントが環境（mise / asdf / 素のRuby）を検出し、適切なツールをインストールして、`rigor-project-init`スキルに引き渡します（[Railsクイックスタート](../14-rails-quickstart/)のPath Aを参照）。下記のチャンネルは手動のルートです。
+
+### お使いの言語でセットアップ
+
+上のプロンプトはただの自然言語です — どの言語で頼んでも、エージェントは同じリンク先の手順に従います。つまりセットアップの対話全体を母語で進められます。すぐ使えるプロンプト:
+
+<details data-lang-details>
+<summary>お使いの言語でセットアップ</summary>
+
+<details lang="ja"><summary>[ja] 日本語</summary>
+
+```
+次の手順に従って、このプロジェクトに Rigor をインストールしてください:
+https://raw.githubusercontent.com/rigortype/rigor/refs/heads/master/docs/install.md
+```
+
+</details>
+
+<details lang="zh-Hans"><summary>[zh-Hans] 简体中文</summary>
+
+```
+请按照以下地址的说明在此项目中安装 Rigor:
+https://raw.githubusercontent.com/rigortype/rigor/refs/heads/master/docs/install.md
+```
+
+</details>
+
+<details lang="zh-Hant"><summary>[zh-Hant] 繁體中文</summary>
+
+```
+請依照以下網址的說明在此專案中安裝 Rigor:
+https://raw.githubusercontent.com/rigortype/rigor/refs/heads/master/docs/install.md
+```
+
+</details>
+
+<details lang="ko"><summary>[ko] 한국어</summary>
+
+```
+다음 주소의 안내에 따라 이 프로젝트에 Rigor를 설치해 주세요:
+https://raw.githubusercontent.com/rigortype/rigor/refs/heads/master/docs/install.md
+```
+
+</details>
+
+<details lang="pt-BR"><summary>[pt-BR] Português (Brasil)</summary>
+
+```
+Instale o Rigor neste projeto seguindo as instruções em:
+https://raw.githubusercontent.com/rigortype/rigor/refs/heads/master/docs/install.md
+```
+
+</details>
+
+<details lang="pt"><summary>[pt] Português</summary>
+
+```
+Utilizando o português de Portugal, instala o Rigor neste projeto seguindo as instruções em:
+https://raw.githubusercontent.com/rigortype/rigor/refs/heads/master/docs/install.md
+```
+
+</details>
+
+<details lang="es"><summary>[es] Español</summary>
+
+```
+Instala Rigor en este proyecto siguiendo las instrucciones en:
+https://raw.githubusercontent.com/rigortype/rigor/refs/heads/master/docs/install.md
+```
+
+</details>
+
+<details lang="vi"><summary>[vi] Tiếng Việt</summary>
+
+```
+Hãy cài đặt Rigor vào dự án này theo hướng dẫn tại:
+https://raw.githubusercontent.com/rigortype/rigor/refs/heads/master/docs/install.md
+```
+
+</details>
+
+<details lang="fr"><summary>[fr] Français</summary>
+
+```
+Installez Rigor dans ce projet en suivant les instructions à l'adresse :
+https://raw.githubusercontent.com/rigortype/rigor/refs/heads/master/docs/install.md
+```
+
+</details>
+
+<details lang="de"><summary>[de] Deutsch</summary>
+
+```
+Installieren Sie Rigor in diesem Projekt, indem Sie den Anweisungen unter diesem Link folgen:
+https://raw.githubusercontent.com/rigortype/rigor/refs/heads/master/docs/install.md
+```
+
+</details>
+
+<details lang="it"><summary>[it] Italiano</summary>
+
+```
+Installa Rigor in questo progetto seguendo le istruzioni a questo link:
+https://raw.githubusercontent.com/rigortype/rigor/refs/heads/master/docs/install.md
+```
+
+</details>
+
+<details lang="th"><summary>[th] ภาษาไทย</summary>
+
+```
+ติดตั้ง Rigor ในโปรเจกต์นี้โดยทำตามคำแนะนำที่:
+https://raw.githubusercontent.com/rigortype/rigor/refs/heads/master/docs/install.md
+```
+
+</details>
+
+<details lang="id"><summary>[id] Bahasa Indonesia</summary>
+
+```
+Instal Rigor di proyek ini dengan mengikuti instruksi di:
+https://raw.githubusercontent.com/rigortype/rigor/refs/heads/master/docs/install.md
+```
+
+</details>
+
+<details lang="pl"><summary>[pl] Polski</summary>
+
+```
+Zainstaluj Rigor w tym projekcie, postępując zgodnie z instrukcjami pod adresem:
+https://raw.githubusercontent.com/rigortype/rigor/refs/heads/master/docs/install.md
+```
+
+</details>
+
+<details lang="uk"><summary>[uk] Українська</summary>
+
+```
+Встановіть Rigor у цей проєкт, дотримуючись інструкцій за посиланням:
+https://raw.githubusercontent.com/rigortype/rigor/refs/heads/master/docs/install.md
+```
+
+</details>
+
+<details lang="ru"><summary>[ru] Русский</summary>
+
+```
+Установите Rigor в этот проект, следуя инструкциям по ссылке:
+https://raw.githubusercontent.com/rigortype/rigor/refs/heads/master/docs/install.md
+```
+
+</details>
+
+<details lang="ro"><summary>[ro] Română</summary>
+
+```
+Instalați Rigor în acest proiect urmând instrucțiunile de la adresa:
+https://raw.githubusercontent.com/rigortype/rigor/refs/heads/master/docs/install.md
+```
+
+</details>
+
+<details lang="tr"><summary>[tr] Türkçe</summary>
+
+```
+Bu projeye Rigor'u şu adresteki talimatları izleyerek kurun:
+https://raw.githubusercontent.com/rigortype/rigor/refs/heads/master/docs/install.md
+```
+
+</details>
+
+</details>
 
 > **インストールチャンネル** —
 > [mise（推奨）](#推奨--ランタイムバージョンマネージャー) ·

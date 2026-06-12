@@ -3,8 +3,8 @@ title: "CLIコマンドリファレンス"
 description: "rigortype/rigor docs/manual/02-cli-reference.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/02-cli-reference.md"
 sourcePath: "docs/manual/02-cli-reference.md"
-sourceSha: "b0cc332425fb8f6e056aba4c2c27d86672459576a2e491d26ba36d597df66d40"
-sourceCommit: "18ef11c9f393b495cd9a6ed7277846069c08c516"
+sourceSha: "d8c989c9f19e34cf930453b0bb93d8b436c03a85f2667edfc16d45c703aefe18"
+sourceCommit: "636f8725dd79aab2f711249ace6357a98b7e73a4"
 translationStatus: "translated"
 sidebar:
   order: 9002
@@ -74,13 +74,13 @@ rigor init [--path=PATH] [--force]
 
 ## `rigor annotate`
 
-ファイルを再表示し、各行に評価する式の型を末尾の`#=> dump_type:`コメントとしてタグ付けします。[推論型の検査](../05-inspecting-types/)を参照してください。
+ファイルを再表示し、各行に評価する式の型を末尾の`#=>`コメントとしてタグ付けします。[推論型の検査](../05-inspecting-types/)を参照してください。
 
 ```sh
-rigor annotate [--[no-]color] [--config=PATH] FILE
+rigor annotate [--[no-]color] [--[no-]bat] [--config=PATH] FILE
 ```
 
-`FILE`は必須です。カラーはttyの場合に自動検出され、`NO_COLOR`を尊重します。`--color` / `--no-color`で上書きできます。パースエラーやファイル不在の場合は`1`で終了します。
+`FILE`は必須です。カラーはttyの場合に自動検出され、`NO_COLOR`を尊重します。`--color` / `--no-color`で上書きできます。カラーが有効で[`bat`](https://github.com/sharkdp/bat)が`PATH`上にあるときはハイライトがbat経由になります（`--no-bat`でオプトアウト。`--bat`はbatが見つからない場合に警告して組み込みのカラライザーへフォールバックします）。パースエラーやファイル不在の場合は`1`で終了します。
 
 ## `rigor type-of`
 

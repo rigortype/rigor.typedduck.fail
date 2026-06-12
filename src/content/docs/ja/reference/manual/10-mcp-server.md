@@ -3,8 +3,8 @@ title: "Rigor MCPサーバー — AIエージェント統合"
 description: "rigortype/rigor docs/manual/10-mcp-server.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/10-mcp-server.md"
 sourcePath: "docs/manual/10-mcp-server.md"
-sourceSha: "724c55575fdcbf10e7100be934482338bb7faaf56f00079d949583ea34e752ac"
-sourceCommit: "6bcf38aa850fa4324ea959b2ce5cfdb61a88aa28"
+sourceSha: "73b0420f7e30692ec093a87e7d192bd36ec9fe8a7a07a20a175fbdc495dd76be"
+sourceCommit: "636f8725dd79aab2f711249ace6357a98b7e73a4"
 translationStatus: "translated"
 sidebar:
   order: 9010
@@ -271,7 +271,7 @@ Clineパネル → MCPサーバー → サーバーを追加 → カスタムを
 
 ### rigor_annotate
 
-指定されたRubyソースファイルに各行の最後の式の型を`#=> dump_type:`コメントとして付加して返します。`def`ヘッダー行はメソッドの推論戻り型を表示します。
+指定されたRubyソースファイルに各行の最後の式の型を`#=>`コメントとして付加して返します。`def`ヘッダー行はメソッドの推論戻り型を表示します。
 
 **入力:**
 
@@ -284,7 +284,7 @@ Clineパネル → MCPサーバー → サーバーを追加 → カスタムを
 
 ```ruby
 module Rigor
-  VERSION = "0.1.15"  #=> dump_type: "0.1.15"
+  VERSION = "0.1.15"  #=> "0.1.15"
 end
 ```
 

@@ -3,8 +3,8 @@ title: "ADR-57 — Opening the implicit-self call return-adoption gate (ADR-24 W
 description: "Imported from rigortype/rigor docs/adr/57-self-call-return-adoption.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/57-self-call-return-adoption.md"
 sourcePath: "docs/adr/57-self-call-return-adoption.md"
-sourceSha: "4e72a72d0a8a462b3fa77a0e37ebc3e9a21725ddbcd577aa08af32b6603de7bc"
-sourceCommit: "95ff0e09e408504d17102725823e1978301d05ef"
+sourceSha: "5f343371452b2be516ffe4e90a02647127b8d131398f04c22336ee8eb622a269"
+sourceCommit: "636f8725dd79aab2f711249ace6357a98b7e73a4"
 translationStatus: "translated"
 sidebar:
   order: 4057
@@ -133,14 +133,14 @@ genuine発火2件は、厳しすぎる`Configuration.load`のパラメータと
   （メモ化されたdefごとの本体スキャン）は、対応する呼び出し側の引数を
   フロアリングする。両方とも健全（精密さの損失のみ）で、ゲートクローズ時に
   バイト単位で同一。
-- **FPセーフなオプショナルタプルスロット分解**。 `X | nil`としてフロー型付け
+- **FPセーフなオプショナルタプルスロット分解**。`X | nil`としてフロー型付け
   された分解タプルスロットは、その非`nil`部分へとソフト化される。nil可能な
   スロットは、フローが証明できない相関した不変条件をまたいでほぼ常に
   オプショナルにされる（hamlの`parse_tag`の9タプル。`node, @parent = @parent,
   @parent.parent`）。スロットごとに`possible nil receiver`を製造することは
   動作しているコードを怯えさせる。これはhaml `parser.rb:546`で*ゲートクローズ時の
   偽陽性を2件除去*した ── 裁定された勝利。
-- **生きたStringの畳み込みガード**。 `string_unary_blow_up?`は常にfalseの
+- **生きたStringの畳み込みガード**。`string_unary_blow_up?`は常にfalseの
   スタブで、そのガードが採用下で到達不能に畳み込まれていた。今は実際の
   バイトサイズチェックを行う（現在のあらゆる畳み込みに対して振る舞いは同一）。
 
@@ -178,7 +178,7 @@ genuine-or-winなので、WD2に従ってゲートは恒久的にオープンし
 
 1. **25件を裁定**（セルフチェック）＋コーパスデルタ（Mastodon／haml／kramdownの
    ゲートオープン実行）: 項目別のgenuine/アーティファクトテーブル。
-2. **アーティファクトクラスを修正する**。 ADR-55/56のアークから知られている容疑:
+2. **アーティファクトクラスを修正する**。ADR-55/56のアークから知られている容疑:
    ブロック内`return`がメソッドの戻り値型に寄与しない（末尾のみの本体評価器）、
    早期returnでのオプショナリティの過剰結合、定数が通過すべきでない経路を生き
    延びる。
@@ -186,6 +186,39 @@ genuine-or-winなので、WD2に従ってゲートは恒久的にオープンし
    すべて）、再計測し、genuine発火をCHANGELOGに項目別で記載して着地させる。
 4. **モジュールシングルトン解決**（モジュール定数レシーバー経由の`def self.x`）を
    独立したスライスとして ── 同じ裁定プロトコル。
+   **2026-06-12に着地（LANDED）**。モジュール／クラス定数上のユーザー側
+   シングルトンメソッド（`def self.x`／`def Foo.x`／`class << self`／
+   `module_function`）への呼び出しは、いまや呼び出し先の本体を`Singleton[X]`
+   レシーバーに対して再型付けし、インスタンス側の祖先ウォークを鏡映する:
+   新しい`discovered_singleton_def_nodes`インデックス
+   （`discovered_def_nodes`のシングルトン版で、`ScopeIndexer`が投入し、
+   ファイルごと＋ファイル横断でシードされる）、`Scope#singleton_def_for`
+   アクセサ、精密推論ティアが`untyped`ショートサーキットの代わりに走るように
+   する`MethodDispatcher#try_discovered_method`の辞退、そして本体スコープが
+   同じ`Singleton[X]`のself型を運ぶ
+   `ExpressionTyper#try_singleton_method_inference`ティア（これにより、別の
+   シングルトンヘルパーへの暗黙selfの呼び出しが同じテーブルに対して解決する）。
+   ADR-55の再帰機構と戻り値メモはそのまま適用される（どちらもレシーバー
+   キャリアをキーにしており、`Singleton`はそれを満たす）。自クラスのみ。
+   シングルトン祖先チェイン（`extend`／継承されたクラスメソッド）は将来の
+   スライスである。セルフチェック＋プラグインセルフチェックは発火フリー。
+   Mastodonの`app/models`／hamlの`lib`／kramdownの`lib`はバイト同一。CRubyの
+   `references/ruby/lib`調査は+16件の発火を表面化させたが、すべてゲート
+   オープンプロトコルが予言した「精密化が潜在的なstrictnessを顕在化させる」
+   クラスである（いまや解決されるシングルトン戻り値が、消費側のRBS
+   シグネチャより精密になる ── 例: `Bundler.root → Pathname`が
+   `Pathname#expand_path`のString限定の`dir`パラメータに当たる、いまや
+   nilableなシングルトン戻り値がrubygemsの`setup_command`で本物のnil安全性
+   ギャップを表面化させる）。これらは読み取り専用のベンダードコーパスの
+   シグナルであり、`make verify`のゲートではない。既存のエンジン欠陥が1件、
+   新しい入口を通じて表面化した（入口が導入したものではない ── 素の
+   インスタンスメソッドでも再現可能）: ADR-55の相互再帰フィックスポイントが、
+   2メソッドの再帰（`even?`／`odd?`）を不健全な片側定数に畳み込んでいた。
+   この欠陥は同じセッションで修正された（絡み合ったフィックスポイントの
+   `untyped`フロアへの降格）ため、`recursive_fixpoint_summary`フィクスチャ内の
+   いまや解決される`Parity.even?`シングルトン呼び出しは健全な`Dynamic[top]`に
+   型付けされる ── このスライスはその経路を行使する（そして追補が修正する）
+   のであって、不健全な畳み込みを祝福するものではない。
 
 ADR-50のbleeding-edgeオーバーレイが先に出荷されれば、オープンしたゲートは自然な
 最初の`bleeding_edge:`機能になる。そうでなければWD2基準の下で通常のエンジン精密化
