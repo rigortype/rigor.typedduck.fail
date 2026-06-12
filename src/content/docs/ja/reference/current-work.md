@@ -3,9 +3,9 @@ title: "Current Work — Resume Bookmark"
 description: "rigortype/rigor docs/CURRENT_WORK.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/CURRENT_WORK.md"
 sourcePath: "docs/CURRENT_WORK.md"
-sourceSha: "e07936d201f4cb8faf4c9b5ea8693e17a1aae28e8823541d9e1b20dfb80dd054"
-sourceCommit: "18ef11c9f393b495cd9a6ed7277846069c08c516"
-sourceDate: "2026-06-11T12:57:48+09:00"
+sourceSha: "8d68fc4474c4a592f8dd64f354780c89855f877822ca7eeafa349db56f43ed1d"
+sourceCommit: "95ff0e09e408504d17102725823e1978301d05ef"
+sourceDate: "2026-06-12T10:04:17+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9050
@@ -16,6 +16,14 @@ sidebar:
 ## ステータス
 
 **v0.1.17リリース済み（2026-06-06）**。フォーカスはv0.2.0への道のりで、まずもう1つテーマ別のプレビューカットが計画されている —— **v0.1.18（CI環境サポート）**、そのコアは今や`master`に**着地した**（まだ未リリース）: [ADR-51](../adr/51-ci-diagnostic-output-formats/) —— 6つの`rigor check --format` CIネイティブレンダリング + ランタイムCI自動検出 + CIセットアップテンプレート + `rigor-ci-setup`スキル。残りのv0.1.18作業は**リリースカット自体**（`rigor-release-prep`、承認でゲート）と需要ゲートのフォローアップ。[`ROADMAP.md`](../roadmap/) §「v0.1.18 — CI-environment support」を参照。v0.1.17以降に`master`へ着地したもう1つ: **[ADR-54](../adr/54-cache-slimming/)のキャッシュスリム化、WD1〜WD4完了** —— definitions-blob廃止 + zlibエントリー圧縮 + 256 MBデフォルトeviction + ローダーごとのdescriptorメモ;プロジェクトごとのキャッシュ約33.7 MB → 約2 MB、definitionsに触れるwarm実行は最大約550 ms節約（根拠 + 着地した数値は[`docs/notes/20260610-cache-disk-runtime-audit.md`](../notes/20260610-cache-disk-runtime-audit/)）。
+
+v0.1.18リリースカット以降に`master`へ着地（2026-06-11）: **[ADR-55](../adr/55-recursive-return-precision/)の再帰メソッド戻り型精度、両スライス完了** —— スライス1は燃料付き定数引数アンロール（`factorial(5) → Constant[120]`、燃料32 + 値サイズキャップ、加えて同日のコーパスFAILクランプ: アンロールは完全に値ピンされた結果のみをサーフェスする）、スライス2はfixpoint戻りサマリー（`bot`からのKleene、キャップ3;素のパススルー再帰は今や`Dynamic[top]`ではなく`:done`と型付けされる、加えて同日のbot-collapse健全性修正: パラメータ拡大した再実行 + 明示的`return`フロアにより、値を返す再帰が`bot`と型付けされることはない）。ゲート: 4つのコーパス（Mastodon / haml / jbuilder / kramdown）がバイト同一、パフォーマンス中立。既知の残課題（需要ゲート）: トップレベルの再帰`def`は`Dynamic`構成要素を保持する（ADR-24 WD3採用ゲートが拘束）、早期`return`値は末尾のみのボディ評価器に届かない（`pick → Dynamic[top]`、`nil`ではない）、相互再帰サマリーはシグネチャをまたがない。
+
+同じく2026-06-11に着地: **[ADR-56](../adr/56-block-captured-local-mutation/)のブロックキャプチャされたローカル書き戻し + ループボディfixpoint、スライスA + B完了** —— エンジンは以前ブロック出口スコープを破棄していたため、`result = 1; 1.upto(6) { result *= i }`は`Constant[1]`を保持していた（ランタイム720;仕様MUST違反）、そして`while`は1回のボディパスをjoinしていた;いずれも今や共有の`Inference::BodyFixpoint`を通じて収束する（キャップ3、`Constant→Nominal`最終拡大、ローカルごとの`Dynamic[top]`フロア、`BudgetTrace::BLOCK_WRITEBACK_CAP`）。コーパスの勝ち: Mastodonで誤った常時偽1件除去、kramdownで誤ったnil-fold FP 2件除去 + メッセージ修正5件;新規発火ゼロ。同じアークでの2つの隣接精度修正: シンボル形式の`reduce` / `inject`ディスパッチ（`(1..n).reduce(1, :*) → Integer`、新`ReduceFolding`ティア）と、混合した`Constant | IntegerRange`ユニオン型を境界レンジにfoldする`ConstantFolding.numeric_set_of`（区間アキュムレータは`Dynamic`を漏らす代わりに`Integer`へ収束する）。3つの階乗スタイル（再帰 / reduce / アキュムレータブロック）すべてが今や精密に型付けされる。
+
+2026-06-12に着地 —— **Dynamic-fall campaign**（[サーベイノート](../notes/20260612-dynamic-fall-pattern-survey/)、139プローブ / 11バケット）: ADR-56スライスC（レシーバー内容の要素型join —— `out << x`アキュムレータはシードの要素型のみを保持して不健全だった）+ カタログトリオ（`flatten` / `Array#to_h { }` / `Hash.new(default)`）、続いて**[ADR-57](../adr/57-self-call-return-adoption/) —— ADR-24 WD3のimplicit-self戻り採用ゲートがOPEN**（accepted、ゲートは2026-06-12に開かれた）: 3つの裁定スライスが、5つのアーティファクトメカニズム（明示的`return`の貢献（マルチ値Tupleを含む）、エスケープ内容フロア（レシーバーチェーン + クロスメソッド境界のOptionParser形状を含む）、オプショナルタプルスロットのデストラクチャ緩和、String fold-guardスタブ）を根本で修正し、加えて実験が表面化した2つの自己作成RBSバグを修正することで、ゲートを開いた差分を25 → 10 → 4 → 0へ持っていった。`def outer = helper(3)`は今や`6`と型付けされる。既知のコスト: coldのself-check壁時計+12%（warmのADR-45 / 46パスは影響なし）;ADR-57内のキューに入ったフォローアップ —— パフォーマンスのための健全な呼び出しサイトごとの戻りメモ、module-singleton（`def self.x`）解決、`fib`トップレベルの`1 | Dynamic`残課題（ADR-55サマリー×ゲートの相互作用）。
+
+同じく2026-06-12に着地 —— **CRuby-stdlib campaign**（[サーベイ + 残課題裁定](../notes/20260612-cruby-stdlib-survey/)）: Ruby自身の`lib/`（626ファイル）に対する`rigor check`、エラーは2波で**313 → 267**、新規発火ゼロかつ従来コーパスすべてがバイト同一。波1: デストラクチャされたパラメータのバインダークラッシュ（`def f((a, b))`、シグネチャ生成は今や`def`ごとに劣化する）、チェーンされた`Struct.new(:a).new`ディスパッチ、正規表現マッチのグローバルナローイング（証明されたマッチエッジ上の`$~` / `$1` —— 健全だがFP収率は約0;サーベイの「約180個の正規表現FP」は測定アーティファクトで、シードされていないグローバルは`Dynamic`を読み何も発火しない —— *作業を見積もる前に半径推定をサンプル裁定せよ*）。波2: 終端する`case`ブランチをcase後のjoinから落とした（−31、resolvクラスタ）、`&&`右辺へのsafe-nav真値ナローイング（−4）、break-guard付き`while/until x = expr`のループ出口エッジナローイング（−6）、デッドな一時ivar `nil`書き込みのelision（地ならし;ライブなipaddrクラスタはクロスメソッドのivar明確割り当てパスを要する —— **ADR候補としてキューイング**）。残り267 ≈ needs-RBSのundefined-methodロングテール + ベンダーされたbundler / rubygems + 真の捕捉（`untaint` —— Ruby 3.2で削除）+ 見送られたivarパス。
 
 v0.1.17サイクル（内部構造レビュー + パフォーマンスチューニング）が出荷したもの: インクリメンタル解析（`rigor check --incremental`、[ADR-46](../adr/46-incremental-dependency-graph/)）、未変更プロジェクトの高速パス（[ADR-45](../adr/45-unchanged-project-fast-path/)）、大きなアロケーション（allocation）削減（[ADR-44](../adr/44-dispatch-allocation-churn/)）、Elixir v1.20着想のナローイング（narrowing）（`Array`非空 + `Hash`キー存在）+ `flow.unreachable-clause`（[ADR-47](../adr/47-narrowing-driven-clause-reachability/)）、`rigor:v1:conforms-to`ディレクティブ、`call.self-undefined-method`ルール（`:off`で出荷、[ADR-24](../adr/24-self-method-call-resolution/)スライス4）、`Data.define`値fold（[ADR-48](../adr/48-data-struct-value-folding/)）。完全な記録は`CHANGELOG.md` § `[0.1.17]`にある;ここで再要約しないこと。
 

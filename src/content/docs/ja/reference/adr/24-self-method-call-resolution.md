@@ -3,8 +3,8 @@ title: "ADR-24 — implicit-selfメソッド呼び出し解決"
 description: "rigortype/rigor docs/adr/24-self-method-call-resolution.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/24-self-method-call-resolution.md"
 sourcePath: "docs/adr/24-self-method-call-resolution.md"
-sourceSha: "f4383d8cc7ddabe6b6fb35a47a004711873abeb1beca6db5a3dc2001304a6f73"
-sourceCommit: "73d7a0a2d4628b0614948fe2fa043945b45d5de4"
+sourceSha: "1a4074dc6376ee3a3e95f581316fd5d71dc4303ca5afb1eae23c4ad8d869a880"
+sourceCommit: "95ff0e09e408504d17102725823e1978301d05ef"
 sourceDate: "2026-05-29T00:21:31+09:00"
 sourceLanguage: "en"
 translationStatus: "translated"
@@ -59,6 +59,8 @@ end
 2. その型のメソッドセットに対して呼び出し名を解決する:囲むクラス自身の定義、次にその祖先 — プロジェクト発見クラス（クロスファイル）とRBS既知の祖先の両方を参照しながら、スーパークラスチェーンとインクルードされたモジュール。
 3. ヒットした場合、呼び出しサイトは解決されたメソッドの推論された戻り型とパラメータ契約を採用する — 明示的な既知レシーバーを持つ呼び出しがすでに行うのと全く同様。
 4. ミスした場合、呼び出しは`Dynamic[top]`のまま — 今日の動作が保持される（WD3）。
+
+> **[ADR-57](57-self-call-return-adoption.md)によりWD3ゲートが開かれた（2026-06-12）**。ボディ内採用は当初`Bot`戻りに限定されていたが、ADR-57がゲートを開いた際の発火を裁定し、エンジンのアーティファクトを修正し、`adoptable_self_call_result?`を削除した。これにより、解決されたユーザーメソッド呼び出しは推論された戻り型を無条件に採用するようになった。
 
 この変更はv1では**精度加法的**:既存の`Dynamic[top]`をより精密な型に置き換えるだけ。v1では、*未解決の*self呼び出しに対して`call.undefined-method`を新たにemitしない（WD4）— それはRubyのメタプログラミングが「未解決」を「バグ」の弱いシグナルにするため、別個のゲートされた決定。
 
