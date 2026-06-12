@@ -1,7 +1,8 @@
 // Language-aware <details> chooser.
 //
-// The install/quickstart pages present the same "tell your AI agent to
-// install Rigor" prompt in several languages, each inside a separate
+// The installation page (manual/01-installation, "Set up in your
+// language") presents the same "tell your AI agent to install Rigor"
+// prompt in several languages, each inside a separate
 // `<details lang="…">` block. This script reads the visitor's language
 // preference (an Accept-Language string when one is exposed on the
 // document, otherwise `navigator.languages`), reorders each run of
