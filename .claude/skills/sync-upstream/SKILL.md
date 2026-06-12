@@ -1,6 +1,6 @@
 ---
 name: sync-upstream
-description: Pull the latest upstream Rigor docs into this site, detect translation drift, translate stale or missing Japanese pages, ship the change as two commits — one for the submodule bump, one for the translation updates — and push them by default. Use when the user asks to "follow the latest Rigor", "track v0.x.y", "pull upstream", or any equivalent.
+description: Pull the latest upstream Rigor docs into this site, detect translation drift, translate stale or missing Japanese pages, ship the change as two commits — one for the submodule bump, one for the translation updates — and push them by default. Also bumps the upstream/chibirigor book submodule (a pointer-only bump; no translation step). Use when the user asks to "follow the latest Rigor", "track v0.x.y", "pull upstream", "update chibirigor", or any equivalent.
 ---
 
 # Sync upstream Rigor docs and propagate translations
@@ -38,6 +38,57 @@ upstream` in two clean commits:
    files whose `sourceSha` no longer matches, get re-translated
    and re-stamped.
 
+## The chibirigor book (separate submodule, bump-only)
+
+This repo also hosts the [chibirigor](https://github.com/rigortype/chibirigor)
+book from a **second** submodule, `upstream/chibirigor`, synced by
+`scripts/sync-chibirigor-docs.mjs` into `src/content/docs/ja/chibirigor/`
+(git-ignored, regenerated on every build). The book is upstream-owned,
+JA-native content: it is **not** a translation target, so it has **no
+translation step and no `check-translations` involvement**. Updating it
+is a pure submodule-pointer bump — the generated pages are gitignored, so
+only the pointer is ever staged. See [`../../../AGENTS.md`](../../../AGENTS.md)
+§ "chibirigor book".
+
+Handle it as a small, independent sub-flow alongside the Rigor sync (do
+**both** by default unless the user scoped the run to just one):
+
+```sh
+git -C upstream/chibirigor fetch --tags --prune
+git -C upstream/chibirigor tag -l --sort=-v:refname | head -5
+git -C upstream/chibirigor log --oneline HEAD..origin/master | head -10
+```
+
+- Pick the target the same way as for Rigor (a named tag/version if the
+  user gave one; otherwise the latest tag, or `origin/master` HEAD if
+  there are no tags / the user said "track latest").
+- If there are no new commits, report `chibirigor already up to date`
+  and skip its bump entirely.
+- Otherwise:
+
+  ```sh
+  git -C upstream/chibirigor checkout <target-ref>
+  node scripts/sync-chibirigor-docs.mjs        # refresh the gitignored pages; verify it succeeds
+  git add upstream/chibirigor
+  git commit -m "Bump upstream/chibirigor to <target-ref>"
+  ```
+
+  Use `Bump upstream/chibirigor to vX.Y.Z` for a tagged target, or
+  `Bump upstream/chibirigor to <short-sha>` otherwise. This is a third
+  commit, independent of the two Rigor commits; order does not matter.
+
+**Sidebar maintenance is usually nil.** The chibirigor topic's `little`,
+`seasoned`, and `appendix` groups autogenerate, so new/renamed/removed
+book parts appear automatically. The only hand-listed entries in
+[`astro.config.mjs`](../../../astro.config.mjs) are the topic landing
+(`link: '/ja/chibirigor/'`) and the glossary (`link:
+'/ja/chibirigor/glossary/'`). Touch the config only if upstream moves or
+renames the glossary, or restructures the top-level `little/` /
+`seasoned/` / `appendix/` directory layout itself. Fold any such edit
+into the chibirigor bump commit.
+
+The rest of this document covers the Rigor sync and its translation flow.
+
 ## Step 1 — confirm scope and target with the user
 
 Before touching anything, decide what "upstream" means for this run:
@@ -58,6 +109,10 @@ git -C upstream/rigor log --oneline HEAD..origin/main | head -10
 Show the user the candidate target and confirm before proceeding if
 the choice is non-obvious. If the working tree has uncommitted
 changes outside `src/content/docs/ja/`, stop and report.
+
+Do the same survey for `upstream/chibirigor` (see "The chibirigor book"
+above) and fold its bump into this run by default. If the user scoped
+the run to only one of the two submodules, honour that.
 
 ## Step 2 — first commit: bump the submodule
 
@@ -322,8 +377,9 @@ By default, push the new commits once the work is committed and
 git push
 ```
 
-This pushes both commits (the submodule bump and the translation
-update) to the current branch's upstream in one go. Notes:
+This pushes all the new commits (the Rigor submodule bump, the
+translation update, and the chibirigor bump if one was made) to the
+current branch's upstream in one go. Notes:
 
 - **Push even for a bump-only run** (submodule moved but no translation
   drift) — the pointer change should still land.
@@ -341,16 +397,25 @@ honour that and skip the push.
 ## Step 7 — report to the user
 
 Tell the user:
-- which upstream ref was checked out;
+- which upstream ref was checked out (for `upstream/rigor` and, if
+  bumped, `upstream/chibirigor`);
 - how many pages changed (translated / still stale / still missing);
-- the two commit SHAs;
+- the commit SHAs (the two Rigor commits, plus the chibirigor bump if
+  any);
 - whether the commits were pushed (and to which branch);
 - anything deferred and why.
 
 ## Edge cases
 
 - **Submodule had no new commits**: stop after `git -C upstream/rigor
-  fetch`. Report `Already up to date` and skip the rest.
+  fetch`. Report `Already up to date` and skip the rest. Evaluate the
+  two submodules independently — Rigor may be up to date while
+  chibirigor has a new release, or vice versa; bump whichever moved.
+- **`sync:chibirigor` fails**: fix the underlying issue before
+  committing the chibirigor bump. The pages are gitignored, so a failed
+  sync would otherwise commit a pointer with no verification that it
+  still builds. Run `pnpm build` (or `node scripts/sync-chibirigor-docs.mjs`)
+  to confirm before staging.
 - **`sync:docs` fails**: fix the underlying issue before committing.
   Do not stage a partial sync.
 - **Pre-existing dirty JA files**: if `git status` shows pending JA
