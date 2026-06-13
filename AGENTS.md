@@ -25,10 +25,13 @@ under `book/v1/ja/` is published.
   `public/chibirigor/figures/`. Both outputs are git-ignored and
   regenerated on every build — do not edit or commit them.
 - **Upstream-owned, JA-native.** The pages are stamped
-  `sourceLanguage: "ja"`. Like the `notes/` JA-native reference pages,
-  they are NOT translation targets and are NOT subject to the Japanese
-  typography / terminology normalizers (those would be clobbered on the
-  next sync). Fixes belong upstream in `rigortype/chibirigor`.
+  `sourceLanguage: "ja"`. They are NOT translation targets and NOT subject
+  to the terminology normalizer (`normalize-ja-terms.mjs`). However, the
+  **typography normalizer** (`normalize-ja-typography.mjs`) IS applied
+  during sync — the sync script calls it on each page so CJK/Latin spacing
+  and punctuation follow the same house style as the reference docs, and the
+  normalisation is re-applied on every re-sync automatically. Content fixes
+  belong upstream in `rigortype/chibirigor`.
 - **Source links go to GitHub.** The sync script rewrites links to the
   Ruby example sources (`*/examples/`, `*/dist/`, `*.rb`) to point at the
   chibirigor GitHub repo; inter-page `.md` links become on-site

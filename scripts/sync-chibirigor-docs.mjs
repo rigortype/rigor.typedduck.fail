@@ -19,6 +19,7 @@ import { mkdir, readdir, readFile, rm, writeFile, copyFile } from 'node:fs/promi
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
+import { transform as normalizeTypography } from './normalize-ja-typography.mjs';
 
 const execFileAsync = promisify(execFile);
 
@@ -121,6 +122,10 @@ function transformPage(source, relativePath, sourceDate) {
     body = body.slice(0, heading.index) + (lineEnd === -1 ? '' : body.slice(lineEnd + 1));
   }
   body = rewriteLinks(body, relativePath);
+  // Apply Japanese typography normalisation (spaces between CJK/Latin, parens,
+  // punctuation) so pages match the same house style as the reference docs.
+  // Applied here rather than post-hoc so it survives every re-sync automatically.
+  body = normalizeTypography(body);
   frontmatter = ensureFrontmatter(frontmatter, relativePath, sourceDate, headingTitle);
   return `---\n${frontmatter}\n---\n\n${body.replace(/^\n+/, '')}`;
 }
