@@ -71,20 +71,20 @@ sidebar:
 | `quo` | ✅ | `(3/2)` | カタログ`:leaf_when_numeric` |
 | `divmod` | ✅ | `[1, (1/4)]` | `try_fold_divmod` → `Tuple[Constant[q], Constant[r]]` |
 | `==` | 🔷 | — | `purity: dispatch`。RBS `bool`で十分 |
-| `infinite?` | 🔷 | `Integer | nil` | RBSが`Integer?`。Rationalは常に有限だがNumericのRBSを共有するため特殊化困難 |
-| `finite?` | 🔷 | `false | true` | 同上。常に`true`だが特殊化はカタログ構造変更が必要 |
+| `infinite?` | 🔷 | `Integer \| nil` | RBSが`Integer?`。Rationalは常に有限だがNumericのRBSを共有するため特殊化困難 |
+| `finite?` | 🔷 | `false \| true` | 同上。常に`true`だが特殊化はカタログ構造変更が必要 |
 | `+@` | 🔷 | — | `self`を返すunary + — RBSで`Rational`に解決。現行で十分 |
 | `between?` | 🔷 | — | Comparableモジュール経由。RBSで`bool` |
 | `clamp` | 🚫 | — | 引数の組み合わせが多く戻り型が複雑 |
 | `coerce` | 🔷 | `[Numeric, Numeric]` | 戻りが`[Numeric, Numeric]` — RBSで十分 |
-| `zero?` | ✅ | `false | true` | `RATIONAL_UNARY`に追加済み。`Constant[bool]`に畳める。 |
-| `integer?` | ✅ | `false | true` | `RATIONAL_UNARY`に追加済み。`Constant[bool]`。 |
-| `nonzero?` | ✅ | `Rational | nil` | `RATIONAL_UNARY`に追加済み。`Constant[Rational|nil]`。 |
+| `zero?` | ✅ | `false \| true` | `RATIONAL_UNARY`に追加済み。`Constant[bool]`に畳める。 |
+| `integer?` | ✅ | `false \| true` | `RATIONAL_UNARY`に追加済み。`Constant[bool]`。 |
+| `nonzero?` | ✅ | `Rational \| nil` | `RATIONAL_UNARY`に追加済み。`Constant[Rational\|nil]`。 |
 | `real` | ✅ | `Rational` | `RATIONAL_UNARY`に追加済み。`Constant[Rational]`。 |
 | `rect` / `rectangular` | ✅ | `[Rational, Numeric]` | `NUMERIC_ARRAY_UNARY_METHODS`に追加済み（Rationalチェック含む）。Tupleリフト。 |
-| `polar` | ✅ | `[Rational, Float | Integer]` | `NUMERIC_ARRAY_UNARY_METHODS`に追加済み。Tupleリフト。 |
+| `polar` | ✅ | `[Rational, Float \| Integer]` | `NUMERIC_ARRAY_UNARY_METHODS`に追加済み。Tupleリフト。 |
 | `abs2` | ✅ | `Rational` | `RATIONAL_UNARY`に追加済み。`Constant[Rational]`。 |
-| `arg` / `angle` / `phase` | ✅ | `0 | Float` | `RATIONAL_UNARY`に追加済み。`Constant[Numeric]`。 |
+| `arg` / `angle` / `phase` | ✅ | `0 \| Float` | `RATIONAL_UNARY`に追加済み。`Constant[Numeric]`。 |
 | `conj` / `conjugate` | ✅ | `Rational` | `RATIONAL_UNARY`に追加済み。`Constant[Rational]`。 |
 | `div` | ✅ | `Integer` | `RATIONAL_BINARY`に追加済み。`Constant[Integer]`。 |
 | `modulo` / `%` | ✅ | `Rational` | `RATIONAL_BINARY`に追加済み。`Constant[Rational]`。 |
@@ -148,7 +148,7 @@ sidebar:
 | `fdiv` | ✅ | `(2.2-0.4i)` | 同上 |
 | `==` | ✅ | `false` | カタログ`:leaf` |
 | `eql?` | ✅ | `false` | 同上 |
-| `integer?` | 🔷 | `false | true` | 常にfalseだがRBS `bool`を返す。RBSで十分 |
+| `integer?` | 🔷 | `false \| true` | 常にfalseだがRBS `bool`を返す。RBSで十分 |
 | `+@` | 🔷 | — | selfを返すunary +。RBS `Complex`で十分 |
 | `coerce` | 🔷 | `[Complex, Complex]` | 戻り型複雑。RBSで十分 |
 | `<=>` | 🔷 | — | purity:dispatch。Complexには全順序なし（nilを返す）。RBSで十分 |
@@ -159,8 +159,8 @@ sidebar:
 | `to_f` | 🚫 | — | 同上 |
 | `to_r` | 🚫 | — | 同上 |
 | `to_int` | 🚫 | — | 同上 |
-| `nonzero?` | ✅ | `Complex | nil` | `COMPLEX_UNARY`に追加済み。`Constant[Complex|nil]`。 |
-| `zero?` | ✅ | `false | true` | `COMPLEX_UNARY`に追加済み。`Constant[bool]`。 |
+| `nonzero?` | ✅ | `Complex \| nil` | `COMPLEX_UNARY`に追加済み。`Constant[Complex\|nil]`。 |
+| `zero?` | ✅ | `false \| true` | `COMPLEX_UNARY`に追加済み。`Constant[bool]`。 |
 | `singleton_method_added` | 🚫 | — | 内部フック |
 
 ### 2-2. 優先度別チェックリスト
@@ -204,7 +204,7 @@ sidebar:
 | `inspect` | 🔷 | `String` | `purity: dispatch`（begin/endの`inspect`を呼ぶ）。fold不可 |
 | `==` | 🔷 | — | `purity: dispatch`。RBS `bool`で十分 |
 | `eql?` | 🔷 | — | `purity: dispatch`。同上 |
-| `overlap?` | 🔷 | `false | true` | `purity: dispatch`。RBS `bool`で十分 |
+| `overlap?` | 🔷 | `false \| true` | `purity: dispatch`。RBS `bool`で十分 |
 | `bsearch` | 🚫 | — | `purity: dispatch`、ブロック依存 |
 | `step` | 🚫 | — | 反復子 |
 | `each` | 🚫 | — | 反復子 |
@@ -214,7 +214,7 @@ sidebar:
 | `map` / `select` / `reject` / `flat_map`等 | 🔷 | — | BlockFolding / RBS |
 | `sum` | 🔲 | — | Integer等差数列は`n*(a+b)/2`でConstantに畳める。中優先度 |
 | `entries` | ✅ | `Array[Dynamic[top]]` | `RANGE_FOLD_METHODS`に`:entries`追加 + `range_constant_unary`に`when :entries`追加済み。 |
-| `minmax` | ✅ | `[Dynamic[top]|nil, Dynamic[top]|nil]` | `range_constant_unary`に`when :minmax` + `range_minmax_tuple`追加済み。 |
+| `minmax` | ✅ | `[Dynamic[top]\|nil, Dynamic[top]\|nil]` | `range_constant_unary`に`when :minmax` + `range_minmax_tuple`追加済み。 |
 | `first(n)` | 🔲 | `Array[Dynamic[top]]` | 整数引数あり形式。Tupleリフト可。中優先度 |
 | `last(n)` | 🔲 | `Array[Dynamic[top]]` | 同上 |
 | `to_h` | 🚫 | — | Range要素が`[k, v]`の2要素Arrayでない限りraise |
@@ -263,20 +263,20 @@ Set.ymlの`aliases:`セクション（`length → size`, `member? → include?`,
 | `proper_subset?` | ✅ | `false` | 同上 |
 | `proper_superset?` | ✅ | `false` | 同上 |
 | `-` | ✅ | `Set[1]` | カタログ`:leaf`（`set_i_difference`）→ `Constant[Set]` |
-| `|` | ✅ | `Set[1, 2, 3, 4]` | カタログ`:leaf`（`set_i_union`）→ `Constant[Set]` |
+| `\|` | ✅ | `Set[1, 2, 3, 4]` | カタログ`:leaf`（`set_i_union`）→ `Constant[Set]` |
 | `^` | ✅ | `Set[1, 4]` | カタログ`:leaf`（`set_i_xor`）→ `Constant[Set]` |
 | `<=>` | ✅ | `nil` | カタログ`:leaf` |
 | `<` | ✅ | — | カタログ`:leaf`（`proper_subset?`の別名だが直接登録） |
 | `>` | ✅ | — | カタログ`:leaf`（`proper_superset?`の別名） |
 | `<=` | ✅ | — | カタログ`:leaf`（`subset?`の別名） |
 | `>=` | ✅ | — | カタログ`:leaf`（`superset?`の別名） |
-| `==` | 🔷 | `false | true` | `purity: dispatch`（`rb_equal`呼び出し）。RBS `bool`で十分 |
+| `==` | 🔷 | `false \| true` | `purity: dispatch`（`rb_equal`呼び出し）。RBS `bool`で十分 |
 | `inspect` | 🔷 | `String` | `purity: dispatch`。RBS `String`で十分 |
 | `to_s` | 🔷 | `String` | `inspect`の別名。同上 |
 | `to_set` | 🔷 | `Set[Dynamic[top]]` | `purity: block_dependent`。RBSで十分 |
 | `to_h` | 🔷 | — | Enumerable経由。RBSで十分 |
-| `disjoint?` | 🔷 | `false | true` | `set_catalog.rb`の`mutating_selectors`でブロック済み（内部で`rb_funcall(other, :any?, ...)`を呼ぶ）。RBS `bool`で十分 |
-| `intersect?` | 🔷 | `false | true` | `purity: dispatch`。同上 |
+| `disjoint?` | 🔷 | `false \| true` | `set_catalog.rb`の`mutating_selectors`でブロック済み（内部で`rb_funcall(other, :any?, ...)`を呼ぶ）。RBS `bool`で十分 |
+| `intersect?` | 🔷 | `false \| true` | `purity: dispatch`。同上 |
 | `&` | 🔷 | `Set` | `purity: block_dependent`（`set_i_intersection`が`set_iter`呼び出し）。fold不可 |
 | `add` / `add?` | 🚫 | — | 破壊的変更 |
 | `<<` | 🚫 | — | `add`の別名。破壊的変更 |
@@ -290,9 +290,9 @@ Set.ymlの`aliases:`セクション（`length → size`, `member? → include?`,
 | `compare_by_identity` | 🚫 | — | 破壊的変更 |
 | `reset` | 🚫 | — | 内部構造リビルド |
 | `length` | ✅ | `Integer` | `MethodCatalog#method_entry`のエイリアス解決で対応済み。 |
-| `member?` | ✅ | `false | true` | 同上。 |
+| `member?` | ✅ | `false \| true` | 同上。 |
 | `+` | ✅ | `Set` | 同上。 |
-| `===` | ✅ | `false | true` | 同上。 |
+| `===` | ✅ | `false \| true` | 同上。 |
 | Enumerable継承メソッド（`all?`, `any?`, `map`, `select`等） | 🔷 | — | BlockFolding / RBS |
 
 ### 4-3. 優先度別チェックリスト
@@ -322,13 +322,13 @@ Set.ymlの`aliases:`セクション（`length → size`, `member? → include?`,
 | Rational | `real` | `Constant[Rational]` | 🟡 |
 | Rational | `abs2` | `Constant[Rational]` | 🟡 |
 | Rational | `conj`, `conjugate` | `Constant[Rational]` | 🟢 |
-| Rational | `nonzero?` | `Constant[Rational|nil]` | 🟢 |
+| Rational | `nonzero?` | `Constant[Rational\|nil]` | 🟢 |
 | Rational | `div` | `Constant[Integer]` | 🟡 |
 | Rational | `modulo`, `%` | `Constant[Rational]` | 🟢 |
 | Rational | `remainder` | `Constant[Rational]` | 🟢 |
 | Rational | `fdiv` | `Constant[Float]` | 🟢 |
 | Complex | `zero?` | `Constant[bool]` | 🟡 |
-| Complex | `nonzero?` | `Constant[Complex|nil]` | 🟢 |
+| Complex | `nonzero?` | `Constant[Complex\|nil]` | 🟢 |
 
 実装手順（完了）:
 1. ~~`constant_folding.rb`に`RATIONAL_UNARY = Set[:zero?, :integer?, :real, :abs2, :conj, :conjugate, :nonzero?].freeze`を追加~~

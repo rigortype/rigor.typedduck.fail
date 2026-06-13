@@ -369,8 +369,8 @@ hoverで4、completionで4。hoverスライスが先に着地する。理由は
 | 操作 | 目標壁時計時間 | パス |
 |---|---|---|
 | Hover（slice 1-4） | < 100ms p95 | Scope#type_of + レンダラーディスパッチ。LSP v1のslice-5 hoverと同じホットパスに、よりリッチなmarkdown構築のための約10msを加えたもの。 |
-| Completion `obj.|` | < 150ms p95 | バッファのパース + 特定 + Scope#type_of + メソッド列挙。メソッド列挙はクラス階層の深さでboundされる。典型的なRubyのクラスは継承込みで200メソッド未満である。 |
-| Completion `Foo::|` | < 50ms p95 | 定数解決 + known-classesのプレフィックススキャン。既知クラス数でboundされる（DEFAULT_LIBRARIES + project sigで約1,400）。 |
+| Completion `obj.\|` | < 150ms p95 | バッファのパース + 特定 + Scope#type_of + メソッド列挙。メソッド列挙はクラス階層の深さでboundされる。典型的なRubyのクラスは継承込みで200メソッド未満である。 |
+| Completion `Foo::\|` | < 50ms p95 | 定数解決 + known-classesのプレフィックススキャン。既知クラス数でboundされる（DEFAULT_LIBRARIES + project sigで約1,400）。 |
 
 これらはウォームキャッシュ、ProjectContextのウォームアップ後の状態を
 仮定している（LSP v1 slice 7の領域）。コールドスタートのhoverは基底の

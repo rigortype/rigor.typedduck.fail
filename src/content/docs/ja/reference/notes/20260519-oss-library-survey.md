@@ -179,7 +179,7 @@ nix --extra-experimental-features 'nix-command flakes' develop --command \
 | `liquid` | 64 | 1.0秒 | 304 MB | 17 | 7 | `Class`上の`add_filter` → Class上のmixinルックアップギャップ |
 | `pycall` | 22 | 0.9秒 | 342 MB | 2 | 0 | 非常にクリーン;`Array[Dynamic[top]]`上の`with_index` |
 | `numo-narray` | 2 | 0.9秒 | 287 MB | 8 | 2 | C-ext gem;1つの.rbファイル。BigDecimal誤推論が再発 |
-| `ox` | 15 | 0.8秒 | 311 MB | 12 | 0 | `nil`上の比較演算子;`Dynamic[top] | nil` |
+| `ox` | 15 | 0.8秒 | 311 MB | 12 | 0 | `nil`上の比較演算子;`Dynamic[top] \| nil` |
 | `oj` | 11 | 0.8秒 | 285 MB | 5 | 0 | `JSON::Ext::Generator::State.from_state`がRBSに欠落 |
 | `jbuilder` | 14 | 0.9秒 | 290 MB | 126 | 2 | **ジェネレータ`.rb` ERBテンプレートがRubyとしてパースされる（118/126）** |
 | `slim` | 27 | 1.0秒 | 345 MB | 9 | 8 | 2つのivar型乖離;`read for nil` |

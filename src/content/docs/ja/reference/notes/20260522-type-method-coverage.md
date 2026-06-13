@@ -41,15 +41,15 @@ sidebar:
 | `<<` | 🔷 | LiteralStringFoldingで`literal-string`精度維持。破壊的変更。 |
 | `<=>` | ✅ | STRING_BINARY → `Constant[Integer]`。 |
 | `<`, `<=`, `>`, `>=`, `==`, `!=` | ✅ | STRING_BINARY → `Constant[bool]`。 |
-| `[]` / `slice` | 🔲 | 整数インデックスまたはRange引数で`Constant[String|nil]`にたためる。中優先度。 |
+| `[]` / `slice` | 🔲 | 整数インデックスまたはRange引数で`Constant[String\|nil]`にたためる。中優先度。 |
 | `ascii_only?` | 🔲 | STRING_UNARY追加で`Constant[bool]`。低優先度。 |
 | `b` | 🚫 | BINARYエンコーディングで複製。精度向上なし。 |
 | `bytesize` | ✅ | STRING_UNARY → `Constant[Integer]`。 |
 | `bytes` | ✅ | `try_fold_string_array_unary` → `Tuple[Constant[Integer]…]`。 |
 | `capitalize` | ✅ | STRING_UNARY → `Constant[String]`。 |
 | `capitalize!` | 🚫 | 破壊的変更。 |
-| `casecmp` | 🔲 | STRING_BINARY追加で`Constant[Integer|nil]`。低優先度。 |
-| `casecmp?` | 🔲 | STRING_BINARY追加で`Constant[bool|nil]`。低優先度。 |
+| `casecmp` | 🔲 | STRING_BINARY追加で`Constant[Integer\|nil]`。低優先度。 |
+| `casecmp?` | 🔲 | STRING_BINARY追加で`Constant[bool\|nil]`。低優先度。 |
 | `center` | 🔲 | STRING_BINARY追加で`Constant[String]`。中優先度。 |
 | `chars` | ✅ | `try_fold_string_array_unary` → `Tuple[Constant[String]…]`。 |
 | `chomp` | ✅ | STRING_UNARY → `Constant[String]`。 |
@@ -81,7 +81,7 @@ sidebar:
 | `hash` | ✅ | STRING_UNARY → `Constant[Integer]`。 |
 | `hex` | 🔲 | STRING_UNARY追加で`Constant[Integer]`。中優先度。 |
 | `include?` | ✅ | STRING_BINARY追加で`Constant[bool]`。**高優先度**。 |
-| `index` | 🔲 | STRING_BINARY追加で`Constant[Integer|nil]`。中優先度。 |
+| `index` | 🔲 | STRING_BINARY追加で`Constant[Integer\|nil]`。中優先度。 |
 | `insert` | 🚫 | 破壊的変更。 |
 | `inspect` | ✅ | STRING_UNARY → `Constant[String]`。 |
 | `intern` / `to_sym` | ✅ | STRING_UNARY → `Constant[Symbol]`。 |
@@ -90,7 +90,7 @@ sidebar:
 | `ljust` | 🔲 | STRING_BINARY追加で`Constant[String]`。中優先度。 |
 | `lstrip` | ✅ | STRING_UNARY → `Constant[String]`。 |
 | `lstrip!` | 🚫 | 破壊的変更。 |
-| `match` | 🔲 | Regexp引数、`MatchData|nil`返却。低優先度。 |
+| `match` | 🔲 | Regexp引数、`MatchData\|nil`返却。低優先度。 |
 | `match?` | 🔲 | STRING_BINARY追加で`Constant[bool]`。中優先度。 |
 | `next` / `succ` | 🔲 | STRING_UNARY追加で`Constant[String]`。中優先度。 |
 | `next!` / `succ!` | 🚫 | 破壊的変更。 |
@@ -100,7 +100,7 @@ sidebar:
 | `replace` | 🚫 | 破壊的変更。 |
 | `reverse` | ✅ | STRING_UNARY → `Constant[String]`。 |
 | `reverse!` | 🚫 | 破壊的変更。 |
-| `rindex` | 🔲 | STRING_BINARY追加で`Constant[Integer|nil]`。中優先度。 |
+| `rindex` | 🔲 | STRING_BINARY追加で`Constant[Integer\|nil]`。中優先度。 |
 | `rjust` | 🔲 | STRING_BINARY追加で`Constant[String]`。中優先度。 |
 | `rstrip` | ✅ | STRING_UNARY → `Constant[String]`。 |
 | `rstrip!` | 🚫 | 破壊的変更。 |
@@ -178,12 +178,12 @@ IntegerRange向け専用ハンドラ群は別途`shape_dispatch.rb`に存在。
 
 | メソッド | 状態 | 備考 |
 |----------|------|------|
-| `+`, `-`, `*`, `/`, `%` | ✅ | NUMERIC_BINARY → `Constant[Integer|Float]`（型推論済み）。 |
-| `**` | ✅ | NUMERIC_BINARY追加で`Constant[Integer|Float]`。カタログでもカバー済みだが明示的に追加。 |
-| `&`, `|`, `^` | ✅ | NUMERIC_BINARY追加で`Constant[Integer]`。カタログでもカバー済み。 |
+| `+`, `-`, `*`, `/`, `%` | ✅ | NUMERIC_BINARY → `Constant[Integer\|Float]`（型推論済み）。 |
+| `**` | ✅ | NUMERIC_BINARY追加で`Constant[Integer\|Float]`。カタログでもカバー済みだが明示的に追加。 |
+| `&`, `\|`, `^` | ✅ | NUMERIC_BINARY追加で`Constant[Integer]`。カタログでもカバー済み。 |
 | `<<`, `>>` | ✅ | NUMERIC_BINARY追加で`Constant[Integer]`。カタログでもカバー済み。 |
 | `~` | ✅ | INTEGER_UNARY → `Constant[Integer]`。 |
-| `<=>`, `<`, `<=`, `>`, `>=`, `==`, `!=` | ✅ | NUMERIC_BINARY → `Constant[Integer|bool]`。 |
+| `<=>`, `<`, `<=`, `>`, `>=`, `==`, `!=` | ✅ | NUMERIC_BINARY → `Constant[Integer\|bool]`。 |
 | `-@`, `+@` | ✅ | INTEGER_UNARY。 |
 | `abs` / `magnitude` | ✅ | INTEGER_UNARY → `Constant[Integer]`。 |
 | `bit_length` | ✅ | INTEGER_UNARY → `Constant[Integer]`。 |
@@ -259,7 +259,7 @@ IntegerRange向け専用ハンドラ群は別途`shape_dispatch.rb`に存在。
 |----------|------|------|
 | `+`, `-`, `*`, `/`, `%` | ✅ | NUMERIC_BINARY。 |
 | `**` | ✅ | NUMERIC_BINARY追加で`Constant[Float]`。**高優先度**。 |
-| `<=>`, `<`, `<=`, `>`, `>=`, `==`, `!=` | ✅ | NUMERIC_BINARY → `Constant[bool|Integer]`。 |
+| `<=>`, `<`, `<=`, `>`, `>=`, `==`, `!=` | ✅ | NUMERIC_BINARY → `Constant[bool\|Integer]`。 |
 | `-@`, `+@` | ✅ | FLOAT_UNARY。 |
 | `abs` / `magnitude` | ✅ | FLOAT_UNARY → `Constant[Float]`。 |
 | `between?` | ✅ | `try_fold_ternary`（catalog経由）→ `Constant[bool]`。 |
@@ -321,7 +321,7 @@ IntegerRange向け専用ハンドラ群は別途`shape_dispatch.rb`に存在。
 | メソッド | 状態 | 備考 |
 |----------|------|------|
 | `&` | ✅ | BOOL_UNARY（引数なし形式）・BOOL_BINARY → `Constant[bool]`。 |
-| `|` | ✅ | 同上。 |
+| `\|` | ✅ | 同上。 |
 | `^` | ✅ | 同上。 |
 | `!` | ✅ | BOOL_UNARY → `Constant[bool]`（論理反転）。 |
 | `==`, `!=` | ✅ | BOOL_BINARY → `Constant[bool]`。 |
@@ -379,7 +379,7 @@ IntegerRange向け専用ハンドラ群は別途`shape_dispatch.rb`に存在。
 | `flat_map` / `collect_concat` | ✅ | `PER_ELEMENT_TUPLE_METHODS` — 単一ネスト除去。 |
 | `flatten` | 🔲 | 入れ子Tupleを再帰展開。中優先度。 |
 | `include?` | ✅ | `tuple_include?` → `Constant[bool]`（Constant引数のとき）。 |
-| `index` / `find_index` | ✅ | `PER_ELEMENT_TUPLE_METHODS` → `Constant[Integer|nil]`。 |
+| `index` / `find_index` | ✅ | `PER_ELEMENT_TUPLE_METHODS` → `Constant[Integer\|nil]`。 |
 | `insert` | 🚫 | 破壊的変更。 |
 | `intersection` | 🔲 | 集合交差。低優先度。 |
 | `join` | 🔲 | Tuple要素をStringに連結。中優先度（すべてConstantのとき`Constant[String]`）。 |
@@ -483,7 +483,7 @@ IntegerRange向け専用ハンドラ群は別途`shape_dispatch.rb`に存在。
 |----|------|-------------------|
 | String | ✅ | `start_with?` / `end_with?` / `include?` / `delete_prefix` / `delete_suffix` → STRING_BINARY |
 | String | ✅ | `to_i` / `to_f` / `ord` → STRING_UNARY |
-| Integer | ✅ | `**` / `&` / `|` / `^` / `<<` / `>>` → NUMERIC_BINARY |
+| Integer | ✅ | `**` / `&` / `\|` / `^` / `<<` / `>>` → NUMERIC_BINARY |
 | Float | ✅ | `**` → NUMERIC_BINARY |
 | Array / Tuple | ✅ | `values_at` / `+` / `compact` / `take` → TUPLE_HANDLERS |
 | bool | ✅ | `===` → BOOL_BINARY |

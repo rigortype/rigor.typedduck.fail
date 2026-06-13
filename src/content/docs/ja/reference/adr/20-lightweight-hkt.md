@@ -121,7 +121,7 @@ declare module 'fp-ts/HKT' {
 
 | 層 | サーフェス | 機構コスト |
 | --- | --- | --- |
-| **L1** | パラメトリックな再帰`type`エイリアス — `type json::value[K] = nil | bool | ... | Array[json::value[K]] | Hash[K, json::value[K]]`。Python PEP 695の`type Json[K] = ...`、TypeScriptの前方参照を持つ再帰エイリアスと精神的に同等。 | ゼロ。RBSはすでに再帰`type`エイリアスを受け入れる（§「JSON.parse問題」参照）。 |
+| **L1** | パラメトリックな再帰`type`エイリアス — `type json::value[K] = nil \| bool \| ... \| Array[json::value[K]] \| Hash[K, json::value[K]]`。Python PEP 695の`type Json[K] = ...`、TypeScriptの前方参照を持つ再帰エイリアスと精神的に同等。 | ゼロ。RBSはすでに再帰`type`エイリアスを受け入れる（§「JSON.parse問題」参照）。 |
 | **L2** | L1 + 呼び出しサイトごとの`return_override`ディレクティブ — 呼び出しサイトで`JSON.parse(s, symbolize_names: true) -> Json[Symbol]`と`Json[String]`を判別する。 | 1つのディレクティブ。`return_override`は`App[F, A]`キャリアから独立しており、HKTレジストリなしで出荷可能。ADR-18の基板修正と同じ形をユーザーRBSに昇格したもの（WD6）。 |
 | **L3** | L1 + L2 + URIレジストリ + `App[F, A]`キャリア + 条件型ボディ。 | ADR-20機構の全体（HktRegistry、HktReducer、HktBody、燃料予算、3層マージ）。アンロックするもの: （a）クロスプラグインの型コンストラクタ拡張性、（b）型レベル条件計算（rigor-lisp-evalの`eval`）、（c）`Result[T, E]` / `Maybe[T]`のための複数引数HKT。 |
 
@@ -407,7 +407,7 @@ end
 | **RBSでの完全なHKT** | RBSへのカインドシステム拡張（Rigorの権限外）か、ADR-1のスーパーセット姿勢を破るRigor専用RBS方言のいずれかを必要とする。 |
 | **呼び出しサイトでのインラインキャスト（`JSON.parse(s) as MySchema`）** | 作業をすべてのユーザーに押し付け、再帰的直和を推論する目的を打ち消す。最も近い現在の同等物は`rigor-sorbet`の`T.cast`、それを好むユーザーには引き続き利用可能。 |
 | **素のRBSでの列挙されたオーバーロード** | 1つのboolオプションを持つ`JSON.parse`に対しては動作、オプション数 × 判別される値の数で線形にスケール。再帰を持つLisp-evalデモの7アーム条件は表現不能。 |
-| **Python PEP 695スタイルの再帰`type`エイリアスのみ（L1キャップ）** | RBSはすでに再帰`type`エイリアスを受け入れるので、JSON.parseの再帰直和フロア（`type json::value[K] = nil | ... | Hash[K, json::value[K]]`）は新しい機構ゼロで今日出荷される — Pythonの`type Json[K] = ...`（PEP 695）やTypeScriptの前方参照を持つ再帰エイリアスと直接同等。次に対しては不十分: （a）呼び出しサイトごとのオプション判別（`symbolize_names: true` ↔ `K = Symbol` — Pythonはこれに`-> Any`で答える）、（b）型レベル条件評価（rigor-lisp-evalの`eval`がリテラルAST `E`上で）、（c）プラグイン登録の開いた型コンストラクタ（fp-tsの`URItoKind`ユースケース、`rigor-dry-monads`の`Result` / `Maybe`と将来の`Functor<F>`形のライブラリが必要とする）。ADR-20はこの層をその設計空間内のL1として*内包*し（スライス5 / WD5がそれの糖衣構文を出荷）、L2の`return_override`とL3の`App[F, A]`レジストリへ上方に拡張する;L1のみにキャップすると下流の精度がPythonの天井にロックされ、（a）〜（c）を放棄することになる。§「階層化された設計空間: L1 / L2 / L3」を参照。 |
+| **Python PEP 695スタイルの再帰`type`エイリアスのみ（L1キャップ）** | RBSはすでに再帰`type`エイリアスを受け入れるので、JSON.parseの再帰直和フロア（`type json::value[K] = nil \| ... \| Hash[K, json::value[K]]`）は新しい機構ゼロで今日出荷される — Pythonの`type Json[K] = ...`（PEP 695）やTypeScriptの前方参照を持つ再帰エイリアスと直接同等。次に対しては不十分: （a）呼び出しサイトごとのオプション判別（`symbolize_names: true` ↔ `K = Symbol` — Pythonはこれに`-> Any`で答える）、（b）型レベル条件評価（rigor-lisp-evalの`eval`がリテラルAST `E`上で）、（c）プラグイン登録の開いた型コンストラクタ（fp-tsの`URItoKind`ユースケース、`rigor-dry-monads`の`Result` / `Maybe`と将来の`Functor<F>`形のライブラリが必要とする）。ADR-20はこの層をその設計空間内のL1として*内包*し（スライス5 / WD5がそれの糖衣構文を出荷）、L2の`return_override`とL3の`App[F, A]`レジストリへ上方に拡張する;L1のみにキャップすると下流の精度がPythonの天井にロックされ、（a）〜（c）を放棄することになる。§「階層化された設計空間: L1 / L2 / L3」を参照。 |
 | **プラグインのみの`FlowContribution`** | 現在のrigor-lisp-evalアプローチ。プラグインごとには動作するが、ライブラリ著作のシグネチャに一般化しない;すべてのライブラリがプラグインを必要とする。ADR-20の著作サーフェスがこれを修正する。 |
 | **Liquid Types / SMT駆動リファインメントの実装** | § 非ゴールに従いスコープ外;SMT依存、一般に決定不可能、既存の確実性モデルと合成しない。 |
 | **fp-tsの`URItoKind`形をそのまま採用** | TypeScriptの宣言マージにはRBSの類似がない。`%a{rigor:v1:hkt_register}`アノテーションが道徳的同等物 — 明示的、言語拡張不要。 |

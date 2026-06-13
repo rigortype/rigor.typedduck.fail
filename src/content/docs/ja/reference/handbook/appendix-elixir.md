@@ -36,7 +36,7 @@ ElixirとRigorは最も重要なことで一致している。動的言語の型
 | --- | --- | --- |
 | `integer()` | `Integer` | 両者とも任意精度。 |
 | `float()` | `Float` | `Numeric`が共通のスーパータイプ。 |
-| `boolean()`（`true | false`） | `bool`（`Constant<true> | Constant<false>`） | どちらのシステムでも構造的には2つの定数のユニオン。 |
+| `boolean()`（`true \| false`） | `bool`（`Constant<true> \| Constant<false>`） | どちらのシステムでも構造的には2つの定数のユニオン。 |
 | `:foo`（アトム） | `Constant<:foo>`（Symbol） | アトム ↔ シンボル — 直接対応。[アトム ↔ シンボル](#アトム--シンボル)参照。 |
 | `nil` | `nil`（`Constant<nil>`） | Elixirの`nil`はアトムの`nil`。Rubyのものは独自のシングルトン。どちらもfalsy。 |
 | `binary()`/`String.t()` | `String` | |
@@ -48,7 +48,7 @@ ElixirとRigorは最も重要なことで一致している。動的言語の型
 | `%{a: t}`（既知のキーを持つマップ） | `HashShape{a: T}` | 既知のキーを持つクローズドなシェイプ（shape）。 |
 | `%User{}`（構造体） | `User = Data.define(...)` | 名前付きでメンバー形状の値。 |
 | `[key: t]`（キーワードリスト） | `Hash[Symbol, T]`または`Array[Tuple]` | Rubyのキーワード的なデータは`Hash`。 |
-| `t | u`（集合論的ユニオン） | `T | U` | 同じ表示。同じ発想。 |
+| `t \| u`（集合論的ユニオン） | `T \| U` | 同じ表示。同じ発想。 |
 | `dynamic()` | `Dynamic[Top]` | 「ここでは黙る」漸進的キャリア（carrier）。 |
 | `(integer() -> binary())` | `^(Integer) -> String`（RBSのproc構文） | |
 
@@ -76,7 +76,7 @@ Elixirの型システムは*集合論的*だ。型は値の集合であり、ユ
 
 | Elixir | Rigor |
 | --- | --- |
-| `t | u`（ユニオン） | `T | U` |
+| `t \| u`（ユニオン） | `T \| U` |
 | インターセクション`t and u` | `Intersection[T, U]` |
 | 否定`not t` | `~T`（補集合） |
 | 差（集合の引き算） | `T - U`（型差） |

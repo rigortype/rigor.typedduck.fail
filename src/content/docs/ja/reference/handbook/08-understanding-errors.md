@@ -46,7 +46,7 @@ lib/user.rb:42:7: error: undefined method `upcas' for "alice" [call.undefined-me
 | `call.undefined-method` | レシーバークラスが静的に既知で、メソッドがそれに定義されていない（RBSまたはインソース）。 | error |
 | `call.wrong-arity` | 位置引数の数がどのオーバーロードのアリティも満たさない。 | error |
 | `call.argument-type-mismatch` | 引数の型がパラメータ契約（contract）（RBSまたは`RBS::Extended` `param:`）を証明可能に満たさない。 | error |
-| `call.possible-nil-receiver` | レシーバー型が`T | nil`で、メソッドが`NilClass`で定義されていない。 | warning |
+| `call.possible-nil-receiver` | レシーバー型が`T \| nil`で、メソッドが`NilClass`で定義されていない。 | warning |
 | `call.unresolved-toplevel` | トップレベル（どの`def` / `class` / `module`の外側でもない）の暗黙的self呼び出しが、同一ファイルの`def`、`pre_eval:`モンキーパッチ、`Kernel` / `Object`のメソッドのいずれにも解決しない — スタンドアロンスクリプトのタイポを顕在化させる。 | `balanced`でwarning、`strict`でerror、`lenient`で抑制 |
 
 `call.*`ルールは実際のコードで最も量の多い診断です。また最も洗練されています — それぞれがRigorが根底にある事実を証明できる場合にのみ発火します。

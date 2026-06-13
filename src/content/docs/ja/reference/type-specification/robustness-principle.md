@@ -49,7 +49,7 @@ Rigorの既存のキャリアは、原則が解析器に使うよう指示する
 | `Tuple[T1, …, Tn]` | 固定アリティの異種コンテナ | `5.divmod(3)` → `Tuple[Constant[1], Constant[2]]` |
 | `HashShape{k: T, …}` | 既知キーのシンボルキードレコード | `{name: "A", age: 30}` |
 | `IntegerRange[a, b]` | 有界整数 | `Array#size` → `non-negative-int` |
-| `Union[T1, …, Tn]` | 異なる可能性の有限で小さなセット | `n.even? ? :even : :odd` → `Constant[:even] | Constant[:odd]` |
+| `Union[T1, …, Tn]` | 異なる可能性の有限で小さなセット | `n.even? ? :even : :odd` → `Constant[:even] \| Constant[:odd]` |
 | `Nominal[Class[args]]` | 適用されたジェネリック引数を持つクラス | `Array#map { String }` → `Array[String]` |
 | `Nominal[Class]` | 生の名前的型（nominal type、公称型とも） | `Object#dup` → `self`（依然として名前的型） |
 | `Dynamic[T]` | 最終手段の漸進的（gradual）フォールバック | より具体的なものを証明できないとき |
@@ -85,7 +85,7 @@ Rigorの既存のキャリアは、原則が解析器に使うよう指示する
 | --- | --- | --- |
 | ケイパビリティロール（`_ReadableStream`、`_ToS` …） | 本体がロールに挙げられたメソッドのみを使う | `def write(stream) = stream.write(...)` → `_Writable` |
 | 構造的インターフェース（RBS `interface _Foo`） | 本体が小さな固定サーフェスを使う | `def each(enum)` → `_Each[T]` |
-| `Union[T1, T2]` | 本体が各ケースを明示的に処理する | `def render(content) = content.nil? ? "" : content.to_s` → `String | nil` |
+| `Union[T1, T2]` | 本体が各ケースを明示的に処理する | `def render(content) = content.nil? ? "" : content.to_s` → `String \| nil` |
 | `Nominal[Superclass]` | 本体がスーパークラスのメソッドのみを使う | `def add(numeric)` → `Numeric`、`Integer`ではない |
 | `Nominal[ExactClass]` | 本体が本当にこのクラスを必要とする | `def freeze_string(s)` → `String`のみ |
 

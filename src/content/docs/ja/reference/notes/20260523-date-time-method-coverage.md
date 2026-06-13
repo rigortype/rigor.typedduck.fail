@@ -62,8 +62,8 @@ fold可能になる（カタログ分類は確認済み・`date_catalog/demo.rb`
 | bool述語 | `leap?` `julian?` `gregorian?` `sunday?`…`saturday?` | `Constant[bool]` | ✅ |
 | Stringリーダ | `to_s` `iso8601` `strftime(fmt)` `httpdate` `rfc3339` | `Constant[String]` | ✅ |
 | Dateナビ | `next_day` `prev_day` `next_month` `prev_year` `succ` `>>` `<<` `next` | `Constant[Date]` | ✅ |
-| DateTime追加 | `hour` `min` `sec` `offset` `zone` | `Constant[Integer|String]` | ✅ |
-| 比較 | `<=>` `==` `<` `>` (Date×Date) | `Constant[bool|Integer]` | ✅ |
+| DateTime追加 | `hour` `min` `sec` `offset` `zone` | `Constant[Integer\|String]` | ✅ |
+| 比較 | `<=>` `==` `<` `>` (Date×Date) | `Constant[bool\|Integer]` | ✅ |
 | 破壊的 | （Dateは不変。該当なし） | — | — |
 
 ---

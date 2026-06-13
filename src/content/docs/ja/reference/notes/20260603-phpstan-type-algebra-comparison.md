@@ -39,8 +39,8 @@ Rigorも対応する3層を持つ — `Type::Combinator`（[`lib/rigor/type/comb
 
 | メソッド | 役割 |
 | --- | --- |
-| `union(Type ...$types): Type` | 正規化union。重複除去・subtype吸収（supertypeが勝つ）・定数スカラの集約（`true|false → bool`）・`string[]|int[] → (string|int)[]`のiterableマージ・定数配列の併合と過剰時のgeneralize |
-| `intersect(Type ...$types): Type` | 正規化intersect。union上に分配（`A & (B|C) → (A&B)|(A&C)`）、矛盾は`NeverType`、subtypeが勝つ |
+| `union(Type ...$types): Type` | 正規化union。重複除去・subtype吸収（supertypeが勝つ）・定数スカラの集約（`true\|false → bool`）・`string[]\|int[] → (string\|int)[]`のiterableマージ・定数配列の併合と過剰時のgeneralize |
+| `intersect(Type ...$types): Type` | 正規化intersect。union上に分配（`A & (B\|C) → (A&B)\|(A&C)`）、矛盾は`NeverType`、subtypeが勝つ |
 | `remove(Type $from, Type $toRemove): Type` | 型差分。全消去で`NeverType` |
 | `removeNull` / `addNull` / `containsNull` | null専用の便宜ラッパ |
 | `removeTruthy` / `removeFalsey` | 真偽値によるnarrowing補助 |

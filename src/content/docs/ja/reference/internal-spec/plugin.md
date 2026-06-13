@@ -150,7 +150,7 @@ end
 | `id` | `/\A[a-z][a-z0-9._-]*\z/`に一致する`String` | 安定した識別子；`PluginEntry#id`と`plugin.<id>.<rule>`診断プレフィックスとして使用される。 |
 | `version` | 空でない`String` | プラグインバージョン；キャッシュ無効化のため`PluginEntry#version`に格納される。 |
 | `description` | `String?` | 人間が読めるサマリー。 |
-| `config_schema` | `{ String => Symbol | { kind:, default: } }` | 受け入れられるconfigキーと値の**種類**（kind、`:string`・`:boolean`・`:integer`・`:array`・`:hash`・`:any`）のマッピングで、宣言された**デフォルト**（default）をオプションで担う（ADR-40;下記の_宣言されたconfigデフォルト_を参照）。 |
+| `config_schema` | `{ String => Symbol \| { kind:, default: } }` | 受け入れられるconfigキーと値の**種類**（kind、`:string`・`:boolean`・`:integer`・`:array`・`:hash`・`:any`）のマッピングで、宣言された**デフォルト**（default）をオプションで担う（ADR-40;下記の_宣言されたconfigデフォルト_を参照）。 |
 
 以下の**拡張フィールド**は`0.1.x`サイクルを通じて追加されました。すべてオプションで、1.0前のプラグイン契約に対して追加的です;これらを1つも宣言しないプラグインはただのファイルごとのアナライザーです:
 

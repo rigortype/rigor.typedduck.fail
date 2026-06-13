@@ -53,7 +53,7 @@ sidebar:
 | `urlsafe_base64(n)` | String | 🚫 | 非決定的。 |
 | `random_bytes(n)` / `bytes(n)` | String (binary) | 🚫 | 非決定的。 |
 | `gen_random(n)` | String | 🚫 | 非決定的（内部実装用）。 |
-| `rand` / `random_number` | Float|Integer | 🚫 | 非決定的。 |
+| `rand` / `random_number` | Float\|Integer | 🚫 | 非決定的。 |
 | `uuid` / `uuid_v4` | String | 🚫 | 非決定的。 |
 | `uuid_v7` | String | 🚫 | 非決定的（タイムスタンプ成分含む）。 |
 | `alphanumeric(n)` | String | 🚫 | 非決定的。 |

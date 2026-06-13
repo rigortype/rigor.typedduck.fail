@@ -35,7 +35,7 @@ sidebar:
 | `call.self-undefined-method` | レシーバーのない暗黙的self呼び出しが、確実にクローズドな単独クラス上のどのメソッドにも解決されない。`:off`で出荷;`severity_overrides`でオプトインする。 |
 | `call.wrong-arity` | 位置引数の数がどのシグネチャとも一致しない。 |
 | `call.argument-type-mismatch` | 引数の型がパラメータ契約（contract）に違反することが証明できる。 |
-| `call.possible-nil-receiver` | 受信側が`T | nil`で、メソッドが`NilClass`で定義されていない。 |
+| `call.possible-nil-receiver` | 受信側が`T \| nil`で、メソッドが`NilClass`で定義されていない。 |
 | `call.unresolved-toplevel` | トップレベルの暗黙的self呼び出しが、同一ファイルの`def`、`pre_eval:`パッチ、`Kernel` / `Object`メソッドのいずれにも解決されない。 |
 | `flow.always-raises` | 式が到達可能なすべてのパスで例外を投げることが証明できる。 |
 | `flow.unreachable-branch` | `if` / `unless` / 三項演算子のブランチが静的に到達不能。 |
