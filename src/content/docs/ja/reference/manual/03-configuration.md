@@ -3,8 +3,9 @@ title: "設定"
 description: "rigortype/rigor docs/manual/03-configuration.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/03-configuration.md"
 sourcePath: "docs/manual/03-configuration.md"
-sourceSha: "051a88abfb655b28a13b4fbdece0e71c9a2ee9c31b3df0fd827f8c34ed9e9cc4"
-sourceCommit: "18ef11c9f393b495cd9a6ed7277846069c08c516"
+sourceSha: "239441ffcf29cf5d06cd43747af0444a44128de106b2f62c5ff18318e90ed4ff"
+sourceCommit: "bf5d5216eed7167036f5c702b3f8003b390fcd8c"
+sourceDate: "2026-06-13T19:23:25+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9003
@@ -65,6 +66,7 @@ cache:
 | `severity_profile` | String | `"balanced"` | `lenient`、`balanced`、または`strict`——[診断](../04-diagnostics/)を参照。 |
 | `severity_overrides` | Hash | `{}` | ルール/ファミリーごとの重要度。例: `{ call: warning, flow.always-truthy-condition: off }`。 |
 | `baseline` | String / `false` | `nil` | `.rigor-baseline.yml`へのパス、または`false`で継承されたベースライン（baseline）を無効化。[ベースライン](../06-baseline/)を参照。 |
+| `bleeding_edge` | Boolean / Array / Hash | `false` | 次のメジャーでキューに積まれた診断規律を前倒しで採用する（[ADR-50](../../adr/50-release-engineering-and-stability-strategy/) § WD2）。`false`は何も採用せず;`true`はオーバーレイ全体を採用し;feature idのリストはそれらのみを採用し;`{ all: true, except: [ids] }`は名指ししたもの以外すべてを採用する。`severity_profile`とは直交する。[`rigor show-bleedingedge`](../02-cli-reference/#rigor-show-bleedingedge)で検査する。本リリースではオーバーレイは空なので、現状どの形式もノーオペである。 |
 
 ### 依存関係RBS探索
 

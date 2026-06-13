@@ -3,8 +3,9 @@ title: "Rigor MCPサーバー — AIエージェント統合"
 description: "rigortype/rigor docs/manual/10-mcp-server.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/10-mcp-server.md"
 sourcePath: "docs/manual/10-mcp-server.md"
-sourceSha: "a181d1ef83990ee3d8be76e988d722e8650c27d2572b3920fbd94a271961ea36"
-sourceCommit: "106b93dd777b71aeef323dce1e4087c226c8ce37"
+sourceSha: "d2e0066d0d6e6d63611a9c7a0651561c64ee4521d3592358df16c5d13ed2c205"
+sourceCommit: "bf5d5216eed7167036f5c702b3f8003b390fcd8c"
+sourceDate: "2026-06-13T17:48:47+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9010
@@ -34,7 +35,7 @@ sidebar:
 |---|---|---|
 | `rigor_check` | `rigor check --format json` | JSON診断レポート |
 | `rigor_type_of` | `rigor type-of --format json` | `FILE:LINE:COL`のJSON型 |
-| `rigor_triage` | `rigor triage --format json` | JSON分布 + ホットスポット + ヒント |
+| `rigor_triage` | `rigor triage --format json` | JSON分布 + クラス／メソッドセレクタ + ホットスポット + ヒント |
 | `rigor_annotate` | `rigor annotate --no-color` | 注釈付きRubyソース |
 | `rigor_sig_gen` | `rigor sig-gen --print --format json` | JSON RBSスケルトン候補 |
 | `rigor_explain` | `rigor explain --format json` | JSONルールカタログエントリー |
@@ -228,7 +229,7 @@ Clineパネル → MCPサーバー → サーバーを追加 → カスタムを
 
 ### rigor_triage
 
-プロジェクトの診断ストリームを要約します: ルール分布、ファイルごとのホットスポット、最も一般的なエラークラスタに対するヒューリスティックヒント。
+プロジェクトの診断ストリームを要約します: ルール分布、クラス／メソッドセレクタ、ファイルごとのホットスポット、最も一般的なエラークラスタに対するヒューリスティックヒント。
 
 **入力:**
 
@@ -242,20 +243,28 @@ Clineパネル → MCPサーバー → サーバーを追加 → カスタムを
 
 ```json
 {
-  "summary": { "total_diagnostics": 488, "files_with_diagnostics": 31 },
+  "summary": { "total": 488, "error": 480, "warning": 8, "info": 0 },
   "distribution": [
-    { "rule": "call.possible-nil-receiver", "count": 212, "pct": 43.4 }
+    { "rule": "call.possible-nil-receiver", "count": 212 }
+  ],
+  "selectors": [
+    { "receiver": "String", "method": "squish", "count": 31, "files": 12,
+      "rules": { "call.undefined-method": 31 } }
   ],
   "hotspots": [
-    { "path": "app/models/account.rb", "count": 38 }
+    { "file": "app/models/account.rb", "count": 38,
+      "by_rule": { "call.possible-nil-receiver": 30 } }
   ],
   "hints": [
-    { "id": "H1", "message": "Likely missing ActiveSupport core_ext RBS ...", "action": "..." }
+    { "id": "activesupport-core-ext", "confidence": "likely",
+      "diagnostic_count": 365, "summary": "...", "action": "..." }
   ]
 }
 ```
 
-**典型的なエージェントの使い方:**コードレビューまたはクリーンアップセッションの開始時に`rigor_triage`を実行して、どのルールとファイルに注力するかを決める前に診断の全体像を把握する。
+`selectors`配列は（クラス,メソッド）軸です。各行はディスパッチ先で、その`count`、distinct-`files`の広がり、`rule`ごとの内訳を持ち、正規化されたレシーバークラスをキーとします——だからエージェントは「どのメソッドに診断が集中しているか？」を、`message`を解析することなく構造化フィールドから答えられます。
+
+**典型的なエージェントの使い方:**コードレビューまたはクリーンアップセッションの開始時に`rigor_triage`を実行して、どのルールとファイルに注力するかを決める前に診断の全体像を把握する——最もレバレッジの高いクラス／メソッドを得るには`selectors`を`count`でソートし、システム的なクラスタを単発のバグから分離するには`files`でフィルタする。
 
 ---
 

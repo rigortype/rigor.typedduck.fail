@@ -3,8 +3,9 @@ title: "診断"
 description: "rigortype/rigor docs/manual/04-diagnostics.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/04-diagnostics.md"
 sourcePath: "docs/manual/04-diagnostics.md"
-sourceSha: "35754d710ddc375a54e4bc89aa62f9487c07917d1c6cd096c8f85dbdf18ed03f"
-sourceCommit: "18ef11c9f393b495cd9a6ed7277846069c08c516"
+sourceSha: "30ac959d9328d61a7f062423e321952f6bc9751cb398c5f9df64f1bbdedd20a0"
+sourceCommit: "bf5d5216eed7167036f5c702b3f8003b390fcd8c"
+sourceDate: "2026-06-13T17:48:47+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9004
@@ -73,6 +74,31 @@ severity_overrides:
 ```
 
 ルール固有のオーバーライドはファミリーオーバーライドより優先されます。
+
+## 機械可読な出力（`--format json`）
+
+`rigor check --format json`は、エディタ、CI、AIエージェント向けに診断をJSONドキュメントとして出力します。各診断は**安定した構造化フィールド**を持つオブジェクトです——だからコンシューマーはそれらを直接フィルタ・グループ化し、**人間可読な`message`を決して解析しません**（その文面はプレゼンテーションであって契約ではなく、マイナーリリースで書き換わる可能性があります）:
+
+| フィールド | 存在 | 意味 |
+| --- | --- | --- |
+| `path` / `line` / `column` | 常時 | 位置（1始まりの行と列）。 |
+| `severity` | 常時 | `error` / `warning` / `info`。 |
+| `rule` | 常時（パース / 内部エラーでは`null`） | `family.rule`ID。 |
+| `source_family` | 常時 | `builtin`、`rbs_extended`、`generated.*`、または`plugin.<id>`。 |
+| `message` | 常時 | 人間可読なテキスト——*プレゼンテーションであって契約ではない*。 |
+| `receiver_type` | ルールにレシーバーがあるとき | 呼ばれたレシーバーの表示型（`String`、`Array[User]`、…）。 |
+| `method_name` | ルールにメソッドがあるとき | 呼ばれた / 定義されたメソッド名。 |
+| `project_definition_site` | `call.undefined-method`のモンキーパッチケース | プロジェクト自身がそのメソッドを定義している`path:line`（ADR-17）。 |
+
+`receiver_type` / `method_name`のペアはcallファミリーのルールとメソッドレベルの`def.*`ルールが埋めます。メッセージ解析なしで、`jq`を使って呼ばれたクラスとメソッドで実行をグループ化できます:
+
+```sh
+# every diagnostic that names a method, as {receiver, method, rule}
+rigor check --format json \
+  | jq '[.diagnostics[] | select(.method_name) | {receiver: .receiver_type, method: .method_name, rule}]'
+```
+
+`check`ストリームは**サイトごとに忠実**です——リテラルレシーバーはそのリテラル型（`"hi"`、`42`）を報告します。**集約**ビュー——実行全体にわたるクラス／メソッドごとのカウントで、リテラルレシーバーはそのクラスに畳み込まれる——には、[`rigor triage`](../02-cli-reference/)の`selectors`セクションを使ってください。
 
 ## 診断の抑制
 

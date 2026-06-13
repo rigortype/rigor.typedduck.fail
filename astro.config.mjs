@@ -222,6 +222,7 @@ export default defineConfig({
           items: [
             { slug: 'reference/current-work' },
             { slug: 'reference/roadmap' },
+            { slug: 'reference/compatibility' },
             { slug: 'reference/types' },
           ],
         },

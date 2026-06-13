@@ -3,8 +3,9 @@ title: "ベースライン"
 description: "rigortype/rigor docs/manual/06-baseline.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/06-baseline.md"
 sourcePath: "docs/manual/06-baseline.md"
-sourceSha: "85023df7fa5405d89cf1ab0bac4e06cc09eebbd6a50db88221f6385ea5c17a18"
-sourceCommit: "f391fadebcb3c674444a346501d51664b046dec2"
+sourceSha: "9a97f7a2170c0e40a16f21eb92b7e6746002b26801f3de1f30ff83eb1dc234fe"
+sourceCommit: "bf5d5216eed7167036f5c702b3f8003b390fcd8c"
+sourceDate: "2026-06-13T17:48:47+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9006
@@ -66,11 +67,13 @@ baseline: .rigor-baseline.yml
 
 ## ベースラインを削減する
 
-`rigor triage`は診断ストリームを要約します——ルール分布、最も診断の多いファイル、考えられる原因のヒューリスティックなヒント——を表示して、何から取り組むかを決められるようにします:
+`rigor triage`は診断ストリームを要約します——ルール分布、クラス/メソッドセレクタ、最も診断の多いファイル、考えられる原因のヒューリスティックなヒント——を表示して、何から取り組むかを決められるようにします:
 
 ```sh
 rigor triage
 ```
+
+`selectors`セクション（`rigor triage --format json | jq '.selectors'`）は最良の優先順位付けシグナルです: 多数の`files`にまたがって高い`count`を持つクラス/メソッドは、1つの修正または`pre_eval:`エントリーが一括で解消する系統的な原因であり、一方で低`count`のセレクタは、その場で修正すべき本物のバグの候補です。
 
 参考情報であり常に`0`で終了します。意図したループは`triage`で優先順位付け → ルールを修正または抑制 → `rigor baseline regenerate`でファイルを縮小、というものです。[`rigor-baseline-reduce`スキル](../08-skills/)はこのループをインタラクティブに進めます。
 

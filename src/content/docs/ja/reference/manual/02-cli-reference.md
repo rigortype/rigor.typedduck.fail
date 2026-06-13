@@ -3,8 +3,9 @@ title: "CLIコマンドリファレンス"
 description: "rigortype/rigor docs/manual/02-cli-reference.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/02-cli-reference.md"
 sourcePath: "docs/manual/02-cli-reference.md"
-sourceSha: "add81f30265a037767efa6f9d4e65f94744c9b2aae7afd809d6911330de01a7e"
-sourceCommit: "222d8e03ee0f4252795f6c7294672a76c20b7ae3"
+sourceSha: "e06a2118845d2e4b5420cd4a0f95bcd39d971c603bd3a77375dccefe8bba9869"
+sourceCommit: "bf5d5216eed7167036f5c702b3f8003b390fcd8c"
+sourceDate: "2026-06-13T19:23:25+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9002
@@ -263,6 +264,21 @@ rigor skill <list|print|path> [name]
 | `list` | バンドルされた各スキルの名前 + 絶対パスの表;サブコマンドなしのデフォルト。 |
 | `print <name>` | `SKILL.md`本体をstdoutへ出力。スキルの`references/`ディレクトリを指すヘッダー付き。 |
 | `path <name>` | 1行の絶対`SKILL.md`パスを出力。ファイル読み取りツールへの入力に適する。 |
+
+## `rigor show-bleedingedge`
+
+**ブリーディングエッジオーバーレイ**——次のメジャーに向けてキューに積まれた診断規律のRigor管理セット（[ADR-50](../../adr/50-release-engineering-and-stability-strategy/) § WD2）——を表示し、そのうちどれをプロジェクトの[`bleeding_edge:`](../03-configuration/)設定が採用しているかを報告します。読み取り専用です。アクティブな選択を解決するために`.rigor.yml`を読み込みますが、解析は実行しません。
+
+```sh
+rigor show-bleedingedge [--config PATH] [--format text|json]
+```
+
+| フラグ | 目的 |
+| --- | --- |
+| `--config PATH` | 自動探索の代わりにこの`.rigor.yml`を使用する。 |
+| `--format text|json` | 出力形式。デフォルトは`text`。 |
+
+オーバーレイは**このリリースでは空**です——機構は配線済みで準備が整っていますが、まだどの規律もメジャーに向けてキューに積まれていないため、コマンドは現在空のセットを報告します。機能がキューに積まれると、その安定したid、それが課す重要度、そしてあなたの設定がそれを採用しているかどうかとともに、ここに現れます。ブリーディングエッジが安定性モデルにどう収まるかは[`docs/compatibility.md`](../../compatibility/)を参照してください。
 
 ## 終了コード
 

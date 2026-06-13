@@ -3,14 +3,17 @@ title: "Public API Stability Boundary"
 description: "Imported from rigortype/rigor docs/internal-spec/public-api.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/public-api.md"
 sourcePath: "docs/internal-spec/public-api.md"
-sourceSha: "af018ceb044ed48fd221b31cf6297a591bb7c9705e77dae8d2f44921ad70b049"
-sourceCommit: "18ef11c9f393b495cd9a6ed7277846069c08c516"
+sourceSha: "07c4d1c5872264ed8015883afda133debfe8c6cdcdcfa19eec05cc48ea3570a4"
+sourceCommit: "bf5d5216eed7167036f5c702b3f8003b390fcd8c"
+sourceDate: "2026-06-13T18:59:34+09:00"
 translationStatus: "translated"
 sidebar:
   order: 3050
 ---
 
 ステータス：**アクティブ（v0.1.0契約は出荷済み;v0.2.0へ向けて安定化中）**。プラグイン契約（contract）が設計される対象となるネームスペースをリストし、[パブリックAPIドリフトスペック](../../spec/rigor/public_api_drift_spec.rb)を通じてそれらを固定します。v0.1.0プラグイン契約は出荷され、`0.1.x`プレビューラインがサーフェスを拡張してきました（クロスプラグインファクト、`signature_paths:`、`open_receivers:`、`protocol_contracts:`、`source_rbs_synthesizer:`）;v0.2.0は、このサーフェスが外部の`rigor-*` gem向けに安定化される最初のラインです。（`rigor <command>` CLI自体 — `mcp`、`triage`、`baseline`、`plugin`、`skill`のような新しいサブコマンドを含む — は以下の除外リストに従って内部の配管にとどまります;そのユーザー向け契約は`docs/manual/`にあります。）ドリフトスペックは偶発的なシグネチャ変更を検出するため、すべての変更は意図的でレビュー可能なままです。
+
+このドキュメントは、固定されたネームスペースの**プラグイン作成者ビュー**です。プロジェクト全体の互換性コミットメント——完全な公開サーフェス（CLI、`.rigor.yml`キー、診断語彙、ベースライン＋キャッシュ形式、`RBS::Extended`文法）と、それが拘束する試行後フリーズの軌道——は[`docs/compatibility.md`](../../compatibility/)（[ADR-50](../../adr/50-release-engineering-and-stability-strategy/) WD1サーフェスドキュメント）にあります;このファイルは、その傘下のネームスペースレベルの詳細です。
 
 ## なぜこの境界が存在するか
 
