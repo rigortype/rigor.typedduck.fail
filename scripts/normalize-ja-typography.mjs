@@ -9,6 +9,7 @@
 import { readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { escapeTablePipes, tableRowLineSet } from './escape-table-pipes.mjs';
 
 const JP = '[\\u3000-\\u303F\\u3040-\\u30FF\\u4E00-\\u9FFF\\uFF00-\\uFFEF々ー]';
 const ASCII_RIGHT = '[A-Za-z0-9`(\\[*_]';
@@ -84,26 +85,35 @@ export function transform(content) {
   const transformedBody = parts
     .map((part, index) => (index % 2 === 1 ? part : transformProse(part)))
     .join('');
-  return frontmatter + transformedBody;
+  // transformProse strips every `\|` (correct for prose code spans, where the
+  // backslash would render literally). Re-add the escape on table-row code-span
+  // pipes, where micromark/remark-gfm REQUIRES `\|` or the cell is truncated.
+  return frontmatter + escapeTablePipes(transformedBody);
 }
 
 function unescapePipes(text) {
-  // `\|` is used in GFM only to prevent `|` from being parsed as a table
-  // column separator. This site's renderer does NOT treat `\|` as an escape
-  // sequence anywhere and outputs the backslash literally. Strip it globally:
+  // `\|` is the GFM escape that stops `|` from being read as a table column
+  // separator. It is REQUIRED on a table row (micromark splits a row on every
+  // unescaped `|` — even one inside a `` `code span` `` or between two spans —
+  // unlike cmark-gfm), but elsewhere it is noise this site's renderer shows
+  // literally:
   //
-  //   - In table rows the escape was GFM-required; removing it keeps `|`
-  //     safe because inline code spans (`` `|` ``) protect their content from
-  //     table parsing in any conformant renderer.
   //   - In bullet lists and prose (e.g. **Join `T \| U`**) the escape was
   //     never needed; the backslash was just carried over from the GFM source.
-  //   - Inside inline code spans the `\` is NOT a Markdown escape character,
-  //     so `` `T \| U` `` renders as `T \| U` literally — stripping it gives
-  //     the intended `` `T | U` ``.
+  //   - Inside a prose inline code span the `\` is NOT a Markdown escape
+  //     character, so `` `T \| U` `` renders the backslash literally — stripping
+  //     it gives the intended `` `T | U` ``.
   //
-  // Fenced code blocks are already excluded by the caller (the `parts.split`
-  // in `transform`), so their content is never passed here.
-  return text.replace(/\\\|/g, '|');
+  // So strip `\|` only on lines that are NOT part of a GFM table; a table row's
+  // escapes are load-bearing and must survive. (escapeTablePipes() in
+  // `transform` additionally ADDS the escape to code-span pipes that upstream
+  // left bare.) Fenced code blocks are already excluded by the caller (the
+  // `parts.split` in `transform`), so their content is never passed here.
+  const lines = text.split('\n');
+  const tableRows = tableRowLineSet(lines);
+  return lines
+    .map((line, i) => (tableRows.has(i) ? line : line.replace(/\\\|/g, '|')))
+    .join('\n');
 }
 
 function transformProse(text) {

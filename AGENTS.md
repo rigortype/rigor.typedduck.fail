@@ -120,6 +120,33 @@ The separate `<strong>` workaround documented in the translation glossary
 (for `**` adjacent to `<ruby>`/`</ruby>` tags) is unrelated to the plugin
 and still applies — that is ASCII `<`/`>` adjacency, not CJK punctuation.
 
+## Table-cell pipes (`|` inside code spans)
+
+This site renders Markdown through micromark / remark-gfm, whose table
+tokenizer splits a row on **every** unescaped `|` — even one inside a
+`` `code span` ``. So a table cell like `` `T | U` `` or `` `<:` 、`|`（join） ``
+is mis-split: text after the pipe is dropped and the unbalanced backticks can
+leak `<...>` to the HTML parser as raw tags. cmark-gfm / mdBook (what upstream
+Rigor renders with) protect code-span pipes instead, which is why the same
+source renders cleanly upstream but breaks here. The fix is the GFM escape
+`\|`, which renders as a literal `|` on both engines.
+
+This is handled mechanically, so you rarely write it by hand:
+
+- `scripts/escape-table-pipes.mjs` escapes code-span pipes on table rows
+  (idempotent, fence- and frontmatter-aware). `sync-rigor-docs.mjs` applies it
+  to every generated EN / ja-native page (after the `sourceSha` is computed, so
+  drift detection is unaffected), and `normalize-ja-typography.mjs` applies it
+  at the end of `transform` (so it covers chibirigor too and any manual
+  normalizer run). The normalizer strips `\|` only **outside** table rows; a
+  table row's escapes are load-bearing and are preserved.
+- A bare `|`-as-"or" in **plain** cell text (not a code span), e.g.
+  `Float|Integer`, is a separate breakage the escaper cannot fix safely — wrap
+  the value in a code span and escape it, or write `\|`.
+- `node scripts/scan-table-pipes.mjs` (run over the source tree) reports any
+  table row that still carries an unescaped code-span pipe; the expected
+  baseline is zero. Fix a hit with `node scripts/escape-table-pipes.mjs <file>`.
+
 ## English labels
 
 Sidebar/section labels and other English output should read as native,

@@ -6,6 +6,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
 import { transform as normalizeJaTypography } from './normalize-ja-typography.mjs';
+import { escapeTablePipes } from './escape-table-pipes.mjs';
 
 const execFileAsync = promisify(execFile);
 
@@ -267,6 +268,10 @@ async function normalizeMarkdown(source, relativePath, sourcePath, sourceDate) {
   const normalizedBody = `${rewrittenBody.trimStart()}`;
   const sourceSha = createHash('sha256').update(normalizedBody).digest('hex');
   const sourceLanguage = detectSourceLanguage(frontmatter, normalizedBody);
+  // Escape `|` inside table-cell code spans so micromark/remark-gfm does not
+  // mis-split the row (see escape-table-pipes.mjs). Done AFTER the sourceSha so
+  // this presentation-only fix never perturbs translation drift detection.
+  const outputBody = escapeTablePipes(normalizedBody);
 
   // EN-native upstream (the common case): emit upstream content as-is.
   if (sourceLanguage !== 'ja') {
@@ -280,7 +285,7 @@ async function normalizeMarkdown(source, relativePath, sourcePath, sourceDate) {
       sourceLanguage: 'en',
     });
     return {
-      content: `---\n${mergedFrontmatter}\n---\n\n${normalizedBody}`,
+      content: `---\n${mergedFrontmatter}\n---\n\n${outputBody}`,
       sourceLanguage: 'en',
       translationApplied: false,
     };
@@ -311,7 +316,7 @@ async function normalizeMarkdown(source, relativePath, sourcePath, sourceDate) {
     sourceDate,
     sourceLanguage: 'ja',
   });
-  const jaTreeContent = `---\n${jaTreeFrontmatter}\n---\n\n${normalizedBody}`;
+  const jaTreeContent = `---\n${jaTreeFrontmatter}\n---\n\n${outputBody}`;
 
   if (overrideContent) {
     const { frontmatter: overrideFrontmatter, body: overrideBody } = splitFrontmatter(overrideContent);
@@ -326,7 +331,7 @@ async function normalizeMarkdown(source, relativePath, sourcePath, sourceDate) {
       sourceLanguage: 'ja',
     }, { forceSourceMetadata: true });
     return {
-      content: `---\n${mergedFrontmatter}\n---\n\n${overrideBody.trimStart()}`,
+      content: `---\n${mergedFrontmatter}\n---\n\n${escapeTablePipes(overrideBody.trimStart())}`,
       jaTreeContent,
       sourceLanguage: 'ja',
       translationApplied: true,
@@ -348,7 +353,7 @@ async function normalizeMarkdown(source, relativePath, sourcePath, sourceDate) {
   });
   const banner = `> [!NOTE]\n> This page was authored in Japanese upstream. An English translation is pending; the original Japanese text is shown below.`;
   return {
-    content: `---\n${stubFrontmatter}\n---\n\n${banner}\n\n${normalizedBody}`,
+    content: `---\n${stubFrontmatter}\n---\n\n${banner}\n\n${outputBody}`,
     jaTreeContent,
     sourceLanguage: 'ja',
     translationApplied: false,
