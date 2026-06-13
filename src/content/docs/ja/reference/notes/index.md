@@ -3,8 +3,8 @@ title: "Research & Survey Notes"
 description: "Imported from rigortype/rigor docs/notes/README.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/README.md"
 sourcePath: "docs/notes/README.md"
-sourceSha: "5d89bdc07b2740cd5fa3568eeac75d7f8b6799fd736ada4dde247b74db45ab08"
-sourceCommit: "222d8e03ee0f4252795f6c7294672a76c20b7ae3"
+sourceSha: "cf5c286a757554c1749a3fcd31af1454255943e2ab7428098354cd6d0587726e"
+sourceCommit: "bf29cd008ab5b1ae540757fe571fe9c92f816d9a"
 translationStatus: "translated"
 sidebar:
   order: 6000
@@ -55,6 +55,12 @@ sidebar:
 | 2026-05-29 | [ADR-35 override-rules — Mastodon false-positive verification](20260529-adr35-mastodon-fp-verification/) |
 | 2026-05-29 | [rigor-survey project-init baseline sweep](20260529-rigor-survey-project-init-baseline/) |
 | 2026-06-05 | [ADR-47 `flow.unreachable-clause` — corpus FP sweep (WD4)](20260605-adr47-unreachable-clause-corpus-sweep/) |
+
+## アナライザーの自己テスト（teeth・偽陰性）
+
+| Date | Note |
+| --- | --- |
+| 2026-06-13 | [Mutation-testing the analyzer — a teeth / false-negative harness + `lib/rigor` sweep backlog](20260613-mutation-teeth-harness/) |
 
 ## 外部研究・エッセイレビュー
 

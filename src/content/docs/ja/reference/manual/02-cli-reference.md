@@ -3,8 +3,8 @@ title: "CLIコマンドリファレンス"
 description: "rigortype/rigor docs/manual/02-cli-reference.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/02-cli-reference.md"
 sourcePath: "docs/manual/02-cli-reference.md"
-sourceSha: "e06a2118845d2e4b5420cd4a0f95bcd39d971c603bd3a77375dccefe8bba9869"
-sourceCommit: "bf5d5216eed7167036f5c702b3f8003b390fcd8c"
+sourceSha: "2a0481c10422670cbd0e484c3bf8e4533b097c5356c3794f16670030d0efaef4"
+sourceCommit: "bf29cd008ab5b1ae540757fe571fe9c92f816d9a"
 sourceDate: "2026-06-13T19:23:25+09:00"
 translationStatus: "translated"
 sidebar:
@@ -199,6 +199,8 @@ rigor coverage [paths]
 ```
 
 `--format=text|json`が出力形式を選び、`--config=PATH`が設定探索をオーバーライドします。`--threshold=RATIO`は精度比率が`RATIO`（`0.0`〜`1.0`）を下回ると`1`で終了し、CIゲートになります。
+
+`--protection`は**型保護カバレッジ（type-protection coverage）**に切り替えます。「自分の型がどれだけ精密か」ではなく「バグを混入させたとき、Rigorがそれを捕捉できるか」を報告します。各ディスパッチサイト（明示的なレシーバーを持つ呼び出し）は、レシーバーが具象クラスに解決するとき——Rigorの呼び出しルールが誤ったメソッドや引数を捕捉できるサイト——*保護されている（protected）*とみなされ、レシーバーが`Dynamic`のとき*保護されていない（unprotected）*とみなされます。レポートはまず保護された比率を示し、続いてランク付けされた「ここに型を追加せよ（add a type here）」リスト（型のないレシーバーで最も多く呼ばれているメソッド）、そして最も保護されていないファイルを示します。`--threshold`と`--format=json`は同じように機能します。これは実際の保護に対する健全な上界です——具象的なレシーバーは診断が発火するための必要条件ですが、十分条件ではありません。
 
 ## `rigor mcp`
 
