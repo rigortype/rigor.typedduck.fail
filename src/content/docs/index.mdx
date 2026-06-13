@@ -6,10 +6,14 @@ hero:
   title: Rigor
   tagline: A Ruby static analyzer focused on useful, flow-sensitive type feedback without requiring annotations in Ruby source.
   actions:
-    - text: Start with the handbook
-      link: /reference/handbook/
+    - text: Install Rigor
+      link: /reference/manual/01-installation/
       icon: right-arrow
       variant: primary
+    - text: Read the handbook
+      link: /reference/handbook/
+      icon: open-book
+      variant: secondary
     - text: View source
       link: https://github.com/rigortype/rigor
       icon: external
@@ -25,7 +29,22 @@ import LatestRelease from '../../components/LatestRelease.astro';
 
 <LatestRelease lang="en" />
 
-Rigor runs `rigor check` over your Ruby code and reports bugs — undefined methods on typed receivers, wrong argument counts, provable nil dereferences — with no type annotations required in source. Every type is inferred from what your code actually produces. Your team never needs to write a single annotation.
+Rigor runs `rigor check` over your Ruby code and reports real bugs — undefined methods on typed receivers, wrong argument counts, provable nil dereferences — with no type annotations required in source. Every type is inferred from what your code actually produces. Your team never writes a single annotation.
+
+Point `rigor check` at ordinary Ruby — no annotations, no setup — and it reports real bugs:
+
+```ruby
+# lib/demo.rb
+"hello".no_such_method        # typo'd method name
+[1, 2, 3].rotate(1, 2)        # too many arguments
+```
+
+```text
+lib/demo.rb:1:9: error: undefined method `no_such_method' for "hello" [call.undefined-method]
+lib/demo.rb:2:11: error: wrong number of arguments to `rotate' on Array (given 2, expected 0..1) [call.wrong-arity]
+```
+
+Two paths below: one for **getting Rigor into your project**, one for **evaluating how it works and how it compares**.
 
 **Get started in two commands:**
 
@@ -34,14 +53,35 @@ mise use ruby@4.0
 mise use gem:rigortype
 ```
 
-Full options — asdf, plain `gem install`, CI workflow template, dev containers — are in the [installation guide](/reference/manual/01-installation/).
+## Adopting Rigor
 
-## Documentation
+Everything for getting Rigor running and into your daily workflow.
 
-- [**Handbook**](/reference/handbook/): nine chapters on Rigor's type model — carriers, narrowing, tuples, RBS interop, and the reasoning behind each design choice.
-- [**User Manual**](/reference/manual/): the operational reference — installation, CLI, configuration, baselines, plugins, editor integration, CI, and troubleshooting.
+- [Install](/reference/manual/01-installation/): mise / asdf / `gem install` / dev containers — the two commands above are the short path.
+- [Getting started](/reference/handbook/01-getting-started/): your first `rigor check`.
+- [Configuration](/reference/manual/03-configuration/): severity profiles, scope, and plugins.
+- [Baseline](/reference/manual/06-baseline/): adopt Rigor gradually in an existing codebase.
+- [CI](/reference/manual/11-ci/) & [editor integration](/reference/manual/09-editor-integration/): wire it into your workflow.
+- [Rails quickstart](/reference/manual/14-rails-quickstart/): the fast path for Rails apps.
+
+## Evaluating Rigor
+
+For deciding whether Rigor fits — how it works and how it compares. Where Sorbet wants inline `sig`s and Steep wants hand-written RBS, Rigor wants neither — every type is inferred from the values your code actually produces.
+
+- Coming from another type checker: [Sorbet](/reference/handbook/10-sorbet/), [Steep](/reference/handbook/appendix-steep/), [TypeProf](/reference/handbook/appendix-typeprof/), [TypeScript](/reference/handbook/appendix-typescript/) (mypy, Go, Rust and more in the handbook appendices).
+- [Type specification overview](/reference/type-specification/): what counts as a type and what Rigor guarantees — the core of the no-annotations design.
+- [Narrowing](/reference/handbook/03-narrowing/): what flow-sensitive analysis buys you.
+- [Connections to type theory](/reference/handbook/appendix-type-theory/): the theory behind the design.
+- [Compatibility](/reference/compatibility/) & [roadmap](/reference/roadmap/): supported Ruby versions and what's planned.
+
+## All documentation
+
+The full map — including specs and records not surfaced in the sections above.
+
+- [**Handbook**](/reference/handbook/): all nine chapters on Rigor's type model.
+- [**User Manual**](/reference/manual/): the operational reference, install through CI and troubleshooting.
 - [**Type Specification**](/reference/type-specification/): the normative type model, operators, and inference rules.
 - [**Internal Specification**](/reference/internal-spec/): implementation contracts for contributors.
 - [**Architecture Decisions**](/reference/adr/): ADRs recording design rationale and trade-offs.
 - [**Design Notes**](/reference/design/): longer design documents and research notes.
-- [**Development Notes**](/reference/notes/): empirical working notes — library surveys, coverage audits, regression sweeps, and real-project triage.
+- [**Development Notes**](/reference/notes/): library surveys, coverage audits, regression sweeps, and real-project triage.

@@ -6,10 +6,14 @@ hero:
   title: Rigor
   tagline: Rubyソースに注釈を書かなくても、フローに応じた実用的な型フィードバックを返す静的解析器です。
   actions:
-    - text: ハンドブックを読む
-      link: /ja/reference/handbook/
+    - text: インストールして試す
+      link: /ja/reference/manual/01-installation/
       icon: right-arrow
       variant: primary
+    - text: ハンドブックを読む
+      link: /ja/reference/handbook/
+      icon: open-book
+      variant: secondary
     - text: ソースを見る
       link: https://github.com/rigortype/rigor
       icon: external
@@ -25,7 +29,22 @@ import LatestRelease from '../../../components/LatestRelease.astro';
 
 <LatestRelease lang="ja" />
 
-Rigorはソースに型注釈を一切書かずに`rigor check`でRubyコードを解析し、型付きレシーバーへの未定義メソッド呼び出し、引数個数の誤り、証明可能なnilデリファレンスなどのバグを報告します。型はすべてコードが実際に生成する値から推論されます。チームに型注釈を書いてもらう必要はありません。
+Rigorはソースに型注釈を一切書かずに`rigor check`でRubyコードを解析し、型付きレシーバーへの未定義メソッド呼び出し、引数個数の誤り、証明可能なnilデリファレンスなどの実際のバグを報告します。型はすべてコードが実際に生成する値から推論されます。チームに型注釈を書いてもらう必要はありません。
+
+普通のRubyに`rigor check`を向けるだけ——型注釈も設定も不要で、実際のバグを報告します:
+
+```ruby
+# lib/demo.rb
+"hello".no_such_method        # typo'd method name
+[1, 2, 3].rotate(1, 2)        # too many arguments
+```
+
+```text
+lib/demo.rb:1:9: error: undefined method `no_such_method' for "hello" [call.undefined-method]
+lib/demo.rb:2:11: error: wrong number of arguments to `rotate' on Array (given 2, expected 0..1) [call.wrong-arity]
+```
+
+以下、目的別に2つの導線があります——プロジェクトに**導入する**ための道筋と、仕組みや他ツールとの違いを**評価・調査する**ための道筋です。
 
 **2つのコマンドで始められます:**
 
@@ -34,14 +53,35 @@ mise use ruby@4.0
 mise use gem:rigortype
 ```
 
-他のインストール方法（asdf、`gem install`、CIワークフローテンプレート、devコンテナ）は[インストールガイド](/ja/reference/manual/01-installation/)を参照してください。
+## Rigorを導入する
 
-## ドキュメント構成
+プロジェクトにRigorを組み込み、日々のワークフローに乗せるための導線です。
 
-- [**ハンドブック**](/ja/reference/handbook/): Rigorの型モデルを9章で解説——キャリア、ナローイング、タプル、RBS相互運用と、各設計判断の背景。
-- [**ユーザーマニュアル**](/ja/reference/manual/): オペレーションリファレンス——インストール、CLI、設定、ベースライン、プラグイン、エディター統合、CI、トラブルシューティング。
+- [インストール](/ja/reference/manual/01-installation/): mise / asdf / `gem install` / devコンテナ。上の2コマンドが最短経路です。
+- [はじめての解析](/ja/reference/handbook/01-getting-started/): 最初の`rigor check`まで。
+- [設定](/ja/reference/manual/03-configuration/): 重大度プロファイル、対象範囲、プラグイン。
+- [ベースライン](/ja/reference/manual/06-baseline/): 既存コードベースへ段階的に導入する。
+- [CI](/ja/reference/manual/11-ci/)・[エディター統合](/ja/reference/manual/09-editor-integration/): 日常のワークフローへ組み込む。
+- [Railsクイックスタート](/ja/reference/manual/14-rails-quickstart/): Railsアプリに最短で乗せる。
+
+## Rigorを評価・調査する
+
+導入を決める前に、Rigorの仕組みと他ツールとの違いを確かめるための導線です。Sorbetがインラインの`sig`を、Steepが手書きのRBSを求めるのに対し、Rigorはどちらも要求しません——型はすべてコードが実際に生成する値から推論されます。
+
+- 他の型チェッカーから来たなら: [Sorbet](/ja/reference/handbook/10-sorbet/)・[Steep](/ja/reference/handbook/appendix-steep/)・[TypeProf](/ja/reference/handbook/appendix-typeprof/)・[TypeScript](/ja/reference/handbook/appendix-typescript/)（mypy・Go・Rustほかの付録もハンドブックにあります）。
+- [型仕様の概要](/ja/reference/type-specification/): 何を型とみなし、何を保証するか。注釈なしで推論する設計の核心です。
+- [ナローイング](/ja/reference/handbook/03-narrowing/): フローセンシティブな解析が何を実現するか。
+- [型理論との接続](/ja/reference/handbook/appendix-type-theory/): 設計を支える理論的背景。
+- [互換性](/ja/reference/compatibility/)・[ロードマップ](/ja/reference/roadmap/): 対応Rubyバージョンと今後の方針。
+
+## すべてのドキュメント
+
+全体マップです。上の2セクションで触れていない仕様・記録もここから辿れます。
+
+- [**ハンドブック**](/ja/reference/handbook/): Rigorの型モデルを解説する全9章。
+- [**ユーザーマニュアル**](/ja/reference/manual/): インストールからCI・トラブルシューティングまでの運用リファレンス。
 - [**型仕様**](/ja/reference/type-specification/): 型モデル、型演算子、推論規則の規範的仕様です。
 - [**内部仕様**](/ja/reference/internal-spec/): コントリビューター向けの実装上の契約をまとめます。
 - [**設計判断（ADR）**](/ja/reference/adr/): 設計根拠とトレードオフを記録したADRです。
 - [**設計ノート**](/ja/reference/design/): より詳細な設計文書と研究ノートです。
-- [**開発レポート**](/ja/reference/notes/): 経験的な作業ノート——ライブラリ調査、カバレッジ監査、リグレッションスイープ、実プロジェクトのトリアージ。
+- [**開発レポート**](/ja/reference/notes/): ライブラリ調査、カバレッジ監査、リグレッションスイープ、実プロジェクトのトリアージ。
