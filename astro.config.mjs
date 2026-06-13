@@ -247,7 +247,10 @@ export default defineConfig({
               // build) associate with this topic via their `topic` frontmatter,
               // stamped by sync-chibirigor-docs.mjs.
               id: 'chibirigor',
-              link: '/ja/chibirigor/',
+              // Pass the locale-strip path so getRelativeLocaleUrl() can add
+              // the correct locale prefix. Passing '/ja/chibirigor/' directly
+              // would produce '/ja/ja/chibirigor/' in JA locale context.
+              link: '/chibirigor/',
               icon: 'puzzle',
               items: [
                 {
@@ -258,7 +261,7 @@ export default defineConfig({
                   label: 'The Seasoned chibirigor（後編）',
                   items: [{ autogenerate: { directory: 'chibirigor/seasoned' } }],
                 },
-                { label: '用語集', link: '/ja/chibirigor/glossary/' },
+                { label: '用語集', link: '/chibirigor/glossary/' },
                 {
                   label: '付録',
                   items: [{ autogenerate: { directory: 'chibirigor/appendix', collapsed: true } }],
