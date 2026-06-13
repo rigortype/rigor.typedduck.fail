@@ -3,27 +3,14 @@ title: "日常的に出会う型"
 description: "rigortype/rigor docs/handbook/02-everyday-types.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/02-everyday-types.md"
 sourcePath: "docs/handbook/02-everyday-types.md"
-sourceSha: "3a9ef0f378f40b4a46de5959705e57268232be09c5a6b128a678baebf5105096"
-sourceCommit: "0af2862f84982d9cfad4a1c0619340e15ba2f1bc"
+sourceSha: "b86e1109e6e129e54c856dc9f6fd30a3f877e562b856d5df2eaf99eb8e67719b"
+sourceCommit: "106b93dd777b71aeef323dce1e4087c226c8ce37"
 translationStatus: "translated"
 sidebar:
   order: 1002
 ---
 
 この章が最も重要です。以下のキャリアを把握してしまえば、ハンドブックの残りはそれらに適用されるルールの話だけになります。また、用語集として戻ってくるページでもあります — 下の表がキャリアの図鑑全体を一望できます。
-
-> **この章の内容**
-> [なぜ「型」では粒度が荒いのか](#なぜ型では粒度が荒いのか) ·
-> [キャリアを見る（`rigor annotate`）](#キャリアを自分で見る--rigor-annotate) ·
-> [名前的型](#名前的型--馴染み深い出発点) ·
-> [定数](#定数--単一のruby値) ·
-> [整数範囲](#整数範囲--有界な区間) ·
-> [リファインメント](#リファインメント--述語で制約された値) ·
-> [差分](#差分--ベースから単一の値を引いた) ·
-> [`Dynamic[Top]`](#dynamictop--漸進的キャリア) ·
-> [タプルとハッシュシェイプ](#タプルとハッシュシェイプ--異種構造) ·
-> [ユニオン](#ユニオン--このどれか) ·
-> [実例](#実例)
 
 ## なぜ「型」では粒度が荒いのか
 

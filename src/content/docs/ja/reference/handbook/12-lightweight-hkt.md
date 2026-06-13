@@ -3,8 +3,8 @@ title: "軽量HKT（`JSON.parse`とその仲間たち）"
 description: "rigortype/rigor docs/handbook/12-lightweight-hkt.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/12-lightweight-hkt.md"
 sourcePath: "docs/handbook/12-lightweight-hkt.md"
-sourceSha: "fbcd45f614ec1a1b920b8d492a60aec6636364a17308ae43a763950498a45fc6"
-sourceCommit: "6bcf38aa850fa4324ea959b2ce5cfdb61a88aa28"
+sourceSha: "b062fdc3123b22fb3558afdc1fdd7cc7959b2511f90c28caf2a3fcf4790fc47e"
+sourceCommit: "106b93dd777b71aeef323dce1e4087c226c8ce37"
 translationStatus: "translated"
 sidebar:
   order: 1012
@@ -28,16 +28,6 @@ assert_type(
 スタイルでの、高階型の脱関数化エンコーディングです。本章ではそれが何をするのか、いつ使うべきか、自前のオーバーレイをどう作るかを順に見ていきます。
 
 本章はハンドブックの中で最も高度な章です。ほとんどの読者に必要なのは最初の2つのセクション——キャリアがどう見えるか、そしてどのstdlibメソッドが最初から配線されているか——だけです。「自前のオーバーレイを書く」以降はすべて、自分自身の再帰的な直和型をモデル化したいという稀なケースのためのものです。
-
-> **この章の内容**
-> [5秒で分かる要点](#5秒で分かる要点) ·
-> [今日バンドルされているもの](#今日バンドルされているもの) ·
-> [呼び出しサイトの判別](#呼び出しサイトの2種類の判別) ·
-> [自前のオーバーレイを書く](#自前のオーバーレイを書く) ·
-> [ボディの文法](#ボディの文法) ·
-> [簡約のセマンティクス](#簡約のセマンティクス遅延結び目固め) ·
-> [まだしないこと](#まだしないこと) ·
-> [コード上の場所](#コード上の場所)
 
 ## 5秒で分かる要点
 

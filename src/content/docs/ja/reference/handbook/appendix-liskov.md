@@ -3,8 +3,8 @@ title: "Appendix — The Liskov Substitution Principle"
 description: "Imported from rigortype/rigor docs/handbook/appendix-liskov.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/appendix-liskov.md"
 sourcePath: "docs/handbook/appendix-liskov.md"
-sourceSha: "e80ac40f0feddc27f3361902b938e56be45e4ea29d0be8306cc0b350d8e4376f"
-sourceCommit: "18ef11c9f393b495cd9a6ed7277846069c08c516"
+sourceSha: "ace8c3b8d1d5273ac009e461a2f3bcd359e58b9318ec3219bb22fbbe2234e89c"
+sourceCommit: "106b93dd777b71aeef323dce1e4087c226c8ce37"
 translationStatus: "translated"
 sidebar:
   order: 1050
@@ -19,21 +19,6 @@ sidebar:
 > **頭字語についての注**。このリポジトリのそれ以外のすべての場所では「LSP」は**言語サーバープロトコル（Language Server Protocol）**を意味する（[ADR-19](../../adr/19-language-server-packaging/)、`rigor lsp`）。*この*ページ、そしてこのページに限ってのみ、「LSP」は**リスコフの置換原則**を意味する。この衝突は不幸なことに完全に慣習的なものである。コーパスの残りは言語サーバーの意味を保つ。
 
 このページは記述的であって規範的ではない。ここでの記述が[型仕様](../../type-specification/)と食い違う場合は、仕様が拘束する。
-
-> **この付録の内容**
-> [5秒で分かる要点](#5秒で分かる要点) ·
-> [LSPが実際に述べていること](#lspが実際に述べていること) ·
-> [LSPは振る舞いに関するもの](#lspは振る舞いに関するものであり静的型に関するものではない) ·
-> [シグネチャ規則 = ロバストネス原則](#シグネチャ規則はrigorのロバストネス原則である) ·
-> [分散とシグネチャ規則](#分散とシグネチャ規則) ·
-> [事前条件（反変パラメータ）](#事前条件-反変なパラメータとダックタイピング) ·
-> [事後条件（共変戻り値）](#事後条件-共変な戻り値とself型) ·
-> [不変条件と履歴制約](#不変条件と履歴制約) ·
-> [振る舞い的vs名前的部分型](#rubyにおける振る舞い的部分型と名前的部分型) ·
-> [RubyがLSP違反を許す場所](#rubyがlsp違反を許す場所--そしてrigorがすること) ·
-> [クロス階層のオーバーライド互換性](#クロス階層のオーバーライド互換性) ·
-> [Rigorがチェックしないこと](#rigorがlsp的にチェックしないこと) ·
-> [読書リスト](#短い読書リスト)
 
 ## 5秒で分かる要点
 

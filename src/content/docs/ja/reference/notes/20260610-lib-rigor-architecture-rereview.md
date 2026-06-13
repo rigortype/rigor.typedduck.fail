@@ -4,7 +4,7 @@ description: "Imported from rigortype/rigor docs/notes/20260610-lib-rigor-archit
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260610-lib-rigor-architecture-rereview.md"
 sourcePath: "docs/notes/20260610-lib-rigor-architecture-rereview.md"
 sourceSha: "28406574e941ec0050e6c42a67923f820b00b7180b9d3400059506ebfe2050a4"
-sourceCommit: "636f8725dd79aab2f711249ace6357a98b7e73a4"
+sourceCommit: "106b93dd777b71aeef323dce1e4087c226c8ce37"
 sourceDate: "2026-06-10T10:27:08+09:00"
 sourceLanguage: "ja"
 sidebar:

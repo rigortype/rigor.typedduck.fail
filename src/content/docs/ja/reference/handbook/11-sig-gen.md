@@ -3,8 +3,8 @@ title: "`rigor sig-gen`でRBSを生成する"
 description: "rigortype/rigor docs/handbook/11-sig-gen.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/11-sig-gen.md"
 sourcePath: "docs/handbook/11-sig-gen.md"
-sourceSha: "7dcaa7b992a5bf29d2f402f2d5db6a8fe17e9bf6641860d09bc21f5619bf195d"
-sourceCommit: "115824d2e84dbb9f14d031172159de8ab07e0619"
+sourceSha: "1225770be69021a7117d23a8ded933784a4a1ea639756fe27d87ad04c4370b88"
+sourceCommit: "106b93dd777b71aeef323dce1e4087c226c8ce37"
 translationStatus: "translated"
 sidebar:
   order: 1011
@@ -13,18 +13,6 @@ sidebar:
 `rigor check`がコードに満足しているのに`sig/`がまだほぼ空のとき、解析器は自分以外には届かない有用な推論を行っています。`rigor sig-gen`はその仲間のコマンドで、推論されたシグネチャをRBSとして発行し、ツールチェーンの残り — Steepのクロスチェック、IDEのツールチップ、あなたのgemの`sig/`を読む下流の消費者 — がRigorが見ているものを見えるようにします。
 
 この章では、コマンドのUX、分類モデル、3つの出力モード、そして[ADR-5](../../adr/5-robustness-principle/)の非対称な「戻り値には厳格、パラメータには寛容」ルールから直接出てきた`--params`ポリシーのトレードオフを順に見ていきます。
-
-> **この章の内容**
-> [使いたくなる場面](#使いたくなる場面) ·
-> [初回の実行](#初回の実行) ·
-> [出力モード](#3つの出力モード) ·
-> [分類モデル](#分類モデル) ·
-> [対応するメソッド形状](#ジェネレータが対応するメソッド形状) ·
-> [`--params`ポリシーとADR-5](#--paramsポリシーとadr-5) ·
-> [RSpecを意識した観察](#rspecを意識した観察) ·
-> [`--write`が行うこと](#安全性---writeが行うことと行わないこと) ·
-> [まとめ](#まとめ) ·
-> [今日の制限](#今日の制限)
 
 ## 使いたくなる場面
 

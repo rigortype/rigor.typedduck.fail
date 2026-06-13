@@ -3,8 +3,8 @@ title: "プラグイン"
 description: "rigortype/rigor docs/handbook/09-plugins.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/09-plugins.md"
 sourcePath: "docs/handbook/09-plugins.md"
-sourceSha: "b80e4b99eb33c2e29443816c19e0712eda013813dab15153095bc1b2975ad933"
-sourceCommit: "5c304b2c680eccdbfaffc114c0f31ce89f740ad4"
+sourceSha: "0ba17b5230987fa2dcfb7321c25be1d7db1f3400459c6175d371f56d6f04ecb1"
+sourceCommit: "106b93dd777b71aeef323dce1e4087c226c8ce37"
 translationStatus: "translated"
 sidebar:
   order: 1009
@@ -13,13 +13,6 @@ sidebar:
 プラグインが存在する理由はひとつ: 一部のメソッドの型が、どんなRBSシグでも表現できない方法で**ランタイムでの引数のシェイプ（shape）に依存する**からです。この章は、それがプラグインに値するのはいつか — そして同じくらい多くの場合、値しないのはいつか — を判断する助けになります。
 
 この章はプラグインの*作成*は教え**ません**。それは[`examples/`](https://github.com/rigortype/rigor/blob/master/examples/README.md)にあります — 16個のチュートリアルウォークスルーで、それぞれが1つの拡張サーフェスにスポットを当てています — 一方、実際のフレームワーク向けのすぐにインストールできるgemは[`plugins/`](https://github.com/rigortype/rigor/blob/master/plugins/README.md)にあります。プラグインが必要かどうかを判断するには読み進めてください;作成したくなったら`examples/`へ、既存のものをインストールするなら`plugins/`へ進んでください。
-
-> **この章の内容**
-> [プラグインを使うとき](#プラグインを使うとき) ·
-> [プラグインを書くべきか？](#プラグインを書くべきか) — まずこれを読む ·
-> [プラグインが今日できること](#プラグインが今日できること) ·
-> [マクロ / DSL展開基板](#マクロ--dsl展開基板adr-16) ·
-> [次に読むもの](#次に読むもの)
 
 ## プラグインを使うとき
 

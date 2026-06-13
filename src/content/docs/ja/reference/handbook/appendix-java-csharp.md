@@ -3,8 +3,8 @@ title: "付録 — Java / C#から来た場合"
 description: "Imported from rigortype/rigor docs/handbook/appendix-java-csharp.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/appendix-java-csharp.md"
 sourcePath: "docs/handbook/appendix-java-csharp.md"
-sourceSha: "8b68f4db5c920fc88119f2ba38ece311137471be5a71b462e368e45c0483c85e"
-sourceCommit: "18ef11c9f393b495cd9a6ed7277846069c08c516"
+sourceSha: "82f176737b06dc9bcc20cd6802069672bbe5a3827031e277454b306ad00e6414"
+sourceCommit: "106b93dd777b71aeef323dce1e4087c226c8ce37"
 translationStatus: "translated"
 sidebar:
   order: 1050
@@ -16,22 +16,6 @@ sidebar:
 例はモダンなLTSベースラインを前提とする: **Java 21**（レコード、シールド型、パターンマッチングする`switch`、レコードパターン）と、.NET 8上の**モダンなC#**（ヌル許容参照型、レコード、`switch`式、宣言サイトの分散（variance））。機能がそれより新しい場合はページ内で明記する。
 
 これは変換テーブルに加えて、Rigorが本当に異なる選択をしている箇所の議論である。そこがJava / C#の反射に裏切られる場所だ — そしてこの2言語で最大のものはデフォルトの方向だ: あなたは先にアノテーションを書き、コンパイラはローカルに推論する。Rigorは先に推論し、エッジでのみアノテーションを求める。
-
-> **この付録の内容**
-> [5秒ピッチ](#5秒ピッチ) ·
-> [型語彙マッピング](#型語彙マッピング) ·
-> [名前的型優先vs推論優先](#名前的型優先vs推論優先) ·
-> [ナローイング](#ナローイング--instanceofis-パターン-switch) ·
-> [レコード ↔ Data.define](#レコード--datadefine) ·
-> [ヌル許容性](#ヌル許容性) ·
-> [ジェネリクスと分散](#ジェネリクスと分散) ·
-> [シールド型と網羅性](#シールド型と網羅性) ·
-> [リファインメントキャリア](#リファインメントキャリア--どちらの言語も持たない部分) ·
-> [深刻度とstrictモード](#深刻度抑制strictモード) ·
-> [JavaとC#が異なる箇所](#javaとc-が異なる箇所) ·
-> [Java/C#にあってRigorにないもの](#java--c-にあってrigorにないもの) ·
-> [RigorにあってJava/C#にないもの](#rigorにあってjava--c-にないもの) ·
-> [マイグレーションvignette](#マイグレーションvignette)
 
 ## 5秒ピッチ
 

@@ -3,14 +3,14 @@ title: "ADR-57 — Opening the implicit-self call return-adoption gate (ADR-24 W
 description: "Imported from rigortype/rigor docs/adr/57-self-call-return-adoption.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/57-self-call-return-adoption.md"
 sourcePath: "docs/adr/57-self-call-return-adoption.md"
-sourceSha: "5f343371452b2be516ffe4e90a02647127b8d131398f04c22336ee8eb622a269"
-sourceCommit: "636f8725dd79aab2f711249ace6357a98b7e73a4"
+sourceSha: "55c5c20afabcaaa087c8a07d51b5d08fe1e196b3c6b942a7e1f20c07691d3ddd"
+sourceCommit: "106b93dd777b71aeef323dce1e4087c226c8ce37"
 translationStatus: "translated"
 sidebar:
   order: 4057
 ---
 
-ステータス: **Accepted — ゲートは2026-06-12にオープン（スライス1〜3）**。
+ステータス: **Accepted — ゲートは2026-06-12にオープン（スライス1〜3）；オーバーライド可能メソッドの採用ゲートを2026-06-13に追加（追補を参照）**。
 裁定のアークは完了した。ゲートオープンで発火するすべてのクラスを分類し、
 アーティファクトを根本で修正し（スライス1〜3）、残余をgenuine-or-winまで
 減らし、WD2に従ってゲートを恒久的にオープンした。
@@ -223,6 +223,14 @@ genuine-or-winなので、WD2に従ってゲートは恒久的にオープンし
 ADR-50のbleeding-edgeオーバーレイが先に出荷されれば、オープンしたゲートは自然な
 最初の`bleeding_edge:`機能になる。そうでなければWD2基準の下で通常のエンジン精密化
 変更として着地する。
+
+## 追補 ── オーバーライド可能メソッドの採用ゲート（2026-06-13）
+
+オープンしたゲートは、**テンプレートメソッド**（ミックスイン／基底クラス）パターンで行き過ぎる。基底モジュールまたはクラスが*デフォルト*としてリテラルを返すメソッドを定義し（`module Graph; def directed? = false; end`）、具象サブクラス／インクルーダーがそれをオーバーライドする（`DirectedAdjacencyGraph#directed? = true`）場合、基底モジュール自身のメソッド内の暗黙selfの`directed?`は基底ボディの`Constant[false]`を採用してしまう。この値は*素の*`Graph`レシーバーに対しては正しいが、**フロー定数**としては不健全である: 下流の`unless directed?`が常に真へ畳み込まれ、実際のレシーバーがオーバーライドするサブクラスかもしれないことを無視する。これは[2026-06-13のapp/networkコーパス調査](../notes/20260613-app-network-corpora-survey/)のN5行 ── `rgl`の警告セット**全体**（`adjacency`／`base`／`dot`／`transitivity`／…にまたがる13件の`flow.always-truthy-condition`偽陽性で、すべて`directed?`のテンプレート畳み込み）である。
+
+**リファインメント**。解決されたself呼び出しが*フロー定数として畳み込み可能な*戻り値（`Constant`、またはそれらの`Tuple` ── `always-truthy-condition`の畳み込みを駆動できる唯一のシェイプ）を採用する前に、ゲートは呼び出し先の**オーナー**（自身の`def`テーブルがボディを保持する祖先で、祖先解決ウォークを通じて追跡される）が、同じ種別（インスタンス対シングルトン）で同じメソッドを**再定義する**発見済みプロジェクト型を持ち、かつオーナーと**関連する**かどうかを検査する ── オーナークラスの推移的に発見されたサブクラス、またはオーナーモジュールをinclude／prependする（シングルトン種別ではextendする）クラス／モジュールである。オーナー自身の同名の再オープン（モンキーパッチ）はオーバーライドではない。ヒットした場合、戻り値は`Dynamic[top]`へ縮退してフロー定数を消す；これは**真にオーバーライドされたメソッドに対してのみ**意図的に`Dynamic`ソースを再びオープンする。発見されたオーバーライドを持たないメソッドは以前とまったく同じように畳み込まれる ── 調査が掲げる恒常的なリスク警告は、過剰な保守性がfinalメソッドに対して`Dynamic`を再オープンしてはならないというものであり、そのためゲートは証明済みのオーバーライドのケースと、FPを単独で生み出す定数戻り値のシェイプに限定される。
+
+この述語は既存の発見テーブルのみを参照し（再定義側については世代ごとの逆引き`method_name → [owners]`インデックスを介した`discovered_def_nodes`／`discovered_singleton_def_nodes`、関連性の検査にはメソッド解決経路が使うのと同じ`superclass_of`／`includes_of`祖先ウォーク）、ADR-57のフォローアップの戻り値メモと合成され（ゲートはメモの後、採用された*結果*に対して実行されるので、メモ化された戻り値も依然としてゲートされる ── メモキーは変わらず健全なままである）、世代ごとに`(owner, method, kind)`単位でメモ化される。関連性ウォークを定数シェイプの戻り値に限定することで、`make bench-perf`のアロケーションエンベロープをバンド内に保つ。`rigor check lib`セルフチェック、プラグインのセルフチェック、Mastodon`app/models`／kramdown`lib`／haml`lib`コーパスはバイト同一である；`rgl`は13件すべての警告を失う。
 
 ## 却下／先送りした代替案
 

@@ -3,8 +3,8 @@ title: "付録 — Steepから来た場合"
 description: "Imported from rigortype/rigor docs/handbook/appendix-steep.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/appendix-steep.md"
 sourcePath: "docs/handbook/appendix-steep.md"
-sourceSha: "54dc731dc057e8a92b40586f6221bfe72c8444bd9846b7f30e705d2fcfad930b"
-sourceCommit: "c64342708cd0effeb20265e84fe912ae22635159"
+sourceSha: "14751a31fb52f22db793775d8d4781d512b656d8092163928c8931c2fe5f18db"
+sourceCommit: "106b93dd777b71aeef323dce1e4087c226c8ce37"
 translationStatus: "translated"
 sidebar:
   order: 1050
@@ -14,21 +14,6 @@ sidebar:
 [Steep](https://github.com/soutaro/steep)はRubyの確立した静的型チェッカーであり、RBS駆動の解析のデファクト標準実装である。Steepを使ったことがある場合、最も重要なことは**Rigorが同じ`.rbs`ファイルを読む**ということ — 既存のシグネチャはそのまま移植できる。ふたつのツールは排他的ではなく補完的。
 
 この付録はSteepの語彙で考えており、Steepのどの概念がRigorのどの概念に対応するかを知りたいユーザー向け。
-
-> **この付録の内容**
-> [5秒ピッチ](#5秒ピッチ) ·
-> [両者ともRBSを消費する](#両者ともrbsを消費する--それが共通の基盤) ·
-> [型語彙マッピング](#型語彙--rbsレベルのマッピングは恒等関数) ·
-> [`.rb`アノテーション](#rbソース内のアノテーション) ·
-> [Steepfile vs `.rigor.yml`](#steepfile-vs-rigoryml) ·
-> [深刻度モデル](#深刻度モデル) ·
-> [診断語彙](#診断語彙) ·
-> [抑制](#抑制) ·
-> [「アノテーション不要」](#アノテーション不要-最大の実践的な違い) ·
-> [SteepにあってRigorにないもの](#steepにあってrigorにないもの) ·
-> [RigorにあってSteepにないもの](#rigorにあってsteepにないもの) ·
-> [共存パターン](#共存パターン) ·
-> [マイグレーションvignette](#マイグレーションvignette)
 
 ## 5秒ピッチ
 

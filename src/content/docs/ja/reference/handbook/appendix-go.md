@@ -3,8 +3,8 @@ title: "付録 — Goから来た場合"
 description: "Imported from rigortype/rigor docs/handbook/appendix-go.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/appendix-go.md"
 sourcePath: "docs/handbook/appendix-go.md"
-sourceSha: "e0189404c00830bc18997108e31b5e33d5446e7d23b00c118e34782c9cd9d2ff"
-sourceCommit: "18ef11c9f393b495cd9a6ed7277846069c08c516"
+sourceSha: "f5fe766c9f2c53b0dd7a9d00aa2f54bd5a06021a85ae54378e94e0fc80f9be7b"
+sourceCommit: "106b93dd777b71aeef323dce1e4087c226c8ce37"
 translationStatus: "translated"
 sidebar:
   order: 1050
@@ -14,22 +14,6 @@ sidebar:
 「型」についてのメンタルモデルがGoで形作られたなら、この付録はRigorの語彙をあなたがすでに知っている概念にマッピングする。ふたつには人を驚かせる本物の接点がある: Goの*暗黙的に満たされる*インターフェースは、まさにRigorの構造的型付け（structural typing）の動き方そのものだ。Rigorで最も誤解される機能 — 「このクラスがインターフェースを実装すると、どこで宣言するのか？」 — は、Goプログラマーが反射的にすでに理解しているものだ。あなたは宣言しない。Goでも一度もしたことがなかったはずだ。
 
 これは変換表に、ふたつが分岐する箇所の議論を加えたものだ。Goは小さく、コンパイルされ、意図的に切り詰められている — 直和型（sum type）なし、継承なし、値としてのエラー、いたるところにゼロ値。Rigorは、Goが省いたもの（ユニオン型、リファインメント、リテラル型、nilナローイング）を加え、Goがコンパイル言語として必要とするもの（ビルドゲートそのもの）を落とす。
-
-> **この付録の内容**
-> [5秒ピッチ](#5秒ピッチ) ·
-> [型語彙マッピング](#型語彙マッピング) ·
-> [構造的インターフェース — すでに知っている部分](#構造的インターフェース--すでに知っている部分) ·
-> [ナローイング ↔ type switch / アサーション](#ナローイング--type-switch--アサーション) ·
-> [値としてのエラーvs raise](#値としてのエラー-vs-raise) ·
-> [nil、ゼロ値、不在](#nilゼロ値不在) ·
-> [構造体 ↔ Data.define](#構造体--datadefine) ·
-> [Goにない直和型](#goにない直和型) ·
-> [リファインメントと定義型](#リファインメントと定義型) ·
-> [ジェネリクス](#ジェネリクス) ·
-> [深刻度とstrictモード](#深刻度抑制strictモード) ·
-> [GoにあってRigorにないもの](#goにあってrigorにないもの) ·
-> [RigorにあってGoにないもの](#rigorにあってgoにないもの) ·
-> [マイグレーションvignette](#マイグレーションvignette)
 
 ## 5秒ピッチ
 

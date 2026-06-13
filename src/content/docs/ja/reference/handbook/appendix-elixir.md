@@ -3,8 +3,8 @@ title: "付録 — Elixirから来た場合"
 description: "Imported from rigortype/rigor docs/handbook/appendix-elixir.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/appendix-elixir.md"
 sourcePath: "docs/handbook/appendix-elixir.md"
-sourceSha: "b751eea73b925a30ca7dcc9886a129120cc558d56655dc04c599ce3548ce7697"
-sourceCommit: "18ef11c9f393b495cd9a6ed7277846069c08c516"
+sourceSha: "3352b5db616aba31c6392f0bc5bf6a4b5c3e4e607ae6e775d3c2132dbe08eac1"
+sourceCommit: "106b93dd777b71aeef323dce1e4087c226c8ce37"
 translationStatus: "translated"
 sidebar:
   order: 1050
@@ -16,20 +16,6 @@ sidebar:
 直接の系譜さえある。Rigorの節到達可能性ルール（[ADR-47](../../adr/47-narrowing-driven-clause-reachability/)）は、ありえない`case`節を検出するElixir自身の取り組みをモデルにしている。あなたはRigorの設計上の影響源のひとつから来たのだ。
 
 これは翻訳テーブルであると同時に、両者が分岐する点 — Elixirは関数型でイミュータブルかつプロセス指向だが、Rigorはオブジェクト指向でミュータブルな言語を解析する — と、予想以上にうまく揃う点についての議論でもある。
-
-> **この付録の内容**
-> [5秒ピッチ](#5秒ピッチ) ·
-> [型語彙マッピング](#型語彙マッピング) ·
-> [パターンマッチング＆ガード ↔ ナローイング](#パターンマッチングガード--ナローイング) ·
-> [集合論的型と漸進的な`dynamic()`](#集合論的型と漸進的なdynamic) ·
-> [タグ付きタプル ↔ case/in](#タグ付きタプル--casein) ·
-> [アトム ↔ シンボル](#アトム--シンボル) ·
-> [プロトコル＆ビヘイビア](#プロトコルビヘイビア) ·
-> [リファインメント ↔ ガード](#リファインメント--ガード) ·
-> [深刻度とstrictモード](#深刻度抑制strictモード) ·
-> [ElixirにあってRigorにないもの](#elixirにあってrigorにないもの) ·
-> [RigorにあってElixirにないもの](#rigorにあってelixirにないもの) ·
-> [マイグレーションvignette](#マイグレーションvignette)
 
 ## 5秒ピッチ
 

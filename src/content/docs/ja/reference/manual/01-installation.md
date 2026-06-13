@@ -3,8 +3,8 @@ title: "Rigorのインストール"
 description: "rigortype/rigor docs/manual/01-installation.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/01-installation.md"
 sourcePath: "docs/manual/01-installation.md"
-sourceSha: "559eb5670ce3d6f0bd3c00fad85adfe2cbc7c58a02a0598a5c2535273a61e52b"
-sourceCommit: "636f8725dd79aab2f711249ace6357a98b7e73a4"
+sourceSha: "d1df7126afb7db47f7584da3030d543194ae91ba7ae67c75d8cd205dad843a2e"
+sourceCommit: "106b93dd777b71aeef323dce1e4087c226c8ce37"
 translationStatus: "translated"
 sidebar:
   order: 9001
@@ -192,15 +192,25 @@ https://raw.githubusercontent.com/rigortype/rigor/refs/heads/master/docs/install
 
 </details>
 
+<details lang="ar" dir="rtl"><summary>[ar] العربية</summary>
+
+```
+قم بتثبيت Rigor في هذا المشروع باتباع التعليمات الموجودة في:
+https://raw.githubusercontent.com/rigortype/rigor/refs/heads/master/docs/install.md
+```
+
 </details>
 
-> **インストールチャンネル** —
-> [mise（推奨）](#推奨--ランタイムバージョンマネージャー) ·
-> [asdf](#asdf) ·
-> [gem install](#シンプルな代替手段--gem-install) ·
-> [Nix](#nix) ·
-> [devコンテナ](#コンテナ内での開発) ·
-> [CI](#継続的インテグレーション)
+<details lang="fa" dir="rtl"><summary>[fa] فارسی</summary>
+
+```
+Rigor را با دنبال کردن دستورالعمل‌های موجود در این آدرس در این پروژه نصب کنید:
+https://raw.githubusercontent.com/rigortype/rigor/refs/heads/master/docs/install.md
+```
+
+</details>
+
+</details>
 
 ## 推奨 — ランタイムバージョンマネージャー
 

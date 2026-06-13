@@ -3,26 +3,14 @@ title: "タプルとハッシュシェイプ"
 description: "rigortype/rigor docs/handbook/04-tuples-and-shapes.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/04-tuples-and-shapes.md"
 sourcePath: "docs/handbook/04-tuples-and-shapes.md"
-sourceSha: "6e5ea98bdda63e4e994fffc9466cc1afc46cd20488192bc38179e65c64aa06ac"
-sourceCommit: "18ef11c9f393b495cd9a6ed7277846069c08c516"
+sourceSha: "560e30209fe350088a67469c8234806a37c878f4fcfcab346f3d3f46e3ae0f96"
+sourceCommit: "106b93dd777b71aeef323dce1e4087c226c8ce37"
 translationStatus: "translated"
 sidebar:
   order: 1004
 ---
 
 `Tuple`と`HashShape`は、Rigorが異種配列と既知キーのハッシュに精密な型を与える方法です。外見上はRubyの`Array`と`Hash`によく似ており（RBS境界を越えるとこれらの名前的型（nominal type、公称型とも）に消去されます）、Rigorの内部では通常の`Array[T]` / `Hash[K, V]`が失ってしまう、位置ごと/キーごとの型情報を持ちます。
-
-> **この章の内容**
-> [タプル](#タプル--異種配列) ·
-> [`map` / `select`を通じたタプル](#mapselectなどを通じたタプル) ·
-> [タプルの拡幅](#タプルの拡幅--いつなぜ) ·
-> [ハッシュシェイプ](#ハッシュシェイプ--既知キーのハッシュ) ·
-> [メソッド経由のハッシュシェイプ](#メソッド呼び出しを通じたハッシュシェイプ) ·
-> [キーワード引数ハッシュ](#キーワード引数ハッシュ) ·
-> [スプラット合成](#スプラット合成) ·
-> [パターンマッチング](#パターンマッチング分解) ·
-> [レイアウトが証明できないとき](#レイアウトが証明できないとき) ·
-> [新しいシェイプの派生（Pick / Omit / …）](#新しいシェイプを派生させる--pick_of--omit_of--partial_of--required_of--readonly_of)
 
 ## タプル — 異種配列
 

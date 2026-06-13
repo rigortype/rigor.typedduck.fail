@@ -3,8 +3,8 @@ title: "Appendix — Protocols, interfaces, and structural typing"
 description: "Imported from rigortype/rigor docs/handbook/appendix-protocols-and-structural-typing.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/appendix-protocols-and-structural-typing.md"
 sourcePath: "docs/handbook/appendix-protocols-and-structural-typing.md"
-sourceSha: "20b59077a51dd86324158e122de225fef9fcfe0c040d046875b4bd04bae97d2e"
-sourceCommit: "37d70ab9071b4a25e954d0157818f0b6ae88e2c2"
+sourceSha: "fcd26ad36baba0e7c239a900e45c72ef0d8d2739e38e43a8b9674af1c90be34d"
+sourceCommit: "106b93dd777b71aeef323dce1e4087c226c8ce37"
 translationStatus: "translated"
 sidebar:
   order: 1050
@@ -14,17 +14,7 @@ Pythonから来た読者にとって、「protocol」は一つの特定の意味
 
 その直感は正しいのですが、Rigorではこの*言葉*が罠になります。Rigorの構造的型付け機能は「protocol」とは呼ばれません。それはRBSの**`interface`**です。一方で「protocol」という言葉はRigorにも*登場します*が、それは**別の**機能、すなわちフレームワークのパススコープな*振る舞い的契約*（[ADR-28](../../adr/28-path-scoped-protocol-contracts/)）を指します。この付録は、あなたが正しい方を選べるよう、この二つを解きほぐします。
 
-> **一行版**。 Rigorの`interface`は**構造的**です ── Goの`interface`やPythonの`Protocol`と同じです。クラスは*メソッドを持っていること*で適合します。**`implements`句はありません**（Rubyにはそもそも存在しません）。これはJava／PHPの名前的な`interface`、すなわちクラスが名前で適合を宣言するものとは*異なります*。素の「interface」という言葉は多くのRuby開発者にはJava／PHP流のものとして読まれてしまう（Rubyに`interface`キーワードがないため、直感が外部から持ち込まれる）ので、Rigorのドキュメントは初出時にそれを限定します ── **「構造的インターフェース」**または**「RBSインターフェース」**と ── あなたもそれについて書くときはそうすべきです。
-
-> **この付録の内容**
-> [「protocol」と呼ばれる二つのもの](#protocolと呼ばれる二つのもの) ·
-> [構造的型付け：RBSのインターフェース](#構造的型付けrbsのインターフェース) ·
-> [オブジェクトシェイプとケイパビリティロール](#オブジェクトシェイプとケイパビリティロール) ·
-> [言葉と意味論、言語をまたいで](#言葉と意味論言語をまたいで) ·
-> [プロトコル契約（ADR-28）](#プロトコル契約adr-28) ·
-> [インターフェース対プロトコル契約](#インターフェース対プロトコル契約) ·
-> [自分が欲しいのはどちら？](#自分が欲しいのはどちら) ·
-> [次に読むもの](#次に読むもの)
+> **一行版**。Rigorの`interface`は**構造的**です ── Goの`interface`やPythonの`Protocol`と同じです。クラスは*メソッドを持っていること*で適合します。**`implements`句はありません**（Rubyにはそもそも存在しません）。これはJava／PHPの名前的な`interface`、すなわちクラスが名前で適合を宣言するものとは*異なります*。素の「interface」という言葉は多くのRuby開発者にはJava／PHP流のものとして読まれてしまう（Rubyに`interface`キーワードがないため、直感が外部から持ち込まれる）ので、Rigorのドキュメントは初出時にそれを限定します ── **「構造的インターフェース」**または**「RBSインターフェース」**と ── あなたもそれについて書くときはそうすべきです。
 
 ## 「protocol」と呼ばれる二つのもの
 

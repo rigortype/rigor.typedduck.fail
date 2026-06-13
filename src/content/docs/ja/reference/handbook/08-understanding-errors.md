@@ -3,25 +3,14 @@ title: "エラーの読み方"
 description: "rigortype/rigor docs/handbook/08-understanding-errors.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/08-understanding-errors.md"
 sourcePath: "docs/handbook/08-understanding-errors.md"
-sourceSha: "1977527686b9694a261b7ecec5dde36ba429dc14247b94f6307b2316b9526c32"
-sourceCommit: "6bcf38aa850fa4324ea959b2ce5cfdb61a88aa28"
+sourceSha: "9374dad0d5897c191a97ee94699cfe6e583e7d554f339f0fc7c5b45d70595142"
+sourceCommit: "106b93dd777b71aeef323dce1e4087c226c8ce37"
 translationStatus: "translated"
 sidebar:
   order: 1008
 ---
 
 この章はRigorが出荷する診断のカタログ、それらが属するファミリー、そして診断が間違っているとき（または深刻度を変えたいとき）に抑制する方法です。診断に — どちらの方向であれ — 驚かされたときに最初に開くページです。
-
-> **この章の内容**
-> [診断の構造](#診断の構造) ·
-> [ルールカタログ](#ルールカタログ) — [`call.*`](#call--呼び出し元ルール) · [`flow.*`](#flow--フロー解析ルール) · [`def.*`](#def--メソッド定義ルール) · [`assert.*`](#assert--ランタイムアサーションルール) · [`dump.*`](#dump--デバッグヘルパー) ·
-> [深刻度プロファイル](#深刻度プロファイル) ·
-> [ルールごとのオーバーライド](#ルールごとのオーバーライド) ·
-> 抑制 — [インソース](#インソース抑制) · [ファイル全体](#ファイルスコープの抑制) · [プロジェクト全体](#プロジェクト全体の抑制) ·
-> [CIのためのベースライン差分](#ciのためのベースライン差分) ·
-> [期待通り発火しない？](#期待していたのに診断が発火しない理由) ·
-> [予期せず発火した？](#来るべきでないと思う診断が発火している理由) ·
-> [導入ワークフロー](#役立つワークフロー)
 
 ## 診断の構造
 

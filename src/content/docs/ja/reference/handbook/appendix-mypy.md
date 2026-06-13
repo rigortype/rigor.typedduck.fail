@@ -3,8 +3,8 @@ title: "付録 — mypy / Pyrightから来た場合"
 description: "Imported from rigortype/rigor docs/handbook/appendix-mypy.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/appendix-mypy.md"
 sourcePath: "docs/handbook/appendix-mypy.md"
-sourceSha: "840758e65bcddd048532a8e07eecb6de9824f3698903cfb0d45eab7e6c7058e0"
-sourceCommit: "18ef11c9f393b495cd9a6ed7277846069c08c516"
+sourceSha: "07d6a38cd6ba7d8fffd45c57684bd32e2c1df5bdaca9403c83f1a0b3024506d8"
+sourceCommit: "106b93dd777b71aeef323dce1e4087c226c8ce37"
 translationStatus: "translated"
 sidebar:
   order: 1050
@@ -12,21 +12,6 @@ sidebar:
 ---
 
 静的型付けのベースラインがPythonのmypyやPyrightであれば、この付録でRigorとの語彙をマッピングする。ふたつのエコシステムは見かけ以上に多くを共有している — <ruby>漸進的型付け<rp>（</rp><rt>gradual typing</rt><rp>）</rp></ruby>、「ランタイムを壊さない」哲学、独立した型スタブファイル（`.pyi`/`.rbs`） — だが、アノテーションをどこに置くか、推論をどこまで積極的にするかで異なる選択をしている。
-
-> **この付録の内容**
-> [5秒ピッチ](#5秒ピッチ) ·
-> [型語彙マッピング](#型語彙マッピング) ·
-> [リファインメントキャリア](#リファインメントキャリアvs-pythonのアノテーション慣習) ·
-> [ナローイング](#ナローイング--親しみやすい部分) ·
-> [スタブ ↔ RBS](#スタブ--rbs) ·
-> [深刻度とstrictモード](#深刻度抑制strictモード) ·
-> [Pyright vs Rigor](#pyright-vs-rigor) ·
-> [「アノテーション不要」](#アノテーション不要-ここでも本当) ·
-> [ジェネリクス](#ジェネリクス) ·
-> [Protocol ↔ RBSインターフェース](#protocol--rbsインターフェース) ·
-> [mypy/PyrightにあってRigorにないもの](#mypy--pyrightにあってrigorにないもの) ·
-> [Rigorにあってmypy/Pyrightにないもの](#rigorにあってmypy--pyrightにないもの) ·
-> [マイグレーションvignette](#マイグレーションvignette)
 
 ## 5秒ピッチ
 

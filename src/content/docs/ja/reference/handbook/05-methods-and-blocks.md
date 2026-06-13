@@ -3,27 +3,14 @@ title: "メソッドとブロック"
 description: "rigortype/rigor docs/handbook/05-methods-and-blocks.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/05-methods-and-blocks.md"
 sourcePath: "docs/handbook/05-methods-and-blocks.md"
-sourceSha: "bb62f751cb99c114644f66e9237a0a94b539e4d745b0056fb41b11a53fae33a3"
-sourceCommit: "18ef11c9f393b495cd9a6ed7277846069c08c516"
+sourceSha: "73c555a08c2e51140d533df9533983818a36aee58f27fcafde5fad606e464962"
+sourceCommit: "106b93dd777b71aeef323dce1e4087c226c8ce37"
 translationStatus: "translated"
 sidebar:
   order: 1005
 ---
 
 この章では、Rigorがメソッド呼び出しについて知っていること — レシーバーの型、引数の型、推論された戻り値型、ブロックが付属している場合のブロックパラメータ — を扱います。いくつかのセクションは呼び出し元診断のリファレンスも兼ねており、見出しにルールIDが現れます。
-
-> **この章の内容**
-> [メソッドディスパッチ](#メソッドディスパッチ--呼び出し元でrigorが見るもの) ·
-> [引数型（`call.argument-type-mismatch`）](#引数型付け--callargument-type-mismatch) ·
-> [アリティ（`call.wrong-arity`）](#アリティ--callwrong-arity) ·
-> [未定義メソッド（`call.undefined-method`）](#callundefined-method) ·
-> [nilレシーバー（`call.possible-nil-receiver`）](#callpossible-nil-receiver) ·
-> [戻り値型推論](#インソースメソッドの戻り値型推論) ·
-> [戻り値の不一致（`def.return-type-mismatch`）](#defreturn-type-mismatch) ·
-> [ブロックパラメータ](#ブロックパラメータ) ·
-> [番号付きパラメータと`it`](#番号付きパラメータとit) ·
-> [ブロックローカル](#ブロックローカル宣言do-i-x) ·
-> [クロージャエスケープ](#クロージャエスケープとキャプチャされたローカル変数)
 
 ## メソッドディスパッチ — 呼び出し元でRigorが見るもの
 

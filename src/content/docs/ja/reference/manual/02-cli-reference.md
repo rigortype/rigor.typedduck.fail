@@ -3,8 +3,8 @@ title: "CLIコマンドリファレンス"
 description: "rigortype/rigor docs/manual/02-cli-reference.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/02-cli-reference.md"
 sourcePath: "docs/manual/02-cli-reference.md"
-sourceSha: "d8c989c9f19e34cf930453b0bb93d8b436c03a85f2667edfc16d45c703aefe18"
-sourceCommit: "636f8725dd79aab2f711249ace6357a98b7e73a4"
+sourceSha: "d2cc41ca8f06f469fbf7b2c7c3e592cef1df98c57d9688e64f6a5fd3aed593f8"
+sourceCommit: "106b93dd777b71aeef323dce1e4087c226c8ce37"
 translationStatus: "translated"
 sidebar:
   order: 9002
@@ -17,19 +17,6 @@ rigor <command> [options] [arguments]
 ```
 
 `rigor help`はコマンド一覧を表示し、`rigor version`はインストール済みバージョンを表示します。不明なコマンドや不正なオプションの場合、`64`で終了します——これは慣例的な「使用法エラー」コードです。
-
-> **コマンド**
-> [check](#rigor-check) · [init](#rigor-init) ·
-> [annotate](#rigor-annotate) · [type-of](#rigor-type-of) ·
-> [trace](#rigor-trace) ·
-> [type-scan](#rigor-type-scan) · [explain](#rigor-explain) ·
-> [diff](#rigor-diff) · [sig-gen](#rigor-sig-gen) ·
-> [lsp](#rigor-lsp) · [baseline](#rigor-baseline) ·
-> [triage](#rigor-triage) · [coverage](#rigor-coverage) ·
-> [mcp](#rigor-mcp) · [plugins](#rigor-plugins) ·
-> [plugin](#rigor-plugin) · [playground](#rigor-playground) ·
-> [skill](#rigor-skill) · [lsp対mcp](#rigor-lsp対rigor-mcp) ·
-> [終了コード](#終了コード)
 
 ## `rigor check`
 

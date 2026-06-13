@@ -3,8 +3,8 @@ title: "付録 — Rustから来た場合"
 description: "Imported from rigortype/rigor docs/handbook/appendix-rust.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/appendix-rust.md"
 sourcePath: "docs/handbook/appendix-rust.md"
-sourceSha: "98b2446f4787f0c9ad561e297f87855275269e42dc75234b4c17e3911c48b4dd"
-sourceCommit: "18ef11c9f393b495cd9a6ed7277846069c08c516"
+sourceSha: "5c6a066a3b1b1b7865e41ddc68877914087c73a46a3bf6b4ae5539946b2ae19c"
+sourceCommit: "106b93dd777b71aeef323dce1e4087c226c8ce37"
 translationStatus: "translated"
 sidebar:
   order: 1050
@@ -14,21 +14,6 @@ sidebar:
 「型」のメンタルモデルがRustで形作られているなら、この付録はRigorの語彙を既知の概念にマッピングする。RustとRigorは1本の軸の両端に位置する — Rustはアヘッドオブタイムで健全であり、安全だと証明できないものは一切コンパイルを拒む。一方Rigorはすでに動いているRubyを解析し、*誤り*だと証明できないものについては沈黙を守る — だがそれ以外の点では驚くほど頻繁に交わる。直和型（sum type）、網羅的マッチング、10億ドルのnullの不在などだ。
 
 これは対応表に加え、ふたつのシステムが本当に異なる選択をしている箇所についての議論である。そうした箇所こそ、あなたのRustの反射が誤った方向へ導く場所だ。最大のものはこれである。Rustの型チェッカーはプログラムが存在する前に通過しなければならないゲートだが、Rigorのそれはすでに動いているプログラムに対する助言者だ。借用チェッカーもなければ所有権もなく、「コンパイルが通らない」もない — Rubyは動いてしまっており、Rigorは型がどこで誤ると証明できるかを伝える。
-
-> **この付録の内容**
-> [5秒ピッチ](#5秒ピッチ) ·
-> [型語彙マッピング](#型語彙マッピング) ·
-> [OptionとResult](#optionとresult) ·
-> [ナローイング ↔ match / if let](#ナローイング--match--if-let) ·
-> [直和型と網羅性](#直和型と網羅性) ·
-> [構造体 ↔ Data.define](#構造体--datadefine) ·
-> [トレイト ↔ RBSインターフェース](#トレイト--rbsインターフェース) ·
-> [リファインメントvs newtypeパターン](#リファインメント-vs-newtypeパターン) ·
-> [ジェネリクス](#ジェネリクス) ·
-> [深刻度とstrictモード](#深刻度抑制strictモード) ·
-> [RustにあってRigorにないもの](#rustにあってrigorにないもの) ·
-> [RigorにあってRustにないもの](#rigorにあってrustにないもの) ·
-> [マイグレーションvignette](#マイグレーションvignette)
 
 ## 5秒ピッチ
 

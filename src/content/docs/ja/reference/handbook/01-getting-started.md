@@ -3,8 +3,8 @@ title: "はじめに"
 description: "rigortype/rigor docs/handbook/01-getting-started.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/01-getting-started.md"
 sourcePath: "docs/handbook/01-getting-started.md"
-sourceSha: "6635272ff3d5973e002fe38f459c144321104eba2992e3c6864d272eb9ec0fc0"
-sourceCommit: "18ef11c9f393b495cd9a6ed7277846069c08c516"
+sourceSha: "43b3030d986c8a964239bca058cbff7f6a77d765670972c5f3fc7ce8206f6099"
+sourceCommit: "106b93dd777b71aeef323dce1e4087c226c8ce37"
 translationStatus: "translated"
 sidebar:
   order: 1001
@@ -17,15 +17,6 @@ sidebar:
 - ほとんどのチェッカーとRigorを分かつ「注釈不要」のスタンス——そして推論が及ばないときの抜け道——を理解する。
 
 これは唯一、最初から最後まで読むべき章です。ハンドブックの残りは、あとから拾い読みできるリファレンスです。
-
-> **この章の内容**
-> [Rigorのインストール](#rigorのインストール) ·
-> [`rigor check`が見るもの](#rigor-checkは何を見ているのか) ·
-> [最小の動作セッション](#最小の動作セッション) ·
-> [診断の読み方](#診断の読み方) ·
-> [「注釈なし」のスタンス](#注釈なしのスタンス) ·
-> [推論だけでは足りないとき](#推論だけでは足りないとき) ·
-> [設定ファイル](#設定ファイル)
 
 ## Rigorのインストール
 

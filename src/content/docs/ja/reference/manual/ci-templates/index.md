@@ -3,8 +3,8 @@ title: "CIセットアップテンプレート"
 description: "Imported from rigortype/rigor docs/manual/ci-templates/README.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/ci-templates/README.md"
 sourcePath: "docs/manual/ci-templates/README.md"
-sourceSha: "6ad944b4b6d3f1b8981224949c251da04fc662af527695fd1b80771b7357c9d6"
-sourceCommit: "c64342708cd0effeb20265e84fe912ae22635159"
+sourceSha: "5e55dea76441c46a024c83ccdb9da1d650d612a1543d8210bea8b13b60394108"
+sourceCommit: "106b93dd777b71aeef323dce1e4087c226c8ce37"
 translationStatus: "translated"
 sidebar:
   order: 9000
@@ -12,6 +12,8 @@ sidebar:
 ---
 
 プロジェクトのパイプラインでRigorを実行するためのコピー＆ペースト用CI設定。それぞれがRuby 4.0上の**独立した専用ジョブ**でRigorを実行し（なぜ分離が必要かは[第11章「CIでのRigor実行」](../11-ci/)を参照）、CIネイティブな出力フォーマットを介してプル／マージリクエスト上で診断をインラインに表示する（[ADR-51](../../adr/51-ci-diagnostic-output-formats/)）。
+
+`ruby/setup-ruby`は`ubuntu-latest`向けに**事前ビルド済み**のRuby 4.0.xバイナリを提供する — セットアップは高速（約0.3秒）で、ソースからのコンパイル待ちにはならない。2026-06-13に検証: `setup-ruby`は`ruby-version: "4.0"`をランナーのツールキャッシュからRuby 4.0.5へ解決する。
 
 | ファイル | コピー先 | 役割 |
 | --- | --- | --- |

@@ -3,8 +3,8 @@ title: "ナローイング"
 description: "rigortype/rigor docs/handbook/03-narrowing.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/03-narrowing.md"
 sourcePath: "docs/handbook/03-narrowing.md"
-sourceSha: "dd84834d0848841d221fce78caa911225e927dedcfcdce902dd2308f68eed2ba"
-sourceCommit: "6bcf38aa850fa4324ea959b2ce5cfdb61a88aa28"
+sourceSha: "d31174d9169a666c7f84515130d338256366acefabb5f57ecebbcb6d38316236"
+sourceCommit: "106b93dd777b71aeef323dce1e4087c226c8ce37"
 translationStatus: "translated"
 sidebar:
   order: 1003
@@ -13,21 +13,6 @@ sidebar:
 キャリア（carrier）はあるプログラム地点における値を記述します。**ナローイング**（narrowing）は、制御フローが述語を通過するときにキャリアがどう変化するかを記述します。この章では、Rigorが現在認識しているナローイングのあらゆる形式を解説します。
 
 メンタルモデル: 各述語は2つのスコープを生成します — 真値のエッジと偽値のエッジです。各エッジの内側では、変数のキャリアが述語が証明したものに鋭利化されます。述語が認識されなければ、両エッジはエントリースコープをそのまま共有します。
-
-> **この章の内容**
-> [真偽性](#真偽性ナローイング) ·
-> [`nil?`](#nilとその逆) ·
-> [`is_a?` / `kind_of?` / `instance_of?`](#is_akind_ofinstance_of) ·
-> [リテラル等値](#リテラル値との等値比較) ·
-> [`case` / `when`](#case--when) ·
-> [論理演算](#論理演算) ·
-> [整数比較](#整数比較) ·
-> [述語メソッド](#リファインメントに対する述語メソッド) ·
-> [名前付きキャプチャ正規表現](#名前付きキャプチャ正規表現ナローイング) ·
-> [否定と`unless`](#否定とunless) ·
-> [ローカル再バインド](#ローカル変数の再バインドはナローイングをリセットする) ·
-> [まだナローイングされないもの](#まだナローイングされないもの) ·
-> [ナローイングトレースを読む](#ナローイングトレースを読む)
 
 ## 真偽性ナローイング
 

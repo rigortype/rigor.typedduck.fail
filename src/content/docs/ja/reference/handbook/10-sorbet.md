@@ -3,8 +3,8 @@ title: "Sorbetとの共存"
 description: "rigortype/rigor docs/handbook/10-sorbet.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/10-sorbet.md"
 sourcePath: "docs/handbook/10-sorbet.md"
-sourceSha: "906e21bb35e6f81cd34c518249f5105ffa9dd4ad6bfe12caba9cbce097354421"
-sourceCommit: "115824d2e84dbb9f14d031172159de8ab07e0619"
+sourceSha: "bf2adc6f3c2c4b40cd7c5c19f26a60b42b1f57cb6462fa8c9889327ef580f01d"
+sourceCommit: "106b93dd777b71aeef323dce1e4087c226c8ce37"
 translationStatus: "translated"
 sidebar:
   order: 1010
@@ -13,18 +13,6 @@ sidebar:
 プロジェクトがすでに[Sorbet](https://sorbet.org/)を使っているなら、[`rigor-sorbet`](../../plugins/rigor-sorbet/)プラグインを使えば、RigorがSorbetの既存の`sig`ブロック、RBIファイル、`T.let` / `T.cast` / `T.must` / `T.unsafe`アサーションを型ソースとして読み取れます。`rigor check`を`srb tc`と並行して実行するために、何もRBSに書き直す必要はありません。
 
 この章はSorbetを使用しているプロジェクトから来たユーザー向けです。Sorbetを使ったことがなければ、スキップしてかまいません。第1〜9章のコアハンドブックがRigorのネイティブなRBSベースのパスをカバーしています。
-
-> **この章の内容**
-> [何が翻訳されるか](#何が翻訳されるか) ·
-> [Sorbetの型語彙](#sorbetの型語彙) ·
-> [インライン型アサーション（`T.let` / `T.must` / …）](#インライン型アサーション) ·
-> [RBIファイル](#rbiファイル) ·
-> [`# typed:`シジル](#sorbet--typedシジル) ·
-> [Tapioca DSLミックスイン](#tapioca-dsl--ミックスインパターン) ·
-> [`T.absurd`網羅性](#tabsurd網羅性) ·
-> [競合時のティア順序](#ティア順序--競合時に何が勝つか) ·
-> [移行パターン](#移行パターン) ·
-> [置き換えないもの](#プラグインが置き換えないもの)
 
 ## 何が翻訳されるか
 

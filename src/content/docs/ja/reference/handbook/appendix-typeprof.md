@@ -3,8 +3,8 @@ title: "付録 — TypeProfから来た場合"
 description: "Imported from rigortype/rigor docs/handbook/appendix-typeprof.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/appendix-typeprof.md"
 sourcePath: "docs/handbook/appendix-typeprof.md"
-sourceSha: "096bc456247e9bce02ed26ba4c12268d1995a69ba22c68e0a5eee1473346f039"
-sourceCommit: "c64342708cd0effeb20265e84fe912ae22635159"
+sourceSha: "8e393c4386a492521e937f49d9f9eca48d8704bac8f30596830d3a1d30e96305"
+sourceCommit: "106b93dd777b71aeef323dce1e4087c226c8ce37"
 translationStatus: "translated"
 sidebar:
   order: 1050
@@ -13,20 +13,6 @@ sidebar:
 [TypeProf](https://github.com/ruby/typeprof)はRubyの公式な型*推論*ツール — Rubyコア内でメンテナンスされている型レベルの抽象インタープリタであり、アノテートされていない`.rb`ファイルを読んで推論した型を教えてくれる。TypeProfを使ったことがある場合、最も重要なことは**RigorとTypeProfがTypeProfの目玉となる約束を共有している**ということ。どちらもまず`.rbs`を書くことを要求しない。Steepの付録が「両者とも同じRBSを消費する」で始まるのに対し、こちらはその逆 — 両者ともプレーンなRubyから型情報を*生成する*で始まる。興味深い違いは、*どのように*推論するか、そして*結果をどう扱うか*にある。
 
 この付録は既にTypeProfの語彙で考えており、TypeProfのどの概念がRigorのどの概念に対応するかを知りたいユーザー向け。
-
-> **この付録の内容**
-> [5秒ピッチ](#5秒ピッチ) ·
-> [両者ともアノテーションなしで推論する](#両者ともアノテーションなしで推論する--それが共通の基盤) ·
-> [型語彙](#型語彙--typeprof出力vs-rigorキャリア) ·
-> [解析モデル](#解析モデル--最大の概念的な違い) ·
-> [RBS生成vs`sig-gen`](#rbs生成--typeprof-cli-vs-rigor-sig-gen) ·
-> [推論の燃料としてのテスト](#推論の燃料としてのテスト--双方向の問い) ·
-> [診断: 副作用vs製品](#診断--副作用vs主たる製品) ·
-> [起動](#起動) ·
-> [TypeProfにあってRigorにないもの](#typeprofにあってrigorにないもの) ·
-> [RigorにあってTypeProfにないもの](#rigorにあってtypeprofにないもの) ·
-> [共存パターン](#共存パターン) ·
-> [マイグレーションvignette](#マイグレーションvignette)
 
 ## 5秒ピッチ
 

@@ -3,8 +3,8 @@ title: "RBSと`RBS::Extended`"
 description: "rigortype/rigor docs/handbook/07-rbs-and-extended.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/07-rbs-and-extended.md"
 sourcePath: "docs/handbook/07-rbs-and-extended.md"
-sourceSha: "1b5ca2cf332a16b746d3dd7ca8837b320ab901897dd49329e01321671b7f58c1"
-sourceCommit: "115824d2e84dbb9f14d031172159de8ab07e0619"
+sourceSha: "adcc13413121eb66941dd2e88a760618ccfe787c3da86e9224da283665b7395a"
+sourceCommit: "106b93dd777b71aeef323dce1e4087c226c8ce37"
 translationStatus: "translated"
 sidebar:
   order: 1007
@@ -13,20 +13,6 @@ sidebar:
 Rigorの推論が型を証明できないとき、次の逃げ道はRBS — Rubyのシグネチャ言語 — です。RBSが求める精密な契約（contract）を表現できないとき、`RBS::Extended`がその上に小さなアノテーション表面を追加します。
 
 この章では、通常手を伸ばす順序でその両方を扱います。
-
-> **この章の内容**
-> [RBSが必要なとき](#rbsが必要なとき) ·
-> [最初のシグ](#最初のシグ) ·
-> [RBSシェイプが広すぎるとき](#rbsシェイプが広すぎるとき) ·
-> [ディレクティブ文法](#ディレクティブ文法) ·
-> [リファインメント名](#リファインメント名) ·
-> 実例 — [アサーションゲート](#実例-アサーションゲート) · [型述語](#実例-型述語) · [パラメータオーバーライド](#実例-パラメータオーバーライド) ·
-> [ランタイムが強制できないオーバーライド](#ランタイムが強制できないパラメータオーバーライドが必要なとき) ·
-> [アノテーションの置き場所](#アノテーションの置き場所) ·
-> [インラインRBS（`rigor-rbs-inline`）](#rubyソースへのインラインrbs--rigor-rbs-inlineプラグイン) ·
-> [`untyped`へのフォールバック](#untypedへのフォールバック) ·
-> [PHPStanから来た方へ](#phpstanから来た方へ--phpstan-assertファミリー) ·
-> [プラグインの逃げ道](#rbsが助けにならないとき--プラグインの逃げ道)
 
 ## RBSが必要なとき
 
