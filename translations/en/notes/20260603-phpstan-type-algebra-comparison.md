@@ -1,8 +1,8 @@
 ---
 title: "PHPStan internal type algebra (TypeCombinator / TypeUtils / binary-operator evaluation) vs Rigor"
 description: "Comparison of PHPStan's plugin-level type-algebra gaps with Rigor."
-sourceSha: "fa7dec8040e6bdefda2b759f4fb5be9e5867203dd47aaf1ea32e93317b5db5f3"
-sourceCommit: "b5c25bc5a9e53d495e4f515a9506f10fd4bef8d7"
+sourceSha: "a81fa8955438c792df2e11ace0e248f41cd8e37d951e36370a8e01bf49b31391"
+sourceCommit: "94bccefcb8e324ea2322199418f33e80617b8e33"
 translationStatus: "translated"
 ---
 

@@ -3,8 +3,8 @@ title: "マクロ／DSL展開 — ライブラリ別調査"
 description: "rigortype/rigor docs/notes/20260515-macro-expansion-library-survey.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260515-macro-expansion-library-survey.md"
 sourcePath: "docs/notes/20260515-macro-expansion-library-survey.md"
-sourceSha: "3c562bff75c129acaf6cb56405be6ff3c8711aa6791e3e7d5be1f8a4dac8355a"
-sourceCommit: "a5d648b126d5ed7b1e04a16a87927bca7883e069"
+sourceSha: "998f7ea5dabf3053e1dca194ad546088c9bdd4f9a75bd780f76b3fd7de92d857"
+sourceCommit: "94bccefcb8e324ea2322199418f33e80617b8e33"
 translationStatus: "translated"
 sidebar:
   order: 20266515
@@ -471,8 +471,8 @@ load_plugin_settings      # iterates Redmine::Plugin.all
 
 ### 2. パターン分類
 
-| パターン | 箇所 | 説明 |
-| --- | --- | --- |
+| パターン | 箇所 |
+| --- | --- |
 | （a）静的テキストヒアドキュメント、補間なし | なし — Redmineのすべてのヒアドキュメントは少なくともメソッド名を補間する |
 | （b）ソース可視リテラルを補間するヒアドキュメント | A, B |
 | （b′）ファイル駆動リテラルを補間するヒアドキュメント | C |

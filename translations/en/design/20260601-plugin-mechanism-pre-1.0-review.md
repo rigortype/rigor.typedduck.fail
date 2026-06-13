@@ -1,8 +1,8 @@
 ---
 title: "Plugin mechanism — final pre-1.0 review (over/under-coverage, pain points, boilerplate)"
 description: "English translation of the pre-1.0 plugin-mechanism review: a cross-cutting audit of plugin boilerplate, contract gaps, and PHPStan-style interface segregation."
-sourceSha: "f821e03e74e572d258dbdaf1b374be82d2f0f05d0748059721dfece423e867b6"
-sourceCommit: "d966039262656ed4e9d1900ebe003c332990a0ce"
+sourceSha: "81c5c29b3548caee9cfa89ca1150ce5933ef954ff527e207a7b58cec9f2df7bd"
+sourceCommit: "94bccefcb8e324ea2322199418f33e80617b8e33"
 translationStatus: "translated"
 ---
 
@@ -300,7 +300,7 @@ Do not port all of PHPStan's ~50 interfaces. What Rigor needs now is just **3–
 | --- | --- | --- | --- | --- |
 | **AdditionalConstructors** → Ruby "additional initializers" | **PARTIAL**: ivar-type seeding is from `initialize` **only** (scope_indexer.rb:79, :214-220, :411) | **High** | ◎ | **Recommend adopting (small, ahead of others)** |
 | **AllowedSubTypes** → sealed / exhaustiveness | **ABSENT**: no `case/in` exhaustiveness (statement_evaluator.rb:539-541). ADR-36 WD3 already specs the sealed-parent fact, and `is_a?` exhaustiveness narrowing is deferred (nested_class_template.rb:61-69) | **High** | ◎ (correctly detects missing cases) | **Recommend adopting (medium, integrated with ADR-36)** |
-| **Collector<TNode,TValue>** | **PARTIAL**: FactStore + `prepare` exist but no per-node collection primitive, each plugin re-walks on its own (base.rb:166-178) | Medium | ○ | **Integrate into §6's NodeRule** (cross-file aggregation version) |
+| **`Collector<TNode,TValue>`** | **PARTIAL**: FactStore + `prepare` exist but no per-node collection primitive, each plugin re-walks on its own (base.rb:166-178) | Medium | ○ | **Integrate into §6's NodeRule** (cross-file aggregation version) |
 | **MethodParameterClosureType** (yield-argument type) | **PARTIAL**: `block_as_methods` is **self type only** (block_as_method.rb:47-51). yield-argument types are builtin+RBS only, no plugin field | Medium | ○ | **Consider adding `yields:` to the manifest (demand-driven)** |
 | **AlwaysUsed\* / ReadWriteProperties** (dead-code FP suppression) | **PARTIAL**: dead-code is local-variable/branch only (check_rules.rb:74, :1058). No member-level unused detection | Medium (conditional) | ◎ (the **suppression** side is what's needed) | **Bundle the suppression hook when introducing member dead-code** (don't add it alone) |
 | **RestrictedUsage family** (internal API / test-only) | **PARTIAL**: Ruby's private + Liskov override only (check_rules.rb:69-70). No caller constraint | Low–medium | ○ | demand-driven, 1.x |

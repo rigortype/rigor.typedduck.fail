@@ -1,8 +1,8 @@
 ---
 title: "Matsumoto & Minamide 2008 (polymorphic-record Ruby type inference) — Rigor perspective review"
 description: "English translation of a Rigor-perspective review of Matsumoto & Minamide's 2008 polymorphic-record type inference paper."
-sourceSha: "fb1892514eb3cfb0d8a6ea74578fe0db5d49db60c5dc4180b0adaf2ab0a3c12a"
-sourceCommit: "a5d648b126d5ed7b1e04a16a87927bca7883e069"
+sourceSha: "3e43a147510bc06cb411af0ffae1c5ece17df6c76d8cd1749bb4d4718a242972"
+sourceCommit: "94bccefcb8e324ea2322199418f33e80617b8e33"
 translationStatus: "translated"
 ---
 

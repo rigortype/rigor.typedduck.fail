@@ -3,8 +3,8 @@ title: "ロバストネス原則（型のためのPostelの法則）"
 description: "rigortype/rigor docs/type-specification/robustness-principle.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/type-specification/robustness-principle.md"
 sourcePath: "docs/type-specification/robustness-principle.md"
-sourceSha: "570fe76a2bb3e3ebbd5e585eaaec17e2d03589fe1bd3f8ece67908d9630aa35b"
-sourceCommit: "db8d01bf94926a72e6a2aaf15639d1591b7e142e"
+sourceSha: "4f68e0f79f89d054f822db4ce482a3c230ffc1f1ced8c12773ab7e3e400d1f73"
+sourceCommit: "94bccefcb8e324ea2322199418f33e80617b8e33"
 translationStatus: "translated"
 sidebar:
   order: 2050

@@ -3,8 +3,8 @@ title: "アーキテクチャ決定記録"
 description: "rigortype/rigor docs/adr/README.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/README.md"
 sourcePath: "docs/adr/README.md"
-sourceSha: "4baf857ccfcd25ac2eb843cb0769540b80258d519597ea7147f5d0c09083ca16"
-sourceCommit: "bf29cd008ab5b1ae540757fe571fe9c92f816d9a"
+sourceSha: "c22cc6787bf9bc82e3f9dd786c79627896f4db210fce25fb3113098ebc40dcfd"
+sourceCommit: "94bccefcb8e324ea2322199418f33e80617b8e33"
 translationStatus: "translated"
 sidebar:
   order: 4000
