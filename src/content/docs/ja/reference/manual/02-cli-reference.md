@@ -3,8 +3,8 @@ title: "CLIコマンドリファレンス"
 description: "rigortype/rigor docs/manual/02-cli-reference.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/02-cli-reference.md"
 sourcePath: "docs/manual/02-cli-reference.md"
-sourceSha: "d2cc41ca8f06f469fbf7b2c7c3e592cef1df98c57d9688e64f6a5fd3aed593f8"
-sourceCommit: "106b93dd777b71aeef323dce1e4087c226c8ce37"
+sourceSha: "add81f30265a037767efa6f9d4e65f94744c9b2aae7afd809d6911330de01a7e"
+sourceCommit: "222d8e03ee0f4252795f6c7294672a76c20b7ae3"
 translationStatus: "translated"
 sidebar:
   order: 9002
@@ -170,13 +170,24 @@ rigor baseline <generate|regenerate|dump|drift|prune> [options]
 
 ## `rigor triage`
 
-生のリストをダンプする代わりに、診断ストリームを要約します——ルール分布、ファイルごとのホットスポット、ヒューリスティックな「なぜ」のヒント。[ベースライン](../06-baseline/)を参照してください。
+生のリストをダンプする代わりに、診断ストリームを要約します——ルール分布、**クラス／メソッドセレクタ**、ファイルごとのホットスポット、ヒューリスティックな「なぜ」のヒント。[ベースライン](../06-baseline/)を参照してください。
 
 ```sh
 rigor triage [paths]
 ```
 
-`--top=N`はホットスポット数を設定し（デフォルト10）、`--hints-only`と`--no-hints`は表示するセクションを選択します。`triage`は参考情報であり、常に`0`で終了します——ビルドをゲートすることはありません。
+`--top=N`はホットスポット数を設定し（デフォルト10）、`--hints-only`、`--selectors-only`、`--no-hints`は表示するセクションを選択します。`triage`は参考情報であり、常に`0`で終了します——ビルドをゲートすることはありません。
+
+**`selectors`**セクションは（クラス,メソッド）軸です。診断が運ぶ構造化された`receiver_type` / `method_name`フィールドを`{receiver, method, count, files, rules}`の行に集約するので、メッセージ本文を解析することなく「どのメソッドに診断が集中しているか？」を問えます。`--format json`では、正規化されたレシーバークラス（リテラルはそのクラスに畳み込まれる）をキーとして全リストが出力され、`jq`クエリにそのまま使えます:
+
+```sh
+# methods with diagnostics spread across ≥ 3 files (systemic clusters)
+rigor triage --format json | jq '.selectors[] | select(.files >= 3)'
+# everything Rigor flagged on String receivers, by method
+rigor triage --format json | jq '[.selectors[] | select(.receiver == "String")]'
+```
+
+同じ`receiver_type` / `method_name`フィールドは`rigor check --format json`の各診断にも載っており、（集約ではなく）サイトごとのグルーピングに使えます。
 
 ## `rigor coverage`
 

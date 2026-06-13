@@ -3,8 +3,8 @@ title: "Research & Survey Notes"
 description: "Imported from rigortype/rigor docs/notes/README.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/README.md"
 sourcePath: "docs/notes/README.md"
-sourceSha: "2c42d8c2a8724752c6c031a40b6ee91eb2b0a3d55eaf55bde035d2aa87790792"
-sourceCommit: "18ef11c9f393b495cd9a6ed7277846069c08c516"
+sourceSha: "5d89bdc07b2740cd5fa3568eeac75d7f8b6799fd736ada4dde247b74db45ab08"
+sourceCommit: "222d8e03ee0f4252795f6c7294672a76c20b7ae3"
 translationStatus: "translated"
 sidebar:
   order: 6000
@@ -85,6 +85,7 @@ sidebar:
 | 2026-06-10 | [プラグインアーキテクチャ構造監査 — per-call消費経路の最適化余地](20260610-plugin-architecture-perf-audit/) |
 | 2026-06-10 | [lib/rigor内部アーキテクチャ再検討 — 正式リリース前の構造監査](20260610-lib-rigor-architecture-rereview/) |
 | 2026-06-10 | [キャッシュ機構監査 — ディスク使用量とwarm-runロードコスト](20260610-cache-disk-runtime-audit/) |
+| 2026-06-13 | [プラグインインターフェイス最終レビュー — v1.0凍結前のBC-break機会監査](20260613-plugin-interface-bc-review/) |
 
 ## プロセス・メタ
 

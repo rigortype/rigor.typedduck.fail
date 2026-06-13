@@ -3,14 +3,16 @@ title: "ADR-36 — Macro-substrate nested-class emission tier (Mangrove `Enum`)"
 description: "Imported from rigortype/rigor docs/adr/36-mangrove-enum-nested-class-emission.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/36-mangrove-enum-nested-class-emission.md"
 sourcePath: "docs/adr/36-mangrove-enum-nested-class-emission.md"
-sourceSha: "ddcbbc35cd845f925d63ed2f80a4c13ee93b409a806ad2446df444f8e8c748fc"
-sourceCommit: "a5d648b126d5ed7b1e04a16a87927bca7883e069"
+sourceSha: "f47b0021bafa8797d4bf2f5d792ab608bc0223265e6f6a5231a417c95275beb7"
+sourceCommit: "222d8e03ee0f4252795f6c7294672a76c20b7ae3"
 translationStatus: "translated"
 sidebar:
   order: 4036
 ---
 
 ステータス: **Accepted, 2026-05-30; Slice A implemented.**
+
+> **命名注記（2026-06-13）:** [ADR-60 WD2](../60-pre-freeze-plugin-contract-consolidation/)は、`Macro::NestedClassTemplate`の`name_arg_position:`キーワード（以下に示す）を、その兄弟値オブジェクトに合わせて`symbol_arg_position:`にリネームしました;古いキーワードは`ArgumentError`を上げるようになりました。バインディング形状: [`macro-substrate.md`](../../internal-spec/macro-substrate/)。
 
 [ADR-16](../16-macro-expansion/)のマクロ展開基層（substrate）を、クラスレベルのDSLブロックから（メソッドだけでなく）**ネストしたサブクラス**を生成する新しいティアで拡張するという決定を記録する。動機となったのは[Mangrove](https://github.com/kazzix14/mangrove)の`Enum` DSLである。Mangroveサポートのうち出荷可能で契約（contract）の範囲内にある部分（アンラップ呼び出しサイトでのキャリア（carrier）ジェネリックなインスタンス化）は`plugins/rigor-mangrove`として別途ランディングした。このADRは、今日のプラグイン契約が表現できなかった部分をスコープする。
 

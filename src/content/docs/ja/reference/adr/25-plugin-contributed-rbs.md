@@ -3,8 +3,8 @@ title: "ADR-25 — プラグインが提供するRBSシグネチャ"
 description: "rigortype/rigor docs/adr/25-plugin-contributed-rbs.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/25-plugin-contributed-rbs.md"
 sourcePath: "docs/adr/25-plugin-contributed-rbs.md"
-sourceSha: "b9691560de24a4214040dde206579077407e71d36204bc6620a3ff637873d96a"
-sourceCommit: "73d7a0a2d4628b0614948fe2fa043945b45d5de4"
+sourceSha: "600bf406681672443e71474abdc8867d6a49a864e75732897fbfdcad00fe071b"
+sourceCommit: "222d8e03ee0f4252795f6c7294672a76c20b7ae3"
 translationStatus: "translated"
 sidebar:
   order: 4025
@@ -42,7 +42,7 @@ sidebar:
 
 メカニズムは`Manifest`フィールドであり、新しい`.rigor.yml`のトップレベルキー（たとえば却下された`signature_gems:`）ではない。
 
-- マニフェストはすでに、他のすべてのプラグイン提供宣言を担っている — `config_schema`、`produces` / `consumes`、`owns_receivers`、`type_node_resolvers`、`block_as_methods`、`heredoc_templates`、`trait_registries`、`external_files`、`hkt_registrations`。RBSの提供も同じ場所に属する；それはプラグインの性質であり、作者によって一度だけ宣言されるものであって、プロジェクトごとの設定ではない。
+- マニフェストはすでに、他のすべてのプラグイン提供宣言を担っている — `config_schema`、`produces` / `consumes`、`owns_receivers`、`type_node_resolvers`、`block_as_methods`、`heredoc_templates`、`trait_registries`、`hkt_registrations`。RBSの提供も同じ場所に属する；それはプラグインの性質であり、作者によって一度だけ宣言されるものであって、プロジェクトごとの設定ではない。
 - `signature_gems:`設定キーは、ユーザーが学ぶべき*2つ目の*メカニズムになる。プラグインがRBSを提供できる以上、それは冗長である — gemの`sig/`が欲しいプロジェクトは、そのgemを`plugins:`の下に列挙するだけでよい。
 - 有効化はひとつのリストにとどまる。`.rigor.yml`を読むレビュアーは、すべてのRigor拡張 — 診断プラグインもRBSバンドルも同様に — を`plugins:`の下に見る。
 

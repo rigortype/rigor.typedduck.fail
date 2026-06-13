@@ -3,8 +3,8 @@ title: "プラグイン"
 description: "rigortype/rigor docs/handbook/09-plugins.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/09-plugins.md"
 sourcePath: "docs/handbook/09-plugins.md"
-sourceSha: "0ba17b5230987fa2dcfb7321c25be1d7db1f3400459c6175d371f56d6f04ecb1"
-sourceCommit: "106b93dd777b71aeef323dce1e4087c226c8ce37"
+sourceSha: "90786ad61ed146a4163c2f89cdc0cebf6f71d65a2f84c4d31ee7811e4d5c9003"
+sourceCommit: "222d8e03ee0f4252795f6c7294672a76c20b7ae3"
 translationStatus: "translated"
 sidebar:
   order: 1009
@@ -57,10 +57,9 @@ v0.1.2リリースは4つの実例（`rigor-lisp-eval`、`rigor-pattern`、`rigo
 
 | ティア | 形状 | マニフェスト宣言 | 動作例 |
 | --- | --- | --- | --- |
-| **A — ブロック-as-メソッド** | DSL呼び出しのブロックがレシーバークラス上のインスタンスメソッドとして実行される（`Sinatra::Base#generate_method`） | `block_as_methods: [Macro::BlockAsMethod.new(receiver_constraint:, verbs:)]` | [`rigor-sinatra`](https://github.com/rigortype/rigor/blob/master/plugins/rigor-sinatra/) |
+| **A — ブロック-as-メソッド** | DSL呼び出しのブロックがレシーバークラス上のインスタンスメソッドとして実行される（`Sinatra::Base#generate_method`） | `block_as_methods: [Macro::BlockAsMethod.new(receiver_constraint:, method_names:)]` | [`rigor-sinatra`](https://github.com/rigortype/rigor/blob/master/plugins/rigor-sinatra/) |
 | **B — トレイトインライニングレジストリ** | クラスレベルの呼び出しがシンボルを列挙 → バンドルされたレジストリが各々をモジュールにマップ → 基板がモジュールのRBSメソッドを呼び出し元クラスに展開 | `trait_registries: [Macro::TraitRegistry.new(receiver_constraint:, method_name:, modules_by_symbol:, always_included:)]` | [`rigor-devise`](https://github.com/rigortype/rigor/blob/master/plugins/rigor-devise/) |
 | **C — heredocテンプレート** | クラスレベルの呼び出しがリテラルシンボルをメソッド名テンプレートに補間;基板が合成リーダーを発行 | `heredoc_templates: [Macro::HeredocTemplate.new(receiver_constraint:, method_name:, symbol_arg_position:, emit:)]` | [`rigor-dry-struct`](https://github.com/rigortype/rigor/blob/master/plugins/rigor-dry-struct/) |
-| **D — 外部ファイルインクルージョン** | globにマッチするファイルが、宣言されたクラスとして型付けされた`self`で実行される | `external_files: [Macro::ExternalFile.new(glob:, receiver_type:, bound_ivars:)]` | （v0.1.x時点では契約のみ — エンジン統合は需要駆動） |
 
 上記の3つのTier A/B/Cプラグインは各々60〜110 LoCの**純粋に宣言的な**Ruby — ウォーカーなし、`diagnostics_for_file`なし、プラグイン側の状態なし。基板のプレパス + ディスパッチャー統合が作業を行います。
 

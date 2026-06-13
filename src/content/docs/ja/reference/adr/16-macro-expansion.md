@@ -3,14 +3,16 @@ title: "ADR-16 — マクロ / DSL展開基板"
 description: "rigortype/rigor docs/adr/16-macro-expansion.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/16-macro-expansion.md"
 sourcePath: "docs/adr/16-macro-expansion.md"
-sourceSha: "2cb3e51f54a2b9b122fbd03f34a49a1ab104854c0762d08b79d1144ffc7c2160"
-sourceCommit: "a5d648b126d5ed7b1e04a16a87927bca7883e069"
+sourceSha: "a301dc93d6ebea31b4ddba07770f1d7cea4191e2086dc2a2141adf3932a2c7b3"
+sourceCommit: "222d8e03ee0f4252795f6c7294672a76c20b7ae3"
 translationStatus: "translated"
 sidebar:
   order: 4016
 ---
 
 ステータス: **Accepted — フロア + 精度プロモーション着地（スライス（slice）1〜7 + 6a/6b）、スライス5b + ユーティリティ型戻り値のためのADR-13リゾルバチェイン配線は需要に先送り**、2026-05-15。
+
+> **命名注記（2026-06-13）:** [ADR-60 WD2](../60-pre-freeze-plugin-contract-consolidation/)は、このADRの例がまだ元の綴りで示している2つのマニフェスト値オブジェクトキーワードをリネームしました——`Macro::BlockAsMethod`の`verbs:`→`method_names:`、`Macro::NestedClassTemplate`の`name_arg_position:`→`symbol_arg_position:`。現在のバインディング形状は[`macro-substrate.md`](../../internal-spec/macro-substrate/)にあり、古いキーワードは`ArgumentError`を上げるようになりました。
 
 Rails（`ActiveSupport::Concern`、ActiveStorage attachedマクロ）、AASM、Devise、GraphQL-Ruby、factory_bot、Sinatra、Sequel、Redmineをカバーするライブラリごとのサーベイ[`docs/notes/20260515-macro-expansion-library-survey.md`](../../notes/20260515-macro-expansion-library-survey/)が発端。基板フロアは14のコミット（584ae85…d7b1943）にわたって配信;ADR-12（dry-rbパッケージング）は引き続き予約;このADRは並行して座り、それに依存しません。スライスごとのステータス詳細は § 実装のスライス分けに記載。
 
@@ -208,6 +210,8 @@ end
 リーチ: ActiveStorage attachedマクロ、Deviseマッピングごとのヘルパーカルテット（`current_user`、`user_signed_in?`、`authenticate_user!`、`user_session`）、Redmineの`Setting.define_setting`、Redmineの`acts_as_event`と`LabelledFormBuilder` heredocs、dry-struct `attribute :name, T`（教科書のTier C消費者）。
 
 ### Tier D — 宣言された`self`下の外部Rubyファイルインクルージョン
+
+> **ステータス（2026-06-13）:** `external_files:`マニフェストフィールドは[ADR-60 WD1](../60-pre-freeze-plugin-contract-consolidation/)によって削除されました（エンジン消費者に一度も配線されなかった）;このティアはスキャナと一緒に1つの変更で需要に応じて復帰します。
 
 プラグインの宣言: globにマッチするファイルが、宣言された呼び出しサイトに本体が貼り付けられたかのように評価され、`self`は宣言されたクラスとして型付けされる。基板はファイルのASTをバインドされたレシーバー型と一緒に解析に追加する。
 

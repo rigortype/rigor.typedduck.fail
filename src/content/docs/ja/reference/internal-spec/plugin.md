@@ -3,8 +3,8 @@ title: "Plugin Registration / Loading (slice 1)"
 description: "Imported from rigortype/rigor docs/internal-spec/plugin.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/plugin.md"
 sourcePath: "docs/internal-spec/plugin.md"
-sourceSha: "78bc61683d3c02891fde73aa31559569c226600354a55f36537feca57e83affd"
-sourceCommit: "18ef11c9f393b495cd9a6ed7277846069c08c516"
+sourceSha: "2784ccfb37a47580d7709c7f75178435f318dafd9e0411f6b18d30bb7ad83374"
+sourceCommit: "222d8e03ee0f4252795f6c7294672a76c20b7ae3"
 translationStatus: "translated"
 sidebar:
   order: 3050
@@ -164,7 +164,7 @@ end
 | `type_node_resolvers` | `Array` | カスタムなRBS型名解決を貢献する`Plugin::TypeNodeResolver`エントリー（ADR-13）。 |
 | `protocol_contracts` | `Array<ProtocolContract>` | パススコープの振る舞い契約（`path_glob` + `method_name` + param/return型 + 重大度）;provide-and-check（ADR-28）。 |
 | `source_rbs_synthesizer` | `#call(path) -> String?` | env構築時にプロジェクトソースファイルからRBSを合成する呼び出し可能オブジェクト（例: rbs-inline取り込み）（ADR-32）。 |
-| `block_as_methods`, `heredoc_templates`, `trait_registries`, `external_files` | `Array<Plugin::Macro::*>` | ADR-16のマクロ / DSL展開基板の4つのティア（A / C / B / D）。値オブジェクトの形状は[`macro-substrate.md`](../macro-substrate/)で仕様化されています。 |
+| `block_as_methods`, `heredoc_templates`, `trait_registries` | `Array<Plugin::Macro::*>` | ADR-16のマクロ / DSL展開基板のティア（A / C / B;一度も配線されなかったティアD `external_files:`はADR-60 WD1で削除された）。値オブジェクトの形状は[`macro-substrate.md`](../macro-substrate/)で仕様化されています。 |
 | `nested_class_templates` | `Array<Plugin::Macro::NestedClassTemplate>` | enum形状のブロックDSL（`variant <Const>, <Type>`）からのネストされたサブクラス放出;メソッドだけでなくクラスを生み出すマクロ基板ティア（ADR-36）。[`macro-substrate.md`](../macro-substrate/)で仕様化されています。 |
 | `hkt_registrations`, `hkt_definitions` | `Array` | 軽量HKTの型関数登録（ADR-20）。 |
 | `additional_initializers` | `Array<AdditionalInitializer>` | クラス（およびそのサブクラス）上のどの`initialize`以外の`def`形式メソッドがivar状態も確立するかを宣言する`{ receiver_constraint:, methods: }`ペアで、`ScopeIndexer`の書き込み前読み込みnil健全性ゲートに供給する（ADR-38）。 |

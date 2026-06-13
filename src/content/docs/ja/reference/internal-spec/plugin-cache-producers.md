@@ -3,8 +3,8 @@ title: "Plugin-side Cache Producers (slice 6)"
 description: "Imported from rigortype/rigor docs/internal-spec/plugin-cache-producers.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/plugin-cache-producers.md"
 sourcePath: "docs/internal-spec/plugin-cache-producers.md"
-sourceSha: "24d20ff988908b66b40248b97f2e1453b9d0aab4545c7e6469fddd31691208ac"
-sourceCommit: "ea8ac6950eae8c643cd2811da2569fd4809f89c8"
+sourceSha: "fd715bc0e4bdb1b30b25687cabba6ca7ccf8cde56a4b84db7f026ee607315916"
+sourceCommit: "222d8e03ee0f4252795f6c7294672a76c20b7ae3"
 translationStatus: "translated"
 sidebar:
   order: 3050
@@ -24,41 +24,40 @@ ADR-7 §「スライス6」は3つの実装上の選択を固定します：
 
 ## パブリックサーフェス（ドリフト固定済み）
 
-### `Rigor::Plugin::Base.producer(id, serialize: nil, deserialize: nil, &block)`
+### `Rigor::Plugin::Base.producer(id, watch: nil, serialize: nil, deserialize: nil, &block)`
 
 プロデューサーを登録するクラスレベルDSL。ブロックはプロデューサー本体です；`instance_exec`を通じて実行されるため、ブロック内の`self`はプラグインインスタンス——`io_boundary`・`services`・`manifest`・`config`がすべてスコープ内にあります。ブロックは呼び出しサイトの`params`ハッシュを唯一の引数として受け取ります；`params`は`Cache::Descriptor#cache_key_for`（v0.0.8）に従ってキャッシュキーに混合されます。
 
-`serialize:` / `deserialize:`は`Cache::Store#fetch_or_compute`にそのまま転送されます。デフォルトのラウンドトリップはv0.0.9の呼び出し可能サーフェスに従う`Marshal.dump` / `Marshal.load`です；返り値がMarshalクリーンでないプロデューサー（`RBS::Location`メンバーを持つRBSネイティブオブジェクト・生の`IO`など）は独自のペアを提供しなければなりません（MUST）。
+`watch:`（ADR-60 WD3）は発見スタイルのプロデューサーのグロブカバレッジ——プロデューサーブロックが入力をグロブで読み込んだ場合でも、ファイルの*追加*／*削除*がキャッシュ値を無効化しなければならないディレクトリ——を宣言します（ブロック内の読み込みは、そこに存在しなかったファイルを見ることができないため）。これは`[roots, pattern, …]`タプルの静的な`Array`（`roots`は`String`または`Array<String>`；1タプルにつき1つ以上のグロブパターンサフィックス）か、または`cache_for`時にプラグインインスタンス上で`instance_exec`を通じて実行され（クラス定義時ではなく——検索ルートは通常`#init`でconfigから計算されます）そのArrayを返す`Proc`のいずれかです。評価された各`(root, pattern)`はプロデューサーの依存ディスクリプタ内の`Cache::Descriptor::GlobEntry`行になります——1つのエントリーがグロブ全体をダイジェストするので、コンテンツ変更・追加・削除のいずれもが無効化を引き起こします。
+
+`serialize:` / `deserialize:`はプロデューサーの返り**値**に適用されます（キャッシュ層が格納される`[value, dependency_descriptor]`ペアの周りにそれらをラップします）。デフォルトのラウンドトリップはv0.0.9の呼び出し可能サーフェスに従う`Marshal.dump` / `Marshal.load`です；返り値がMarshalクリーンでないプロデューサー（`RBS::Location`メンバーを持つRBSネイティブオブジェクト・生の`IO`など）は独自のペアを提供しなければなりません（MUST）。
 
 `Plugin::Base.producers`は凍結された`{ id => entry }`スナップショットを返します。スーパークラスからの継承されたプロデューサーは表面化されません——ローダーは登録ごとに1つのサブクラスをインスタンス化し、プロデューサーテーブルはフラットのままです。
 
 ### `Rigor::Plugin::Base#io_boundary`
 
-プラグインごとにメモ化された`Rigor::Plugin::IoBoundary`（スライス2）。境界が蓄積したエントリーが`cache_for`ラウンドトリップのキャッシュ無効化に使われます: `cache_for`が呼び出される**前に**`io_boundary`を通じて行われた読み込みはディスクリプタに折り込まれます。`#read_file(path)`は`:digest`の`FileEntry`を記録します;`#open_url(url)`は`"url:#{url}"`でキーされた`ConfigEntry`を記録し、その`value_hash`はレスポンスボディのSHA-256です。これにより、変更されたリモートペイロードは変更されたファイルと同じ方法でスライス（slice）を無効化します。以下の「無効化契約」を参照してください。
+プラグインごとにメモ化された`Rigor::Plugin::IoBoundary`（スライス2）。境界が蓄積したエントリーが`cache_for`ラウンドトリップのキャッシュ無効化に使われます: ADR-60 WD3のrecord-and-validateの下では、境界スナップショットはプロデューサーブロックの実行**後に**取られるため、ブロックが行うすべての読み込み（計算の途中で発見した読み込みを含む）がキャプチャされます——「`cache_for`の前に読む」という順序要件はありません。`#read_file(path)`は`:digest`の`FileEntry`を記録します;`#open_url(url)`は`"url:#{url}"`でキーされた`ConfigEntry`を記録し、その`value_hash`はレスポンスボディのSHA-256です。依存ディスクリプタ内の`ConfigEntry`（URL読み込み）はそのエントリーを決して新鮮（fresh）でない状態にします——URLをフェッチしたプロデューサーは毎回再計算しますが、これは健全です（リモートドキュメントには安価なローカル再検証手段がありません）。以下の「無効化契約」を参照してください。
 
-### `Rigor::Plugin::Base#glob_descriptor(roots, *patterns)`
-
-`roots`下で`patterns`のいずれかにマッチして見つかったファイルごとに`:digest`の`FileEntry`を1つ`files:`スロットに持つ`Cache::Descriptor`を返す発見グロブヘルパーです（`File.join(root, pattern)`で結合;複数パターンはユニオン（union、合併型とも）になります）。結果を`cache_for`の`descriptor:`として渡すと、発見されたファイルの*集合*をスキャンするプロデューサー（あらゆるファクトリー、あらゆる`app/policies/**/*.rb`）が、いずれかのファイルのコンテンツ変更・追加・削除で無効化されます——これは、コールドコールでプロデューサーがまだファイルを読んでいないために`IoBoundary`単独では取り逃すケースです。`roots`はプロジェクトルートからの相対か絶対です。ヘルパーはマッチしたファイルごとに呼び出し時点で1回のSHA-256読み込みを支払います;10〜100ファイル範囲の発見グロブでは、ミス時のプロデューサーのパース＆ウォークに比べて無視できる程度です。これは手書きの発見ダイジェストディスクリプタ（`rigor-factorybot`がヘルパーへ移行する前に独自に再発明していたもの）の代わりにサポートされる方法です。
+ADR-60 WD3で`Plugin::Base#glob_descriptor(roots, *patterns)`は**プライベート**になりました（これは`watch:`が実装される土台となるビルディングブロックです）；プラグインコードはディスクリプタを手作業で合成する代わりに`watch:`を宣言します。
 
 ### `Rigor::Plugin::Base#cache_for(producer_id, params: {}, descriptor: nil)`
 
-名前付きプロデューサーのキャッシュラウンドトリップを実行する呼び出し可能オブジェクトを返します。その呼び出し可能オブジェクトは、呼び出されるとキャッシュされた値（ヒット時）またはプロデューサーブロックの実行結果（ミス時）を返し、結果を書き込みます。
+名前付きプロデューサーのキャッシュラウンドトリップを`Cache::Store#fetch_or_validate`（ADR-45のrecord-and-validateパス）を通じて実行する呼び出し可能オブジェクトを返します。その呼び出し可能オブジェクトは、呼び出されると、記録された依存関係がまだ新鮮（fresh）であればキャッシュされた値を返し、そうでなければプロデューサーブロックを実行して新鮮なエントリーを記録します。
 
 `services.cache_store`が`nil`（例：CLI `--no-cache`）の場合、呼び出し可能オブジェクトはキャッシュをバイパスしてプロデューサーブロックを毎回実行します——組み込みプロデューサーのv0.0.9キャッシュサーフェスと同じセマンティクスです。
 
 プロデューサーidには`plugin.<manifest.id>.`が自動的にプレフィックスとして追加されます；`manifest.id = "rails"`のプラグインに`:schema_table`として登録されたプロデューサーのキャッシュストアレイアウトは`<root>/plugin.rails.schema_table/<2-prefix>/<62-suffix>.entry`にあります。
 
-オプションの`descriptor:`キーワード引数はプラグイン作成者が自動構築ディスクリプタに合成したい追加の`Cache::Descriptor`行を提供します——通常はgemバージョンの`GemEntry`・設定ファイルの`FileEntry`ダイジェスト・または{IoBoundary}が自身でキャプチャできない外部状態の`ConfigEntry`行です。渡されたディスクリプタは自動構築されたもの（`PluginEntry`テンプレート+境界読み込み）と`Cache::Descriptor.compose`を通じて流れます；スロットごとの競合は`Cache::Descriptor::Conflict`を発生させ、異なる入力が暗黙に上書きされることなく表面化します。
+オプションの`descriptor:`キーワード引数は、キャッシュ*キー*に属する**識別子**入力のための追加の`Cache::Descriptor`行を提供します——通常はgemバージョンの`GemEntry`ピン・または`IoBoundary`が自身でキャプチャできない外部状態の`ConfigEntry`行です。渡されたディスクリプタは自動構築された`PluginEntry`テンプレートと`Cache::Descriptor.compose`を通じて流れます；スロットごとの競合は`Cache::Descriptor::Conflict`を発生させ、異なる入力が暗黙に上書きされることなく表面化します。`IoBoundary`の読み込み履歴はキーに入りません——それは計算後に依存ディスクリプタへ記録されます。
 
 ## キャッシュディスクリプタ合成（6-B）
 
-`Plugin::Base#cache_for`は以下からディスクリプタを自動組み立てします：
+`Plugin::Base#cache_for`はエントリーを安定した識別子入力でキーし、読み込み依存関係を別々に記録します：
 
-- プラグインの**`PluginEntry`テンプレート**：`(id, version, config_hash)`。`config_hash`は正規化されたプラグインconfig（キーソート済み・再帰的なSymbol→String変換）のSHA-256であるため、`config:`の値が異なる同じプラグインの2つのインスタンスは異なるキャッシュスライスに置かれます。
-- プラグインの**`IoBoundary#cache_descriptor`**：`cache_for`が呼び出される時点で境界が記録したすべての`:digest`の`FileEntry`。
-- ユーザーの**`params:`**ハッシュ（`Descriptor#cache_key_for`を通じてキャッシュキーに混合される）。
+- **キーディスクリプタ**——プラグインの**`PluginEntry`テンプレート**`(id, version, config_hash)`（`config_hash`は正規化されたプラグインconfig——キーソート済み・再帰的なSymbol→String変換——のSHA-256であるため、`config:`が異なる2つのインスタンスは異なるスライスに置かれます）に、オプションの`descriptor:`識別子の追加分を合成し、さらにユーザーの**`params:`**ハッシュ（`Descriptor#cache_key_for`を通じて混合される）を加えたもの。
+- **依存ディスクリプタ**（ブロック実行後に記録され、次回実行時に`Descriptor#fresh?`を介した再ダイジェストで再検証される）——`IoBoundary`の計算後の`FileEntry` / `ConfigEntry`読み込みに、評価された`watch:`の`GlobEntry`行を加えたもの。
 
-プラグイン作成者はディスクリプタを手動で構築しません。カスタムディスクリプタ拡張（境界の読み込みを超えた追加の`FileEntry` / `GemEntry` / `ConfigEntry`行）は将来のAPIで対応します；スライス6は自動構築パスのみを出荷します。
+プラグイン作成者はディスクリプタを手動で構築しません：ブロック内の読み込みは自動的にキャプチャされ、`watch:`がグロブカバレッジを宣言します。
 
 ## 無効化契約
 
