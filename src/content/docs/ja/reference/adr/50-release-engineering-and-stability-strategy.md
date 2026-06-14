@@ -3,8 +3,8 @@ title: "ADR-50 — Release engineering and stability strategy (v0.2.0 → v1.0.0
 description: "Imported from rigortype/rigor docs/adr/50-release-engineering-and-stability-strategy.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/50-release-engineering-and-stability-strategy.md"
 sourcePath: "docs/adr/50-release-engineering-and-stability-strategy.md"
-sourceSha: "d35e59573d8f420a66597a9ba7787a9fd1ad7b4e5cc82d9a4f2752ec53d70b8a"
-sourceCommit: "bf5d5216eed7167036f5c702b3f8003b390fcd8c"
+sourceSha: "ff3197082a04a96d06634f4630a90c3216e69d4c901697376a14f7bf331a0eda"
+sourceCommit: "7f5a54c352ff4370788bf7aef5fc1b70f8a92e4a"
 sourceDate: "2026-06-13T19:23:25+09:00"
 translationStatus: "translated"
 sidebar:
@@ -92,7 +92,9 @@ bleeding-edgeは**Rigorがメンテナンスするデフォルトオーバーラ
 
 （WD2の審議は、単一のbooleanではなくinspectableなオーバーレイ＋フィーチャー単位のgranularityへと解決した——実際のincludeパスなしにPHPStanの明示的diff透明性を保ち、高度な機能を一度に一つずつ採用できる。棄却された代替案——bleeding-edgeを4番目の`severity_profile`値に折り込む——は依然として成立する。それは音量とdisciplineセットを混同し、granularityと明示的diffの両方を失うことになる。）
 
-**基盤が着地（v0.1.19）**。WD2の*サーフェス*はエンドツーエンドで配線されたが、オーバーレイは意図的に空のままだ（まだメジャー向けにキューに入った規律はない）。`Rigor::BleedingEdge`がメンテナンスされる`Feature`レジストリ（安定id＋サマリー＋`severity_overrides`マップ）であり、`.rigor.yml`の`bleeding_edge:`は`true` / feature-idのリスト / `{ all:, except: }`を受け入れ、正規化されて`Configuration`に公開される。`rigor show-bleedingedge`はオーバーレイ＋プロジェクトが採用するものを表示する（`--format text|json`）。そして`Configuration::SeverityProfile.resolve`は、ユーザー自身の`severity_overrides:`（完全一致またはファミリー）よりも*下*、かつプロファイルテーブルよりも*上*で合成される`bleeding_edge_overrides:`マップを得た。レジストリが空なら合成マップは`{}`なので、解決はビットレベルで変わらないまま——最初のキューに入った規律は、それ以上のエンジン配線なしに単一の`FEATURES`エントリーとして着地する。**まだ出荷されていないもの（次のスライス）:** `rigor check`の`--bleeding-edge[=ids]`CLIフラグ（configキーが主たるオプトインであり、CLIミラーはアクティブな選択を2つの`resolve`呼び出しサイトに通す必要がある）と、専用のbleeding-edge CHANGELOGセクション（まだ運ぶエントリーはない）。
+**基盤が着地（v0.1.19）**。WD2の*サーフェス*はエンドツーエンドで配線されたが、オーバーレイは意図的に空のままだ（まだメジャー向けにキューに入った規律はない）。`Rigor::BleedingEdge`がメンテナンスされる`Feature`レジストリ（安定id＋サマリー＋`severity_overrides`マップ）であり、`.rigor.yml`の`bleeding_edge:`は`true` / feature-idのリスト / `{ all:, except: }`を受け入れ、正規化されて`Configuration`に公開される。`rigor show-bleedingedge`はオーバーレイ＋プロジェクトが採用するものを表示する（`--format text|json`）。そして`Configuration::SeverityProfile.resolve`は、ユーザー自身の`severity_overrides:`（完全一致またはファミリー）よりも*下*、かつプロファイルテーブルよりも*上*で合成される`bleeding_edge_overrides:`マップを得た。レジストリが空なら合成マップは`{}`なので、解決はビットレベルで変わらないまま——最初のキューに入った規律は、それ以上のエンジン配線なしに単一の`FEATURES`エントリーとして着地する。
+
+**CLIミラーが着地（Unreleased）**。`rigor check --bleeding-edge[=ids]` / `--no-bleeding-edge`は、設定された`bleeding_edge:`の選択を単一の実行に対して上書きする（`--workers` / `--no-cache`と同じCLI-over-configの優先順位）。並行する上書きをすべての`Runner`構築サイト（およびワーカー境界越し）に通す代わりに、CLIは新しい`Configuration#with_bleeding_edge`——`bleeding_edge_severity_overrides`を再導出する凍結された`dup`——を介してロード済みの`Configuration`を再構築する。これにより2つの`SeverityProfile.resolve`サイトとワーカーパスは実行の選択を変わらず見ることになり、`Configuration`が単一の真実の源であり続ける。フラグはOptionParserの`=[LIST]`（attached-value-only）形式を使うので、裸の`--bleeding-edge lib`はオーバーレイを採用しつつパスを消費せず`lib`をチェックする。リスト形式を表面化したことで`coerce_bleeding_edge`のセレクタidも凍結され、config-fileのリストパスに対する`Ractor.shareable?`が復元された。**まだ出荷されていないもの:** 専用のbleeding-edge CHANGELOGセクション（まだ運ぶエントリーはない——最初のキューに入ったフィーチャーとともに着地する）。
 
 ### WD3 — Breaking診断変更の定義（規律テスト）
 

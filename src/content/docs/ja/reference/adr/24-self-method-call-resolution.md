@@ -3,8 +3,8 @@ title: "ADR-24 — implicit-selfメソッド呼び出し解決"
 description: "rigortype/rigor docs/adr/24-self-method-call-resolution.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/24-self-method-call-resolution.md"
 sourcePath: "docs/adr/24-self-method-call-resolution.md"
-sourceSha: "1a4074dc6376ee3a3e95f581316fd5d71dc4303ca5afb1eae23c4ad8d869a880"
-sourceCommit: "95ff0e09e408504d17102725823e1978301d05ef"
+sourceSha: "f28bbffdeac9bd76118a89e3c72e6e3f4e45ef7119c48c9c93f3e394b7e26db4"
+sourceCommit: "7f5a54c352ff4370788bf7aef5fc1b70f8a92e4a"
 sourceDate: "2026-05-29T00:21:31+09:00"
 sourceLanguage: "en"
 translationStatus: "translated"
@@ -12,7 +12,7 @@ sidebar:
   order: 4024
 ---
 
-ステータス: **Accepted、2026-05-20（スライス（slice）4は別途FP評価が必要なためゲート中）。スライス1+3は2026-05-20に実装済み、スライス2は2026-05-21に実装済み。スライス4アテンプト1（check-rules再実装）は2026-06-05にプロトタイプされ差し戻し — Rigorの`lib`で135件のフォルスポジティブ。スライス4a（評価時レコーダー）+`call.self-undefined-method`ルール（スタンドアロンクラスゲート、`:off`でship済み）は2026-06-05に実装済み — ミニコーパス467→15件のレコーダーミス、アテンプト1のFPクラスはゼロ、ルールはRigorの`lib`でFPクリーン（かつ実在の潜在バグを検出）。デフォルトON前の外部WD4コーパスFPゲート + スーパークラス/インクルードチェーンへのゲート拡張が残存。以下のスライス4を参照**。
+ステータス: **Accepted、2026-05-20（スライス（slice）4は別途FP評価が必要なためゲート中）。スライス1+3は2026-05-20に実装済み、スライス2は2026-05-21に実装済み。スライス4アテンプト1（check-rules再実装）は2026-06-05にプロトタイプされ差し戻し — Rigorの`lib`で135件のフォルスポジティブ。スライス4a（評価時レコーダー）+`call.self-undefined-method`ルール（スタンドアロンクラスゲート、`:off`でship済み）は2026-06-05に実装済み — ミニコーパス467→15件のレコーダーミス、アテンプト1のFPクラスはゼロ、ルールはRigorの`lib`でFPクリーン（かつ実在の潜在バグを検出）。外部WD4コーパスFPゲートは2026-06-14に実行された（[ノート](../../notes/20260614-adr24-slice4-self-undefined-fp-eval/)）: ルールは**`:off`のまま — 昇格不可。**コーパスでの発火は約454件、ほぼすべてフォルスポジティブ;支配的な`Object`/`BasicObject`のself型フォールバッククラス（287件）は除外済みだが、抽象 / テンプレートメソッドの基底クラスパターン（基底クラスがサブクラスの実装するメソッドを呼ぶ）は、現在のクラスごとのゲートでは未対処のフォルスポジティブである。スーパークラス/インクルードチェーンへのゲート拡張は見送り（このクラスを拡大するだけ）;必要な次のステップはサブクラス認識ゲーティングだ。以下のスライス4を参照**。
 メソッドボディの内側で明示的なレシーバーなしに書かれた呼び出し（implicit-selfメソッド呼び出し）を、囲むクラス / モジュールのメソッドセット — 自身の定義、その祖先、クロスファイルのプロジェクトクラス — に対して解決するというプロジェクトの決定を記録する。これにより、解決されたメソッドの推論された戻り型とパラメータ契約（contract）が呼び出しサイトで可視になる。現状ではそのような呼び出しは`Dynamic[top]`として型付けされており、これは根本的な精度ギャップ。
 
 ## コンテキスト

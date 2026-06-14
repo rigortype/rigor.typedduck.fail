@@ -3,8 +3,8 @@ title: "CLIコマンドリファレンス"
 description: "rigortype/rigor docs/manual/02-cli-reference.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/02-cli-reference.md"
 sourcePath: "docs/manual/02-cli-reference.md"
-sourceSha: "2a0481c10422670cbd0e484c3bf8e4533b097c5356c3794f16670030d0efaef4"
-sourceCommit: "bf29cd008ab5b1ae540757fe571fe9c92f816d9a"
+sourceSha: "88e8aa3124c78de2132b6a6c02802858a3757511cf636cfc95c74a0c1614d713"
+sourceCommit: "7f5a54c352ff4370788bf7aef5fc1b70f8a92e4a"
 sourceDate: "2026-06-13T19:23:25+09:00"
 translationStatus: "translated"
 sidebar:
@@ -46,6 +46,8 @@ rigor check [paths...]
 | `--no-baseline` | 設定されたベースラインを無視する。 |
 | `--baseline-strict` | ベースラインのドリフトで実行を失敗させる——CIゲートとして使用。 |
 | `--treat-all-as-inline-rbs` | `rigor-rbs-inline`を`require_magic_comment: false`で強制ロードし、解析されるすべてのファイルを`# rbs_inline: enabled`コメントなしでインラインRBSとして扱う（ADR-32）。 |
+| `--bleeding-edge[=ids]` | この実行に対してbleeding-edgeオーバーレイを採用し、設定された[`bleeding_edge:`](03-configuration/)の選択を上書きする（ADR-50 § WD2）。引数なしではキューに積まれたすべてのfeatureを採用し、`--bleeding-edge=a,b`は名指ししたfeature idのみを採用する。本リリースではオーバーレイは空なので、現状ノーオペである。[`rigor show-bleedingedge`](#rigor-show-bleedingedge)で検査する。 |
+| `--no-bleeding-edge` | この実行に対して設定された`bleeding_edge:`の選択を無視する（何も採用しない）。 |
 | `--tmp-file=PATH --instead-of=PATH` | エディタモード: `--tmp-file`のバッファを使って`PATH`を解析する。両方必須。 |
 
 エラー重要度の診断がない場合は`0`で終了、診断がある場合は`1`で終了、使用法エラーの場合は`64`で終了します。
@@ -201,6 +203,12 @@ rigor coverage [paths]
 `--format=text|json`が出力形式を選び、`--config=PATH`が設定探索をオーバーライドします。`--threshold=RATIO`は精度比率が`RATIO`（`0.0`〜`1.0`）を下回ると`1`で終了し、CIゲートになります。
 
 `--protection`は**型保護カバレッジ（type-protection coverage）**に切り替えます。「自分の型がどれだけ精密か」ではなく「バグを混入させたとき、Rigorがそれを捕捉できるか」を報告します。各ディスパッチサイト（明示的なレシーバーを持つ呼び出し）は、レシーバーが具象クラスに解決するとき——Rigorの呼び出しルールが誤ったメソッドや引数を捕捉できるサイト——*保護されている（protected）*とみなされ、レシーバーが`Dynamic`のとき*保護されていない（unprotected）*とみなされます。レポートはまず保護された比率を示し、続いてランク付けされた「ここに型を追加せよ（add a type here）」リスト（型のないレシーバーで最も多く呼ばれているメソッド）、そして最も保護されていないファイルを示します。`--threshold`と`--format=json`は同じように機能します。これは実際の保護に対する健全な上界です——具象的なレシーバーは診断が発火するための必要条件ですが、十分条件ではありません。
+
+`--protection`に加えて`--mutation`を付けると、**有効性**ティアに切り替わります。「ここでRigorがバグを捕捉できるか」ではなく、Rigorが*実際に捕捉するか*を計測します。各ディスパッチサイトに型から見える破壊を導入し——呼び出し引数を`nil`に落とす、その型を入れ替える、呼び出しを存在しないメソッドへ改名する——ミューテーションされたソースをクリーンなベースラインと突き合わせて再解析し、キルレート（捕捉された破壊）を報告します。デフォルトではgitで変更された`.rb`ファイルを対象とし（プロジェクト全体は数分かかる;広げるには明示的なパスを渡します）、まず有効性比率を示し、続いてRigorが見逃した破壊（「ここに型を追加せよ（add a type here）」）、そして最も有効性の低いファイルを示します。`--threshold`は有効性比率でゲートし、`--format=json`は`mode`、`killed`、`survived`、`effectiveness_ratio`、ファイルごとの行、そして`add_a_type_here`を運びます。これは静的な`--protection`プロキシの背後にある真実のティアであり、多数の解析というコストを伴います——対話的なチェックではなく、オプトインのCI深掘りです。
+
+```sh
+rigor coverage --protection --mutation [paths]
+```
 
 ## `rigor mcp`
 
