@@ -66,6 +66,13 @@ jobs:
 
       - name: Build
         run: pnpm build
+        env:
+          # The R2 root (r2.dev URL or custom domain) of the playground wasm;
+          # sync-playground.mjs derives the version-pinned object URL from the
+          # upstream/rigor submodule commit. Set as a repo variable. An explicit
+          # RIGOR_WASM_URL (also a variable) overrides it if ever needed.
+          RIGOR_WASM_BASE_URL: ${{ vars.RIGOR_WASM_BASE_URL }}
+          RIGOR_WASM_URL: ${{ vars.RIGOR_WASM_URL }}
 
       - name: Deploy to Cloudflare Workers
         uses: cloudflare/wrangler-action@v3
