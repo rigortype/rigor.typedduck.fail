@@ -1,0 +1,73 @@
+<!--
+  Source artwork for the Rigor Playground social card (Open Graph / Twitter).
+  Rasterise to public/og/playground.png at 1200x630; see assets/og/README.md
+  for the exact command.
+
+  Palette mirrors the playground page (favicon teal + the dark code surface).
+  Fonts use system families (Helvetica Neue / Menlo) so the card rasterises
+  without the web fonts the live page loads; the result is brand-consistent,
+  not pixel-identical to Inter/JetBrains Mono.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0.35" y2="1">
+      <stop offset="0" stop-color="#004a43"/>
+      <stop offset="1" stop-color="#002b27"/>
+    </linearGradient>
+    <filter id="softShadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="18"/>
+    </filter>
+  </defs>
+
+  <!-- Backdrop -->
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <!-- Faint oversized wordmark glyph as a texture behind the code panel -->
+  <text x="1180" y="600" text-anchor="end" font-family="'Helvetica Neue', Arial, sans-serif"
+        font-weight="700" font-size="520" fill="#c6fff6" opacity="0.04">R</text>
+
+  <!-- Brand lockup: logo tile + wordmark -->
+  <g transform="translate(80,70) scale(1.6875)">
+    <rect width="64" height="64" rx="12" fill="#c6fff6"/>
+    <path fill="#00332e" d="M17 48V16h17.5c7 0 11.5 4.1 11.5 10.4 0 4.4-2.1 7.8-5.8 9.4L49 48H38.7l-7.5-10.8h-4.9V48H17Zm9.3-18.3h7.5c1.8 0 3.2-.4 4.1-1.2.9-.8 1.4-1.9 1.4-3.4 0-1.4-.5-2.5-1.4-3.3-.9-.8-2.3-1.2-4.1-1.2h-7.5v9.1Z"/>
+  </g>
+  <text x="214" y="153" font-family="'Helvetica Neue', Arial, sans-serif" font-weight="700"
+        font-size="66" fill="#c6fff6" letter-spacing="-1">Rigor</text>
+
+  <!-- Headline -->
+  <text x="80" y="320" font-family="'Helvetica Neue', Arial, sans-serif" font-weight="700"
+        font-size="98" fill="#F6F4EE" letter-spacing="-2">Playground</text>
+
+  <!-- Tagline -->
+  <text x="82" y="392" font-family="'Helvetica Neue', Arial, sans-serif" font-weight="500"
+        font-size="29" fill="#bfe9e0">Type-check Ruby in your browser —</text>
+  <text x="82" y="432" font-family="'Helvetica Neue', Arial, sans-serif" font-weight="500"
+        font-size="29" fill="#bfe9e0">no install, no annotations, no backend.</text>
+
+  <!-- URL -->
+  <text x="82" y="556" font-family="Menlo, ui-monospace, monospace" font-weight="400"
+        font-size="27" fill="#7fc7bb">rigor.typedduck.fail/playground</text>
+
+  <!-- Code panel — echoes the playground's own diagnostic surface -->
+  <rect x="704" y="166" width="420" height="330" rx="16" fill="#000000" opacity="0.30" filter="url(#softShadow)"/>
+  <rect x="700" y="150" width="420" height="330" rx="16" fill="#13171d" stroke="#2c3138" stroke-width="1.5"/>
+  <!-- window dots -->
+  <circle cx="730" cy="184" r="6" fill="#3a4049"/>
+  <circle cx="752" cy="184" r="6" fill="#3a4049"/>
+  <circle cx="774" cy="184" r="6" fill="#3a4049"/>
+  <text x="1096" y="190" text-anchor="end" font-family="Menlo, ui-monospace, monospace"
+        font-size="16" fill="#5c636e">WASM</text>
+
+  <!-- code lines -->
+  <g font-family="Menlo, ui-monospace, monospace" font-size="23">
+    <text x="730" y="258" fill="#7a818c"># demo.rb</text>
+    <text x="730" y="306" fill="#E6E1D2"><tspan fill="#86c28e">"hello"</tspan><tspan fill="#b6bac2">.</tspan><tspan fill="#ED8B82">no_such_method</tspan></text>
+    <!-- error squiggle under no_such_method -->
+    <path d="M826 315 q5 -5 10 0 q5 5 10 0 q5 -5 10 0 q5 5 10 0 q5 -5 10 0 q5 5 10 0 q5 -5 10 0 q5 5 10 0 q5 -5 10 0 q5 5 10 0"
+          fill="none" stroke="#ED8B82" stroke-width="2.4" stroke-linecap="round"/>
+  </g>
+  <!-- diagnostic annotation -->
+  <g font-family="Menlo, ui-monospace, monospace">
+    <text x="730" y="364" font-size="20" fill="#ED8B82">└ undefined method</text>
+    <text x="730" y="402" font-size="17" fill="#7a818c">  [call.undefined-method]</text>
+  </g>
+</svg>

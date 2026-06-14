@@ -34,6 +34,11 @@ const sourcePage = path.join(sourceRoot, 'plugins/rigor-playground/wasm/index.ht
 const outputDir = path.resolve(projectRoot, 'public/playground');
 const outputPage = path.join(outputDir, 'index.html');
 
+// Canonical site origin, used to build the absolute Open Graph / Twitter Card
+// URLs the playground page advertises. Mirrors `site:` in astro.config.mjs;
+// override with SITE_URL for a preview deploy on another origin.
+const siteUrl = (process.env.SITE_URL?.trim() || 'https://rigor.typedduck.fail').replace(/\/+$/, '');
+
 // The playground page only exists in upstream/rigor once the wasm work has
 // merged and the submodule is bumped to a commit that carries it. Until then,
 // skip rather than fail the whole build — keeps this wiring safe to land ahead
@@ -83,6 +88,48 @@ if (!metaRe.test(html)) {
   );
 }
 html = html.replace(metaRe, `$1${wasmUrl}$2`);
+
+// Inject Open Graph / Twitter Card metadata. The upstream page ships none —
+// social cards are a docs-site concern (canonical URL, hosted card image), not
+// something the framework-agnostic playground source should hard-code. The
+// card art is committed at public/og/playground.png (served at /og/...). The
+// rest of the site gets its tags from Starlight's <Head>; this standalone
+// static page needs them spelled out. Injected after <title> so the tags sit
+// in the document head alongside the page title.
+const ogImage = `${siteUrl}/og/playground.png`;
+const pageUrl = `${siteUrl}/playground/`;
+const ogTitle = 'Rigor Playground';
+const ogDescription =
+  'Type-check Ruby in your browser with the Rigor static analyzer — no install, ' +
+  'no annotations, no backend. Powered by ruby.wasm.';
+const ogImageAlt = 'Rigor Playground — type-check Ruby in your browser';
+const ogTags = `
+  <!-- Open Graph / Twitter Card — injected by scripts/sync-playground.mjs.
+       Card image committed at public/og/playground.png (source: assets/og/playground.svg). -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Rigor">
+  <meta property="og:title" content="${ogTitle}">
+  <meta property="og:description" content="${ogDescription}">
+  <meta property="og:url" content="${pageUrl}">
+  <meta property="og:image" content="${ogImage}">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="${ogImageAlt}">
+  <meta property="og:locale" content="en">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="${ogTitle}">
+  <meta name="twitter:description" content="${ogDescription}">
+  <meta name="twitter:image" content="${ogImage}">
+  <meta name="twitter:image:alt" content="${ogImageAlt}">`;
+
+const titleRe = /<\/title>/;
+if (!titleRe.test(html)) {
+  throw new Error(
+    `sync-playground: <title> not found in ${sourcePage} — the upstream playground ` +
+      'page changed shape; update the Open Graph injection in this script.',
+  );
+}
+html = html.replace(titleRe, `</title>\n${ogTags}`);
 
 await mkdir(outputDir, { recursive: true });
 await writeFile(outputPage, html);
