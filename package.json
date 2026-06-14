@@ -7,7 +7,8 @@
   "scripts": {
     "sync:docs": "node scripts/sync-rigor-docs.mjs",
     "sync:chibirigor": "node scripts/sync-chibirigor-docs.mjs",
-    "sync:all": "pnpm run sync:docs && pnpm run sync:chibirigor",
+    "sync:playground": "node scripts/sync-playground.mjs",
+    "sync:all": "pnpm run sync:docs && pnpm run sync:chibirigor && pnpm run sync:playground",
     "check:translations": "node scripts/check-translations.mjs",
     "bootstrap:translations": "node scripts/check-translations.mjs --bootstrap",
     "predev": "pnpm run sync:all",
