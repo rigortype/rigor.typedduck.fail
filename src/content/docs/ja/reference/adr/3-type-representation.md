@@ -164,7 +164,7 @@ Rigorドキュメント:
 - [`docs/type-specification/relations-and-certainty.md`](../../type-specification/relations-and-certainty/) — サブタイピング（subtyping）、<ruby>漸進的一貫性<rp>（</rp><rt>gradual consistency</rt><rp>）</rp></ruby>、3値の確実性。
 - [`docs/type-specification/value-lattice.md`](../../type-specification/value-lattice/) — 束のidentityと`Dynamic[T]`代数。
 - [`docs/type-specification/special-types.md`](../../type-specification/special-types/) — `top`、`bot`、`untyped`/`Dynamic[T]`、`void`、`nil`/`NilClass`、`bool`/`boolish`。
-- [`docs/type-specification/rbs-compatible-types.md`](../../type-specification/rbs-compatible-types/) — RBS形式と文脈的ルール。
+- [`docs/type-specification/rbs-compatible-types.md`](../../type-specification/rbs-compatible-types/) — RBS形式とコンテキスト規則。
 - [`docs/type-specification/rigor-extensions.md`](../../type-specification/rigor-extensions/) — RigorがRBSを超えて追加するリファインメント。
 - [`docs/type-specification/imported-built-in-types.md`](../../type-specification/imported-built-in-types/) — 予約された組み込みリファインメント名。
 - [`docs/type-specification/type-operators.md`](../../type-specification/type-operators/) — 演算子形式と表示契約。
