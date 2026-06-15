@@ -3,8 +3,8 @@ title: "クラス"
 description: "rigortype/rigor docs/handbook/06-classes.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/06-classes.md"
 sourcePath: "docs/handbook/06-classes.md"
-sourceSha: "d0e5db0ed02e15df17e321e29f6420bf1ee51dd5c5b92d5da578fbde005e969c"
-sourceCommit: "106b93dd777b71aeef323dce1e4087c226c8ce37"
+sourceSha: "c45715449b7858c3e5532698a67f77f8cbf66e4d3dbf237ef9c668de895697df"
+sourceCommit: "e9143e5a24c59d43e2ea9f548835c91f029e19dc"
 translationStatus: "translated"
 sidebar:
   order: 1006
@@ -121,17 +121,24 @@ assert_type("4", p.y)
 
 ## `Struct.new`
 
-`Struct.new(*Symbol)`は位置引数コンストラクタに加えて`Data.define`と同じアクセサを生成します。Rigorは両方の形式を処理します:
+`Struct.new(*Symbol)`は位置引数コンストラクタに加えて`Data.define`と同じアクセサを生成します。Rigorはstructのメンバー読み取りも畳み込みますが — `Struct`は可変なので — 値が変化し得なかった箇所に限ります:
 
 ```ruby
 Coord = Struct.new(:x, :y)
 
+# 一度も変異されないstructローカルはメンバー読み取りを畳み込む。
 c = Coord.new(10, 20)
-assert_type("Dynamic[top]", c.x)   # Structメンバーは定数たたみ込みされない（可変）
-assert_type("Dynamic[top]", c.y)
+assert_type("10", c.x)
+assert_type("20", c.y)
+
+# 変異・エイリアス・エスケープのあるローカルは畳み込み安全でない —
+#   その読み取りはDynamicに劣化し、古い値になることはない。
+m = Coord.new(1, 2)
+m.x = 9
+assert_type("Dynamic[top]", m.x)
 ```
 
-`Struct`はミュータビリティを追加します（アクセサはライターでもある）ので、インスタンス変数スタイルの蓄積が適用されます。`Data`は読み取り専用です。
+`Struct`のアクセサはライターでもあるため、畳み込みにはゲートがかかります: 新規に構築したインスタンス（`Coord.new(1, 2).x`）からのメンバー読み取り、または書き込み・エイリアス・受け渡しのいずれも起きないと解析が証明したローカルは、メンバーの型に畳み込まれます;それ以外はすべて`Dynamic[top]`に広がります。`Data`は読み取り専用なので、その読み取りは常に畳み込まれます。
 
 ## 継承とメソッド解決
 

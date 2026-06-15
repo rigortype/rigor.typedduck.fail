@@ -4,7 +4,7 @@ description: "Imported from rigortype/rigor docs/notes/20260610-cache-disk-runti
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260610-cache-disk-runtime-audit.md"
 sourcePath: "docs/notes/20260610-cache-disk-runtime-audit.md"
 sourceSha: "f6bc81d81660e46f7f0334fa103cd94ff93f5a7ee0b1590414901bf2c693e6a7"
-sourceCommit: "7f5a54c352ff4370788bf7aef5fc1b70f8a92e4a"
+sourceCommit: "e9143e5a24c59d43e2ea9f548835c91f029e19dc"
 sourceDate: "2026-06-10T22:50:23+09:00"
 sourceLanguage: "ja"
 sidebar:
