@@ -7,11 +7,11 @@ hero:
   tagline: A Ruby static analyzer focused on useful, flow-sensitive type feedback without requiring annotations in Ruby source.
   actions:
     - text: Install Rigor
-      link: /reference/manual/01-installation/
+      link: /manual/01-installation/
       icon: right-arrow
       variant: primary
     - text: Read the handbook
-      link: /reference/handbook/
+      link: /handbook/
       icon: open-book
       variant: secondary
     - text: Try in your browser
@@ -61,31 +61,31 @@ mise use gem:rigortype
 
 Everything for getting Rigor running and into your daily workflow.
 
-- [Install](/reference/manual/01-installation/): mise / asdf / `gem install` / dev containers — the two commands above are the short path.
-- [Getting started](/reference/handbook/01-getting-started/): your first `rigor check`.
-- [Configuration](/reference/manual/03-configuration/): severity profiles, scope, and plugins.
-- [Baseline](/reference/manual/06-baseline/): adopt Rigor gradually in an existing codebase.
-- [CI](/reference/manual/11-ci/) & [editor integration](/reference/manual/09-editor-integration/): wire it into your workflow.
-- [Rails quickstart](/reference/manual/14-rails-quickstart/): the fast path for Rails apps.
+- [Install](/manual/01-installation/): mise / asdf / `gem install` / dev containers — the two commands above are the short path.
+- [Getting started](/handbook/01-getting-started/): your first `rigor check`.
+- [Configuration](/manual/03-configuration/): severity profiles, scope, and plugins.
+- [Baseline](/manual/06-baseline/): adopt Rigor gradually in an existing codebase.
+- [CI](/manual/11-ci/) & [editor integration](/manual/09-editor-integration/): wire it into your workflow.
+- [Rails quickstart](/manual/14-rails-quickstart/): the fast path for Rails apps.
 
 ## Evaluating Rigor
 
 For deciding whether Rigor fits — how it works and how it compares. Where Sorbet wants inline `sig`s and Steep wants hand-written RBS, Rigor wants neither — every type is inferred from the values your code actually produces.
 
-- Coming from another type checker: [Sorbet](/reference/handbook/10-sorbet/), [Steep](/reference/handbook/appendix-steep/), [TypeProf](/reference/handbook/appendix-typeprof/), [TypeScript](/reference/handbook/appendix-typescript/) (mypy, Go, Rust and more in the handbook appendices).
-- [Type specification overview](/reference/type-specification/): what counts as a type and what Rigor guarantees — the core of the no-annotations design.
-- [Narrowing](/reference/handbook/03-narrowing/): what flow-sensitive analysis buys you.
-- [Connections to type theory](/reference/handbook/appendix-type-theory/): the theory behind the design.
-- [Compatibility](/reference/compatibility/) & [roadmap](/reference/roadmap/): supported Ruby versions and what's planned.
+- Coming from another type checker: [Sorbet](/handbook/10-sorbet/), [Steep](/handbook/appendix-steep/), [TypeProf](/handbook/appendix-typeprof/), [TypeScript](/handbook/appendix-typescript/) (mypy, Go, Rust and more in the handbook appendices).
+- [Type specification overview](/type-specification/): what counts as a type and what Rigor guarantees — the core of the no-annotations design.
+- [Narrowing](/handbook/03-narrowing/): what flow-sensitive analysis buys you.
+- [Connections to type theory](/handbook/appendix-type-theory/): the theory behind the design.
+- [Compatibility](/compatibility/) & [roadmap](/roadmap/): supported Ruby versions and what's planned.
 
 ## All documentation
 
 The full map — including specs and records not surfaced in the sections above.
 
-- [**Handbook**](/reference/handbook/): all nine chapters on Rigor's type model.
-- [**User Manual**](/reference/manual/): the operational reference, install through CI and troubleshooting.
-- [**Type Specification**](/reference/type-specification/): the normative type model, operators, and inference rules.
-- [**Internal Specification**](/reference/internal-spec/): implementation contracts for contributors.
-- [**Architecture Decisions**](/reference/adr/): ADRs recording design rationale and trade-offs.
-- [**Design Notes**](/reference/design/): longer design documents and research notes.
-- [**Development Notes**](/reference/notes/): library surveys, coverage audits, regression sweeps, and real-project triage.
+- [**Handbook**](/handbook/): all nine chapters on Rigor's type model.
+- [**User Manual**](/manual/): the operational reference, install through CI and troubleshooting.
+- [**Type Specification**](/type-specification/): the normative type model, operators, and inference rules.
+- [**Internal Specification**](/internal-spec/): implementation contracts for contributors.
+- [**Architecture Decisions**](/adr/): ADRs recording design rationale and trade-offs.
+- [**Design Notes**](/design/): longer design documents and research notes.
+- [**Development Notes**](/notes/): library surveys, coverage audits, regression sweeps, and real-project triage.

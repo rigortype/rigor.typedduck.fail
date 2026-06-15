@@ -10,9 +10,15 @@ const execFileAsync = promisify(execFile);
 const projectRoot = fileURLToPath(new URL('..', import.meta.url));
 const docsRoot = path.resolve(projectRoot, 'src/content/docs');
 const upstreamRoot = path.resolve(projectRoot, process.env.RIGOR_SOURCE_DIR ?? 'upstream/rigor');
-const sourceLocaleRoot = path.join(docsRoot, 'reference');
+// The reference pages live at the docs content root now (the reference/
+// namespace was removed): EN at <docsRoot>, JA at <docsRoot>/<locale>. The
+// root is shared with the hand-authored splash pages (.mdx, skipped by the
+// .md-only walker) and sibling trees, so collectMarkdownFiles skips the
+// locale dir (when walking EN) and the generated chibirigor book.
+const sourceLocaleRoot = docsRoot;
 const targetLocale = process.env.RIGOR_LOCALE ?? 'ja';
-const targetLocaleRoot = path.join(docsRoot, targetLocale, 'reference');
+const targetLocaleRoot = path.join(docsRoot, targetLocale);
+const skipDirs = new Set([targetLocale, 'chibirigor']);
 // For Japanese-native upstream sources, hand-edited English translations
 // live under translations/en/<output-path>. sync-rigor-docs.mjs reads
 // these and overlays them onto the gitignored EN tree.
@@ -337,6 +343,9 @@ async function collectMarkdownFiles(directory) {
     if (entry.name.startsWith('.')) continue;
     const entryPath = path.join(directory, entry.name);
     if (entry.isDirectory()) {
+      // Skip the locale tree (when walking the EN root) and the generated
+      // chibirigor book so neither is mistaken for a reference source/target.
+      if (skipDirs.has(entry.name)) continue;
       files.push(...(await collectMarkdownFiles(entryPath)));
       continue;
     }

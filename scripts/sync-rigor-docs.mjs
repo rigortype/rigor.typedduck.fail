@@ -12,13 +12,19 @@ const execFileAsync = promisify(execFile);
 
 const projectRoot = fileURLToPath(new URL('..', import.meta.url));
 const sourceRoot = path.resolve(projectRoot, process.env.RIGOR_SOURCE_DIR ?? 'upstream/rigor');
-const outputRoot = path.resolve(projectRoot, 'src/content/docs/reference');
-// JA-native upstream files: the JA tree (`src/content/docs/ja/reference/`)
-// receives the upstream Japanese content verbatim — it's the canonical
-// JA presentation and stays in sync on every sync. Hand-edited JA
-// translations of EN-native upstream files also live in this directory
-// but the script never touches those (it only writes the JA-native paths).
-const jaOutputRoot = path.resolve(projectRoot, 'src/content/docs/ja/reference');
+// The upstream reference tree is written directly under the docs content
+// root (no `reference/` namespace segment): upstream `handbook/x.md` →
+// `src/content/docs/handbook/x.md` → URL `/handbook/x/`. The root is shared
+// with the hand-authored splash pages (`index.mdx`, `recently-updated.mdx`)
+// and the owned JA tree (`ja/`), so the stale-output cleanup below is
+// selective rather than a wholesale wipe.
+const outputRoot = path.resolve(projectRoot, 'src/content/docs');
+// JA-native upstream files: the JA tree (`src/content/docs/ja/`) receives
+// the upstream Japanese content verbatim — it's the canonical JA presentation
+// and stays in sync on every sync. Hand-edited JA translations of EN-native
+// upstream files also live in this directory but the script never touches
+// those (it only writes the JA-native paths).
+const jaOutputRoot = path.resolve(projectRoot, 'src/content/docs/ja');
 const releaseOutputPath = path.resolve(projectRoot, 'src/data/rigor-release.json');
 const upstreamDocsDirs = ['docs', 'doc'];
 
@@ -26,7 +32,7 @@ const upstreamDocsDirs = ['docs', 'doc'];
 // `sourceLanguage: ja` or CJK byte ratio above this threshold),
 // the script looks for a hand-edited English translation under
 // `translations/en/<output-path>`. If found, that translation is
-// written to `src/content/docs/reference/<output-path>` with the
+// written to `src/content/docs/<output-path>` with the
 // upstream's sourceSha / sourceCommit / sourceDate stamped on top.
 // If absent, a "translation pending" stub containing the upstream
 // JA body is written instead so the page still renders.
@@ -42,20 +48,23 @@ const sectionOrder = new Map([
   ['notes', 60],
 ]);
 
-const sectionLabels = new Map([
-  ['handbook', 'Handbook'],
-  ['type-specification', 'Type Specification'],
-  ['internal-spec', 'Internal Specification'],
-  ['adr', 'Architecture Decisions'],
-  ['design', 'Design Notes'],
-  ['notes', 'Development Notes'],
-]);
-
 const docsRoot = await findDocsRoot();
 const docsRootName = path.basename(docsRoot);
 const sourceCommit = await readUpstreamCommit();
-await rm(outputRoot, { recursive: true, force: true });
 await mkdir(outputRoot, { recursive: true });
+// outputRoot is the shared docs content root, so we can't wipe it wholesale —
+// it also holds the hand-authored splash pages and the owned JA tree. Remove
+// only the previously generated EN artifacts: every top-level entry that isn't
+// a hand-authored keeper. This also sweeps away a stale `reference/` directory
+// left by an older sync, and upstream top-level additions/removals are handled
+// automatically (anything not regenerated this run is gone next run).
+const jaDirName = path.relative(outputRoot, jaOutputRoot).split(path.sep)[0];
+const ownedRootEntries = new Set(['index.mdx', 'recently-updated.mdx', jaDirName]);
+for (const entry of await readdir(outputRoot, { withFileTypes: true })) {
+  if (entry.name.startsWith('.')) continue;
+  if (ownedRootEntries.has(entry.name)) continue;
+  await rm(path.join(outputRoot, entry.name), { recursive: true, force: true });
+}
 
 const markdownFiles = await collectMarkdownFiles(docsRoot);
 let jaNativeCount = 0;
@@ -86,11 +95,6 @@ for (const file of markdownFiles) {
     await writeFile(jaPath, normalizeJaTypography(page.jaTreeContent));
   }
 }
-
-await writeFile(
-  path.join(outputRoot, 'index.md'),
-  buildReferenceIndex(markdownFiles.map((file) => path.relative(docsRoot, file)))
-);
 
 const release = await readUpstreamRelease();
 await mkdir(path.dirname(releaseOutputPath), { recursive: true });
@@ -612,27 +616,3 @@ function orderFor(relativePath) {
   return sectionBase * 100 + 50;
 }
 
-function buildReferenceIndex(relativePaths) {
-  const sections = new Set(
-    relativePaths
-      .map((relativePath) => relativePath.split(path.sep)[0])
-      .filter((segment) => segment && segment.endsWith('.md') === false)
-  );
-  const sectionLinks = [...sections]
-    .sort((left, right) => (sectionOrder.get(left) ?? 90) - (sectionOrder.get(right) ?? 90))
-    .map((section) => `- [${sectionLabels.get(section) ?? titleFromFile(`${section}.md`)}](./${section}/)`)
-    .join('\n');
-
-  const body = `These pages are generated from upstream Markdown files during the site build.\n\n${sectionLinks}\n`;
-  const sha = createHash('sha256').update(body).digest('hex');
-  const front = [
-    'title: Reference',
-    'description: Documentation imported from the upstream rigortype/rigor repository.',
-    'sourcePath: "(generated)"',
-    `sourceSha: ${JSON.stringify(sha)}`,
-  ];
-  if (sourceCommit) front.push(`sourceCommit: ${JSON.stringify(sourceCommit)}`);
-  front.push('sidebar:');
-  front.push('  order: 0');
-  return `---\n${front.join('\n')}\n---\n\n${body}`;
-}

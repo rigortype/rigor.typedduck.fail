@@ -1,0 +1,10 @@
+# The reference/ URL namespace was flattened to the site root (2026-06):
+# /reference/handbook/01-getting-started/ → /handbook/01-getting-started/.
+# Permanently redirect the old paths so existing inbound links and indexed
+# search results keep resolving. The :splat captures the rest of the path.
+# Cloudflare evaluates these top-to-bottom; the JA rules precede the EN ones
+# (they are disjoint, but specific-first keeps intent clear).
+/ja/reference/*  /ja/:splat  301
+/ja/reference    /ja/        301
+/reference/*     /:splat     301
+/reference       /           301

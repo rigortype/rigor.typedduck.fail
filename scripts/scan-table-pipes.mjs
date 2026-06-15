@@ -7,7 +7,7 @@
 // table row carries an unescaped code-span pipe. The expected baseline is zero.
 // `pnpm sync:docs` / `sync:chibirigor` and the JA typography normalizer all
 // apply the escape automatically, so a non-zero result means hand-authored
-// content (almost always a JA translation under src/content/docs/ja/reference/)
+// content (almost always a JA translation under src/content/docs/ja/)
 // introduced one; fix it with:
 //
 //   node scripts/escape-table-pipes.mjs <file.md>

@@ -7,11 +7,11 @@ hero:
   tagline: Rubyソースに注釈を書かなくても、フローに応じた実用的な型フィードバックを返す静的解析器です。
   actions:
     - text: インストールして試す
-      link: /ja/reference/manual/01-installation/
+      link: /ja/manual/01-installation/
       icon: right-arrow
       variant: primary
     - text: ハンドブックを読む
-      link: /ja/reference/handbook/
+      link: /ja/handbook/
       icon: open-book
       variant: secondary
     - text: ブラウザで試す
@@ -61,31 +61,31 @@ mise use gem:rigortype
 
 プロジェクトにRigorを組み込み、日々のワークフローに乗せるための導線です。
 
-- [インストール](/ja/reference/manual/01-installation/): mise / asdf / `gem install` / devコンテナ。上の2コマンドが最短経路です。
-- [はじめての解析](/ja/reference/handbook/01-getting-started/): 最初の`rigor check`まで。
-- [設定](/ja/reference/manual/03-configuration/): 重大度プロファイル、対象範囲、プラグイン。
-- [ベースライン](/ja/reference/manual/06-baseline/): 既存コードベースへ段階的に導入する。
-- [CI](/ja/reference/manual/11-ci/)・[エディター統合](/ja/reference/manual/09-editor-integration/): 日常のワークフローへ組み込む。
-- [Railsクイックスタート](/ja/reference/manual/14-rails-quickstart/): Railsアプリに最短で乗せる。
+- [インストール](/ja/manual/01-installation/): mise / asdf / `gem install` / devコンテナ。上の2コマンドが最短経路です。
+- [はじめての解析](/ja/handbook/01-getting-started/): 最初の`rigor check`まで。
+- [設定](/ja/manual/03-configuration/): 重大度プロファイル、対象範囲、プラグイン。
+- [ベースライン](/ja/manual/06-baseline/): 既存コードベースへ段階的に導入する。
+- [CI](/ja/manual/11-ci/)・[エディター統合](/ja/manual/09-editor-integration/): 日常のワークフローへ組み込む。
+- [Railsクイックスタート](/ja/manual/14-rails-quickstart/): Railsアプリに最短で乗せる。
 
 ## Rigorを評価・調査する
 
 導入を決める前に、Rigorの仕組みと他ツールとの違いを確かめるための導線です。Sorbetがインラインの`sig`を、Steepが手書きのRBSを求めるのに対し、Rigorはどちらも要求しません——型はすべてコードが実際に生成する値から推論されます。
 
-- 他の型チェッカーから来たなら: [Sorbet](/ja/reference/handbook/10-sorbet/)・[Steep](/ja/reference/handbook/appendix-steep/)・[TypeProf](/ja/reference/handbook/appendix-typeprof/)・[TypeScript](/ja/reference/handbook/appendix-typescript/)（mypy・Go・Rustほかの付録もハンドブックにあります）。
-- [型仕様の概要](/ja/reference/type-specification/): 何を型とみなし、何を保証するか。注釈なしで推論する設計の核心です。
-- [ナローイング](/ja/reference/handbook/03-narrowing/): フローセンシティブな解析が何を実現するか。
-- [型理論との接続](/ja/reference/handbook/appendix-type-theory/): 設計を支える理論的背景。
-- [互換性](/ja/reference/compatibility/)・[ロードマップ](/ja/reference/roadmap/): 対応Rubyバージョンと今後の方針。
+- 他の型チェッカーから来たなら: [Sorbet](/ja/handbook/10-sorbet/)・[Steep](/ja/handbook/appendix-steep/)・[TypeProf](/ja/handbook/appendix-typeprof/)・[TypeScript](/ja/handbook/appendix-typescript/)（mypy・Go・Rustほかの付録もハンドブックにあります）。
+- [型仕様の概要](/ja/type-specification/): 何を型とみなし、何を保証するか。注釈なしで推論する設計の核心です。
+- [ナローイング](/ja/handbook/03-narrowing/): フローセンシティブな解析が何を実現するか。
+- [型理論との接続](/ja/handbook/appendix-type-theory/): 設計を支える理論的背景。
+- [互換性](/ja/compatibility/)・[ロードマップ](/ja/roadmap/): 対応Rubyバージョンと今後の方針。
 
 ## すべてのドキュメント
 
 全体マップです。上の2セクションで触れていない仕様・記録もここから辿れます。
 
-- [**ハンドブック**](/ja/reference/handbook/): Rigorの型モデルを解説する全9章。
-- [**ユーザーマニュアル**](/ja/reference/manual/): インストールからCI・トラブルシューティングまでの運用リファレンス。
-- [**型仕様**](/ja/reference/type-specification/): 型モデル、型演算子、推論規則の規範的仕様です。
-- [**内部仕様**](/ja/reference/internal-spec/): コントリビューター向けの実装上の契約をまとめます。
-- [**設計判断（ADR）**](/ja/reference/adr/): 設計根拠とトレードオフを記録したADRです。
-- [**設計ノート**](/ja/reference/design/): より詳細な設計文書と研究ノートです。
-- [**開発レポート**](/ja/reference/notes/): ライブラリ調査、カバレッジ監査、リグレッションスイープ、実プロジェクトのトリアージ。
+- [**ハンドブック**](/ja/handbook/): Rigorの型モデルを解説する全9章。
+- [**ユーザーマニュアル**](/ja/manual/): インストールからCI・トラブルシューティングまでの運用リファレンス。
+- [**型仕様**](/ja/type-specification/): 型モデル、型演算子、推論規則の規範的仕様です。
+- [**内部仕様**](/ja/internal-spec/): コントリビューター向けの実装上の契約をまとめます。
+- [**設計判断（ADR）**](/ja/adr/): 設計根拠とトレードオフを記録したADRです。
+- [**設計ノート**](/ja/design/): より詳細な設計文書と研究ノートです。
+- [**開発レポート**](/ja/notes/): ライブラリ調査、カバレッジ監査、リグレッションスイープ、実プロジェクトのトリアージ。

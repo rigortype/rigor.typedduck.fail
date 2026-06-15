@@ -20,9 +20,10 @@ const jaIds = new Set(
 
 const entries = allDocs
   .filter((e) => {
+    // EN reference pages live at the docs root now (the reference/ namespace
+    // was removed). They are exactly the entries carrying a sourceDate stamp;
+    // the hand-authored splash pages (index, recently-updated) have none.
     if (e.id.startsWith('ja/')) return false;
-    if (!e.id.startsWith('reference/')) return false;
-    if (e.id === 'reference/index') return false;
     if (!e.data.sourceDate) return false;
     return true;
   })
@@ -42,7 +43,8 @@ function formatDate(iso: string): string {
 }
 
 function sectionLabel(id: string): string {
-  const segment = id.split('/')[1] ?? '';
+  // id is now `<section>/<page>` (was `reference/<section>/<page>`).
+  const segment = id.split('/')[0] ?? '';
   const labels = sectionLabels[segment];
   if (!labels) return segment;
   return isJa ? labels.ja : labels.en;

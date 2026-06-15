@@ -17,8 +17,13 @@ The `predev` and `prebuild` scripts sync Markdown from the `upstream/rigor` subm
 ## Content Layout
 
 - Upstream source: `upstream/rigor` (submodule, currently `v0.1.1`)
-- Generated English reference pages: `src/content/docs/reference/`
-- Japanese translations: `src/content/docs/ja/reference/` (mirrors the EN tree path-for-path)
+- Generated English reference pages: `src/content/docs/<section>/` at the docs
+  content root (e.g. `handbook/`, `manual/`, `adr/`) — no `reference/` URL
+  namespace; git-ignored and regenerated each build
+- Japanese translations: `src/content/docs/ja/<section>/` (mirrors the EN tree
+  path-for-path)
+- Old `/reference/…` URLs are 301-redirected to the flattened paths via
+  `public/_redirects`
 
 ## Deployment (Cloudflare Workers Static Assets via GitHub Actions)
 
@@ -113,9 +118,9 @@ pnpm check:translations --diff handbook/02-everyday-types.md
 
 ### Translating a stale or missing page
 
-1. Open the EN page in `src/content/docs/reference/<path>` to see the new
+1. Open the EN page in `src/content/docs/<path>` to see the new
    `sourceSha` / `sourceCommit`.
-2. Open the JA mirror in `src/content/docs/ja/reference/<path>`. If
+2. Open the JA mirror in `src/content/docs/ja/<path>`. If
    `pnpm check:translations` reported the path as missing, run
    `pnpm bootstrap:translations` first to scaffold a skeleton (English
    body + `translationStatus: pending`).

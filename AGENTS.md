@@ -1,13 +1,18 @@
 # AGENTS.md
 
 Notes for agents working on the Rigor documentation site. The English
-reference pages under `src/content/docs/reference/` are generated from
-the `upstream/rigor` submodule by `scripts/sync-rigor-docs.mjs`; do not
-edit them directly. Japanese translations live at the mirroring path
-under `src/content/docs/ja/reference/` and are the only translated
-content this repository owns. The translation workflow (sourceSha-based
-drift detection, `pnpm check:translations`, `pnpm bootstrap:translations`)
-is documented in [README.md](README.md).
+reference pages are generated from the `upstream/rigor` submodule by
+`scripts/sync-rigor-docs.mjs` directly into the docs content root
+(`src/content/docs/<section>/…`, e.g. `handbook/`, `manual/`, `adr/`) — there
+is no `reference/` URL namespace, and they are git-ignored; do not edit them
+directly. Japanese translations live at the mirroring path under
+`src/content/docs/ja/<section>/…` and are the only translated content this
+repository owns. The generated EN tree is kept out of git by a `.gitignore`
+allow-list (`/src/content/docs/*` minus the hand-authored splash pages and the
+`ja/` tree), so new upstream top-level dirs are ignored automatically. The
+translation workflow (sourceSha-based drift detection, `pnpm
+check:translations`, `pnpm bootstrap:translations`) is documented in
+[README.md](README.md).
 
 ## chibirigor book (separate navigation topic)
 
