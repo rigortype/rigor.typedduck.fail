@@ -3,9 +3,9 @@ title: "設定"
 description: "rigortype/rigor docs/manual/03-configuration.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/03-configuration.md"
 sourcePath: "docs/manual/03-configuration.md"
-sourceSha: "aebe8be4a46bd24e86fd528b9b88f7ee09fdeab32a1c9f1337320301cdd5ee79"
-sourceCommit: "7f5a54c352ff4370788bf7aef5fc1b70f8a92e4a"
-sourceDate: "2026-06-13T19:23:25+09:00"
+sourceSha: "98e004f9e63373719db7a18292dc770d7bfa3929123ce2c6bbd146c3a12720bb"
+sourceCommit: "a3ab53dd2b8aa0a84fd7ddbd64339f316d8d12ec"
+sourceDate: "2026-06-15T14:21:04+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9003
@@ -75,6 +75,10 @@ cache:
 | `bundler.auto_detect` | Boolean | `true` | Bundlerのインストールパスとlockfileを自動検出する。 |
 | `bundler.bundle_path` | String | `nil` | 明示的なBundlerインストールルート。 |
 | `bundler.lockfile` | String | `nil` | 明示的な`Gemfile.lock`パス。 |
+
+`bundler.auto_detect`はまずプロジェクトローカルな場所——`<project>/.bundle/config`に記録された`path`、次に`<project>/vendor/bundle/`ディレクトリ——でBundlerのインストールルートを探し、プロジェクトにツリー内バンドルがない場合はユーザーグローバルな`bundle config set --global path …`（`~/.bundle/config`）にフォールバックします。
+
+これはrigor自身の環境から`BUNDLE_PATH`を読み取ら**ない**よう意図的に作られており、*デフォルト*の共有場所（`path`が未設定のときの、アクティブなRubyの`GEM_HOME`）にインストールされたgemには到達できません。rigorはそれ自身の隔離されたRubyで動作し、あなたのプロジェクトをデータとして読み取るため（[ADR-27](../../adr/27-tool-distribution-model/)）、ツールチェーンを実行しないとプロジェクトRubyのgem homeを知ることができないのです。`rigor check`の`--stats`がRBSを見つけられなかったgemを表示する場合は、`bundler.bundle_path:`でバンドルを明示的に指し示すか、別の方法でシグネチャを供給してください。すなわち`rbs collection install`（自動探索される）か`dependencies.source_inference:`です。
 | `rbs_collection.auto_detect` | Boolean | `true` | `rbs_collection.lock.yaml`を自動探索する。 |
 | `rbs_collection.lockfile` | String | `nil` | 明示的な`rbs_collection.lock.yaml`パス。 |
 | `dependencies.source_inference` | Array | `[]` | gem単位のソース推論モード（ADR-10）。 |

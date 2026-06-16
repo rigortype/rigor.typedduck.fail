@@ -3,8 +3,8 @@ title: "RBSと`RBS::Extended`"
 description: "rigortype/rigor docs/handbook/07-rbs-and-extended.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/07-rbs-and-extended.md"
 sourcePath: "docs/handbook/07-rbs-and-extended.md"
-sourceSha: "adcc13413121eb66941dd2e88a760618ccfe787c3da86e9224da283665b7395a"
-sourceCommit: "106b93dd777b71aeef323dce1e4087c226c8ce37"
+sourceSha: "cf3c04a7211e783416b5c7e9bb4e9068b87365f4eb42f5e804218a6226674e07"
+sourceCommit: "a3ab53dd2b8aa0a84fd7ddbd64339f316d8d12ec"
 translationStatus: "translated"
 sidebar:
   order: 1007
@@ -91,7 +91,7 @@ s == "hello-world"  # bool — 等値ナローイングが適用される
 
 ## ディレクティブ文法
 
-`RBS::Extended`は[`docs/type-specification/rbs-extended.md`](../../type-specification/rbs-extended/)にあります。5つのディレクティブ:
+`RBS::Extended`は[`docs/type-specification/rbs-extended.md`](../../type-specification/rbs-extended/)にあります。メソッドごとのディレクティブ:
 
 | ディレクティブ | 意味 |
 | --- | --- |
@@ -119,6 +119,20 @@ s == "hello-world"  # bool — 等値ナローイングが適用される
 | ペアになった補完 | `non-lowercase-string`、`non-uppercase-string`、`non-numeric-string` |
 | 合成 | `non-empty-lowercase-string`、`non-empty-uppercase-string`、`non-empty-literal-string` |
 | シェイプ射影 | `pick_of[T, K]`、`omit_of[T, K]`、`partial_of[T]`、`required_of[T]`、`readonly_of[T]` — 既存の`HashShape`/`Tuple`から新しいキャリア（carrier）を派生させます。[第4章 §「新しいシェイプを派生させる」](../04-tuples-and-shapes/#deriving-new-shapes--pick_of--omit_of--partial_of--required_of--readonly_of)を参照。 |
+
+## 適合を宣言する — `conforms-to`
+
+上記のディレクティブは`def`に付きます。もう1つは`class` / `module`宣言に付き、いずれかの呼び出し箇所がそれを行使するかどうかに関わらず、検査される設計アサーションとして、クラス全体が名前付きの構造的インターフェースを満たすことを表明します:
+
+```rbs
+%a{rigor:v1:conforms-to _RewindableStream}
+class MyBuffer
+  def read: (Integer) -> String
+  def rewind: () -> void
+end
+```
+
+`MyBuffer`が`_RewindableStream`インターフェースの要求するメソッドを欠いている（またはシグネチャが互換でない）場合、Rigorは`rbs_extended.unsatisfied-conformance`を報告します;インターフェースを満たすクラスは沈黙します。1つのクラスに複数の`conforms-to`ディレクティブを付けると、インターフェースのインターセクション（intersection、交叉型とも）のように組み合わされます。このディレクティブは純粋に追加的です — 呼び出し箇所での暗黙の構造的互換性は、それがあってもなくても動作し続けます。
 
 ## 実例: アサーションゲート
 

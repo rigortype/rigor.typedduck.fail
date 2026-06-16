@@ -3,9 +3,9 @@ title: "診断"
 description: "rigortype/rigor docs/manual/04-diagnostics.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/04-diagnostics.md"
 sourcePath: "docs/manual/04-diagnostics.md"
-sourceSha: "30ac959d9328d61a7f062423e321952f6bc9751cb398c5f9df64f1bbdedd20a0"
-sourceCommit: "bf5d5216eed7167036f5c702b3f8003b390fcd8c"
-sourceDate: "2026-06-13T17:48:47+09:00"
+sourceSha: "7791d667ab63414300ff3688597972c68f0d5ba1ec12dc6bbdec1f96341b9321"
+sourceCommit: "a3ab53dd2b8aa0a84fd7ddbd64339f316d8d12ec"
+sourceDate: "2026-06-15T14:10:58+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9004
@@ -29,30 +29,44 @@ sidebar:
 
 ### カタログ
 
-| ルール | 発火条件 |
-| --- | --- |
-| `call.undefined-method` | メソッドが受信側の静的に既知のクラスで定義されていない。 |
-| `call.self-undefined-method` | レシーバーのない暗黙的self呼び出しが、確実にクローズドな単独クラス上のどのメソッドにも解決されない。`:off`で出荷;`severity_overrides`でオプトインする。 |
-| `call.wrong-arity` | 位置引数の数がどのシグネチャとも一致しない。 |
-| `call.argument-type-mismatch` | 引数の型がパラメータ契約（contract）に違反することが証明できる。 |
-| `call.possible-nil-receiver` | 受信側が`T \| nil`で、メソッドが`NilClass`で定義されていない。 |
-| `call.unresolved-toplevel` | トップレベルの暗黙的self呼び出しが、同一ファイルの`def`、`pre_eval:`パッチ、`Kernel` / `Object`メソッドのいずれにも解決されない。 |
-| `flow.always-raises` | 式が到達可能なすべてのパスで例外を投げることが証明できる。 |
-| `flow.unreachable-branch` | `if` / `unless` / 三項演算子のブランチが静的に到達不能。 |
-| `flow.always-truthy-condition` | 条件が証明可能に常に真または常に偽。 |
-| `flow.dead-assignment` | ローカル変数が同じメソッド内で書かれるが読まれない。 |
-| `flow.unreachable-clause` | `case`/`when`または`case`/`in`の節が静的に到達不能。すなわちその対象の型がパターンと素であるか、先行する節がすでに対象を網羅している。 |
-| `def.return-type-mismatch` | メソッドボディの結果が宣言されたRBSの戻り型に違反する。 |
-| `def.ivar-write-mismatch` | インスタンス変数が最初の書き込みと異なる型で書かれる。 |
-| `def.method-visibility-mismatch` | 明示的レシーバーの呼び出しがprivateメソッドに到達する。 |
-| `def.override-visibility-reduced` | オーバーライドが、プロジェクト定義の祖先から継承した可視性を下げる。 |
-| `def.override-return-widened` | オーバーライドの宣言された戻り型が、継承した戻り型を広げる（共変性）。 |
-| `def.override-param-narrowed` | オーバーライドが、継承したパラメータ型を狭める（反変性）。 |
-| `rbs_extended.unsatisfied-conformance` | クラスがRBSで`%a{rigor:v1:conforms-to _Interface}`を宣言しているが、インターフェースが要求するメソッドを欠いている。存在ベース: 明確に欠落している必須メソッドのみが発火する。 |
-| `assert.type-mismatch` | `assert_type`の期待値が推論型と一致しない。 |
-| `dump.type` | `dump_type`呼び出し — 情報として推論型を出力する。 |
+各ルールはこのページ上に安定したルール単位のアンカー（`#rule-<family>-<name>`、ドットはダッシュで書く）を持ちます——`--format json`の`documentation_url`フィールドと`rigor explain`の`Documentation:`行はどちらもここを指します。`Evidence`列は、発火が真陽性であることへのRigorの確信度です（下記の[エビデンスティア](#エビデンスティア)を参照）。
+
+| ルール | 発火条件 | Evidence |
+| --- | --- | --- |
+| <a id="rule-call-undefined-method"></a>`call.undefined-method` | メソッドが受信側の静的に既知のクラスで定義されていない。 | high |
+| <a id="rule-call-self-undefined-method"></a>`call.self-undefined-method` | レシーバーのない暗黙的self呼び出しが、確実にクローズドな単独クラス上のどのメソッドにも解決されない。`:off`で出荷;`severity_overrides`でオプトインする。 | low |
+| <a id="rule-call-wrong-arity"></a>`call.wrong-arity` | 位置引数の数がどのシグネチャとも一致しない。 | high |
+| <a id="rule-call-argument-type-mismatch"></a>`call.argument-type-mismatch` | 引数の型がパラメータ契約（contract）に違反することが証明できる。 | high |
+| <a id="rule-call-possible-nil-receiver"></a>`call.possible-nil-receiver` | 受信側が`T \| nil`で、メソッドが`NilClass`で定義されていない。 | high |
+| <a id="rule-call-unresolved-toplevel"></a>`call.unresolved-toplevel` | トップレベルの暗黙的self呼び出しが、同一ファイルの`def`、`pre_eval:`パッチ、`Kernel` / `Object`メソッドのいずれにも解決されない。 | low |
+| <a id="rule-flow-always-raises"></a>`flow.always-raises` | 式が到達可能なすべてのパスで例外を投げることが証明できる。 | high |
+| <a id="rule-flow-unreachable-branch"></a>`flow.unreachable-branch` | `if` / `unless` / 三項演算子のブランチが静的に到達不能。 | high |
+| <a id="rule-flow-always-truthy-condition"></a>`flow.always-truthy-condition` | 条件が証明可能に常に真または常に偽。 | medium |
+| <a id="rule-flow-dead-assignment"></a>`flow.dead-assignment` | ローカル変数が同じメソッド内で書かれるが読まれない。 | medium |
+| <a id="rule-flow-unreachable-clause"></a>`flow.unreachable-clause` | `case`/`when`または`case`/`in`の節が静的に到達不能。すなわちその対象の型がパターンと素であるか、先行する節がすでに対象を網羅している。 | medium |
+| <a id="rule-def-return-type-mismatch"></a>`def.return-type-mismatch` | メソッドボディの結果が宣言されたRBSの戻り型に違反する。 | medium |
+| <a id="rule-def-ivar-write-mismatch"></a>`def.ivar-write-mismatch` | インスタンス変数が最初の書き込みと異なる型で書かれる。 | high |
+| <a id="rule-def-method-visibility-mismatch"></a>`def.method-visibility-mismatch` | 明示的レシーバーの呼び出しがprivateメソッドに到達する。 | high |
+| <a id="rule-def-override-visibility-reduced"></a>`def.override-visibility-reduced` | オーバーライドが、プロジェクト定義の祖先から継承した可視性を下げる。 | high |
+| <a id="rule-def-override-return-widened"></a>`def.override-return-widened` | オーバーライドの宣言された戻り型が、継承した戻り型を広げる（共変性）。 | high |
+| <a id="rule-def-override-param-narrowed"></a>`def.override-param-narrowed` | オーバーライドが、継承したパラメータ型を狭める（反変性）。 | high |
+| <a id="rule-rbs_extended-unsatisfied-conformance"></a>`rbs_extended.unsatisfied-conformance` | クラスがRBSで`%a{rigor:v1:conforms-to _Interface}`を宣言しているが、インターフェースが要求するメソッドを欠いている。存在ベース: 明確に欠落している必須メソッドのみが発火する。 | — |
+| <a id="rule-assert-type-mismatch"></a>`assert.type-mismatch` | `assert_type`の期待値が推論型と一致しない。 | high |
+| <a id="rule-dump-type"></a>`dump.type` | `dump_type`呼び出し — 情報として推論型を出力する。 | — |
 
 プラグインはさらにファミリーとルールを追加できます。`rigor explain`はアクティブな設定が読み込んだものをすべて一覧表示します。
+
+## エビデンスティア
+
+上記カタログのすべてのルールは**エビデンスティア（evidence tier）**を持ちます——発火が*真陽性*であることへのRigor自身の確信度で、そのルールの発火ゲートから導かれます。これは重要度（影響度）とも重要度プロファイルとも直交しています。ティアが診断を表に出すかどうかを変えることは決してなく、注意の振り向け先を決めるだけです。
+
+| ティア | 意味 |
+| --- | --- |
+| `high` | 具象的で静的に既知の型に対し、メタプログラミングによる抜け道がない場合にのみ発火する。Rigorの偽陽性の規律がすでに不確かなケースを濾過済みなので、発火はほぼ常に実際の問題である——コンシューマーは別のツールと突き合わせることなくそれに基づいて行動できる（あるいは下流の分類器がそれを信頼できる）。 |
+| `medium` | フローレベルまたは推論レベルの証明に依拠しており、文書化された偽陽性のエンベロープ（ループ / 変異 / RBSの厳格さのモデル化のギャップで、ルールの*発火しない条件*リストによって絞り込まれる）を継承する。たいてい正しいが、文字どおりに証明可能ではない。 |
+| `low` | 解決またはカバレッジのギャップのシグナル: 発火は確定的なバグというより、アナライザーが見られないコンテキスト（未解析のファイル、メタプログラミングのパッチ）を反映していることが多い。「これをレビューせよ」として扱う——例えば`call.unresolved-toplevel`を`pre_eval:`の判断へ振り向ける。 |
+
+情報用のルール（`dump.type`）はティアを持ちません。ルール単位のティアはルールカタログにおける唯一の信頼できる情報源です——`rigor explain <rule>`または`rigor explain --format json`で読み、`rigor check --format json`（後述）の各診断にもエコーされます。
 
 ## 重要度プロファイル
 
@@ -89,6 +103,34 @@ severity_overrides:
 | `receiver_type` | ルールにレシーバーがあるとき | 呼ばれたレシーバーの表示型（`String`、`Array[User]`、…）。 |
 | `method_name` | ルールにメソッドがあるとき | 呼ばれた / 定義されたメソッド名。 |
 | `project_definition_site` | `call.undefined-method`のモンキーパッチケース | プロジェクト自身がそのメソッドを定義している`path:line`（ADR-17）。 |
+| `evidence_tier` | ティアを持つ組み込みルール | `high` / `medium` / `low`——発火が真陽性であることへのRigorの確信度（[エビデンスティア](#エビデンスティア)）。 |
+| `documentation_url` | 組み込みルール | このカタログ内のそのルールのエントリーへの安定したURL。 |
+
+`evidence_tier`はコンシューマーが確信度を再導出することなく優先順位を付けられるようにします——例えば厳格なCIゲートで`high`の発火だけを表に出したり、`low`の発火を人間のレビューキューへ振り向けたりできます:
+
+```sh
+# only the high-confidence diagnostics
+rigor check --format json \
+  | jq '[.diagnostics[] | select(.evidence_tier == "high")]'
+```
+
+### カバレッジブロック（`--coverage`）
+
+`rigor check --coverage`はトップレベルの`coverage`オブジェクトを追加し、1回の実行で*何が発火したか*と*解析されたサーフェスのうちどれだけをRigorが型付けできたか*の両方を報告できるようにします——診断件数が多いときに「全ファイルを解析したのか、それとも一部だけか？」という疑問が生じる場合に役立ちます。このブロックは`rigor check`の兄弟である[`rigor coverage`](../02-cli-reference/#rigor-coverage)の`summary`を映したもので（同じ精度ティアの語彙）、加えて`scan_files`を持ちます:
+
+```jsonc
+"coverage": {
+  "scan_files":            203,
+  "parse_errors":          0,
+  "expressions_typed":     18394,
+  "precise_count":         9847,
+  "precise_ratio":         0.535,
+  "dynamic_opaque_count":  8547,
+  "dynamic_opaque_ratio":  0.465
+}
+```
+
+これは**デフォルトではオフ**です——その計算は解析対象ファイルに対する2度目の精度パスだからです——なので、デフォルトのチェックパスのコストは変わりません。テキストモードでは`--coverage`は代わりに1行のサマリーを表示します。ファイル単位 / ティア単位の完全な内訳には、`rigor coverage`を直接実行してください。
 
 `receiver_type` / `method_name`のペアはcallファミリーのルールとメソッドレベルの`def.*`ルールが埋めます。メッセージ解析なしで、`jq`を使って呼ばれたクラスとメソッドで実行をグループ化できます:
 

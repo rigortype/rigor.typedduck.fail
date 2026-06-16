@@ -3,8 +3,8 @@ title: "Flow Contribution Merger (slice 3)"
 description: "Imported from rigortype/rigor docs/internal-spec/flow-contribution-merger.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/flow-contribution-merger.md"
 sourcePath: "docs/internal-spec/flow-contribution-merger.md"
-sourceSha: "98ef4389e62d174854430dec2052a0026eb9304597526cdb3470df582589af90"
-sourceCommit: "9f40e22193647dc06e3ab70c5ba82768b0bfe738"
+sourceSha: "e8b4bddbbda6174426c643e2fefdf0c56e336da9d12a121e5f6a1313d1246128"
+sourceCommit: "a3ab53dd2b8aa0a84fd7ddbd64339f316d8d12ec"
 translationStatus: "translated"
 sidebar:
   order: 3050
@@ -86,7 +86,7 @@ sidebar:
 - **`Rigor::RbsExtended::PredicateEffect#to_fact`** — クラス名エフェクトは`Nominal[<class>]`型のファクトに昇格します。絞り込みフォームのエフェクトは`refinement_type`をそのまま渡します。`edge`フィールドは残りません。結果のファクトが入るスロット（`truthy_facts` / `falsey_facts`）がそれをエンコードします。
 - **`Rigor::RbsExtended::AssertEffect#to_fact`** — 同じシェイプです。`condition`フィールド（`:always` / `:if_truthy_return` / `:if_falsey_return`）は`read_flow_contribution`境界でスロットをルーティングし（`:always` → `post_return_facts`、`:if_truthy_return` → `truthy_facts`、`:if_falsey_return` → `falsey_facts`）、Fact自体には現れません。
 - **組み込みナローイングファクト** — スライス4の実装者が`Inference::Narrowing`をマージャー経由で配線する際に変換を追加します。
-- **プラグインコントリビューション** — スライス5の発行プロトコルは、`truthy_facts` / `falsey_facts`スロットがすでに`Fact`配列になっている`FlowContribution`バンドルを返します。
+- **プラグインコントリビューション** — プラグインの`type_specifier`ブロック（ADR-37。元の`flow_contribution_for`フックはADR-52 WD3で削除されました）は`Fact`配列を返し、エンジンがマージ前にそれを`FlowContribution`の`post_return_facts`スロットにラップします。`dynamic_return`ブロックは素の`Type`を返し、エンジンがそれを`return_type`スロットにラップします。
 
 ## 権限ティア
 

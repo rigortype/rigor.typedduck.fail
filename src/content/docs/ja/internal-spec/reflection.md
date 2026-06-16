@@ -3,8 +3,8 @@ title: "Reflection Facade — `Rigor::Reflection`"
 description: "Imported from rigortype/rigor docs/internal-spec/reflection.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/reflection.md"
 sourcePath: "docs/internal-spec/reflection.md"
-sourceSha: "905f98193a640fb10d3e6ec4a514f9a44a5bd74c5e08e5b67a5bbdfadc1dc5b9"
-sourceCommit: "db8d01bf94926a72e6a2aaf15639d1591b7e142e"
+sourceSha: "fc13aae6d2536fa251b317db4f845b1bc8a7b2d03d18d100981a622a96b14887"
+sourceCommit: "a3ab53dd2b8aa0a84fd7ddbd64339f316d8d12ec"
 translationStatus: "translated"
 sidebar:
   order: 3050
@@ -42,8 +42,8 @@ sidebar:
 
 ### メソッド
 
-- `Rigor::Reflection.instance_method_definition(class_name, method_name, scope: Scope.empty)` — インスタンスメソッドのRBSの`RBS::Definition::Method`、またはクラスやメソッドがRBSにない場合は`nil`。
-- `Rigor::Reflection.singleton_method_definition(class_name, method_name, scope: Scope.empty)` — RBS側のシングルトン（クラス側）メソッド定義、または`nil`。
+- `Rigor::Reflection.instance_method_definition(class_name, method_name, scope: nil, environment: nil)` — インスタンスメソッドのRBSの`RBS::Definition::Method`、またはクラスやメソッドがRBSにない場合は`nil`。
+- `Rigor::Reflection.singleton_method_definition(class_name, method_name, scope: nil, environment: nil)` — RBS側のシングルトン（クラス側）メソッド定義、または`nil`。
 - `Rigor::Reflection.instance_definition(class_name, scope: nil, environment: nil)` — インスタンス側の完全な`RBS::Definition`（メソッドテーブル / メンバーリスト全体）、または`nil`。1メソッドではなくクラスを歩く呼び出し元向け。
 - `Rigor::Reflection.singleton_definition(class_name, scope: nil, environment: nil)` — シングルトン側の完全な`RBS::Definition`、または`nil`。
 - `Rigor::Reflection.class_type_param_names(class_name, scope: nil, environment: nil)` — RBS宣言された型パラメータ名を`Array<Symbol>`で（例: `Array[Elem]`なら`[:Elem]`）、非ジェネリックまたは未知のクラスなら`[]`。ジェネリックなメソッド型を具体的なレシーバーにバインドするときに使う。

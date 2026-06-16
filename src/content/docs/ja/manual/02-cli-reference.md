@@ -3,9 +3,9 @@ title: "CLIコマンドリファレンス"
 description: "rigortype/rigor docs/manual/02-cli-reference.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/02-cli-reference.md"
 sourcePath: "docs/manual/02-cli-reference.md"
-sourceSha: "88e8aa3124c78de2132b6a6c02802858a3757511cf636cfc95c74a0c1614d713"
-sourceCommit: "7f5a54c352ff4370788bf7aef5fc1b70f8a92e4a"
-sourceDate: "2026-06-13T19:23:25+09:00"
+sourceSha: "bbb39ee5f7a39ebc362762f6f52334b02b0cf75f3b34ebf408749aafffcaf743"
+sourceCommit: "a3ab53dd2b8aa0a84fd7ddbd64339f316d8d12ec"
+sourceDate: "2026-06-16T07:17:39+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9002
@@ -33,7 +33,8 @@ rigor check [paths...]
 | オプション | 説明 |
 | --- | --- |
 | `--config=PATH` | 自動探索の代わりに特定の設定ファイルを使用する。 |
-| `--format=text\|json` | 出力形式。デフォルトは`text`。 |
+| `--format=FORMAT` | 出力形式。デフォルトは`text`。`json`（構造化ストリーム）のほか、CIネイティブな描画形式`sarif`、`github`、`gitlab`、`checkstyle`、`junit`、`teamcity`もある——[CIでのRigorの実行](../11-ci/)を参照。 |
+| `--no-ci-detect` | CIの自動検出を無効化する——デフォルトでは`text`出力は実行中のCIのネイティブなアノテーション / ヒントも出力する（`RIGOR_CI_DETECT=0`も同じ効果）。[CIでのRigorの実行 § 自動検出](../11-ci/)を参照。 |
 | `--explain` | フェイルソフトフォールバックイベントを`info`診断として表示する。 |
 | `--no-cache` | この実行では永続キャッシュをスキップする。 |
 | `--incremental` | 前回の実行以降に変更されたファイルと、それに依存するファイルだけを再解析し、残りはクロスプロセスのディスクスナップショットから提供する（ADR-46）。診断結果はフル実行と同一;設定 / gem / バージョンの変更（またはファイルの追加・削除）があれば透過的にフル再解析へ切り替わる。[キャッシュ](12-caching/)を参照。 |
@@ -41,6 +42,7 @@ rigor check [paths...]
 | `--clear-cache` | 実行前にキャッシュディレクトリを削除する。 |
 | `--cache-stats` | 終了時にオンディスクキャッシュのインベントリを表示する。 |
 | `--[no-]stats` | 実行サマリー（ファイル数、クラス数、メモリ、経過時間）をstderrに表示する。デフォルトはオン。 |
+| `--coverage` | 型精度カバレッジのブロックを出力に追加する（`--format json`では`coverage`オブジェクト、テキストモードでは1行のサマリー）。デフォルトではオフ——解析対象ファイルに対する2度目の精度パスであり、[`rigor coverage`](#rigor-coverage)が実行するのと同じスキャンなので、オプトインである。 |
 | `--workers=N` | `N`個の並列ワーカープロセスに解析を分散する（現在はfork方式のプール、ADR-15）。デフォルトは`0`（逐次処理）。 |
 | `--baseline=PATH` | 設定を上書きしてベースライン（baseline）ファイルを読み込む。 |
 | `--no-baseline` | 設定されたベースラインを無視する。 |

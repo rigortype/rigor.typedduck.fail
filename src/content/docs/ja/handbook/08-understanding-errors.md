@@ -3,8 +3,8 @@ title: "エラーの読み方"
 description: "rigortype/rigor docs/handbook/08-understanding-errors.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/08-understanding-errors.md"
 sourcePath: "docs/handbook/08-understanding-errors.md"
-sourceSha: "8fa11c8bd0a61e267097c8e24f0c15f6a42d2c980caf60217c59c018eb178d75"
-sourceCommit: "94bccefcb8e324ea2322199418f33e80617b8e33"
+sourceSha: "0c54f03f3f34e90e68b2b92a60562f4cdc2c619eeba2bf5597e3cc07680ecee7"
+sourceCommit: "a3ab53dd2b8aa0a84fd7ddbd64339f316d8d12ec"
 translationStatus: "translated"
 sidebar:
   order: 1008
@@ -33,6 +33,15 @@ lib/user.rb:42:7: error: undefined method `upcas' for "alice" [call.undefined-me
 
 シェルを離れずにルールの内容を調べたい場合は、`rigor explain <rule>`でルールのサマリー、発火条件、非発火条件、抑制トークン、作成重大度、プロファイルごとの重大度を確認できます。引数なしの`rigor explain`は出荷済みすべてのルールのインデックスを表示します。
 
+### 信頼度と参照フィールド
+
+`rigor check --format json`を消費するエージェントやダッシュボードのために（そして`rigor explain --format json`の各ルールにも）、すべての組み込み診断には2つの追加フィールドが付随します:
+
+- **`evidence_tier`** — `high` / `medium` / `low`: その発火が真陽性であるというRigor自身の信頼度で、ルールの深刻度ではなくゲートから導かれます。`high`は、メタプログラミングの逃げ道がない、具体的で静的に既知の型を意味します（例: `call.undefined-method`）;`medium`は、文書化された偽陽性の許容範囲を持つフロー／推論の証明に依拠します（例: `flow.always-truthy-condition`）;`low`は解決またはカバレッジのギャップシグナルで、しばしばバグではなくコンテキスト不足を意味します（例: `call.unresolved-toplevel`）。ティアは深刻度には決して反映されません — それは`severity_profile:`の判断のままです。情報提供のヘルパー（`dump.type`）はティアを持ちません。
+- **`documentation_url`** — 公開された診断カタログ内のルールのエントリーへの安定したリンク。
+
+どちらも表示用のメタデータです。診断が発火するかどうかを決して変えません。
+
 ## ルールカタログ
 
 5つのファミリー、それぞれに1つ以上のルール:
@@ -60,7 +69,10 @@ lib/user.rb:42:7: error: undefined method `upcas' for "alice" [call.undefined-me
 | `flow.always-raises` | 式のすべての到達可能な評価が例外を投げる（例: `n: Integer`のとき`n / 0`）。 | error |
 | `flow.unreachable-branch` | `if` / `unless` / 三項演算子の述語が構文的リテラルで、対応する到達不能ブランチが空でない。 | warning |
 | `flow.always-truthy-condition` | `if` / `unless` / 三項演算子の述語が推論型により証明可能に真値（または偽値）で、ループボディ内と防衛的述語コールに外科的スキップあり。 | warning |
+| `flow.unreachable-clause` | `case <local>; when <Class>`（または素のクラスの`case`/`in`）節で、対象のナローイングによりそれが決してマッチしないことが証明される — 対象の型と素であるか、または先行する節ですでに尽くされている。 | `balanced`でinfo、`strict`でwarning、`lenient`でinfo |
 | `flow.dead-assignment` | 同じ`def`ボディ内で一度も読まれないローカル変数への単純な書き込み。 | warning |
+
+`flow.unreachable-branch`、`flow.always-truthy-condition`、`flow.unreachable-clause`は**到達可能性ファミリー**です — それぞれがブランチまたは`case`節が死んでいることを証明します。`unreachable-clause`は最新のメンバーです: `case <local>; when <Class>`（および素のクラスの`case`/`in`）を監視し、先行する節がすでにメンバーの型をカバーしているか、または節が対象と素であるときに発火します。コーパスの偽陽性ゲートが完成するまでは`balanced`では`:info`で出荷されます（兄弟より1段下）;もっと目立たせたいなら`severity_overrides:`で引き上げてください。
 
 ### `def.*` — メソッド定義ルール
 

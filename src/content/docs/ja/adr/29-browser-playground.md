@@ -3,8 +3,8 @@ title: "ADR-29 — ブラウザプレイグラウンド"
 description: "rigortype/rigor docs/adr/29-browser-playground.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/29-browser-playground.md"
 sourcePath: "docs/adr/29-browser-playground.md"
-sourceSha: "2383b09f34aaa393ef241f216b38ad961baee0e1e64fa78ffb129d13e98484eb"
-sourceCommit: "7f5a54c352ff4370788bf7aef5fc1b70f8a92e4a"
+sourceSha: "5b01606508e7c2f6be68b661610ca8689395e6c958a955fb588f94b81fff09e0"
+sourceCommit: "a3ab53dd2b8aa0a84fd7ddbd64339f316d8d12ec"
 translationStatus: "translated"
 sidebar:
   order: 4029
@@ -19,6 +19,8 @@ sidebar:
 **修正2026-05-29**: [ADR-34](../34-toplevel-unresolved-self-call-default/)のWD7により、リクエストごとのサンドボックスは`severity_profile: strict`（または同等のルールごとのオーバーライド）を設定し、新しい`call.unresolved-toplevel`ルールが`foo 1`のような貼り付けスニペットで発火するようにする。`balanced`デフォルトを継承するとルールが`:warning`にマッピングされ——表面化はするが、プレイグラウンドとのユーザーの最初のインタラクションになる可能性が最も高い例を過小評価することになる。
 
 **2026-06-14に再評価**: 以下のオプションAのブロッカーは2026-05-23に評価されたものであり、`ruby.wasm`エコシステムはそれ以降進展した。`ruby/ruby.wasm`は今やRuby 4.0ビルド（`@ruby/4.0-wasm-wasi`パッケージ）を公開しており、`rbwasm`のソースからのビルドはバンドルのgem C拡張をリンクする——したがって`prism`/`rbs`のブロッカーは、もはや上流欠如の問題ではなく*ビルドして検証する*タスクである。WD6は条件ごとのステータスとともに改訂され、**WD8**が具体的な`rbwasm`ビルドパイプラインを、**WD9**がブラウザ内トランスポートを記録する——いずれも`plugins/rigor-playground/wasm/`のスキャフォールディングとして実装済み。決定的なのは、[try.ruby-lang.org](https://try.ruby-lang.org/playground/)のホスティングモデル（wasmモジュールを*静的アセット*として配信する）がブロッカー4を完全に回避することだ: 約1 MBの上限はCloudflareの*Workers*スクリプト制限であって、Pages / 静的CDNの制限ではない——15 MB超のwasmはそこでは単にキャッシュされたファイルにすぎず、try.rubyが出荷しているのと正確に同じである。この再評価は本番デフォルトを**反転させない**: WD6の条件②と③がグリーンと検証されるまで、オプションBがデプロイされたバックエンドのままだ。これは未解決の作業を「上流を待つ」から「ゲートとなる`rbwasm`ビルドのスパイクを実行する」へ移す。
+
+**2026-06-14/15に出荷**: ゲートとなるビルドのスパイクが成功した——`psych`/`libyaml`の静的リンクのブロッカーが解消され（`Fix the psych/libyaml link so the playground wasm build is green`）、モジュールはブラウザVM内で正しく動くようになり（WD6 ③、`Make the playground wasm run correctly in the browser VM`）、アーティファクトは縮小され（strip＋ サイズ最適化 ＋brotliによる事前圧縮）、**リリースタグでCloudflare R2に公開される**（`.github/workflows/playground-wasm.yml`の`tags: v*`トリガーは稼働中）。安定した`-latest`ポインタも備える。ドキュメントサイト（`rigor.typedduck.fail`）はそれを取得して静的アセットとして配信するため、公開プレイグラウンドは今やバックエンドなしで**完全にブラウザ内で**動作する。ローカルの`rigor playground` CLIコマンドはオプションBのRackバックエンドを維持する。
 
 ## コンテキスト
 

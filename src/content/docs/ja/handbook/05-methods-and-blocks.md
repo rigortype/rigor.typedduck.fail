@@ -3,8 +3,8 @@ title: "メソッドとブロック"
 description: "rigortype/rigor docs/handbook/05-methods-and-blocks.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/05-methods-and-blocks.md"
 sourcePath: "docs/handbook/05-methods-and-blocks.md"
-sourceSha: "73c555a08c2e51140d533df9533983818a36aee58f27fcafde5fad606e464962"
-sourceCommit: "106b93dd777b71aeef323dce1e4087c226c8ce37"
+sourceSha: "322469171871bb002f018b40698a4530d34c84c1f292935c8a262c6f91bb425b"
+sourceCommit: "a3ab53dd2b8aa0a84fd7ddbd64339f316d8d12ec"
 translationStatus: "translated"
 sidebar:
   order: 1005
@@ -125,6 +125,30 @@ kind(:nope)    # Constant<nil>  — ifのelse分岐が欠けている
 
 本体途中の`return`は期待通りに動作します;明示的な`raise`はそのブランチをユニオンから除外します（内部的に`bot`キャリア（carrier））。
 
+### 再帰メソッド
+
+再帰メソッドは`Dynamic[Top]`に潰れるのではなく、精密な戻り値型を推論します。再帰呼び出しの引数が完全に定数のとき、Rigorは（厳格なフレーム予算の下で）それを展開して結果をたたみ込みます:
+
+```ruby
+def factorial(n)
+  n <= 1 ? 1 : n * factorial(n - 1)
+end
+
+factorial(5)   # Constant<120>
+```
+
+引数が定数でないときは、Rigorは代わりに不動点の*戻り値サマリー*に到達します — そのため素通しの再帰は汚染された型ではなく正しい型を返します:
+
+```ruby
+def last_step(n)
+  n <= 0 ? :done : last_step(n - 1)
+end
+
+last_step(some_int)   # Constant<:done>
+```
+
+どちらの経路も厳格な上限が設けられており、収束できないときは従来のベース型の挙動へと劣化します。2つのメソッドにまたがる相互再帰は終了し、精密なサマリーが得られない場合は安全な`Dynamic[Top]`の下限へと劣化します。
+
 ## `def.return-type-mismatch`
 
 メソッドにRBS宣言の戻り値型と推論された型の両方がある場合、Rigorは推論された型が宣言された型に適合するかチェックします:
@@ -201,9 +225,27 @@ assert_type("100", x)  # 外側のxは変更されていない
 
 ## クロージャエスケープとキャプチャされたローカル変数
 
-ブロックが外側のローカル変数をキャプチャすると、そのローカル変数へのブロックの書き込みが呼び出し後のローカル変数のビューに影響します。非エスケープとして既知のメソッド（`Array#each`、`tap`など）では、呼び出し後のナローイング（narrowing）が保持されます;エスケープするメソッド（`Thread.new`、`define_method`など）では、ブロックが任意の後のタイミングで発火する可能性があるため、解析器はキャプチャされたローカル変数のナローイングを除去します。
+ブロックが外側のローカル変数をキャプチャすると、そのローカル変数へのブロックの書き込みが呼び出し後のローカル変数のビューに書き戻されます。非エスケープとして既知のメソッド（`Array#each`、`tap`など）では、書き戻しが適用されます;エスケープするメソッド（`Thread.new`、`define_method`など）では、ブロックが任意の後のタイミングで発火する可能性があるため、解析器はキャプチャされたローカル変数のファクト（fact）を除去します。
 
-これは保守的な判断です: エスケープ後のナローイング事実をランタイムが違反するかもしれないという主張をするよりも、広げすぎるほうがよいです。
+書き戻しはローカル変数の*再バインド*と、ブロックが組み立てていた*コレクションの変異*の両方をカバーします。再バインドされたアキュムレータは古いシードを保持するのではなくそのベース型へと拡幅され、ブロック内で育てられたコレクションは追加された要素型を保持します:
+
+```ruby
+total = 0
+[1, 2, 3].each { |n| total += n }
+# total: Integer  — the rebind is written back (not a stale 0)
+
+out = [0]
+[1, 2, 3].each { |x| out << x }
+# out: Array[Integer]  — the appended element type joins in,
+#                        not just the seed's Constant<0>
+
+squares = [1, 2, 3].each_with_object([]) { |n, acc| acc << n * n }
+# squares: Array[Integer]
+```
+
+同じ書き戻しは`while` / `until`ループ本体にも適用されます — ループが再バインドするアキュムレータは、もはや古い1パス分の定数を保持しません。解析は本体を小さな不動点まで実行して拡幅します（ランタイムが超えるであろう値にループアキュムレータをたたみ込むことは決してありません）。`for`ループはこの不動点を実行する代わりに、本体の1パスをjoinします。キャプチャされたコレクションを変異させる*エスケープする*ブロックや未知のブロックでは、ローカル変数は健全でない精密なシードではなく、その素のコレクションの下限へと拡幅されます。
+
+これは保守的な判断です: エスケープ後のナローイング（narrowing）事実をランタイムが違反するかもしれないという主張をするよりも、広げすぎるほうがよいです。
 
 ## 次に読むもの
 

@@ -3,8 +3,8 @@ title: "ナローイング"
 description: "rigortype/rigor docs/handbook/03-narrowing.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/03-narrowing.md"
 sourcePath: "docs/handbook/03-narrowing.md"
-sourceSha: "d31174d9169a666c7f84515130d338256366acefabb5f57ecebbcb6d38316236"
-sourceCommit: "106b93dd777b71aeef323dce1e4087c226c8ce37"
+sourceSha: "6ae2e3ec18777fbcce0650930bc6e0f5dea8579787a0824ed16fb1b190472bfc"
+sourceCommit: "a3ab53dd2b8aa0a84fd7ddbd64339f316d8d12ec"
 translationStatus: "translated"
 sidebar:
   order: 1003
@@ -104,7 +104,9 @@ end
 
 結果型はブランチごとの結果のユニオンです。入力が有限リテラルユニオンのとき、すべてのメンバーが一致する場合、Rigorは`else`ブランチが到達不能であることを証明します。
 
-`case x; in pattern`（1行パターンマッチング）も、Rigorが理解するパターン — クラスチェック、リテラル等値、配列/ハッシュ構造パターン — に対して同じようにナローイングします。
+同じナローイングは逆向きにも働きます: `when <Class>`節が対象の型と素であるとき、または先行する節がすでにその型をカバーしているとき、その節は死んでいます — Rigorは[`flow.unreachable-clause`](08-understanding-errors.md)を出力するので、削除できます。（既定プロファイルでは`:info`で出荷されます。）
+
+`case x; in pattern`（1行パターンマッチング）も、Rigorが理解するパターン — クラスチェック、リテラル等値、配列/ハッシュ構造パターン — に対して同じようにナローイングします。節の到達可能性チェックは素のクラスの`in`パターン（`in String` / `in MyClass => x`）にも拡張されます。
 
 ## 論理演算
 
@@ -175,6 +177,43 @@ def first_word(s)
                    # nilではない — Rigorもそれを知っている
 end
 ```
+
+## ハッシュキー存在ナローイング
+
+`h.key?(:foo)`（または`has_key?`）でガードし、`h`が`:foo`を*オプショナル*なキーとして持つ`HashShape`であるとき、真値エッジはそのキーを*必須*に昇格します — そのため読み出しは「キーが存在しない」を意味する`nil`をもう含みません:
+
+```ruby
+def port_of(config)
+  # config: HashShape{ host: String, ?port: Integer }  (port optional)
+  if config.key?(:port)
+    # config[:port]: Integer  — the optional key is now required
+    config[:port] + 1
+  else
+    80
+  end
+end
+```
+
+これは具体的な`HashShape`キャリアのみをナローイングし、`Dynamic[T]`ハッシュは決してナローイングしません。また真値エッジのみです — 偽の`key?`は他のキーについて多くを証明しません。
+
+## 配列の非空ナローイング
+
+素の`arr.empty?` / `arr.any?` / `arr.none?`ガード（ブロックなし、引数なし）は、要素が少なくとも1つあることを証明するエッジで`Array[T]`を`non-empty-array[T]`にリファインします:
+
+```ruby
+def first_or_default(arr)
+  # arr: Array[String]
+  if arr.any?
+    # arr: non-empty-array[String]
+    arr.size      # positive-int — proven at least 1
+    arr.first     # String — Rigor already returns T here
+  else
+    "(empty)"
+  end
+end
+```
+
+`empty?`は*偽値*エッジ（配列が空でない）をナローイングし、`any?` / `none?`は期待どおりにナローイングします。ハッシュ形式と同じく、これは具体的な`Array`キャリアでのみ発火します — `Dynamic[T]`では決して発火せず、構文上は同じに見える文字列／範囲の`empty?` / `any?`でも発火しません。
 
 ## 名前付きキャプチャ正規表現ナローイング
 

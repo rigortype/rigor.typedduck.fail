@@ -3,8 +3,8 @@ title: "Plugin Trust and I/O Policy (slice 2)"
 description: "Imported from rigortype/rigor docs/internal-spec/plugin-trust.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/plugin-trust.md"
 sourcePath: "docs/internal-spec/plugin-trust.md"
-sourceSha: "f0381eefb727ecae6ba6e8518361706ab611b463c80534f454967a7684270939"
-sourceCommit: "18ef11c9f393b495cd9a6ed7277846069c08c516"
+sourceSha: "fb8c4c85ca830353bd00ae394b7102b828255481c500674b1d188ee44c7c3acd"
+sourceCommit: "a3ab53dd2b8aa0a84fd7ddbd64339f316d8d12ec"
 translationStatus: "translated"
 sidebar:
   order: 3050
@@ -105,4 +105,4 @@ plugins_io:
 - **`realpath`によるシンボリックリンクの解決**。`File.expand_path`が唯一の正規化ステップです。敵対的なプラグインはスコープ外です。
 
 （v0.1.2でネットワークゲートが解放されました: `network_policy`は`:allowlist`も受け付けるようになり、`IoBoundary#open_url`を通じて`allowed_url_hosts`内のホストへのHTTPS GETを、リクエストタイムアウトとレスポンスサイズ上限付きで許可します。デフォルトは`:disabled`のままです。）
-- **境界のキャッシュディスクリプタを`Cache::Store`に接続すること**。それはスライス6の仕事です——プラグイン側キャッシュプロデューサーは`PluginEntry`行をディスクリプタスキーマに含む`Store#fetch_or_compute(serialize:, deserialize:)`を使用します。スライス2はディスクリプタを構築するだけです；まだ何もそれを消費しません。
+- **境界のキャッシュディスクリプタを`Cache::Store`に接続すること**。それはスライス6の仕事です——プラグイン側キャッシュプロデューサーは`PluginEntry`行をディスクリプタスキーマに含む`Store#fetch_or_validate(serialize:, deserialize:)`（ADR-60 WD3のレコードアンドバリデート）を使用します。スライス2はディスクリプタを構築するだけです；まだ何もそれを消費しません。

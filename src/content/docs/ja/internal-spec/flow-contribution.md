@@ -3,14 +3,16 @@ title: "Flow Contribution Bundle — `Rigor::FlowContribution`"
 description: "Imported from rigortype/rigor docs/internal-spec/flow-contribution.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/flow-contribution.md"
 sourcePath: "docs/internal-spec/flow-contribution.md"
-sourceSha: "7355abd3cedadd1a8a7191190ed133f1b8943bc2935153628379400a70bb3290"
-sourceCommit: "db8d01bf94926a72e6a2aaf15639d1591b7e142e"
+sourceSha: "3649f83f931ec975a65371d4145588d11410711510b9d73b4133375d37fa26aa"
+sourceCommit: "a3ab53dd2b8aa0a84fd7ddbd64339f316d8d12ec"
 translationStatus: "translated"
 sidebar:
   order: 3050
 ---
 
-ステータス: **公開リード形（v0.0.9グループB）**。このドキュメントは、フローコントリビューションプロデューサー（現在は組み込みナローイング（narrowing）ルール、v0.1.0以降は`RBS::Extended`アノテーションおよびプラグイン作者）が単一の呼び出しエッジでアナライザーに渡すサーフェス（surface）を固定します。これらのバンドルを消費するマージポリシーは[ADR-2 § "Plugin Contribution Merging"](../../adr/2-extension-api/)が所有します。v0.0.9ではバンドル構造体のみを提供し、マージャーはv0.1.0でプラグインAPIとともに導入されます。
+ステータス: **公開リード形（v0.0.9グループB）**。このドキュメントは、内部のフローコントリビューションプロデューサー（組み込みナローイング（narrowing）ルールおよび`RBS::Extended`アノテーション）が単一の呼び出しエッジで運ぶバンドル形を固定します。これらのバンドルを消費するマージポリシーは[ADR-2 § "Plugin Contribution Merging"](../../adr/2-extension-api/)が所有します。v0.0.9ではバンドル構造体のみを提供し、マージャーはv0.1.0でプラグインAPIとともに導入されます。
+
+**プラグインはこのバンドルをもう構築しません**。 ADR-37はプラグイン作者向けのバンドルフックを、狭い`dynamic_return`（素の`Type`を返す）と`type_specifier`（ファクト（fact）を返す）のDSLに置き換え、ADR-52 WD3は基底の`flow_contribution_for`フックを完全に削除しました。プラグインの`dynamic_return`の結果は、マージャーに到達する前に**エンジン**（`MethodDispatcher#collect_gated_contributions`）が`FlowContribution`にラップします。したがってこのバンドルは、プラグイン作者向けのサーフェス（surface）ではなく、マージティア用のアナライザー内部キャリア（carrier）です。
 
 ## 公開サーフェス
 
@@ -41,8 +43,8 @@ contribution = Rigor::FlowContribution.new(
 
 | スロット | 型 | 意味 |
 | --- | --- | --- |
-| `return_type` | 型キャリア（carrier）または`nil` | 通常エッジの戻り型。プラグインは選択されたRBS契約（contract）の範囲内でMAYナローイングできます。非互換な戻り型はマージポリシーに従いコンフリクト診断になります。 |
-| `truthy_facts` | `Array`または`nil` | truthyな制御フローエッジでのみ成立するファクト（fact）。エッジローカル：truthyエッジのファクトは、コントリビューションが明示的に提供しない限り、falseyエッジの補集合をMUST NOT意味しません。 |
+| `return_type` | 型キャリアまたは`nil` | 通常エッジの戻り型。プラグインは選択されたRBS契約（contract）の範囲内でMAYナローイングできます。非互換な戻り型はマージポリシーに従いコンフリクト診断になります。 |
+| `truthy_facts` | `Array`または`nil` | truthyな制御フローエッジでのみ成立するファクト。エッジローカル：truthyエッジのファクトは、コントリビューションが明示的に提供しない限り、falseyエッジの補集合をMUST NOT意味しません。 |
 | `falsey_facts` | `Array`または`nil` | `truthy_facts`の双対。 |
 | `post_return_facts` | `Array`または`nil` | 呼び出しがすべてのエッジで正常に戻った後に成立するファクト。アサーションスタイルのコントリビューション（`%a{rigor:v1:assert ...}`）のキャリアです。 |
 | `mutations` | `Array`または`nil` | レシーバーおよび引数の変更エフェクト。`pure`スタイルの宣言との矛盾は診断になります。 |

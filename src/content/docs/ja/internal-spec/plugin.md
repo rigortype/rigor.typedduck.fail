@@ -3,8 +3,8 @@ title: "Plugin Registration / Loading (slice 1)"
 description: "Imported from rigortype/rigor docs/internal-spec/plugin.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/plugin.md"
 sourcePath: "docs/internal-spec/plugin.md"
-sourceSha: "2784ccfb37a47580d7709c7f75178435f318dafd9e0411f6b18d30bb7ad83374"
-sourceCommit: "222d8e03ee0f4252795f6c7294672a76c20b7ae3"
+sourceSha: "fe392289cea384a3667def774f178f2f12d2ff5a39a78b5ed0fed1dad75097c8"
+sourceCommit: "a3ab53dd2b8aa0a84fd7ddbd64339f316d8d12ec"
 translationStatus: "translated"
 sidebar:
   order: 3050
@@ -96,7 +96,7 @@ end
 
 `flow_contribution_for`はちょうど2つのエンジンサイトで参照され、それぞれが返されたバンドルのちょうど1スロットを読んでいました: `MethodDispatcher`は`.return_type`（呼び出しサイトごとの戻り型）を読み、`StatementEvaluator`は`.post_return_facts`（アサーションエッジのナローイング）を読みます。ADR-37スライス2は、これら2つの消費サイトを2つの狭く宣言的にゲートされるクラスDSL——`producer`スタイルの形状なので、ブロックはロジックを担い`instance_exec`を通して実行されます——へ分割します:
 
-- `dynamic_return(receivers:) { |call_node, scope| Type | nil }` — レシーバーのクラスでゲートされた、呼び出しサイトごとの**戻り型**。エンジンは、呼び出しのレシーバー型のクラスが宣言された`receivers:`エントリーと等しいか、それを継承する場合にのみブロックを呼びます（`Environment#class_ordering`経由でマッチ）;最初の非`nil`が勝ちます。エンジンはそれを`#dynamic_return_type(call_node:, scope:, receiver_type:)`を通して呼び出します。`rigor-mangrove`（アンラップ → 担われた`type_args[0]`）が実装済みのコンシューマーです。
+- `dynamic_return(receivers:, methods:, file_methods:) { |call_node, scope| Type | nil }` — レシーバーのクラス、メソッド名、またはその両方でゲートされた、呼び出しサイトごとの**戻り型**（少なくとも1つのゲートがREQUIRED ── どちらでもゲートしない規則はすべてのディスパッチで発火してしまうため、`dynamic_return`はロード時にそれを拒否します）。`receivers:`（クラス名の空でない`Array`、または`#prepare`の後に実行ごとに一度解決される`-> { … }`のcallable、ADR-52スライス3）を指定すると、エンジンは呼び出しのレシーバー型のクラスが宣言されたエントリーと等しいか、それを継承する場合にのみブロックを呼びます（`Environment#class_ordering`経由でマッチ）。`methods:`（Symbol／String名の`Array`、または実行時callable、ADR-52スライス4）は`call_node.name`でゲートします。`file_methods:`（パスを受け取り`(rule, path)`ごとにメモ化されるcallable、ADR-52スライス5a）は、解析対象ファイルによって変わる名前集合（rigor-rspecの`let`名）向けのファイルごとの特殊化であり、`methods:`を置き換えます。最初の非`nil`が勝ちます。エンジンはそれを`#dynamic_return_type(call_node:, scope:, receiver_type:)`を通して呼び出します。`rigor-mangrove`（アンラップ → 担われた`type_args[0]`）が実装済みのコンシューマーです。
   - **二項演算子はここでは通常の呼び出しです**。Rubyの`a + b`は`:+`という名前の`Prism::CallNode`に解析されるため、他のあらゆる呼び出しと同様にこのフックへ到達します。すなわち`dynamic_return(receivers: ["Money"])`規則は`call_node.name ∈ {:+, :-, :*, :/, :<=>, …}`で分岐して演算子の結果型を返すことができ ── これはself／左オペランドのケースに対するPHPStanの`OperatorTypeSpecifyingExtension`のRigor版であり、演算子固有の拡張ポイントを持ちません。`spec/integration/plugin_operator_dynamic_return_spec.rb`によって確認済みです。**注意（coerce方向）：**ゲートは*レシーバー*のクラスにかかり、Rubyは`1 + money`を`Integer`でディスパッチするため、`["Money"]`規則はそこでは発火しません。その結果は`Integer`として左バイアスで型付けされます（ADR-42を参照）。
 - `type_specifier(methods:) { |call_node, scope| facts | nil }` — `call_node.name`が宣言された`methods:`に含まれることでゲートされた、**戻り値後のナローイングファクト**。エンジンはそれを`#type_specifier_facts(call_node:, scope:)`を通して呼び出します。`rigor-minitest`（アサーションナローイング）と`rigor-rspec`のマッチャーナローイングが実装済みのコンシューマーです。
 
@@ -292,7 +292,7 @@ v0.1.0のプラグイン契約は6つのスライスで出荷されました;以
 - **プラグイン貢献の発行**（`FlowContribution`バンドル、ケイパビリティ（capability）ロール、動的返却）。スタンドアロンの{Rigor::FlowContribution::Merger}（[`flow-contribution-merger.md`](../flow-contribution-merger/)）はスライス3で出荷;戻り値貢献ティアはスライス4で出荷され（当初は`#flow_contribution_for`、後にADR-37で`dynamic_return` / `type_specifier`へ分割され、その後`flow_contribution_for`はADR-52 WD3で除去）、v0.1.1のクロスプラグイン作業（ADR-9）で拡張されました。
 - **プラグイン診断来歴**。スライス5はプラグインが発行した診断を`plugin.<id>.<rule>`プレフィックスを持つ`Diagnostic#source_family`を通じてルーティングします。
 - **プラグイントラスト/I/Oポリシー執行**。スライス2は宣言的な{Rigor::Plugin::TrustPolicy} + {Rigor::Plugin::IoBoundary}サーフェスを出荷しました；[`plugin-trust.md`](../plugin-trust/)を参照。
-- **プラグイン側キャッシュプロデューサー**。スライス6は`PluginEntry`ディスクリプタを通じてプラグインに`Store#fetch_or_compute`を接続します；[`plugin-cache-producers.md`](../plugin-cache-producers/)を参照。
+- **プラグイン側キャッシュプロデューサー**。スライス6は`PluginEntry`ディスクリプタを通じてプラグインに`Store#fetch_or_validate`（ADR-60 WD3のレコードアンドバリデート）を接続します；[`plugin-cache-producers.md`](../plugin-cache-producers/)を参照。
 - **クロスプラグインファクト + 事前パス**。`#prepare(services)` + `services.fact_store` + `manifest(produces:/consumes:)`がv0.1.1で出荷されました（ADR-9）。上記の`Manifest`テーブルの拡張フィールド（`signature_paths:`、`open_receivers:`、`protocol_contracts:`、`source_rbs_synthesizer:`、マクロ基板、HKT、`additional_initializers:`）は`0.1.x`サイクルを通じて堆積しました。
 - **インターフェース分離**（[ADR-37](../../adr/37-plugin-interface-segregation/)、Accepted）。
   - *スライス1 / 1c / 1d* — `node_rule`クラスDSL + `#node_rule_diagnostics`（エンジン所有のウォーク） + `node_file_context`（2パスサポート） + `NodeContext`（レキシカル祖先） + `#diagnostic` / `Diagnostic.from_node` / `.from_location`作成者ヘルパー。これらは`#diagnostics_for_file`をファイル全体の脱出弁として再定義します;**同梱の診断発行プラグインはすべて`node_rule`へ移行されました**——`rigor-actionpack`（4フェーズ、名前空間修飾に敏感）が最後でした。

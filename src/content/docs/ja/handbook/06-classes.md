@@ -3,8 +3,8 @@ title: "クラス"
 description: "rigortype/rigor docs/handbook/06-classes.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/06-classes.md"
 sourcePath: "docs/handbook/06-classes.md"
-sourceSha: "c45715449b7858c3e5532698a67f77f8cbf66e4d3dbf237ef9c668de895697df"
-sourceCommit: "e9143e5a24c59d43e2ea9f548835c91f029e19dc"
+sourceSha: "6e7fc7ff8db267bc1d6210a18929b8b998eaa7c2292e9fcedad0d249ee45e65c"
+sourceCommit: "a3ab53dd2b8aa0a84fd7ddbd64339f316d8d12ec"
 translationStatus: "translated"
 sidebar:
   order: 1006
@@ -116,6 +116,16 @@ assert_type("Point(x: 3, y: 4)", p)
 assert_type("3", p.x)
 assert_type("4", p.y)
 ```
+
+たたみ込まれるのはメンバーの読み出しだけではありません。標準的な`Data`のプロジェクションも精密なまま保たれます — `p[:x]`、`p.to_h`、`p.deconstruct`、`p.members`、`p.with(x: 9)`はすべてメンバーごとの型を通して運びます:
+
+```ruby
+p.to_h            # HashShape{x: 3, y: 4}
+p.members         # Tuple[Constant<:x>, Constant<:y>]
+p.with(x: 9).x    # Constant<9>
+```
+
+たたみ込みは3つの定義形式すべて — 定数（`Point = Data.define(...)`）、`class X < Data.define(...)`のサブクラスイディオム、素のローカル変数 — をカバーし、位置構築とキーワード構築の両方をカバーします。
 
 探索は`define_method`スタイルのブロック本体も辿るので、`Point = Data.define(:x, :y) do ... end`でも動作します。合成されたキーワード引数コンストラクタをオーバーライドするブロック定義の`def initialize(...)`も含みます（v0.1.2）。同じルールが`Const = Struct.new(*Symbol) do ... end`にも適用されます — ブロックボディのメソッド発見が両方の形式にわたって均一に組み合わせられます。
 

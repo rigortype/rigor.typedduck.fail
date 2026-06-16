@@ -3,14 +3,14 @@ title: "Cache Layer — `Rigor::Cache`"
 description: "Imported from rigortype/rigor docs/internal-spec/cache.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/cache.md"
 sourcePath: "docs/internal-spec/cache.md"
-sourceSha: "4df6232bfb62c391aaa4066a80f55276b0120f551f92a6f513de7d76b1515163"
-sourceCommit: "18ef11c9f393b495cd9a6ed7277846069c08c516"
+sourceSha: "1f26185540588f9b6e34fdeceda00699188819615225e890e7ea5fe963e2144a"
+sourceCommit: "a3ab53dd2b8aa0a84fd7ddbd64339f316d8d12ec"
 translationStatus: "translated"
 sidebar:
   order: 3050
 ---
 
-ステータス: **安定（v0.0.8で導入;現行ディスクリプタスキーマv3）**。このドキュメントはキャッシュレイヤーの公開リード形を追跡します。以下のスライス（slice）はすべて着地し、v0.1.x全体で安定しています;ディスクリプタの`SCHEMA_VERSION`はADR-10のgemバージョンごとの`dependencies`スロットのために`2`へ、そして`RbsLoader.build_env_for`が欠落した`signature_paths:`名前空間を合成し始めたときに`3`へ引き上げられました（古いRigorによってmarshalされたRBS環境——それらのシグネチャを不活性なまま残してしまう——は再構築されます）。スライス1と2がすでに完成しています。`Rigor::Cache::Descriptor`（すべてのキャッシュ済み値が付随する基板）と`Rigor::Cache::Store`（ディスクリプタ・プロデューサー・パラメータを消費してキャッシュ済みまたは新規計算済みの値を返すファイルシステムバックのストレージ）です。後続のスライスでは最初のキャッシュ済みプロデューサー（RBS環境ローダー）とCLI可観測フラグ（`--cache-stats`・`--clear-cache`）を追加します。
+ステータス: **安定（v0.0.8で導入;現行ディスクリプタスキーマv4）**。このドキュメントはキャッシュレイヤーの公開リード形を追跡します。以下のスライス（slice）はすべて着地し、v0.1.x全体で安定しています;ディスクリプタの`SCHEMA_VERSION`はADR-10のgemバージョンごとの`dependencies`スロットのために`2`へ、`RbsLoader.build_env_for`が欠落した`signature_paths:`名前空間を合成し始めたときに`3`へ（古いRigorによってmarshalされたRBS環境——それらのシグネチャを不活性なまま残してしまう——は再構築されます）、そして[ADR-60](../adr/60-pre-freeze-plugin-contract-consolidation.md) WD3がレコードアンドバリデートのプラグインプロデューサーキャッシュ向けに`globs`スロット（`GlobEntry`）を追加したときに`4`へ引き上げられました。スライス1と2がすでに完成しています。`Rigor::Cache::Descriptor`（すべてのキャッシュ済み値が付随する基板）と`Rigor::Cache::Store`（ディスクリプタ・プロデューサー・パラメータを消費してキャッシュ済みまたは新規計算済みの値を返すファイルシステムバックのストレージ）です。後続のスライスでは最初のキャッシュ済みプロデューサー（RBS環境ローダー）とCLI可観測フラグ（`--cache-stats`・`--clear-cache`）を追加します。
 
 このモジュールが実装するスキーマは以下によって固定されています。
 
@@ -19,7 +19,7 @@ sidebar:
 
 ## `Rigor::Cache::Descriptor`（v0.0.8スライス1）
 
-キャッシュ無効化ディスクリプタ — 4つのスロットを持つ純粋な値オブジェクトで、各スロットは型付きエントリーの配列です。
+キャッシュ無効化ディスクリプタ — 6つのスロットを持つ純粋な値オブジェクトで、各スロットは型付きエントリーの配列です。
 
 ### スロットエントリー
 
@@ -29,11 +29,12 @@ GemEntry        :: { name: String, requirement: String, locked: String? }
 PluginEntry     :: { id: String, version: String, config_hash: String? }
 ConfigEntry     :: { key: String, value_hash: String }
 DependencyEntry :: { gem_name: String, gem_version: String, mode: :disabled|:when_missing|:full }
+GlobEntry       :: { root: String, pattern: String, value: String }
 ```
 
-各エントリーはキーワード引数で構築され、即座にフリーズされます。`FileEntry#new`はcomparatorのenumを検証し、`DependencyEntry#new`は`mode`のenumを検証し、それぞれ未知の値に対して`ArgumentError`を発生させます。他のエントリーは任意の文字列コンテンツを受け入れます（その値は慣例上すでに正規化されたハッシュです）。`DependencyEntry`はADR-10のgemバージョンごとのスロットです: その`(gem_name, gem_version, mode)`のトリプルがオプトインの依存関係ソース推論キャッシュスライス（slice）をキー付けるので、`Gemfile.lock`のバンプや`source_inference:`モード変更（[`dependency-source-inference.md`](dependency-source-inference.md)）がちょうど影響を受けるgemだけを無効化します。
+各エントリーはキーワード引数で構築され、即座にフリーズされます。`FileEntry#new`はcomparatorのenumを検証し、`DependencyEntry#new`は`mode`のenumを検証し、それぞれ未知の値に対して`ArgumentError`を発生させます。他のエントリーは任意の文字列コンテンツを受け入れます（その値は慣例上すでに正規化されたハッシュです）。`DependencyEntry`はADR-10のgemバージョンごとのスロットです: その`(gem_name, gem_version, mode)`のトリプルがオプトインの依存関係ソース推論キャッシュスライス（slice）をキー付けるので、`Gemfile.lock`のバンプや`source_inference:`モード変更（[`dependency-source-inference.md`](dependency-source-inference.md)）がちょうど影響を受けるgemだけを無効化します。`GlobEntry`はADR-60 WD3のレコードアンドバリデートスロットです: その`value`は`root`/`pattern`に一致するすべてのファイルのダイジェスト（`GlobEntry.compute`で構築される）であり、再globによって再検証されるため、プラグインプロデューサーの`watch:` globのカバレッジが編集をまたいで鮮度を保ちます。
 
-### `Descriptor.new(files: [], gems: [], plugins: [], configs: [], dependencies: [])`
+### `Descriptor.new(files: [], gems: [], plugins: [], configs: [], dependencies: [], globs: [])`
 
 ディスクリプタを構築します。すべてのスロットはデフォルトで空配列になります。スロットはdupされてフリーズされるため、構築後に呼び出し元が変更することはできません。ディスクリプタ自体もフリーズされます。
 
@@ -45,6 +46,8 @@ DependencyEntry :: { gem_name: String, gem_version: String, mode: :disabled|:whe
 - `gems`は`name`でグループ化します。グループ内のすべてのエントリーは`(requirement, locked)`の下で構造的に等しくなければなりません。そうでなければ`Conflict`が発生します。
 - `plugins`は`id`でグループ化します。`(version, config_hash)`で同じ等値ルールが適用されます。
 - `configs`は`key`でグループ化します。`value_hash`で同じ等値ルールが適用されます。
+- `dependencies`は`gem_name`でグループ化します。`(gem_version, mode)`で同じ等値ルールが適用されます。
+- `globs`は`slot_key`（`root` + `pattern`）でグループ化します。`value`で同じ等値ルールが適用されます。
 
 自分自身のディスクリプタに重複した等しいエントリーを追加する単一の貢献者は無害です。`compose`はそれを折り畳みます。コンフリクトは例外的なケースです。呼び出し元（キャッシュレイヤー）は`Conflict`を「このキャッシュスライスは再利用できない、削除する」として扱い、いずれかのコントリビューションを黙って選択することはしません。
 
@@ -52,7 +55,7 @@ DependencyEntry :: { gem_name: String, gem_version: String, mode: :disabled|:whe
 
 プロデューサー・入力・ディスクリプタの組み合わせに対して標準的なhex SHA-256キャッシュキーを返します。キーは以下を組み込みます。
 
-1. `Descriptor::SCHEMA_VERSION`（現在は`3` — v2はADR-10のgemバージョンごとのキャッシュスライスのために`dependencies`スロットを追加した;v3は`build_env_for`が欠落した`signature_paths:`名前空間を合成し始める前にmarshalされたRBS環境を無効化する）。この定数をバンプするとすべてのキャッシュ済み値が無効化されます。
+1. `Descriptor::SCHEMA_VERSION`（現在は`4` — v2はADR-10のgemバージョンごとのキャッシュスライスのために`dependencies`スロットを追加した;v3は`build_env_for`が欠落した`signature_paths:`名前空間を合成し始める前にmarshalされたRBS環境を無効化する;v4はADR-60 WD3のレコードアンドバリデートのプラグインプロデューサーキャッシュのために`globs`スロットを追加した）。この定数をバンプするとすべてのキャッシュ済み値が無効化されます。
 2. `producer_id`（キャッシュスライスの名前空間となる安定した文字列）。
 3. `params`（プロデューサーの入力ハッシュ）。再帰的に正規化されます。ハッシュキーは文字列化してソートし、シンボルは文字列化し、配列は順序を保持します。
 4. ディスクリプタの正規ハッシュ形式。
@@ -61,7 +64,7 @@ DependencyEntry :: { gem_name: String, gem_version: String, mode: :disabled|:whe
 
 ### `descriptor.to_canonical_bytes -> String`
 
-ディスクリプタを正規JSONバイト文字列（UTF-8、転送のためにバイナリエンコード）として返します。スロットは辞書順で現れ（`configs`・`files`・`gems`・`plugins`）、各スロット内のエントリーはキーフィールドでソートされます（filesなら`path`など）。これにより2つの同等なディスクリプタは同一のバイト列を生成します。
+ディスクリプタを正規JSONバイト文字列（UTF-8、転送のためにバイナリエンコード）として返します。スロットは辞書順で現れ（`configs`・`dependencies`・`files`・`gems`・`globs`・`plugins`）、各スロット内のエントリーはキーフィールドでソートされます（filesなら`path`、globsなら`(root, pattern)`など）。これにより2つの同等なディスクリプタは同一のバイト列を生成します。
 
 ### 等値性とハッシュ
 
@@ -77,9 +80,9 @@ DependencyEntry :: { gem_name: String, gem_version: String, mode: :disabled|:whe
 
 ファイルシステムバックのキャッシュストア。ADR-6 § "Decisions in detail"が契約（contract）を固定します。このセクションはプロデューサーとCLIが消費する公開リード形を文書化します。
 
-### `Store.new(root:)`
+### `Store.new(root:, read_only: false, max_bytes: nil)`
 
-`root`（ディレクトリパス、通常は`.rigor/cache`）をルートにするストアを構築します。ディレクトリは積極的に作成されません。最初の書き込みで`schema_version.txt`マーカーとともに実体化されます。
+`root`（ディレクトリパス、通常は`.rigor/cache`）をルートにするストアを構築します。ディレクトリは積極的に作成されません。最初の書き込みで`schema_version.txt`マーカーとともに実体化されます。`read_only:`はすべての書き込みを抑制します（ワーカーが親のキャッシュと競合せずに共有できるようにする）。`max_bytes:`はディスク上のサイズに上限を設け、LRUの`#evict!`パスを起動します（本番デフォルトは256 MBで、[ADR-54](../adr/54-cache-slimming.md) WD3に従いCLIが設定します。ここで`nil`にするとキャッシュは無制限になります）。
 
 ### `store.fetch_or_compute(producer_id:, params:, descriptor:, serialize: nil, deserialize: nil) { ... } -> Object`
 
@@ -93,6 +96,12 @@ DependencyEntry :: { gem_name: String, gem_version: String, mode: :disabled|:whe
 - ブロック（`yield`）は**キャッシュミス時のみ**呼び出されます。
 
 キャッシュ済み値を返します（ヒット時はディスクからロード、ミス時はブロックが生成）。
+
+### `store.fetch_or_validate(producer_id:, key_descriptor:, params: {}, serialize: nil, deserialize: nil) { ... } -> Object`
+
+レコードアンドバリデートのバリアント（[ADR-45](../adr/45-unchanged-project-fast-path.md)）。`fetch_or_compute`——エントリーを入力のディスクリプタでキー付けるため、プロデューサー実行前にすべての入力が既知でなければMUSTならない——とは異なり、これは`key_descriptor`（前もって既知の安定した入力のみ）でキー付け、値とともに、その値が実際に読み込んだファイルの`dependency_descriptor`を、**計算中に発見された入力も含めて**（例: 解析の途中でプロジェクトファイルを読むプラグイン）格納します。ブロックは`[value, dependency_descriptor]`をMUST返さなければなりません。次回のランでは、格納された依存関係ディスクリプタが`Descriptor#fresh?`を通じてファイルシステムに対して再検証され——記録された各`FileEntry` / `GlobEntry`がまだ一致していなければならず——古い依存関係は再計算を強制します。`Marshal`でクリーンでない書き込み（または任意のディスクエラー）は飲み込まれます。新たに計算された値が返され、次回のランで再計算されます。これは、Rigorが前もって見えないファイルをプラグインが読むと古くなってしまう解析前フィンガープリントの、健全な後継です。
+
+`Descriptor#fresh?`は、ディスクリプタの`gems` / `plugins` / `configs` / `dependencies`スロットがすべて空であるときにのみそのディスクリプタを鮮度ありとみなします（これらの非ファイル入力は検証対象セットではなくキャッシュの*キー*に属します）。いずれかを持つディスクリプタは決して鮮度ありになりません。
 
 ### 読み込みフォールトトレランス
 
@@ -109,7 +118,7 @@ DependencyEntry :: { gem_name: String, gem_version: String, mode: :disabled|:whe
 
 ### スキーマバージョンマーカー
 
-`<root>/schema_version.txt`には`Store.schema_marker_value` ── `"<Descriptor::SCHEMA_VERSION>.<Store::FORMAT_VERSION>"`（現在は`3.2`）が格納され、2つの無効化軸、すなわちディスクリプタスキーマとオンディスクのバイトレイアウトの両方をカバーします。`Store`インスタンスごとに1度（最初の`fetch_or_compute` / `fetch_or_validate`時に）チェックされます。
+`<root>/schema_version.txt`には`Store.schema_marker_value` ── `"<Descriptor::SCHEMA_VERSION>.<Store::FORMAT_VERSION>"`（現在は`4.2`）が格納され、2つの無効化軸、すなわちディスクリプタスキーマとオンディスクのバイトレイアウトの両方をカバーします。`Store`インスタンスごとに1度（最初の`fetch_or_compute` / `fetch_or_validate`時に）チェックされます。
 
 - マーカーがない → 現在の値を書き込み、続行する。
 - マーカーが一致する → 続行する。
@@ -276,7 +285,7 @@ Rigor::Cache::RbsDescriptor.build(loader)
 
 ```
 Cache (root: .rigor/cache)
-  schema_version: 1
+  schema_version: 4.2
   3 entries, 12.4 KiB
     rbs.constant_type_table: 1 entries, 11.0 KiB
     reflection.instance_method_definition: 2 entries, 1.4 KiB

@@ -3,8 +3,8 @@ title: "`Rigor::Analysis::Diagnostic` shape"
 description: "Imported from rigortype/rigor docs/internal-spec/diagnostic-shape.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/diagnostic-shape.md"
 sourcePath: "docs/internal-spec/diagnostic-shape.md"
-sourceSha: "da6ed53a2e099546d6300fbb625bf9062ca711182a4ec23a6ca08992d47fd361"
-sourceCommit: "ea8ac6950eae8c643cd2811da2569fd4809f89c8"
+sourceSha: "7679e026a9fc92d72a1a896673fdf58e1099752dbfe1d4cb6fbf01f80aa650a0"
+sourceCommit: "a3ab53dd2b8aa0a84fd7ddbd64339f316d8d12ec"
 translationStatus: "translated"
 sidebar:
   order: 3050
@@ -28,12 +28,23 @@ sidebar:
 | `severity` | `Symbol` | プロファイルによる再スタンプ前の*作成時の*深刻度（`:error` / `:warning` / `:info`）（[深刻度解決](../../type-specification/diagnostic-policy/#severity-resolution)）。 |
 | `rule` | `String?` | 安定したkebab-caseのルールID（`call.undefined-method`）。`CheckRules`が生成しないdiagnostic（パースエラー、パスエラー、内部アナライザーエラー）では`nil`。`nil`ルールのdiagnosticは**抑制不能**。 |
 | `source_family` | `Symbol` | ルールの生成元。デフォルトは`:builtin`。非デフォルトのファミリーは由来情報を保持する（`"plugin.<id>"`、`:rbs_extended`、`:generated`）。 |
-| `receiver_type` | `String?` | 構造化フィールド ── 呼び出し関連ルールのレンダリング済みレシーバー型。それ以外は`nil`。 |
-| `method_name` | `String?` | 構造化フィールド ── 呼び出し関連ルールの呼び出し先メソッド名。それ以外は`nil`。 |
+| `receiver_type` | `String?` | 構造化フィールド ── ディスパッチ対象を持つcall/defルールのレンダリング済みレシーバー型。それ以外は`nil`。 |
+| `method_name` | `String?` | 構造化フィールド ── ディスパッチ対象を持つcall/defルールの呼び出し先／定義先メソッド名。それ以外は`nil`。 |
 | `project_definition_site` | `String?` | `"path:line"`。プロジェクト自身が呼び出し先メソッドを解析対象集合内の別の場所で定義しているとき（ディスパッチャーがファイル横断では適用しない再オープンされたクラス）、`call.undefined-method`が設定する。他のすべてのdiagnosticでは`nil`。 |
 
 `receiver_type` / `method_name`が存在するのは、`rigor triage`の認識器
-（[ADR-23](../../adr/23-diagnostic-triage-command/)）がメッセージをパースする代わりにこの構造化ペアを読むためです。これらが`nil`であるとわかったコンシューマーはメッセージパースにフォールバックします。`project_definition_site`の存在は、トリアージが`pre_eval:`を推奨するための足がかりとする、確度の高い「バグではなくプロジェクトのモンキーパッチ」シグナルです（[ADR-17](../../adr/17-monkey-patch-pre-evaluation/)）。
+（[ADR-23](../../adr/23-diagnostic-triage-command/)）とADR-61のエージェント統計ワークフローが、メッセージをパースする代わりにこの構造化ペアを読むためです。これらが`nil`であるとわかったコンシューマーはメッセージパースにフォールバックします。これらは、ディスパッチ対象を持つcall/defルール（例: `call.undefined-method`、アリティ／引数ルール、`def.*`オーバーライドルール）によって設定され、レシーバー／メソッド対象を持たない`flow.*`ルールおよびivarルールでは`nil`のままです（[ADR-61](../../adr/61-agent-friendly-diagnostic-statistics/) WD4）。`project_definition_site`の存在は、トリアージが`pre_eval:`を推奨するための足がかりとする、確度の高い「バグではなくプロジェクトのモンキーパッチ」シグナルです（[ADR-17](../../adr/17-monkey-patch-pre-evaluation/)）。
+
+## ルールごとのJSONエンリッチメント（`evidence_tier` / `documentation_url`）
+
+さらに2つのフィールドが`rigor check --format json`のdiagnosticストリームに現れますが、これらは`Diagnostic`オブジェクト自体には**載りません** ── これらはルールIDのみから導出される`Rigor::Analysis::RuleCatalog`の*ルールごとの*プロパティで、CLIのJSONパスが各組み込みdiagnosticに付加します（[ADR-65](../../adr/65-diagnostic-evidence-tier-and-doc-url/)）。
+
+| フィールド | 型 | 意味 |
+| --- | --- | --- |
+| `evidence_tier` | `String?` | 発火が真陽性であることへのRigor自身の確度: `"high"` / `"medium"` / `"low"`。ティアを持たない情報ルールでは**省略**されます（不在）。`severity`とは直交し、決してゲートしません。 |
+| `documentation_url` | `String` | 公開されたdiagnosticsカタログ（`docs/manual/04-diagnostics.md#…`）への、安定したルールごとのURL。 |
+
+両者は`CLI::CheckCommand#enrich_json`において、`source_family`がデフォルトの`:builtin`であり、かつ`rule`が非`nil`であるdiagnosticに対してのみ付加されます。プラグイン／`rbs_extended`／パースエラーのdiagnosticはそのまま残されます（これらは独自のドキュメントと確度を持ちます）。同じ2つのフィールドは、`rigor explain` / `rigor explain --format json`が公開する各`Entry#to_h`にも現れます。
 
 ## 構築と位置の規約
 

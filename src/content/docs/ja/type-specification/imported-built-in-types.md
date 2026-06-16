@@ -3,8 +3,8 @@ title: "インポートされた組み込み型"
 description: "rigortype/rigor docs/type-specification/imported-built-in-types.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/type-specification/imported-built-in-types.md"
 sourcePath: "docs/type-specification/imported-built-in-types.md"
-sourceSha: "88a8a265f1e175d52a54d0cd33db6a6655f30920576a91d140c7a876ea620ec8"
-sourceCommit: "db8d01bf94926a72e6a2aaf15639d1591b7e142e"
+sourceSha: "1ac53bd5d7a3e28b58453999adf428641f880301653db44c88347252ba1352a5"
+sourceCommit: "a3ab53dd2b8aa0a84fd7ddbd64339f316d8d12ec"
 translationStatus: "translated"
 sidebar:
   order: 2050
@@ -33,7 +33,7 @@ Rigorは明確なRubyの意味を持つ場合にのみ、PHPStan、TypeScript、
 | --- | --- | --- |
 | `non-empty-string` | `""`を除く`String` | `String` |
 | `literal-string` | ソースリテラルとリテラルのみの合成から来ることが既知の文字列。v0.0.9はすべてのオペランド自体がリテラルを持つ`String#+` / `String#*`による文字列補間`"#{...}"`を通じて、また`String#<<` / `String#concat`（その戻り値はレシーバーであるため、リテラルを持つレシーバーとリテラルを持つ引数はliteral-stringのままです）を通じてキャリア（carrier）を追跡します。 | `String` |
-| `numeric-string` | RigorのRuby数値文字列述語が受け付けるString | `String` |
+| `numeric-string` | 単一の完全なRuby数値リテラルであるString —— まさに、Rubyソースに書くと`Numeric`へ評価される構文。10進 / `0x` / `0o`（または先頭ゼロ） / `0b` / `0d`の整数、アンダースコアの桁区切り（`1_000`）、10進および科学的記数法のfloat（`1.5`、`1E-5`）、そして`r`の有理数 / `i`の虚数サフィックス（`1r`、`2i`）にわたり、先頭の符号は最大1つです。二重の符号（`--1`）、複数ドットのゴミ（`1.2.3`）、空白のパディング、または非ASCIIの「数字」（全角`１`、上付き`²`）は拒否されます —— Rubyのレキサーは数値リテラル内で`[0-9]`のみを受け付けます。この述語は本物のRubyパーサに委譲します。下記の基数Nの整数文字列リファインメントは、その真部分集合です。 | `String` |
 | `decimal-int-string` | RigorのRuby10進整数文字列述語が受け付けるString | `String` |
 | `octal-int-string` | RigorのRuby8進整数文字列述語が受け付けるString | `String` |
 | `hex-int-string` | RigorのRuby16進整数文字列述語が受け付けるString | `String` |
