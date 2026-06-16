@@ -3,8 +3,8 @@ title: "型別メソッドカバレッジ — ConstantFolding / ShapeDispatch / 
 description: "Imported from rigortype/rigor docs/notes/20260522-type-method-coverage.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260522-type-method-coverage.md"
 sourcePath: "docs/notes/20260522-type-method-coverage.md"
-sourceSha: "c0e4871892157285440bfce3bf36870dce470a1f1d85bee0766aab45176ee6f9"
-sourceCommit: "1d0381f3ade3f4b208d95b9d649f1e80c381b775"
+sourceSha: "7680e1a487a6ab8b7cf5862fc370ea9e07165f5742bd63fd44116b8014216e5e"
+sourceCommit: "7c189bd84c14aa0f88b13306f3796c488c52a8b0"
 translationStatus: "translated"
 sidebar:
   order: 20266522
@@ -47,6 +47,7 @@ sidebar:
 | `bytesize` | ✅ | STRING_UNARY → `Constant[Integer]`。 |
 | `bytes` | ✅ | `try_fold_string_array_unary` → `Tuple[Constant[Integer]…]`。 |
 | `capitalize` | ✅ | STRING_UNARY → `Constant[String]`。 |
+| `codepoints` | ✅ | `try_fold_string_array_unary` → `Tuple[Constant[Integer]…]`（`bytes`の兄弟、コードポイント単位）。 |
 | `capitalize!` | 🚫 | 破壊的変更。 |
 | `casecmp` | 🔲 | STRING_BINARY追加で`Constant[Integer\|nil]`。低優先度。 |
 | `casecmp?` | 🔲 | STRING_BINARY追加で`Constant[bool\|nil]`。低優先度。 |
@@ -346,7 +347,7 @@ IntegerRange向け専用ハンドラ群は別途`shape_dispatch.rb`に存在。
 | メソッド | 状態 | 備考 |
 |----------|------|------|
 | `[]` / `fetch` | ✅ | `tuple_lookup` / `tuple_fetch` — 整数インデックスで位置別型を返す。 |
-| `+`（連結） | ✅ | `Tuple + Tuple` → 新しいTuple。**高優先度**。`tuple_concat`実装。 |
+| `+`（連結） | ✅ | `Tuple + Tuple` → 新しいTuple。**高優先度**。 `tuple_concat`実装。 |
 | `-`（差集合） | 🔲 | 差集合 → 型が複雑。低優先度。 |
 | `*`（繰り返し） | 🔲 | `Tuple * n` → 繰り返しTuple。低優先度。 |
 | `<<` / `push` / `append` | 🚫 | 破壊的変更（形状変化）。 |
@@ -359,7 +360,7 @@ IntegerRange向け専用ハンドラ群は別途`shape_dispatch.rb`に存在。
 | `chunk` / `chunk_while` | 🚫 | Enumerable。 |
 | `collect` / `map` | ✅ | `PER_ELEMENT_TUPLE_METHODS` — ブロック毎要素適用で新Tuple。 |
 | `combination` / `permutation` | 🚫 | Enumerable。 |
-| `compact` | ✅ | `Constant[nil]`エントリーを除去したTuple。**高優先度**。`tuple_compact`実装。 |
+| `compact` | ✅ | `Constant[nil]`エントリーを除去したTuple。**高優先度**。 `tuple_compact`実装。 |
 | `count` | ✅ | `tuple_count` — ブロックなしで`Constant[Integer]`。 |
 | `cycle` | 🚫 | Enumerable。 |
 | `deconstruct` | 🔲 | パターンマッチ用 — `to_a`と等価。低優先度。 |
@@ -388,7 +389,7 @@ IntegerRange向け専用ハンドラ群は別途`shape_dispatch.rb`に存在。
 | `length` / `size` | ✅ | `tuple_size` → `Constant[Integer]`。 |
 | `max` / `min` | ✅ | `tuple_max` / `tuple_min` → 要素型のUnion。 |
 | `max_by` / `min_by` | 🔲 | ブロックあり形式。BlockFolding非対応。中優先度。 |
-| `minmax` | 🔲 | `Tuple[min, max]`形式。中優先度。 |
+| `minmax` | ✅ | `tuple_minmax_pair` → `Tuple[Constant[min], Constant[max]]`（全要素Constantかつ比較可能なとき）。 |
 | `none?` | ✅ | `tuple_none?` → `Constant[bool]`。 |
 | `pack` | 🔲 | バイナリパッキング → `Constant[String]`。低優先度。 |
 | `pop` / `shift` | 🚫 | 破壊的変更。 |
@@ -406,15 +407,15 @@ IntegerRange向け専用ハンドラ群は別途`shape_dispatch.rb`に存在。
 | `sort!` | 🚫 | 破壊的変更。 |
 | `sort_by` | 🔲 | ブロックあり。低優先度。 |
 | `sum` | ✅ | `tuple_sum` → 要素型のUnion。 |
-| `take` | ✅ | `take(n)` → 先頭n要素の部分Tuple。**高優先度**。`tuple_take`実装。 |
+| `take` | ✅ | `take(n)` → 先頭n要素の部分Tuple。**高優先度**。 `tuple_take`実装。 |
 | `take_while` | 🔷 | BlockFolding `FILTER_KEEP_ON_TRUTHY`。 |
 | `tally` | 🔲 | `Hash[elem_type, Integer]`。低優先度。 |
 | `to_a` | ✅ | `tuple_to_a` → self。 |
 | `to_h` | ✅ | `tuple_to_h` → HashShape（`Tuple[Tuple[K,V]…]`形式）。 |
 | `transpose` | 🔲 | 2次元Tupleの行列転置。低優先度。 |
 | `union` | 🔲 | 集合和（dedup）。低優先度。 |
-| `uniq` | 🔲 | Tuple要素の重複除去。低優先度。 |
-| `values_at` | ✅ | `values_at(*indices)` → 位置指定Tuple。**高優先度**。`tuple_values_at`実装。 |
+| `uniq` | ✅ | `tuple_uniq` → Constant要素の重複除去Tuple。 |
+| `values_at` | ✅ | `values_at(*indices)` → 位置指定Tuple。**高優先度**。 `tuple_values_at`実装。 |
 | `zip` | ✅ | `tuple_zip` → 要素ペアTuple。 |
 
 ### 5-2. 実装チェックリスト（優先度順）
@@ -434,8 +435,8 @@ IntegerRange向け専用ハンドラ群は別途`shape_dispatch.rb`に存在。
 [ ] slice     → TUPLE_HANDLERS → values_at の Range / 2 引数形式
 
 低優先度:
-[ ] uniq      → TUPLE_HANDLERS → Union 縮小 Tuple
-[ ] minmax    → TUPLE_HANDLERS → Tuple[min_type, max_type]
+[x] uniq      → TUPLE_HANDLERS → `tuple_uniq`（Constant 要素の重複除去 Tuple）
+[x] minmax    → TUPLE_HANDLERS → `tuple_minmax_pair` → Tuple[Constant[min], Constant[max]]
 [ ] max_by / min_by → ExpressionTyper ブロックフォールド追加
 ```
 
