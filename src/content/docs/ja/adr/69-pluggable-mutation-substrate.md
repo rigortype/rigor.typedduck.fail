@@ -3,15 +3,17 @@ title: "ADR-69 — Pluggable mutation substrate (kill-oracle + operator seam)"
 description: "Imported from rigortype/rigor docs/adr/69-pluggable-mutation-substrate.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/69-pluggable-mutation-substrate.md"
 sourcePath: "docs/adr/69-pluggable-mutation-substrate.md"
-sourceSha: "9535c1c86689c6263ebbc2f9f0e4566a43d7fdd6dd44f445117be9aece86e967"
-sourceCommit: "dd7f6dc8daf0b115fb4f9e44f67eb21008e1456d"
+sourceSha: "aeff24ce0456e076704582721f1260cf2a902fe8dc8b6f80088d3e6769c2cef3"
+sourceCommit: "dc480068ec01608aee724d37f4aab592256727a1"
 translationStatus: "translated"
 sidebar:
   order: 4069
 ---
 
-ステータス: **Proposed — 未実装。ただし今すぐ着手可能（リファクタリングであり、新しいユーザーサーフェスなし）**。
-ADR-62/63のミューテーション機構を一般化し、**キルオラクル**と**サイト選択戦略**を、`Protection::MutationScanner`に焼き込まれた前提ではなくパラメータにする。今日のところ、唯一のオラクル（oracle）は「新しいRigor診断が現れた」であり、唯一のセレクタは「Rigorが噛みつけるサイト（site）を残す」であって、どちらもハードワイヤされている。本ADRはこの基盤に、第2のオラクル（*「テストスイートがレッドになった」*）と、テスト指向のコンシューマーが必要とする反転セレクタを担わせる──これは[ADR-70](../70-fused-protection-coverage/)の前提条件であり、[ADR-71](../71-type-guided-external-mutation-testing/)が望むオプショナリティでもある──再設計なしに実現する。
+ステータス: **Accepted — シーム1（キルオラクル）は2026-06-17に実装、[ADR-70](../70-fused-protection-coverage/)と同時着地;シーム2（サイトセレクタ）はその唯一のコンシューマー（[ADR-71](../71-type-guided-external-mutation-testing/)）へ先送り**。
+ADR-62/63のミューテーション機構を一般化し、**キルオラクル**と**サイト選択戦略**を、`Protection::MutationScanner`に焼き込まれた前提ではなくパラメータにする。今日のところ、唯一のオラクル（oracle）は「新しいRigor診断が現れた」であり、唯一のセレクタは「Rigorが噛みつけるサイト（site）を残す」であって、どちらもハードワイヤされていた。シーム1はいまや、この基盤に第2のオラクル（*「テストスイートがレッドになった」*、`Protection::TestSuiteOracle`）を担わせる;シーム2（「`Dynamic`サイトもミューテーションする」という反転セレクタ）は、それを必要とする外部ツールをADR-71が構築するまで保留される──いま着地させれば、本ADRが警告する死んだ抽象になってしまう。
+
+実装済み: `lib/rigor/protection/diagnostic_oracle.rb`（シーム1、抽出されたADR-62/63の振る舞い）、それを消費する`Protection::MutationScanner#initialize(oracle:)` + `#scan_file_fused`（`mutation_scanner.rb`）。ADR-70の`TestSuiteOracle`が最初の第2オラクルである。
 
 根拠: [`docs/notes/20260617-type-guided-mutation-testing-strategy.md`](../../notes/20260617-type-guided-mutation-testing-strategy/)（これが可能にする戦略の分割）と現行コード`lib/rigor/protection/mutator.rb`、`lib/rigor/protection/mutation_scanner.rb`。
 
@@ -25,8 +27,8 @@ ADR-62/63のミューテーション機構を一般化し、**キルオラクル
 
 > **基準（再利用可能なルール）:** **キルオラクル**と**サイトセレクタ**はスキャナに注入されるコラボレータ（collaborator）であり、ミューテータのプロパティでは決してない。`Mutator`が知るのは、*ソースをスプライス（splice）する*方法と、*契約がどこにあるか*（アンカー）だけである。*何をキルとみなすか*と*どのサイトがミューテーションする価値があるか*を決めるのはコンシューマーに属する。基盤がオラクル／セレクタを差し替えても表現できないケイパビリティは、シーム（seam）の隙間であって、ミューテータをコピーする理由ではない。
 
-- **シーム1 — キルオラクル**。今日のロジックを`DiagnosticOracle`として抽出し（`Runner#run_source`がクリーンなベースラインにない診断を出したとき、かつそのときに限りミュータント（mutant）はキルされる）、`TestSuiteOracle`（ADR-70）が実装するインターフェースを定義する（スイートを実行し、レッドになったとき、かつそのときに限りキルされる）。スキャナはオラクルを受け取り、`classify`は`oracle.killed?(clean, mutant)`を呼ぶ。`DiagnosticOracle`の経路は今日と**バイト同一**に保つ。
-- **シーム2 — サイトセレクタ**。型認識フィルタ（`filter_by_type`）は1つの戦略（`BiteableSites` — 具体アンカーのサイトを残す、偽陽性に安全）になり、`Mutator`から分離可能になるので、コンシューマーは代わりに`AllSites`／`Dynamic`を優先するセレクタを渡せる。ミューテータは依然としてレポート用にアンカー＋その型を*記録する*が、それに基づいてドロップを*決定する*ことはもうしない。
+- **シーム1 — キルオラクル。実装済み**。今日のロジックは`DiagnosticOracle`として抽出される（`Runner#run_source`がクリーンなベースラインにない診断を出したとき、かつそのときに限りミュータント（mutant）はキルされる）;そのインターフェース（`#baseline`、`#killed?`）こそ`TestSuiteOracle`（ADR-70）が実装するものである。スキャナは`oracle:`を受け取り、その`classify`をそれ経由でルーティングする;`DiagnosticOracle`のデフォルトは今日と**バイト同一**である（ADR-63 Tier 2のスキャナspecは不変）。
+- **シーム2 — サイトセレクタ。先送り（そのコンシューマーが先送りだから）**。計画は、型認識フィルタ（`filter_by_type`）を1つの差し替え可能な戦略（`BiteableSites` — 具体アンカーのサイトを残す、偽陽性に安全）にし、コンシューマーが`AllSites`／`Dynamic`を優先するセレクタを渡せるようにすることだ。しかし反転セレクタの*唯一の*コンシューマーは、ADR-71が先送りする外部ツールである;ADR-70の融合オーバーレイは**噛みつける**サイトを再利用する（既存フィルタの型生存者に対してテストを実行する）ので、シーム2を行使しない。いま`AllSites`を着地させれば、それはまさに基準が禁じる死んだ抽象になる──だからシーム2はADR-71より前ではなく、ADR-71と**ともに**着地する。
 - **新しいユーザーサーフェスなし**。これはADR-50のもとでの内部再構成である（凍結された契約はCLI語彙＋JSONキーであって、`Protection::*`クラスのシェイプではない）。`tool/mutation/`およびADR-63の`coverage --protection --mutation`コマンドは、いかなる振る舞いの変化も観測しない。
 
 ## 却下／先送りした代替案
@@ -41,7 +43,7 @@ ADR-62/63のミューテーション機構を一般化し、**キルオラクル
 
 - **ポジティブ** — ADR-70はフォークなしで動的オラクルを重ねられる。ADR-71の外部オプションは、書き直しではなくクリーンな基盤を継承する。`tool/mutation/`と`coverage`は唯一の信頼できる情報源（ミューテータ）を保ち、いまや真にオラクル中立になる。
 - **ネガティブ** — 小さな間接化コスト（メソッドだったところがインターフェースになる）が生じるが、その価値が具体化するのはADR-70が着地して初めてである。仮にADR-70が放棄されればシームは死んだ抽象になる（だから両者は一緒に着地させる）。
-- **持ち越し** — ADR-70の最初の動的コンシューマーと並行して実装し、`TestSuiteOracle`インターフェースが机上のものでなく実際に行使されるようにする。ゲート: `DiagnosticOracle`の経路がADR-63の`coverage --protection --mutation`計測でバイト同一であること。
+- **持ち越し** — シーム1はADR-70の`TestSuiteOracle`と同時着地したので、インターフェースは机上のものでなく実際に行使される;`DiagnosticOracle`のデフォルトはADR-63のスキャナspecをグリーンに保った（バイト同一のゲート）。**シーム2（サイトセレクタ）が残るスライスである**。2026-06-17のADR-70の検証は、それに*予想より早い経験的需要*を与えた: 融合オーバーレイは噛みつけるフィルタを再利用するため、`Dynamic`サイトを決してミューテーションせず、したがって「テストだけに守られた`Dynamic`サイト」──融合マップの最も価値あるセル──を示せない。シーム2はそこへの橋だが、`Dynamic`サイトをミューテーションしてテストを実行することはADR-71が先送りする高コストな経路である──なのでこれは無料の勝ちではなく、本物のスコープ判断だ。
 
 ## 他のADRとの関係
 

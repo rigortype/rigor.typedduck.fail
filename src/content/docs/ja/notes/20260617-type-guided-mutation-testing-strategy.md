@@ -3,8 +3,8 @@ title: "Type-guided mutation testing — strategy note (internal teeth vs. an ex
 description: "Imported from rigortype/rigor docs/notes/20260617-type-guided-mutation-testing-strategy.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260617-type-guided-mutation-testing-strategy.md"
 sourcePath: "docs/notes/20260617-type-guided-mutation-testing-strategy.md"
-sourceSha: "c332e0b17140a6fcceca8704c8f819dc994f80e231319f12bb3d6e0b2892897b"
-sourceCommit: "dd7f6dc8daf0b115fb4f9e44f67eb21008e1456d"
+sourceSha: "2f7c14610fbdd8abd6394ab594bdc64747bab4bffa2bd2b17a70d26ce6468004"
+sourceCommit: "dc480068ec01608aee724d37f4aab592256727a1"
 translationStatus: "translated"
 sidebar:
   order: 20266617
@@ -77,3 +77,18 @@ sidebar:
 - **ADR-69 —— プラガブルなミューテーション基盤（キルオラクル＋オペレータのシーム）**。機械的／アーキテクチャ。これを可能にするリファクタ。今すぐ着手可能。
 - **ADR-70 —— 融合した静的∪動的の保護カバレッジ**。熟議的。ADR-63を拡張する。ADR-69の最初の利用者。今すぐ着手可能（薄いスライス）。
 - **ADR-71 —— 型誘導の外部インクリメンタルミューテーションテスト**。評価／提案。ウェッジ、却下した過剰な売り込み、需要 × ADR-46のゲートを記録する。先送り。
+
+## 実プロジェクトでの検証（2026-06-17）
+
+ADR-69のシーム1＋ADR-70（`coverage --protection --mutation --with-tests`）の着地後、3つのサブエージェントが`rigor-survey`のターゲット（faraday／liquid／mail;rglとkramdownはターゲットとして却下──下記の摩擦を参照）に対してこれを検証した。手順: 隔離された`bundle install`、対応する`（ソースファイル、単一のグリーンなテストファイル）`の組、そしてその組にスコープを絞った融合オーバーレイ。
+
+**機能は動作し、偽陽性はない**。動的（テスト）軸は本物の型生存者に対して真に発火する: faraday `nested_params_encoder.rb`（test_killed 3）、liquid `lexer.rb:152`の`output.last&.first`（1）、mail `utilities.rb`（11）／`parts_list`（2）／`field_list`（2）。mailの実行は型のみのベースラインに対して厳密に整合し（9件の型キル＋11件のテストキル＋7件の無保護＝27件の生存者）、**テスト軸が型生存者に対してのみ参照されることを証明した**（漸進的短絡は本物だ）。手検証したすべての`unprotected`サイトは本物のカバレッジギャップだった（偽陽性ゼロ）;ファイルは毎回の実行後にバイト単位で復元された（`ensure`が効いている）;JSONの形は正しい。実行ごとのコスト = `type_survivors × スコープを絞ったテスト実行`（これら小さなスイートで約2〜9秒）。
+
+**2つの本物の摩擦が見つかった──1つは本物のバグで、いまや修正済み:**
+
+1. **bundler環境リーク（バグ──修正済み）**。Rigorを`bundle exec exe/rigor`で実行すると`RUBYOPT=-rbundler/setup`＋`GEM_HOME`／`BUNDLE_*`がプロセスへ漏れる;オラクルの素の`system`がそれらをテストのサブプロセスへ渡し、それが*ターゲットの*Gemfileを*Rigorの*gemに対して解決して失敗した→グリーンなスイートがレッドと読まれ→実行は何の作業もする前に中断した。素の`env -u BUNDLE_GEMFILE`では**不十分**だ（`BUNDLER_ORIG_*`の保存子がそれを打ち負かす）。ランナーを`Bundler.with_unbundled_env`で包むことで修正した（`test_suite_oracle.rb`の`shell_run`）;ユーザーは`--test-command`に環境ラッパーをもう必要としない。再検証: 素の`bundle exec`コマンドを使ったliquid `lexer.rb`がいまや実行される（以前はハードな失敗だった）。
+2. **パスするスイートでの非ゼロ終了（文書化）**。SimpleCovのスイートごとのカバレッジフロア（faraday）は、すべてのテストがパスしても非ゼロで終了するので、ファイルにスコープした実行がグリーンの前提条件に引っかかる。終了コードが唯一のシグナルなので、これは部分的に本質的だ;`suite_not_green_error`メッセージはいまやそれを示唆する（`--test-command`を素のパス／フェイルのランナーへ向けよ）。
+
+**シーム2の隙間の経験的確認（荷重を担う発見）**。オーバーレイは**噛みつける**サイトのフィルタを再利用するので、具体型のサイトしかミューテーションせず、型軸が大多数を短絡する（liquid: 100サイト中92が型キル;分母は*噛みつける*サイトであって*すべての*ディスパッチサイトではない）。テスト軸が参照されるのは、残った一握りの具体サイトの型生存者に対してだけである──したがって融合マップの目玉セル、*「テストだけに守られた`Dynamic`サイト」*には**決して到達しない**。なぜなら`Dynamic`サイトはミューテーションをまったく生成しないからだ。これは批判的分析の論点#4（「型の枝刈りは価値が最も高い箇所で盲目だ」）が実装で顕在化したものであり、いまや予測ではなく計測された。これは**ADR-69のシーム2（`AllSites`）を前倒しする**最も強い論拠である──それなしではオーバーレイは、型がどこを守るか、残った具体的な生存者がどこに落ちるかを示すが、ユーザーが*テスト*保護のビューから最も欲しいものは示さない。（緊張関係: `Dynamic`サイトをミューテーションしてそこでテストを実行することは、ADR-71が先送りする高コストなテストスイートのミューテーションテスト*そのもの*だ──なのでシーム2はこのオーバーレイとADR-71の間の橋であり、それを前倒しすることは無料の勝ちではなく本物のスコープ判断だ。）
+
+**完全性の注意（ユーザー向けに文書化）**。1つのテストファイルにスコープした`--test-command`は、フルスイートと比べて`unprotected`を*過大報告する*（別のテストが捕まえるミューテーションが無保護として現れる）。構成上正しい──判定はテストコマンドのカバレッジの分だけしか完全でない──が、正確なマップのためには、そのコマンドはファイルをカバーするすべてのテストを走らせるべきで、コストと完全性を引き換えにする。

@@ -3,15 +3,17 @@ title: "ADR-70 — Fused static∪dynamic protection coverage"
 description: "Imported from rigortype/rigor docs/adr/70-fused-protection-coverage.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/70-fused-protection-coverage.md"
 sourcePath: "docs/adr/70-fused-protection-coverage.md"
-sourceSha: "330170fa58519e97ffbc8edf178f7509b7f1c0b82f8b93f4aab3657a234d77e0"
-sourceCommit: "dd7f6dc8daf0b115fb4f9e44f67eb21008e1456d"
+sourceSha: "109de905498cdfa14cb980707ecd6cc4b3cd0ed4af1e74129787ac2a5e11a15f"
+sourceCommit: "dc480068ec01608aee724d37f4aab592256727a1"
 translationStatus: "translated"
 sidebar:
   order: 4070
 ---
 
-ステータス: **Proposed — 未実装。ただし今すぐ着手可能（[ADR-63](../63-type-protection-coverage/)＋[ADR-69](../69-pluggable-mutation-substrate/)上の薄いスライス（slice））**。
-`coverage --protection --mutation`にオプションの**動的オーバーレイ（dynamic overlay）**を追加する。*型*チェッカーがキルできなかったミュータント（mutant）ごとに、（ADR-69の`TestSuiteOracle`を介して）*テスト*がそれをキルするかどうかを問い、各サイト（site）を**両軸（axis）**で分類する──型保護された（type-protected）／テスト保護された（test-protected）／二重保護された（doubly-protected）／**無保護（unprotected）**。成果物はこの融合である。型もテストもそのラインを守っていない**ときに限り**真に無保護であり、レポートは**より安価な欠落軸（cheaper missing axis）**（「ここに型を足す」対「ここにテストを足す」）を指摘する。静的な型保護と動的なテスト保護を1枚のマップに融合する既存ツールは存在しない。
+ステータス: **Accepted — 2026-06-17に実装（`coverage --protection --mutation --with-tests`）、[ADR-69](../69-pluggable-mutation-substrate/)のシーム1と同時着地、[ADR-63](../63-type-protection-coverage/)の上に**。
+オプションの**動的オーバーレイ（dynamic overlay）**を追加する。*型*チェッカーがキルできなかったミュータント（mutant）ごとに、（ADR-69の`Protection::TestSuiteOracle`を介して、ランナーフック = `--test-command`、デフォルトは`bundle exec rake`）*テスト*がそれをキルするかどうかを問い、各サイト（site）を**両軸（axis）**で分類する。成果物はこの融合である。型もテストもそのラインを守っていない**ときに限り**真に無保護であり、レポートは**より安価な欠落軸（cheaper missing axis）**（「型を足す」対「テストを足す」）を指摘する。静的な型保護と動的なテスト保護を1枚のマップに融合する既存ツールは存在しない。
+
+実装済み: `Protection::MutationScanner#scan_file_fused`（漸進的短絡＋3バケット分類）、`Protection::TestSuiteOracle`（`test_suite_oracle.rb`、`ensure`でファイルを復元する注入可能ランナーのキルオラクル）、そして`CoverageCommand#run_fused_protection`の配線（`coverage_command.rb`）＋`FusedProtectionReport`／`FusedProtectionRenderer`（テキスト＋`mode: "protection-fused"`のJSON）。
 
 根拠: [`docs/notes/20260617-type-guided-mutation-testing-strategy.md`](../../notes/20260617-type-guided-mutation-testing-strategy/)（判断ステップ2──安価でミッションに沿った新規の一手）、ADR-63（本ADRが拡張する保護カバレッジ（protection coverage）コマンド）、ADR-69（本ADRが消費するオラクル（oracle）シーム（seam））。
 
@@ -28,7 +30,7 @@ ADR-63は2つの保護（protection）ティアを提供しており、どちら
 > **基準（ADR-63の枠組みを拡張）:**指標は常に*有効性（effectiveness）／どこに保護を足すべきか*であって、生の生存数ではない──**さらに**融合のペイロードは単一の数値ではなく**帰属（attribution）**である。各無保護サイトには**最も安価な欠落軸（cheapest missing axis）**のタグが付く（`Dynamic`レシーバーの穴⇒「型を足す」。型付きだがテストでキルされなかった穴⇒「テストを足す」）。サイトが無保護と報告されるのは**両軸とも外れた**ときに限る。
 
 - **漸進的短絡（gradual short-circuit、コストモデル（cost model））**。型チェッカーが既にキルするミュータントはスイートに到達しない──静的なネットが第1の防衛線、テストが第2である。高価なスイート実行は*型生存者（type-survivor）*に対してのみ支払われるので、オーバーレイのコストはファイルではなく保護穴（protection hole）に比例する。これが誠実で安価な枠組みだ。*「型チェッカーが通すミュータントのうち、あなたのテストはどれだけ捕まえるか？」*
-- **サイトごとの4分類**。型保護された（ADR-63がキル）・テスト保護された（型では生き残った（type-survived）、スイートが赤になる）・二重保護された・**無保護**（両方とも生き残った──ランク付けされた「ここに保護を足せ」リスト）。`--format json`は4つのカウント＋帰属付きサイトを運ぶ。`--threshold`は**融合した**保護比率でゲートする。
+- **観測される3つのバケット（短絡が4つ目を畳む）**。型保護された（type-protected、ADR-63がキル）・テスト保護された（test-protected、型では生き残り、スイートが赤になる）・**無保護（unprotected）**（両方とも生き残った──ランク付けされた「ここに保護を足せ」リスト）。概念上の*二重保護された（doubly-protected）*バケットは**型保護に**畳まれる。型でキルされたミュータントはスイートに到達しないので、テストが*それも*捕まえる*かどうか*は意図的に支払わない（静的なネットで既に十分）。`--format json`は3つのカウント（`type_killed`／`test_killed`／`unprotected`）＋帰属付きサイトを運ぶ。`--threshold`は**融合した**保護比率でゲートする。
 - **選択（selection）はスイートの仕事であって、依存グラフ（dependency graph）の仕事では決してない**。オーバーレイはユーザーのスイート（または選んだサブセット）をそのまま走らせる。どのテストを走らせるかをRigorの型依存グラフで選んではならない（MUST NOT）。そのグラフは*型*の読み取りを記録するのであって*ランタイム*のコールグラフではないので、ミュータントをキルするテストを飛ばして**偽の**テストギャップ（test gap）を報告してしまう──偽陽性（FP）であり、このプロジェクトが越えない唯一の一線だ（`feedback_false_positive_discipline`）。カバレッジベースの選択は後の最適化（ADR-71）であり、ランタイムカバレッジ（runtime coverage）によるもので、静的グラフによるものでは決してない。
 
 ## Working decisions
@@ -52,7 +54,8 @@ ADR-63は2つの保護（protection）ティアを提供しており、どちら
 
 - **Positive** — 真に新しい成果物。最も安価な修正の帰属を備えた静的∪動的の保護マップ（protection map）であり、Stryker／mutant／Sorbet-metricsのどのツールも提供していない。新しいサーフェスは最小限（既存の配管の上にフラグ1つ＋JSONキー）。漸進的短絡はコストを穴に比例させ続ける。
 - **Negative** — カバレッジコマンドにテストランナー依存を持ち込む（ADR-62が意図的に避けたサーフェス）──ゆえにオプトインで、生存者スコープで、ADR-69のシームの背後に置く。WD2の知りえなさにより動的軸は静的軸より柔らかく、レポートはそれを教えなければならない。
-- **Carry-over** — ADR-69と同時に着地する。プロジェクト全体の手頃さとカバレッジベースのスイート選択はADR-46／ADR-71のフォローアップであって、本オーバーレイのv1ではない。
+- **Carry-over** — ADR-69のシーム1と同時着地した。プロジェクト全体の手頃さとカバレッジベースのスイート選択はADR-46／ADR-71のフォローアップであって、本オーバーレイのv1ではない;`--with-tests`は変更ファイルのデフォルトを継承する（パスなし = gitで変更されたもののみ）。
+- **実プロジェクトで検証済み（2026-06-17、faraday／liquid／mail）**。テスト軸は本物の型生存者に対して発火し、偽陽性なし、ファイルはバイト単位で復元される;型／テスト／無保護の内訳は型のみのベースラインに対して厳密に整合する。2つの摩擦が表面化した: **bundler環境リーク**（`bundle exec exe/rigor`が`RUBYOPT`／`GEM_HOME`をスイートのサブプロセスへ漏らし→グリーンがレッドと読まれた）──**修正済み**、`TestSuiteOracle#shell_run`はいまやランナーを`Bundler.with_unbundled_env`で包む;そして、グリーンの前提条件がレッドと区別できない**パスでも非ゼロ終了**するケース（SimpleCovのカバレッジフロア）──エラーメッセージで明示した。**荷重を担う発見**: オーバーレイは噛みつけるサイトのフィルタを再利用するため、型軸が大多数を短絡し、テスト軸が参照されるのは具体サイトの生存者に対してだけである──融合マップの目玉セル（*テストだけに守られた`Dynamic`サイト*）は、**ADR-69のシーム2（`AllSites`）**なしには到達不能であり、検証はこれを「ADR-71とともに」からより早期へと優先順位を引き上げる。[`docs/notes/20260617-type-guided-mutation-testing-strategy.md`](../../notes/20260617-type-guided-mutation-testing-strategy/) §「実プロジェクトでの検証」を参照。
 
 ## Relationship to other ADRs
 
