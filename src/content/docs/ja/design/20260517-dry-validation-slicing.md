@@ -136,7 +136,7 @@ result.errors.to_h # => Hash[Symbol, Array[String]]
 
 ## オープン観察 — `rigor-dry-monads`は別途ブロックされている
 
-ロードマップは両方とも次のティアのdry-rbプラグインであるため、`rigor-dry-validation`と`rigor-dry-monads`をグループ化する。しかしdry-monadsは別の軸でブロックされている: メソッドごとの戻り型ラッピング（`def x; Success(42); end → Result[Integer, untyped]`）を望む。ラップされた`Result[T, E]` / `Maybe[T]`キャリアは今日の`Rigor::Type::*`階層には存在しない。
+ロードマップは両方とも次のティアのdry-rbプラグインであるため、`rigor-dry-validation`と`rigor-dry-monads`をグループ化する。しかしdry-monadsは別の軸でブロックされている: メソッドごとの戻り値型ラッピング（`def x; Success(42); end → Result[Integer, untyped]`）を望む。ラップされた`Result[T, E]` / `Maybe[T]`キャリアは今日の`Rigor::Type::*`階層には存在しない。
 
 2つのルート:
 

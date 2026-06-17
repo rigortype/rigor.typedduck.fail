@@ -48,7 +48,7 @@ type:    Dynamic[top]
 2. `(Object, name, instance)`の下の[ADR-17](../17-monkey-patch-pre-evaluation/)の`Inference::ProjectPatchedMethods`レジストリ内のエントリー、
 3. ロードされたRBS環境から引いた標準的な`Kernel` / `Object`プライベートメソッド表面（`puts`、`p`、`require`、`loop`、`raise`、…）、
 
-エンジンは新しい`call.unresolved-toplevel`診断をemitする。ヒットした場合、解決されたメソッドの戻り型とパラメータ契約（contract）はADR-24スライス1〜3と同様に伝播する。
+エンジンは新しい`call.unresolved-toplevel`診断をemitする。ヒットした場合、解決されたメソッドの戻り値型とパラメータ契約（contract）はADR-24スライス1〜3と同様に伝播する。
 
 新しいルールのデフォルト重大度は`severity_profile:`に連動する:
 

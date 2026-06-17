@@ -12,7 +12,7 @@ sidebar:
 
 ステータス: **Accepted — `Data.define`スライス1〜4実装済み（v0.1.17）;`Struct`フォローアップのスライス1〜3実装済み（フレッシュチェーン + 畳み込み安全なバインドローカルのメンバー畳み込み）**。2つの新しい型キャリア（carrier）— **メンバークラスキャリア**（`Type::DataClass`）と**メンバーインスタンスキャリア**（`Type::DataInstance`）— を導入し、`Data.define`で定義した値オブジェクト（value object）のメンバー読み取りが精密な型に畳み込まれる（`Point = Data.define(:x, :y); Point.new(1, 2).x` → `Constant[1]`）。3種の定義形式すべて（定数代入形式・`class X < Data.define(...)`サブクラス形式・ベアローカル形式）、位置引数とキーワード引数の両構築、および`[]` / `to_h` / `deconstruct` / `deconstruct_keys` / `members` / `with`の各プロジェクションに対応して出荷済み。`DataFolding`ディスパッチ層は、名前付き形式に対してスコープインデクサが書き込むクロスファイルの`Scope#data_member_layouts`サイドテーブルを参照する。**スライス4（ブロックボディ堅牢化）が着地:**ボディがメンバーの合成済みリーダー（`def x`）を再定義している名前付きクラスは、そのメンバーの*読み取り*畳み込みを行わなくなった（再定義済みメソッドが呼ばれるため）— 一方、値アクセサ（`[:x]` / `to_h`）はリーダーをバイパスするので引き続き畳み込み対象 — プロジェクトdef-nodeテーブルの実`def`ノードを条件とする。ベアローカルのブロック形式は保守的に畳み込みなし（unfolded）のまま。`Struct`の姉妹実装は変異健全性（mutation-soundness）の設計が固まるまで先送り（§「Structのフォローアップ」参照）。畳み込みは**精度追加のみ** — 新しい診断ファミリーなし、偽陽性のサーフェスなし（プロジェクトの偽陽性の規律に沿う）。フェーズ5カバレッジ監査[`docs/notes/20260523-struct-encoding-coverage.md`](../../notes/20260523-struct-encoding-coverage/)に基づき、同監査がこれをADR相当として先送りし`Data.define`をより良い最初のターゲットと指名した。
 
-**`Struct`フォローアップ — スライス1 + 2着地（健全な*トランジェント*形式）**。可変な姉妹キャリア`Type::StructClass` / `Type::StructInstance`が出荷され、`Struct.new(...)`は`StructClass`のメンバーレイアウトに畳み込まれ、`.new` / `[]`が`StructInstance`をマテリアライズし、**フレッシュな**（チェーンされた）インスタンスからのメンバー読み取りが畳み込まれる（`Struct.new(:x, :y).new(1, 2).x` → `Constant[1]`。匿名・定数・サブクラス・ローカルクラスの各形式、位置引数 + `keyword_init:`に対応）。変異健全性のストーリーは、書き込みサイトの無効化ではなく**フレッシュレシーバゲート**によって解決される: *格納された*バインディングからのメンバー読み取りは`Dynamic[top]`に劣化する（トランジェントはマテリアライゼーションとチェーン読み取りの間に変異され得ないため無効化は不要;格納されたバインディングは変異され得るため畳み込まない）。これは書き込みサイトに一切触れず — すべてのエスケープ経路を列挙するよりはるかに偽陽性リスクが低く — まさに先送りされたスライス3が緩めるゲートそのものだ。完全な記録は後述の§「Structのフォローアップ」を参照。
+**`Struct`フォローアップ — スライス1 + 2着地（健全な*トランジェント*形式）**。可変な姉妹キャリア`Type::StructClass` / `Type::StructInstance`が出荷され、`Struct.new(...)`は`StructClass`のメンバーレイアウトに畳み込まれ、`.new` / `[]`が`StructInstance`を実体化し、**フレッシュな**（チェーンされた）インスタンスからのメンバー読み取りが畳み込まれる（`Struct.new(:x, :y).new(1, 2).x` → `Constant[1]`。匿名・定数・サブクラス・ローカルクラスの各形式、位置引数 + `keyword_init:`に対応）。変異健全性のストーリーは、書き込みサイトの無効化ではなく**フレッシュレシーバゲート**によって解決される: *格納された*バインディングからのメンバー読み取りは`Dynamic[top]`に劣化する（トランジェントはマテリアライゼーションとチェーン読み取りの間に変異され得ないため無効化は不要;格納されたバインディングは変異され得るため畳み込まない）。これは書き込みサイトに一切触れず — すべてのエスケープ経路を列挙するよりはるかに偽陽性リスクが低く — まさに先送りされたスライス3が緩めるゲートそのものだ。完全な記録は後述の§「Structのフォローアップ」を参照。
 
 **Structスライス3着地（2026-06-15）— 畳み込み安全なバインドローカルのメンバー畳み込み**。いまや、*格納された*ローカルからのメンバー読み取りも、保守的な本体全体の許可リストスキャン（[`Inference::StructFoldSafety`](../../lib/rigor/inference/struct_fold_safety.rb)）がそのローカルは決して変異・エイリアス・エスケープされないと証明したときに畳み込まれる（`p = Point.new(1, 2); p.x` → `Constant[1]`）;書き込み・エイリアス・エスケープされたローカルは`Dynamic[top]`のままだ。スキャンは許可リストであり（すべての使用が既知の純粋読み取りでなければならない — 取りこぼしは過度に保守的になるだけで決して不健全にはならない）、本体ごとに一度、トップレベルとメソッド本体のエントリーポイントでスコープ（`Scope#struct_fold_safe?`）にインストールされる。§「Structのフォローアップ」を参照。
 
@@ -35,7 +35,7 @@ sidebar:
 
 ディスパッチ/型側は**防御的のみ**だ。
 
-- `Inference::Builtins::STRUCT_CATALOG`（[`struct_catalog.rb`](../../lib/rigor/inference/builtins/struct_catalog.rb)）は`Struct`をレシーバとして認識し、「仮想的な将来の`Constant<Struct>`キャリア」に対して`:[]/` `:hash` / `:initialize_copy`をブロックリストに登録する。`data/builtins/ruby_core/struct.yml`では`Data.define` / `Struct.new`を`:block_dependent`に分類しており、`ConstantFolding`はこれを拒否してRBS経由で`Dynamic[top]`に解決する。
+- `Inference::Builtins::STRUCT_CATALOG`（[`struct_catalog.rb`](../../lib/rigor/inference/builtins/struct_catalog.rb)）は`Struct`をレシーバーとして認識し、「仮想的な将来の`Constant<Struct>`キャリア」に対して`:[]/` `:hash` / `:initialize_copy`をブロックリストに登録する。`data/builtins/ruby_core/struct.yml`では`Data.define` / `Struct.new`を`:block_dependent`に分類しており、`ConstantFolding`はこれを拒否してRBS経由で`Dynamic[top]`に解決する。
 - インテグレーションフィクスチャ[`struct_catalog.rb`](../../spec/integration/fixtures/struct_catalog.rb)が現状を固定している: `Struct.new(:foo, :bar)` → `Struct`（Nominal）、`Struct.new(:foo).new(1)` → `Dynamic[top]`。
 
 つまり: メンバーの*名前*は認識され、メンバーの*存在*は登録されているが、読み取りをプロジェクションするためのインスタンスごとのメンバー**レイアウト**をモデル化するものがない。そのレイアウトが欠けているキャリアだ。
@@ -83,7 +83,7 @@ inst.members               → Tuple[Constant[:x], Constant[:y]]
 - `Type::DataClass => :dispatch_data_class` — `:new`（インスタンスマテリアライゼーションのチョークポイント）・`:members`・`:[`（Data 3.2の`Point[1, 2]`という`.new`エイリアス）を処理する。
 - `Type::DataInstance => :dispatch_data_instance` — メンバーリーダー（`members[name]`をプロジェクション）・`:[`・`:to_h`・`:deconstruct`・`:deconstruct_keys`・`:with`・`:members`・`:==`/`:eql?`/`:hash`（`Nominal[bool]`/`Nominal[Integer]`に畳み込む — `Constant`にはならない、キャリア間の等価性は値決定可能でない）・`:inspect`/`:to_s` → `Nominal[String]`を処理する。
 
-`Data.define(...)`自体は`:block_dependent`によるRBS拒否の*前に*認識されなければならない。新しい精密層エントリ（または`Singleton[Data]` + `:define`キーで`ConstantFolding`のレシーバーディスパッチを拡張したもの）が、既存の`meta_member_names`ロジックを通じてリテラルSymbol引数を読み取り、`DataClass`を生成する。これは`RbsDispatch`の上位、`PRECISE_TIERS`バンドで動作する。
+`Data.define(...)`自体は`:block_dependent`によるRBS拒否の*前に*認識されなければならない。新しい精密層エントリー（または`Singleton[Data]` + `:define`キーで`ConstantFolding`のレシーバーディスパッチを拡張したもの）が、既存の`meta_member_names`ロジックを通じてリテラルSymbol引数を読み取り、`DataClass`を生成する。これは`RbsDispatch`の上位、`PRECISE_TIERS`バンドで動作する。
 
 メンバー読み取りは`HashShape#hash_dig_step`とまったく同様にプロジェクションする: `DataInstance`でのメンバー`:x`の読み取りは`members[:x]`を返す — オプショナリティのユニオンなし（Dataインスタンスは全域）、宣言済みメンバーへの`Constant[nil]`フォールバックなし（欠落メンバーはランタイムの`NoMethodError`で、スコープ外。未宣言メンバー読み取りは既存の未定義メソッドパスに委ねる）。
 
@@ -91,7 +91,7 @@ inst.members               → Tuple[Constant[:x], Constant[:y]]
 
 畳み込みは**完全に決定可能なシェイプに対してオプトイン**であり、前提が不確かになった瞬間に今日の挙動（`Nominal` / `Dynamic[top]`）に劣化する。各劣化は*精度の床*であり、誤った答えではない。
 
-1. **ブロックボディが存在する**（`Data.define(:x) do … end` / `class Point < Data.define(:x); def m; end; end`）— ブロックは追加メソッドを定義したり、リーダーを再定義したり、定数を追加したりする可能性がある。**出荷済み（スライス4）:** **名前付き形式**（`class Point < Data.define(...)`と`Const = Data.define(...) do … end`）はメンバーレイアウトを引き続き畳み込む — ブロックは通常ヘルパーメソッドを追加するのみで、`.x` / `to_h` / `[]`は精度を保つ。拒否される読み取りは、ボディが実`def x`でリーダーを*再定義*しているメンバーのみ: その読み取りはメンバーを返さず再定義済みメソッドを実行するため、畳み込みは不健全になる。両名前付き形式はオーバーライドをクラス名のもとに`def`ノードとして登録するため、プロジェクトdef-nodeテーブル（`Scope#user_def_for`）のエントリが識別子となる — 合成済みリーダーにはdefノードがない。値アクセサ`[]` / `to_h` / `deconstruct`はリーダーをバイパスするためfoldable（畳み込み可能）のままで、ゲートはベアメンバー読み取りのみにかかる。**ベアローカル**ブロック形式（`c = Data.define(:x) do … end`）は解決可能なクラス名を持たないためブロックのdefをガードのために参照できない — 保守的に畳み込みなし（current behaviour、FPセーフ）のまま。Rigor自身の`lib`（ブロック+サブクラス形式が密集）に対して検証済み: 自己チェックのリグレッションなし。
+1. **ブロックボディが存在する**（`Data.define(:x) do … end` / `class Point < Data.define(:x); def m; end; end`）— ブロックは追加メソッドを定義したり、リーダーを再定義したり、定数を追加したりする可能性がある。**出荷済み（スライス4）:** **名前付き形式**（`class Point < Data.define(...)`と`Const = Data.define(...) do … end`）はメンバーレイアウトを引き続き畳み込む — ブロックは通常ヘルパーメソッドを追加するのみで、`.x` / `to_h` / `[]`は精度を保つ。拒否される読み取りは、ボディが実`def x`でリーダーを*再定義*しているメンバーのみ: その読み取りはメンバーを返さず再定義済みメソッドを実行するため、畳み込みは不健全になる。両名前付き形式はオーバーライドをクラス名のもとに`def`ノードとして登録するため、プロジェクトdef-nodeテーブル（`Scope#user_def_for`）のエントリーが識別子となる — 合成済みリーダーにはdefノードがない。値アクセサ`[]` / `to_h` / `deconstruct`はリーダーをバイパスするためfoldable（畳み込み可能）のままで、ゲートはベアメンバー読み取りのみにかかる。**ベアローカル**ブロック形式（`c = Data.define(:x) do … end`）は解決可能なクラス名を持たないためブロックのdefをガードのために参照できない — 保守的に畳み込みなし（current behaviour、FPセーフ）のまま。Rigor自身の`lib`（ブロック+サブクラス形式が密集）に対して検証済み: 自己チェックのリグレッションなし。
 2. **非リテラル/非Symbolメンバー**（`Data.define(*names)`、`Data.define(dynamic_expr)`）— メンバーセット不明 → キャリアなし（`Nominal[Data]` / 現行の挙動）。
 3. **`.new`のアリティ（arity）/キーの不一致** — 位置引数数≠メンバー数、またはキーワードキー∉members、または位置+キーワード混在 → **インスタンスを畳み込まない**（ランタイムの実`ArgumentError`。誤ったメンバーマップを出力しないことがここでの責務）。`Nominal`に劣化。
 4. **畳み込み不可能な引数型** — `Dynamic[top]`のメンバー引数はメンバーマップに`Dynamic[top]`として保存される（インスタンスは引き続き*構造的に*畳み込まれる。メンバー読み取りは`Dynamic[top]`を返すが、これは正しく、インスタンス全体がdynamicであるよりも依然良い — *隣接する*メンバーは精度を保つため）。
@@ -116,7 +116,7 @@ inst.members               → Tuple[Constant[:x], Constant[:y]]
 - [ ] **リファインメント（refinement）プロジェクション** — 空配列（定数ウィットネスの寄与なし）。両キャリアが完全定数の場合の`finite_values`は先送り。スライス1では空を返す。
 - [ ] **関係クエリ** — `subtype_of` / `accepts`は`AcceptanceRouter`経由で`Inference::Acceptance`にルーティング。受理ルールを追加（`DataInstance`はその`Nominal[class]`が受理されるところで受理可能。メンバーワイズの深度はフォローアップ）。
 - [ ] **構造クエリ** — `members`（構造的メンバーシェイプ）、`has_method(name)`（`DataInstance`の宣言済みリーダーに対して`Trinary.yes`）、`method(name, scope:)`。`key_type`/`value_type`/`tuple_arity` → 非適用センチネル。
-- [ ] **コンビネーターファクトリ** — `Rigor::Type::Combinator.data_class_of(
+- [ ] **コンビネータファクトリー** — `Rigor::Type::Combinator.data_class_of(
   members:, class_name: nil)` + `.data_instance_of(members:,
   class_name: nil)`。プロダクションコードはこれらを通じてのみ構築する。
 - [ ] **中央require** — `lib/rigor/type.rb`に`require_relative`。構造的キャリア（Tuple、HashShape）の後に順序付け。
@@ -128,14 +128,14 @@ inst.members               → Tuple[Constant[:x], Constant[:y]]
 - [ ] **インテグレーションフィクスチャ+スナップショット** —
   `spec/integration/fixtures/data_define*.rb`（+`.yml`スナップショット）。`struct_catalog`フィクスチャはStructフォローアップが着地したときのみ更新。
 - [ ] **Ractorの共有可能性** — 凍結不変キャリア。`freeze`を超えた`Ractor.make_shareable`は不要（メンバーコレクションは凍結済み）。
-- [ ] **CHANGELOG** — 着地時に`[Unreleased]`エントリ（リリーススタイル）。
+- [ ] **CHANGELOG** — 着地時に`[Unreleased]`エントリー（リリーススタイル）。
 
 ## スライス計画
 
 1. **スライス1 — `DataClass`キャリア + `Data.define`認識**。
-   キャリア、ファクトリ、リテラルSymbolの`Data.define`から`DataClass`を生成する精密層認識器、および`Nominal[Data]`を返す`.new`アリティ処理（インスタンスキャリアはまだなし）— すなわちクラスの半分が先に着地し、`Data.define(...)`が`Dynamic[top]`でなくなる。`DataClass`のキャリア動物園チェックリスト。
+   キャリア、ファクトリー、リテラルSymbolの`Data.define`から`DataClass`を生成する精密層認識器、および`Nominal[Data]`を返す`.new`アリティ処理（インスタンスキャリアはまだなし）— すなわちクラスの半分が先に着地し、`Data.define(...)`が`Dynamic[top]`でなくなる。`DataClass`のキャリア動物園チェックリスト。
 2. **スライス2 — `DataInstance`キャリア + メンバー読み取り畳み込み**。
-   `.new`が`DataInstance`をマテリアライズ（位置引数+キーワード引数 → メンバーマップ）。インスタンスディスパッチハンドラがメンバー読み取り・`[]`・`to_h`・`deconstruct`・`deconstruct_keys`・`members`・`with`をプロジェクション。ヘッドラインの勝利。`DataInstance`のキャリア動物園チェックリスト。
+   `.new`が`DataInstance`を実体化（位置引数+キーワード引数 → メンバーマップ）。インスタンスディスパッチハンドラがメンバー読み取り・`[]`・`to_h`・`deconstruct`・`deconstruct_keys`・`members`・`with`をプロジェクション。ヘッドラインの勝利。`DataInstance`のキャリア動物園チェックリスト。
 3. **スライス3 — `class Point < Data.define(:x, :y)`サブクラスイディオム**。
    `DataClass`スーパークラスからメンバーレイアウトを名前付きサブクラスにスレッドして`Point.new(...)`を畳み込む（実世界で一般的な形式。存在側は`record_meta_superclass_members`で既に存在する）。これは統合が重いスライス（クラス→メンバーレイアウトのサイドテーブル読み取りを`.new`チョークポイントで行う）。
 4. **スライス4 — ブロックボディ劣化の堅牢化（着地済み）**。名前付き形式のリーダー再定義ガード（§劣化1）: クラスボディがリーダーを再定義しているメンバーは読み取り時に畳み込まなくなる。`Scope#user_def_for`を通じた実`def`ノードでゲート。Rigor自身の`lib`（最も密度の高いブロック+サブクラスコーパス）に対してopen-set-vs-bailの選択を確定: 名前付き形式はガード付きで畳み込む。ベアローカルブロック形式は保守的に畳み込みなし（解決可能なクラス名がなくガードを参照できない、コーパスの需要なし）のまま。ベアローカルブロック形式のパリティは需要依存の残余。
@@ -150,7 +150,7 @@ inst.members               → Tuple[Constant[:x], Constant[:y]]
 
 **健全性 — 書き込みサイトの無効化ではなく、フレッシュレシーバゲート（ルートb、先鋭化）**。本ADRは2つのルートを挙げていた: （a）観測されたすべてのセッター / `[]=` / エスケープでのフローセンシティブな無効化（先行技術は`ScopeIndexer#widen_member_for_observed_mutators`）、または（b）変異が到達し得ない箇所でのみ読み取りを畳み込む。ルート（a）は*すべてのエスケープ経路を列挙する*ことを要求し — 呼び出し引数・エイリアス代入・コンテナへの格納・ブロックキャプチャ — **その1つでも取りこぼせば不健全になり、偽陽性を製造する**（プロジェクトの大罪だ）。ルート（b）はその最も健全な極限で実現される: `StructInstance`のメンバー読み取りは、**そのレシーバノードがフレッシュな`.new(...)` / `.with(...)`呼び出しであるときに限り**畳み込まれる — マテリアライゼーションとチェーン読み取りの間に変異され得ないことが証明可能なトランジェントだ。*格納された*バインディングからの読み取りは`Dynamic[top]`に劣化する。これは**書き込みサイトに一切触れない**ため、エスケープ経路を取りこぼしようがない;代償は、バインドされたインスタンス（一般的な`p = Point.new(1, 2); p.x`形式）がまだ畳み込まれないことだ。メンバー*セッター*（`s.x = v`）は代入された値の型を返す（セッター自身の戻り値をモデル化したもので、変異状態に関わらず健全であり、未登録のライターでの未定義メソッドへのフォールスルーを避ける）。
 
-**スライス計画（Struct）:**スライス1 = `StructClass`キャリア + `Struct.new`認識;スライス2 = `StructInstance`キャリア + フレッシュチェーンのメンバー畳み込み + 定数/サブクラス形式のためのサイドテーブル（`Scope#struct_member_layout`）。両者は一緒に着地した（サイドテーブルは一般的な定数形式に必要で、マテリアライゼーションの基盤を完成させる）。**スライス3着地（2026-06-15）:**フレッシュレシーバゲートは、いまや*変異のないバインドローカル*からのメンバー読み取りも畳み込む。これは保守的な畳み込み安全スキャン（[`Inference::StructFoldSafety`](../../lib/rigor/inference/struct_fold_safety.rb) — ローカルは、そのすべての使用がメンバー読み取り / 既知の純粋プロジェクションであるときに限り畳み込まれる;セッター・インデックス書き込み・エイリアス・エスケープ・未知のメソッド呼び出しのいずれもがそれを失格にする）によって証明される。健全性はカウント恒等式に依拠する: ローカルが畳み込み安全であるのは、すべての`LocalVariableReadNode(n)`が純粋読み取り呼び出しのレシーバである（`total_reads == pure_receiver_reads`）とき、かつそのときに限る。これはエスケープ経路を列挙せずにすべての変異 / エスケープ / エイリアスを捕捉する（許可リストにより、取りこぼしは過度に保守的になるだけで決して不健全にはならない）。この集合はローカル変数スコープごとに一度計算され（`def` / `class` / `module`の境界を尊重する;ブロックはローカルを共有する）、トップレベル（`ScopeIndexer`）とメソッド本体（`build_method_entry_scope` / `build_user_method_body_scope`）のエントリーポイントでスコープ（`Scope#struct_fold_safe?`）にインストールされる — セルフチェックで性能中立と計測済み。**先送り:**スライス4 = セッターを通じた変異済みメンバーの精密な再型付け（`s.x = 5; s.x` → 代入された型、姉妹メンバーは精度を保つ）。これは[`docs/notes/20260615-struct-folding-slice3-design.md`](../../notes/20260615-struct-folding-slice3-design/)で設計されている。
+**スライス計画（Struct）:**スライス1 = `StructClass`キャリア + `Struct.new`認識;スライス2 = `StructInstance`キャリア + フレッシュチェーンのメンバー畳み込み + 定数/サブクラス形式のためのサイドテーブル（`Scope#struct_member_layout`）。両者は一緒に着地した（サイドテーブルは一般的な定数形式に必要で、マテリアライゼーションの基盤を完成させる）。**スライス3着地（2026-06-15）:**フレッシュレシーバゲートは、いまや*変異のないバインドローカル*からのメンバー読み取りも畳み込む。これは保守的な畳み込み安全スキャン（[`Inference::StructFoldSafety`](../../lib/rigor/inference/struct_fold_safety.rb) — ローカルは、そのすべての使用がメンバー読み取り / 既知の純粋プロジェクションであるときに限り畳み込まれる;セッター・インデックス書き込み・エイリアス・エスケープ・未知のメソッド呼び出しのいずれもがそれを失格にする）によって証明される。健全性はカウント恒等式に依拠する: ローカルが畳み込み安全であるのは、すべての`LocalVariableReadNode(n)`が純粋読み取り呼び出しのレシーバーである（`total_reads == pure_receiver_reads`）とき、かつそのときに限る。これはエスケープ経路を列挙せずにすべての変異 / エスケープ / エイリアスを捕捉する（許可リストにより、取りこぼしは過度に保守的になるだけで決して不健全にはならない）。この集合はローカル変数スコープごとに一度計算され（`def` / `class` / `module`の境界を尊重する;ブロックはローカルを共有する）、トップレベル（`ScopeIndexer`）とメソッド本体（`build_method_entry_scope` / `build_user_method_body_scope`）のエントリーポイントでスコープ（`Scope#struct_fold_safe?`）にインストールされる — セルフチェックで性能中立と計測済み。**先送り:**スライス4 = セッターを通じた変異済みメンバーの精密な再型付け（`s.x = 5; s.x` → 代入された型、姉妹メンバーは精度を保つ）。これは[`docs/notes/20260615-struct-folding-slice3-design.md`](../../notes/20260615-struct-folding-slice3-design/)で設計されている。
 
 ## 却下/先送りした代替案
 

@@ -42,7 +42,7 @@ slug.normalise("Alice").upcase  # ✓ String#upcaseが解決される
 Slug.default_length.even?       # ✓ Integer#even?が解決される
 ```
 
-`.rbs`ファイルは不要です。プラグインは`paths:`以下のすべてのRubyファイル（および`sorbet/rbi/`以下のすべての`.rbi`ファイル——以下の「RBIファイル」参照）を辿り、各`sig { ... }`ブロックをその直後の`def`とペアにし、マッチするコールサイトで戻り型を貢献します。
+`.rbs`ファイルは不要です。プラグインは`paths:`以下のすべてのRubyファイル（および`sorbet/rbi/`以下のすべての`.rbi`ファイル——以下の「RBIファイル」参照）を辿り、各`sig { ... }`ブロックをその直後の`def`とペアにし、マッチするコールサイトで戻り値型を貢献します。
 
 ## Sorbetの型語彙
 

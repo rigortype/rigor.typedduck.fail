@@ -20,7 +20,7 @@ Rigor自己解析レポート（非公式）と[`docs/notes/20260503-steep-cross
 
 1. Steepの診断IDは2セグメント（`Ruby::MethodParameterMismatch`、`RBS::DuplicatedMethodDefinition`）。Rigorは単一セグメント（`undefined-method`、`wrong-arity`）。フラットな名前空間では、`# rigor:disable`や設定で関連する診断のファミリー（例：「すべての呼び出しサイトルール」）をターゲットにしにくい。
 2. Steepには組み込みの重大度プロファイル（`Steep::Diagnostic::Ruby.lenient`、`.strict`）が付属する。Rigorは`.rigor.yml`の`disable:`リストによるルールごとのオン/オフのみをサポートする。その結果、CIと開発での重大度チューニングが扱いにくい。
-3. Steepはメソッドボディの推論された返り値型が宣言された返り値型を満たせない場合に`Ruby::MethodBodyTypeMismatch`を出力する。Rigorには基盤（スライス（slice）4の`FlowContribution::Merger`、B1のメソッドごとのReflectionキャッシュ）はあるがルールはまだない——返り値側における既存の`argument-type-mismatch`の対称的な存在。
+3. Steepはメソッドボディの推論された戻り値型が宣言された戻り値型を満たせない場合に`Ruby::MethodBodyTypeMismatch`を出力する。Rigorには基盤（スライス（slice）4の`FlowContribution::Merger`、B1のメソッドごとのReflectionキャッシュ）はあるがルールはまだない——返り値側における既存の`argument-type-mismatch`の対称的な存在。
 
 このADRは実装がサーフェス（surface）設計を再検討せずにランドできるよう、各改善の選択された方向を記録する。
 
@@ -75,7 +75,7 @@ severity_overrides:
 
 ### 3. `def.return-type-mismatch`ルール
 
-**決定: メソッドボディの推論された返り値型が宣言されたRBSの返り値型を満たせない場合に診断を出力する**。
+**決定: メソッドボディの推論された戻り値型が宣言されたRBSの戻り値型を満たせない場合に診断を出力する**。
 
 スコープ（v0.1.x最初のカット）:
 
@@ -90,8 +90,8 @@ severity_overrides:
 
 - RBSシグのないメソッド（比較する宣言された契約（contract）がない）。
 - 複数返り値パス解析。最初のカットはボディの最後の式を推論された返り値のプロキシとして取る。ボディ途中の明示的な`return`、分岐する返り値、`raise`終了、`next`/`break`パスは今は素通りする。
-- ブロック返り値型。`IteratorDispatch`/`BlockFolding`の上の将来の作業。
-- メソッドオーバーロード——ルールはメソッドの`method_types`配列を参照し、宣言されたすべての返り値型のユニオン（union、合併型とも）を比較ターゲットとして考慮する。
+- ブロック戻り値型。`IteratorDispatch`/`BlockFolding`の上の将来の作業。
+- メソッドオーバーロード——ルールはメソッドの`method_types`配列を参照し、宣言されたすべての戻り値型のユニオン（union、合併型とも）を比較ターゲットとして考慮する。
 
 根拠: これはSteepの`Ruby::MethodBodyTypeMismatch`スコープと一致する。ADR-5（ロバストネス原則）は「返り値では厳格に」を要求する。このルールはそのポリシーの最初の具体的なコンシューマーだ。
 

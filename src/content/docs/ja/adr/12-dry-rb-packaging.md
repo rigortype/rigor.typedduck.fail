@@ -41,7 +41,7 @@ dry-rb gemファミリーは相補的なgemのツリーです: `dry-types`、`dr
 1. **`rigor-dry-types`**（Tier A基盤）。`Types::String` / `Types::Coercible::Integer` / `Types::Strict::Bool` / …という定数を認識し、属性ごとの型として`Nominal[String]`等を貢献する。すべての上位tierプラグインの基盤。
 2. **`rigor-dry-struct`**（Tier A、v0.1.5でLANDED）。ADR-16のTier C基板経由ですでに出荷済み。ADR-12以前のパッケージングはすでにこの決定に整合していたため、再パッケージング不要。
 3. **`rigor-dry-validation`**（Tier A）。`Dry::Validation::Contract`サブクラスとその`schema`/`params` DSLを認識する。キーごとの型については`rigor-dry-types`の上に構築。
-4. **`rigor-dry-monads`**（Tier B）。戻り型を`Result[T, E]` / `Maybe[T]`エンベロープでラップする。Tier Aプラグインからは独立しているが、Tier Aプラグインが内側の`T`を型付けする場合は共存する。
+4. **`rigor-dry-monads`**（Tier B）。戻り値型を`Result[T, E]` / `Maybe[T]`エンベロープでラップする。Tier Aプラグインからは独立しているが、Tier Aプラグインが内側の`T`を型付けする場合は共存する。
 5. **`rigor-dry-schema`**（Tier A）。`dry-validation`に類似するがスタンドアロン。実務ではvalidationよりも優先度が低い。
 6. **`rigor-dry-effects`**（Tier B）。エフェクトシステムDSL。十分にニッチなため需要駆動。
 7. **Tier C / D / E / F** — サーベイの分類に従って先送り。
@@ -57,7 +57,7 @@ dry-rb gemファミリーは相補的なgemのツリーです: `dry-types`、`dr
 | `dry-types` | 手書きウォーカー（定数解決） | 各`Types::Foo`リテラルは定数参照;基板Tierに乗せるべきクラス本体DSLが存在しない。 |
 | `dry-struct` | Tier C（heredocテンプレート） | LANDED。`attribute :name, T`ごとのメソッド発行。 |
 | `dry-validation` | Tier A（block-as-method） + ウォーカー | `schema { … }`ブロックがスキーマDSLレシーバーに対して実行される;ブロック面についてはblock-as-methodを、キーについては手書きウォーカーを組み合わせる。 |
-| `dry-monads` | `flow_contribution_for` | 戻り型書き換え（`def x; Success(42); end`→`Result[Integer, untyped]`）は完全に戻り型計算;クラス本体DSLは存在しない。 |
+| `dry-monads` | `flow_contribution_for` | 戻り値型書き換え（`def x; Success(42); end`→`Result[Integer, untyped]`）は完全に戻り値型計算;クラス本体DSLは存在しない。 |
 | `dry-schema` | dry-validationと同じ | 対称なDSL。 |
 | `dry-effects` | Tier AまたはTier B | 観察されたイディオム的使用に依存 — 具体的なプラグインが始まるまで先送り。 |
 

@@ -14,13 +14,13 @@ sidebar:
 
 ---
 
-**カテゴリ:** core
+**カテゴリー:** core
 **対象バージョン:** master / 4.0
 **`ruby -v`:** `ruby 4.0.5 (2026-05-20 revision 64336ffd0e) +PRISM [arm64-darwin25]`
 
 ## 概要
 
-実験的な`Ruby::Box`を有効化（`RUBY_BOX=1`）して大きなプログラムを実行すると、VMのメソッドルックアップパス（`rb_vm_search_method_slowpath` → `callable_method_entry_or_negative` → `prepare_callable_method_entry`）の内部で`SIGSEGV`（`0x0`でのnullポインタ参照）でクラッシュする。同一のプログラムを`RUBY_BOX=1`**なし**で実行すると正常に完了する。つまり`Ruby::Box`の有効化は、十分に複雑なワークロードでNULLを参照しうる形でメソッドエントリの解決を変える。
+実験的な`Ruby::Box`を有効化（`RUBY_BOX=1`）して大きなプログラムを実行すると、VMのメソッドルックアップパス（`rb_vm_search_method_slowpath` → `callable_method_entry_or_negative` → `prepare_callable_method_entry`）の内部で`SIGSEGV`（`0x0`でのnullポインタ参照）でクラッシュする。同一のプログラムを`RUBY_BOX=1`**なし**で実行すると正常に完了する。つまり`Ruby::Box`の有効化は、十分に複雑なワークロードでNULLを参照しうる形でメソッドエントリーの解決を変える。
 
 ## 再現手順
 

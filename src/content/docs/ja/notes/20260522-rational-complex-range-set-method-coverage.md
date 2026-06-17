@@ -75,7 +75,7 @@ sidebar:
 | `finite?` | 🔷 | `false \| true` | 同上。常に`true`だが特殊化はカタログ構造変更が必要 |
 | `+@` | 🔷 | — | `self`を返すunary + — RBSで`Rational`に解決。現行で十分 |
 | `between?` | 🔷 | — | Comparableモジュール経由。RBSで`bool` |
-| `clamp` | 🚫 | — | 引数の組み合わせが多く戻り型が複雑 |
+| `clamp` | 🚫 | — | 引数の組み合わせが多く戻り値型が複雑 |
 | `coerce` | 🔷 | `[Numeric, Numeric]` | 戻りが`[Numeric, Numeric]` — RBSで十分 |
 | `zero?` | ✅ | `false \| true` | `RATIONAL_UNARY`に追加済み。`Constant[bool]`に畳める。 |
 | `integer?` | ✅ | `false \| true` | `RATIONAL_UNARY`に追加済み。`Constant[bool]`。 |
@@ -150,7 +150,7 @@ sidebar:
 | `eql?` | ✅ | `false` | 同上 |
 | `integer?` | 🔷 | `false \| true` | 常にfalseだがRBS `bool`を返す。RBSで十分 |
 | `+@` | 🔷 | — | selfを返すunary +。RBS `Complex`で十分 |
-| `coerce` | 🔷 | `[Complex, Complex]` | 戻り型複雑。RBSで十分 |
+| `coerce` | 🔷 | `[Complex, Complex]` | 戻り値型複雑。RBSで十分 |
 | `<=>` | 🔷 | — | purity:dispatch。Complexには全順序なし（nilを返す）。RBSで十分 |
 | `to_s` | 🔷 | `String` | `purity: dispatch`（複素数の文字列化が部品に依存）。fold不可 |
 | `inspect` | 🔷 | `String` | 同上 |
@@ -286,7 +286,7 @@ Set.ymlの`aliases:`セクション（`length → size`, `member? → include?`,
 | `collect!` / `map!` / `select!` / `filter!` / `reject!` / `keep_if` | 🚫 | — | 破壊的変更 |
 | `flatten!` | 🚫 | — | 破壊的変更 |
 | `each` | 🚫 | — | 反復子 |
-| `classify` | 🚫 | — | ブロック依存、戻り型複雑 |
+| `classify` | 🚫 | — | ブロック依存、戻り値型複雑 |
 | `divide` | 🚫 | — | 同上 |
 | `compare_by_identity` | 🚫 | — | 破壊的変更 |
 | `reset` | 🚫 | — | 内部構造リビルド |
@@ -316,7 +316,7 @@ Set.ymlの`aliases:`セクション（`length → size`, `member? → include?`,
 
 `invoke_unary` / `invoke_binary`が呼ぶだけで結果が`Constant[T]`になるもの。`unary_ops_for` / `ops_for`に新しい`when`ケースを追加し、`RATIONAL_UNARY`, `COMPLEX_UNARY`, `RATIONAL_BINARY`定数Setを定義済み。
 
-| 型 | メソッド | 期待戻り型 | 優先度 |
+| 型 | メソッド | 期待戻り値型 | 優先度 |
 |----|---------|-----------|--------|
 | Rational | `zero?` | `Constant[bool]` | 🟡 |
 | Rational | `integer?` | `Constant[bool]` | 🟡 |

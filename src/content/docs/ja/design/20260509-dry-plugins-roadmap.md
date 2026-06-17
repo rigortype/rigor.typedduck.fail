@@ -33,8 +33,8 @@ dry-rbは慣用的なRubyの中で最も型意識の高いDSLファミリー。3
 | 階層 | この階層のプラグインが行うこと | メンバー |
 | --- | --- | --- |
 | A — 型システム基盤 | 型付き属性/リーダー/強制変換シェイプを宣言 | dry-types, dry-struct, dry-schema, dry-validation, dry-logic, dry-initializer |
-| B — 制御フローシェイプ | 戻り型をRigorがナローイングできるモナドエンベロープにラップ | dry-monads, dry-operation, dry-effects |
-| C — DI/設定 | コンテナまたはデフォルト値から戻り型が来るリーダー/クラスメソッドを生成 | dry-auto_inject, dry-configurable, dry-system, dry-container |
+| B — 制御フローシェイプ | 戻り値型をRigorがナローイングできるモナドエンベロープにラップ | dry-monads, dry-operation, dry-effects |
+| C — DI/設定 | コンテナまたはデフォルト値から戻り値型が来るリーダー/クラスメソッドを生成 | dry-auto_inject, dry-configurable, dry-system, dry-container |
 | D — ユーティリティ | 静的型シェイプへの影響なし | dry-cli, dry-core, dry-events, dry-files, dry-inflector, dry-logger, dry-monitor |
 | E — レガシー/置き換え済み | 完全性のためにリスト。置き換えが対応 | dry-equalizer, dry-matcher, dry-transaction, dry-view |
 | F — フレームワーク統合 | 階層A-CのgemをRailsに組み込む | dry-rails |
@@ -59,7 +59,7 @@ dry-rbは慣用的なRubyの中で最も型意識の高いDSLファミリー。3
   `Types::String` → `String`、`Types::Coercible::Integer` →
   `Integer`、`T.optional` → `T | nil`、`T | U` → union。
 - `T.constrained(gteq: 18)`は静的型を`T`に保ちつつ、ダウンストリームのナローイングが消費できる述語ファクトを追加する — v0.1.1の正規表現→リファインメント認識器が出荷されたらRigorのリファインメント名機構の候補となる。
-- カスタム型ビルダー（`.constructor { ... }`）はキャリアをブロックの結果型にシフトする。そこでの精密な推論はv1のスコープ外であり、堅牢性の原則に従って`Dynamic[T]`に劣化できる。
+- カスタム型ビルダー（`.constructor { ... }`）はキャリアをブロックの結果型にシフトする。そこでの精密な推論はv1のスコープ外であり、ロバストネス原則に従って`Dynamic[T]`に劣化できる。
 
 **ドキュメントに記載されたdry-*依存関係**。なし — dry-typesは基盤。
 
@@ -218,7 +218,7 @@ end
 
 **プラグインが発行する静的ファクト**。
 
-- `Success(x)`または`Failure(e)`を返すメソッドは、`T`が`Success`引数型のunionで`E`が`Failure`引数型のunionである戻り型`Result[T, E]`を持つ。
+- `Success(x)`または`Failure(e)`を返すメソッドは、`T`が`Success`引数型のunionで`E`が`Failure`引数型のunionである戻り値型`Result[T, E]`を持つ。
 - `Maybe(x)`は`Some[T] | None`（== `Maybe[T]`）を返す。
 - `result.value_or(default)`は`T | typeof(default)`にナローイングされる。`result.bind { |v| ... }`は`Success`上でフラットマップする。
 - `case result; in Success[v]; ...; in Failure[k, v]; ...`はパターンマッチングで、Rigorのナローイングはプリミティブレベルで既に理解している — プラグインは`Success`/`Failure`のデコンストラクションを教える必要がある。
@@ -261,7 +261,7 @@ end
 
 **プラグイン関連DSL**。エフェクトは`include Dry::Effects.X(...)`でミックスインし、`include Dry::Effects::Handler.X(...)`でハンドルする。
 
-**プラグインが発行する静的ファクト**。エフェクトはメソッドの戻り型を変更しない。ケイパビリティ要件を課す（マッチするハンドラが呼び出しサイトのスコープ内にあること）。Rigorの型ラティスでのモデリングは可能だが、v0.1.xキャリアとは直接整合しない。**推奨: 延期**。Rigorに明示的なエフェクトロウキャリアが現れた場合（現時点でこのADRはない）に再検討。
+**プラグインが発行する静的ファクト**。エフェクトはメソッドの戻り値型を変更しない。ケイパビリティ要件を課す（マッチするハンドラが呼び出しサイトのスコープ内にあること）。Rigorの型ラティスでのモデリングは可能だが、v0.1.xキャリアとは直接整合しない。**推奨: 延期**。Rigorに明示的なエフェクトロウキャリアが現れた場合（現時点でこのADRはない）に再検討。
 
 **ドキュメントに記載されたdry-*依存関係**。なし。
 
@@ -275,7 +275,7 @@ end
 
 **プラグインが発行する静的ファクト**。
 
-- `include Import["x.y.z"]`は、名前がキーのリーフコンポーネント（またはその正規化形式）であり、コンテナのそのキーに登録された型が戻り型であるインスタンスリーダーを宣言する。
+- `include Import["x.y.z"]`は、名前がキーのリーフコンポーネント（またはその正規化形式）であり、コンテナのそのキーに登録された型が戻り値型であるインスタンスリーダーを宣言する。
 - リーダーの型はコンテナのイントロスペクションなしには解決できない → コンパニオンの`rigor-dry-container`/`rigor-dry-system`プラグイン、またはコンテナファクトを`FactStore`として消費するクロスプラグインAPI（[ADR-9](../../adr/9-cross-plugin-api/)）が必要。
 
 **ドキュメントに記載されたdry-*依存関係**。`Dry::Container`と`Dry::System`のコンテナと互換。
@@ -320,7 +320,7 @@ end
 
 ## 階層D — ユーティリティ（静的型シェイプへの影響なし）
 
-これらのgemは型付きアクセサを宣言せず、DSLを通じてシェイプを持つ値を返さず、設定によって戻り型が変わるメソッドを生成しない。Rigorプラグインは基となるRBSが既にカバーするもの以上のものを発行することがない。
+これらのgemは型付きアクセサを宣言せず、DSLを通じてシェイプを持つ値を返さず、設定によって戻り値型が変わるメソッドを生成しない。Rigorプラグインは基となるRBSが既にカバーするもの以上のものを発行することがない。
 
 - **dry-cli** — コマンドクラスへの引数パース。引数はランタイムに関係なく文字列型。
 - **dry-core** — 各種ヘルパー（キャッシュ、クラス属性、equalizer、コンテナ — レガシー分割については階層Eを参照）。各ヘルパーはその使用が現れるプラグインで最もよく処理される（例: dry-struct内の`Equalizer`コンシューマー）。

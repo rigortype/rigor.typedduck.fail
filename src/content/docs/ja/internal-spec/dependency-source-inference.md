@@ -10,7 +10,7 @@ sidebar:
   order: 3050
 ---
 
-ステータス: **安定（v0.1.4で出荷）**。[ADR-10](../../adr/10-dependency-source-inference/)のスライス1、2a、2b-i、2b-ii、3、4、5がすべて着地・出荷され（v0.1.3のエンベロープはv0.1.4としてカット）、ADR-10の実装エンベロープは完了。このドキュメントは提供されたサーフェス（surface）の解析器契約（contract）を固定し、ADR-10 §「オープンクエスチョン」で引き続き追跡されるオープンなフォローアップ（特にgemソースからの呼び出しごとの戻り型精度）を名付けます。
+ステータス: **安定（v0.1.4で出荷）**。[ADR-10](../../adr/10-dependency-source-inference/)のスライス1、2a、2b-i、2b-ii、3、4、5がすべて着地・出荷され（v0.1.3のエンベロープはv0.1.4としてカット）、ADR-10の実装エンベロープは完了。このドキュメントは提供されたサーフェス（surface）の解析器契約（contract）を固定し、ADR-10 §「オープンクエスチョン」で引き続き追跡されるオープンなフォローアップ（特にgemソースからの呼び出しごとの戻り値型精度）を名付けます。
 
 拘束力のある設計サーフェスは[ADR-10](../../adr/10-dependency-source-inference/)にあります。リリースごとのコミットメントエンベロープは[`docs/ROADMAP.md`](../../roadmap/)にあります。この仕様がADR-10と不一致の場合、ADRが拘束力を持ち、このドキュメントは古くなっています。
 
@@ -161,7 +161,7 @@ call.undefined-method                                 ── 最終
 
 `try_dependency_source`はレシーバーがカタログエントリーとクラス名 + メソッド名がマッチする`Type::Nominal` / `Type::Singleton`を持つ場合、`Type::Combinator.untyped`（つまり`Dynamic[top]`）を返します。このティアは**プラグインより厳密に下位に**座ります: プラグイン契約はADR-10 WD6に従って競合時に勝ちます（プラグインは作成済み契約; gem-source推論は日和見的）。
 
-スライス2b-iiは`Dynamic[top]`で意図的に停止します。メソッドごとの戻り型精度（つまり非`top`静的ファセットを持つ`Dynamic[T]`）は後のスライスにキューに入れられており、まだ`try_dependency_source`エンベロープを通じて表面化しません。現在の可視のペイオフは、オプトインgemメソッドコール上の`call.undefined-method`の不在です（Rigorが`Nominal[T]`でレシーバーを認識できる場合、通常ユーザーがRBSスケルトンを作成したか、RBSがコンストラクタコールを解決したため）。
+スライス2b-iiは`Dynamic[top]`で意図的に停止します。メソッドごとの戻り値型精度（つまり非`top`静的ファセットを持つ`Dynamic[T]`）は後のスライスにキューに入れられており、まだ`try_dependency_source`エンベロープを通じて表面化しません。現在の可視のペイオフは、オプトインgemメソッドコール上の`call.undefined-method`の不在です（Rigorが`Nominal[T]`でレシーバーを認識できる場合、通常ユーザーがRBSスケルトンを作成したか、RBSがコンストラクタコールを解決したため）。
 
 ## 予算強制（スライス4）
 
@@ -234,11 +234,11 @@ Rigor::Cache::Descriptor::DependencyEntry.new(
 
 gemを`source_inference`以下に列挙することは**読み取り専用**の信頼付与です。Rigorはgemのファイルをパースして解析器を通じて実行しますが、コードをロードまたは実行しません。ADR-2 §「プラグインの信頼とI/Oポリシー」の「プラグインはアプリケーションコードを実行してはならない」ルールが逐語的に適用されます。ネットワークアクセスは無効のまま;ファイル読み取りはgemの`roots:`にスコープされたまま。
 
-### ADR-5（堅牢性原則）との関係
+### ADR-5（ロバストネス原則）との関係
 
-[`docs/type-specification/robustness-principle.md`](../../type-specification/robustness-principle/)はRigor作成型が戻り値に対して厳格であることを求めます。Gem-source推論は偶発的に狭い戻り型を生成します——推論された戻り型は今日の実装を反映し、gemの作者がコミットしたであろう契約ではありません。
+[`docs/type-specification/robustness-principle.md`](../../type-specification/robustness-principle/)はRigor作成型が戻り値に対して厳格であることを求めます。Gem-source推論は偶発的に狭い戻り値型を生成します——推論された戻り値型は今日の実装を反映し、gemの作者がコミットしたであろう契約ではありません。
 
-この緊張は**推論された狭い型を作成済みであるかのように公開しない**ことで解決されます。Gem推論された戻り型は`Dynamic[T]`でラップされます。ラッパーは漸進的（gradual）一貫性セマンティクスを型付き境界を越えて保持しつつ、偶発的に狭い推論への暗黙の依存をブロックします。RBS消去（[`docs/type-specification/rbs-erasure.md`](../../type-specification/rbs-erasure/)）は`Dynamic[T]`を`untyped`としてエクスポートします;静的ファセット`T`は作成済みシグネチャに漏れません。
+この緊張は**推論された狭い型を作成済みであるかのように公開しない**ことで解決されます。Gem推論された戻り値型は`Dynamic[T]`でラップされます。ラッパーは漸進的（gradual）一貫性セマンティクスを型付き境界を越えて保持しつつ、偶発的に狭い推論への暗黙の依存をブロックします。RBS消去（[`docs/type-specification/rbs-erasure.md`](../../type-specification/rbs-erasure/)）は`Dynamic[T]`を`untyped`としてエクスポートします;静的ファセット`T`は作成済みシグネチャに漏れません。
 
 ### ADR-9（クロスプラグインAPI）との関係
 

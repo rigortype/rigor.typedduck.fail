@@ -167,7 +167,7 @@ end
 
 **前提となる事実**。`FlowContribution`は9つのスロットを持ちますが、エンジンはプラグインの`flow_contribution_for`をちょうど2箇所で参照し、ちょうど2つのスロットを読みます:
 
-- `Inference::MethodDispatcher#try_plugin_contribution`はすべてのプラグインの貢献をマージし、`.return_type`（呼び出しサイトごとの戻り型、`RbsDispatch`に先行）のみを使います。
+- `Inference::MethodDispatcher#try_plugin_contribution`はすべてのプラグインの貢献をマージし、`.return_type`（呼び出しサイトごとの戻り値型、`RbsDispatch`に先行）のみを使います。
 - `Inference::StatementEvaluator#apply_plugin_assertions`はすべてのプラグインの貢献をマージし、`.post_return_facts`（アサーションエッジのナローイング）のみを使います。
 
 したがって分割はクリーンで、2つの消費サイトと1:1です:
@@ -203,7 +203,7 @@ end
 
 **結果／脱出弁は重要な役割を担う**。コンシューマーの移行によって、狭いDSLが意図的に*表現しない*2つの貢献形状がよくあるものだと判明し、それらのコンシューマーは正当な理由で非推奨の`flow_contribution_for`に留まります（まさにPHPStanが推奨しない`ExpressionTypeResolverExtension`の総当たりが果たす役割と同じです）:
 
-- **メソッドゲートの戻り型**。rspecの`let(:x) { create(:x) }`／`subject`バインディングは、レシーバークラスではなく*メソッド名*（`let`／`subject`）でゲートされた呼び出しの*戻り型*を設定します。`dynamic_return`はレシーバーゲートであり、`type_specifier`は（戻り型ではなく）ファクトを生成するため、どちらも適合しません。sorbetの`sig`駆動の戻り値も同様です——固定のレシーバークラスではなく、呼ばれたメソッドがsigを持つことをキーとします。
+- **メソッドゲートの戻り値型**。rspecの`let(:x) { create(:x) }`／`subject`バインディングは、レシーバークラスではなく*メソッド名*（`let`／`subject`）でゲートされた呼び出しの*戻り値型*を設定します。`dynamic_return`はレシーバーゲートであり、`type_specifier`は（戻り値型ではなく）ファクトを生成するため、どちらも適合しません。sorbetの`sig`駆動の戻り値も同様です——固定のレシーバークラスではなく、呼ばれたメソッドがsigを持つことをキーとします。
 - **動的レシーバー**。activestorageは、プロジェクトの*発見されたモデル*クラスに`Attached::One`／`::Many`を貢献します——`dynamic_return`が宣言する静的な`receivers:`リストではなく、プロジェクトごとの集合です。
 
 これらは設計上、脱出弁に留まります。将来の`dynamic_return`の一般化（メソッドゲートの戻り値のためのオプションの`methods:`ゲート、および／または動的レシーバー述語）がそれらを移行するためのパスであり、需要が狭いサーフェスの拡張を正当化するまで延期されます。

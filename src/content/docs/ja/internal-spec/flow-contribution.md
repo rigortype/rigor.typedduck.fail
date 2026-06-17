@@ -43,7 +43,7 @@ contribution = Rigor::FlowContribution.new(
 
 | スロット | 型 | 意味 |
 | --- | --- | --- |
-| `return_type` | 型キャリアまたは`nil` | 通常エッジの戻り型。プラグインは選択されたRBS契約（contract）の範囲内でMAYナローイングできます。非互換な戻り型はマージポリシーに従いコンフリクト診断になります。 |
+| `return_type` | 型キャリアまたは`nil` | 通常エッジの戻り値型。プラグインは選択されたRBS契約（contract）の範囲内でMAYナローイングできます。非互換な戻り値型はマージポリシーに従いコンフリクト診断になります。 |
 | `truthy_facts` | `Array`または`nil` | truthyな制御フローエッジでのみ成立するファクト。エッジローカル：truthyエッジのファクトは、コントリビューションが明示的に提供しない限り、falseyエッジの補集合をMUST NOT意味しません。 |
 | `falsey_facts` | `Array`または`nil` | `truthy_facts`の双対。 |
 | `post_return_facts` | `Array`または`nil` | 呼び出しがすべてのエッジで正常に戻った後に成立するファクト。アサーションスタイルのコントリビューション（`%a{rigor:v1:assert ...}`）のキャリアです。 |

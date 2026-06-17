@@ -35,6 +35,8 @@
 | signature rule | シグネチャ規則 | 初出: シグネチャ規則（signature rule） | LSPのうち型システムで表現できる半分（パラメーター反変・戻り値共変） |
 | robustness / robustness principle | ロバストネス／ロバストネス原則 | 定義ページ（`type-specification/robustness-principle`）の初出1回だけパーレン `ロバストネス（堅牢性、頑健性、Robustness）`。他ページは素の「ロバストネス（原則）」 | **2026-06に反転**：旧「頑健性原則」を廃止しカタカナを主表記に。漢語「頑健性」「堅牢性」は（一般語の「頑健性」を除き）使わない。"Postel's law" は「Postelの法則」、句は「第1句／第2句」 |
 | covariant / contravariant / invariant（分散）| 共変／反変／不変 | 初出: 共変（covariant）／反変（contravariant）／不変（invariant） | `appendix-type-theory` に準拠。分散（variance）の文脈での invariant は「不変」、振る舞い規則の invariant（クラス不変条件）は「不変条件」と訳し分ける。variance自体は「分散」 |
+| return type | 戻り値型 | 初出: 戻り値型（return type） | ハウススタイルで「戻り値型」に統一（2026-06決定）。旧「戻り型」「返り値型」「リターン型」は廃止し`normalize-ja-terms.mjs`で機械置換。型でない「返り値／戻り値」（return value）は対象外で据え置き |
+| annotation | アノテーション（名詞）／注釈（動詞・コメント注釈）| 初出: アノテーション（annotation） | 型注釈の名詞概念は「アノテーション」を主表記にする（型アノテーション・アノテーションする・アノテーション不要 等）。一方、動詞「注釈を付ける／注釈する」（annotate）とソース内のコメント注釈（Steepの`# @type`等の注釈コメント）は「注釈」のままでよい。どちらも対象読者（プログラマー）に定着しており、漢語/外来語の差がこのニュアンスを担うため**一律統一しない**。意味依存の判断なので`normalize-ja-terms.mjs`では機械化しない（翻訳時に手当て） |
 | precondition / postcondition | 事前条件／事後条件 | 初出: 事前条件（precondition）／事後条件（postcondition） | LSPの振る舞い規則。事前条件は強化不可、事後条件は弱化不可 |
 | invariant（クラス不変条件）/ history constraint | 不変条件／履歴制約 | 初出: 不変条件（invariant）／履歴制約（history constraint） | 分散の「不変」とは別概念。履歴制約はLiskov-Wingの振る舞い規則 |
 | Design by Contract | 契約による設計 | 初出: 契約による設計（Design by Contract） | Meyer / Eiffel。`require`/`ensure`/`invariant`。[契約](#訳語一覧)（contract）の訳に整合 |

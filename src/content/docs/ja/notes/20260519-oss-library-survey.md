@@ -224,7 +224,7 @@ nix --extra-experimental-features 'nix-command flakes' develop --command \
 argument type mismatch at `<' on Integer: expected Numeric, got Dynamic[top] | nil
 ```
 
-これは§3cの逆 — 「nil上のメソッド」ではなく、「`Numeric`が期待されるところに`Dynamic[top] | nil`を渡す」。同じ根本原因（使用前にnilがナローイングされていない）;異なる診断ファミリー。仕様の堅牢性原則がディスパッチの両側で引数位置`Dynamic[top]`を一貫させるべきという指摘の価値がある。
+これは§3cの逆 — 「nil上のメソッド」ではなく、「`Numeric`が期待されるところに`Dynamic[top] | nil`を渡す」。同じ根本原因（使用前にnilがナローイングされていない）;異なる診断ファミリー。仕様のロバストネス原則がディスパッチの両側で引数位置`Dynamic[top]`を一貫させるべきという指摘の価値がある。
 
 ## 9. 精緻化された横断ビュー（合成コーパス）
 
@@ -261,7 +261,7 @@ argument type mismatch at `<' on Integer: expected Numeric, got Dynamic[top] | n
 1. Rigorのプロセスは`bigdecimal`を`require`**しない**（`bigdecimal` gemはRuby 3.4でデフォルトから格下げされ、Gemfileにはない）。
 2. `Acceptance#accepts_nominal_from_constant`が`Object.const_get("BigDecimal")`を呼ぶ → `NameError` → 「判断できない」ため`:maybe`を返す。`class_subtype_result`でも同じ。
 3. `bigdecimal` stdlib RBSは`Integer#+` / `-` / `*`などをオーバーロードリストの**先頭**で`def +: (BigDecimal) -> BigDecimal | ...`で再オープンする（`| ...`は元のIntegerオーバーロードを後にマージ）。
-4. `OverloadSelector`は`yes`または`maybe`をマッチとして受け入れる。パス1はall-acceptする最初のオーバーロードを選ぶ。BigDecimalが最初でその受容がIntegerの値を持つ任意の引数に対して`maybe`を返すので、BigDecimalアームが勝つ → 戻り型`BigDecimal`。
+4. `OverloadSelector`は`yes`または`maybe`をマッチとして受け入れる。パス1はall-acceptする最初のオーバーロードを選ぶ。BigDecimalが最初でその受容がIntegerの値を持つ任意の引数に対して`maybe`を返すので、BigDecimalアームが勝つ → 戻り値型`BigDecimal`。
 5. 下流の`BigDecimal.upto` / `.<<` / `.times`は存在しない → 偽陽性。
 
 再現は次に縮小: `n`が`Dynamic[top]`の`5 + n`。直接の`Environment.default` env（bigdecimal未ロード）は`Integer`を返す。`Environment.for_project`（`DEFAULT_LIBRARIES = […, bigdecimal, …]`をロード）は`BigDecimal`を返す。その非対称性がバグを固定した。

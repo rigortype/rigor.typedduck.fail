@@ -132,7 +132,7 @@ Base RBSに対して捕捉されるようにする。
 - **なぜグローバルに切り替えられないか：** `Dynamic[top]`フォールバックは荷重を担う
   FP保護である。`class MyController < ActionController::Base`が`params`／`render`を
   *部分的な*gem RBSに対して呼ぶと、RBSが省くすべての継承メソッドでFPになるだろう。
-  精度（継承された戻り型）とリスク（継承呼び出しでの`undefined-method`）は1本のパスを
+  精度（継承された戻り値型）とリスク（継承呼び出しでの`undefined-method`）は1本のパスを
   共有する。
 
 - **成立する形** ──継承解決を*実行する*対象となる**RBS-completeな祖先のアローリスト**

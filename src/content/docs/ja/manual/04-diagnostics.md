@@ -21,7 +21,7 @@ sidebar:
 | --- | --- |
 | `call` | コールサイト——未定義メソッド、引数の数、引数の型、nilレシーバー。 |
 | `flow` | 制御フロープルーフ——常に例外、デッドブランチ、定数条件。 |
-| `def` | メソッド定義——戻り型、ivar書き込み、可視性。 |
+| `def` | メソッド定義——戻り値型、ivar書き込み、可視性。 |
 | `assert` | `assert_type`チェック。 |
 | `dump` | `dump_type`通知。 |
 
@@ -44,11 +44,11 @@ sidebar:
 | <a id="rule-flow-always-truthy-condition"></a>`flow.always-truthy-condition` | 条件が証明可能に常に真または常に偽。 | medium |
 | <a id="rule-flow-dead-assignment"></a>`flow.dead-assignment` | ローカル変数が同じメソッド内で書かれるが読まれない。 | medium |
 | <a id="rule-flow-unreachable-clause"></a>`flow.unreachable-clause` | `case`/`when`または`case`/`in`の節が静的に到達不能。すなわちその対象の型がパターンと素であるか、先行する節がすでに対象を網羅している。 | medium |
-| <a id="rule-def-return-type-mismatch"></a>`def.return-type-mismatch` | メソッドボディの結果が宣言されたRBSの戻り型に違反する。 | medium |
+| <a id="rule-def-return-type-mismatch"></a>`def.return-type-mismatch` | メソッドボディの結果が宣言されたRBSの戻り値型に違反する。 | medium |
 | <a id="rule-def-ivar-write-mismatch"></a>`def.ivar-write-mismatch` | インスタンス変数が最初の書き込みと異なる型で書かれる。 | high |
 | <a id="rule-def-method-visibility-mismatch"></a>`def.method-visibility-mismatch` | 明示的レシーバーの呼び出しがprivateメソッドに到達する。 | high |
 | <a id="rule-def-override-visibility-reduced"></a>`def.override-visibility-reduced` | オーバーライドが、プロジェクト定義の祖先から継承した可視性を下げる。 | high |
-| <a id="rule-def-override-return-widened"></a>`def.override-return-widened` | オーバーライドの宣言された戻り型が、継承した戻り型を広げる（共変性）。 | high |
+| <a id="rule-def-override-return-widened"></a>`def.override-return-widened` | オーバーライドの宣言された戻り値型が、継承した戻り値型を広げる（共変性）。 | high |
 | <a id="rule-def-override-param-narrowed"></a>`def.override-param-narrowed` | オーバーライドが、継承したパラメータ型を狭める（反変性）。 | high |
 | <a id="rule-rbs_extended-unsatisfied-conformance"></a>`rbs_extended.unsatisfied-conformance` | クラスがRBSで`%a{rigor:v1:conforms-to _Interface}`を宣言しているが、インターフェースが要求するメソッドを欠いている。存在ベース: 明確に欠落している必須メソッドのみが発火する。 | — |
 | <a id="rule-assert-type-mismatch"></a>`assert.type-mismatch` | `assert_type`の期待値が推論型と一致しない。 | high |

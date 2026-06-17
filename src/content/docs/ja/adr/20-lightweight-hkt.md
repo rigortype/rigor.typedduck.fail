@@ -70,7 +70,7 @@ def self?.parse: (string source) -> json::value
 RBSはすでに再帰的型エイリアスを受け入れるので、この単一の置換は新しい機構なしで**今日**利用可能な精度向上である。それでもなおHKTを望む理由は、*第2*レベルの精度にある:
 
 1. **オプションによるキー型判別**。`JSON.parse(s, symbolize_names: true)`は`Symbol`でキー付けされたHashを返す;オプションなしでは`String`で。素朴なRBSオーバーロードはこれをエンコードできるが、オプションが増えるにつれてうまく合成できなくなる。
-2. **スキーマ駆動パース**。`MySchema.from_json(str): MySchema`を書くライブラリ作者は、スキーマの静的型がパース戻り型を駆動することを望む。
+2. **スキーマ駆動パース**。`MySchema.from_json(str): MySchema`を書くライブラリ作者は、スキーマの静的型がパース戻り値型を駆動することを望む。
 3. **`rigor-lisp-eval`デモ**。
    [デモシグネチャ](https://github.com/rigortype/rigor/blob/master/examples/rigor-lisp-eval/demo/sig/lisp.rbs)
    は、リテラルASTをパターンマッチする条件型ボディで`def self.eval: [E] (E expr) -> lisp_type[E]`をスケッチする。デモは現在、評価サーフェスが存在しないため`(untyped) -> untyped`で出荷される。
@@ -152,7 +152,7 @@ Rigor拡張カタログはすでに「ライブラリシグネチャ向けにMAY
 
 ## ゴール
 
-1. **`JSON.parse`の`untyped`スロットをRigorのナローイングが動作できる再帰的でオプション判別する戻り型に置き換える**。
+1. **`JSON.parse`の`untyped`スロットをRigorのナローイングが動作できる再帰的でオプション判別する戻り値型に置き換える**。
 2. **単一の宣言的な著作サーフェスを提供する**、型コンストラクタタグの登録とそれらに対する型レベル関数の記述のためのRBS-extendedアノテーションで。
 3. **素のRBSと後方互換である**。軽量HKT形は健全なRBS式に消去されなければならない（[ADR-1](../1-types/)）。
 4. **既存の条件 / インデックスアクセス行を再利用する**、`rigor-extensions.md`の中で、別個の評価システムを導入するのではなく。
@@ -343,8 +343,8 @@ end
 - **WD3.** HKT-eval予算はデフォルトで**呼び出しサイト評価あたり64簡約ステップ**。枯渇は境界に消去し、`info`深刻度の診断`hkt.budget-exhausted`を発する。理由: 構造的再帰チェックを強制せずに終了を境界する;64はlisp-evalデモの1レベルの再帰を持つ7アームの条件に対して十分寛大。
 - **WD4.** `%a{rigor:v1:hkt_register}`の分散注釈はサブタイピング時に尊重される: `App[F, Sub] <: App[F, Sup]`は`F`がその引数で`out`-variantに登録されている*かつ*`Sub <: Sup`のとき。デフォルトは`inv`（不変）、RBSジェネリクスに一致。
 - **WD5.**再帰的`type`エイリアス経由の糖衣構文（D2の2番目のブロック）は*aspirational*;v1は明示的な`%a{…}`形のみを出荷する。糖衣構文はユーザーフィードバックにゲートされたフォローアップスライス。
-- **WD6.** JSON.parseが使う`return_override`ディレクティブは一般化されている — ADR-20ではなく`rbs-extended.md`に住む。これは基板用のADR-18の呼び出しサイトごとの戻り型修正がすでに確立した同じ機構を、ユーザーRBSに昇格したもの。
-- **WD7.**軽量HKTは既存の[3値の確実性](../../type-specification/relations-and-certainty/)と統合する: 条件ボディ内の解決不可能なサブタイピングテストは両方の枝のジョインに広がる、*確実性 = `maybe`*。堅牢性原則（[ADR-5](../5-robustness-principle/)）が呼び出しサイトでジョインのどちら側が「勝つ」かを支配する。
+- **WD6.** JSON.parseが使う`return_override`ディレクティブは一般化されている — ADR-20ではなく`rbs-extended.md`に住む。これは基板用のADR-18の呼び出しサイトごとの戻り値型修正がすでに確立した同じ機構を、ユーザーRBSに昇格したもの。
+- **WD7.**軽量HKTは既存の[3値の確実性](../../type-specification/relations-and-certainty/)と統合する: 条件ボディ内の解決不可能なサブタイピングテストは両方の枝のジョインに広がる、*確実性 = `maybe`*。ロバストネス原則（[ADR-5](../5-robustness-principle/)）が呼び出しサイトでジョインのどちら側が「勝つ」かを支配する。
 
 ## 実装スライス分け
 
@@ -362,7 +362,7 @@ end
 - rigor-extensions.mdにすでにドラフトされた条件 / インデックスアクセス形の上に簡約（D4）を実装。
 - HKT-eval予算が強制される。
 - キャッシュメモ化が既存の推論キャッシュにフックされる。
-- **最初のユーザー可視の勝利**: rigor-lisp-evalデモのシグネチャが`(untyped) -> untyped`を`App[lisp_type, E]`に置き換え、`examples/rigor-lisp-eval/demo/spec/`下の統合specが「診断発行」から「推論された戻り型」にアップグレード。
+- **最初のユーザー可視の勝利**: rigor-lisp-evalデモのシグネチャが`(untyped) -> untyped`を`App[lisp_type, E]`に置き換え、`examples/rigor-lisp-eval/demo/spec/`下の統合specが「診断発行」から「推論された戻り値型」にアップグレード。
 
 ### スライス3 — JSON.parseオーバーレイ
 
@@ -392,7 +392,7 @@ end
 - **[ADR-0](../0-concept/)** — すべての軽量HKT著作は`.rbs`アノテーションに留まる。`.rb`ファイルはRigor専用構文がないままにとどまる。
 - **[ADR-1](../1-types/)** — すべての`App[F, A]`キャリアは登録された`bound:`経由のRBS消去を持たなければならない。ラウンドトリップは精度損失許容。
 - **[ADR-2](../2-extension-api/)** — プラグインマニフェストはオプションの`hkt_definitions:`エントリー（スライス6）を獲得する;契約（contract）は既存の`type_node_resolvers:`エントリーと前方互換。
-- **[ADR-5](../5-robustness-principle/)** — 型関数評価が`maybe`のとき、堅牢性原則が位置ごとにジョインのどちら側が勝つかを選ぶ（負 = 寛容、正 = 厳密）。
+- **[ADR-5](../5-robustness-principle/)** — 型関数評価が`maybe`のとき、ロバストネス原則が位置ごとにジョインのどちら側が勝つかを選ぶ（負 = 寛容、正 = 厳密）。
 - **[ADR-6](../6-cache-persistence-backend/)** — HKT簡約はキャッシュキーの入力;タグごとのレジストリ変更は関連スライスを無効化する。
 - **[ADR-13](../13-typenode-resolver-plugin/)** — `App[F, A]`は、URIが登録されたHKTタグに一致する`Plugin::TypeNodeResolver`の自然な出力型。リゾルバチェーンが配線層。
 - **[ADR-14](../14-rbs-sig-generation/)** — `rigor sig-gen`は`App[F, A]`または`%a{rigor:v1:hkt_*}`アノテーションを決して発行しない。HKT著作は人間が書いたまま。

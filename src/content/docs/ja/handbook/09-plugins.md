@@ -33,7 +33,7 @@ Lisp.eval([:if, true, "a", 0])  # ランタイムでString | Integer
 - **ステートマシン** — `transition_to(:foo)`は、`:foo`がどこかで宣言された`state_machine do ... end`ブロック内にある場合には有効ですが、そうでなければタイポです。
 - **カスタムバリデーター** — `validate(:email, value)`は解析時に名前付きパターンに一致しないリテラルを捕捉すべきです。
 
-これらのそれぞれに[`examples/`](https://github.com/rigortype/rigor/blob/master/examples/README.md)に実例があります。[`examples/README.md`](https://github.com/rigortype/rigor/blob/master/examples/README.md)ページは16の実例をアーキテクチャ軸（設定スキーマ、ファイルI/O、キャッシュプロデューサー、`Scope#type_of`を通じたエンジン連携、クロスプラグインファクト（fact）、戻り型コントリビューションなど）で比較し、読む順序を推奨しています。
+これらのそれぞれに[`examples/`](https://github.com/rigortype/rigor/blob/master/examples/README.md)に実例があります。[`examples/README.md`](https://github.com/rigortype/rigor/blob/master/examples/README.md)ページは16の実例をアーキテクチャ軸（設定スキーマ、ファイルI/O、キャッシュプロデューサー、`Scope#type_of`を通じたエンジン連携、クロスプラグインファクト（fact）、戻り値型コントリビューションなど）で比較し、読む順序を推奨しています。
 
 ## プラグインが今日できること
 
@@ -42,12 +42,12 @@ Lisp.eval([:if, true, "a", 0])  # ランタイムでString | Integer
 v0.1.0+プラグイン契約（contract） — [`docs/internal-spec/plugin.md`](../../internal-spec/plugin/)に固定されており、同ディレクトリのいくつかのスライス（slice）仕様に展開されています — はプラグインに5つの主要サーフェス（surface）を与えます:
 
 1. **`#diagnostics_for_file(path:, scope:, root:)`** — ファイルごとの出力フック。解析されたASTを辿り、`Rigor::Analysis::Diagnostic`行の配列を返します。ランナーは各行に`source_family: "plugin.<your-id>"`をスタンプします。
-2. **`#flow_contribution_for(call_node:, scope:)`** — コールサイトごとの戻り型コントリビューションフック（v0.1.1 Track 2スライス7）。プラグインはコールサイトでの推論された戻り型を命名した`Rigor::FlowContribution`バンドルを返します;解析器のディスパッチャーはコントリビューションをマージし、マージされた戻り型をRBS宣言済みかのように使います。
+2. **`#flow_contribution_for(call_node:, scope:)`** — コールサイトごとの戻り値型コントリビューションフック（v0.1.1 Track 2スライス7）。プラグインはコールサイトでの推論された戻り値型を命名した`Rigor::FlowContribution`バンドルを返します;解析器のディスパッチャーはコントリビューションをマージし、マージされた戻り値型をRBS宣言済みかのように使います。
 3. **`Plugin::IoBoundary#read_file`** / **`#open_url`** — アクティブな`TrustPolicy`の下でサンドボックス化されたファイルおよび（v0.1.2以降）HTTPSの読み取り。プラグインがプロジェクトファイル（ルートテーブル、スキーマ、ロケールファイル）を読む、または安定したURLをフェッチする必要があるときに使います。
 4. **`Plugin::Base.producer` + `#cache_for`** — プラグイン側キャッシュプロデューサー。クロスランキャッシングが欲しいほど高コストなパース/ルックアップに使います。IoBoundaryが結果を構築している間に読んだすべてのファイルのダイジェスト（およびURLのコンテンツハッシュ）で自動的に無効化されます。
 5. **`Plugin::FactStore` + `#prepare(services)`** — クロスプラグインファクト公開サーフェス（v0.1.1 Track 2、ADR-9）。プラグインは`prepare`でファクトを公開します;下流のプラグインは`services.fact_store`を通じてそれらを消費するため、プロデューサー側の解析（例: `config/routes.rb`）をすべてのコンシューマーで再利用できます。
 
-v0.1.2リリースは4つの実例（`rigor-lisp-eval`、`rigor-pattern`、`rigor-units`、`rigor-activerecord`）を「診断専用」から「`flow_contribution_for`を通じてナローイング（narrowing）された戻り型」に移行したため、プラグイン型の値へのチェーンされたコールがRBSレベルの`untyped`エンベロープではなく解析器の通常のディスパッチで解決されます。各プラグインのREADMEを参照して、それぞれがどのサーフェスをデモしているか確認してください。
+v0.1.2リリースは4つの実例（`rigor-lisp-eval`、`rigor-pattern`、`rigor-units`、`rigor-activerecord`）を「診断専用」から「`flow_contribution_for`を通じてナローイング（narrowing）された戻り値型」に移行したため、プラグイン型の値へのチェーンされたコールがRBSレベルの`untyped`エンベロープではなく解析器の通常のディスパッチで解決されます。各プラグインのREADMEを参照して、それぞれがどのサーフェスをデモしているか確認してください。
 
 ## マクロ / DSL展開基板（ADR-16）
 
@@ -85,7 +85,7 @@ end
 
 ### フロア / シーリング
 
-ADR-16 § WD13に従い、**フロア**は合成メソッドが名前で発行されることであり、これによってクロスファイルディスパッチが解決されます（`call.undefined-method`なし）。一般的なケースでは精密な戻り型も回復されます: **Tier B**は由来モジュールが著作したRBSに再ディスパッチし（Deviseの`valid_password?`は`Dynamic[T]`ではなく`bool`に解決される）、**Tier C**は素のクラス名の戻り値をその`Nominal`に解決します。依然`Dynamic[T]`に縮退するのは、パラメータ化された／ユーティリティ型形のTier Cの戻り値（`Array[String]`、`Pick<T, K>`）です;それらを[ADR-13](../../adr/13-typenode-resolver-plugin/)リゾルバチェイン経由でルーティングすることが**シーリング**で、需要駆動です。基板はADR-5のロバストネスに従い、精度を*捏造*しません。
+ADR-16 § WD13に従い、**フロア**は合成メソッドが名前で発行されることであり、これによってクロスファイルディスパッチが解決されます（`call.undefined-method`なし）。一般的なケースでは精密な戻り値型も回復されます: **Tier B**は由来モジュールが著作したRBSに再ディスパッチし（Deviseの`valid_password?`は`Dynamic[T]`ではなく`bool`に解決される）、**Tier C**は素のクラス名の戻り値をその`Nominal`に解決します。依然`Dynamic[T]`に縮退するのは、パラメータ化された／ユーティリティ型形のTier Cの戻り値（`Array[String]`、`Pick<T, K>`）です;それらを[ADR-13](../../adr/13-typenode-resolver-plugin/)リゾルバチェイン経由でルーティングすることが**シーリング**で、需要駆動です。基板はADR-5のロバストネスに従い、精度を*捏造*しません。
 
 ### 基板と手書きウォーカーの選択
 

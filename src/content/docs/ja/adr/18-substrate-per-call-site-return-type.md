@@ -1,5 +1,5 @@
 ---
-title: "ADR-18 — 基板の呼び出しサイトごとの戻り型DSL"
+title: "ADR-18 — 基板の呼び出しサイトごとの戻り値型DSL"
 description: "rigortype/rigor docs/adr/18-substrate-per-call-site-return-type.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/18-substrate-per-call-site-return-type.md"
 sourcePath: "docs/adr/18-substrate-per-call-site-return-type.md"
@@ -12,7 +12,7 @@ sidebar:
 
 ステータス: **Accepted、2026-05-16; v0.1.6で実装**。
 
-[ADR-16](../16-macro-expansion/)のマクロ展開基板を改訂し、合成されるメソッドにおいて呼び出しサイトごとの戻り型をサポートする。`Plugin::Macro::HeredocTemplate::Emit`行の`returns_from_arg:` / `lookup_via:` DSLが出荷され、その最初の動作する消費者 — `rigor-dry-struct`が`rigor-dry-types`（[ADR-12](../12-dry-rb-packaging/)）の公開するADR-9の`:dry_type_aliases`ファクト（fact）を通じて`attribute :city, Types::String`を解決すること — が同じリリースでエンドツーエンドに着地した（ディスパッチャーで`Nominal[String]`、ファクトが不在または呼び出し形が解決不能なときは静かに`Dynamic[Top]`へフォールバック）。
+[ADR-16](../16-macro-expansion/)のマクロ展開基板を改訂し、合成されるメソッドにおいて呼び出しサイトごとの戻り値型をサポートする。`Plugin::Macro::HeredocTemplate::Emit`行の`returns_from_arg:` / `lookup_via:` DSLが出荷され、その最初の動作する消費者 — `rigor-dry-struct`が`rigor-dry-types`（[ADR-12](../12-dry-rb-packaging/)）の公開するADR-9の`:dry_type_aliases`ファクト（fact）を通じて`attribute :city, Types::String`を解決すること — が同じリリースでエンドツーエンドに着地した（ディスパッチャーで`Nominal[String]`、ファクトが不在または呼び出し形が解決不能なときは静かに`Dynamic[Top]`へフォールバック）。
 
 ## コンテキスト
 
@@ -33,12 +33,12 @@ heredoc_templates: [
 
 > すべての`address.city`リーダーは、`:city`が`Types::String`、`Types::Integer`、`Types::Bool`のいずれで宣言されたかにかかわらず、`Nominal[Object]`を返す。
 
-ユーザーから見えるギャップは、`rigor-dry-struct`のようなプラグインが**合成リーダーの戻り型を呼び出しサイトの引数で変化させたい**ときに表面化します。
+ユーザーから見えるギャップは、`rigor-dry-struct`のようなプラグインが**合成リーダーの戻り値型を呼び出しサイトの引数で変化させたい**ときに表面化します。
 
 - `attribute :city, Types::String` → `address.city`は`Nominal[String]`であるべき。
 - `attribute :age, Types::Integer` → `address.age`は`Nominal[Integer]`であるべき。
 
-これは**呼び出しサイトごとの**戻り型です — 同じテンプレート、同じレシーバー、同じメソッド名、異なる引数 → 異なる合成された戻り値。
+これは**呼び出しサイトごとの**戻り値型です — 同じテンプレート、同じレシーバー、同じメソッド名、異なる引数 → 異なる合成された戻り値。
 
 ADR-16の基板には今日、これのためのDSLがありません。今日呼び出しごとの精度を求めるプラグイン作者は、手書きのウォーカーを書くことに頼ります（宣言的な基板マニフェストの趣旨を打ち消します）。
 
@@ -84,7 +84,7 @@ emit: [
 - `Prism::ConstantPathNode` — 修飾された定数（`Types::String`、`App::Types::Coercible::Integer`）。
 - それ以外 — nilを返し、フォールバックチェインを起動する。
 
-メソッド呼び出し引数（`Types::String.constrained(format: …)`）はフロアの範囲外です — それらにはADR-10ウォーカーのヒューリスティック機構（チェインに対するフェーズBの戻り型）か、別の「チェインヘッドリゾルバ」追加のいずれかが必要です。需要主導のフォローアップとして記録されています。
+メソッド呼び出し引数（`Types::String.constrained(format: …)`）はフロアの範囲外です — それらにはADR-10ウォーカーのヒューリスティック機構（チェインに対するフェーズBの戻り値型）か、別の「チェインヘッドリゾルバ」追加のいずれかが必要です。需要主導のフォローアップとして記録されています。
 
 ### 公開APIドリフト面
 
@@ -95,7 +95,7 @@ emit: [
   デフォルトは`nil`;既存のマニフェストは引き続き動作する。
 - `HeredocTemplate.new`の新しいバリデーター分岐。Emit行ごとに`returns:` / `returns_from_arg:`のうちちょうど1つが存在することを保証する（両方nilも有効;`Dynamic[Top]`にフォールバック）。
 - `Rigor::Inference::SyntheticMethod#return_type_source`スロット
-  （Symbol）。戻り型を解決したパスを記録する: `:static`、`:from_arg`、`:fallback`のいずれか。デバッグ用にキャッシュ記述子の`to_h`に表れる;重要な外部サーフェス（surface）ではない。
+  （Symbol）。戻り値型を解決したパスを記録する: `:static`、`:from_arg`、`:fallback`のいずれか。デバッグ用にキャッシュ記述子の`to_h`に表れる;重要な外部サーフェス（surface）ではない。
 - `Rigor::Inference::SyntheticMethodScanner`は、事前パス中に`returns_from_arg:`検索を解決するために、実行ごとの`Plugin::FactStore`を参照する。スキャナは`fact_store:`キーワード引数を取得する（デフォルトは`nil` → すべての`returns_from_arg:`行は`returns:` / Dynamicにフォールバック）。
 
 すべての更新は実装スライスと同じコミットで[`spec/rigor/public_api_drift_spec.rb`](../../spec/rigor/public_api_drift_spec.rb)に着地します。
@@ -123,7 +123,7 @@ Proc形のコールバック（`returns_from_arg: { position: 1, resolve: ->(nod
 
 ### WD2 — なぜテンプレートごとではなく行ごとの`returns_from_arg:`か？
 
-テンプレートは呼び出しサイトごとに複数の合成メソッドを発行できます（例えば将来の`attribute :city, Types::String`テンプレートが`Address#city`リーダーと`Address#city=`セッターの両方を発行する場合）。各emit行は異なる戻り型解決ポリシーを望むかもしれない（リーダーは型を返す;セッターは型または`self`を返す）。行ごとにすることで、すべての発行を同じパスに強制せず、DSLを柔軟に保ちます。
+テンプレートは呼び出しサイトごとに複数の合成メソッドを発行できます（例えば将来の`attribute :city, Types::String`テンプレートが`Address#city`リーダーと`Address#city=`セッターの両方を発行する場合）。各emit行は異なる戻り値型解決ポリシーを望むかもしれない（リーダーは型を返す;セッターは型または`self`を返す）。行ごとにすることで、すべての発行を同じパスに強制せず、DSLを柔軟に保ちます。
 
 ### WD3 — なぜ`:dry_type_aliases`を正準的な例として？
 
@@ -131,7 +131,7 @@ Proc形のコールバック（`returns_from_arg: { position: 1, resolve: ->(nod
 
 ### WD4 — ADR-10ウォーカーヒューリスティックとの境界
 
-ウォーカーの`ReturnTypeHeuristic`はメソッド*ボディ*の末尾式から戻り型を抽出します。改訂の`returns_from_arg:`は呼び出し*サイト*の引数から戻り型を抽出します。両サーフェスは`Rigor::Type::*`またはnilを生成;両方ともディスパッチャーで同じ`Type::Combinator.dynamic(facet)`ラップに供給されます。2つのパスは直交です — ウォーカーは「gemのメソッドは何を返すか？」、改訂は「ユーザーの基板呼び出しは何を宣言するか？」。将来のスライスは、ヒューリスティックを再利用してチェインヘッドの基底クラスを抽出することで、チェイン呼び出し引数（`Types::String.constrained(...)`）を扱えるかもしれません。
+ウォーカーの`ReturnTypeHeuristic`はメソッド*ボディ*の末尾式から戻り値型を抽出します。改訂の`returns_from_arg:`は呼び出し*サイト*の引数から戻り値型を抽出します。両サーフェスは`Rigor::Type::*`またはnilを生成;両方ともディスパッチャーで同じ`Type::Combinator.dynamic(facet)`ラップに供給されます。2つのパスは直交です — ウォーカーは「gemのメソッドは何を返すか？」、改訂は「ユーザーの基板呼び出しは何を宣言するか？」。将来のスライスは、ヒューリスティックを再利用してチェインヘッドの基底クラスを抽出することで、チェイン呼び出し引数（`Types::String.constrained(...)`）を扱えるかもしれません。
 
 ### WD5 — キャッシュ記述子への含意
 
@@ -147,7 +147,7 @@ Proc形のコールバック（`returns_from_arg: { position: 1, resolve: ->(nod
 ## 未解決の質問
 
 - **`returns_from_arg:`は複数の位置を受け入れるべきか？**
-  例えば`Tuple[A, B] = (A, B)`スタイル — 複数の引数から導出される戻り型。需要に先送り。
+  例えば`Tuple[A, B] = (A, B)`スタイル — 複数の引数から導出される戻り値型。需要に先送り。
 - **`lookup_via:`はフォールバックチェイン用にファクトチャンネルのリストを受け入れるべきか？** プラグインは`:dry_type_aliases`を参照してから`:custom_aliases`にフォールバックしたいかもしれない。具体的なケースが表面化すれば、決定はスライス3に先送り。
 - **`returns_from_arg:`が拒否（ファクト一致なし）したとき、基板は診断を発行すべきか？** 今日の`returns:` / Dynamicへの暗黙的フォールバックは最もシンプルな契約;将来の`dynamic.substrate.unresolved-arg``:info`診断がデバッグ用にケースを表面化できるかもしれない。スライス5（ドキュメント + 実例消費者）のフィードバックに先送り。
 
