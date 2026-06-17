@@ -1,8 +1,20 @@
+import { readFileSync } from 'node:fs';
 import { defineConfig } from 'astro/config';
 import mdx from '@astrojs/mdx';
 import starlight from '@astrojs/starlight';
 import starlightSidebarTopics from 'starlight-sidebar-topics';
 import remarkCjkFriendly from 'remark-cjk-friendly';
+
+// Shiki (via Expressive Code) bundles `ruby` but not `rbs`, so a fenced
+// ```rbs block would fall back to unhighlighted `txt` and emit a build
+// warning. Load the vendored RBS TextMate grammar (scope `source.rbs`,
+// the same one GitHub Linguist uses); see src/grammars/README.md for
+// provenance. The Sorbet `rbi` dialect is valid Ruby, so it is aliased to
+// the bundled `ruby` grammar via `langAlias` rather than vendoring a
+// second grammar.
+const rbsGrammar = JSON.parse(
+  readFileSync(new URL('./src/grammars/rbs.tmLanguage.json', import.meta.url), 'utf-8'),
+);
 
 const sidebarTranslations = {
   recentlyUpdated: { ja: '最近の更新' },
@@ -32,6 +44,15 @@ export default defineConfig({
     starlight({
       title: 'Rigor',
       description: 'Documentation for the Rigor Ruby static analyzer.',
+      expressiveCode: {
+        shiki: {
+          // Register `rbs` (vendored grammar) and alias the Sorbet `rbi`
+          // dialect to the bundled `ruby` grammar. Without these, ```rbs and
+          // ```rbi fences fall back to plain text and warn on a cold build.
+          langs: [rbsGrammar],
+          langAlias: { rbi: 'ruby' },
+        },
+      },
       defaultLocale: 'root',
       locales: {
         root: {
