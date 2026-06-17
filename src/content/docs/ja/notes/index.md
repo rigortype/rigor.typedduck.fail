@@ -3,8 +3,8 @@ title: "Research & Survey Notes"
 description: "Imported from rigortype/rigor docs/notes/README.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/README.md"
 sourcePath: "docs/notes/README.md"
-sourceSha: "cf5c286a757554c1749a3fcd31af1454255943e2ab7428098354cd6d0587726e"
-sourceCommit: "bf29cd008ab5b1ae540757fe571fe9c92f816d9a"
+sourceSha: "7479dc06c016d9b0abb69889d346803b4b9c7bc2c61b688cd6ef7bd3dda0a274"
+sourceCommit: "dd7f6dc8daf0b115fb4f9e44f67eb21008e1456d"
 translationStatus: "translated"
 sidebar:
   order: 6000
@@ -61,6 +61,7 @@ sidebar:
 | Date | Note |
 | --- | --- |
 | 2026-06-13 | [Mutation-testing the analyzer — a teeth / false-negative harness + `lib/rigor` sweep backlog](20260613-mutation-teeth-harness/) |
+| 2026-06-17 | [Type-guided mutation testing — internal teeth vs. an external test-suite tool (strategy)](20260617-type-guided-mutation-testing-strategy/) |
 
 ## 外部研究・エッセイレビュー
 

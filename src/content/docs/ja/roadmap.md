@@ -3,8 +3,8 @@ title: "Rigor Roadmap"
 description: "rigortype/rigor docs/ROADMAP.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/ROADMAP.md"
 sourcePath: "docs/ROADMAP.md"
-sourceSha: "97b0c98c3921d1e2d0efe01bed7e4ddc4eef81064dcc539bb1ad9ea4ca29edf7"
-sourceCommit: "7f5a54c352ff4370788bf7aef5fc1b70f8a92e4a"
+sourceSha: "923fafb3e41cc96cfdeaadac94aef5a1616888c37e438293cedb793e22d92101"
+sourceCommit: "dd7f6dc8daf0b115fb4f9e44f67eb21008e1456d"
 sourceDate: "2026-06-13T19:23:25+09:00"
 translationStatus: "translated"
 sidebar:
@@ -42,72 +42,38 @@ sidebar:
 | v0.1.17 | 2026-06-06 | 内部構造レビュー + パフォーマンスチューニング。インクリメンタル解析（`rigor check --incremental`、ADR-46） + 未変更プロジェクトの高速パス（ADR-45） + 大規模なアロケーション削減（ADR-44）;Elixir v1.20に触発されたナローイング（`Array`非空、`Hash`キー存在） + `flow.unreachable-clause`（ADR-47）;`rigor:v1:conforms-to`ディレクティブ;`call.self-undefined-method`ルール（`:off`で出荷、ADR-24スライス4）;`Data.define`値の畳み込み（ADR-48）。さらに出荷（プロセス / CI / ドキュメント、ユーザー向けノートには含まれない）: v0.2.0への道のためのリリースエンジニアリング機構 —— ADR-49（ADR著作ルーブリック + `rigor-adr-author`スキル + コーパス監査）、ADR-50（リリースエンジニアリング + 安定性戦略）、`release/x.y.z`ブランチ + `release-gate.yml` + `make bench-perf`パフォーマンスゲート。`CHANGELOG.md` § `[0.1.17]`を参照。 |
 | v0.1.18 | 2026-06-11 | CI環境サポート（ADR-51）: 6つの`rigor check --format` CIネイティブレンダリング（SARIF、GitHub Actions、GitLab Code Quality、Checkstyle、JUnit、TeamCity） + ランタイムCI自動検出（WD7） + コピーペースト用CIセットアップテンプレート + バンドルされた`rigor-ci-setup`スキル。`CHANGELOG.md` § `[0.1.18]`を参照。 |
 | v0.1.19 | 2026-06-13 | 手続き的Rubyのための精度と信頼のサイクル —— かつ**v0.2.0の実質的なリリース候補**（最後の`0.1.x`プレビューカット）。メソッド呼び出しの結果がユーザー定義のヘルパーを流れるようになり（ADR-57）、再帰戻り値（ADR-55）とブロック/ループのキャプチャされたミューテーション（ADR-56）の精度がそれを裏打ちする;データ構造 / パース / ネットワークコードに対する大規模な実世界の偽陽性バッチ（ADR-58 + CRuby-stdlibと16リポジトリの現実的ユースケーススイープ）;新しい推論が本来課すであろう`lib`全体の超線形なスローダウンを取り除く実行スコープの戻り値メモ;1.0前のプラグイン契約（contract）の統合（ADR-60、BC破壊を伴う）;エージェントフレンドリーな構造化診断フィールド（ADR-61）;ADR-50 WD1の互換性サーフェスドキュメント + WD2のブリーディングエッジオプトイン基盤;そしてADR-54のキャッシュスリム化（プロジェクトごと約33.7 MB → 約2 MB）。`CHANGELOG.md` § `[0.1.19]`を参照。 |
+| v0.2.0 | 2026-06-17 | **最初の公式発表（一般 / 評価）リリース**（[ADR-50](../adr/50-release-engineering-and-stability-strategy/)）: 列挙された互換性サーフェス（[`docs/compatibility.md`](../compatibility/)）をv1.0.0フリーズへ向けたマイナー非破壊の試行として公開する。検出の**「ティース」** + 保護カバレッジ —— `call.undefined-method` / `call.argument-type-mismatch`が今やユニオン / リファインメント / 多重オーバーロードのレシーバーで発火する（ADR-62のミューテーションハーネス、ADR-63の`coverage --protection`）;より広い定数fold;定義済み定数のリファインメント;`Struct.new`値fold（ADR-48）;`evidence_tier` + `documentation_url`の診断メタデータ（ADR-65）。`CHANGELOG.md` § `[0.2.0]`を参照。 |
 | v0.1.16 | 2026-06-03 | プラグインアーキテクチャの全面的見直しと内部メカニズムの再ドキュメント化。ADR-37/38/39/40が完全に着地: バンドルの診断発行プラグイン14個すべてを`node_rule`（エンジン所有ウォーク、PHPStanスタイル）へ移行;`dynamic_return` / `type_specifier`のスライス（slice）2;`rigor plugins --capabilities` AI可読カタログ（スライス3）;`additional_initializers:`（ADR-38のdef形式）;`config_schema`の宣言デフォルト（ADR-40、13プラグインを移行）;`Source::Literals`グリッド完成 + 10プラグインを移行;実際の`ActiveSupport::Inflector`上の`Plugin::Inflector` + 選択可能な分離戦略（デフォルトは`process`、`Plugin::Isolation`）。ADR-43のRBS完全な祖先解決（`Plugin::Base`許可リスト） + `verify`とCIでの`make check-plugins`ゲート。プラグイン契約（contract）の構造的ガード: 適合スペック、全プラグインロードスペック、デモ実行スペック、外部プラグインフィクスチャ（v0.2.0ゲート1の実行可能なエビデンス）。`Plugin::Base` + `Manifest`のRBSサーフェス（surface）完成。RBSロバストネス: 不正・陳腐化したプロジェクトの`signature_paths:` sig向けの合成名前空間 + スタブ型。`rigor-activerecord`の欠落スキーマメモ化修正（Redmineメモリ−86%、ウォール時間−51%）。推論バジェットサーベイ + `RIGOR_BUDGET_TRACE`計装。`CHANGELOG.md` § `[0.1.16]`を参照。 |
 
-## リリース戦略 — v0.2.0への道
+## リリース戦略 — v1.0.0への道
 
-`0.1.x`ラインは**プレビュー**ラインです。`0.2.x`ラインは**評価**ラインを開きます — まだフォーマル / GAリリースではないが、実プロダクトでの試験デプロイを意図した最初の公式発表バージョンです。
+`0.1.x`ラインは**プレビュー**ラインだった。**v0.2.0（2026-06-17）が`0.2.x`評価ラインを開いた** —— 最初の公式発表バージョンであり、実プロダクトでの試行デプロイと外部フィードバックの募集を意図している。これは依然として正式 / GAリリースではない;道は今や**v1.0.0**、ハードな契約フリーズを指している。
 
 | ライン | 役割 |
 | --- | --- |
-| `0.1.x` | プレビュー。v0.1.9は当初の指定「最後のプレビューカット」だったが、Mastodon / Redmine / tdiary / GitLab FOSSに対するトライアル作業が、実質的な偽陽性削減・オンボーディング・機能・アーキテクチャ・パフォーマンスの各サイクルを経てラインをv0.1.17まで延長した。v0.1.12はMastodon`app + lib`を6件の無関係なエラーで残した;v0.1.13〜v0.1.15はAI支援のオンボーディング + リスコフの`def.override-*`を追加;v0.1.16はプラグインのインターフェース分離 + エルゴノミクススイート（ADR-37/38/39/40/43）一式とv0.2.0ゲート1の実行可能なエビデンスを着地させた;v0.1.17は内部構造レビュー + パフォーマンスチューニング（インクリメンタル解析、高速パス、アロケーション削減）を完了させ、リリースエンジニアリング機構（ADR-49/50、`release/x.y.z`ゲート）を立ち上げた;**v0.1.18（CI環境サポート、ADR-51）は2026-06-11に、v0.1.19（精度と信頼のサイクル —— ADR-55/56/57/58/60/61 + ADR-54）は2026-06-13に出荷された**。 v0.1.19は**最後のプレビューカット —— 実質的なリリース候補**である;次のリリースは**v0.2.0**、最初の公式発表の評価リリースである（§「リリース戦略」を参照）。 |
-| `v0.2.0` | **最初の評価リリース**。実プロダクトでの試験デプロイを意図した最初のバージョンとして公式に発表される;評価期間を開き、外部のフィードバックを募る。 |
-| `0.2.x` | 評価ライン。まだフォーマルバージョンではないが、目標は**Ractor並行性トラックを除くすべての計画された機能**を高い完成度 / 本番品質に持っていくこと。 |
+| `0.1.x` | **プレビュー（クローズ済み）**。v0.1.9は当初「最後のプレビューカット」に指定されていたが、Mastodon / Redmine / GitLab FOSSに対する試行作業が、偽陽性削減・オンボーディング・機能・アーキテクチャ・パフォーマンスの各サイクルとともにこれをv0.1.19まで延長した。v0.1.19（2026-06-13）が最後のプレビューカット / 実質的なRCだった。 |
+| `v0.2.0` | **最初の評価リリース（2026-06-17リリース済み）**。実プロダクトでの試行デプロイを意図した最初のバージョンとして公式発表;評価期間を開く。`CHANGELOG.md` § `[0.2.0]`を参照。 |
+| `0.2.x` | **評価ライン（現在）**。まだ正式バージョンではない;目標は、計画されたすべての機能を —— **Ractor並行性トラックを除いて** —— 高い完成度 / プロダクション品質へ持っていき、外部フィードバックを集めることだ。 |
+| `v1.0.0` | **ハードな契約フリーズ（目標）**。列挙されたパブリックサーフェス（[`docs/compatibility.md`](../compatibility/)）が拘束力を持つようになる;適合するユーザーの設定 / プラグイン / 抑制を無効化する変更は、ここからメジャーバージョンでのみ行われる。 |
 
-### v0.1.19以降の状況
+### v0.2.0への道が決着させたもの（今や完了）
 
-v0.1.9の「最後のプレビューカット」の意図は達成済み（SKILLトリオ、ADR-22スライス5、実証的デフォルトの引き締めが出荷）し、ラインは追加のトライアル駆動・アーキテクチャ駆動・パフォーマンス駆動のパッチカット10件（v0.1.10〜v0.1.19）を経て*延長*された。**次のリリースの問いは今や解決された: v0.1.19（2026-06-13）が最後のプレビューカット —— 実質的なリリース候補 —— であり、次のリリースはv0.2.0、最初の公式発表の評価リリースである** —— 下記と`docs/CURRENT_WORK.md` §「次セッションのエントリーポイント」（A）を参照。
+v0.2.0のゲート条件 —— すべて**達成済み**:
 
-- 99.2%のMastodon FP削減が経験的に実証済み;Redmine 51%、GitLab FOSS〜80%（調査済みスコープ）;v0.1.16の`rigor-activerecord`メモ化修正後、Redmineのメモリフットプリントは−86%削減。
-- 全3件のフローフォールディングG2フォローアップ（`retry`、介在する呼び出し、書き込み前読み取りnil）がクローズ済み（v0.1.12）。
-- `rigor plugins`（有効化レディネス、v0.1.12）、`rigor plugin`（バンドルソースブラウジング、v0.1.15）、`rigor plugins --capabilities`（AI可読の拡張プロトコルカタログ、v0.1.16）サブコマンドが、プラグイン設定と発見のギャップをクローズする。
-- オンボーディングはセルフサーブ: `rigor skill` + `docs/install.md`により、AIエージェントが単一のプロンプトからRigorをインストール・設定できる（v0.1.13 / v0.1.14）。
-- `pre_eval:`メカニズム（ADR-17）、リスコフの`def.override-*`ファミリー（ADR-35）、プラグインのインターフェース分離 + エルゴノミクススイート（ADR-37/38/39/40/43）がすべて出荷され、v0.1.16までで主要な残りのADRキューをクローズした。
-- **v0.2.0ゲート1の実行可能なエビデンスが着地**（v0.1.16）: 外部プラグインフィクスチャ + 適合スペック + 全プラグインロードスペック + デモ実行スペックが、パブリックなプラグイン契約がツリー外の`rigor-*` gemをサポートすることを証明する。残るステップは*文書化された安定性コミットメント*（ピン留めされた名前空間に対する「0.2.x内で壊さない」という言明）。
+- **外部プラグイン契約の安定化 + ドキュメント化**。実行可能なエビデンス（外部プラグインフィクスチャ + 適合 / 全プラグインロード / デモ実行スペック）はv0.1.16で着地;ドキュメント化された安定性コミットメントは[`docs/compatibility.md`](../compatibility/)（[ADR-50](../adr/50-release-engineering-and-stability-strategy/) WD1のサーフェスドキュメント）としてv0.1.19で出荷された —— v0.2.0で**試行**として拘束し、v1.0.0でフリーズする。
+- **配布モデルの決着** —— 単一のバンドルされた`rigortype` gem（[ADR-31](../adr/31-contribution-and-supply-chain-policy/)、コミット`9769f5fa`）として。サブツリー分割 / プラグインごと公開のゲートは*置き換えられ*、外部のサードパーティ`rigor-*`パス（作者自身のリポジトリ、`gem "rigortype"`に依存）のみが残った。
+- **セルフサービスのオンボーディング** —— SKILLトリオ + `docs/install.md`経由（v0.1.9 / v0.1.13 / v0.1.14）。
+- **リリースエンジニアリング機構**（[ADR-50](../adr/50-release-engineering-and-stability-strategy/)、PHPStanをモデルにしたもの）: v0.2.0はリリースエンジニアリングの*試行*（機構 + リハーサルとしてのマイナー非破壊の誓約）、v1.0.0が*ハードフリーズ*だ。`release/x.y.z`ブランチ + `release-gate.yml` + `make bench-perf`はv0.1.17で出荷;パフォーマンスベースライン + Mastodon OSSスイープのしきい値は較正済みでゲートは必須（両方とも**v0.2.0カットで再較正された** —— `bench/baseline.json` + `data/oss-sweep/mastodon-thresholds.json`;`docs/CURRENT_WORK.md`を参照）。WD2のブリーディングエッジオプトイン基盤は配線済み（オーバーレイは空;`bleeding_edge:`設定 + `rigor show-bleedingedge` + `rigor check --bleeding-edge[=ids]`）。
 
-v0.2.0ゲートはその後**3つから1つに削減された**: SKILLトリオ（ゲート3）が出荷され、サブツリー分割／プラグインごとの公開ゲートは単一バンドル`rigortype` gem配布モデル（[ADR-31](../adr/31-contribution-and-supply-chain-policy/) + コミット`9769f5fa`）によって**置き換えられた**。残る唯一の実質的なゲートは、外部プラグイン契約の文書化された安定性コミットメントである —— **[ADR-50](../adr/50-release-engineering-and-stability-strategy/)がそのポリシーを提供し**（下記参照）、そのWD1サーフェスドキュメントは[`docs/compatibility.md`](../compatibility/)として**v0.1.19で出荷された**;それはv0.2.0で試行として拘束し、v1.0.0でフリーズするので、このゲートは今や達成済みである。
+**リリース済みバージョンの詳細は`CHANGELOG.md`にある**（上記のマイルストーン表が各`§`を指す）: v0.1.18（CI環境サポート、[ADR-51](../adr/51-ci-diagnostic-output-formats/) —— 6つのCIネイティブな`--format`レンダリング + ランタイムCI自動検出）、v0.1.19（精度と信頼 + freeze前のプラグイン契約統合[ADR-60]）、v0.2.0（検出のティース[ADR-62] + 保護カバレッジ[ADR-63] + 互換性サーフェスの試行[ADR-50]）。
 
-**v0.1.17は**内部構造レビュー + パフォーマンスチューニングのサイクルを**出荷した**（完全な記録は`CHANGELOG.md` § `[0.1.17]`）: ADR-44のアロケーションデチャーン（Mastodonでアロケーション約−42%）、ADR-45の未変更プロジェクト高速パス（未変更のGitLab実行で約42倍）、ADR-46のインクリメンタル解析（`rigor check --incremental`、未変更 / リーフ編集で約6〜9倍、`--verify-incremental`でCIゲート）、ADR-47の`flow.unreachable-clause`、`rigor:v1:conforms-to`ディレクティブ、`call.self-undefined-method`ルール（`:off`）、そしてADR-48の`Data.define`値の畳み込み。
-
-**v0.2.0への道は今や[ADR-50](../adr/50-release-engineering-and-stability-strategy/)で形式化されている**（リリースエンジニアリング + 安定性戦略、PHPStanをモデルとする）: **v0.2.0はリリースエンジニアリングの*トライアル***（機構 + リハーサルとしてのマイナー非破壊の誓約）であり、**v1.0.0が*ハードな契約の凍結***である —— ADR-25/32対37の凍結タイミングの分裂をv1.0.0支持で解決する。互換性サーフェス（公開された顔は凍結 / エンジン内部は自由）を固定し、診断の*出力*を契約外に保ちつつ、卒業（約4週間のソーク後の次のメジャーでのデフォルトオン）まで*新しく必須となる規律*をPHPStanスタイルの検査可能なブリーディングエッジオーバーレイの背後にゲートし、`make bench-perf` + CIパフォーマンスゲートをコミットし、サポートライン（最新 + 1つ前のマイナー → 1.0後はPHPStanの`1.x`デフォルトブランチ）を定める。**機構はv0.1.17で出荷された** —— `ci.yml`上の`release/x.y.z`ブランチトリガー + `release-gate.yml` + `make bench-perf`;v0.1.17がそれに乗った最初のカットだった（カット途中で実際の設定クラッシュバグを発見・修正した）。**ゲートのキャリブレーションと硬化は完了（2026-06-13）:** `bench/baseline.json`はLinux CI実行からキャリブレーションされ（lib wall 13.75秒 / 16.0 Mアロケーション / 206 MB RSS、`calibrated: true`、`ddbcb071`）、リリースゲートはアドバイザリー → 必須へ硬化された（ADR-50 WD4/WD6）;MastodonのOSSスイープ閾値はv4.5.10の`app lib config`に対してキャリブレーションされ（445診断 / 最小精度0.4284、厳密件数ゲート、`1d7162a5`）、ADR-27 § WD3の`setup-ruby`プレビルドRuby 4.0タイミングのキャビアットは検証・クローズされた（`26fb8536`）。**残るv0.2.0作業:** ADR-50の段階的実装 —— 列挙された公開サーフェスのドキュメント（唯一の実質的なゲート）は**v0.1.19で出荷され**（[`docs/compatibility.md`](../compatibility/)）、**ブリーディングエッジオーバーレイの基盤は同じカットで着地した**（WD2: `Rigor::BleedingEdge`レジストリ —— 空のオーバーレイ ——、`bleeding_edge:`設定キー、`rigor show-bleedingedge`、そして`SeverityProfile.resolve`の合成フック;最初にキューに入る規律は単一の`FEATURES`エントリーとして着地する）。依然キュー入り: WD2の`rigor check`上の`--bleeding-edge` CLIフラグ（オプショナル —— 設定キーが主要なオプトイン）、サポートラインモデル（WD5）、`rigor upgrade`マイグレーションコマンド（WD7）。**次のリリースの決定は下された —— v0.1.19が最後のプレビュー / 実質的なRCであり、v0.2.0が次のカットである**。 `docs/CURRENT_WORK.md` §「次セッションのエントリーポイント」を参照。
-
-### v0.1.18 — CI環境サポート（2026-06-11リリース）
-
-このプレビューカットは**ユーザーのCI環境でRigorを実行するためのファーストクラスサポート**を届けた —— GitHub Actions、GitLab CI、その他 —— [ADR-27](../adr/27-tool-distribution-model/)の配布 / CIチャネルの上に構築する。（Rigor*自身*の`ci.yml` / `release-gate.yml`はRigor自体をテストするものであり、これとは別物である;これはユーザーが*自身の*パイプラインでRigorを実行することに関するものだ。）完全なリリースノートは`CHANGELOG.md` § `[0.1.18]`に。
-
-**着地済み —— [ADR-51](../adr/51-ci-diagnostic-output-formats/)（サイクルの中核）:**
-
-- **診断ストリームの6つの`rigor check --format` CIネイティブレンダリング**（`lib/rigor/cli/diagnostic_formats.rb`）、それぞれが`--format json`フィールドの上の純粋なプレゼンテーション層 —— 新しい解析はなし: `sarif`（SARIF 2.1.0、クロスプラットフォームアンカー + reviewdog `-f=sarif`）、`github`（GitHub Actionsワークフローコマンド → インラインPRアノテーション）、`gitlab`（Code Quality → MRウィジェット）、`checkstyle`（→ reviewdog `-f=checkstyle` → *任意の*reviewdogレポーター + Jenkins）、`junit`（テストレポートCI）、`teamcity`（TeamCityインスペクション）。WD2はフォーマットごとのseverity / 識別子契約テーブルを修正する。
-- **ランタイムCI自動検出**（WD7、`lib/rigor/cli/ci_detector.rb`、PHPStanの`CiDetectedErrorFormatter`をモデルとする）: デフォルトの`text`出力で、検出された**ファーストクラス**CIはそのネイティブ形式を自動発行する（GitHub Actions → `github`、TeamCity → `teamcity`、人間向けログの上に）;GitLabは`--format gitlab`をヒントする;**セカンドクラス**CI（CircleCI/Jenkins/Travis/Azure/Bitbucket/Buildkite/Drone/…）はreviewdog / `junit`パスをヒントする。テキストを増補するだけ（明示的な`--format`には触れない）、オプトアウトは`--no-ci-detect` / `RIGOR_CI_DETECT=0`。
-- **オンボーディングの半分**（[ADR-27 § WD3](../adr/27-tool-distribution-model/)のキュー済みテンプレート）: `docs/manual/ci-templates/`下のコピーペースト用CIセットアップテンプレート（SARIF / アノテーション / reviewdogの`.github/workflows/rigor.yml`、`.gitlab-ci.yml`、汎用レシピ）、バンドルされた**`rigor-ci-setup`**スキル（`rigor skill` —— フェーズ0のプラットフォーム検出 + プラットフォームごとのreviewdogレポーターのルーティング）、そして書き直されたCIマニュアル章`docs/manual/11-ci.md`。
-
-**このサイクルで解決されたスコープ決定:** **新しいADR**（ADR-51、ADR-27の修正ではない —— 配布対出力は[ADR-50](../adr/50-release-engineering-and-stability-strategy/) WD1の下では別個の公開契約サーフェスである）;**6つのフォーマットすべて**を出荷（SARIFがクロスプラットフォームアンカー;`checkstyle`/`junit`/`teamcity`はreviewdog / Jenkins / テストレポートへのリーチのため —— 比較対象のPHPStanはgithub/gitlab/checkstyle/junit/teamcityを出荷するが**SARIFはなし**）;**GitHubのデフォルトサーフェスはSARIFではなく`github`アノテーション**（SARIFアップロードはcode scanning＝ プライベートリポジトリではGitHub Advanced Securityを要する）;**ファーストクラス（ネイティブ、PHPStanサポート対象）対セカンドクラス（reviewdog）**がランタイムの分かれ目（WD7）。すでに整っているCIフレンドリーなプリミティブの上に構築: 安定した終了コード、`--format json`、ベースラインメカニズム（[ADR-22](../adr/22-baseline-and-project-onboarding/)）、severityプロファイル（[ADR-8](../adr/8-steep-inspired-improvements/)）、`--no-cache`。
-
-**需要ゲート付きフォローアップ**（ADR-51に記録、いずれもゲートではなかった）: `--output FILE`、reviewdogネイティブの`rdjson`、よりリッチなSARIFルールメタデータ。ADR-27 § WD3の`setup-ruby`プレビルドRuby 4.0タイミングのキャビアットはカット前に検証・クローズされた（`26fb8536`;4.0.0〜4.0.5プレビルド、0.30秒観測）。
-
-### v0.1.19 — 精度と信頼のサイクル / 実質的なRC（2026-06-13リリース）
-
-**最後の`0.1.x`プレビューカット —— v0.2.0の実質的なリリース候補**。完全なリリースノートは`CHANGELOG.md` § `[0.1.19]`に;これは計画ビューである。
-
-**テーマ:**普通の手続き的Rubyのための信頼できる推論、加えて凍結前の最後のプラグイン契約作業。目玉: メソッド呼び出しの結果が、不透明な型へ幅広げする代わりにユーザー定義のヘルパーメソッドを流れるようになり（[ADR-57](../adr/57-self-call-return-adoption/)）、再帰戻り値（[ADR-55](../adr/55-recursive-return-precision/)）とブロック/ループのキャプチャされたミューテーション（[ADR-56](../adr/56-block-captured-local-mutation/)）の精度がそれを裏打ちし、実世界のデータ構造 / パース / ネットワークコードに対する大規模な偽陽性バッチ（[ADR-58](../adr/58-ivar-field-typing/) + CRuby-stdlibと16リポジトリの現実的ユースケーススイープ）が伴う。健全な実行スコープの戻り値メモが、新しい推論が本来課すであろう`lib`全体の超線形なスローダウンを取り除く。
-
-**さらに着地:** 1.0前のプラグイン契約の統合（[ADR-60](../adr/60-pre-freeze-plugin-contract-consolidation/) —— v1.0サーフェス凍結の前の最後のウィンドウのBC破壊）;エージェントフレンドリーな構造化診断フィールド（[ADR-61](../adr/61-agent-friendly-diagnostic-statistics/)）;[ADR-50](../adr/50-release-engineering-and-stability-strategy/) WD1の互換性サーフェスドキュメント（[`docs/compatibility.md`](../compatibility/)） + WD2のブリーディングエッジオプトイン*基盤*（空のオーバーレイ）;そして[ADR-54](../adr/54-cache-slimming/)のキャッシュスリム化（プロジェクトごと約33.7 MB → 約2 MB）。
-
-**次:** v0.2.0 —— 最初の公式発表の評価リリース（下記§）。
-
-### v0.2.0 — 最初の評価リリース
-
-実プロダクトでの試験デプロイを意図した最初の公式発表バージョン。v0.2.0は**評価**リリースであり、GA / フォーマルバージョンではない — 評価期間を開き、外部のフィードバックを募る。ゲート条件（このリリースが吸収するv0.1.xの「今日はスコープ外」リスト）:
-
-- ADR-2プラグイン契約サーフェス（surface）が、このモノレポ外の外部`rigor-*` gem（[ADR-31](../adr/31-contribution-and-supply-chain-policy/) WD4に基づく`gem "rigortype"`に依存するサードパーティgem）をサポートできるほど安定化されており、外部著者向けのオンボーディングパスと、ツリー外プラグインがロードされ実行されるテストを伴う。**実行可能なエビデンスが着地**（v0.1.16）: 外部プラグインフィクスチャ、適合スペック、全プラグインロードスペック、デモ実行スペックがすべてCIにある。文書化された安定性コミットメント —— ピン留めされたプラグイン契約名前空間（および、より広いパブリックサーフェス）に対する「0.2.x内で壊さない」という言明 —— は[`docs/compatibility.md`](../compatibility/)として**v0.1.19で出荷された**（ADR-50 WD1サーフェスドキュメント）;v0.2.0で試行として拘束し、v1.0.0でフリーズする。このゲートは今や達成済みである。
-- ~~subtree-split / RubyGems公開フローが少なくとも`rigor-rails`ファミリーに対して行使されている。~~ **置き換えられた**。配布モデルは**単一バンドル`rigortype` gem**に変わった——バンドルされたプラグインはすべてその中で出荷され（プラグインごとのgemspecは削除、コミット`9769f5fa`）、[ADR-31](../adr/31-contribution-and-supply-chain-policy/)はサブツリー分割をデフォルトパスから撤回した（WD5はサブツリー*マージ*を稀な予約済みオプションとしてのみ残し、計画フローとしては残さない）。したがって行使すべきプラグインごとの公開フローはない;公開される成果物は`rigortype`自身のみ（既にリリースサイクルに乗っている）。このゲートの残りは最初の項目に畳み込まれる: *外部*のサードパーティ`rigor-*`パス（`gem "rigortype"`に依存する作者自身のリポジトリ + gemspec）。
-- SKILLトリオが出荷済み（v0.1.9）で、新参者がオンボーディングパスを持つ。
+**ADR-50の残り（v0.2.0以降）:**サポートラインモデル（WD5 —— 最新 + 1つ前のマイナー、→ post-1.0でPHPStanの`1.x`デフォルトブランチ）、`rigor upgrade`マイグレーションコマンド（WD7、具体的なBCが対象を与えるまで先送り）、そして次のメジャー境界の規律がキューに入ったときの最初のbleeding-edge `FEATURES`エントリー（オーバーレイは今日時点で空）。
 
 ### v0.2.x — 高完成度の評価ライン
 
-`0.2.x`シリーズ全体で、目標は計画された機能セットを高い完成度 / 本番品質に持っていくこと。下記§「将来のサイクル」の需要駆動バックログは、この計画の下では、オープンエンドのキューではなく**v0.2.x完成ターゲット**である — そこのすべての項目が`0.2.x`のスコープ内である、**Ractor並行性トラックを除いて**。
+`0.2.x`シリーズ全体を通じて、目標は計画された機能セットを高い完成度 / プロダクション品質へ持っていくことだ。下記の §「Future cycles」の需要駆動バックログは、この計画のもとでは、オープンエンドなキューではなく**v0.2.xの完成目標**である —— そこにあるすべての項目が`0.2.x`のスコープ内だ、**Ractor並行性トラックを除いて**。
 
-**Ractorは意図的に除外されている**。ADR-15のRactorワーカープールはRuby 4.0.x上で使用不可と判明した（Ruby Bug #22075に加え決定論的な`Ractor::IsolationError`）;v0.1.8のフォークベースのプールがアクティブなバックエンドだ。Ractorプールは`RIGOR_POOL_BACKEND=ractor`とADR-15 § OQ1の背後にパークされたまま;それを完成させることは`0.2.x`の目標では**ない**し、上流CRubyの修正を待つ。
+**Ractorは意図的に除外される**。ADR-15のRactorワーカープールはRuby 4.0.xで使用不能と判明した（Ruby Bug #22075に加え、決定論的な`Ractor::IsolationError`）;v0.1.8のforkベースのプールがアクティブなバックエンドだ。Ractorプールは`RIGOR_POOL_BACKEND=ractor`とADR-15 § OQ1の背後に駐車されたままだ;その完成は`0.2.x`の目標では**なく**、upstreamのCRuby修正を待つ。
 
 ## 将来のサイクル（特定のリリースにコミットされていない）
 
