@@ -21,31 +21,41 @@ hosted alongside the reference docs as an independent navigation
 **topic** (via the `starlight-sidebar-topics` plugin in
 `astro.config.mjs`): the sidebar/topic switcher is separate from the
 reference docs, but full-text search stays shared. Only the book prose
-under `book/v1/ja/` is published.
+under `book/v2/{en,ja}` is published — **v2 supersedes v1; v1 is no longer
+synced.**
 
 - **Source:** the `upstream/chibirigor` submodule.
   `scripts/sync-chibirigor-docs.mjs` (run by `pnpm sync:chibirigor`, and
-  by `prebuild`/`predev` via `pnpm sync:all`) generates the pages into
-  `src/content/docs/ja/chibirigor/` and copies the SVG figures into
-  `public/chibirigor/figures/`. Both outputs are git-ignored and
-  regenerated on every build — do not edit or commit them.
-- **Upstream-owned, JA-native.** The pages are stamped
-  `sourceLanguage: "ja"`. They are NOT translation targets and NOT subject
-  to the terminology normalizer (`normalize-ja-terms.mjs`). However, the
-  **typography normalizer** (`normalize-ja-typography.mjs`) IS applied
-  during sync — the sync script calls it on each page so CJK/Latin spacing
-  and punctuation follow the same house style as the reference docs, and the
-  normalisation is re-applied on every re-sync automatically. Content fixes
-  belong upstream in `rigortype/chibirigor`.
+  by `prebuild`/`predev` via `pnpm sync:all`) generates **two editions**.
+  The EN edition (`book/v2/en`) → `src/content/docs/chibirigor/` (root
+  locale) with figures at `public/chibirigor/figures/`; the JA edition
+  (`book/v2/ja`) → `src/content/docs/ja/chibirigor/` with figures at
+  `public/ja/chibirigor/figures/`. The figures are copied per-locale
+  because the SVGs carry localised text. `STYLE.md` (a contributor guide
+  the EN edition ships) is **not** published. All outputs are git-ignored
+  and regenerated on every build — do not edit or commit them.
+- **Upstream-owned, two editions.** EN pages are stamped
+  `sourceLanguage: "en"`, JA pages `sourceLanguage: "ja"`. Neither is a
+  translation target this repo owns, and neither is subject to the
+  terminology normalizer (`normalize-ja-terms.mjs`). The **typography
+  normalizer** (`normalize-ja-typography.mjs`) IS applied during sync (its
+  CJK rules are no-ops on EN, but its table-cell pipe escaping is needed on
+  both), and the sync also converts upstream **GitHub-style alerts**
+  (`> [!NOTE]` / `[!TIP]` / `[!IMPORTANT]`) into Starlight asides
+  (`:::note` / `:::tip`; `IMPORTANT` → a `:::note` titled `Important`/`重要`),
+  since Starlight does not render the GitHub syntax. Content fixes belong
+  upstream in `rigortype/chibirigor`.
 - **Source links go to GitHub.** The sync script rewrites links to the
   Ruby example sources (`*/examples/`, `*/dist/`, `*.rb`) to point at the
   chibirigor GitHub repo; inter-page `.md` links become on-site
-  `/ja/chibirigor/…` routes; figure `.svg` links become
-  `/chibirigor/figures/…`.
-- **JA-only today.** An English edition is planned. When it lands, add
-  its pages and switch the topic from the `/ja/chibirigor/` link to a
-  locale-agnostic `/chibirigor/` root (see the comments in
-  `astro.config.mjs`).
+  `/chibirigor/…` (EN) or `/ja/chibirigor/…` (JA) routes; figure `.svg`
+  links become the per-locale `/chibirigor/figures/…` or
+  `/ja/chibirigor/figures/…`. A cross-locale `../ja/…` link from an EN page
+  falls back to a (path-normalised) GitHub URL.
+- **Bilingual topic.** Both editions ship, so the chibirigor topic and its
+  sidebar items are locale-agnostic (`slug` / `autogenerate` resolve to the
+  current locale's page); the topic `link` is `/chibirigor/`. See the
+  comments in `astro.config.mjs`.
 
 ## Japanese typography convention
 

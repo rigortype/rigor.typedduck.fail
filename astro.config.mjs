@@ -79,8 +79,8 @@ export default defineConfig({
       plugins: [
         // Two independent navigation sections ("topics"), each with its own
         // sidebar: the upstream Rigor reference (EN + JA) and the chibirigor
-        // online book (JA-only for now; an EN edition is planned). The topic
-        // switcher renders above the sidebar; full-text search stays shared.
+        // online book (EN + JA, v2). The topic switcher renders above the
+        // sidebar; full-text search stays shared.
         starlightSidebarTopics(
           [
             {
@@ -231,18 +231,16 @@ export default defineConfig({
               ],
             },
             {
-              // The chibirigor online book. Pages are synced from the
-              // upstream/chibirigor submodule (book/v1/ja) by
-              // scripts/sync-chibirigor-docs.mjs into ja/chibirigor/. Only a
-              // Japanese edition exists today, so the topic links into the
-              // /ja/ locale; when an English edition lands, add its pages and
-              // switch the link to a locale-agnostic /chibirigor/ root.
+              // The chibirigor online book (v2). Pages are synced from the
+              // upstream/chibirigor submodule (book/v2/en + book/v2/ja) by
+              // scripts/sync-chibirigor-docs.mjs into chibirigor/ (EN, root
+              // locale) and ja/chibirigor/ (JA). Both editions are published,
+              // so the topic and its items are locale-agnostic: `slug` /
+              // `autogenerate` entries resolve to the current locale's page.
               label: 'chibirigor',
-              // `id` lets the JA-only standalone pages (the landing page and
-              // the glossary, which have no EN counterpart and so cannot be
-              // referenced by a locale-agnostic `slug` without breaking the EN
-              // build) associate with this topic via their `topic` frontmatter,
-              // stamped by sync-chibirigor-docs.mjs.
+              // `id` lets the standalone landing page (which has no sidebar
+              // entry of its own) associate with this topic via the fallback
+              // `topics` globs below.
               id: 'chibirigor',
               // Pass the locale-strip path so getRelativeLocaleUrl() can add
               // the correct locale prefix. Passing '/ja/chibirigor/' directly
@@ -251,16 +249,21 @@ export default defineConfig({
               icon: 'puzzle',
               items: [
                 {
-                  label: 'The Little chibirigor（前編）',
+                  label: 'The Little chibirigor',
+                  translations: { ja: 'The Little chibirigor（前編）' },
                   items: [{ autogenerate: { directory: 'chibirigor/little' } }],
                 },
                 {
-                  label: 'The Seasoned chibirigor（後編）',
+                  label: 'The Seasoned chibirigor',
+                  translations: { ja: 'The Seasoned chibirigor（後編）' },
                   items: [{ autogenerate: { directory: 'chibirigor/seasoned' } }],
                 },
-                { label: '用語集', link: '/chibirigor/glossary/' },
+                // Locale-aware now that an EN glossary exists: `slug` resolves
+                // to /chibirigor/glossary/ (EN) and /ja/chibirigor/glossary/ (JA).
+                { label: 'Glossary', translations: { ja: '用語集' }, slug: 'chibirigor/glossary' },
                 {
-                  label: '付録',
+                  label: 'Appendix',
+                  translations: { ja: '付録' },
                   items: [{ autogenerate: { directory: 'chibirigor/appendix', collapsed: true } }],
                 },
               ],
