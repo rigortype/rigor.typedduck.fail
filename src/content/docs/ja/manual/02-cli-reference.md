@@ -3,8 +3,8 @@ title: "CLIコマンドリファレンス"
 description: "rigortype/rigor docs/manual/02-cli-reference.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/02-cli-reference.md"
 sourcePath: "docs/manual/02-cli-reference.md"
-sourceSha: "bbb39ee5f7a39ebc362762f6f52334b02b0cf75f3b34ebf408749aafffcaf743"
-sourceCommit: "a3ab53dd2b8aa0a84fd7ddbd64339f316d8d12ec"
+sourceSha: "3c50d02386077ed5b711dc41bf4e86b66a4a4d500de18333e097df96f1bdb44b"
+sourceCommit: "fd78ee0a520ab7f2dfb40f13d33b4fbae93e2c69"
 sourceDate: "2026-06-16T07:17:39+09:00"
 translationStatus: "translated"
 sidebar:
@@ -196,6 +196,8 @@ rigor triage --format json | jq '[.selectors[] | select(.receiver == "String")]'
 
 ## `rigor coverage`
 
+> `--protection`ティアの価値提案とワークフローガイドについては、[型保護カバレッジ](../15-type-protection-coverage/)を参照してください。本セクションはフラグリファレンスです。
+
 型精度カバレッジ — 精密な型に解決する呼び出しサイトと`Dynamic`へフォールバックする呼び出しサイトの比率 — を報告します。「Rigorが実際にどれだけ推論しているか」の品質ゲートです。
 
 ```sh
@@ -210,6 +212,19 @@ rigor coverage [paths]
 
 ```sh
 rigor coverage --protection --mutation [paths]
+```
+
+`--protection --mutation`に`--with-tests`を加えると、それは**融合静的∪動的（fused static∪dynamic）**ビューになります。型チェッカーが捕捉*しない*破壊ごとに、あなたのテストスイートを実行して**テスト**がそれを捕捉するかを確かめます。各サイトはその後、`type-protected`（型チェッカーが捕捉した）、`test-protected`（型チェッカーが見逃したものをテストが捕捉した）、`unprotected`（どちらも捕捉しない——実行可能な「ここに型**または**テストを足せ」リスト）に分類され、レポートはより安価な欠落軸を指摘します。型でキルされたミュータントはスイートに到達しない（漸進的短絡）ので、コストは保護穴に比例します。`--format=json`は`mode`（`protection-fused`）、`type_killed`、`test_killed`、`unprotected`、`protected_ratio`、ファイルごとの行、そして`add_protection_here`を運びます;`--threshold`は融合比率でゲートします。
+
+`--test-command=CMD`はランナーフックです（デフォルトは`bundle exec rake`）。スイートはまずクリーンなコードでパスしなければならず、さもなければ実行は中断します——素のパス／フェイルのランナーへ向けてください（パスするスイートでも非ゼロ終了するカバレッジフロアがこれに引っかかります）。これはBundlerの環境を取り除いて実行されるので、Rigor自身がそれ自体のbundleの下で起動されたときでも、`bundle exec`コマンドはあなたのプロジェクトのbundleを解決します——環境ラッパーは不要です。コマンドは**シェルなし**で実行され（argvに分割されて直接実行される）、シェル構文は解釈されません——インラインの`BUNDLE_GEMFILE=… `プレフィックスを含めて。デフォルトでないGemfileには、`bundle config set --local gemfile PATH`で設定する（`.bundle/config`に永続化されます）か、コマンドを`bash -c '…'`で包んでください。
+
+`--include-dynamic`はオーバーレイを`Dynamic`レシーバー（型のない）サイトへ拡張します。そこではテストが唯一可能な保護です——マップを、Rigorが型チェックできるサイトだけでなく*すべての*ディスパッチサイトへと完成させます。そのようなサイトはどれも型生存者なので、スイートをはるかに多く実行します;明示的なオプトインです。
+
+`--limit=N`（`--seed=N`付き、デフォルトは`1`）は計測をファイルごとの`N`個のミューテーションの決定的なサンプルに上限し、大きなファイルでのコストを抑えます。ファイルごとの比率はその後推定値となり、`--format=json`のstdoutがクリーンに保たれるようstderrに注記されます。
+
+```sh
+rigor coverage --protection --mutation --with-tests \
+  --test-command "bundle exec rspec" --include-dynamic [paths]
 ```
 
 ## `rigor mcp`

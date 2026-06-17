@@ -3,8 +3,8 @@ title: "ADR-70 — Fused static∪dynamic protection coverage"
 description: "Imported from rigortype/rigor docs/adr/70-fused-protection-coverage.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/70-fused-protection-coverage.md"
 sourcePath: "docs/adr/70-fused-protection-coverage.md"
-sourceSha: "109de905498cdfa14cb980707ecd6cc4b3cd0ed4af1e74129787ac2a5e11a15f"
-sourceCommit: "dc480068ec01608aee724d37f4aab592256727a1"
+sourceSha: "2ea35412f9a1500e287cbf341e41bad8744b7453f69487e8c21e0b24bd846ff2"
+sourceCommit: "fd78ee0a520ab7f2dfb40f13d33b4fbae93e2c69"
 translationStatus: "translated"
 sidebar:
   order: 4070
@@ -54,8 +54,8 @@ ADR-63は2つの保護（protection）ティアを提供しており、どちら
 
 - **ポジティブ** — 真に新しい成果物。最も安価な修正の帰属を備えた静的∪動的の保護マップ（protection map）であり、Stryker／mutant／Sorbet-metricsのどのツールも提供していない。新しいサーフェスは最小限（既存の配管の上にフラグ1つ＋JSONキー）。漸進的短絡はコストを穴に比例させ続ける。
 - **ネガティブ** — カバレッジコマンドにテストランナー依存を持ち込む（ADR-62が意図的に避けたサーフェス）──ゆえにオプトインで、生存者スコープで、ADR-69のシームの背後に置く。WD2の知りえなさにより動的軸は静的軸より柔らかく、レポートはそれを教えなければならない。
-- **持ち越し** — ADR-69のシーム1と同時着地した。プロジェクト全体の手頃さとカバレッジベースのスイート選択はADR-46／ADR-71のフォローアップであって、本オーバーレイのv1ではない;`--with-tests`は変更ファイルのデフォルトを継承する（パスなし = gitで変更されたもののみ）。
-- **実プロジェクトで検証済み（2026-06-17、faraday／liquid／mail）**。テスト軸は本物の型生存者に対して発火し、偽陽性なし、ファイルはバイト単位で復元される;型／テスト／無保護の内訳は型のみのベースラインに対して厳密に整合する。2つの摩擦が表面化した: **bundler環境リーク**（`bundle exec exe/rigor`が`RUBYOPT`／`GEM_HOME`をスイートのサブプロセスへ漏らし→グリーンがレッドと読まれた）──**修正済み**、`TestSuiteOracle#shell_run`はいまやランナーを`Bundler.with_unbundled_env`で包む;そして、グリーンの前提条件がレッドと区別できない**パスでも非ゼロ終了**するケース（SimpleCovのカバレッジフロア）──エラーメッセージで明示した。**荷重を担う発見**: オーバーレイは噛みつけるサイトのフィルタを再利用するため、型軸が大多数を短絡し、テスト軸が参照されるのは具体サイトの生存者に対してだけである──融合マップの目玉セル（*テストだけに守られた`Dynamic`サイト*）は、**ADR-69のシーム2（`AllSites`）**なしには到達不能であり、検証はこれを「ADR-71とともに」からより早期へと優先順位を引き上げる。[`docs/notes/20260617-type-guided-mutation-testing-strategy.md`](../../notes/20260617-type-guided-mutation-testing-strategy/) §「実プロジェクトでの検証」を参照。
+- **持ち越し** — ADR-69のシーム1と同時着地した。`--with-tests`は変更ファイルのデフォルトを継承し（パスなし = gitで変更されたもののみ）、`--limit N`／`--seed`（2026-06-17に着地）はファイルごとのミューテーション数を決定的なサンプルへと抑える──コストのつまみ`--include-dynamic`が必要とするものであり、ADR-63の「CLIからは未使用」という持ち越しを解消する。プロジェクト全体の手頃さとカバレッジベースのスイート選択（ファイルをカバーするテストだけを走らせる）は、依然としてADR-46／ADR-71のフォローアップであって、本オーバーレイのv1ではない。
+- **実プロジェクトで検証済み（2026-06-17、faraday／liquid／mail）**。テスト軸は本物の型生存者に対して発火し、偽陽性なし、ファイルはバイト単位で復元される;型／テスト／無保護の内訳は型のみのベースラインに対して厳密に整合する。2つの摩擦が表面化した: **bundler環境リーク**（`bundle exec exe/rigor`が`RUBYOPT`／`GEM_HOME`をスイートのサブプロセスへ漏らし→グリーンがレッドと読まれた）──**修正済み**、`TestSuiteOracle#shell_run`はいまやランナーを`Bundler.with_unbundled_env`で包む;そして、グリーンの前提条件がレッドと区別できない**パスでも非ゼロ終了**するケース（SimpleCovのカバレッジフロア）──エラーメッセージで明示した。**荷重を担う発見**: オーバーレイは噛みつけるサイトのフィルタを再利用するため、型軸が大多数を短絡し、テスト軸が参照されるのは具体サイトの生存者に対してだけである──融合マップの目玉セル（*テストだけに守られた`Dynamic`サイト*）は、**ADR-69のシーム2（`AllSites`）**なしには到達不能であり、検証はこれを「ADR-71とともに」からより早期へと優先順位を引き上げる──そしてそれは`--include-dynamic`（ADR-69のシーム2）として**同日着地した**。liquidの`lexer.rb`で再検証した: このフラグはマップを76の噛みつけるサイト（型75／テスト1／無保護0）から115のディスパッチサイト（型75／**テスト保護38**／**無保護2** — `#raise`、`#scan_byte`）へ広げ、テスト保護された`Dynamic`セルと、噛みつけるビューでは示せなかった2つの本物のギャップを表面化させた。[`docs/notes/20260617-type-guided-mutation-testing-strategy.md`](../../notes/20260617-type-guided-mutation-testing-strategy/) §「実プロジェクトでの検証」を参照。
 
 ## 他のADRとの関係
 

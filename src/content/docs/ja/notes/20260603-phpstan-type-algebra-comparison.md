@@ -4,7 +4,7 @@ description: "Imported from rigortype/rigor docs/notes/20260603-phpstan-type-alg
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260603-phpstan-type-algebra-comparison.md"
 sourcePath: "docs/notes/20260603-phpstan-type-algebra-comparison.md"
 sourceSha: "a81fa8955438c792df2e11ace0e248f41cd8e37d951e36370a8e01bf49b31391"
-sourceCommit: "dc480068ec01608aee724d37f4aab592256727a1"
+sourceCommit: "fd78ee0a520ab7f2dfb40f13d33b4fbae93e2c69"
 sourceDate: "2026-06-14T00:35:49+09:00"
 sourceLanguage: "ja"
 sidebar:

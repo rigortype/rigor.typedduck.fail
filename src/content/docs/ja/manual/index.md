@@ -3,8 +3,8 @@ title: "Rigorユーザーマニュアル"
 description: "rigortype/rigor docs/manual/README.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/README.md"
 sourcePath: "docs/manual/README.md"
-sourceSha: "f715a080e133e79b88c1b2837e2cbd762a4f31de35de5f27ef1e8f1bbbc57cab"
-sourceCommit: "c64342708cd0effeb20265e84fe912ae22635159"
+sourceSha: "1773331dfd0a232c8fd338214ea4cea26b79ade4377bc35814188ba9d1a63ded"
+sourceCommit: "fd78ee0a520ab7f2dfb40f13d33b4fbae93e2c69"
 translationStatus: "translated"
 sidebar:
   order: 9000
@@ -33,6 +33,7 @@ Rigorのインストール、実行、設定、運用方法について説明し
 6. [ベースライン](06-baseline/)（baseline） — `.rigor-baseline.yml`、`rigor baseline`サブコマンド、`rigor triage`。
 7. [プラグインの使い方](07-plugins/) — `plugins:`設定キーによるフレームワーク・gemプラグインの有効化。プラグインごとのユーザードキュメントは[プラグインリファレンス](plugins/)にあります。
 8. [提供スキル](08-skills/) — オンボーディングとベースライン削減のための付属エージェントスキル。
+15. [型保護カバレッジ](15-type-protection-coverage/) — バグが*捕まる*かどうかを計測し、あなたの型とあなたのテストを1枚のセーフティネットに融合します（`rigor coverage --protection [--mutation --with-tests --include-dynamic]`）。
 
 ### 統合と運用
 
