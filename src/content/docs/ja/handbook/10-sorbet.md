@@ -3,14 +3,14 @@ title: "Sorbetとの共存"
 description: "rigortype/rigor docs/handbook/10-sorbet.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/10-sorbet.md"
 sourcePath: "docs/handbook/10-sorbet.md"
-sourceSha: "bf2adc6f3c2c4b40cd7c5c19f26a60b42b1f57cb6462fa8c9889327ef580f01d"
-sourceCommit: "106b93dd777b71aeef323dce1e4087c226c8ce37"
+sourceSha: "23d8cb5049f66aad2ebe5beb2ada0c1462bef45f8a3c77613a1840b90b41ded1"
+sourceCommit: "aec4ca7f5f87b1972dea8fecaaf5b62c8880a3af"
 translationStatus: "translated"
 sidebar:
   order: 1010
 ---
 
-プロジェクトがすでに[Sorbet](https://sorbet.org/)を使っているなら、[`rigor-sorbet`](../../plugins/rigor-sorbet/)プラグインを使えば、RigorがSorbetの既存の`sig`ブロック、RBIファイル、`T.let` / `T.cast` / `T.must` / `T.unsafe`アサーションを型ソースとして読み取れます。`rigor check`を`srb tc`と並行して実行するために、何もRBSに書き直す必要はありません。
+プロジェクトがすでに[Sorbet](https://sorbet.org/)を使っているなら、[`rigor-sorbet`](../../manual/plugins/rigor-sorbet/)プラグインを使えば、RigorがSorbetの既存の`sig`ブロック、RBIファイル、`T.let` / `T.cast` / `T.must` / `T.unsafe`アサーションを型ソースとして読み取れます。`rigor check`を`srb tc`と並行して実行するために、何もRBSに書き直す必要はありません。
 
 この章はSorbetを使用しているプロジェクトから来たユーザー向けです。Sorbetを使ったことがなければ、スキップしてかまいません。第1〜9章のコアハンドブックがRigorのネイティブなRBSベースのパスをカバーしています。
 

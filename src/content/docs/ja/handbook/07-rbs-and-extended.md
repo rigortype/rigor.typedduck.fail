@@ -255,7 +255,7 @@ plugins:
 - 裸のトップレベル`def`は上流rbs-inlineを通じてRBS出力を生成しません。アノテーションを有効にするには、メソッド定義をクラスまたはモジュールでラップしてください。
 - rbs-inlineのパース失敗は`source-rbs-synthesis-failed` `:info`診断として表面化し、そのファイルはインラインRBSの貢献なしにフォールバックして解析が続行されます。
 
-完全なプラグインドキュメント、設定オプション（ブラウザプレイグラウンドが使用する`require_magic_comment: false`ホストコンテキストオーバーライドを含む）、キャッシュの契約については[`plugins/rigor-rbs-inline/README.md`](../../plugins/rigor-rbs-inline/)を参照してください。
+完全なプラグインドキュメント、設定オプション（ブラウザプレイグラウンドが使用する`require_magic_comment: false`ホストコンテキストオーバーライドを含む）、キャッシュの契約については[`plugins/rigor-rbs-inline/README.md`](../../manual/plugins/rigor-rbs-inline/)を参照してください。
 
 ## `untyped`へのフォールバック
 

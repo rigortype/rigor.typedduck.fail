@@ -50,6 +50,13 @@ const sectionOrder = new Map([
 
 const docsRoot = await findDocsRoot();
 const docsRootName = path.basename(docsRoot);
+// Slugs of the published plugin reference pages (`docs/manual/plugins/<slug>.md`
+// → route `/manual/plugins/<slug>/`). Upstream prose links to a plugin's source
+// directory with `../../plugins/<slug>/`, which escapes the docs tree and has no
+// on-site route; when a slug appears here, the link rewriter retargets it to the
+// on-site manual reference page instead of GitHub. Derived from the directory so
+// new/removed reference pages are picked up automatically on every sync.
+const pluginReferenceSlugs = await collectPluginReferenceSlugs();
 const sourceCommit = await readUpstreamCommit();
 await mkdir(outputRoot, { recursive: true });
 // outputRoot is the shared docs content root, so we can't wipe it wholesale —
@@ -438,19 +445,54 @@ function removeFirstHeading(body, index) {
 }
 
 function rewriteMarkdownLinks(body, relativePath) {
-  return body.replace(/\]\((?![a-z][a-z+.-]*:|\/|#)([^)\s]+?\.md)(#[^)]+)?\)/gi, (_match, target, hash = '') => {
+  // Match every relative Markdown link target (scheme, absolute, and pure-anchor
+  // links are excluded by the lookahead). We match non-`.md` targets too so we
+  // can reach links into the upstream `plugins/` and `examples/` trees, which
+  // have no on-site route — but the rewriting is deliberately scoped so that
+  // every OTHER link renders byte-for-byte as before. That keeps the body hash
+  // (and thus translation-drift detection) stable for pages this fix is not
+  // about; only pages that actually link a plugin/example change.
+  return body.replace(/\]\((?![a-z][a-z+.-]*:|\/|#)([^)\s]+?)(#[^)]+)?\)/gi, (match, target, hash = '') => {
     const sourceDirectory = path.posix.dirname(relativePath.split(path.sep).join('/'));
     const normalizedTarget = target.replace(/\\/g, '/');
     const resolvedDocsPath = path.posix.normalize(path.posix.join(sourceDirectory, normalizedTarget));
 
-    if (resolvedDocsPath.startsWith('../')) {
-      const sourceRootPath = path.posix.normalize(path.posix.join(docsRootName, sourceDirectory, normalizedTarget));
-      return `](${githubBlobUrl(sourceRootPath)}${hash})`;
+    // Stays inside docs/: only `.md` targets become on-site routes (unchanged).
+    // Non-`.md` in-docs links (images, ci-template `.yml`, bare dir links) are
+    // left untouched, exactly as before.
+    if (!resolvedDocsPath.startsWith('../')) {
+      if (!/\.md$/i.test(resolvedDocsPath)) return match;
+      const currentOutputPath = toOutputPath(relativePath);
+      const targetOutputPath = toOutputPath(resolvedDocsPath);
+      return `](${relativeRouteLink(currentOutputPath, targetOutputPath)}${hash})`;
     }
 
-    const currentOutputPath = toOutputPath(relativePath);
-    const targetOutputPath = toOutputPath(resolvedDocsPath);
-    return `](${relativeRouteLink(currentOutputPath, targetOutputPath)}${hash})`;
+    // Escapes docs/: a repo-root path. The published plugin reference pages
+    // (`/manual/plugins/<slug>/`) and plugin/example *sources* have no on-site
+    // route, so links into the upstream `plugins/` and `examples/` trees are
+    // redirected: a bare `plugins/<slug>` directory with a reference page → that
+    // on-site page; anything else under those two trees → the upstream GitHub
+    // repo. Other repo-root references (lib/, sig/, spec/, references/, …) keep
+    // the historical behavior — `.md` → GitHub, anything else passes through
+    // untouched — so this change is scoped to the plugin-link breakage.
+    const repoRelative = path.posix.normalize(path.posix.join(docsRootName, sourceDirectory, normalizedTarget));
+    if (/^(plugins|examples)(\/|$)/.test(repoRelative)) {
+      // `normalize` keeps a trailing slash, so allow it: `plugins/<slug>` and
+      // `plugins/<slug>/` both denote the plugin's directory.
+      const pluginDir = /^plugins\/([^/.]+)\/?$/.exec(repoRelative)?.[1];
+      const pluginSlug = pluginDir ? normalizePathSegment(pluginDir) : null;
+      if (pluginSlug && pluginReferenceSlugs.has(pluginSlug)) {
+        const currentOutputPath = toOutputPath(relativePath);
+        return `](${relativeRouteLink(currentOutputPath, `manual/plugins/${pluginSlug}.md`)}${hash})`;
+      }
+      return `](${githubSourceUrl(repoRelative, normalizedTarget.endsWith('/'))}${hash})`;
+    }
+
+    // Historical behavior for every other repo-root escape.
+    if (/\.md$/i.test(normalizedTarget)) {
+      return `](${githubSourceUrl(repoRelative)}${hash})`;
+    }
+    return match;
   });
 }
 
@@ -547,8 +589,30 @@ function titleFromFile(relativePath) {
     .join(' ');
 }
 
-function githubBlobUrl(sourceRootRelativePath) {
-  return `https://github.com/rigortype/rigor/blob/master/${sourceRootRelativePath}`;
+function githubSourceUrl(sourceRootRelativePath, isDirectory = false) {
+  // `tree` for directories, `blob` for files. We infer directory-ness from a
+  // trailing slash on the authored target; GitHub redirects blob↔tree when the
+  // guess is wrong, so a missing trailing slash on a directory still resolves.
+  const kind = isDirectory ? 'tree' : 'blob';
+  return `https://github.com/rigortype/rigor/${kind}/master/${sourceRootRelativePath}`;
+}
+
+async function collectPluginReferenceSlugs() {
+  const dir = path.join(docsRoot, 'manual', 'plugins');
+  const slugs = new Set();
+  let entries;
+  try {
+    entries = await readdir(dir, { withFileTypes: true });
+  } catch (error) {
+    if (error.code === 'ENOENT') return slugs;
+    throw error;
+  }
+  for (const entry of entries) {
+    if (!entry.isFile() || !entry.name.toLowerCase().endsWith('.md')) continue;
+    if (entry.name.toLowerCase() === 'readme.md') continue;
+    slugs.add(normalizePathSegment(entry.name).replace(/\.md$/i, ''));
+  }
+  return slugs;
 }
 
 function toOutputSegments(relativePath) {

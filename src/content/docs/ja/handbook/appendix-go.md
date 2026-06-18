@@ -85,7 +85,7 @@ Goは`interface{}`の値を型アサーションとtype switchでナローイン
 | `if x != nil` | `if x`（`nil`を剥がす）、または`unless x.nil?` |
 | `v, ok := x.(string)`（comma-okアサーション） | `if`内での`x.is_a?(String)`ナローイング |
 | `switch v := x.(type) { case string: … }` | `case x; in String => v` |
-| `x.(T)`（アサーション、失敗でpanic） | （panicするアサーションなし） — `is_a?`ガード、または[`rigor-sorbet`](../../plugins/rigor-sorbet/)経由の`T.cast` |
+| `x.(T)`（アサーション、失敗でpanic） | （panicするアサーションなし） — `is_a?`ガード、または[`rigor-sorbet`](../../manual/plugins/rigor-sorbet/)経由の`T.cast` |
 | `bool`を返すユーザー関数 | `%a{rigor:v1:predicate-if-true: x is Foo}`ディレクティブ |
 
 Goのtype switchは*網羅的ではない* — caseを省略して`default`に落とすことができる — そしてRigorの`case`もそうだ。両者とも、証明できることを報告するのであり、あなたが忘れたことを報告するのではない。（Rigorが価値を加えるのはその双対だ: `case`/`in`の節が、先行する節がすでにその型をカバーしているために*決して*マッチしえないなら、[ADR-47](../../adr/47-narrowing-driven-clause-reachability/)の`flow.unreachable-clause`ルールがそう告げる。）

@@ -3,8 +3,8 @@ title: "Rigor Roadmap"
 description: "rigortype/rigor docs/ROADMAP.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/ROADMAP.md"
 sourcePath: "docs/ROADMAP.md"
-sourceSha: "923fafb3e41cc96cfdeaadac94aef5a1616888c37e438293cedb793e22d92101"
-sourceCommit: "dd7f6dc8daf0b115fb4f9e44f67eb21008e1456d"
+sourceSha: "fb7465b94ec27fd92eb256b8ee2073d1eadc7b9f011b1567aa475c3506805b15"
+sourceCommit: "aec4ca7f5f87b1972dea8fecaaf5b62c8880a3af"
 sourceDate: "2026-06-13T19:23:25+09:00"
 translationStatus: "translated"
 sidebar:
@@ -300,17 +300,17 @@ v0.1.17パフォーマンスサイクル。出荷済みの詳細は`CHANGELOG.md
 
 **すでに着地（v0.1.4 → v0.1.6）:**
 
-- **Tier 1**: [`rigor-rails-routes`](../plugins/rigor-rails-routes/)（`:helper_table`）、[`rigor-rails-i18n`](../plugins/rigor-rails-i18n/)、[`rigor-actionmailer`](../plugins/rigor-actionmailer/)、[`rigor-activejob`](../plugins/rigor-activejob/)。
-- **Tier 2**: [`rigor-activerecord`](../plugins/rigor-activerecord/)（`:model_index`;アソシエーション / enum / スコープ / バリデーション / コールバック）;[`rigor-actionpack`](../plugins/rigor-actionpack/)（ルート / フィルタ / レンダー / ストロングパラメータ）;[`rigor-factorybot`](../plugins/rigor-factorybot/)（フェーズ1 (a)+（c））。
-- **Tier 3**: [`rigor-pundit`](../plugins/rigor-pundit/)、[`rigor-sidekiq`](../plugins/rigor-sidekiq/)、[`rigor-rspec`](../plugins/rigor-rspec/)（Pillar 2スライス1+2+3）、[`rigor-actioncable`](../plugins/rigor-actioncable/)、[`rigor-activestorage`](../plugins/rigor-activestorage/)（v0.1.5）;[`rigor-graphql`](../plugins/rigor-graphql/)（v0.1.6 — Tier 3D、スライス1+2a〜2d、4つのクロスプラグインファクト）;[`rigor-minitest`](../plugins/rigor-minitest/)、[`rigor-rspec-rails`](../plugins/rigor-rspec-rails/)、[`rigor-shoulda-matchers`](../plugins/rigor-shoulda-matchers/)（v0.1.6）。
-- **オプトインバンドル**: [`rigor-activesupport-core-ext`](../plugins/rigor-activesupport-core-ext/)（オプトインRBSバンドル）;[`rigor-typescript-utility-types`](../plugins/rigor-typescript-utility-types/)（ADR-13スライス6）。
-- **メタgem**: [`rigor-rails`](../plugins/rigor-rails/)（v0.1.6スキャフォールド;Tier 1+2の`add_dependency`宣言;`.rigor.yml`でのアクティベーションはプラグインごとのまま）。
-- **ADR-16基板消費者（v0.1.5）**: [`rigor-sinatra`](../plugins/rigor-sinatra/)（Tier A）、[`rigor-dry-struct`](../plugins/rigor-dry-struct/)（Tier C;v0.2.0 ADR-18精度向上）、[`rigor-devise`](../plugins/rigor-devise/)（Tier B）。
-- **dry-rb基礎（v0.1.6）**: [`rigor-dry-types`](../plugins/rigor-dry-types/)（`:dry_type_aliases` — 正準 + ネスト + ユーザー著作コンポジション + 推移的参照）;[`rigor-dry-schema`](../plugins/rigor-dry-schema/)（`:dry_schema_table` — 認識 + `each`リストスロット）;[`rigor-dry-validation`](../plugins/rigor-dry-validation/)（`:dry_validation_contracts` + `Contract#call → Result`のRBSオーバーレイ）。`rigor-dry-struct` v0.2.0はADR-18の`returns_from_arg:`経由で`:dry_type_aliases`を消費。
+- **Tier 1**: [`rigor-rails-routes`](../manual/plugins/rigor-rails-routes/)（`:helper_table`）、[`rigor-rails-i18n`](../manual/plugins/rigor-rails-i18n/)、[`rigor-actionmailer`](../manual/plugins/rigor-actionmailer/)、[`rigor-activejob`](../manual/plugins/rigor-activejob/)。
+- **Tier 2**: [`rigor-activerecord`](../manual/plugins/rigor-activerecord/)（`:model_index`;アソシエーション / enum / スコープ / バリデーション / コールバック）;[`rigor-actionpack`](../manual/plugins/rigor-actionpack/)（ルート / フィルタ / レンダー / ストロングパラメータ）;[`rigor-factorybot`](../manual/plugins/rigor-factorybot/)（フェーズ1 (a)+（c））。
+- **Tier 3**: [`rigor-pundit`](../manual/plugins/rigor-pundit/)、[`rigor-sidekiq`](../manual/plugins/rigor-sidekiq/)、[`rigor-rspec`](../manual/plugins/rigor-rspec/)（Pillar 2スライス1+2+3）、[`rigor-actioncable`](../manual/plugins/rigor-actioncable/)、[`rigor-activestorage`](../manual/plugins/rigor-activestorage/)（v0.1.5）;[`rigor-graphql`](../manual/plugins/rigor-graphql/)（v0.1.6 — Tier 3D、スライス1+2a〜2d、4つのクロスプラグインファクト）;[`rigor-minitest`](../manual/plugins/rigor-minitest/)、[`rigor-rspec-rails`](../manual/plugins/rigor-rspec-rails/)、[`rigor-shoulda-matchers`](../manual/plugins/rigor-shoulda-matchers/)（v0.1.6）。
+- **オプトインバンドル**: [`rigor-activesupport-core-ext`](../manual/plugins/rigor-activesupport-core-ext/)（オプトインRBSバンドル）;[`rigor-typescript-utility-types`](../manual/plugins/rigor-typescript-utility-types/)（ADR-13スライス6）。
+- **メタgem**: [`rigor-rails`](../manual/plugins/rigor-rails/)（v0.1.6スキャフォールド;Tier 1+2の`add_dependency`宣言;`.rigor.yml`でのアクティベーションはプラグインごとのまま）。
+- **ADR-16基板消費者（v0.1.5）**: [`rigor-sinatra`](../manual/plugins/rigor-sinatra/)（Tier A）、[`rigor-dry-struct`](../manual/plugins/rigor-dry-struct/)（Tier C;v0.2.0 ADR-18精度向上）、[`rigor-devise`](../manual/plugins/rigor-devise/)（Tier B）。
+- **dry-rb基礎（v0.1.6）**: [`rigor-dry-types`](../manual/plugins/rigor-dry-types/)（`:dry_type_aliases` — 正準 + ネスト + ユーザー著作コンポジション + 推移的参照）;[`rigor-dry-schema`](../manual/plugins/rigor-dry-schema/)（`:dry_schema_table` — 認識 + `each`リストスロット）;[`rigor-dry-validation`](../manual/plugins/rigor-dry-validation/)（`:dry_validation_contracts` + `Contract#call → Result`のRBSオーバーレイ）。`rigor-dry-struct` v0.2.0はADR-18の`returns_from_arg:`経由で`:dry_type_aliases`を消費。
 
 **Railsエコシステム以外（v0.1.9でランド済み）:**
 
-- [`rigor-hanami`](../plugins/rigor-hanami/) — Hanami::ActionのためのADR-28 provide-and-check。プロトコル: `app/actions/**/*.rb`内での`#handle(Hanami::Action::Request, Hanami::Action::Response) → void`。カスタムスレイアウトのための`action_path:`で設定可能。
+- [`rigor-hanami`](../manual/plugins/rigor-hanami/) — Hanami::ActionのためのADR-28 provide-and-check。プロトコル: `app/actions/**/*.rb`内での`#handle(Hanami::Action::Request, Hanami::Action::Response) → void`。カスタムスレイアウトのための`action_path:`で設定可能。
 
 **保留中のTier 3（特化型、具体的なユーザー需要があれば作成）:**
 

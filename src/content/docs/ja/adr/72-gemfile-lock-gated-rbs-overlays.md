@@ -3,14 +3,14 @@ title: "ADR-72 — Gemfile.lock-gated bundled RBS overlays"
 description: "Imported from rigortype/rigor docs/adr/72-gemfile-lock-gated-rbs-overlays.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/72-gemfile-lock-gated-rbs-overlays.md"
 sourcePath: "docs/adr/72-gemfile-lock-gated-rbs-overlays.md"
-sourceSha: "ae0a1693946564504f3a6216124347fc8bcf0ebf667e165017dccd2c8665cfec"
+sourceSha: "d387fe5575242def0b90a90c07740106a997a2ca2096ee803a91ceee4af156e6"
 sourceCommit: "aec4ca7f5f87b1972dea8fecaaf5b62c8880a3af"
 translationStatus: "translated"
 sidebar:
   order: 4072
 ---
 
-ステータス: **Accepted — 2026-06-17に実装**。プロジェクトの`Gemfile.lock`にgemがロックされているのに、どの解決経路を通じてもRBSを同梱していない（`:missing`カバレッジクラス）とき、Rigorはそのコア型拡張向けに、バンドルされたgem単位のRBSオーバーレイ（overlay）を自動ロードします。これにより、Railsプロジェクトは`3.minutes` / `"x".underscore` / `hash.symbolize_keys`に対する系統的な偽の`call.undefined-method`を見なくなり、一方そのgemを持たないプロジェクトは依然として本物の診断を見ます。ActiveSupportが最初の（v1ではこれのみ）バンドルオーバーレイです。偽陽性に安全な方向への精度加算的（precision-additive）な変更です。オーバーレイは診断を*取り除く*ことしかできず、しかもgemが実際にロードされている箇所でのみ（つまりそのメソッドがランタイムで実在する箇所でのみ）行います。オプトインの[`rigor-activesupport-core-ext`](../../plugins/rigor-activesupport-core-ext/)プラグインの双子であり、そのプラグインがロードされているときは身を引きます。
+ステータス: **Accepted — 2026-06-17に実装**。プロジェクトの`Gemfile.lock`にgemがロックされているのに、どの解決経路を通じてもRBSを同梱していない（`:missing`カバレッジクラス）とき、Rigorはそのコア型拡張向けに、バンドルされたgem単位のRBSオーバーレイ（overlay）を自動ロードします。これにより、Railsプロジェクトは`3.minutes` / `"x".underscore` / `hash.symbolize_keys`に対する系統的な偽の`call.undefined-method`を見なくなり、一方そのgemを持たないプロジェクトは依然として本物の診断を見ます。ActiveSupportが最初の（v1ではこれのみ）バンドルオーバーレイです。偽陽性に安全な方向への精度加算的（precision-additive）な変更です。オーバーレイは診断を*取り除く*ことしかできず、しかもgemが実際にロードされている箇所でのみ（つまりそのメソッドがランタイムで実在する箇所でのみ）行います。オプトインの[`rigor-activesupport-core-ext`](../../manual/plugins/rigor-activesupport-core-ext/)プラグインの双子であり、そのプラグインがロードされているときは身を引きます。
 
 根拠: 2026-06-17の`evidence_tier`校正フィードバック。`evidence_tier == "high"`を真陽性の下限として信頼する下流のコンシューマー（ADR-65）が、Mastodon上の高ティアの`call.undefined-method`診断**512件中171件**（約33%）を「生きた潜在バグ」へと自動昇格させました——そのすべてがActiveSupportのcore-ext呼び出しサイト（`undefined method 'minutes' for 3`など）であり、ランタイムでは実在する呼び出し可能なメソッドで、ActiveSupportのRBSが読み込まれていなかったためにのみ偽でした。
 

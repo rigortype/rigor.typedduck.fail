@@ -3,8 +3,8 @@ title: "ADR-20: 軽量高階多相性（Lightweight HKT）"
 description: "rigortype/rigor docs/adr/20-lightweight-hkt.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/20-lightweight-hkt.md"
 sourcePath: "docs/adr/20-lightweight-hkt.md"
-sourceSha: "2d4090c78d66c52bdca8e487f87f3eba87dbdbf5e3ec4dab0907c410dcad72e5"
-sourceCommit: "a5d648b126d5ed7b1e04a16a87927bca7883e069"
+sourceSha: "7ac6e2dc798b836c0f4a1a50a1dd624dc4549690d6a6614d476f2cad659cd1f9"
+sourceCommit: "aec4ca7f5f87b1972dea8fecaaf5b62c8880a3af"
 translationStatus: "translated"
 sidebar:
   order: 4020

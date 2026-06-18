@@ -1,8 +1,8 @@
 ---
 title: "lib/rigor internal architecture re-review — a structural audit before the official release"
 description: "English translation of a structural audit of lib/rigor's internal architecture, on role clarity and boilerplate/call-overhead reduction ahead of the official release."
-sourceSha: "28406574e941ec0050e6c42a67923f820b00b7180b9d3400059506ebfe2050a4"
-sourceCommit: "18ef11c9f393b495cd9a6ed7277846069c08c516"
+sourceSha: "e0f649e14de5aaa9e3ae9b7f4dd4542b1726d33c0b61b4b278c8a6080c6e3a6e"
+sourceCommit: "aec4ca7f5f87b1972dea8fecaaf5b62c8880a3af"
 translationStatus: "translated"
 ---
 
@@ -145,7 +145,7 @@ Decide it in an ADR as a boundary issue, not a performance one. → file ADR-53.
 
 ## Finding C — Public-API boundary violations to close before the v1.0 freeze
 
-[rigor-sorbet](../../plugins/rigor-sorbet/lib/rigor/plugin/sorbet.rb) `:585` calls
+[rigor-sorbet](https://github.com/rigortype/rigor/blob/master/plugins/rigor-sorbet/lib/rigor/plugin/sorbet.rb) `:585` calls
 `Rigor::Inference::Acceptance.accepts` directly. `public-api.md` declares `Inference::*`
 internal, so this must be resolved before the ADR-50 freeze. Since `Type#accepts` is the
 public surface, rewriting to `asserted.accepts(inferred)` is a near-one-line fix

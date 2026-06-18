@@ -74,7 +74,7 @@ def length(s)            # s : String?  (RBS-declared)
 end
 ```
 
-捨てるべき反射は`unwrap()`だ。Rustでは、`Some`だと*分かっている*ときに`.unwrap()` / `.expect()`に手を伸ばす。Rigorにはチェッカーを欺くソース内アサーションがない。等価なのは`nil?`ガード（アサートではなくチェック）か、[`rigor-sorbet`](../../plugins/rigor-sorbet/)プラグイン経由の`T.must`だ（[第10章](../10-sorbet/)を参照）。
+捨てるべき反射は`unwrap()`だ。Rustでは、`Some`だと*分かっている*ときに`.unwrap()` / `.expect()`に手を伸ばす。Rigorにはチェッカーを欺くソース内アサーションがない。等価なのは`nil?`ガード（アサートではなくチェック）か、[`rigor-sorbet`](../../manual/plugins/rigor-sorbet/)プラグイン経由の`T.must`だ（[第10章](../10-sorbet/)を参照）。
 
 **`Result<T, E>` ↔ 例外**。ここでモデルは分岐する。Rubyはタグ付きの値を返すのではなく*raise*することで失敗を伝えるので、単一の`Result`キャリアは存在しない。`Result<T, E>`を返すRust関数は、`T`を返しエラーパスでraiseするRubyメソッドになる。
 

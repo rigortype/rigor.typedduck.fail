@@ -3,8 +3,8 @@ title: "ADR-12 — dry-rbプラグインパッケージング"
 description: "rigortype/rigor docs/adr/12-dry-rb-packaging.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/12-dry-rb-packaging.md"
 sourcePath: "docs/adr/12-dry-rb-packaging.md"
-sourceSha: "0476477d16cb616210ebdbc72642815e5e8793aa1210a17bbec0d03f49c5ba7c"
-sourceCommit: "a5d648b126d5ed7b1e04a16a87927bca7883e069"
+sourceSha: "edf3f126b243a0ec4b154c32a016ab020d2285d997139835c0bd0966afda07e7"
+sourceCommit: "aec4ca7f5f87b1972dea8fecaaf5b62c8880a3af"
 sourceDate: "2026-05-19T21:19:58+09:00"
 translationStatus: "translated"
 sidebar:
@@ -19,7 +19,7 @@ Rigorのdry-rbアダプタプラグインのパッケージング形態を決定
 
 dry-rb gemファミリーは相補的なgemのツリーです: `dry-types`、`dry-struct`、`dry-validation`、`dry-monads`、`dry-schema`、`dry-effects`、`dry-events`、`dry-system`、`dry-files`、その他いくつか。これらはイディオム（コンストラクタスタイルのクラス、structベースの属性リスト、Monadライクな戻り値エンベロープ）を共有しますが、各gemは独自のDSL面を公開します。サーベイ[`20260509-dry-plugins-roadmap.md`](../../design/20260509-dry-plugins-roadmap/)は、静的解析で重要となるgem、それらのgem間の依存関係、各gemが公開する型形成面の拘束的なインベントリです。
 
-[`rigor-dry-struct`](../../plugins/rigor-dry-struct/)はv0.1.5で最初のdry-*プラグインとして出荷され、[ADR-16](../16-macro-expansion/)のTier C（heredocテンプレート）基板を実践しました。`rigor-dry-types`、`rigor-dry-validation`、`rigor-dry-monads`の形態は`rigor-dry-struct`と十分に似ているため、次のプラグインが出荷される前にパッケージングの問い —**1つのメガgemか？ gemごとか？ 中粒度バンドルか？ メタアンブレラか？**— に明示的に答える必要があります。
+[`rigor-dry-struct`](../../manual/plugins/rigor-dry-struct/)はv0.1.5で最初のdry-*プラグインとして出荷され、[ADR-16](../16-macro-expansion/)のTier C（heredocテンプレート）基板を実践しました。`rigor-dry-types`、`rigor-dry-validation`、`rigor-dry-monads`の形態は`rigor-dry-struct`と十分に似ているため、次のプラグインが出荷される前にパッケージングの問い —**1つのメガgemか？ gemごとか？ 中粒度バンドルか？ メタアンブレラか？**— に明示的に答える必要があります。
 
 同じ問いはRailsプラグインファミリーについて[`docs/design/20260508-rails-plugins-roadmap.md`](../../design/20260508-rails-plugins-roadmap/)で答えられました: `plugins/rigor-<id>/`の下にステージングされたgemごとのプラグイン、各プラグインの契約（contract）が安定したら`git subtree split`で抽出、将来の`rigor-rails`メタgemがTier 1+2プラグインをgem依存として列挙する。同じパターンがdry-rbにも有効です。
 

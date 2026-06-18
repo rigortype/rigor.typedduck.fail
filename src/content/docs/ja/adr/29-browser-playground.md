@@ -3,8 +3,8 @@ title: "ADR-29 — ブラウザプレイグラウンド"
 description: "rigortype/rigor docs/adr/29-browser-playground.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/29-browser-playground.md"
 sourcePath: "docs/adr/29-browser-playground.md"
-sourceSha: "5b01606508e7c2f6be68b661610ca8689395e6c958a955fb588f94b81fff09e0"
-sourceCommit: "a3ab53dd2b8aa0a84fd7ddbd64339f316d8d12ec"
+sourceSha: "5b6398eb99e598d6ea2e2813af3838c8c21e1597104ce03b1fc3b955c95aa3e6"
+sourceCommit: "aec4ca7f5f87b1972dea8fecaaf5b62c8880a3af"
 translationStatus: "translated"
 sidebar:
   order: 4029
@@ -190,10 +190,10 @@ severity_profile: strict
    - **ステータス: 実質的に達成**。`ruby/ruby.wasm`はRuby 4.0ビルド（`ruby-4.0.0`アーティファクト;`@ruby/4.0-wasm-wasi` npmパッケージ）を出荷している。唯一の留保は文言だ: `ruby.wasm`は慣習として「stable」リリースではなく日付付きの*プレリリース*タグの下で公開している——だがこれらは`try.ruby-lang.org`が本番で出荷しているのと同じビルドなので、趣旨（ナイトリー/実験的ではない、CDNからインストール可能）は成立する。
 
 2. **`prism`と`rbs`のWASMパッケージが利用可能である**。両方のgemが公式WASMビルドを提供している必要がある（ruby.wasmランタイムにバンドルされているか、別途ロード可能な`.wasm`モジュールとして）、かつWASMターゲット下で自身のテストスイートをパスする。
-   - **ステータス: 達成——フルビルドが2026-06-14にグリーン**。`prism`はCRuby自身のパーサであり、インタープリタwasmの内部に同梱される。WD8の`rbwasm`ソースからのビルドは、`prism`、`rbs`、**および**`psych`をwasi-sdk-24.0に対してリンカーエラーゼロでコンパイルして静的リンクし、69.9 MBの`rigor-playground.wasm`を生成する。最初のスパイクは1つの配線ギャップに当たった——`libyaml.a`がビルドされ`--with-libyaml-dir`が渡されたにもかかわらず、`psych`の`-lyaml`が最終的な静的リンクに到達しなかった——が、`ruby_wasm`がwasi-vfs向けにすでに行っているのと同じやり方で`libyaml.a`をcrossrubyのXLDFLAGSに強制する限定的なビルドパッチ（[`wasm/build_patches/libyaml_link.rb`](../../plugins/rigor-playground/wasm/build_patches/libyaml_link.rb)）で修正された。この条件が問題にしていたC拡張のリスクは完全に解消された;残るのはWD6 ③（サンドボックス下でのランタイムの正しさ）である。
+   - **ステータス: 達成——フルビルドが2026-06-14にグリーン**。`prism`はCRuby自身のパーサであり、インタープリタwasmの内部に同梱される。WD8の`rbwasm`ソースからのビルドは、`prism`、`rbs`、**および**`psych`をwasi-sdk-24.0に対してリンカーエラーゼロでコンパイルして静的リンクし、69.9 MBの`rigor-playground.wasm`を生成する。最初のスパイクは1つの配線ギャップに当たった——`libyaml.a`がビルドされ`--with-libyaml-dir`が渡されたにもかかわらず、`psych`の`-lyaml`が最終的な静的リンクに到達しなかった——が、`ruby_wasm`がwasi-vfs向けにすでに行っているのと同じやり方で`libyaml.a`をcrossrubyのXLDFLAGSに強制する限定的なビルドパッチ（[`wasm/build_patches/libyaml_link.rb`](https://github.com/rigortype/rigor/blob/master/plugins/rigor-playground/wasm/build_patches/libyaml_link.rb)）で修正された。この条件が問題にしていたC拡張のリスクは完全に解消された;残るのはWD6 ③（サンドボックス下でのランタイムの正しさ）である。
 
 3. **RigorのテストスイートがWASM下でパスする**。ruby.wasmランタイム内で（`flock`とフォークベースのワーカープールをスタブして）`make test`を実行するCIジョブが、テスト数のリグレッションなしにパスする必要がある。このゲートは、WASMサンドボックスにないPOSIX意味論を暗黙に仮定するエンジンコードを捕捉する。
-   - **ステータス: プレイグラウンドについては達成——ランタイムを2026-06-14に検証**。アダプタは`@ruby/wasm-wasi` VM内でエンドツーエンドに動作し、**Rackバックエンドとバイト単位で同一の診断**（`nil.upcase`のundefined-method*と*`rigor-rbs-inline`のargument-type-mismatch）を出力する。これは`rake smoke`（[`wasm/smoke.mjs`](../../plugins/rigor-playground/wasm/smoke.mjs)。ブラウザの`DefaultRubyVM` WASIを再現する）によってヘッドレスに確認された。4つのwasmランタイム統合修正が必要であり、いずれも適用済みだ: （a）バンドル内の`gem "js"`——`DefaultRubyVM`がインスタンス化に必要とする;（b）アダプタ内の`require "rubygems"`——ruby.wasmはrubygems無効で動作し、これがないとRBSのローダーが静かに**空の**型ユニバース（0クラス → 何もフラグされない）を構築する;今や334以上のクラスがロードされる;(c) `bundler/setup`（無効化されたrubygemsパスに当たる）ではなく`require "/bundle/setup"`（ruby_wasmのロードパスセットアップ）;（d）書き込み可能な作業ディレクトリ——WASIはパックされたgem / configツリーを読み取り専用でマウントするので、アダプタはcwd相対のキャッシュ + リクエストごとのバッファのために`/work`（ブラウザVMのインメモリの`/`;Node下では明示的なpreopen）をステージングする。`flock` / forkの懸念は予測どおりに保たれた（シム化 / 自己劣化）。wasm下でのフル`make test`はより大きな別の課題のままだが、プレイグラウンドのランタイムの正しさは確立された。
+   - **ステータス: プレイグラウンドについては達成——ランタイムを2026-06-14に検証**。アダプタは`@ruby/wasm-wasi` VM内でエンドツーエンドに動作し、**Rackバックエンドとバイト単位で同一の診断**（`nil.upcase`のundefined-method*と*`rigor-rbs-inline`のargument-type-mismatch）を出力する。これは`rake smoke`（[`wasm/smoke.mjs`](https://github.com/rigortype/rigor/blob/master/plugins/rigor-playground/wasm/smoke.mjs)。ブラウザの`DefaultRubyVM` WASIを再現する）によってヘッドレスに確認された。4つのwasmランタイム統合修正が必要であり、いずれも適用済みだ: （a）バンドル内の`gem "js"`——`DefaultRubyVM`がインスタンス化に必要とする;（b）アダプタ内の`require "rubygems"`——ruby.wasmはrubygems無効で動作し、これがないとRBSのローダーが静かに**空の**型ユニバース（0クラス → 何もフラグされない）を構築する;今や334以上のクラスがロードされる;(c) `bundler/setup`（無効化されたrubygemsパスに当たる）ではなく`require "/bundle/setup"`（ruby_wasmのロードパスセットアップ）;（d）書き込み可能な作業ディレクトリ——WASIはパックされたgem / configツリーを読み取り専用でマウントするので、アダプタはcwd相対のキャッシュ + リクエストごとのバッファのために`/work`（ブラウザVMのインメモリの`/`;Node下では明示的なpreopen）をステージングする。`flock` / forkの懸念は予測どおりに保たれた（シム化 / 自己劣化）。wasm下でのフル`make test`はより大きな別の課題のままだが、プレイグラウンドのランタイムの正しさは確立された。
 
 3つの条件がすべて満たされるまで、サーバーサイドAPI（オプションB）が本番バックエンドである。次の具体的なステップはもはや「上流を待つ」ことではない——WD8の`rbwasm`ビルドを実行し、条件②（次いで③）を解決することだ。
 
@@ -205,20 +205,20 @@ severity_profile: strict
 
 ### WD8 — `rbwasm`ビルドパイプライン（2026-06-14に追加）
 
-ブラウザ内ビルドは[`plugins/rigor-playground/wasm/`](../../plugins/rigor-playground/wasm/)にあり、`rigortype`パスgem、`rigor-rbs-inline`、`rbs-inline`——プレイグラウンドの正確なランタイムセット——を含む専用の`Gemfile`に対して`rbwasm`（`ruby_wasm` gem）によって生成される。`rbs`がC拡張を持つため、ビルドは`rbwasm`の**ソースから**のパス（`--build-options`/wasi-sdk）を使い、これが`prism`と`rbs`をコンパイルして単一の`.wasm`に静的リンクする。これは、ビルドをprebuilt + 純粋Rubygemパックから区別する荷重を担う特性である: WD6 ②を満たす唯一の経路だ。
+ブラウザ内ビルドは[`plugins/rigor-playground/wasm/`](https://github.com/rigortype/rigor/tree/master/plugins/rigor-playground/wasm/)にあり、`rigortype`パスgem、`rigor-rbs-inline`、`rbs-inline`——プレイグラウンドの正確なランタイムセット——を含む専用の`Gemfile`に対して`rbwasm`（`ruby_wasm` gem）によって生成される。`rbs`がC拡張を持つため、ビルドは`rbwasm`の**ソースから**のパス（`--build-options`/wasi-sdk）を使い、これが`prism`と`rbs`をコンパイルして単一の`.wasm`に静的リンクする。これは、ビルドをprebuilt + 純粋Rubygemパックから区別する荷重を担う特性である: WD6 ②を満たす唯一の経路だ。
 
 パッキングの決定:
 
 - **カタログ + シグネチャデータがパスgemに同行する**。`rigortype` gemspecはすでに`spec.files`に`data/builtins/**/*.yml`と`sig/**/*.rbs`を列挙しているので、`rbwasm`はそれらを`lib/`と並んでgemのVFSツリーにパックする;エンジンの`__dir__`相対の読み取りは変わらず解決する。（ビルドドキュメントは、ある`ruby_wasm`バージョンが`require_paths`のみをパックする場合に備えて明示的な`--dir`フォールバックを記録している。）
 - **キャッシュはオフなので`flock`には決して到達しない**。VM内アダプタは`rigor check --format=json --no-cache`を起動し（WD4はすでにキャッシュなしのプレイグラウンドを義務付けている）、これによりエンジンコードに触れることなく唯一のPOSIXロック依存関係が取り除かれる。
 - **設定はパックされた`.rigor.yml`として旅する**。プレイグラウンド設定のコピー（`rigor-rbs-inline`をロード、`severity_profile: strict`）がアダプタの作業ディレクトリのVFSにマッピングされ、`Rigor::CLI.start`の通常のcwd探索がそれを見つける——Rackバックエンドが依拠するのと同じ設定サーフェスである。
-- **構築による契約忠実性**。アダプタは`StringIO`バッファに対して`Rigor::CLI.start(argv, out:, err:)`を呼び出し、これはバックエンドの`run_cli`（[`app.rb`](../../plugins/rigor-playground/lib/rigor/playground/app.rb)）とバイト単位で同一の起動である。したがってWD2のJSONシェイプはトランスポート間で同一であり、異なるのはバイトの出所（ネットワーク対VM内）だけである。
+- **構築による契約忠実性**。アダプタは`StringIO`バッファに対して`Rigor::CLI.start(argv, out:, err:)`を呼び出し、これはバックエンドの`run_cli`（[`app.rb`](https://github.com/rigortype/rigor/blob/master/plugins/rigor-playground/lib/rigor/playground/app.rb)）とバイト単位で同一の起動である。したがってWD2のJSONシェイプはトランスポート間で同一であり、異なるのはバイトの出所（ネットワーク対VM内）だけである。
 
 **既知のv1コスト——呼び出しごとのRBS環境再構築**。CLIは起動のたびにRBS環境を再構築し、ディスクキャッシュがオフなのでクロスコールの再利用はない。wasmではそのブートはバックエンドの約100 msではなく数秒である。最適化は、ページロード時に環境を一度だけ構築しキーストロークごとに`run_source`を再実行する永続的な`Runner`（ミューテーションハーネスが使う`ProjectContext`の環境一度きりパターン）である;それはCLIなしでCLIのプラグイン / 設定の配線を再導出しなければならないため、また忠実な遅いパスを最初に出荷することが契約を正直に保つため、意図的にv1スキャフォールディングから外されている。WD8のperfフォローアップとして追跡される。
 
 ### WD9 — ブラウザ内トランスポート（2026-06-14に追加）
 
-wasmフロントエンドはCodeMirror 6エディタ、lintマーカー、型オーバーレイ、WD2のJSONシェイプをそのまま再利用する;変わるのはトランスポートだけだ。バックエンドページが`fetch("/check", …)`を呼ぶところで、wasmページはリクエストをJSのグローバルにセットしアダプタに対して`vm.eval`を呼び、アダプタはそれを読んで同じJSON文字列を返す。動作中のバックエンドページ（`frontend/index.html`）に手を付けないため、wasmバリアントは**独立した自己完結の静的ページ**（[`wasm/index.html`](../../plugins/rigor-playground/wasm/)）である——2つのデプロイメント（バックエンド上のPages対完全静的wasm）は独立を保ち、WD1の独立デプロイの立場と一致する。`vm.eval`はメインスレッドで同期的にRubyを実行する;解析をWeb Workerにオフロードすること（遅いキーストロークがタイピングをブロックしないように）は、WD8の永続環境の作業と対になるWD9のレスポンシブネスのフォローアップである。
+wasmフロントエンドはCodeMirror 6エディタ、lintマーカー、型オーバーレイ、WD2のJSONシェイプをそのまま再利用する;変わるのはトランスポートだけだ。バックエンドページが`fetch("/check", …)`を呼ぶところで、wasmページはリクエストをJSのグローバルにセットしアダプタに対して`vm.eval`を呼び、アダプタはそれを読んで同じJSON文字列を返す。動作中のバックエンドページ（`frontend/index.html`）に手を付けないため、wasmバリアントは**独立した自己完結の静的ページ**（[`wasm/index.html`](https://github.com/rigortype/rigor/tree/master/plugins/rigor-playground/wasm/)）である——2つのデプロイメント（バックエンド上のPages対完全静的wasm）は独立を保ち、WD1の独立デプロイの立場と一致する。`vm.eval`はメインスレッドで同期的にRubyを実行する;解析をWeb Workerにオフロードすること（遅いキーストロークがタイピングをブロックしないように）は、WD8の永続環境の作業と対になるWD9のレスポンシブネスのフォローアップである。
 
 ### WD10 — デプロイメント: ドキュメントサイトのサブパス、CIビルドのwasmをR2に（2026-06-14に追加）
 

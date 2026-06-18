@@ -132,7 +132,7 @@ protocol_contracts: [
 （プラグイン作者ではなく）*アプリケーション*開発者として注意すべきことが二つあります。
 
 - あなたは`protocol_contracts:`を**決して書きません** ── フレームワークのプラグインが書きます。あなたはただの`def handle(request)`を書けば、それが無償で検査されます。
-- `missing-protocol-method`／`protocol-return-mismatch`の診断は**プラグイン診断**であり、プラグインの`plugin.<id>.`という由来のもとで発行されます ── コアのRigorルールではありません。実例の参照先は[`examples/rigor-web/`](../../examples/rigor-web/)（最小限のチュートリアル）と[`plugins/rigor-hanami/`](../../plugins/rigor-hanami/)（本番のHanami 2のアクション）です。
+- `missing-protocol-method`／`protocol-return-mismatch`の診断は**プラグイン診断**であり、プラグインの`plugin.<id>.`という由来のもとで発行されます ── コアのRigorルールではありません。実例の参照先は[`examples/rigor-web/`](https://github.com/rigortype/rigor/tree/master/examples/rigor-web/)（最小限のチュートリアル）と[`plugins/rigor-hanami/`](../../manual/plugins/rigor-hanami/)（本番のHanami 2のアクション）です。
 
 ## インターフェース対プロトコル契約
 

@@ -227,7 +227,7 @@ end
 
 ### オプトインのTypeScriptユーティリティ型プラグイン経由で
 
-ディレクティブでTSの綴り（`Pick<T, K>`など）を使いたい場合は、[`rigor-typescript-utility-types`](https://github.com/rigortype/rigor/blob/master/plugins/rigor-typescript-utility-types/)プラグインをオプトインしてください。このプラグインは`Plugin::TypeNodeResolver`を登録し、各TS名を正準射影に変換します:
+ディレクティブでTSの綴り（`Pick<T, K>`など）を使いたい場合は、[`rigor-typescript-utility-types`](../../manual/plugins/rigor-typescript-utility-types/)プラグインをオプトインしてください。このプラグインは`Plugin::TypeNodeResolver`を登録し、各TS名を正準射影に変換します:
 
 ```yaml
 # .rigor.yml
