@@ -3,8 +3,8 @@ title: "トラブルシューティング"
 description: "rigortype/rigor docs/manual/13-troubleshooting.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/13-troubleshooting.md"
 sourcePath: "docs/manual/13-troubleshooting.md"
-sourceSha: "0edf5231fecea99513d46621aa08cda539a47a6f46707065ad0a29e54784135c"
-sourceCommit: "106b93dd777b71aeef323dce1e4087c226c8ce37"
+sourceSha: "13be6916044ca321abf68fa5da7066d2fa20b1e807afac8e094f28e9c59f0f53"
+sourceCommit: "aec4ca7f5f87b1972dea8fecaaf5b62c8880a3af"
 translationStatus: "translated"
 sidebar:
   order: 9013
@@ -44,6 +44,8 @@ Rigorは問題のコードに対する型情報を持っていません。よく
 
 Rigorは動作するコードにフラグを立てないことを目指しているため、真の偽陽性は報告する価値のあるバグです。それまでの間、`# rigor:disable <rule>`コメントで単一のサイトを抑制してください（[診断](../04-diagnostics/)を参照）——実際のインスタンスも隠してしまうプロジェクト全体の`disable:`より優先します。
 
+報告する前に、RBSソースの欠落を除外してください。存在するとわかっている呼び出しに`call.undefined-method`が大量発生する場合、たいていRigorがそのシグネチャを読み込んでいません。`rigor check`のSTDERRに`rigor: …`の設定検証警告が出ていないか確認してください——タイポした、または移動した`signature_paths:` / `libraries:`エントリー（あるいはもはや存在しない明示的な`bundler` / `rbs_collection`パス）は、シグネチャを黙って1つも読み込まず、それがカバーするはずだった型へのすべての呼び出しが`evidence_tier: high`で発火します。設定された値を修正すれば偽陽性は消えます。（同じ警告は無効な`disable:` / `severity_overrides:`のルールIDもカバーします——そこにタイポがあると、抑制したつもりでもルールは発火し続けます。）[設定 § 設定検証の警告](../03-configuration/#設定検証の警告)を参照してください。
+
 診断が*正しい*が修正する準備ができていない場合、[ベースライン](../06-baseline/)が適切なツールです。
 
 ## 結果が古く見える
@@ -54,7 +56,19 @@ Rigorは動作するコードにフラグを立てないことを目指してい
 
 - キャッシュをウォームアップしてください——最初の実行が最も遅いものです。
 - `paths:`を狭め、`exclude:`を広げて、Rigorが生成されたまたはベンダーされたコードを走査しないようにします。
-- 大きなプロジェクトでは、`rigor check --workers=N`でファイルごとの解析を並列ワーカープロセスに分散します。
+- 大きなプロジェクトでは、`rigor check --workers=N`でファイルごとの解析を並列ワーカープロセスに分散します（または`RIGOR_RACTOR_WORKERS=N`を設定）。
+
+## 高度な診断
+
+クラスが期待より悪く推論されるとき、あるいは実行が期待より多くのメモリを使うとき、3つの環境変数がRigorに*自身*について報告させます。これらは`rigor check`の終了後にstderrへ出力され、未設定のときはノーオペです。プロセスグローバルなカウンタなので、意味のある数値を得るには単一プロセス（`--workers 0`）で実行してください。
+
+| 変数 | 報告内容 |
+| --- | --- |
+| `RIGOR_BUDGET_TRACE=1` | 推論が組み込みのカットオフ（再帰ガード、祖先ウォークの上限、HKT燃料など）に何回当たって黙って`Dynamic[top]`へ縮退したか、およびユニオンサイズの分布。推論が*どこで*諦めたかを見る最速の方法。 |
+| `RIGOR_HEAP_PROFILE=1` | 強制GC後のクラス別ライブヒープの内訳。メモリ順にランク付けされ、常駐ヒープが実際に何でできているか（型キャリア、RBSオブジェクト、Prismノードなど）を示す。ヒープ全体の走査は遅いので、毎回の実行ではなくプローブとして使う。 |
+| `RIGOR_HEAP_TRACE=1` | `file:line`別のStringアロケーションサイトの上位。非常に高いオーバーヘッド——小さなファイル部分集合でのみ実行する。 |
+
+これらはRigor自体の診断や詳細なバグ報告のためのものであり、日常的な使用のためのものではありません。
 
 ## バグの報告
 

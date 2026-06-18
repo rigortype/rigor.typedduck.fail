@@ -3,8 +3,8 @@ title: "設定"
 description: "rigortype/rigor docs/manual/03-configuration.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/03-configuration.md"
 sourcePath: "docs/manual/03-configuration.md"
-sourceSha: "98e004f9e63373719db7a18292dc770d7bfa3929123ce2c6bbd146c3a12720bb"
-sourceCommit: "a3ab53dd2b8aa0a84fd7ddbd64339f316d8d12ec"
+sourceSha: "4968c6d146a988f667f57da248438d232bf1e241d8eda127f4fc3923c67aa014"
+sourceCommit: "aec4ca7f5f87b1972dea8fecaaf5b62c8880a3af"
 sourceDate: "2026-06-15T14:21:04+09:00"
 translationStatus: "translated"
 sidebar:
@@ -54,9 +54,24 @@ cache:
 | キー | 型 | デフォルト | 意味 |
 | --- | --- | --- | --- |
 | `libraries` | Array | `[]` | バンドルされたRBSを読み込む標準ライブラリ/gem名。 |
-| `signature_paths` | Array | `nil` | `.rbs`ファイルの追加ディレクトリ。 |
+| `signature_paths` | Array | `nil` | `.rbs`ファイルの追加ディレクトリ。相対パスのエントリーは設定ファイルのディレクトリを基準に解決されます。 |
 | `pre_eval` | Array | `[]` | ファイルごとの解析前に走査するファイル（またはglob）。プロジェクトのモンキーパッチを登録するために使用。 |
 | `plugins` | Array | `[]` | 有効化するプラグイン——[プラグインの使い方](../07-plugins/)を参照。 |
+
+### 設定検証の警告
+
+`rigor check`は、設定された値が黙って何にも解決しないとき——タイポがシグネチャを1つも読み込まない（あるいは抑制を無効なままにする）のに、唯一の症状が下流で混乱を招くという種類の間違い——にSTDERRへ警告します。たとえば、欠落したRBSパスは、それが記述するはずだった型へのすべての呼び出しを高信頼の`call.undefined-method`に変えてしまうので、1文字の間違いが数百もの本物の型エラーのように見えることがあります。この監査は次をカバーします:
+
+```
+rigor: signature_paths: "/path/to/sig" does not exist (no signatures loaded from it)
+rigor: signature_paths: "/path/to/sig" matched 0 signature files
+rigor: libraries: "csb" is not an available RBS library (no signatures loaded from it)
+rigor: disable: "call.undefined-methdo" is not a recognized rule id; the suppression has no effect
+rigor: severity_overrides: "flow.bogus" is not a recognized rule id; the override has no effect
+rigor: bundler.lockfile: "./missing/Gemfile.lock" does not exist
+```
+
+これらはエラーではなく警告です——部分的またはオプションのバンドルや、先を見越した設定は妥当なセットアップです。この監査は、明示的で、正常なセットアップに対して安全なシグナルでのみ発火します。未設定のデフォルト（自動検出される`<root>/sig`、自動検出されるバンドル）が警告されることは決してなく、*プラグイン*ファミリー（`rspec.…`、`rbs_extended.…`）配下の`disable:` / `severity_overrides:`トークンは放置されます。そのルールIDは静的に列挙できず、実行時に解決される可能性があるためです。同じ所見は`--format=json`のペイロードでも`config_warnings`の下に（それぞれ`kind`タグ付きで）現れるので、CIはそれらに対してアサートできます。
 
 ### 診断
 
@@ -83,6 +98,7 @@ cache:
 | `rbs_collection.lockfile` | String | `nil` | 明示的な`rbs_collection.lock.yaml`パス。 |
 | `dependencies.source_inference` | Array | `[]` | gem単位のソース推論モード（ADR-10）。 |
 | `dependencies.budget_per_gem` | Integer | `5000` | gem単位のソースウォーク上限。時間ではなく**メソッド定義**の個数で数えます。ウォーカーはgemのカタログを収集する際、この個数の`def`に達するとそれ以上の収集を停止し、`dynamic.dependency-source.budget-exceeded`を発行して残りを`Dynamic[top]`に縮退させます。範囲は1250〜20000です。 |
+| `dependencies.budget_overrun_strategy` | String | `"walker_cap"` | `budget_per_gem`に達したgemへの呼び出しに何が起きるか（ADR-10 § 5b）。`walker_cap`（デフォルト）は、上限を超えたメソッドをエンジンの通常のユーザークラス解決にフォールスルーさせます。`dependency_silence`は代わりに、予算超過したgemのクラスへのあらゆる呼び出しを`Dynamic[top]`に解決し、そのgemの記録されていないサーフェスにおける`call.undefined-method`を黙らせます——その箇所での静的チェックが弱くなる代償を伴います。 |
 
 ### 実行
 

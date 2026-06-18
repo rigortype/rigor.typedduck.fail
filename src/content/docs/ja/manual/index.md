@@ -3,8 +3,8 @@ title: "Rigorユーザーマニュアル"
 description: "rigortype/rigor docs/manual/README.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/README.md"
 sourcePath: "docs/manual/README.md"
-sourceSha: "1773331dfd0a232c8fd338214ea4cea26b79ade4377bc35814188ba9d1a63ded"
-sourceCommit: "fd78ee0a520ab7f2dfb40f13d33b4fbae93e2c69"
+sourceSha: "28632f0fbaf1405a887abeaa5b4dd259d62a7f65308e377df1430fb673a454a9"
+sourceCommit: "aec4ca7f5f87b1972dea8fecaaf5b62c8880a3af"
 translationStatus: "translated"
 sidebar:
   order: 9000
@@ -27,6 +27,7 @@ Rigorのインストール、実行、設定、運用方法について説明し
 3. [設定](03-configuration/) — `.rigor.yml`キーリファレンス、設定ファイル探索、`includes:`による継承。
 4. [診断](04-diagnostics/) — ルールIDカタログ、重要度プロファイル、`# rigor:disable`による抑制。
 5. [推論型の検査](05-inspecting-types/) — `assert_type` / `dump_type`ソースヘルパーと`rigor annotate` / `rigor type-of`コマンド。
+16. [RBS::Extendedアノテーション](16-rbs-extended-annotations/) — `*.rbs`ファイルに書く`%a{rigor:v1:…}`アノテーション: `return:` / `param:`オーバーライド、述語とアサーションのナローイング、`conforms-to`、そしてHKTディレクティブ。
 
 ### プロジェクトへのRigor導入
 

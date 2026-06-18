@@ -3,8 +3,8 @@ title: "CLIコマンドリファレンス"
 description: "rigortype/rigor docs/manual/02-cli-reference.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/02-cli-reference.md"
 sourcePath: "docs/manual/02-cli-reference.md"
-sourceSha: "3c50d02386077ed5b711dc41bf4e86b66a4a4d500de18333e097df96f1bdb44b"
-sourceCommit: "fd78ee0a520ab7f2dfb40f13d33b4fbae93e2c69"
+sourceSha: "1f09b42b3daeba364d6c606d27242591181d9d9df58be6c60b5008b9053a7321"
+sourceCommit: "aec4ca7f5f87b1972dea8fecaaf5b62c8880a3af"
 sourceDate: "2026-06-16T07:17:39+09:00"
 translationStatus: "translated"
 sidebar:
@@ -306,6 +306,20 @@ rigor show-bleedingedge [--config PATH] [--format text|json]
 | `--format text\|json` | 出力形式。デフォルトは`text`。 |
 
 オーバーレイは**このリリースでは空**です——機構は配線済みで準備が整っていますが、まだどの規律もメジャーに向けてキューに積まれていないため、コマンドは現在空のセットを報告します。機能がキューに積まれると、その安定したid、それが課す重要度、そしてあなたの設定がそれを採用しているかどうかとともに、ここに現れます。ブリーディングエッジが安定性モデルにどう収まるかは[`docs/compatibility.md`](../../compatibility/)を参照してください。
+
+## 環境変数
+
+ほとんどの振る舞いはフラグと`.rigor.yml`で制御されますが、いくつかの運用上のつまみは代わりに環境変数を読みます。
+
+| 変数 | 効果 |
+| --- | --- |
+| `NO_COLOR` | 色付き出力を無効化する（`rigor annotate`が尊重する;`--no-color`も同じ）。 |
+| `RIGOR_CI_DETECT=0` | CI自動検出をオフにする——`--no-ci-detect`と同じ。[CIでのRigor実行 § 自動検出](11-ci/)を参照。 |
+| `RIGOR_RACTOR_WORKERS=N` | 並列解析のワーカー数。優先順位ではCLIフラグと設定キーの間に位置する: `--workers=N` > `RIGOR_RACTOR_WORKERS` > `parallel.workers:` > `0`（逐次）。 |
+| `RIGOR_POOL_BACKEND=ractor` | アクティブなforkベースのプールの代わりに、（デフォルトでオフの）Ractorワーカープールに戻す（[ADR-15](../../adr/15-ractor-concurrency/)）。非ゼロのワーカー数のときのみ関係する;サポートされるバックエンドはforkプールである。 |
+| `RIGOR_PLUGIN_ISOLATION=none\|process\|ruby_box` | プラグインがターゲットライブラリへ行う直接呼び出しをどう隔離するか。デフォルトは`process`。[プラグインの使用 § 隔離戦略](07-plugins/)を参照。`RIGOR_BOX`は`ruby_box`のレガシーエイリアス。 |
+
+さらに3つの変数（`RIGOR_BUDGET_TRACE`、`RIGOR_HEAP_PROFILE`、`RIGOR_HEAP_TRACE`）は、Rigor自身の推論カットオフとメモリに関する開発者向けの診断を有効にします——[トラブルシューティング § 高度な診断](13-troubleshooting/#高度な診断)を参照してください。
 
 ## 終了コード
 

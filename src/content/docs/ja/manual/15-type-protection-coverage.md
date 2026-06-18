@@ -3,8 +3,8 @@ title: "型保護カバレッジ"
 description: "rigortype/rigor docs/manual/15-type-protection-coverage.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/15-type-protection-coverage.md"
 sourcePath: "docs/manual/15-type-protection-coverage.md"
-sourceSha: "f73425965debbcafafbe469f366caacdd3ca53a80353ad4f808fd3d0a251c16e"
-sourceCommit: "fd78ee0a520ab7f2dfb40f13d33b4fbae93e2c69"
+sourceSha: "26a112a9627dae0295d01519b0df50c6f901f0285165f5c6cd378fd8752fa2ad"
+sourceCommit: "aec4ca7f5f87b1972dea8fecaaf5b62c8880a3af"
 translationStatus: "translated"
 sidebar:
   order: 9015
@@ -116,4 +116,3 @@ rigor coverage --protection --mutation --with-tests --include-dynamic \
 - [CLIコマンドリファレンス](../02-cli-reference/#rigor-coverage) — `rigor coverage`の完全なフラグ一覧。
 - [推論型の確認](../05-inspecting-types/) — レシーバーが`Dynamic`で、その理由を知りたいとき。
 - [提供スキル](../08-skills/) — 「ここに型を足せ」リストをアノテーションに変えるエージェントスキル。
-</content>

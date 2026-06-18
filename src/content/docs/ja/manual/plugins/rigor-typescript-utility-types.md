@@ -3,8 +3,8 @@ title: "rigor-typescript-utility-types"
 description: "Imported from rigortype/rigor docs/manual/plugins/rigor-typescript-utility-types.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/plugins/rigor-typescript-utility-types.md"
 sourcePath: "docs/manual/plugins/rigor-typescript-utility-types.md"
-sourceSha: "181aadc46ba59026e0a6a72e8f167417ea040227b8a588da20b751415d46e988"
-sourceCommit: "6e5bd55274e20dfb59183559c4971d34f878c907"
+sourceSha: "6e1948c94545e5abbe51491622dd84ee4771aa5968f2d4e1ad16880ff8e98ce7"
+sourceCommit: "aec4ca7f5f87b1972dea8fecaaf5b62c8880a3af"
 translationStatus: "translated"
 sidebar:
   order: 9050
@@ -47,7 +47,7 @@ end
 
 ## 制限事項
 
-- **マッピングされていないTS名は`Nominal`に格下げされます**。 `Parameters<F>`、`ReturnType<F>`、`InstanceType<C>`、`Awaited<P>`、文字列ケーシングユーティリティ（`Uppercase`/`Lowercase`/…）、`ThisParameterType`、`NoInfer`はマッピングされていません ── これらにはまだRigorの対応物がない（あるいは未着手のコア演算子を必要とする）ため、`Nominal[Name, […]]`として解決されます。
+- **マッピングされていないTS名は`Nominal`に格下げされます**。`Parameters<F>`、`ReturnType<F>`、`InstanceType<C>`、`Awaited<P>`、文字列ケーシングユーティリティ（`Uppercase`/`Lowercase`/…）、`ThisParameterType`、`NoInfer`はマッピングされていません ── これらにはまだRigorの対応物がない（あるいは未着手のコア演算子を必要とする）ため、`Nominal[Name, […]]`として解決されます。
 - **非シェイプキャリアでロッシーになります**。（`HashShape` / `Tuple`ではなく）裸の`Nominal[Hash, [K, V]]`に投影を適用すると、入力をそのまま返し、呼び出し箇所を監査できるよう`dynamic.shape.lossy-projection`の`:info` diagnosticを記録します。
 
 ## プラグインの内部

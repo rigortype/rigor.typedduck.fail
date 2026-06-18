@@ -3,8 +3,8 @@ title: "rigor-rails-routes"
 description: "Imported from rigortype/rigor docs/manual/plugins/rigor-rails-routes.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/plugins/rigor-rails-routes.md"
 sourcePath: "docs/manual/plugins/rigor-rails-routes.md"
-sourceSha: "2261e993670f387cd59cea9c234bdd18f54fe49fc8f6a24ff2a7b3168fe077ac"
-sourceCommit: "5c304b2c680eccdbfaffc114c0f31ce89f740ad4"
+sourceSha: "4fdbe5813deea7cb8558fc1e7a9f520b18ef1163ace9977040274923d638d29f"
+sourceCommit: "aec4ca7f5f87b1972dea8fecaaf5b62c8880a3af"
 translationStatus: "translated"
 sidebar:
   order: 9050

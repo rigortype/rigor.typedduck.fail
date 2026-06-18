@@ -3,8 +3,8 @@ title: "Rigorのインストール"
 description: "rigortype/rigor docs/manual/01-installation.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/01-installation.md"
 sourcePath: "docs/manual/01-installation.md"
-sourceSha: "d1df7126afb7db47f7584da3030d543194ae91ba7ae67c75d8cd205dad843a2e"
-sourceCommit: "106b93dd777b71aeef323dce1e4087c226c8ce37"
+sourceSha: "d4097f54b95e7f1c3f0c47ea83119d7d4f8edce4c2f7cac0afaa3b8726fae42f"
+sourceCommit: "aec4ca7f5f87b1972dea8fecaaf5b62c8880a3af"
 translationStatus: "translated"
 sidebar:
   order: 9001

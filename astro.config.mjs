@@ -198,6 +198,7 @@ export default defineConfig({
             { slug: 'manual/13-troubleshooting' },
             { slug: 'manual/14-rails-quickstart' },
             { slug: 'manual/15-type-protection-coverage' },
+            { slug: 'manual/16-rbs-extended-annotations' },
           ],
         },
         {
