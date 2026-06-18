@@ -3,7 +3,7 @@ title: "ADR-12 — dry-rbプラグインパッケージング"
 description: "rigortype/rigor docs/adr/12-dry-rb-packaging.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/12-dry-rb-packaging.md"
 sourcePath: "docs/adr/12-dry-rb-packaging.md"
-sourceSha: "edf3f126b243a0ec4b154c32a016ab020d2285d997139835c0bd0966afda07e7"
+sourceSha: "8ebbcee10dec6c220ac65307926e260a6b6976e28f4825181066f882c295d355"
 sourceCommit: "aec4ca7f5f87b1972dea8fecaaf5b62c8880a3af"
 sourceDate: "2026-05-19T21:19:58+09:00"
 translationStatus: "translated"
@@ -75,7 +75,7 @@ dry-rb gemファミリーは相補的なgemのツリーです: `dry-types`、`dr
 
 ## 公開API漂流面
 
-ADR-12自体は新しいコード面を追加しません。プラグインごとのgemspecがそれぞれ公開APIを成長させ、[`spec/rigor/public_api_drift_spec.rb`](../../spec/rigor/public_api_drift_spec.rb)がこれをピン留めしなければなりません;Railsプラグインファミリーの先例に従い、プラグイン内部のクラス（ウォーカー、fact-storeペイロードクラス）は漂流スナップショットの外側に残る — `Plugin::Base`サブクラスとその`#manifest`形状のみがピン留めされる。
+ADR-12自体は新しいコード面を追加しません。プラグインごとのgemspecがそれぞれ公開APIを成長させ、[`spec/rigor/public_api_drift_spec.rb`](https://github.com/rigortype/rigor/blob/master/spec/rigor/public_api_drift_spec.rb)がこれをピン留めしなければなりません;Railsプラグインファミリーの先例に従い、プラグイン内部のクラス（ウォーカー、fact-storeペイロードクラス）は漂流スナップショットの外側に残る — `Plugin::Base`サブクラスとその`#manifest`形状のみがピン留めされる。
 
 ## ワーキング決定
 

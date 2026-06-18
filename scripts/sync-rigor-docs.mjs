@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
 import { transform as normalizeJaTypography } from './normalize-ja-typography.mjs';
 import { escapeTablePipes } from './escape-table-pipes.mjs';
+import { REPO_SOURCE_DIRS } from './repo-source-dirs.mjs';
 
 const execFileAsync = promisify(execFile);
 
@@ -446,20 +447,19 @@ function removeFirstHeading(body, index) {
 
 function rewriteMarkdownLinks(body, relativePath) {
   // Match every relative Markdown link target (scheme, absolute, and pure-anchor
-  // links are excluded by the lookahead). We match non-`.md` targets too so we
-  // can reach links into the upstream `plugins/` and `examples/` trees, which
-  // have no on-site route — but the rewriting is deliberately scoped so that
-  // every OTHER link renders byte-for-byte as before. That keeps the body hash
-  // (and thus translation-drift detection) stable for pages this fix is not
-  // about; only pages that actually link a plugin/example change.
+  // links are excluded by the lookahead). Targets that stay inside docs/ keep
+  // their on-site routing; targets that escape docs/ into a repo-root source
+  // tree (REPO_SOURCE_DIRS) are redirected. NOTE: this resolves against the docs
+  // SOURCE path, so it must run only on upstream bodies. The owned-tree guard
+  // (scripts/scan-source-links.mjs) does the equivalent ROUTE-aware resolution
+  // for hand-authored translations; both share REPO_SOURCE_DIRS — keep in sync.
   return body.replace(/\]\((?![a-z][a-z+.-]*:|\/|#)([^)\s]+?)(#[^)]+)?\)/gi, (match, target, hash = '') => {
     const sourceDirectory = path.posix.dirname(relativePath.split(path.sep).join('/'));
     const normalizedTarget = target.replace(/\\/g, '/');
     const resolvedDocsPath = path.posix.normalize(path.posix.join(sourceDirectory, normalizedTarget));
 
-    // Stays inside docs/: only `.md` targets become on-site routes (unchanged).
-    // Non-`.md` in-docs links (images, ci-template `.yml`, bare dir links) are
-    // left untouched, exactly as before.
+    // Stays inside docs/: only `.md` targets become on-site routes. Non-`.md`
+    // in-docs links (images, ci-template `.yml`, bare dir links) are untouched.
     if (!resolvedDocsPath.startsWith('../')) {
       if (!/\.md$/i.test(resolvedDocsPath)) return match;
       const currentOutputPath = toOutputPath(relativePath);
@@ -467,16 +467,15 @@ function rewriteMarkdownLinks(body, relativePath) {
       return `](${relativeRouteLink(currentOutputPath, targetOutputPath)}${hash})`;
     }
 
-    // Escapes docs/: a repo-root path. The published plugin reference pages
-    // (`/manual/plugins/<slug>/`) and plugin/example *sources* have no on-site
-    // route, so links into the upstream `plugins/` and `examples/` trees are
-    // redirected: a bare `plugins/<slug>` directory with a reference page → that
-    // on-site page; anything else under those two trees → the upstream GitHub
-    // repo. Other repo-root references (lib/, sig/, spec/, references/, …) keep
-    // the historical behavior — `.md` → GitHub, anything else passes through
-    // untouched — so this change is scoped to the plugin-link breakage.
+    // Escapes docs/: a repo-root path with no on-site route. Links into the
+    // upstream source/asset trees (REPO_SOURCE_DIRS) are redirected — a bare
+    // `plugins/<slug>` with a published reference page to that on-site page,
+    // everything else to GitHub. Every OTHER escape keeps the historical
+    // behavior: `.md` → GitHub, anything else passes through untouched (so a
+    // malformed on-site cross-ref like a stray `../docs/…` is left for upstream
+    // to fix rather than mis-routed, and unrelated body hashes stay stable).
     const repoRelative = path.posix.normalize(path.posix.join(docsRootName, sourceDirectory, normalizedTarget));
-    if (/^(plugins|examples)(\/|$)/.test(repoRelative)) {
+    if (REPO_SOURCE_DIRS.has(repoRelative.split('/')[0])) {
       // `normalize` keeps a trailing slash, so allow it: `plugins/<slug>` and
       // `plugins/<slug>/` both denote the plugin's directory.
       const pluginDir = /^plugins\/([^/.]+)\/?$/.exec(repoRelative)?.[1];
@@ -487,8 +486,6 @@ function rewriteMarkdownLinks(body, relativePath) {
       }
       return `](${githubSourceUrl(repoRelative, normalizedTarget.endsWith('/'))}${hash})`;
     }
-
-    // Historical behavior for every other repo-root escape.
     if (/\.md$/i.test(normalizedTarget)) {
       return `](${githubSourceUrl(repoRelative)}${hash})`;
     }

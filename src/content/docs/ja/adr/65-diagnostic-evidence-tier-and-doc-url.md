@@ -3,8 +3,8 @@ title: "ADR-65 — Diagnostic evidence tier and documentation URL"
 description: "Imported from rigortype/rigor docs/adr/65-diagnostic-evidence-tier-and-doc-url.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/65-diagnostic-evidence-tier-and-doc-url.md"
 sourcePath: "docs/adr/65-diagnostic-evidence-tier-and-doc-url.md"
-sourceSha: "c1958d2946a77084ab02a0b44d2f9d74d48c7c20b1d7f82fc76dc60a2105221f"
-sourceCommit: "a3ab53dd2b8aa0a84fd7ddbd64339f316d8d12ec"
+sourceSha: "a842026023bb135f82e66bbc2d480de46995b74b54122ef29aea8811446cd92f"
+sourceCommit: "aec4ca7f5f87b1972dea8fecaaf5b62c8880a3af"
 translationStatus: "translated"
 sidebar:
   order: 4065
@@ -58,7 +58,7 @@ Rigorはすでに、強力な偽陽性の<ruby>規律<rp>（</rp><rt>discipline<
    *新しい*ルール種別を「カバレッジ警告」対「実際の型ルール発火」へとグループ化
    している ── 発火ごとではなく種別ごとに。
 2. **単一の信頼できる情報源となるルールカタログがすでに存在する**。
-   [`RuleCatalog`](../../lib/rigor/analysis/rule_catalog.rb)はすべてのルールに
+   [`RuleCatalog`](https://github.com/rigortype/rigor/blob/master/lib/rigor/analysis/rule_catalog.rb)はすべてのルールに
    ついて`summary` / `fires_when` / `does_not_fire_when` /
    `severity_by_profile` / `since`を持ち、`rigor explain`を裏で支えている。
    ティアとドキュメントURLは、同じテーブルにもう2列増やすだけである。

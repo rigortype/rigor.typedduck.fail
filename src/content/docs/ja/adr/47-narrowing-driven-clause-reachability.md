@@ -3,8 +3,8 @@ title: "ADR-47 — Narrowing-driven clause reachability (`flow.unreachable-claus
 description: "Imported from rigortype/rigor docs/adr/47-narrowing-driven-clause-reachability.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/47-narrowing-driven-clause-reachability.md"
 sourcePath: "docs/adr/47-narrowing-driven-clause-reachability.md"
-sourceSha: "399007a008d8407bc09b6dcb3f3e745bfe0a71e542e852c06b9719dd70d8682c"
-sourceCommit: "86367f26f62593f19f649f7cb9c8e1a00a751282"
+sourceSha: "aafdb1681424e93c7aaf997a97485ee9f0795ffd5090e24794584494c6e73df5"
+sourceCommit: "aec4ca7f5f87b1972dea8fecaaf5b62c8880a3af"
 translationStatus: "translated"
 sidebar:
   order: 4047
@@ -28,15 +28,15 @@ Rigorはこの作業の難しい半分を既に行っている。欠けている
 
 到達可能性ルールは2つあり、いずれも`IfNode` / `UnlessNode`に限定されている:
 
-1. **`flow.unreachable-branch`**（v0.1.2）—— 述語が**構文上のリテラル**（`if false`、`expr if true`、…）のときだけ発火する。デッドな分岐を指す。[`check_rules.rb:1013`](../../lib/rigor/analysis/check_rules.rb)で挙げられている推論された定数による偽陽性を避けるため、意図的にリテラルのみとしている。
-2. **`flow.always-truthy-condition`** —— 推論された定数版。非リテラルの述語が`Type::Constant`に畳み込まれるときに発火し、保守的なエンベロープを持つ: **ループ / ブロック内**の述語をスキップ（ミューテーション追跡が不完全なため）し、**防御的な述語呼び出し**（`nil?` / `empty?` / `zero?` / `respond_to?` / …）をスキップする —— ここでは戻り値に厳格なRBSが実際の実行時チェックと日常的に食い違う（`Module#name -> String`対 無名クラスの`nil`）。[`always_truthy_condition_collector.rb`](../../lib/rigor/analysis/check_rules/always_truthy_condition_collector.rb)を参照。
+1. **`flow.unreachable-branch`**（v0.1.2）—— 述語が**構文上のリテラル**（`if false`、`expr if true`、…）のときだけ発火する。デッドな分岐を指す。[`check_rules.rb:1013`](https://github.com/rigortype/rigor/blob/master/lib/rigor/analysis/check_rules.rb)で挙げられている推論された定数による偽陽性を避けるため、意図的にリテラルのみとしている。
+2. **`flow.always-truthy-condition`** —— 推論された定数版。非リテラルの述語が`Type::Constant`に畳み込まれるときに発火し、保守的なエンベロープを持つ: **ループ / ブロック内**の述語をスキップ（ミューテーション追跡が不完全なため）し、**防御的な述語呼び出し**（`nil?` / `empty?` / `zero?` / `respond_to?` / …）をスキップする —— ここでは戻り値に厳格なRBSが実際の実行時チェックと日常的に食い違う（`Module#name -> String`対 無名クラスの`nil`）。[`always_truthy_condition_collector.rb`](https://github.com/rigortype/rigor/blob/master/lib/rigor/analysis/check_rules/always_truthy_condition_collector.rb)を参照。
 
-フローエンジンは**既に`case`を絞り込んでいる**。`eval_case_when_branches`（[`statement_evaluator.rb:527`](../../lib/rigor/inference/statement_evaluator.rb)）は`falsey_scope`アキュムレータを`when`分岐にまたいで通し、`Narrowing.case_when_scopes`（[`narrowing.rb:338`](../../lib/rigor/inference/narrowing.rb)）は各分岐について、`body_scope`（節の真エッジによって絞り込まれた対象）と`falsey_scope`（先行するすべての節の否定の連言によって絞り込まれた対象）を返す。つまり各`when`において、*それより前の節がどれもマッチしなかったと仮定したときの*対象の型を既に計算している —— これはまさに到達可能性診断が必要とする事実だ。
+フローエンジンは**既に`case`を絞り込んでいる**。`eval_case_when_branches`（[`statement_evaluator.rb:527`](https://github.com/rigortype/rigor/blob/master/lib/rigor/inference/statement_evaluator.rb)）は`falsey_scope`アキュムレータを`when`分岐にまたいで通し、`Narrowing.case_when_scopes`（[`narrowing.rb:338`](https://github.com/rigortype/rigor/blob/master/lib/rigor/inference/narrowing.rb)）は各分岐について、`body_scope`（節の真エッジによって絞り込まれた対象）と`falsey_scope`（先行するすべての節の否定の連言によって絞り込まれた対象）を返す。つまり各`when`において、*それより前の節がどれもマッチしなかったと仮定したときの*対象の型を既に計算している —— これはまさに到達可能性診断が必要とする事実だ。
 
 2つのギャップ:
 
 - **`case`節は到達可能性診断を一切生成しない**。ナローイングは分岐ボディの型付けにのみ消費される。
-- **`in`（パターンマッチ）分岐は網羅性を追跡しない**。`branch_body_and_falsey_scopes`（[`statement_evaluator.rb:542`](../../lib/rigor/inference/statement_evaluator.rb)）は`InNode`に対して`falsey_scope`を変更しないままにする（「保守的: まだ網羅性追跡なし」）。
+- **`in`（パターンマッチ）分岐は網羅性を追跡しない**。`branch_body_and_falsey_scopes`（[`statement_evaluator.rb:542`](https://github.com/rigortype/rigor/blob/master/lib/rigor/inference/statement_evaluator.rb)）は`InNode`に対して`falsey_scope`を変更しないままにする（「保守的: まだ網羅性追跡なし」）。
 
 ## 互いに素であることのシグナル
 
@@ -53,8 +53,8 @@ Rigorはこの作業の難しい半分を既に行っている。欠けている
 
 - **発火対象:** `CaseNode` / `CaseMatchNode`内の`WhenNode`（および、ゲート付きで`InNode`）であって、計算された`body_scope`が対象ローカルを`bot`に絞り込むもの、または入口の`falsey_scope`が既に`bot`な対象を持つもの。
 - **指す位置**: デッドな節の`statements`（決して実行されないボディ）—— `flow.unreachable-branch`の「デッドコードに波線」という配置をミラーする。空のボディを持つ節（有用な位置がない）はリテラルルールと同様にスキップする。
-- **重大度:** `warning`、2つの`flow.*`兄弟に合わせる。`flow.unreachable-branch`と並べて[`severity_profile.rb`](../../lib/rigor/configuration/severity_profile.rb)の3つの層（`info` / `warning` / `error`）すべてに配線する。
-- **抑制**: デッド節の行に`# rigor:disable unreachable-clause`、[`rule_catalog.rb`](../../lib/rigor/analysis/rule_catalog.rb)に登録する。
+- **重大度:** `warning`、2つの`flow.*`兄弟に合わせる。`flow.unreachable-branch`と並べて[`severity_profile.rb`](https://github.com/rigortype/rigor/blob/master/lib/rigor/configuration/severity_profile.rb)の3つの層（`info` / `warning` / `error`）すべてに配線する。
+- **抑制**: デッド節の行に`# rigor:disable unreachable-clause`、[`rule_catalog.rb`](https://github.com/rigortype/rigor/blob/master/lib/rigor/analysis/rule_catalog.rb)に登録する。
 
 ### 仕組み
 
@@ -64,7 +64,7 @@ Rigorはこの作業の難しい半分を既に行っている。欠けている
 
 `flow.always-truthy-condition`のエンベロープをそのまま再利用する —— このルールは同じリスククラスだ:
 
-- **対象は絞り込まれなければならない**。`case_when_scopes`は、対象が既知の型を持つ`LocalVariableReadNode`でない限り、既に入口スコープにバイルアウトする（[`narrowing.rb:364`](../../lib/rigor/inference/narrowing.rb)）。ナローイングなし ⇒ 発火なし。これだけで大半の危険な形が除外される。
+- **対象は絞り込まれなければならない**。`case_when_scopes`は、対象が既知の型を持つ`LocalVariableReadNode`でない限り、既に入口スコープにバイルアウトする（[`narrowing.rb:364`](https://github.com/rigortype/rigor/blob/master/lib/rigor/inference/narrowing.rb)）。ナローイングなし ⇒ 発火なし。これだけで大半の危険な形が除外される。
 - **ループ / ブロック内をスキップ** —— 同じミューテーション追跡のギャップ。
 - **防御的な形の対象 / 節をスキップ** —— エンジンがnilになりえないと信じているRBS厳格な戻り値に対して防御する`when nil`を咎めない。
 - **具体的な絞り込み済みキャリアを要求する** —— `Nominal` / `Constant` / `Tuple` / 互いに素なユニオン（union、合併型とも）で発火する;`Dynamic[T]`や未解決のシェイプ（shape）では決して発火しない。`Dynamic`に対するdisjointnessは決して証明できないため、そこでは決して発火しない —— 漸進的保証が保たれる。

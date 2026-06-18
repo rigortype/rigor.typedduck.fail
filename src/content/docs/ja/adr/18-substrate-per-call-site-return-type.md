@@ -3,8 +3,8 @@ title: "ADR-18 — 基板の呼び出しサイトごとの戻り値型DSL"
 description: "rigortype/rigor docs/adr/18-substrate-per-call-site-return-type.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/18-substrate-per-call-site-return-type.md"
 sourcePath: "docs/adr/18-substrate-per-call-site-return-type.md"
-sourceSha: "3f0968cc7dc382851779bfba014bb9c60f0922d25f041c8f56e1d1538b84b8dd"
-sourceCommit: "a5d648b126d5ed7b1e04a16a87927bca7883e069"
+sourceSha: "675772997a0b230d3d0b4ce46a2181c1e5a2f63a0e72249a7a0c73fe36cd2f44"
+sourceCommit: "aec4ca7f5f87b1972dea8fecaaf5b62c8880a3af"
 translationStatus: "translated"
 sidebar:
   order: 4018
@@ -98,7 +98,7 @@ emit: [
   （Symbol）。戻り値型を解決したパスを記録する: `:static`、`:from_arg`、`:fallback`のいずれか。デバッグ用にキャッシュ記述子の`to_h`に表れる;重要な外部サーフェス（surface）ではない。
 - `Rigor::Inference::SyntheticMethodScanner`は、事前パス中に`returns_from_arg:`検索を解決するために、実行ごとの`Plugin::FactStore`を参照する。スキャナは`fact_store:`キーワード引数を取得する（デフォルトは`nil` → すべての`returns_from_arg:`行は`returns:` / Dynamicにフォールバック）。
 
-すべての更新は実装スライスと同じコミットで[`spec/rigor/public_api_drift_spec.rb`](../../spec/rigor/public_api_drift_spec.rb)に着地します。
+すべての更新は実装スライスと同じコミットで[`spec/rigor/public_api_drift_spec.rb`](https://github.com/rigortype/rigor/blob/master/spec/rigor/public_api_drift_spec.rb)に着地します。
 
 ## 実装のスライス分け
 

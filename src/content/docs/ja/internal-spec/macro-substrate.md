@@ -3,8 +3,8 @@ title: "Macro / DSL Expansion Substrate"
 description: "Imported from rigortype/rigor docs/internal-spec/macro-substrate.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/macro-substrate.md"
 sourcePath: "docs/internal-spec/macro-substrate.md"
-sourceSha: "442d657fd0b48a408792a27fc66bfcc7fc3fcad815d4c070debefa949158cd2f"
-sourceCommit: "222d8e03ee0f4252795f6c7294672a76c20b7ae3"
+sourceSha: "33d2dd5aed592735d693e4c22806ac9a9724b3b28d7dca05faf275df693cac6d"
+sourceCommit: "aec4ca7f5f87b1972dea8fecaaf5b62c8880a3af"
 translationStatus: "translated"
 sidebar:
   order: 3050
@@ -192,7 +192,7 @@ returns_from_arg: { position: 1, lookup_via: { plugin_id: "dry-types", fact: :dr
 ## ドリフトピン状況
 
 public-APIドリフト仕様
-（[`spec/rigor/public_api_drift_spec.rb`](../../spec/rigor/public_api_drift_spec.rb)）は、
+（[`spec/rigor/public_api_drift_spec.rb`](https://github.com/rigortype/rigor/blob/master/spec/rigor/public_api_drift_spec.rb)）は、
 `BlockAsMethod`、`HeredocTemplate`、`HeredocTemplate::Emit`、
 `HeredocTemplate::ReturnsFromArg`、`TraitRegistry`、
 `NestedClassTemplate`のインスタンスメソッド集合をピン留めする ──

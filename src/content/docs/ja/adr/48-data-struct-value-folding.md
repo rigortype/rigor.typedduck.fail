@@ -3,8 +3,8 @@ title: "ADR-48 — Struct / Data value folding (member-shape carriers)"
 description: "Imported from rigortype/rigor docs/adr/48-data-struct-value-folding.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/48-data-struct-value-folding.md"
 sourcePath: "docs/adr/48-data-struct-value-folding.md"
-sourceSha: "b6fdcc80254409b8c4057d36a3ba37b1bc17f53e676c383164665a1b484f3e7b"
-sourceCommit: "e9143e5a24c59d43e2ea9f548835c91f029e19dc"
+sourceSha: "c99509171300e354ed041ef5408287a0aac1eaa9c35f045603a6889f893f8666"
+sourceCommit: "aec4ca7f5f87b1972dea8fecaaf5b62c8880a3af"
 translationStatus: "translated"
 sidebar:
   order: 4048
@@ -14,7 +14,7 @@ sidebar:
 
 **`Struct`フォローアップ — スライス1 + 2着地（健全な*トランジェント*形式）**。可変な姉妹キャリア`Type::StructClass` / `Type::StructInstance`が出荷され、`Struct.new(...)`は`StructClass`のメンバーレイアウトに畳み込まれ、`.new` / `[]`が`StructInstance`を実体化し、**フレッシュな**（チェーンされた）インスタンスからのメンバー読み取りが畳み込まれる（`Struct.new(:x, :y).new(1, 2).x` → `Constant[1]`。匿名・定数・サブクラス・ローカルクラスの各形式、位置引数 + `keyword_init:`に対応）。変異健全性のストーリーは、書き込みサイトの無効化ではなく**フレッシュレシーバゲート**によって解決される: *格納された*バインディングからのメンバー読み取りは`Dynamic[top]`に劣化する（トランジェントはマテリアライゼーションとチェーン読み取りの間に変異され得ないため無効化は不要;格納されたバインディングは変異され得るため畳み込まない）。これは書き込みサイトに一切触れず — すべてのエスケープ経路を列挙するよりはるかに偽陽性リスクが低く — まさに先送りされたスライス3が緩めるゲートそのものだ。完全な記録は後述の§「Structのフォローアップ」を参照。
 
-**Structスライス3着地（2026-06-15）— 畳み込み安全なバインドローカルのメンバー畳み込み**。いまや、*格納された*ローカルからのメンバー読み取りも、保守的な本体全体の許可リストスキャン（[`Inference::StructFoldSafety`](../../lib/rigor/inference/struct_fold_safety.rb)）がそのローカルは決して変異・エイリアス・エスケープされないと証明したときに畳み込まれる（`p = Point.new(1, 2); p.x` → `Constant[1]`）;書き込み・エイリアス・エスケープされたローカルは`Dynamic[top]`のままだ。スキャンは許可リストであり（すべての使用が既知の純粋読み取りでなければならない — 取りこぼしは過度に保守的になるだけで決して不健全にはならない）、本体ごとに一度、トップレベルとメソッド本体のエントリーポイントでスコープ（`Scope#struct_fold_safe?`）にインストールされる。§「Structのフォローアップ」を参照。
+**Structスライス3着地（2026-06-15）— 畳み込み安全なバインドローカルのメンバー畳み込み**。いまや、*格納された*ローカルからのメンバー読み取りも、保守的な本体全体の許可リストスキャン（[`Inference::StructFoldSafety`](https://github.com/rigortype/rigor/blob/master/lib/rigor/inference/struct_fold_safety.rb)）がそのローカルは決して変異・エイリアス・エスケープされないと証明したときに畳み込まれる（`p = Point.new(1, 2); p.x` → `Constant[1]`）;書き込み・エイリアス・エスケープされたローカルは`Dynamic[top]`のままだ。スキャンは許可リストであり（すべての使用が既知の純粋読み取りでなければならない — 取りこぼしは過度に保守的になるだけで決して不健全にはならない）、本体ごとに一度、トップレベルとメソッド本体のエントリーポイントでスコープ（`Scope#struct_fold_safe?`）にインストールされる。§「Structのフォローアップ」を参照。
 
 **残余（需要依存）:**ベアローカルのブロック形式のパリティ（`c = Data.define(:x) do … end`。ブロックのdefが解決可能な名前のもとに登録されないためリーダー再定義ガードを参照できない — コーパスの需要なし、保守的なbailはFPセーフ）、および`Struct`の**スライス4**（セッターを通じた変異済みメンバーの精密な再型付け — `s.x = 5; s.x` → 代入された型、姉妹メンバーは精度を保つ）。これは[`docs/notes/20260615-struct-folding-slice3-design.md`](../../notes/20260615-struct-folding-slice3-design/)で設計されている。
 
@@ -35,8 +35,8 @@ sidebar:
 
 ディスパッチ/型側は**防御的のみ**だ。
 
-- `Inference::Builtins::STRUCT_CATALOG`（[`struct_catalog.rb`](../../lib/rigor/inference/builtins/struct_catalog.rb)）は`Struct`をレシーバーとして認識し、「仮想的な将来の`Constant<Struct>`キャリア」に対して`:[]/` `:hash` / `:initialize_copy`をブロックリストに登録する。`data/builtins/ruby_core/struct.yml`では`Data.define` / `Struct.new`を`:block_dependent`に分類しており、`ConstantFolding`はこれを拒否してRBS経由で`Dynamic[top]`に解決する。
-- インテグレーションフィクスチャ[`struct_catalog.rb`](../../spec/integration/fixtures/struct_catalog.rb)が現状を固定している: `Struct.new(:foo, :bar)` → `Struct`（Nominal）、`Struct.new(:foo).new(1)` → `Dynamic[top]`。
+- `Inference::Builtins::STRUCT_CATALOG`（[`struct_catalog.rb`](https://github.com/rigortype/rigor/blob/master/lib/rigor/inference/builtins/struct_catalog.rb)）は`Struct`をレシーバーとして認識し、「仮想的な将来の`Constant<Struct>`キャリア」に対して`:[]/` `:hash` / `:initialize_copy`をブロックリストに登録する。`data/builtins/ruby_core/struct.yml`では`Data.define` / `Struct.new`を`:block_dependent`に分類しており、`ConstantFolding`はこれを拒否してRBS経由で`Dynamic[top]`に解決する。
+- インテグレーションフィクスチャ[`struct_catalog.rb`](https://github.com/rigortype/rigor/blob/master/spec/integration/fixtures/struct_catalog.rb)が現状を固定している: `Struct.new(:foo, :bar)` → `Struct`（Nominal）、`Struct.new(:foo).new(1)` → `Dynamic[top]`。
 
 つまり: メンバーの*名前*は認識され、メンバーの*存在*は登録されているが、読み取りをプロジェクションするためのインスタンスごとのメンバー**レイアウト**をモデル化するものがない。そのレイアウトが欠けているキャリアだ。
 
@@ -150,7 +150,7 @@ inst.members               → Tuple[Constant[:x], Constant[:y]]
 
 **健全性 — 書き込みサイトの無効化ではなく、フレッシュレシーバゲート（ルートb、先鋭化）**。本ADRは2つのルートを挙げていた: （a）観測されたすべてのセッター / `[]=` / エスケープでのフローセンシティブな無効化（先行技術は`ScopeIndexer#widen_member_for_observed_mutators`）、または（b）変異が到達し得ない箇所でのみ読み取りを畳み込む。ルート（a）は*すべてのエスケープ経路を列挙する*ことを要求し — 呼び出し引数・エイリアス代入・コンテナへの格納・ブロックキャプチャ — **その1つでも取りこぼせば不健全になり、偽陽性を製造する**（プロジェクトの大罪だ）。ルート（b）はその最も健全な極限で実現される: `StructInstance`のメンバー読み取りは、**そのレシーバノードがフレッシュな`.new(...)` / `.with(...)`呼び出しであるときに限り**畳み込まれる — マテリアライゼーションとチェーン読み取りの間に変異され得ないことが証明可能なトランジェントだ。*格納された*バインディングからの読み取りは`Dynamic[top]`に劣化する。これは**書き込みサイトに一切触れない**ため、エスケープ経路を取りこぼしようがない;代償は、バインドされたインスタンス（一般的な`p = Point.new(1, 2); p.x`形式）がまだ畳み込まれないことだ。メンバー*セッター*（`s.x = v`）は代入された値の型を返す（セッター自身の戻り値をモデル化したもので、変異状態に関わらず健全であり、未登録のライターでの未定義メソッドへのフォールスルーを避ける）。
 
-**スライス計画（Struct）:**スライス1 = `StructClass`キャリア + `Struct.new`認識;スライス2 = `StructInstance`キャリア + フレッシュチェーンのメンバー畳み込み + 定数/サブクラス形式のためのサイドテーブル（`Scope#struct_member_layout`）。両者は一緒に着地した（サイドテーブルは一般的な定数形式に必要で、マテリアライゼーションの基盤を完成させる）。**スライス3着地（2026-06-15）:**フレッシュレシーバゲートは、いまや*変異のないバインドローカル*からのメンバー読み取りも畳み込む。これは保守的な畳み込み安全スキャン（[`Inference::StructFoldSafety`](../../lib/rigor/inference/struct_fold_safety.rb) — ローカルは、そのすべての使用がメンバー読み取り / 既知の純粋プロジェクションであるときに限り畳み込まれる;セッター・インデックス書き込み・エイリアス・エスケープ・未知のメソッド呼び出しのいずれもがそれを失格にする）によって証明される。健全性はカウント恒等式に依拠する: ローカルが畳み込み安全であるのは、すべての`LocalVariableReadNode(n)`が純粋読み取り呼び出しのレシーバーである（`total_reads == pure_receiver_reads`）とき、かつそのときに限る。これはエスケープ経路を列挙せずにすべての変異 / エスケープ / エイリアスを捕捉する（許可リストにより、取りこぼしは過度に保守的になるだけで決して不健全にはならない）。この集合はローカル変数スコープごとに一度計算され（`def` / `class` / `module`の境界を尊重する;ブロックはローカルを共有する）、トップレベル（`ScopeIndexer`）とメソッド本体（`build_method_entry_scope` / `build_user_method_body_scope`）のエントリーポイントでスコープ（`Scope#struct_fold_safe?`）にインストールされる — セルフチェックで性能中立と計測済み。**先送り:**スライス4 = セッターを通じた変異済みメンバーの精密な再型付け（`s.x = 5; s.x` → 代入された型、姉妹メンバーは精度を保つ）。これは[`docs/notes/20260615-struct-folding-slice3-design.md`](../../notes/20260615-struct-folding-slice3-design/)で設計されている。
+**スライス計画（Struct）:**スライス1 = `StructClass`キャリア + `Struct.new`認識;スライス2 = `StructInstance`キャリア + フレッシュチェーンのメンバー畳み込み + 定数/サブクラス形式のためのサイドテーブル（`Scope#struct_member_layout`）。両者は一緒に着地した（サイドテーブルは一般的な定数形式に必要で、マテリアライゼーションの基盤を完成させる）。**スライス3着地（2026-06-15）:**フレッシュレシーバゲートは、いまや*変異のないバインドローカル*からのメンバー読み取りも畳み込む。これは保守的な畳み込み安全スキャン（[`Inference::StructFoldSafety`](https://github.com/rigortype/rigor/blob/master/lib/rigor/inference/struct_fold_safety.rb) — ローカルは、そのすべての使用がメンバー読み取り / 既知の純粋プロジェクションであるときに限り畳み込まれる;セッター・インデックス書き込み・エイリアス・エスケープ・未知のメソッド呼び出しのいずれもがそれを失格にする）によって証明される。健全性はカウント恒等式に依拠する: ローカルが畳み込み安全であるのは、すべての`LocalVariableReadNode(n)`が純粋読み取り呼び出しのレシーバーである（`total_reads == pure_receiver_reads`）とき、かつそのときに限る。これはエスケープ経路を列挙せずにすべての変異 / エスケープ / エイリアスを捕捉する（許可リストにより、取りこぼしは過度に保守的になるだけで決して不健全にはならない）。この集合はローカル変数スコープごとに一度計算され（`def` / `class` / `module`の境界を尊重する;ブロックはローカルを共有する）、トップレベル（`ScopeIndexer`）とメソッド本体（`build_method_entry_scope` / `build_user_method_body_scope`）のエントリーポイントでスコープ（`Scope#struct_fold_safe?`）にインストールされる — セルフチェックで性能中立と計測済み。**先送り:**スライス4 = セッターを通じた変異済みメンバーの精密な再型付け（`s.x = 5; s.x` → 代入された型、姉妹メンバーは精度を保つ）。これは[`docs/notes/20260615-struct-folding-slice3-design.md`](../../notes/20260615-struct-folding-slice3-design/)で設計されている。
 
 ## 却下/先送りした代替案
 

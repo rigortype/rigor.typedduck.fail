@@ -3,8 +3,8 @@ title: "Flow Contribution Merger (slice 3)"
 description: "Imported from rigortype/rigor docs/internal-spec/flow-contribution-merger.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/flow-contribution-merger.md"
 sourcePath: "docs/internal-spec/flow-contribution-merger.md"
-sourceSha: "e8b4bddbbda6174426c643e2fefdf0c56e336da9d12a121e5f6a1313d1246128"
-sourceCommit: "a3ab53dd2b8aa0a84fd7ddbd64339f316d8d12ec"
+sourceSha: "ee2e7f64ed075022faafc7946e1e238690c4e0277b695fc7bb9950e2fa6601d6"
+sourceCommit: "aec4ca7f5f87b1972dea8fecaaf5b62c8880a3af"
 translationStatus: "translated"
 sidebar:
   order: 3050
@@ -20,7 +20,7 @@ sidebar:
 
 ## 公開名前空間（ドリフトピン済み）
 
-以下の各名前空間は[`spec/rigor/public_api_drift_spec.rb`](../../spec/rigor/public_api_drift_spec.rb)によってロックされています。
+以下の各名前空間は[`spec/rigor/public_api_drift_spec.rb`](https://github.com/rigortype/rigor/blob/master/spec/rigor/public_api_drift_spec.rb)によってロックされています。
 
 ### `Rigor::FlowContribution#to_element_list`
 

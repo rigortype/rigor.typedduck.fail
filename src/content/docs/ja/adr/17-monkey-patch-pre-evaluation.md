@@ -3,8 +3,8 @@ title: "ADR-17 — プロジェクト側monkey-patchの事前評価"
 description: "rigortype/rigor docs/adr/17-monkey-patch-pre-evaluation.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/17-monkey-patch-pre-evaluation.md"
 sourcePath: "docs/adr/17-monkey-patch-pre-evaluation.md"
-sourceSha: "4488e8f6d9c61101ac09d8377f855b917a28a50d4429996638533634047a638f"
-sourceCommit: "a5d648b126d5ed7b1e04a16a87927bca7883e069"
+sourceSha: "347e7e9e21dc5fb564536a37c1d40fc9b04e9c85eba88725bad07018ec073897"
+sourceCommit: "aec4ca7f5f87b1972dea8fecaaf5b62c8880a3af"
 sourceDate: "2026-05-29T00:21:31+09:00"
 translationStatus: "translated"
 sidebar:
@@ -121,7 +121,7 @@ Rigorのアナライザーが起動すると次のように動作します。
 - 新しい`Diagnostic#source_family`シンボル`:project_patched`。
 - `.rigor.yml`配下の新しい設定スキーマエントリー: `pre_eval: [string]`（設定ファイルに対する相対パス）。
 
-すべての更新は[`spec/rigor/public_api_drift_spec.rb`](../../spec/rigor/public_api_drift_spec.rb)に、各面を導入する実装スライスと同じコミットで着地します。
+すべての更新は[`spec/rigor/public_api_drift_spec.rb`](https://github.com/rigortype/rigor/blob/master/spec/rigor/public_api_drift_spec.rb)に、各面を導入する実装スライスと同じコミットで着地します。
 
 ## 実装のスライス分け
 

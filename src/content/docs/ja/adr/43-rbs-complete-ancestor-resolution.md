@@ -3,8 +3,8 @@ title: "ADR-43 — RBS-complete ancestor resolution (allow-list inherited-method
 description: "Imported from rigortype/rigor docs/adr/43-rbs-complete-ancestor-resolution.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/43-rbs-complete-ancestor-resolution.md"
 sourcePath: "docs/adr/43-rbs-complete-ancestor-resolution.md"
-sourceSha: "4fb2f24cce3d71889fb0e3b90096b9e2ed2fea788e4c1987ffe2bc4e04a06262"
-sourceCommit: "b5c25bc5a9e53d495e4f515a9506f10fd4bef8d7"
+sourceSha: "8dbfae53abfc891afd7cd1bef8f389f9bee2f97aa7399460a7c793508149e319"
+sourceCommit: "aec4ca7f5f87b1972dea8fecaaf5b62c8880a3af"
 translationStatus: "translated"
 sidebar:
   order: 4043
@@ -82,7 +82,7 @@ Steepなしで）警告できるか？」
 ### Why the gap exists, and why it is load-bearing
 
 場所は
-[`rbs_dispatch.rb` `lookup_method`](../../lib/rigor/inference/method_dispatcher/rbs_dispatch.rb)
+[`rbs_dispatch.rb` `lookup_method`](https://github.com/rigortype/rigor/blob/master/lib/rigor/inference/method_dispatcher/rbs_dispatch.rb)
 （~L270）：`Nominal[Sub]`レシーバー上のディスパッチは
 `instance_method_definition("Sub", …)`を呼ぶが、Rubyソースのサブクラス名がRBS環境の
 `class_decls`に存在しない（`rbs_loader.rb` ~L968）ため即座に失敗する。**祖先ウォーク

@@ -3,8 +3,8 @@ title: "ADR-42 — Plugin-contributed binary-operator return types (coerce-direc
 description: "Imported from rigortype/rigor docs/adr/42-plugin-binary-operator-return-types.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/42-plugin-binary-operator-return-types.md"
 sourcePath: "docs/adr/42-plugin-binary-operator-return-types.md"
-sourceSha: "dd6e6724d32232fec55b360212817d12d2811e55f672e9216ac7d06ea2df68fe"
-sourceCommit: "b5c25bc5a9e53d495e4f515a9506f10fd4bef8d7"
+sourceSha: "30c18b5909944aaa0a134f69f9f3bbf45b1db60dfa75482bb59d7f094cfc9655"
+sourceCommit: "aec4ca7f5f87b1972dea8fecaaf5b62c8880a3af"
 translationStatus: "translated"
 sidebar:
   order: 4042
@@ -22,7 +22,7 @@ sidebar:
 
 PHPStanのプラグイン向け型演算（`TypeCombinator`、`TypeUtils`、`Type`インターフェース、とりわけ`OperatorTypeSpecifyingExtension`）とRigorの比較により、両者がユニオン型（union type）／インターセクション型（intersection type）／差分、漸進的（gradual）な`accepts`、ケイパビリティ（capability）述語、定数抽出、定数スカラー算術、`IntegerRange`の抽象算術、ユニオンの直積畳み込みについてパリティにあることが確立された（本ノートの§2–§3）。Rigorに対応物のない唯一のPHPStan機能が**プラグイン二項演算子フック**である。
 
-その後の2026-06-03のコードスパイク（ノート§3 G1）が、ギャップは*見た目より狭い*ことを示した。Prismでは`a + b`は`name: :+`を持つ`Prism::CallNode`であり、通常の呼び出しパス（[`expression_typer.rb:1233`](../../lib/rigor/inference/expression_typer.rb)）を通って`MethodDispatcher.dispatch`に流れ込む。そのティア順序は**`ConstantFolding` → `try_plugin_contribution`（`dynamic_return`）→ RBS**である（[`method_dispatcher.rb:74-97`](../../lib/rigor/inference/method_dispatcher.rb)）。プラグインが所有するレシーバーは`Nominal[Custom]`であり、`ConstantFolding`はこれを辞退するため、ディスパッチはプラグインティアに到達する。`dynamic_return_type`は**レシーバークラスのみ**でゲートし、メソッド名ではゲートしない（[`base.rb:382`](../../lib/rigor/plugin/base.rb)）。したがってプラグインは今日**すでに**二項演算子の結果型を指定できる:
+その後の2026-06-03のコードスパイク（ノート§3 G1）が、ギャップは*見た目より狭い*ことを示した。Prismでは`a + b`は`name: :+`を持つ`Prism::CallNode`であり、通常の呼び出しパス（[`expression_typer.rb:1233`](https://github.com/rigortype/rigor/blob/master/lib/rigor/inference/expression_typer.rb)）を通って`MethodDispatcher.dispatch`に流れ込む。そのティア順序は**`ConstantFolding` → `try_plugin_contribution`（`dynamic_return`）→ RBS**である（[`method_dispatcher.rb:74-97`](https://github.com/rigortype/rigor/blob/master/lib/rigor/inference/method_dispatcher.rb)）。プラグインが所有するレシーバーは`Nominal[Custom]`であり、`ConstantFolding`はこれを辞退するため、ディスパッチはプラグインティアに到達する。`dynamic_return_type`は**レシーバークラスのみ**でゲートし、メソッド名ではゲートしない（[`base.rb:382`](https://github.com/rigortype/rigor/blob/master/lib/rigor/plugin/base.rb)）。したがってプラグインは今日**すでに**二項演算子の結果型を指定できる:
 
 ```ruby
 dynamic_return receivers: ["Money"] do |call_node, scope|
@@ -44,11 +44,11 @@ PHPStanはこの非対称性を持たない。`isOperatorSupported($left, $right
 
 ### 需要再評価（2026-06-03）
 
-インテグレーションスペック[`spec/integration/plugin_operator_dynamic_return_spec.rb`](../../spec/integration/plugin_operator_dynamic_return_spec.rb)に裏打ちされた証拠精査により、このギャップの優先度を歪めていた過大表現を訂正した。このスペックはself／左辺のケースが動作することを確認し、強制方向の挙動を正確に固定する:
+インテグレーションスペック[`spec/integration/plugin_operator_dynamic_return_spec.rb`](https://github.com/rigortype/rigor/blob/master/spec/integration/plugin_operator_dynamic_return_spec.rb)に裏打ちされた証拠精査により、このギャップの優先度を歪めていた過大表現を訂正した。このスペックはself／左辺のケースが動作することを確認し、強制方向の挙動を正確に固定する:
 
 - **self／左辺のケースはすでに動作する（新しいフックは不要）**。`dynamic_return receivers: ["Money"]`規則が`:+`／`:-`／`:*`／`:/`に対して発火し、提供される型が`Money <op> Money`の結果になる。4つの演算子すべてでグリーンを確認済み。
 - **強制方向はサイレントなフェイルソフトでは*ない* ── そして狭い偽陽性サーフェスを伴う**。初稿は`1 + money`が診断なしで`Dynamic[top]`に落ちると主張した。スペックはこれを反証する。すなわち`1 + money`は`Integer`上でディスパッチし、`Money`規則は発火できず、結果は**`Integer`として左バイアスで型付けされる**（`Dynamic`ではない）。すると後続のメソッド解決が`Integer`に対して走り、`(1 + money).some_money_method`は**`money.coerce(1)`経由でランタイムでは動作するにもかかわらず**`Integer`に対する`undefined-method`としてフラグされる ── 正真正銘の、ただし狭い偽陽性である（少数派の`scalar <op> custom`形式*かつ*結果に対するカスタムメソッドの両方を必要とする）。これは「精度のみ」より強い動機だが、依然として狭い。
-- **BigDecimal強制の調査項目は本ADRの証拠にならない**。その偽陽性（`docs/notes/20260519-oss-library-survey.md`）は*オーバーロード順序*の問題 ── 標準ライブラリ`bigdecimal`がオーバーロードリストの先頭で`Integer#+`を再オープンする ── であり、ReceiverAffinityの事前ソート（`acc9882`、[`receiver_affinity.rb`](../../lib/rigor/inference/method_dispatcher/receiver_affinity.rb)）によってすでに修正されている。プラグインが提供する強制方向の型とは無関係である。
+- **BigDecimal強制の調査項目は本ADRの証拠にならない**。その偽陽性（`docs/notes/20260519-oss-library-survey.md`）は*オーバーロード順序*の問題 ── 標準ライブラリ`bigdecimal`がオーバーロードリストの先頭で`Integer#+`を再オープンする ── であり、ReceiverAffinityの事前ソート（`acc9882`、[`receiver_affinity.rb`](https://github.com/rigortype/rigor/blob/master/lib/rigor/inference/method_dispatcher/receiver_affinity.rb)）によってすでに修正されている。プラグインが提供する強制方向の型とは無関係である。
 - **最も安価な修正は本フックではなくエンジンによる緩和である**。偽陽性は、`Numeric`でない引数に対して左バイアスが`Integer`を返すことから生じるため、その結果を代わりに`Dynamic`として型付けすれば（下記のWD-D）、**プラグインサーフェスを一切伴わずに**偽陽性が除去される。精度（実際の被強制型）はその場合、別個のADR-20形の関心事になる。[`examples/rigor-units/README.md`](https://github.com/rigortype/rigor/blob/master/examples/rigor-units/README.md)自体が、宣言的な答えとして軽量HKT／RBS型関数（`def *: [T] (T) -> ...`）を指し示しており、新しい演算子フックはそれと競合することになる。
 
 要点: 残存需要は**少数派の`scalar <op> custom`パターン**（`2 * distance`、`0.5 * mass`、`1 + money`）である。これは狭い偽陽性を生みうる（最善の対処はWD-D、フックなし）一方、それ以外では精度を犠牲にする（最善の対処はADR-20）。動機づけとなる代表的なライブラリ（`BigDecimal`、単位／`Money`、ベクトル）は`builtin <op> custom`に`coerce`を頼っているため、パターンは存在する ── 控えめなのはパターンの存在ではなく*専用の演算子フックの価値*のほうである。
@@ -92,4 +92,4 @@ PHPStanはこの非対称性を持たない。`isOperatorSupported($left, $right
 - **偽陽性の規律を最優先する**。動機づけとなるケースは、動作するコードに対する既存の*狭い偽陽性*である。すなわち`1 + money`が`Integer`として左バイアスで型付けされ（スペックで確認済み）、その結果に対するカスタムメソッドが`coerce`経由で動作するにもかかわらず`undefined-method`としてフラグされる。偽陽性に安全な最初のステップはWD-D（そのケースを`Dynamic`として型付けする）であり、これは常に*緩める*だけ ── 診断を除去するのであって、決して追加しない。いかなる精度レイヤー（WD-0／WD-A）も同様に、結果を*厳格化または訂正する*だけにとどめ、動作する強制ベースのコードを脅かしてはならない。これはプロジェクトの最上位価値である「プログラムが動く」と整合する。
 - **需要ゲート付き**。同じ変更セットに実在の利用者がいない限り、エンジンの作業は着地しない。それまで本ADRはProposedにとどまり、比較ノートが有効な記録となる。
 - **パリティはほぼ達成済み**。G1a／G1bがドキュメント化されれば、Rigorは一般的な（自己／左辺）ケースについてPHPStanの`OperatorTypeSpecifyingExtension`に一致する。本ADRは残る唯一の非対称性（強制方向）を閉じる。
-- **系譜**。ADR-2（拡張API）、ADR-37（インターフェース分離 ── WD-Aは新しい分離プロトコル）、ADR-39（対象ライブラリに作用するプラグイン）の上に構築する。エンジンのティア順序は[`method_dispatcher.rb`](../../lib/rigor/inference/method_dispatcher.rb)の`ConstantFolding` → プラグイン → RBSの並びと相互作用する。
+- **系譜**。ADR-2（拡張API）、ADR-37（インターフェース分離 ── WD-Aは新しい分離プロトコル）、ADR-39（対象ライブラリに作用するプラグイン）の上に構築する。エンジンのティア順序は[`method_dispatcher.rb`](https://github.com/rigortype/rigor/blob/master/lib/rigor/inference/method_dispatcher.rb)の`ConstantFolding` → プラグイン → RBSの並びと相互作用する。

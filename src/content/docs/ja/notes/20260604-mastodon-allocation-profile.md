@@ -3,8 +3,8 @@ title: "Profiling `rigor check` on Mastodon: it is allocation-bound"
 description: "Imported from rigortype/rigor docs/notes/20260604-mastodon-allocation-profile.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260604-mastodon-allocation-profile.md"
 sourcePath: "docs/notes/20260604-mastodon-allocation-profile.md"
-sourceSha: "1416adf81363ea009ced46fe212954789175f726df6596da43093e872799da77"
-sourceCommit: "1e82fa4a127682abbd0aa1b9030cabd425ed2754"
+sourceSha: "8c9fba580e0d7ff0a824d6e7bec647ccbfa61d64bd14b78b2292e2dc1edc6274"
+sourceCommit: "aec4ca7f5f87b1972dea8fecaaf5b62c8880a3af"
 translationStatus: "translated"
 sidebar:
   order: 20266604
@@ -110,7 +110,7 @@ GCチューニングはレバーではない。アロケーションを減らす
 ### 1位/2位クラスタの根本原因: 修飾名文字列のチャーン
 
 `ExpressionTyper#resolve_ancestor_class_name`
-（[`expression_typer.rb:1400`](../../lib/rigor/inference/expression_typer.rb)）:
+（[`expression_typer.rb:1400`](https://github.com/rigortype/rigor/blob/master/lib/rigor/inference/expression_typer.rb)）:
 
 ```ruby
 def resolve_ancestor_class_name(subclass_qualified, raw_superclass)

@@ -3,8 +3,8 @@ title: "Rigor and Tapioca — Comparison and Strategy"
 description: "Imported from rigortype/rigor docs/design/20260509-rigor-tapioca-comparison.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/design/20260509-rigor-tapioca-comparison.md"
 sourcePath: "docs/design/20260509-rigor-tapioca-comparison.md"
-sourceSha: "30a15d15ee589cfad1a155afcad75f208ac7d5c388c527efbcc61bd62b02fcba"
-sourceCommit: "f87b68f852350994a182dca35c52464a59be6e53"
+sourceSha: "48b4f1f0d1e28e4a125bc250b65b8f3f6a4eaeb91fe7f962c91691ff94da64e7"
+sourceCommit: "aec4ca7f5f87b1972dea8fecaaf5b62c8880a3af"
 translationStatus: "translated"
 sidebar:
   order: 20265509
@@ -55,7 +55,7 @@ sidebar:
 | | Tapioca | Rigor |
 | --- | --- | --- |
 | アプローチ | **アプリケーションをロードする**（`Bundler.require`、`require "config/application"`）してRubyのランタイムAPI（`Module#instance_methods`、`Class#ancestors`等）でリフレクトする。 | **アプリケーションコードを実行しない**（ADR-2 §「プラグインの信頼」）。純粋なPrism ASTウォーク。 |
-| Tapiocaのコア | [`lib/tapioca/runtime/reflection.rb`](../../references/tapioca/lib/tapioca/runtime/reflection.rb) — 安全なリフレクションのためにbind_call経由で`Kernel.instance_method(:class)`等をラップ。 | [プラグイン契約](../../adr/2-extension-api/) — `flow_contribution_for(call_node:, scope:)`、`diagnostics_for_file(path:, scope:, root:)`。 |
+| Tapiocaのコア | [`lib/tapioca/runtime/reflection.rb`](https://github.com/rigortype/rigor/blob/master/references/tapioca/lib/tapioca/runtime/reflection.rb) — 安全なリフレクションのためにbind_call経由で`Kernel.instance_method(:class)`等をラップ。 | [プラグイン契約](../../adr/2-extension-api/) — `flow_contribution_for(call_node:, scope:)`、`diagnostics_for_file(path:, scope:, root:)`。 |
 | プラグイン作成 | リフレクション駆動（短いが、gemのロードが必要）。 | AST駆動（より多くのコードだが、解析コードへのランタイム依存なし）。 |
 
 このひとつの違いが他のすべての設計上の乖離を引き起こす。
@@ -231,4 +231,4 @@ Rigorは`rigor-sorbet`スライス4を通じてツリー全体を読む。プラ
   — 共存を実現するインプット側変換。
 - [Railsプラグインロードマップ](../20260508-rails-plugins-roadmap/)
   — Rigorが構築中のDSL対応プラグインのカタログ。
-- [`references/tapioca`](../../references/tapioca) — 参照に使用したTapiocaソース。
+- [`references/tapioca`](https://github.com/rigortype/rigor/blob/master/references/tapioca) — 参照に使用したTapiocaソース。

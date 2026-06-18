@@ -3,8 +3,8 @@ title: "ADR-15 — アナライザーのRactorベース並行性モデル"
 description: "rigortype/rigor docs/adr/15-ractor-concurrency.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/15-ractor-concurrency.md"
 sourcePath: "docs/adr/15-ractor-concurrency.md"
-sourceSha: "a93db95e01a62d0f27cde7e188b21827e205701a52e043883a2fa29fc75d9b72"
-sourceCommit: "a5d648b126d5ed7b1e04a16a87927bca7883e069"
+sourceSha: "030dad6e19d299b957e6407cfcb7c76bf4511bb8383f13e09a9a9dd6bd90e8bb"
+sourceCommit: "aec4ca7f5f87b1972dea8fecaaf5b62c8880a3af"
 translationStatus: "translated"
 sidebar:
   order: 4015

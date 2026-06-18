@@ -3,14 +3,14 @@ title: "Struct value folding — slice 3 (fold-safe bound locals) + slice 4 (pre
 description: "rigortype/rigor docs/notes/20260615-struct-folding-slice3-design.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260615-struct-folding-slice3-design.md"
 sourcePath: "docs/notes/20260615-struct-folding-slice3-design.md"
-sourceSha: "198841f9426b530833b21051a3074d660d0d4bfa258187bc4cc467f6aa7f14a6"
-sourceCommit: "e9143e5a24c59d43e2ea9f548835c91f029e19dc"
+sourceSha: "997868d7d42c8c92f4736d62af8fc03cd457dc38b4f5c862dab01a64898fd965"
+sourceCommit: "aec4ca7f5f87b1972dea8fecaaf5b62c8880a3af"
 translationStatus: "translated"
 sidebar:
   order: 20266615
 ---
 
-2026-06-15。**スライス3は2026-06-15に着地**、以下の設計どおりだ（[`Inference::StructFoldSafety`](../../lib/rigor/inference/struct_fold_safety.rb) + `Scope#struct_fold_safe?`フィールド + トップレベル / メソッド本体の配線）;このノートはその設計記録、そして依然先送りされている**スライス4**（変異済みメンバーの精密な再型付け）の生きた仕様として保持される。スライス1 + 2はそれ以前に着地した（健全な*トランジェント*（transient）形式）。以下の健全性の議論が、実装が実現するものだ。
+2026-06-15。**スライス3は2026-06-15に着地**、以下の設計どおりだ（[`Inference::StructFoldSafety`](https://github.com/rigortype/rigor/blob/master/lib/rigor/inference/struct_fold_safety.rb) + `Scope#struct_fold_safe?`フィールド + トップレベル / メソッド本体の配線）;このノートはその設計記録、そして依然先送りされている**スライス4**（変異済みメンバーの精密な再型付け）の生きた仕様として保持される。スライス1 + 2はそれ以前に着地した（健全な*トランジェント*（transient）形式）。以下の健全性の議論が、実装が実現するものだ。
 
 ## 着地したもの（スライス1 + 2）
 

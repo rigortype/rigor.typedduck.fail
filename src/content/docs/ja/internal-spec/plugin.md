@@ -3,8 +3,8 @@ title: "Plugin Registration / Loading (slice 1)"
 description: "Imported from rigortype/rigor docs/internal-spec/plugin.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/plugin.md"
 sourcePath: "docs/internal-spec/plugin.md"
-sourceSha: "fe392289cea384a3667def774f178f2f12d2ff5a39a78b5ed0fed1dad75097c8"
-sourceCommit: "a3ab53dd2b8aa0a84fd7ddbd64339f316d8d12ec"
+sourceSha: "b3c0666fb2772b22d2d18ed7e6f66379777d4f8b6c2ad3045f4543bbe0d0df7d"
+sourceCommit: "aec4ca7f5f87b1972dea8fecaaf5b62c8880a3af"
 translationStatus: "translated"
 sidebar:
   order: 3050
@@ -16,7 +16,7 @@ sidebar:
 
 ## パブリックネームスペース（ドリフト固定済み）
 
-以下のすべてのネームスペースは[`spec/rigor/public_api_drift_spec.rb`](../../spec/rigor/public_api_drift_spec.rb)によってロックされています。シグネチャの変更は同じコミットで対応する`PublicApiDriftSnapshots::*`定数を更新します。
+以下のすべてのネームスペースは[`spec/rigor/public_api_drift_spec.rb`](https://github.com/rigortype/rigor/blob/master/spec/rigor/public_api_drift_spec.rb)によってロックされています。シグネチャの変更は同じコミットで対応する`PublicApiDriftSnapshots::*`定数を更新します。
 
 ### `Rigor::Plugin`
 
@@ -54,7 +54,7 @@ end
 
 `#initialize(services:, config: {})`は注入されたサービスとユーザーのconfigの凍結コピーを格納します。`#init(services)`はプラグインがサービスコンテナから状態を接続するために使用するオーバーライドフックで、デフォルト実装はno-opです。
 
-`Base`の完全なサーフェスはRBS（[`sig/rigor/plugin/base.rbs`](../../sig/rigor/plugin/base.rbs)）で宣言され、**自己チェック**されます。すなわちバンドルされたプラグイン／サンプルlibツリーが`rigor check`（`make verify`とCIにチェーンされた`make check-plugins`ゲート）を通ります。プラグインの部分型が継承する契約呼び出し（`manifest.…`・`io_boundary.…`）を`Base`のRBSに対して解決する[ADR-43](../../adr/43-rbs-complete-ancestor-resolution/)のRBS完全祖先解決と組み合わせることで、契約サーフェスを誤用するプラグイン（契約が宣言しないメソッドや、名前変更されたヘルパーを呼ぶプラグイン）は`call.undefined-method`でビルドを失敗させます。補完的な構造スペック（[`spec/integration/plugin_contract_conformance_spec.rb`](../../spec/integration/plugin_contract_conformance_spec.rb)）がもう半分をカバーします。すなわち各フックのオーバーライド（`init` / `prepare` / `diagnostics_for_file`）はエンジンの呼び出しでMUST呼び出し可能であり続けます ── エンジンが供給するパラメータを落とすナローイングオーバーライドは失敗します（パラメータ／アリティのリスコフ互換性、ADR-5）。
+`Base`の完全なサーフェスはRBS（[`sig/rigor/plugin/base.rbs`](https://github.com/rigortype/rigor/blob/master/sig/rigor/plugin/base.rbs)）で宣言され、**自己チェック**されます。すなわちバンドルされたプラグイン／サンプルlibツリーが`rigor check`（`make verify`とCIにチェーンされた`make check-plugins`ゲート）を通ります。プラグインの部分型が継承する契約呼び出し（`manifest.…`・`io_boundary.…`）を`Base`のRBSに対して解決する[ADR-43](../../adr/43-rbs-complete-ancestor-resolution/)のRBS完全祖先解決と組み合わせることで、契約サーフェスを誤用するプラグイン（契約が宣言しないメソッドや、名前変更されたヘルパーを呼ぶプラグイン）は`call.undefined-method`でビルドを失敗させます。補完的な構造スペック（[`spec/integration/plugin_contract_conformance_spec.rb`](https://github.com/rigortype/rigor/blob/master/spec/integration/plugin_contract_conformance_spec.rb)）がもう半分をカバーします。すなわち各フックのオーバーライド（`init` / `prepare` / `diagnostics_for_file`）はエンジンの呼び出しでMUST呼び出し可能であり続けます ── エンジンが供給するパラメータを落とすナローイングオーバーライドは失敗します（パラメータ／アリティのリスコフ互換性、ADR-5）。
 
 `#diagnostics_for_file(path:, scope:, root:)`（スライス5）は**ファイル全体**の診断フックです。デフォルトは空の配列を返します。プラグイン作成者はこれをオーバーライドして`root`（解析された`Prism::Node`）を自分で走査し、`Rigor::Analysis::Diagnostic`行の配列を返してもよい（MAY）ですが、ノードスコープのチェックに推奨されるサーフェスは`node_rule`（下記）であり、これはエンジンに走査を所有させます。`#diagnostics_for_file`は真にファイルスコープな診断——単一のロードエラー行、または解析済みファイル全体を一度に必要とするチェック——のために予約されています。ランナーはADR-7 §「スライス5-B」に従って返されたすべての診断を`source_family: "plugin.<manifest.id>"`で再スタンプするため、プラグイン作成者が誤って別のプラグインのidで公開することはありません。フック内のプラグイン例外は`rigor check`をクラッシュさせるのではなく、`:plugin_loader`の`runtime-error`診断として隔離されます。
 

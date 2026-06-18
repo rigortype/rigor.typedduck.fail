@@ -3,8 +3,8 @@ title: "ADR-61 — Agent-friendly diagnostic statistics (structured selector axi
 description: "Imported from rigortype/rigor docs/adr/61-agent-friendly-diagnostic-statistics.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/61-agent-friendly-diagnostic-statistics.md"
 sourcePath: "docs/adr/61-agent-friendly-diagnostic-statistics.md"
-sourceSha: "20748be5cdc9c62c355cfaaea4bd4f461db99cac7eeed81a1359a61bb2ce3aa4"
-sourceCommit: "222d8e03ee0f4252795f6c7294672a76c20b7ae3"
+sourceSha: "be3a68fba01ddcd31f78dbfeb91424790f79db3b2b5b808375d1b46fe2fbd4b3"
+sourceCommit: "aec4ca7f5f87b1972dea8fecaaf5b62c8880a3af"
 translationStatus: "translated"
 sidebar:
   order: 4061
@@ -16,7 +16,7 @@ sidebar:
 
 ## Context
 
-`rigor triage`はすでに「この実行はどんな形状（shape）か？」に答えている — ただし2つの軸、ルールIDの`distribution`とファイルごとの`hotspots`に沿ってのみである（[`triage.rb`](../../lib/rigor/triage.rb)）。保守者やエージェントが実際に推論する3つ目の軸 — *どのクラス／メソッドに診断が集中しているか*（`String#squish`が12ファイルにわたり31回＝ロードされていないコア拡張が1つであって、31個のバグではない）— は、ヒューリスティックな`Catalogue`が出力する人間可読の要約文字列を読むことでしか到達できなかった。それがこのギャップである。
+`rigor triage`はすでに「この実行はどんな形状（shape）か？」に答えている — ただし2つの軸、ルールIDの`distribution`とファイルごとの`hotspots`に沿ってのみである（[`triage.rb`](https://github.com/rigortype/rigor/blob/master/lib/rigor/triage.rb)）。保守者やエージェントが実際に推論する3つ目の軸 — *どのクラス／メソッドに診断が集中しているか*（`String#squish`が12ファイルにわたり31回＝ロードされていないコア拡張が1つであって、31個のバグではない）— は、ヒューリスティックな`Catalogue`が出力する人間可読の要約文字列を読むことでしか到達できなかった。それがこのギャップである。
 
 2つの構造的事実が、このギャップを安価に埋められるものにした。
 
@@ -34,21 +34,21 @@ sidebar:
 
 ### WD1 — checkストリーム上の構造化フィールド
 
-[`Diagnostic#to_h`](../../lib/rigor/analysis/diagnostic.rb)は、`receiver_type`と`method_name`を**埋まっているときに**出力し、そうでなければ省略する（既存の`project_definition_site`と同じ慣習）。エージェントは`jq '[.diagnostics[] | select(.method_name) | {receiver: .receiver_type, method: .method_name, rule}]'`でサイトごとにグループ化する。
+[`Diagnostic#to_h`](https://github.com/rigortype/rigor/blob/master/lib/rigor/analysis/diagnostic.rb)は、`receiver_type`と`method_name`を**埋まっているときに**出力し、そうでなければ省略する（既存の`project_definition_site`と同じ慣習）。エージェントは`jq '[.diagnostics[] | select(.method_name) | {receiver: .receiver_type, method: .method_name, rule}]'`でサイトごとにグループ化する。
 
 ### WD2 — triage上の`selectors`軸
 
-`Triage.build_selectors`（[`triage.rb`](../../lib/rigor/triage.rb)）は、`method_name`を保持するあらゆる診断を、その`(receiver, method)`ペアで`Selector = {receiver, method, count, files, rules}`へグループ化する。
+`Triage.build_selectors`（[`triage.rb`](https://github.com/rigortype/rigor/blob/master/lib/rigor/triage.rb)）は、`method_name`を保持するあらゆる診断を、その`(receiver, method)`ペアで`Selector = {receiver, method, count, files, rules}`へグループ化する。
 
 - `count` — 合計。`files` — 異なるファイルへの広がり（システミックか局所かのシグナル。高い`count`×高い`files`＝1つの構造的原因）。`rules` — ルールごとの内訳。これにより`undefined-method`と`argument-type-mismatch`が混在するセレクタが読み取れる。
 - `receiver`は、メソッドのみの診断では**nil**である（`def`側のreturn／overrideの所見には呼び出しレシーバーがない）。行は依然としてメソッドでグループ化される。
-- JSONリストは**上限なし**である — これはエージェント向けのサーフェスである。テキストレンダラーは自身の行を15で上限にする（[`triage_renderer.rb`](../../lib/rigor/cli/triage_renderer.rb)）。`--selectors-only`はこのセクションだけを表示する。
+- JSONリストは**上限なし**である — これはエージェント向けのサーフェスである。テキストレンダラーは自身の行を15で上限にする（[`triage_renderer.rb`](https://github.com/rigortype/rigor/blob/master/lib/rigor/cli/triage_renderer.rb)）。`--selectors-only`はこのセクションだけを表示する。
 
 **構造化フィールドのみから**構築される（基準A）— `build_selectors`は`message`に決して触れない。
 
 ### WD3 — 正規化の配置（基準Bを具体的に）
 
-畳み込みは`Triage.normalize_receiver`（[`triage.rb`](../../lib/rigor/triage.rb)）に置かれ、ヒューリスティックな`Catalogue`と共有される（その`receiver_class`は今やこれへ委譲する — リテラル畳み込みのロジックが1箇所だけに存在する）。文字列／整数／浮動小数点／シンボルのリテラルはそれぞれのクラスへ畳み込まれる。`singleton(C)`と裸の`C`は`C`へ畳み込まれる。ジェネリックな`C[...]`は、ARリレーションのヒューリスティックが必要とする`Array[String]`の要素形を保つ。これが防ぐ具体的な危険は、畳み込みがなければ`"x".nope`と`name.nope`が*異なる*セレクタ行（`"x"#nope`、`String#nope`）に着地し、1つのイディオムがあらゆるリテラルレシーバーへ断片化することである — これは直接計測した（`"x".nope`は生ストリームでは`"x"`、畳み込み後は`String`）。checkストリームは意図的に正規化しないままにしてある。
+畳み込みは`Triage.normalize_receiver`（[`triage.rb`](https://github.com/rigortype/rigor/blob/master/lib/rigor/triage.rb)）に置かれ、ヒューリスティックな`Catalogue`と共有される（その`receiver_class`は今やこれへ委譲する — リテラル畳み込みのロジックが1箇所だけに存在する）。文字列／整数／浮動小数点／シンボルのリテラルはそれぞれのクラスへ畳み込まれる。`singleton(C)`と裸の`C`は`C`へ畳み込まれる。ジェネリックな`C[...]`は、ARリレーションのヒューリスティックが必要とする`Array[String]`の要素形を保つ。これが防ぐ具体的な危険は、畳み込みがなければ`"x".nope`と`name.nope`が*異なる*セレクタ行（`"x"#nope`、`String#nope`）に着地し、1つのイディオムがあらゆるリテラルレシーバーへ断片化することである — これは直接計測した（`"x".nope`は生ストリームでは`"x"`、畳み込み後は`String`）。checkストリームは意図的に正規化しないままにしてある。
 
 ### WD4 — どのルールがフィールドを埋めるか
 
@@ -58,7 +58,7 @@ sidebar:
 - **Defファミリー**（`return-type-mismatch`、3つの`override-*`）→ メソッドのみ（`def`の名前。呼び出しレシーバーはない）。
 - **除外**: `flow.*`（unreachable／dead-assignment／always-truthy／always-raises）と`def.ivar-write-mismatch`はメソッド呼び出しの対象を持たない。これらにキーを合成すると、シグナルではなくnullレシーバーのノイズを製造してしまう。
 
-充足は19ルール中3から11へ進んだ（[`check_rules.rb`](../../lib/rigor/analysis/check_rules.rb)の`build_*`箇所）。
+充足は19ルール中3から11へ進んだ（[`check_rules.rb`](https://github.com/rigortype/rigor/blob/master/lib/rigor/analysis/check_rules.rb)の`build_*`箇所）。
 
 ### ガードレール — 統計は決して深刻度に流し込まない
 

@@ -3,8 +3,8 @@ title: "ADR-40 — `config_schema` declared defaults (`{kind:, default:}`)"
 description: "Imported from rigortype/rigor docs/adr/40-config-schema-defaults.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/40-config-schema-defaults.md"
 sourcePath: "docs/adr/40-config-schema-defaults.md"
-sourceSha: "283da17907dc37dc206e4c9a6769502db841cf24f6bfcffcb69e25947690bd29"
-sourceCommit: "0af2862f84982d9cfad4a1c0619340e15ba2f1bc"
+sourceSha: "77f8bc0f5435a1e52283364fffc7fedaf91005bdf223a5ec1a8071b829a149fc"
+sourceCommit: "aec4ca7f5f87b1972dea8fecaaf5b62c8880a3af"
 translationStatus: "translated"
 sidebar:
   order: 4040
@@ -68,7 +68,7 @@ config_schema: {
 
 - **値文法の純粋なスーパーセット**。素の種別の値（`"key" => :string`）はデフォルトを記録せず以前と全く同じようにパースされるので、既存のあらゆるマニフェストと未移行のあらゆるプラグインは手つかずです。それらに対して`config_defaults`は`{}`であり、マージはノーオペレーションです。
 - **新しい診断なし、推論変更なし**。これはプラグイン設定のエルゴノミクスであり、型束もどのルールも変えません。偽陽性を導入することはできません。
-- **キャッシュセーフ**。永続キャッシュはプラグインを`（id, version,ユーザー設定ハッシュ）`（[`Cache::Descriptor::PluginEntry`](../../lib/rigor/cache/descriptor.rb)）でキーイングし、マニフェストの`to_h`ではキーイングしません。デフォルトはプラグインの*コード*（そのバージョン）の一部なので、デフォルトを変えることは他のあらゆる振る舞い変更と同様のバージョンバンプです——既存のキーイングが既にそれを捕捉しています。`config_defaults`を`Manifest#to_h`に追加しても`Manifest#==` / `#hash`にのみ影響し、キャッシュキーには決して影響しません。
+- **キャッシュセーフ**。永続キャッシュはプラグインを`（id, version,ユーザー設定ハッシュ）`（[`Cache::Descriptor::PluginEntry`](https://github.com/rigortype/rigor/blob/master/lib/rigor/cache/descriptor.rb)）でキーイングし、マニフェストの`to_h`ではキーイングしません。デフォルトはプラグインの*コード*（そのバージョン）の一部なので、デフォルトを変えることは他のあらゆる振る舞い変更と同様のバージョンバンプです——既存のキーイングが既にそれを捕捉しています。`config_defaults`を`Manifest#to_h`に追加しても`Manifest#==` / `#hash`にのみ影響し、キャッシュキーには決して影響しません。
 
 ## Slices
 

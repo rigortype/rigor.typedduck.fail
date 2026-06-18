@@ -3,8 +3,8 @@ title: "dry-rb Ecosystem Plugins — Survey"
 description: "Imported from rigortype/rigor docs/design/20260509-dry-plugins-roadmap.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/design/20260509-dry-plugins-roadmap.md"
 sourcePath: "docs/design/20260509-dry-plugins-roadmap.md"
-sourceSha: "10aed4d2f0b36175ad523758cb877eb3c56cf8e2fb6f5773f290c12f670dbe4e"
-sourceCommit: "035915291e331f3bcd5ce804a1e30dc284ffbd48"
+sourceSha: "5484b23347eb3f9c87ee07c351fd4b9be38cd46784e92b782c7456c54a675644"
+sourceCommit: "aec4ca7f5f87b1972dea8fecaaf5b62c8880a3af"
 translationStatus: "translated"
 sidebar:
   order: 20265509
@@ -12,7 +12,7 @@ sidebar:
 
 ステータス: **research, 2026-05-09**。Rigorプラグインの観点からdry-rb gemファミリーのワンショットサーベイ。gem間の依存関係と各gemが公開する型シェイピングサーフェスをまとめ、後続の設計ドキュメントが単一の`rigor-dry`プラグイン、`rigor-dry-*`ファミリー、または中粒度の分割のいずれを出荷するかを証拠に基づいて決定できるようにする。
 
-調査したコーパスは[`references/hanakai-rb/content/guides/dry/`](../../references/hanakai-rb/)のhanakai-rbガイドツリーで、hanami/dry/rom組織がhanakai-rbに統合された後のdry-rbの権威ある公開ガイド。以下の依存関係エッジはそのコーパス内の散文的な記述から取得した。gemspecの検証とバージョンピンの決定はプラグインごとの作成ステップに延期する。
+調査したコーパスは[`references/hanakai-rb/content/guides/dry/`](https://github.com/rigortype/rigor/tree/master/references/hanakai-rb/)のhanakai-rbガイドツリーで、hanami/dry/rom組織がhanakai-rbに統合された後のdry-rbの権威ある公開ガイド。以下の依存関係エッジはそのコーパス内の散文的な記述から取得した。gemspecの検証とバージョンピンの決定はプラグインごとの作成ステップに延期する。
 
 このドキュメントは参考情報。拘束力のあるプラグイン契約は各プラグインの`README.md`とインテグレーションスペックに存在する。Railsプラグインロードマップの<ruby>規律<rp>（</rp><rt>discipline</rt><rp>）</rp></ruby>（[`docs/design/20260508-rails-plugins-roadmap.md`](../20260508-rails-plugins-roadmap/)）を踏襲する。
 

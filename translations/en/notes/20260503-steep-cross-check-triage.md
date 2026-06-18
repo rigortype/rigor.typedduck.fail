@@ -1,8 +1,8 @@
 ---
 title: "Steep 2.0 cross-check triage (2026-05-03)"
 description: "English translation of the Steep 2.0 cross-check triage note recording sig drift and false-positive analysis."
-sourceSha: "e7ea90ad1caf8ef2c8ede6a0dcf7a10157066379ea8d39afb070d1630bf7db60"
-sourceCommit: "baf3cf01385b0c15037940f46025827f94623800"
+sourceSha: "cbea0934478f7b604f99519e316837f997fa75ec48f43624b40932875ec0ab75"
+sourceCommit: "aec4ca7f5f87b1972dea8fecaaf5b62c8880a3af"
 translationStatus: "translated"
 ---
 
@@ -30,7 +30,7 @@ Hand-written declarations on the `sig/` side have failed to keep up with the imp
 
 ### A-1. Return type of predicate methods `top` / `bot` / `dynamic` (39 cases)
 
-The predicate methods `top` / `bot` / `dynamic` exposed by each type carrier (`Top`, `Bot`, `Dynamic`, `Constant`, `IntegerRange`, `Nominal`, `Singleton`, `Union`, `Difference`, `Refined`, `Intersection`, `Tuple`, `HashShape`) return `Trinary.yes/no/maybe` in the implementation ([lib/rigor/type/top.rb:26-36](../../lib/rigor/type/top.rb)), but [sig/rigor/type.rbs:11-13](../../sig/rigor/type.rbs) declares:
+The predicate methods `top` / `bot` / `dynamic` exposed by each type carrier (`Top`, `Bot`, `Dynamic`, `Constant`, `IntegerRange`, `Nominal`, `Singleton`, `Union`, `Difference`, `Refined`, `Intersection`, `Tuple`, `HashShape`) return `Trinary.yes/no/maybe` in the implementation ([lib/rigor/type/top.rb:26-36](https://github.com/rigortype/rigor/blob/master/lib/rigor/type/top.rb)), but [sig/rigor/type.rbs:11-13](https://github.com/rigortype/rigor/blob/master/sig/rigor/type.rbs) declares:
 
 ```rbs
 def top: () -> Top
@@ -48,7 +48,7 @@ Note: the warnings for `Refined#dynamic` and `Difference#dynamic` show the body 
 
 ### A-2. Return value of `IntegerRange#lower` / `upper` (2 cases)
 
-[lib/rigor/type/integer_range.rb:67-71](../../lib/rigor/type/integer_range.rb) represents `NEG_INFINITY` / `POS_INFINITY` with Symbol sentinels, so `lower` / `upper` can return `Integer | Float | Symbol`. Meanwhile [sig/rigor/type.rbs:71-72](../../sig/rigor/type.rbs) says `() -> Numeric`. Since Symbol is not a subtype of `Numeric`, this is inconsistent.
+[lib/rigor/type/integer_range.rb:67-71](https://github.com/rigortype/rigor/blob/master/lib/rigor/type/integer_range.rb) represents `NEG_INFINITY` / `POS_INFINITY` with Symbol sentinels, so `lower` / `upper` can return `Integer | Float | Symbol`. Meanwhile [sig/rigor/type.rbs:71-72](https://github.com/rigortype/rigor/blob/master/sig/rigor/type.rbs) says `() -> Numeric`. Since Symbol is not a subtype of `Numeric`, this is inconsistent.
 
 - Should it be detected: **Yes** — the return set is broader than declared, a clear strict-on-returns violation.
 - Two possible fix paths:
@@ -58,13 +58,13 @@ Note: the warnings for `Refined#dynamic` and `Difference#dynamic` show the body 
 
 ### A-3. Missing argument on `record_declarations` (1 case)
 
-[lib/rigor/inference/scope_indexer.rb:473](../../lib/rigor/inference/scope_indexer.rb) takes 4 arguments:
+[lib/rigor/inference/scope_indexer.rb:473](https://github.com/rigortype/rigor/blob/master/lib/rigor/inference/scope_indexer.rb) takes 4 arguments:
 
 ```ruby
 def record_declarations(node, qualified_prefix, identity_table, discovered)
 ```
 
-[sig/rigor/inference.rbs:135](../../sig/rigor/inference.rbs) takes 3:
+[sig/rigor/inference.rbs:135](https://github.com/rigortype/rigor/blob/master/sig/rigor/inference.rbs) takes 3:
 
 ```rbs
 def self?.record_declarations: (untyped node, Array[String] qualified_prefix, Hash[untyped, Type::t] table) -> void
@@ -76,7 +76,7 @@ The 4th argument `discovered` has dropped out of the sig — typical sig drift.
 
 ### A-4. Duplicated declarations of `RbsLoader#instance_definition` / `singleton_definition` (3 cases)
 
-In [sig/rigor/environment.rbs:41,48](../../sig/rigor/environment.rbs) and [same:43,49](../../sig/rigor/environment.rbs) the same-named methods are declared twice with conflicting return types `untyped` and `untyped?`:
+In [sig/rigor/environment.rbs:41,48](https://github.com/rigortype/rigor/blob/master/sig/rigor/environment.rbs) and [same:43,49](https://github.com/rigortype/rigor/blob/master/sig/rigor/environment.rbs) the same-named methods are declared twice with conflicting return types `untyped` and `untyped?`:
 
 ```rbs
 def instance_definition: (String | Symbol class_name) -> untyped
@@ -90,13 +90,13 @@ The RBS spec does not allow duplication other than as overloads. Removing one of
 
 ### A-5. Required keywords on `CLI#initialize` (3 cases)
 
-[lib/rigor/cli.rb:31](../../lib/rigor/cli.rb):
+[lib/rigor/cli.rb:31](https://github.com/rigortype/rigor/blob/master/lib/rigor/cli.rb):
 
 ```ruby
 def initialize(argv, out:, err:)
 ```
 
-[sig/rigor.rbs:23](../../sig/rigor.rbs):
+[sig/rigor.rbs:23](https://github.com/rigortype/rigor/blob/master/sig/rigor.rbs):
 
 ```rbs
 def initialize: (?Array[String] argv, ?out: untyped, ?err: untyped) -> void
@@ -121,7 +121,7 @@ Warnings caused by Steep's flow-sensitivity or its core-library modeling being c
 
 ### C-1. `Array(union)` coercion (1 case)
 
-[lib/rigor/analysis/fact_store.rb:128](../../lib/rigor/analysis/fact_store.rb):
+[lib/rigor/analysis/fact_store.rb:128](https://github.com/rigortype/rigor/blob/master/lib/rigor/analysis/fact_store.rb):
 
 ```ruby
 def fact_targets(fact)
@@ -131,12 +131,12 @@ end
 
 `fact.target` is `Target | Array[Target]`. Ruby's `Array()` Kernel method has the convention "leave as-is if `Array[T]`, wrap in `[T]` if `T`," so the return value is naturally `Array[Target]`. Steep infers the return of `Array()` as `[T | Array[T]]` (a 1-element tuple), unable to step into specialization across union branches.
 
-- Rigor perspective: this disappears by adding to the built-in catalog of `Kernel#Array` ([data/builtins/](../../data/builtins/)) the spec "when the argument is a union, normalise each member and unify."
+- Rigor perspective: this disappears by adding to the built-in catalog of `Kernel#Array` ([data/builtins/](https://github.com/rigortype/rigor/tree/master/data/builtins/)) the spec "when the argument is a union, normalise each member and unify."
 - No immediate workaround needed — stays at warning under lenient settings as a false positive.
 
 ### C-2. `initialize` overrides on `Data.define`-derived classes (5 cases)
 
-`Target` / `Fact` in [lib/rigor/analysis/fact_store.rb:26,32](../../lib/rigor/analysis/fact_store.rb) put pre-processing on top of classes generated by `Data.define(:kind, :name)` etc. via `def initialize(kind:, name:) ...`. Steep cannot fully analyze the keyword matching between `Data.define`'s auto-generated signatures and the hand-written overrides, raising `MethodParameterMismatch` in 5 places.
+`Target` / `Fact` in [lib/rigor/analysis/fact_store.rb:26,32](https://github.com/rigortype/rigor/blob/master/lib/rigor/analysis/fact_store.rb) put pre-processing on top of classes generated by `Data.define(:kind, :name)` etc. via `def initialize(kind:, name:) ...`. Steep cannot fully analyze the keyword matching between `Data.define`'s auto-generated signatures and the hand-written overrides, raising `MethodParameterMismatch` in 5 places.
 
 - Rigor perspective: it disappears by adding, in addition to specialised inference of `Data.define(*members)` ([docs/type-specification/structural-interfaces-and-object-shapes.md](../type-specification/structural-interfaces-and-object-shapes.md)), a rule that prefers explicitly-written `initialize` signatures. This is a feature that fits directly into the v0.0.4 / v0.1.0 roadmap.
 - Workaround: writing `Target` / `Fact`'s `initialize` **explicitly in full** on the sig side so it doesn't contradict `Data`'s auto-generated signature also silences Steep (the current sig side is already hand-written). What Steep can't pick up is the `Data`-derived composed signature; this is an area where Rigor can take the lead by having a `Data.define`-specific recognizer.

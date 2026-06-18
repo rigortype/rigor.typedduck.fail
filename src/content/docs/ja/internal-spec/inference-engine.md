@@ -3,8 +3,8 @@ title: "推論エンジン"
 description: "Imported from rigortype/rigor docs/internal-spec/inference-engine.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/inference-engine.md"
 sourcePath: "docs/internal-spec/inference-engine.md"
-sourceSha: "38fbd09c1840501beaf03e86191bd386d4c3d1808641bf003f2b576da12d2925"
-sourceCommit: "a3ab53dd2b8aa0a84fd7ddbd64339f316d8d12ec"
+sourceSha: "e332271a2ee309f7e1ad91bd68ae7d93e96b49d6b157366e9e0e552824280c92"
+sourceCommit: "aec4ca7f5f87b1972dea8fecaaf5b62c8880a3af"
 translationStatus: "translated"
 sidebar:
   order: 3050
@@ -177,7 +177,7 @@ Rigor::Inference::MethodDispatcher.dispatch(
 
 ### Dispatch tier contract
 
-上記の各ティアは*構造的インターフェース*です ── ダックタイプされた継ぎ目であり、RBS／Goの意味でのインターフェースであって、ADR-28のプロトコル契約ではありません。これは[`sig/rigor/inference.rbs`](../../sig/rigor/inference.rbs)において`interface _DispatchTier`として成文化されています。ティアは単一のエントリーポイントをMUST公開します。
+上記の各ティアは*構造的インターフェース*です ── ダックタイプされた継ぎ目であり、RBS／Goの意味でのインターフェースであって、ADR-28のプロトコル契約ではありません。これは[`sig/rigor/inference.rbs`](https://github.com/rigortype/rigor/blob/master/sig/rigor/inference.rbs)において`interface _DispatchTier`として成文化されています。ティアは単一のエントリーポイントをMUST公開します。
 
 ```
 try_dispatch(context) #=> Rigor::Type, or nil to defer to the next tier

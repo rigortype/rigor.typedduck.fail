@@ -3,14 +3,14 @@ title: "ADR-51 — CIネイティブな診断出力フォーマット"
 description: "Imported from rigortype/rigor docs/adr/51-ci-diagnostic-output-formats.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/51-ci-diagnostic-output-formats.md"
 sourcePath: "docs/adr/51-ci-diagnostic-output-formats.md"
-sourceSha: "7e4639e5624c6ab29a51bbe98b341fdb07dd5d6533d60449af9c4eb4b7d8242c"
-sourceCommit: "c64342708cd0effeb20265e84fe912ae22635159"
+sourceSha: "9fa681804cfd8af4d3b5090f21029ae386dd15a3325d2814818488b2ea1760ee"
+sourceCommit: "aec4ca7f5f87b1972dea8fecaaf5b62c8880a3af"
 translationStatus: "translated"
 sidebar:
   order: 4051
 ---
 
-ステータス: **Accepted、2026-06-06；部分的に実装済み（v0.1.18）**。 既存の診断ストリームの6つのCIネイティブなレンダリングが`rigor check --format`の背後で実装される。**`sarif`**（SARIF 2.1.0、クロスプラットフォームのアンカー）、**`github`**（GitHub Actionsのワークフローコマンド）、**`gitlab`**（GitLab Code QualityレポートJSON）、**`checkstyle`**（Checkstyle XML——reviewdog／Jenkinsのリント相互交換フォーマット）、**`junit`**（JUnit XML——広く使われるテストレポートフォーマット）、**`teamcity`**（TeamCityのインスペクションサービスメッセージ）の6つだ。それぞれは`--format json`がすでに公開している同じ`Analysis::Diagnostic`フィールドの上に乗るプレゼンテーション層であり、新しい解析も新しい診断情報もない。フォーマットに加えて、**ランタイムCI自動検出**（WD7）が、ファーストクラスのCIを検出したときにデフォルト出力へプラットフォームネイティブな形を自動的に出力する。フォーマッタとディテクターは[`lib/rigor/cli/diagnostic_formats.rb`](../../lib/rigor/cli/diagnostic_formats.rb)＋[`lib/rigor/cli/ci_detector.rb`](../../lib/rigor/cli/ci_detector.rb)に置かれる。コピー&ペースト用のCIセットアップテンプレート（ADR-27 § WD3）、同梱の[`rigor-ci-setup`](https://github.com/rigortype/rigor/blob/master/skills/rigor-ci-setup/SKILL.md)スキル、そしてマニュアルの更新が同じカットで出荷される。
+ステータス: **Accepted、2026-06-06；部分的に実装済み（v0.1.18）**。 既存の診断ストリームの6つのCIネイティブなレンダリングが`rigor check --format`の背後で実装される。**`sarif`**（SARIF 2.1.0、クロスプラットフォームのアンカー）、**`github`**（GitHub Actionsのワークフローコマンド）、**`gitlab`**（GitLab Code QualityレポートJSON）、**`checkstyle`**（Checkstyle XML——reviewdog／Jenkinsのリント相互交換フォーマット）、**`junit`**（JUnit XML——広く使われるテストレポートフォーマット）、**`teamcity`**（TeamCityのインスペクションサービスメッセージ）の6つだ。それぞれは`--format json`がすでに公開している同じ`Analysis::Diagnostic`フィールドの上に乗るプレゼンテーション層であり、新しい解析も新しい診断情報もない。フォーマットに加えて、**ランタイムCI自動検出**（WD7）が、ファーストクラスのCIを検出したときにデフォルト出力へプラットフォームネイティブな形を自動的に出力する。フォーマッタとディテクターは[`lib/rigor/cli/diagnostic_formats.rb`](https://github.com/rigortype/rigor/blob/master/lib/rigor/cli/diagnostic_formats.rb)＋[`lib/rigor/cli/ci_detector.rb`](https://github.com/rigortype/rigor/blob/master/lib/rigor/cli/ci_detector.rb)に置かれる。コピー&ペースト用のCIセットアップテンプレート（ADR-27 § WD3）、同梱の[`rigor-ci-setup`](https://github.com/rigortype/rigor/blob/master/skills/rigor-ci-setup/SKILL.md)スキル、そしてマニュアルの更新が同じカットで出荷される。
 
 根拠: [ADR-27](../27-tool-distribution-model/)（配布／CIチャネル——このADRはその診断出力の兄弟だ）と[ADR-50](../50-release-engineering-and-stability-strategy/) WD1（新しい出力フォーマットは公開契約サーフェスである）。
 
@@ -30,7 +30,7 @@ sidebar:
 
 ## 決定
 
-フォーマットを`--format`の値として追加し、[`lib/rigor/cli.rb`](../../lib/rigor/cli.rb)（~L864）の既存の`write_result` caseから、フォーマットごとの小さなレンダラークラス（`lib/rigor/cli/diagnostic_formats.rb`）へディスパッチする。何がここに属するかを区別する**基準**は次のとおりだ。*あるフォーマットが`--format`の値として認められるのは、CIプラットフォームがそれをもとに診断ストリームをインラインでレンダリングするときである。*それが境界だ——プラットフォームのPR／MRサーフェスに消費されるフォーマットはスコープ内であり、単に「もう1つのシリアライズ方法」（CSV、独自の形状）にすぎないフォーマットはスコープ外だ。なぜなら`--format json`がすでに汎用の機械向け消費に対応しているからだ。SARIFが**第一の**ターゲットであるのは、まさにそれが複数のプラットフォームに対して同時にこの基準を満たすからだ。
+フォーマットを`--format`の値として追加し、[`lib/rigor/cli.rb`](https://github.com/rigortype/rigor/blob/master/lib/rigor/cli.rb)（~L864）の既存の`write_result` caseから、フォーマットごとの小さなレンダラークラス（`lib/rigor/cli/diagnostic_formats.rb`）へディスパッチする。何がここに属するかを区別する**基準**は次のとおりだ。*あるフォーマットが`--format`の値として認められるのは、CIプラットフォームがそれをもとに診断ストリームをインラインでレンダリングするときである。*それが境界だ——プラットフォームのPR／MRサーフェスに消費されるフォーマットはスコープ内であり、単に「もう1つのシリアライズ方法」（CSV、独自の形状）にすぎないフォーマットはスコープ外だ。なぜなら`--format json`がすでに汎用の機械向け消費に対応しているからだ。SARIFが**第一の**ターゲットであるのは、まさにそれが複数のプラットフォームに対して同時にこの基準を満たすからだ。
 
 各フォーマッタは`Analysis::Result`の純粋関数だ——`path`／`line`／`column`／`severity`／`qualified_rule`／`message`を読み取り、何も付け加えない。severityと識別子のマッピングは**フォーマットごとに一度だけ**定義される（WD2）。これによりサーフェスは加算的に保たれる。`text`／`json`は手つかずのままで、`--format`を一度も設定しないプロジェクトには何の変化も見えない。
 
