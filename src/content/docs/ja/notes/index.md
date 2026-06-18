@@ -3,8 +3,8 @@ title: "Research & Survey Notes"
 description: "Imported from rigortype/rigor docs/notes/README.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/README.md"
 sourcePath: "docs/notes/README.md"
-sourceSha: "9f74d8f77f95770519685a31613631c3af837fb9279f4df4953033116e007f4e"
-sourceCommit: "fd78ee0a520ab7f2dfb40f13d33b4fbae93e2c69"
+sourceSha: "9a0fad5713416d1a937a6203b76111d24fc60619beb3765c5f95c5b84f153180"
+sourceCommit: "71d3e4faf08888a6bf8be57b39c767616c3c9bf5"
 translationStatus: "translated"
 sidebar:
   order: 6000
@@ -63,6 +63,7 @@ sidebar:
 | 2026-06-13 | [Mutation-testing the analyzer — a teeth / false-negative harness + `lib/rigor` sweep backlog](20260613-mutation-teeth-harness/) |
 | 2026-06-17 | [Type-guided mutation testing — internal teeth vs. an external test-suite tool (strategy)](20260617-type-guided-mutation-testing-strategy/) |
 | 2026-06-17 | [Fused protection (`--with-tests`) — broad survey sweep across 12 OSS targets](20260617-fused-protection-survey-sweep/) |
+| 2026-06-18 | [Mutation-testing Rigor's own codebase — plan (RSpec ∪ self-check, independent type oracle)](20260618-self-mutation-testing-plan/) |
 
 ## 外部研究・エッセイレビュー
 
