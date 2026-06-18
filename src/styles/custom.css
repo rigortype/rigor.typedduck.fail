@@ -178,13 +178,24 @@ header :is(h1, h2),
 }
 .sl-markdown-content p { text-wrap: pretty; }
 
-/* Inline code: paper-2 chip with hairline, 2px radius */
+/* Inline code: borderless, whisper-tint fill that blends into the body
+ * colour so the chip stops reading as a foreign object. The fill is a
+ * low-alpha mix of currentColor, so it stays correct in both themes (a
+ * faint darkening on parchment, a faint lightening on ink) and always
+ * matches whatever surface it sits on — prose, blockquote, callout. */
 .sl-markdown-content :not(pre) > code {
-  background: var(--sl-color-bg-inline-code);
-  border: 1px solid var(--sl-color-hairline);
+  background: color-mix(in srgb, currentColor 7%, transparent);
+  border: 0;
   border-radius: 2px;
-  padding: 1px 5px;
+  padding: 1.5px 5px;
   font-size: 0.88em;
+}
+/* On ink, a 7% tint is nearly invisible; lift the dark fill and add a
+ * faint inner hairline so chips stay legible against the body and inside
+ * blockquotes. (Light stays borderless — the hairline is dark-only.) */
+:root[data-theme='dark'] .sl-markdown-content :not(pre) > code {
+  background: color-mix(in srgb, currentColor 15%, transparent);
+  box-shadow: inset 0 0 0 1px #2F343D;
 }
 
 /* Code blocks: 4px radius, hairline border, no shadow */
@@ -218,6 +229,11 @@ header :is(h1, h2),
   font-style: normal;
   margin: 0 0 1.5rem;
   border-radius: 0;
+}
+/* The light gray-6 inset reads clearly on parchment; on ink #1A1D23 sits
+ * too close to the #14171C body. Give the dark inset more separation. */
+:root[data-theme='dark'] .sl-markdown-content blockquote {
+  background: #22262E;
 }
 
 /* Hero (splash template) tightening */
@@ -267,6 +283,61 @@ site-search input {
 .sl-markdown-content table th {
   border-bottom: 1px solid var(--sl-color-hairline);
 }
+
+/* ─── Japanese running text ─────────────────────────────────────── */
+/* CJK prose is denser than Latin (full-width glyphs, no inter-word
+ * spaces) and routinely carries bordered inline-code chips. The
+ * Latin-tuned 1.55 body leading reads cramped in Japanese — most of all
+ * where <code> repeats across wrapped lines, since the chip boxes nearly
+ * touch from one line to the next. Give Japanese prose a more generous,
+ * uniform leading; English pages keep 1.55. One value for every line
+ * (plain, code-heavy, or furigana) preserves the vertical rhythm. */
+.sl-markdown-content:lang(ja) {
+  line-height: 1.7;
+  /* Even out the visual density of mixed kana / kanji / Latin. Default
+   * full-width metrics leave uneven side-bearings — wide gaps around 、。
+   * 「」（）and loose katakana runs that read lighter than the dense
+   * kanji beside them. `palt` pulls every glyph in to its natural width
+   * (tightening the punctuation gaps most of all); a small uniform
+   * tracking then restores even breathing so kana and kanji read at the
+   * same colour. Falls back gracefully where the JP font lacks `palt`. */
+  font-feature-settings: "palt" 1;
+  letter-spacing: 0.04em;
+}
+/* Monospace opts out — code keeps full advances and zero tracking. */
+.sl-markdown-content:lang(ja) :is(code, kbd, samp, pre) {
+  font-feature-settings: normal;
+  letter-spacing: normal;
+}
+
+/* ─── Japanese furigana (ruby) ──────────────────────────────────── */
+/* Keep the vertical rhythm uniform when <ruby> furigana appears in
+ * running text. By default a <ruby> inherits the body leading
+ * (--sl-line-height, 1.55): the base glyph reserves a full 1.55em line
+ * AND the <rt> annotation stacks on top of it, so any line that contains
+ * furigana grows taller than its neighbours and the line grid drifts
+ * (most visible in Firefox/Safari; e.g. ブロックが<ruby>付属<rt>ふぞく</rt></ruby>…).
+ *
+ * Fix: clamp the ruby's own line-height to 1 so the base glyph reserves
+ * only its em, and keep the annotation small with tight leading. The
+ * furigana then sits inside the line's existing leading instead of
+ * expanding the line box — ruby and non-ruby lines occupy the same
+ * height. */
+.sl-markdown-content ruby {
+  ruby-position: over;          /* furigana above the base text */
+  ruby-align: center;
+  line-height: 1;               /* don't inherit the 1.55 body leading */
+}
+.sl-markdown-content rt {
+  font-size: 0.5em;
+  line-height: 1;
+  font-weight: 400;
+  /* No font-family override: <rt> carries kana (ふぞく) and Latin glosses
+     (evaluator, gradual typing) alike, so it must inherit the same JP
+     font fallback as the body rather than a Latin-only face. */
+}
+/* Parenthesis fallback (<rp>) stays hidden when ruby renders natively. */
+.sl-markdown-content rp { display: none; }
 
 /* ─── MDX utility classes — diagnostic severities ───────────────── */
 /* Use as <span class="r-error">error:</span> etc. inside MDX. */
