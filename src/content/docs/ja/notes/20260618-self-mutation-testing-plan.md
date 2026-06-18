@@ -3,8 +3,8 @@ title: "Mutation-testing Rigor's own codebase — plan (RSpec ∪ self-check, wi
 description: "Imported from rigortype/rigor docs/notes/20260618-self-mutation-testing-plan.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260618-self-mutation-testing-plan.md"
 sourcePath: "docs/notes/20260618-self-mutation-testing-plan.md"
-sourceSha: "44ebbfc0882d96506e7c5158314adb674fd45c5874aa72106ee5e6235f4de094"
-sourceCommit: "71d3e4faf08888a6bf8be57b39c767616c3c9bf5"
+sourceSha: "71249b0c4734c8d97872b4c26256359096665312fdedf8b028df37133c6d60b2"
+sourceCommit: "4e7da6c3e3933cc8abf2759053d4190922a0cfca"
 translationStatus: "translated"
 sidebar:
   order: 20266618
@@ -45,7 +45,7 @@ $ bundle exec exe/rigor coverage lib/rigor/cli/ci_detector.rb --protection --mut
 
 ## 唯一の真に新しい制約 —— ブートストラップハザード
 
-Product B（ユーザーコード）では、型オラクルはユーザーのミューテートされたバイトを解析するRigorの*自身の健全な*エンジンだ。Product Cでは、ミューテートされたバイトが**エンジンそのもの**だ。もし型オラクルがワークツリー自身の`exe/rigor`（ミューテートされた`lib/rigor`をロードする）だったら、ミューテーションがチェッカー自体を壊しかねない —— 良くてクラッシュ（情報量のないkill）、悪くて静かに誤ったオラクル（偽の生存者 / 偽のkill）。**型オラクルは独立したRigorでなければならない（MUST）**。 2つの方法があり、実際のトレードオフを伴う:
+Product B（ユーザーコード）では、型オラクルはユーザーのミューテートされたバイトを解析するRigorの*自身の健全な*エンジンだ。Product Cでは、ミューテートされたバイトが**エンジンそのもの**だ。もし型オラクルがワークツリー自身の`exe/rigor`（ミューテートされた`lib/rigor`をロードする）だったら、ミューテーションがチェッカー自体を壊しかねない —— 良くてクラッシュ（情報量のないkill）、悪くて静かに誤ったオラクル（偽の生存者 / 偽のkill）。**型オラクルは独立したRigorでなければならない（MUST）**。2つの方法があり、実際のトレードオフを伴う:
 
 - **(a) mise / リリース版`rigor`**（メンテナーの提案）。真に独立で、常に利用可能、決して壊れない。*コスト*: バージョンスキュー —— リリース版オラクルはワークツリーの開発中の診断ルールを欠くので、*新しい*ルールが捕捉するであろうミューテーションが型生存者として読まれる（そのオラクルにとっては実際そうだ）。ロバストネス / ファズには問題ない;新しいルール上の歯を過小評価する。
 - **（b）ワークツリー自身の`HEAD`の汚れのないスナップショット**を別のプレフィックスにビルドしたもの（クリーンな`git worktree` / ビルドされたgem）。開発中のものとルール単位でパリティ;ミューテーションは*チェック対象のコピー*にのみ適用され、オラクルには決して適用されない。*コスト*: 新しく追加されたルールを計測するときオラクルを再ビルドしなければならない。
@@ -71,10 +71,10 @@ fused classify per mutation: type-killed | test-killed | unprotected(+crash buck
 
 ミューテーションのコストはスイート実行であって、ミュータント生成ではない。ミュータントごとにRigorのおよそ6,300例のスイートを走らせるのが`mutant`の墓場だ。レバーを順に挙げる:
 
-1. **漸進的ショートサーキット（無償、ADR-70）**。 self-checkがkillするミュータントはspecを決して走らせない。`lib/rigor`では型軸がすでにおよそ70 %+をkillするので、テスト軸は残余にのみ走る。
-2. **カバレッジ誘導のテスト選択 —— ロードベアリングな効率化の一手**。 `lib/rigor/foo.rb:42`でのミューテーションには、42行目を*実行する*specだけを走らせる。転置インデックス`{lib_file:line → [spec_files]}`を一度構築する（スイートはすでに`spec_helper.rb`の`COVERAGE=1`下で`Coverage.start(lines: true)`をサポートする;specファイルごとに走らせるか、ファイル粒度のカバレッジで一度走らせる）。これは**ランタイムカバレッジであって、静的依存グラフではない** —— ADR-71 §critical-3は、テスト*選択*のための静的グラフが過大近似し、さらに悪いことに**偽の生存者**を製造する（テストが実際に行使するメタプログラミング / `send`の経路を見逃す）と明言している。Rigor自身のスイートには健全な選択は明白だ: カバレッジを使う。まず規約ティア（`lib/rigor/a/b.rb` → `spec/rigor/a/b_spec.rb`）、精密なフォールバックとしてカバレッジインデックス。
-3. **最初の失敗で停止**。 1つの赤いカバーするspecがミュータントをkillする;残りは走らせない。
-4. **CI向けのdiffスコープ実行**。 PRでは、変更された`lib/`ファイルだけをミューテートし（`changed_ruby_files`ヘルパーはすでに存在する）、それらのspecをカバレッジ選択する ——「すべてのPRで走らせられるミューテーションテスト」、ADR-71の生き残ったくさびであり、ここでは*Rigor自身の*リポジトリだから正当化される（外部プロダクトのサポート負担がない）。最初はアドバイザリーで非ブロッキング。
+1. **漸進的ショートサーキット（無償、ADR-70）**。self-checkがkillするミュータントはspecを決して走らせない。`lib/rigor`では型軸がすでにおよそ70 %+をkillするので、テスト軸は残余にのみ走る。
+2. **カバレッジ誘導のテスト選択 —— ロードベアリングな効率化の一手**。`lib/rigor/foo.rb:42`でのミューテーションには、42行目を*実行する*specだけを走らせる。転置インデックス`{lib_file:line → [spec_files]}`を一度構築する（スイートはすでに`spec_helper.rb`の`COVERAGE=1`下で`Coverage.start(lines: true)`をサポートする;specファイルごとに走らせるか、ファイル粒度のカバレッジで一度走らせる）。これは**ランタイムカバレッジであって、静的依存グラフではない** —— ADR-71 §critical-3は、テスト*選択*のための静的グラフが過大近似し、さらに悪いことに**偽の生存者**を製造する（テストが実際に行使するメタプログラミング / `send`の経路を見逃す）と明言している。Rigor自身のスイートには健全な選択は明白だ: カバレッジを使う。まず規約ティア（`lib/rigor/a/b.rb` → `spec/rigor/a/b_spec.rb`）、精密なフォールバックとしてカバレッジインデックス。
+3. **最初の失敗で停止**。1つの赤いカバーするspecがミュータントをkillする;残りは走らせない。
+4. **CI向けのdiffスコープ実行**。PRでは、変更された`lib/`ファイルだけをミューテートし（`changed_ruby_files`ヘルパーはすでに存在する）、それらのspecをカバレッジ選択する ——「すべてのPRで走らせられるミューテーションテスト」、ADR-71の生き残ったくさびであり、ここでは*Rigor自身の*リポジトリだから正当化される（外部プロダクトのサポート負担がない）。最初はアドバイザリーで非ブロッキング。
 5. **ミュータントごとのタイムアウト**（ミューテーションは無限ループを誘発しうる）—— `tool/mutation`のファズモードはすでにタイムアウトの配管を持つ。
 
 ## 包括性 —— 振る舞い軸のための意味的オペレーター
@@ -101,12 +101,12 @@ fused classify per mutation: type-killed | test-killed | unprotected(+crash buck
 
 ## Gotchas / リスク（構築前に記録）
 
-- **Bundler環境の乖離（ADR-70の逆）**。 `TestSuiteOracle#shell_run`はコマンドを`Bundler.with_unbundled_env`で包む、なぜなら*ユーザー*プロジェクトではSUTのバンドル ≠ Rigorのバンドルだからだ。Rigor自体をミューテートする場合、SUTのバンドル**が**Rigorのバンドルだ —— unbundleすると`bundle exec rspec`が壊れる。スイートを**Rigor自身のバンドルで**走らせるカスタムな`runner:`を注入する（またはフラグを足す）。具体的で、間違えやすい。
+- **Bundler環境の乖離（ADR-70の逆）**。`TestSuiteOracle#shell_run`はコマンドを`Bundler.with_unbundled_env`で包む、なぜなら*ユーザー*プロジェクトではSUTのバンドル ≠ Rigorのバンドルだからだ。Rigor自体をミューテートする場合、SUTのバンドル**が**Rigorのバンドルだ —— unbundleすると`bundle exec rspec`が壊れる。スイートを**Rigor自身のバンドルで**走らせるカスタムな`runner:`を注入する（またはフラグを足す）。具体的で、間違えやすい。
 - **ディスク書き込みの安全性**。テスト軸はミュータントをディスク上の`lib/rigor/…`に書き込み、`ensure`で復元する;スイート途中の割り込みはミュータントを残す。スイープ全体を**専用の`git worktree`**で走らせ（作業クローンが決して触られないように）、中断時にファイルを`git checkout`する`trap`を足す —— 既存の`ensure`の上のベルト＆サスペンダー。
-- **ロード時クラッシュ ≠ 歯**。 `lib/rigor`の*ロード*を失敗させるミューテーションは、すべてのspecをエラーにし（自明な「kill」）、型オラクルのサブプロセスをクラッシュさせる。これらは**`crash`クラス**としてバケツ分けする（ファズモードのゼロクラッシュ結果のような、ロバストネスのシグナル）—— 意味あるテスト / 型killではなく、実装の穴でもない。
+- **ロード時クラッシュ ≠ 歯**。`lib/rigor`の*ロード*を失敗させるミューテーションは、すべてのspecをエラーにし（自明な「kill」）、型オラクルのサブプロセスをクラッシュさせる。これらは**`crash`クラス**としてバケツ分けする（ファズモードのゼロクラッシュ結果のような、ロバストネスのシグナル）—— 意味あるテスト / 型killではなく、実装の穴でもない。
 - **`runner_pool_spec`の除外**。これは自身のプロセスとして走り（`make test-ractor-pool`、デフォルトスイートから除外）、ワーカー / Ractorを生成する —— ミュータントごとの選択に決して含めない;カバレッジスコープの選択は自然にそれを避ける。
 - **オラクルのバージョンスキュー**（上記フェーズ2の決定）—— ルールパリティにはクリーンHEADスナップショット、可用性にはmiseリリース。
-- **エンコーディング**。 FlakeのUS-ASCIIデフォルト外部エンコーディング下で非ASCIIファイルをバイトスプライシングすると例外が上がる —— ソースを`Encoding::UTF_8`として読む（`mutate.rb`ですでに処理済み）。
+- **エンコーディング**。FlakeのUS-ASCIIデフォルト外部エンコーディング下で非ASCIIファイルをバイトスプライシングすると例外が上がる —— ソースを`Encoding::UTF_8`として読む（`mutate.rb`ですでに処理済み）。
 - **self-checkのベースラインはクリーン**（`make check`はゲートでありゼロを保つ）なので、型軸のベースラインは空だ —— どの新しい診断も明白にkillである。差し引くべきベースラインドリフトはない。
 
 ## ADRとの関係
@@ -121,7 +121,7 @@ fused classify per mutation: type-killed | test-killed | unprotected(+crash buck
 
 **型軸のバックログを更新**（`mutate.rb sweep lib/rigor --per-file 8`）: 310ファイル、1,751ミュータント、**歯73.4 %**（2026-06-13には71.4 %だった）、465生存者 —— トップクラスタは依然として先送りされたADR-24のセルフドッグフードのもの（`Type::Constant#value` 37、`MethodCatalog`シングルトン）。
 
-**融合軸は動作し、本物の穴を見つける**。 `ci_detector.rb`: 型kill 3、テストkill 14、**穴0**（融合100 %）—— テスト軸は型チェッカーにはできない`Dynamic`サイトのミューテーションを本当にkillする。`trinary.rb`: 専用の`trinary_spec.rb`が行使しなかった**9つの未保護サイト**を表面化させた —— `#hash` / `#to_s` / `#inspect`、`new(:invalid)`の`ArgumentError`、そして`coerce`の`TypeError`分岐（非Trinaryとの`#and` / `#or`を介して到達する）。すべて、デッドコードではなく本物の欠けたテストとして裁定された;ハーネスは正しく`.from_symbol(:wat)`をフラグし**なかった**（すでにテスト済み）。**ループを実証**: 欠けていた4つの`trinary_spec.rb`の例を足すと、`trinary.rb`は**穴0 / 100 %**へ駆動された（テストkill 12 → 21）—— 発見 → 修正 → 再計測kill。
+**融合軸は動作し、本物の穴を見つける**。`ci_detector.rb`: 型kill 3、テストkill 14、**穴0**（融合100 %）—— テスト軸は型チェッカーにはできない`Dynamic`サイトのミューテーションを本当にkillする。`trinary.rb`: 専用の`trinary_spec.rb`が行使しなかった**9つの未保護サイト**を表面化させた —— `#hash` / `#to_s` / `#inspect`、`new(:invalid)`の`ArgumentError`、そして`coerce`の`TypeError`分岐（非Trinaryとの`#and` / `#or`を介して到達する）。すべて、デッドコードではなく本物の欠けたテストとして裁定された;ハーネスは正しく`.from_symbol(:wat)`をフラグし**なかった**（すでにテスト済み）。**ループを実証**: 欠けていた4つの`trinary_spec.rb`の例を足すと、`trinary.rb`は**穴0 / 100 %**へ駆動された（テストkill 12 → 21）—— 発見 → 修正 → 再計測kill。
 
 ついでに確認された: **bundler環境の乖離**は本物でロードベアリングであり（`with_unbundled_env`ランナーはRigor自身のスイートで`bundle exec rspec`を失敗させる —— in-bundleランナーが必須）、**スコープ化されたspecの完全性に関する注意**が成り立つ（穴は*規約*specに対して相対的だ;より広いスイートがそれをカバーするかもしれない —— ティア1のカバレッジインデックス化が洗練だ）。`tool/**`はrubocop除外なので、開発ハーネスは姉妹の`mutate.rb`と同様にlintゲートから外れている。
 
@@ -141,14 +141,14 @@ fused classify per mutation: type-killed | test-killed | unprotected(+crash buck
 
 2つのカバレッジのアーティファクト、どちらもカウントを信頼するのではなく*トップの生存者を読む*ことで見つかった（ADR-62の「裁定せよ、仮定するな」の規律）:
 
-1. **複数行式の帰属**。 Rubyの行カバレッジは複数行式の実行をその*最初の*行に計上するので、式が走っていても継続行が未カバーと読まれる —— `Diagnostic#to_h`はテストされているのに、そのハッシュリテラルのエントリー行（144〜149）はすべてフラグされた。**メソッドコールドネス**にアンカーすることで修正した: 穴は、囲む`def`が*完全に*未カバーのとき（決して走らないメソッド）のみであり、だからウォームメソッド内のすべてのサイトはカバー済みだ。
-2. **クラスボディのデータ定数**。 `bundle_sig_discovery`の標準ライブラリ名のフリーズされた`Set[…]`、`method_parameter_binder`の`RBS_TYPE_PROVIDERS`のラムダのハッシュ、ビルトインカタログの`for_topic`定数 —— すべてアンカーすべき`def`なしに（1）を被り、ロジックではなく*データ*だ。除外: 囲む`def`を持たないサイトは決して高信頼な穴ではない。（シグナルが信頼できるのはメソッドボディの内側だけだ —— 我々が行動するバックログのための精度 / 再現率のトレードオフ;ウォームメソッド内のコールドな*分岐*は`needs-verification`層に属する。）
+1. **複数行式の帰属**。Rubyの行カバレッジは複数行式の実行をその*最初の*行に計上するので、式が走っていても継続行が未カバーと読まれる —— `Diagnostic#to_h`はテストされているのに、そのハッシュリテラルのエントリー行（144〜149）はすべてフラグされた。**メソッドコールドネス**にアンカーすることで修正した: 穴は、囲む`def`が*完全に*未カバーのとき（決して走らないメソッド）のみであり、だからウォームメソッド内のすべてのサイトはカバー済みだ。
+2. **クラスボディのデータ定数**。`bundle_sig_discovery`の標準ライブラリ名のフリーズされた`Set[…]`、`method_parameter_binder`の`RBS_TYPE_PROVIDERS`のラムダのハッシュ、ビルトインカタログの`for_topic`定数 —— すべてアンカーすべき`def`なしに（1）を被り、ロジックではなく*データ*だ。除外: 囲む`def`を持たないサイトは決して高信頼な穴ではない。（シグナルが信頼できるのはメソッドボディの内側だけだ —— 我々が行動するバックログのための精度 / 再現率のトレードオフ;ウォームメソッド内のコールドな*分岐*は`needs-verification`層に属する。）
 
-**結果 —— 小さいファイルのコアはメソッドレベルで完全**。 22の信頼できる穴はすべて**単一の**ファイル`lib/rigor/cli/mcp_command.rb`（ADR-33のMCPコマンド）にあった: その`#run` / `#parse_options`にはユニットspecがまったくなかった。他のすべての400 LOC以下の`lib/rigor`ファイルには、完全にコールドな型盲目のメソッドはない —— Rigorのユニットスイートは本質的にすべてのメソッドを行使する（上記の`trinary`のギャップはその数少ない例外で、いまや解消済み）。**ループをクローズ**: 5例の`spec/rigor/cli/mcp_command_spec.rb`（オプションパース + `run`のトランスポート検証 / 使用法エラー分岐;長命なstdioサーバーループは統合テストの領域で、意図的にユニットテストしない）が`mcp_command.rb`を**コールドメソッドの穴0**へ駆動した。
+**結果 —— 小さいファイルのコアはメソッドレベルで完全**。22の信頼できる穴はすべて**単一の**ファイル`lib/rigor/cli/mcp_command.rb`（ADR-33のMCPコマンド）にあった: その`#run` / `#parse_options`にはユニットspecがまったくなかった。他のすべての400 LOC以下の`lib/rigor`ファイルには、完全にコールドな型盲目のメソッドはない —— Rigorのユニットスイートは本質的にすべてのメソッドを行使する（上記の`trinary`のギャップはその数少ない例外で、いまや解消済み）。**ループをクローズ**: 5例の`spec/rigor/cli/mcp_command_spec.rb`（オプションパース + `run`のトランスポート検証 / 使用法エラー分岐;長命なstdioサーバーループは統合テストの領域で、意図的にユニットテストしない）が`mcp_command.rb`を**コールドメソッドの穴0**へ駆動した。
 
-**`needs-verification`フロンティア（約10.5k）**。 *カバー済み*の行の上の型生存者 —— カバー済み≠アサート済み。これはより大きなテスト*有効性*のギャップ（specが行を走らせるがどのアサーションもミューテーションを捕捉しない）だが、本物のコールド分岐のギャップと同じ複数行アーティファクトの混合であり、その裁定には高価なファイルごとの融合`rspec`パス（`trinary`パターン、ファイル単位で実行）が要る。ツリー全体への一斉投入ではなく、的を絞った融合実行に先送りした。
+**`needs-verification`フロンティア（約10.5k）**。*カバー済み*の行の上の型生存者 —— カバー済み≠アサート済み。これはより大きなテスト*有効性*のギャップ（specが行を走らせるがどのアサーションもミューテーションを捕捉しない）だが、本物のコールド分岐のギャップと同じ複数行アーティファクトの混合であり、その裁定には高価なファイルごとの融合`rspec`パス（`trinary`パターン、ファイル単位で実行）が要る。ツリー全体への一斉投入ではなく、的を絞った融合実行に先送りした。
 
-**ツリー全体の完了**。 400 LOC超の34のエンジンファイル（3,387 LOCの`statement_evaluator`、`scope_indexer`、`scope`、プラグインコアを含む）も同じ方法でスイープした: **コールドメソッドの穴0**。つまり全310の`lib/rigor`ファイルにわたって、defアンカーのコールドメソッドのギャップは`cli/mcp_command.rb`と`trinary.rb`だけだった —— どちらもいまやクローズ済み。**Rigorのユニットスイートはメソッドレベルで完全**だ: `lib/rigor`のすべてのメソッドが何らかのspecによって実行される。（型盲目メソッドのバックログは安価で高信頼な層であり、いまや枯渇した。）
+**ツリー全体の完了**。400 LOC超の34のエンジンファイル（3,387 LOCの`statement_evaluator`、`scope_indexer`、`scope`、プラグインコアを含む）も同じ方法でスイープした: **コールドメソッドの穴0**。つまり全310の`lib/rigor`ファイルにわたって、defアンカーのコールドメソッドのギャップは`cli/mcp_command.rb`と`trinary.rb`だけだった —— どちらもいまやクローズ済み。**Rigorのユニットスイートはメソッドレベルで完全**だ: `lib/rigor`のすべてのメソッドが何らかのspecによって実行される。（型盲目メソッドのバックログは安価で高信頼な層であり、いまや枯渇した。）
 
 **先送り:** `needs-verification`の裁定（カバー済みだがアサートされていない有効性フロンティア —— ファイルごとの融合実行、下記で実証）、および上記のフェーズ2/3/4-ティア1/5の項目。
 
@@ -171,3 +171,17 @@ fused classify per mutation: type-killed | test-killed | unprotected(+crash buck
 低価値の残余として文書化して残した（クローズせず）: キャリア（carrier）の`#inspect` / `describe(:short)`のデバッグフォーマットのサイト（`tuple`、`bound_method`、`accepts_result`、`difference`）と`hash_shape`のraise分岐 —— デバッグ文字列をピン留めするのは脆く、inspect / メッセージのテキストは契約ではない（同じ偽陽性の規律を、テスト記述に適用したもの: 指標を動かすためだけに低価値のアサーションを足さない）。`dependency_recorder`はすでに0だった。
 
 **このセッションの累計:** `trinary`（9 → 0）、`cli/mcp_command`（22 → 0、新規spec）、`type/integer_range`（11 → 4-等価）、`analysis/baseline`（13 → 1）、`inference/synthetic_method`（4 → 0）、`type/difference`（4 → 1）。ツリー全体のコールドメソッドバックログは空;有効性層はファイルごとに各々を裁定するワークフローだ —— ほとんどの生存者は等価ミュータント（メッセージ / inspectテキスト）、より広いspecでカバーされているもの、またはいまやクローズされた本物のギャップだ。各層はゼロではなく等価ミュータントのフロアに収束する。
+
+## 有効性層の裁定 —— ファイルごとの2回目のバッチ（2026-06-18）
+
+ロジックを持つ6ファイルへのさらなるパス;同じ発見 → 裁定 → 修正 → 再計測のループで、6つすべてspecのみ（`lib/`の変更なし）、`make verify`はグリーン:
+
+- `analysis/run_stats`（6 → 0）: Linuxの`/proc/self/status`の`VmHWM:`パーサ（`read_vmhwm_from_proc`）—— 既存の`.peak_rss_bytes`テストは非負整数しかアサートしないので、行フィルタ・桁抽出・kB→バイトのスケールがLinux CI上でさえ生き残った。スタブ化した`File`のユニットテストで*正確な*パース値（および読み取り不可 / `VmHWM`なしのnil経路）をアサートしてクローズ。
+- `analysis/fact_store`（11 → 0）: 3つの未テストの検証分岐（`Fact.new`の不正なバケット、`join`の非FactStoreガード、`normalize`の非`Fact`要素 —— raise経路でミューテートされた`.class` / `.inspect`は`NoMethodError` ≠ `ArgumentError`を投げるので、素の`raise_error(ArgumentError)`がそれらをkillする）、まったく未テストの`with_local_fact`、`==` / `eql?` / `hash`の値等価の契約、そして意図的な文字列バケットの`to_sym` / `map(&:to_sym)`強制変換の寛容さ。
+- `type/app`（2 → 0）: `accepts`（`bound`に委譲 —— `Inference::Acceptance.accepts`に対してピン留め）と`reduce`（デフォルトfuelの配線を持つレジストリに委譲 —— fuelを記録する最小のフェイクレジストリでピン留め）。
+- `inference/synthetic_method_index`（4 → 0）: `knows_class?`（`name.to_s`の強制変換を含み、Symbol引数で行使）と`to_h`のシリアライゼーション —— どちらも未テスト。
+- `inference/indexed_narrowing`（6 → 0）: `.lookup_for_call`と`.invalidate_chain_after_call`は統合フィクスチャ経由でのみ行使され、ユニットspecでは行使されていなかった;直接のユニットケースを追加（安定した`receiver[key]`のルックアップ + 非`[]` / 複数引数 / ナローイングなしのnil;安定したレシーバー上でのチェインナローイングのドロップ + 不安定な外側レシーバーのno-op）。
+- `inference/multi_target_binder`（4 → 1-等価）: ADR-57のオプショナルスロットの軟化（`X | nil`スロット → 非nilの構成要素）が未テストだった。残る`:111`の`slot_type`サイトは**確認された等価ミュータント**だ —— それはrestなしの`backs`ブロックに存在するが、`back_count = rights.size`およびsplat後の`rights`が非空になるのは`rest_present`のときだけなので、そのブロックは`Array.new(0){…}`であり決して走らない。
+- `inference/hkt_body`（16 → 0）: `HktBody`の`Data.define`ノードコンストラクタは部分的な検証カバレッジしか持たなかった —— ハッピーパス + `*-non-empty` / 名前空間付きガードはテストされていたが、`*-must-be-an-Array` / `*-must-be-a-Symbol` / `*-must-not-be-nil`ガードはテストされておらず、`TestEquality`にはdescribeブロックがまったくなかった。欠けていたガードケースを追加（ファイル既存のメッセージフラグメントのスタイルに合わせて —— ユーザー向けの検証メッセージ、弁護可能な契約）;メッセージフラグメントのアサーションは`type_swap`-on-raiseのメッセージ引数ミュータントもkillする。
+
+`inference/{budget_trace,struct_fold_safety,closure_escape_analyzer,rbs_type_translator}`、`analysis/incremental`、`type/intersection`は計測され、そのフロアに残された（すでに100 %、あるいは`percentile`の`hist.keys.max`防御的フォールバックのみ —— これは最近接ランクのループが返り損ねたときにのみ到達するが、`rank = ceil(fraction·total) ≤ total`がそれを不可能にする —— と`inspect` / `describe(:short)`のデバッグフォーマット残余）。
