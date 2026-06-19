@@ -222,6 +222,35 @@ upstream README's table of contents). Remove entries for deleted
 pages. Fold this config edit into the **second** commit alongside
 the translations.
 
+### llms.txt curated index drift (manual)
+
+The site publishes the [llmstxt.org](https://llmstxt.org/) surface —
+`/llms.txt`, `/llms-full.txt`, their `/ja/` mirrors, and a `.md` twin of every
+page. **Almost all of it is automatic and needs no sync action:**
+`llms-full.txt` derives its reading corpus from the handbook / manual / plugin /
+type-spec sections by `sidebar.order`, the per-page `.md` twins and their
+`<link rel="alternate">` tags are emitted for every page, and `robots.txt` is
+static — new upstream pages flow into all of these on the next build.
+
+The exception is the two **hand-authored** index bodies,
+[`src/llms/llms.md`](../../../src/llms/llms.md) (EN) and
+[`src/llms/llms-ja.md`](../../../src/llms/llms-ja.md) (JA). They link a curated
+set of pages by `.md` path (e.g. `/manual/14-rails-quickstart.md`,
+`/changelog-01x.md`), and a build-time guard in the `llms.txt` endpoints **fails
+`pnpm build`** if any link stops resolving. So when this sync **renamed,
+removed, or renumbered** a page the index links — a core handbook/manual
+chapter, the type-spec overview, a section index, the changelog archive — fix
+the link in **both** files (keep them in lockstep) and `git add src/llms/` into
+the second commit. `llms-ja.md` is hand-owned JA content: it is **not**
+`sourceSha`-tracked and the `ja/**` normalisers do **not** cover `src/llms/`, so
+apply the JA term / typography rules (Step 4 below) by hand.
+
+This is the same structural trigger as the sidebar drift above, but
+`check-translations.mjs` will **not** surface it — the build guard does. Run
+`pnpm build` once after a structural sync to exercise it. (Pending or
+untranslated JA pages still appear in `/ja/llms-full.txt` with their English
+body — the same fallback the rest of the JA site uses.)
+
 ## Step 4 — translate the stale / missing pages
 
 ### Forward direction (en → ja, the common case)
@@ -359,6 +388,7 @@ Then commit:
 ```sh
 git add src/content/docs/ja/ translations/en/
 # Also stage astro.config.mjs if the handbook sidebar changed (Step 3).
+# Also stage src/llms/ if an llms.txt index link changed (Step 3).
 git commit -m "Translate <area> for <target-ref>"
 ```
 
