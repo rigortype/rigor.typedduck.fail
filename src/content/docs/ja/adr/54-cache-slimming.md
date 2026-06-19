@@ -1,5 +1,5 @@
 ---
-title: "ADR-54 — Cache slimming: definitions-blob retirement, payload compression, default eviction"
+title: "ADR-54 — キャッシュのスリム化: definitions-blobの廃止、ペイロード圧縮、デフォルトのエビクション"
 description: "Imported from rigortype/rigor docs/adr/54-cache-slimming.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/54-cache-slimming.md"
 sourcePath: "docs/adr/54-cache-slimming.md"

@@ -1,5 +1,5 @@
 ---
-title: "ADR-69 — Pluggable mutation substrate (kill-oracle + operator seam)"
+title: "ADR-69 — プラグイン可能なミューテーション基盤（キルオラクル + オペレータシーム）"
 description: "Imported from rigortype/rigor docs/adr/69-pluggable-mutation-substrate.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/69-pluggable-mutation-substrate.md"
 sourcePath: "docs/adr/69-pluggable-mutation-substrate.md"

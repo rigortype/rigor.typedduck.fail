@@ -1,5 +1,5 @@
 ---
-title: "ADR-62 — Mutation-testing the analyzer (false-negative / teeth measurement)"
+title: "ADR-62 — アナライザーのミューテーションテスト（偽陰性／歯の計測）"
 description: "Imported from rigortype/rigor docs/adr/62-mutation-testing-teeth-measurement.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/62-mutation-testing-teeth-measurement.md"
 sourcePath: "docs/adr/62-mutation-testing-teeth-measurement.md"

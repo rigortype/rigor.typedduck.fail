@@ -1,5 +1,5 @@
 ---
-title: "ADR-57 — Opening the implicit-self call return-adoption gate (ADR-24 WD3 revisit)"
+title: "ADR-57 — implicit-self呼び出しの戻り値採用ゲートを開く（ADR-24 WD3の再検討）"
 description: "Imported from rigortype/rigor docs/adr/57-self-call-return-adoption.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/57-self-call-return-adoption.md"
 sourcePath: "docs/adr/57-self-call-return-adoption.md"

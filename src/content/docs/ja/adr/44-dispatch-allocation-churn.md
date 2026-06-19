@@ -1,5 +1,5 @@
 ---
-title: "ADR-44 — Per-dispatch / per-narrow allocation churn (Scope, CallContext)"
+title: "ADR-44 — ディスパッチごと／ナローイングごとのアロケーションチャーン（Scope、CallContext）"
 description: "Imported from rigortype/rigor docs/adr/44-dispatch-allocation-churn.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/44-dispatch-allocation-churn.md"
 sourcePath: "docs/adr/44-dispatch-allocation-churn.md"

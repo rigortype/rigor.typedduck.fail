@@ -1,5 +1,5 @@
 ---
-title: "ADR-50 — Release engineering and stability strategy (v0.2.0 → v1.0.0)"
+title: "ADR-50 — リリースエンジニアリングと安定化戦略（v0.2.0 → v1.0.0）"
 description: "Imported from rigortype/rigor docs/adr/50-release-engineering-and-stability-strategy.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/50-release-engineering-and-stability-strategy.md"
 sourcePath: "docs/adr/50-release-engineering-and-stability-strategy.md"

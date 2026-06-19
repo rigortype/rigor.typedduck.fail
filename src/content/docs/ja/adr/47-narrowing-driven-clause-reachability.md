@@ -1,5 +1,5 @@
 ---
-title: "ADR-47 — Narrowing-driven clause reachability (`flow.unreachable-clause`)"
+title: "ADR-47 — ナローイング駆動の節到達可能性（`flow.unreachable-clause`）"
 description: "Imported from rigortype/rigor docs/adr/47-narrowing-driven-clause-reachability.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/47-narrowing-driven-clause-reachability.md"
 sourcePath: "docs/adr/47-narrowing-driven-clause-reachability.md"

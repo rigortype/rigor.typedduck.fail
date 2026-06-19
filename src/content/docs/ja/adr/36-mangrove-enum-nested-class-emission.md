@@ -1,5 +1,5 @@
 ---
-title: "ADR-36 — Macro-substrate nested-class emission tier (Mangrove `Enum`)"
+title: "ADR-36 — マクロ基板のネストクラス生成ティア（Mangrove `Enum`）"
 description: "Imported from rigortype/rigor docs/adr/36-mangrove-enum-nested-class-emission.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/36-mangrove-enum-nested-class-emission.md"
 sourcePath: "docs/adr/36-mangrove-enum-nested-class-emission.md"

@@ -1,5 +1,5 @@
 ---
-title: "ADR-41 — Inference budget design (wiring, on-hit policy, measurement-gated defaults)"
+title: "ADR-41 — 推論バジェットの設計（配線、ヒット時ポリシー、計測ゲート付きデフォルト）"
 description: "Imported from rigortype/rigor docs/adr/41-inference-budget-design.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/41-inference-budget-design.md"
 sourcePath: "docs/adr/41-inference-budget-design.md"

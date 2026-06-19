@@ -1,5 +1,5 @@
 ---
-title: "ADR-55 — Recursive-method return-type precision (constant-arg bounded unroll + fixpoint return summaries)"
+title: "ADR-55 — 再帰メソッドの戻り値型精度（定数引数の有界アンロール + 不動点の戻り値型サマリー）"
 description: "Imported from rigortype/rigor docs/adr/55-recursive-return-precision.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/55-recursive-return-precision.md"
 sourcePath: "docs/adr/55-recursive-return-precision.md"

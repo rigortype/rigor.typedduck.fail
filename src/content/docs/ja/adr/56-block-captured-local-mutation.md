@@ -1,5 +1,5 @@
 ---
-title: "ADR-56 — Block-captured local write-back and loop-body fixpoint (mutation-effect soundness)"
+title: "ADR-56 — ブロックがキャプチャしたローカルのライトバックとループ本体の不動点（ミューテーション効果の健全性）"
 description: "Imported from rigortype/rigor docs/adr/56-block-captured-local-mutation.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/56-block-captured-local-mutation.md"
 sourcePath: "docs/adr/56-block-captured-local-mutation.md"

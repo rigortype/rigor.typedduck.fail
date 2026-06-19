@@ -1,5 +1,5 @@
 ---
-title: "ADR-68 — Plugin-declarable class-builder folding (member-shape carriers beyond Struct / Data)"
+title: "ADR-68 — プラグインが宣言可能なクラスビルダー畳み込み（Struct / Dataを超えるメンバーシェイプキャリア）"
 description: "rigortype/rigor の docs/adr/68-class-builder-folding.md から取り込み。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/68-class-builder-folding.md"
 sourcePath: "docs/adr/68-class-builder-folding.md"

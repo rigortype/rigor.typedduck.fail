@@ -1,5 +1,5 @@
 ---
-title: "ADR-43 — RBS-complete ancestor resolution (allow-list inherited-method dispatch)"
+title: "ADR-43 — RBS完全な祖先解決（許可リストによる継承メソッドのディスパッチ）"
 description: "Imported from rigortype/rigor docs/adr/43-rbs-complete-ancestor-resolution.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/43-rbs-complete-ancestor-resolution.md"
 sourcePath: "docs/adr/43-rbs-complete-ancestor-resolution.md"

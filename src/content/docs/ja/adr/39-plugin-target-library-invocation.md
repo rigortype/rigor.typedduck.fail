@@ -1,5 +1,5 @@
 ---
-title: "ADR-39 — Plugins may invoke their target library's safe methods directly"
+title: "ADR-39 — プラグインは対象ライブラリの安全なメソッドを直接呼び出せる"
 description: "Imported from rigortype/rigor docs/adr/39-plugin-target-library-invocation.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/39-plugin-target-library-invocation.md"
 sourcePath: "docs/adr/39-plugin-target-library-invocation.md"

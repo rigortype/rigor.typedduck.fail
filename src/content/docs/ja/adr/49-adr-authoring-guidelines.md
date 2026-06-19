@@ -1,5 +1,5 @@
 ---
-title: "ADR-49 — ADR authoring guidelines (a rubric for necessary-and-sufficient ADRs)"
+title: "ADR-49 — ADR執筆ガイドライン（必要十分なADRのためのルーブリック）"
 description: "Imported from rigortype/rigor docs/adr/49-adr-authoring-guidelines.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/49-adr-authoring-guidelines.md"
 sourcePath: "docs/adr/49-adr-authoring-guidelines.md"

@@ -1,5 +1,5 @@
 ---
-title: "ADR-63 — User-facing type-protection coverage"
+title: "ADR-63 — ユーザー向け型保護カバレッジ"
 description: "Imported from rigortype/rigor docs/adr/63-type-protection-coverage.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/63-type-protection-coverage.md"
 sourcePath: "docs/adr/63-type-protection-coverage.md"

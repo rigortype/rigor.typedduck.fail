@@ -1,5 +1,5 @@
 ---
-title: "ADR-64 — Non-nil argument-type-mismatch and the coerce barrier"
+title: "ADR-64 — 非nilの引数型不一致とcoerceの障壁"
 description: "Imported from rigortype/rigor docs/adr/64-non-nil-argument-type-mismatch.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/64-non-nil-argument-type-mismatch.md"
 sourcePath: "docs/adr/64-non-nil-argument-type-mismatch.md"

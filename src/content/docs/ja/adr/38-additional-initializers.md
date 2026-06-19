@@ -1,5 +1,5 @@
 ---
-title: "ADR-38 — Plugin-declared additional initializers"
+title: "ADR-38 — プラグインが宣言する追加イニシャライザー"
 description: "Imported from rigortype/rigor docs/adr/38-additional-initializers.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/38-additional-initializers.md"
 sourcePath: "docs/adr/38-additional-initializers.md"

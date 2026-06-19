@@ -1,5 +1,5 @@
 ---
-title: "ADR-61 — Agent-friendly diagnostic statistics (structured selector axis)"
+title: "ADR-61 — エージェントに優しい診断統計（構造化セレクタ軸）"
 description: "Imported from rigortype/rigor docs/adr/61-agent-friendly-diagnostic-statistics.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/61-agent-friendly-diagnostic-statistics.md"
 sourcePath: "docs/adr/61-agent-friendly-diagnostic-statistics.md"

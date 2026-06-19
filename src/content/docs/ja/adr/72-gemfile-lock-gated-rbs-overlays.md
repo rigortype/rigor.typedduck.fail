@@ -1,5 +1,5 @@
 ---
-title: "ADR-72 — Gemfile.lock-gated bundled RBS overlays"
+title: "ADR-72 — Gemfile.lockでゲートされたバンドルRBSオーバーレイ"
 description: "Imported from rigortype/rigor docs/adr/72-gemfile-lock-gated-rbs-overlays.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/72-gemfile-lock-gated-rbs-overlays.md"
 sourcePath: "docs/adr/72-gemfile-lock-gated-rbs-overlays.md"

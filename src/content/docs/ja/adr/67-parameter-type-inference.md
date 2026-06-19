@@ -1,5 +1,5 @@
 ---
-title: "ADR-67 — Parameter type inference (the M3 frontier): call-site and in-body, precision-additive only"
+title: "ADR-67 — パラメータ型推論（M3フロンティア）: 呼び出しサイトと本体内、精度加算的のみ"
 description: "rigortype/rigor の docs/adr/67-parameter-type-inference.md から取り込み。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/67-parameter-type-inference.md"
 sourcePath: "docs/adr/67-parameter-type-inference.md"

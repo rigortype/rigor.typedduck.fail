@@ -1,5 +1,5 @@
 ---
-title: "ADR-46 — Incremental analysis via a cross-file dependency graph"
+title: "ADR-46 — ファイル間依存グラフによるインクリメンタル解析"
 description: "Imported from rigortype/rigor docs/adr/46-incremental-dependency-graph.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/46-incremental-dependency-graph.md"
 sourcePath: "docs/adr/46-incremental-dependency-graph.md"

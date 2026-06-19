@@ -1,5 +1,5 @@
 ---
-title: "ADR-70 — Fused static∪dynamic protection coverage"
+title: "ADR-70 — 静的∪動的の融合保護カバレッジ"
 description: "Imported from rigortype/rigor docs/adr/70-fused-protection-coverage.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/70-fused-protection-coverage.md"
 sourcePath: "docs/adr/70-fused-protection-coverage.md"

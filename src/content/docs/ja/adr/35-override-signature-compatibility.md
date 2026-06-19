@@ -1,5 +1,5 @@
 ---
-title: "ADR-35 — Override signature compatibility (Liskov signature rule)"
+title: "ADR-35 — オーバーライドのシグネチャ互換性（リスコフのシグネチャ規則）"
 description: "Imported from rigortype/rigor docs/adr/35-override-signature-compatibility.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/35-override-signature-compatibility.md"
 sourcePath: "docs/adr/35-override-signature-compatibility.md"

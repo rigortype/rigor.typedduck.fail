@@ -1,5 +1,5 @@
 ---
-title: "ADR-45 — Unchanged-project fast path (run-result cache)"
+title: "ADR-45 — 変更なしプロジェクトの高速パス（実行結果キャッシュ）"
 description: "Imported from rigortype/rigor docs/adr/45-unchanged-project-fast-path.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/45-unchanged-project-fast-path.md"
 sourcePath: "docs/adr/45-unchanged-project-fast-path.md"

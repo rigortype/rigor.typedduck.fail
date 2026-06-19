@@ -1,5 +1,5 @@
 ---
-title: "ADR-52 — Compiled plugin contribution dispatch"
+title: "ADR-52 — コンパイル済みプラグイン貢献ディスパッチ"
 description: "Imported from rigortype/rigor docs/adr/52-compiled-plugin-contribution-dispatch.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/52-compiled-plugin-contribution-dispatch.md"
 sourcePath: "docs/adr/52-compiled-plugin-contribution-dispatch.md"

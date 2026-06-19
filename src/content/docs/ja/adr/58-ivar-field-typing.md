@@ -1,5 +1,5 @@
 ---
-title: "ADR-58 — Instance-variable field typing: declaration-sourced nil policy, homogeneous-write reads, ctor definite assignment"
+title: "ADR-58 — インスタンス変数のフィールド型付け: 宣言由来のnilポリシー、同種書き込みの読み取り、コンストラクタの確定代入"
 description: "Imported from rigortype/rigor docs/adr/58-ivar-field-typing.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/58-ivar-field-typing.md"
 sourcePath: "docs/adr/58-ivar-field-typing.md"

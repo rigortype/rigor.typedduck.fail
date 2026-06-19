@@ -1,5 +1,5 @@
 ---
-title: "ADR-71 — Type-guided external incremental mutation testing"
+title: "ADR-71 — 型ガイド付き外部インクリメンタルミューテーションテスト"
 description: "Imported from rigortype/rigor docs/adr/71-type-guided-external-mutation-testing.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/71-type-guided-external-mutation-testing.md"
 sourcePath: "docs/adr/71-type-guided-external-mutation-testing.md"

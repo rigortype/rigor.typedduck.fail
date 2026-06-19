@@ -1,5 +1,5 @@
 ---
-title: "ADR-48 — Struct / Data value folding (member-shape carriers)"
+title: "ADR-48 — Struct / Data値畳み込み（メンバーシェイプキャリア）"
 description: "Imported from rigortype/rigor docs/adr/48-data-struct-value-folding.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/48-data-struct-value-folding.md"
 sourcePath: "docs/adr/48-data-struct-value-folding.md"

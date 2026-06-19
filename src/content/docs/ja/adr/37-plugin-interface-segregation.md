@@ -1,5 +1,5 @@
 ---
-title: "ADR-37 — Plugin interface segregation (narrow extension protocols)"
+title: "ADR-37 — プラグインのインターフェース分離（狭い拡張プロトコル）"
 description: "Imported from rigortype/rigor docs/adr/37-plugin-interface-segregation.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/37-plugin-interface-segregation.md"
 sourcePath: "docs/adr/37-plugin-interface-segregation.md"
