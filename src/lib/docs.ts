@@ -5,12 +5,8 @@ export type DocEntry = CollectionEntry<'docs'>;
 /** Canonical site origin (matches `site` in astro.config.mjs). */
 export const SITE = 'https://rigor.typedduck.fail';
 
-// Component-driven listing pages that are not useful as clean markdown. They are
-// excluded from the `.md` endpoint, the `llms.txt` indexes, and the corpus.
-const DENY_IDS = new Set(['recently-updated', 'ja/recently-updated']);
-
 function isDenied(entry: DocEntry): boolean {
-  return DENY_IDS.has(entry.id);
+  return NO_TWIN_IDS.has(entry.id);
 }
 
 /** English (root-locale) pages. The JA mirror lives under `ja/…` (id `ja`). */
@@ -30,12 +26,23 @@ export function isJapaneseDoc(entry: DocEntry): boolean {
 // Locale-root splash pages have the bare locale id (EN `''`, JA `ja`; Starlight
 // strips the trailing `/index`). Serve their markdown twins at `/index.md` and
 // `/ja/index.md`, and cite the live home routes `/` and `/ja/`.
-export function slugFor(entry: DocEntry): string {
-  const id = entry.id;
+export function slugForId(id: string): string {
   if (id === '' || id === 'index') return 'index';
   if (id === 'ja' || id === 'ja/index') return 'ja/index';
   return id;
 }
+
+export function slugFor(entry: DocEntry): string {
+  return slugForId(entry.id);
+}
+
+/**
+ * Pages with no clean-markdown twin — the component-driven listings and
+ * Starlight's virtual 404. Excluded from the `.md` endpoint, the `llms.txt`
+ * indexes, and the corpus, and skipped by the `<link rel="alternate">`
+ * advertisement in Head.astro.
+ */
+export const NO_TWIN_IDS = new Set(['recently-updated', 'ja/recently-updated', '404']);
 
 /** The live HTML page URL for an entry — used as the `Source:` citation anchor. */
 export function urlFor(entry: DocEntry): string {

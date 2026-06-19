@@ -24,8 +24,8 @@ Things to know about Rigor:
   running the matching skill over hand-driving the CLI: `rigor-project-init`
   (onboard a project), `rigor-baseline-reduce` (work down a baseline),
   `rigor-plugin-author` (scaffold a plugin), `rigor-ci-setup` (wire up CI).
-- These pages are the canonical English docs. Japanese translations mirror them
-  under `/ja/`.
+- These pages are the canonical English docs. A Japanese translation is indexed
+  at `/ja/llms.txt` (full text at `/ja/llms-full.txt`); pages mirror under `/ja/`.
 
 ## Get started in one prompt
 

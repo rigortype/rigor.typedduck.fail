@@ -1,7 +1,16 @@
 ---
 import Default from '@astrojs/starlight/components/Head.astro';
+import { slugForId, NO_TWIN_IDS } from '../lib/docs';
 
 const { entry } = Astro.locals.starlightRoute;
+
+// Advertise this page's clean-markdown twin (see src/pages/[...slug].md.ts) so
+// crawlers and LLM agents can fetch the Markdown directly. Skip the
+// component-driven listings that have no twin.
+const mdHref =
+  typeof entry.id === 'string' && !NO_TWIN_IDS.has(entry.id)
+    ? `/${slugForId(entry.id)}.md`
+    : null;
 const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'TechArticle',
@@ -21,6 +30,7 @@ const jsonLd = {
 ---
 
 <Default><slot /></Default>
+{mdHref && <link rel="alternate" type="text/markdown" href={mdHref} />}
 <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} is:inline />
 <script>
   import '../scripts/prompt-language';

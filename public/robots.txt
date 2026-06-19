@@ -2,3 +2,10 @@ User-agent: *
 Allow: /
 
 Sitemap: https://rigor.typedduck.fail/sitemap-index.xml
+
+# LLM-friendly docs (https://llmstxt.org/)
+# Index:     https://rigor.typedduck.fail/llms.txt
+# Full text: https://rigor.typedduck.fail/llms-full.txt
+# 日本語索引: https://rigor.typedduck.fail/ja/llms.txt
+# 日本語全文: https://rigor.typedduck.fail/ja/llms-full.txt
+# Every docs page also has a Markdown twin at the same path + ".md".

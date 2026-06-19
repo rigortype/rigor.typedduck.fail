@@ -24,7 +24,8 @@ Rigorについて知っておくこと:
   い: `rigor-project-init`（プロジェクトの導入）・`rigor-baseline-reduce`
   （ベースラインの削減）・`rigor-plugin-author`（プラグインの雛形生成）・
   `rigor-ci-setup`（CIの配線）。
-- これらは英語正本ドキュメントの日本語訳です。英語の原文は`/`配下にあります。
+- これらは英語正本ドキュメントの日本語訳です。英語の索引は`/llms.txt`（全文は
+  `/llms-full.txt`）、原文は`/`配下にあります。
 
 ## プロンプト1つで始める
 
