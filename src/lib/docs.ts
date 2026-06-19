@@ -5,39 +5,59 @@ export type DocEntry = CollectionEntry<'docs'>;
 /** Canonical site origin (matches `site` in astro.config.mjs). */
 export const SITE = 'https://rigor.typedduck.fail';
 
-// Root-locale pages that are not useful as clean markdown / are pure splash or
-// component-driven listings. They are excluded from the `.md` endpoint, the
-// `llms.txt` index, and the `llms-full.txt` corpus.
-const DENY_IDS = new Set(['recently-updated']);
+// Component-driven listing pages that are not useful as clean markdown. They are
+// excluded from the `.md` endpoint, the `llms.txt` indexes, and the corpus.
+const DENY_IDS = new Set(['recently-updated', 'ja/recently-updated']);
 
-/**
- * English (root-locale) documentation pages only. The Japanese mirror lives
- * under `ja/…` and is excluded — the root `llms.txt` / `llms-full.txt` and the
- * per-page `.md` twins are English-canonical (a future `/ja/llms.txt` would
- * carry the JA tree).
- */
-export function isEnglishDoc(entry: DocEntry): boolean {
-  const id = entry.id;
-  if (id.startsWith('ja/')) return false;
-  if (DENY_IDS.has(id)) return false;
-  return true;
+function isDenied(entry: DocEntry): boolean {
+  return DENY_IDS.has(entry.id);
 }
 
-/** The splash homepage has an empty id; serve its markdown at `/index.md`. */
+/** English (root-locale) pages. The JA mirror lives under `ja/…` (id `ja`). */
+export function isEnglishDoc(entry: DocEntry): boolean {
+  const id = entry.id;
+  if (id === 'ja' || id.startsWith('ja/')) return false;
+  return !isDenied(entry);
+}
+
+/** Japanese mirror pages — the `ja` locale root and everything under `ja/…`. */
+export function isJapaneseDoc(entry: DocEntry): boolean {
+  const id = entry.id;
+  if (id !== 'ja' && !id.startsWith('ja/')) return false;
+  return !isDenied(entry);
+}
+
+// Locale-root splash pages have the bare locale id (EN `''`, JA `ja`; Starlight
+// strips the trailing `/index`). Serve their markdown twins at `/index.md` and
+// `/ja/index.md`, and cite the live home routes `/` and `/ja/`.
 export function slugFor(entry: DocEntry): string {
-  return entry.id === '' ? 'index' : entry.id;
+  const id = entry.id;
+  if (id === '' || id === 'index') return 'index';
+  if (id === 'ja' || id === 'ja/index') return 'ja/index';
+  return id;
 }
 
 /** The live HTML page URL for an entry — used as the `Source:` citation anchor. */
 export function urlFor(entry: DocEntry): string {
   const id = entry.id;
-  const path = id === '' || id === 'index' ? '' : `${id}/`;
+  let path: string;
+  if (id === '' || id === 'index') path = '';
+  else if (id === 'ja' || id === 'ja/index') path = 'ja/';
+  else path = `${id}/`;
   return `${SITE}/${path}`;
 }
 
-export async function englishDocs(): Promise<DocEntry[]> {
+export async function allDocs(): Promise<DocEntry[]> {
   const all = await getCollection('docs');
-  return all.filter(isEnglishDoc);
+  return all.filter((e) => !isDenied(e));
+}
+
+export async function englishDocs(): Promise<DocEntry[]> {
+  return (await allDocs()).filter(isEnglishDoc);
+}
+
+export async function japaneseDocs(): Promise<DocEntry[]> {
+  return (await allDocs()).filter(isJapaneseDoc);
 }
 
 /** Sidebar order from synced frontmatter, then id as a stable tie-break. */
