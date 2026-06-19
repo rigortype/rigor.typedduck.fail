@@ -128,3 +128,38 @@ export function pageBlock(entry: DocEntry): string {
   const title = entry.data.title ?? slugFor(entry);
   return `# ${title}\nSource: ${urlFor(entry)}\n\n${cleanMarkdown(entry.body ?? '')}`;
 }
+
+/**
+ * The "reading corpus" for an llms-full.txt, in sidebar order: install →
+ * Handbook → User Manual → Plugin Reference → Type Specification → a couple of
+ * Project pages. `base` is `''` for English or `'ja/'` for the Japanese mirror;
+ * the long tail (ADRs, internal spec, notes, changelog, chibirigor) is excluded
+ * — it is reachable via the per-page `.md` twins and listed in the sitemap.
+ */
+export function buildCorpus(docs: DocEntry[], base = ''): DocEntry[] {
+  const byId = new Map(docs.map((e) => [e.id, e]));
+  const section = (prefix: string) =>
+    docs
+      .filter((e) => e.id === prefix || e.id.startsWith(`${prefix}/`))
+      .sort(bySidebarOrder);
+
+  const corpus: DocEntry[] = [];
+  const seen = new Set<string>();
+  const add = (e: DocEntry | undefined) => {
+    if (e && !seen.has(e.id)) {
+      seen.add(e.id);
+      corpus.push(e);
+    }
+  };
+
+  add(byId.get(`${base}install`));
+  section(`${base}handbook`).forEach(add);
+  section(`${base}manual`)
+    .filter((e) => !e.id.startsWith(`${base}manual/plugins`))
+    .forEach(add);
+  section(`${base}manual/plugins`).forEach(add);
+  section(`${base}type-specification`).forEach(add);
+  add(byId.get(`${base}compatibility`));
+  add(byId.get(`${base}types`));
+  return corpus;
+}
