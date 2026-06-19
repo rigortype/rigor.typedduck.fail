@@ -3,8 +3,8 @@ title: "Changelog — 0.1.x archive"
 description: "Imported from rigortype/rigor docs/CHANGELOG-0.1.x.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/CHANGELOG-0.1.x.md"
 sourcePath: "docs/CHANGELOG-0.1.x.md"
-sourceSha: "ad7d23d9aa4f6b2de79513804508d3830e276dd36daef7ae3063664d4dd74abb"
-sourceCommit: "4e7da6c3e3933cc8abf2759053d4190922a0cfca"
+sourceSha: "ce89a9e0648c84c05a402d10e2a4c73db2cc42a237583dd207d41b22d252fed1"
+sourceCommit: "7ba81e144fcabd69b653017dcf248004e9635a5e"
 translationStatus: "translated"
 sidebar:
   order: 9050

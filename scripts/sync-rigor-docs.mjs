@@ -2,6 +2,7 @@
 import { createHash } from 'node:crypto';
 import { execFile } from 'node:child_process';
 import { mkdir, readdir, readFile, rm, stat, writeFile } from 'node:fs/promises';
+import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
@@ -462,6 +463,19 @@ function rewriteMarkdownLinks(body, relativePath) {
     // in-docs links (images, ci-template `.yml`, bare dir links) are untouched.
     if (!resolvedDocsPath.startsWith('../')) {
       if (!/\.md$/i.test(resolvedDocsPath)) return match;
+      // …but a docs-ROOT file (sourceDirectory `.`) linking `examples/<x>/README.md`
+      // is NOT an in-docs page: it is a repo-root reference that omitted the `../`.
+      // This happens when a file moves into docs/ without its links being rewound —
+      // notably the archived `CHANGELOG-<minor>.md`, split out of the repo-root
+      // `CHANGELOG.md`, keeps `examples/` / `plugins/` links. Resolving them as
+      // on-site routes yields a broken `../examples/`. Redirect them like an escape
+      // (on-site manual page for a published plugin, else GitHub). Gated on a real
+      // REPO_SOURCE_DIR first segment AND a non-existent docs file, so a genuine
+      // in-docs page is never mis-routed even if a docs dir ever shares the name.
+      const firstSegment = resolvedDocsPath.split('/')[0];
+      if (REPO_SOURCE_DIRS.has(firstSegment) && !existsSync(path.join(docsRoot, resolvedDocsPath))) {
+        return `](${repoSourceRedirect(resolvedDocsPath, relativePath)}${hash})`;
+      }
       const currentOutputPath = toOutputPath(relativePath);
       const targetOutputPath = toOutputPath(resolvedDocsPath);
       return `](${relativeRouteLink(currentOutputPath, targetOutputPath)}${hash})`;
@@ -491,6 +505,22 @@ function rewriteMarkdownLinks(body, relativePath) {
     }
     return match;
   });
+}
+
+// Redirect a repo-root path into a REPO_SOURCE_DIRS tree to its on-site target.
+// A plugin home (`plugins/<slug>`, `…/`, or `…/README.md`) whose slug has a
+// published reference page routes to that on-site manual page; everything else
+// goes to GitHub. A trailing `/README.md` collapses to the directory so the link
+// lands on the dir's GitHub landing (tree) rather than the raw README blob —
+// matching what scripts/scan-source-links.mjs --fix produces on the owned trees.
+function repoSourceRedirect(repoRelative, relativePath) {
+  const dirRelative = repoRelative.replace(/\/README\.md$/i, '/');
+  const pluginDir = /^plugins\/([^/.]+)\/?$/.exec(dirRelative)?.[1];
+  const pluginSlug = pluginDir ? normalizePathSegment(pluginDir) : null;
+  if (pluginSlug && pluginReferenceSlugs.has(pluginSlug)) {
+    return relativeRouteLink(toOutputPath(relativePath), `manual/plugins/${pluginSlug}.md`);
+  }
+  return githubSourceUrl(dirRelative, dirRelative.endsWith('/'));
 }
 
 function normalizeCodeFences(body) {

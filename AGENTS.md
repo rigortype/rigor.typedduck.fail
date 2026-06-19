@@ -187,6 +187,15 @@ rewrites links into the repo-root **source/asset** trees — the allow-list in
   would also mis-route malformed on-site cross-refs (a stray `../docs/…` the
   author meant as an on-site page, a bare `../../08-skills/`) into broken GitHub
   URLs. Those are upstream content bugs; leave them.
+- A **docs-root file** (e.g. the archived `CHANGELOG-<minor>.md`, split out of the
+  repo-root `CHANGELOG.md`) keeps repo-root links written **without** the `../` —
+  `[…](examples/<x>/README.md)`, `[…](plugins/<slug>/README.md)`. These *look* like
+  in-docs links but resolve to a non-existent `docs/examples/…`, so the rewriter
+  redirects them the same way (a published plugin → its on-site manual page, else
+  GitHub `tree`, collapsing a trailing `/README.md` to the directory). Gated on a
+  real `REPO_SOURCE_DIRS` first segment **and** a missing docs file, so a genuine
+  in-docs page is never touched. (A rewriter-only fix: this never changes upstream
+  prose, so it shifts the EN `sourceSha` — restamp the affected JA mirror.)
 
 The generated EN tree gets this for free on every sync. The hand-owned JA
 mirrors (`src/content/docs/ja/**`) and EN overrides (`translations/en/**`) are
