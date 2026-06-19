@@ -251,6 +251,10 @@ This is the same structural trigger as the sidebar drift above, but
 untranslated JA pages still appear in `/ja/llms-full.txt` with their English
 body — the same fallback the rest of the JA site uses.)
 
+The full architecture of this surface is in
+[`../../../AGENTS.md`](../../../AGENTS.md) § "llms.txt, llms-full.txt, and
+per-page Markdown twins".
+
 ## Step 4 — translate the stale / missing pages
 
 ### Forward direction (en → ja, the common case)

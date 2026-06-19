@@ -57,6 +57,50 @@ synced.**
   current locale's page); the topic `link` is `/chibirigor/`. See the
   comments in `astro.config.mjs`.
 
+## llms.txt, llms-full.txt, and per-page Markdown twins
+
+The site publishes the [llmstxt.org](https://llmstxt.org/) surface for LLM
+consumers. Astro endpoints under `src/pages/` generate it at build time, all
+sharing one transform module, `src/lib/docs.ts`:
+
+- **`/llms.txt`** (`src/pages/llms.txt.ts`) and **`/ja/llms.txt`** — a curated,
+  purpose-organised index. The body is **hand-authored** in `src/llms/llms.md`
+  (EN) and `src/llms/llms-ja.md` (JA), imported `?raw`. A build-time guard
+  **fails `pnpm build`** if any on-site `.md` link in it stops resolving — a
+  renamed/removed page is caught loudly, not shipped dead.
+- **`/llms-full.txt`** (`src/pages/llms-full.txt.ts`) and **`/ja/llms-full.txt`**
+  — the reading corpus (Handbook, User Manual, Plugin Reference, Type
+  Specification, plus `install` and `compatibility` / `types`) concatenated in
+  `sidebar.order`, each page delimited by a `---` rule, an `# Title`, and a
+  `Source:` line. `buildCorpus(docs, base)` **derives** the corpus from section
+  prefixes, so new upstream pages flow in automatically; the short preamble is
+  hand-written in `src/llms/full-preamble.md` / `full-preamble-ja.md`.
+- **A `.md` twin of every page** (`src/pages/[...slug].md.ts`) — clean Markdown
+  for EN and JA, the link target for the indexes and the source material for the
+  full-text files. Each docs page advertises its twin via
+  `<link rel="alternate" type="text/markdown">` emitted from
+  `src/components/Head.astro`, and `public/robots.txt` lists the indexes.
+
+`cleanMarkdown` (in `docs.ts`) flattens a body for ingestion: it strips MDX
+`import`s and capitalised JSX components (lowercase HTML like `<details>` /
+`<ruby>` is content and kept), flattens Starlight `:::asides` to blockquotes,
+unescapes GFM table-cell pipes (`\|` → `|`, since the output is read raw, not
+re-rendered), and demotes a stray body `# H1` to `##`; fenced code is untouched
+and frontmatter never appears (it reads `entry.body`).
+
+**Root is English-canonical; `/ja/` mirrors it.** `englishDocs()` /
+`japaneseDocs()` partition the collection by the `ja` / `ja/…` id prefix and each
+locale's endpoints guard against its own tree. `NO_TWIN_IDS` (the
+component-driven `recently-updated` listings and Starlight's virtual `404`) have
+no twin and are skipped everywhere.
+
+Everything here is committed **source**; the `.txt` / `.md` outputs are build
+artifacts (`dist/`, never committed). The only hand-maintenance is the two index
+bodies — keep `llms.md` / `llms-ja.md` in lockstep, apply the Japanese
+typography rules to `llms-ja.md` by hand (the `ja/**` normalizers do not reach
+`src/llms/`), and see the `sync-upstream` skill for the drift the build guard
+catches.
+
 ## Japanese typography convention
 
 Body prose in Japanese pages follows the no-space-between-CJK-and-Latin
