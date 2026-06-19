@@ -70,7 +70,7 @@ end
 
 新しいオプションの`Plugin::Manifest`フィールド、**`source_rbs_synthesizer:`**がエンジン側のフックを公開する。プラグインはフィールドをcallable `(source_file_path) -> rbs_source_string | nil`に設定する。`Plugin::Loader`がcallableをプラグインIDごとに記録し、`Environment.for_project`がenv構築中にソースファイルごとにそれを呼び出し、結果のRBSストリームをシグネチャ入力の残りとマージする。
 
-## Working decisions
+## 作業上の決定
 
 ### WD1 — コア機能ではなくプラグイン
 

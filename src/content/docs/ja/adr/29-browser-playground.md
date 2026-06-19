@@ -80,7 +80,7 @@ Cloudflare Workerはリクエストを受け取りバックエンドにフォワ
 
 フロントエンドは静的なCloudflare Pagesサイト。バックエンドはFly.io（または同等）上の同じ`rigortype` Rubyプロセス内で実行される最小限のRackアプリケーションで、Pumaスレッドごとに1ワーカー。
 
-## Working decisions
+## 作業上の決定
 
 ### WD1 — フロントエンドはCloudflare Pages;バックエンドは別サービス
 

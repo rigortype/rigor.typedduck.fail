@@ -10,7 +10,7 @@ sidebar:
   order: 4043
 ---
 
-Status: **Accepted — fully landed (WD1–WD6), 2026-06-03.**
+ステータス: **Accepted — 全面的に着地（WD1–WD6）、2026-06-03**。
 `rigor check`が、Rubyソースのサブクラスの*継承された*メソッド呼び出しを、
 **アローリスト化された**RBSのみの祖先に対して解決できるようにする。これにより
 エンジンはその祖先の契約（contract）サーフェス（surface）の誤用を警告できる。
@@ -37,23 +37,23 @@ Status: **Accepted — fully landed (WD1–WD6), 2026-06-03.**
 のか、この欠落を特定した`dump_type`プローブ、そして`call.undefined-method`の効力と
 FP安全性に関する知見）。
 
-## Context
+## コンテキスト
 
-### The question
+### 問い
 
 「私たちは`lib`をSteepと`rigor check`で型検査している。プラグインファイルが
 `Plugin::Base`契約を誤用したとき──たとえば契約が定義していないメソッドを呼んだり、
 裏でリネームされてしまったメソッドを呼んだり──**Rigor自身**が（スタンドアロンで、
 Steepなしで）警告できるか？」
 
-`sig/rigor/plugin/base.rbs`（[the plugin-contract RBS]、着地済み）の完成と、
+`sig/rigor/plugin/base.rbs`（[プラグイン契約RBS]、着地済み）の完成と、
 オーバーライドアリティの適合性スペック
 （[`spec/integration/plugin_contract_conformance_spec.rb`]、ADR-37のフォローアップ、
 着地済み）が2つの側面をカバーする。本ADRは3つ目について扱う：**プラグイン内部からの
 型付き契約サーフェスの静的な誤用**──`manifest.bogus`、`io_boundary.bogus`、リネーム
 されたヘルパーの呼び出しなど。
 
-### What the spike settled
+### スパイクで判明したこと
 
 `dump_type`ベースのスパイク（ノートの§「Can Rigor warn instead of Steep」）が
 3つの事実を確立した:
@@ -75,11 +75,11 @@ Steepなしで）警告できるか？」
    なり、誤用を捕捉できない。レシーバーが`Dynamic`であり、`call.undefined-method`は
    定義上それを対象外とするからである。
 
-3. **これはプラグイン固有ではなく一般的な挙動である**。 `class MyHash < Hash`も
+3. **これはプラグイン固有ではなく一般的な挙動である**。`class MyHash < Hash`も
    `self.keys`（コアの`Hash` RBSから継承）を`Dynamic[top]`に解決する。RBSのみの
    クラスのRubyソースサブクラスは、継承されたRBSメソッドに対して盲目である。
 
-### Why the gap exists, and why it is load-bearing
+### なぜギャップが存在し、なぜそれが要となるのか
 
 場所は
 [`rbs_dispatch.rb` `lookup_method`](https://github.com/rigortype/rigor/blob/master/lib/rigor/inference/method_dispatcher/rbs_dispatch.rb)
@@ -112,7 +112,7 @@ Steepなしで）警告できるか？」
 マークし、サブクラス上の診断を*有効化*する。両者は双対であり、ともにエンジンが安全に
 主張できる精度を最大化しつつ偽陽性をゼロに保つために存在する。
 
-## Decision
+## 決定
 
 **スコープ付き継承メソッド解決**を追加する：`Nominal[Sub]`レシーバー上のディスパッチが
 `Sub`をRBS既知でないと判断したとき、`Sub`の発見済みスーパークラスチェーンを参照する。
@@ -127,7 +127,7 @@ Steepなしで）警告できるか？」
 `ActionController::Base`、`Hash`、そして実質的にRBSが省くメソッドにオブジェクトが
 日常的に応答するあらゆるサードパーティ／コアクラスについては偽である。
 
-### Working decisions
+### 作業上の決定
 
 - **WD1 — アローリストのシード＝`{ "Rigor::Plugin::Base" }`**。ドッグフードの対象で
   あり、私たちが現時点でRBS-completeだと*知っている*唯一のクラスである（コードと
@@ -149,7 +149,7 @@ Steepなしで）警告できるか？」
   は契約をミックスインしない。ユースケースが現れたら再検討する）。ウォークはADR-24の
   既存の`discovered_superclasses`マップを再利用する──新たな簿記は不要である。
 
-- **WD4 — アローリストのソーシング：いまは定数、のちにプラグインマニフェスト**。 v1は
+- **WD4 — アローリストのソーシング：いまは定数、のちにプラグインマニフェスト**。v1は
   定数をハードコードする。将来のイテレーションでは、プラグインがマニフェストを通じて
   「私の契約baseはRBS-completeである」と宣言できるようにしてもよい（MAY）（ADR-37／
   ADR-40の宣言的ルート）。これにより、ツリー外のプラグインgemがエンジンを編集せずに
@@ -183,7 +183,7 @@ Steepなしで）警告できるか？」
   検証済み：プラグインに注入された`manifest.bogus`は`make check-plugins`を
   `call.undefined-method`で非ゼロ終了させる。
 
-## Rejected / deferred alternatives
+## 却下／先送りした代替案
 
 - **（却下）一律な継承RBS祖先解決**。アローリストではなく*すべて*のRBS祖先について
   継承メソッドを解決する。却下：Railsコントローラーの偽陽性の壁（Context）を再導入する
@@ -206,7 +206,7 @@ Steepなしで）警告できるか？」
 
 - **（延期）プラグインマニフェストで宣言されるアローリスト**──WD4に畳み込まれた。
 
-## Relationship to other ADRs
+## 他のADRとの関係
 
 - **ADR-24**（self型メソッド呼び出し解決）──本ADRが消費する
   `discovered_superclasses`エッジを供給する。これは同じ「self型／継承呼び出しを解決
@@ -222,5 +222,5 @@ Steepなしで）警告できるか？」
   うる。v1のスコープではない）。
 - **ADR-37／ADR-40**──WD4が委ねる宣言的マニフェストルート。
 
-[the plugin-contract RBS]: ../../sig/rigor/plugin/base.rbs
+[プラグイン契約RBS]: ../../sig/rigor/plugin/base.rbs
 [`spec/integration/plugin_contract_conformance_spec.rb`]: ../../spec/integration/plugin_contract_conformance_spec.rb

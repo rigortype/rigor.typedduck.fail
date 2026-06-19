@@ -10,7 +10,7 @@ sidebar:
   order: 4064
 ---
 
-Status: **Accepted —— 非nilチャネルは構築・ゲートされた**。 `nil`チャネルは本サイクルの早期にFP安全に出荷された（`a2775c7b`が多重オーバーロード、`0afc65ea`がインターフェイスエイリアス;CRuby `lib/`に対する[ADR-62](../62-mutation-testing-teeth-measurement/)の歯（teeth）スイープ）。非nil（`type_swap`）チャネル —— Rubyの`coerce`プロトコルの背後に先送りされていた、残存する最大の単一の偽陰性クラスタ —— は今や**多重オーバーロード**メソッドに対して出荷される（下記のWD1+WD2+WD3）: coerceディスパッチ演算子は除外され、受理は1つの具体的なRBS既知の引数クラスに対しRBSパラメータ型（`param_accepts_arg_class?`）で判定される。それは自らに課したゲートを達成した —— **31の`rigor-survey`プロジェクト（Mastodonの`app` + `lib`を含む）にわたる新規発火ゼロ、かつミューテーションの歯`type_swap`のキル数が上昇**（kramdown 5 → 9、liquid 0 → 7）。既存の単一オーバーロードのパラメータごと受理チェックは不変;それがカバーする比較演算子（`Integer#< : (Numeric)`は単一オーバーロード）は従来の挙動を保つ。
+ステータス: **Accepted —— 非nilチャネルは構築・ゲートされた**。`nil`チャネルは本サイクルの早期にFP安全に出荷された（`a2775c7b`が多重オーバーロード、`0afc65ea`がインターフェイスエイリアス;CRuby `lib/`に対する[ADR-62](../62-mutation-testing-teeth-measurement/)の歯（teeth）スイープ）。非nil（`type_swap`）チャネル —— Rubyの`coerce`プロトコルの背後に先送りされていた、残存する最大の単一の偽陰性クラスタ —— は今や**多重オーバーロード**メソッドに対して出荷される（下記のWD1+WD2+WD3）: coerceディスパッチ演算子は除外され、受理は1つの具体的なRBS既知の引数クラスに対しRBSパラメータ型（`param_accepts_arg_class?`）で判定される。それは自らに課したゲートを達成した —— **31の`rigor-survey`プロジェクト（Mastodonの`app` + `lib`を含む）にわたる新規発火ゼロ、かつミューテーションの歯`type_swap`のキル数が上昇**（kramdown 5 → 9、liquid 0 → 7）。既存の単一オーバーロードのパラメータごと受理チェックは不変;それがカバーする比較演算子（`Integer#< : (Numeric)`は単一オーバーロード）は従来の挙動を保つ。
 
 根拠: [`docs/notes/20260613-mutation-teeth-harness.md`](../../notes/20260613-mutation-teeth-harness/)（スイープ + nilチャネルの着地）、[ADR-62](../62-mutation-testing-teeth-measurement/)。
 
@@ -37,8 +37,8 @@ FP安全な形を記録し、**実装は需要ゲート付きとする**。
 ## ワーキングデシジョン
 
 - **WD1 —— coerce演算子の除外はヒューリスティックではなく固定の許可リスト**。演算子は列挙可能な集合だ;`coerce`定義を検出するのではなく、既存の`UNIVERSAL_EQUALITY_METHODS`の免除（`==` / `<=>`ファミリーは既に免除）のように`COERCE_DISPATCH_METHODS`集合でモデル化する。この拡張は*非nil*ケースにのみ適用される。
-- **WD2 —— `param_accepts_arg_class?`はnil述語の一般化であり、新しい`Acceptance`パスではない**。 RBSパラメータ型に対するcheck-rulesレイヤーに留める（インターフェイスを意図的に漸進的へ劣化させる`Inference::Acceptance`ではなく）。引数側は「クラス`C`がインターフェイス`I`を実装する」になる —— `nil_class_has_method?`が`NilClass`に対して行うように`C`のメソッド集合をルックアップする。
-- **WD3 —— 単一の具体的な引数クラスに限定する**。 nilチャネルの純粋nil限定と同様に、引数が1つの具体的なクラスに型付けされる（ユニオンでも漸進的でもない）ときだけ発火する;ユニオン引数はユニオンレシーバーのストーリーを映し、先送りのまま。
+- **WD2 —— `param_accepts_arg_class?`はnil述語の一般化であり、新しい`Acceptance`パスではない**。RBSパラメータ型に対するcheck-rulesレイヤーに留める（インターフェイスを意図的に漸進的へ劣化させる`Inference::Acceptance`ではなく）。引数側は「クラス`C`がインターフェイス`I`を実装する」になる —— `nil_class_has_method?`が`NilClass`に対して行うように`C`のメソッド集合をルックアップする。
+- **WD3 —— 単一の具体的な引数クラスに限定する**。nilチャネルの純粋nil限定と同様に、引数が1つの具体的なクラスに型付けされる（ユニオンでも漸進的でもない）ときだけ発火する;ユニオン引数はユニオンレシーバーのストーリーを映し、先送りのまま。
 
 ## 却下／先送りした代替案
 

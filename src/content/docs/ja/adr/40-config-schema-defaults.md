@@ -10,13 +10,13 @@ sidebar:
   order: 4040
 ---
 
-Status: **Accepted, 2026-06-02.** `{kind:, default:}`という拡張された`config_schema`値形式 + `Manifest#config_defaults`アクセサ + `Plugin::Base#config`のデフォルトマージが実装され、`rigor-statesman` / `rigor-pundit` / `rigor-actioncable`（およびさらなるプラグインが段階的に）が`DEFAULT_*`定数イディオムから移行されました。後方互換: 素の種別の値形式（`"key" => :string`）は変わりません。
+ステータス: **Accepted, 2026-06-02.** `{kind:, default:}`という拡張された`config_schema`値形式 + `Manifest#config_defaults`アクセサ + `Plugin::Base#config`のデフォルトマージが実装され、`rigor-statesman` / `rigor-pundit` / `rigor-actioncable`（およびさらなるプラグインが段階的に）が`DEFAULT_*`定数イディオムから移行されました。後方互換: 素の種別の値形式（`"key" => :string`）は変わりません。
 
 プラグインの`config_schema`が値の種別と並んで**デフォルト値**を宣言できるようにする決定を記録します。これによりエンジンがユーザー設定の下に宣言されたデフォルトをマージし、約17個のバンドルプラグインで繰り返されている`DEFAULT_*`定数 + `config.fetch("key", DEFAULT_KEY)`イディオムが退役します。
 
 根拠となる計画: [`docs/design/20260602-plugin-boilerplate-reduction-plan.md`](../../design/20260602-plugin-boilerplate-reduction-plan/) § Phase 0d（`config.fetch` + `DEFAULT_*`の重複、件数17）。
 
-## Context
+## コンテキスト
 
 プラグインの`Manifest`は既に、受け入れる各設定キーを値の種別（`:string` / `:boolean` / `:integer` / `:array` / `:hash` / `:any`）にマップする`config_schema:`を保持しています。`Manifest#validate_config`はそれを使って、ローダーがユーザーの`.rigor.yml`プラグイン設定を読むときに未知のキーや種別不一致の値を拒否します。
 
@@ -47,7 +47,7 @@ end
 
 デフォルトは**2度**存在します——一度は概念的にスキーマ内に（スキーマは既にキーを名指ししている）、もう一度は読み出し側が`fetch`を通して引き回すことを覚えていなければならない独立した定数として。スキーマがデフォルトの自然な置き場です。種別の置き場であるのと全く同じように。これがボイラープレート削減計画がフラグを立てたPhase 0dの重複です。
 
-## Working Decision
+## 作業上の決定
 
 `config_schema`の値形式を拡張します: 値は既存の素の種別（`Symbol` / `String`）**または**`kind:`（必須）とオプションの`default:`を保持する`Hash`のいずれであってもよい（MAY）。
 
@@ -70,18 +70,18 @@ config_schema: {
 - **新しい診断なし、推論変更なし**。これはプラグイン設定のエルゴノミクスであり、型束もどのルールも変えません。偽陽性を導入することはできません。
 - **キャッシュセーフ**。永続キャッシュはプラグインを`（id, version,ユーザー設定ハッシュ）`（[`Cache::Descriptor::PluginEntry`](https://github.com/rigortype/rigor/blob/master/lib/rigor/cache/descriptor.rb)）でキーイングし、マニフェストの`to_h`ではキーイングしません。デフォルトはプラグインの*コード*（そのバージョン）の一部なので、デフォルトを変えることは他のあらゆる振る舞い変更と同様のバージョンバンプです——既存のキーイングが既にそれを捕捉しています。`config_defaults`を`Manifest#to_h`に追加しても`Manifest#==` / `#hash`にのみ影響し、キャッシュキーには決して影響しません。
 
-## Slices
+## 実装スライス
 
-1. **このADR（メカニズム + 最初のコンシューマー）**。 `Manifest`のパース + `config_defaults`リーダー + デフォルト種別検証 + `Base#config`マージ + ユニットテスト + ドリフト/RBSの固定。最初のコンシューマー（クリーンなstring / array-defaultのケース）として`rigor-statesman` / `rigor-pundit` / `rigor-actioncable`を移行する。
+1. **このADR（メカニズム + 最初のコンシューマー）**。`Manifest`のパース + `config_defaults`リーダー + デフォルト種別検証 + `Base#config`マージ + ユニットテスト + ドリフト/RBSの固定。最初のコンシューマー（クリーンなstring / array-defaultのケース）として`rigor-statesman` / `rigor-pundit` / `rigor-actioncable`を移行する。
 2. **残りプラグインの移行** — その他の設定可能なバンドルプラグイン（`activerecord` / `actionpack` / `actionmailer` / `sidekiq` / `rails-routes` / `rails-i18n` / `factorybot` / `sorbet` / …）が`DEFAULT_*`から段階的に移行し、各々がゴールデンマスター統合スペックに対して振る舞いを保存する。純粋なクリーンアップ、需要駆動。
 
-## Relationship to other ADRs
+## 他のADRとの関係
 
 - **ADR-2** — ADR-2 §「Registration, Configuration, and Caching」が固定する`config_schema`フィールドを拡張する;新しい値形式はそのサーフェスに対して加法的である。
 - **ADR-37 / ADR-38** — 同じ「エンジンが1つの明確に定義された場所で消費する宣言的マニフェストフィールド」モデル;ここでの場所は推論ゲートではなく`Base#config`である。
 - **ボイラープレート削減計画Phase 0a–0e** — 0dは、着地済みの0a（`Source::Literals`）、0b/0c（`Diagnostic.from_node` / `Base.suggest`）、0e（`Plugin::Inflector`、ADR-39）の兄弟である。
 
-## Rejected / deferred alternatives
+## 却下／先送りした代替案
 
 | 候補 | ステータス | 理由 |
 | --- | --- | --- |
@@ -90,7 +90,7 @@ config_schema: {
 | デフォルト値を深くフリーズする（再帰的に） | Deferred | デフォルトは読み出し側がコピーするスカラー / 浅い配列（`Array(...).map`）である;`config_defaults`マップの浅いフリーズで十分。可変なネストされたデフォルトが宣言された場合にのみ再検討する。 |
 | マージされた値を宣言された種別へ自動的に型強制する（例: `:string` → `String()`） | Rejected | 読み出し側は既に望む型強制（`.to_sym`、`Array()`）を所有している;自動型強制は生のYAML値に依存するプラグインを驚かせ、「デフォルトをマージする」スコープの外である。 |
 
-## Consequences
+## 帰結
 
 ポジティブ:
 

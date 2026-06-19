@@ -33,7 +33,7 @@ FP）クラス（アルゴリズムコーパス全体でpossible-nilエラーの
 発火する）と、CRuby標準ライブラリ調査の先送りされたC2クラスタ
 （[`20260612-cruby-stdlib-survey.md`](../../notes/20260612-cruby-stdlib-survey/)）。
 
-## Context
+## コンテキスト
 
 クラスivarのプリパス（`ScopeIndexer#build_class_ivar_index`）は、クラスをまたいだ
 あらゆる`@x = …`書き込みを、フローインセンシティブにユニオンする。最も慣用的な
@@ -63,7 +63,7 @@ r = @right; b = r.colour                          # rotation under a tree invari
 ソフト化した ── フローが証明できない相関した不変条件をまたいでサイトごとに製造
 されるオプショナリティは、動作しているコードを怯えさせる。
 
-## Decision
+## 決定
 
 > **`possible-nil-receiver`がivar由来のオプショナリティに対して発火してよいのは、
 > nilが*フローライブ*であるとき ── すなわち、解析対象のメソッド内で読み取りに
