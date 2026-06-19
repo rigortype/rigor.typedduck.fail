@@ -3,14 +3,14 @@ title: "エラーの読み方"
 description: "rigortype/rigor docs/handbook/08-understanding-errors.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/08-understanding-errors.md"
 sourcePath: "docs/handbook/08-understanding-errors.md"
-sourceSha: "0c54f03f3f34e90e68b2b92a60562f4cdc2c619eeba2bf5597e3cc07680ecee7"
-sourceCommit: "a3ab53dd2b8aa0a84fd7ddbd64339f316d8d12ec"
+sourceSha: "305cb7d4c5e3e700137f300ddcf72d03a518c2baa8453afe42cb7ae559dc8922"
+sourceCommit: "98bd3fb5bcd0434c814c1d4e3c864e3888ddeae4"
 translationStatus: "translated"
 sidebar:
   order: 1008
 ---
 
-この章はRigorが出荷する診断のカタログ、それらが属するファミリー、そして診断が間違っているとき（または深刻度を変えたいとき）に抑制する方法です。診断に — どちらの方向であれ — 驚かされたときに最初に開くページです。
+この章はRigorが出荷する診断のカタログ、それらが属するファミリー、そして診断が間違っているとき（または深刻度を変えたいとき）に抑制する方法です。診断に、どちらの方向であれ、驚かされたときに最初に開くページです。
 
 ## 診断の構造
 
@@ -233,7 +233,7 @@ rigor check --explain lib
 1. **Rigorが正しいです**。 典型的なケース: メソッドのRBSシグが`String?`と言っているが、プロジェクトのランタイム不変条件が非nilを保証している。シグを修正するか（推奨）、`RBS::Extended`の`return:`ディレクティブを追加するか、その行に`# rigor:disable`を追加します。
 2. **RBSシグが欠落または間違っています**。 クラスが`.rbs`のないgemに存在するか、プロジェクト自身の`sig/`がソースと同期していません。シグを更新または追加します。
 3. **定数が間違って参照されています**。 定数解決はRBSコアまたはインソースクラス探索にフォールバックする可能性があります;両方が見逃す場合、呼び出しは`Dynamic[Top]`を通り診断は出ませんが、間違ったクラスに対する兄弟呼び出しが発火するかもしれません。
-4. **診断が正真正銘の偽陽性です**。 まれです — Rigorの設計優先事項は偽陽性なし — しかし可能性はあります。抽出できる最小の再現コードで問題を報告してください。
+4. **診断が正真正銘の偽陽性です**。 まれです（Rigorの設計優先事項は偽陽性なし）。しかし可能性はあります。抽出できる最小の再現コードで問題を報告してください。
 
 ## 役立つワークフロー
 

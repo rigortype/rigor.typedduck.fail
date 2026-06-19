@@ -3,19 +3,19 @@ title: "付録 — Elixirから来た場合"
 description: "Imported from rigortype/rigor docs/handbook/appendix-elixir.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/appendix-elixir.md"
 sourcePath: "docs/handbook/appendix-elixir.md"
-sourceSha: "3352b5db616aba31c6392f0bc5bf6a4b5c3e4e607ae6e775d3c2132dbe08eac1"
-sourceCommit: "106b93dd777b71aeef323dce1e4087c226c8ce37"
+sourceSha: "648d25d06209c3a62c19fe4d00c88cd327e04b510200871b3b77bb2b5362b40e"
+sourceCommit: "98bd3fb5bcd0434c814c1d4e3c864e3888ddeae4"
 translationStatus: "translated"
 sidebar:
   order: 1050
   label: "Elixirから来た場合"
 ---
 
-「型」についてのあなたのメンタルモデルがElixirで形作られたなら — Dialyzerのサクセスタイピング、`@spec`/`@type`、そして今まさに言語に取り込まれつつある集合論的な漸進的（gradual）型 — この付録はRigorの語彙をそこにマッピングする。このシリーズのあらゆるページのなかで、その*哲学*がRigorに最も近いのがこのページだ。両者とも本質的に動的言語であり、両者とも型を漸進的に追加し、両者とも狼少年にならない。Elixirの型チェッカーは失敗すると証明できるものだけを指摘する。Rigorも同じだ。動いているコードを決して怖がらせない — この本能は偶然ではなく共有されたDNAである。
+「型」についてのあなたのメンタルモデルがElixirで形作られたなら — Dialyzerのサクセスタイピング、`@spec`/`@type`、そして今まさに言語に取り込まれつつある集合論的な漸進的（gradual）型 — この付録はRigorの語彙をそこにマッピングする。このシリーズのあらゆるページのなかで、その*哲学*がRigorに最も近いのがこのページだ。両者とも本質的に動的言語であり、両者とも型を漸進的に追加し、両者とも狼少年にならない。Elixirの型チェッカーは失敗すると証明できるものだけを指摘する。Rigorも同じだ。この本能（動いているコードを決して怖がらせない）は偶然ではなく共有されたDNAである。
 
 直接の系譜さえある。Rigorの節到達可能性ルール（[ADR-47](../../adr/47-narrowing-driven-clause-reachability/)）は、ありえない`case`節を検出するElixir自身の取り組みをモデルにしている。あなたはRigorの設計上の影響源のひとつから来たのだ。
 
-これは翻訳テーブルであると同時に、両者が分岐する点 — Elixirは関数型でイミュータブルかつプロセス指向だが、Rigorはオブジェクト指向でミュータブルな言語を解析する — と、予想以上にうまく揃う点についての議論でもある。
+これは翻訳テーブルであると同時に、両者が分岐する点（Elixirは関数型でイミュータブルかつプロセス指向だが、Rigorはオブジェクト指向でミュータブルな言語を解析する）と、予想以上にうまく揃う点についての議論でもある。
 
 ## 5秒ピッチ
 
@@ -82,7 +82,7 @@ Elixirの型システムは*集合論的*だ。型は値の集合であり、ユ
 | 差（集合の引き算） | `T - U`（型差） |
 | `dynamic()` | `Dynamic[Top]` |
 
-漸進的なストーリーは精神的にほぼ同一だ。Elixirで`dynamic()`と型付けされた値は、Rigorの`Dynamic[Top]`レシーバーと同様、チェッカーが一歩引いて推測する代わりに沈黙を保つ点である。どちらのシステムも実際のコードで実用的であり続けるためにこれに頼り、どちらもそれに手を伸ばすことを失敗ではなく当たり前のこととして扱う。
+漸進的なストーリーは精神的にほぼ同一だ。Elixirで`dynamic()`と型付けされた値は、Rigorの`Dynamic[Top]`レシーバーと同様、チェッカーが一歩引いて推測する代わりに沈黙を保つ点である。どちらのシステムも実際のコードで実用的であり続けるためにこれに頼り、どちらもそれに手を伸ばすことを当たり前のこととして扱う。
 
 Elixirがさらに先を行く点: Elixirではインターセクションと否定を普通の`@type`式として*記述*でき、推論がそれらについて隅々まで推論する。Rigorは`~T`と`T - U`を内部や一部のディレクティブで使うが、`.rbs`にはまだ完全な集合論的オーサリングサーフェス（surface）を公開していない。日常的な重なり — ユニオンと漸進的な`dynamic()`境界 — こそ、両者が同じに感じられる部分だ。
 

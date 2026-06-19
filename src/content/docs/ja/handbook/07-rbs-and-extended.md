@@ -3,8 +3,8 @@ title: "RBSと`RBS::Extended`"
 description: "rigortype/rigor docs/handbook/07-rbs-and-extended.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/07-rbs-and-extended.md"
 sourcePath: "docs/handbook/07-rbs-and-extended.md"
-sourceSha: "cf3c04a7211e783416b5c7e9bb4e9068b87365f4eb42f5e804218a6226674e07"
-sourceCommit: "a3ab53dd2b8aa0a84fd7ddbd64339f316d8d12ec"
+sourceSha: "8936734d94ae50349fbff4c4899b33b7b65cfb8a50dc6b66b5c5f370e8f346bb"
+sourceCommit: "98bd3fb5bcd0434c814c1d4e3c864e3888ddeae4"
 translationStatus: "translated"
 sidebar:
   order: 1007
@@ -26,7 +26,7 @@ Rigorの推論が型を証明できないとき、次の逃げ道はRBS — Ruby
 以下の場合はRBSが**不要**でしょう:
 
 - メソッドがプロジェクトのプライベートで、本体が短く、Rigorがすでに正しい戻り値型を推論している。
-- メソッドがすでにシグを持つメソッドのラッパーに過ぎない（Rigorは本体を辿って伝播する）。
+- メソッドがすでにシグを持つメソッドのラッパーである（Rigorは本体を辿って伝播する）。
 
 ## 最初のシグ
 

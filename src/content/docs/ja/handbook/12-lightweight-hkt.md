@@ -3,8 +3,8 @@ title: "軽量HKT（`JSON.parse`とその仲間たち）"
 description: "rigortype/rigor docs/handbook/12-lightweight-hkt.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/12-lightweight-hkt.md"
 sourcePath: "docs/handbook/12-lightweight-hkt.md"
-sourceSha: "b062fdc3123b22fb3558afdc1fdd7cc7959b2511f90c28caf2a3fcf4790fc47e"
-sourceCommit: "106b93dd777b71aeef323dce1e4087c226c8ce37"
+sourceSha: "3a78268e57141a37f930ee8c5968593a62cde0cbb837eebd56058738d4044409"
+sourceCommit: "98bd3fb5bcd0434c814c1d4e3c864e3888ddeae4"
 translationStatus: "translated"
 sidebar:
   order: 1012
@@ -112,7 +112,7 @@ end
 いくつかのルール:
 
 - **URIは名前空間付きでなければならない**（`<author>::<name>`）。`::`セパレータがADR-20 WD1に従いクロスプラグイン衝突を防ぐ。
-- **ペイロード形式はスペース区切りの`key=value`ペア**。RBSの`%a{...}`アノテーション文法はクォートを拒否するので、JSONペイロードは動作しない——kv形式がRBSが実際に届ける形である。
+- **ペイロード形式はスペース区切りの`key=value`ペア**。RBSの`%a{...}`アノテーション文法はクォートを拒否するので、JSONペイロードは動作しない——kv形式がRBSが届ける形である。
 - **`body=`は特殊扱いで、ペイロードの末尾までを丸ごと飲み込む**ので、ボディ文字列はエスケープなしでスペース、`|`、`[]`などを含められる。
 - **`params=`はUCName識別子のカンマ区切りリスト**（`params=K`または`params=T,E`）。
 - **`bound=`は`untyped`（デフォルト）または素のクラス名を受け付ける**。より豊富なbound形式（パラメータ化ジェネリクス、ユニオン、リファインメント（refinement、篩型とも））はフォローアップスライスの式パーサ待ち。

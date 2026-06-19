@@ -3,8 +3,8 @@ title: "付録 — TypeScriptから来た場合"
 description: "Imported from rigortype/rigor docs/handbook/appendix-typescript.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/appendix-typescript.md"
 sourcePath: "docs/handbook/appendix-typescript.md"
-sourceSha: "62af4bf04bbe9fe5b5429d20227d5e556e2ffc757e03d6a7d3e005647de7fe6a"
-sourceCommit: "106b93dd777b71aeef323dce1e4087c226c8ce37"
+sourceSha: "dbef9b609df706d8d40565055277617b4b5943e2845f5c0807ffb831122c72c1"
+sourceCommit: "98bd3fb5bcd0434c814c1d4e3c864e3888ddeae4"
 translationStatus: "translated"
 sidebar:
   order: 1050
@@ -13,7 +13,7 @@ sidebar:
 
 静的型チェッカーを見て「ああ、TypeScriptみたいなものか」と感じるなら、この付録でRigorの語彙をすでに知っているTypeScriptの概念にマッピングする。「TypeScriptは分かる」から「Rigorも分かる」への最短経路。
 
-このページはチュートリアルではない。変換テーブルと、ふたつのシステムが本質的に異なる選択をしている箇所の簡単な考察だ — そこがTypeScriptで身についた反射的な理解の邪魔をする場所になる。
+このページはチュートリアルではない。変換テーブルと、ふたつのシステムが異なる選択をしている箇所の簡単な考察であり、それがTypeScriptで身についた反射的な理解の邪魔をする場所になる。
 
 ## 5秒ピッチ
 
@@ -181,7 +181,7 @@ function length(s: string | null): number {
 
 - **条件型**。`T extends U ? A : B`にコアのRigorの対応物はない。プラグインは引数のシェイプによって戻り値型を変えられる（第9章参照）が、型レベルの式ではなくRubyコードで記述する。
 - **マップ型**。`Pick`、`Omit`、`Partial`、`Required`、`Readonly`は、オプトインのプラグイン提供語彙として[`rigor-typescript-utility-types`](../../manual/plugins/rigor-typescript-utility-types/)経由で提供される。これらは、`HashShape`上のRigor正準シェイプ射影型関数`pick_of` / `omit_of` / `partial_of` / `required_of` / `readonly_of`（および`Tuple`上の`pick_of` / `omit_of`）にマップされる。テンプレートリテラル操作やその他のマップ型バリアント（`Uppercase<S>` / `Lowercase<S>` / `Capitalize<S>`）はRigorの表面の外にとどまる。
-- **型レベルの計算**。TypeScriptの型システムはチューリング完全。Rigorのものは意図的にそうではない。これは制限ではなく特徴 — アナライザーは実際のRubyプロジェクトで高速でなければならない。
+- **型レベルの計算**。TypeScriptの型システムはチューリング完全。Rigorのものは意図的にそうではなく、だからアナライザーは実際のRubyプロジェクトで高速であり続ける。
 - **ソース内メソッドボディからの推論された戻り値型**。`tsc`は関数ボディから戻り値型を推論し、呼び出し元に公開する。Rigorはソース内`def`に対して同じことをするが、RBS宣言されたメソッドは宣言された戻りに呼び出し元をバインドする — 意図的な境界<ruby>規律<rp>（</rp><rt>discipline</rt><rp>）</rp></ruby>の選択（ADR-5、ロバストネス原則を参照）。
 - **エディタIntelliSenseの同等性**。TypeScriptのツールには20年の投資がある。Rigorのエディタ統合は若い。現在のアナライザーは診断と`rigor type-of`を提供し、LSP経由のエディタ統合はロードマップにある。
 

@@ -3,8 +3,8 @@ title: "付録 — Java / C#から来た場合"
 description: "Imported from rigortype/rigor docs/handbook/appendix-java-csharp.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/appendix-java-csharp.md"
 sourcePath: "docs/handbook/appendix-java-csharp.md"
-sourceSha: "82f176737b06dc9bcc20cd6802069672bbe5a3827031e277454b306ad00e6414"
-sourceCommit: "106b93dd777b71aeef323dce1e4087c226c8ce37"
+sourceSha: "0004f5f7a204833dba3177887175cbeacb6e33450ae89529e4cfa3ad6ec28068"
+sourceCommit: "98bd3fb5bcd0434c814c1d4e3c864e3888ddeae4"
 translationStatus: "translated"
 sidebar:
   order: 1050
@@ -15,7 +15,7 @@ sidebar:
 
 例はモダンなLTSベースラインを前提とする: **Java 21**（レコード、シールド型、パターンマッチングする`switch`、レコードパターン）と、.NET 8上の**モダンなC#**（ヌル許容参照型、レコード、`switch`式、宣言サイトの分散（variance））。機能がそれより新しい場合はページ内で明記する。
 
-これは変換テーブルに加えて、Rigorが本当に異なる選択をしている箇所の議論である。そこがJava / C#の反射に裏切られる場所だ — そしてこの2言語で最大のものはデフォルトの方向だ: あなたは先にアノテーションを書き、コンパイラはローカルに推論する。Rigorは先に推論し、エッジでのみアノテーションを求める。
+これは変換テーブルに加えて、Rigorが異なる選択をしている箇所の議論である。そこがJava / C#の反射に裏切られる場所であり、この2言語で最大のものはデフォルトの方向だ: あなたは先にアノテーションを書き、コンパイラはローカルに推論する。Rigorは先に推論し、エッジでのみアノテーションを求める。
 
 ## 5秒ピッチ
 
@@ -180,7 +180,7 @@ Rigorが読むのはRBSのジェネリクスであり、それはどちらの言
 
 ## シールド型と網羅性
 
-Javaの`sealed interface … permits`とC#のシールド階層は、コンパイラが`switch`の網羅性を証明できるようにする — そして網羅的でなければ*エラー*にする。Rigorは同じ形状に反対側からアプローチする。
+Javaの`sealed interface … permits`とC#のシールド階層は、コンパイラが`switch`の網羅性を証明できるようにし、網羅的でなければ*エラー*にする。Rigorは同じ形状に反対側からアプローチする。
 
 部分型のクローズドな集合はRigorではユニオン型であり、フローエンジンはどの`case`/`when`と`case`/`in`節がまだマッチしうるかを追跡する。[ADR-47](../../adr/47-narrowing-driven-clause-reachability/)の`flow.unreachable-clause`ルールは、節が証明可能に死んでいるとき — その対象がすでに先行する節（節ごとの素性）または先行する網羅によって`Bot`にナローイングされているとき — に発火する:
 
@@ -192,7 +192,7 @@ in Circle    then "…"   # flow.unreachable-clause — Circle already covered
 end
 ```
 
-決定的な*方向*の違い: JavaとC#は網羅性を**要求**し、ケースを取りこぼす`switch`を拒否する。Rigorはその双対をする — 決して動かない節を報告するが、すべてのバリアントを処理することを**強制しない**。網羅的でない`case`はRigorではエラーではない。*到達不能な*節が診断だ。これはRigorの偽陽性なしのスタンスに従う: 分岐を省略した`case`は意図的かもしれず（省略されたバリアントはこの地点に到達できない）、Rigorは動いているコードをそれで脅かさない。
+*方向*の違い: JavaとC#は網羅性を**要求**し、ケースを取りこぼす`switch`を拒否する。Rigorはその双対をする — 決して動かない節を報告するが、すべてのバリアントを処理することを**強制しない**。網羅的でない`case`はRigorではエラーではない。*到達不能な*節が診断だ。これはRigorの偽陽性なしのスタンスに従う: 分岐を省略した`case`は意図的かもしれず（省略されたバリアントはこの地点に到達できない）、Rigorは動いているコードをそれで脅かさない。
 
 ## リファインメントキャリア — どちらの言語も持たない部分
 

@@ -3,8 +3,8 @@ title: "付録 — Steepから来た場合"
 description: "Imported from rigortype/rigor docs/handbook/appendix-steep.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/appendix-steep.md"
 sourcePath: "docs/handbook/appendix-steep.md"
-sourceSha: "14751a31fb52f22db793775d8d4781d512b656d8092163928c8931c2fe5f18db"
-sourceCommit: "106b93dd777b71aeef323dce1e4087c226c8ce37"
+sourceSha: "428445cd8b0eb2cc767f53e770bbc09ecf77b71f048905b62cc0ab324d07e0cc"
+sourceCommit: "98bd3fb5bcd0434c814c1d4e3c864e3888ddeae4"
 translationStatus: "translated"
 sidebar:
   order: 1050
@@ -28,7 +28,7 @@ sidebar:
 
 Steepのスローガンが「オプションなマニフェスト型を持つRuby」なら、Rigorのは「証明された事実を持つRuby」。ふたつは重なりながらも異なるワークフローのために設計されている。
 
-## 両者ともRBSを消費する — それが共通の基盤
+## 両者ともRBSを消費する：共通の基盤
 
 これが見出し。RBSはRubyの標準シグネチャ言語。SteepとRigorの両方が標準的な型ソースとしてこれを読む。Steep向けに書いた`.rbs`ファイルはRigorでも変更なしに動作する:
 
@@ -205,7 +205,7 @@ end
 4. **RigorをCIに追加する**。両チェッカーが実行され、mergeの前に両方のゲートを通過しなければならない。
 5. **オプションで`RBS::Extended`で既存のsigを締め付ける**。Steepは`%a{rigor:v1:...}`を通常のRBSコメントとして扱い、Rigorはリファインメントディレクティブとして扱う。同じ`.rbs`ファイルがより厳格なRigor出力と変更なしのSteep出力を生む。
 
-基盤的な前提（契約言語としてのRBS）が共有されているため、移行は本当に低摩擦。
+基盤的な前提（契約言語としてのRBS）が共有されているため、移行は低摩擦。
 
 ## 次のステップ
 

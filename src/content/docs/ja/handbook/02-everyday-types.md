@@ -3,14 +3,14 @@ title: "日常的に出会う型"
 description: "rigortype/rigor docs/handbook/02-everyday-types.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/02-everyday-types.md"
 sourcePath: "docs/handbook/02-everyday-types.md"
-sourceSha: "b86e1109e6e129e54c856dc9f6fd30a3f877e562b856d5df2eaf99eb8e67719b"
-sourceCommit: "106b93dd777b71aeef323dce1e4087c226c8ce37"
+sourceSha: "6b65b3eecc475788d8f11ff807f2db08982135ddc52cdc9b5d6af5e392f2788d"
+sourceCommit: "98bd3fb5bcd0434c814c1d4e3c864e3888ddeae4"
 translationStatus: "translated"
 sidebar:
   order: 1002
 ---
 
-この章が最も重要です。以下のキャリアを把握してしまえば、ハンドブックの残りはそれらに適用されるルールの話だけになります。また、用語集として戻ってくるページでもあります — 下の表がキャリアの図鑑全体を一望できます。
+この章が最も重要です。以下のキャリアを把握してしまえば、ハンドブックの残りはそれらに適用されるルールの話になります。また、用語集として戻ってくるページでもあります。下の表がキャリアの図鑑全体を一望できます。
 
 ## なぜ「型」では粒度が荒いのか
 

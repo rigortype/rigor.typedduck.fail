@@ -3,8 +3,8 @@ title: "メソッドとブロック"
 description: "rigortype/rigor docs/handbook/05-methods-and-blocks.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/05-methods-and-blocks.md"
 sourcePath: "docs/handbook/05-methods-and-blocks.md"
-sourceSha: "322469171871bb002f018b40698a4530d34c84c1f292935c8a262c6f91bb425b"
-sourceCommit: "a3ab53dd2b8aa0a84fd7ddbd64339f316d8d12ec"
+sourceSha: "6bef8b9ad18b2bbfbfad25892dd9514dab46aed803c63abd0bc8228245e6e75b"
+sourceCommit: "98bd3fb5bcd0434c814c1d4e3c864e3888ddeae4"
 translationStatus: "translated"
 sidebar:
   order: 1005
@@ -92,7 +92,7 @@ def shout(name)
 end
 ```
 
-このルールはRigorが出荷する最も高価値な診断の1つです — 非自明なRubyコードベースに散在する`nil`への`NoMethodError`クラッシュのファミリー全体を捉えます。
+このルールはRigorが出荷する最も高価値な診断の1つです。非自明なRubyコードベースに散在する`nil`への`NoMethodError`クラッシュのファミリー全体を捉えます。
 
 ## インソースメソッドの戻り値型推論
 

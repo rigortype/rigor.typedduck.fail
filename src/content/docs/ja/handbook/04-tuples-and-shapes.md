@@ -3,8 +3,8 @@ title: "タプルとハッシュシェイプ"
 description: "rigortype/rigor docs/handbook/04-tuples-and-shapes.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/04-tuples-and-shapes.md"
 sourcePath: "docs/handbook/04-tuples-and-shapes.md"
-sourceSha: "560e30209fe350088a67469c8234806a37c878f4fcfcab346f3d3f46e3ae0f96"
-sourceCommit: "106b93dd777b71aeef323dce1e4087c226c8ce37"
+sourceSha: "af060d804d847fdef6edfab273c4b161811ddb4acc26e975e2f968396bb024ce"
+sourceCommit: "98bd3fb5bcd0434c814c1d4e3c864e3888ddeae4"
 translationStatus: "translated"
 sidebar:
   order: 1004
@@ -80,7 +80,7 @@ strings = mixed.map { |x| x.to_s }
 
 `Tuple`は、サイズが設定可能なユニオン予算を超えたとき、未知の形状の配列が連結されたとき、またはRBSで`Array[T]`として型付けされたパラメータを越えるときに`Array[T]`に拡幅されます。拡幅は決定論的で、[`docs/type-specification/inference-budgets.md`](../../type-specification/inference-budgets/)に文書化されています。
 
-拡幅は安全です — `Array[T]`は同じ値のより精度が低いビューです — しかし位置ごとの情報が失われます。`[a, b, c]`が精密に型チェックされるべきなのにされない状況に遭遇したら、チェーン内のタプルではなく`Array[T]`を受け取るメソッド、または広い配列に対する`+` / `concat`を探してください。
+拡幅は安全です（`Array[T]`は同じ値のより精度が低いビューです）が、位置ごとの情報が失われます。`[a, b, c]`が精密に型チェックされるべきなのにされない状況に遭遇したら、チェーン内のタプルではなく`Array[T]`を受け取るメソッド、または広い配列に対する`+` / `concat`を探してください。
 
 ## ハッシュシェイプ — 既知キーのハッシュ
 

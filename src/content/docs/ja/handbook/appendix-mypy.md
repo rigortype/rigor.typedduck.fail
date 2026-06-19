@@ -3,15 +3,15 @@ title: "付録 — mypy / Pyrightから来た場合"
 description: "Imported from rigortype/rigor docs/handbook/appendix-mypy.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/appendix-mypy.md"
 sourcePath: "docs/handbook/appendix-mypy.md"
-sourceSha: "07d6a38cd6ba7d8fffd45c57684bd32e2c1df5bdaca9403c83f1a0b3024506d8"
-sourceCommit: "106b93dd777b71aeef323dce1e4087c226c8ce37"
+sourceSha: "7354fd59a80323e939f852062b9959f1c1ec9140c458f0ce12b6d0b4e4cd1e07"
+sourceCommit: "98bd3fb5bcd0434c814c1d4e3c864e3888ddeae4"
 translationStatus: "translated"
 sidebar:
   order: 1050
   label: "mypy / Pyrightから来た場合"
 ---
 
-静的型付けのベースラインがPythonのmypyやPyrightであれば、この付録でRigorとの語彙をマッピングする。ふたつのエコシステムは見かけ以上に多くを共有している — <ruby>漸進的型付け<rp>（</rp><rt>gradual typing</rt><rp>）</rp></ruby>、「ランタイムを壊さない」哲学、独立した型スタブファイル（`.pyi`/`.rbs`） — だが、アノテーションをどこに置くか、推論をどこまで積極的にするかで異なる選択をしている。
+静的型付けのベースラインがPythonのmypyやPyrightであれば、この付録でRigorとの語彙をマッピングする。ふたつのエコシステムは見かけ以上に多くを共有している（<ruby>漸進的型付け<rp>（</rp><rt>gradual typing</rt><rp>）</rp></ruby>、「ランタイムを壊さない」哲学、独立した型スタブファイル`.pyi`/`.rbs`）が、アノテーションをどこに置くか、推論をどこまで積極的にするかで異なる選択をしている。
 
 ## 5秒ピッチ
 

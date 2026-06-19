@@ -3,16 +3,16 @@ title: "プラグイン"
 description: "rigortype/rigor docs/handbook/09-plugins.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/09-plugins.md"
 sourcePath: "docs/handbook/09-plugins.md"
-sourceSha: "90786ad61ed146a4163c2f89cdc0cebf6f71d65a2f84c4d31ee7811e4d5c9003"
-sourceCommit: "222d8e03ee0f4252795f6c7294672a76c20b7ae3"
+sourceSha: "151230392690d5eeabb27a1e46012d198b918d3369044a17d77f6782635a8f51"
+sourceCommit: "98bd3fb5bcd0434c814c1d4e3c864e3888ddeae4"
 translationStatus: "translated"
 sidebar:
   order: 1009
 ---
 
-プラグインが存在する理由はひとつ: 一部のメソッドの型が、どんなRBSシグでも表現できない方法で**ランタイムでの引数のシェイプ（shape）に依存する**からです。この章は、それがプラグインに値するのはいつか — そして同じくらい多くの場合、値しないのはいつか — を判断する助けになります。
+プラグインが存在する理由はひとつ: 一部のメソッドの型が、どんなRBSシグでも表現できない方法で**ランタイムでの引数のシェイプ（shape）に依存する**からです。この章は、それがプラグインに値するのはいつか、そして値しないのはいつかを判断する助けになります。
 
-この章はプラグインの*作成*は教え**ません**。それは[`examples/`](https://github.com/rigortype/rigor/blob/master/examples/README.md)にあります — 16個のチュートリアルウォークスルーで、それぞれが1つの拡張サーフェスにスポットを当てています — 一方、実際のフレームワーク向けのすぐにインストールできるgemは[`plugins/`](https://github.com/rigortype/rigor/blob/master/plugins/README.md)にあります。プラグインが必要かどうかを判断するには読み進めてください;作成したくなったら`examples/`へ、既存のものをインストールするなら`plugins/`へ進んでください。
+この章はプラグインの*作成*は教え**ません**。それは[`examples/`](https://github.com/rigortype/rigor/blob/master/examples/README.md)にあります — 16個のチュートリアルウォークスルーで、それぞれが1つの拡張サーフェスにスポットを当てています。実際のフレームワーク向けのすぐにインストールできるgemは[`plugins/`](https://github.com/rigortype/rigor/blob/master/plugins/README.md)にあります。プラグインが必要かどうかを判断するには読み進めてください;作成したくなったら`examples/`へ、既存のものをインストールするなら`plugins/`へ進んでください。
 
 ## プラグインを使うとき
 
@@ -37,7 +37,7 @@ Lisp.eval([:if, true, "a", 0])  # ランタイムでString | Integer
 
 ## プラグインが今日できること
 
-> まだここにいますか？ ほとんどの読者はまず[プラグインを書くべきか？](#プラグインを書くべきか)へ飛ぶべきです — 答えはたいてい「いいえ、RBSと`RBS::Extended`で事足ります」です。下記のサーフェスは、本当に「はい」のときのためのものです。
+> まだここにいますか？ ほとんどの読者はまず[プラグインを書くべきか？](#プラグインを書くべきか)へ飛ぶべきです — 答えはたいてい「いいえ、RBSと`RBS::Extended`で事足ります」です。下記のサーフェスは、「はい」のときのためのものです。
 
 v0.1.0+プラグイン契約（contract） — [`docs/internal-spec/plugin.md`](../../internal-spec/plugin/)に固定されており、同ディレクトリのいくつかのスライス（slice）仕様に展開されています — はプラグインに5つの主要サーフェス（surface）を与えます:
 
