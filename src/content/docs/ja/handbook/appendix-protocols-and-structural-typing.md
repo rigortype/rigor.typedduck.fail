@@ -1,6 +1,6 @@
 ---
-title: "Appendix — Protocols, interfaces, and structural typing"
-description: "Imported from rigortype/rigor docs/handbook/appendix-protocols-and-structural-typing.md."
+title: "付録 — プロトコル、インターフェース、構造的型付け"
+description: "rigortype/rigor docs/handbook/appendix-protocols-and-structural-typing.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/appendix-protocols-and-structural-typing.md"
 sourcePath: "docs/handbook/appendix-protocols-and-structural-typing.md"
 sourceSha: "c4180990f5fbaf07ad8d123e48d592b0768329958229a33f6018481386f5783e"

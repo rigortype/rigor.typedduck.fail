@@ -1,6 +1,6 @@
 ---
-title: "Research & Survey Notes"
-description: "Imported from rigortype/rigor docs/notes/README.md."
+title: "リサーチ・サーベイノート"
+description: "rigortype/rigor docs/notes/README.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/README.md"
 sourcePath: "docs/notes/README.md"
 sourceSha: "9a0fad5713416d1a937a6203b76111d24fc60619beb3765c5f95c5b84f153180"

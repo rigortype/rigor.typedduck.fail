@@ -1,6 +1,6 @@
 ---
-title: "Worker Session Protocol"
-description: "Imported from rigortype/rigor docs/internal-spec/worker-session.md."
+title: "ワーカーセッションプロトコル"
+description: "rigortype/rigor docs/internal-spec/worker-session.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/worker-session.md"
 sourcePath: "docs/internal-spec/worker-session.md"
 sourceSha: "ec86710857d42926516ee9e29b318ea5f4a77ff2a836f76915a1dbdbde28fe3f"

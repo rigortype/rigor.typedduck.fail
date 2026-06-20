@@ -1,6 +1,6 @@
 ---
 title: "rigor-pundit"
-description: "Imported from rigortype/rigor docs/manual/plugins/rigor-pundit.md."
+description: "rigortype/rigor docs/manual/plugins/rigor-pundit.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/plugins/rigor-pundit.md"
 sourcePath: "docs/manual/plugins/rigor-pundit.md"
 sourceSha: "e9944ce9ea11fd18d80c2087e13fbb40d0aa0ac9c6c30fe0b02d2c49e0f4ea04"
@@ -55,9 +55,9 @@ plugins:
 
 ## 制限事項
 
-- **直接のスーパークラスとの一致のみ**。 `class AdminPostPolicy < AdminPolicy`（`AdminPolicy < ApplicationPolicy`の場合）は、`AdminPolicy`を`policy_base_classes`に追加しない限り発見されません。
-- **述語メソッドのみ**。 `?`で終わらないメソッド、および`define_method`で構築された述語やconcernから継承された述語は対象外です。
-- **型なしのレコードは素通りする**。 `local`に推論された`Nominal[T]`がない場合、`authorize(local, :show)`は検証されません。
+- **直接のスーパークラスとの一致のみ**。`class AdminPostPolicy < AdminPolicy`（`AdminPolicy < ApplicationPolicy`の場合）は、`AdminPolicy`を`policy_base_classes`に追加しない限り発見されません。
+- **述語メソッドのみ**。`?`で終わらないメソッド、および`define_method`で構築された述語やconcernから継承された述語は対象外です。
+- **型なしのレコードは素通りする**。`local`に推論された`Nominal[T]`がない場合、`authorize(local, :show)`は検証されません。
 - **`Scope`ポリシー**は、クラスの存在については検証されますが、`Scope#resolve`については検証されません。
 
 ## プラグインの内部

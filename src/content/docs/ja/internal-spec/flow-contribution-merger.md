@@ -1,6 +1,6 @@
 ---
-title: "Flow Contribution Merger (slice 3)"
-description: "Imported from rigortype/rigor docs/internal-spec/flow-contribution-merger.md."
+title: "フロー寄与マージャー（スライス3）"
+description: "rigortype/rigor docs/internal-spec/flow-contribution-merger.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/flow-contribution-merger.md"
 sourcePath: "docs/internal-spec/flow-contribution-merger.md"
 sourceSha: "ee2e7f64ed075022faafc7946e1e238690c4e0277b695fc7bb9950e2fa6601d6"

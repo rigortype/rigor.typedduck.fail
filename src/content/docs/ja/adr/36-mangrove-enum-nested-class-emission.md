@@ -1,6 +1,6 @@
 ---
 title: "ADR-36 — マクロ基板のネストクラス生成ティア（Mangrove `Enum`）"
-description: "Imported from rigortype/rigor docs/adr/36-mangrove-enum-nested-class-emission.md."
+description: "rigortype/rigor docs/adr/36-mangrove-enum-nested-class-emission.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/36-mangrove-enum-nested-class-emission.md"
 sourcePath: "docs/adr/36-mangrove-enum-nested-class-emission.md"
 sourceSha: "f47b0021bafa8797d4bf2f5d792ab608bc0223265e6f6a5231a417c95275beb7"

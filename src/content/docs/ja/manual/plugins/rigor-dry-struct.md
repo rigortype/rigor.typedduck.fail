@@ -1,6 +1,6 @@
 ---
 title: "rigor-dry-struct"
-description: "Imported from rigortype/rigor docs/manual/plugins/rigor-dry-struct.md."
+description: "rigortype/rigor docs/manual/plugins/rigor-dry-struct.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/plugins/rigor-dry-struct.md"
 sourcePath: "docs/manual/plugins/rigor-dry-struct.md"
 sourceSha: "117d9243592140f6f3ffd87dedc2098c2b50b84f9374d7152d9f524c0c8e3776"
@@ -40,8 +40,8 @@ address.postcode  # resolves
 
 ## 制限
 
-- **リーダーのみ**。 `schema` / `to_h` / `[:key]` / キーワード引数の`.new(name:)`のシェイプはまだ合成されません。
-- **ネストしたブロック形式は非対応**。 `attribute :details do … end`（兄弟の`Dry::Struct`サブクラスを生成する）は先送りされています。
+- **リーダーのみ**。`schema` / `to_h` / `[:key]` / キーワード引数の`.new(name:)`のシェイプはまだ合成されません。
+- **ネストしたブロック形式は非対応**。`attribute :details do … end`（兄弟の`Dry::Struct`サブクラスを生成する）は先送りされています。
 
 ## プラグインの内部構造
 

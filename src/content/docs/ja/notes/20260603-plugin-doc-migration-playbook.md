@@ -1,6 +1,6 @@
 ---
-title: "Plugin doc migration playbook (the \"(ii)\" split)"
-description: "Imported from rigortype/rigor docs/notes/20260603-plugin-doc-migration-playbook.md."
+title: "プラグインドキュメント移行プレイブック（「(ii)」分割）"
+description: "rigortype/rigor docs/notes/20260603-plugin-doc-migration-playbook.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260603-plugin-doc-migration-playbook.md"
 sourcePath: "docs/notes/20260603-plugin-doc-migration-playbook.md"
 sourceSha: "0a5ef516c683a52363e1e144b3a7af07f3259c15a5de28ff1e12225879cb2150"

@@ -1,5 +1,5 @@
 ---
-title: "Rigor Roadmap"
+title: "Rigorロードマップ"
 description: "rigortype/rigor docs/ROADMAP.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/ROADMAP.md"
 sourcePath: "docs/ROADMAP.md"

@@ -1,5 +1,5 @@
 ---
-title: "Act-on-coverage skill — skeleton draft (ADR-63 WD5)"
+title: "Act-on-coverageスキル — スケルトン下書き（ADR-63 WD5）"
 description: "rigortype/rigor docs/design/20260616-act-on-coverage-skill.md からインポート。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/design/20260616-act-on-coverage-skill.md"
 sourcePath: "docs/design/20260616-act-on-coverage-skill.md"

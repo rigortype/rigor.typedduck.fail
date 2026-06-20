@@ -1,6 +1,6 @@
 ---
-title: "Changelog — 0.0.x archive"
-description: "Imported from rigortype/rigor docs/CHANGELOG-0.0.x.md."
+title: "チェンジログ — 0.0.xアーカイブ"
+description: "rigortype/rigor docs/CHANGELOG-0.0.x.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/CHANGELOG-0.0.x.md"
 sourcePath: "docs/CHANGELOG-0.0.x.md"
 sourceSha: "c8e306aa8616582c423e680d63270f24edf661c7f2c0e4b42e3b913e8d1f2295"

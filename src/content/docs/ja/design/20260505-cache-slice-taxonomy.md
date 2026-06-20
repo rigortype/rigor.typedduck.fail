@@ -1,6 +1,6 @@
 ---
-title: "Cache slice taxonomy — pre-v0.1.0 design notes"
-description: "Imported from rigortype/rigor docs/design/20260505-cache-slice-taxonomy.md."
+title: "キャッシュスライス分類体系 — v0.1.0前の設計ノート"
+description: "rigortype/rigor docs/design/20260505-cache-slice-taxonomy.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/design/20260505-cache-slice-taxonomy.md"
 sourcePath: "docs/design/20260505-cache-slice-taxonomy.md"
 sourceSha: "690d8986a2aacc55f108a210785bf17aebcbd005a18e370efe060ccc976d2bf9"

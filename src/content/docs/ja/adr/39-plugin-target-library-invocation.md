@@ -1,6 +1,6 @@
 ---
 title: "ADR-39 — プラグインは対象ライブラリの安全なメソッドを直接呼び出せる"
-description: "Imported from rigortype/rigor docs/adr/39-plugin-target-library-invocation.md."
+description: "rigortype/rigor docs/adr/39-plugin-target-library-invocation.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/39-plugin-target-library-invocation.md"
 sourcePath: "docs/adr/39-plugin-target-library-invocation.md"
 sourceSha: "fc662643825a7208a5ffd74f2a2d5fbc58c0b423edcd44900f71233ce4575a07"

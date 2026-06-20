@@ -1,6 +1,6 @@
 ---
 title: "rigor-sorbet"
-description: "Imported from rigortype/rigor docs/manual/plugins/rigor-sorbet.md."
+description: "rigortype/rigor docs/manual/plugins/rigor-sorbet.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/plugins/rigor-sorbet.md"
 sourcePath: "docs/manual/plugins/rigor-sorbet.md"
 sourceSha: "0a40eacc5c2708a256aa97dac0247fefa6613246c281270df3c1d8ca6d9e2813"

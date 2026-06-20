@@ -1,6 +1,6 @@
 ---
-title: "rigor-survey project-init baseline sweep — 2026-05-29"
-description: "Imported from rigortype/rigor docs/notes/20260529-rigor-survey-project-init-baseline.md."
+title: "rigor-survey project-initベースラインスイープ — 2026-05-29"
+description: "rigortype/rigor docs/notes/20260529-rigor-survey-project-init-baseline.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260529-rigor-survey-project-init-baseline.md"
 sourcePath: "docs/notes/20260529-rigor-survey-project-init-baseline.md"
 sourceSha: "01503cedbdc62cdcedfc6f6a14f049706d7709a30d6ed32e09c80d7158aadf30"

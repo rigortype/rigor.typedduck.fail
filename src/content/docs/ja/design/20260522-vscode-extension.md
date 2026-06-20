@@ -1,6 +1,6 @@
 ---
-title: "VSCode extension — first-party marketplace client for `rigor lsp`"
-description: "Imported from rigortype/rigor docs/design/20260522-vscode-extension.md."
+title: "VSCode拡張機能 — `rigor lsp`のファーストパーティーマーケットプレイスクライアント"
+description: "rigortype/rigor docs/design/20260522-vscode-extension.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/design/20260522-vscode-extension.md"
 sourcePath: "docs/design/20260522-vscode-extension.md"
 sourceSha: "208ebf33faea2bd08fd37126974cde182ba47d1940f8f96c539cbcdce3ad907f"

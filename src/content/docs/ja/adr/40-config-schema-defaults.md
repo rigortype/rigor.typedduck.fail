@@ -1,6 +1,6 @@
 ---
 title: "ADR-40 — `config_schema`で宣言するデフォルト値（`{kind:, default:}`）"
-description: "Imported from rigortype/rigor docs/adr/40-config-schema-defaults.md."
+description: "rigortype/rigor docs/adr/40-config-schema-defaults.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/40-config-schema-defaults.md"
 sourcePath: "docs/adr/40-config-schema-defaults.md"
 sourceSha: "77f8bc0f5435a1e52283364fffc7fedaf91005bdf223a5ec1a8071b829a149fc"

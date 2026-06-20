@@ -1,6 +1,6 @@
 ---
 title: "付録 — Java / C#から来た場合"
-description: "Imported from rigortype/rigor docs/handbook/appendix-java-csharp.md."
+description: "rigortype/rigor docs/handbook/appendix-java-csharp.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/appendix-java-csharp.md"
 sourcePath: "docs/handbook/appendix-java-csharp.md"
 sourceSha: "0004f5f7a204833dba3177887175cbeacb6e33450ae89529e4cfa3ad6ec28068"

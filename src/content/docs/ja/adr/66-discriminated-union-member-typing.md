@@ -1,6 +1,6 @@
 ---
 title: "ADR-66 — タグ付きユニオンのメンバー型付け（タグキーによるナローイング）"
-description: "Imported from rigortype/rigor docs/adr/66-discriminated-union-member-typing.md."
+description: "rigortype/rigor docs/adr/66-discriminated-union-member-typing.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/66-discriminated-union-member-typing.md"
 sourcePath: "docs/adr/66-discriminated-union-member-typing.md"
 sourceSha: "087e14883d00d1d268c2234f48b2cd19819d9d3367b759a8e428699c946547f8"

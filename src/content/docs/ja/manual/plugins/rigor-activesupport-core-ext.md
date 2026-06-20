@@ -1,6 +1,6 @@
 ---
 title: "rigor-activesupport-core-ext"
-description: "Imported from rigortype/rigor docs/manual/plugins/rigor-activesupport-core-ext.md."
+description: "rigortype/rigor docs/manual/plugins/rigor-activesupport-core-ext.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/plugins/rigor-activesupport-core-ext.md"
 sourcePath: "docs/manual/plugins/rigor-activesupport-core-ext.md"
 sourceSha: "e5561dfb4683afc259acacb9577f5a0292bee257bf10be77b774cc381241c03b"

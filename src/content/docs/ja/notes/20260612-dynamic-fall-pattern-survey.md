@@ -1,6 +1,6 @@
 ---
-title: "Dynamic-fall pattern survey (post-ADR-55/56)"
-description: "Imported from rigortype/rigor docs/notes/20260612-dynamic-fall-pattern-survey.md."
+title: "Dynamic転落パターン調査（ADR-55/56後）"
+description: "rigortype/rigor docs/notes/20260612-dynamic-fall-pattern-survey.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260612-dynamic-fall-pattern-survey.md"
 sourcePath: "docs/notes/20260612-dynamic-fall-pattern-survey.md"
 sourceSha: "038a7459990782e1ca8317e3ec076aa9191478d67ad924cb9d6b01f50557a2f5"
@@ -161,7 +161,7 @@ def hanoi(...); moves<<[from,to]; moves; end  # Array[Dynamic[top]]
 ## 推奨される攻略順
 
 1. **B1 — `<<`/`push`要素型ドロップ（UNSOUND）**。発見された唯一のsoundness欠陥。実際は`[0,1,2,3]`の配列に対する`Array[0]`は具体的な誤った畳み込み（`x.zero? → true`）を生む。ADR-56の書き戻しにおいて追加された要素型を配列の要素パラメータに結合して修正する。安価な*sound*な暫定策は、書き込まれたシード配列を`Array[Dynamic[top]]`へ広げること。soundness優先。
-2. **B4 + B3（要素／メモ結合）**。 B1と同じレバーをsound-but-imprecise側から。B1の結合をランドさせればB4を大方包含するはずであり、`each_with_object`が（結合された）メモを返すことで最大半径の*精度*イディオムを閉じる。同時にやる。
+2. **B4 + B3（要素／メモ結合）**。B1と同じレバーをsound-but-imprecise側から。B1の結合をランドさせればB4を大方包含するはずであり、`each_with_object`が（結合された）メモを返すことで最大半径の*精度*イディオムを閉じる。同時にやる。
 3. **B2 — 非定数パラメータ採用**。全体で最大のブラスト半径。最大のメカニズム（実際の引数型に対する呼び出しごとの本体再型付け）。B1〜B4より下位にランクするのは、最大規模のビルドでありかつprecision-additive（soundnessの圧力なし）だからである。
 4. **B6 `flatten` + B5 `Array#to_h{block}` + B9 `Hash.new`デフォルト**。カタログ／シェイプ畳み込みのギャップ。それぞれprecision-additiveで自己完結的。`Hash.new(0)`と`to_h`のイディオム頻度は高い。
 5. **B8 case/inデコンストラクト束縛 + B7ラムダ／proc引数ピン留め**。既存の射影機構を再利用（B8）／値ピン留めをブロック本体へ拡張（B7）。precision-additive。

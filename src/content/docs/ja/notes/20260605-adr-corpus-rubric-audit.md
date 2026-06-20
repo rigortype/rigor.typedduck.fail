@@ -1,6 +1,6 @@
 ---
-title: "ADR corpus rubric audit — scoring ADR-0…49 against ADR-49"
-description: "Imported from rigortype/rigor docs/notes/20260605-adr-corpus-rubric-audit.md."
+title: "ADRコーパスのルーブリック監査 — ADR-0…49をADR-49に照らして採点"
+description: "rigortype/rigor docs/notes/20260605-adr-corpus-rubric-audit.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260605-adr-corpus-rubric-audit.md"
 sourcePath: "docs/notes/20260605-adr-corpus-rubric-audit.md"
 sourceSha: "8eec23f7018396ba7fbf14a2421d5427815193fb2ad1a755cbc682c3e32afb71"
@@ -101,7 +101,7 @@ sidebar:
 
 ### 1. 監査の主要な出力は空 — それが安心できる結果
 
-ADR-49の最も価値ある警告シグナルは**high-stakes × 意図が薄い**（根拠なしに記録された重要な決定）です。**コーパスにそのような例はありませんでした**。 `high`-stakesのすべてのADR（0, 1, 2, 3, 4, 5, 10, 15, 16, 17, 20, 24, 26, 31, 34, 35, 37, 39, 43, 45, 46）は、IntentとCriterionの**両方**で`2`を獲得しています。ルーブリックのアラームは一度も発動しませんでした。これは「まさにそのギャップを検出する」ために設計されたルーブリックにとって、コーパスがテストをパスしたことを意味し、ルーブリックが何も見つけられなかったわけではありません。
+ADR-49の最も価値ある警告シグナルは**high-stakes × 意図が薄い**（根拠なしに記録された重要な決定）です。**コーパスにそのような例はありませんでした**。`high`-stakesのすべてのADR（0, 1, 2, 3, 4, 5, 10, 15, 16, 17, 20, 24, 26, 31, 34, 35, 37, 39, 43, 45, 46）は、IntentとCriterionの**両方**で`2`を獲得しています。ルーブリックのアラームは一度も発動しませんでした。これは「まさにそのギャップを検出する」ために設計されたルーブリックにとって、コーパスがテストをパスしたことを意味し、ルーブリックが何も見つけられなかったわけではありません。
 
 ### 2. 経済性が唯一の繰り返し引き下げ要因 — ADR-49の目的を裏付ける
 

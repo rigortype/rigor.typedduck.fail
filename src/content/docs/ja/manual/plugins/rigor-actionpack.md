@@ -1,6 +1,6 @@
 ---
 title: "rigor-actionpack"
-description: "Imported from rigortype/rigor docs/manual/plugins/rigor-actionpack.md."
+description: "rigortype/rigor docs/manual/plugins/rigor-actionpack.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/plugins/rigor-actionpack.md"
 sourcePath: "docs/manual/plugins/rigor-actionpack.md"
 sourceSha: "8fead9cdf6d9294e82d82809e46b864533df253b589646edc60e343544811f18"
@@ -57,7 +57,7 @@ plugins:
 ## 制限事項
 
 - **暗黙のselfヘルパーのみ**。明示的なレシーバーを持つ`*_path`／`*_url`呼び出し（`Rails.application.routes.url_helpers.x_path`）は素通りします。
-- **パスベースのファイルフィルタ**。 `controller_search_paths`下のファイルはクラス階層にかかわらずチェックされます。そこに置かれた非コントローラーファイル（まれ）もスキャンされてしまいます。
+- **パスベースのファイルフィルタ**。`controller_search_paths`下のファイルはクラス階層にかかわらずチェックされます。そこに置かれた非コントローラーファイル（まれ）もスキャンされてしまいます。
 - **カバレッジはアップストリームのファクトに従う**。ヘルパーの検証は`rigor-rails-routes`が公開したものだけを把握し、`permit`の検証は`rigor-activerecord`が公開したものだけを把握します ── これらのプロデューサーを有効化すると、このプラグインがチェックできる範囲が広がります。
 
 ## プラグインの内部

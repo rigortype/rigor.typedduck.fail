@@ -1,6 +1,6 @@
 ---
 title: "rigor-rbs-inline"
-description: "Imported from rigortype/rigor docs/manual/plugins/rigor-rbs-inline.md."
+description: "rigortype/rigor docs/manual/plugins/rigor-rbs-inline.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/plugins/rigor-rbs-inline.md"
 sourcePath: "docs/manual/plugins/rigor-rbs-inline.md"
 sourceSha: "454f19b992054a61e69c50f6487e8157eb15136c1e29a3360a3dfeadce1711ea"
@@ -55,8 +55,8 @@ plugins:
 
 ## 制限事項
 
-- **トップレベルの`def`はRBSを生成しません**。 upstreamのrbs-inlineは、裸のトップレベル`def`に対して何も出力しません（rbs-inline 0.14.0で検証済み）── メソッドを`class` / `module`で包んでください。これはRigorの制限ではなく、upstreamから継承した挙動です。
-- **パース失敗はソフトフェイルします**。 rbs-inlineがパースできないファイルは、インラインRBSがなかったものとして解析されます（上記の`:info`のdiagnosticがそれを記録します）。エスカレートさせるには`severity_profile:`で重大度を打ち直してください。
+- **トップレベルの`def`はRBSを生成しません**。upstreamのrbs-inlineは、裸のトップレベル`def`に対して何も出力しません（rbs-inline 0.14.0で検証済み）── メソッドを`class` / `module`で包んでください。これはRigorの制限ではなく、upstreamから継承した挙動です。
+- **パース失敗はソフトフェイルします**。rbs-inlineがパースできないファイルは、インラインRBSがなかったものとして解析されます（上記の`:info`のdiagnosticがそれを記録します）。エスカレートさせるには`severity_profile:`で重大度を打ち直してください。
 - **ランタイム依存**。このプラグインは`rbs-inline` gemを取り込みます。コアの`rigortype`はランタイム依存ゼロのままであり、オプトインしたプロジェクトだけがそのコストを負担します。
 
 ## プラグインの内部

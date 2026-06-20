@@ -1,5 +1,5 @@
 ---
-title: "Struct value folding — slice 3 (fold-safe bound locals) + slice 4 (precise mutated-member re-typing) design"
+title: "Struct値の畳み込み — スライス3（畳み込み安全なバインドローカル）＋スライス4（変異済みメンバーの精密な再型付け）の設計"
 description: "rigortype/rigor docs/notes/20260615-struct-folding-slice3-design.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260615-struct-folding-slice3-design.md"
 sourcePath: "docs/notes/20260615-struct-folding-slice3-design.md"

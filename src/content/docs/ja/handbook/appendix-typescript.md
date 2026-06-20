@@ -1,6 +1,6 @@
 ---
 title: "付録 — TypeScriptから来た場合"
-description: "Imported from rigortype/rigor docs/handbook/appendix-typescript.md."
+description: "rigortype/rigor docs/handbook/appendix-typescript.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/appendix-typescript.md"
 sourcePath: "docs/handbook/appendix-typescript.md"
 sourceSha: "dbef9b609df706d8d40565055277617b4b5943e2845f5c0807ffb831122c72c1"

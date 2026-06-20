@@ -1,6 +1,6 @@
 ---
-title: "ADR-35 override-rules — Mastodon false-positive verification"
-description: "Imported from rigortype/rigor docs/notes/20260529-adr35-mastodon-fp-verification.md."
+title: "ADR-35オーバーライドルール — Mastodonの偽陽性検証"
+description: "rigortype/rigor docs/notes/20260529-adr35-mastodon-fp-verification.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260529-adr35-mastodon-fp-verification.md"
 sourcePath: "docs/notes/20260529-adr35-mastodon-fp-verification.md"
 sourceSha: "e8e1dd4ad90e7d1805e79032d6a44e54658c2a40a43910dd3cd5b0943ab7c9f5"

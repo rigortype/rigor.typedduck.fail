@@ -1,6 +1,6 @@
 ---
 title: "ADR-37 — プラグインのインターフェース分離（狭い拡張プロトコル）"
-description: "Imported from rigortype/rigor docs/adr/37-plugin-interface-segregation.md."
+description: "rigortype/rigor docs/adr/37-plugin-interface-segregation.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/37-plugin-interface-segregation.md"
 sourcePath: "docs/adr/37-plugin-interface-segregation.md"
 sourceSha: "90cf0af7b2f2a46489eb3025a04f38d90a10422c8828028f237bfba3033be9c7"

@@ -1,6 +1,6 @@
 ---
-title: "Redmine per-commit detection probe — does Rigor catch real bugs?"
-description: "Imported from rigortype/rigor docs/notes/20260521-redmine-per-commit-detection-probe.md."
+title: "Redmineコミット単位の検出プローブ — Rigorは本物のバグを捕まえるか？"
+description: "rigortype/rigor docs/notes/20260521-redmine-per-commit-detection-probe.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260521-redmine-per-commit-detection-probe.md"
 sourcePath: "docs/notes/20260521-redmine-per-commit-detection-probe.md"
 sourceSha: "e09b5a8ceb1dc4a6459f006d9df18d743c2adfae6c36461f0214d2be1ab3db5c"

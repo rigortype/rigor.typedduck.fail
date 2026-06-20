@@ -1,6 +1,6 @@
 ---
-title: "ADR-47 `flow.unreachable-clause` — corpus FP sweep (WD4)"
-description: "Imported from rigortype/rigor docs/notes/20260605-adr47-unreachable-clause-corpus-sweep.md."
+title: "ADR-47 `flow.unreachable-clause` — コーパスFPスイープ（WD4）"
+description: "rigortype/rigor docs/notes/20260605-adr47-unreachable-clause-corpus-sweep.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260605-adr47-unreachable-clause-corpus-sweep.md"
 sourcePath: "docs/notes/20260605-adr47-unreachable-clause-corpus-sweep.md"
 sourceSha: "3811849ba0feed966095c5c03fe33e90b85239839340aa9e8b2e8f1fabaa46a1"
@@ -41,7 +41,7 @@ sidebar:
 
 **16コーパス、発火ゼロ**。偽陽性なし——かつ真陽性もなし。
 
-**GitLab FOSS: 中断、カウント対象外**。 `app/models app/services app/controllers lib --no-cache`はCPU 100%で52分超経過後に強制終了した（`lib`ツリーが巨大であり、`--no-cache`はすべてを再解析する）。これは到達可能性（reachability）ルール固有の問題ではなく——同じスコープはどのルールでも遅くなる——ので、ゼロとして報告するのではなく除外とした。発火を確認したい場合、GitLabの限定スコープを後日スイープすることは可能である。
+**GitLab FOSS: 中断、カウント対象外**。`app/models app/services app/controllers lib --no-cache`はCPU 100%で52分超経過後に強制終了した（`lib`ツリーが巨大であり、`--no-cache`はすべてを再解析する）。これは到達可能性（reachability）ルール固有の問題ではなく——同じスコープはどのルールでも遅くなる——ので、ゼロとして報告するのではなく除外とした。発火を確認したい場合、GitLabの限定スコープを後日スイープすることは可能である。
 
 ## ゼロが期待値である理由
 

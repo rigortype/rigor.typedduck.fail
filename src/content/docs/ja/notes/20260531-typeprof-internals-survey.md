@@ -1,6 +1,6 @@
 ---
 title: "TypeProf内部調査 — 推論ロジック + 内部型表現"
-description: "Imported from rigortype/rigor docs/notes/20260531-typeprof-internals-survey.md."
+description: "rigortype/rigor docs/notes/20260531-typeprof-internals-survey.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260531-typeprof-internals-survey.md"
 sourcePath: "docs/notes/20260531-typeprof-internals-survey.md"
 sourceSha: "65b8d18e56662fb8a06b3906e6017a09157140eef67ea0aebf0e8e114be787e5"

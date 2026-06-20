@@ -1,6 +1,6 @@
 ---
 title: "付録 — Goから来た場合"
-description: "Imported from rigortype/rigor docs/handbook/appendix-go.md."
+description: "rigortype/rigor docs/handbook/appendix-go.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/appendix-go.md"
 sourcePath: "docs/handbook/appendix-go.md"
 sourceSha: "3ded5c589cbac1d31eb213da16cd9f79de50e3d68585d9fecb77b811a586c76e"

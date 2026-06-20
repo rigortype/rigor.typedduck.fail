@@ -1,6 +1,6 @@
 ---
 title: "ADR-71 — 型ガイド付き外部インクリメンタルミューテーションテスト"
-description: "Imported from rigortype/rigor docs/adr/71-type-guided-external-mutation-testing.md."
+description: "rigortype/rigor docs/adr/71-type-guided-external-mutation-testing.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/71-type-guided-external-mutation-testing.md"
 sourcePath: "docs/adr/71-type-guided-external-mutation-testing.md"
 sourceSha: "d152e75713f28d5d14e6b797ff29425aea4a6ad7541a287e14af1b20d8af95b8"
@@ -10,7 +10,7 @@ sidebar:
   order: 4071
 ---
 
-ステータス: **Proposed — 先送り／需要ゲート付き、未実装**。 Rigorのミューテーション基盤（substrate）を、RSpec／minitestを駆動するより賢いミューテーションテストフレームワークとしての**外部**ライブラリへ成長させ、Rigorの型情報とクロスファイル依存グラフでミューテーション空間を枝刈り（pruning）すべきかを評価する。結論: **先送り**。目玉の売り込み（「型がミューテーション空間を枝刈りする→通常のミューテーションテストより賢く／速い」）は**過大評価されている**。生き残った真に新規なウェッジ（wedge、楔）は、賢い枝刈りではなく、[ADR-46](../46-incremental-dependency-graph/)の上に築く**インクリメンタル／CIスコープ**のミューテーションテストである。需要とADR-46の双方が揃ったときにのみ構築する。
+ステータス: **Proposed — 先送り／需要ゲート付き、未実装**。Rigorのミューテーション基盤（substrate）を、RSpec／minitestを駆動するより賢いミューテーションテストフレームワークとしての**外部**ライブラリへ成長させ、Rigorの型情報とクロスファイル依存グラフでミューテーション空間を枝刈り（pruning）すべきかを評価する。結論: **先送り**。目玉の売り込み（「型がミューテーション空間を枝刈りする→通常のミューテーションテストより賢く／速い」）は**過大評価されている**。生き残った真に新規なウェッジ（wedge、楔）は、賢い枝刈りではなく、[ADR-46](../46-incremental-dependency-graph/)の上に築く**インクリメンタル／CIスコープ**のミューテーションテストである。需要とADR-46の双方が揃ったときにのみ構築する。
 
 根拠: [`docs/notes/20260617-type-guided-mutation-testing-strategy.md`](../../notes/20260617-type-guided-mutation-testing-strategy/)（拡張的にも批判的にも展開した完全な両面分析。本ADRはその結論を記録する）。
 

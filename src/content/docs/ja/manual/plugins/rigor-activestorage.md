@@ -1,6 +1,6 @@
 ---
 title: "rigor-activestorage"
-description: "Imported from rigortype/rigor docs/manual/plugins/rigor-activestorage.md."
+description: "rigortype/rigor docs/manual/plugins/rigor-activestorage.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/plugins/rigor-activestorage.md"
 sourcePath: "docs/manual/plugins/rigor-activestorage.md"
 sourceSha: "6c9cd3555bda478ccfe111eb16d6ea75b8a557a4156d08d294a1047da45ba1cf"

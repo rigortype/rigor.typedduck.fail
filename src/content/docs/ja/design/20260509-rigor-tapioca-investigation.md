@@ -1,6 +1,6 @@
 ---
-title: "`rigor-tapioca`? — Tapioca DSL-RBI Coverage Investigation"
-description: "Imported from rigortype/rigor docs/design/20260509-rigor-tapioca-investigation.md."
+title: "`rigor-tapioca`？ — TapiocaのDSL-RBIカバレッジ調査"
+description: "rigortype/rigor docs/design/20260509-rigor-tapioca-investigation.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/design/20260509-rigor-tapioca-investigation.md"
 sourcePath: "docs/design/20260509-rigor-tapioca-investigation.md"
 sourceSha: "db3a1d1f3b15fc441a016218a93fe467cb4edefe396903c10971705c38a897fe"

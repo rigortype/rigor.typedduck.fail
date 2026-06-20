@@ -1,6 +1,6 @@
 ---
-title: "Compatibility and the public surface"
-description: "Imported from rigortype/rigor docs/compatibility.md."
+title: "互換性と公開サーフェス"
+description: "rigortype/rigor docs/compatibility.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/compatibility.md"
 sourcePath: "docs/compatibility.md"
 sourceSha: "cd728611dbdcc77f168fef6310d2c8183429ec8919f988da8e65523ee7ee817c"
@@ -14,7 +14,7 @@ sidebar:
 
 これは[ADR-50](../adr/50-release-engineering-and-stability-strategy/)（リリースエンジニアリングと安定性戦略）の人間が読める併走ドキュメントです。リリースが公開することで、ユーザーが一箇所で**Rigorが安定維持を約束するサーフェス（surface）、意図的に変更の自由を残すサーフェス、そして各保証がどのリリースから拘束力を持つのか**を見渡せるようにするための文書です。権威はADR-50にあります。このファイルがADRと食い違う場合は、ADRが拘束力を持ち、このファイルが古いということです。このサーフェスのうち機械的に強制される部分集合は[`spec/rigor/public_api_drift_spec.rb`](https://github.com/rigortype/rigor/blob/master/spec/rigor/public_api_drift_spec.rb)によって固定されています（[§機械的強制](#machine-enforcement)を参照）。固定された名前空間をプラグイン作者の視点から見るには、[`docs/internal-spec/public-api.md`](../internal-spec/public-api/)を参照してください。
 
-## Where we are on the trajectory
+## 経路上の現在地
 
 Rigorは**トライアルしてから凍結する**経路をたどります（ADR-50 § Decision 1）。
 
@@ -26,7 +26,7 @@ Rigorは**トライアルしてから凍結する**経路をたどります（AD
 
 つまり今日（`v0.2.0`のカット）これは**コミットされたトライアル**です。以下に列挙されたサーフェスは、Rigorがマイナー非破壊を保つと約束する規律であり、v1.0.0がそれを凍結します。エンジンがトライアルを通じてまだ進化を続ける間は、特定のRigorバージョンを固定してください。
 
-## The compatibility model
+## 互換性モデル
 
 2つの原則が、拘束力を持つものと自由なままに留まるものの境界線を引きます（ADR-50 § Decisions 2 and 3）。
 
@@ -34,7 +34,7 @@ Rigorは**トライアルしてから凍結する**経路をたどります（AD
 
 2. **診断出力は契約ではないが、診断の*語彙*は契約である**。あるファイルで*どの*診断が発火するかは互換性契約の一部では**ありません**。ルールを強化して以前は見逃していた本物のエラーを報告するようになることはマイナーで許容され、[ベースライン](../manual/06-baseline/)が常設の吸収体となります。契約**である**のは、ユーザーの設定と抑制が依拠する安定した**語彙**です。すなわちルール識別子、抑制マーカー、ベースライン形式、そして`severity_overrides:`のキーです。これらは発火が変わってもアップグレードをまたいで動き続けます。ユーザーに**以前は課されていなかった新しい記述の規律への準拠を強制する**変更は破壊的とみなされ、メジャーでオンになるまで`bleeding_edge:`オプトインの背後でデフォルト無効として着地します（ADR-50 § WD2/WD3）。オプトイン機構は配線済みです（`bleeding_edge:`設定＋`rigor show-bleedingedge`インスペクター）。それが参照するオーバーレイは今日のところ空なので、ゲートされているものはまだありません。
 
-## The enumerated public surface
+## 列挙された公開サーフェス
 
 各行は、**権威ある列挙**（信頼できる情報源。この文書はドリフトしないよう複製しません）と、**ユーザー向けリファレンス**を指し示します。「Contract」列は、その行がいつ拘束力を持つか、そして保証が何であるかを述べます。
 
@@ -48,7 +48,7 @@ Rigorは**トライアルしてから凍結する**経路をたどります（AD
 | **キャッシュスキーマバージョン** | [`lib/rigor/cache/`](https://github.com/rigortype/rigor/tree/master/lib/rigor/cache/)内の`Descriptor::SCHEMA_VERSION`＋`Store::FORMAT_VERSION`（マーカー`4.2`） | [Manual ch. 12 — Caching](../manual/12-caching/) | **yes** ── スキーマ／形式の引き上げはキャッシュを無効化するが、決して静かに誤読しない |
 | **`RBS::Extended`注釈文法**（`%a{rigor:v1:…}` ── 述語／表明／戻り値オーバーライド／`conforms-to`） | [`lib/rigor/rbs_extended.rb`](https://github.com/rigortype/rigor/blob/master/lib/rigor/rbs_extended.rb) | [Spec — rbs-extended.md](../type-specification/rbs-extended/)（規範的） | **yes** ── `rigor:v1:`ディレクティブ文法 |
 
-## What is explicitly *not* contract
+## 明示的に契約で*ない*もの
 
 これらはどのリリースでも変更されうり、依拠することはサポートされません。
 
@@ -56,7 +56,7 @@ Rigorは**トライアルしてから凍結する**経路をたどります（AD
 - **あるファイルでどの診断が発火するか** ── 精度とバグ捕捉はマイナー内で自由に向上します（§ compatibility model 2）。[ベースライン](../manual/06-baseline/)がそのチャーンを吸収します。
 - **`rigor sig-gen`の出力精度** ── *推論されるシェイプ*は時間とともに先鋭化します。コマンド・フラグ・RBSとしての妥当性は契約ですが、出力するものの精度は契約ではありません。
 
-## Format and schema versions
+## 形式とスキーマのバージョン
 
 ツールやCIパイプラインが鍵にできる形式／バージョンのマーカーです。すべての引き上げは**無効化はするが誤読は決してしない**イベントです。新しいRigorが古いアーティファクトを読むとき、それを欠落／陳腐として扱い、決して静かに誤ったデータとしては扱いません。
 
@@ -66,14 +66,14 @@ Rigorは**トライアルしてから凍結する**経路をたどります（AD
 | 永続キャッシュ | `Cache::Descriptor::SCHEMA_VERSION`.`Cache::Store::FORMAT_VERSION`（`schema_version.txt`マーカー） | `4.2` |
 | `RBS::Extended`ディレクティブ | `rigor:v1:`名前空間タグ | `v1` |
 
-## Machine enforcement
+## 機械的強制
 
 公開サーフェスのうち固定された部分集合は、機械的に強制されます。
 
 - [`spec/rigor/public_api_drift_spec.rb`](https://github.com/rigortype/rigor/blob/master/spec/rigor/public_api_drift_spec.rb)は、固定されたすべての名前空間（`Scope`、`Environment`、`Type::Combinator`、`Reflection`、`Plugin::*`の契約サーフェス、`Source::Literals`、`FlowContribution`、…）のインスタンス／シングルトンのメソッド集合をスナップショットします。シグネチャ変更は同じコミット内で対応するスナップショットを更新しなければならず、偶発的なドリフトは静かな破壊ではなくテストの失敗となります。
 - [リリース受け入れゲート](../adr/50-release-engineering-and-stability-strategy/)（ADR-50 § WD6）は、リリースをカットする前に、このドリフトspecがグリーンであること、加えてコーパスの偽陽性スイープ、`make check-incremental`、そして`make bench-perf`の性能ゲートを要求します。
 
-## The trajectory in brief
+## 経路の要約
 
 ADR-50（これらすべての権威）から要約します。
 
@@ -82,7 +82,7 @@ ADR-50（これらすべての権威）から要約します。
 - **サポートライン**（ADR-50 § WD5）: 1.0前は、最新のマイナーと直前のマイナーがセキュリティ＋リグレッションのバックポートを受けます。バックポートはそのラインのRubyピンを保ちます。1.0後は、`1.x`ブランチがデフォルトの開発ライン（PHPStanのモデル）になります。
 - **新しい規律**（以前は慣用的だったコードに記述の変更を要求するルール）は、`bleeding_edge:`オプトインの背後でデフォルト無効として着地し、メジャーでのみオンになります（ADR-50 § WD2/WD3/WD7）。オプトインの土台は出荷済みです ── `bleeding_edge:`設定（`true` / 機能IDのリスト / `{ all:, except: }`）＋`rigor show-bleedingedge`インスペクターであり、あなた自身の`severity_overrides:`の下位でのseverity解決に組み込まれます。それが参照するオーバーレイは今日のところ空です。キューに入った最初の規律は、単一の機能エントリーとして着地します。
 
-## See also
+## 関連項目
 
 - [ADR-50](../adr/50-release-engineering-and-stability-strategy/) ── 統治するリリースエンジニアリングと安定性戦略（権威）。
 - [`docs/internal-spec/public-api.md`](../internal-spec/public-api/) ── 固定された名前空間とプロモーション経路をプラグイン作者の視点から見たもの。

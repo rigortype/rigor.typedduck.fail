@@ -1,6 +1,6 @@
 ---
 title: "ADR-51 — CIネイティブな診断出力フォーマット"
-description: "Imported from rigortype/rigor docs/adr/51-ci-diagnostic-output-formats.md."
+description: "rigortype/rigor docs/adr/51-ci-diagnostic-output-formats.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/51-ci-diagnostic-output-formats.md"
 sourcePath: "docs/adr/51-ci-diagnostic-output-formats.md"
 sourceSha: "9fa681804cfd8af4d3b5090f21029ae386dd15a3325d2814818488b2ea1760ee"

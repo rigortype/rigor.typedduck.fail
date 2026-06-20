@@ -1,6 +1,6 @@
 ---
 title: "推論エンジン"
-description: "Imported from rigortype/rigor docs/internal-spec/inference-engine.md."
+description: "rigortype/rigor docs/internal-spec/inference-engine.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/inference-engine.md"
 sourcePath: "docs/internal-spec/inference-engine.md"
 sourceSha: "e332271a2ee309f7e1ad91bd68ae7d93e96b49d6b157366e9e0e552824280c92"
@@ -175,7 +175,7 @@ Rigor::Inference::MethodDispatcher.dispatch(
 
 ディスパッチャーはMUST以下の順序でティアを参照します: 精密ティア（定数畳み込み、形状認識、ファイル畳み込み、カーネル畳み込み、ブロック畳み込み）を最初に、次にプラグイン戻り値型コントリビューションティア（v0.1.1 Track 2スライス7、[ADR-2](../../adr/2-extension-api/) §「プラグインコントリビューションマージ」に従う）、次にHKT組み込み戻り値ティア（[ADR-20](../../adr/20-lightweight-hkt/)）とRigorバンドルの静的リファインメントティア、次にRBSバックのディスパッチティア、次に[ADR-16](../../adr/16-macro-expansion/)合成メソッドティア（基板Tier B / Tier Cのemitテーブル — ユーザー著作のRBSはなおその上で勝つ）、次に[ADR-17](../../adr/17-monkey-patch-pre-evaluation/)プロジェクトパッチメソッドティア（`pre_eval:`宣言された再オープンクラスのメソッドのために`Environment#project_patched_methods`を参照し、`Dynamic[Top]`を返して呼び出しが`call.undefined-method`なしにクロスファイルで解決されるようにする）、次に依存関係ソース推論ティア（v0.1.3 / [ADR-10](../../adr/10-dependency-source-inference/)スライス2b-ii — オプトインGemの`(class_name, method_name)`カタログエントリーのために`Environment#dependency_source_index`を参照し、ヒット時に`Dynamic[Top]`を返してコールサイトが動的由来マーカーを持つようにする）、次に発見済みメソッドティア（[ADR-24](../../adr/24-self-method-call-resolution/)に従うクロスファイルのユーザー定義`def`解決。レシーバーがメソッドの記録された発見済みクラスを名指すとき、素の`def`形状に対して`Dynamic[Top]`を返しますが、`Scope#user_def_for` / `singleton_def_for`が再型付け可能な本体を運ぶときは**辞退**し（`nil`を返し）、`ExpressionTyper#try_user_method_inference`が呼び出し先本体を再型付けして推論された戻り値を採用できるようにします ── [ADR-57](../../adr/57-self-call-return-adoption/)はその採用ゲートを無条件に開き、かつての`adoptable_self_call_result?`ガードを除去しました）、最後にRigorが名前で知っているがRBSでは知らないレシーバーに対して`Object` / `Class`に対して再試行するユーザークラス祖先フォールバック。非`nil`の`Rigor::Type`を返す最初のティアが勝ちます。ヒット時に後続のティアはMUST NOT参照されません。ディスパッチャーは、Prismの子ノードまたは（上記の*仮想ノード*契約を介した）合成`Rigor::AST::Node`引数のいずれかを運べる統一された呼び出し形状として入力をMUST取り、これによって合成された式と実際の式が単一のディスパッチ経路を共有します。
 
-### Dispatch tier contract
+### ディスパッチティアの契約
 
 上記の各ティアは*構造的インターフェース*です ── ダックタイプされた継ぎ目であり、RBS／Goの意味でのインターフェースであって、ADR-28のプロトコル契約ではありません。これは[`sig/rigor/inference.rbs`](https://github.com/rigortype/rigor/blob/master/sig/rigor/inference.rbs)において`interface _DispatchTier`として成文化されています。ティアは単一のエントリーポイントをMUST公開します。
 

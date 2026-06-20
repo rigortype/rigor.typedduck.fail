@@ -1,6 +1,6 @@
 ---
 title: "ADR-53 — Scopeの発見インデックス分離 + チェックルールウォークの統合"
-description: "Imported from rigortype/rigor docs/adr/53-scope-discovery-index-separation.md."
+description: "rigortype/rigor docs/adr/53-scope-discovery-index-separation.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/53-scope-discovery-index-separation.md"
 sourcePath: "docs/adr/53-scope-discovery-index-separation.md"
 sourceSha: "6846c806acf4bf1f7d677422bda294cef00a79b4a5c45a6c9038ea19a44404f7"

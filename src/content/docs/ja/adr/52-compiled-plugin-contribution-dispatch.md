@@ -1,6 +1,6 @@
 ---
 title: "ADR-52 — コンパイル済みプラグイン貢献ディスパッチ"
-description: "Imported from rigortype/rigor docs/adr/52-compiled-plugin-contribution-dispatch.md."
+description: "rigortype/rigor docs/adr/52-compiled-plugin-contribution-dispatch.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/52-compiled-plugin-contribution-dispatch.md"
 sourcePath: "docs/adr/52-compiled-plugin-contribution-dispatch.md"
 sourceSha: "b315f34910ecc328c2c3fcd8cac72b4ee608c3cebbded5dbd496987dab7b463c"

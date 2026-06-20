@@ -1,6 +1,6 @@
 ---
 title: "rigor-graphql"
-description: "Imported from rigortype/rigor docs/manual/plugins/rigor-graphql.md."
+description: "rigortype/rigor docs/manual/plugins/rigor-graphql.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/plugins/rigor-graphql.md"
 sourcePath: "docs/manual/plugins/rigor-graphql.md"
 sourceSha: "78ed379697ee0e6aadb35723b32750d7dae171b4d1c12df566691f8bf625a690"
@@ -60,10 +60,10 @@ end
 
 ## 制限事項
 
-- **リゾルバメソッドの型チェックなし**。 `field`宣言はメタデータとして記録されますが、それらを裏付けるRubyのリゾルバメソッドとはまだ相互参照されません。
+- **リゾルバメソッドの型チェックなし**。`field`宣言はメタデータとして記録されますが、それらを裏付けるRubyのリゾルバメソッドとはまだ相互参照されません。
 - **`Schema.execute(...)`の結果の型付けなし**。クエリされたフィールドに照らして`Schema.execute(query).to_h`を型付けすることは将来のプラグインです。
 - **定数形の型のみ**。文字列形（`field :foo, "User"`）と`<Type>.array` / `<Type>!`の糖衣構文チェーンは認識されません（`[String]`のブラケット形は認識されます）。複数要素および空のリストリテラルは破棄されます。
-- **enumのリテラル値のみ**。 `value "ACTIVE"`は登録されます。シンボル形（`value :ACTIVE`）と定数形は破棄され、`value:` / `description:`のキーワード引数は一緒に運ばれますがテーブルには載りません。
+- **enumのリテラル値のみ**。`value "ACTIVE"`は登録されます。シンボル形（`value :ACTIVE`）と定数形は破棄され、`value:` / `description:`のキーワード引数は一緒に運ばれますがテーブルには載りません。
 - **キャッシュのラウンドトリップなし** — 走査は呼び出しごとに再実行されます。
 
 ## プラグイン内部

@@ -1,6 +1,6 @@
 ---
-title: "Plugin boilerplate reduction — phased plan"
-description: "Imported from rigortype/rigor docs/design/20260602-plugin-boilerplate-reduction-plan.md."
+title: "プラグインボイラープレート削減 — 段階的計画"
+description: "rigortype/rigor docs/design/20260602-plugin-boilerplate-reduction-plan.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/design/20260602-plugin-boilerplate-reduction-plan.md"
 sourcePath: "docs/design/20260602-plugin-boilerplate-reduction-plan.md"
 sourceSha: "9357a4675e3faadaae02e3a2c381226dfbc499e50e568abf03f0bd3b2b1aa074"

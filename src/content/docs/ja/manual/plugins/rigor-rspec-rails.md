@@ -1,6 +1,6 @@
 ---
 title: "rigor-rspec-rails"
-description: "Imported from rigortype/rigor docs/manual/plugins/rigor-rspec-rails.md."
+description: "rigortype/rigor docs/manual/plugins/rigor-rspec-rails.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/plugins/rigor-rspec-rails.md"
 sourcePath: "docs/manual/plugins/rigor-rspec-rails.md"
 sourceSha: "7316681db8290a8ba6bac919f0a49a5487535feb62d8a7a305bc1c8be6d5dedd"
@@ -20,7 +20,7 @@ plugins:
   - rigor-rspec-rails
 ```
 
-## What it checks
+## 何をチェックするか
 
 ```ruby
 RSpec.describe HomeController do

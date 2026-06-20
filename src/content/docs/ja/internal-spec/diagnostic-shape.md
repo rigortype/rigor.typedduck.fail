@@ -1,6 +1,6 @@
 ---
-title: "`Rigor::Analysis::Diagnostic` shape"
-description: "Imported from rigortype/rigor docs/internal-spec/diagnostic-shape.md."
+title: "`Rigor::Analysis::Diagnostic`のシェイプ"
+description: "rigortype/rigor docs/internal-spec/diagnostic-shape.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/diagnostic-shape.md"
 sourcePath: "docs/internal-spec/diagnostic-shape.md"
 sourceSha: "7679e026a9fc92d72a1a896673fdf58e1099752dbfe1d4cb6fbf01f80aa650a0"

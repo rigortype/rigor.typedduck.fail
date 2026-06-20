@@ -1,6 +1,6 @@
 ---
 title: "rigor-minitest"
-description: "Imported from rigortype/rigor docs/manual/plugins/rigor-minitest.md."
+description: "rigortype/rigor docs/manual/plugins/rigor-minitest.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/plugins/rigor-minitest.md"
 sourcePath: "docs/manual/plugins/rigor-minitest.md"
 sourceSha: "8a64c25695068f6f8af4fc0bc3828f7507f3e6fc69241e0a39dbf365f0480954"

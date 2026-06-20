@@ -1,6 +1,6 @@
 ---
-title: "Implementation Expectations"
-description: "Imported from rigortype/rigor docs/internal-spec/implementation-expectations.md."
+title: "実装の期待事項"
+description: "rigortype/rigor docs/internal-spec/implementation-expectations.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/implementation-expectations.md"
 sourcePath: "docs/internal-spec/implementation-expectations.md"
 sourceSha: "5bf469a9f3ff7d97e94bc293744d332ae46267466ad08e0c104e1727fecc0a6b"

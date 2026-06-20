@@ -1,6 +1,6 @@
 ---
-title: "Rigor and Tapioca — Comparison and Strategy"
-description: "Imported from rigortype/rigor docs/design/20260509-rigor-tapioca-comparison.md."
+title: "RigorとTapioca — 比較と戦略"
+description: "rigortype/rigor docs/design/20260509-rigor-tapioca-comparison.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/design/20260509-rigor-tapioca-comparison.md"
 sourcePath: "docs/design/20260509-rigor-tapioca-comparison.md"
 sourceSha: "48b4f1f0d1e28e4a125bc250b65b8f3f6a4eaeb91fe7f962c91691ff94da64e7"

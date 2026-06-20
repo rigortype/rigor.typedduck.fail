@@ -1,6 +1,6 @@
 ---
 title: "rigor-shoulda-matchers"
-description: "Imported from rigortype/rigor docs/manual/plugins/rigor-shoulda-matchers.md."
+description: "rigortype/rigor docs/manual/plugins/rigor-shoulda-matchers.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/plugins/rigor-shoulda-matchers.md"
 sourcePath: "docs/manual/plugins/rigor-shoulda-matchers.md"
 sourceSha: "b294cfc2e301be0736cfe722010c36f4a3f873819e719b3a3b84e5aca15739a7"
@@ -20,7 +20,7 @@ plugins:
   - rigor-shoulda-matchers # それを消費する
 ```
 
-## What it checks
+## 何をチェックするか
 
 ```ruby
 RSpec.describe User do

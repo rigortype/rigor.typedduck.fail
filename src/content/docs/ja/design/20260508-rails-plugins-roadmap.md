@@ -1,6 +1,6 @@
 ---
-title: "Rails Ecosystem Plugins — Roadmap"
-description: "Imported from rigortype/rigor docs/design/20260508-rails-plugins-roadmap.md."
+title: "Railsエコシステムプラグイン — ロードマップ"
+description: "rigortype/rigor docs/design/20260508-rails-plugins-roadmap.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/design/20260508-rails-plugins-roadmap.md"
 sourcePath: "docs/design/20260508-rails-plugins-roadmap.md"
 sourceSha: "6b64f22e01554c5f0e146de3451e948159a1fadeea2cf3820af4fc41d475b957"

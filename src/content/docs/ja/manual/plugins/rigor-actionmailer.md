@@ -1,6 +1,6 @@
 ---
 title: "rigor-actionmailer"
-description: "Imported from rigortype/rigor docs/manual/plugins/rigor-actionmailer.md."
+description: "rigortype/rigor docs/manual/plugins/rigor-actionmailer.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/plugins/rigor-actionmailer.md"
 sourcePath: "docs/manual/plugins/rigor-actionmailer.md"
 sourceSha: "0620017845b9f1e6c5a59d814da104081a0509147dcdd4f932304584e7b3f990"
@@ -47,7 +47,7 @@ plugins:
 
 ## 制限事項
 
-- **直接の親クラスのマッチのみ**。 `BaseMailer < ApplicationMailer`であるような`class CustomerMailer < BaseMailer`は、`BaseMailer`が`mailer_base_classes`に含まれていない限り発見されません。（`include`されたconcern*モジュール*由来のアクションはマージされます。これは親クラスチェーンに関する話です。）
+- **直接の親クラスのマッチのみ**。`BaseMailer < ApplicationMailer`であるような`class CustomerMailer < BaseMailer`は、`BaseMailer`が`mailer_base_classes`に含まれていない限り発見されません。（`include`されたconcern*モジュール*由来のアクションはマージされます。これは親クラスチェーンに関する話です。）
 - **構文的なアクションリスト**。アクションはインスタンス側の`def`から読み取られます。`define_method`、`initialize`、`_`始まりの名前は除外されます。
 - **標準のビューファイル名パターンのみ**（`<action>.{html,text}.{erb,haml,slim}`）。カスタムエンジン／ビューパスは対象外です。
 - 真新しいビューファイルは、メーラーファイルが参照する何かが変わるまでキャッシュされたインデックスを無効化しません（リード追跡のトレードオフです）。

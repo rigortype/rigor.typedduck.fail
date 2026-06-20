@@ -1,6 +1,6 @@
 ---
 title: "ADR-61 — エージェントに優しい診断統計（構造化セレクタ軸）"
-description: "Imported from rigortype/rigor docs/adr/61-agent-friendly-diagnostic-statistics.md."
+description: "rigortype/rigor docs/adr/61-agent-friendly-diagnostic-statistics.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/61-agent-friendly-diagnostic-statistics.md"
 sourcePath: "docs/adr/61-agent-friendly-diagnostic-statistics.md"
 sourceSha: "be3a68fba01ddcd31f78dbfeb91424790f79db3b2b5b808375d1b46fe2fbd4b3"

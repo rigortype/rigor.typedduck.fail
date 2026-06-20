@@ -1,5 +1,5 @@
 ---
-title: "Real-world Rails project survey (2026-05-15)"
+title: "実世界Railsプロジェクト調査（2026-05-15）"
 description: "rigortype/rigor docs/notes/20260515-real-world-rails-survey.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260515-real-world-rails-survey.md"
 sourcePath: "docs/notes/20260515-real-world-rails-survey.md"

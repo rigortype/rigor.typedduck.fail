@@ -1,6 +1,6 @@
 ---
 title: "rigor-sinatra"
-description: "Imported from rigortype/rigor docs/manual/plugins/rigor-sinatra.md."
+description: "rigortype/rigor docs/manual/plugins/rigor-sinatra.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/plugins/rigor-sinatra.md"
 sourcePath: "docs/manual/plugins/rigor-sinatra.md"
 sourceSha: "dc34f16246a30cfe55a071c8188def6736176d3cd57bfe8277a4dfec0d5403b5"

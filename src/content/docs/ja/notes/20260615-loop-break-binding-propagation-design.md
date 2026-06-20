@@ -1,5 +1,5 @@
 ---
-title: "Loop `break`-path binding propagation — FP finding + fix design"
+title: "ループの`break`パスにおける束縛の伝播 — FPの発見＋修正設計"
 description: "rigortype/rigor docs/notes/20260615-loop-break-binding-propagation-design.md からインポート。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260615-loop-break-binding-propagation-design.md"
 sourcePath: "docs/notes/20260615-loop-break-binding-propagation-design.md"

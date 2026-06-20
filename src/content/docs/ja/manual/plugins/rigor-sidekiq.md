@@ -1,6 +1,6 @@
 ---
 title: "rigor-sidekiq"
-description: "Imported from rigortype/rigor docs/manual/plugins/rigor-sidekiq.md."
+description: "rigortype/rigor docs/manual/plugins/rigor-sidekiq.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/plugins/rigor-sidekiq.md"
 sourcePath: "docs/manual/plugins/rigor-sidekiq.md"
 sourceSha: "be8d0f5bb3c618e4e483ae8d28bd43d1a9ffc0ebe9de95093655fafe2c0db2f9"
@@ -58,10 +58,10 @@ plugins:
 
 ## 制限事項
 
-- **直接の`include`のみ**。 `Sidekiq::Job`を再includeするカスタムconcernをミックスインするワーカーは発見されません ── 中間のモジュールを`worker_marker_modules`に追加してください。
-- **構文的なアリティのみ**。 `#perform`のアリティはパラメータリストから読まれます。`define_method`で構築されたメソッドは対象外です。
-- **キーワード引数の検証はなし**。 Sidekiqは引数をJSONにシリアライズするため、位置引数が標準的なシェイプ（shape）です。
-- **スケジュールの型は検証されません**。 `perform_in` / `perform_at`の最初のスロットは、その型に関係なくスケジュールとして消費されます。
+- **直接の`include`のみ**。`Sidekiq::Job`を再includeするカスタムconcernをミックスインするワーカーは発見されません ── 中間のモジュールを`worker_marker_modules`に追加してください。
+- **構文的なアリティのみ**。`#perform`のアリティはパラメータリストから読まれます。`define_method`で構築されたメソッドは対象外です。
+- **キーワード引数の検証はなし**。Sidekiqは引数をJSONにシリアライズするため、位置引数が標準的なシェイプ（shape）です。
+- **スケジュールの型は検証されません**。`perform_in` / `perform_at`の最初のスロットは、その型に関係なくスケジュールとして消費されます。
 - **チェーンされた`set(...)`**（`Worker.set(queue: "low").perform_async(...)`）は通常の呼び出しとして検証されます。`set`自身のオプションはチェックされません。
 
 ## プラグイン内部

@@ -1,6 +1,6 @@
 ---
 title: "ADR-69 — プラグイン可能なミューテーション基盤（キルオラクル + オペレータシーム）"
-description: "Imported from rigortype/rigor docs/adr/69-pluggable-mutation-substrate.md."
+description: "rigortype/rigor docs/adr/69-pluggable-mutation-substrate.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/69-pluggable-mutation-substrate.md"
 sourcePath: "docs/adr/69-pluggable-mutation-substrate.md"
 sourceSha: "0193cb5c6f7a56f4c244f0060052989f286e6f26c0eda5d777f7e02a899e4caf"

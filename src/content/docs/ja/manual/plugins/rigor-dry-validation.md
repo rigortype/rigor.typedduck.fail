@@ -1,6 +1,6 @@
 ---
 title: "rigor-dry-validation"
-description: "Imported from rigortype/rigor docs/manual/plugins/rigor-dry-validation.md."
+description: "rigortype/rigor docs/manual/plugins/rigor-dry-validation.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/plugins/rigor-dry-validation.md"
 sourcePath: "docs/manual/plugins/rigor-dry-validation.md"
 sourceSha: "984a523cdcbba53d7630055aaa888e6208475e17689fce78b6ed82918bac27e0"

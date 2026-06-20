@@ -1,6 +1,6 @@
 ---
 title: "ADR-44 — ディスパッチごと／ナローイングごとのアロケーションチャーン（Scope、CallContext）"
-description: "Imported from rigortype/rigor docs/adr/44-dispatch-allocation-churn.md."
+description: "rigortype/rigor docs/adr/44-dispatch-allocation-churn.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/44-dispatch-allocation-churn.md"
 sourcePath: "docs/adr/44-dispatch-allocation-churn.md"
 sourceSha: "bed590b6331530eb5981b8d195c5c1faa3e747dbe613900d0590877d8721b61c"

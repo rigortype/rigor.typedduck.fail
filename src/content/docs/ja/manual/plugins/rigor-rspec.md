@@ -1,6 +1,6 @@
 ---
 title: "rigor-rspec"
-description: "Imported from rigortype/rigor docs/manual/plugins/rigor-rspec.md."
+description: "rigortype/rigor docs/manual/plugins/rigor-rspec.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/plugins/rigor-rspec.md"
 sourcePath: "docs/manual/plugins/rigor-rspec.md"
 sourceSha: "e945c48db83d54482fc8033998ec8da558ebe5881477449fb358135f992e2b1f"
@@ -50,9 +50,9 @@ spec/user_spec.rb:7:3: error:   `let(:tags)` references its own name `tags` — 
 
 ## 制限事項
 
-- **`it`本体内でのletタイポ検出はなし**。 `it`ブロック内のスペルミスした`let`名をフラグするには、はるかに重いウォーカー（マッチャーDSL、ヘルパーメソッド、letスコープチェーン）が必要 ── 待機中です。
-- **モックターゲット検証はなし**。 `x`のメソッドに対する`expect(x).to receive(:nme)`は別のスライス（slice）です。
-- **共有コンテキストの解決はなし**。 `include_context`、`shared_context`、`it_behaves_like`は無視されます。
+- **`it`本体内でのletタイポ検出はなし**。`it`ブロック内のスペルミスした`let`名をフラグするには、はるかに重いウォーカー（マッチャーDSL、ヘルパーメソッド、letスコープチェーン）が必要 ── 待機中です。
+- **モックターゲット検証はなし**。`x`のメソッドに対する`expect(x).to receive(:nme)`は別のスライス（slice）です。
+- **共有コンテキストの解決はなし**。`include_context`、`shared_context`、`it_behaves_like`は無視されます。
 - **自己参照検出はブロック内のみ**。間接的なループ（`let(:user) { foo }`で`foo`が`user`を呼び戻す場合）はフラグされません。
 - 定数検証（`RSpec.describe SomeClass`）はこのプラグインではなくエンジンの仕事です。
 

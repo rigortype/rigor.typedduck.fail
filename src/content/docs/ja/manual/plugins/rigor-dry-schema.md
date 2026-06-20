@@ -1,6 +1,6 @@
 ---
 title: "rigor-dry-schema"
-description: "Imported from rigortype/rigor docs/manual/plugins/rigor-dry-schema.md."
+description: "rigortype/rigor docs/manual/plugins/rigor-dry-schema.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/plugins/rigor-dry-schema.md"
 sourcePath: "docs/manual/plugins/rigor-dry-schema.md"
 sourceSha: "58a16335c33ae2f43f6b3c453aa80e86afd3d604a33fcbd1040de9ae9b4c4ba5"

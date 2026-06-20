@@ -1,6 +1,6 @@
 ---
-title: "Type-guided mutation testing — strategy note (internal teeth vs. an external test-suite tool)"
-description: "Imported from rigortype/rigor docs/notes/20260617-type-guided-mutation-testing-strategy.md."
+title: "型ガイド付きミューテーションテスト — 戦略ノート（内部のteeth vs. 外部のテストスイートツール）"
+description: "rigortype/rigor docs/notes/20260617-type-guided-mutation-testing-strategy.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260617-type-guided-mutation-testing-strategy.md"
 sourcePath: "docs/notes/20260617-type-guided-mutation-testing-strategy.md"
 sourceSha: "4c0c9670d03dd04e28fe61cd0c1195e768c8cfa8d0d757d1cbbdf0c3f8e3270a"

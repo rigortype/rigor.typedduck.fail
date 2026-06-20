@@ -1,6 +1,6 @@
 ---
 title: "rigor-mangrove"
-description: "Imported from rigortype/rigor docs/manual/plugins/rigor-mangrove.md."
+description: "rigortype/rigor docs/manual/plugins/rigor-mangrove.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/plugins/rigor-mangrove.md"
 sourcePath: "docs/manual/plugins/rigor-mangrove.md"
 sourceSha: "131cea87f4ddd158e28b879fc972bddf6bfddbcf9f34f91c16569966db58da1e"
@@ -31,7 +31,7 @@ plugins:
 session.token.unwrap!.uppercaze   # error: String に対して未定義のメソッド `uppercaze'
 ```
 
-**Enumバリアントの合成（ADR-36のSlice A）**。 `variants`DSLはランタイムでネストされたサブクラスを発行します。プラグインはそれらを静的に合成します ── バリアント定数が解決され、`.new`がディスパッチされ、型付けされた`#inner`リーダーが宣言されたペイロード型を返します。
+**Enumバリアントの合成（ADR-36のSlice A）**。`variants`DSLはランタイムでネストされたサブクラスを発行します。プラグインはそれらを静的に合成します ── バリアント定数が解決され、`.new`がディスパッチされ、型付けされた`#inner`リーダーが宣言されたペイロード型を返します。
 
 ```ruby
 class Shape
@@ -47,8 +47,8 @@ Shape::Circle.new(1.5).inner.no_such_float_method # error: Float に対して未
 
 ## 制限事項
 
-- **コンストラクタからのジェネリック推論はない**。 `Result::Ok.new("x")`は型引数のないキャリアを生むため、そこでのunwrapは何も提供しません（保守的なno-opであり、偽陽性は決して起こりません）。
-- **ダウンキャストのナローイングは型引数を保持しない（ADR-36のSlice B、保留）**。 `is_a?`を介して親のジェネリックをバリアントへナローイングしても、継承エッジを通して型引数が運ばれることはまだありません。
+- **コンストラクタからのジェネリック推論はない**。`Result::Ok.new("x")`は型引数のないキャリアを生むため、そこでのunwrapは何も提供しません（保守的なno-opであり、偽陽性は決して起こりません）。
+- **ダウンキャストのナローイングは型引数を保持しない（ADR-36のSlice B、保留）**。`is_a?`を介して親のジェネリックをバリアントへナローイングしても、継承エッジを通して型引数が運ばれることはまだありません。
 - **定数でないペイロードのシェイプは劣化する**。ペイロードがシェイプ（shape）ハッシュ（`{ name: String }`）であるバリアントは、`Dynamic[Top]`にフォールバックします。
 
 ## プラグインの内部

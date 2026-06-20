@@ -1,6 +1,6 @@
 ---
-title: "Design Notes"
-description: "Imported from rigortype/rigor docs/design/README.md."
+title: "設計ノート"
+description: "rigortype/rigor docs/design/README.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/design/README.md"
 sourcePath: "docs/design/README.md"
 sourceSha: "f78d1d6a73a0bd56b6f5c48d88768a0a6a9ce83d1dd26fb0b1c198297c1c27a7"

@@ -1,6 +1,6 @@
 ---
 title: "rigor-actioncable"
-description: "Imported from rigortype/rigor docs/manual/plugins/rigor-actioncable.md."
+description: "rigortype/rigor docs/manual/plugins/rigor-actioncable.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/plugins/rigor-actioncable.md"
 sourcePath: "docs/manual/plugins/rigor-actioncable.md"
 sourceSha: "3f36f591674aa72d98526af2b106f9b56c82053518f087504afbb2092625348b"

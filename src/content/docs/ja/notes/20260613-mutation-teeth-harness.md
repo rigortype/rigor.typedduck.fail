@@ -1,6 +1,6 @@
 ---
-title: "Mutation-testing the analyzer — a teeth / false-negative harness"
-description: "Imported from rigortype/rigor docs/notes/20260613-mutation-teeth-harness.md."
+title: "アナライザーのミューテーションテスト — teeth／偽陰性のハーネス"
+description: "rigortype/rigor docs/notes/20260613-mutation-teeth-harness.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260613-mutation-teeth-harness.md"
 sourcePath: "docs/notes/20260613-mutation-teeth-harness.md"
 sourceSha: "f5e149e4bdda976418d6cabf42359c1a44f5b3c0b275df04c40e2912d670ded6"

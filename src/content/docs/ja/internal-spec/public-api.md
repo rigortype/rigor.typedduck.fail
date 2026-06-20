@@ -1,6 +1,6 @@
 ---
-title: "Public API Stability Boundary"
-description: "Imported from rigortype/rigor docs/internal-spec/public-api.md."
+title: "公開APIの安定性境界"
+description: "rigortype/rigor docs/internal-spec/public-api.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/public-api.md"
 sourcePath: "docs/internal-spec/public-api.md"
 sourceSha: "044d73b81e937adbf364f4601c15f7dc29a6ebd29189858b24f3734162cc43ca"

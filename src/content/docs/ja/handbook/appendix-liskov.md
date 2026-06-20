@@ -1,6 +1,6 @@
 ---
-title: "Appendix — The Liskov Substitution Principle"
-description: "Imported from rigortype/rigor docs/handbook/appendix-liskov.md."
+title: "付録 — リスコフの置換原則"
+description: "rigortype/rigor docs/handbook/appendix-liskov.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/appendix-liskov.md"
 sourcePath: "docs/handbook/appendix-liskov.md"
 sourceSha: "991f97c63c193528ffbfd6fb6180a187c9907675e71a92cf267e61c922683fe5"

@@ -1,6 +1,6 @@
 ---
 title: "CIセットアップテンプレート"
-description: "Imported from rigortype/rigor docs/manual/ci-templates/README.md."
+description: "rigortype/rigor docs/manual/ci-templates/README.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/ci-templates/README.md"
 sourcePath: "docs/manual/ci-templates/README.md"
 sourceSha: "5e55dea76441c46a024c83ccdb9da1d650d612a1543d8210bea8b13b60394108"

@@ -1,6 +1,6 @@
 ---
 title: "rigor-statesman"
-description: "Imported from rigortype/rigor docs/manual/plugins/rigor-statesman.md."
+description: "rigortype/rigor docs/manual/plugins/rigor-statesman.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/plugins/rigor-statesman.md"
 sourcePath: "docs/manual/plugins/rigor-statesman.md"
 sourceSha: "e102933ff7b11c41f3677ca2675d90f60506b630a09fcb66a4d3cb85afb86362"
@@ -57,7 +57,7 @@ plugins:
 
 ## 制限事項
 
-- **ファイルスコープ**。 `models/order.rb`で宣言された状態は別のファイルからは見えません ── 各ファイルが独立して検証します。
+- **ファイルスコープ**。`models/order.rb`で宣言された状態は別のファイルからは見えません ── 各ファイルが独立して検証します。
 - **リテラルのシンボルのみ**。変数やメソッド呼び出しの引数はチェックされません。
 - **レシーバーに依存しない**。チェックは、ファイル内の*いずれか*の状態機械がそのシンボルを宣言している限り、任意のレシーバーに対して発火します。`transition_to`を特定の機械に結びつけることはしません。
 

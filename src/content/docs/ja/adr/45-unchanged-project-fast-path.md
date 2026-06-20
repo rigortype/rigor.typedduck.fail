@@ -1,6 +1,6 @@
 ---
 title: "ADR-45 — 変更なしプロジェクトの高速パス（実行結果キャッシュ）"
-description: "Imported from rigortype/rigor docs/adr/45-unchanged-project-fast-path.md."
+description: "rigortype/rigor docs/adr/45-unchanged-project-fast-path.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/45-unchanged-project-fast-path.md"
 sourcePath: "docs/adr/45-unchanged-project-fast-path.md"
 sourceSha: "070485a4523a27bbeeb77899706fa763f836d59f53bec2fb28579467521aa4a4"

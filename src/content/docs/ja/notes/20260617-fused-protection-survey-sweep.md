@@ -1,6 +1,6 @@
 ---
-title: "Fused protection (`--with-tests`) — broad survey sweep"
-description: "Imported from rigortype/rigor docs/notes/20260617-fused-protection-survey-sweep.md."
+title: "融合保護（`--with-tests`） — 広範な調査スイープ"
+description: "rigortype/rigor docs/notes/20260617-fused-protection-survey-sweep.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260617-fused-protection-survey-sweep.md"
 sourcePath: "docs/notes/20260617-fused-protection-survey-sweep.md"
 sourceSha: "b90fa409332b3080bca20861dfcb50310ab8a7d9fccefacd22f913b5c7ef001b"
@@ -51,7 +51,7 @@ sidebar:
 
 ## 所見
 
-**1. テスト軸は実コードで、どこでも機能する**。 `test_killed`は12のクリーンなターゲットすべてで発火した（ファイルあたり1〜39）。3つのレジームが現れる:
+**1. テスト軸は実コードで、どこでも機能する**。`test_killed`は12のクリーンなターゲットすべてで発火した（ファイルあたり1〜39）。3つのレジームが現れる:
 
 - **型優勢**（よく型付けされた数値／String系コード）: `liquid/lexer.rb`は75/76が型キル、`rgl/dijkstra.rb`は11/11、`jbuilder.rb`は9/9（biteable）。静的なネットがすでに持ちこたえている。
 - **テスト優勢**（型チェッカーが噛みつけないDynamicレシーバーのコード）: `hamlit/ruby_expression.rb`はbiteableで型=0 → **両方**がテストで捕まる;`rubocop-ast/token.rb`は`--include-dynamic`で0→39がテストキル。ここではテストが唯一の保護であり、融合マップはそれを*示す*。

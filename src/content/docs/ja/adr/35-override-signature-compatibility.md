@@ -1,6 +1,6 @@
 ---
 title: "ADR-35 — オーバーライドのシグネチャ互換性（リスコフのシグネチャ規則）"
-description: "Imported from rigortype/rigor docs/adr/35-override-signature-compatibility.md."
+description: "rigortype/rigor docs/adr/35-override-signature-compatibility.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/35-override-signature-compatibility.md"
 sourcePath: "docs/adr/35-override-signature-compatibility.md"
 sourceSha: "17c3fb964d8ace757926591c7f51ab4c587b131f183ef4952a1b943c79cf0dd2"

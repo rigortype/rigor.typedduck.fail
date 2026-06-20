@@ -1,6 +1,6 @@
 ---
-title: "Internal Type API"
-description: "Imported from rigortype/rigor docs/internal-spec/internal-type-api.md."
+title: "内部型API"
+description: "rigortype/rigor docs/internal-spec/internal-type-api.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/internal-type-api.md"
 sourcePath: "docs/internal-spec/internal-type-api.md"
 sourceSha: "43d4ca935a204335f49f5cace7496db64e957cdb48ff568530257248bd721eb7"

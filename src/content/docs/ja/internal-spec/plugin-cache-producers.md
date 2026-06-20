@@ -1,6 +1,6 @@
 ---
-title: "Plugin-side Cache Producers (slice 6)"
-description: "Imported from rigortype/rigor docs/internal-spec/plugin-cache-producers.md."
+title: "プラグイン側キャッシュプロデューサー（スライス6）"
+description: "rigortype/rigor docs/internal-spec/plugin-cache-producers.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/plugin-cache-producers.md"
 sourcePath: "docs/internal-spec/plugin-cache-producers.md"
 sourceSha: "fd715bc0e4bdb1b30b25687cabba6ca7ccf8cde56a4b84db7f026ee607315916"

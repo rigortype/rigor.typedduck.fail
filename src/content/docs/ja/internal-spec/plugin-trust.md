@@ -1,6 +1,6 @@
 ---
-title: "Plugin Trust and I/O Policy (slice 2)"
-description: "Imported from rigortype/rigor docs/internal-spec/plugin-trust.md."
+title: "プラグインの信頼とI/Oポリシー（スライス2）"
+description: "rigortype/rigor docs/internal-spec/plugin-trust.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/plugin-trust.md"
 sourcePath: "docs/internal-spec/plugin-trust.md"
 sourceSha: "fdf00fd254782e61a6f8b8554dbdcb1772753ee742099fdac08255cabba3f497"

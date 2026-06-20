@@ -1,6 +1,6 @@
 ---
 title: "ADR-70 — 静的∪動的の融合保護カバレッジ"
-description: "Imported from rigortype/rigor docs/adr/70-fused-protection-coverage.md."
+description: "rigortype/rigor docs/adr/70-fused-protection-coverage.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/70-fused-protection-coverage.md"
 sourcePath: "docs/adr/70-fused-protection-coverage.md"
 sourceSha: "2ea35412f9a1500e287cbf341e41bad8744b7453f69487e8c21e0b24bd846ff2"

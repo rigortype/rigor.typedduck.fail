@@ -1,5 +1,5 @@
 ---
-title: "Current Work — Resume Bookmark"
+title: "現在の作業 — 再開ブックマーク"
 description: "rigortype/rigor docs/CURRENT_WORK.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/CURRENT_WORK.md"
 sourcePath: "docs/CURRENT_WORK.md"

@@ -1,6 +1,6 @@
 ---
-title: "dry-rb Ecosystem Plugins — Survey"
-description: "Imported from rigortype/rigor docs/design/20260509-dry-plugins-roadmap.md."
+title: "dry-rbエコシステムプラグイン — 調査"
+description: "rigortype/rigor docs/design/20260509-dry-plugins-roadmap.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/design/20260509-dry-plugins-roadmap.md"
 sourcePath: "docs/design/20260509-dry-plugins-roadmap.md"
 sourceSha: "5484b23347eb3f9c87ee07c351fd4b9be38cd46784e92b782c7456c54a675644"

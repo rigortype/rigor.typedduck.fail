@@ -1,6 +1,6 @@
 ---
 title: "ADR-41 — 推論バジェットの設計（配線、ヒット時ポリシー、計測ゲート付きデフォルト）"
-description: "Imported from rigortype/rigor docs/adr/41-inference-budget-design.md."
+description: "rigortype/rigor docs/adr/41-inference-budget-design.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/41-inference-budget-design.md"
 sourcePath: "docs/adr/41-inference-budget-design.md"
 sourceSha: "79c7b432ef0afa06a282c37e5b489e5977df0f54579596fb8329e73b89ed0a7d"

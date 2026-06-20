@@ -1,6 +1,6 @@
 ---
-title: "Macro / DSL Expansion Substrate"
-description: "Imported from rigortype/rigor docs/internal-spec/macro-substrate.md."
+title: "マクロ／DSL展開基板"
+description: "rigortype/rigor docs/internal-spec/macro-substrate.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/macro-substrate.md"
 sourcePath: "docs/internal-spec/macro-substrate.md"
 sourceSha: "33d2dd5aed592735d693e4c22806ac9a9724b3b28d7dca05faf275df693cac6d"

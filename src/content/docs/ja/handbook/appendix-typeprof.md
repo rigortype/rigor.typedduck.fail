@@ -1,6 +1,6 @@
 ---
 title: "付録 — TypeProfから来た場合"
-description: "Imported from rigortype/rigor docs/handbook/appendix-typeprof.md."
+description: "rigortype/rigor docs/handbook/appendix-typeprof.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/appendix-typeprof.md"
 sourcePath: "docs/handbook/appendix-typeprof.md"
 sourceSha: "765bd57358f8857aa123dc43c2ee12626f12deaab8f3c1f7997b3c20ff545725"

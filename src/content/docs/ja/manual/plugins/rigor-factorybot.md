@@ -1,6 +1,6 @@
 ---
 title: "rigor-factorybot"
-description: "Imported from rigortype/rigor docs/manual/plugins/rigor-factorybot.md."
+description: "rigortype/rigor docs/manual/plugins/rigor-factorybot.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/plugins/rigor-factorybot.md"
 sourcePath: "docs/manual/plugins/rigor-factorybot.md"
 sourceSha: "d370fc11bad1d29f0850a4ffd1656fbe9f08a1f9a7618f7618a5d373d8669114"

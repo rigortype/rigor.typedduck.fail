@@ -1,6 +1,6 @@
 ---
-title: "CRuby stdlib survey (Dynamic-fall + FP hunt, post-ADR-55/56/57)"
-description: "Imported from rigortype/rigor docs/notes/20260612-cruby-stdlib-survey.md."
+title: "CRuby標準ライブラリ調査（Dynamic転落＋FPハント、ADR-55/56/57後）"
+description: "rigortype/rigor docs/notes/20260612-cruby-stdlib-survey.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260612-cruby-stdlib-survey.md"
 sourcePath: "docs/notes/20260612-cruby-stdlib-survey.md"
 sourceSha: "dada1f08a5787f7e112391a49f3f0ac494dc97f8d4632c433624c4d3364ab5f4"
@@ -73,13 +73,13 @@ BUNDLE_GEMFILE=<rigor>/Gemfile nix … develop <rigor> --command \
 
 ## 攻略順ランク付け
 
-1. **C-1（クラッシュ）: `positional_slots`内の`Prism::MultiTargetNode`**。 `method_parameter_binder.rb:115`+`:119`は、盲目的な`.name`の代わりに、デストラクチャリングされた`requireds`/`posts`エントリーを扱わなければならない（`MultiTargetNode.lefts/rest`へ再帰するか、合成スロットを束縛する）。エンジンバグ。唯一のクラッシュを修正し、実コード上のsig-genのブリック化を解除する。最小かつ最高の緊急度。
-2. **C-2（FP）: チェーンされた`Struct.new(:x).new`**。 `Struct.new(...)`の結果型がチェーン位置で`.new`ディスパッチを持つようにする（定数に束縛されたときはすでにそうなっている）。エンジンアーティファクト。3件以上の標準ライブラリerrorと非常に一般的なgemイディオムを潰す。（ADR-48はStructの*畳み込み*を保留した。これはより狭い ── 合成クラス上の`.new`ディスパッチのみ。）
-3. **C1（FPクラス、最大半径）: 正規表現グローバルのnil-union＋`=~`後ナローイング**。 180件のnil可能errorの最大の単一ドライバ。マッチした分岐で`$1`/`$~`/`$+`をより正確に型付けするか、成功した`=~`/`match`/`scan`ガードの後にナローイングする。エンジン ── precision-additive、FP削減。
-4. **C2（FPクラス）: メソッド横断ivar状態結合の精度**。 ipaddrの`^`引数不一致とuri/ldapの戻り値不一致を駆動する。書き込みが同種のとき複数書き込みivarが`Dynamic[top]|…|nil`へ崩壊しないよう、ivar宣言型推論を絞り込む。エンジン、precision-additive。
-5. **C5（FPクラス）: ループ／ブロックのプレーンローカル再束縛書き戻し**。 ADR-56の書き戻しを、キャプチャされたローカルの*変更*から非エスケープブロック／ループ内のbare*再代入*へ拡張する。`caller_gem`の`always-falsey`FPクラスを除去する。
+1. **C-1（クラッシュ）: `positional_slots`内の`Prism::MultiTargetNode`**。`method_parameter_binder.rb:115`+`:119`は、盲目的な`.name`の代わりに、デストラクチャリングされた`requireds`/`posts`エントリーを扱わなければならない（`MultiTargetNode.lefts/rest`へ再帰するか、合成スロットを束縛する）。エンジンバグ。唯一のクラッシュを修正し、実コード上のsig-genのブリック化を解除する。最小かつ最高の緊急度。
+2. **C-2（FP）: チェーンされた`Struct.new(:x).new`**。`Struct.new(...)`の結果型がチェーン位置で`.new`ディスパッチを持つようにする（定数に束縛されたときはすでにそうなっている）。エンジンアーティファクト。3件以上の標準ライブラリerrorと非常に一般的なgemイディオムを潰す。（ADR-48はStructの*畳み込み*を保留した。これはより狭い ── 合成クラス上の`.new`ディスパッチのみ。）
+3. **C1（FPクラス、最大半径）: 正規表現グローバルのnil-union＋`=~`後ナローイング**。180件のnil可能errorの最大の単一ドライバ。マッチした分岐で`$1`/`$~`/`$+`をより正確に型付けするか、成功した`=~`/`match`/`scan`ガードの後にナローイングする。エンジン ── precision-additive、FP削減。
+4. **C2（FPクラス）: メソッド横断ivar状態結合の精度**。ipaddrの`^`引数不一致とuri/ldapの戻り値不一致を駆動する。書き込みが同種のとき複数書き込みivarが`Dynamic[top]|…|nil`へ崩壊しないよう、ivar宣言型推論を絞り込む。エンジン、precision-additive。
+5. **C5（FPクラス）: ループ／ブロックのプレーンローカル再束縛書き戻し**。ADR-56の書き戻しを、キャプチャされたローカルの*変更*から非エスケープブロック／ループ内のbare*再代入*へ拡張する。`caller_gem`の`always-falsey`FPクラスを除去する。
 6. **C4（Dynamic、中半径）: `def self.x`モジュールシングルトン呼び出し解決** ── すでに待機中のADR-57フォローアップ。このコーパスは標準ライブラリでの*中*（巨大ではない）半径を確認する。
-7. **C6/C8/C9: エンジンバグではない**。 C6（Resolvほか） = RBSを同梱／作成する。C8（C拡張メソッド） = 期待される境界、RBSで解決。C9（`untaint`） = 本物の捕捉、発火させたまま。
+7. **C6/C8/C9: エンジンバグではない**。C6（Resolvほか） = RBSを同梱／作成する。C8（C拡張メソッド） = 期待される境界、RBSで解決。C9（`untaint`） = 本物の捕捉、発火させたまま。
 
 soundness優先の順序付けは今回は無意味である ── unsoundな畳み込みは生き残らなかった。よって順序は: **クラッシュ（C-1） → 広く使われるイディオム上のFP（C-2 Struct） → 高半径FPメカニズム（C1グローバル、C2 ivar、C5ループ再束縛） → Dynamic精度（C4） → needs-RBS／境界（C6/C8/C9）**。
 
@@ -134,18 +134,18 @@ C1形状の内訳（依頼された（a）/(b)/(c)/（d）分類を、*そうな
 
 最大の*反復可能な*2クラスタに加えて非正規表現メカニズムをサンプリングし根本原因究明した:
 
-1. **`case … when … else raise`の網羅性が認められない（NEW支配的ギャップ）**。 `eval_case`は`[*branch_results, else_result]`を`reduce_scopes_with_nil_injection`で結合する。`else`節が*終端する*（`raise`/`return`/`throw`）とき、結合はなおelse／no-matchスコープを畳み込み、そこでは`when`分岐内でのみ代入されたローカルが未束縛 → nilが注入される。最小再現（`/tmp/probe3.rb`）: `case info; when nil then h={…}; when String then h={…}; when Hash then h=info.dup; else raise; end; h.include?(:a)` → **`possible nil receiver`**（FP）。対照: `else h = {}`（代入する）はクリーン。else無しは正しくnil可能。これはresolvの`config_hash`クラスタ（**12箇所**）そのものであり、他所でも再発する。エンジン修正は、`eval_if`/`eval_unless`ですでに使われている厳密な`branch_terminates?`パターンである: `eval_case`（`statement_evaluator.rb:535`）でelse節が終端するときelse_resultスコープを結合から外す。**FP安全、低難易度、~12箇所以上**。
+1. **`case … when … else raise`の網羅性が認められない（NEW支配的ギャップ）**。`eval_case`は`[*branch_results, else_result]`を`reduce_scopes_with_nil_injection`で結合する。`else`節が*終端する*（`raise`/`return`/`throw`）とき、結合はなおelse／no-matchスコープを畳み込み、そこでは`when`分岐内でのみ代入されたローカルが未束縛 → nilが注入される。最小再現（`/tmp/probe3.rb`）: `case info; when nil then h={…}; when String then h={…}; when Hash then h=info.dup; else raise; end; h.include?(:a)` → **`possible nil receiver`**（FP）。対照: `else h = {}`（代入する）はクリーン。else無しは正しくnil可能。これはresolvの`config_hash`クラスタ（**12箇所**）そのものであり、他所でも再発する。エンジン修正は、`eval_if`/`eval_unless`ですでに使われている厳密な`branch_terminates?`パターンである: `eval_case`（`statement_evaluator.rb:535`）でelse節が終端するときelse_resultスコープを結合から外す。**FP安全、低難易度、~12箇所以上**。
 
-2. **`opts = (cond ? cmd.pop.dup : {})` ── `Array#pop`のnilが`.dup`を通って両分岐Hash結合に漏れる**。 open3の`opts`クラスタ（**12箇所**、`[]=`/`delete`）。`if Hash === cmd.last; opts = cmd.pop.dup; else opts = {}; end` → `opts : Hash | nil`、なぜなら`cmd.pop`は`T?`で`.dup`がnilを保存するから。`Hash === cmd.last`ガードは*別個の*`cmd.pop`呼び出しをナローイングしない。型レベルではgenuine-conservative（popは*nilでありうる*）だが、ガードがそれを到達不能にする。修正には`x === y` ⟹ レシーバーの要素のエイリアシングナローイング、または証明された非空ガードの下での`Array#pop`の特例化のいずれかが必要 ── **より高難易度、エイリアシング依存、中FPリスク**。優先度を下げる。
+2. **`opts = (cond ? cmd.pop.dup : {})` ── `Array#pop`のnilが`.dup`を通って両分岐Hash結合に漏れる**。open3の`opts`クラスタ（**12箇所**、`[]=`/`delete`）。`if Hash === cmd.last; opts = cmd.pop.dup; else opts = {}; end` → `opts : Hash | nil`、なぜなら`cmd.pop`は`T?`で`.dup`がnilを保存するから。`Hash === cmd.last`ガードは*別個の*`cmd.pop`呼び出しをナローイングしない。型レベルではgenuine-conservative（popは*nilでありうる*）だが、ガードがそれを到達不能にする。修正には`x === y` ⟹ レシーバーの要素のエイリアシングナローイング、または証明された非空ガードの下での`Array#pop`の特例化のいずれかが必要 ── **より高難易度、エイリアシング依存、中FPリスク**。優先度を下げる。
 
-3. **`&.`ガードされたレシーバーが`&&`右辺で非nilと知られない**。 uri/genericの`v&.start_with?('[') && v.end_with?(']')` ── `&&`右オペランドは`v&.start_with?`がtruthyだったときのみ実行され、これは`v`が非nilを含意するが、`v.end_with?`はなお`v : String | nil`を見る。~4箇所。`analyse_and`でエンジン修正可能（左オペランドの`&.`セーフナビtruthyエッジが右オペランド向けにレシーバーを非nilにナローイングすべき）、**FP安全、低〜中難易度、小半径**。
+3. **`&.`ガードされたレシーバーが`&&`右辺で非nilと知られない**。uri/genericの`v&.start_with?('[') && v.end_with?(']')` ── `&&`右オペランドは`v&.start_with?`がtruthyだったときのみ実行され、これは`v`が非nilを含意するが、`v.end_with?`はなお`v : String | nil`を見る。~4箇所。`analyse_and`でエンジン修正可能（左オペランドの`&.`セーフナビtruthyエッジが右オペランド向けにレシーバーを非nilにナローイングすべき）、**FP安全、低〜中難易度、小半径**。
 
-4. **`until idx = expr; …; end; idx.foo`のループ終了時非nil**。 net/protocolの`until idx = @rbuf.index(term); …; end; rbuf_consume(idx + …)`。ループは`idx`がtruthyのときに正確に終了するので、ループ後の`idx`は非nilである。エンジンはループ本体のnil-unionを保持する。注: *孤立した*プローブ（`/tmp/probe2.rb`）はパスする ── フルメソッドコンテキストでのみ再現するので、これは反復ごとのスコープ結合と絡み合っており、単独のナローイング漏れではない。中難易度、FP安全、~3〜4箇所。
+4. **`until idx = expr; …; end; idx.foo`のループ終了時非nil**。net/protocolの`until idx = @rbuf.index(term); …; end; rbuf_consume(idx + …)`。ループは`idx`がtruthyのときに正確に終了するので、ループ後の`idx`は非nilである。エンジンはループ本体のnil-unionを保持する。注: *孤立した*プローブ（`/tmp/probe2.rb`）はパスする ── フルメソッドコンテキストでのみ再現するので、これは反復ごとのスコープ結合と絡み合っており、単独のナローイング漏れではない。中難易度、FP安全、~3〜4箇所。
 
 非正規表現バケットの判定（ブリーフのステップ3）:
 
 - **C2 ivar状態結合（ipaddr上の`argument-type-mismatch ^`、6箇所; uri/ldapの`def.return-type-mismatch`）**。複数書き込みivar（`@mask_addr`）が`Dynamic[top] | Integer | nil`に結合し、`Integer#^`が拒否する。同種書き込みがDynamicに崩壊しないようivar宣言型推論を絞り込むことでエンジン修正可能。**中難易度**、uri/ldapの戻り値不一致（47幅の`def.return-type-mismatch`バケット）は同じメカニズムに乗るので、半径は6個の`^`箇所より大きい。真に異種な書き込み手（specification `@new_platform`）の一部はフラグされたまま残さねばならない ── 修正はそれらを保持しなければならない。
-- **C6 RBSなし厳格sig（Resolv LOC::Size/Coord/Alt、DNS Requester; 37個の引数不一致のうち~10）**。 RBSを同梱しないライブラリで、推論されたパラメータ型が有効な引数を拒否する。**エンジンバグではない** ── RBSを作成するか、RBSなしライブラリでの推論精度を改善する。そのまま残す。
+- **C6 RBSなし厳格sig（Resolv LOC::Size/Coord/Alt、DNS Requester; 37個の引数不一致のうち~10）**。RBSを同梱しないライブラリで、推論されたパラメータ型が有効な引数を拒否する。**エンジンバグではない** ── RBSを作成するか、RBSなしライブラリでの推論精度を改善する。そのまま残す。
 - **`call.undefined-method`（純粋49）**。レシーバクラス別のロングテール: `String`（6、`untaint`の本物の捕捉C9を含む）、Gem::* / Bundler::*（Rigorが部分的に型付けするプロジェクト内部クラス → 継承メソッド解決ギャップ、ADR-43の領域）、URI/OpenURI（ミックスイン／`method_missing`委譲）。大半は**needs-RBS / genuine-conservative**であり単一メカニズムではない。ここに集中したエンジンスライスはない。
 - **C5 always-truthy `$extmk`（mkmf、純粋always-truthy 45のうち18）**。ループ再束縛ではない ── **プログラムグローバルの定数畳み込みの過度な早合点**である: トップレベルの`$extmk = nil`/truthyシードが、あらゆるメソッド本体内で`if $extmk`をalways-truthyにし、外部／遅延の再代入を無視する。**「修正」するとFPリスク**がある（シードこそが唯一可視の値だから）。正しい手は、可変プログラムグローバルのtruthy性をメソッド本体内で定数畳み込みしないこと（メソッドスコープでの`$global`読み取りを、未知書き込みフロアを含む全観測書き込みのユニオンへ広げる）。中、Mastodon/hamlに対してFP検証必須。優先度は低め。
 

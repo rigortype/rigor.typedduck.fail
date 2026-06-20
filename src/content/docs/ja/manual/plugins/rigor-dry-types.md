@@ -1,6 +1,6 @@
 ---
 title: "rigor-dry-types"
-description: "Imported from rigortype/rigor docs/manual/plugins/rigor-dry-types.md."
+description: "rigortype/rigor docs/manual/plugins/rigor-dry-types.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/plugins/rigor-dry-types.md"
 sourcePath: "docs/manual/plugins/rigor-dry-types.md"
 sourceSha: "9f02e4a7501468ef67e19610aadb07f41827b086eac2398f0446a014577a5eb7"

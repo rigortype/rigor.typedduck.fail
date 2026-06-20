@@ -1,6 +1,6 @@
 ---
 title: "付録 — Rustから来た場合"
-description: "Imported from rigortype/rigor docs/handbook/appendix-rust.md."
+description: "rigortype/rigor docs/handbook/appendix-rust.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/appendix-rust.md"
 sourcePath: "docs/handbook/appendix-rust.md"
 sourceSha: "bbf7a9e81520bffb78daba8fa9e55b0fbb617c44cd62039ac52c1faff792e5ba"

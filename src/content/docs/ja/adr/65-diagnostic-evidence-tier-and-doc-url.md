@@ -1,6 +1,6 @@
 ---
 title: "ADR-65 — 診断の証拠ティアとドキュメントURL"
-description: "Imported from rigortype/rigor docs/adr/65-diagnostic-evidence-tier-and-doc-url.md."
+description: "rigortype/rigor docs/adr/65-diagnostic-evidence-tier-and-doc-url.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/65-diagnostic-evidence-tier-and-doc-url.md"
 sourcePath: "docs/adr/65-diagnostic-evidence-tier-and-doc-url.md"
 sourceSha: "a842026023bb135f82e66bbc2d480de46995b74b54122ef29aea8811446cd92f"

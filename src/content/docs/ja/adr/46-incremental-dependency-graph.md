@@ -1,6 +1,6 @@
 ---
 title: "ADR-46 — ファイル間依存グラフによるインクリメンタル解析"
-description: "Imported from rigortype/rigor docs/adr/46-incremental-dependency-graph.md."
+description: "rigortype/rigor docs/adr/46-incremental-dependency-graph.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/46-incremental-dependency-graph.md"
 sourcePath: "docs/adr/46-incremental-dependency-graph.md"
 sourceSha: "1552fbbc6e7d55f8f8b99e0656d7076986c60876bfc290de940d018a7f8216eb"

@@ -1,6 +1,6 @@
 ---
 title: "実アプリでのSorbet/Tapioca調査 — strap + dependabot-core"
-description: "Imported from rigortype/rigor docs/notes/20260530-sorbet-real-app-survey.md."
+description: "rigortype/rigor docs/notes/20260530-sorbet-real-app-survey.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260530-sorbet-real-app-survey.md"
 sourcePath: "docs/notes/20260530-sorbet-real-app-survey.md"
 sourceSha: "b271585d43050af6e9e8d9990aa64a63482551231a38c968ed1ef2e541c3a97d"

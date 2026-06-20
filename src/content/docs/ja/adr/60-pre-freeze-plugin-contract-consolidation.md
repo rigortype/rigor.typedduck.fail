@@ -1,6 +1,6 @@
 ---
 title: "ADR-60: フリーズ前のプラグイン契約統合"
-description: "Imported from rigortype/rigor docs/adr/60-pre-freeze-plugin-contract-consolidation.md."
+description: "rigortype/rigor docs/adr/60-pre-freeze-plugin-contract-consolidation.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/60-pre-freeze-plugin-contract-consolidation.md"
 sourcePath: "docs/adr/60-pre-freeze-plugin-contract-consolidation.md"
 sourceSha: "a10dbddc992115e08910461896569f8f090061e7f38b140579183905e9581319"

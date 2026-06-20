@@ -1,6 +1,6 @@
 ---
-title: "Reflection Facade — `Rigor::Reflection`"
-description: "Imported from rigortype/rigor docs/internal-spec/reflection.md."
+title: "リフレクションファサード — `Rigor::Reflection`"
+description: "rigortype/rigor docs/internal-spec/reflection.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/reflection.md"
 sourcePath: "docs/internal-spec/reflection.md"
 sourceSha: "fc13aae6d2536fa251b317db4f845b1bc8a7b2d03d18d100981a622a96b14887"

@@ -1,6 +1,6 @@
 ---
-title: "Baseline Key Derivation"
-description: "Imported from rigortype/rigor docs/internal-spec/baseline.md."
+title: "ベースラインキー導出"
+description: "rigortype/rigor docs/internal-spec/baseline.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/baseline.md"
 sourcePath: "docs/internal-spec/baseline.md"
 sourceSha: "77430b69638d989a2fbb1ecb25d927b5b3ac84b3580c14aa66187f04f1b4e735"

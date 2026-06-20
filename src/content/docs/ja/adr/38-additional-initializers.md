@@ -1,6 +1,6 @@
 ---
 title: "ADR-38 — プラグインが宣言する追加イニシャライザー"
-description: "Imported from rigortype/rigor docs/adr/38-additional-initializers.md."
+description: "rigortype/rigor docs/adr/38-additional-initializers.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/38-additional-initializers.md"
 sourcePath: "docs/adr/38-additional-initializers.md"
 sourceSha: "6180dcd54d1b393d3db4ff65664b553f39d96266bd3f773d3300f7cec08b6104"

@@ -1,6 +1,6 @@
 ---
 title: "ADR-58 — インスタンス変数のフィールド型付け: 宣言由来のnilポリシー、同種書き込みの読み取り、コンストラクタの確定代入"
-description: "Imported from rigortype/rigor docs/adr/58-ivar-field-typing.md."
+description: "rigortype/rigor docs/adr/58-ivar-field-typing.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/58-ivar-field-typing.md"
 sourcePath: "docs/adr/58-ivar-field-typing.md"
 sourceSha: "10b0c14b5e39cad0a8035d0cdd6b51da147576288087d484b50a0687abbafcce"

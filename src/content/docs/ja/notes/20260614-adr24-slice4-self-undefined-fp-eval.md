@@ -1,6 +1,6 @@
 ---
-title: "ADR-24 slice 4 — `call.self-undefined-method` WD4 corpus FP evaluation"
-description: "Imported from rigortype/rigor docs/notes/20260614-adr24-slice4-self-undefined-fp-eval.md."
+title: "ADR-24 スライス4 — `call.self-undefined-method` WD4コーパスのFP評価"
+description: "rigortype/rigor docs/notes/20260614-adr24-slice4-self-undefined-fp-eval.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260614-adr24-slice4-self-undefined-fp-eval.md"
 sourcePath: "docs/notes/20260614-adr24-slice4-self-undefined-fp-eval.md"
 sourceSha: "1044606996f1a5b96a77750bed6b876279a5672633ad11688f240c947778a102"
@@ -22,7 +22,7 @@ Date: 2026-06-14。根拠: [ADR-24 §「Slice 4」](../../adr/24-self-method-cal
 
 ## 結果 —— ルールは昇格不可
 
-**コーパス全体で約454件の発火、本質的にすべて偽陽性**。 2つのバケット:
+**コーパス全体で約454件の発火、本質的にすべて偽陽性**。2つのバケット:
 
 ### バケット1 —— `Object` / `BasicObject`レシーバー（287件、支配的） —— 修正済み
 
@@ -36,7 +36,7 @@ Date: 2026-06-14。根拠: [ADR-24 §「Slice 4」](../../adr/24-self-method-cal
 
 **修正済み —— 抽象 / テンプレートメソッドの基底クラス**。基底クラスが、自身では宣言せずに、サブクラスが実装するメソッドを*呼ぶ*メソッドを定義する: `Mail::CommonField#decoded`は`do_decode`を呼ぶ（すべての`< CommonField`サブクラスがそれを定義する）;`Mail::Retriever#find`はPOP3 / IMAPが実装する。**サブクラス認識ゲーティング**は今や、取りこぼされたメソッドがself-クラスの既知のサブクラスのいずれかに定義されている（def-nodeテーブル経由の素の`def`、または動的定義）とき、取りこぼしを抑制する —— `discovered_superclasses`の子→親マップを反転して辿り、記録された各（非修飾の）親名を子の名前空間で解決する。どのサブクラスも定義しない本物のタイポは依然発火する。
 
-**修正済み —— 動的（非定数）スーパークラス**。 `Mail::PartsList < DelegateClass(Array)`（および`< Struct.new(...)` / `< Data.define(...)`）は動的に生成されたサーフェスを継承する;レコーダーは非定数スーパークラスを決して記録しないので、ゲートはそのクラスをスタンドアロンと誤って扱った。`SelfClosednessScanner`は今や、非定数スーパークラスを持つクラスをオープンとマークする。
+**修正済み —— 動的（非定数）スーパークラス**。`Mail::PartsList < DelegateClass(Array)`（および`< Struct.new(...)` / `< Data.define(...)`）は動的に生成されたサーフェスを継承する;レコーダーは非定数スーパークラスを決して記録しないので、ゲートはそのクラスをスタンドアロンと誤って扱った。`SelfClosednessScanner`は今や、非定数スーパークラスを持つクラスをオープンとマークする。
 
 2つの修正のターゲットごとの効果: mail 12 → 0、faraday 5 → 2。
 

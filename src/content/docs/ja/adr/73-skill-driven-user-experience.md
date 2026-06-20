@@ -1,6 +1,6 @@
 ---
 title: "ADR-73 — SKILL駆動のRigorユーザー体験（`rigor-next-steps`エントリーポイントとライブな`rigor skill --describe`）"
-description: "Imported from rigortype/rigor docs/adr/73-skill-driven-user-experience.md."
+description: "rigortype/rigor docs/adr/73-skill-driven-user-experience.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/73-skill-driven-user-experience.md"
 sourcePath: "docs/adr/73-skill-driven-user-experience.md"
 sourceSha: "fbf86e615a157dacdfade14af445d9f9f86f56503aff65aeb0a56e4d22361802"
@@ -60,7 +60,7 @@ Rigorは`skills/`配下に少数のAgent Skills——`rigor-project-init`、`rig
 
 ### WD3 — `rigor-next-steps`のインストール分岐は`docs/install.md`を指し、install.mdは折り返して委譲する
 
-インストールステップ（WD1のステップ2）は、`--describe`駆動にできない唯一の分岐です——`rigor`がインストールされていなければ、尋ねるべきバイナリがありません。そこで`rigor-next-steps`は生の`docs/install.md` URLへのポインターを埋め込みます（インストールの仕組みはめったに変わりません。これは最小の陳腐化しうるサーフェスであり、必要に迫られて受け入れたものです）。逆に、今日は常に`rigor-project-init`へ引き渡している`docs/install.md`のステップ4は、同じ`rigor skill --describe`ルーティングへ委譲するよう書き換えられます。そのため`install.md`と`rigor-next-steps`は「インストールの後に何が来るか」で食い違うことができません。
+インストールステップ（WD1のステップ2）は、`--describe`駆動にできない唯一の分岐です——`rigor`がインストールされていなければ、尋ねるべきバイナリがありません。そこで`rigor-next-steps`は生の`docs/install.md` URLへのポインタを埋め込みます（インストールの仕組みはめったに変わりません。これは最小の陳腐化しうるサーフェスであり、必要に迫られて受け入れたものです）。逆に、今日は常に`rigor-project-init`へ引き渡している`docs/install.md`のステップ4は、同じ`rigor skill --describe`ルーティングへ委譲するよう書き換えられます。そのため`install.md`と`rigor-next-steps`は「インストールの後に何が来るか」で食い違うことができません。
 
 ### WD4 — `rigor-protection-uplift`を出荷セットへ昇格させる
 
@@ -93,7 +93,7 @@ Rigorは`skills/`配下に少数のAgent Skills——`rigor-project-init`、`rig
 
 ネガティブ／持ち越し:
 
-- `rigor-next-steps`内の生の`docs/install.md` URL（WD3）は、小さな陳腐化しうるサーフェスです——インストールはgemに先行せねばならないため受け入れています。コピーではなくポインターに留めることで緩和しています。
+- `rigor-next-steps`内の生の`docs/install.md` URL（WD3）は、小さな陳腐化しうるサーフェスです——インストールはgemに先行せねばならないため受け入れています。コピーではなくポインタに留めることで緩和しています。
 - `rigor skill --describe`の出力テキスト＋新しいスキル名は、**[ADR-50](../50-release-engineering-and-stability-strategy/) WD1のもとv1.0で凍結される公開語彙**になります——推奨の*ロジック*は自由に進化できますが、コマンド名とスキルidは、1.0が出荷されれば互換性のコミットメントです。
 - 状態→スキルの決定木（WD2）はヒューリスティックです。スキルセットが成長すれば調整が必要になります。これは意図的に小さく加算的です——間違った推奨のコストは冗長な提案であって、偽の診断では決してありません（完全に偽陽性エンベロープの外側です）。
 
@@ -106,7 +106,7 @@ Rigorは`skills/`配下に少数のAgent Skills——`rigor-project-init`、`rig
 | スキル | ルーティングシグナル（存在のみ） | 基盤 | ステータス |
 | --- | --- | --- | --- |
 | `rigor-rbs-setup` | `Gemfile.lock`が存在 ∧ `rbs_collection.lock.yaml`がない（見出し分岐） | `rbs collection install`（自動検出、[`rbs_collection_discovery.rb`](https://github.com/rigortype/rigor/blob/master/lib/rigor/environment/rbs_collection_discovery.rb)を参照） | **実装済み（2026-06-20）** |
-| `rigor-editor-setup` | `rigor`への参照を含まずにコミットされた`.vscode/`（見出し分岐。ユーザーローカルなNeovim / Emacs / Helix設定についてはカタログのみ） | `rigor lsp`（[ADR-19](../19-language-server-packaging/)）、マニュアルのエディター章へルーティング | **実装済み（2026-06-20）** |
+| `rigor-editor-setup` | `rigor`への参照を含まずにコミットされた`.vscode/`（見出し分岐。ユーザーローカルなNeovim / Emacs / Helix設定についてはカタログのみ） | `rigor lsp`（[ADR-19](../19-language-server-packaging/)）、マニュアルのエディタ章へルーティング | **実装済み（2026-06-20）** |
 | `rigor-mcp-setup` | `rigor`への参照を含まずにコミットされた`.mcp.json` / `.cursor/mcp.json`（見出し分岐。ユーザーローカルなクライアント設定についてはカタログのみ） | `rigor mcp`（[ADR-33](../33-mcp-server/)）、マニュアルのMCP章へルーティング | **実装済み（2026-06-20）** |
 | `rigor-monkeypatch-resolve` | カタログのみ——シグナルは存在チェックではなく`triage`の実行を要する | `pre_eval:`（[ADR-17](../17-monkey-patch-pre-evaluation/)）＋`rigor triage` | **実装済み（2026-06-20）** |
 | `rigor-plugin-tune` | カタログのみ——`Gemfile.lock`をプラグインカタログへ再マッチングするのはオンデマンドのパスであり、安価な存在シグナルではない | `rigor plugins --strict`＋同梱のプラグインカタログ | **実装済み（2026-06-20）** |

@@ -1,5 +1,5 @@
 ---
-title: "ADR-67 WD3 + WD5 — call-site parameter inference (implementation + measurement)"
+title: "ADR-67 WD3 + WD5 — 呼び出しサイトのパラメータ推論（実装＋計測）"
 description: "rigortype/rigor の docs/notes/20260616-adr67-wd3-param-inference-singlelevel.md から取り込み。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260616-adr67-wd3-param-inference-singlelevel.md"
 sourcePath: "docs/notes/20260616-adr67-wd3-param-inference-singlelevel.md"

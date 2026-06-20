@@ -1,6 +1,6 @@
 ---
-title: "Session report — typing the plugin contract (2026-06-03)"
-description: "Imported from rigortype/rigor docs/notes/20260603-plugin-contract-typing-session-report.md."
+title: "セッションレポート — プラグイン契約の型付け（2026-06-03）"
+description: "rigortype/rigor docs/notes/20260603-plugin-contract-typing-session-report.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260603-plugin-contract-typing-session-report.md"
 sourcePath: "docs/notes/20260603-plugin-contract-typing-session-report.md"
 sourceSha: "6d0b653ed549c32f9d5387679e5034ae87dfc4e968daeccdf68a175a83371fd4"

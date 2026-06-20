@@ -1,6 +1,6 @@
 ---
 title: "ADR-42 — プラグインが提供する二項演算子の戻り値型（coerce方向）"
-description: "Imported from rigortype/rigor docs/adr/42-plugin-binary-operator-return-types.md."
+description: "rigortype/rigor docs/adr/42-plugin-binary-operator-return-types.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/42-plugin-binary-operator-return-types.md"
 sourcePath: "docs/adr/42-plugin-binary-operator-return-types.md"
 sourceSha: "30c18b5909944aaa0a134f69f9f3bbf45b1db60dfa75482bb59d7f094cfc9655"

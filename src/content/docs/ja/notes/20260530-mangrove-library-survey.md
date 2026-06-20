@@ -1,6 +1,6 @@
 ---
 title: "Mangrove（Result / Option / Enum）— ライブラリ調査 + `rigor-mangrove`の形状"
-description: "Imported from rigortype/rigor docs/notes/20260530-mangrove-library-survey.md."
+description: "rigortype/rigor docs/notes/20260530-mangrove-library-survey.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260530-mangrove-library-survey.md"
 sourcePath: "docs/notes/20260530-mangrove-library-survey.md"
 sourceSha: "3d9ca467ff57b82a4efbfea30f083e8f6c796c79397016e8eabb6cc67a4699e5"

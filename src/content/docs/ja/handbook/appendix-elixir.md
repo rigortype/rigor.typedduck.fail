@@ -1,6 +1,6 @@
 ---
 title: "付録 — Elixirから来た場合"
-description: "Imported from rigortype/rigor docs/handbook/appendix-elixir.md."
+description: "rigortype/rigor docs/handbook/appendix-elixir.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/appendix-elixir.md"
 sourcePath: "docs/handbook/appendix-elixir.md"
 sourceSha: "648d25d06209c3a62c19fe4d00c88cd327e04b510200871b3b77bb2b5362b40e"

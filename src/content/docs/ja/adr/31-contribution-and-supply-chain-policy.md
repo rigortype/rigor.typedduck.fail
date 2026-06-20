@@ -1,6 +1,6 @@
 ---
 title: "ADR-31 — 貢献およびサプライチェーンポリシー"
-description: "Imported from rigortype/rigor docs/adr/31-contribution-and-supply-chain-policy.md."
+description: "rigortype/rigor docs/adr/31-contribution-and-supply-chain-policy.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/31-contribution-and-supply-chain-policy.md"
 sourcePath: "docs/adr/31-contribution-and-supply-chain-policy.md"
 sourceSha: "8d1cfca110ba712639c00490c02c61ec902de321e6b4b8495e59e47355ef53d2"

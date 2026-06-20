@@ -1,6 +1,6 @@
 ---
 title: "rigor-activejob"
-description: "Imported from rigortype/rigor docs/manual/plugins/rigor-activejob.md."
+description: "rigortype/rigor docs/manual/plugins/rigor-activejob.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/plugins/rigor-activejob.md"
 sourcePath: "docs/manual/plugins/rigor-activejob.md"
 sourceSha: "c9a0328bf5f7324e61dba79485b66e58f4087a1e7324631b32b5670399b31925"
@@ -43,8 +43,8 @@ plugins:
 
 ## 制限事項
 
-- **直接のスーパークラスのみマッチ**。 `BaseJob < ApplicationJob`である状況下での`class WelcomeJob < BaseJob`は、`BaseJob`を`job_base_classes`に追加しない限り発見されません。
-- **構文上のアリティ**。 `#perform`のアリティはパラメータリストから読み取られます。`define_method`で構築された`#perform`は対象外です。
+- **直接のスーパークラスのみマッチ**。`BaseJob < ApplicationJob`である状況下での`class WelcomeJob < BaseJob`は、`BaseJob`を`job_base_classes`に追加しない限り発見されません。
+- **構文上のアリティ**。`#perform`のアリティはパラメータリストから読み取られます。`define_method`で構築された`#perform`は対象外です。
 - **位置アリティのみ**。必須のキーワード引数は発見器によって記録されますが、呼び出し箇所ではまだ検証されません。
 
 ## プラグインの内部

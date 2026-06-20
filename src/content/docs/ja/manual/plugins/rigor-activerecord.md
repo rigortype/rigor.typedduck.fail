@@ -1,6 +1,6 @@
 ---
 title: "rigor-activerecord"
-description: "Imported from rigortype/rigor docs/manual/plugins/rigor-activerecord.md."
+description: "rigortype/rigor docs/manual/plugins/rigor-activerecord.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/plugins/rigor-activerecord.md"
 sourcePath: "docs/manual/plugins/rigor-activerecord.md"
 sourceSha: "60eb2db018a74b316054d3486081db86c122161544b882901aebc60ff1f39743"
@@ -63,8 +63,8 @@ plugins:
 
 ## 制限事項
 
-- **直接のスーパークラスのみマッチ**。 `User < ApplicationRecord`である状況下での`class Admin < User`は発見されません。`User`を`model_base_classes`に追加するか、すべての具体的なモデルを明示的に列挙してください。
-- **`db/schema.rb`のみ**。 `db/structure.sql`（生のSQLダンプ）はこのイテレーションではサポートされていません。
+- **直接のスーパークラスのみマッチ**。`User < ApplicationRecord`である状況下での`class Admin < User`は発見されません。`User`を`model_base_classes`に追加するか、すべての具体的なモデルを明示的に列挙してください。
+- **`db/schema.rb`のみ**。`db/structure.sql`（生のSQLダンプ）はこのイテレーションではサポートされていません。
 - **カラムの読み取りであり、セッターではない**。このプラグインはインスタンス側のカラムの*読み取り*（`user.name`、`user.admin?`）と単数の関連を型付けしますが、`name=`セッターやダーティトラッキング系（`name_changed?`、`name_was`、…）は型付けしません。
 - **プロジェクト独自のインフレクションはまだ読み取られない**。モデル↔テーブルの複数形化は本物のActiveSupportインフレクターを通ります（そのため`Person → people`、`Mouse → mice`は解決されます）が、`config/initializers/inflections.rb`で宣言したルールはまだ取り込まれません ── それに依存するモデルには`self.table_name`が必要です（ADR-39スライス3）。
 

@@ -1,6 +1,6 @@
 ---
 title: "rigor-hanami"
-description: "Imported from rigortype/rigor docs/manual/plugins/rigor-hanami.md."
+description: "rigortype/rigor docs/manual/plugins/rigor-hanami.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/plugins/rigor-hanami.md"
 sourcePath: "docs/manual/plugins/rigor-hanami.md"
 sourceSha: "2c9c0ee33b1062f183c02b04b2493b7b35944ee8f64c49b366e7efce2008a651"
@@ -19,7 +19,7 @@ plugins:
   - rigor-hanami
 ```
 
-## What it checks
+## 何をチェックするか
 
 ```ruby
 # app/actions/books/index.rb
@@ -58,7 +58,7 @@ plugins:
 
 ## 制限事項
 
-- **厳密なアリティ（arity）**。 `#handle`はちょうど2つのパラメータを取らなければなりません。オプショナルまたはキーワード専用の形式は`handle-arity-mismatch`としてフラグされます。
+- **厳密なアリティ（arity）**。`#handle`はちょうど2つのパラメータを取らなければなりません。オプショナルまたはキーワード専用の形式は`handle-arity-mismatch`としてフラグされます。
 - **直接定義のみ**。基底クラスから継承された`#handle`（クラス自身で定義されたものではない）は検出されません。
 - **スタブ化されたサーフェス**。バンドルされたRBSはドキュメント化されたRequest / Response / Paramsのメソッドをカバーします。そのサーフェス外への呼び出しは、稼働中のHanamiインストールではなくスタブに対して解決されます。
 

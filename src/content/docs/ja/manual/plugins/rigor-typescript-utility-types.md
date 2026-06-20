@@ -1,6 +1,6 @@
 ---
 title: "rigor-typescript-utility-types"
-description: "Imported from rigortype/rigor docs/manual/plugins/rigor-typescript-utility-types.md."
+description: "rigortype/rigor docs/manual/plugins/rigor-typescript-utility-types.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/plugins/rigor-typescript-utility-types.md"
 sourcePath: "docs/manual/plugins/rigor-typescript-utility-types.md"
 sourceSha: "6e1948c94545e5abbe51491622dd84ee4771aa5968f2d4e1ad16880ff8e98ce7"

@@ -1,6 +1,6 @@
 ---
 title: "rigor-rails-routes"
-description: "Imported from rigortype/rigor docs/manual/plugins/rigor-rails-routes.md."
+description: "rigortype/rigor docs/manual/plugins/rigor-rails-routes.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/plugins/rigor-rails-routes.md"
 sourcePath: "docs/manual/plugins/rigor-rails-routes.md"
 sourceSha: "4fdbe5813deea7cb8558fc1e7a9f520b18ef1163ace9977040274923d638d29f"

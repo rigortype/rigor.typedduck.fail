@@ -1,6 +1,6 @@
 ---
-title: "Mutation-testing Rigor's own codebase — plan (RSpec ∪ self-check, with an independent type oracle)"
-description: "Imported from rigortype/rigor docs/notes/20260618-self-mutation-testing-plan.md."
+title: "Rigor自身のコードベースのミューテーションテスト — 計画（RSpec ∪ self-check、独立した型オラクル付き）"
+description: "rigortype/rigor docs/notes/20260618-self-mutation-testing-plan.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260618-self-mutation-testing-plan.md"
 sourcePath: "docs/notes/20260618-self-mutation-testing-plan.md"
 sourceSha: "71249b0c4734c8d97872b4c26256359096665312fdedf8b028df37133c6d60b2"

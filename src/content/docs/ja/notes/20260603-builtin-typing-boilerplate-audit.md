@@ -1,6 +1,6 @@
 ---
-title: "Built-in method typing — boilerplate / pain-point audit — 2026-06-03"
-description: "Imported from rigortype/rigor docs/notes/20260603-builtin-typing-boilerplate-audit.md."
+title: "組み込みメソッドの型付け — ボイラープレート／痛点の監査 — 2026-06-03"
+description: "rigortype/rigor docs/notes/20260603-builtin-typing-boilerplate-audit.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260603-builtin-typing-boilerplate-audit.md"
 sourcePath: "docs/notes/20260603-builtin-typing-boilerplate-audit.md"
 sourceSha: "91f878079b6b417acd9012d70c9c613754b9170575c20126472085f907531c61"
@@ -10,7 +10,7 @@ sidebar:
   order: 20266603
 ---
 
-## Motivation
+## 動機
 
 次バージョンの内部最適化テーマ。このノートは、Rubyの組み込みメソッドに型を割り当てる
 メカニズムにおける反復・ボイラープレート・手作業保守の痛点を棚卸しし、毎セッションで
@@ -19,7 +19,7 @@ sidebar:
 の規律）のもと、以下のクリーンアップはいずれも、畳み込み結果をビット単位で同一に保つ
 コンテナのみのリファクタリングでなければならない（`make verify`で検証）。
 
-## The mechanism in three layers
+## 3層構造の機構
 
 1. **カタログローダー層** —— `lib/rigor/inference/builtins/*_catalog.rb`
    （20ファイル）。それぞれ、生成されたYAMLカタログ
@@ -34,7 +34,7 @@ sidebar:
 
 各層には構造的な反復が蓄積している。所見は投資対効果（影響 ÷ リスク）の順で並べる。
 
-## Finding 1 — Tier-D folding modules are a copied skeleton
+## 所見1 — Tier-Dの畳み込みモジュールはコピーされた骨組み
 
 8つの`*_folding.rb`モジュールがほぼ同一の形を複製している:
 
@@ -60,7 +60,7 @@ sidebar:
 （CGIの要素エスケープ、ShellwordsのTupleリフト）はエントリー単位のオーバーライドとして
 残す。8ファイル → 1ハーネス＋データ。
 
-## Finding 2 — The dispatch chain is a hand-written `||` ladder
+## 所見2 — ディスパッチチェーンは手書きの`||`ラダー
 
 `method_dispatcher.rb:713-720`（シングルトン畳み込みチェーン）と`:697-704`
 （`dispatch_precise_tiers`）は、**同じ`receiver:/method_name:/args:`のキーワード
@@ -75,11 +75,11 @@ FileFolding.try_dispatch(receiver: receiver_type, method_name: method_name, args
 **痛点**。新たなtierとは、モジュールを書く*うえに*それをラダーへ手作業で継ぎ込む
 ことを意味する。順序は重要（コメントに記載）だが、リストとして見ることができない。
 
-**方向性**。 `SINGLETON_FOLDERS = [FileFolding, ShellwordsFolding, …]`を
+**方向性**。`SINGLETON_FOLDERS = [FileFolding, ShellwordsFolding, …]`を
 `SINGLETON_FOLDERS.lazy.filter_map { |m| m.try_dispatch(**ctx) }.first`で駆動する。
 順序＝配列の順序。先にFinding 3を要する。
 
-## Finding 3 — Entry-point names and signatures are not uniform
+## 所見3 — エントリポイント名とシグネチャが不統一
 
 `try_dispatch`（cgi/uri/file/math/regexp/set/shellwords/kernel/shape）
 対`try_fold`（`constant_folding.rb:135`、`block_folding.rb:72`）対
@@ -94,7 +94,7 @@ FileFolding.try_dispatch(receiver: receiver_type, method_name: method_name, args
 （エイリアス移行）。コンテキストを多く要するtierは1つの`context:`オブジェクトを取り、
 `ParameterLists`の抑制を引退させる。
 
-## Finding 4 — Catalog loaders are boilerplate + a 3-site edit
+## 所見4 — カタログローダーはボイラープレート＋3箇所編集
 
 各`*_catalog.rb`は実質的に1ステートメントである
 （`random_catalog.rb:24`、`set_catalog.rb:22`、…）:
@@ -123,7 +123,7 @@ topic: "string")`）、requireリストと`CATALOG_BY_CLASS`を統合する。
 > なぜそうなるのかを正確に記録している。一字一句そのまま保持し、コンテナだけを
 > 薄くすること。
 
-## Finding 5 — Fixture escaping, size caps, and rescue floors re-implemented by hand
+## 所見5 — フィクスチャエスケープ／サイズ上限／rescueフロアの手作業による再実装
 
 `rigor-type-coverage-uplift`スキル自身が指摘したもの:
 
@@ -139,7 +139,7 @@ topic: "string")`）、requireリストと`CATALOG_BY_CLASS`を統合する。
 **方向性**。上限＋rescueをFinding 1のハーネスに吸収する。手作業でエスケープした
 フィクスチャ文字列を、Rubyの値からアサート文字列を導出するヘルパーで置き換える。
 
-## Summary (ROI order)
+## まとめ（ROI順）
 
 | # | Pain point | Scale | Risk |
 |---|---|---|---|
@@ -152,7 +152,7 @@ topic: "string")`）、requireリストと`CATALOG_BY_CLASS`を統合する。
 最大のテコは1＋2＋3をまとめて畳み込むことである: 1つのインターフェースの背後にある
 純粋シングルトンフォルダー、宣言テーブル、そして配列駆動のディスパッチ。
 
-## Execution order (ease-of-implementation)
+## 実行順序（実装容易性）
 
 1. **Finding 4** —— 最小・最安全、インターフェース変更なし。パスヘルパー＋自己登録。
 2. **Finding 1** —— `SingletonFunctionFolder`ハーネス。まず証明としてURI / CGI /
@@ -164,13 +164,13 @@ topic: "string")`）、requireリストと`CATALOG_BY_CLASS`を統合する。
 各ステップは`make verify`（test / lint / check / check-plugins）でゲートし、
 畳み込み結果は変わらないこと。
 
-## Progress log (2026-06-03 → 2026-06-04)
+## 進捗ログ（2026-06-03 → 2026-06-04）
 
 - **Finding 4 — DONE（パスヘルパー）**。単一の`DATA_ROOT`配下で解決する
   `MethodCatalog.for_topic(topic, mutating_selectors:)`を追加。18個すべての
   インスタンスローダーを、コピーされた
   `File.expand_path("../../../../…", __dir__)`から移行した。ブロックリストは未変更。
-  - **自己登録のサブパート — WON'T DO（決定）**。 `require_relative`リストを
+  - **自己登録のサブパート — WON'T DO（決定）**。`require_relative`リストを
     ロード順の自己登録で`CATALOG_BY_CLASS`と統合するのは*きれいな*勝ちでは*ない*:
     `CATALOG_BY_CLASS`はサブクラスの曖昧性解消のため宣言順に走査される
     （`Date`より前の`DateTime`、1つのカタログを共有する`MatchData`/`Regexp`）が、
@@ -186,7 +186,7 @@ topic: "string")`）、requireリストと`CATALOG_BY_CLASS`を統合する。
     畳み込み（`magnitude`→`abs`、`inspect`→`to_s`、…）をスナップショットの移動なしに
     加える。ractor対応性チェックは現在、`CATALOG_BY_CLASS`のディープフリーズを通じて
     インスタンスが共有可能であることをアサートする。
-- **Finding 1 — DONE**。 `MethodDispatcher::SingletonFolding`を抽出
+- **Finding 1 — DONE**。`MethodDispatcher::SingletonFolding`を抽出
   （`receiver?` + `constant_string`）。9つすべてのレシーバー述語
   （CGI/URI/Shellwords/Math/Time/Regexp/Set/File + iterator_dispatchの`Class`
   チェック）と、4つの文字列畳み込みの`Constant[String]`アンラップをこれに移行した。
@@ -194,7 +194,7 @@ topic: "string")`）、requireリストと`CATALOG_BY_CLASS`を統合する。
   本体（Mathの数値、Fileのプラットフォームゲート、Setのコンストラクタ、Timeの
   アリティ、Shellwordsの上限）はバラエティに富みすぎていて、ドメインロジックを
   埋めずにテーブル駆動化できない。本当に同一なゲートだけを抽出した。
-- **Finding 2 — DONE（シングルトンチェーン）**。 `dispatch_stdlib_module_tiers`は
+- **Finding 2 — DONE（シングルトンチェーン）**。`dispatch_stdlib_module_tiers`は
   現在`STDLIB_MODULE_FOLDERS.each`で駆動される（8つのフォルダーはすでに
   `try_dispatch`を共有していたので、*この*チェーンにはFinding 3への依存はない）。
   `dispatch_precise_tiers`のラダー（697-705）はまだ`try_fold` / `try_dispatch` /
@@ -225,7 +225,7 @@ topic: "string")`）、requireリストと`CATALOG_BY_CLASS`を統合する。
     呼ばれる。specは新しい`cc(...)`サポートヘルパー経由で移行した（Slice Bの
     102呼び出し箇所）。公開の`dispatch` / `expected_block_param_types`はキーワード
     シグネチャを維持する（外部の呼び出し元は影響を受けない）。
-  - **パフォーマンス: ニュートラル**。 `rigor check --no-cache lib`のインターリーブ
+  - **パフォーマンス: ニュートラル**。`rigor check --no-cache lib`のインターリーブ
     A/B（Finding 3前のd153403d対 後の4545dc63、4ペア） —— 前の平均7.58秒、後の
     平均7.70秒（約1.6%）で、実行ごとのばらつき（6.93〜8.40秒、±15%。1ペアでは後が
     速い）の十分内側。ディスパッチごとの`CallContext`アロケーションは針を動かさない。

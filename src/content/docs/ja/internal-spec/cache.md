@@ -1,6 +1,6 @@
 ---
-title: "Cache Layer — `Rigor::Cache`"
-description: "Imported from rigortype/rigor docs/internal-spec/cache.md."
+title: "キャッシュレイヤー — `Rigor::Cache`"
+description: "rigortype/rigor docs/internal-spec/cache.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/cache.md"
 sourcePath: "docs/internal-spec/cache.md"
 sourceSha: "3a9d5190efb75787aa40c2ab04257f73184ebfd81066f4205b699ef98d46b920"

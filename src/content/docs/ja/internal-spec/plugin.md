@@ -1,6 +1,6 @@
 ---
-title: "Plugin Registration / Loading (slice 1)"
-description: "Imported from rigortype/rigor docs/internal-spec/plugin.md."
+title: "プラグインの登録／読み込み（スライス1）"
+description: "rigortype/rigor docs/internal-spec/plugin.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/plugin.md"
 sourcePath: "docs/internal-spec/plugin.md"
 sourceSha: "b3c0666fb2772b22d2d18ed7e6f66379777d4f8b6c2ad3045f4543bbe0d0df7d"

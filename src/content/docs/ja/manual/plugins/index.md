@@ -1,6 +1,6 @@
 ---
-title: "Plugin reference"
-description: "Imported from rigortype/rigor docs/manual/plugins/README.md."
+title: "プラグインリファレンス"
+description: "rigortype/rigor docs/manual/plugins/README.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/plugins/README.md"
 sourcePath: "docs/manual/plugins/README.md"
 sourceSha: "0cca1a12a0650b0371237b570fadbe424713dfbdc12155d9db9473823be21208"

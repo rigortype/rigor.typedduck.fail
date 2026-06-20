@@ -1,6 +1,6 @@
 ---
-title: "ADR-57 Slice 1 — gate-open firing adjudication (2026-06-12)"
-description: "Imported from rigortype/rigor docs/notes/20260612-adr57-adjudication.md."
+title: "ADR-57 スライス1 — ゲート開放時の発火の裁定（2026-06-12）"
+description: "rigortype/rigor docs/notes/20260612-adr57-adjudication.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260612-adr57-adjudication.md"
 sourcePath: "docs/notes/20260612-adr57-adjudication.md"
 sourceSha: "646df6de7d2b8d2e2b26be6148776e66e81be584c70f7777e34cd946a7c469f6"
@@ -45,11 +45,11 @@ sidebar:
 ### メカニズムのグルーピング
 
 1. **末尾のみを評価する本文評価器が、明示的なearly-`return`の値を取りこぼす（15発火）**。支配的なartifactクラス。修正済み。
-2. **ブロックでキャプチャされたHash要素への書き込み（`OptionParser#on`ブロック内の`options[k]=v`）が書き戻されない（3発火: triage:35、diff:48、sig_gen_command:59――最後の1件はfix-1が`options.nil?`を露呈させて初めて表面化した）**。 ADR-56のキャプチャ済み変更ファミリーのHash要素バリアント。本スライスでは未修正。
+2. **ブロックでキャプチャされたHash要素への書き込み（`OptionParser#on`ブロック内の`options[k]=v`）が書き戻されない（3発火: triage:35、diff:48、sig_gen_command:59――最後の1件はfix-1が`options.nil?`を露呈させて初めて表面化した）**。ADR-56のキャプチャ済み変更ファミリーのHash要素バリアント。本スライスでは未修正。
 3. **`Configuration.load`のRBS `?String`が厳しすぎる（fix-1後のsig_gen_command:50を含め5発火）**。自作のRBSバグ――`load`の本文は`path || discover`でnilチェックを行うので、RBSは`?String?`であるべき。GENUINE-via-RBS。1行のシグネチャ拡張であって、エンジンのartifactではない。
-4. **`reset!`のRBS `() -> nil`が誤り（1）**。 GENUINE-via-RBS。
+4. **`reset!`のRBS `() -> nil`が誤り（1）**。GENUINE-via-RBS。
 5. **`Array#find`のオプショナル性（loader.rb:76、1）**。健全な保守性。実行時不変条件（Kahnの`in_degree.zero?`）がnilを排除する。出荷すればFPの危険があり、戻り値推論の修正ではなくフローナローイングが必要。
-6. **スタブのalways-falseガード（constant_folding:1176、1）**。 GENUINE、無害。
+6. **スタブのalways-falseガード（constant_folding:1176、1）**。GENUINE、無害。
 
 ## コーパス差分（ゲート開、fix-1後）
 

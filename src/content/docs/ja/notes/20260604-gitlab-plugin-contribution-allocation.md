@@ -1,6 +1,6 @@
 ---
-title: "Profiling `rigor check` on GitLab: plugin-contribution churn"
-description: "Imported from rigortype/rigor docs/notes/20260604-gitlab-plugin-contribution-allocation.md."
+title: "GitLabでの`rigor check`のプロファイリング：プラグイン寄与のチャーン"
+description: "rigortype/rigor docs/notes/20260604-gitlab-plugin-contribution-allocation.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260604-gitlab-plugin-contribution-allocation.md"
 sourcePath: "docs/notes/20260604-gitlab-plugin-contribution-allocation.md"
 sourceSha: "8838732db1bc5467c09541bc01ffc8aa86d6e8e6f247185be9b3055d6188829c"
@@ -107,7 +107,7 @@ def type_specifiers;  (@type_specifiers || []).dup.freeze; end   # base.rb:255
   （実時間の0.3%）** ─ ボトルネックではありません。（`rigor-rails-routes`のnil-tableメモ修正の
   動機となった105,724回読み取りの爆発は、ルートファイルが*存在しない/解析不能*な場合にのみ
   発生します。その修正はロバストネスの向上として真に有効ですが、GitLabのホットパスではありません。）
-- **`collect_plugin_contributions`が真の#1アロケーターです**。 `dynamic_returns`のdup修正後、
+- **`collect_plugin_contributions`が真の#1アロケーターです**。`dynamic_returns`のdup修正後、
   忠実な`:object`プロファイルでは単体で**全アロケーションの19.2%**（`type_specifier_facts`、
   兄弟の`StatementEvaluator`コレクター、`flat_map`を合わせると≈34%）を占めています。
   `Kernel#dup`は17% → 1.2%に低下し、dup修正の効果が確認されました。

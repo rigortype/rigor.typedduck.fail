@@ -1,6 +1,6 @@
 ---
 title: "ADR-48 — Struct / Data値畳み込み（メンバーシェイプキャリア）"
-description: "Imported from rigortype/rigor docs/adr/48-data-struct-value-folding.md."
+description: "rigortype/rigor docs/adr/48-data-struct-value-folding.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/48-data-struct-value-folding.md"
 sourcePath: "docs/adr/48-data-struct-value-folding.md"
 sourceSha: "c99509171300e354ed041ef5408287a0aac1eaa9c35f045603a6889f893f8666"
