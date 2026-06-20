@@ -122,7 +122,7 @@ PHPStanの`phpstan.neon`とRigorの`.rigor.yml`/`.rigor.dist.yml`は同じ形状
 
 ベースラインのワークフローは同一。第8章にウォークスルーがある。
 
-`includes:`のセマンティクスもPHPStanのものと一致する: 宣言順、後のものが前のものをオーバーライドし、現在のファイルのキーはincludeされたファイルより優先される。RigorのHe`.rigor.yml`は`.rigor.dist.yml`と自動マージしない — オーバーライドは`includes:`の下にdistファイルを明示的にリストしなければならない。PHPStanも`phpstan.neon`と`phpstan.neon.dist`の両方がある場合に同じ動作をする。
+`includes:`のセマンティクスもPHPStanのものと一致する: 宣言順、後のものが前のものをオーバーライドし、現在のファイルのキーはincludeされたファイルより優先される。Rigorの`.rigor.yml`は`.rigor.dist.yml`と自動マージしない — オーバーライドは`includes:`の下にdistファイルを明示的にリストしなければならない。PHPStanも`phpstan.neon`と`phpstan.neon.dist`の両方がある場合に同じ動作をする。
 
 ## スタブ ↔ RBS
 
