@@ -3,8 +3,8 @@ title: "コーパス全体のコールド/ウォーム再プロファイル — 
 description: "rigortype/rigor docs/notes/20260620-corpus-cold-warm-reprofile.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260620-corpus-cold-warm-reprofile.md"
 sourcePath: "docs/notes/20260620-corpus-cold-warm-reprofile.md"
-sourceSha: "9b1759b818bf208a74dcb085afd83ec8ce767e4eb50bc6168566f1f136f01318"
-sourceCommit: "51a679f3ccd12f5bee48c24150401d10e978efce"
+sourceSha: "c52be824ff5efc72d8efbe89034514cf84f90bf310726827c56e416f060a6305"
+sourceCommit: "321f7d04a39d2736e0c59c872dd4c587e370b3bc"
 translationStatus: "translated"
 sidebar:
   order: 20266620
@@ -47,6 +47,8 @@ sidebar:
 これはmailのコールドの約11 %であり、決定的なのは**ウォームの約50 %超**である点だ。実行結果キャッシュ（ADR-45）は*解析*をカバーするが、プロジェクトスコープの**シードはキャッシュ状態にかかわらず実行のたびに再パース・再ウォークされる**（確認済み — Prism.parseとScopeIndexerのウォークがmailのウォームプロファイルのすべてである）。これらのウォークは同じ走査の骨格を共有しており（クラス/モジュールを降下し、`qualified_prefix`を追跡し、特異クラスを処理する）、ノードごとに何を収集するかだけが異なる — すなわち、**ADR-53のトラックB**が`CheckRules`の5回のファイルごとのウォークをエンジン所有の1回の降下へと統合したのとまさに同じ形状である。
 
 **推奨：** 13回の降下を、すべてのコレクタへディスパッチする1つの共有ビジターへ統合すること。これはコールドのシードコストと支配的なウォームコストの両方を削減し、ADR-46のインクリメンタル化（キャッシュが既に計算しているダイジェストをキーにして、ファイルごとのシード寄与をキャッシュする — 本当のウォーム修正）の自然な前段となる。ADR-53のトラックBで必須とされるシャドウラン等価性ハーネス（バイト単位で同一の診断）でゲートすること。
+
+**更新（2026-06-20、同日 — 最初のスライス（slice）が着地）：**最も統合しやすいペアを統合した。`walk_methods`と`walk_def_nodes`はクラス/モジュール/特異クラスの降下がバイト単位で同一であった（どちらも`DefNode`で停止する）ため、単一の`walk_methods_and_def_nodes`が、発見済みメソッドの存在テーブルとインスタンスのdefノードテーブルの両方を生成するようになった。さらにクロスファイルの事前パスはdefノードツリーを*2回*ウォークしていた（`merge_discovered_defs`＋`record_class_sources`）が、これを1回に通した。コールド`--no-cache`のアロケーション：`mail`が20.6M→18.9M（**−8.0%**）、kramdownが−1.3%、redmineが−1.1%、mastodonが−0.7%。予測どおり**ウォーム**の恩恵のほうが大きい — シードパスはキャッシュヒット実行のより大きな割合を占めるからだ：`mail`のウォームアロケーションは6.60M→5.36M（**−18.8%**）へ低下し、ウォール時間は約1.13秒→約0.93秒。診断はサーベイコーパス全体でバイト単位で同一、`make verify`はグリーン。残りの降下（rvalue型付けのivar/cvar/global/constantウォークは`seeded_scope`のデータ依存を持ち、可視性と`module_function`のウォークは文順序の状態を引き回す）は、別個のゲート付きフォローアップとして残す — これらはdefファミリーと綺麗な走査の骨格を共有しないからだ。
 
 ## 計測によって排除された2つのレッドヘリング
 

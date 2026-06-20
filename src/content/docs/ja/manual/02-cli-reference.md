@@ -3,9 +3,9 @@ title: "CLIコマンドリファレンス"
 description: "rigortype/rigor docs/manual/02-cli-reference.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/02-cli-reference.md"
 sourcePath: "docs/manual/02-cli-reference.md"
-sourceSha: "337824d8fa8bc6ce6cf0386d1c039d8cd0be54d5b11f087809d56ae92eda2cf8"
-sourceCommit: "51a679f3ccd12f5bee48c24150401d10e978efce"
-sourceDate: "2026-06-20T14:25:50+09:00"
+sourceSha: "f588e8d169a01bc5c59364bb0ad1580e6ce813a3cf37de67ac61116e1e3b5372"
+sourceCommit: "321f7d04a39d2736e0c59c872dd4c587e370b3bc"
+sourceDate: "2026-06-20T19:24:34+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9002
@@ -302,6 +302,23 @@ rigor describe
 ```
 
 存在の有無のみのプロジェクト状態プローブ（`.rigor.yml`、`.rigor-baseline.yml`、`sig/`ディレクトリ、CI統合は存在するか？）と、推奨される次のスキルを報告します。読み取り専用で副作用がなく——`rigor check`を決して実行しません。`rigor skill describe`と同一の出力です。
+
+## `rigor docs`
+
+`rigortype` gemに同梱されたユーザーマニュアルを**オフラインで**出力します。これにより、Rigorさえインストールされていれば、SKILL駆動のUXが案内するRigorを駆動するためのガイダンスを、AIコーディングエージェント（やあなた自身）がネットワークなしで読めます（[ADR-74](../../adr/74-offline-doc-access-and-llms-txt/)）。これは[`rigor skill`](#rigor-skill)のドキュメント版にあたります——gemは`docs/install.md`、`docs/llms.txt`、そして[`docs/manual/`](../)一式を同梱しますが、貢献者向けのADR / 仕様 / 開発ノートのコーパスはサイト上のWeb限定のままです。
+
+```sh
+rigor docs [<name> | list | path <name>]
+```
+
+| サブコマンド | 用途 |
+| --- | --- |
+| （なし） | 同梱の`llms.txt`オフラインドキュメント索引——`rigor docs <name>`が提供できるものの一覧——を出力する。 |
+| `<name>` | マニュアルページを来歴コメント付きでstdoutに出力する。章のプレフィックス付き名（`02-cli-reference`）、プレフィックスを外した名（`cli-reference`）、`install`、または`docs/`相対パスを受け付ける。 |
+| `list` | 同梱されたすべてのドキュメントの表（名前＋絶対パス）。 |
+| `path <name>` | ドキュメントの絶対パスを1行で出力する。ファイル読み取りツールへの入力に適する。 |
+
+索引の正典となるWeb版は<https://rigor.typedduck.fail/llms.txt>です。`rigor docs`はインストール済みのgemから同じページをHTTPリクエストなしで提供します。
 
 ## `rigor show-bleedingedge`
 
