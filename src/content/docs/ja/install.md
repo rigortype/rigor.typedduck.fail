@@ -154,9 +154,9 @@ rigor skill describe
 これはプロジェクトの現在の状態（設定 / ベースライン（baseline）/ `sig/` / CI）を報告し、理由とともに次に実行すべきスキルを推奨し、すべてのスキルをその現在の説明とともに列挙します。出力される`## Recommended next step`に従ってください——まだ`.rigor.yml`がないプロジェクトでは、それは`rigor-project-init`です:
 
 ```sh
-rigor skill print rigor-project-init
+rigor skill rigor-project-init
 ```
 
-`rigor skill print <name>`はSKILL定義を出力します——ファイルパスを含むヘッダーに続いてSKILL本文です。上から下まで従ってください。project-initスキルはプロジェクトのスタックを検出し、プラグインを提案し、`.rigor.dist.yml`を書き込み、必要に応じてベースラインをスナップショットします。プロジェクトのセットアップが済んだら、その次のステップのために`rigor skill describe`を再実行してください。
+`rigor skill <name>`はSKILL定義を出力します——ファイルパスを含むヘッダーに続いてSKILL本文です。上から下まで従ってください。project-initスキルはプロジェクトのスタックを検出し、プラグインを提案し、`.rigor.dist.yml`を書き込み、必要に応じてベースラインをスナップショットします。プロジェクトのセットアップが済んだら、その次のステップのために`rigor skill describe`を再実行してください。
 
-`rigor skill describe`が認識されない場合は、お使いのRigorのバージョンがそれより古いということです。`rigor --version`を実行し、`mise use gem:rigortype`（またはケースC/Bの場合は`gem update rigortype`）でアップグレードしてください。古いバージョンでは、`rigor skill print rigor-project-init`を直接実行してください。
+`rigor skill describe`が認識されない場合は、お使いのRigorのバージョンがそれより古いということです。`rigor --version`を実行し、`mise use gem:rigortype`（またはケースC/Bの場合は`gem update rigortype`）でアップグレードしてください。古いバージョンでは、`rigor skill rigor-project-init`を直接実行してください。

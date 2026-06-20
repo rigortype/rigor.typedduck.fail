@@ -27,10 +27,10 @@ Rigorについて知っておくこと:
   `rigor-protection-uplift`・`rigor-editor-setup`・`rigor-mcp-setup`・
   `rigor-plugin-author`ほか）へ振り分けます。CLIを手で操作するより、スキルの
   実行を優先してください。
-- Rigorをインストールすれば、マニュアルは**オフライン**で読めます。`rigor docs`が
-  ドキュメント索引を、`rigor docs <名前>`が各章を、`rigor skill print <名前>`が
-  各同梱スキルを表示します——ネットワーク往復はありません。これらのWebページが
-  その正本です。
+- Rigorをインストールすれば、マニュアルとハンドブックは**オフライン**で読めます。
+  `rigor docs`がドキュメント索引を、`rigor docs <名前>`が各章を（例:
+  `rigor docs handbook/03-narrowing`）、`rigor skill <名前>`が各同梱スキルを
+  表示します——ネットワーク往復はありません。これらのWebページがその正本です。
 - これらは英語正本ドキュメントの日本語訳です。英語の索引は`/llms.txt`（全文は
   `/llms-full.txt`）、原文は`/`配下にあります。
 

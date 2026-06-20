@@ -27,9 +27,9 @@ Things to know about Rigor:
   `rigor-rbs-setup`, `rigor-baseline-reduce`, `rigor-ci-setup`,
   `rigor-protection-uplift`, `rigor-editor-setup`, `rigor-mcp-setup`,
   `rigor-plugin-author`, and more). Prefer running a skill over hand-driving the CLI.
-- Once Rigor is installed, the manual is available **offline**: `rigor docs` prints
-  the doc index and `rigor docs <name>` any chapter, and `rigor skill print <name>`
-  any bundled skill — no network round-trip. These web pages are the canonical copy.
+- Once Rigor is installed, the manual and handbook are available **offline**: `rigor docs`
+  prints the doc index, `rigor docs <name>` any chapter (e.g. `rigor docs handbook/03-narrowing`),
+  and `rigor skill <name>` any bundled skill — no network round-trip. These web pages are the canonical copy.
 - These pages are the canonical English docs. A Japanese translation is indexed
   at `/ja/llms.txt` (full text at `/ja/llms-full.txt`); pages mirror under `/ja/`.
 
