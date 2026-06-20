@@ -28,9 +28,9 @@ errors_demo.rb:15:1: error: `UserMailer.does_not_exist` is not a defined mailer 
 app/mailers/user_mailer.rb:14:7: warning: `UserMailer#digest` has no view template under `app/views/user_mailer/`
 ```
 
-1. **アクションの存在** — `Mailer.unknown_action(...)` → `unknown-action`（未解決の`include`がある場合は、推測する代わりにこれを抑制します）。
-2. **引数のアリティ** — 位置引数が少なすぎる／多すぎる → `wrong-arity`。
-3. **ビューテンプレートの存在** — 各アクションには少なくとも1つの`app/views/<mailer_underscore>/<action>.{html,text}.{erb,haml,slim}`が必要です。存在しない場合は`missing-view`となり、アクションの`def`にアンカーされます。
+1. **アクションの存在**: `Mailer.unknown_action(...)` → `unknown-action`（未解決の`include`がある場合は、推測する代わりにこれを抑制します）。
+2. **引数のアリティ**: 位置引数が少なすぎる／多すぎる → `wrong-arity`。
+3. **ビューテンプレートの存在**: 各アクションには少なくとも1つの`app/views/<mailer_underscore>/<action>.{html,text}.{erb,haml,slim}`が必要です。存在しない場合は`missing-view`となり、アクションの`def`にアンカーされます。
 
 認識される呼び出し形は次のとおりです。直接のアクション呼び出し（`UserMailer.welcome(user)`）、`.with(...)`チェーン（`UserMailer.with(user: u).welcome(user)`）、末尾の`.deliver_now` / `.deliver_later`（受け入れられますが、解釈はされません）。
 

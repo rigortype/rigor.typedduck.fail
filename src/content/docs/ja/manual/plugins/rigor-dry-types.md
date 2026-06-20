@@ -10,7 +10,7 @@ sidebar:
   order: 9050
 ---
 
-dry-rbファミリーの基盤プラグインです。標準的なdry-typesのエイリアスモジュール—
+dry-rbファミリーの基盤プラグインです。標準的なdry-typesのエイリアスモジュール
 
 ```ruby
 module Types
@@ -18,7 +18,7 @@ module Types
 end
 ```
 
-—を認識し、それが生成するエイリアス名を、基底となるRubyクラスへ解決できるようにします。そしてそれらをクロスプラグインのファクト（fact、`:dry_type_aliases`）として公開します。これは[`rigor-dry-struct`](../../07-plugins/)、`rigor-dry-schema`、`rigor-dry-validation`が消費します。
+を認識し、それが生成するエイリアス名を、基底となるRubyクラスへ解決できるようにします。そしてそれらをクロスプラグインのファクト（fact、`:dry_type_aliases`）として公開します。これは[`rigor-dry-struct`](../../07-plugins/)、`rigor-dry-schema`、`rigor-dry-validation`が消費します。
 
 `rigortype`にバンドルされて配布されます。これを消費するdry-rbプラグインと一緒に有効化します。
 
@@ -35,10 +35,10 @@ plugins:
 
 ## 認識する対象
 
-- **標準的なショートカット** — `Types::String` / `Integer` / `Float` / `Decimal` → `BigDecimal` / `Bool` / `Date` / `Hash` / `Array` / `Any` → `Object`、その他。
-- **強制変換カテゴリーの名前空間** — `Coercible::` / `Strict::` / `Params::` / `JSON::`配下の同じ名前（基底のクラスは共有し、違いは実行時の強制変換にあります）。
-- **ネストしたエイリアスモジュール** — `module App; module Types; include Dry.Types(); end; end`は`App::Types::String`などを公開します。
-- **ユーザーが書いた単一ヘッドの合成** — `Email = String.constrained(format: …)`、`Status = Strict::Symbol`、`PositiveInt = Integer.constrained(gt: 0).optional`はヘッドの基底クラスのもとで公開されます。
+- **標準的なショートカット**: `Types::String` / `Integer` / `Float` / `Decimal` → `BigDecimal` / `Bool` / `Date` / `Hash` / `Array` / `Any` → `Object`、その他。
+- **強制変換カテゴリーの名前空間**: `Coercible::` / `Strict::` / `Params::` / `JSON::`配下の同じ名前（基底のクラスは共有し、違いは実行時の強制変換にあります）。
+- **ネストしたエイリアスモジュール**: `module App; module Types; include Dry.Types(); end; end`は`App::Types::String`などを公開します。
+- **ユーザーが書いた単一ヘッドの合成**: `Email = String.constrained(format: …)`、`Status = Strict::Symbol`、`PositiveInt = Integer.constrained(gt: 0).optional`はヘッドの基底クラスのもとで公開されます。
 
 ユニオン型（union type、`String | Integer`）、インターセクション型（intersection type、交叉型とも）、および他の合成への推移的な参照（`ManagerEmail = Email`）はスキップされます。公開すべき単一の基底クラスが存在しないためです。
 

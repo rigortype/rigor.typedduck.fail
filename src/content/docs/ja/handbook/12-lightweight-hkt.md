@@ -23,11 +23,11 @@ assert_type(
   parsed)
 ```
 
-この背後にある仕組み——そして自前のDSLやstdlibメソッドに同じ形状を配線できるようにするもの——が**軽量HKT**（[ADR-20](../../adr/20-lightweight-hkt/)）です。Rigorによる、[Yallop & White 2014](https://www.cl.cam.ac.uk/~jdy22/papers/lightweight-higher-kinded-polymorphism.pdf) /
+この背後にある仕組み（そして自前のDSLやstdlibメソッドに同じ形状を配線できるようにするもの）が**軽量HKT**（[ADR-20](../../adr/20-lightweight-hkt/)）です。Rigorによる、[Yallop & White 2014](https://www.cl.cam.ac.uk/~jdy22/papers/lightweight-higher-kinded-polymorphism.pdf) /
 [fp-tsの`URItoKind`](https://github.com/gcanti/fp-ts/blob/master/src/HKT.ts)
 スタイルでの、高階型の脱関数化エンコーディングです。本章ではそれが何をするのか、いつ使うべきか、自前のオーバーレイをどう作るかを順に見ていきます。
 
-本章はハンドブックの中で最も高度な章です。ほとんどの読者に必要なのは最初の2つのセクション——キャリアがどう見えるか、そしてどのstdlibメソッドが最初から配線されているか——だけです。「自前のオーバーレイを書く」以降はすべて、自分自身の再帰的な直和型をモデル化したいという稀なケースのためのものです。
+本章はハンドブックの中で最も高度な章です。ほとんどの読者に必要なのは最初の2つのセクション（キャリアがどう見えるか、そしてどのstdlibメソッドが最初から配線されているか）だけです。「自前のオーバーレイを書く」以降はすべて、自分自身の再帰的な直和型をモデル化したいという稀なケースのためのものです。
 
 ## 5秒で分かる要点
 
@@ -46,13 +46,13 @@ assert_type(
 Rigorは最初から2つのHKT登録を出荷しています。主要なものは**`json::value[K]`**、再帰的なJSON値の直和です（2つ目の`csv::parsed[K]`は本セクションの最後で扱います）。`json::value`は2つの部分から成ります:
 
 ```ruby
-# 登録 — タグを命名し、そのarity、分散、消去境界を宣言する。
+# 登録（タグを命名し、そのarity、分散、消去境界を宣言する）。
 # 境界は、簡約がブロックされたときにRigorのRBSラウンドトリップが
 # フォールバックする先である。
 uri=json::value arity=1 variance=out bound=untyped
 
-# 定義 — 実際のボディ。K（ハッシュキー型）でパラメータ化されている。
-# 自己参照する`App[json::value, K]`アームに注意 — Rigorのレデューサは
+# 定義（実際のボディ）。K（ハッシュキー型）でパラメータ化されている。
+# 自己参照する`App[json::value, K]`アームに注意。Rigorのレデューサは
 # 遅延「結び目固め」セマンティクスで再帰を扱う。
 params=K body=
   nil | true | false | Integer | Float | String
@@ -66,9 +66,9 @@ params=K body=
 - `YAML.safe_load` / `YAML.safe_load_file`
 - `Psych.safe_load` / `Psych.safe_load_file`
 
-HKT組み込みディスパッチャー層は標準RBSディスパッチの**上**に位置するので、上流のRBSが`JSON.parse: (string, ?options) -> untyped`と宣言していても、Rigorの答えは簡約されたUnionになります。`YAML.load` / `YAML.unsafe_load`は意図的に外しています——これらはどんなRubyオブジェクトでも返しうるので、有用なHKTエンベロープを持たないからです。
+HKT組み込みディスパッチャー層は標準RBSディスパッチの**上**に位置するので、上流のRBSが`JSON.parse: (string, ?options) -> untyped`と宣言していても、Rigorの答えは簡約されたUnionになります。`YAML.load` / `YAML.unsafe_load`は意図的に外しています。これらはどんなRubyオブジェクトでも返しうるので、有用なHKTエンベロープを持たないからです。
 
-2つ目のバンドル登録**`csv::parsed[K]`**は、`CSV.parse` / `CSV.read`を`Array[Array[K | nil]]`——ヘッダーなしの形状——としてモデル化します。`headers: true`を渡す呼び出し（`CSV::Table`を返す）と`CSV.foreach`（返すのではなくyieldする）は上流のRBS型にフォールスルーします。
+2つ目のバンドル登録**`csv::parsed[K]`**は、`CSV.parse` / `CSV.read`を`Array[Array[K | nil]]`（ヘッダーなしの形状）としてモデル化します。`headers: true`を渡す呼び出し（`CSV::Table`を返す）と`CSV.foreach`（返すのではなくyieldする）は上流のRBS型にフォールスルーします。
 
 ## 呼び出しサイトの2種類の判別
 
@@ -112,7 +112,7 @@ end
 いくつかのルール:
 
 - **URIは名前空間付きでなければならない**（`<author>::<name>`）。`::`セパレータがADR-20 WD1に従いクロスプラグイン衝突を防ぐ。
-- **ペイロード形式はスペース区切りの`key=value`ペア**。RBSの`%a{...}`アノテーション文法はクォートを拒否するので、JSONペイロードは動作しない——kv形式がRBSが届ける形である。
+- **ペイロード形式はスペース区切りの`key=value`ペア**。RBSの`%a{...}`アノテーション文法はクォートを拒否するので、JSONペイロードは動作しない。kv形式がRBSが届ける形である。
 - **`body=`は特殊扱いで、ペイロードの末尾までを丸ごと飲み込む**ので、ボディ文字列はエスケープなしでスペース、`|`、`[]`などを含められる。
 - **`params=`はUCName識別子のカンマ区切りリスト**（`params=K`または`params=T,E`）。
 - **`bound=`は`untyped`（デフォルト）または素のクラス名を受け付ける**。より豊富なbound形式（パラメータ化ジェネリクス、ユニオン、リファインメント（refinement、篩型とも））はフォローアップスライスの式パーサ待ち。
@@ -137,7 +137,7 @@ end
 
 ### 条件型（§ D3）
 
-条件型は境界型でボディを分岐させられる——単一の登録の中で形状駆動の判別をするのに有用:
+条件型は境界型でボディを分岐させられる。単一の登録の中で形状駆動の判別をするのに有用:
 
 ```ruby
 %a{rigor:v1:hkt_define: uri=my_app::result params=K body=
@@ -157,7 +157,7 @@ end
 
 - `:yes` → `then_branch`を簡約。
 - `:no` → `else_branch`を簡約。
-- `:maybe`（未決——例えばどちらかの辺が`Dynamic[T]`） → 両方の簡約された枝のユニオンに広げる（ADR-20 WD7 / ロバストネス原則に従い——どちらのアームが発火するかを証明できないとき、Rigorは保守的に留まる）。
+- `:maybe`（未決、例えばどちらかの辺が`Dynamic[T]`） → 両方の簡約された枝のユニオンに広げる（ADR-20 WD7 / ロバストネス原則に従い、どちらのアームが発火するかを証明できないとき、Rigorは保守的に留まる）。
 
 現スライスの評定ポリシー: 構造的等価 → `:yes`;互いに素な名前的型（異なる`class_name`）または互いに素な定数（異なる`value`） → `:no`;それ以外すべて → `:maybe`。
 
@@ -172,13 +172,13 @@ end
 }
 ```
 
-テストの両辺自体は単一のアーム（テスト辺に直接ユニオンは置けない——そこにユニオンが必要なら`App[my_union, ...]`でラップせよ）。
+テストの両辺自体は単一のアーム（テスト辺に直接ユニオンは置けない。そこにユニオンが必要なら`App[my_union, ...]`でラップせよ）。
 
-## 簡約のセマンティクス——遅延「結び目固め」
+## 簡約のセマンティクス: 遅延「結び目固め」
 
-おもしろい部分: `json::value`のボディは`Array[App[json::value, K]]`を含む——**自己参照**である。素朴な再帰レデューサは無限ループする。
+おもしろい部分: `json::value`のボディは`Array[App[json::value, K]]`を含む。**自己参照**である。素朴な再帰レデューサは無限ループする。
 
-Rigorのレデューサは`(uri, reduced_args)`をキーとする**進行中スタック**を持ち回ります。`AppRef`を評価するときその`(uri, args)`がスタックにあるものと一致したら、展開せずに進行中の`Type::App`キャリアをそのまま返します——遅延的に。再帰的型エイリアスのための標準的な不動点トリックです。
+Rigorのレデューサは`(uri, reduced_args)`をキーとする**進行中スタック**を持ち回ります。`AppRef`を評価するときその`(uri, args)`がスタックにあるものと一致したら、展開せずに進行中の`Type::App`キャリアを遅延的にそのまま返します。再帰的型エイリアスのための標準的な不動点トリックです。
 
 つまり`App[json::value, [String]]`を簡約すると次のようになります:
 
@@ -188,13 +188,13 @@ Union[ nil, true, false, Integer, Float, String,
        Hash[ String, Type::App[json::value, [String]] ] ]
 ```
 
-入れ子の`Type::App`は通常のRigor型です;下流の消費者（受容、ナローイング（narrowing）、ディスパッチ）はそれを`bound`（デフォルト`Dynamic[Top]`）に委譲して扱います。もう1段の展開が必要なら、再度`app.reduce(env.hkt_registry)`を呼びます——しかし典型的な消費者はそれを必要としません。
+入れ子の`Type::App`は通常のRigor型です;下流の消費者（受容、ナローイング（narrowing）、ディスパッチ）はそれを`bound`（デフォルト`Dynamic[Top]`）に委譲して扱います。もう1段の展開が必要なら、再度`app.reduce(env.hkt_registry)`を呼びます。しかし典型的な消費者はそれを必要としません。
 
 **燃料予算**（呼び出しサイト評価あたりデフォルト64簡約ステップ）が暴走する展開を制限します。枯渇は`app.bound`に巻き戻ります。
 
 ## まだしないこと
 
-軽量HKTは——まあ、軽量です。意識的な非目標:
+軽量HKTは、まあ、軽量です。意識的な非目標:
 
 - **バインダー抽出を伴うパターンマッチ**
   （`E <: [:if, _, A, B] ? lisp_type[A] | lisp_type[B] : ...`）。
@@ -204,7 +204,7 @@ Union[ nil, true, false, Integer, Float, String,
   バインダー抽出を必要とする;パターンバインディングが着地するまでは
   診断エミッターパスに留まる。
 - **非再帰コンテナのための複数引数HKT**
-  （`Result[T, E]` / `Maybe[T]`）——レジストリは複数引数URIを
+  （`Result[T, E]` / `Maybe[T]`）。レジストリは複数引数URIを
   サポートするが、Rigorの既存のキャリアは`Result`が必要とする
   封印ユニオン形状を持たない（ADR-3の改訂がゲート要素）。
 - **糖衣構文**。明示的な`%a{rigor:v1:hkt_register /
@@ -237,11 +237,11 @@ Union[ nil, true, false, Integer, Float, String,
 
 「JSON.parseはどこから型を得ているのか？」という疑問でここに来たなら、ハンドブックの残りが周辺機構をカバーします:
 
-- レデューサが出力するキャリア一覧については[第2章 — 日常的に出会う型](../02-everyday-types/)。
-- HKTディレクティブが並んで座るより広いアノテーション文法（`%a{rigor:v1:return:}`、`%a{rigor:v1:predicate-if-true:}`、……）については[第7章 — RBSと`RBS::Extended`](../07-rbs-and-extended/)。
-- Rigorが本物のHKTではなく軽量エンコーディングを採用した理由を説明する形式型理論の文脈については[付録 — 型理論との接続](../appendix-type-theory/)
+- レデューサが出力するキャリア一覧については[第2章: 日常的に出会う型](../02-everyday-types/)。
+- HKTディレクティブが並んで座るより広いアノテーション文法（`%a{rigor:v1:return:}`、`%a{rigor:v1:predicate-if-true:}`、……）については[第7章: RBSと`RBS::Extended`](../07-rbs-and-extended/)。
+- Rigorが本物のHKTではなく軽量エンコーディングを採用した理由を説明する形式型理論の文脈については[付録: 型理論との接続](../appendix-type-theory/)
   § 「Rigorがモデル化しないこと」。
 
 自前のオーバーレイをend-to-endで書きたいなら、
 [`spec/rigor/environment_spec.rb`](https://github.com/rigortype/rigor/blob/master/spec/rigor/environment_spec.rb)
-（「ADR-20 HKTレジストリスキャン」コンテキスト）にある実例が最小の参照——ディレクティブペアを持つフィクスチャ`.rbs`ファイル、それらを留めるクラス宣言、そして`env.hkt_registry`経由で登録を表面化する`Environment.for_project`呼び出し。
+（「ADR-20 HKTレジストリスキャン」コンテキスト）にある実例が最小の参照です。ディレクティブペアを持つフィクスチャ`.rbs`ファイル、それらを留めるクラス宣言、そして`env.hkt_registry`経由で登録を表面化する`Environment.for_project`呼び出し。

@@ -10,7 +10,7 @@ sidebar:
   order: 1007
 ---
 
-Rigorの推論が型を証明できないとき、次の逃げ道はRBS — Rubyのシグネチャ言語 — です。RBSが求める精密な契約（contract）を表現できないとき、`RBS::Extended`がその上に小さなアノテーション表面を追加します。
+Rigorの推論が型を証明できないとき、次の逃げ道はRBS（Rubyのシグネチャ言語）です。RBSが求める精密な契約（contract）を表現できないとき、`RBS::Extended`がその上に小さなアノテーション表面を追加します。
 
 この章では、通常手を伸ばす順序でその両方を扱います。
 
@@ -56,7 +56,7 @@ class Slug
 end
 ```
 
-`.rbs`ファイルを`sig/`に置けばRigorが自動的に拾います — `.rigor.yml`の変更は不要です。デフォルト設定には`signature_paths: [sig]`があります。
+`.rbs`ファイルを`sig/`に置けばRigorが自動的に拾います。`.rigor.yml`の変更は不要です。デフォルト設定には`signature_paths: [sig]`があります。
 
 その後、このコード:
 
@@ -82,12 +82,12 @@ end
 ```ruby
 s = Slug.new.normalise("Hello World")
 # s: non-empty-lowercase-string
-s.empty?     # Constant<false>  — 証明済み
-s.size       # positive-int     — 証明済み
-s == "hello-world"  # bool — 等値ナローイングが適用される
+s.empty?     # Constant<false>（証明済み）
+s.size       # positive-int（証明済み）
+s == "hello-world"  # bool（等値ナローイングが適用される）
 ```
 
-`.rbs`ファイルは**依然として有効なRBS**です — `%a{...}`はRBSアノテーション構文です。Steep / typeprof / ruby-lspはコメントとして見ます; Rigorは締め付けとして見ます。
+`.rbs`ファイルは**依然として有効なRBS**です。`%a{...}`はRBSアノテーション構文です。Steep / typeprof / ruby-lspはコメントとして見ます; Rigorは締め付けとして見ます。
 
 ## ディレクティブ文法
 
@@ -99,13 +99,13 @@ s == "hello-world"  # bool — 等値ナローイングが適用される
 | `%a{rigor:v1:param: <name> is <type>}` | 呼び出し元でのパラメータの受け入れ型を締め付け、かつ本体内のローカル変数をナローイング（narrowing）する。 |
 | `%a{rigor:v1:assert: <name> is <type>}` | このメソッドが返った後、呼び出し元スコープの名前付きローカル変数は`<type>`である。 |
 | `%a{rigor:v1:predicate-if-true: <name> is <type>}` | このメソッドが真値を返したとき、呼び出し元スコープの名前付きローカル変数は`<type>`である。（対称な`predicate-if-false`。） |
-| `%a{rigor:v1:assertion-on: <name>}` | メソッドをアサーションゲートとしてマークする — 本体の最後の式の型が`<name>`に関する事実になる。 |
+| `%a{rigor:v1:assertion-on: <name>}` | メソッドをアサーションゲートとしてマークする（本体の最後の式の型が`<name>`に関する事実になる）。 |
 
 `<type>`スロットは以下を受け入れます:
 
-- **RBSクラス名** — `String`、`Integer`、`::Foo::Bar`。
-- **インポートされたリファインメント（refinement、篩型とも）名** — `non-empty-string`、`lowercase-string`、`numeric-string`、`int<5, 10>`、`non-empty-array[Integer]`、`literal-string`など。
-- **否定`~T`** — `~lowercase-string`は「非小文字string」を意味します。
+- **RBSクラス名**: `String`、`Integer`、`::Foo::Bar`。
+- **インポートされたリファインメント（refinement、篩型とも）名**: `non-empty-string`、`lowercase-string`、`numeric-string`、`int<5, 10>`、`non-empty-array[Integer]`、`literal-string`など。
+- **否定`~T`**: `~lowercase-string`は「非小文字string」を意味します。
 
 ## リファインメント名
 
@@ -118,9 +118,9 @@ s == "hello-world"  # bool — 等値ナローイングが適用される
 | 文字列述語 | `lowercase-string`、`uppercase-string`、`numeric-string`、`decimal-int-string`、`octal-int-string`、`hex-int-string`、`literal-string` |
 | ペアになった補完 | `non-lowercase-string`、`non-uppercase-string`、`non-numeric-string` |
 | 合成 | `non-empty-lowercase-string`、`non-empty-uppercase-string`、`non-empty-literal-string` |
-| シェイプ射影 | `pick_of[T, K]`、`omit_of[T, K]`、`partial_of[T]`、`required_of[T]`、`readonly_of[T]` — 既存の`HashShape`/`Tuple`から新しいキャリア（carrier）を派生させます。[第4章 §「新しいシェイプを派生させる」](../04-tuples-and-shapes/#deriving-new-shapes--pick_of--omit_of--partial_of--required_of--readonly_of)を参照。 |
+| シェイプ射影 | `pick_of[T, K]`、`omit_of[T, K]`、`partial_of[T]`、`required_of[T]`、`readonly_of[T]`。これらは既存の`HashShape`/`Tuple`から新しいキャリア（carrier）を派生させます。[第4章 §「新しいシェイプを派生させる」](../04-tuples-and-shapes/#deriving-new-shapes--pick_of--omit_of--partial_of--required_of--readonly_of)を参照。 |
 
-## 適合を宣言する — `conforms-to`
+## 適合を宣言する: `conforms-to`
 
 上記のディレクティブは`def`に付きます。もう1つは`class` / `module`宣言に付き、いずれかの呼び出し箇所がそれを行使するかどうかに関わらず、検査される設計アサーションとして、クラス全体が名前付きの構造的インターフェースを満たすことを表明します:
 
@@ -132,7 +132,7 @@ class MyBuffer
 end
 ```
 
-`MyBuffer`が`_RewindableStream`インターフェースの要求するメソッドを欠いている（またはシグネチャが互換でない）場合、Rigorは`rbs_extended.unsatisfied-conformance`を報告します;インターフェースを満たすクラスは沈黙します。1つのクラスに複数の`conforms-to`ディレクティブを付けると、インターフェースのインターセクション（intersection、交叉型とも）のように組み合わされます。このディレクティブは純粋に追加的です — 呼び出し箇所での暗黙の構造的互換性は、それがあってもなくても動作し続けます。
+`MyBuffer`が`_RewindableStream`インターフェースの要求するメソッドを欠いている（またはシグネチャが互換でない）場合、Rigorは`rbs_extended.unsatisfied-conformance`を報告します;インターフェースを満たすクラスは沈黙します。1つのクラスに複数の`conforms-to`ディレクティブを付けると、インターフェースのインターセクション（intersection、交叉型とも）のように組み合わされます。このディレクティブは純粋に追加的です。呼び出し箇所での暗黙の構造的互換性は、それがあってもなくても動作し続けます。
 
 ## 実例: アサーションゲート
 
@@ -147,11 +147,11 @@ end
 def configure(host)
   Validator.new.assert_non_empty(host)
   # この呼び出し後、host: non-empty-string
-  host.size   # positive-int — 証明済み
+  host.size   # positive-int（証明済み）
 end
 ```
 
-ランタイム側は`assert_non_empty`が何をするかです（空のとき例外、ログなど）— Rigorはディレクティブのみを読みます。
+ランタイム側は`assert_non_empty`が何をするかです（空のとき例外、ログなど）。Rigorはディレクティブのみを読みます。
 
 ## 実例: 型述語
 
@@ -191,7 +191,7 @@ end
 
 ## ランタイムが強制できないパラメータオーバーライドが必要なとき
 
-ランタイム関数が不正な入力で例外を投げない場合 — nilを返す、デフォルトを返す、またはエラーを飲み込む — があります。Rigorの`param:`ディレクティブは依然として呼び出し元の契約を締め付けます:
+ランタイム関数が不正な入力で例外を投げない場合（nilを返す、デフォルトを返す、またはエラーを飲み込む）があります。Rigorの`param:`ディレクティブは依然として呼び出し元の契約を締め付けます:
 
 ```ruby
 class FileLoader
@@ -214,9 +214,9 @@ class Slug
 end
 ```
 
-これらの`%a{rigor:v1:…}`ディレクティブを`.rb`ファイルの内側に置くことは**できません**。ディレクティブはRBSから読まれたときのみ発火します — これは設計上の選択です（ADR-5、ロバストネス原則: 戻り値に対して厳密、パラメータに対して寛大を参照）。
+これらの`%a{rigor:v1:…}`ディレクティブを`.rb`ファイルの内側に置くことは**できません**。ディレクティブはRBSから読まれたときのみ発火します。これは設計上の選択です（ADR-5、ロバストネス原則: 戻り値に対して厳密、パラメータに対して寛大を参照）。
 
-## RubyソースへのインラインRBS — `rigor-rbs-inline`プラグイン
+## RubyソースへのインラインRBS: `rigor-rbs-inline`プラグイン
 
 オプトイン型の別プラグインを使うと、Rubyファイル内の`def`の直上にメソッド型を直接書けます。上流の[rbs-inline](https://github.com/soutaro/rbs-inline)が定義するコメント語彙を使います:
 
@@ -235,7 +235,7 @@ AscDesc.new.ascdesc(:bad)
 #    `ascdesc' on AscDesc: expected :asc | :desc, got :bad
 ```
 
-docスタイルの`# @rbs name: T`アノテーション、インラインメソッド型コメント`#: () -> T`、`# @rbs return: T`、属性`#:`キャスト、`# @rbs @ivar: T`、`# @rbs override`、`# @rbs!`生RBS埋め込みのいずれも動作します——上流rbs-inlineが受け入れるものはすべて、手書きの`.rbs`ファイルと同等の形でRigorのRBS環境に流れ込みます。
+docスタイルの`# @rbs name: T`アノテーション、インラインメソッド型コメント`#: () -> T`、`# @rbs return: T`、属性`#:`キャスト、`# @rbs @ivar: T`、`# @rbs override`、`# @rbs!`生RBS埋め込みのいずれも動作します。上流rbs-inlineが受け入れるものはすべて、手書きの`.rbs`ファイルと同等の形でRigorのRBS環境に流れ込みます。
 
 これは**RBS::Extendedではありません**。`# @rbs`コメントは上流rbs-inlineの文法であり、プラグインがenv構築時にそれらを通常のRBSにトランスクライブします。これに対しRBS::Extendedの`%a{rigor:v1:…}`ディレクティブはRigor固有のアノテーションであり`.rbs`ファイルに記述します（その他のディレクティブについてはこの章の残りを参照）。
 
@@ -247,7 +247,7 @@ plugins:
   - rigor-rbs-inline
 ```
 
-ファイルごとに、先頭に上流の`# rbs_inline: enabled`マジックコメントを書いてオプトインします——それがないファイルは影響を受けません。
+ファイルごとに、先頭に上流の`# rbs_inline: enabled`マジックコメントを書いてオプトインします。それがないファイルは影響を受けません。
 
 注意事項:
 
@@ -265,9 +265,9 @@ plugins:
 def deserialize: (String) -> untyped
 ```
 
-`untyped`は契約フリーのハッチ — あらゆるメソッドがそれに存在し、あらゆる引数シェイプが受け入れられます。Rigorの診断は`untyped`レシーバーに対して沈黙します。正当に動的な境界（デシリアライズ、`eval`、プラグインエントリーポイント）に使います。失う静的解析は「これは何でもあり得る」と認めることの誠実さで補われます。
+`untyped`は契約フリーのハッチです。あらゆるメソッドがそれに存在し、あらゆる引数シェイプが受け入れられます。Rigorの診断は`untyped`レシーバーに対して沈黙します。正当に動的な境界（デシリアライズ、`eval`、プラグインエントリーポイント）に使います。失う静的解析は「これは何でもあり得る」と認めることの誠実さで補われます。
 
-## PHPStanから来た方へ — `@phpstan-assert`ファミリー
+## PHPStanから来た方へ: `@phpstan-assert`ファミリー
 
 PHPStanのPHPDocアノテーションに慣れている場合、RigorのRBS::Extendedディレクティブは、PHPStanが「アサート」や「型指定関数」と呼ぶポストリターン / 条件付きナローイングのプリミティブに直接マッピングされます。挙動は同一です:
 
@@ -283,7 +283,7 @@ PHPStanでは`@phpstan-assert`、Rigorでは`%a{rigor:v1:assert:}`です。
 | `@phpstan-assert !T $x` | `%a{rigor:v1:assert: x is ~T}` | このメソッドが返った後、呼び出し元の`x`は`T`**ではない**（否定形式）。 |
 | `@phpstan-assert-if-true !T $x` | `%a{rigor:v1:predicate-if-true: x is ~T}` | 条件付き否定。`predicate-if-false`と対称。 |
 
-実践例 — PHPStanのドキュメントからの典型的な「assertNotNull」パターン:
+実践例: PHPStanのドキュメントからの典型的な「assertNotNull」パターン:
 
 ```rbs
 # sig/asserts.rbs
@@ -302,7 +302,7 @@ def configure(maybe)
 end
 ```
 
-selfターゲット形式もサポートされています — PHPStanのアナログは`$this`をナローイングするメソッドになります。レシーバーを`self`で名指しします:
+selfターゲット形式もサポートされています。PHPStanのアナログは`$this`をナローイングするメソッドになります。レシーバーを`self`で名指しします:
 
 ```rbs
 class Connection
@@ -311,14 +311,14 @@ class Connection
 end
 ```
 
-RigorのディレクティブのグラマーはPHPStanが`@phpstan-assert*`ファミリーで提供するものをカバーします。ディレクティブは**RBSからのみ**発火します（ADR-5に従い: 戻り値では厳格に、パラメータでは寛容に）; PHPStan側では関数のすぐ上のPHPDocに`@phpstan-assert`を直接書けます — Rigorでの等価表現は同じRBSファイルの`def`行です。
+RigorのディレクティブのグラマーはPHPStanが`@phpstan-assert*`ファミリーで提供するものをカバーします。ディレクティブは**RBSからのみ**発火します（ADR-5に従い: 戻り値では厳格に、パラメータでは寛容に）; PHPStan側では関数のすぐ上のPHPDocに`@phpstan-assert`を直接書けます。Rigorでの等価表現は同じRBSファイルの`def`行です。
 
 **コールシェイプ**によってアサーションを認識するプラグイン側の等価表現が必要な場合（PHPStanの「型指定拡張」）は[第9章](09-plugins/)を参照してください。プラグイン契約はディレクティブが使うのと同じ`Fact(target_kind: :self)`と`Fact(target_kind: :parameter)`キャリアを提供しているため、プラグイン作者はRubyからPHPStanの`StaticMethodTypeSpecifyingExtension`に相当するものを書けます。
 
-## RBSが助けにならないとき — プラグインの逃げ道
+## RBSが助けにならないとき: プラグインの逃げ道
 
-メソッドの動作が**ランタイムでの引数のシェイプに依存する**場合（`Lisp.eval([:+, 1, 2])`はIntegerを返すが、`Lisp.eval([:<, 1, 2])`はboolを返す）、どんなRBSシグもその関係を表現できません。それがプラグインのためのものです — [第9章](../09-plugins/)と[examples/](https://github.com/rigortype/rigor/blob/master/examples/README.md)ディレクトリを参照してください。
+メソッドの動作が**ランタイムでの引数のシェイプに依存する**場合（`Lisp.eval([:+, 1, 2])`はIntegerを返すが、`Lisp.eval([:<, 1, 2])`はboolを返す）、どんなRBSシグもその関係を表現できません。それがプラグインのためのものです。[第9章](../09-plugins/)と[examples/](https://github.com/rigortype/rigor/blob/master/examples/README.md)ディレクトリを参照してください。
 
 ## 次に読むもの
 
-第8章はルールカタログを扱います — 各診断の意味、発火するタイミング、それが間違いまたはノイズのときの抑制方法。
+第8章はルールカタログを扱います（各診断の意味、発火するタイミング、それが間違いまたはノイズのときの抑制方法）。

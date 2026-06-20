@@ -13,16 +13,16 @@ sidebar:
 
 プロジェクトのパイプラインでRigorを実行するためのコピー＆ペースト用CI設定。それぞれがRuby 4.0上の**独立した専用ジョブ**でRigorを実行し（なぜ分離が必要かは[第11章「CIでのRigor実行」](../11-ci/)を参照）、CIネイティブな出力フォーマットを介してプル／マージリクエスト上で診断をインラインに表示する（[ADR-51](../../adr/51-ci-diagnostic-output-formats/)）。
 
-`ruby/setup-ruby`は`ubuntu-latest`向けに**事前ビルド済み**のRuby 4.0.xバイナリを提供する — セットアップは高速（約0.3秒）で、ソースからのコンパイル待ちにはならない。2026-06-13に検証: `setup-ruby`は`ruby-version: "4.0"`をランナーのツールキャッシュからRuby 4.0.5へ解決する。
+`ruby/setup-ruby`は`ubuntu-latest`向けに**事前ビルド済み**のRuby 4.0.xバイナリを提供する。セットアップは高速（約0.3秒）で、ソースからのコンパイル待ちにはならない。2026-06-13に検証: `setup-ruby`は`ruby-version: "4.0"`をランナーのツールキャッシュからRuby 4.0.5へ解決する。
 
 | ファイル | コピー先 | 役割 |
 | --- | --- | --- |
 | [`github-actions-annotations.yml`](github-actions-annotations.yml) | `.github/workflows/rigor.yml` | **デフォルト**。ワークフローコマンド → インラインのPRアノテーション。アップロード手順も権限も不要で、あらゆるリポジトリで動く。 |
-| [`github-actions-sarif.yml`](github-actions-sarif.yml) | `.github/workflows/rigor.yml` | SARIF 2.1.0 → GitHub code scanning（セキュリティタブ + PRアラート）。code scanningが必要 — 公開リポジトリ、またはGitHub Advanced Securityを備えた非公開リポジトリ。 |
+| [`github-actions-sarif.yml`](github-actions-sarif.yml) | `.github/workflows/rigor.yml` | SARIF 2.1.0 → GitHub code scanning（セキュリティタブ + PRアラート）。code scanningが必要（公開リポジトリ、またはGitHub Advanced Securityを備えた非公開リポジトリ）。 |
 | [`github-actions-reviewdog.yml`](github-actions-reviewdog.yml) | `.github/workflows/rigor.yml` | reviewdog → インラインのPR**レビューコメント**。`pull-requests: write`が必要。 |
 | [`gitlab-ci.yml`](gitlab-ci.yml) | `.gitlab-ci.yml`（または`include:`する） | GitLab Code Qualityレポート → マージリクエストウィジェット。 |
 
-GitHubテンプレートは**1つ**だけ選ぶ。**デフォルトはアノテーション** — セットアップ不要であらゆるリポジトリで動く唯一の選択肢だ。code scanningが利用でき（公開リポジトリ、またはGitHub Advanced Securityを備えた非公開リポジトリ）セキュリティタブが欲しい場合はSARIFを、スレッド化されたレビューコメントが欲しい場合はreviewdogを使う（reviewdogはGitLab、Gerrit、Bitbucket、Giteaに対しても同じように動く — [`rigor-ci-setup`](https://github.com/rigortype/rigor/blob/master/skills/rigor-ci-setup/SKILL.md)スキルを参照）。いずれもRigorの実行方法は同じで、出力フォーマットと公開手順だけが異なる。
+GitHubテンプレートは**1つ**だけ選ぶ。**デフォルトはアノテーション**。セットアップ不要であらゆるリポジトリで動く唯一の選択肢だ。code scanningが利用でき（公開リポジトリ、またはGitHub Advanced Securityを備えた非公開リポジトリ）セキュリティタブが欲しい場合はSARIFを、スレッド化されたレビューコメントが欲しい場合はreviewdogを使う（reviewdogはGitLab、Gerrit、Bitbucket、Giteaに対しても同じように動く。[`rigor-ci-setup`](https://github.com/rigortype/rigor/blob/master/skills/rigor-ci-setup/SKILL.md)スキルを参照）。いずれもRigorの実行方法は同じで、出力フォーマットと公開手順だけが異なる。
 
 ## ほかのランナー（汎用レシピ）
 
@@ -45,4 +45,4 @@ rigor check --format json       > rigor.json       # generic machine stream
 
 ## Rigorのバージョンをピン留めする
 
-これらのテンプレートは実行時に最新の`rigortype`をインストールする。それをピン留めして — CIを再現可能に保つには — [第11章 §「Rigorのバージョンをピン留めする」](../11-ci/#pinning-rigors-version)を参照（DependabotがアップデートできるCI専用の`.github/rigor/Gemfile`、またはピン留めした`gem install rigortype -v "X.Y.Z"`）。
+これらのテンプレートは実行時に最新の`rigortype`をインストールする。それをピン留めして（CIを再現可能に保つには）[第11章 §「Rigorのバージョンをピン留めする」](../11-ci/#pinning-rigors-version)を参照（DependabotがアップデートできるCI専用の`.github/rigor/Gemfile`、またはピン留めした`gem install rigortype -v "X.Y.Z"`）。

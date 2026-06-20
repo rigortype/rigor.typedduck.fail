@@ -1,5 +1,5 @@
 ---
-title: "付録 — プロトコル、インターフェース、構造的型付け"
+title: "付録: プロトコル、インターフェース、構造的型付け"
 description: "rigortype/rigor docs/handbook/appendix-protocols-and-structural-typing.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/appendix-protocols-and-structural-typing.md"
 sourcePath: "docs/handbook/appendix-protocols-and-structural-typing.md"

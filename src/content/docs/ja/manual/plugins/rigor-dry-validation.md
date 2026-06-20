@@ -42,7 +42,7 @@ result.to_h                                # Hash[Symbol, untyped]
 
 ## RBSオーバーレイ
 
-このプラグインは、上記の結果APIに型を付けるRBSオーバーレイ（`sig/dry_validation.rbs`）を同梱しており、**それを自動的に提供します**——プラグインのマニフェストが`signature_paths: ["sig"]`を宣言する（[ADR-25](../../../adr/25-plugin-contributed-rbs/)）ので、`rigor-dry-validation`を有効化するだけで十分です;プロジェクト側の`signature_paths:`配線は不要です。
+このプラグインは、上記の結果APIに型を付けるRBSオーバーレイ（`sig/dry_validation.rbs`）を同梱しており、**それを自動的に提供します**。プラグインのマニフェストが`signature_paths: ["sig"]`を宣言する（[ADR-25](../../../adr/25-plugin-contributed-rbs/)）ので、`rigor-dry-validation`を有効化するだけで十分です;プロジェクト側の`signature_paths:`配線は不要です。
 
 ## diagnosticもconfigもなし
 

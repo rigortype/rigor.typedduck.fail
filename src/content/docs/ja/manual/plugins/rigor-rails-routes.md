@@ -39,7 +39,7 @@ file:line:col: error: `user_path` expects 1 argument(s), got 3
 
 - `Rails.application.routes.draw do … end`、および`draw :name` / `draw_all :name`による部分ルートファイル。
 - `resources` / `resource`（`only:` / `except:`つき）、ネストされたリソース、`member do … end` / `collection do … end`。
-- `namespace :admin do … end`と`scope` — 位置引数形式とキーワード`scope(path:, as:, module:)`の両方。`as:`プレフィックスと動的パスセグメントはヘルパーのアリティに数え入れられます。
+- `namespace :admin do … end`と`scope`: 位置引数形式とキーワード`scope(path:, as:, module:)`の両方。`as:`プレフィックスと動的パスセグメントはヘルパーのアリティに数え入れられます。
 - `root`、および明示的な`get`/`post`/`patch`/`put`/`delete`ルート（`as:`で名前付け、匿名の静的ルートを含む）。
 - `devise_for`、`mount`、`use_doorkeeper`、`with_options`、`direct`、`concern :name do … end`（定義は記録されますが、wrong-arityの偽陽性を避けるため本体はスキップされます）。
 

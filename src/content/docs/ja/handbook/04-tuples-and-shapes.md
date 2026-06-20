@@ -12,7 +12,7 @@ sidebar:
 
 `Tuple`と`HashShape`は、Rigorが異種配列と既知キーのハッシュに精密な型を与える方法です。外見上はRubyの`Array`と`Hash`によく似ており（RBS境界を越えるとこれらの名前的型（nominal type、公称型とも）に消去されます）、Rigorの内部では通常の`Array[T]` / `Hash[K, V]`が失ってしまう、位置ごと/キーごとの型情報を持ちます。
 
-## タプル — 異種配列
+## タプル: 異種配列
 
 解析器が配列リテラルのレイアウトを証明できるとき、`Array[T]`ではなく`Tuple[…]`を生成します:
 
@@ -49,7 +49,7 @@ arr = [1, "two", :three]
 arr[0]   # Constant<1>
 arr[1]   # Constant<"two">
 arr[-1]  # Constant<:three>
-arr[5]   # Constant<nil> — 範囲外
+arr[5]   # Constant<nil>（範囲外）
 ```
 
 `[start, length]`や`[range]`でのスライス（slice）は、一致する要素のタプルを生成します:
@@ -76,13 +76,13 @@ strings = mixed.map { |x| x.to_s }
 
 `select`と`filter_map`は`Array[Element]`に広げます。なぜなら結果のサイズが述語に依存し、位置に依存しないからです。`find`は要素のユニオン（または静的にどの要素も一致しないとき`nil`）を返します。
 
-## タプルの拡幅 — いつ、なぜ
+## タプルの拡幅: いつ、なぜ
 
 `Tuple`は、サイズが設定可能なユニオン予算を超えたとき、未知の形状の配列が連結されたとき、またはRBSで`Array[T]`として型付けされたパラメータを越えるときに`Array[T]`に拡幅されます。拡幅は決定論的で、[`docs/type-specification/inference-budgets.md`](../../type-specification/inference-budgets/)に文書化されています。
 
 拡幅は安全です（`Array[T]`は同じ値のより精度が低いビューです）が、位置ごとの情報が失われます。`[a, b, c]`が精密に型チェックされるべきなのにされない状況に遭遇したら、チェーン内のタプルではなく`Array[T]`を受け取るメソッド、または広い配列に対する`+` / `concat`を探してください。
 
-## ハッシュシェイプ — 既知キーのハッシュ
+## ハッシュシェイプ: 既知キーのハッシュ
 
 ハッシュの類似物は`HashShape`です:
 
@@ -101,7 +101,7 @@ assert_type("false", user[:admin])
 - **オープンとクローズ**。 列挙されたキー以外の追加キーを持てるか？
 - **読み取り専用エントリー**。Rigorがそのキーへの書き込みを見たか、読み取りだけか？
 
-Rigorは3つすべてを追跡しますが、ほとんどはナローイング（narrowing）ルールを通じて公開します — ほとんどのユーザーはこれらを直接考える必要はありません。
+Rigorは3つすべてを追跡しますが、ほとんどはナローイング（narrowing）ルールを通じて公開します。ほとんどのユーザーはこれらを直接考える必要はありません。
 
 ## メソッド呼び出しを通じたハッシュシェイプ
 
@@ -112,8 +112,8 @@ config = { host: "example.com", port: 8080 }
 config.fetch(:host)        # Constant<"example.com">
 config.fetch(:host, "x")   # Constant<"example.com"> (デフォルト未使用)
 config[:port]              # Constant<8080>
-config.key?(:host)         # Constant<true>  — 証明済み
-config.empty?              # Constant<false> — 証明済み
+config.key?(:host)         # Constant<true>（証明済み）
+config.empty?              # Constant<false>（証明済み）
 config.size                # Constant<2>
 ```
 
@@ -182,30 +182,30 @@ in { name:, age: }
 end
 ```
 
-選言パターン（`Integer | String => x`）はキャプチャされたローカルに対してユニオンを生成します — 基礎となるナローイングルールについては[第3章](../03-narrowing/)を参照してください。
+選言パターン（`Integer | String => x`）はキャプチャされたローカルに対してユニオンを生成します。基礎となるナローイングルールについては[第3章](../03-narrowing/)を参照してください。
 
 ## レイアウトが証明できないとき
 
-配列リテラルの要素の1つでもConstantでも、タプル形状でもない型を持つとき、Rigorは`Array[T]`にフォールバックします。ここで`T`は要素型のユニオンです — まだ有用ですが、位置ごとではありません:
+配列リテラルの要素の1つでもConstantでも、タプル形状でもない型を持つとき、Rigorは`Array[T]`にフォールバックします。ここで`T`は要素型のユニオンです。まだ有用ですが、位置ごとではありません:
 
 ```ruby
 arr = [1, ARGV.first]
 # Array[Constant<1> | String?]
 ```
 
-キーが証明可能にシンボル/文字列リテラルでないハッシュも同様 — Rigorは`HashShape`ではなく`Hash[K, V]`を生成します。
+キーが証明可能にシンボル/文字列リテラルでないハッシュも同様です。Rigorは`HashShape`ではなく`Hash[K, V]`を生成します。
 
-## 新しいシェイプを派生させる — `pick_of` / `omit_of` / `partial_of` / `required_of` / `readonly_of`
+## 新しいシェイプを派生させる: `pick_of` / `omit_of` / `partial_of` / `required_of` / `readonly_of`
 
-`HashShape`（または`Tuple`）があって、フィールドの一部だけを残したい、特定のものを落としたい、必須/任意を反転させたい — そんなときのために、Rigorは`Type::Combinator`上に5つの**シェイプ射影型関数**を公開しています。これらはTypeScriptの`Pick`/`Omit`/`Partial`/`Required`/`Readonly`ユーティリティ型に対応しますが、TSの後付けではなく第一級のRigor操作です。各関数は、残したエントリーに対してソースの既存の分類（必須/任意/読み取り専用/追加キーのポリシー）を保ちます。
+`HashShape`（または`Tuple`）があって、フィールドの一部だけを残したい、特定のものを落としたい、必須/任意を反転させたい。そんなときのために、Rigorは`Type::Combinator`上に5つの**シェイプ射影型関数**を公開しています。これらはTypeScriptの`Pick`/`Omit`/`Partial`/`Required`/`Readonly`ユーティリティ型に対応しますが、TSの後付けではなく第一級のRigor操作です。各関数は、残したエントリーに対してソースの既存の分類（必須/任意/読み取り専用/追加キーのポリシー）を保ちます。
 
 | 射影 | 動作 | TypeScriptでの対応 |
 | --- | --- | --- |
 | `pick_of[T, K]` | リテラルキーユニオン`K`にキーが含まれるエントリーだけを残す。`Tuple`の場合、`K`は整数インデックスのユニオン。 | `Pick<T, K>` |
 | `omit_of[T, K]` | `K`にキーが含まれるエントリーを落とし、残りを保つ。 | `Omit<T, K>` |
-| `partial_of[T]` | 必須エントリーすべてを任意に反転させる。値型を`nil`に**広げない** — Rigorは「キーが存在しない」と「キーは存在し値が`nil`」を区別する。 | `Partial<T>` |
+| `partial_of[T]` | 必須エントリーすべてを任意に反転させる。値型を`nil`に**広げない**。Rigorは「キーが存在しない」と「キーは存在し値が`nil`」を区別する。 | `Partial<T>` |
 | `required_of[T]` | `partial_of`の逆。任意エントリーすべてを必須に反転させる。 | `Required<T>` |
-| `readonly_of[T]` | 現在のビューで各エントリーを読み取り専用としてマークする。基底オブジェクトが凍結されていることを証明するもの**ではない** — あくまでビュー層のマーカー。 | `Readonly<T>` |
+| `readonly_of[T]` | 現在のビューで各エントリーを読み取り専用としてマークする。基底オブジェクトが凍結されていることを証明するもの**ではない**。あくまでビュー層のマーカー。 | `Readonly<T>` |
 
 これらは2つの表面に現れます:
 
@@ -239,11 +239,11 @@ plugins:
 %a{rigor:v1:return: Pick[UserHash, "name" | "email"]}
 ```
 
-プラグインチェインは解析器が見る前に`Pick[…]`を`pick_of[…]`に解決します — 推論結果は直接`pick_of`と書いたときと同じです。プラグインは純粋に命名上の利便性のためのものです。
+プラグインチェインは解析器が見る前に`Pick[…]`を`pick_of[…]`に解決します。推論結果は直接`pick_of`と書いたときと同じです。プラグインは純粋に命名上の利便性のためのものです。
 
 ### 損失のある射影
 
-射影は、シェイプ情報を保つキャリア（carrier）（`HashShape`、および`pick_of`/`omit_of`の場合の`Tuple`）にのみ発火します。素の`Hash[K, V]`やその他の非シェイプ入力に適用するのは**損失のある（lossy）**処理です — 射影は静かに入力型へ縮退し、Rigorは[`dynamic.shape.lossy-projection`](../../type-specification/diagnostic-policy/)`:info`診断を記録するので、呼び出しサイトを監査できます。
+射影は、シェイプ情報を保つキャリア（carrier）（`HashShape`、および`pick_of`/`omit_of`の場合の`Tuple`）にのみ発火します。素の`Hash[K, V]`やその他の非シェイプ入力に適用するのは**損失のある（lossy）**処理です。射影は静かに入力型へ縮退し、Rigorは[`dynamic.shape.lossy-projection`](../../type-specification/diagnostic-policy/)`:info`診断を記録するので、呼び出しサイトを監査できます。
 
 ```rbs
 class C

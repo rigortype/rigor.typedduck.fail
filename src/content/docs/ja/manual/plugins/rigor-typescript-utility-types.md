@@ -19,7 +19,7 @@ plugins:
   - rigor-typescript-utility-types
 ```
 
-> **完全なガイド**。シェイプ投影そのもの ── 各々が何をするか、ロッシー投影（lossy-projection）ルール、TypeScript→Rigorの語彙表 ── は、ハンドブックの[第4章 — タプルとハッシュシェイプ](../../../handbook/04-tuples-and-shapes/)の§「Deriving new shapes」と[TypeScript付録](../../../handbook/appendix-typescript/)でカバーされています。このページは運用上のクイックリファレンスです。
+> **完全なガイド**。シェイプ投影そのもの ── 各々が何をするか、ロッシー投影（lossy-projection）ルール、TypeScript→Rigorの語彙表 ── は、ハンドブックの[第4章: タプルとハッシュシェイプ](../../../handbook/04-tuples-and-shapes/)の§「Deriving new shapes」と[TypeScript付録](../../../handbook/appendix-typescript/)でカバーされています。このページは運用上のクイックリファレンスです。
 
 ## 何を解決するか
 

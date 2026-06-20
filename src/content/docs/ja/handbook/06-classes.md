@@ -10,7 +10,7 @@ sidebar:
   order: 1006
 ---
 
-この章はクラス側の型付けを扱います — 異なる位置での`self`の意味、定数の解決、そしてRigorが`attr_*`、`Data.define`、`Struct.new`宣言をどう読むか。物語というよりリファレンスです: 一度通して読み、必要なセクションに戻ってきてください。
+この章はクラス側の型付けを扱います（異なる位置での`self`の意味、定数の解決、そしてRigorが`attr_*`、`Data.define`、`Struct.new`宣言をどう読むか）。物語というよりリファレンスです: 一度通して読み、必要なセクションに戻ってきてください。
 
 ## インスタンス側とクラス側の`self`
 
@@ -24,7 +24,7 @@ class User
 end
 ```
 
-シングルトンメソッド本体の内側（`def self.foo`または`def User.foo`）では、`self`は`Singleton[T]` — インスタンスではなくクラスオブジェクト自体 — です:
+シングルトンメソッド本体の内側（`def self.foo`または`def User.foo`）では、`self`は`Singleton[T]`（インスタンスではなくクラスオブジェクト自体）です:
 
 ```ruby
 class User
@@ -55,9 +55,9 @@ class Counter
   def initial = MAX
 end
 
-Counter.new.initial   # Constant<100>  — 定数値が
+Counter.new.initial   # Constant<100>  （定数値が
                       # インソースクラスルックアップを
-                      # 通じて伝播する
+                      # 通じて伝播する）
 ```
 
 Rigorがたたみ込める右辺を持つ定数には`Constant<value>`型が付きます。そうでない定数には、より広いRBS消去形式が付きます。
@@ -76,11 +76,11 @@ class User
 end
 
 u = User.new("Alice")
-u.name    # Constant<"Alice">  — インソースディスパッチ +
-          # インスタンス変数追跡を通じて
+u.name    # Constant<"Alice">  （インソースディスパッチ +
+          # インスタンス変数追跡を通じて）
 ```
 
-`attr_writer`はセッターを公開します; `attr_accessor`は両方を公開します。セッターの引数型は呼び出し元が提供するものです。`def.ivar-write-mismatch`ルール（v0.1.2）は、同じクラスボディ内の同じインスタンス変数への2つの書き込みが具体クラスで一致しているかチェックします — 正確な契約（contract）については[第8章 — エラーの読み方](08-understanding-errors/)を参照してください。明示的なインスタンス変数型を作成せずに、同じクラス内での`String`から`Array`への誤ったリバインドをキャッチできます。
+`attr_writer`はセッターを公開します; `attr_accessor`は両方を公開します。セッターの引数型は呼び出し元が提供するものです。`def.ivar-write-mismatch`ルール（v0.1.2）は、同じクラスボディ内の同じインスタンス変数への2つの書き込みが具体クラスで一致しているかチェックします。正確な契約（contract）については[第8章: エラーの読み方](08-understanding-errors/)を参照してください。明示的なインスタンス変数型を作成せずに、同じクラス内での`String`から`Array`への誤ったリバインドをキャッチできます。
 
 ## メソッドをまたいだインスタンス変数
 
@@ -102,7 +102,7 @@ class Counter
 end
 ```
 
-各読み取り地点でのインスタンス変数型は、静的に見えるすべての書き込みのユニオン（union、合併型とも）です — 同じクラスの別のメソッドからの書き込みも含みます。
+各読み取り地点でのインスタンス変数型は、静的に見えるすべての書き込みのユニオン（union、合併型とも）です。同じクラスの別のメソッドからの書き込みも含みます。
 
 ## `Data.define`
 
@@ -117,7 +117,7 @@ assert_type("3", p.x)
 assert_type("4", p.y)
 ```
 
-たたみ込まれるのはメンバーの読み出しだけではありません。標準的な`Data`のプロジェクションも精密なまま保たれます — `p[:x]`、`p.to_h`、`p.deconstruct`、`p.members`、`p.with(x: 9)`はすべてメンバーごとの型を通して運びます:
+たたみ込まれるのはメンバーの読み出しだけではありません。標準的な`Data`のプロジェクションも精密なまま保たれます。`p[:x]`、`p.to_h`、`p.deconstruct`、`p.members`、`p.with(x: 9)`はすべてメンバーごとの型を通して運びます:
 
 ```ruby
 p.to_h            # HashShape{x: 3, y: 4}
@@ -125,13 +125,13 @@ p.members         # Tuple[Constant<:x>, Constant<:y>]
 p.with(x: 9).x    # Constant<9>
 ```
 
-たたみ込みは3つの定義形式すべて — 定数（`Point = Data.define(...)`）、`class X < Data.define(...)`のサブクラスイディオム、素のローカル変数 — をカバーし、位置構築とキーワード構築の両方をカバーします。
+たたみ込みは3つの定義形式すべて（定数（`Point = Data.define(...)`）、`class X < Data.define(...)`のサブクラスイディオム、素のローカル変数）をカバーし、位置構築とキーワード構築の両方をカバーします。
 
-探索は`define_method`スタイルのブロック本体も辿るので、`Point = Data.define(:x, :y) do ... end`でも動作します。合成されたキーワード引数コンストラクタをオーバーライドするブロック定義の`def initialize(...)`も含みます（v0.1.2）。同じルールが`Const = Struct.new(*Symbol) do ... end`にも適用されます — ブロックボディのメソッド発見が両方の形式にわたって均一に組み合わせられます。
+探索は`define_method`スタイルのブロック本体も辿るので、`Point = Data.define(:x, :y) do ... end`でも動作します。合成されたキーワード引数コンストラクタをオーバーライドするブロック定義の`def initialize(...)`も含みます（v0.1.2）。同じルールが`Const = Struct.new(*Symbol) do ... end`にも適用されます。ブロックボディのメソッド発見が両方の形式にわたって均一に組み合わせられます。
 
 ## `Struct.new`
 
-`Struct.new(*Symbol)`は位置引数コンストラクタに加えて`Data.define`と同じアクセサを生成します。Rigorはstructのメンバー読み取りも畳み込みますが — `Struct`は可変なので — 値が変化し得なかった箇所に限ります:
+`Struct.new(*Symbol)`は位置引数コンストラクタに加えて`Data.define`と同じアクセサを生成します。Rigorはstructのメンバー読み取りも畳み込みますが（`Struct`は可変なので）、値が変化し得なかった箇所に限ります:
 
 ```ruby
 Coord = Struct.new(:x, :y)
@@ -141,7 +141,7 @@ c = Coord.new(10, 20)
 assert_type("10", c.x)
 assert_type("20", c.y)
 
-# 変異・エイリアス・エスケープのあるローカルは畳み込み安全でない —
+# 変異・エイリアス・エスケープのあるローカルは畳み込み安全でない。
 #   その読み取りはDynamicに劣化し、古い値になることはない。
 m = Coord.new(1, 2)
 m.x = 9
@@ -160,7 +160,7 @@ assert_type("Dynamic[top]", m.x)
 - インソースの`class Foo < Bar`行。
 - Rigorが辿った`include` / `prepend` / `extend`呼び出し。
 
-階層が静的に不完全な場合（クラスがRigorが見つけられない親を参照している）、レシーバー型は最も深い既知の祖先にフォールバックします — Rigorが宣言を見たクラスに対しては、`Dynamic[Top]`になることはありません。
+階層が静的に不完全な場合（クラスがRigorが見つけられない親を参照している）、レシーバー型は最も深い既知の祖先にフォールバックします。Rigorが宣言を見たクラスに対しては、`Dynamic[Top]`になることはありません。
 
 ## `class`型と`singleton(C)`型
 
@@ -175,11 +175,11 @@ end
 
 `singleton(Foo)`はクラスオブジェクト`Foo`の型です。`Singleton[Foo]`（Rigorの内部キャリア（carrier）表示形式）も同じ概念です。（`Array[Foo]`での）`Foo`は「`Foo`のインスタンス」/ `Nominal[Foo]`を意味します。
 
-`singleton(Foo)`でインスタンスメソッドを呼び出すのはエラーです。ただし`Foo`自体がそのシングルトンメソッドを定義している場合は除きます — `String`は`singleton(String)`で、`String#upcase`はインスタンスにあるので、`String.upcase`は`call.undefined-method`をフラグします。
+`singleton(Foo)`でインスタンスメソッドを呼び出すのはエラーです。ただし`Foo`自体がそのシングルトンメソッドを定義している場合は除きます。`String`は`singleton(String)`で、`String#upcase`はインスタンスにあるので、`String.upcase`は`call.undefined-method`をフラグします。
 
 ## カスタム`case_eq`（`===`）
 
-Rigorは`Class` / `Module` / `Range` / `Regexp`に対して`===`を認識します — これらは標準の`case x; when …`の形式です。ユーザークラスへのカスタム`case_eq`実装は認識されません:
+Rigorは`Class` / `Module` / `Range` / `Regexp`に対して`===`を認識します。これらは標準の`case x; when …`の形式です。ユーザークラスへのカスタム`case_eq`実装は認識されません:
 
 ```ruby
 class IPv4
@@ -190,7 +190,7 @@ end
 
 case some_input
 when IPv4
-  # Rigorはここで`some_input`をナローイングしません —
+  # Rigorはここで`some_input`をナローイングしません。
   # IPv4.===はユーザー定義のcase等値で、エンジンは
   # 特定のクラスにナローイングするとは証明できません。
   some_input
@@ -207,18 +207,18 @@ end
 YAML = Psych
 ```
 
-右辺がクラス自体の場合、Rigorはレシーバー型付けのためにエイリアスを追います — `YAML.load(...)`は`Psych.load(...)`として扱われます。しかしメソッド存在チェックはエイリアス名に対して意図的に沈黙します;解析器はより多くのコンテキストなしに意図的なエイリアスと偶発的なシャドウを区別できないので、`YAML.unknown`は`call.undefined-method`を発火しません。診断が必要な場合は正規名を使ってください。
+右辺がクラス自体の場合、Rigorはレシーバー型付けのためにエイリアスを追います。`YAML.load(...)`は`Psych.load(...)`として扱われます。しかしメソッド存在チェックはエイリアス名に対して意図的に沈黙します;解析器はより多くのコンテキストなしに意図的なエイリアスと偶発的なシャドウを区別できないので、`YAML.unknown`は`call.undefined-method`を発火しません。診断が必要な場合は正規名を使ってください。
 
 ## モジュール
 
 型付けの目的では、`module M; def foo; end; end`はクラスと構造的に似ています。メソッドは同じように参照されます; `include M`は`M`のメソッドをインクルードするクラスの階層に追加します。
 
-`extend self`スタイルのミックスインパターン（`module_function` / `extend self`）が認識されます — インスタンス側とシングルトン側の両方が同じメソッドを公開します。
+`extend self`スタイルのミックスインパターン（`module_function` / `extend self`）が認識されます。インスタンス側とシングルトン側の両方が同じメソッドを公開します。
 
 ## `protected`と`private`
 
-Rigorは可視性修飾子を読み、`def.method-visibility-mismatch`ルール（将来）の限定的なコンテキストでそれらを考慮します。今日、外部レシーバーへのプライベートメソッド呼び出しは診断を発火しません — 可視性は型システムの問題というよりも`rubocop-style`リンターの関心事です。
+Rigorは可視性修飾子を読み、`def.method-visibility-mismatch`ルール（将来）の限定的なコンテキストでそれらを考慮します。今日、外部レシーバーへのプライベートメソッド呼び出しは診断を発火しません。可視性は型システムの問題というよりも`rubocop-style`リンターの関心事です。
 
 ## 次に読むもの
 
-第7章はRBSと`RBS::Extended`を扱います — 推論だけでは証明できないものを超えるための外部シグネチャ表面です。
+第7章はRBSと`RBS::Extended`を扱います。推論だけでは証明できないものを超えるための外部シグネチャ表面です。

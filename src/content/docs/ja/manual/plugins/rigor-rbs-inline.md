@@ -19,7 +19,7 @@ plugins:
   - rigor-rbs-inline
 ```
 
-> **完全なガイド**。実践的な解説 ── サポートされるすべてのアノテーション形式、マジックコメントによるオプトイン、トップレベル`def`に関する注意、パース失敗の扱い ── は[ハンドブック第7章 — RBSとExtended](../../../handbook/07-rbs-and-extended/)の§「Inline RBS in Ruby source」にあります。このページは運用上のクイックリファレンスです。
+> **完全なガイド**。実践的な解説 ── サポートされるすべてのアノテーション形式、マジックコメントによるオプトイン、トップレベル`def`に関する注意、パース失敗の扱い ── は[ハンドブック第7章: RBSとExtended](../../../handbook/07-rbs-and-extended/)の§「Inline RBS in Ruby source」にあります。このページは運用上のクイックリファレンスです。
 
 ## 何をするか
 
@@ -33,7 +33,7 @@ class AscDesc
   def ascdesc(asc_or_desc) = asc_or_desc
 end
 
-AscDesc.new.ascdesc(:bad)   # エラー: 引数の型の不一致 — :asc | :desc を期待したが :bad だった
+AscDesc.new.ascdesc(:bad)   # エラー: 引数の型の不一致（:asc | :desc を期待したが :bad だった）
 ```
 
 `# rbs_inline: enabled`を持たないファイルは手を付けられません（ファイル先頭のスキャンのみ）。合成されたRBSはファイルごとにキャッシュされ（コンテンツSHA＋プラグインのid/version＋設定をキーとする）、変更がない場合は2回目の実行でパースをスキップします。

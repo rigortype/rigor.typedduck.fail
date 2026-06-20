@@ -42,7 +42,7 @@ slug.normalise("Alice").upcase  # ✓ String#upcaseが解決される
 Slug.default_length.even?       # ✓ Integer#even?が解決される
 ```
 
-`.rbs`ファイルは不要です。プラグインは`paths:`以下のすべてのRubyファイル（および`sorbet/rbi/`以下のすべての`.rbi`ファイル——以下の「RBIファイル」参照）を辿り、各`sig { ... }`ブロックをその直後の`def`とペアにし、マッチするコールサイトで戻り値型を貢献します。
+`.rbs`ファイルは不要です。プラグインは`paths:`以下のすべてのRubyファイル（および`sorbet/rbi/`以下のすべての`.rbi`ファイル、以下の「RBIファイル」参照）を辿り、各`sig { ... }`ブロックをその直後の`def`とペアにし、マッチするコールサイトで戻り値型を貢献します。
 
 ## Sorbetの型語彙
 
@@ -69,7 +69,7 @@ Slug.default_length.even?       # ✓ Integer#even?が解決される
 | `[A, B]`（sig内のタプル） | `Tuple[A, B]` |
 | `{a: A, b: B}` | `HashShape{a: A, b: B}`（クローズド） |
 
-このテーブル外のもの——`T.proc`、`T.attached_class`、`T.self_type`、`T.type_parameter`、`T::Struct` / `T::Enum`サブクラス——は現在のところ`Dynamic[Top]`にサイレントで降格します。
+このテーブル外のもの（`T.proc`、`T.attached_class`、`T.self_type`、`T.type_parameter`、`T::Struct` / `T::Enum`サブクラス）は現在のところ`Dynamic[Top]`にサイレントで降格します。
 
 ## インライン型アサーション
 
@@ -85,10 +85,10 @@ maybe = T.let(nil, T.nilable(Integer))
 T.must(maybe).bit_length            # ✓ nilを除去 → Integer
                                      #   その後Integer#bit_lengthが解決される
 
-T.unsafe(opaque).any_method_at_all  # ✓ サイレント — 戻りはDynamic[Top]
+T.unsafe(opaque).any_method_at_all  # ✓ サイレント（戻りはDynamic[Top]）
 ```
 
-`T.must_because(expr, "explanation")`は`T.must`のエイリアスとして認識されます——静的挙動は同じ（`nil`を除去）で、第2引数の文字列は情報目的のみです。
+`T.must_because(expr, "explanation")`は`T.must`のエイリアスとして認識されます。静的挙動は同じ（`nil`を除去）で、第2引数の文字列は情報目的のみです。
 
 `T.reveal_type(expr)`はランタイムで`expr`をそのまま返し、コールサイトで`plugin.sorbet.reveal-type` `:info`診断として推論された静的型を表面化します。コールがチェーンされても機能しつつ、解析器が何を見ているかを確認できます:
 
@@ -98,7 +98,7 @@ T.reveal_type(n).even?  # info: T.reveal_type inferred type: Integer
                         # ✓ Integer#even?は引き続き解決される
 ```
 
-`T.assert_type!(expr, T)`は`T.cast`に静的部分型（subtype）チェックを加えたものです。コールはアサートされた型を返すのでチェーンされたコールはそれを通じて解決されます。推論された型が証明可能に非互換（`Inference::Acceptance.accepts(...)`が`:no`を返す）の場合、プラグインは`plugin.sorbet.assert-type-mismatch`を`:error`として発行します。漸進的（gradual）一貫性ルールが適用されます——`Dynamic[Top]`推論型と`:maybe`互換のシェイプ（shape）は、ランタイムチェックがカバーするためサイレントになります。
+`T.assert_type!(expr, T)`は`T.cast`に静的部分型（subtype）チェックを加えたものです。コールはアサートされた型を返すのでチェーンされたコールはそれを通じて解決されます。推論された型が証明可能に非互換（`Inference::Acceptance.accepts(...)`が`:no`を返す）の場合、プラグインは`plugin.sorbet.assert-type-mismatch`を`:error`として発行します。漸進的（gradual）一貫性ルールが適用されます。`Dynamic[Top]`推論型と`:maybe`互換のシェイプ（shape）は、ランタイムチェックがカバーするためサイレントになります。
 
 ```ruby
 T.assert_type!("hello", Integer)  # error: 証明可能に非互換
@@ -114,9 +114,9 @@ arr.each do |x|
 end
 ```
 
-絞り込みはエンジンのプラグイン側`post_return_facts`配線で実装されます——将来のPHPStanスタイルのType-Specifying Extensionプラグインがカスタムアサーションコール後に引数変数を絞り込むために使うのと同じ基板です。
+絞り込みはエンジンのプラグイン側`post_return_facts`配線で実装されます。将来のPHPStanスタイルのType-Specifying Extensionプラグインがカスタムアサーションコール後に引数変数を絞り込むために使うのと同じ基板です。
 
-`T.bind`は非`self`の第1引数をサイレントで拒否します（Sorbetの契約（contract）に一致——bindはself専用）。
+`T.bind`は非`self`の第1引数をサイレントで拒否します（Sorbetの契約（contract）に一致。bindはself専用）。
 
 ## RBIファイル
 
@@ -148,7 +148,7 @@ plugins:
 
 Sorbet strictの「すべてのメソッドにsigが必要」という要件と、strong-modeの`T.untyped`拒否は意図的に反映されていません。それらのチェックは`srb tc`にあります。Rigor自身の`.rigor.yml`の`severity_profile`設定が類似のフィルタリングをカバーします。
 
-## Tapioca DSL — ミックスインパターン
+## Tapioca DSL: ミックスインパターン
 
 TapiocaのstanderdなDSL RBI形式は、ホストクラスに`include` / `extend`される生成モジュールにsigsを宣言します:
 
@@ -162,7 +162,7 @@ class Post
 end
 ```
 
-プラグインは辿り中にモジュールの修飾名の下にsigを記録し、ルックアップ時にホストクラスに引き上げます。つまり`post.body`は`Post::GeneratedAttributeMethods#body`を通じて正しく解決されます——手動のフラット化は不要で、`sorbet/rbi/shims/`の手書きシムとrbi-centralのコミュニティアノテーションにも同じトリックが機能します。
+プラグインは辿り中にモジュールの修飾名の下にsigを記録し、ルックアップ時にホストクラスに引き上げます。つまり`post.body`は`Post::GeneratedAttributeMethods#body`を通じて正しく解決されます。手動のフラット化は不要で、`sorbet/rbi/shims/`の手書きシムとrbi-centralのコミュニティアノテーションにも同じトリックが機能します。
 
 `extend M`はMのインスタンスメソッドをextendするクラスのシングルトン側に正しく引き上げ、Rubyのランタイム挙動に一致します:
 
@@ -180,7 +180,7 @@ end
 
 ## `T.absurd`網羅性
 
-`T.absurd(x)`はcase/when網羅性のSorbetのイディオムです:「ここに来たなら、型システムが道を見失っている。」プラグインはすべての`T.absurd`コールを`Bot`（空の型——可能な値なし）であり、かつ例外を発生させるものとして扱うため、エンジンの既存のフロー解析はコール後のコードを到達不能として扱います:
+`T.absurd(x)`はcase/when網羅性のSorbetのイディオムです:「ここに来たなら、型システムが道を見失っている。」プラグインはすべての`T.absurd`コールを`Bot`（空の型、可能な値なし）であり、かつ例外を発生させるものとして扱うため、エンジンの既存のフロー解析はコール後のコードを到達不能として扱います:
 
 ```ruby
 case x
@@ -200,34 +200,34 @@ demo.rb:42:5: warning: `T.absurd` is reachable: the discriminant did not
                        [plugin.sorbet.absurd-reachable]
 ```
 
-検出の精度はRigorのフローセンシティブ（flow-sensitive）なナローイング（narrowing）に従います——`is_a?` / `kind_of?` / `nil?`は正確に機能します。シンボル列挙型に対するナローイングはv0.1.3時点ではそれほど正確ではないため、完全に網羅されたシンボルケースが偽陽性警告を発することがあります。
+検出の精度はRigorのフローセンシティブ（flow-sensitive）なナローイング（narrowing）に従います。`is_a?` / `kind_of?` / `nil?`は正確に機能します。シンボル列挙型に対するナローイングはv0.1.3時点ではそれほど正確ではないため、完全に網羅されたシンボルケースが偽陽性警告を発することがあります。
 
-## ティア順序 — 競合時に何が勝つか
+## ティア順序: 競合時に何が勝つか
 
 メソッドがSorbet `sig`とRBS sigの両方を持つ場合、RBSが勝ちます。Sorbet sigはRigorのプラグインティアに座ります:
 
-1. **精度ティア** — 定数フォールド、シェイプディスパッチ、ブロックフォールドなど。
-2. **プラグイン貢献** — `rigor-sorbet`のsigおよびアサーション翻訳を含む。
-3. **RBSバックドディスパッチ** — プロジェクト`sig/`、`RBS::Inline`、バンドルされたstdlib。
+1. **精度ティア**: 定数フォールド、シェイプディスパッチ、ブロックフォールドなど。
+2. **プラグイン貢献**: `rigor-sorbet`のsigおよびアサーション翻訳を含む。
+3. **RBSバックドディスパッチ**: プロジェクト`sig/`、`RBS::Inline`、バンドルされたstdlib。
 4. **依存関係ソース推論**（ADR-10のオプトインウォーカー）。
 5. **ユーザークラスフォールバック**（`Object` / `Class`の祖先）。
 
-貢献マージャー（[`docs/internal-spec/flow-contribution-merger.md`](../../internal-spec/flow-contribution-merger/)に文書化されたv0.1.0の基板）は競合時にRBSを権威として保持します——Sorbet sigは絞り込みを許可されますが矛盾は許可されません。Sorbet sigを優先させたいユーザーは競合するRBSを削除すべきで、その逆ではありません。逆方向（Sorbetが勝つ）は、サードパーティDSLアノテーションが作成されたRBSを上書きすることを許可し、信頼モデルを逆転させます。
+貢献マージャー（[`docs/internal-spec/flow-contribution-merger.md`](../../internal-spec/flow-contribution-merger/)に文書化されたv0.1.0の基板）は競合時にRBSを権威として保持します。Sorbet sigは絞り込みを許可されますが矛盾は許可されません。Sorbet sigを優先させたいユーザーは競合するRBSを削除すべきで、その逆ではありません。逆方向（Sorbetが勝つ）は、サードパーティDSLアノテーションが作成されたRBSを上書きすることを許可し、信頼モデルを逆転させます。
 
 ## 移行パターン
 
 プラグインは強制的な移行ではなく**漸進的な共存**のために設計されています。3つの一般的な形状:
 
-1. **両方の静的チェッカーを並行して実行する**。`srb tc`がその診断を生成し続け、`rigor check`が独自の診断を生成します。両者はシェイプエラーで重複し、各ツールが発見するものを補完します——Sorbetは`T.let` / `T.cast` / RBIをより深くカバーし、Rigorはリテラル文字列ナローイング、リファインメント（refinement、篩型とも）キャリア（carrier）、プラグインDSL、依存関係ソース推論をカバーします。
+1. **両方の静的チェッカーを並行して実行する**。`srb tc`がその診断を生成し続け、`rigor check`が独自の診断を生成します。両者はシェイプエラーで重複し、各ツールが発見するものを補完します。Sorbetは`T.let` / `T.cast` / RBIをより深くカバーし、Rigorはリテラル文字列ナローイング、リファインメント（refinement、篩型とも）キャリア（carrier）、プラグインDSL、依存関係ソース推論をカバーします。
 2. **Sorbetはsig、Rigorはナローイング**。権威あるsigは`sig { ... }`ブロック（またはsorbet-runtime対応のRBIツリー）に残り、Rigorはそれらを入力として読み取り、その上に独自のナローイングを追加します。
 3. **時間をかけてSorbet → RBS**。新しいコードはRBSとして着地し、既存のSorbet sigは周囲のサブシステムが変更されるまで残ります。プラグインはSorbetサーフェス（surface）が縮小する間も実行され続けます。
 
 ## プラグインが置き換えないもの
 
-Rigorの`rigor-sorbet`アダプタは**入力側のみ**です。Sorbetの構文を読み取り語彙を翻訳しますが、Sorbetの型チェッカーを実行せず、`sorbet-runtime`を同梱せず、Sorbetのランタイム保証を強制しません。`Gemfile`から`sorbet`と`sorbet-runtime`を削除すると、プラグインは引き続きsigsを読み取ります（アダプタのミニインタープリタはSorbetをロードしません）が、少なくともランタイムgem（またはトップレベルの`T`定数で4つのシングルトンメソッドをスタブする——プラグインのデモが独自のユニットテストでこれを行っています）を保持しないかぎり、`T.let` / `T.cast` / `T.must` / `T.unsafe`コールはランタイムで`NameError`を発生させます。
+Rigorの`rigor-sorbet`アダプタは**入力側のみ**です。Sorbetの構文を読み取り語彙を翻訳しますが、Sorbetの型チェッカーを実行せず、`sorbet-runtime`を同梱せず、Sorbetのランタイム保証を強制しません。`Gemfile`から`sorbet`と`sorbet-runtime`を削除すると、プラグインは引き続きsigsを読み取ります（アダプタのミニインタープリタはSorbetをロードしません）が、少なくともランタイムgem（またはトップレベルの`T`定数で4つのシングルトンメソッドをスタブする。プラグインのデモが独自のユニットテストでこれを行っています）を保持しないかぎり、`T.let` / `T.cast` / `T.must` / `T.unsafe`コールはランタイムで`NameError`を発生させます。
 
 ## 次に読むもの
 
 - 全機能マトリックスとアーキテクチャサーフェスは[`plugins/rigor-sorbet/README.md`](https://github.com/rigortype/rigor/blob/master/plugins/rigor-sorbet/README.md)にあります。
 - 設計根拠 + スライスプランは[`docs/adr/11-sorbet-input-adapter.md`](../../adr/11-sorbet-input-adapter/)にあります。
-- [`docs/notes/20260503-steep-cross-check-triage.md`](../../notes/20260503-steep-cross-check-triage/)のクロスチェッカートリアージレポートは、他の静的チェッカーが見逃すsigドリフトをRigorの解析器が日常的に表面化する方法を示しています——各ツールが実際に何を発見するかを比較するときに役立ちます。
+- [`docs/notes/20260503-steep-cross-check-triage.md`](../../notes/20260503-steep-cross-check-triage/)のクロスチェッカートリアージレポートは、他の静的チェッカーが見逃すsigドリフトをRigorの解析器が日常的に表面化する方法を示しています。各ツールが実際に何を発見するかを比較するときに役立ちます。
