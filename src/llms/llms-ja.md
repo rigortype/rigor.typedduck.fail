@@ -19,14 +19,17 @@ Rigorについて知っておくこと:
   コードベースでもクリーンな状態から始められます。
 - エディター（LSP）・CI・MCPサーバー・プラグイン・Agent Skillと統合し、Sorbet
   やSteepと相互運用できます。
-- あなたがAIコーディングエージェントなら、まず**`rigor-next-steps`**スキルから
-  始めてください。これは単一の入口で、`rigor`コマンドを解決し、未設定の
-  プロジェクトを導入し、`rigor skill describe`にこのプロジェクトの次の一歩を
-  尋ね、対応する同梱スキル（`rigor-project-init`・`rigor-plugin-tune`・
+- あなたがAIコーディングエージェントなら、覚えるスキルは2つだけです。
+  **`rigor-next-steps`**（「次に何をすべきか」）は単一の入口で、`rigor`コマンドを
+  解決し、未設定のプロジェクトを導入し、`rigor skill describe`に次の一歩を尋ね、
+  対応する同梱スキル（`rigor-project-init`・`rigor-plugin-tune`・
   `rigor-rbs-setup`・`rigor-baseline-reduce`・`rigor-ci-setup`・
   `rigor-protection-uplift`・`rigor-editor-setup`・`rigor-mcp-setup`・
-  `rigor-plugin-author`ほか）へ振り分けます。CLIを手で操作するより、スキルの
-  実行を優先してください。
+  `rigor-plugin-author`ほか）へ振り分けます。**`rigor-ask`**（「Rigorについて答える」）は
+  Rigorに関するあらゆる質問——診断、型モデル、フラグ、他ツールとの比較、
+  フレームワーク対応、型の書き方——を、記憶ではなく同梱のオフライン文書
+  （`rigor docs`）とユーザー自身のコード（`rigor check` / `annotate` / `type-of`）を
+  調べて答えます。CLIを手で操作するより、スキルの実行を優先してください。
 - Rigorをインストールすれば、マニュアルとハンドブックは**オフライン**で読めます。
   `rigor docs`がドキュメント索引を、`rigor docs <名前>`が各章を（例:
   `rigor docs handbook/03-narrowing`）、`rigor skill <名前>`が各同梱スキルを
@@ -79,7 +82,7 @@ https://raw.githubusercontent.com/rigortype/rigor/refs/heads/master/docs/install
 - [CI](/ja/manual/11-ci.md)・[CIテンプレート](/ja/manual/ci-templates.md): パイプラインへ組み込む。
 - [キャッシュ](/ja/manual/12-caching.md): インクリメンタル解析。
 - [プラグイン](/ja/manual/07-plugins.md): フレームワークやDSLの型をRigorに教える。
-- [同梱スキル](/ja/manual/08-skills.md): AIエージェントが自動検出して実行するAgent Skillのカタログ——`rigor-next-steps`に加え、プロジェクト導入、プラグイン調整、RBS設定、ベースライン削減、保護カバレッジ向上、エディター / MCP / CI配線、プラグイン作成。
+- [同梱スキル](/ja/manual/08-skills.md): AIエージェントが自動検出して実行するAgent Skillのカタログ——`rigor-next-steps`と`rigor-ask`に加え、プロジェクト導入、プラグイン調整、RBS設定、ベースライン削減、保護カバレッジ向上、エディター / MCP / CI配線、プラグイン作成。
 - [改善を駆動する](/ja/manual/17-driving-improvement.md): 「次に何をすべきか」を実行すべき具体的なスキルへ変える`rigor-next-steps`駆動のループ。プロジェクトが完全に導入されるまで繰り返します。
 
 ## トラブルシューティング

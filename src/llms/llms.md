@@ -20,13 +20,18 @@ Things to know about Rigor:
   codebases start clean.
 - It integrates with editors (LSP), CI, an MCP server, plugins, and Agent Skills,
   and interoperates with Sorbet and Steep.
-- If you are an AI coding agent, start with the **`rigor-next-steps`** skill — the
-  single entry point that resolves the `rigor` command, onboards an unconfigured
-  project, then asks `rigor skill describe` for the project's next step and routes
-  to the matching bundled skill (`rigor-project-init`, `rigor-plugin-tune`,
-  `rigor-rbs-setup`, `rigor-baseline-reduce`, `rigor-ci-setup`,
-  `rigor-protection-uplift`, `rigor-editor-setup`, `rigor-mcp-setup`,
-  `rigor-plugin-author`, and more). Prefer running a skill over hand-driving the CLI.
+- If you are an AI coding agent, you only need two skills to start.
+  **`rigor-next-steps`** ("what should we do next?") is the single entry point: it
+  resolves the `rigor` command, onboards an unconfigured project, then asks
+  `rigor skill describe` for the project's next step and routes to the matching
+  bundled skill (`rigor-project-init`, `rigor-plugin-tune`, `rigor-rbs-setup`,
+  `rigor-baseline-reduce`, `rigor-ci-setup`, `rigor-protection-uplift`,
+  `rigor-editor-setup`, `rigor-mcp-setup`, `rigor-plugin-author`, and more).
+  **`rigor-ask`** ("answer this about Rigor") handles any question about Rigor — a
+  diagnostic, the type model, a flag, a comparison to another checker, framework
+  support, how to type something — by investigating from the bundled offline docs
+  (`rigor docs`) and the user's own code (`rigor check` / `annotate` / `type-of`)
+  rather than from memory. Prefer running a skill over hand-driving the CLI.
 - Once Rigor is installed, the manual and handbook are available **offline**: `rigor docs`
   prints the doc index, `rigor docs <name>` any chapter (e.g. `rigor docs handbook/03-narrowing`),
   and `rigor skill <name>` any bundled skill — no network round-trip. These web pages are the canonical copy.
@@ -79,7 +84,7 @@ Manual routes and ready-made prompts in 19 languages are in
 - [CI](/manual/11-ci.md) and [CI templates](/manual/ci-templates.md): wire it into pipelines.
 - [Caching](/manual/12-caching.md): incremental analysis.
 - [Plugins](/manual/07-plugins.md): teach Rigor framework and DSL types.
-- [Provided skills](/manual/08-skills.md): the Agent Skill catalogue an AI agent auto-discovers and runs — `rigor-next-steps` plus project init, plugin tuning, RBS setup, baseline reduction, protection uplift, editor / MCP / CI setup, and plugin authoring.
+- [Provided skills](/manual/08-skills.md): the Agent Skill catalogue an AI agent auto-discovers and runs — `rigor-next-steps` and `rigor-ask` plus project init, plugin tuning, RBS setup, baseline reduction, protection uplift, editor / MCP / CI setup, and plugin authoring.
 - [Driving improvement](/manual/17-driving-improvement.md): the `rigor-next-steps`-driven loop that turns "what should we do next?" into a concrete skill to run, repeated until the project is fully adopted.
 
 ## Troubleshooting
