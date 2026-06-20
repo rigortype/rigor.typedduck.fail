@@ -20,10 +20,16 @@ Things to know about Rigor:
   codebases start clean.
 - It integrates with editors (LSP), CI, an MCP server, plugins, and Agent Skills,
   and interoperates with Sorbet and Steep.
-- If you are an AI coding agent, Rigor ships auto-discovered Agent Skills — prefer
-  running the matching skill over hand-driving the CLI: `rigor-project-init`
-  (onboard a project), `rigor-baseline-reduce` (work down a baseline),
-  `rigor-plugin-author` (scaffold a plugin), `rigor-ci-setup` (wire up CI).
+- If you are an AI coding agent, start with the **`rigor-next-steps`** skill — the
+  single entry point that resolves the `rigor` command, onboards an unconfigured
+  project, then asks `rigor skill describe` for the project's next step and routes
+  to the matching bundled skill (`rigor-project-init`, `rigor-plugin-tune`,
+  `rigor-rbs-setup`, `rigor-baseline-reduce`, `rigor-ci-setup`,
+  `rigor-protection-uplift`, `rigor-editor-setup`, `rigor-mcp-setup`,
+  `rigor-plugin-author`, and more). Prefer running a skill over hand-driving the CLI.
+- Once Rigor is installed, the manual is available **offline**: `rigor docs` prints
+  the doc index and `rigor docs <name>` any chapter, and `rigor skill print <name>`
+  any bundled skill — no network round-trip. These web pages are the canonical copy.
 - These pages are the canonical English docs. A Japanese translation is indexed
   at `/ja/llms.txt` (full text at `/ja/llms-full.txt`); pages mirror under `/ja/`.
 
@@ -40,9 +46,12 @@ https://raw.githubusercontent.com/rigortype/rigor/refs/heads/master/docs/install
 Following it installs Rigor (mise / asdf / gem) and runs the `rigor-project-init`
 Agent Skill: it detects the stack, proposes matching plugins, picks an adoption
 mode — baseline (acknowledge existing diagnostics) or strict (zero-diagnostic
-gate) — and writes a ready-to-use config. The prompt is plain natural language,
-so it works in any language. Manual routes and ready-made prompts in 19 languages
-are in [Installation](/manual/01-installation.md).
+gate) — and writes a ready-to-use config. After that, **`rigor-next-steps`** is the
+recurring entry point: re-run it (or `rigor skill describe`) any time to get the
+project's next improvement step, since the recommendation always reflects the
+current state. The prompt is plain natural language, so it works in any language.
+Manual routes and ready-made prompts in 19 languages are in
+[Installation](/manual/01-installation.md).
 
 ## Overview
 
@@ -70,7 +79,8 @@ are in [Installation](/manual/01-installation.md).
 - [CI](/manual/11-ci.md) and [CI templates](/manual/ci-templates.md): wire it into pipelines.
 - [Caching](/manual/12-caching.md): incremental analysis.
 - [Plugins](/manual/07-plugins.md): teach Rigor framework and DSL types.
-- [Provided skills](/manual/08-skills.md): Agent Skills an AI agent auto-discovers and runs — project init, baseline reduction, plugin authoring, CI setup.
+- [Provided skills](/manual/08-skills.md): the Agent Skill catalogue an AI agent auto-discovers and runs — `rigor-next-steps` plus project init, plugin tuning, RBS setup, baseline reduction, protection uplift, editor / MCP / CI setup, and plugin authoring.
+- [Driving improvement](/manual/17-driving-improvement.md): the `rigor-next-steps`-driven loop that turns "what should we do next?" into a concrete skill to run, repeated until the project is fully adopted.
 
 ## Troubleshooting
 

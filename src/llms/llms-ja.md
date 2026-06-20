@@ -19,11 +19,18 @@ Rigorについて知っておくこと:
   コードベースでもクリーンな状態から始められます。
 - エディター（LSP）・CI・MCPサーバー・プラグイン・Agent Skillと統合し、Sorbet
   やSteepと相互運用できます。
-- あなたがAIコーディングエージェントなら、Rigorは自動検出されるAgent Skillを
-  同梱しています。CLIを手で操作するより、対応するスキルの実行を優先してくださ
-  い: `rigor-project-init`（プロジェクトの導入）・`rigor-baseline-reduce`
-  （ベースラインの削減）・`rigor-plugin-author`（プラグインの雛形生成）・
-  `rigor-ci-setup`（CIの配線）。
+- あなたがAIコーディングエージェントなら、まず**`rigor-next-steps`**スキルから
+  始めてください。これは単一の入口で、`rigor`コマンドを解決し、未設定の
+  プロジェクトを導入し、`rigor skill describe`にこのプロジェクトの次の一歩を
+  尋ね、対応する同梱スキル（`rigor-project-init`・`rigor-plugin-tune`・
+  `rigor-rbs-setup`・`rigor-baseline-reduce`・`rigor-ci-setup`・
+  `rigor-protection-uplift`・`rigor-editor-setup`・`rigor-mcp-setup`・
+  `rigor-plugin-author`ほか）へ振り分けます。CLIを手で操作するより、スキルの
+  実行を優先してください。
+- Rigorをインストールすれば、マニュアルは**オフライン**で読めます。`rigor docs`が
+  ドキュメント索引を、`rigor docs <名前>`が各章を、`rigor skill print <名前>`が
+  各同梱スキルを表示します——ネットワーク往復はありません。これらのWebページが
+  その正本です。
 - これらは英語正本ドキュメントの日本語訳です。英語の索引は`/llms.txt`（全文は
   `/llms-full.txt`）、原文は`/`配下にあります。
 
@@ -40,8 +47,11 @@ https://raw.githubusercontent.com/rigortype/rigor/refs/heads/master/docs/install
 これに従うとRigorがインストールされ（mise / asdf / gem）、`rigor-project-init`
 のAgent Skillが実行されます。スタックを検出し、適合するプラグインを提案し、
 採用モード——baseline（既存の診断を容認）かstrict（診断ゼロのゲート）——を
-選び、すぐ使える設定を書き込みます。プロンプトはただの自然言語なので、どの
-言語でも動きます。手動の経路と19言語のすぐ使えるプロンプトは[インストール](/ja/manual/01-installation.md)にあります。
+選び、すぐ使える設定を書き込みます。その後は**`rigor-next-steps`**が継続的な
+入口です。再実行（または`rigor skill describe`）すれば、推奨は常に現在の状態を
+反映するので、いつでもプロジェクトの次の改善ステップが得られます。プロンプトは
+ただの自然言語なので、どの言語でも動きます。手動の経路と19言語のすぐ使える
+プロンプトは[インストール](/ja/manual/01-installation.md)にあります。
 
 ## 概要
 
@@ -69,7 +79,8 @@ https://raw.githubusercontent.com/rigortype/rigor/refs/heads/master/docs/install
 - [CI](/ja/manual/11-ci.md)・[CIテンプレート](/ja/manual/ci-templates.md): パイプラインへ組み込む。
 - [キャッシュ](/ja/manual/12-caching.md): インクリメンタル解析。
 - [プラグイン](/ja/manual/07-plugins.md): フレームワークやDSLの型をRigorに教える。
-- [同梱スキル](/ja/manual/08-skills.md): AIエージェントが自動検出して実行するAgent Skill——プロジェクト導入、ベースライン削減、プラグイン作成、CI配線。
+- [同梱スキル](/ja/manual/08-skills.md): AIエージェントが自動検出して実行するAgent Skillのカタログ——`rigor-next-steps`に加え、プロジェクト導入、プラグイン調整、RBS設定、ベースライン削減、保護カバレッジ向上、エディター / MCP / CI配線、プラグイン作成。
+- [改善を駆動する](/ja/manual/17-driving-improvement.md): 「次に何をすべきか」を実行すべき具体的なスキルへ変える`rigor-next-steps`駆動のループ。プロジェクトが完全に導入されるまで繰り返します。
 
 ## トラブルシューティング
 
