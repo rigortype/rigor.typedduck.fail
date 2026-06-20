@@ -3,8 +3,8 @@ title: "マクロ／DSL展開基板"
 description: "rigortype/rigor docs/internal-spec/macro-substrate.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/macro-substrate.md"
 sourcePath: "docs/internal-spec/macro-substrate.md"
-sourceSha: "33d2dd5aed592735d693e4c22806ac9a9724b3b28d7dca05faf275df693cac6d"
-sourceCommit: "aec4ca7f5f87b1972dea8fecaaf5b62c8880a3af"
+sourceSha: "59f109d8af5f5b9b94c86fa4a78d2c33fdc24d800e9c8e108e7805d7b9bc65ce"
+sourceCommit: "212f2c491920cc5c39a12d75aee385cb6c51fa0c"
 translationStatus: "translated"
 sidebar:
   order: 3050
@@ -107,7 +107,7 @@ emitテーブルの1行。
 | フィールド | 型 | 注記 |
 | --- | --- | --- |
 | `name` | 空でない`String` | 合成メソッドの名前テンプレート。`"#{name}"`プレースホルダーは`symbol_arg_position`の呼び出し箇所リテラルシンボルで補間される。 |
-| `returns` | 空でない`String`または`nil` | 宣言された戻り値型名。`Environment#nominal_for_name`を介して解決される。`returns`と`returns_from_arg`の両方が`nil`のとき、合成メソッドの戻り値はADR-16 WD13のfloorに従って`Dynamic[Top]`にフォールバックする。 |
+| `returns` | 空でない`String`または`nil` | 宣言された戻り値型名。`Environment#nominal_for_name`を介して解決される。`returns`と`returns_from_arg`の両方が`nil`のとき、合成メソッドの戻り値はADR-16 WD13のfloorに従って`Dynamic[top]`にフォールバックする。 |
 | `returns_from_arg` | `ReturnsFromArg`または`nil` | 呼び出し箇所ごとの戻り値型（ADR-18）。`Hash`から強制変換される。 |
 
 ### `HeredocTemplate::ReturnsFromArg`（ADR-18）
@@ -167,7 +167,7 @@ returns_from_arg: { position: 1, lookup_via: { plugin_id: "dry-types", fact: :dr
 | `block_method` | `Symbol` | 囲んでいるDSLブロック。デフォルト`:variants`。 |
 | `variant_method` | `Symbol` | ブロック内の各宣言呼び出し。デフォルト`:variant`。 |
 | `symbol_arg_position` | `Integer >= 0` | デフォルト`0`。ネストされたサブクラスを名指すリテラル定数を持つ引数のインデックス。 |
-| `inner_arg_position` | `Integer >= 0` | デフォルト`1`。型式が`#inner`リーダーの戻り値型となる引数のインデックス。定数型引数は解決される。定数でないinner形状は`Dynamic[Top]`に降格する。 |
+| `inner_arg_position` | `Integer >= 0` | デフォルト`1`。型式が`#inner`リーダーの戻り値型となる引数のインデックス。定数型引数は解決される。定数でないinner形状は`Dynamic[top]`に降格する。 |
 | `inner_reader` | `Symbol` | 各バリアントサブクラスに合成されるペイロードリーダー。デフォルト`:inner`。 |
 
 `sealed`-親ファクト＋`is_a?`バリアント横断の網羅的ナローイング

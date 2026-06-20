@@ -3,8 +3,8 @@ title: "ナローイング"
 description: "rigortype/rigor docs/handbook/03-narrowing.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/03-narrowing.md"
 sourcePath: "docs/handbook/03-narrowing.md"
-sourceSha: "6ae2e3ec18777fbcce0650930bc6e0f5dea8579787a0824ed16fb1b190472bfc"
-sourceCommit: "a3ab53dd2b8aa0a84fd7ddbd64339f316d8d12ec"
+sourceSha: "55581f22b92cb3b8f9d538f6b0bad19c47712d9f48bd3914cbf0c43cc02b5182"
+sourceCommit: "212f2c491920cc5c39a12d75aee385cb6c51fa0c"
 translationStatus: "translated"
 sidebar:
   order: 1003
@@ -257,7 +257,7 @@ end
 
 Rigorが今日**ナローイングしない**形式でよく期待されるもの:
 
-- `respond_to?(:method_name)`: 「このオブジェクトはそのメソッドに応答する」を証明するには、エンジンがまだ公開していない構造的ファセットが必要です。
+- `respond_to?(:method_name)`: 記録されるのは非nilのナローイングだけです。静的に既知のシンボルでの真偽チェックは（`nil`はほとんどのメソッドに応答しないため）レシーバーから`nil`を取り除きます。しかし、ディスパッチに使える「このオブジェクトはそのメソッドに応答する」という構造的なケイパビリティ（capability）ファクト（fact）は**まだ**公開しません。
 - `frozen?`などの変異ガード: Rigorはまだミュータビリティをナローイング事実として追跡しません。
 - 任意のユーザー定義`case_eq`に対する`===`によるオープンエンドのクラス比較: Class / Module / Range / Regexpのみが認識されます。
 - `self`ターゲットディレクティブ内のメソッドチェーンレシーバー（`get_user.admin?`）にはナローイングするスコープバインディングがありません。ローカル変数、インスタンス変数、明示的`self`、暗黙的selfのレシーバーはすべてサポートされています。

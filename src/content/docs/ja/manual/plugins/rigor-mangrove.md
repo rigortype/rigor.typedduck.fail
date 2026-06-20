@@ -3,8 +3,8 @@ title: "rigor-mangrove"
 description: "rigortype/rigor docs/manual/plugins/rigor-mangrove.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/plugins/rigor-mangrove.md"
 sourcePath: "docs/manual/plugins/rigor-mangrove.md"
-sourceSha: "131cea87f4ddd158e28b879fc972bddf6bfddbcf9f34f91c16569966db58da1e"
-sourceCommit: "5c304b2c680eccdbfaffc114c0f31ce89f740ad4"
+sourceSha: "27b6b8fd5c1f2a009afac3dee49da8e5129b19179a61848158d7693014953b99"
+sourceCommit: "212f2c491920cc5c39a12d75aee385cb6c51fa0c"
 translationStatus: "translated"
 sidebar:
   order: 9050
@@ -49,7 +49,7 @@ Shape::Circle.new(1.5).inner.no_such_float_method # error: Float に対して未
 
 - **コンストラクタからのジェネリック推論はない**。`Result::Ok.new("x")`は型引数のないキャリアを生むため、そこでのunwrapは何も提供しません（保守的なno-opであり、偽陽性は決して起こりません）。
 - **ダウンキャストのナローイングは型引数を保持しない（ADR-36のSlice B、保留）**。`is_a?`を介して親のジェネリックをバリアントへナローイングしても、継承エッジを通して型引数が運ばれることはまだありません。
-- **定数でないペイロードのシェイプは劣化する**。ペイロードがシェイプ（shape）ハッシュ（`{ name: String }`）であるバリアントは、`Dynamic[Top]`にフォールバックします。
+- **定数でないペイロードのシェイプは劣化する**。ペイロードがシェイプ（shape）ハッシュ（`{ name: String }`）であるバリアントは、`Dynamic[top]`にフォールバックします。
 
 ## プラグインの内部
 

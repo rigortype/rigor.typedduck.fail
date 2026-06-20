@@ -3,8 +3,8 @@ title: "クラス"
 description: "rigortype/rigor docs/handbook/06-classes.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/06-classes.md"
 sourcePath: "docs/handbook/06-classes.md"
-sourceSha: "6e7fc7ff8db267bc1d6210a18929b8b998eaa7c2292e9fcedad0d249ee45e65c"
-sourceCommit: "a3ab53dd2b8aa0a84fd7ddbd64339f316d8d12ec"
+sourceSha: "46a60858500d7397e658d4ec8fce80d1be7d27356d9b9d25391e0b127da0a7ec"
+sourceCommit: "212f2c491920cc5c39a12d75aee385cb6c51fa0c"
 translationStatus: "translated"
 sidebar:
   order: 1006
@@ -160,7 +160,7 @@ assert_type("Dynamic[top]", m.x)
 - インソースの`class Foo < Bar`行。
 - Rigorが辿った`include` / `prepend` / `extend`呼び出し。
 
-階層が静的に不完全な場合（クラスがRigorが見つけられない親を参照している）、レシーバー型は最も深い既知の祖先にフォールバックします。Rigorが宣言を見たクラスに対しては、`Dynamic[Top]`になることはありません。
+階層が静的に不完全な場合（クラスがRigorが見つけられない親を参照している）、レシーバー型は最も深い既知の祖先にフォールバックします。Rigorが宣言を見たクラスに対しては、`Dynamic[top]`になることはありません。
 
 ## `class`型と`singleton(C)`型
 

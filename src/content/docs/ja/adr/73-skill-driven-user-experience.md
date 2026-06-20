@@ -3,14 +3,16 @@ title: "ADR-73 — SKILL駆動のRigorユーザー体験（`rigor-next-steps`エ
 description: "rigortype/rigor docs/adr/73-skill-driven-user-experience.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/73-skill-driven-user-experience.md"
 sourcePath: "docs/adr/73-skill-driven-user-experience.md"
-sourceSha: "94e101df33a2694e815f7ef73a1cf4df17dbdc5b7e216e14f1193f65fe162573"
-sourceCommit: "51a679f3ccd12f5bee48c24150401d10e978efce"
+sourceSha: "5a51e276bd835a23dbbca92e7a7c020fbe88dbb6315e4537349505898e825f5f"
+sourceCommit: "212f2c491920cc5c39a12d75aee385cb6c51fa0c"
 translationStatus: "translated"
 sidebar:
   order: 4073
 ---
 
 ステータス: **Accepted — WD1〜WD5を2026-06-20に実装**。「このプロジェクトでRigorを使って次に何をすべきか」のための単一のSKILL駆動エントリーポイント——`rigor-next-steps`——を確立し、それをライブでバージョン同期した`rigor skill --describe`が支えることで、配布されるガイダンスが決して陳腐化しないようにします。保留されていた`rigor-protection-uplift`スキルを出荷セットへ昇格させ、ユーザー向けSKILLをどこで配布するか（vercel-labs/skillsとバンドルされたgem）を確定します。`describe`カタログは**成長する**ように設計されています（「カタログの拡張」を参照）。最初の7つの追加——`rigor-rbs-setup`、`rigor-editor-setup`、`rigor-mcp-setup`、`rigor-monkeypatch-resolve`、`rigor-plugin-tune`、`rigor-upgrade`、`rigor-doctor`——が同日に実装されました。
+
+**改訂（2026-06-21）—— `rigor skill`のフラグ文法**。[ADR-74](../74-offline-doc-access-and-llms-txt/)の`rigor docs`変更に揃えて、`rigor skill`の発見系の動詞はフラグへ移動しました: `rigor skill <name>`（引数なし＝本体を出力）、`rigor skill --list`、`rigor skill --path <name>`。`describe`アクションは**変わりません**——`rigor skill describe`と`rigor skill --describe`はどちらも引き続き第一級です（これは引数なしのアクションであって、名前スロットを取る動詞ではないため）。トップレベルの`rigor describe`エイリアスも同様です。レガシーの`list` / `print <name>` / `path <name>`動詞は引き続き動作しますが、1行のstderr非推奨通知を出力し、**v0.3.0で削除されます**（[ROADMAP](../../roadmap/) §「Scheduled CLI deprecations」を参照）。バンドルされたジェネレータ——`rigor skill --describe`のカタログ＋推奨出力、`rigor-next-steps` SKILL、CI検出ヒント——は、いまや正規の`rigor skill <name>`形のみを出力するため、SKILL駆動のUXが自らの非推奨通知を引き起こすことはありません。
 
 根拠: 既存の`rigor skill`コマンド（[`lib/rigor/cli/skill_command.rb`](https://github.com/rigortype/rigor/blob/master/lib/rigor/cli/skill_command.rb)、[ADR-22](../22-baseline-and-project-onboarding/) WD8によりv0.1.13で出荷）、保留されていたact-on-coverageスケルトン（[`docs/design/20260616-act-on-coverage-skill.md`](../../design/20260616-act-on-coverage-skill/)、[ADR-63](../63-type-protection-coverage/) WD5、パイロット検証済み）、そして[`docs/install.md`](../../install/)のエージェント向けインストールフロー。
 

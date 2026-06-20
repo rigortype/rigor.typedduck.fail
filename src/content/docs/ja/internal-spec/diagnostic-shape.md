@@ -3,8 +3,8 @@ title: "`Rigor::Analysis::Diagnostic`のシェイプ"
 description: "rigortype/rigor docs/internal-spec/diagnostic-shape.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/diagnostic-shape.md"
 sourcePath: "docs/internal-spec/diagnostic-shape.md"
-sourceSha: "7679e026a9fc92d72a1a896673fdf58e1099752dbfe1d4cb6fbf01f80aa650a0"
-sourceCommit: "a3ab53dd2b8aa0a84fd7ddbd64339f316d8d12ec"
+sourceSha: "25c19f8f42e50f1a0c355ebcc6bfdc1cb6717b3c2b02e9d5cc7e78caf6bddd88"
+sourceCommit: "212f2c491920cc5c39a12d75aee385cb6c51fa0c"
 translationStatus: "translated"
 sidebar:
   order: 3050
@@ -12,7 +12,7 @@ sidebar:
 
 ## ステータス
 
-**記述的であり、まだ確定していません**。これはdiagnosticキャリア（carrier）の*現在の*シェイプ（shape）を記録するもので、コンシューマー（トリアージ、ベースライン（baseline）、JSONストリームを読むプラグイン）が文書化された契約（contract）に依存できるようにします。これはサーフェス（surface）を**確定させるものではありません**。[`public-api.md`](../public-api/)のとおり、ルールごとの識別子と構造化フィールドの集合はv0.1.0でロックされるまでまだ変わりうるため、`Rigor::Analysis::Diagnostic`は意図的に公開APIドリフト仕様から外されています。*識別子の分類体系*、深刻度解決、抑制のセマンティクスは
+**記述的であり、v1.0のフリーズに向けて安定化中です**。これはdiagnosticキャリア（carrier）の*現在の*シェイプ（shape）を記録するもので、コンシューマー（トリアージ、ベースライン（baseline）、JSONストリームを読むプラグイン）が文書化された契約（contract）に依存できるようにします。ルールごとの識別子と構造化フィールドの集合は、[ADR-50](../../adr/50-release-engineering-and-stability-strategy/)のもとでv1.0において公開語彙としてフリーズされる予定です。それまではフィールド集合はまだフィールドを獲得するかもしれません（加算的 ── 例えば`evidence_tier`と`documentation_url`はADR-65に従って追加されました）。そのため[`public-api.md`](../public-api/)のとおり、`Rigor::Analysis::Diagnostic`は公開APIドリフト仕様から外されたままです。*識別子の分類体系*、深刻度解決、抑制のセマンティクスは
 [`diagnostic-policy.md`](../../type-specification/diagnostic-policy/)で規範的に定められています。このページはオブジェクトのフィールドシェイプについてのみ扱います。
 
 ## フィールド

@@ -3,8 +3,8 @@ title: "日常的に出会う型"
 description: "rigortype/rigor docs/handbook/02-everyday-types.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/02-everyday-types.md"
 sourcePath: "docs/handbook/02-everyday-types.md"
-sourceSha: "6b65b3eecc475788d8f11ff807f2db08982135ddc52cdc9b5d6af5e392f2788d"
-sourceCommit: "98bd3fb5bcd0434c814c1d4e3c864e3888ddeae4"
+sourceSha: "9d50e751c36821f194d42a67ee8f6faa143e4f7ceb4481850ca5e36752d0914e"
+sourceCommit: "212f2c491920cc5c39a12d75aee385cb6c51fa0c"
 translationStatus: "translated"
 sidebar:
   order: 1002
@@ -30,9 +30,9 @@ n = ARGV.size
 
 これが重要な理由: Rigorが出したい診断のほとんどは、より狭い事実を必要とします。「Integer」だけでは`n / 0`が常に例外を投げると証明できませんが、`Constant<0>`なら証明できます。「Array」だけでは`arr.first.upcase`が安全と証明できませんが、`non-empty-array[String]`なら証明できます。
 
-まとめると: プログラムのすべての地点にある各値は**キャリア**（carrier）で記述されます。キャリアは広い（`Integer`、`Dynamic[Top]`）場合もあれば、狭い（`Constant<3>`、`non-empty-string`）場合もあります。この章の残りはキャリアの図鑑です。
+まとめると: プログラムのすべての地点にある各値は**キャリア**（carrier）で記述されます。キャリアは広い（`Integer`、`Dynamic[top]`）場合もあれば、狭い（`Constant<3>`、`non-empty-string`）場合もあります。この章の残りはキャリアの図鑑です。
 
-図鑑に入る前に記法を一つ: 山括弧は具体的な値または境界を保持し（`Constant<3>`、`int<0, max>`）、角括弧はRBSと全く同じく型パラメータを保持します（`Nominal[String]`、`Hash[K, V]`、`Dynamic[Top]`）。
+図鑑に入る前に記法を一つ: 山括弧は具体的な値または境界を保持し（`Constant<3>`、`int<0, max>`）、角括弧はRBSと全く同じく型パラメータを保持します（`Nominal[String]`、`Hash[K, V]`、`Dynamic[top]`）。
 
 ## キャリアを自分で見る: `rigor annotate`
 
@@ -79,7 +79,7 @@ sym = "foo".to_sym        #=> dump_type: Constant<:foo>
 
 たたみ込みはNumeric、String、Symbol、Array、Hashの「純粋な」メソッドの長いリストに及びます。リストはこのハンドブックには載せていません（数ページにわたる）。[`docs/types.md`](../../types/)とクラス別カタログ[`data/builtins/ruby_core/`](https://github.com/rigortype/rigor/tree/master/data/builtins/ruby_core/)を参照してください。
 
-たたみ込みが**安全でない**とき（メソッドに副作用がある、環境に依存する、またはカタログに載っていない組み込みクラスにある）、Rigorは辞退して名前的型のキャリアか`Dynamic[Top]`を返します。
+たたみ込みが**安全でない**とき（メソッドに副作用がある、環境に依存する、またはカタログに載っていない組み込みクラスにある）、Rigorは辞退して名前的型のキャリアか`Dynamic[top]`を返します。
 
 ## 整数範囲: 有界な区間
 
@@ -153,19 +153,19 @@ else
 end
 ```
 
-## `Dynamic[Top]`: 漸進的キャリア
+## `Dynamic[top]`: 漸進的キャリア
 
-Rigorが「これは任意のRuby値かもしれない」よりも厳密なことを証明できないことがあります。例えばベアなパラメータは呼び出し元からの情報を持ちません。それが`Dynamic[Top]`で、RBS消去後のビューでは`untyped`と短縮されることが多いです。
+Rigorが「これは任意のRuby値かもしれない」よりも厳密なことを証明できないことがあります。例えばベアなパラメータは呼び出し元からの情報を持ちません。それが`Dynamic[top]`で、RBS消去後のビューでは`untyped`と短縮されることが多いです。
 
 ```ruby
 def foo(x)
-  x.bar   #=> dump_type: Dynamic[Top]
+  x.bar   #=> dump_type: Dynamic[top]
 end
 ```
 
 `Dynamic[T]`（Top以外の内部）はより具体的な漸進的（gradual）形式です: 「この値に対する静的契約はないが、静的ファセットは`T`のように振る舞う」。RBSで宣言された`untyped`境界が、Rigorがすでに何かを知っているクラスと出会うときに現れます。
 
-`Dynamic[Top]`レシーバーに対して診断が出ることは**ありません**。これが偽陽性なし方針です。Rigorは特定できない値に対しては、報告するよりも沈黙を選びます。
+`Dynamic[top]`レシーバーに対して診断が出ることは**ありません**。これが偽陽性なし方針です。Rigorは特定できない値に対しては、報告するよりも沈黙を選びます。
 
 ## タプルとハッシュシェイプ: 異種構造
 

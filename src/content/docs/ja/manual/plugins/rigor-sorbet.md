@@ -3,8 +3,8 @@ title: "rigor-sorbet"
 description: "rigortype/rigor docs/manual/plugins/rigor-sorbet.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/plugins/rigor-sorbet.md"
 sourcePath: "docs/manual/plugins/rigor-sorbet.md"
-sourceSha: "0a40eacc5c2708a256aa97dac0247fefa6613246c281270df3c1d8ca6d9e2813"
-sourceCommit: "5c304b2c680eccdbfaffc114c0f31ce89f740ad4"
+sourceSha: "fcb6822a866a4b165495036ea45ee0ab9f672daec5b7807ebdb4c4c03e65d95e"
+sourceCommit: "212f2c491920cc5c39a12d75aee385cb6c51fa0c"
 translationStatus: "translated"
 sidebar:
   order: 9050
@@ -36,7 +36,7 @@ plugins:
 
 ## スコープと制限
 
-このプラグインは**入力側専用**です。Sorbetの構文をRigorの型モデルへ翻訳します。Sorbetのチェッカーを実行することも、`sorbet-runtime`を同梱することも、Sorbetのランタイム保証を強制することも**しません**。RBSのsigとSorbetのsigが食い違う場合は、RBSが優先されます（Sorbetのsigは絞り込めますが、矛盾することはできません）。翻訳テーブルの外にある形式（`T.proc`、`T.self_type`、`T::Struct` / `T::Enum`のサブクラス、…）は`Dynamic[Top]`に劣化します。第10章が完全な語彙とこれらのエッジケースを記述しています。
+このプラグインは**入力側専用**です。Sorbetの構文をRigorの型モデルへ翻訳します。Sorbetのチェッカーを実行することも、`sorbet-runtime`を同梱することも、Sorbetのランタイム保証を強制することも**しません**。RBSのsigとSorbetのsigが食い違う場合は、RBSが優先されます（Sorbetのsigは絞り込めますが、矛盾することはできません）。翻訳テーブルの外にある形式（`T.proc`、`T.self_type`、`T::Struct` / `T::Enum`のサブクラス、…）は`Dynamic[top]`に劣化します。第10章が完全な語彙とこれらのエッジケースを記述しています。
 
 ## プラグイン内部
 

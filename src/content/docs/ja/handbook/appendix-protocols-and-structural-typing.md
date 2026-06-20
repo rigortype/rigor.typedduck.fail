@@ -3,8 +3,8 @@ title: "付録: プロトコル、インターフェース、構造的型付け"
 description: "rigortype/rigor docs/handbook/appendix-protocols-and-structural-typing.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/appendix-protocols-and-structural-typing.md"
 sourcePath: "docs/handbook/appendix-protocols-and-structural-typing.md"
-sourceSha: "c4180990f5fbaf07ad8d123e48d592b0768329958229a33f6018481386f5783e"
-sourceCommit: "98bd3fb5bcd0434c814c1d4e3c864e3888ddeae4"
+sourceSha: "654de754f1aecfbb67e0ce610d9cd6e21d4d0df8fd59db142631054a69c8ac61"
+sourceCommit: "212f2c491920cc5c39a12d75aee385cb6c51fa0c"
 translationStatus: "translated"
 sidebar:
   order: 1050
@@ -124,10 +124,10 @@ protocol_contracts: [
 
 するとエンジンは**供給と検査（provide-and-check）**を行います。
 
-- **供給（provide、エンジン側）**。マッチするファイル内の`def call(record)`を束縛するとき、契約の`param_types`が、注釈のない引数が通常受け取るはずの`Dynamic[Top]`を*置き換えます*。本体はその後、`record`がその実際の型を担うかのように解析されます ── つまり本体内の誤用（`record.no_such_column`）は通常の`call.undefined-method`として顕在化し、推論される戻り値型は精密になります。
+- **供給（provide、エンジン側）**。マッチするファイル内の`def call(record)`を束縛するとき、契約の`param_types`が、注釈のない引数が通常受け取るはずの`Dynamic[top]`を*置き換えます*。本体はその後、`record`がその実際の型を担うかのように解析されます。つまり本体内の誤用（`record.no_such_column`）は通常の`call.undefined-method`として顕在化し、推論される戻り値型は精密になります。
 - **検査（check、プラグイン側）**。プラグインは、マッチするファイル内のすべてのクラスがそのメソッドを定義していること（さもなくば`missing-protocol-method`）、およびその推論される戻り値型が`return_type_name`に適合すること（さもなくば`protocol-return-mismatch`）を確認します。
 
-供給の側こそが要を担います。それがなければ`request`は`Dynamic[Top]`になり、これはあらゆるメソッドに応答するため、それから組み立てられるどんな戻り値もまた`Dynamic[Top]`となり、戻り値の検査は空虚になります。
+供給の側こそが要を担います。それがなければ`request`は`Dynamic[top]`になり、これはあらゆるメソッドに応答するため、それから組み立てられるどんな戻り値もまた`Dynamic[top]`となり、戻り値の検査は空虚になります。
 
 （プラグイン作者ではなく）*アプリケーション*開発者として注意すべきことが二つあります。
 

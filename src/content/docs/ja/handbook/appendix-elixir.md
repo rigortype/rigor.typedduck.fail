@@ -3,8 +3,8 @@ title: "付録: Elixirから来た場合"
 description: "rigortype/rigor docs/handbook/appendix-elixir.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/appendix-elixir.md"
 sourcePath: "docs/handbook/appendix-elixir.md"
-sourceSha: "648d25d06209c3a62c19fe4d00c88cd327e04b510200871b3b77bb2b5362b40e"
-sourceCommit: "98bd3fb5bcd0434c814c1d4e3c864e3888ddeae4"
+sourceSha: "040e99a319dd8f94d35b44056b0c938bf4a1de63bff8ca90c9205a9979b2af06"
+sourceCommit: "212f2c491920cc5c39a12d75aee385cb6c51fa0c"
 translationStatus: "translated"
 sidebar:
   order: 1050
@@ -24,7 +24,7 @@ sidebar:
 | 起源 | 動的。型は漸進的に追加 | 動的。型は漸進的に追加 |
 | 健全性のスタンス | サクセスタイピング（証明可能な失敗だけを指摘） | false-positiveなし（エラーを証明できない限り沈黙） |
 | アノテーションはどこにあるか？ | ソース内の`@spec`/`@type` | `.rb`の隣の`.rbs`ファイル |
-| 「分からない」型 | `dynamic()`/`term()` | `Dynamic[Top]`/`Top` |
+| 「分からない」型 | `dynamic()`/`term()` | `Dynamic[top]`/`Top` |
 | ナローイングエンジン | パターンマッチング + ガード | パターンマッチング + ガード + 述語メソッド |
 | 型の代数 | 集合論的（ユニオン / インターセクション / 否定） | ユニオン + 型演算子（`~T`、`T - U`） |
 
@@ -40,7 +40,7 @@ ElixirとRigorは最も重要なことで一致している。動的言語の型
 | `:foo`（アトム） | `Constant<:foo>`（Symbol） | アトム ↔ シンボル。直接対応。[アトム ↔ シンボル](#アトム--シンボル)参照。 |
 | `nil` | `nil`（`Constant<nil>`） | Elixirの`nil`はアトムの`nil`。Rubyのものは独自のシングルトン。どちらもfalsy。 |
 | `binary()`/`String.t()` | `String` | |
-| `term()`/`any()` | `Top`/`Dynamic[Top]` | `any()`は「なんでも」用。`dynamic()`は漸進的エスケープハッチ用。 |
+| `term()`/`any()` | `Top`/`Dynamic[top]` | `any()`は「なんでも」用。`dynamic()`は漸進的エスケープハッチ用。 |
 | `none()` | `Bot` | 空の型。住人がいない。 |
 | `[t]`（リスト） | `Array[T]` | |
 | `{a, b}`（タプル） | `Tuple[A, B]` | 同じ位置ごとのモデル。 |
@@ -49,7 +49,7 @@ ElixirとRigorは最も重要なことで一致している。動的言語の型
 | `%User{}`（構造体） | `User = Data.define(...)` | 名前付きでメンバー形状の値。 |
 | `[key: t]`（キーワードリスト） | `Hash[Symbol, T]`または`Array[Tuple]` | Rubyのキーワード的なデータは`Hash`。 |
 | `t \| u`（集合論的ユニオン） | `T \| U` | 同じ表示。同じ発想。 |
-| `dynamic()` | `Dynamic[Top]` | 「ここでは黙る」漸進的キャリア（carrier）。 |
+| `dynamic()` | `Dynamic[top]` | 「ここでは黙る」漸進的キャリア（carrier）。 |
 | `(integer() -> binary())` | `^(Integer) -> String`（RBSのproc構文） | |
 
 ## パターンマッチング＆ガード ↔ ナローイング
@@ -80,9 +80,9 @@ Elixirの型システムは*集合論的*だ。型は値の集合であり、ユ
 | インターセクション`t and u` | `Intersection[T, U]` |
 | 否定`not t` | `~T`（補集合） |
 | 差（集合の引き算） | `T - U`（型差） |
-| `dynamic()` | `Dynamic[Top]` |
+| `dynamic()` | `Dynamic[top]` |
 
-漸進的なストーリーは精神的にほぼ同一だ。Elixirで`dynamic()`と型付けされた値は、Rigorの`Dynamic[Top]`レシーバーと同様、チェッカーが一歩引いて推測する代わりに沈黙を保つ点である。どちらのシステムも実際のコードで実用的であり続けるためにこれに頼り、どちらもそれに手を伸ばすことを当たり前のこととして扱う。
+漸進的なストーリーは精神的にほぼ同一だ。Elixirで`dynamic()`と型付けされた値は、Rigorの`Dynamic[top]`レシーバーと同様、チェッカーが一歩引いて推測する代わりに沈黙を保つ点である。どちらのシステムも実際のコードで実用的であり続けるためにこれに頼り、どちらもそれに手を伸ばすことを当たり前のこととして扱う。
 
 Elixirがさらに先を行く点: Elixirではインターセクションと否定を普通の`@type`式として*記述*でき、推論がそれらについて隅々まで推論する。Rigorは`~T`と`T - U`を内部や一部のディレクティブで使うが、`.rbs`にはまだ完全な集合論的オーサリングサーフェス（surface）を公開していない。日常的な重なり（ユニオンと漸進的な`dynamic()`境界）こそ、両者が同じに感じられる部分だ。
 

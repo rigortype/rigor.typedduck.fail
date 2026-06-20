@@ -3,8 +3,8 @@ title: "エラーの読み方"
 description: "rigortype/rigor docs/handbook/08-understanding-errors.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/08-understanding-errors.md"
 sourcePath: "docs/handbook/08-understanding-errors.md"
-sourceSha: "305cb7d4c5e3e700137f300ddcf72d03a518c2baa8453afe42cb7ae559dc8922"
-sourceCommit: "98bd3fb5bcd0434c814c1d4e3c864e3888ddeae4"
+sourceSha: "71298d8003e3c812663034c10be6d71579901bfe90a3007978e76af606ce5b4b"
+sourceCommit: "212f2c491920cc5c39a12d75aee385cb6c51fa0c"
 translationStatus: "translated"
 sidebar:
   order: 1008
@@ -55,7 +55,7 @@ lib/user.rb:42:7: error: undefined method `upcas' for "alice" [call.undefined-me
 | `call.undefined-method` | レシーバークラスが静的に既知で、メソッドがそれに定義されていない（RBSまたはインソース）。 | error |
 | `call.wrong-arity` | 位置引数の数がどのオーバーロードのアリティも満たさない。 | error |
 | `call.argument-type-mismatch` | 引数の型がパラメータ契約（contract）（RBSまたは`RBS::Extended` `param:`）を証明可能に満たさない。 | error |
-| `call.possible-nil-receiver` | レシーバー型が`T \| nil`で、メソッドが`NilClass`で定義されていない。 | warning |
+| `call.possible-nil-receiver` | レシーバー型が`T \| nil`で、メソッドが`NilClass`で定義されていない。 | error（`lenient`でwarning） |
 | `call.unresolved-toplevel` | トップレベル（どの`def` / `class` / `module`の外側でもない）の暗黙的self呼び出しが、同一ファイルの`def`、`pre_eval:`モンキーパッチ、`Kernel` / `Object`のメソッドのいずれにも解決しない。スタンドアロンスクリプトのタイポを顕在化させる。 | `balanced`でwarning、`strict`でerror、`lenient`で抑制 |
 
 `call.*`ルールは実際のコードで最も量の多い診断です。また最も洗練されています。それぞれがRigorが根底にある事実を証明できる場合にのみ発火します。
@@ -81,7 +81,7 @@ lib/user.rb:42:7: error: undefined method `upcas' for "alice" [call.undefined-me
 | ルール | 発火するとき | デフォルト深刻度 |
 | --- | --- | --- |
 | `def.return-type-mismatch` | 本体の最後の式の推論された型がRBS宣言の戻り値型を満たせない。`%a{rigor:v1:return: <refinement>}`オーバーライドを尊重。 | `balanced`プロファイルでwarning、`strict`でerror |
-| `def.ivar-write-mismatch` | 同じクラスボディ内で後の`@var = ...`書き込みの具体クラスが最初の書き込みのクラスと異なる（NilClass-to-clearはアローリスト）。 | error |
+| `def.ivar-write-mismatch` | 同じクラスボディ内で後の`@var = ...`書き込みの具体クラスが最初の書き込みのクラスと異なる（NilClass-to-clearはアローリスト）。 | `balanced`プロファイルでwarning、`strict`でerror |
 | `def.method-visibility-mismatch` | 明示的レシーバーのコールが、周囲のクラスボディで`：private`として発見されたメソッドを持つ`Nominal[X]`をターゲットにする。 | error |
 | `def.override-visibility-reduced` | オーバーライドが、プロジェクト定義の祖先から継承した可視性を縮小する（public → protected/private、protected → private）。上位型を保持する呼び出し元を壊す。 | `balanced`でwarning、`strict`でerror、`lenient`で抑制 |
 | `def.override-return-widened` | オーバーライドの宣言された戻り値が、継承した戻り値を広げる（共変性）。両側が著作されたRBSシグネチャを持つ場合の、証明可能な違反でのみ発火する。 | `balanced`でwarning、`strict`でerror、`lenient`で抑制 |
@@ -211,7 +211,7 @@ rigor diff rigor.baseline.json
 
 最もよくある理由:
 
-1. **レシーバーが`Dynamic[Top]`です**。Rigorは漸進的（gradual）レシーバーに対して沈黙します。`rigor type-of <file>:<line>:<col>`を実行してエンジンが何を見ているか確認します。
+1. **レシーバーが`Dynamic[top]`です**。Rigorは漸進的（gradual）レシーバーに対して沈黙します。`rigor type-of <file>:<line>:<col>`を実行してエンジンが何を見ているか確認します。
 2. **メソッドが階層のどこかに存在します**。 祖先クラス/モジュールの一致するdefが1つでもあれば`call.undefined-method`は沈黙します。
 3. **呼び出しがメソッド本体内の暗黙的selfです**。Rigorは暗黙的selfの呼び出しをフラグしません。メタプログラミングの多いコードではノイズが多すぎます。
 4. **リテラルは解析器が証明できない方法でランタイムに空/nilの可能性があります**。`s = ARGV.first; s.upcase`は黙って通ります。なぜなら`s`はランタイムで正当に非空文字列である可能性があり、Rigorは証明できないことをフラグしないからです。明示的なガードまたは`param:`の締め付けを追加します。
@@ -224,7 +224,7 @@ rigor diff rigor.baseline.json
 rigor check --explain lib
 ```
 
-これにより、エンジンが取ったすべてのfail-softフォールバックごとに`:info`診断が追加されます（それ以上見えなかったため`Dynamic[Top]`に拡幅した各箇所）。現実的なコードでは出力がノイズになりますが、「ここで診断が来ると思っていた」デバッグには非常に価値があります。
+これにより、エンジンが取ったすべてのfail-softフォールバックごとに`:info`診断が追加されます（それ以上見えなかったため`Dynamic[top]`に拡幅した各箇所）。現実的なコードでは出力がノイズになりますが、「ここで診断が来ると思っていた」デバッグには非常に価値があります。
 
 ## 来るべきでないと思う診断が発火している理由
 
@@ -232,7 +232,7 @@ rigor check --explain lib
 
 1. **Rigorが正しいです**。 典型的なケース: メソッドのRBSシグが`String?`と言っているが、プロジェクトのランタイム不変条件が非nilを保証している。シグを修正するか（推奨）、`RBS::Extended`の`return:`ディレクティブを追加するか、その行に`# rigor:disable`を追加します。
 2. **RBSシグが欠落または間違っています**。 クラスが`.rbs`のないgemに存在するか、プロジェクト自身の`sig/`がソースと同期していません。シグを更新または追加します。
-3. **定数が間違って参照されています**。 定数解決はRBSコアまたはインソースクラス探索にフォールバックする可能性があります;両方が見逃す場合、呼び出しは`Dynamic[Top]`を通り診断は出ませんが、間違ったクラスに対する兄弟呼び出しが発火するかもしれません。
+3. **定数が間違って参照されています**。 定数解決はRBSコアまたはインソースクラス探索にフォールバックする可能性があります;両方が見逃す場合、呼び出しは`Dynamic[top]`を通り診断は出ませんが、間違ったクラスに対する兄弟呼び出しが発火するかもしれません。
 4. **診断が正真正銘の偽陽性です**。 まれです（Rigorの設計優先事項は偽陽性なし）。しかし可能性はあります。抽出できる最小の再現コードで問題を報告してください。
 
 ## 役立つワークフロー

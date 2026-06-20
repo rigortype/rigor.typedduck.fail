@@ -3,14 +3,14 @@ title: "軽量HKT（`JSON.parse`とその仲間たち）"
 description: "rigortype/rigor docs/handbook/12-lightweight-hkt.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/12-lightweight-hkt.md"
 sourcePath: "docs/handbook/12-lightweight-hkt.md"
-sourceSha: "3a78268e57141a37f930ee8c5968593a62cde0cbb837eebd56058738d4044409"
-sourceCommit: "98bd3fb5bcd0434c814c1d4e3c864e3888ddeae4"
+sourceSha: "21c83919d0b2fe8e76d08c8c16e4652bbe78d9779a41ab88370c7592a1198472"
+sourceCommit: "212f2c491920cc5c39a12d75aee385cb6c51fa0c"
 translationStatus: "translated"
 sidebar:
   order: 1012
 ---
 
-`JSON.parse(str)`は「何らかのJSON値」を返します: `nil`、bool、数値、文字列、JSON値の配列、またはJSON値のハッシュ。RBSはこれを`untyped`として記述します。型コンストラクタを量化することなく再帰的な直和型（sum type）を綴る方法がないからです。ほとんどの型チェッカーは肩をすくめ、`JSON.parse(str)`を`Dynamic[Top]`に消え去らせます。
+`JSON.parse(str)`は「何らかのJSON値」を返します: `nil`、bool、数値、文字列、JSON値の配列、またはJSON値のハッシュ。RBSはこれを`untyped`として記述します。型コンストラクタを量化することなく再帰的な直和型（sum type）を綴る方法がないからです。ほとんどの型チェッカーは肩をすくめ、`JSON.parse(str)`を`Dynamic[top]`に消え去らせます。
 
 Rigorはこれを正確にモデル化します:
 
@@ -125,7 +125,7 @@ end
 
 | 形式 | 例 | 意味 |
 | --- | --- | --- |
-| アトム | `nil` / `true` / `false` / `bool` / `untyped` | 定数と`Dynamic[Top]`キャリア |
+| アトム | `nil` / `true` / `false` / `bool` / `untyped` | 定数と`Dynamic[top]`キャリア |
 | 名前的クラス | `Integer` / `String` / `Foo::Bar` / `::String` | `Nominal[class_name]` |
 | パラメータ参照 | `K`、`T`、`E`（`params`にあるとき） | 簡約時に代入される |
 | パラメータ化された名前的型（nominal type、公称型とも） | `Array[K]`、`Hash[K, V]` | `Nominal[..., type_args: [...]]` |
@@ -188,7 +188,7 @@ Union[ nil, true, false, Integer, Float, String,
        Hash[ String, Type::App[json::value, [String]] ] ]
 ```
 
-入れ子の`Type::App`は通常のRigor型です;下流の消費者（受容、ナローイング（narrowing）、ディスパッチ）はそれを`bound`（デフォルト`Dynamic[Top]`）に委譲して扱います。もう1段の展開が必要なら、再度`app.reduce(env.hkt_registry)`を呼びます。しかし典型的な消費者はそれを必要としません。
+入れ子の`Type::App`は通常のRigor型です;下流の消費者（受容、ナローイング（narrowing）、ディスパッチ）はそれを`bound`（デフォルト`Dynamic[top]`）に委譲して扱います。もう1段の展開が必要なら、再度`app.reduce(env.hkt_registry)`を呼びます。しかし典型的な消費者はそれを必要としません。
 
 **燃料予算**（呼び出しサイト評価あたりデフォルト64簡約ステップ）が暴走する展開を制限します。枯渇は`app.bound`に巻き戻ります。
 

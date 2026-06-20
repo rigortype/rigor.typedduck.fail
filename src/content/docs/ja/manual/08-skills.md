@@ -3,8 +3,8 @@ title: "提供スキル"
 description: "rigortype/rigor docs/manual/08-skills.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/08-skills.md"
 sourcePath: "docs/manual/08-skills.md"
-sourceSha: "9e40486d80fecd75c0d405f82e74dc392f0386cf34f373e9f09f6acd70e81a0c"
-sourceCommit: "51a679f3ccd12f5bee48c24150401d10e978efce"
+sourceSha: "cfb61729dac5552ab58968dd6bec8417118c584e9c7814b4c96a67ccd91c1921"
+sourceCommit: "212f2c491920cc5c39a12d75aee385cb6c51fa0c"
 translationStatus: "translated"
 sidebar:
   order: 9008
@@ -59,7 +59,7 @@ rigor skill <name>    # print the SKILL.md body (with a references/ header)
 rigor skill --path  <name>    # one-line absolute SKILL.md path, for a file-reading tool
 ```
 
-`rigor skill describe`は`rigor-next-steps`が駆動するレコメンデーションエンジンです。`rigor skill rigor-project-init`は、リポジトリを指し示すことなくエージェントにオンボーディングワークフローを手渡す正規の方法です。[CLIリファレンス](../02-cli-reference/#rigor-skill)を参照してください。
+`rigor skill describe`は`rigor-next-steps`が駆動するレコメンデーションエンジンです。`rigor skill rigor-project-init`は、リポジトリを指し示すことなくエージェントにオンボーディングワークフローを手渡す正規の方法です。`list` / `print` / `path`という動詞表記は非推奨です（v0.3.0で削除）。[CLIリファレンス](../02-cli-reference/#rigor-skill)を参照してください。
 
 ## スキルをプロジェクトにインストールする
 

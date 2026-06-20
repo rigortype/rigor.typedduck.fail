@@ -3,8 +3,8 @@ title: "トラブルシューティング"
 description: "rigortype/rigor docs/manual/13-troubleshooting.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/13-troubleshooting.md"
 sourcePath: "docs/manual/13-troubleshooting.md"
-sourceSha: "13be6916044ca321abf68fa5da7066d2fa20b1e807afac8e094f28e9c59f0f53"
-sourceCommit: "aec4ca7f5f87b1972dea8fecaaf5b62c8880a3af"
+sourceSha: "3e9392bc26b0f2e49747be0f4d4412ee4eb243ce109c4a4ed13bb625732013ea"
+sourceCommit: "212f2c491920cc5c39a12d75aee385cb6c51fa0c"
 translationStatus: "translated"
 sidebar:
   order: 9013
@@ -20,7 +20,7 @@ Rigorはインストールされているが`PATH`上にありません。バー
 
 コマンドラインでパスが指定されない場合、Rigorは設定ファイルの`paths:`を解析します。`paths:`が間違っているか、設定ファイルが見つからない場合、実行は空になります。プロジェクトルートに`.rigor.yml`または`.rigor.dist.yml`があることを確認するか、明示的にパスを指定してください: `rigor check lib app`。
 
-## すべてが`untyped` / `Dynamic[Top]`になる
+## すべてが`untyped` / `Dynamic[top]`になる
 
 Rigorは問題のコードに対する型情報を持っていません。よくある原因:
 

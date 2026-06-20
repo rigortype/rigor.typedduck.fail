@@ -3,8 +3,8 @@ title: "rigor-dry-struct"
 description: "rigortype/rigor docs/manual/plugins/rigor-dry-struct.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/plugins/rigor-dry-struct.md"
 sourcePath: "docs/manual/plugins/rigor-dry-struct.md"
-sourceSha: "117d9243592140f6f3ffd87dedc2098c2b50b84f9374d7152d9f524c0c8e3776"
-sourceCommit: "5c304b2c680eccdbfaffc114c0f31ce89f740ad4"
+sourceSha: "c53593820c357cc6e30b56986609990cd6b557cb6f02d1e9f6a39f75a26b3fd7"
+sourceCommit: "212f2c491920cc5c39a12d75aee385cb6c51fa0c"
 translationStatus: "translated"
 sidebar:
   order: 9050
@@ -32,7 +32,7 @@ address.city      # resolves (synthesised reader)
 address.postcode  # resolves
 ```
 
-[`rigor-dry-types`](../rigor-dry-types/)も有効で、プロジェクトが`module Types; include Dry.Types(); end`を宣言している場合、リーダーの戻り値の型は属性の型引数を通じて解決されます（`attribute :city, Types::String` → `city`は`String`を返す）。dry-typesがロードされていない場合、または解決できないシェイプ（`.constrained(...)`チェーンやインラインの合成）の場合、リーダーは`Dynamic[Top]`にフォールバックします。これは静かに行われ、diagnosticは出ません。
+[`rigor-dry-types`](../rigor-dry-types/)も有効で、プロジェクトが`module Types; include Dry.Types(); end`を宣言している場合、リーダーの戻り値の型は属性の型引数を通じて解決されます（`attribute :city, Types::String` → `city`は`String`を返す）。dry-typesがロードされていない場合、または解決できないシェイプ（`.constrained(...)`チェーンやインラインの合成）の場合、リーダーは`Dynamic[top]`にフォールバックします。これは静かに行われ、diagnosticは出ません。
 
 ## diagnosticもconfigもなし
 

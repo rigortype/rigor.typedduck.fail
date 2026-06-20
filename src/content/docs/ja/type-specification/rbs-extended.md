@@ -3,8 +3,8 @@ title: "RBS::Extendedアノテーション"
 description: "rigortype/rigor docs/type-specification/rbs-extended.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/type-specification/rbs-extended.md"
 sourcePath: "docs/type-specification/rbs-extended.md"
-sourceSha: "5f5c75f009853e16a0da7d84c2ea0a13692a9a38551733f7195b6de400d55d03"
-sourceCommit: "db8d01bf94926a72e6a2aaf15639d1591b7e142e"
+sourceSha: "6ca5b74eadb4e34976de922cbb377d2b8bad92d0adf01e40d0c80744b159a2d1"
+sourceCommit: "212f2c491920cc5c39a12d75aee385cb6c51fa0c"
 translationStatus: "translated"
 sidebar:
   order: 2050
@@ -135,6 +135,26 @@ end
 ディレクティブはRigorに対して、現在の呼び出しサイトがその要件を実行するかどうかに関係なく適合を検証するよう指示します。これは構造的契約を使用から生まれるプロパティではなくチェックされた設計アサーションにしたいライブラリに有用です。同じクラス上の複数の`conforms-to`ディレクティブは許可され、インターフェースの積集合のように結合します。宣言された`conforms-to`インターフェースが満たされない場合、Rigorは診断を報告しなければなりません（MUST）;満たされたディレクティブはサイレントです。
 
 ディレクティブは純粋に追加的です。暗黙の構造的互換性は引き続き適用され、すでにインターフェースを満たすクラスはアノテーションなしで型チェックを続けます。
+
+## 高階型ディレクティブ（ADR-20）
+
+2つの宣言レベルディレクティブが、軽量HKT（higher-kinded type、高階型）機構（[ADR-20](../../adr/20-lightweight-hkt/)）のために脱関数化された型コンストラクタを登録・定義します。結果として得られる`App[<uri>, <args...>]`キャリアは[rigor-extensions.md](../rigor-extensions/)に記載されています。上記のメソッドごとのディレクティブと異なり、これらは`class` / `module`宣言に付与し、**スペース区切りの`key=value`ペア**を取ります（RBSの`%a{...}`文法はネストした区切り文字を受け付けないため、値は裸のトークンです）:
+
+| ディレクティブ | 効果 |
+| --- | --- |
+| `rigor:v1:hkt_register: uri=<uri> arity=<int> variance=<v1>,<v2>,... bound=<class_or_untyped>` | 型コンストラクタURIを、そのアリティ（arity）、位置ごとの分散（variance）、消去`bound`（`untyped`→`Dynamic[top]`、ADR-20 WD2のデフォルト）とともに登録します。 |
+| `rigor:v1:hkt_define: uri=<uri> params=<P1>,<P2>,... body=<body_text>` | URIを型関数ボディに束縛します。`body=`はペイロードの残りをすべて取り込み、ユニオンツリーへとパースされます。 |
+
+```ruby
+%a{rigor:v1:hkt_register: uri=json::value arity=1 variance=out bound=untyped}
+%a{rigor:v1:hkt_define: uri=json::value params=K
+   body=nil | true | false | Integer | Float | String |
+        Array[App[json::value, K]] | Hash[K, App[json::value, K]]}
+module JsonOverlay
+end
+```
+
+バンドルされた`json::value`の登録は`JSON.parse` / `YAML.safe_load`の戻り値判別を支えています。著作の実践的なウォークスルーはハンドブック第12章を参照してください。
 
 ## フロー効果と拡張の貢献
 

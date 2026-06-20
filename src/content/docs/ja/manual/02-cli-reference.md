@@ -3,8 +3,8 @@ title: "CLIコマンドリファレンス"
 description: "rigortype/rigor docs/manual/02-cli-reference.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/02-cli-reference.md"
 sourcePath: "docs/manual/02-cli-reference.md"
-sourceSha: "f588e8d169a01bc5c59364bb0ad1580e6ce813a3cf37de67ac61116e1e3b5372"
-sourceCommit: "321f7d04a39d2736e0c59c872dd4c587e370b3bc"
+sourceSha: "f7cd2bbfbd60698c419368fae1ae5e30f6c9072ad305fbde963598e4a5912c2a"
+sourceCommit: "212f2c491920cc5c39a12d75aee385cb6c51fa0c"
 sourceDate: "2026-06-20T19:24:34+09:00"
 translationStatus: "translated"
 sidebar:
@@ -282,7 +282,7 @@ rigor playground
 
 `rigortype` gemの内部に出荷されたバンドル済みAgent Skillsを一覧・出力し、Rigorと並んでインストールされたAIコーディングエージェントが、プロジェクト側のソースチェックアウトなしにそれらを発見・追従できるようにします。[スキル](../08-skills/)を参照してください。
 
-位置引数は常にスキル *名* です。別形式の出力はフラグで指定するので、スキルが動詞に隠されることはありません。
+位置引数は常にスキル*名*です。別形式の出力はフラグで指定するので、スキルが動詞に隠されることはありません。
 
 ```sh
 rigor skill [<name>] [--path <name>] [--list] [--describe]
@@ -311,7 +311,7 @@ rigor describe
 
 `rigortype` gemに同梱されたドキュメントを**オフラインで**出力します。これにより、Rigorさえインストールされていれば、SKILL駆動のUXが案内するRigorを駆動するためのガイダンスを、AIコーディングエージェント（やあなた自身）がネットワークなしで読めます（[ADR-74](../../adr/74-offline-doc-access-and-llms-txt/)）。これは[`rigor skill`](#rigor-skill)のドキュメント版にあたります。gemは`docs/install.md`、`docs/llms.txt`、そしてユーザー向けの[マニュアル](../)と[ハンドブック](../../handbook/)一式を同梱しますが、貢献者向けのADR / 仕様 / 開発ノートのコーパスはサイト上のWeb限定のままです。
 
-位置引数はドキュメント *名* です。別形式の出力はフラグで指定します。
+位置引数はドキュメント*名*です。別形式の出力はフラグで指定します。
 
 ```sh
 rigor docs [<name>] [--path <name>] [--list [<category>]]
@@ -320,7 +320,7 @@ rigor docs [<name>] [--path <name>] [--list [<category>]]
 | 形式 | 用途 |
 | --- | --- |
 | （なし） | 同梱の`llms.txt`オフラインドキュメント索引（`rigor docs <name>`が提供できるものの一覧）を出力する。 |
-| `<name>` | ドキュメントページを来歴コメント付きでstdoutに出力する。カテゴリ修飾パス（`handbook/03-narrowing`）、章のプレフィックス付き名（`02-cli-reference`）、短縮名（一意なときは`cli-reference`）、または`install`を受け付ける。 |
+| `<name>` | ドキュメントページを来歴コメント付きでstdoutに出力する。カテゴリー修飾パス（`handbook/03-narrowing`）、章のプレフィックス付き名（`02-cli-reference`）、短縮名（一意なときは`cli-reference`）、または`install`を受け付ける。 |
 | `--path <name>` | ドキュメントの絶対パスを1行で出力する。ファイル読み取りツールへの入力に適する。 |
 | `--list [<category>]` | 同梱されたすべてのドキュメントの表（名前＋絶対パス）。`manual`または`handbook`で絞り込める。 |
 

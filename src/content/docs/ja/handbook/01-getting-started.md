@@ -3,8 +3,8 @@ title: "はじめに"
 description: "rigortype/rigor docs/handbook/01-getting-started.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/01-getting-started.md"
 sourcePath: "docs/handbook/01-getting-started.md"
-sourceSha: "1fd04d085e8804ddd82f86410c4f455056d4e419a8c18ea2bafd84056bbf8234"
-sourceCommit: "98bd3fb5bcd0434c814c1d4e3c864e3888ddeae4"
+sourceSha: "6ddbe17869928461bf148ad2bc56fd4155234b0e777aa79b5735424c3b8d6905"
+sourceCommit: "212f2c491920cc5c39a12d75aee385cb6c51fa0c"
 translationStatus: "translated"
 sidebar:
   order: 1001
@@ -161,18 +161,18 @@ hello    = "#{greeting}#{name}!"     # リテラル文字列キャリア:
 
 > `assert_type(...)`の行はRigorのイントロスペクションヘルパーであり、ランタイムチェックではありません。その時点で推論された型を固定するので、地の文を解析器の実際の出力と比較できます。完全なスニペット規約については[このハンドブックの読み方](../#読み方)を参照してください。
 
-推論で型を絞り込めないとき、エンジンは`Dynamic[Top]`（「任意のRuby値の可能性がある」漸進的（gradual）キャリア）を返し、診断は出しません。Rigorは証明できない診断を勝手に作り出すことはありません。
+推論で型を絞り込めないとき、エンジンは`Dynamic[top]`（「任意のRuby値の可能性がある」漸進的（gradual）キャリア）を返し、診断は出しません。Rigorは証明できない診断を勝手に作り出すことはありません。
 
 ## 推論だけでは足りないとき
 
-*初読ですか？ このセクションは飛ばしてください。*デフォルトのままでも、推論に加えてgemがすでに同梱しているRBSがほとんどのコードをカバーし、続く各章がその出力の読み方を教えます。Rigorが「もっと知っていてほしい」と思う何かを`Dynamic[Top]`に解決したときに、ここへ戻ってきてください。ほとんどのプロジェクトでは抜け道（1）と（2）しか登場しません。
+*初読ですか？ このセクションは飛ばしてください。*デフォルトのままでも、推論に加えてgemがすでに同梱しているRBSがほとんどのコードをカバーし、続く各章がその出力の読み方を教えます。Rigorが「もっと知っていてほしい」と思う何かを`Dynamic[top]`に解決したときに、ここへ戻ってきてください。ほとんどのプロジェクトでは抜け道（1）と（2）しか登場しません。
 
 5つの抜け道があります。おおよそよく使う順に並べると:
 
-1. **`.rbs`ファイルを追加する**。署名を`sig/`に置けばRigorが自動的に拾います。ローカルの`def`から先が見えない理由として最も多いのがこれです。デフォルトでは解析器は外部のgemをすべて`Dynamic[Top]`として扱います。gemがRBSを同梱していないかぎり、または以下の（4）でgemソース推論をオプトインしないかぎり、内部は見えません。
+1. **`.rbs`ファイルを追加する**。署名を`sig/`に置けばRigorが自動的に拾います。ローカルの`def`から先が見えない理由として最も多いのがこれです。デフォルトでは解析器は外部のgemをすべて`Dynamic[top]`として扱います。gemがRBSを同梱していないかぎり、または以下の（4）でgemソース推論をオプトインしないかぎり、内部は見えません。
 2. **既存のRBS署名を`RBS::Extended`で締める**。メソッドの`def ... -> ::String`の上に`%a{rigor:v1:return: non-empty-string}`のような注釈を足します。Rigorはリファインメントを認識しますが、通常のRBSツールはコメントとしてしか見ません。
 3. **プラグインを書く**。プロジェクトに汎用解析器が知り得ないドメインDSL（`Lisp.eval`、`100.kilometers`、`transition_to(:foo)`など）があるなら、プラグインでRigorにそれを教えます。
-4. **gemソース推論をオプトインする**。RBSを持たないgemのメソッドが`Dynamic[Top]`に解決されてしまうとき、そのgemを`.rigor.dist.yml`の`dependencies.source_inference:`に列挙すれば、Rigorはそのgemの`lib/`をプロジェクトソースと同じように辿ります。戻り値は`Dynamic[T]`でラップされ、呼び出し元には出所情報が保持されます。トレードオフは[ADR-10](../../adr/10-dependency-source-inference/)を参照してください（広いデフォルトは予算を圧迫し`bundle update`をノイジーにするため、gem単位のオプトイン設計です）。
+4. **gemソース推論をオプトインする**。RBSを持たないgemのメソッドが`Dynamic[top]`に解決されてしまうとき、そのgemを`.rigor.dist.yml`の`dependencies.source_inference:`に列挙すれば、Rigorはそのgemの`lib/`をプロジェクトソースと同じように辿ります。戻り値は`Dynamic[T]`でラップされ、呼び出し元には出所情報が保持されます。トレードオフは[ADR-10](../../adr/10-dependency-source-inference/)を参照してください（広いデフォルトは予算を圧迫し`bundle update`をノイジーにするため、gem単位のオプトイン設計です）。
 5. **`rigor-sorbet`アダプタを使う**。プロジェクトがすでに[Sorbet](https://sorbet.org/)を使っているなら、Rigorは既存の`sig { ... }`ブロック、RBIファイル、`T.let` / `T.cast` / `T.must` / `T.unsafe`アサーションを何も書き直さずに型ソースとして読み取れます。移行パターンと対応表は[第10章](../10-sorbet/)を参照してください。
 
 第7章と第9章は（1）〜（3）を詳しく扱います;第10章は（5）を扱います。

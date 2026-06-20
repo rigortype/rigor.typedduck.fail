@@ -3,8 +3,8 @@ title: "Rigor型システム — クイックガイド"
 description: "rigortype/rigor docs/types.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/types.md"
 sourcePath: "docs/types.md"
-sourceSha: "0122108e57a640b75ea87868d26f8d551325abe1f80e62c0dac84d67565d1328"
-sourceCommit: "5c304b2c680eccdbfaffc114c0f31ce89f740ad4"
+sourceSha: "eab52398ff58c48e8bda1a8563812b23c0be49433ff5631987705138e6f296fb"
+sourceCommit: "212f2c491920cc5c39a12d75aee385cb6c51fa0c"
 translationStatus: "translated"
 sidebar:
   order: 9050
@@ -33,10 +33,10 @@ s   = id.downcase  # lowercase-string       — a refinement: String restricted 
 row = [1, "a"]     # Tuple[Constant<1>, Constant<"a">]    — per-position array shape
 cfg = {port: 8080} # HashShape{port: Constant<8080>}      — per-key hash shape
 tag = choose_color # Constant<:red> | Constant<:blue>     — a finite union
-x   = gets         # String | nil; Dynamic[Top] when nothing can be proved
+x   = gets         # String | nil; Dynamic[top] when nothing can be proved
 ```
 
-山括弧は具体的な値や境界を保持し（`Constant<3>`、`int<0, max>`）、角括弧はRBSと同様に型パラメータを保持します（`Tuple[…]`、`Dynamic[Top]`）。すべてのキャリアは境界において**ベースとなるRBSクラスに消去（erasure）されます**（`Constant<3>` → `Integer`）。そのためRigorの採用は厳密に加法的です。完全なウォークスルーは[ハンドブック第2章 — 日常的な型](../handbook/02-everyday-types/)にあります。
+山括弧は具体的な値や境界を保持し（`Constant<3>`、`int<0, max>`）、角括弧はRBSと同様に型パラメータを保持します（`Tuple[…]`、`Dynamic[top]`）。（これはハンドブックの表示規約です。エンジン自身の`#describe`は`Constant`を素の値——`3`、`"hi"`——として出力し、`docs/internal-spec/`配下の解析器内部の仕様はすべてのキャリアを角括弧でレンダリングします。たとえば`Constant[3]`です。）すべてのキャリアは境界において**ベースとなるRBSクラスに消去（erasure）されます**（`Constant<3>` → `Integer`）。そのためRigorの採用は厳密に加法的です。完全なウォークスルーは[ハンドブック第2章 — 日常的な型](../handbook/02-everyday-types/)にあります。
 
 ## 主な機能
 

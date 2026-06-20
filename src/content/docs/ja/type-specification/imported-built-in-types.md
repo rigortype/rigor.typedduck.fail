@@ -3,8 +3,8 @@ title: "インポートされた組み込み型"
 description: "rigortype/rigor docs/type-specification/imported-built-in-types.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/type-specification/imported-built-in-types.md"
 sourcePath: "docs/type-specification/imported-built-in-types.md"
-sourceSha: "1ac53bd5d7a3e28b58453999adf428641f880301653db44c88347252ba1352a5"
-sourceCommit: "a3ab53dd2b8aa0a84fd7ddbd64339f316d8d12ec"
+sourceSha: "dfd35085e32b37836c67b4d211d7909d2c5e7310e19129ef0d3e23186aa32a62"
+sourceCommit: "212f2c491920cc5c39a12d75aee385cb6c51fa0c"
 translationStatus: "translated"
 sidebar:
   order: 2050
@@ -25,7 +25,7 @@ Rigorは明確なRubyの意味を持つ場合にのみ、PHPStan、TypeScript、
 - 型関数が`-`を避けるのは、`-`がRigorの型構文では差分演算子でもあるためです; `int_mask[1, 2, 4]`は`int-mask[1, 2, 4]`より曖昧さが少ないです。
 - 具体的な移行や可読性の問題を解決しない限り、互換性エイリアスを受け付けてはなりません（MUST NOT）。
 - RBS名はすでにその概念を表現している場合は正規のままです。`bot`はボトム型です; `never`、`noreturn`、`never-return`、`never-returns`、`no-return`、`Never`、`NoReturn`は初期エイリアスとして追加してはなりません（MUST NOT）。
-- 整数範囲は`Integer[1..10]`のようにRigorの範囲表記を使います。PHPStanスタイルの`int<1, 10>`は初期エイリアスとして追加してはなりません（MUST NOT）。
+- 境界付き整数範囲は`int<1, 10>`のように予約済みリファインメント名`int<min, max>`を使います（`Integer`に消去されます）。これは`Builtins::ImportedRefinements`を通じて解析され、`IntegerRange`キャリア（carrier）によって表示されます。これはRigor予約済みのリファインメント名であり、任意の型に適用されるジェネリックの角括弧構文ではありません。
 
 ## 初期スカラーリファインメント
 
@@ -50,6 +50,7 @@ Rigorは明確なRubyの意味を持つ場合にのみ、PHPStan、TypeScript、
 | `non-positive-int` | `0`以下の`Integer` | `Integer` |
 | `non-negative-int` | `0`以上の`Integer` | `Integer` |
 | `non-zero-int` | `0`を除く`Integer` | `Integer` |
+| `int<min, max>` | 閉区間の境界付き範囲`min..max`内の`Integer` | `Integer` |
 
 正規の小文字文字列名は`lowercase-string`です;具体的な使いやすさの問題が現れない限り、`lower-string`は別のエイリアスとして受け付けてはなりません（MUST NOT）。
 
@@ -71,6 +72,7 @@ Rigorは明確なRubyの意味を持つ場合にのみ、PHPStan、TypeScript、
 | Rigor型 | 意味 | RBS消去 |
 | --- | --- | --- |
 | `non-empty-array[T]` | 少なくとも1つの要素を持つ`Array[T]` | `Array[T]` |
+| `non-empty-hash[K, V]` | 少なくとも1つのエントリーを持つ`Hash[K, V]` | `Hash[K, V]` |
 | オプショナルキーを持つハッシュシェイプ（shape） | 既知の必須およびオプショナルキーを持つHash | 正確な場合はRBSレコード、そうでなければ`Hash[K, V]` |
 | 追加キーポリシーを持つハッシュシェイプ | オープン、クローズ、または既知の値型の追加キーのみオープンなハッシュシェイプ | 正確でクローズドの場合はRBSレコード、そうでなければ`Hash[K, V]` |
 | 読み取り専用ハッシュシェイプエントリー | 現在の参照を通じて読み取ることはできるが書き込むべきでないキー | エントリーのミュータビリティマーカーは消去 |

@@ -3,8 +3,8 @@ title: "ロバストネス原則（型のためのPostelの法則）"
 description: "rigortype/rigor docs/type-specification/robustness-principle.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/type-specification/robustness-principle.md"
 sourcePath: "docs/type-specification/robustness-principle.md"
-sourceSha: "4f68e0f79f89d054f822db4ce482a3c230ffc1f1ced8c12773ab7e3e400d1f73"
-sourceCommit: "94bccefcb8e324ea2322199418f33e80617b8e33"
+sourceSha: "35571f34f1605ee2ce6a84aab6328613ff94b1c0b9a6860cf6e628d8b339d07b"
+sourceCommit: "212f2c491920cc5c39a12d75aee385cb6c51fa0c"
 translationStatus: "translated"
 sidebar:
   order: 2050
@@ -94,7 +94,7 @@ Rigorの既存のキャリアは、原則が解析器に使うよう指示する
 ### 具体的なパターン
 
 - **名前的クラスよりもケイパビリティロール**。 メソッドが引数に対して`:write`のみを使う場合、パラメータ型は`IO`ではなく`_Writable`（構造的ロール）であるべきです（SHOULD）。これにより`StringIO`、`Tempfile`、カスタムモックオブジェクト、および将来のすべてのクラスが契約を満たせるようになります。
-- **`RBS::Extended`による構造的インターフェース**。 メソッドの引数が少数のメソッドセットを公開する必要がある場合、RBSの`interface _Foo`宣言にパラメータへの`%a{rigor:v1:conforms-to: _Foo}`アノテーションを加えることが、具体的なクラスのユニオンを列挙するよりも好まれます。
+- **`RBS::Extended`による構造的インターフェース**。 メソッドの引数が少数のメソッドセットを公開する必要がある場合、RBSの`interface _Foo`宣言にパラメータへの`%a{rigor:v1:conforms-to _Foo}`アノテーションを加えることが、具体的なクラスのユニオンを列挙するよりも好まれます。
 - **本体がチェックするときのnilableパラメータ**。 本体に`return if x.nil?`ガードまたは同等のナローイングがある場合、パラメータは`T`ではなく`T | nil`であるべきです（SHOULD）。ナローイング層は本体内で精密な非nil型を回復します。
 - **数値スーパータイプ**。 引数に対して`+`、`-`、`*`、`<=>`のみを使うメソッドは、テストスイートがたまたま整数のみを渡す場合でも`Integer`ではなく`Numeric`でパラメータ型付けすべきです（SHOULD）。
 

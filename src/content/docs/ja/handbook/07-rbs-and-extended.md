@@ -3,8 +3,8 @@ title: "RBSと`RBS::Extended`"
 description: "rigortype/rigor docs/handbook/07-rbs-and-extended.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/07-rbs-and-extended.md"
 sourcePath: "docs/handbook/07-rbs-and-extended.md"
-sourceSha: "8936734d94ae50349fbff4c4899b33b7b65cfb8a50dc6b66b5c5f370e8f346bb"
-sourceCommit: "98bd3fb5bcd0434c814c1d4e3c864e3888ddeae4"
+sourceSha: "5096b01d91e72663f3b51b80a8ff821fb65aea5c7f4e6451b252003f12dd2abb"
+sourceCommit: "212f2c491920cc5c39a12d75aee385cb6c51fa0c"
 translationStatus: "translated"
 sidebar:
   order: 1007
@@ -97,9 +97,9 @@ s == "hello-world"  # bool（等値ナローイングが適用される）
 | --- | --- |
 | `%a{rigor:v1:return: <type>}` | メソッドの戻り値型を締め付ける。 |
 | `%a{rigor:v1:param: <name> is <type>}` | 呼び出し元でのパラメータの受け入れ型を締め付け、かつ本体内のローカル変数をナローイング（narrowing）する。 |
-| `%a{rigor:v1:assert: <name> is <type>}` | このメソッドが返った後、呼び出し元スコープの名前付きローカル変数は`<type>`である。 |
-| `%a{rigor:v1:predicate-if-true: <name> is <type>}` | このメソッドが真値を返したとき、呼び出し元スコープの名前付きローカル変数は`<type>`である。（対称な`predicate-if-false`。） |
-| `%a{rigor:v1:assertion-on: <name>}` | メソッドをアサーションゲートとしてマークする（本体の最後の式の型が`<name>`に関する事実になる）。 |
+| `%a{rigor:v1:assert <name> is <type>}` | このメソッドが返った後、呼び出し元スコープの名前付きローカル変数は`<type>`である。 |
+| `%a{rigor:v1:predicate-if-true <name> is <type>}` | このメソッドが真値を返したとき、呼び出し元スコープの名前付きローカル変数は`<type>`である。（対称な`predicate-if-false`。） |
+| `%a{rigor:v1:assert-if-true <name> is <type>}` | このメソッドが真値を返したとき、呼び出し元スコープの名前付きローカル変数は`<type>`である。（`false` / `nil`を返すときの対称な`assert-if-false`。） |
 
 `<type>`スロットは以下を受け入れます:
 
@@ -138,7 +138,7 @@ end
 
 ```ruby
 class Validator
-  %a{rigor:v1:assert: x is non-empty-string}
+  %a{rigor:v1:assert x is non-empty-string}
   def assert_non_empty: (String x) -> void
 end
 ```
@@ -157,7 +157,7 @@ end
 
 ```ruby
 class Range
-  %a{rigor:v1:predicate-if-true: value is Integer}
+  %a{rigor:v1:predicate-if-true value is Integer}
   def integer?: (untyped value) -> bool
 end
 ```
@@ -273,22 +273,22 @@ PHPStanのPHPDocアノテーションに慣れている場合、RigorのRBS::Ext
 
 > 「このメソッドが返した後、名前付き引数は`T`です。」
 
-PHPStanでは`@phpstan-assert`、Rigorでは`%a{rigor:v1:assert:}`です。
+PHPStanでは`@phpstan-assert`、Rigorでは`%a{rigor:v1:assert}`です。
 
 | PHPStan PHPDoc | Rigor RBS::Extended | 効果 |
 | --- | --- | --- |
-| `@phpstan-assert T $x` | `%a{rigor:v1:assert: x is T}` | このメソッドが正常に返った後、呼び出し元の`x`は`T`。 |
-| `@phpstan-assert-if-true T $x` | `%a{rigor:v1:predicate-if-true: x is T}` | このメソッドが真値を返した場合、呼び出し元の`x`は`T`。 |
-| `@phpstan-assert-if-false T $x` | `%a{rigor:v1:predicate-if-false: x is T}` | このメソッドが偽値を返した場合、呼び出し元の`x`は`T`。 |
-| `@phpstan-assert !T $x` | `%a{rigor:v1:assert: x is ~T}` | このメソッドが返った後、呼び出し元の`x`は`T`**ではない**（否定形式）。 |
-| `@phpstan-assert-if-true !T $x` | `%a{rigor:v1:predicate-if-true: x is ~T}` | 条件付き否定。`predicate-if-false`と対称。 |
+| `@phpstan-assert T $x` | `%a{rigor:v1:assert x is T}` | このメソッドが正常に返った後、呼び出し元の`x`は`T`。 |
+| `@phpstan-assert-if-true T $x` | `%a{rigor:v1:predicate-if-true x is T}` | このメソッドが真値を返した場合、呼び出し元の`x`は`T`。 |
+| `@phpstan-assert-if-false T $x` | `%a{rigor:v1:predicate-if-false x is T}` | このメソッドが偽値を返した場合、呼び出し元の`x`は`T`。 |
+| `@phpstan-assert !T $x` | `%a{rigor:v1:assert x is ~T}` | このメソッドが返った後、呼び出し元の`x`は`T`**ではない**（否定形式）。 |
+| `@phpstan-assert-if-true !T $x` | `%a{rigor:v1:predicate-if-true x is ~T}` | 条件付き否定。`predicate-if-false`と対称。 |
 
 実践例: PHPStanのドキュメントからの典型的な「assertNotNull」パターン:
 
 ```rbs
 # sig/asserts.rbs
 class Asserts
-  %a{rigor:v1:assert: x is ~nil}
+  %a{rigor:v1:assert x is ~nil}
   def self.not_nil: (untyped x) -> void
 end
 ```
@@ -306,7 +306,7 @@ selfターゲット形式もサポートされています。PHPStanのアナロ
 
 ```rbs
 class Connection
-  %a{rigor:v1:assert: self is Connected}
+  %a{rigor:v1:assert self is Connected}
   def assert_connected!: () -> void
 end
 ```

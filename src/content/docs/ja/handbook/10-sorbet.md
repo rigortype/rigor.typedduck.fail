@@ -3,8 +3,8 @@ title: "Sorbetとの共存"
 description: "rigortype/rigor docs/handbook/10-sorbet.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/10-sorbet.md"
 sourcePath: "docs/handbook/10-sorbet.md"
-sourceSha: "23d8cb5049f66aad2ebe5beb2ada0c1462bef45f8a3c77613a1840b90b41ded1"
-sourceCommit: "aec4ca7f5f87b1972dea8fecaaf5b62c8880a3af"
+sourceSha: "6fba518f9b7a898ad7e3652100d058092d7690c2a9dddcc196d60610f3350bfa"
+sourceCommit: "212f2c491920cc5c39a12d75aee385cb6c51fa0c"
 translationStatus: "translated"
 sidebar:
   order: 1010
@@ -46,13 +46,13 @@ Slug.default_length.even?       # ✓ Integer#even?が解決される
 
 ## Sorbetの型語彙
 
-プラグインはSorbetの型DSLの密な中核を翻訳します。日常的なsigのほとんどは正確に着地します。稀なまたはクラス内省が多い形式は`Dynamic[Top]`に降格します。
+プラグインはSorbetの型DSLの密な中核を翻訳します。日常的なsigのほとんどは正確に着地します。稀なまたはクラス内省が多い形式は`Dynamic[top]`に降格します。
 
 | Sorbet形式 | Rigorの表現 |
 | --- | --- |
 | `Integer`など | `Nominal["Integer"]` |
 | `::Foo::Bar` | `Nominal["Foo::Bar"]` |
-| `T.untyped` | `Dynamic[Top]` |
+| `T.untyped` | `Dynamic[top]` |
 | `T.anything` | `Top` |
 | `T.noreturn` | `Bot` |
 | `T.nilable(X)` | `Union[X, Constant<nil>]` |
@@ -69,7 +69,7 @@ Slug.default_length.even?       # ✓ Integer#even?が解決される
 | `[A, B]`（sig内のタプル） | `Tuple[A, B]` |
 | `{a: A, b: B}` | `HashShape{a: A, b: B}`（クローズド） |
 
-このテーブル外のもの（`T.proc`、`T.attached_class`、`T.self_type`、`T.type_parameter`、`T::Struct` / `T::Enum`サブクラス）は現在のところ`Dynamic[Top]`にサイレントで降格します。
+このテーブル外のもの（`T.proc`、`T.attached_class`、`T.self_type`、`T.type_parameter`、`T::Struct` / `T::Enum`サブクラス）は現在のところ`Dynamic[top]`にサイレントで降格します。
 
 ## インライン型アサーション
 
@@ -85,7 +85,7 @@ maybe = T.let(nil, T.nilable(Integer))
 T.must(maybe).bit_length            # ✓ nilを除去 → Integer
                                      #   その後Integer#bit_lengthが解決される
 
-T.unsafe(opaque).any_method_at_all  # ✓ サイレント（戻りはDynamic[Top]）
+T.unsafe(opaque).any_method_at_all  # ✓ サイレント（戻りはDynamic[top]）
 ```
 
 `T.must_because(expr, "explanation")`は`T.must`のエイリアスとして認識されます。静的挙動は同じ（`nil`を除去）で、第2引数の文字列は情報目的のみです。
@@ -98,7 +98,7 @@ T.reveal_type(n).even?  # info: T.reveal_type inferred type: Integer
                         # ✓ Integer#even?は引き続き解決される
 ```
 
-`T.assert_type!(expr, T)`は`T.cast`に静的部分型（subtype）チェックを加えたものです。コールはアサートされた型を返すのでチェーンされたコールはそれを通じて解決されます。推論された型が証明可能に非互換（`Inference::Acceptance.accepts(...)`が`:no`を返す）の場合、プラグインは`plugin.sorbet.assert-type-mismatch`を`:error`として発行します。漸進的（gradual）一貫性ルールが適用されます。`Dynamic[Top]`推論型と`:maybe`互換のシェイプ（shape）は、ランタイムチェックがカバーするためサイレントになります。
+`T.assert_type!(expr, T)`は`T.cast`に静的部分型（subtype）チェックを加えたものです。コールはアサートされた型を返すのでチェーンされたコールはそれを通じて解決されます。推論された型が証明可能に非互換（`Inference::Acceptance.accepts(...)`が`:no`を返す）の場合、プラグインは`plugin.sorbet.assert-type-mismatch`を`:error`として発行します。漸進的（gradual）一貫性ルールが適用されます。`Dynamic[top]`推論型と`:maybe`互換のシェイプ（shape）は、ランタイムチェックがカバーするためサイレントになります。
 
 ```ruby
 T.assert_type!("hello", Integer)  # error: 証明可能に非互換

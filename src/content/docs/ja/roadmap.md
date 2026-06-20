@@ -3,8 +3,8 @@ title: "Rigorロードマップ"
 description: "rigortype/rigor docs/ROADMAP.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/ROADMAP.md"
 sourcePath: "docs/ROADMAP.md"
-sourceSha: "069592437f1ba1e89e4b16f5cef57c541e3f595ff038a1af8c7fd1cfb5030bc6"
-sourceCommit: "51a679f3ccd12f5bee48c24150401d10e978efce"
+sourceSha: "410843f133cbaf5dc7537224e7c62a04f2a061c42c4bf5883c6eee56974e4ac5"
+sourceCommit: "212f2c491920cc5c39a12d75aee385cb6c51fa0c"
 sourceDate: "2026-06-13T19:23:25+09:00"
 translationStatus: "translated"
 sidebar:
@@ -75,6 +75,22 @@ v0.2.0のゲート条件 —— すべて**達成済み**:
 `0.2.x`シリーズ全体を通じて、目標は計画された機能セットを高い完成度 / プロダクション品質へ持っていくことだ。下記の §「Future cycles」の需要駆動バックログは、この計画のもとでは、オープンエンドなキューではなく**v0.2.xの完成目標**である —— そこにあるすべての項目が`0.2.x`のスコープ内だ、**Ractor並行性トラックを除いて**。
 
 **Ractorは意図的に除外される**。ADR-15のRactorワーカープールはRuby 4.0.xで使用不能と判明した（Ruby Bug #22075に加え、決定論的な`Ractor::IsolationError`）;v0.1.8のforkベースのプールがアクティブなバックエンドだ。Ractorプールは`RIGOR_POOL_BACKEND=ractor`とADR-15 § OQ1の背後に駐車されたままだ;その完成は`0.2.x`の目標では**なく**、upstreamのCRuby修正を待つ。
+
+### Scheduled CLI deprecations —— `docs` / `skill`の動詞サブコマンド → フラグ（v0.3.0で削除）
+
+`rigor docs`と`rigor skill`は、発見系のサブコマンドをフラグへ移動しました。これにより位置スロットが曖昧さなくドキュメント／スキルの*名前*になります（旧来の`list` / `path` / `print`動詞はそのスロットを共有しており、同名のページをシャドウしかねませんでした）。現在の正規形:
+
+| アクション | 正規形 | 非推奨（引き続き動作・警告あり） |
+| --- | --- | --- |
+| docsの索引 / 一覧 | `rigor docs` · `rigor docs --list [category]` | `rigor docs list` |
+| docsのパス | `rigor docs --path <name>` | `rigor docs path <name>` |
+| skillの一覧 | `rigor skill` · `rigor skill --list` | `rigor skill list` |
+| skillの出力 | `rigor skill <name>` · `rigor skill --print <name>` | `rigor skill print <name>` |
+| skillのパス | `rigor skill --path <name>` | `rigor skill path <name>` |
+
+`rigor docs`はカテゴリー修飾されたアドレッシング（`handbook/03-narrowing`）も得て、いまやマニュアルと並んで**ハンドブック**をバンドルします。`rigor skill describe` / `--describe`（およびトップレベルの`rigor describe`）は変わりません——`describe`は引数なしのアクションであって名前スロットを取る動詞ではないため、非推奨にはなりません。
+
+非推奨の動詞綴りは1行のstderr通知を出力し、**v0.3.0で削除されます**（現在の`0.2.x`評価ラインの次のマイナーリリース）。それまではどちらの綴りも動作します。バンドルされたジェネレータとドキュメントはすでに正規形のみを出力するため、SKILL駆動のUXがこの通知を引き起こすことはありません。フラグの語彙は[ADR-50](../adr/50-release-engineering-and-stability-strategy/) WD1のもとv1.0で凍結されます。[ADR-74](../adr/74-offline-doc-access-and-llms-txt/)（docsの文法＋ハンドブックのバンドル）と[ADR-73](../adr/73-skill-driven-user-experience/)（skillの文法）を改訂します。
 
 ## 将来のサイクル（特定のリリースにコミットされていない）
 
