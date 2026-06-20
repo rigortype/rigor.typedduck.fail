@@ -3,8 +3,8 @@ title: "Rigorのインストール — AIエージェント向け手順"
 description: "rigortype/rigor docs/install.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/install.md"
 sourcePath: "docs/install.md"
-sourceSha: "6a31bf9c442e584247891c0914df4a275fd2190e64dc7f42fe86068be630ae6f"
-sourceCommit: "152a3193d3ab92a112fe02c05215c618afe663c4"
+sourceSha: "3b804a74b2b70f7fa1f420b94a0c113c4360d8d699e7be4c03cb9f30d663d760"
+sourceCommit: "832dbf9f85f234b230c6b72dff329a2055fa34f1"
 sourceDate: "2026-05-29T03:05:46+09:00"
 translationStatus: "translated"
 sidebar:
@@ -13,7 +13,7 @@ sidebar:
 
 この手順はAIコーディングエージェント向けに書かれています。各ステップを順番に実行してください。シェルコマンドはそのまま実行してください。ステップが失敗した場合は、続行する前に停止してエラーを報告してください。
 
-目標はRigorをインストールし、project-initスキルに引き渡すことです。**Rigorをプロジェクトの`Gemfile`に追加しないでください**——Rigorはライブラリではなく、スタンドアロンツールです。
+目標はRigorをインストールし、`rigor skill describe`に引き渡すことです。`rigor skill describe`はプロジェクトの状態を報告し、適切な次ステップのスキル（Rigorを一度も実行したことがないプロジェクトでは`rigor-project-init`）へルーティングします。**Rigorをプロジェクトの`Gemfile`に追加しないでください**——Rigorはライブラリではなく、スタンドアロンツールです。
 
 ---
 
@@ -143,14 +143,20 @@ rigor --version
 
 ---
 
-## ステップ4 — このプロジェクトでRigorをセットアップする
+## ステップ4 — Rigorに次に何をすべきか尋ねる
 
-`rigor`がPATHにある状態で、project-initスキルを実行してください。
+`rigor`がPATHにある状態で、このプロジェクトの次ステップをRigorに選ばせましょう:
+
+```sh
+rigor skill describe
+```
+
+これはプロジェクトの現在の状態（設定 / ベースライン（baseline）/ `sig/` / CI）を報告し、理由とともに次に実行すべきスキルを推奨し、すべてのスキルをその現在の説明とともに列挙します。出力される`## Recommended next step`に従ってください——まだ`.rigor.yml`がないプロジェクトでは、それは`rigor-project-init`です:
 
 ```sh
 rigor skill print rigor-project-init
 ```
 
-このコマンドはSKILL定義を出力します——ファイルパスを含むヘッダーとSKILL本文です。表示された手順を上から順番に従ってください。スキルはプロジェクトのスタックを検出し、プラグインを提案し、`.rigor.dist.yml`を書き込み、必要に応じてベースライン（baseline）をスナップショットします。
+`rigor skill print <name>`はSKILL定義を出力します——ファイルパスを含むヘッダーに続いてSKILL本文です。上から下まで従ってください。project-initスキルはプロジェクトのスタックを検出し、プラグインを提案し、`.rigor.dist.yml`を書き込み、必要に応じてベースラインをスナップショットします。プロジェクトのセットアップが済んだら、その次のステップのために`rigor skill describe`を再実行してください。
 
-スキルコマンドが認識されない場合は、Rigorのバージョンが0.1.9より古い可能性があります。`rigor --version`を実行し、`mise use gem:rigortype`（またはケースC/Bの場合は`gem update rigortype`）でアップグレードしてください。
+`rigor skill describe`が認識されない場合は、お使いのRigorのバージョンがそれより古いということです。`rigor --version`を実行し、`mise use gem:rigortype`（またはケースC/Bの場合は`gem update rigortype`）でアップグレードしてください。古いバージョンでは、`rigor skill print rigor-project-init`を直接実行してください。

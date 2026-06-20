@@ -3,14 +3,14 @@ title: "Act-on-coverage skill — skeleton draft (ADR-63 WD5)"
 description: "rigortype/rigor docs/design/20260616-act-on-coverage-skill.md からインポート。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/design/20260616-act-on-coverage-skill.md"
 sourcePath: "docs/design/20260616-act-on-coverage-skill.md"
-sourceSha: "52a1067c63fd5c8a0cd14942f2b6f7ed0f4512fea5ea062f8f6fddf9dba78b69"
-sourceCommit: "a3ab53dd2b8aa0a84fd7ddbd64339f316d8d12ec"
+sourceSha: "3dbcf8acac15ccdc2659a8addc8e6f43d0550020886c5bf416e904998af1c38c"
+sourceCommit: "832dbf9f85f234b230c6b72dff329a2055fa34f1"
 translationStatus: "translated"
 sidebar:
   order: 20265616
 ---
 
-ステータス: **ドラフト／保留中**。これは[ADR-63 WD5](../../adr/63-type-protection-coverage/)のact-on-coverage（カバレッジへの対処）レイヤー向けのSKILL.mdスケルトンである。これは稼働中のスキルでは**ない**── このリポジトリではClaude Codeが*貢献者*向けワークフローとして自動検出する`.claude/skills/`の外に意図的に置いている。WD5はこれをRigor自身のツリーではなく、ADR-31の外部作者／v0.2.0待ち経路を通じて**ユーザープロジェクト**にスコープしているからである。v0.2.0が固める外部作者向けパッケージングがどうなろうとも、その下で本物の`SKILL.md`に昇格させること。
+ステータス: **昇格済み（2026-06-20）**。このスケルトンは、[ADR-73](../../adr/73-skill-driven-user-experience/) WD4のもとで稼働中のスキル[`skills/rigor-protection-uplift/SKILL.md`](https://github.com/rigortype/rigor/blob/master/skills/rigor-protection-uplift/SKILL.md)として出荷された── ユーザー向けスキルの二重チャネル（gem同梱＋vercel-labs/skills）が、このドラフトが先送りしていた「外部作者向けパッケージング」の問題を決着させた。以下の手順はスキルの記録の正本として保存されており、**ドライランの所見＋複数リポジトリでのパイロット**のセクションは引き続き[ADR-63 WD5](../../adr/63-type-protection-coverage/)の根拠である。
 
 このスケルトンはWD5の<ruby>規律<rp>（</rp><rt>discipline</rt><rp>）</rp></ruby>を実行可能な手順としてエンコードしており、これによって設計をドライランし、その摩擦を昇格前のWDへフィードバックできる。
 
