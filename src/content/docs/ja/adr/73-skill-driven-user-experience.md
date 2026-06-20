@@ -3,8 +3,8 @@ title: "ADR-73 — SKILL駆動のRigorユーザー体験（`rigor-next-steps`エ
 description: "rigortype/rigor docs/adr/73-skill-driven-user-experience.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/73-skill-driven-user-experience.md"
 sourcePath: "docs/adr/73-skill-driven-user-experience.md"
-sourceSha: "fbf86e615a157dacdfade14af445d9f9f86f56503aff65aeb0a56e4d22361802"
-sourceCommit: "832dbf9f85f234b230c6b72dff329a2055fa34f1"
+sourceSha: "94e101df33a2694e815f7ef73a1cf4df17dbdc5b7e216e14f1193f65fe162573"
+sourceCommit: "51a679f3ccd12f5bee48c24150401d10e978efce"
 translationStatus: "translated"
 sidebar:
   order: 4073
@@ -116,6 +116,18 @@ Rigorは`skills/`配下に少数のAgent Skills——`rigor-project-init`、`rig
 `rigor-rbs-setup`はジャーニーの順序で**`rigor-project-init`のすぐ後**に位置します。コミュニティRBSは、ベースラインやCIの作業の前に、支配的な`Dynamic`の発生源（protection-upliftの「正直な境界」がその上限として名指しした、RBSを欠く外部gem）を取り除きます。そのため早期に行えば、後でよりノイズの多い診断セットに対して再ベースラインを取る事態を避けられます。
 
 すべての宛先が見出し分岐を獲得するわけではありません。決定木は**線形な正しさのジャーニー**を、信頼できるプロジェクトファイルのシグナルでゲートします。**DX／統合**スキル（`rigor-editor-setup`、`rigor-mcp-setup`）は*カタログ優先*です——「次に何をしたいですか？」の経路を通じてエージェントが提示できるよう列挙され、見出し推奨を発火させるのは、強くリポジトリから見えるシグナル（`rigor`を含まずにコミットされた`.vscode/`）があるときだけです。なぜなら、それらの本当の設定はユーザーローカルで、検出できないからです。同じことが**メンテナンス／検証**スキル（`rigor-plugin-tune`、`rigor-upgrade`、`rigor-doctor`、`rigor-monkeypatch-resolve`）にも当てはまります。それらのトリガーは*イベント*（新しいgem、バージョンの引き上げ）または*ランタイムのチェック*（`triage`／バリデーターのパス）であって、探査がstatできるファイルではありません。そのため、ユーザーの目標や診断が求めるときにエージェントが提示する、カタログのエントリーです。信頼できる存在シグナルを露出できないスキルは、カタログのエントリーであって、強制される推奨では決してありません。
+
+## フィールドトライアルのフォローアップ（2026-06-20）
+
+このUXの最初の実プロジェクトでの試行——conference-app（Rails 8.1）＋6プロジェクトのrigor-survey Sonnetスイープ。[`docs/notes/20260620-skill-driven-onboarding-dogfood.md`](../../notes/20260620-skill-driven-onboarding-dogfood/)に記録——は、設計を裏付け（存在探査は7/7で正確、ルーティングは前進し、`coverage --protection`が最も称賛されたサーフェスでした）、一連のUX修正を浮かび上がらせました。
+
+**トライアルから実装されたもの**（エンジン／CLIのUX、WD変更なし）: `target_ruby`診断は、サポートされる下限と、正しい値をどこで読むかを名指しするようになりました。利便性のためのメタgem（`rigor-rails`）のロードエラーは行動可能です。`rigor check`は有効なパスに混じった存在しないパスを警告してスキップします。`rigor describe`はトップレベルのエイリアスです。そして**WD2の`describe`エージェントプロンプトは、checkを踏まえたルーティングを教えるようになりました**——推奨は存在のみのままですが、「For the agent」セクションは、エージェントがすでに手にしている`rigor check`の所見から選択を精緻化するよう告げます（エラー→`rigor-baseline-reduce`、モンキーパッチのクラスタ→`rigor-monkeypatch-resolve`、プラグインなしのDynamicなフレームワーク呼び出し→`rigor-plugin-tune`、`RBS classes available: 0` / `configuration-error`→`rigor-doctor`）。これはトライアルの目玉となった所見を**WD2を壊さずに**手当てしたものです——知性はcheck結果がすでに存在する場所（エージェント）に宿るのであって、解析を実行する`describe`にではありません。
+
+**未決の決定**（批准に向けて記録。トライアルが俎上に載せたもの）:
+
+- **見出しのcheck認識（WD2を再検討）**。*推奨行そのもの*が——エージェントプロンプトだけでなく——check結果を加味すべきでしょうか？ WD2を保つ2つの形:（a）既存の`.rigor/`キャッシュの最後の`check`結果を読み、そのエラークラスタでルーティングする（新しい解析なし、依然として副作用なし）。（b）スコープ付きのcheckを先に実行する`rigor skill describe --deep`のオプトイン（既定は純粋なまま）。追求する場合の基準: *既定の*`describe`に`check`を決して実行させない。**先送り**——実装済みのエージェントプロンプトのルーティングで足りるかもしれません。見出しそのものが実際に誤誘導すると判明したら再検討します。
+- **`rbs-setup`の優先度の緩和**。トライアルは、`rbs-setup`の見出しが過剰に推奨されることを見出しました。**2026-06-20に実装**: Railsプラグインが有効化されていない設定済みのRailsプロジェクトは、`rbs-setup`より先に`rigor-plugin-tune`を推奨するようになりました（存在のみ——`Gemfile.lock`にRailsがあり ∧ 設定に`rigor-rails-*`プラグインがない、というstrapのケース）。残るケース——RBSなしのgemがすべて`development`／`test`のときは優先度を下げ、設定済みのプロジェクトではネットワークに縛られる`rbs collection install`の前に`ci`／`baseline`を優先する——は、型付けされていないgemが実際に*この*プロジェクトの解析を損なうかどうかを知る必要があるため、さらなる存在ヒューリスティックではなく、上記の見出しのcheck認識の作業へ畳み込まれます。
+- **壊れた`sig/`の盲点（明確な勝ち筋、キュー済み）**。`describe`は、RBS環境のビルドに失敗しても「sig/ present」と報告します（`DuplicatedDeclarationError`→`RBS classes available: 0`→空疎な解析。redmine）。キュー済み: 環境が空のときの`check`／`coverage`バナー、および構造的な問題が検出可能なときの`rigor-doctor`の昇格。WD2は再検討しません（これはcheck時のサーフェス化であって、describe時の解析ではありません）。
 
 ## 他のADRとの関係
 

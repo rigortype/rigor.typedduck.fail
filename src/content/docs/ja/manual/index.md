@@ -3,8 +3,8 @@ title: "Rigorユーザーマニュアル"
 description: "rigortype/rigor docs/manual/README.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/README.md"
 sourcePath: "docs/manual/README.md"
-sourceSha: "28632f0fbaf1405a887abeaa5b4dd259d62a7f65308e377df1430fb673a454a9"
-sourceCommit: "aec4ca7f5f87b1972dea8fecaaf5b62c8880a3af"
+sourceSha: "76a0fbdfff06ebd9f713e858b75ba0a6f418f0b88d003ba0b8d249a410ee5ad2"
+sourceCommit: "51a679f3ccd12f5bee48c24150401d10e978efce"
 translationStatus: "translated"
 sidebar:
   order: 9000
@@ -19,6 +19,7 @@ Rigorのインストール、実行、設定、運用方法について説明し
 ### 入門
 
 1. [Rigorのインストール](01-installation/) — `mise`、`asdf`、`gem install`、Nix、dev-containerのガイダンス。Rigorはツールであり、プロジェクトの依存関係ではありません。
+17. [`rigor-next-steps`によるプロジェクト改善の推進](17-driving-improvement/) — 単一エントリポイントのループ: オンボーディング、Rigorが見つけたものの確認、型保護の引き上げ、CIでの保護——`rigor skill describe`が駆動します。
 14. [Railsプロジェクトへのセットアップ — miseを使ったステップバイステップ](14-rails-quickstart/) — Ruby 4.0 + Rigorを`mise`でインストールし、Railsプラグインセットを有効化して`rigor check`を実行し、設定をチームで共有する——約10分で完了。
 
 ### リファレンス
@@ -33,7 +34,7 @@ Rigorのインストール、実行、設定、運用方法について説明し
 
 6. [ベースライン](06-baseline/)（baseline） — `.rigor-baseline.yml`、`rigor baseline`サブコマンド、`rigor triage`。
 7. [プラグインの使い方](07-plugins/) — `plugins:`設定キーによるフレームワーク・gemプラグインの有効化。プラグインごとのユーザードキュメントは[プラグインリファレンス](plugins/)にあります。
-8. [提供スキル](08-skills/) — オンボーディングとベースライン削減のための付属エージェントスキル。
+8. [提供スキル](08-skills/) — `rigor-next-steps`ループが振り分ける付属エージェントスキル: オンボーディング、RBS / プラグインのセットアップ、保護の引き上げ、ベースライン削減、CI / エディタ / MCPの配線、プラグイン作成。
 15. [型保護カバレッジ](15-type-protection-coverage/) — バグが*捕まる*かどうかを計測し、あなたの型とあなたのテストを1枚のセーフティネットに融合します（`rigor coverage --protection [--mutation --with-tests --include-dynamic]`）。
 
 ### 統合と運用

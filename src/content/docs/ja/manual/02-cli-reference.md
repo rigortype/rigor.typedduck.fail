@@ -3,9 +3,9 @@ title: "CLIコマンドリファレンス"
 description: "rigortype/rigor docs/manual/02-cli-reference.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/02-cli-reference.md"
 sourcePath: "docs/manual/02-cli-reference.md"
-sourceSha: "1f09b42b3daeba364d6c606d27242591181d9d9df58be6c60b5008b9053a7321"
-sourceCommit: "aec4ca7f5f87b1972dea8fecaaf5b62c8880a3af"
-sourceDate: "2026-06-16T07:17:39+09:00"
+sourceSha: "337824d8fa8bc6ce6cf0386d1c039d8cd0be54d5b11f087809d56ae92eda2cf8"
+sourceCommit: "51a679f3ccd12f5bee48c24150401d10e978efce"
+sourceDate: "2026-06-20T14:25:50+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9002
@@ -283,14 +283,25 @@ rigor playground
 `rigortype` gemの内部に出荷されたバンドル済みAgent Skillsを一覧・出力し、Rigorと並んでインストールされたAIコーディングエージェントが、プロジェクト側のソースチェックアウトなしにそれらを発見・追従できるようにします。[スキル](../08-skills/)を参照してください。
 
 ```sh
-rigor skill <list|print|path> [name]
+rigor skill <list|describe|print|path> [name]
 ```
 
 | サブコマンド | 目的 |
 | --- | --- |
 | `list` | バンドルされた各スキルの名前 + 絶対パスの表;サブコマンドなしのデフォルト。 |
+| `describe` | プロジェクトの状態（設定 / ベースライン / `sig/` / CI——存在の有無のみで、`rigor check`は決して実行しない）をプローブし、次に実行すべきスキルを推奨する。`--describe`とも書ける。後述の[`rigor describe`](#rigor-describe)を参照。 |
 | `print <name>` | `SKILL.md`本体をstdoutへ出力。スキルの`references/`ディレクトリを指すヘッダー付き。 |
 | `path <name>` | 1行の絶対`SKILL.md`パスを出力。ファイル読み取りツールへの入力に適する。 |
+
+## `rigor describe`
+
+[`rigor skill describe`](#rigor-skill)へのトップレベルエイリアス——このプロジェクトに次に実行すべきスキルを推奨する、オンボーディングの入口です。素の`rigor describe`はほとんどのユーザーが最初に直感的に試す当て推量なので、それ自身のコマンドとして前面に出してあります（[ADR-73](../../adr/73-skill-driven-user-experience/) § WD2）。
+
+```sh
+rigor describe
+```
+
+存在の有無のみのプロジェクト状態プローブ（`.rigor.yml`、`.rigor-baseline.yml`、`sig/`ディレクトリ、CI統合は存在するか？）と、推奨される次のスキルを報告します。読み取り専用で副作用がなく——`rigor check`を決して実行しません。`rigor skill describe`と同一の出力です。
 
 ## `rigor show-bleedingedge`
 

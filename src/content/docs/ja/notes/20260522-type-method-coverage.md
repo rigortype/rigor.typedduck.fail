@@ -3,8 +3,8 @@ title: "型別メソッドカバレッジ — ConstantFolding / ShapeDispatch / 
 description: "rigortype/rigor docs/notes/20260522-type-method-coverage.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260522-type-method-coverage.md"
 sourcePath: "docs/notes/20260522-type-method-coverage.md"
-sourceSha: "7680e1a487a6ab8b7cf5862fc370ea9e07165f5742bd63fd44116b8014216e5e"
-sourceCommit: "7c189bd84c14aa0f88b13306f3796c488c52a8b0"
+sourceSha: "9bb15d14eeaef1e0a114726a8b33d8a71281855e641cfa76ae4f19b7b551fa22"
+sourceCommit: "51a679f3ccd12f5bee48c24150401d10e978efce"
 translationStatus: "translated"
 sidebar:
   order: 20266522
@@ -188,6 +188,7 @@ IntegerRange向け専用ハンドラ群は別途`shape_dispatch.rb`に存在。
 | `-@`, `+@` | ✅ | INTEGER_UNARY。 |
 | `abs` / `magnitude` | ✅ | INTEGER_UNARY → `Constant[Integer]`。 |
 | `bit_length` | ✅ | INTEGER_UNARY → `Constant[Integer]`。 |
+| `allbits?` / `anybits?` / `nobits?` | ✅ | NUMERIC_BINARY追加 → `Constant[bool]`（具体整数マスクに対して純粋）。 |
 | `between?` | ✅ | `try_fold_ternary`（catalog経由）→ `Constant[bool]`。 |
 | `ceil` | ✅ | INTEGER_UNARY（引数なし）→ `Constant[Integer]`。 |
 | `chr` | ✅ | INTEGER_UNARY → `Constant[String]`。 |
@@ -199,7 +200,7 @@ IntegerRange向け専用ハンドラ群は別途`shape_dispatch.rb`に存在。
 | `fdiv` | ✅ | NUMERIC_BINARY → `Constant[Float]`。 |
 | `floor` | ✅ | INTEGER_UNARY（引数なし）→ `Constant[Integer]`。 |
 | `gcd` | ✅ | NUMERIC_BINARY → `Constant[Integer]`。 |
-| `gcdlcm` | 🔲 | INTEGER_BINARY追加で`Tuple[Constant[Integer], Constant[Integer]]`。低優先度。 |
+| `gcdlcm` | ✅ | `try_fold_integer_array_binary` → `Tuple[Constant[Integer], Constant[Integer]]`。 |
 | `hash` | ✅ | INTEGER_UNARY → `Constant[Integer]`。 |
 | `inspect` / `to_s` | ✅ | INTEGER_UNARY → `Constant[String]`。 |
 | `integer?` | 🔲 | INTEGER_UNARY追加で`Constant[true]`。低優先度（常にtrue）。 |
@@ -238,10 +239,11 @@ IntegerRange向け専用ハンドラ群は別途`shape_dispatch.rb`に存在。
 [x] fdiv          → NUMERIC_BINARY → Constant[Float]
 [x] between?      → try_fold_ternary（catalog 経由）→ Constant[bool]
 [x] clamp         → try_fold_ternary（catalog 経由）→ Constant[Integer]
+[x] allbits? / anybits? / nobits? → NUMERIC_BINARY → Constant[bool]
 
 低優先度:
 [ ] rationalize / to_r  → INTEGER_UNARY
-[ ] gcdlcm              → INTEGER_BINARY
+[x] gcdlcm              → try_fold_integer_array_binary → Tuple[Constant[Integer], Constant[Integer]]
 [ ] pow(exp, mod)       → 専用ハンドラ（3 引数形式）
 ```
 
@@ -402,7 +404,7 @@ IntegerRange向け専用ハンドラ群は別途`shape_dispatch.rb`に存在。
 | `reverse!` | 🚫 | 破壊的変更。 |
 | `rotate` | 🔲 | `rotate(n)` → 回転後のTuple。中優先度。 |
 | `sample` / `shuffle` | 🚫 | 非決定論的。 |
-| `slice` | 🔲 | `values_at`と類似。専用ハンドラ。中優先度。 |
+| `slice` | ✅ | `[]`の別名。`tuple_index`（整数 / Range / start-length形式）。 |
 | `sort` | ✅ | `tuple_sort` → 要素型でソートしたTuple。 |
 | `sort!` | 🚫 | 破壊的変更。 |
 | `sort_by` | 🔲 | ブロックあり。低優先度。 |
@@ -432,7 +434,7 @@ IntegerRange向け専用ハンドラ群は別途`shape_dispatch.rb`に存在。
 [ ] rotate(n) → TUPLE_HANDLERS → 回転後 Tuple
 [ ] flatten   → TUPLE_HANDLERS → 1 段ネスト展開（depth=1 限定で実用十分）
 [ ] join      → TUPLE_HANDLERS → すべて Constant のとき Constant[String]
-[ ] slice     → TUPLE_HANDLERS → values_at の Range / 2 引数形式
+[x] slice     → TUPLE_HANDLERS → `[]` の別名（整数 / Range / start-length 形式）
 
 低優先度:
 [x] uniq      → TUPLE_HANDLERS → `tuple_uniq`（Constant 要素の重複除去 Tuple）

@@ -3,47 +3,77 @@ title: "提供スキル"
 description: "rigortype/rigor docs/manual/08-skills.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/08-skills.md"
 sourcePath: "docs/manual/08-skills.md"
-sourceSha: "dda38f3b62fe328ad0301fdd9696f0f060e9e96121e233ad5f7acbdc427d618c"
-sourceCommit: "aec4ca7f5f87b1972dea8fecaaf5b62c8880a3af"
+sourceSha: "9e40486d80fecd75c0d405f82e74dc392f0386cf34f373e9f09f6acd70e81a0c"
+sourceCommit: "51a679f3ccd12f5bee48c24150401d10e978efce"
 translationStatus: "translated"
 sidebar:
   order: 9008
 ---
 
-Rigorは一連の**エージェントスキル**をバンドルしています——AIコーディングエージェント（Claude Codeと互換ツール）があなたの代わりに実行できる構造化ワークフローです。`skills/`に格納されており、Rigorが利用可能なプロジェクト内でエージェントが作業するときに自動的に発見されます。
+Rigorは一連の**エージェントスキル**をバンドルしています——AIコーディングエージェント（Claude Codeと互換ツール）があなたの代わりに実行できる構造化ワークフローです。[`skills/`](https://github.com/rigortype/rigor/tree/master/skills/)に格納されており、Rigorが利用可能なプロジェクト内でエージェントが作業するときに自動的に発見されます。
 
 スキルはオプションです。スキルが行うことはすべて、このマニュアルのコマンドで手動で実行できます。スキルはワークフローをエンドツーエンドで進めるだけです。
 
-## `rigor-project-init`
+## ここから始める——`rigor-next-steps`
 
-コールドスタートからプロジェクトをRigorにオンボードします。スタック（Rails、RSpec、dry-rb、…）を検出し、対応する[プラグイン](../07-plugins/)を提案し、採用モード——既存コードベース向けの[ベースライン](../06-baseline/)（baseline）スナップショットまたはクリーンなコードベース向けのゼロ診断ゲート——を選択し、`.rigor.dist.yml`を書き出して最初のベースラインを生成します。
+`rigor-next-steps`は唯一のエントリポイントです。エージェントに手渡せば、`rigor`コマンドを解決し（不足していればインストールし）、未設定のプロジェクトをオンボードし、次に何をすべきかを`rigor skill describe`に尋ねて、以下の該当するスキルへルーティングします。これが進めるエンドツーエンドのワークフローが[`rigor-next-steps`によるプロジェクト改善の推進](../17-driving-improvement/)です。
 
-プロジェクトに初めてRigorをセットアップするときに使ってください。
+どのスキルが必要か分からない場合は、まずこれから始めてください。
 
-## `rigor-baseline-reduce`
+## カタログ
 
-既存の`.rigor-baseline.yml`をルールごとに削減します。`rigor triage`で優先順位を付け、各診断についてそのサイトを実際のバグ、安全なスタイル上の発見、または偽陽性として分類し——修正、`# rigor:disable`、またはRigor側のリグレッションspecを提供し——最後にベースラインを再生成します。
+以下の各スキルは、`rigor-next-steps`が（`rigor skill describe`を介して）あなたをルーティングできる行き先です。
 
-プロジェクトがすでにRigorを実行していて、バックログを少しずつ減らしたいときに使ってください。
+### オンボーディングと基盤
 
-## `rigor-plugin-author`
+- **`rigor-project-init`** — コールドスタートからプロジェクトをオンボードします。スタック（Rails、RSpec、dry-rb、…）を検出し、対応する[プラグイン](../07-plugins/)を提案し、採用モード——既存コードベース向けの[ベースライン](../06-baseline/)（baseline）スナップショットまたはクリーンなコードベース向けのゼロ診断ゲート——を選択し、`.rigor.dist.yml`を書き出して最初のベースラインを生成します。初めてRigorをセットアップするときに使ってください。
+- **`rigor-rbs-setup`** — gem向けのコミュニティRBSをインストール（`rbs collection install`）して、RBSのない依存関係が`Dynamic`として型付けされるのをやめさせます。Rigorは生成された`rbs_collection.lock.yaml`を自動検出します。
+- **`rigor-plugin-tune`** — `Gemfile.lock`をバンドルされたプラグインカタログに再マッチングし、現在のスタック向けにプラグインを有効化します（`rigor plugins --strict`で検証）。gemを追加した後や、Railsプラグインがまだ有効化されていないRailsアプリで使ってください。
 
-自分のリポジトリに新しいRigorプラグインをスキャフォールドします——スタンドアロンgemまたはプロジェクトプライベートプラグイン——推論できないアプリケーションDSLやメタプログラミングパターンについてRigorに教えます。gemspec、プラグインクラス、ASTウォーカー、型の貢献、テストをカバーします。
+### 改善と削減
 
-バンドルされたプラグインがプロジェクトが依存するフレームワークやDSLをカバーしていないときに使ってください。
+- **`rigor-protection-uplift`** — `rigor coverage --protection`が表面化させる型保護の穴を塞ぎます。まずsig-gen、次に最小限の手書きRBSの残余を、二重ゲート（サイトが保護される*かつ*`rigor check`が新たな診断を獲得しない）のもとで行います。[型保護カバレッジ](../15-type-protection-coverage/)を参照してください。
+- **`rigor-baseline-reduce`** — 既存の`.rigor-baseline.yml`をルールごとに削減します。`rigor triage`で優先順位を付け、各サイトを実際のバグ／安全なスタイル上の発見／偽陽性として分類し、ベースラインを再生成します。バックログを少しずつ減らすために使ってください。
+- **`rigor-monkeypatch-resolve`** — 実際にはプロジェクト自身のモンキーパッチである`undefined-method`のクラスタを、定義ファイルを`pre_eval:`に配線することで解決します。
+
+### 統合と運用
+
+- **`rigor-ci-setup`** — インラインのPR/MR診断（SARIF / GitHub Actions / GitLab Code Quality / reviewdog）とともにRigorをCIに配線します。[CIでRigorを実行する](../11-ci/)を参照してください。
+- **`rigor-editor-setup`** — バンドルされた`rigor lsp`言語サーバーをエディタ（Neovim、VS Code、Helix、Emacs）に配線します。[エディタ統合](../09-editor-integration/)を参照してください。
+- **`rigor-mcp-setup`** — バンドルされた`rigor mcp`サーバーをAIコーディングエージェント（Claude Code、Cursor、Cline、…）に配線します。[MCPサーバー](../10-mcp-server/)を参照してください。
+
+### メンテナンスとオーサリング
+
+- **`rigor-upgrade`** — 新しいRigorバージョンをクリーンに採用します。ベースラインとの差分を取り、本物の新規キャッチをsig品質の偽陽性から仕分けし、再生成します。
+- **`rigor-doctor`** — セットアップが健全であること（設定が解決し、プラグインがロードされ、ベースラインが新鮮で、RBS環境が壊れていないこと）を検証します。[トラブルシューティング](../13-troubleshooting/)を参照してください。
+- **`rigor-plugin-author`** — 自分のリポジトリに新しいRigorプラグインをスキャフォールドして、Rigorが推論できないアプリケーションDSLやメタプログラミングパターンについて教えます。バンドルされたプラグインがプロジェクトの依存するフレームワークやDSLをカバーしていないときに使ってください。
 
 ## CLIからスキルを発見する
 
-上記の3つのスキルは`rigortype` gemの内部に出荷されているので、Rigorが`mise` / `gem install`でプロジェクト側のソースチェックアウトなしにインストールされていても到達できます。`rigor skill`コマンドがそれらを表面化させます:
+これらのスキルは`rigortype` gemの内部に出荷されているので、Rigorが`mise` / `gem install`でプロジェクト側のソースチェックアウトなしにインストールされていても到達できます。`rigor skill`コマンドがそれらを表面化させます:
 
 ```sh
-rigor skill list            # バンドルされた各スキルの名前 + 絶対パス
-rigor skill print <name>    # SKILL.md本体を出力（references/ヘッダー付き）
-rigor skill path  <name>    # 1行の絶対SKILL.mdパス。ファイル読み取りツール向け
+rigor skill describe        # probe the project + recommend the next skill (alias: rigor describe)
+rigor skill list            # name + absolute path for each bundled skill
+rigor skill print <name>    # print the SKILL.md body (with a references/ header)
+rigor skill path  <name>    # one-line absolute SKILL.md path, for a file-reading tool
 ```
 
-`rigor skill print rigor-project-init`は、リポジトリを指し示すことなくAIエージェントにオンボーディングワークフローを手渡す正規の方法です。[CLIリファレンス](../02-cli-reference/#rigor-skill)を参照してください。
+`rigor skill describe`は`rigor-next-steps`が駆動するレコメンデーションエンジンです。`rigor skill print rigor-project-init`は、リポジトリを指し示すことなくエージェントにオンボーディングワークフローを手渡す正規の方法です。[CLIリファレンス](../02-cli-reference/#rigor-skill)を参照してください。
+
+## スキルをプロジェクトにインストールする
+
+gemに加えて、ユーザー向けのスキルは[vercel-labs/skills](https://github.com/vercel-labs/skills)経由でインストール可能です——Rigorをインストールする*前*にエントリポイントをプロジェクトに投入するのに便利です:
+
+```sh
+# Just the entry point (recommended):
+npx skills add https://github.com/rigortype/rigor/tree/master/skills/rigor-next-steps
+# Or the whole user-facing set:
+npx skills add rigortype/rigor
+```
+
+（`.claude/skills/`配下の貢献者専用スキルは内部用としてマークされており、一括の`npx skills add`ではインストールされません。）
 
 ## スキルを実行する
 
-エージェントスキルをサポートするエージェントでは、名前でスキルを呼び出します（Claude Codeでは`/rigor-project-init`）。エージェントは（ソースチェックアウトの`skills/`から、またはそうでなければ`rigor skill print <name>`を通じて）スキル定義を読み込み、それに従います。ツールがスキルをサポートしていない場合、各スキルの`SKILL.md`は自分でフォローできるプレーンなチェックリストとして読めます。
+エージェントスキルをサポートするエージェントでは、名前でスキルを呼び出します（Claude Codeでは`/rigor-next-steps`）。エージェントは（ソースチェックアウトの`skills/`から、またはそうでなければ`rigor skill print <name>`を通じて）スキル定義を読み込み、それに従います。ツールがスキルをサポートしていない場合、各スキルの`SKILL.md`は自分でフォローできるプレーンなチェックリストとして読めます。
