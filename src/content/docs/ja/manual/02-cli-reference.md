@@ -3,8 +3,8 @@ title: "CLIコマンドリファレンス"
 description: "rigortype/rigor docs/manual/02-cli-reference.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/02-cli-reference.md"
 sourcePath: "docs/manual/02-cli-reference.md"
-sourceSha: "a68e3d1a82d0eb030b961743805e5393898779e64cb505dc6559454a9579b0f0"
-sourceCommit: "3ea20b239bba8b7cdcd0b5e759a36ac849253e04"
+sourceSha: "eb94e2179bf02e2d7816a80329de573fa53f4630ee246b47adb4f98353c3b1fd"
+sourceCommit: "840db09d878cd50bf66f76b9b66fe7a16eeb15b4"
 sourceDate: "2026-06-21T05:49:38+09:00"
 translationStatus: "translated"
 sidebar:
@@ -184,6 +184,8 @@ rigor triage [paths]
 ```
 
 `--top=N`はホットスポット数を設定し（デフォルト10）、`--hints-only`、`--selectors-only`、`--no-hints`は表示するセクションを選択します。`triage`は参考情報であり、常に`0`で終了します。ビルドをゲートすることはありません。
+
+デフォルトでは、distribution・selectors・hotspotsセクションは**actionable**な診断（`error` + `warning`）のみをカウントします。`info`診断はこれらのボリュームビューから除外されます。Railsプロジェクトではプラグインのrecognition trace（`Account.find resolves to Account`、`users_path → GET /users`）が大半を占め、それらは「Rigorが解決した」という肯定的な記録であって、本来のシグナルを埋もれさせ、hotspotランキングを最も働いているコードを持つファイルへと歪めてしまうためです。サマリー行は完全な`info`カウントを報告し続け、ヒューリスティックのヒントは依然すべての診断を見ます（そのため`gem-without-rbs`のnoticeは生き残ります）。`--include-info`を渡すと`info`もボリュームビューに含めます。
 
 **`selectors`**セクションは（クラス,メソッド）軸です。診断が運ぶ構造化された`receiver_type` / `method_name`フィールドを`{receiver, method, count, files, rules}`の行に集約するので、メッセージ本文を解析することなく「どのメソッドに診断が集中しているか？」を問えます。`--format json`では、正規化されたレシーバークラス（リテラルはそのクラスに畳み込まれる）をキーとして全リストが出力され、`jq`クエリにそのまま使えます:
 

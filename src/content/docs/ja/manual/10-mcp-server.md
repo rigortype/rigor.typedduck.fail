@@ -3,8 +3,8 @@ title: "Rigor MCPサーバー: AIエージェント統合"
 description: "rigortype/rigor docs/manual/10-mcp-server.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/10-mcp-server.md"
 sourcePath: "docs/manual/10-mcp-server.md"
-sourceSha: "832bc337880ef5c3119f940ee52e22d58dce0480199657d8d0f507aa92d14da3"
-sourceCommit: "212f2c491920cc5c39a12d75aee385cb6c51fa0c"
+sourceSha: "39717ff9be038feb08f8ede0388900671f18e3407f6fe512a060def2cb5f9edb"
+sourceCommit: "840db09d878cd50bf66f76b9b66fe7a16eeb15b4"
 sourceDate: "2026-06-13T17:48:47+09:00"
 translationStatus: "translated"
 sidebar:
@@ -258,9 +258,12 @@ Clineパネル → MCPサーバー → サーバーを追加 → カスタムを
   "hints": [
     { "id": "activesupport-core-ext", "confidence": "likely",
       "diagnostic_count": 365, "summary": "...", "action": "..." }
-  ]
+  ],
+  "include_info": false
 }
 ```
+
+デフォルトでは`distribution` / `selectors` / `hotspots`配列はactionableな診断（`error` + `warning`）のみをカウントします。`info`（大半はプラグインのrecognition trace）は除外されるため、これらのカウントは`summary.total`に合計されず、`include_info`は`false`になります。`summary.info`は依然として完全なinfoカウントを報告し、hintsは依然としてすべての診断を参照します。
 
 `selectors`配列は（クラス,メソッド）軸です。各行はディスパッチ先で、その`count`、distinct-`files`の広がり、`rule`ごとの内訳を持ち、正規化されたレシーバークラスをキーとします。だからエージェントは「どのメソッドに診断が集中しているか？」を、`message`を解析することなく構造化フィールドから答えられます。
 
