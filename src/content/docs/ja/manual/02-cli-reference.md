@@ -3,9 +3,9 @@ title: "CLIコマンドリファレンス"
 description: "rigortype/rigor docs/manual/02-cli-reference.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/02-cli-reference.md"
 sourcePath: "docs/manual/02-cli-reference.md"
-sourceSha: "f7cd2bbfbd60698c419368fae1ae5e30f6c9072ad305fbde963598e4a5912c2a"
-sourceCommit: "212f2c491920cc5c39a12d75aee385cb6c51fa0c"
-sourceDate: "2026-06-20T19:24:34+09:00"
+sourceSha: "a68e3d1a82d0eb030b961743805e5393898779e64cb505dc6559454a9579b0f0"
+sourceCommit: "3ea20b239bba8b7cdcd0b5e759a36ac849253e04"
+sourceDate: "2026-06-21T05:49:38+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9002
@@ -18,6 +18,8 @@ rigor <command> [options] [arguments]
 ```
 
 `rigor help`はコマンド一覧を表示し、`rigor version`はインストール済みバージョンを表示します。不明なコマンドや不正なオプションの場合、`64`で終了します。これは慣例的な「使用法エラー」コードです。
+
+プロジェクト設定を読み込むすべてのコマンドは、自動探索の代わりに特定の設定ファイルを指すための`--config=PATH`も受け付けます（追加の効果がある箇所でのみ後述で明示します）。
 
 ## `rigor check`
 
@@ -69,10 +71,10 @@ rigor init [--path=PATH] [--force]
 ファイルを再表示し、各行に評価する式の型を末尾の`#=>`コメントとしてタグ付けします。[推論型の検査](../05-inspecting-types/)を参照してください。
 
 ```sh
-rigor annotate [--[no-]color] [--[no-]bat] [--config=PATH] FILE
+rigor annotate [--[no-]color] [--[no-]bat] [--format=text|json] [--config=PATH] FILE
 ```
 
-`FILE`は必須です。カラーはttyの場合に自動検出され、`NO_COLOR`を尊重します。`--color` / `--no-color`で上書きできます。カラーが有効で[`bat`](https://github.com/sharkdp/bat)が`PATH`上にあるときはハイライトがbat経由になります（`--no-bat`でオプトアウト。`--bat`はbatが見つからない場合に警告して組み込みのカラライザーへフォールバックします）。パースエラーやファイル不在の場合は`1`で終了します。
+`FILE`は必須です。カラーはttyの場合に自動検出され、`NO_COLOR`を尊重します。`--color` / `--no-color`で上書きできます。カラーが有効で[`bat`](https://github.com/sharkdp/bat)が`PATH`上にあるときはハイライトがbat経由になります（`--no-bat`でオプトアウト。`--bat`はbatが見つからない場合に警告して組み込みのカラライザーへフォールバックします）。`--format=json`はアノテーション付きソースの代わりに`{ line => type }`のマップを出力します。パースエラーやファイル不在の場合は`1`で終了します。
 
 ## `rigor type-of`
 
@@ -103,7 +105,7 @@ rigor trace [--delay=SECONDS] [--line=N] [--verbose] [--format=json] FILE
 rigor type-scan PATH...
 ```
 
-`--limit=N`は表示例の上限を設定し（デフォルト10）、`--show-recognized`は完全にカバーされたクラスを含め、`--threshold=RATIO`は未認識ノードの割合が`RATIO`を超えた場合にコマンドをゼロ以外で終了させます。
+`--limit=N`は表示例の上限を設定し（デフォルト10）、`--show-recognized`は完全にカバーされたクラスを含め、`--threshold=RATIO`は未認識ノードの割合が`RATIO`を超えた場合にコマンドをゼロ以外で終了させます。`--format=text|json`で出力形式を選択します。
 
 ## `rigor explain`
 
@@ -153,7 +155,7 @@ stdioで言語サーバーを実行します。[エディタ統合](../09-editor
 rigor lsp [--transport=stdio] [--log=PATH] [--config=PATH]
 ```
 
-`stdio`はv1で唯一のトランスポートです。`--log=PATH`はワイヤーログをstderrの代わりにファイルに書き出します。
+`stdio`はv1で唯一のトランスポートです。`--log=PATH`は受理されますが、本リリースではまだ接続されていません。サーバーのワイヤーログをファイルへ振り向けるために予約されており、それまではログはstderrに出ます。
 
 ## `rigor baseline`
 
@@ -171,7 +173,7 @@ rigor baseline <generate|regenerate|dump|drift|prune> [options]
 | `drift` | 各バケットのドリフトを監査する。`--only=within\|over\|cleared\|reducible`でフィルタリング。 |
 | `prune` | 診断に一致しなくなったバケットを削除する。`--dry-run`でプレビュー。 |
 
-`generate`と`regenerate`は`--output=PATH`と`--match-mode=rule|message`を受け付けます。
+`generate`と`regenerate`は`--output=PATH`と`--match-mode=rule|message`を受け付けます。`dump`・`drift`・`prune`は非既定のベースラインファイルを読むための`--baseline=PATH`を受け付けます。
 
 ## `rigor triage`
 

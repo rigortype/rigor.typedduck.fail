@@ -3,8 +3,8 @@ title: "Rigor自身のコードベースのミューテーションテスト —
 description: "rigortype/rigor docs/notes/20260618-self-mutation-testing-plan.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260618-self-mutation-testing-plan.md"
 sourcePath: "docs/notes/20260618-self-mutation-testing-plan.md"
-sourceSha: "71249b0c4734c8d97872b4c26256359096665312fdedf8b028df37133c6d60b2"
-sourceCommit: "4e7da6c3e3933cc8abf2759053d4190922a0cfca"
+sourceSha: "9b9195f2e654f9599b09dabdb2b7083be26333d8dfde4c3bacc06be8a3eeec7a"
+sourceCommit: "3ea20b239bba8b7cdcd0b5e759a36ac849253e04"
 translationStatus: "translated"
 sidebar:
   order: 20266618
@@ -185,3 +185,71 @@ fused classify per mutation: type-killed | test-killed | unprotected(+crash buck
 - `inference/hkt_body`（16 → 0）: `HktBody`の`Data.define`ノードコンストラクタは部分的な検証カバレッジしか持たなかった —— ハッピーパス + `*-non-empty` / 名前空間付きガードはテストされていたが、`*-must-be-an-Array` / `*-must-be-a-Symbol` / `*-must-not-be-nil`ガードはテストされておらず、`TestEquality`にはdescribeブロックがまったくなかった。欠けていたガードケースを追加（ファイル既存のメッセージフラグメントのスタイルに合わせて —— ユーザー向けの検証メッセージ、弁護可能な契約）;メッセージフラグメントのアサーションは`type_swap`-on-raiseのメッセージ引数ミュータントもkillする。
 
 `inference/{budget_trace,struct_fold_safety,closure_escape_analyzer,rbs_type_translator}`、`analysis/incremental`、`type/intersection`は計測され、そのフロアに残された（すでに100 %、あるいは`percentile`の`hist.keys.max`防御的フォールバックのみ —— これは最近接ランクのループが返り損ねたときにのみ到達するが、`rank = ceil(fraction·total) ≤ total`がそれを不可能にする —— と`inspect` / `describe(:short)`のデバッグフォーマット残余）。
+
+## 有効性層の裁定 —— ファイルごとの3回目のバッチ（2026-06-21）
+
+ロジックを持つ8ファイルへの融合バッチ（`builtins/regex_refinement`、`analysis/self_call_resolution_recorder`、`config_audit`、`configuration/severity_profile`、`environment/lockfile_resolver`、`environment/rbs_coverage_report`、`flow_contribution/fact`、`inference/coverage_scanner`）。6ファイルはすでに100 %;8つの生存者が2ファイルにクラスタ化した。どちらもspecのみの修正、`make verify`はグリーン:
+
+- `config_audit`（6 → 0）: `explicit_path_warnings`の3つの`add_missing_dir` / `add_missing_file`の呼び出しサイト。テストは各警告の`kind`と（`is not a directory` / `does not exist`という）ディスクリプタの部分文字列をアサートしていたが、メッセージに埋め込まれたconfig-keyラベル（人間が読める`"bundler.bundle_path"`等）はアサートしていなかった。そのため`:bundler_bundle_path` / `:bundler_lockfile` / `:rbs_collection_lockfile`というKEY引数（`nil_inject` / `type_swap`）が生き残った —— `kind`シンボルは`find { kind == … }`ルックアップですでにピン留めされていたが、メッセージキーはされていなかった。3つのアサーションにkeyラベルの`include`も追加した（+ `rbs_collection.lockfile`ケースの欠けていたメッセージアサーション）。
+- `environment/lockfile_resolver`（2 → 0）: 防御的なrescue分岐内の2つの`warn`サイト —— `parse`の`rescue LoadError`（bundlerが利用不可）と`do_parse`の`rescue StandardError`（パーサが例外を発生させる）。どちらも決定論的に駆動されていなかった: テスト環境ではbundlerは常にロード可能であり、壊れたボディの失敗モードはBundlerのバージョンに依存する（既存の「本当に壊れたlockfile」ケースは現行のBundlerでは例外を発生させずにパースされ、`warn`に到達しない）。2つのスタブ化したテストが各分岐を強制的に通過させ（`Bundler::LockfileParser.new`が例外を発生させる;`described_class.require("bundler")`が`LoadError`を発生させる）、stderrの警告（パス + エラークラス）をアサートして`undefined_method`ミュータントをkillする。
+
+`builtins/regex_refinement`、`analysis/self_call_resolution_recorder`、`configuration/severity_profile`、`environment/rbs_coverage_report`、`flow_contribution/fact`、`inference/coverage_scanner`はそのフロアで計測した（すでに完全に保護済み）。
+
+2026-06-21の2回目のバッチは8ファイルをさらに計測した（`builtins/predefined_constant_refinements`、`builtins/static_return_refinements`、`configuration/dependencies`、`environment/class_registry`、`environment/reflection`、`flow_contribution/conflict`、`flow_contribution/merge_result`、`inference/builtins/method_catalog`）—— 4ファイルがゼロにクローズ、残りはフロア、すべてspecのみ、`make verify`はグリーン:
+
+- `inference/builtins/method_catalog`（ノイズ除去後4 → 0）: `resolve_alias_entry`のパス全体（エイリアスセレクタを正規ターゲットに対応付ける`aliases`セクション）と`reset!`が未行使だった。また`safe_for_folding?`をゲートする`FOLDABLE_PURITIES` Setがピン留めされていなかった（`dispatch`のpurityはfoldしない一方で、leaf / trivial / leaf_when_numericのfoldをアサートするテストがなかった）。一時的なYAMLカタログ（`with_catalog`ヘルパー経由 —— `around`+`@path`ではなく、これは`RSpec/InstanceVariable`に引っかかる）がエイリアスのヒット・ダングリングターゲットとシングルトンバケットの非解決・`reset!`・foldableなpurityごとに1つのメソッド + 非foldableなメソッドを駆動する。行27の`Set[...]`定数はノイズ除去ルールでデータとして扱われるが、振る舞いをゲートしていたので、purityの契約をピン留めする価値はあった。
+- `environment/class_registry`（5 → 0）: `register`の2つのガードraise（Moduleでないものがクラスに名前を付ける;匿名の名前のないクラス）と`class_ordering` / `normalize_name`のパス全体（equal / subclass / superclass / disjoint / unknown、さらに先頭の`::`のストリップとSymbolの強制変換）が未テストだった —— specは`registered?` / `nominal_for_name`しかカバーしていなかった。`register`のテストはフリーズされていない新しい`new`レジストリを使う;orderingは`default`のビルトインを使う。
+- `flow_contribution/conflict`（1 → フロア）: `to_h`は各provenanceを`p.to_h`（それが応答する場合）、そうでなければ`p.to_s`としてシリアライズする;`to_s`フォールバック（`#to_h`を持たないprovenance）が未テストだった。残る行68の`require_relative "../analysis/diagnostic" unless defined?(…)`は等価ミュータントだ —— テスト内ではDiagnosticはすでにロード済みなので、ガードがショートサーキットしrequireは決して実行されない。
+- `environment/reflection`（1 → 0）: `freeze_set`の`else raise ArgumentError`ガード（`known_class_names`がSet / Array / Hash以外）が一度も駆動されていなかった —— `for_project`は常にSetを渡す。直接構築ケースがraiseをアサートする（型を指定して）とともに、Array→フリーズされたSetのハッピーパスもアサートする。
+
+`predefined_constant_refinements`の`inspect_runtime_string`の行114の`name.split("::")`への`nil_inject`は**等価ミュータント**だ: `split(nil)`は空白で分割するが、テスト入力（`"Ruby::VERSION"`等）では`const_defined?` / `const_get`が`"::"`を自身でパースするので、解決は同一になる;これを区別するには、`inherit=false`依存の定数という作為的な（脆く低価値な）テストが要る。`static_return_refinements`、`configuration/dependencies`、`flow_contribution/merge_result`はそのフロアで計測した。
+
+## 4回目のバッチ + CLIオーケストレーションのintegration-blindnessの発見（2026-06-21）
+
+4回目の融合バッチ（11ファイル: `analysis/.../walker`、6つの`cli/*_command`、`environment/{bundle_sig_discovery,rbs_collection_discovery}`、`flow_contribution`、…）は**231の穴**を返した —— だが**本物のユニットギャップは2つだけ**だった。支配的な発見は方法論的なものだ:
+
+**融合ハーネスのファイルごとのテスト軸は、規約でマッピングされた*ユニット*specのみを走らせる（`lib/rigor/cli/X_command.rb → spec/rigor/cli/X_command_spec.rb`）、統合 / CLIディスパッチャのspecは決して走らせない**。CLIコマンドオブジェクトはオーケストレーションであり、その`run`経路は意図的に*ディスパッチャを通じて*行使される（そして精度パスには`make coverage`）。ユニットspecは1つのモードにスコープされている。だからあるコマンドの他のモードの分岐は「未保護」と読まれるが、統合specがそれを駆動している。`cli/*_command`の約190のサバイバー（`#puts` / `#usage_error`のhelpとメッセージ行、`docs` / `plugin` / `skill` / `trace` / `triage` / `show_bleedingedge`のモード固有のディスパッチ）は**大半がこのintegration-blindnessであり、本物のユニットギャップではない** —— それらを一括でクローズすると統合カバレッジを複製することになる（偽陽性の規律をテスト記述に適用したもの: 「指標を動かすために低価値なアサーションを足さない」）。ユニットセーフティネットとして価値ある選択的例外はコマンドの*デフォルト*モードだ:
+
+- `cli/coverage_command`（37 → 2）: **デフォルトの型精度**モードと**静的Tier 1の`--protection`**モードにはrspecのセーフティネットがなかった（ユニットテスト済みだったのは`--protection --mutation` / `--with-tests`のみ）、そのため実行ディスパッチ全体が生き残った。精度と静的保護のケースを追加し、両方の`--threshold`の終了パスも含む。残る2つの`.on`の`nil_inject`サバイバーはフラグの**ヘルプテキスト**のミューテーションだ（フラグ*名*は通過するフラグテストでピン留めされている;説明は振る舞い的にアサートされない）—— 等価ミュータントのフロア。
+- `analysis/.../walker`（2 → 0）: 純粋なロジックファイル（オーケストレーションではない）、本当にユニットテスト可能 —— 2つの不透明なレシーバーの`walk_children`フォールバック（`descend_class_or_module`のボディなし / 動的に名付けられたクラス上;`class << expr`でexpr ≠ selfのときの`descend_singleton_class`）が未テストだった。フェイクgemのケースを追加。
+
+`environment/{bundle_sig_discovery,rbs_collection_discovery}`と`flow_contribution`はそのフロアで計測した。**今後のバッチへの教訓: `cli/*_command`のサバイバーはギャップとして扱う前にディスパッチャ / 統合specに照らしてトリアージする;コマンドの未テストの*デフォルト*モードにのみユニットテストを追加し、メッセージ / helpの末尾には追加しない**。
+
+## 5回目のバッチ —— inferenceエンジンファイル（2026-06-21）
+
+9つのinferenceエンジンファイル;41の穴、HKT（ADR-20）クラスタが本物のうちで最も豊富だった。ユーザー向けのものをクローズし、防御的なフロアは残した:
+
+- `inference/hkt_reducer`（8 → 5）: `reduce`の非App引数ガードと`walk`の未宣言パラメータガードをクローズした（メッセージは`node.name.inspect` / `bindings.keys`をピン留めする）。残る5は防御的なフロアだ —— `walk || app.bound`フォールバック（有効なHktBodyノードに対してwalkがnilを返すことはない）と2つの「未知のbody / testノード」ガード（到達するには作られたnon-HktBodyノードが要る）。
+
+続けてバッチ5の本物のクラスタの残りをクローズした:
+
+- `inference/hkt_registry`（16 → 0）: `Registration`の非Array-varianceガード、`Definition`の非Symbol-uri / 非Array-paramsガード、`definition_with_body_tree`、`#reduce`の利便デリゲート、そして`scan_rbs_loader`のRBSアノテーションスキャン全体（`hkt_register` / `hkt_define`ディレクティブ文字列を出力するフェイクローダー、+ nilローダーとディレクティブなしのパースパスも含む —— スキャンボディを行使することで`require_relative`の「等価」もkillされ、0に到達した）。
+- `method_dispatcher/kernel_dispatch`（8 → 0）: `Rational` / `Complex`の数値コンストラクタ（`try_numeric_constructor` + `numeric_constant?`）が未テストだった —— specは`Array` / `Integer` / `Float`のみをカバーしていた。Float / Rational / Complexの定数引数を含むfoldを追加し、`numeric_constant?`の値クラスの`||`チェーンのすべてのアームに到達させた（Integer引数は残りをショートサーキットする）。
+- `method_dispatcher/overload_selector`（4 → 2）: `strict_nominal_names_for`のOptional再帰と`value_pinning?`のUnionアーム（プライベートなモジュール関数上で`.send`を介してユニットテスト）、および`positional_params_for`のrestパラメータの吸収（`Array#push`の`*Elem`バインディングで3引数 → 3 restスロット）。残る2（行157の`#first` —— すべてのオーバーロードがブロックを要求するときにのみ到達する`|| overloads.first`フォールバック、および`#concat`の末尾引数パス）は、作られた全ブロックメソッド型が必要 —— 文書化されたより難しい末尾。
+
+`inference/flow_tracer:168`の`#inspect`はデバッグフォーマットのフロアだ。
+
+**教訓を再確認:**「防御的 / 等価」の分類は再テストする価値がある —— `hkt_registry`の`require_relative`はガード付きの遅延ロードフロアのように見えたが、単純にメソッドに*入る*テストがそれを実行してミュータントをkillした。**約60の未計測の60〜300 LOCのロジックファイルが残る;300 LOC超のエンジンファイル層はまだ先送りだ**。 CPU競合のgotchaに注意せよ: `make verify`と同時に融合ハーネスを実行してはならない（もしくは複数のハーネス呼び出しと同時に）—— それぞれがコールドなenv+scanを行い、互いを枯渇させる;このセッションでは迷子の6時間ハング`parallel_rspec`残留がそれを悪化させた（明らかにハングしている複数時間のテストプロセスはkillせよ）。
+
+## 6回目のバッチ —— スキャナー + LSPプロバイダ（2026-06-21）
+
+8ファイル;**5ファイルにわたって39の穴をクローズした**（`project_patched_methods` / `buffer_table` / `hover_provider`はフロアで計測）。すべてspecのみ;変更したspecに対してrspec + rubocopで確認した（この負荷が飽和した機械では`make verify`が不安定で、specのみの変更はcheck / check-pluginsゲートに触れない）:
+
+- `inference/precision_scanner`（17 → 0）: `FileResult`のティアごとのアクセサ（`precise_count` / `dynamic_top_count` / `dynamic_specific_count` / `opaque_count`）は`tier_counts.fetch(tier, 0)`で読まれる。**重要な教訓: `fetch(key, DEFAULT)`のデフォルト引数のミューテーションはキーが*存在しない*テストによってのみkillされる** —— キーが存在する場合は決してデフォルトに達しないので、既存の正確 / 比率 / 自己参照的合計のテストは生かしたままにしていた。正確なティアごとのカウントと空のカウントマップの両方をピン留めした。また`classify`のIntersection（`best_of` = 最も精度の高いメンバー）とDifference（`base`）アーム、プライベートなモジュール関数上で`Combinator.intersection` / `.difference`を使って`.send`で。
+- `inference/protection_scanner`（4 → 0）: `safe_describe`の3つの分岐 —— `#describe(:short)`、記述不可能なオブジェクトの`#to_s`フォールバック、そしてdescribeが例外を発生させたときのrescueの`class.name`。
+- `inference/project_patched_scanner`（12 → 0）: 不透明なクラスの`walk_children`フォールバック（`walker`と同じ形状 —— ボディなしクラス、`class << expr`の非self → 周囲のクラスの*インスタンス*メソッドとして記録される）、parse-error診断、read-failureのrescue、そしてエディタモードのバッファオーバーレイ（エントリーを別の場所で解決するバインディング付きの`scan(paths, buffer:)`）。**重要な教訓: 2つのエラーパスが診断フィールドを共有する場合（どちらも`rule: "pre-eval.parse-error"`、どちらもパスを名前として持つ）、パス固有のMESSAGEテキスト**をアサートせよ（「has a parse error」vs「failed to read」）—— そうしなければ一方のパスを迂回してもう一方へのミューテーションが、より弱いアサーションを満たしたまま生き残る。
+- `language_server/debouncer`（4 → 0）: スレッド化されたrescueの`warn`（スケジュールされたブロックが例外を発生させる → stderrの警告がkeyとエラークラスを命名することをアサートする）。
+- `language_server/document_symbol_provider`（2 → 0）: `qualified_name_of`のnil-parentアーム（トップレベルの`::Foo`）とelseのソーススライスフォールバック、`.send`経由で。
+
+**再利用可能な2つのkillテクニックを記録した:**（a）`fetch(_, default)`のデフォルトのためのキー不在テスト;（b）構造化フィールドを共有する2つのパスを区別するためのメッセージテキストアサーション。
+
+## 7回目のバッチ —— 残りのLSPプロバイダ + mcp + plugin（2026-06-21）
+
+7ファイル;**2ファイルにわたって30の穴をクローズした**（`folding_range_provider` / `selection_range_provider` / `hover_provider` / `project_context` / `plugin`はフロア）。specのみ;rspec + rubocopで確認:
+
+- `language_server/signature_help_provider`（16 → 0）: プライベートなレンダリング / 解決ヘルパーは完全な`#provide`フローを通じてのみ到達していた。`.send`でユニットテスト: すべてのパラメータ種別（required / optional / rest / trailing / required+optional+restのkeyword、`RBS::Parser.parse_method_type`経由のRBS）にわたる`parameter_information` / `format_param`、名前のない型のみの形式、`nominal_class_name`、`rbs_documentation`のコメント結合、`byte_offset_for`（**マルチバイトの最初の行**が`bytesize`→lengthのミューテーションに噛みつく）、そしてシングルトンレシーバー + Difference-unwrap（プロジェクトコンテキストの環境 + `Reflection`からの実際のスコープ）のための`lookup_method`。
+- `mcp/server`（14 → 0）: `build_argv`のツールごとの`args[...]`読み取り（既存のテストは`include`を使ってエンドツーエンドの振る舞いとconfigフラグをアサートしており、paths / file / top / paramsの読み取りをピン留めしていなかった）—— **正確なargvの`eq`アサーション**がnil-inject / swapされたキーによってフラグ / パスが落ちることに噛みつく。また`call_tool`のStandardError rescue（`CLI.new`をスタブしてraiseさせる）: 内部エラー結果、stderrのログ、そして改行結合されたバックトレース（**行カウントアサーション**が`join(nil)`のセパレータが1行に折り畳まれることに噛みつく）。
+
+**さらに2つの再利用可能なテクニック:**（c）各要素のソース読み取りをピン留めするために、構築された配列 / argvへの正確な`eq`（`include`でなく）アサーション;（d）nil-separatorのミュータントが依然として連結する`join("\n")`に対しては、部分文字列のメンバーシップではなく出力の**行カウント**をアサートする。マルチバイトのフィクスチャは`bytesize`対lengthに噛みつく。
+
+**セルフミューテーションセッションの累計（2026-06-21）:**バッチ1〜7は約28の`lib/rigor`ファイルの本物の穴を等価ミュータントのフロアまでクローズした（config_audit、lockfile_resolver、class_registry、reflection、method_catalog、conflict、diagnostic、options、mutation_protection_report、prism_colorizer、return_type_heuristic、builder、walker、coverage_command、hkt_reducer、hkt_registry、kernel_dispatch、overload_selector、precision_scanner、protection_scanner、project_patched_scanner、debouncer、document_symbol_provider、signature_help_provider、mcp/server、…）。残るフロンティア: `cli/*_command`のintegration-blindnessの末尾（バッチ4）、overload_selectorの全ブロックオーバーロードの2つの残余、約50の未計測の60〜300 LOCファイル、そして300 LOC超のエンジン層。
