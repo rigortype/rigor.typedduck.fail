@@ -3,8 +3,8 @@ title: "rigor-rails-i18n"
 description: "rigortype/rigor docs/manual/plugins/rigor-rails-i18n.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/plugins/rigor-rails-i18n.md"
 sourcePath: "docs/manual/plugins/rigor-rails-i18n.md"
-sourceSha: "cdc008b796188509f3adb0aba494888d702b756a225175c47b8f4200ad2f26ac"
-sourceCommit: "5c304b2c680eccdbfaffc114c0f31ce89f740ad4"
+sourceSha: "eb81c0748d3ced9d8d5c33c2d1255c8d6039731b80a2b20e9742272304e4ec78"
+sourceCommit: "2395ec303ae01e7ad25366bcb68363cf9701d1f5"
 translationStatus: "translated"
 sidebar:
   order: 9050
@@ -37,7 +37,7 @@ errors_demo.rb:25:1: warning: `t('errors.messages.blank')` is missing from local
 
 ### 認識される呼び出し形
 
-リテラルの第1引数を伴う`t(...)`（暗黙のself）、`I18n.t(...)`、`I18n.translate(...)`です。**遅延キー**（コントローラー内の`t('.title')`）は、ファイルパスと最も内側を囲む`def`から`<controller_scope>.<action>.<key>`に展開され、Railsの慣習に従います。コントローラー以外のファイル内の遅延キーはスキップされます（スコープを静的に決定できないため）。リテラルでないキーを伴う呼び出し（`t(some_variable)`）はチェックされずに通過します。
+リテラルの第1引数を伴う`t(...)`（暗黙のself）、`I18n.t(...)`、`I18n.translate(...)`です。**遅延キー**（コントローラー内の`t('.title')`）は、ファイルパスと最も内側を囲む`def`から`<controller_scope>.<action>.<key>`に展開され、Railsの慣習に従います。コントローラー以外のRubyファイル（モデル・ヘルパー・メーラー）内の遅延キーはスキップされます（その時点ではスコープを静的に決定できないため）。**ビューテンプレートの遅延キー**──`app/views/setting/index.html.erb`内の`t('.title')`は`setting.index.title`に展開され、キーの存在とロケールごとのカバレッジが検証されます。`view_search_paths`（デフォルト`app/views`）配下のERB・Haml・Slimテンプレートが走査されます。リテラルでないキーを伴う呼び出し（`t(some_variable)`）はチェックされずに通過します。
 
 Railsと`rails-i18n`gem自身が提供するプレフィックス（`date.` / `time.` / `datetime.` / `number.` / `errors.messages.` / `errors.format` / `support.array.` / `helpers.{select,submit,label}.` / `i18n.transliterate.` / `activerecord.errors.{messages,models}.`）配下のキーは、フレームワークが提供するため不明キーとして指摘されません。
 
@@ -49,14 +49,17 @@ plugins:
     config:
       locale_search_paths: ["config/locales"]   # default
       configured_locales: ["en"]                # default
+      view_search_paths: ["app/views"]          # default
 ```
 
-`configured_locales`はプロジェクトが提供するロケールの集合です。これを`["en", "ja"]`に設定すると、キーが一方では解決できるがもう一方では解決できない場合に`missing-locale`警告が有効になります。
+`configured_locales`はプロジェクトが提供するロケールの集合です。これを`["en", "ja"]`に設定すると、キーが一方では解決できるがもう一方では解決できない場合に`missing-locale`警告が有効になります。`view_search_paths`は、遅延`t('.key')`呼び出しを含むビューテンプレートを走査するディレクトリを制御します。
 
 ## 制限事項
 
 - **リテラル文字列キーのみ**: 変数キーは通過します。
 - **コントローラー外の遅延キーはスキップされる**: `t('.x')`が依存するコントローラー／アクションのスコープは、モデル／ヘルパー／メーラーでは導出できません。
+- **ビューテンプレートの遅延キー**（ERB／Haml／Slim内の`t('.key')`）は、キーの存在とロケールごとのカバレッジが検証されます。補間の検証はテンプレートでは行われません──ハッシュが、テンプレートのソースには見えないコントローラーのインスタンス変数から来る可能性があるためです。`view_search_paths:`を設定してデフォルトの`["app/views"]`を上書きできます。
+- **ビュー診断は`--workers`で重複する**──ビュー走査はプロジェクト全体のパスで、ファイルごとの診断フックを通じて表に出るため、フォークプールの各ワーカーが全集合を再出力します（`load-error`診断が持つのと同じ「実行ごとに1回」の制限）。デフォルトの`rigor check`（逐次実行）は影響を受けません。
 - **複数形は認識されるが検証されない**: `count:`は予約オプションとして扱われます。ロケールが`:zero` / `:one` / `:other`を定義しているかどうかはチェックされません。
 - **ロケールごとの補間の違いは1つのプレースホルダー集合にマージされる**（`en`が`%{name}`を使い`ja`が`%{user_name}`を使う場合、両方とも必須として扱われます）。
 - **`safe_load`のみ**: YAMLのエイリアス／マージは受け入れられますが、YAML内のカスタムRubyクラスは受け入れられません。
