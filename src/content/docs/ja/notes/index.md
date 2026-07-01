@@ -3,8 +3,8 @@ title: "リサーチ・サーベイノート"
 description: "rigortype/rigor docs/notes/README.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/README.md"
 sourcePath: "docs/notes/README.md"
-sourceSha: "d217735a95e493a8cfd606841d3078605474dbb909f2e8360e8dceb39b660a71"
-sourceCommit: "51a679f3ccd12f5bee48c24150401d10e978efce"
+sourceSha: "9d83de8e7c5e505e38b799eff368c0d7466d78f8361ed3167f9e2baba638c16b"
+sourceCommit: "450a3016ca812067f6baa96e415442ed936ad49a"
 translationStatus: "translated"
 sidebar:
   order: 6000
@@ -97,6 +97,7 @@ sidebar:
 | 2026-06-10 | [lib/rigor内部アーキテクチャ再検討 — 正式リリース前の構造監査](20260610-lib-rigor-architecture-rereview/) |
 | 2026-06-10 | [キャッシュ機構監査 — ディスク使用量とwarm-runロードコスト](20260610-cache-disk-runtime-audit/) |
 | 2026-06-13 | [プラグインインターフェイス最終レビュー — v1.0凍結前のBC-break機会監査](20260613-plugin-interface-bc-review/) |
+| 2026-06-27 | [Corpus cold/warm re-profile — v0.2.6 new-bottleneck check](20260627-corpus-cold-warm-reprofile/) |
 
 ## プロセス・メタ
 
@@ -104,6 +105,8 @@ sidebar:
 | --- | --- |
 | 2026-06-05 | [ADR corpus rubric audit — scoring ADR-0…49 against ADR-49](20260605-adr-corpus-rubric-audit/) |
 | 2026-06-10 | [ユーザー向けドキュメント レビュー・バッテリー設計 — chibirigor-reviewの移植検討](20260610-user-docs-review-battery-design/) |
+| 2026-06-22 | [Rigor 0.2.x problem survey — 型理論とRubyランタイムの型モデル](20260622-rigor-0.2.x-problem-survey/) |
+| 2026-06-22 | [Rigor 0.2.x compatibility-safe strengthening survey](20260622-rigor-0.2.x-compatibility-safe-strengthening-survey/) |
 
 ## ノートの追加
 

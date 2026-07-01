@@ -3,8 +3,8 @@ title: "Rigorのインストール — AIエージェント向け手順"
 description: "rigortype/rigor docs/install.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/install.md"
 sourcePath: "docs/install.md"
-sourceSha: "6d339076a56919e99acd51b305b5d02fc677b313facb86020cba903f21eb9b8b"
-sourceCommit: "212f2c491920cc5c39a12d75aee385cb6c51fa0c"
+sourceSha: "4f45588da0ef772aef62261c579f2be011dda3247967e30864755fa9e89632ab"
+sourceCommit: "450a3016ca812067f6baa96e415442ed936ad49a"
 sourceDate: "2026-05-29T03:05:46+09:00"
 translationStatus: "translated"
 sidebar:
@@ -139,7 +139,7 @@ docker run --rm -v "$(pwd):/app" -w /app ghcr.io/rigortype/rigor:latest rigor ch
 rigor --version
 ```
 
-`rigor 0.1.x`のようなバージョン文字列がインストール成功を確認します。コマンドが見つからない場合は、お使いのケースに合わせてステップ2を見直してください。
+`rigor 0.2.x`のようなバージョン文字列がインストール成功を確認します。コマンドが見つからない場合は、お使いのケースに合わせてステップ2を見直してください。
 
 ---
 

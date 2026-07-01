@@ -3,8 +3,8 @@ title: "ベースライン"
 description: "rigortype/rigor docs/manual/06-baseline.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/06-baseline.md"
 sourcePath: "docs/manual/06-baseline.md"
-sourceSha: "9a97f7a2170c0e40a16f21eb92b7e6746002b26801f3de1f30ff83eb1dc234fe"
-sourceCommit: "bf5d5216eed7167036f5c702b3f8003b390fcd8c"
+sourceSha: "066a174f36f257423ad128175b5df60124bae39542a20ed6e2e3a025dc3ae01c"
+sourceCommit: "450a3016ca812067f6baa96e415442ed936ad49a"
 sourceDate: "2026-06-13T17:48:47+09:00"
 translationStatus: "translated"
 sidebar:
@@ -64,6 +64,8 @@ baseline: .rigor-baseline.yml
 | `rigor baseline prune` | もはや何にも一致しないバケットを削除する。`--dry-run`でプレビュー。 |
 
 `generate`と`regenerate`は`--match-mode=rule`（デフォルト: ファイル×ルール単位で1バケット）または`--match-mode=message`（メッセージごとに1バケット: より精密だがチャーンが増える）を受け付けます。
+
+`--match-mode=message`は各バケットを**レンダリングされたメッセージテキスト**（表示されるレシーバー型などの詳細を含む）でキーにします。これにより同じルールの2つの診断を1行の中で区別する精度は上がりますが、**壊れやすく**もなります: Rigorのアップグレードがメッセージの言い回しを変えたり型の表示方法を変えたりすると、キーが一致しなくなり、以前ベースラインに入れた診断が新規のものとして再浮上します。`--match-mode=rule`は`(file, rule)`だけをキーにするため、メッセージの言い回し変更の影響を受けません。メッセージ単位の識別が特に必要でない限りはこちらを優先し、Rigorをアップグレードした後は`message`モードのベースラインを`regenerate`することを見込んでおいてください。
 
 ## ベースラインを削減する
 

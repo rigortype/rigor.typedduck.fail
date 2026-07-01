@@ -3,8 +3,8 @@ title: "フロー寄与バンドル — `Rigor::FlowContribution`"
 description: "rigortype/rigor docs/internal-spec/flow-contribution.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/flow-contribution.md"
 sourcePath: "docs/internal-spec/flow-contribution.md"
-sourceSha: "3649f83f931ec975a65371d4145588d11410711510b9d73b4133375d37fa26aa"
-sourceCommit: "a3ab53dd2b8aa0a84fd7ddbd64339f316d8d12ec"
+sourceSha: "43ccdaba6a8b10a4889deb8bafeae644d1dac15438dbdad4839c5c3a1947568e"
+sourceCommit: "450a3016ca812067f6baa96e415442ed936ad49a"
 translationStatus: "translated"
 sidebar:
   order: 3050
@@ -12,7 +12,7 @@ sidebar:
 
 ステータス: **公開リード形（v0.0.9グループB）**。このドキュメントは、内部のフローコントリビューションプロデューサー（組み込みナローイング（narrowing）ルールおよび`RBS::Extended`アノテーション）が単一の呼び出しエッジで運ぶバンドル形を固定します。これらのバンドルを消費するマージポリシーは[ADR-2 § "Plugin Contribution Merging"](../../adr/2-extension-api/)が所有します。v0.0.9ではバンドル構造体のみを提供し、マージャーはv0.1.0でプラグインAPIとともに導入されます。
 
-**プラグインはこのバンドルをもう構築しません**。ADR-37はプラグイン作者向けのバンドルフックを、狭い`dynamic_return`（素の`Type`を返す）と`type_specifier`（ファクト（fact）を返す）のDSLに置き換え、ADR-52 WD3は基底の`flow_contribution_for`フックを完全に削除しました。プラグインの`dynamic_return`の結果は、マージャーに到達する前に**エンジン**（`MethodDispatcher#collect_gated_contributions`）が`FlowContribution`にラップします。したがってこのバンドルは、プラグイン作者向けのサーフェス（surface）ではなく、マージティア用のアナライザー内部キャリア（carrier）です。
+**プラグインはこのバンドルをもう構築しません**。ADR-37はプラグイン作者向けのバンドルフックを、狭い`dynamic_return`（素の`Type`を返す）と`narrowing_facts`（ファクト（fact）を返す）のDSLに置き換え、ADR-52 WD3は基底の`flow_contribution_for`フックを完全に削除しました。プラグインの`dynamic_return`の結果は、マージャーに到達する前に**エンジン**（`MethodDispatcher#collect_gated_contributions`）が`FlowContribution`にラップします。したがってこのバンドルは、プラグイン作者向けのサーフェス（surface）ではなく、マージティア用のアナライザー内部キャリア（carrier）です。
 
 ## 公開サーフェス
 

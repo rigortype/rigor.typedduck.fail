@@ -3,8 +3,8 @@ title: "rigor-minitest"
 description: "rigortype/rigor docs/manual/plugins/rigor-minitest.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/plugins/rigor-minitest.md"
 sourcePath: "docs/manual/plugins/rigor-minitest.md"
-sourceSha: "8a64c25695068f6f8af4fc0bc3828f7507f3e6fc69241e0a39dbf365f0480954"
-sourceCommit: "5c304b2c680eccdbfaffc114c0f31ce89f740ad4"
+sourceSha: "a686a8c6dfe14d62f596b21d55ddcf5a32094206f8e0025b196816de8a3f3ed2"
+sourceCommit: "450a3016ca812067f6baa96e415442ed936ad49a"
 translationStatus: "translated"
 sidebar:
   order: 9050
@@ -70,4 +70,4 @@ end
 
 ## プラグイン内部
 
-アサーション認識器と、このプラグインが行使する契約サーフェス ── ADR-37の`type_specifier`ナローイングゲートと`setup`向けのADR-38の`additional_initializers` ── は[プラグインのREADME](https://github.com/rigortype/rigor/blob/master/plugins/rigor-minitest/README.md)にあります。プラグインの書き方は[`examples/`](https://github.com/rigortype/rigor/blob/master/examples/README.md)と[`rigor-plugin-author`](../../08-skills/)スキルを参照してください。
+アサーション認識器と、このプラグインが行使する契約サーフェス ── ADR-37の`narrowing_facts`ナローイングゲートと`setup`向けのADR-38の`additional_initializers` ── は[プラグインのREADME](https://github.com/rigortype/rigor/blob/master/plugins/rigor-minitest/README.md)にあります。プラグインの書き方は[`examples/`](https://github.com/rigortype/rigor/blob/master/examples/README.md)と[`rigor-plugin-author`](../../08-skills/)スキルを参照してください。

@@ -3,8 +3,8 @@ title: "Rigor自身のコードベースのミューテーションテスト —
 description: "rigortype/rigor docs/notes/20260618-self-mutation-testing-plan.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260618-self-mutation-testing-plan.md"
 sourcePath: "docs/notes/20260618-self-mutation-testing-plan.md"
-sourceSha: "9b9195f2e654f9599b09dabdb2b7083be26333d8dfde4c3bacc06be8a3eeec7a"
-sourceCommit: "3ea20b239bba8b7cdcd0b5e759a36ac849253e04"
+sourceSha: "0c39bc6905bb8ea1af6294757ba92f72ba4894e3a672325d1d27873a7521c176"
+sourceCommit: "450a3016ca812067f6baa96e415442ed936ad49a"
 translationStatus: "translated"
 sidebar:
   order: 20266618
@@ -208,12 +208,12 @@ fused classify per mutation: type-killed | test-killed | unprotected(+crash buck
 
 4回目の融合バッチ（11ファイル: `analysis/.../walker`、6つの`cli/*_command`、`environment/{bundle_sig_discovery,rbs_collection_discovery}`、`flow_contribution`、…）は**231の穴**を返した —— だが**本物のユニットギャップは2つだけ**だった。支配的な発見は方法論的なものだ:
 
-**融合ハーネスのファイルごとのテスト軸は、規約でマッピングされた*ユニット*specのみを走らせる（`lib/rigor/cli/X_command.rb → spec/rigor/cli/X_command_spec.rb`）、統合 / CLIディスパッチャのspecは決して走らせない**。CLIコマンドオブジェクトはオーケストレーションであり、その`run`経路は意図的に*ディスパッチャを通じて*行使される（そして精度パスには`make coverage`）。ユニットspecは1つのモードにスコープされている。だからあるコマンドの他のモードの分岐は「未保護」と読まれるが、統合specがそれを駆動している。`cli/*_command`の約190のサバイバー（`#puts` / `#usage_error`のhelpとメッセージ行、`docs` / `plugin` / `skill` / `trace` / `triage` / `show_bleedingedge`のモード固有のディスパッチ）は**大半がこのintegration-blindnessであり、本物のユニットギャップではない** —— それらを一括でクローズすると統合カバレッジを複製することになる（偽陽性の規律をテスト記述に適用したもの: 「指標を動かすために低価値なアサーションを足さない」）。ユニットセーフティネットとして価値ある選択的例外はコマンドの*デフォルト*モードだ:
+**融合ハーネスのファイルごとのテスト軸は、規約でマッピングされた*ユニット*specのみを走らせる（`lib/rigor/cli/X_command.rb → spec/rigor/cli/X_command_spec.rb`）、統合 / CLIディスパッチャーのspecは決して走らせない**。CLIコマンドオブジェクトはオーケストレーションであり、その`run`経路は意図的に*ディスパッチャーを通じて*行使される（そして精度パスには`make coverage`）。ユニットspecは1つのモードにスコープされている。だからあるコマンドの他のモードの分岐は「未保護」と読まれるが、統合specがそれを駆動している。`cli/*_command`の約190のサバイバー（`#puts` / `#usage_error`のhelpとメッセージ行、`docs` / `plugin` / `skill` / `trace` / `triage` / `show_bleedingedge`のモード固有のディスパッチ）は**大半がこのintegration-blindnessであり、本物のユニットギャップではない** —— それらを一括でクローズすると統合カバレッジを複製することになる（偽陽性の規律をテスト記述に適用したもの: 「指標を動かすために低価値なアサーションを足さない」）。ユニットセーフティネットとして価値ある選択的例外はコマンドの*デフォルト*モードだ:
 
 - `cli/coverage_command`（37 → 2）: **デフォルトの型精度**モードと**静的Tier 1の`--protection`**モードにはrspecのセーフティネットがなかった（ユニットテスト済みだったのは`--protection --mutation` / `--with-tests`のみ）、そのため実行ディスパッチ全体が生き残った。精度と静的保護のケースを追加し、両方の`--threshold`の終了パスも含む。残る2つの`.on`の`nil_inject`サバイバーはフラグの**ヘルプテキスト**のミューテーションだ（フラグ*名*は通過するフラグテストでピン留めされている;説明は振る舞い的にアサートされない）—— 等価ミュータントのフロア。
 - `analysis/.../walker`（2 → 0）: 純粋なロジックファイル（オーケストレーションではない）、本当にユニットテスト可能 —— 2つの不透明なレシーバーの`walk_children`フォールバック（`descend_class_or_module`のボディなし / 動的に名付けられたクラス上;`class << expr`でexpr ≠ selfのときの`descend_singleton_class`）が未テストだった。フェイクgemのケースを追加。
 
-`environment/{bundle_sig_discovery,rbs_collection_discovery}`と`flow_contribution`はそのフロアで計測した。**今後のバッチへの教訓: `cli/*_command`のサバイバーはギャップとして扱う前にディスパッチャ / 統合specに照らしてトリアージする;コマンドの未テストの*デフォルト*モードにのみユニットテストを追加し、メッセージ / helpの末尾には追加しない**。
+`environment/{bundle_sig_discovery,rbs_collection_discovery}`と`flow_contribution`はそのフロアで計測した。**今後のバッチへの教訓: `cli/*_command`のサバイバーはギャップとして扱う前にディスパッチャー / 統合specに照らしてトリアージする;コマンドの未テストの*デフォルト*モードにのみユニットテストを追加し、メッセージ / helpの末尾には追加しない**。
 
 ## 5回目のバッチ —— inferenceエンジンファイル（2026-06-21）
 
@@ -229,9 +229,9 @@ fused classify per mutation: type-killed | test-killed | unprotected(+crash buck
 
 `inference/flow_tracer:168`の`#inspect`はデバッグフォーマットのフロアだ。
 
-**教訓を再確認:**「防御的 / 等価」の分類は再テストする価値がある —— `hkt_registry`の`require_relative`はガード付きの遅延ロードフロアのように見えたが、単純にメソッドに*入る*テストがそれを実行してミュータントをkillした。**約60の未計測の60〜300 LOCのロジックファイルが残る;300 LOC超のエンジンファイル層はまだ先送りだ**。 CPU競合のgotchaに注意せよ: `make verify`と同時に融合ハーネスを実行してはならない（もしくは複数のハーネス呼び出しと同時に）—— それぞれがコールドなenv+scanを行い、互いを枯渇させる;このセッションでは迷子の6時間ハング`parallel_rspec`残留がそれを悪化させた（明らかにハングしている複数時間のテストプロセスはkillせよ）。
+**教訓を再確認:**「防御的 / 等価」の分類は再テストする価値がある —— `hkt_registry`の`require_relative`はガード付きの遅延ロードフロアのように見えたが、単純にメソッドに*入る*テストがそれを実行してミュータントをkillした。**約60の未計測の60〜300 LOCのロジックファイルが残る;300 LOC超のエンジンファイル層はまだ先送りだ**。CPU競合のgotchaに注意せよ: `make verify`と同時に融合ハーネスを実行してはならない（もしくは複数のハーネス呼び出しと同時に）—— それぞれがコールドなenv+scanを行い、互いを枯渇させる;このセッションでは迷子の6時間ハング`parallel_rspec`残留がそれを悪化させた（明らかにハングしている複数時間のテストプロセスはkillせよ）。
 
-## 6回目のバッチ —— スキャナー + LSPプロバイダ（2026-06-21）
+## 6回目のバッチ —— スキャナ + LSPプロバイダ（2026-06-21）
 
 8ファイル;**5ファイルにわたって39の穴をクローズした**（`project_patched_methods` / `buffer_table` / `hover_provider`はフロアで計測）。すべてspecのみ;変更したspecに対してrspec + rubocopで確認した（この負荷が飽和した機械では`make verify`が不安定で、specのみの変更はcheck / check-pluginsゲートに触れない）:
 
@@ -253,3 +253,79 @@ fused classify per mutation: type-killed | test-killed | unprotected(+crash buck
 **さらに2つの再利用可能なテクニック:**（c）各要素のソース読み取りをピン留めするために、構築された配列 / argvへの正確な`eq`（`include`でなく）アサーション;（d）nil-separatorのミュータントが依然として連結する`join("\n")`に対しては、部分文字列のメンバーシップではなく出力の**行カウント**をアサートする。マルチバイトのフィクスチャは`bytesize`対lengthに噛みつく。
 
 **セルフミューテーションセッションの累計（2026-06-21）:**バッチ1〜7は約28の`lib/rigor`ファイルの本物の穴を等価ミュータントのフロアまでクローズした（config_audit、lockfile_resolver、class_registry、reflection、method_catalog、conflict、diagnostic、options、mutation_protection_report、prism_colorizer、return_type_heuristic、builder、walker、coverage_command、hkt_reducer、hkt_registry、kernel_dispatch、overload_selector、precision_scanner、protection_scanner、project_patched_scanner、debouncer、document_symbol_provider、signature_help_provider、mcp/server、…）。残るフロンティア: `cli/*_command`のintegration-blindnessの末尾（バッチ4）、overload_selectorの全ブロックオーバーロードの2つの残余、約50の未計測の60〜300 LOCファイル、そして300 LOC超のエンジン層。
+
+## 8回目のバッチ —— def-returnタイパー + 2つのplugin表層（2026-06-30）
+
+まだ未計測だった60〜300 LOC層に対する2つの融合バッチ;ほとんどのファイルはフロアで計測された（`type/{union,constant,nominal}`、`source/{constant_path,node_walker}`、`macro_block_self_type`、`method_dispatcher/method_folding`、`sig_gen/{type_elaborator,layout_index,path_mapper}`、`plugin/trust_policy`はすべてすでに100 %だった）。3つの本物のクラスタをクローズした。すべてspecのみ、rspec + rubocopグリーン:
+
+- `inference/def_return_typer`（1 → 0）: `body_last_expression`の再帰的な`Prism::BeginNode`アームが一度も実行されていなかった —— 既存の「BeginNodeをアンラップする」テストは明示的な`begin…end`形式を使っていたが、これは**StatementsNode**ボディとしてパースされる（BeginNodeはその下に*ネスト*されるので、行51は再帰せずにそれを返す）。**インラインのdef-rescue**形式（`def foo; 1; rescue; 2; end`）だけがBeginNode*ボディ*を直接生成し、行52にヒットする。ケースをインライン形式に書き換え、アンラップされた正確な文（`not_to be_nil` → `IntegerNode`値1）をピン留めし、再帰呼び出しの`undefined_method`ミュータントをkillした。
+- `plugin/io_boundary`（14 → 0）: `DefaultHttpClient#get` —— 他のすべてのspecでboundaryがインジェクトオーバーする実物の`Net::HTTP`ラッパー —— はまったくテストされていなかった（スイートにネットワークなし、WebMockなし）。**スタブ化したトランスポート**でユニットテストした: `Net::HTTP.start` / `request_get`をスタブして*実物*の`Net::HTTPOK` / `Net::HTTPForbidden`を出力させ（`#is_a?(Net::HTTPSuccess)`と`#code`は本物のまま）、ソケットに裏打ちされた`#read_body`だけをスタブしてチャンクを出力させた。3つのケース —— 成功時の結合、`:url_fetch_failed`の非成功raise（ステータス + urlを名前として持つ）、`:url_body_too_large`のストリーミングされたオーバーサイズraise —— がメソッドボディ全体を実行し、2つの`AccessDeniedError`理由コード（実物のplugin信頼 / アクセス契約）をピン留めする。
+- `plugin/protocol_contract`（8 → 2-等価）: 文字列キーの`param_types`エントリーのテスト（`entry["index"]` / `entry["type_name"]`のconfig由来のフォールバック —— それまでのすべての成功テストはシンボルキーを使っていたので、`|| entry["…"]`アームは一度も読まれていなかった）と、`to_sym`不可能なseverityのテスト（`severity: 42` → それまで未行使だった`rescue NoMethodError`アーム）を追加した。残る2つ（`validate_severity!`の主`raise` / `inspect`、行149〜150）は**rescueにマスクされた等価ミュータント**だ: ミューテートされた主raiseからの`NoMethodError`は複製の`rescue NoMethodError`によって捕捉され、同じ`ArgumentError`として再raiseされるので、その破壊は外側から見分けがつかない —— 等価ミュータントのフロアだ。`type/refined:83`は文書化された`#inspect`デバッグフォーマットのフロアで残された。
+
+## 9回目のバッチ —— plugin isolation + macroバリデーター（2026-07-01）
+
+10のplugin表層への融合バッチ;ほとんどはフロア（`fact_store`、`services`、`box`、`blueprint`、`additional_initializer`、`macro/block_as_method`）。3つの本物のクラスタをクローズし、1つの等価ミュータントのフロアを文書化した;すべてspecのみ、rspec + rubocopグリーン。（最初に`bundle install`を再実行した —— このセッションが開いている間にPR #33のrbs 4.0.2 → 4.0.3のバンプが着地しており、融合テスト軸が生成する`bundle exec rspec`は新しいネイティブ拡張がビルドされるまで起動できない;症状はサブプロセスからの`Could not find rbs-4.0.3 in locally installed gems`だった。）
+
+- `plugin/macro/nested_class_template`（6 → 0）: `block_method` / `inner_arg_position` / `inner_reader`（行79/82/83）に対する`validate_method!` / `validate_position!`の呼び出しが未保護だった —— 既存の検証テストは*他の3つの*パラメータ（`receiver_constraint` / `variant_method` / `symbol_arg_position`）しかカバーしておらず、呼び出しごとの`label`引数（メッセージに埋め込まれた`#block_method`等）が`nil_inject` / `type_swap`を生き残っていた。3つのテストがそれぞれ1つのパラメータに不正な値を渡し、メッセージがそれを名指すことをアサートする。
+- `plugin/macro/trait_registry`（2 → 0）: `validate_modules_by_symbol!`の不正な**キー**分岐（Symbolでも非空StringでもないHashキー、行166/168）—— 既存のspecは値の分岐と非Hashガードをカバーしていたが、不正なキーは一度もなかった。`{ 42 => "Mod::A" }`を使う1つのテストが`modules_by_symbol key`のメッセージをアサートする。
+- `plugin/isolation`（15 → 2-フロア）: `RubyBox`バックエンド（行96/97/103/105）はまったく行使されていなかった —— その唯一の統合の例は`if: Box.enabled?`でゲートされており、スイートは`RUBY_BOX=1`を決して設定しない。**スタブ化した`Box`**（`enabled?` / `require_feature` / `eval`）でユニットテストした: 2つの`Unavailable`ゲート、加えて`Box.eval`を正確な`'ActiveSupport::Inflector.pluralize("post")'`でスタブすることでピン留めしたinspectレンダリング済み式（「evalに到達する自由な入力はない」契約）。`join(", ")`のセパレータを噛ませるには**2引数**のケースが要った —— 単一の引数はどんなセパレータでも同一にレンダリングされる（`["x"].join(nil) == "x"`）ので、削除 / 変更されたセパレータをマスクしてしまう。また、スタブ化した`Process.available? => false`経由で`Process`のフォーク不可ゲート（行122）も追加した。残る2つ（`run_worker_loop`の`ensure exit!(0)`、行186）は**サブプロセス子プロセスのフロア**だ: そのループはフォークされた子プロセスの中でのみ走り、終了コードをミューテートするためにインプロセスで呼び出すとテストランナー自体が終了してしまう —— 本物のフォークなしには真にテスト不可能だ。
+- `plugin/inflector:100`は**等価ミュータントのフロア**として残された: `available?`は`invoke(:pluralize, "rigor_inflector_probe")`でプローブする;プローブの*引数*をミューテートしても（`nil_inject` / `type_swap`）成功した複数形化を依然もたらすので、`available?`はどのみち`true`を返す —— プローブ文字列はメソッドの契約にとって重要ではなく、それをピン留めするのは実装の詳細をテストすることになる。
+
+## 10回目のバッチ —— method_dispatcherのfolding + 型キャリア（2026-07-01）
+
+2つの融合バッチ。**8つの`method_dispatcher/*_folding`ファイル**（`reduce`、`set`、`cgi`、`shellwords`、`regexp`、`data`、`file`、`literal_string`）はすべて**融合保護100 %、生存者ゼロ**で計測された —— 定数畳み込み層はすでに徹底的にspec化されている;作業なし。**7つの型キャリアファイル**はほとんどフロアだった;1つの本物のクラスタをクローズした。
+
+- `type/hash_shape`（10 → 1-フロア）: 4つのコンストラクタ検証分岐が未保護だった —— 既存のspecは`validate_pairs!`（非Hash、不正なキークラス）と`canonical_key_list`の未知キー分岐をカバーしていたが、以下はカバーしていなかった: `split_constructor_args`内の未知**キーワード**の拒否（行122）、重複キーガード（173）、required / optionalの**重複**ガード（183）、**未分類キー**ガード（188）。4つのテストがそれぞれ1つの分岐に当たり、メッセージが問題のキーを名指すことをアサートする —— 2つの未知キーワードで`join(', ')`セパレータを噛ませ、`.inspect`でレンダリングされた違反者リスト（`[:a]`、`[:c]`）で183 / 188のinspect呼び出しをピン留めする。残る1つは`inspect`の`describe(:short)`呼び出し（行109）—— 文書化されたinspectデバッグフォーマットのフロア（下記）。
+- `type/{data_class,data_instance,struct_class,struct_instance,tuple}`はそれぞれ1つの生存者を残した。すべて**同じinspectデバッグフォーマットのフロア**だ: `def inspect = "#<... #{describe(:short)}>"`であり、`describe`自体は徹底的にテストされている —— `inspect`ラッパー（デバッグ / 診断用の文字列）だけが未行使で、`type/refined:83`の前例と整合する。このリポジトリのキャリアの規約では`inspect`をspec化しないので、これらは意図的に追わない。
+- `inference/dynamic_origin`は100 %（ADR-75のcause-setキャリア、すでに完全にspec化済み）。
+
+## 11回目のバッチ —— CLIコマンド（2026-07-01）
+
+4つのCLIコマンドへの融合バッチ。`cli/ci_detector`は100 %。`doctor` / `skill`で2つの本物のクラスタをクローズした;残余は`if key?`でガードされた等価なデフォルト、防御的な到達不能分岐、そしてフラグ説明の見た目の問題だ。
+
+- `cli/doctor_command`（18 → 6-等価）: ベースラインドリフトのパスが未テストだった。specは不正なベースライン（`:warn`）とクリーンな空（`[]`）のケースをカバーしていたが、*ドリフトしている*ベースラインは一度もなかった。（a）作られた監査行（`Struct.new(:status)`）を使い、ステータスごとのカウント・ラベル・`join(', ')`をピン留めする`.send`経由の`#baseline_drift_summary`のユニットテスト（行200/205をクローズ）と、（b）いまやクリーンなファイルに`call.undefined-method`バケットを記録する統合テスト → `:cleared`のドリフト行 → `:fail`の所見、`reject { status == :within }`フィルタと`baseline_drift_summary`の呼び出しサイトを行使する（177/184をクローズ）を追加した。残る6つは`counts.fetch(:over, 0)` / `:cleared` / `:reducible`の**デフォルト引数**だ —— それぞれ先行する`if counts.key?(...)`でガードされているので、`0`のデフォルトは到達不能なデッドコードであり、それへの`nil_inject` / `type_swap`は**等価ミュータント**だ（specのみで残した;冗長なデフォルトを削除するためだけにlibを編集する価値はない）。
+- `cli/skill_command`（6 → 1-防御的）: 名前なしの`--print`のusage-errorテスト（`run_print(nil)`は`usage_error("a skill name is required")`にヒットする。`rigor skill --print`経由で到達可能、行139）を追加し、未知のskillのテストを強化して`"Available skills (try ...)"`ヘッダー（行212 —— その下のskillごとのリストはすでにアサート済みだった）をアサートするようにした。残る1つは`run_list`の`@err.puts("No bundled skills found under …")`（行127）だ —— `discover_skills`を空にスタブしない限り到達不能、なぜならgemは常にskillをバンドルしているからだ;防御的なフロア。
+- `cli/triage_command`（5、文書化して残した）: `--hints-only` / `--selectors-only`（振る舞いはすでにテスト済み）に対する`opts.on(...)`の`nil_inject`サバイバーは**help-descriptionの文字列**を対象としており、等価ミュータントだ;`--top` / `--no-hints`は未テストのフラグで、その効果は観察がぎこちなくなるだけ（ホットスポットのカウント / 出力されるセクションのセット）で低価値だ;`configuration.paths`（行84）は空の`@argv`分岐で、specの常に`["code.rb"]`のランナーは決して通らない。
+
+## 12回目のバッチ —— 中規模（380〜620 LOC）のspec済みファイル、その1（2026-07-01）
+
+300 LOC超層の最初。2つのファイルを並列のSonnetサブエージェントに委譲した（互いに素なspecファイル;親が計測 + 裁定 + コミットする）、1つはインラインで行った。3つとも今や生存者0。
+
+- `analysis/baseline`（1 → 0）: `bucket_key`の`message_regex&.source`（行335）が一度も行使されていなかった —— `#audit`のすべてのテストはルールモードのバケットを構築していた（regexはnil、safe-navがショートサーキットする）。1つのメッセージモード監査テスト（2つの異なるメッセージ → regexのsourceでキー付けされた2つのバケット、1つが一致 → `:within`、もう1つが → `:cleared`）が`.source`の読み取りに到達する。
+- `inference/method_parameter_binder`（43 → 0、Sonnet）: 2つの大きなクラスタは、スロット構築 / RBS型プロバイダのラムダ / `Combinator.nominal_of`（147〜199、326〜369）と、ADR-28のパススコープのprotocol-contract層全体（270〜298）だった。1つの全スロット種類フィクスチャ（`(String a, ?Integer b, *Float rest, Symbol c, d:, ?e:, **Numeric kw) { … }`で各スロットに*別々*の名前的型（nominal）を与え、誤ったインデックス / 名前や、nil / スワップされた`nominal_of`引数が食い違った`class_name`として表面化するようにした）と、すべてのマッチ / 非マッチ分岐（パスglob、レシーバーのsingleton性、メソッド名、インデックス、nilのレジストリ / source_path / 未解決の型）をカバーする10テストの`apply_protocol_contract`ブロックでクローズした。等価なし —— 34すべてが本物の観察可能なものだった。
+- `cache/descriptor`（35 → 0、Sonnet + インラインの仕上げ）: サブエージェントが32をクローズした —— `PluginEntry` / `ConfigEntry`のフィールド + `to_h`の読み取り、`sort_entries`の順序付け（非ソートの入力 → 正規の順序をアサート）、`canonicalize_value`の配列分岐、そして`fresh?`の比較器（comparator）ディスパッチ（`:digest` / `:mtime` / `:exists`、それぞれ実物のfreshen-then-staleファイルシステムプローブを伴う。`Time#to_i`のmtimeパスを含む）。残した3つ（`to_canonical_bytes`、319/324）は`Descriptor#==` / `#eql?` / `#hash`の値意味論だった —— 等しい / 等しくない / Hashキーの3つ組でインラインにクローズした（既存の`.hash`テストは*ディスクリプタ*ではなく*エントリー*に対するものだった）。
+
+## 13回目のバッチ —— 中規模spec済みファイル、その2（2026-07-01）
+
+残る2つの300 LOC超のspec済みファイル。`analysis/rule_catalog`（618 LOC）は**生存者0**で計測された —— ルールカタログはすでに徹底的にspec化されている。`cache/store`（523 LOC）はSonnetサブエージェントに委譲した。
+
+- `cache/store`（21 → 1-等価、Sonnet）: `#fetch_or_validate`の記録・検証フロー全体（行244〜268）には*直接の*カバレッジがなかった —— `Plugin::Base#cache_for`を介して間接的にしか行使されていなかった。`#fetch_or_validate`ブロック（ヒットはキャッシュされた値を返し`hits`をインクリメント;ミスはブロックを走らせ、書き込み、`misses`をインクリメント;ブロックなし → `[nil, Descriptor.new]`;古くなった依存ディスクリプタ → 再計算）、アトミック書き込みブロック（正確な値をラウンドトリップ、残留`.tmp`なし、スパイでピン留めした`SecureRandom.hex(4)`サフィックス）、そして`write_varint`の負値raiseテスト（`.send`経由）でクローズした。残る1つは行421の`File.open(path, RDWR|CREAT, 0o644)`だ —— `0o644`モードへの`nil_inject`は**等価ミュータント**だ: umask `022`の下ではデフォルトの作成モード`0666 & ~022 == 0644`となり、リテラルとバイト同一になるので、umaskに脆くないテストではそれを区別できない（`path` / `flags`引数は変数と定数ORであり、`nil_inject`が狙うリテラルではない）。
+
+**フェーズ1（中規模380〜620 LOCのspec済み層）完了**。 baseline、method_parameter_binder、cache/descriptor、rule_catalog、cache/storeはすべてその等価ミュータントのフロアにある。
+
+## 14回目のバッチ —— spec不在のキャリアspecを執筆（フェーズ2、2026-07-01）
+
+5つのファイルには**専用の規約specがなかった**——間接的にしか行使されていなかったので、ハーネスはそれらを型のみで走らせた（テスト軸なし: 型アンカーのサイトだけをミューテートし、1つを除きすべて型killされた）。specを執筆することは、規範的な振る舞いを明示的にピン留めすると同時に、ハーネスにファイルごとのテスト軸を与える。2つのSonnetサブエージェントがspecを執筆し、親がそれぞれを事後に融合保護100 %で検証した。5つとも今や生存者0。
+
+- `inference/body_fixpoint`（ADR-56のcapped-fixpoint;**事前のspec参照ゼロ**、最も価値が高い）—— ラムダの`evaluate_body` / `widen`で`converge`を直接行使する9例のユニットspec（フローエンジン不要）: 空の名前、ゼロ反復シードの健全性、単一の安定したパス（早期`break`）、新しい型のユニオン、`CAP`内での複数パス収束、非収束 → 最終反復での名前的型ベースへのデュアルなワイドニング、構造的複合化（`a = [a]`）→ `Combinator.untyped`へのフロア + `BudgetTrace::BLOCK_WRITEBACK_CAP`ヒット、そして混在した移動済み / 未書き込みのケース。実物のプロダクションワイドナー`Combinator.widen_value_pinned`（両方の呼び出しサイトが渡すもの）を使い、アサートする前に生きたプローブに対して値を検証した。
+- `type/{bot,top,dynamic,singleton}` —— 専用の値束（value-lattice）アイデンティティspec（9/9/15/12例）。正確な`describe` / `erase_to_rbs`の文字列、キャリアごとの`top` / `bot` / `dynamic`束の三つ組、`==` / `eql?` / `hash`（bot / topはsingletonアイデンティティ;dynamic / singletonは`ValueSemantics`のフィールド等価性）、そしてソースが指摘する2つのロードベアリングな不変条件をピン留めする: `Combinator.dynamic`の冪等性（`untyped == Dynamic[Top]`、ネストした`Dynamic`は畳み込まれる）と`Singleton["String"] != Nominal["String"]`の非交差性。private-`.new` / singletonアクセサは推測ではなく実物のソースに対して検証した。
+
+**フェーズ2完了**。中身のあるspec不在ファイルはいまや専用のspecを持つ;残るspec不在ファイルは、その振る舞いが含むキャリアのものであり、型のみのハーネスがすでに完全に保護されていることを示している些細なミックスイン（`acceptance_router` 19 LOC、`plain_lattice` 37 LOC）だ。
+
+## 15回目のバッチ —— 中大規模エンジン層、その1（フェーズ3、2026-07-01）
+
+300 LOC超のエンジン層。巨大なコアファイル（statement_evaluator 3388、expression_typer 3059、scope_indexer 2716、narrowing 2640）は先送りされている —— ミューテートするのが重く、すでに厚くspec化されている;中大規模（350〜600 LOC）のファイルが手頃な前線だ。2つをSonnetサブエージェントに委譲し、1つはインラインで行った。3つとも今や生存者0。
+
+- `inference/mutation_widening`（52 → 0、Sonnet）: ADR-56のslice-Cコレクションのコンテンツ要素抽出ヘルパー（`collection_element_types`、`hash_shape_key_values`、`drop_dynamic`、`array_added_elements`、`join_*_content`、`widen_hash_shape`）はユニットレベルで未テストだった —— ブロック / ループのコンテンツ書き戻しのために、Tuple / Array-Nominal / HashShape / Unionレシーバーから要素 / キー / 値の型を抽出する。各レシーバー形状で各ヘルパーを行使する32テスト（`Combinator.nominal_of`結果のラップと、`Dynamic`メンバーの`drop_dynamic` / `grep_v`フィルタを含む）;`Combinator.union`がメンバーを並べ替える`contain_exactly`。
+- `plugin/registry`（27 → 0、Sonnet）: Registryを通じて到達するADR-52のコンパイル済み寄与インデックス表層 —— プラグインごとの`dynamic_returns` / `type_specifiers`ゲート、`block_as_methods`インデックス、グローバルゲートの`Set#merge`、`class_ordering`の祖先関係、`hkt_registrations` / `hkt_definitions`のHKT集約、そして削除済みの`flow_contribution_for`の重複登録raise。マージ / flat-map / 順序付けが観察可能になるよう、それぞれ2つ以上のpluginを持つ8テスト。
+- `inference/method_dispatcher/overload_selector`（1 → 0、インライン）: 行157の`overloads.first`フォールバック —— *すべての*選択パスが失敗し*かつ*すべてのオーバーロードがブロックを要求するときにのみ到達し、`find { !requires_block? }`はnilを生む。コアのRBSブロックメソッドはほぼすべて列挙子（enumerator）フォールバックのオーバーロードを出荷しているので（`find`が成功し、`.first`はそれらにとってはデッドコードだ —— 既存の`each_with_object`テストは一度もそこに到達しなかった）。`Object#tap`が判別的な形状だ: 列挙子の双子を持たない**単一**の`() { (self) -> void } -> self`オーバーロード;偽の引数でそれを呼ぶとarityですべてのパスが失敗する → `.first`フォールバックがそれを返す。
+
+## 16回目のバッチ —— 中大規模エンジン層、その2（フェーズ3、2026-07-01）
+
+さらに3つの中大規模ファイルをSonnetサブエージェントに委譲し、すべて生存者ゼロにクローズした —— トラッカーが長らく残る中で最も難しいとフラグしていたファイル`conformance_checker`（約110生存者、RBSフィクスチャ依存）を含む。そのメッセージフロアに関する懸念は完全にクローズ可能であることが判明した。
+
+- `plugin/manifest`（17 → 0、Sonnet）: `config_schema` / `consumes`検証raise + それらの`inspect`メッセージの補間、そして文字列vsシンボルキーのconfigルックアップ（`value[:kind] || value["kind"]`、`key?("default")`の論理和）。目立って不正な値のraiseテスト（違反する値がそのまま出るので`inspect`のリネームは死ぬ）と、**文字列キーのYAMLラウンドトリップ**フィクスチャ（`value["…"]`フォールバック分岐によってのみ満たされうる）でクローズした。
+- `analysis/worker_session`（29 → 0、Sonnet、2ラウンド）: 信頼済みgemのパス解決（`trusted_gem_name` / `trusted_gem_root` / `full_gem_path`、`.send` + スタブ化した`Gem.loaded_specs`経由）、config `resolve` / `target_ruby`の配線（`target_ruby: "3.0"`で`Prism`のraiseを強制し、汎用の`rescue`にヒットさせた）、discovery-seedの配管、plugin node-ruleのエラー**および**成功パス（`collect_plugin_diagnostics`）、`safe_plugin_id`の`plugin.class.to_s`のrescueフォールバック、そして`--explain`のフェイルソフトフォールバック診断（実物の`CoverageScanner`のフリップフロップイベントをエンドツーエンドで、加えて`start_column + 1`のオフバイワンと`location`がnilの分岐をピン留めするイベントダブル付きの`.send(:explain_diagnostic)`）。
+- `rbs_extended/conformance_checker`（110 → 0、Sonnet）: `scan_rbs`ヘルパーが実物のRBSをtmpdirに書き込み実物の`RbsLoader`を構築し、`scan`をあらゆる分岐を通じてエンドツーエンドで駆動する —— 適合 → `[]`、`Unsatisfied`（正確な`missing_methods`）、`UnresolvedInterface`、そして各不一致の詳細ジェネレータ（`return_detail`の共変、`param_detail`の反変 + パラメータインデックス、`arity_detail`のover / under両形状 + restガード + 単数 / 複数、`keyword_detail`の欠落 / 余分 / kwrest、`Dynamic[Top]`と多重オーバーロードのスキップガード）。詳細の*文言*はロードベアリングな部分文字列（型名、パラメータインデックス、カウント）でアサートし、完全な文字列ではアサートしない。記録されたgotcha: RBSコアの組み込み（`_Reader` / `_Writer`）と衝突するインターフェース名は、環境ビルドを静かに失敗させる → `scan`は`[]`を返しアサーションをマスクする;衝突しない名前を使うこと。
+
+**フェーズ3の中大規模層はほぼクローズした**。残る300 LOC超のファイルはエンジンの巨大なコアファイル（statement_evaluator 3388、expression_typer 3059、scope_indexer 2716、narrowing 2640、shape_dispatch / constant_folding、rbs_loader、plugin/base、sig_gen/generator、runner、…）だ —— 別立ての大規模で高価なスイープとして先送りされている;その既存のかなりのspecがすでにそれらを支えており、それぞれの完全な融合計測は数分かかる。

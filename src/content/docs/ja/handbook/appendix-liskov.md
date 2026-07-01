@@ -3,8 +3,8 @@ title: "付録: リスコフの置換原則"
 description: "rigortype/rigor docs/handbook/appendix-liskov.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/appendix-liskov.md"
 sourcePath: "docs/handbook/appendix-liskov.md"
-sourceSha: "991f97c63c193528ffbfd6fb6180a187c9907675e71a92cf267e61c922683fe5"
-sourceCommit: "98bd3fb5bcd0434c814c1d4e3c864e3888ddeae4"
+sourceSha: "76798c2394d9d46b30c4a1db1f22d36e72726e4e61e4900bf431e543865c69f2"
+sourceCommit: "450a3016ca812067f6baa96e415442ed936ad49a"
 translationStatus: "translated"
 sidebar:
   order: 1050
@@ -114,10 +114,12 @@ def shout(thing)
 end
 
 # 第1句 / 共変な戻り値: 本体は証明可能にレシーバを返すので、#dup は
-# `self`（広げられた Object ではなく Array）を返す。
-# Object を返すと事後条件を*弱化*することになる。
+# `self`（広げられた Object ではなくレシーバ自身の型）を返す。
+# Object を返すと事後条件を*弱化*することになる。`dup` を通じた
+# シェイプ保存（ADR-76 WD2）は、名前的な `Array` へ劣化させず
+# ここで精密なタプルを保つ。
 copy = [1, 2, 3].dup
-assert_type("Array", copy)
+assert_type("[1, 2, 3]", copy)
 ```
 
 型理論の付録の<strong><ruby>漸進的保証<rp>（</rp><rt>gradual guarantee</rt><rp>）</rp></ruby></strong>（[§「ブレーム、漸進的保証、そして信頼境界」](../appendix-type-theory/)）との関連は直接的である: シグネチャ規則を構成によって尊重するシステムは、「アノテーションを追加しても以前にパスしていた呼び出しサイトを決して壊さない」も満たす。なぜなら、正しく広げられたパラメータと正しく狭められた戻り値こそ、置換可能性を保つアノテーションだからである。

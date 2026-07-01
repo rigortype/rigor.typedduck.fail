@@ -3,8 +3,8 @@ title: "型保護カバレッジ"
 description: "rigortype/rigor docs/manual/15-type-protection-coverage.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/15-type-protection-coverage.md"
 sourcePath: "docs/manual/15-type-protection-coverage.md"
-sourceSha: "26a112a9627dae0295d01519b0df50c6f901f0285165f5c6cd378fd8752fa2ad"
-sourceCommit: "aec4ca7f5f87b1972dea8fecaaf5b62c8880a3af"
+sourceSha: "61597c88bf64b2a127bbd01d641f1bcf28a468de68c239be510ac0614b4f7ea2"
+sourceCommit: "450a3016ca812067f6baa96e415442ed936ad49a"
 translationStatus: "translated"
 sidebar:
   order: 9015
@@ -98,6 +98,20 @@ rigor coverage --protection --mutation --with-tests --include-dynamic \
 - **`Dynamic`レシーバーのコラボレータ**: 外部gemオブジェクトへの呼び出し、フレームワークのファサード、ダックタイピングされたパラメータ、あるいはメタプログラミングDSL。*型を足し*ます（多くは[`rigor sig-gen`](../02-cli-reference/#rigor-sig-gen)からの1行）。そうすれば静的なネットがそれを捕まえ始めます。
 
 完全性についての注意: `--test-command`をあなたのテストの*部分集合*にスコープすると、レポートは`unprotected`を過大報告します（*別の*テストが捕まえる破壊がギャップとして現れます）。正確なマップのためには、計測対象のファイルを行使するすべてのテストにそのコマンドを走らせてください。時間と完全性を引き換えにします。
+
+### 穴が型なしである理由: provenance（由来）とtractability（対処可能性）
+
+`Dynamic`レシーバーの穴について、`rigor coverage --protection`は*なぜ*そのレシーバーが型なしなのか、そして*型で埋められるかどうか*も記録します。そうすれば、効果のある箇所に労力を注げます。各`add_a_type_here`エントリーは2つのフィールドを持ちます:
+
+- **`dynamic_origin`**: その値が動的になった原因。`external_gem_without_rbs`、`framework_dsl_boundary`、`analyzer_budget_cutoff`、`explicit_untyped`、`unsupported_syntax`のいずれかです。
+- **`tractability`**: その原因から導かれる対処の軸。
+  - **`add_rbs`**: 型で埋められます。RBSをインストールする（`rbs collection install`）、`dependencies.source_inference:`を有効にする、または作成済みの`untyped`シグネチャを絞り込みます。
+  - **`enable_plugin`**: フレームワーク／DSLの境界です。手書きの型ではなく、プラグインや[`pre_eval:`](../03-configuration/)を使ってください。
+  - **`engine_gap`**: ユーザーが型で埋めることはできません（予算の打ち切り、あるいはRigorがまだモデル化していない構文）。報告してください。
+
+テキストレポートは「Add a type here」の見出しの下に1行の`by tractability:`内訳を出力し、JSONも同じ集計を`tractability_summary`として運びます。`add_rbs`の穴から着手してください。それらは型が実際に捕まえてくれる穴です。
+
+Provenance（由来）は精度に加算されるだけです: 型を変えることも、診断を発火させることも、深刻度や保護比率に影響することも決してありません。
 
 ## コストとスコープ
 

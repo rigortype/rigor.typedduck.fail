@@ -3,8 +3,8 @@ title: "CLIコマンドリファレンス"
 description: "rigortype/rigor docs/manual/02-cli-reference.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/02-cli-reference.md"
 sourcePath: "docs/manual/02-cli-reference.md"
-sourceSha: "eb94e2179bf02e2d7816a80329de573fa53f4630ee246b47adb4f98353c3b1fd"
-sourceCommit: "840db09d878cd50bf66f76b9b66fe7a16eeb15b4"
+sourceSha: "e2ace0c19557a9ab29ecae3ac441a6727473e802a9be654b9112b6f48c32a1db"
+sourceCommit: "450a3016ca812067f6baa96e415442ed936ad49a"
 sourceDate: "2026-06-21T05:49:38+09:00"
 translationStatus: "translated"
 sidebar:
@@ -255,7 +255,7 @@ rigor plugins [--format=text|json] [--strict] [--capabilities] [--config=PATH]
 
 `--strict`なしでは常に`0`で終了し、`--strict`では1つでもプラグインのロードに失敗すると`1`で終了します（CIゲート）。
 
-`--capabilities`は**拡張プロトコルカタログ**（[ADR-37](../adr/37-plugin-interface-segregation/)）に切り替えます。これは、ロードされた各プラグインが何を提供するか（その`node_rule`がマッチするASTノード型、その`dynamic_return`がゲートするレシーバークラス、その`type_specifier`がナローイングするメソッド、そしてそれが`produces`／`consumes`するファクト）を集約した、焦点を絞った機械可読なマップです。ツール連携のために`--format=json`と組み合わせます（AIエージェントはプラグインのソースを1行も読まずに、すべてのプラグインの振る舞いを列挙できます）。同じ狭いサーフェスはデフォルトのフルレポートにも現れます。単数形の`rigor plugin`と混同しないこと。
+`--capabilities`は**拡張プロトコルカタログ**（[ADR-37](../adr/37-plugin-interface-segregation/)）に切り替えます。これは、ロードされた各プラグインが何を提供するか（その`node_rule`がマッチするASTノード型、その`dynamic_return`がゲートするレシーバークラス、その`narrowing_facts`がナローイングするメソッド、そしてそれが`produces`／`consumes`するファクト）を集約した、焦点を絞った機械可読なマップです。ツール連携のために`--format=json`と組み合わせます（AIエージェントはプラグインのソースを1行も読まずに、すべてのプラグインの振る舞いを列挙できます）。同じ狭いサーフェスはデフォルトのフルレポートにも現れます。単数形の`rigor plugin`と混同しないこと。
 
 ## `rigor plugin`
 
@@ -346,6 +346,50 @@ rigor show-bleedingedge [--config PATH] [--format text|json]
 | `--format text\|json` | 出力形式。デフォルトは`text`。 |
 
 オーバーレイは**このリリースでは空**です。機構は配線済みで準備が整っていますが、まだどの規律もメジャーに向けてキューに積まれていないため、コマンドは現在空のセットを報告します。機能がキューに積まれると、その安定したid、それが課す重要度、そしてあなたの設定がそれを採用しているかどうかとともに、ここに現れます。ブリーディングエッジが安定性モデルにどう収まるかは[`docs/compatibility.md`](../../compatibility/)を参照してください。
+
+## `rigor doctor`
+
+セットアップの問題をクリーンな実行と区別して分類し、対処すべき次のアクションへ振り分けます（[ADR-77](../../adr/77-doctor-and-upgrade-commands/) WD1）。
+
+```sh
+rigor doctor [--config PATH] [--format text|json]
+```
+
+| フラグ | 目的 |
+| --- | --- |
+| `--config PATH` | 自動探索の代わりにこの`.rigor.yml`を使用する。 |
+| `--format text\|json` | 出力形式。デフォルトは`text`。 |
+
+スコープを絞った解析を実行し、以下を監査します:
+
+- **設定監査** — 未解決の`signature_paths:`、未知の`libraries:`、無効な`disable:` / `severity_overrides:`トークン（{ConfigAudit}）。
+- **RBS環境の健全性** — RBSクラス宇宙が正常に構築されたかどうか（`0`クラスは壊れたセットアップを意味します）。
+- **プラグインのロードエラー** — 設定されたすべてのプラグインがロードされたかどうか。
+- **ベースラインドリフト** — 現在の診断が保存済みベースラインからドリフトしているかどうか。
+- **Railsプラグインのギャップ** — `Gemfile.lock`にRails gemが含まれているのにRailsプラグインが有効化されていないかどうか。
+
+テキスト出力はチェックごとに`[PASS]`・`[FAIL]`・`[WARN]`と、振り分けられたヒント（例:「`rigor baseline regenerate`を実行してください」）を表示します。JSON出力は安定した契約です:
+
+```json
+{
+  "status": "issues_found",
+  "checks": [
+    { "id": "config_audit", "status": "fail", "message": "...", "hint": "..." }
+  ]
+}
+```
+
+いずれかのチェックが失敗すると`1`で終了し、すべてパスすると`0`で終了します。
+
+## `rigor upgrade`
+
+マイグレーションコマンドの骨格です（[ADR-50](../../adr/50-release-engineering-and-stability-strategy/) WD7）。実際の本体は、具体的な後方互換性の破壊がターゲットを与えたとき（例: 強化されたデフォルトプロファイルに対して`baseline regenerate`を再実行する、リネームされた抑制idを表面化する、`bleeding_edge:`の卒業を報告する）に着地します。
+
+```sh
+rigor upgrade
+```
+
+それまでは、現在のバージョンを表示し、upgradeがキューに積まれていることを注記します。`0`で終了します。
 
 ## 環境変数
 

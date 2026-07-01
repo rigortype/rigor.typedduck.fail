@@ -3,8 +3,8 @@ title: "付録: PHPStanから来た場合"
 description: "rigortype/rigor docs/handbook/appendix-phpstan.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/appendix-phpstan.md"
 sourcePath: "docs/handbook/appendix-phpstan.md"
-sourceSha: "36c044bb13a4f92288fb17aa05a6cab1d4c27cac301c6f3a55cb4d0f2885f13f"
-sourceCommit: "212f2c491920cc5c39a12d75aee385cb6c51fa0c"
+sourceSha: "0630a47a1aedc1c562f66d56a68bed139480ea1a3e22f0c59f1288ad0d6fab84"
+sourceCommit: "450a3016ca812067f6baa96e415442ed936ad49a"
 translationStatus: "translated"
 sidebar:
   order: 1050
@@ -85,11 +85,11 @@ Rigorの文法が提供するすべてのディレクティブにはPHPStanのPH
 
 ## Type-Specifying Extensions ↔ プラグイン
 
-アサーションが**呼び出しシェイプ**で認識される場合（PHPStanの`TypeSpecifyingExtension`インターフェースで、フレームワークがインスタンス化して「この呼び出しが与えられたとき、どのナローイングが生じるか？」と問うクラスを書く）、Rigorの対応物はプラグインの`type_specifier` / `dynamic_return`と`#diagnostics_for_file`フックとエンジンの`post_return_facts`基盤。
+アサーションが**呼び出しシェイプ**で認識される場合（PHPStanの`TypeSpecifyingExtension`インターフェースで、フレームワークがインスタンス化して「この呼び出しが与えられたとき、どのナローイングが生じるか？」と問うクラスを書く）、Rigorの対応物はプラグインの`narrowing_facts` / `dynamic_return`と`#diagnostics_for_file`フックとエンジンの`post_return_facts`基盤。
 
 | PHPStanの拡張型 | Rigorの対応物 |
 | --- | --- |
-| `MethodTypeSpecifyingExtension` | `type_specifier`から返されるプラグインの`Fact(target_kind: :parameter)` |
+| `MethodTypeSpecifyingExtension` | `narrowing_facts`から返されるプラグインの`Fact(target_kind: :parameter)` |
 | `StaticMethodTypeSpecifyingExtension` | `Fact(target_kind: :receiver-class)`付きで同様 |
 | `FunctionTypeSpecifyingExtension` | `Fact(target_kind: :argument)`付きで同様 |
 | `DynamicMethodReturnTypeExtension` | プラグインの`dynamic_return(methods:) { \|call_node, scope, ...\| ... }` |

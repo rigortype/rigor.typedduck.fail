@@ -3,8 +3,8 @@ title: "プラグインの登録／読み込み（スライス1）"
 description: "rigortype/rigor docs/internal-spec/plugin.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/plugin.md"
 sourcePath: "docs/internal-spec/plugin.md"
-sourceSha: "b3c0666fb2772b22d2d18ed7e6f66379777d4f8b6c2ad3045f4543bbe0d0df7d"
-sourceCommit: "aec4ca7f5f87b1972dea8fecaaf5b62c8880a3af"
+sourceSha: "dd6f95fdfd47424bf5b3327781b3a6272600ac2b9c685f536f59973eb19babf0"
+sourceCommit: "450a3016ca812067f6baa96e415442ed936ad49a"
 translationStatus: "translated"
 sidebar:
   order: 3050
@@ -92,17 +92,17 @@ end
 - `.symbol_arguments(call_node)` → `Array[Symbol]` — ソース順のすべてのリテラルなSymbol/String位置引数;非リテラルの引数は捨てられます;呼び出しが引数リストを持たないときは`[]`。
 - `.symbol_arg(call_node, index)` → `Symbol?` — 位置`index`のリテラル、または呼び出しが引数リストを持たない・インデックスが範囲外・その引数がリテラルなSymbol/Stringでないときは`nil`。
 
-#### 戻り値型とナローイングの貢献 — `dynamic_return` / `type_specifier`（ADR-37スライス2）
+#### 戻り値型とナローイングの貢献 — `dynamic_return` / `narrowing_facts`（ADR-37スライス2）
 
 `flow_contribution_for`はちょうど2つのエンジンサイトで参照され、それぞれが返されたバンドルのちょうど1スロットを読んでいました: `MethodDispatcher`は`.return_type`（呼び出しサイトごとの戻り値型）を読み、`StatementEvaluator`は`.post_return_facts`（アサーションエッジのナローイング）を読みます。ADR-37スライス2は、これら2つの消費サイトを2つの狭く宣言的にゲートされるクラスDSL——`producer`スタイルの形状なので、ブロックはロジックを担い`instance_exec`を通して実行されます——へ分割します:
 
 - `dynamic_return(receivers:, methods:, file_methods:) { |call_node, scope| Type | nil }` — レシーバーのクラス、メソッド名、またはその両方でゲートされた、呼び出しサイトごとの**戻り値型**（少なくとも1つのゲートがREQUIRED ── どちらでもゲートしない規則はすべてのディスパッチで発火してしまうため、`dynamic_return`はロード時にそれを拒否します）。`receivers:`（クラス名の空でない`Array`、または`#prepare`の後に実行ごとに一度解決される`-> { … }`のcallable、ADR-52スライス3）を指定すると、エンジンは呼び出しのレシーバー型のクラスが宣言されたエントリーと等しいか、それを継承する場合にのみブロックを呼びます（`Environment#class_ordering`経由でマッチ）。`methods:`（Symbol／String名の`Array`、または実行時callable、ADR-52スライス4）は`call_node.name`でゲートします。`file_methods:`（パスを受け取り`(rule, path)`ごとにメモ化されるcallable、ADR-52スライス5a）は、解析対象ファイルによって変わる名前集合（rigor-rspecの`let`名）向けのファイルごとの特殊化であり、`methods:`を置き換えます。最初の非`nil`が勝ちます。エンジンはそれを`#dynamic_return_type(call_node:, scope:, receiver_type:)`を通して呼び出します。`rigor-mangrove`（アンラップ → 担われた`type_args[0]`）が実装済みのコンシューマーです。
   - **二項演算子はここでは通常の呼び出しです**。Rubyの`a + b`は`:+`という名前の`Prism::CallNode`に解析されるため、他のあらゆる呼び出しと同様にこのフックへ到達します。すなわち`dynamic_return(receivers: ["Money"])`規則は`call_node.name ∈ {:+, :-, :*, :/, :<=>, …}`で分岐して演算子の結果型を返すことができ ── これはself／左オペランドのケースに対するPHPStanの`OperatorTypeSpecifyingExtension`のRigor版であり、演算子固有の拡張ポイントを持ちません。`spec/integration/plugin_operator_dynamic_return_spec.rb`によって確認済みです。**注意（coerce方向）：**ゲートは*レシーバー*のクラスにかかり、Rubyは`1 + money`を`Integer`でディスパッチするため、`["Money"]`規則はそこでは発火しません。その結果は`Integer`として左バイアスで型付けされます（ADR-42を参照）。
-- `type_specifier(methods:) { |call_node, scope| facts | nil }` — `call_node.name`が宣言された`methods:`に含まれることでゲートされた、**戻り値後のナローイングファクト**。エンジンはそれを`#type_specifier_facts(call_node:, scope:)`を通して呼び出します。`rigor-minitest`（アサーションナローイング）と`rigor-rspec`のマッチャーナローイングが実装済みのコンシューマーです。
+- `narrowing_facts(methods:) { |call_node, scope| facts | nil }` — `call_node.name`が宣言された`methods:`に含まれることでゲートされた、**戻り値後のナローイングファクト**。エンジンはそれを`#type_specifier_facts(call_node:, scope:)`を通して呼び出します。`rigor-minitest`（アサーションナローイング）と`rigor-rspec`のマッチャーナローイングが実装済みのコンシューマーです。`narrowing_facts`は[ADR-80](../../adr/80-narrowing-facts-rename/)により`type_specifier`から改名されました;`type_specifier`は非推奨のエイリアスとして残り、0.3.0で削除されます。
 
 `receivers:` / `methods:`は、`rigor plugins --capabilities`カタログ（ADR-37 §「機械可読なケイパビリティカタログ」）が列挙する、grep可能でインデックス可能なゲートです。
 
-**`#flow_contribution_for`はADR-52 WD3（2026-06-11）で除去されました**。このフックを依然として定義するプラグインはロード時に`ArgumentError`をraiseします。本番の5つのユーザーはすべて`dynamic_return` / `type_specifier`へ移行しました（移行表の全体はCHANGELOGの`### Removed`を参照）。それが果たしていた歴史的役割 ── 呼び出しごとにゲートされない太いフックで`FlowContribution`バンドルを返すもの ── は、いまや上記で記述した狭くコンパイルディスパッチされるDSL形式で表現されます。
+**`#flow_contribution_for`はADR-52 WD3（2026-06-11）で除去されました**。このフックを依然として定義するプラグインはロード時に`ArgumentError`をraiseします。本番の5つのユーザーはすべて`dynamic_return` / `narrowing_facts`へ移行しました（移行表の全体はCHANGELOGの`### Removed`を参照）。それが果たしていた歴史的役割 ── 呼び出しごとにゲートされない太いフックで`FlowContribution`バンドルを返すもの ── は、いまや上記で記述した狭くコンパイルディスパッチされるDSL形式で表現されます。
 
 #### 機械可読なケイパビリティカタログ — `rigor plugins --capabilities`（ADR-37スライス3）
 
@@ -126,7 +126,7 @@ end
 }
 ```
 
-5つのケイパビリティ配列は、まさに上記の狭いプロトコルの宣言的ゲートです: `node_rule_types`は各`node_rule`ノード型から、`dynamic_return_receivers`は`dynamic_return(receivers:)`から、`type_specifier_methods`は`type_specifier(methods:)`から、`produces` / `consumes`はADR-9のマニフェストフィールドから来ます。プラグインがそのサーフェスに対して何も宣言しないとき配列は空になり、テキストビューは空のサーフェスを完全に省きます。これは、プラグインコードをロードせずにゲートをgrep可能・インデックス可能に保つ契約です。
+5つのケイパビリティ配列は、まさに上記の狭いプロトコルの宣言的ゲートです: `node_rule_types`は各`node_rule`ノード型から、`dynamic_return_receivers`は`dynamic_return(receivers:)`から、`type_specifier_methods`は`narrowing_facts(methods:)`から、`produces` / `consumes`はADR-9のマニフェストフィールドから来ます。プラグインがそのサーフェスに対して何も宣言しないとき配列は空になり、テキストビューは空のサーフェスを完全に省きます。これは、プラグインコードをロードせずにゲートをgrep可能・インデックス可能に保つ契約です。
 
 ### ターゲットライブラリの呼び出し — `Plugin::Inflector` / `Plugin::Isolation` / `Plugin::Box`（ADR-39）
 
@@ -289,14 +289,14 @@ Rigorは並列ワーカーをまたいでファイルを解析します。出荷
 
 v0.1.0のプラグイン契約は6つのスライスで出荷されました;以下はすべていまや整っており、それぞれ独自の仕様で文書化されています:
 
-- **プラグイン貢献の発行**（`FlowContribution`バンドル、ケイパビリティ（capability）ロール、動的返却）。スタンドアロンの{Rigor::FlowContribution::Merger}（[`flow-contribution-merger.md`](../flow-contribution-merger/)）はスライス3で出荷;戻り値貢献ティアはスライス4で出荷され（当初は`#flow_contribution_for`、後にADR-37で`dynamic_return` / `type_specifier`へ分割され、その後`flow_contribution_for`はADR-52 WD3で除去）、v0.1.1のクロスプラグイン作業（ADR-9）で拡張されました。
+- **プラグイン貢献の発行**（`FlowContribution`バンドル、ケイパビリティ（capability）ロール、動的返却）。スタンドアロンの{Rigor::FlowContribution::Merger}（[`flow-contribution-merger.md`](../flow-contribution-merger/)）はスライス3で出荷;戻り値貢献ティアはスライス4で出荷され（当初は`#flow_contribution_for`、後にADR-37で`dynamic_return` / `narrowing_facts`へ分割され、その後`flow_contribution_for`はADR-52 WD3で除去）、v0.1.1のクロスプラグイン作業（ADR-9）で拡張されました。
 - **プラグイン診断来歴**。スライス5はプラグインが発行した診断を`plugin.<id>.<rule>`プレフィックスを持つ`Diagnostic#source_family`を通じてルーティングします。
 - **プラグイントラスト/I/Oポリシー執行**。スライス2は宣言的な{Rigor::Plugin::TrustPolicy} + {Rigor::Plugin::IoBoundary}サーフェスを出荷しました；[`plugin-trust.md`](../plugin-trust/)を参照。
 - **プラグイン側キャッシュプロデューサー**。スライス6は`PluginEntry`ディスクリプタを通じてプラグインに`Store#fetch_or_validate`（ADR-60 WD3のレコードアンドバリデート）を接続します；[`plugin-cache-producers.md`](../plugin-cache-producers/)を参照。
 - **クロスプラグインファクト + 事前パス**。`#prepare(services)` + `services.fact_store` + `manifest(produces:/consumes:)`がv0.1.1で出荷されました（ADR-9）。上記の`Manifest`テーブルの拡張フィールド（`signature_paths:`、`open_receivers:`、`protocol_contracts:`、`source_rbs_synthesizer:`、マクロ基板、HKT、`additional_initializers:`）は`0.1.x`サイクルを通じて堆積しました。
 - **インターフェース分離**（[ADR-37](../../adr/37-plugin-interface-segregation/)、Accepted）。
   - *スライス1 / 1c / 1d* — `node_rule`クラスDSL + `#node_rule_diagnostics`（エンジン所有のウォーク） + `node_file_context`（2パスサポート） + `NodeContext`（レキシカル祖先） + `#diagnostic` / `Diagnostic.from_node` / `.from_location`作成者ヘルパー。これらは`#diagnostics_for_file`をファイル全体の脱出弁として再定義します;**同梱の診断発行プラグインはすべて`node_rule`へ移行されました**——`rigor-actionpack`（4フェーズ、名前空間修飾に敏感）が最後でした。
-  - *スライス2* — `#flow_contribution_for`の、レシーバーゲートの`dynamic_return` + メソッドゲートの`type_specifier` DSL（上記で文書化）への分割;きれいに収まるコンシューマーは移行され、残りのコンシューマーは脱出弁に留まりました。**その後`flow_contribution_for`はADR-52 WD3（2026-06-11）で削除されました** ── 5つの脱出弁コンシューマーはすべて削除前に完全に移行されました。
+  - *スライス2* — `#flow_contribution_for`の、レシーバーゲートの`dynamic_return` + メソッドゲートの`narrowing_facts` DSL（上記で文書化）への分割;きれいに収まるコンシューマーは移行され、残りのコンシューマーは脱出弁に留まりました。**その後`flow_contribution_for`はADR-52 WD3（2026-06-11）で削除されました** ── 5つの脱出弁コンシューマーはすべて削除前に完全に移行されました。
   - *スライス3* — `FactProvider`命名 + 機械可読な`rigor plugins --capabilities`カタログ（プラグインごと: node_ruleノード型、dynamic_returnレシーバー、type_specifierメソッド、生成／消費ファクト）。
 - **書き込み前読み込みnilゲート**。`additional_initializers:`（[ADR-38](../../adr/38-additional-initializers/)）は、プラグインが`ScopeIndexer`の`initialize`のみのivarシードゲートをフレームワークのライフサイクルメソッド（`setup`・`after_initialize`・DIセッター）へ拡張できるようにし、そこで設定され兄弟メソッドで読まれるivarが`nil`で拡幅されないようにします。
 - **ターゲットライブラリの呼び出し**（[ADR-39](../../adr/39-plugin-target-library-invocation/)、Accepted）。プラグインは、信頼されたターゲットライブラリの純粋で許可リストに載ったメソッドを直接呼び出せます（実際の`ActiveSupport::Inflector`の上の`Plugin::Inflector`;Railsファミリー + factorybotのコンシューマーは手書きの語形変化から移行）。これは選択可能な分離戦略（`Plugin::Isolation`: `process`デフォルト / `none` / `ruby_box`;上記で文書化）のもとで行われます。ボイラープレート計画の作成者ヘルパー`Base.suggest`（§0c）とインフレクターが、残りの手書き重複項目をクローズします。
