@@ -3,8 +3,8 @@ title: "Rigorロードマップ"
 description: "rigortype/rigor docs/ROADMAP.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/ROADMAP.md"
 sourcePath: "docs/ROADMAP.md"
-sourceSha: "3bc6ae2f7033b6802b8c8dc65b8d62ccb7aafcb357cbb6e11b0da17e5709ef26"
-sourceCommit: "450a3016ca812067f6baa96e415442ed936ad49a"
+sourceSha: "53b91bd150e529d3bd9f63ac400d6d185b038f00a4517782dd97c631e7d05eff"
+sourceCommit: "47c1c7d35efbce222a6a888268b263808b49796c"
 sourceDate: "2026-06-13T19:23:25+09:00"
 translationStatus: "translated"
 sidebar:
@@ -44,17 +44,22 @@ sidebar:
 | v0.1.19 | 2026-06-13 | 手続き的Rubyのための精度と信頼のサイクル —— かつ**v0.2.0の実質的なリリース候補**（最後の`0.1.x`プレビューカット）。メソッド呼び出しの結果がユーザー定義のヘルパーを流れるようになり（ADR-57）、再帰戻り値（ADR-55）とブロック/ループのキャプチャされたミューテーション（ADR-56）の精度がそれを裏打ちする;データ構造 / パース / ネットワークコードに対する大規模な実世界の偽陽性バッチ（ADR-58 + CRuby-stdlibと16リポジトリの現実的ユースケーススイープ）;新しい推論が本来課すであろう`lib`全体の超線形なスローダウンを取り除く実行スコープの戻り値メモ;1.0前のプラグイン契約（contract）の統合（ADR-60、BC破壊を伴う）;エージェントフレンドリーな構造化診断フィールド（ADR-61）;ADR-50 WD1の互換性サーフェスドキュメント + WD2のブリーディングエッジオプトイン基盤;そしてADR-54のキャッシュスリム化（プロジェクトごと約33.7 MB → 約2 MB）。`CHANGELOG.md` § `[0.1.19]`を参照。 |
 | v0.2.0 | 2026-06-17 | **最初の公式発表（一般 / 評価）リリース**（[ADR-50](../adr/50-release-engineering-and-stability-strategy/)）: 列挙された互換性サーフェス（[`docs/compatibility.md`](../compatibility/)）をv1.0.0フリーズへ向けたマイナー非破壊の試行として公開する。検出の**「ティース」** + 保護カバレッジ —— `call.undefined-method` / `call.argument-type-mismatch`が今やユニオン / リファインメント / 多重オーバーロードのレシーバーで発火する（ADR-62のミューテーションハーネス、ADR-63の`coverage --protection`）;より広い定数fold;定義済み定数のリファインメント;`Struct.new`値fold（ADR-48）;`evidence_tier` + `documentation_url`の診断メタデータ（ADR-65）。`CHANGELOG.md` § `[0.2.0]`を参照。 |
 | v0.2.1 | 2026-06-19 | **2番目の`0.2.x`評価カット** —— 検出 + 設定の磨き込み。v0.2.0の`evidence_tier` Rails偽陽性フィードバックを根本で解消する`Gemfile.lock`ゲート付きActiveSupportコア拡張RBSオーバーレイ（[ADR-72](../adr/72-gemfile-lock-gated-rbs-overlays/)、`3.minutes`など）;`rigor check`の設定が何も解決しない警告（`config_warnings`）;融合した静的∪動的の保護マップ（`rigor coverage --protection --mutation --with-tests`、[ADR-70](../adr/70-fused-protection-coverage/)）;より多くの純粋なスカラー / 構造リテラルfold;修正（素の`off`重大度のクラッシュ、エスケープするブロックのオプションハッシュ偽陽性、バンドルされたRBSデータなしでインストール済みgemを出荷していたgemパッケージングのバグ）。最初のリリースは新しいCIゲート付きリリースPR（`rigor-release-prep`の更新）経由で着地した。`CHANGELOG.md` § `[0.2.1]`を参照。 |
+| v0.2.2 | 2026-06-21 | SKILL駆動のオンボーディングUX（[ADR-73](../adr/73-skill-driven-user-experience/) / [ADR-74](../adr/74-offline-doc-access-and-llms-txt/)）: `rigor docs`（オフラインのgemバンドルドキュメント）、`rigor skill describe`（存在確認のみの次ステップ推奨器）、`rigor-next-steps` / `rigor-ask`のスキルファミリー;より明快な診断 + 設定警告のフィールドトライアル一巡;より多くの純粋なfold;定義が密なプロジェクトでのより軽いシードパス。`CHANGELOG.md` § `[0.2.2]`を参照。 |
+| v0.2.3 | 2026-06-21 | 的を絞った`rigor triage`の使い勝手修正（[ADR-23 WD6](../adr/23-diagnostic-triage-command/)）: 分布 / セレクタ / ホットスポットの各ビューが、アクション可能な診断（`error` + `warning`）だけをカウントするようになり、Railsプロジェクトで本物のシグナルを埋もれさせていたプラグイン認識トレースの`info`を除外する。`CHANGELOG.md` § `[0.2.3]`を参照。 |
+| v0.2.4 | 2026-06-22 | RBSバージョン範囲の互換性修正（[ADR-79](../adr/79-rbs-version-range-over-pinned-determinism/)）: RBS 3.x上での2件のクラッシュを修正し、宣言された`rbs >= 3.0, < 5.0`の全範囲が動作するようにした。加えて、RBSロード面を3.xと4.xに対して動かすCIマトリクス。`CHANGELOG.md` § `[0.2.4]`を参照。 |
+| v0.2.5 | 2026-06-24 | `rigor-rails-i18n`のビューテンプレート遅延キー検証: ERB / Haml / Slim内の`t('.title')`をRailsの仮想パス規約で展開し、`config/locales/*.yml`に対して検査する。`CHANGELOG.md` § `[0.2.5]`を参照。 |
+| v0.2.6 | 2026-06-27 | 自己説明 + シェイプ対応の推論。`rigor coverage --protection`が、型が付いていない各ホールにその`dynamic_origin`原因 + `tractability`軸のラベルを付ける（[ADR-75](../adr/75-dynamic-provenance/)）;新設の`rigor doctor`がセットアップの問題をその修正へ誘導する（[ADR-77](../adr/77-doctor-and-upgrade-commands/)）;リテラルのハッシュ / 配列が`freeze` / `dup` / `clone`を通してシェイプを保つ（[ADR-76](../adr/76-effect-modeling-freeze-dup-shape-preservation/) / [ADR-78](../adr/78-reflexive-overfold-always-truthy/)）;`type_specifier`プラグインフックが非推奨エイリアス付きで`narrowing_facts`へ改名される（[ADR-80](../adr/80-narrowing-facts-rename/)）。`CHANGELOG.md` § `[0.2.6]`を参照。 |
 | v0.1.16 | 2026-06-03 | プラグインアーキテクチャの全面的見直しと内部メカニズムの再ドキュメント化。ADR-37/38/39/40が完全に着地: バンドルの診断発行プラグイン14個すべてを`node_rule`（エンジン所有ウォーク、PHPStanスタイル）へ移行;`dynamic_return` / `type_specifier`のスライス（slice）2;`rigor plugins --capabilities` AI可読カタログ（スライス3）;`additional_initializers:`（ADR-38のdef形式）;`config_schema`の宣言デフォルト（ADR-40、13プラグインを移行）;`Source::Literals`グリッド完成 + 10プラグインを移行;実際の`ActiveSupport::Inflector`上の`Plugin::Inflector` + 選択可能な分離戦略（デフォルトは`process`、`Plugin::Isolation`）。ADR-43のRBS完全な祖先解決（`Plugin::Base`許可リスト） + `verify`とCIでの`make check-plugins`ゲート。プラグイン契約（contract）の構造的ガード: 適合スペック、全プラグインロードスペック、デモ実行スペック、外部プラグインフィクスチャ（v0.2.0ゲート1の実行可能なエビデンス）。`Plugin::Base` + `Manifest`のRBSサーフェス（surface）完成。RBSロバストネス: 不正・陳腐化したプロジェクトの`signature_paths:` sig向けの合成名前空間 + スタブ型。`rigor-activerecord`の欠落スキーマメモ化修正（Redmineメモリ−86%、ウォール時間−51%）。推論バジェットサーベイ + `RIGOR_BUDGET_TRACE`計装。`CHANGELOG.md` § `[0.1.16]`を参照。 |
 
 ## リリース戦略 — v1.0.0への道
 
-`0.1.x`ラインは**プレビュー**ラインだった。**v0.2.0（2026-06-17）が`0.2.x`評価ラインを開いた** —— 最初の公式発表バージョンであり、実プロダクトでの試行デプロイと外部フィードバックの募集を意図している;**v0.2.1（2026-06-19）がそのライン上の現在のカットだ**（検出 + 設定の磨き込み —— マイルストーン表を参照）。これは依然として正式 / GAリリースではない;道は今や**v1.0.0**、ハードな契約フリーズを指している。
+`0.1.x`ラインは**プレビュー**ラインだった。**v0.2.0（2026-06-17）が`0.2.x`評価ラインを開いた** —— 最初の公式発表バージョンであり、実プロダクトでの試行デプロイと外部フィードバックの募集を意図している;**v0.2.6（2026-06-27）がそのライン上の最新のカットだ**（マイルストーン表を参照）。これは依然として正式 / GAリリースではない;道は今や**v1.0.0**、ハードな契約フリーズを指している。
 
 | ライン | 役割 |
 | --- | --- |
 | `0.1.x` | **プレビュー（クローズ済み）**。v0.1.9は当初「最後のプレビューカット」に指定されていたが、Mastodon / Redmine / GitLab FOSSに対する試行作業が、偽陽性削減・オンボーディング・機能・アーキテクチャ・パフォーマンスの各サイクルとともにこれをv0.1.19まで延長した。v0.1.19（2026-06-13）が最後のプレビューカット / 実質的なRCだった。 |
 | `v0.2.0` | **最初の評価リリース（2026-06-17リリース済み）**。実プロダクトでの試行デプロイを意図した最初のバージョンとして公式発表;評価期間を開く。`CHANGELOG.md` § `[0.2.0]`を参照。 |
-| `0.2.x` | **評価ライン（現在;v0.2.0 + v0.2.1出荷済み）**。まだ正式バージョンではない;目標は、計画されたすべての機能を —— **Ractor並行性トラックを除いて** —— 高い完成度 / プロダクション品質へ持っていき、外部フィードバックを集めることだ。 |
+| `0.2.x` | **評価ライン（現在;v0.2.0 → v0.2.6出荷済み）**。まだ正式バージョンではない;目標は、計画されたすべての機能を —— **Ractor並行性トラックを除いて** —— 高い完成度 / プロダクション品質へ持っていき、外部フィードバックを集めることだ。 |
 | `v1.0.0` | **ハードな契約フリーズ（目標）**。列挙されたパブリックサーフェス（[`docs/compatibility.md`](../compatibility/)）が拘束力を持つようになる;適合するユーザーの設定 / プラグイン / 抑制を無効化する変更は、ここからメジャーバージョンでのみ行われる。 |
 
 ### v0.2.0への道が決着させたもの（今や完了）

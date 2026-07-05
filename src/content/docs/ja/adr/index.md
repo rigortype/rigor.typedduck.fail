@@ -3,8 +3,8 @@ title: "アーキテクチャ決定記録"
 description: "rigortype/rigor docs/adr/README.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/README.md"
 sourcePath: "docs/adr/README.md"
-sourceSha: "4c964c53001dcdfbc1f70d1517dd5163c476d6724e13fe94fe74ae140f5b5de6"
-sourceCommit: "450a3016ca812067f6baa96e415442ed936ad49a"
+sourceSha: "83aa03e70aa2c568f3d12fc92fa5438817f2e1bb17f7b836679038ea9308dada"
+sourceCommit: "47c1c7d35efbce222a6a888268b263808b49796c"
 translationStatus: "translated"
 sidebar:
   order: 4000
@@ -104,6 +104,7 @@ sidebar:
 | ADR-78 | [反射的な過剰畳み込みと`flow.always-truthy-condition`の許容範囲](78-reflexive-overfold-always-truthy/) | **Accepted — 2026-06-26に完全実装**。WD2（`REFLECTIVE_SEND_METHODS`ガード）＋WD1の持ち越し（`ShapeDispatch.try_dispatch`のブロック形式過剰畳み込みガード）＋WD3（HashShape**および**Tupleのシェイプキャリア保存、lib＋mail/kramdownコーパスでmasterと診断同一）。`receiver.public_send(method_name)`のようなランタイム変数のメソッド名を持つ反射的ディスパッチが単一の`Type::Constant`へ過剰に畳み込まれ、ルールがそれを証明可能に真と読んでいた——Rigor自身の定数畳み込み器での12件の反射的発火が[ADR-76](76-effect-modeling-freeze-dup-shape-preservation/) WD2を差し戻させた原因 |
 | ADR-79 | [チェッカー固定の決定性よりRBSバージョン範囲への忠実性](79-rbs-version-range-over-pinned-determinism/) | **Accepted 2026-06-26**。コア/標準ライブラリのRBSをRigor固定のバンドルにせず、プロジェクト自身が解決した`rbs`gem（gemspec範囲`rbs >= 3.0, < 5.0`）から読み続けるという決定を記録する。基準: **インストール済みツールチェーンへの忠実性が、環境をまたぐバイト決定性に優先する**——`rbs`バージョン間の診断の差異はバグではなく「実行環境どおりに検査している」ことであり、決定性はバージョンギャップが*誤った*結果を生む箇所でのみ*戦術的に*買う（RBSソースを凍結して構造的に買うのではない） |
 | ADR-80 | [`type_specifier`プラグインフックを`narrowing_facts`へ改名](80-narrowing-facts-rename/) | **Accepted 2026-06-26**。ADR-37スライス2のプラグイン作者向けDSL動詞`type_specifier`を`narrowing_facts`へ改名する;`type_specifier`は0.2.x系列を通じて警告を出す非推奨エイリアスとして生き残り、**0.3.0で削除**される;同梱のminitest/sorbet/rspecプラグインは移行済み。`type_specifier`は`dynamic_return`（*型*を返す）と対をなす名前に読めるが、実際には**戻り値後のナローイングファクト**を返す——内部ストレージの名前（`post_return_facts`）の方がすでに実態に即している |
+| ADR-81 | [スキルセット最適化: スキルごとの鮮度 + `waza`評価スタンス](81-skill-set-optimization/) | **Accepted — 2026-07-05実装**。ユーザー向けの`skills/`セットを維持するための2つの恒久的な決定。**基準1（鮮度）**: [ADR-73](73-skill-driven-user-experience/) WD1の「インストール前に必要なものだけ凍結する」ルールを、エントリポイントから*すべての*スキル本体へ一般化する——配布されるスキルはバージョン安定な骨組みだけを凍結し、バージョンに結び付いた手順の詳細はインストール済みgemからライブで取得する。要となる点: 両方の配布経路（gemの`rigor skill` + vercel-labsの`npx skills add`）は単一の`skills/<name>/SKILL.md`を読むため、鮮度はファイルを薄くすることからは得られない（それは両方を薄くしてしまう）——鮮度は、新設の`rigor skill --full <name>`（本体 + すべての`references/*.md`を1回の呼び出しでインライン展開する、`SkillCommand#run_full`）経由で現行の本体を再取得させる**「まず: バージョン最新のコピーを読み込む」ディレクティブ**から得られる;凍結されたベンダリング済みコピーはインストール時点で止まる一方`rigor skill`は常にgemを読むので、ディレクティブはアップグレード時の乖離をインストール済みバージョンの側へ解決する。ハイブリッドな調整: 本体がドリフトする正確なフラグ／設定／ルールIDを抱える箇所（`rigor-doctor`＝実演的な分割）でだけ揮発性の詳細を`references/`へ切り出し、それ以外はディレクティブのみ;`rigor-next-steps`は純粋なインストール前ブートストラップのままとする。**基準2（評価）**: `waza`の助言は、agentskills.ioの公開プロファイルから独立した欠陥を指摘する場合にのみ採用する——**採用**するのはリンクの健全性（`waza check`が`rigor-ci-setup`内で`blob/main`の404を4件検出、デフォルトブランチは`master`）とハードコードされたドキュメントURLの過剰な具体性（オフラインの`rigor docs`へ誘導、基準1と収束する）;**却下**するのは500トークンのバジェット／「complexity: comprehensive」（スキルは意図的に包括的である）と`**WORKFLOW SKILL**`／`USE FOR:`／`INVOKES:`のラベル付きdescription形式（散文の`Triggers:`／`NOT for … (use X)`が同じことを伝えつつ読みやすい;その欠如を`waza`が減点するのは公開バイアスである）。description長（クロスモデルの密度で60語以下）はスキルごとの判断であり、過度に広い受け皿（`rigor-ask`、169語）にのみ適用し、トリガー再現率を犠牲にする一律ルールにはしない;`waza dev --auto`は禁止のまま。`rigor skill --full`はv1.0で公開語彙として凍結される（[ADR-50](50-release-engineering-and-stability-strategy/) WD1）。見送り: エントリ以外のスキルのvercel-labs配布を取りやめること（ADR-73 WD5を覆す）;`rigor-ci-setup`のインラインテンプレートを`rigor docs ci`へ委譲すること（パリティ検証済みのリファクタリング）。メカニズムの詳細: ADR-73の2026-07-05修正。根拠: 本セッション;`CLAUDE.md` § "Evaluating skills with `waza`";[ADR-74](74-offline-doc-access-and-llms-txt/) |
 
 ## 新しいADRの追加
 

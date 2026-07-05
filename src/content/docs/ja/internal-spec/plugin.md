@@ -3,8 +3,8 @@ title: "プラグインの登録／読み込み（スライス1）"
 description: "rigortype/rigor docs/internal-spec/plugin.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/plugin.md"
 sourcePath: "docs/internal-spec/plugin.md"
-sourceSha: "dd6f95fdfd47424bf5b3327781b3a6272600ac2b9c685f536f59973eb19babf0"
-sourceCommit: "450a3016ca812067f6baa96e415442ed936ad49a"
+sourceSha: "f4399f0fde440cc97541f92717ca626b5eeb91c0588870f07281ee8b862d0a8d"
+sourceCommit: "47c1c7d35efbce222a6a888268b263808b49796c"
 translationStatus: "translated"
 sidebar:
   order: 3050
@@ -71,6 +71,10 @@ end
 `#diagnostic(node, path:, message:, severity: :error, rule: nil, location: nil)`は、`node`に位置づけられた`Rigor::Analysis::Diagnostic`を構築し、他のすべてのプラグインが手作業で再導出する1始まりの`line` / `start_column + 1`の慣習を内部に取り込みます。サブロケーションを指すには`location:`（Prismのロケーション）——典型的には`node.message_loc`——を渡します。そうすればマッチャー／メソッド名の診断は、レシーバーにまたがる呼び出し全体ではなく、その名前を指します;`nil`の`location:`は`node.location`にフォールバックします。作成者は`source_family`を設定してはなりません（MUST NOT）（ランナーがスタンプします）。基礎となるコンストラクタ`Rigor::Analysis::Diagnostic.from_node(node, …)`と`.from_location(location, …)`は、コアルールやその他のプロデューサーのためにパブリックです。
 
 `Rigor::Plugin::Base.suggest(name, candidates)`（ボイラープレート削減計画 §0c）は、共有の「もしかして…?」ヘルパーです: `DidYouMean::SpellChecker`（エンジンのRuby自身の`NoMethodError`ヒントが使うもの）経由で`candidates`のうち`name`に最も近いものを返すか、`nil`を返します。これは**クラス**メソッドなので、プラグインインスタンスからも`Analyzer`モジュール関数からも呼び出せ、プラグインがかつて持っていた手書きのLevenshteinのコピーを置き換えます。これは既に発行された診断の提案*テキスト*にのみ影響し、診断が発火するかどうかには決して影響しません。
+
+`#diagnostics_for(violations, path:, node: nil)`（ADR-60 WD4）は、プラグイン自身の違反オブジェクトを`#diagnostic`を通して`Diagnostic`へマッピングし、node-ruleプラグインがさもなくば繰り返す`violations.map { |v| diagnostic(node, …) }`ブロックを吸収します。各違反は`#message`（必須）に加えて、任意の`#node`（位置を合わせるPrismノード——`node:`引数にフォールバックする）、`#location`、`#severity`（デフォルト`:error`）、`#rule`をダックタイピングします。`#diagnostics_for_file` / `node_rule`ブロックからの直接returnに適したArrayを返します。
+
+`#read_fact(plugin_id:, name:)`（ADR-60 WD4）は、別のプラグインの`#prepare`が公開したクロスプラグインファクト（ADR-9）を読み、インスタンス上で`(plugin_id, name)`ごとに**nil結果も含めて**メモ化します。nilを含むメモは、「ファクトが未公開」と「まだ読んでいない」を区別するために発見プラグインが抱えていた手書きの`@x_resolved`フラグを退役させます;ロードされたどのプロデューサーも公開していないファクトは`nil`として読まれます。（`#producer_value` / `#producer_error`——これらのヘルパーのキャッシュプロデューサー版の双子——は[`plugin-cache-producers.md`](plugin-cache-producers/)で仕様化されています。）
 
 `#prepare(services)`（ADR-9）はプロジェクト全体の事前パスフックで、ファイルごとの解析が始まる前に一度呼ばれます。クロスプラグインファクト（`manifest(produces:)`）を公開するプラグインはこれをオーバーライドしてプロジェクトを走査し、`services.fact_store.publish(...)`を呼びます;ローダーのトポロジカル順序付けが、プロデューサーの`prepare`がいずれのコンシューマーのものよりも先に実行されることを保証します。デフォルトはno-opです。
 

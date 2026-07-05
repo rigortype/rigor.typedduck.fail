@@ -3,8 +3,8 @@ title: "提供スキル"
 description: "rigortype/rigor docs/manual/08-skills.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/08-skills.md"
 sourcePath: "docs/manual/08-skills.md"
-sourceSha: "197159c17c4dc9b2a17139e3a7c814a598010a274a60d6634c1c2edce8161629"
-sourceCommit: "2af27a27c6c16a452d0a72850625ce7de9ca1552"
+sourceSha: "3b105caa8c54aacfcb7965d7e9236fc3056cce54fc0dec89a0a286c326ffa53e"
+sourceCommit: "47c1c7d35efbce222a6a888268b263808b49796c"
 translationStatus: "translated"
 sidebar:
   order: 9008
@@ -59,6 +59,7 @@ Rigorは一連の**エージェントスキル**をバンドルしています�
 rigor skill describe        # probe the project + recommend the next skill (alias: rigor describe)
 rigor skill --list            # name + absolute path for each bundled skill
 rigor skill <name>    # print the SKILL.md body (with a references/ header)
+rigor skill --full <name>   # the body + every references/*.md inline (complete procedure)
 rigor skill --path  <name>    # one-line absolute SKILL.md path, for a file-reading tool
 ```
 
@@ -76,6 +77,16 @@ npx skills add rigortype/rigor
 ```
 
 （`.claude/skills/`配下の貢献者専用スキルは内部用としてマークされており、一括の`npx skills add`ではインストールされません。）
+
+### インストール済みスキルを最新に保つ
+
+この方法でプロジェクトにコピーされたスキルは**インストール時点で凍結**されますが、Rigorは進化し続けます——フラグ、設定キー、ルールIDはリリースごとに動きます。それが陳腐化しないように、すべてのスキルは**「まず: バージョン最新のコピーを読み込む」**ディレクティブで始まります: 手順に従う前に、エージェントは*インストール済み*のRigorから正典となる本体を再取得します——
+
+```sh
+rigor skill --full <name>   # the current body + all its references/, in one call
+```
+
+ベンダリングされたコピーはインストール時点で固定される一方`rigor skill`は常にgemを読むため、アップグレードにつれて両者は乖離し、ディレクティブはエージェントにgemの現行バージョンを優先させます。したがってRigorをアップグレードした後にスキルを再インストールする必要は**ありません**——Rigorが存在する前に動く必要があるのは薄いエントリポイント（`rigor-next-steps`）だけで、バージョン固有のものはすべてインストール済みバイナリがライブで提供します。
 
 ## スキルを実行する
 

@@ -3,8 +3,8 @@ title: "CLIコマンドリファレンス"
 description: "rigortype/rigor docs/manual/02-cli-reference.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/02-cli-reference.md"
 sourcePath: "docs/manual/02-cli-reference.md"
-sourceSha: "e2ace0c19557a9ab29ecae3ac441a6727473e802a9be654b9112b6f48c32a1db"
-sourceCommit: "450a3016ca812067f6baa96e415442ed936ad49a"
+sourceSha: "28aeec7f04a490e6bb2a7b68f4177e3da2f54e262d6075dd0ca20d7195eb2ca9"
+sourceCommit: "47c1c7d35efbce222a6a888268b263808b49796c"
 sourceDate: "2026-06-21T05:49:38+09:00"
 translationStatus: "translated"
 sidebar:
@@ -289,13 +289,14 @@ rigor playground
 位置引数は常にスキル*名*です。別形式の出力はフラグで指定するので、スキルが動詞に隠されることはありません。
 
 ```sh
-rigor skill [<name>] [--path <name>] [--list] [--describe]
+rigor skill [<name>] [--full <name>] [--path <name>] [--list] [--describe]
 ```
 
 | 形式 | 目的 |
 | --- | --- |
 | （なし）/ `--list` | バンドルされた各スキルの名前 + 絶対パスの表。 |
 | `<name>` | `SKILL.md`本体をstdoutへ出力。スキルの`references/`ディレクトリを指すヘッダー付き。 |
+| `--full <name>` | `SKILL.md`本体に**続けてすべての`references/*.md`をインラインで**出力する——完全でバージョン最新の手順を1回の呼び出しで。これはスキルの「まず: バージョン最新のコピーを読み込む」ディレクティブが指す先であり、プロジェクトにベンダリングされたコピー（例: `npx skills add`経由）が凍結されたコピーに従う代わりに、インストール済みgemから現行の手順を再取得できるようにする。 |
 | `--path <name>` | 1行の絶対`SKILL.md`パスを出力。ファイル読み取りツールへの入力に適する。 |
 | `--describe` | プロジェクトの状態（設定 / ベースライン / `sig/` / CI、存在の有無のみで、`rigor check`は決して実行しない）をプローブし、次に実行すべきスキルを推奨する。`describe`とも書け、トップレベルでは後述の[`rigor describe`](#rigor-describe)として前面に出してある。 |
 

@@ -3,8 +3,8 @@ title: "リサーチ・サーベイノート"
 description: "rigortype/rigor docs/notes/README.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/README.md"
 sourcePath: "docs/notes/README.md"
-sourceSha: "9d83de8e7c5e505e38b799eff368c0d7466d78f8361ed3167f9e2baba638c16b"
-sourceCommit: "450a3016ca812067f6baa96e415442ed936ad49a"
+sourceSha: "36a6ef032114acc6ddafd2f12ed2886f63aed33ad6e7d6be051db40645f39b67"
+sourceCommit: "47c1c7d35efbce222a6a888268b263808b49796c"
 translationStatus: "translated"
 sidebar:
   order: 6000
@@ -57,6 +57,7 @@ sidebar:
 | 2026-06-05 | [ADR-47 `flow.unreachable-clause` — corpus FP sweep (WD4)](20260605-adr47-unreachable-clause-corpus-sweep/) |
 | 2026-06-20 | [SKILL-driven onboarding (`rigor-next-steps`) — conference-app dogfood + rigor-survey field trial](20260620-skill-driven-onboarding-dogfood/) |
 | 2026-06-20 | [OpenCode (ACP) cross-model validation — driving `rigor-next-steps` across 13 models](20260620-opencode-acp-cross-model-validation/) |
+| 2026-07-04 | [Railsカバレッジ強化オンボーディング — sig-gen carrierトラップとengine-boundな天井（redmine / mastodon）](20260704-rails-coverage-onboarding-carrier-trap/) |
 
 ## アナライザーの自己テスト（teeth・偽陰性）
 
@@ -107,6 +108,8 @@ sidebar:
 | 2026-06-10 | [ユーザー向けドキュメント レビュー・バッテリー設計 — chibirigor-reviewの移植検討](20260610-user-docs-review-battery-design/) |
 | 2026-06-22 | [Rigor 0.2.x problem survey — 型理論とRubyランタイムの型モデル](20260622-rigor-0.2.x-problem-survey/) |
 | 2026-06-22 | [Rigor 0.2.x compatibility-safe strengthening survey](20260622-rigor-0.2.x-compatibility-safe-strengthening-survey/) |
+| 2026-07-04 | [`examples/`プラグイン近代化調査 — 最初期プラグインと現行契約面のギャップ](20260704-examples-plugin-modernization-survey/) |
+| 2026-07-04 | [`plugins/`近代化スイープ — SKILL適用による本番プラグインのドリフト監査](20260704-plugins-modernization-sweep/) |
 
 ## ノートの追加
 

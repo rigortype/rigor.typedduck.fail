@@ -3,14 +3,22 @@ title: "ADR-73 — SKILL駆動のRigorユーザー体験（`rigor-next-steps`エ
 description: "rigortype/rigor docs/adr/73-skill-driven-user-experience.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/73-skill-driven-user-experience.md"
 sourcePath: "docs/adr/73-skill-driven-user-experience.md"
-sourceSha: "5a51e276bd835a23dbbca92e7a7c020fbe88dbb6315e4537349505898e825f5f"
-sourceCommit: "212f2c491920cc5c39a12d75aee385cb6c51fa0c"
+sourceSha: "0588967b486952eadfe736d64459da1e7a8d2400cdcb231e5bc20b08870ad3df"
+sourceCommit: "47c1c7d35efbce222a6a888268b263808b49796c"
 translationStatus: "translated"
 sidebar:
   order: 4073
 ---
 
-ステータス: **Accepted — WD1〜WD5を2026-06-20に実装**。「このプロジェクトでRigorを使って次に何をすべきか」のための単一のSKILL駆動エントリーポイント——`rigor-next-steps`——を確立し、それをライブでバージョン同期した`rigor skill --describe`が支えることで、配布されるガイダンスが決して陳腐化しないようにします。保留されていた`rigor-protection-uplift`スキルを出荷セットへ昇格させ、ユーザー向けSKILLをどこで配布するか（vercel-labs/skillsとバンドルされたgem）を確定します。`describe`カタログは**成長する**ように設計されています（「カタログの拡張」を参照）。最初の7つの追加——`rigor-rbs-setup`、`rigor-editor-setup`、`rigor-mcp-setup`、`rigor-monkeypatch-resolve`、`rigor-plugin-tune`、`rigor-upgrade`、`rigor-doctor`——が同日に実装されました。
+ステータス: **Accepted — WD1〜WD5を2026-06-20に実装;thin-shell / live-coreの分割をすべてのスキルへ一般化 + `rigor skill --full`を2026-07-05に追加（改訂を参照）**。「このプロジェクトでRigorを使って次に何をすべきか」のための単一のSKILL駆動エントリーポイント——`rigor-next-steps`——を確立し、それをライブでバージョン同期した`rigor skill --describe`が支えることで、配布されるガイダンスが決して陳腐化しないようにします。保留されていた`rigor-protection-uplift`スキルを出荷セットへ昇格させ、ユーザー向けSKILLをどこで配布するか（vercel-labs/skillsとバンドルされたgem）を確定します。`describe`カタログは**成長する**ように設計されています（「カタログの拡張」を参照）。最初の7つの追加——`rigor-rbs-setup`、`rigor-editor-setup`、`rigor-mcp-setup`、`rigor-monkeypatch-resolve`、`rigor-plugin-tune`、`rigor-upgrade`、`rigor-doctor`——が同日に実装されました。
+
+**改訂（2026-07-05）—— thin-shell / live-coreの分割を、すべてのスキルへ一般化**。WD1の配布基準——*`rigor`が存在する前に実行しなければならないものだけを配布SKILLへ凍結し、バージョンに結び付いたものはすべてgemからライブで提供する*——は、当初はエントリポイント`rigor-next-steps`についてのみ実現されていました。他のユーザー向けスキルは依然として完全な手順を各自のSKILL.md本体に凍結していたため、`npx skills add`（WD5のセット全体インストール）経由でベンダリングされたコピーはインストール済みgemからドリフトします: 陳腐化した`.claude/skills/<name>/SKILL.md`はエージェントによって自身の`description:`で自動トリガーされ、そのときバイナリのものではなく前四半期のフラグ / 設定に従ってしまいます。この改訂は、その分割を**すべての**スキルの本体へ適用します。
+
+- 各スキルは、読み手を*インストール済み*のRigorに同梱されたコピーへ再誘導する**「まず: バージョン最新のコピーを読み込む」**ディレクティブを備えます。要となるメカニズムは、両方の配布経路が単一の`skills/<name>/SKILL.md`を読むという点であり、したがって鮮度は薄くすることだけからは得られません——それは、ディレクティブがエージェントにgemから再取得させることから得られます。ベンダリングされたコピーはインストール時点で凍結される一方`rigor skill`は常にgemを読むため、両者はアップグレードをまたいで乖離し、ディレクティブはgemの側に軍配を上げて解決します。
+- 新設の**`rigor skill --full <name>`**モードは、SKILL.md本体に続けてすべての`references/*.md`をインライン展開し、完全でバージョン最新の手順を1回の呼び出しで返します——パス計算は不要、ファイル読み取りツールがなくても動き、凍結された同居の`references/`を読むという足を撃つ罠を取り除きます。ディレクティブはここを指します。
+- **調整（ハイブリッド）**。バージョンに結び付いた手順の詳細は`references/`に属し（`--full`が新鮮に提供）、SKILL.md本体は安定した骨組み（目標、いつ使うか、フェーズ名、決定点）だけを保ちます。すでに詳細を外部化していたスキル（`rigor-project-init`、`rigor-plugin-author`、`rigor-plugin-review`、`rigor-baseline-reduce`）や、すでに設定を`rigor docs`へ委譲しているスキル（`rigor-editor-setup`、`rigor-mcp-setup`）はディレクティブだけを取り入れました;`rigor-doctor`はインラインのチェックを、実演的でアグレッシブな分割として`references/01-checks.md`へ移しました。`rigor-ci-setup`のインラインCIテンプレートはマニュアルの章と重なるため、そのReferencesはいまやオフラインの`rigor docs ci`を先頭に置きます;テンプレートをマニュアルへより深く委譲することはキュー待ちのフォローアップです。`rigor-ask`はテーブルをオリエンテーションとして保ちますが、いまや「ライブの`rigor docs --list` / `rigor --help`に対して確認する」を先頭に置きます。`rigor-next-steps`は変更なし——`rigor`が存在する前に実行しなければならない唯一のスキルなので、純粋なインストールブートストラップのままです。
+
+`rigor skill --full`は、既存の`rigor skill`サーフェスと並んで、[ADR-50](../50-release-engineering-and-stability-strategy/) WD1のもとv1.0で凍結された公開語彙に加わります。
 
 **改訂（2026-06-21）—— `rigor skill`のフラグ文法**。[ADR-74](../74-offline-doc-access-and-llms-txt/)の`rigor docs`変更に揃えて、`rigor skill`の発見系の動詞はフラグへ移動しました: `rigor skill <name>`（引数なし＝本体を出力）、`rigor skill --list`、`rigor skill --path <name>`。`describe`アクションは**変わりません**——`rigor skill describe`と`rigor skill --describe`はどちらも引き続き第一級です（これは引数なしのアクションであって、名前スロットを取る動詞ではないため）。トップレベルの`rigor describe`エイリアスも同様です。レガシーの`list` / `print <name>` / `path <name>`動詞は引き続き動作しますが、1行のstderr非推奨通知を出力し、**v0.3.0で削除されます**（[ROADMAP](../../roadmap/) §「Scheduled CLI deprecations」を参照）。バンドルされたジェネレータ——`rigor skill --describe`のカタログ＋推奨出力、`rigor-next-steps` SKILL、CI検出ヒント——は、いまや正規の`rigor skill <name>`形のみを出力するため、SKILL駆動のUXが自らの非推奨通知を引き起こすことはありません。
 
