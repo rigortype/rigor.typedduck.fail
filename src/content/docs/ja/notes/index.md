@@ -3,8 +3,8 @@ title: "リサーチ・サーベイノート"
 description: "rigortype/rigor docs/notes/README.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/README.md"
 sourcePath: "docs/notes/README.md"
-sourceSha: "36a6ef032114acc6ddafd2f12ed2886f63aed33ad6e7d6be051db40645f39b67"
-sourceCommit: "47c1c7d35efbce222a6a888268b263808b49796c"
+sourceSha: "f2db4ff0c111a75cd800e7c306a6e8db8872514c84a2a6b32e18dccd1a81b204"
+sourceCommit: "ee19f4b60fca3bd0ceb677ebb395593203f2ea48"
 translationStatus: "translated"
 sidebar:
   order: 6000
@@ -58,6 +58,7 @@ sidebar:
 | 2026-06-20 | [SKILL-driven onboarding (`rigor-next-steps`) — conference-app dogfood + rigor-survey field trial](20260620-skill-driven-onboarding-dogfood/) |
 | 2026-06-20 | [OpenCode (ACP) cross-model validation — driving `rigor-next-steps` across 13 models](20260620-opencode-acp-cross-model-validation/) |
 | 2026-07-04 | [Railsカバレッジ強化オンボーディング — sig-gen carrierトラップとengine-boundな天井（redmine / mastodon）](20260704-rails-coverage-onboarding-carrier-trap/) |
+| 2026-07-06 | [Mastodon型カバレッジ穴のprovenance分析 + sig-genのRBS妥当性クラッシュ](20260706-mastodon-coverage-provenance-and-siggen-rbs-validity/) |
 
 ## アナライザーの自己テスト（teeth・偽陰性）
 

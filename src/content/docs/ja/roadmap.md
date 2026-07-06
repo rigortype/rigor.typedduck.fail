@@ -3,8 +3,8 @@ title: "Rigorロードマップ"
 description: "rigortype/rigor docs/ROADMAP.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/ROADMAP.md"
 sourcePath: "docs/ROADMAP.md"
-sourceSha: "53b91bd150e529d3bd9f63ac400d6d185b038f00a4517782dd97c631e7d05eff"
-sourceCommit: "47c1c7d35efbce222a6a888268b263808b49796c"
+sourceSha: "d1a9b75737825391b818455684ef9aa9cab720ae39285d5da3fa125435a3f4a9"
+sourceCommit: "ee19f4b60fca3bd0ceb677ebb395593203f2ea48"
 sourceDate: "2026-06-13T19:23:25+09:00"
 translationStatus: "translated"
 sidebar:
@@ -80,6 +80,32 @@ v0.2.0のゲート条件 —— すべて**達成済み**:
 `0.2.x`シリーズ全体を通じて、目標は計画された機能セットを高い完成度 / プロダクション品質へ持っていくことだ。下記の §「Future cycles」の需要駆動バックログは、この計画のもとでは、オープンエンドなキューではなく**v0.2.xの完成目標**である —— そこにあるすべての項目が`0.2.x`のスコープ内だ、**Ractor並行性トラックを除いて**。
 
 **Ractorは意図的に除外される**。ADR-15のRactorワーカープールはRuby 4.0.xで使用不能と判明した（Ruby Bug #22075に加え、決定論的な`Ractor::IsolationError`）;v0.1.8のforkベースのプールがアクティブなバックエンドだ。Ractorプールは`RIGOR_POOL_BACKEND=ractor`とADR-15 § OQ1の背後に駐車されたままだ;その完成は`0.2.x`の目標では**なく**、upstreamのCRuby修正を待つ。
+
+### 次の2つのカット —— v0.2.9（最後の`0.2.x`）then v0.3.0
+
+1桁バージョンポリシーにより、**v0.2.9が最後の`0.2.x`カット**になる（その後継は`0.3.0`）ので、来る2つのリリースは明確で、意図的に分離された憲章を持つ:
+
+**v0.2.9 —— 型推論の強化カット。なお`0.2.x`のマイナー非破壊の誓約の内側**。互換性安全を保ちつつ、収まるだけの*観測可能で偽陽性に安全な*推論精度を着地させる（[ADR-50](../adr/50-release-engineering-and-stability-strategy/): 新しい診断は安定したIDの背後で`:off` / `:info`として出荷する;デフォルト重大度への昇格はグリーンな`rigor-survey`コーパスdiffを通してのみ流れる;何も削除しない）。候補コンテンツ、準備度順:
+
+1. **決定的で偽陽性に安全なfold**（互換性安全なバックログのバケット1）—— 新しい診断を発火させずに`Dynamic`レシーバーを削減する、残りのビルトイン / stdlibメソッドfold（`rigor-type-coverage-uplift`スキル;キャリアスイープはほぼ枯渇しているので、これはたまにあるスカラー / 構造のギャップだ）。
+2. **偽陽性に安全なナローイング拡張** —— Elixir-v1.20 § 4-4の上界の長さトラック（`tuple_size(x) < 3`、長さ範囲キャリアが必要）と、新しい発火を伴わずに保護を加える兄弟的なナローイングすべて。
+3. **[ADR-47](../adr/47-narrowing-driven-clause-reachability/) WD3b** —— 分解 / 値 / 変数キャッチオールの`case`/`in`網羅性。規律に従いまず`:off` / `:info`で出荷する。
+4. **バケット3のデフォルト拡大診断**（サーベイP0）—— 内部にすでに*存在する*レシーバー型付け / nilability / フロー / オーバーライドの精度;デフォルトプロファイルへの各昇格は、クリーンなRails / ActiveSupport / DSL / monkey-patch / RBSギャップのコーパスdiffにゲートされる。これが最も価値の高い強化なので、スイープを通過したものを出荷し、残りは保留する。
+
+M3 / メンバーシェイプの弧（[ADR-67](../adr/67-parameter-type-inference/)の`check`ウォーク配線 → [ADR-68](../adr/68-class-builder-folding/) → [ADR-66](../adr/66-discriminated-union-member-typing/)）はv0.2.9の焦点では**ない**: ADR-67 WD2の本体内推論はスパイクされ、延期された（保護の天井は計測されたハードなフロアだ、[`20260706-adr67-wd2-in-body-inference-design-spike.md`](../notes/20260706-adr67-wd2-in-body-inference-design-spike/)を参照）、そして`check`ウォーク配線の価値は不透明だ。需要ゲート付きのままとする。
+
+**v0.3.0 —— 非推奨の一掃 + パフォーマンスのマイナー（破壊しうる最初のカット）**。Semverの`0.x`はマイナーが破壊することを許し、あらゆるハード非推奨は`0.2.x`を通じてエイリアス/警告の猶予期間とともにここでの削除が予定されていた:
+
+1. **CLIの動詞サブコマンドを削除** —— `rigor docs list` / `path`と`rigor skill list` / `print` / `path`（フラグ`--list` / `--path` / `--print`が正規）。`cli/docs_command.rb` + `cli/skill_command.rb`の`LEGACY_VERB_REMOVAL = "v0.3.0"`;下記の §「Scheduled CLI deprecations」を参照。
+2. **`type_specifier`プラグインフックを削除** —— 非推奨エイリアスが落ち、`narrowing_facts`動詞が唯一の綴りになる（[ADR-80](../adr/80-narrowing-facts-rename/)、`plugin/base.rb`）。エイリアス削除は、ADR-80の持ち越し——内部リーダー`type_specifiers`と`rigor plugins --capabilities`のJSON `type_specifier_methods`キー——を再検討するときでもある（別個の改名判断）。
+3. **`parallel_tests`依存を削除** —— `binpacker`が主要なテストランナーだ（PR #27）;gem依存 + `test-parallel` / `spec_parallel`ターゲットを削除する。
+
+削除と並んで、**クリーンに出荷できるだけのパフォーマンス最適化**:
+
+1. **[ADR-46](../adr/46-incremental-dependency-graph/)のインクリメンタル解析** —— 目玉のレバー: クロスファイルの依存グラフを介したファイル単位のインクリメンタル。必須の`--verify-incremental`バイト同一クロスチェックによって健全性ゲートされる（スライス1aはデフォルトオフで着地済み;それをデフォルト可能へ成熟させることがパフォーマンスの目玉だ）。
+2. **その他のパフォーマンスレバー**（§「Future cycles」 →「other levers」）—— O4のLayer 3 `gem_rbs_collection`バージョンマッチングテーブル、forkベースのファイル並列性、そして*スコープ安全*な実行スコープの戻り値メモ（素朴なキャッシュは偽陽性の理由で[ADR-52](../adr/52-compiled-plugin-contribution-dispatch/) / [ADR-24](../adr/24-self-method-call-resolution/) WD5によって禁じられているので、設計が必要だ）。
+
+削除は`docs/compatibility.md`の更新と`CHANGELOG.md`の移行ノートとともに着地しなければならない;パフォーマンス作業がアロケーションを動かすにつれて`bench/baseline.json`をCI計測値から再較正する。[ADR-50](../adr/50-release-engineering-and-stability-strategy/)のv1.0ハードフリーズはまだ先だ——`0.3.0`は非推奨バックログを一掃しパフォーマンスを蓄える通常の`0.x`マイナーであって、フリーズではない。
 
 ### Scheduled CLI deprecations —— `docs` / `skill`の動詞サブコマンド → フラグ（v0.3.0で削除）
 
@@ -355,12 +381,25 @@ v0.1.17パフォーマンスサイクル。出荷済みの詳細は`CHANGELOG.md
 `docs/notes/YYYYMMDD-docs-review-<scope>.md`へ行く。
 
 **保留中の作業、優先度順:**
-1. L0ハーネスを`spec/docs/`として実装し、`make docs-check`をCIに配線する。
-2. `.claude/skills/rigor-docs-review/SKILL.md`を著作する（L1〜L4のレンズ
-   ペルソナ + 層ゲートプロトコルを固定）。
-3. 最初のフルサイクルを実行する;L1はADR-51のCIフォーマットのフォロー
-   スルーギャップを表面化させると予想される（`11-ci.md`はv0.1.16の
-   コード検証パス後に書き直された）。
+1. **DONE** —— L0ハーネスが`spec/docs/`として出荷された（`handbook_snippets_spec.rb`、
+   `manual_drift_spec.rb`、`link_integrity_spec.rb`）。`make docs-check`ターゲット付きで、
+   `test`スイートにゲートされる（だから`verify` + `ci.yml`がそれを実行する）。2026-07-06に
+   4つ目の`manual_drift`軸を追加: ルール`documentation_url`のアンカー整合性（ADR-65の公開URLは
+   解決しなければならない）。まだ機械的にカバーされていないもの: CLIの*フラグ*ドリフト（フラグは
+   クリーンなレジストリを欠く——偽陽性を起こしやすい;需要ゲート付き）。
+2. **DONE（2026-07-06）** —— `.claude/skills/rigor-docs-review/SKILL.md`が5層バッテリー
+   （L0の機械的ゲート → L1の忠実度 → L2の読者レンズ → L3の反転した肥大検出器 → L4の
+   コピーエディット）を、独立コンテキストのサブエージェントとして固定する。層内は並列 /
+   層間は逐次、所見は`docs/notes/`へ。
+3. **進行中** —— 最初のサイクル。**マニュアルの運用章に対するL1の忠実度はDONE（2026-07-06）**
+   —— 3つの並列レビュアー 対 実際のCLI + 実装;検証済みの4件の修正が着地（strictプロファイルの
+   「すべてのルールがerror」という過剰表現、欠落していた`dynamic_origin`原因`inferred_return_untyped`、
+   `--baseline-strict`のあらゆるドリフトのセマンティクス、そして組み込みでない
+   `rbs_extended.unsatisfied-conformance`の`rigor explain`/`documentation_url`の主張）、台帳
+   [`docs/notes/20260706-docs-review-fidelity.md`](../notes/20260706-docs-review-fidelity/)。
+   `02-cli` / `11-ci`はクリーンで返ってきた——予測されていたADR-51のCIフォーマットのギャップは
+   顕在化しなかった。**残り:**同じ章に対するL2の読者レンズ、L3の肥大、L4のコピーエディット、
+   その後ハンドブック対仕様コーパスの忠実度パス。
 
 ## Railsエコシステムプラグイン（v0.1.xコア作業に並行した実行トラック）
 

@@ -3,8 +3,8 @@ title: "ベースライン"
 description: "rigortype/rigor docs/manual/06-baseline.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/06-baseline.md"
 sourcePath: "docs/manual/06-baseline.md"
-sourceSha: "066a174f36f257423ad128175b5df60124bae39542a20ed6e2e3a025dc3ae01c"
-sourceCommit: "450a3016ca812067f6baa96e415442ed936ad49a"
+sourceSha: "76ded8449528fc580b927bc53189f05635543ab38d5f658e2b0d6454f575e8ff"
+sourceCommit: "ee19f4b60fca3bd0ceb677ebb395593203f2ea48"
 sourceDate: "2026-06-13T17:48:47+09:00"
 translationStatus: "translated"
 sidebar:
@@ -79,4 +79,4 @@ rigor triage
 
 参考情報であり常に`0`で終了します。意図したループは`triage`で優先順位付け → ルールを修正または抑制 → `rigor baseline regenerate`でファイルを縮小、というものです。[`rigor-baseline-reduce`スキル](../08-skills/)はこのループをインタラクティブに進めます。
 
-ベースラインが*増えた*ときにCIを失敗させるには、`rigor check`に`--baseline-strict`を追加します。
+ベースラインの*あらゆる*ドリフトでCIを失敗させるには、`rigor check`に`--baseline-strict`を追加します。これはバケットが記録済みのカウントを超えて増えたとき（超過ドリフト、これは表面化した診断がすでに失敗させます）だけでなく、コードがそれを下回って*縮んだ*ときにも失敗します（不足ドリフト: ベースラインが今やコードより緩くなっており、再生成すべきです）。

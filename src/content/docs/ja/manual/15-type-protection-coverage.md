@@ -3,8 +3,8 @@ title: "型保護カバレッジ"
 description: "rigortype/rigor docs/manual/15-type-protection-coverage.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/15-type-protection-coverage.md"
 sourcePath: "docs/manual/15-type-protection-coverage.md"
-sourceSha: "61597c88bf64b2a127bbd01d641f1bcf28a468de68c239be510ac0614b4f7ea2"
-sourceCommit: "450a3016ca812067f6baa96e415442ed936ad49a"
+sourceSha: "bcba57707966fb5ae379894201bba42b8eb5a0699c17509887206bb7bfa247a5"
+sourceCommit: "ee19f4b60fca3bd0ceb677ebb395593203f2ea48"
 translationStatus: "translated"
 sidebar:
   order: 9015
@@ -103,11 +103,11 @@ rigor coverage --protection --mutation --with-tests --include-dynamic \
 
 `Dynamic`レシーバーの穴について、`rigor coverage --protection`は*なぜ*そのレシーバーが型なしなのか、そして*型で埋められるかどうか*も記録します。そうすれば、効果のある箇所に労力を注げます。各`add_a_type_here`エントリーは2つのフィールドを持ちます:
 
-- **`dynamic_origin`**: その値が動的になった原因。`external_gem_without_rbs`、`framework_dsl_boundary`、`analyzer_budget_cutoff`、`explicit_untyped`、`unsupported_syntax`のいずれかです。
+- **`dynamic_origin`**: その値が動的になった原因。`external_gem_without_rbs`、`framework_dsl_boundary`、`analyzer_budget_cutoff`、`explicit_untyped`、`inferred_return_untyped`、`unsupported_syntax`のいずれかです。
 - **`tractability`**: その原因から導かれる対処の軸。
   - **`add_rbs`**: 型で埋められます。RBSをインストールする（`rbs collection install`）、`dependencies.source_inference:`を有効にする、または作成済みの`untyped`シグネチャを絞り込みます。
   - **`enable_plugin`**: フレームワーク／DSLの境界です。手書きの型ではなく、プラグインや[`pre_eval:`](../03-configuration/)を使ってください。
-  - **`engine_gap`**: ユーザーが型で埋めることはできません（予算の打ち切り、あるいはRigorがまだモデル化していない構文）。報告してください。
+  - **`engine_gap`**: ユーザーの型では埋められません。予算の打ち切り、推論のギャップ（型なしパラメータまたは束縛されていないインスタンス変数——`inferred_return_untyped`）、あるいはRigorがまだモデル化していない構文です。報告してください。
 
 テキストレポートは「Add a type here」の見出しの下に1行の`by tractability:`内訳を出力し、JSONも同じ集計を`tractability_summary`として運びます。`add_rbs`の穴から着手してください。それらは型が実際に捕まえてくれる穴です。
 

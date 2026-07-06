@@ -3,8 +3,8 @@ title: "診断"
 description: "rigortype/rigor docs/manual/04-diagnostics.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/04-diagnostics.md"
 sourcePath: "docs/manual/04-diagnostics.md"
-sourceSha: "7791d667ab63414300ff3688597972c68f0d5ba1ec12dc6bbdec1f96341b9321"
-sourceCommit: "a3ab53dd2b8aa0a84fd7ddbd64339f316d8d12ec"
+sourceSha: "6ad7d187163818fc42a91d0104f38d9bbb6f13a19bfbf7ec8ca94badde6a73a3"
+sourceCommit: "ee19f4b60fca3bd0ceb677ebb395593203f2ea48"
 sourceDate: "2026-06-15T14:10:58+09:00"
 translationStatus: "translated"
 sidebar:
@@ -25,11 +25,11 @@ sidebar:
 | `assert` | `assert_type`チェック。 |
 | `dump` | `dump_type`通知。 |
 
-`rigor explain <rule>`は任意のIDのカタログエントリー全体を表示します。引数なしの`rigor explain`はすべてを一覧表示します。
+`rigor explain <rule>`は任意の組み込みルールIDのカタログエントリー全体を表示します。引数なしの`rigor explain`はすべてを一覧表示します。
 
 ### カタログ
 
-各ルールはこのページ上に安定したルール単位のアンカー（`#rule-<family>-<name>`、ドットはダッシュで書く）を持ちます。`--format json`の`documentation_url`フィールドと`rigor explain`の`Documentation:`行はどちらもここを指します。`Evidence`列は、発火が真陽性であることへのRigorの確信度です（下記の[エビデンスティア](#エビデンスティア)を参照）。
+各組み込みルールはこのページ上に安定したルール単位のアンカー（`#rule-<family>-<name>`、ドットはダッシュで書く）を持ちます。`--format json`の`documentation_url`フィールドと`rigor explain`の`Documentation:`行はどちらもここを指します。`Evidence`列は、発火が真陽性であることへのRigorの確信度です（下記の[エビデンスティア](#エビデンスティア)を参照）。唯一の例外は`rbs_extended.unsatisfied-conformance`で、これは組み込みルールではなく`rbs_extended`ファミリーのルールです: `rigor explain`はこれを解決せず、`documentation_url`も持ちません。
 
 | ルール | 発火条件 | Evidence |
 | --- | --- | --- |
@@ -76,7 +76,7 @@ sidebar:
 | --- | --- |
 | `lenient` | 証明された診断のみがエラー。不確かなものは`warning` / `info`に下がる。レガシーコードへの段階的導入向け。 |
 | `balanced` *（デフォルト）* | ほとんどのルールが`error`。`dump.type`は`info`。不確かなルールは`warning`。 |
-| `strict` | すべてのルールが`error`。CIに適している。 |
+| `strict` | ほぼすべてのルールが`error` —— 例外は`call.self-undefined-method`（`off`のまま、オプトインのみ）と`flow.unreachable-clause`（`warning`、偽陽性ゲート待ち）です。CIに適している。 |
 
 より細かい制御のために、`severity_overrides:`はルールIDまたはファミリーを`error`、`warning`、`info`、または`off`のいずれかにマッピングします:
 
