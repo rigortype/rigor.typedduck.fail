@@ -4,7 +4,7 @@ description: "Imported from rigortype/rigor docs/notes/20260704-examples-plugin-
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260704-examples-plugin-modernization-survey.md"
 sourcePath: "docs/notes/20260704-examples-plugin-modernization-survey.md"
 sourceSha: "8464be3a491c4d1f312e11ddeeb8bd7094be46c0f2e8600eb3114da3b9c11b66"
-sourceCommit: "ee19f4b60fca3bd0ceb677ebb395593203f2ea48"
+sourceCommit: "a8b1d0b5be985ab476a08e5c8a48400f61e476cc"
 sourceDate: "2026-07-04T19:23:37+09:00"
 sourceLanguage: "ja"
 sidebar:

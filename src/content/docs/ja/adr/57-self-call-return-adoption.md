@@ -3,8 +3,8 @@ title: "ADR-57 — implicit-self呼び出しの戻り値採用ゲートを開く
 description: "rigortype/rigor docs/adr/57-self-call-return-adoption.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/57-self-call-return-adoption.md"
 sourcePath: "docs/adr/57-self-call-return-adoption.md"
-sourceSha: "55c5c20afabcaaa087c8a07d51b5d08fe1e196b3c6b942a7e1f20c07691d3ddd"
-sourceCommit: "106b93dd777b71aeef323dce1e4087c226c8ce37"
+sourceSha: "72f7492538544e86e8cba0fe9ecd9805daa789c0426f9199f282789e57f747e1"
+sourceCommit: "a8b1d0b5be985ab476a08e5c8a48400f61e476cc"
 translationStatus: "translated"
 sidebar:
   order: 4057
@@ -231,6 +231,26 @@ ADR-50のbleeding-edgeオーバーレイが先に出荷されれば、オープ�
 **リファインメント**。解決されたself呼び出しが*フロー定数として畳み込み可能な*戻り値（`Constant`、またはそれらの`Tuple` ── `always-truthy-condition`の畳み込みを駆動できる唯一のシェイプ）を採用する前に、ゲートは呼び出し先の**オーナー**（自身の`def`テーブルがボディを保持する祖先で、祖先解決ウォークを通じて追跡される）が、同じ種別（インスタンス対シングルトン）で同じメソッドを**再定義する**発見済みプロジェクト型を持ち、かつオーナーと**関連する**かどうかを検査する ── オーナークラスの推移的に発見されたサブクラス、またはオーナーモジュールをinclude／prependする（シングルトン種別ではextendする）クラス／モジュールである。オーナー自身の同名の再オープン（モンキーパッチ）はオーバーライドではない。ヒットした場合、戻り値は`Dynamic[top]`へ縮退してフロー定数を消す；これは**真にオーバーライドされたメソッドに対してのみ**意図的に`Dynamic`ソースを再びオープンする。発見されたオーバーライドを持たないメソッドは以前とまったく同じように畳み込まれる ── 調査が掲げる恒常的なリスク警告は、過剰な保守性がfinalメソッドに対して`Dynamic`を再オープンしてはならないというものであり、そのためゲートは証明済みのオーバーライドのケースと、FPを単独で生み出す定数戻り値のシェイプに限定される。
 
 この述語は既存の発見テーブルのみを参照し（再定義側については世代ごとの逆引き`method_name → [owners]`インデックスを介した`discovered_def_nodes`／`discovered_singleton_def_nodes`、関連性の検査にはメソッド解決経路が使うのと同じ`superclass_of`／`includes_of`祖先ウォーク）、ADR-57のフォローアップの戻り値メモと合成され（ゲートはメモの後、採用された*結果*に対して実行されるので、メモ化された戻り値も依然としてゲートされる ── メモキーは変わらず健全なままである）、世代ごとに`(owner, method, kind)`単位でメモ化される。関連性ウォークを定数シェイプの戻り値に限定することで、`make bench-perf`のアロケーションエンベロープをバンド内に保つ。`rigor check lib`セルフチェック、プラグインのセルフチェック、Mastodon`app/models`／kramdown`lib`／haml`lib`コーパスはバイト同一である；`rgl`は13件すべての警告を失う。
+
+## WD3 — クロスファイル発見シードにおけるモジュール定数（2026-07-10）
+
+上記のtier 4はモジュールシングルトン解決の*型付け*の半分を着地させた: モジュール定数への呼び出しが呼び出し先の`def self.x`本体を再型付けする。それは片方の半分を未完のまま残し、その脱落は別のパスに存在するため見えなかった。`ScopeIndexer#record_declarations`は`module`と`class`の宣言を同一に登録するが、プロジェクト全体のシード`collect_class_decls`はクラスしか登録しなかった。だから`Feature.enabled?`は`feature.rb`の内側で解決したが、他のあらゆるファイルからは`Dynamic[top]`と型付けされた —— モジュールシングルトンの*ファサード*であり、実アプリケーションがこれらのモジュールを消費する形だ。GitLabがそれを定量化する: `Feature.enabled?`だけで695件の未保護サイトであり、`Gitlab::Utils.*`が同じ形を繰り返す。
+
+シードはモジュールを、述べられた危険を理由に除外していた: `singleton(M)`を表面化させると、未発見の`M.x`が`Kernel#x`へ落ちて「`Kernel.select → Array[String]`のような驚くべき型につながる」ので、コメントはクロスファイルの`discovered_methods`が同じシードに従うまで見送っていた。両方の半分が期限切れになった。クロスファイルの`singleton_def_nodes`インデックスはADR-24スライス2で着地した。そして危険は再現しない: Kernelのprivateインスタンスメソッドは`Singleton[M]`レシーバーで何にも解決しない。素の`module Empty; end`で*実際に*解決する28個のObject / Kernel / Module / Classメソッドのうち、26個はモジュールオブジェクトにとって正しい;正しくない2つ（`M.new`、`M.superclass`）はランタイムで`NoMethodError`を起こすコードだけを誤型付けし、それらは変更以前から存在する。ファイルごとのパスが常にモジュールを登録してきたからだ。
+
+**決定**。プロジェクト全体のシードに、クラスと同じ条件でモジュール宣言を登録する。シード範囲は*すべての*モジュール宣言で、`record_declarations`と正確に一致する —— ファイルごとのパスとの対称性が、変更をレビュー可能にする性質だ。代替案（`def`を持つモジュールだけをシードする）は、`Feature`や`Gitlab::Utils`をどのみち除外せずに、2つ目の登録規則を導入してしまう。
+
+**基準**。WD2は不変に拘束する: デルタは発火クラスごとに裁定され、アーティファクトはその根で修正され、何も抑制されない。
+
+**裁定**。`lib`のセルフチェックが1件の発火を表面化させ、それはアーティファクトではなくWD2のtier-4 CRuby調査が予測した潜在的厳格さクラスだった: `CLI::DiagnosticFormats.render`は`else`のない`case/when`なので、その今や推論された戻り値は`String | nil`だが、両方の呼び出しサイトは`.supports?`でゲートし、直後に`output.empty?`を呼ぶ。採用された型は正しく、不変条件は本物だがエンコードされていなかった;根本修正は`render`を、認識されないフォーマットで例外を上げることで全域にし、これは`FORMATS`/ディスパッチのドリフトを、あらゆる呼び出し元がガードしなければならないnilではなく、声高な失敗に変える。コーパス: haml、kramdown、liquid、rgl、Mastodon `app/models`はバイト同一。Redmineは1件の`possible nil receiver`警告を得る。そこでは`Redmine::CodesetUtil.replace_invalid_utf8`が今やクロスファイルで正直な`String | nil`に解決する;nilアームは呼び出しサイトで、Rigorがナローイングを通さない`ActiveSupport`の`login.present?`ガードによってのみ除外される。
+
+**成果**。GitLab `lib`（`lib/feature.rb`と`Gitlab::Utils`ファミリーを保持するスコープ）、`coverage --protection`、両側を同一の93,796サイトの分母に対して再計測: 保護0.2457 → 0.2757、**+3.00ポイント / +2,812保護サイト**。規模の比較として、ADR-67の呼び出しサイトパラメータ推論レバー全体はMastodonで+0.75ポイントを計測した。`make bench-perf`は通過する（2852万アロケーション、上限2917万）。
+
+そのガードは唯一裁定された**アーティファクトクラスで、その根はこの変更ではない**: `Narrowing#resolve_rbs_extended_method`はメソッドの`rigor:v1:predicate-if-true`ファクトを`Nominal` / `Singleton`レシーバーについてのみ読むので、ユニオンレシーバーは述語ファクトを決して受け取らず、`Object#present?`はそもそもそのようなアノテーションを持たない。`present?`ガードの下で`Dynamic`を`T | nil`に変えるあらゆる精度作業がそれを表面化させる。
+
+**そのスライスは直後に着地した、2026-07-10**、独自のコーパスゲートを持つ独自の変更で —— 新しいナローイング規則は独自の偽陽性エンベロープを携える。ユニオンレシーバー上の引数なし述語の真エッジで、RBSの戻り値型が文字通り`false`であるすべてのアームが落とされ（`NilClass#present?: () -> false`が既にそう言っている）、偽エッジで鏡写しにする。健全性は、アームが値固定の`nil` / `true` / `false`であり、そのクラスに述語をオーバーライドできるサブクラスがないことに拠る;safe navigationは除外される。`x&.blank?`はnilレシーバーに対して宣言された`true`ではなく`nil`を生むからだ。それはWD3のRedmine発火をその根から除去し、さらにRedmine 3件とGitLab 16件の偽陽性を、新規発火ゼロで除去する。設計ノート: [`20260710-union-arm-predicate-polarity.md`](../../notes/20260710-union-arm-predicate-polarity/)。
+
+このスライスによって変わらず、将来のスライスとして残されたもの: モジュールの`Singleton[Object]`フォールバックレシーバー（`M.new` / `M.superclass`の漏れ —— 例外を起こすコードだけを誤型付けするので、FP作業ではなく精度の衛生だ）、シングルトン祖先解決（`extend SomeModule`、継承されたクラスメソッド）、そして`extend self`本体を`singleton_def_nodes`へ登録すること（`try_user_method_inference`のインスタンスdef参照が既にそれらを解決する）。
 
 ## 却下／先送りした代替案
 

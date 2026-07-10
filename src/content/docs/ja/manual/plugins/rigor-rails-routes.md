@@ -3,8 +3,8 @@ title: "rigor-rails-routes"
 description: "rigortype/rigor docs/manual/plugins/rigor-rails-routes.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/plugins/rigor-rails-routes.md"
 sourcePath: "docs/manual/plugins/rigor-rails-routes.md"
-sourceSha: "4fdbe5813deea7cb8558fc1e7a9f520b18ef1163ace9977040274923d638d29f"
-sourceCommit: "aec4ca7f5f87b1972dea8fecaaf5b62c8880a3af"
+sourceSha: "b1ec63eafe2b0f32ea793f25b0bb978abf3578553287fa115eba0cba2074774a"
+sourceCommit: "a8b1d0b5be985ab476a08e5c8a48400f61e476cc"
 translationStatus: "translated"
 sidebar:
   order: 9050
@@ -52,9 +52,13 @@ plugins:
       routes_file: "config/routes.rb"   # default
       helper_paths: ["app"]             # default; dirs scanned for
                                         # project-defined *_path / *_url methods
+      grape_api_paths: ["lib/api", "app/api"]
+                                        # default; dirs scanned for Grape API classes
 ```
 
 `helper_paths`により、自分で定義したURLビルダー（例えば`app/controllers`や`app/lib`配下のprivateな`def callback_url`）もプラグインに登録できるため、それらへの呼び出しが不明なヘルパーとして指摘されなくなります。
+
+`grape_api_paths`は、プラグインがGrape APIクラスを探す場所です。それをマウントすると、`grape-path-helpers` gemが、grapeの*ランタイム*ルートテーブルから各ルートのパスにちなんだ名前のヘルパー（`api_v4_groups_badges_path`）を生成しますが、これはどんな静的パーサーも列挙できません。プラグインは代わりにAPIの`prefix`と`version`宣言を読み、それらが開く名前空間を「知りえないが有効」として扱うので、それらの呼び出しは決して指摘されません。`_url`形式は依然として指摘されます: `grape-path-helpers`は`_path`ヘルパーしか定義しません。
 
 ## 提供するもの
 

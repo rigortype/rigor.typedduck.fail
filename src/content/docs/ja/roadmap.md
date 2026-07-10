@@ -3,8 +3,8 @@ title: "Rigorロードマップ"
 description: "rigortype/rigor docs/ROADMAP.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/ROADMAP.md"
 sourcePath: "docs/ROADMAP.md"
-sourceSha: "d1a9b75737825391b818455684ef9aa9cab720ae39285d5da3fa125435a3f4a9"
-sourceCommit: "ee19f4b60fca3bd0ceb677ebb395593203f2ea48"
+sourceSha: "7370ff05e5ca5cf2ff4fa3285a2168e0ce1194be9b5a7833a3fd85a24f4d8afe"
+sourceCommit: "a8b1d0b5be985ab476a08e5c8a48400f61e476cc"
 sourceDate: "2026-06-13T19:23:25+09:00"
 translationStatus: "translated"
 sidebar:
@@ -245,6 +245,13 @@ v0.1.17パフォーマンスサイクル。出荷済みの詳細は`CHANGELOG.md
 ### パフォーマンス / スケーラビリティ — キャッシュディスク + ウォームロードのスリム化（ADR-54、SHIPPED 2026-06-10）
 
 **[ADR-54](../adr/54-cache-slimming/)** —— ADR-44/45/46サイクルが手をつけなかったキャッシュ層のディスク/ロード軸をクローズした、[2026-06-10のキャッシュ監査](../notes/20260610-cache-disk-runtime-audit/)に基づく。以前: あらゆるプロジェクトの`.rigor/cache`は約32 MB（3つのRBS Marshalブロブ;sigなしプロジェクト間でバイト同一 → サーベイコーパスマシンで1 GB超が重複）あり、ウォーム実行はそれらを実体化するために約700 msの`Marshal.load`を払っていた。基準: キャッシュ層は、ウォームパスで次に安い層からの再計算を上回る場合にのみそのバイトを正当化する。**4つのWDすべてが着地**（コミット`5f53db09` / `0c671e04` / `d2465fe1` / `5ced88f1`）: (1)`rbs.instance_definitions` / `rbs.singleton_definitions`ディスクブロブを廃止 —— キャッシュされたenvを考えるとネットでネガティブと計測（ロード366 ms対build-all 137 ms;23.4 MB/プロジェクト）;ディスパッチパスは既存のプロセスごとメモ上でクラスごとに遅延、ADR-15のprewarm/Reflection消費者はキャッシュされたenvから構築されたeagerなフルテーブルを保つ;（2）あらゆるエントリーの値ペイロードを`Store::HEADER`フォーマットバイトのbumpの背後でzlib-deflate（envブロブはraw比16 %の1.76 MBに着地;古いエントリーはサイレントミスとして読まれる、移行コードなし）;(3)`cache.max_bytes`はデフォルト256 MBになり`evict!`が恒久的なno-opでなくなった —— rigorリポジトリ自身のキャッシュは約2 MBのアクティブセットに対して約180 MBのオーファンを蓄積していた（明示的な`null`で無制限を復元）;(4)`RbsDescriptor.build`をローダーごとにメモ化。着地したエンベロープ: プロジェクトごと約33.7 MB → 約2 MB（−94 %）;definitionsに触れるウォーム実行は最大約550 ms / 1.6 Mアロケーションを節約;コールド実行はeagerなbuild-all + 23 MB書き込みを削減。ADR-7 § Slice 6-Dを部分的に置き換える。先送り/却下: クロスプロジェクト共有キャッシュルート（スリム化後の重複は約1.7 MB × N —— 2つ目のルートに見合わない）、`fresh?` mtime高速パス（健全性）、zstd（新規依存）。各スライスは診断同一の自己チェック（`--no-cache`/コールド/ウォーム）+ Mastodonコーパス実行でゲート。
+
+### パフォーマンス / スケーラビリティ — キャッシュのスキーママーカーABIゲート + コンパクションのハードニング（[PR #57](https://github.com/rigortype/rigor/pull/57)、ブランチ`cache/schema-marker-and-compaction-hardening`）
+
+[2026-07-07の引き継ぎ監査](../notes/20260707-cache-mechanism-audit-sakana/)から再計画され、[2026-07-07の計画](../notes/20260707-cache-hardening-plan/)に従って実行されたハードニングスライス（フェーズ1〜6すべて着地）: `Rigor::VERSION`をキャッシュの`schema_version.txt`マーカーへ畳み込み（ペイロードABIゲート）、`ensure_schema_version!`をブール返却にして、読み取り専用ストア（LSP / エディターモード）が陳腐化または読めないマーカーでディスクを信頼する代わりにメモのみへ降格するようにし、`fetch_or_compute` / `fetch_or_validate`にまたがる書き込み失敗のrescueを統一し（`try_write_entry`）、`atomically_replace`にensureクリーンアップを追加し、`evict!`の陳腐化した一時ファイルのクリーンアップ + プロジェクト全体の世代上限を`max_bytes: nil`のもとでも実行する。**残り（需要ゲート付き、低優先度）:**
+
+- ハードコードされた`Store::GENERATION_CAP_BY_PRODUCER`許可リストを、プロデューサーが宣言する`generation_cap:`メタデータに置き換え、新しいプロジェクト全体プロデューサーが黙って上限なしのまま残されないようにする。
+- `analysis.run-diagnostics`の上限16を、実際のマルチ呼び出しパス使用に対して検証する —— 多くの異なるパス集合を回すワークフローは、上限が想定するより速くライブ世代を蓄積しうる。
 
 ### 内部アーキテクチャ — 正式リリース前の再検討（次の作業ターゲット）
 

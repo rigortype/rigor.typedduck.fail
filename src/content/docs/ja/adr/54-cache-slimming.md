@@ -3,8 +3,8 @@ title: "ADR-54 — キャッシュのスリム化: definitions-blobの廃止、�
 description: "rigortype/rigor docs/adr/54-cache-slimming.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/54-cache-slimming.md"
 sourcePath: "docs/adr/54-cache-slimming.md"
-sourceSha: "3df71ae772f6a4459eb8ea05595ddc1715f185718b6c130706a63d38f636f3e4"
-sourceCommit: "18ef11c9f393b495cd9a6ed7277846069c08c516"
+sourceSha: "b41db604800cc63ed22139b3251d2ef006c66984a118c15ff43a049b13071076"
+sourceCommit: "a8b1d0b5be985ab476a08e5c8a48400f61e476cc"
 translationStatus: "translated"
 sidebar:
   order: 4054
@@ -104,6 +104,8 @@ no-opにしていた。今日エントリー数がプロデューサーあたり
 エントリーを永遠にオーファンにする。キャップを寛大な**256 MB**にデフォルト設定する
 （WD1/WD2後はプロジェクトあたりの完全な集合が約2 MBなので、キャップはオーファンのみを
 刈り取る）。明示的な`max_bytes:`設定は依然として上書きする。
+
+*追補（2026-07-07のフォローアップ）:*寛大な256 MBキャップは、まさに小さなリポジトリで決してそれが発動しない理由だ —— 実際のリポジトリの`.rigor/cache`を監査すると、バイトキャップが触れる理由のなかった`rbs.environment`の約7世代のオーファン（各約1.77 MB、キャッシュ合計約16 MB）が見つかった。バイトキャップだけでは、内容キーで管理されるプロジェクト全体プロデューサーのオーファン世代がキャップ以下に無期限に居座る。`Store#evict!`は今や、2つ目の直交するコンパクション軸として世代キャップを走らせる: プロジェクト全体プロデューサーIDの小さなハードコードされた許可リストが、それらの最新N世代だけを保つ（RBSプロデューサーは2、`analysis.run-diagnostics`は16）。これは`max_bytes:`とは独立で、ストアが無制限（`max_bytes: nil`）のときでも走る —— サイズ予算を強制するのではなく、証明可能なほど死んだバイトを回収するからだ。完全なメカニズム（同時に着地した陳腐化した一時ファイルのスイープと、`Rigor::VERSION`を運ぶマーカー——アップグレード時のペイロードABI境界——を含む）は`docs/internal-spec/cache.md` §「Compaction（`#evict!`）」を参照。
 
 **WD4（マイナー）— ローダーごとに`RbsDescriptor.build`をメモ化する**。これは
 プロデューサーフェッチごとに一度走る（実行あたり7回、結果は同一）。今日1.3 ms × 7と
