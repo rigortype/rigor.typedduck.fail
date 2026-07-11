@@ -3,8 +3,8 @@ title: "CLIコマンドリファレンス"
 description: "rigortype/rigor docs/manual/02-cli-reference.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/02-cli-reference.md"
 sourcePath: "docs/manual/02-cli-reference.md"
-sourceSha: "28aeec7f04a490e6bb2a7b68f4177e3da2f54e262d6075dd0ca20d7195eb2ca9"
-sourceCommit: "47c1c7d35efbce222a6a888268b263808b49796c"
+sourceSha: "e20ae6f3ab7dabd95be5d4295e1c97289cbea95986cf2f1e3736f0d3e7ea3bf9"
+sourceCommit: "4c03f62d04f594030bd79aa00f3a5978e0457d4c"
 sourceDate: "2026-06-21T05:49:38+09:00"
 translationStatus: "translated"
 sidebar:
@@ -208,9 +208,11 @@ rigor triage --format json | jq '[.selectors[] | select(.receiver == "String")]'
 rigor coverage [paths]
 ```
 
+`paths`はファイルまたはディレクトリです;省略すると、Rigorは設定ファイルの`paths:`リスト（デフォルト`lib`）を使います。[`rigor check`](#rigor-check)と同じです。
+
 `--format=text|json`が出力形式を選び、`--config=PATH`が設定探索をオーバーライドします。`--threshold=RATIO`は精度比率が`RATIO`（`0.0`〜`1.0`）を下回ると`1`で終了し、CIゲートになります。
 
-`--protection`は**型保護カバレッジ（type-protection coverage）**に切り替えます。「自分の型がどれだけ精密か」ではなく「バグを混入させたとき、Rigorがそれを捕捉できるか」を報告します。各ディスパッチサイト（明示的なレシーバーを持つ呼び出し）は、レシーバーが具象クラスに解決するとき（Rigorの呼び出しルールが誤ったメソッドや引数を捕捉できるサイト）*保護されている（protected）*とみなされ、レシーバーが`Dynamic`のとき*保護されていない（unprotected）*とみなされます。レポートはまず保護された比率を示し、続いてランク付けされた「ここに型を追加せよ（add a type here）」リスト（型のないレシーバーで最も多く呼ばれているメソッド）、そして最も保護されていないファイルを示します。`--threshold`と`--format=json`は同じように機能します。これは実際の保護に対する健全な上界です。具象的なレシーバーは診断が発火するための必要条件ですが、十分条件ではありません。
+`--protection`は**型保護カバレッジ（type-protection coverage）**に切り替えます。「自分の型がどれだけ精密か」ではなく「バグを混入させたとき、Rigorがそれを捕捉できるか」を報告します。各ディスパッチサイト（明示的なレシーバーを持つ呼び出し）は、レシーバーが具象クラスに解決するとき（Rigorの呼び出しルールが誤ったメソッドや引数を捕捉できるサイト）*保護されている（protected）*とみなされ、レシーバーが`Dynamic`のとき*保護されていない（unprotected）*とみなされます。レポートはまず保護された比率を示し、続いてランク付けされた「ここに型を追加せよ（add a type here）」リスト（型のないレシーバーで最も多く呼ばれているメソッド）、そして最も保護されていないファイルを示します。`--threshold`と`--format=json`は同じように機能します。これは実際の保護に対する健全な上界です。具象的なレシーバーは診断が発火するための必要条件ですが、十分条件ではありません。`--workers=N`は保護スキャン（パラメータ推論の事前パスとファイルごとのスキャンの両方）をforkで並列化し、出力は逐次実行とバイト同一です;ワーカー数は`check`と同じ方法で解決されます —— `--workers` › `RIGOR_RACTOR_WORKERS` › [`parallel.workers:`](../03-configuration/) › `0`（逐次デフォルト）。
 
 `--protection`に加えて`--mutation`を付けると、**有効性**ティアに切り替わります。「ここでRigorがバグを捕捉できるか」ではなく、Rigorが*実際に捕捉するか*を計測します。各ディスパッチサイトに型から見える破壊を導入し（呼び出し引数を`nil`に落とす、その型を入れ替える、呼び出しを存在しないメソッドへ改名する）、ミューテーションされたソースをクリーンなベースラインと突き合わせて再解析し、キルレート（捕捉された破壊）を報告します。デフォルトではgitで変更された`.rb`ファイルを対象とし（プロジェクト全体は数分かかる;広げるには明示的なパスを渡します）、まず有効性比率を示し、続いてRigorが見逃した破壊（「ここに型を追加せよ（add a type here）」）、そして最も有効性の低いファイルを示します。`--threshold`は有効性比率でゲートし、`--format=json`は`mode`、`killed`、`survived`、`effectiveness_ratio`、ファイルごとの行、そして`add_a_type_here`を運びます。これは静的な`--protection`プロキシの背後にある真実のティアであり、多数の解析というコストを伴います。対話的なチェックではなく、オプトインのCI深掘りです。
 
@@ -363,7 +365,7 @@ rigor doctor [--config PATH] [--format text|json]
 
 スコープを絞った解析を実行し、以下を監査します:
 
-- **設定監査** — 未解決の`signature_paths:`、未知の`libraries:`、無効な`disable:` / `severity_overrides:`トークン（{ConfigAudit}）。
+- **設定監査** — 未解決の`signature_paths:`、未知の`libraries:`、無効な`disable:` / `severity_overrides:`トークン。
 - **RBS環境の健全性** — RBSクラス宇宙が正常に構築されたかどうか（`0`クラスは壊れたセットアップを意味します）。
 - **プラグインのロードエラー** — 設定されたすべてのプラグインがロードされたかどうか。
 - **ベースラインドリフト** — 現在の診断が保存済みベースラインからドリフトしているかどうか。

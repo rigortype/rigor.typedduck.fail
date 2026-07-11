@@ -3,8 +3,8 @@ title: "推論エンジン"
 description: "rigortype/rigor docs/internal-spec/inference-engine.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/inference-engine.md"
 sourcePath: "docs/internal-spec/inference-engine.md"
-sourceSha: "b9c39b5d92faf425233bd49baa42fa35c3bb534bac607aed8fef230335a9aeb2"
-sourceCommit: "212f2c491920cc5c39a12d75aee385cb6c51fa0c"
+sourceSha: "47b520bd3f17094a85bf449b82d623eadbd6430fac155b4fe903fec5eaa09319"
+sourceCommit: "4c03f62d04f594030bd79aa00f3a5978e0457d4c"
 translationStatus: "translated"
 sidebar:
   order: 3050
@@ -72,7 +72,7 @@ sidebar:
 
 ### ディスカバリインデックス（ADR-53トラックA）
 
-フロー状態と並んで、すべての`Rigor::Scope`スナップショットは単一の不変な**ディスカバリインデックス**（`Rigor::Scope::DiscoveryIndex`）を保持します。これはシード時のディスカバリテーブル群 ── `declared_types`・`class_ivars`・`class_cvars`・`program_globals`・`discovered_classes`・`in_source_constants`・`discovered_methods`・`discovered_def_nodes`・`discovered_singleton_def_nodes`・`discovered_def_sources`・`discovered_method_visibilities`・`discovered_superclasses`・`discovered_includes`・`discovered_class_sources`・`data_member_layouts`・`struct_member_layouts` ── を保持します。メンバーシップは[ADR-53](../adr/53-scope-discovery-index-separation.md)の基準で固定されます。あるフィールドがインデックスに属するのは、**いかなるフロー遷移も、そのフィールドの値がシードと異なるスコープを生成しないとき、かつそのときに限り**です。
+フロー状態と並んで、すべての`Rigor::Scope`スナップショットは単一の不変な**ディスカバリインデックス**（`Rigor::Scope::DiscoveryIndex`）を保持します。これはシード時のディスカバリテーブル群 ── `declared_types`・`class_ivars`・`class_cvars`・`program_globals`・`discovered_classes`・`in_source_constants`・`discovered_methods`・`discovered_def_nodes`・`discovered_singleton_def_nodes`・`discovered_def_sources`・`discovered_method_visibilities`・`discovered_superclasses`・`discovered_includes`・`discovered_class_sources`・`data_member_layouts`・`struct_member_layouts`・`param_inferred_types`（ADR-67の呼び出しサイトパラメータ推論テーブル） ── を保持します。メンバーシップは[ADR-53](../adr/53-scope-discovery-index-separation.md)の基準で固定されます。あるフィールドがインデックスに属するのは、**いかなるフロー遷移も、そのフィールドの値がシードと異なるスコープを生成しないとき、かつそのときに限り**です。
 
 - インデックスはMUST不変です。これはフローズンな`Data`であり、シードされたインデックスは`DiscoveryIndex#with`を通じて導出されます。
 - すべてのフロー遷移（`with_local`・`with_fact`・`join`・…）は、レシーバーのインデックスを参照で、検査せずに結果へMUST引き継がねばなりません。`Scope#==`はインデックスをMUST NOT比較しません（これはフロー状態ではなく環境コンテキストです）。
@@ -108,6 +108,7 @@ tracer.record_fallback(event)
 - `location` — 実際のPrismノードに対するPrismソース位置オブジェクト、または位置を露出しない合成ノードに対する`nil`。
 - `family` — 実際のPrismノードに対するシンボル`:prism`、`Rigor::AST::Node`を含むノードに対する`:virtual`。
 - `inner_type` — 呼び出し元に返された`Rigor::Type`。今日は`Dynamic[top]`です。後のスライスはフォールバックを観測可能に保ちながら内部型をMAYリッチにします。
+- `origin` — 拡幅された値のprovenanceとして記録された`Rigor::Inference::DynamicOrigin`の原因シンボル（ADR-75）、または原因が分からないときは`nil`。
 
 `Rigor::Inference::FallbackTracer`が公開するトレーサープロトコルはMUST以下を満たします。
 

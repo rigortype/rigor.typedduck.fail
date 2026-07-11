@@ -3,8 +3,8 @@ title: "正規化"
 description: "rigortype/rigor docs/type-specification/normalization.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/type-specification/normalization.md"
 sourcePath: "docs/type-specification/normalization.md"
-sourceSha: "9fadd038d43edb06ae0dc97e74fb2d74ac54bc6f5097bfe489bdf47c6542c994"
-sourceCommit: "636f8725dd79aab2f711249ace6357a98b7e73a4"
+sourceSha: "3451b2d3f8b0df0a6d929e3e919e9660b3d0b861e15d3d679bf5314034163840"
+sourceCommit: "4c03f62d04f594030bd79aa00f3a5978e0457d4c"
 translationStatus: "translated"
 sidebar:
   order: 2050
@@ -29,7 +29,7 @@ Rigorは比較と報告の前に型を正規化します。正規化は診断、
 - リテラルの精度が大きくなりすぎるか高コストになるまで保持する;その後は名前的ベースに広げる。
 - 値ピン留めされたユニオンメンバーを、同居する名前的ベースへ包摂折り畳みしない: `1 | Integer`は`1 | Integer`のまま。値ピン留めされたメンバーは、独自の由来を持つ到達可能な正確値を記録している——典型的にはゼロ反復シードまたは再帰の基底ケース（`0..N`反復のアキュムレータ本体に先行する`result = 1`;再帰的戻り値サマリーの`n <= 1`アーム）——折り畳めばその証拠が表示からも値認識のコンシューマーからも消える一方、得るものは何もない（ユニオンは既にベースと外延的に等しい）。そうしたメンバーを広げるのは明示的なキャップ/バジェット拡大規則の仕事であり、ユニオン構築の仕事ではない。
 - `untyped`を`top`に正規化するのではなく、動的由来のラッパーを明示的に保持する。
-- 動的由来のユニオン、積、差は静的ファセットを変換してラッパーを保持することで正規化する。
+- 動的由来のオペランドを結合型へ畳み込**まない**: ユニオンの`Dynamic[T]`オペランドは独立したユニオンアームのまま残る（`T | Dynamic[U]`は`Dynamic[T | U]`ではなく`T | Dynamic[U]`へ正規化される）。創設期の静的ファセット変換は置き換えられた —— [value-lattice.md](../value-lattice/) §「代数規則」と[ADR-83](../../adr/83-dynamic-origin-algebra/)を参照。
 
 ## 特別な結果の同一性
 

@@ -3,8 +3,8 @@ title: "RBS消去"
 description: "rigortype/rigor docs/type-specification/rbs-erasure.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/type-specification/rbs-erasure.md"
 sourcePath: "docs/type-specification/rbs-erasure.md"
-sourceSha: "fe78592983daebf0a92249608fbfa7a5755917a183792b46c3abf41cfdbc6169"
-sourceCommit: "9f40e22193647dc06e3ab70c5ba82768b0bfe738"
+sourceSha: "8e7abbd712b0873cfd4b772f831e9bebc0eba94277f3571a1d29b4b6c3d70bf2"
+sourceCommit: "4c03f62d04f594030bd79aa00f3a5978e0457d4c"
 translationStatus: "translated"
 sidebar:
   order: 2050
@@ -108,7 +108,7 @@ dynamic-open { a: 1, **untyped }
 - `budgets.hash_erasure_keys`（デフォルト16、範囲1〜256）はリテラルキーユニオンを制御します。
 - `budgets.hash_erasure_values`（デフォルト8、範囲1〜256）はリテラル値ユニオンを制御します。
 
-どちらも`.rigor.yml`で設定可能です。完全なバジェットテーブルは[inference-budgets.md](../inference-budgets/)を参照してください。
+どちらも今日は固定の定数です;設定可能な`.rigor.yml`の`budgets.*`キーは計画されていますがまだ配線されていません。完全なバジェットテーブルとその実装ステータスは[inference-budgets.md](../inference-budgets/)を参照してください。
 
 一方のバジェットが超過すると、その軸だけが最も近い名前的ベースに広がります;もう一方の軸はまだ収まる場合はリテラルユニオンのままです。拡幅は決定論的です:
 

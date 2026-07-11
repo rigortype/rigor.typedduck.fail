@@ -3,8 +3,8 @@ title: "Rails向けRigor: miseを使ったステップバイステップセッ�
 description: "rigortype/rigor docs/manual/14-rails-quickstart.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/14-rails-quickstart.md"
 sourcePath: "docs/manual/14-rails-quickstart.md"
-sourceSha: "0c2605008581620b22b96d0765f982115496e4770440ab08fed0914b10ec36d0"
-sourceCommit: "212f2c491920cc5c39a12d75aee385cb6c51fa0c"
+sourceSha: "05602a56bc0cd4cded2b6cbd2d798895962f797a1e267ad2e23357065597590a"
+sourceCommit: "4c03f62d04f594030bd79aa00f3a5978e0457d4c"
 translationStatus: "translated"
 sidebar:
   order: 9014
@@ -28,7 +28,7 @@ sidebar:
 以下が必要です。
 
 - **`mise`のインストール**: まだの場合は[miseのはじめかたガイド](https://mise.jdx.dev/getting-started.html)に従ってください。`asdf`や素の`gem install`を好む場合は[Rigorのインストール](../01-installation/)を参照してください。
-- **`mise`のシェルへの組み込み**: `eval "$(mise activate zsh)"`（またはお使いのシェルに合わせた同等の記述）をシェルのrcファイルに追加し、`rigor`が`PATH`から到達できるようにします。詳細は[Rigorのインストール § RigorをPATHに追加する](../01-installation/)を参照してください。
+- **`mise`のシェルへの組み込み**: `eval "$(mise activate zsh)"`（またはお使いのシェルに合わせた同等の記述）をシェルのrcファイルに追加し、`rigor`が`PATH`から到達できるようにします。詳細は[Rigorのインストール § RigorをPATHに追加する](../01-installation/#rigorをpathに追加する)を参照してください。
 - **既存のRailsプロジェクト**（パスが分かっている状態）。
 
 ---
@@ -117,7 +117,7 @@ rigor skill rigor-project-init
 | **Acknowledge** | 多くの診断を抱えた既存コードベース | 今日の診断をベースラインに記録し、PRごとに新しいものだけを表示する。 |
 | **Strict** | 新規または小規模なプロジェクト | 未解決診断ゼロ;ベースラインなし。 |
 
-最初の`rigor check`で100件超の診断が報告される場合、acknowledgeモードが自然な出発点です。後から厳しくすることもできます。
+最初の`rigor check`で100件超の診断が報告される場合、acknowledgeモードが自然な出発点です。後から厳しくすることもできます。`.rigor.dist.yml`（ステップ3）では、モードは`severity_profile:`へマッピングされます —— acknowledge → `lenient`、strict → `strict`（デフォルトの`balanced`ではキーを省略）。
 
 ### ステップ3: .rigor.dist.ymlの作成
 

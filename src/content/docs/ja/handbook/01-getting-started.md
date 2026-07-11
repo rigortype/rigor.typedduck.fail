@@ -3,8 +3,8 @@ title: "はじめに"
 description: "rigortype/rigor docs/handbook/01-getting-started.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/01-getting-started.md"
 sourcePath: "docs/handbook/01-getting-started.md"
-sourceSha: "6ddbe17869928461bf148ad2bc56fd4155234b0e777aa79b5735424c3b8d6905"
-sourceCommit: "212f2c491920cc5c39a12d75aee385cb6c51fa0c"
+sourceSha: "72a6bfc1b9f299d271764b0b139a1bddfeced0f9a066815bfa93087891932b4a"
+sourceCommit: "4c03f62d04f594030bd79aa00f3a5978e0457d4c"
 translationStatus: "translated"
 sidebar:
   order: 1001
@@ -61,6 +61,8 @@ Rigorはプロジェクトの`.rb`ファイルを読み、各ファイルにフ�
 - そのほか、すべて[第8章「エラーの読み方」](../08-understanding-errors/)に列挙してあります。
 
 RigorはRubyソースに型注釈を書くことを**要求しません**。証明できる範囲だけ推論し、絞り込めない箇所では沈黙します。十分な静的情報があり確信をもって判断できるときだけ、診断を出します。
+
+本書に*シグネチャ*が現れる箇所——`def foo: (String) -> Integer`のような——は**RBS**、Rubyの標準シグネチャ言語です;「`String`を取り、`Integer`を返す」と読んでください。始めるにあたって、あなたはそれを一切書きません;Rigorはあなたのgemと標準ライブラリが既に出荷しているRBSを消費します。[第7章](../07-rbs-and-extended/)がRBSを完全にカバーします——見たことがなければ、その章に先に目を通してください。
 
 ## 最小の動作セッション
 
@@ -150,7 +152,7 @@ assert_type(":int | :str | nil", kind(7))  # すべての case 分岐のユニ�
 
 ```ruby
 greeting = "Hello, "                 # Constant<"Hello, ">
-name     = ARGV.first                # String?  (RBS 由来)
+name     = ARGV.first                # String?  (String または nil —— RBS 由来)
 hello    = "#{greeting}#{name}!"     # リテラル文字列キャリア:
                                      # 補間部分がいずれもリテラル文字列互換なので、
                                      # 結果は「ソース由来であることが証明できる」

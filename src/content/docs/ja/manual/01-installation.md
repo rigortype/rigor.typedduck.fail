@@ -3,8 +3,8 @@ title: "Rigorのインストール"
 description: "rigortype/rigor docs/manual/01-installation.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/01-installation.md"
 sourcePath: "docs/manual/01-installation.md"
-sourceSha: "6ccda4cb985703adea6752bdd14da324d20cd95370e61c88d97a86018152cf30"
-sourceCommit: "7ba81e144fcabd69b653017dcf248004e9635a5e"
+sourceSha: "4001205fa8de4a958876591c725faedccb1078eb66620057e9a72d032537a6aa"
+sourceCommit: "4c03f62d04f594030bd79aa00f3a5978e0457d4c"
 translationStatus: "translated"
 sidebar:
   order: 9001
@@ -253,6 +253,7 @@ gemの名前は`rigortype`で、インストールされる実行ファイル（
 `asdf`も同じモデルに従います。[`asdf-ruby`](https://github.com/asdf-vm/asdf-ruby)プラグインでRuby 4.0.xをインストールし、プロジェクトに設定してから、そのRubyにgemをインストールします:
 
 ```sh
+asdf plugin add ruby        # once, if the ruby plugin isn't added yet
 asdf install ruby latest:4.0
 asdf local ruby latest:4.0
 gem install rigortype

@@ -3,8 +3,8 @@ title: "RBS互換型"
 description: "rigortype/rigor docs/type-specification/rbs-compatible-types.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/type-specification/rbs-compatible-types.md"
 sourcePath: "docs/type-specification/rbs-compatible-types.md"
-sourceSha: "27080c9a84920fd39dc3afc7f0543b7f0d0709091d3a0916475d5d8ae9b2dddf"
-sourceCommit: "9f40e22193647dc06e3ab70c5ba82768b0bfe738"
+sourceSha: "44025a115798e35061c1bad93727bc674ab5a0b10f3bc7137c55d29ea6fed2ff"
+sourceCommit: "4c03f62d04f594030bd79aa00f3a5978e0457d4c"
 translationStatus: "translated"
 sidebar:
   order: 2050
@@ -33,6 +33,7 @@ RigorはRBS構文で文書化されたすべての型形式をサポートしま
 | `instance` | classish-contextでの現在のクラスインスタンス型 | RBSコンテキストが許す場合に同じ |
 | `class` | classish-contextでの現在のクラスシングルトン型 | RBSコンテキストが許す場合に同じ |
 | `bool` | `true \| false`のエイリアス | `bool` |
+| `boolish` | ブールコンテキストで使われる任意の値（`top`として扱われる） | `boolish` |
 | `nil` | シングルトン`nil`値 | `nil` |
 | `untyped` | 動的型 | `untyped` |
 | `top` | 最大の静的値型 | `top` |

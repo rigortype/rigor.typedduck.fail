@@ -3,8 +3,8 @@ title: "日常的に出会う型"
 description: "rigortype/rigor docs/handbook/02-everyday-types.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/02-everyday-types.md"
 sourcePath: "docs/handbook/02-everyday-types.md"
-sourceSha: "9d50e751c36821f194d42a67ee8f6faa143e4f7ceb4481850ca5e36752d0914e"
-sourceCommit: "212f2c491920cc5c39a12d75aee385cb6c51fa0c"
+sourceSha: "2225e235da4f32320270c7ce59c38b067cb0f04803a666d0e7282af259df085e"
+sourceCommit: "4c03f62d04f594030bd79aa00f3a5978e0457d4c"
 translationStatus: "translated"
 sidebar:
   order: 1002
@@ -32,7 +32,7 @@ n = ARGV.size
 
 まとめると: プログラムのすべての地点にある各値は**キャリア**（carrier）で記述されます。キャリアは広い（`Integer`、`Dynamic[top]`）場合もあれば、狭い（`Constant<3>`、`non-empty-string`）場合もあります。この章の残りはキャリアの図鑑です。
 
-図鑑に入る前に記法を一つ: 山括弧は具体的な値または境界を保持し（`Constant<3>`、`int<0, max>`）、角括弧はRBSと全く同じく型パラメータを保持します（`Nominal[String]`、`Hash[K, V]`、`Dynamic[top]`）。
+図鑑に入る前に記法を一つ: 山括弧は具体的な値または境界を保持し（`Constant<3>`、`int<0, max>`）、角括弧はRBSと全く同じく型パラメータを保持します（`Nominal[String]`、`Hash[K, V]`、`Dynamic[top]`）。型パラメータは*一部*の型に名前を付けます: `Hash[K, V]`はキーが型`K`、値が型`V`であるHashで、`Array[String]`が「文字列の配列」であるのと同じです。
 
 ## キャリアを自分で見る: `rigor annotate`
 

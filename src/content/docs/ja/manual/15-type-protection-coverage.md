@@ -3,8 +3,8 @@ title: "型保護カバレッジ"
 description: "rigortype/rigor docs/manual/15-type-protection-coverage.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/15-type-protection-coverage.md"
 sourcePath: "docs/manual/15-type-protection-coverage.md"
-sourceSha: "bcba57707966fb5ae379894201bba42b8eb5a0699c17509887206bb7bfa247a5"
-sourceCommit: "ee19f4b60fca3bd0ceb677ebb395593203f2ea48"
+sourceSha: "e751f0e66d5c4f29b703347ed480b183e231c5300fd4f1d9fcaa289424fd1565"
+sourceCommit: "4c03f62d04f594030bd79aa00f3a5978e0457d4c"
 translationStatus: "translated"
 sidebar:
   order: 9015
@@ -33,6 +33,8 @@ rigor coverage --protection [paths]
 ティア1は、あらゆる**ディスパッチサイト（dispatch site）**（レシーバーを持つメソッド呼び出し）を、レシーバーが具象型を持つかどうか（Rigorのルールが誤ったメソッドや引数を*捕まえられる*サイトかどうか）で分類します。これは1回の解析パスで、対話的にもCIでも実行できるほど速く、**健全な上界**です。具象的なレシーバーは診断が発火するための必要条件ですが、十分条件ではありません。
 
 レポートはまず保護された比率を示し、続いてランク付けされた**「ここに型を足せ」**リスト（`Dynamic`レシーバーで最も多く呼ばれているメソッド、すなわち型アノテーションが最も多くの捕捉力を生む箇所）を示します。`--threshold=RATIO`はそれをCIゲートに変え（比率を下回ると`1`で終了）、`--format=json`は構造化されたフィールドを運びます。
+
+大きなプロジェクトでは、`--workers=N`がスキャン（パラメータ推論の事前パスとファイルごとのスキャンの両方）をforkで並列化し、出力は逐次実行とバイト同一です。ワーカー数は`rigor check`と同じ方法で解決されます —— `--workers` › `RIGOR_RACTOR_WORKERS` › [`parallel.workers:`](../03-configuration/) › `0`（逐次デフォルト）—— なので、並列`check`用に既に設定されたプロジェクトは並列カバレッジをタダで得ます。
 
 これが日常的に見る数字です。その背後にある真実が欲しくなったら、ティア2へ進みます。
 
@@ -110,6 +112,8 @@ rigor coverage --protection --mutation --with-tests --include-dynamic \
   - **`engine_gap`**: ユーザーの型では埋められません。予算の打ち切り、推論のギャップ（型なしパラメータまたは束縛されていないインスタンス変数——`inferred_return_untyped`）、あるいはRigorがまだモデル化していない構文です。報告してください。
 
 テキストレポートは「Add a type here」の見出しの下に1行の`by tractability:`内訳を出力し、JSONも同じ集計を`tractability_summary`として運びます。`add_rbs`の穴から着手してください。それらは型が実際に捕まえてくれる穴です。
+
+> **`external_gem_without_rbs`は、Rigorが読める場所にgemがインストールされている必要があります。** 未解決の定数がgemに属するかどうかを判断するために、Rigorはそのgemのソースを読みます —— なのでディスク上にgemを見つけられなければなりません。プロジェクトのBundlerインストールツリー（`vendor/bundle`、または`bundler.bundle_path:`で設定したパス;[設定](../03-configuration/)を参照）を探します。gemがアクティブなRubyのデフォルトgemホームに存在するプロジェクト——`--path`を設定していない一般的な`rbenv` / `mise`のケース——は、設計上、隔離されたアナライザーには見えません（[ADR-27](https://github.com/rigortype/rigor/blob/master/docs/adr/27-tool-distribution-model.md)）: `bundler.bundle_path:`でRigorをそこへ向けてください。そうするまで、これらの穴は`add_rbs`ではなく汎用的な`engine_gap`原因を保ちます —— ラベルが欠けているのであって、決して誤っているのではありません。
 
 Provenance（由来）は精度に加算されるだけです: 型を変えることも、診断を発火させることも、深刻度や保護比率に影響することも決してありません。
 

@@ -3,8 +3,8 @@ title: "値束（Value Lattice）"
 description: "rigortype/rigor docs/type-specification/value-lattice.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/type-specification/value-lattice.md"
 sourcePath: "docs/type-specification/value-lattice.md"
-sourceSha: "fd81eaa7793c6405884c3324c0ccc997ab07959f3b42b9c61a6d9c157139e626"
-sourceCommit: "9f40e22193647dc06e3ab70c5ba82768b0bfe738"
+sourceSha: "e245ece1b72c0eee53c8862449a43f3c5d2de74a0b6929393867500ea589bcf7"
+sourceCommit: "4c03f62d04f594030bd79aa00f3a5978e0457d4c"
 translationStatus: "translated"
 sidebar:
   order: 2050
@@ -46,25 +46,18 @@ T & bot = bot
 
 ### 代数的規則
 
-動的由来のジョインは、値が純粋に静的であるかのように見せかけるのではなく、マーカーを保持します:
+Rigorは動的由来のオペランドを結合型へ畳み込**みません**。ユニオンの`Dynamic[T]`オペランドは、他のオペランドを単一の`Dynamic`へ吸収するのではなく、独立したユニオンアームのまま残ります:
 
 ```text
-Dynamic[A] | Dynamic[B] = Dynamic[A | B]
-T | Dynamic[U]          = Dynamic[T | U]
+Dynamic[A] | Dynamic[B] = Dynamic[A] | Dynamic[B]   (distinct arms, NOT Dynamic[A | B])
+T | Dynamic[U]          = T | Dynamic[U]            (the concrete arm T is preserved)
 ```
 
-動的由来の積と差は精度とprovenanceの両方を保持します:
+アームを独立に保つことは、それらを吸収するより精密です: 具体的なアーム`T`は具体的な型のまま残り——そしてすべてのアームが具体的な箇所では*保護された*ディスパッチのまま残り——一方でprovenanceはアームごとに保たれます（どのアームが境界を越えたかが分かる）。何らかの動的由来アームを持つユニオンはディスパッチにおいて依然として漸進的に妥当なので、漸進的一貫性の保証は変わりません。
 
-```text
-Dynamic[T] & U = Dynamic[T & U]
-Dynamic[T] - U = Dynamic[T - U]
-```
+ガードされた動的由来の値は、マーカーを積で交えることではなく、それを**具体化する**ことでナローイングされます: `x.is_a?(String)`のような信頼できるガードは、`Dynamic[top]`レシーバーを`Nominal[String]`（完全に具体的で保護された`String`）へナローイングするので、ガードされた呼び出しは`String`のメソッド事実に対して直接解決します。[control-flow-analysis.md](../control-flow-analysis/)を参照。
 
-`U`が`top`のとき、結果は`untyped`と表示される場合がありますが（MAY）、内部形式は動的由来のprovenanceを引き続き記録しなければなりません（MUST）。診断表示規則は[diagnostic-policy.md](../diagnostic-policy/)にあります。
-
-### 実例
-
-`untyped & String`は、普通の`String`でも生の`untyped`でもなく`Dynamic[String]`になります。信頼できるガードが`Dynamic[top]`を`Dynamic[String]`にナローイングする場合があります。`upcase`のようなメソッド呼び出しはその後`String`のメソッド事実を使える場合があります。レシーバーはチェックされていないソースに追跡可能なままで、診断は呼び出しが動的由来の事実によって可能になったことを記録できます（MAY）。
+創設期の動的由来の**ジョイン**代数（`T | Dynamic[U] = Dynamic[T | U]`、具体的なアームを`Dynamic`へ吸収する）と**ミート**規則（`Dynamic[T] & U = Dynamic[T & U]`、provenanceを保存するナローイング）は、この振る舞いによって**置き換えられました** —— 計測と論拠は[ADR-83](../../adr/83-dynamic-origin-algebra/)を参照。provenanceを保存するナローイングは将来のストリクト動的規律（[ADR-75](../../adr/75-dynamic-provenance/) WD4）へ先送りされます;それまではナローイングは具体化します。
 
 ### ジェネリック位置
 

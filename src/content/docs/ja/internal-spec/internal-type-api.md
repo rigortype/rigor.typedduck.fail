@@ -3,8 +3,8 @@ title: "内部型API"
 description: "rigortype/rigor docs/internal-spec/internal-type-api.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/internal-type-api.md"
 sourcePath: "docs/internal-spec/internal-type-api.md"
-sourceSha: "43d4ca935a204335f49f5cace7496db64e957cdb48ff568530257248bd721eb7"
-sourceCommit: "aec4ca7f5f87b1972dea8fecaaf5b62c8880a3af"
+sourceSha: "ccea4c52e72c32432c81acca98d399a761f1c7e88a48eb6600536e39130823cc"
+sourceCommit: "4c03f62d04f594030bd79aa00f3a5978e0457d4c"
 translationStatus: "translated"
 sidebar:
   order: 3050
@@ -71,6 +71,8 @@ sidebar:
 結果オブジェクトサーフェスは、[`docs/adr/3-type-representation.md`](../../adr/3-type-representation/)に記録されたPHPStanの`IsSuperTypeOfResult`と`AcceptsResult`設計を反映しています。
 
 ## メソッドサーフェス
+
+> **実装ステータスの注記**。このセクションは*設計どおりの*キャリア契約を述べています（ADR-3、最終的なスペルについては未解決問題2が依然オープン）。現在のエンジンはこれらの操作のいくつかを**キャリアの外で**実現しました: 受理とサブタイピング（`accepts` / `subtype_of` / `consistent_with`）は`Rigor::Inference::Acceptance` + `Rigor::Type::AcceptanceRouter`に、ケイパビリティと構造的クエリは`Rigor::Type::Combinator`の互換性述語であり、キャリアごとの`normalize` / `traverse`はありません。具体的なキャリア（`Rigor::Type::Nominal`、…）は`describe`、`erase_to_rbs`、構造的等価性を直接公開します。以下のサーフェスは、クラスごとの文字どおりのメソッド一覧ではなく、意図された抽象契約として扱ってください。
 
 すべての具体的な型実装は以下に列挙するメソッドサーフェスを公開しなければなりません（MUST）。`?`サフィックスなしのメソッド名はこの仕様で使用される抽象形式に従います；最終的な具体的なスペルはADR-3の未解決問題2の解決によって固定され、`Rigor::Trinary`を返すすべてのメソッドに一様に適用されます。
 

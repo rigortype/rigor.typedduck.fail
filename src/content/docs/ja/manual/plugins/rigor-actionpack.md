@@ -3,8 +3,8 @@ title: "rigor-actionpack"
 description: "rigortype/rigor docs/manual/plugins/rigor-actionpack.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/plugins/rigor-actionpack.md"
 sourcePath: "docs/manual/plugins/rigor-actionpack.md"
-sourceSha: "8fead9cdf6d9294e82d82809e46b864533df253b589646edc60e343544811f18"
-sourceCommit: "5c304b2c680eccdbfaffc114c0f31ce89f740ad4"
+sourceSha: "68148018c4381f1be5611fabcec8ffd45b2cc4edf51fd12a673e3e6c783eb0cc"
+sourceCommit: "4c03f62d04f594030bd79aa00f3a5978e0457d4c"
 translationStatus: "translated"
 sidebar:
   order: 9050
@@ -40,7 +40,7 @@ plugins:
 | `plugin.actionpack.render-target` | info | 明示的な`render :symbol`／`"string"`／`partial:`がビューテンプレートに解決された |
 | `plugin.actionpack.missing-template` | error | 明示的な`render`が、いずれの`view_search_paths`下にも存在しないビューパスに解決された |
 | `plugin.actionpack.permit-call` | info | `params.require(:m).permit(:key, …)`チェーンが既知のモデルに解決された。キーはそのカラムに対して照合された |
-| `plugin.actionpack.unknown-permit-key` | error | リテラルの`permit(:key)`がモデル上のカラムでない（「もしかして」付き） |
+| `plugin.actionpack.unknown-permit-key` | error | リテラルの`permit(:key)`が実在するカラムの近傍ミス（編集距離 ≤ 2）だがそのカラムではない —— タイポの可能性が高い（「もしかして」付き）。どのカラムにも似ていないキー（正当な仮想属性）は発火しない |
 
 フィルタとレンダーの解決は、ネストしたモジュールによるコントローラーの修飾（`module Admin; class WidgetsController`は`admin/widgets/…`下のビューを解決する）を尊重し、参照できないgem提供の親クラスについては沈黙します。
 

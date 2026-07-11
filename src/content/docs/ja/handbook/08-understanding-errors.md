@@ -3,8 +3,8 @@ title: "エラーの読み方"
 description: "rigortype/rigor docs/handbook/08-understanding-errors.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/08-understanding-errors.md"
 sourcePath: "docs/handbook/08-understanding-errors.md"
-sourceSha: "71298d8003e3c812663034c10be6d71579901bfe90a3007978e76af606ce5b4b"
-sourceCommit: "212f2c491920cc5c39a12d75aee385cb6c51fa0c"
+sourceSha: "968ba97981616030d602d70b90a67c4aca717cff8cc20de4bfbb8074b64d0f8e"
+sourceCommit: "4c03f62d04f594030bd79aa00f3a5978e0457d4c"
 translationStatus: "translated"
 sidebar:
   order: 1008
@@ -109,9 +109,9 @@ Rigorは出荷された深刻度を再スタンプする3つの名前付き深�
 
 | プロファイル | 動作 |
 | --- | --- |
-| `lenient` | ほとんどのルール → `warning`;不確かなルールは`info`に下がる。レガシーコードのCI向け。 |
-| `balanced`（デフォルト） | ほとんどのルール → `error`; `dump.type` → `info`。出荷された動作。 |
-| `strict` | `balanced`での`:warning`ルールも含め、すべて → `error`。レガシーノイズのない新しいプロジェクトに適しています。 |
+| `lenient` | 証明済みのルールだけが`error`のまま（`call.undefined-method`、`wrong-arity`、`assert.type-mismatch`）;不確かなルールは`warning`に下がり、いくつかは`off`に下がる。レガシーコードへの漸進的な採用向け。 |
+| `balanced`（デフォルト） | ほとんどのルール → `error`;不確かなルール → `warning`; `dump.type` → `info`。出荷された動作。 |
+| `strict` | ほぼすべてのルール → `error`。例外: `call.self-undefined-method`は`off`のまま（オプトインのみ）、`flow.unreachable-clause`は`warning`（偽陽性ゲート待ち）。レガシーノイズのない新しいプロジェクトに適しています。 |
 
 `.rigor.yml`で設定:
 

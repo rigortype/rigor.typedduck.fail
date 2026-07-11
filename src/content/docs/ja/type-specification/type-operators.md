@@ -3,8 +3,8 @@ title: "型演算子"
 description: "rigortype/rigor docs/type-specification/type-operators.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/type-specification/type-operators.md"
 sourcePath: "docs/type-specification/type-operators.md"
-sourceSha: "ecedbddbfe0e215997c775b5c46cb7eab6dc50dfcf6dc33f1e0c15678a80c68e"
-sourceCommit: "a7f0405346ea5833580c50f3610ccb0b97fea2d8"
+sourceSha: "f9b25e6900592e29ed4fcc619c7fdca82a958da2e149cbe0fb71990d6dcfa10f"
+sourceCommit: "4c03f62d04f594030bd79aa00f3a5978e0457d4c"
 translationStatus: "translated"
 sidebar:
   order: 2050
@@ -83,7 +83,7 @@ v != "foo" => v: Dynamic[top] with a dynamic-origin relational fact `v != "foo"`
 
 ### 有限ドメイン対オープンドメイン
 
-現在のドメインが有限の場合、負のファクトは正確に正規化すべきです（SHOULD）。現在のドメインが大きいか未知の場合、負のファクトは無制限の差分チェーンに展開されるのではなくバジェットで保持すべきです（SHOULD）。バジェットが超過した場合、Rigorは表示を拡幅し、追加の負のファクトが省略されたというprovenanceを保持すべきです（SHOULD）。具体的なバジェットは`budgets.negative_fact_display`です; [inference-budgets.md](../inference-budgets/)を参照してください。
+現在のドメインが有限の場合、負のファクトは正確に正規化すべきです（SHOULD）。現在のドメインが大きいか未知の場合、負のファクトは無制限の差分チェーンに展開されるのではなくバジェットで保持すべきです（SHOULD）。バジェットが超過した場合、Rigorは表示を拡幅し、追加の負のファクトが省略されたというprovenanceを保持すべきです（SHOULD）。具体的なバジェットは`budgets.negative_fact_display`です（今日は固定の定数;設定可能な`.rigor.yml`キーは計画されていますがまだ配線されていません —— [inference-budgets.md](../inference-budgets/) § 実装ステータスを参照）。
 
 ## 診断表示契約
 
@@ -111,7 +111,7 @@ top - nil           # nilを除くすべてのRuby値
 
 省略契約はデフォルトの診断が読みやすくなりながら説明が完全なままになるように具体的な形を持ちます:
 
-- デフォルト表示バジェットは上位3つの保持された除外を保持し、内部的にさらに除外が保持されているとき、レンダリングされたリストを`+N more`で終えます。表示バジェットは`budgets.negative_fact_display`であり、`.rigor.yml`で設定可能です。[inference-budgets.md](../inference-budgets/)を参照してください。
+- デフォルト表示バジェットは上位3つの保持された除外を保持し、内部的にさらに除外が保持されているとき、レンダリングされたリストを`+N more`で終えます。表示バジェットは`budgets.negative_fact_display`です（今日は固定の定数;設定可能な`.rigor.yml`キーは計画されていますがまだ配線されていません）。[inference-budgets.md](../inference-budgets/)を参照してください。
 - 選択はナローイング（narrowing）決定に最近参加した除外を優先し、次に名前的ベースより前のリテラル値を、次に出力が安定するようにレキシカル順を優先します。
 - `+N more`サフィックスは診断識別子にリンクし、完全な詳細が利用可能であることをユーザーが知れるようにします。
 - `rigor explain <diagnostic-id>`（CLIの`--explain`も同様）はすべての保持された除外、超過したバジェット、選択の順序を表示します。これはPHPStanの解析説明に相当するRigorのものです。

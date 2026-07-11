@@ -3,8 +3,8 @@ title: "プラグインの使用"
 description: "rigortype/rigor docs/manual/07-plugins.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/07-plugins.md"
 sourcePath: "docs/manual/07-plugins.md"
-sourceSha: "e2e3c9b09da2a0ef957736cc8c0fd5966e0aa61128e20d36cf05558c685947f4"
-sourceCommit: "aec4ca7f5f87b1972dea8fecaaf5b62c8880a3af"
+sourceSha: "8256c0da95213f17a732dadd4b4d33016463c346ba2bfb4e73c4c49fd8fc9987"
+sourceCommit: "4c03f62d04f594030bd79aa00f3a5978e0457d4c"
 translationStatus: "translated"
 sidebar:
   order: 9007
@@ -29,7 +29,7 @@ plugins:
 plugins:
   - gem: rigor-activerecord
     config:
-      schema: db/schema.rb
+      schema_file: db/schema.rb
 ```
 
 ## 利用可能なプラグイン
