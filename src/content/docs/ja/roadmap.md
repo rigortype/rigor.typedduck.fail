@@ -3,8 +3,8 @@ title: "Rigorロードマップ"
 description: "rigortype/rigor docs/ROADMAP.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/ROADMAP.md"
 sourcePath: "docs/ROADMAP.md"
-sourceSha: "7370ff05e5ca5cf2ff4fa3285a2168e0ce1194be9b5a7833a3fd85a24f4d8afe"
-sourceCommit: "a8b1d0b5be985ab476a08e5c8a48400f61e476cc"
+sourceSha: "361c5a4a0287dcacbe2462730163280648613a3f663853fdd034cb835b676a3b"
+sourceCommit: "ca611a0fa195c049e8e56b0aa4a78145864c4d54"
 sourceDate: "2026-06-13T19:23:25+09:00"
 translationStatus: "translated"
 sidebar:
@@ -81,18 +81,15 @@ v0.2.0のゲート条件 —— すべて**達成済み**:
 
 **Ractorは意図的に除外される**。ADR-15のRactorワーカープールはRuby 4.0.xで使用不能と判明した（Ruby Bug #22075に加え、決定論的な`Ractor::IsolationError`）;v0.1.8のforkベースのプールがアクティブなバックエンドだ。Ractorプールは`RIGOR_POOL_BACKEND=ractor`とADR-15 § OQ1の背後に駐車されたままだ;その完成は`0.2.x`の目標では**なく**、upstreamのCRuby修正を待つ。
 
-### 次の2つのカット —— v0.2.9（最後の`0.2.x`）then v0.3.0
+### 次のカット —— v0.3.0（v0.2.9は2026-07-11に出荷）
 
-1桁バージョンポリシーにより、**v0.2.9が最後の`0.2.x`カット**になる（その後継は`0.3.0`）ので、来る2つのリリースは明確で、意図的に分離された憲章を持つ:
+1桁バージョンポリシーにより**v0.2.9が最後の`0.2.x`カット**になった;その後継`0.3.0`が次のリリースだ。
 
-**v0.2.9 —— 型推論の強化カット。なお`0.2.x`のマイナー非破壊の誓約の内側**。互換性安全を保ちつつ、収まるだけの*観測可能で偽陽性に安全な*推論精度を着地させる（[ADR-50](../adr/50-release-engineering-and-stability-strategy/): 新しい診断は安定したIDの背後で`:off` / `:info`として出荷する;デフォルト重大度への昇格はグリーンな`rigor-survey`コーパスdiffを通してのみ流れる;何も削除しない）。候補コンテンツ、準備度順:
+**v0.2.9（2026-07-11出荷）—— 大規模Railsの型カバレッジカット**。計画されていた「型推論の強化」という枠付けは、GitLab規模のオンボーディングの弧に置き換えられた。`db/structure.sql`スキーマのサポート、ストロングパラメータのチェーン型付け、ルートヘルパー命名の忠実度、ファイルをまたぐモジュールファサード解決（[ADR-57](../adr/57-self-call-return-adoption/) WD3）、外部gemのRBS欠落由来ラベリング（[ADR-82](../adr/82-dynamic-provenance-wiring/) WD9）、forkで並列な`coverage --protection`スキャン、永続キャッシュのアップグレード / ABIハードニング、そして`rigor-playground` → `apps/`の再配置を出荷した。完全な記録: `CHANGELOG.md` § `[0.2.9]`。
 
-1. **決定的で偽陽性に安全なfold**（互換性安全なバックログのバケット1）—— 新しい診断を発火させずに`Dynamic`レシーバーを削減する、残りのビルトイン / stdlibメソッドfold（`rigor-type-coverage-uplift`スキル;キャリアスイープはほぼ枯渇しているので、これはたまにあるスカラー / 構造のギャップだ）。
-2. **偽陽性に安全なナローイング拡張** —— Elixir-v1.20 § 4-4の上界の長さトラック（`tuple_size(x) < 3`、長さ範囲キャリアが必要）と、新しい発火を伴わずに保護を加える兄弟的なナローイングすべて。
-3. **[ADR-47](../adr/47-narrowing-driven-clause-reachability/) WD3b** —— 分解 / 値 / 変数キャッチオールの`case`/`in`網羅性。規律に従いまず`:off` / `:info`で出荷する。
-4. **バケット3のデフォルト拡大診断**（サーベイP0）—— 内部にすでに*存在する*レシーバー型付け / nilability / フロー / オーバーライドの精度;デフォルトプロファイルへの各昇格は、クリーンなRails / ActiveSupport / DSL / monkey-patch / RBSギャップのコーパスdiffにゲートされる。これが最も価値の高い強化なので、スイープを通過したものを出荷し、残りは保留する。
+v0.2.9に**入らなかった**偽陽性に安全な推論精度の候補 —— 決定的なビルトイン / stdlib fold（`rigor-type-coverage-uplift`）、Elixir-v1.20 § 4-4の上界の長さナローイングトラック（`tuple_size(x) < 3`、長さ範囲キャリアが必要）、[ADR-47](../adr/47-narrowing-driven-clause-reachability/) WD3bの分解 / 値 / 変数の`case`/`in`網羅性、そしてバケット3のデフォルト拡大診断（サーベイP0、内部にすでに存在するレシーバー型付け / nilability / フロー / オーバーライドの精度）—— はv0.3.0以降の互換性安全な候補として繰り越される。それらについて`0.2.x`固有のものは何もない: 各々が安定したIDの背後で`:off` / `:info`として出荷され、[ADR-50](../adr/50-release-engineering-and-stability-strategy/)に従いグリーンな`rigor-survey`コーパスdiffを通してのみデフォルトプロファイルへ昇格するので、それ以外の点で破壊するマイナー（v0.3.0）でもそれらを運べる。
 
-M3 / メンバーシェイプの弧（[ADR-67](../adr/67-parameter-type-inference/)の`check`ウォーク配線 → [ADR-68](../adr/68-class-builder-folding/) → [ADR-66](../adr/66-discriminated-union-member-typing/)）はv0.2.9の焦点では**ない**: ADR-67 WD2の本体内推論はスパイクされ、延期された（保護の天井は計測されたハードなフロアだ、[`20260706-adr67-wd2-in-body-inference-design-spike.md`](../notes/20260706-adr67-wd2-in-body-inference-design-spike/)を参照）、そして`check`ウォーク配線の価値は不透明だ。需要ゲート付きのままとする。
+M3 / メンバーシェイプの弧（[ADR-67](../adr/67-parameter-type-inference/)の`check`ウォーク配線 → [ADR-68](../adr/68-class-builder-folding/) → [ADR-66](../adr/66-discriminated-union-member-typing/)）は需要ゲート付きのままだ: ADR-67 WD2の本体内推論はスパイクされ、延期された（保護の天井は計測されたハードなフロアだ、[`20260706-adr67-wd2-in-body-inference-design-spike.md`](../notes/20260706-adr67-wd2-in-body-inference-design-spike/)を参照）、そして`check`ウォーク配線の価値は不透明だ。
 
 **v0.3.0 —— 非推奨の一掃 + パフォーマンスのマイナー（破壊しうる最初のカット）**。Semverの`0.x`はマイナーが破壊することを許し、あらゆるハード非推奨は`0.2.x`を通じてエイリアス/警告の猶予期間とともにここでの削除が予定されていた:
 
@@ -313,7 +310,7 @@ v0.1.17パフォーマンスサイクル。出荷済みの詳細は`CHANGELOG.md
 
 ### ブラウザプレイグラウンド（ADR-29）
 
-リアルタイム診断と`annotate`スタイルの型コメントを備えたCodeMirror 6エディタを持つブラウザベースのプレイグラウンド。Fly.io上の薄いRack/Puma APIとCloudflare Pagesの静的フロントエンドでバックアップされる。**スライス1〜4がv0.1.xサイクルで着地済み:** `Tempfile`per-request分離 + 64 KB上限 + CORSプリフライトを伴うバックエンド`/check`エンドポイント（スライス1）;デバウンスされたlintマーカーを持つCodeMirror 6エディタ（スライス2）;`/annotate-lines`トグルビュー（スライス3）;CodeMirrorの`hoverTooltip`拡張経由の`/type-of`ホバー（スライス4）。スライス1のFly.ioデプロイ成果物（`plugins/rigor-playground/Dockerfile` + `plugins/rigor-playground/fly.toml`）とスライス2のCloudflare Pagesデプロイ設定（`plugins/rigor-playground/frontend/_headers` + `_redirects` + README）はコミット可能なconfigとして同梱される;実際の`fly deploy` / `wrangler pages deploy`ステップはクレデンシャルが必要で、いかなるランディングサイクルの一部でもない。スライス5（ruby.wasm移行）は需要駆動のまま、3つの外部条件にゲートされている（公式Ruby 4.0 WASMビルド + `prism`/`rbs`のWASMパッケージ + WASM下でのRigorテストスイートのパス）。
+リアルタイム診断と`annotate`スタイルの型コメントを備えたCodeMirror 6エディタを持つブラウザベースのプレイグラウンド。Fly.io上の薄いRack/Puma APIとCloudflare Pagesの静的フロントエンドでバックアップされる。**スライス1〜4がv0.1.xサイクルで着地済み:** `Tempfile`per-request分離 + 64 KB上限 + CORSプリフライトを伴うバックエンド`/check`エンドポイント（スライス1）;デバウンスされたlintマーカーを持つCodeMirror 6エディタ（スライス2）;`/annotate-lines`トグルビュー（スライス3）;CodeMirrorの`hoverTooltip`拡張経由の`/type-of`ホバー（スライス4）。スライス1のFly.ioデプロイ成果物（`apps/rigor-playground/Dockerfile` + `apps/rigor-playground/fly.toml`）とスライス2のCloudflare Pagesデプロイ設定（`apps/rigor-playground/frontend/_headers` + `_redirects` + README）はコミット可能なconfigとして同梱される;実際の`fly deploy` / `wrangler pages deploy`ステップはクレデンシャルが必要で、いかなるランディングサイクルの一部でもない。スライス5（ruby.wasm移行）は需要駆動のまま、3つの外部条件にゲートされている（公式Ruby 4.0 WASMビルド + `prism`/`rbs`のWASMパッケージ + WASM下でのRigorテストスイートのパス）。
 
 **ADR-29 WD4修正（2026-05-25）が有効**: バックエンドは`require_magic_comment: false`で`rigor-rbs-inline`を事前ロードする（[ADR-32](../adr/32-rbs-inline-comment-ingestion/)のWD10に従い）。`# @rbs`形コメントを持つスニペットは最初のリクエストからインラインRBSとして解析される。`index.html`のシードSAMPLEはADR-32 ascdescパターンでこれを紹介する。[ADR-29](../adr/29-browser-playground/)を参照。
 

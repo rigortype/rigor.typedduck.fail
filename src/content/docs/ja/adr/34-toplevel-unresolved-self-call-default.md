@@ -3,8 +3,8 @@ title: "ADR-34 — トップレベルのunresolved implicit-self呼び出しは�
 description: "rigortype/rigor docs/adr/34-toplevel-unresolved-self-call-default.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/34-toplevel-unresolved-self-call-default.md"
 sourcePath: "docs/adr/34-toplevel-unresolved-self-call-default.md"
-sourceSha: "c2903adc9e9f8425a9b9795fb1c3f82d1e40e3bfed82d78fe0c93ad7d1eaeae2"
-sourceCommit: "a3ab53dd2b8aa0a84fd7ddbd64339f316d8d12ec"
+sourceSha: "596624776c74d722083e795673008ea697313d15dd86b029c43175855e905990"
+sourceCommit: "ca611a0fa195c049e8e56b0aa4a78145864c4d54"
 sourceDate: "2026-05-29T00:21:31+09:00"
 translationStatus: "translated"
 sidebar:
@@ -13,7 +13,7 @@ sidebar:
 
 ステータス: **Accepted, 2026-05-29; v0.1.13で実装**。
 
-可視のメソッド貢献者に対して解決に失敗するトップレベルのimplicit-self呼び出しサイトで、現在の無音な`Dynamic[top]`の挙動を反転させ、代わりに専用の`call.unresolved-toplevel`診断をemitするという決定を記録する。エスケープハッチ——monkey-patchingやメタプログラミングを通じてトップレベルメソッドを導入するプロジェクト向け——は[ADR-17](../17-monkey-patch-pre-evaluation/)の`pre_eval:`設定軸であり、同じリリースでランディングした。`call.unresolved-toplevel`ルールと`Scope#toplevel?`述語が出荷され、重大度は`severity_profile:`を通じてマップされ、クロスファイルのトップレベル`def`インデックスも整っている;ADR-29のPlaygroundデフォルト重大度の配線も出荷された——そのサンドボックス設定（`plugins/rigor-playground/.rigor.yml`）が`severity_profile: strict`を設定するので、貼り付けスニペットでルールが発火する。
+可視のメソッド貢献者に対して解決に失敗するトップレベルのimplicit-self呼び出しサイトで、現在の無音な`Dynamic[top]`の挙動を反転させ、代わりに専用の`call.unresolved-toplevel`診断をemitするという決定を記録する。エスケープハッチ——monkey-patchingやメタプログラミングを通じてトップレベルメソッドを導入するプロジェクト向け——は[ADR-17](../17-monkey-patch-pre-evaluation/)の`pre_eval:`設定軸であり、同じリリースでランディングした。`call.unresolved-toplevel`ルールと`Scope#toplevel?`述語が出荷され、重大度は`severity_profile:`を通じてマップされ、クロスファイルのトップレベル`def`インデックスも整っている;ADR-29のPlaygroundデフォルト重大度の配線も出荷された——そのサンドボックス設定（`apps/rigor-playground/.rigor.yml`）が`severity_profile: strict`を設定するので、貼り付けスニペットでルールが発火する。
 
 このADRは意図的に狭い範囲に限定している: **トップレベル**スライス（slice）のみデフォルトを反転する。`class` / `module`ボディ内のimplicit-self呼び出しは[ADR-24 WD3](../24-self-method-call-resolution/)の下で寛容なままとなる;それらを診断に格上げすることは[ADR-24 WD4](../24-self-method-call-resolution/)の別途ゲートされた決定であり、**このADRによって開かれるものではない**。
 

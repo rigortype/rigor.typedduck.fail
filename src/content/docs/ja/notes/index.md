@@ -3,8 +3,8 @@ title: "リサーチ・サーベイノート"
 description: "rigortype/rigor docs/notes/README.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/README.md"
 sourcePath: "docs/notes/README.md"
-sourceSha: "f2db4ff0c111a75cd800e7c306a6e8db8872514c84a2a6b32e18dccd1a81b204"
-sourceCommit: "ee19f4b60fca3bd0ceb677ebb395593203f2ea48"
+sourceSha: "162a6df973eec64dfea37fe5ce773a1663dce674e21a710d7081c483966b9e7b"
+sourceCommit: "ca611a0fa195c049e8e56b0aa4a78145864c4d54"
 translationStatus: "translated"
 sidebar:
   order: 6000
@@ -79,6 +79,7 @@ sidebar:
 | 2026-06-01 | [「Revenge of the Types」（Armin Ronacher） — ランタイム × 型チェッカー横断考察](20260601-revenge-of-the-types-runtime-checker-survey/) |
 | 2026-06-01 | [「型システムポエム」（myuon） — Rigor観点考察](20260601-type-system-poem-rigor-review/) |
 | 2026-06-04 | [Elixir v1.20の漸進的集合論型システム — Rigor観点考察](20260604-elixir-v1.20-type-system-rigor-review/) |
+| 2026-07-12 | [Ren et al. 2013「The Ruby Type Checker (rtc)」— Rigor観点考察](20260712-ren-2013-ruby-type-checker-rigor-review/) |
 
 ## インフラストラクチャ・upstream
 
