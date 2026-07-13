@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { englishDocs, slugFor } from '../lib/docs';
+import { danglingSkills } from '../lib/llms-guard';
 import body from '../llms/llms.md?raw';
 
 // Curated, hand-authored index (the llms.txt convention). The content is static;
@@ -17,6 +18,13 @@ export const GET: APIRoute = async () => {
   if (missing.length) {
     throw new Error(
       `llms.txt links to non-existent .md page(s): ${missing.join(', ')}`,
+    );
+  }
+
+  const dangling = danglingSkills(body);
+  if (dangling.length) {
+    throw new Error(
+      `llms.txt references skills that are no longer bundled: ${dangling.join(', ')}`,
     );
   }
 

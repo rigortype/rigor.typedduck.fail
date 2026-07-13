@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { japaneseDocs, slugFor } from '../../lib/docs';
+import { danglingSkills } from '../../lib/llms-guard';
 import body from '../../llms/llms-ja.md?raw';
 
 // Japanese mirror of /llms.txt. Same curated structure as the English index,
@@ -17,6 +18,13 @@ export const GET: APIRoute = async () => {
   if (missing.length) {
     throw new Error(
       `/ja/llms.txt links to non-existent .md page(s): ${missing.join(', ')}`,
+    );
+  }
+
+  const dangling = danglingSkills(body);
+  if (dangling.length) {
+    throw new Error(
+      `/ja/llms.txt references skills that are no longer bundled: ${dangling.join(', ')}`,
     );
   }
 
