@@ -3,8 +3,8 @@ title: "リサーチ・サーベイノート"
 description: "rigortype/rigor docs/notes/README.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/README.md"
 sourcePath: "docs/notes/README.md"
-sourceSha: "162a6df973eec64dfea37fe5ce773a1663dce674e21a710d7081c483966b9e7b"
-sourceCommit: "ca611a0fa195c049e8e56b0aa4a78145864c4d54"
+sourceSha: "da83f3b83f9c69f82a3d53a5d10d5f0210f5a9bf0d6bf116adf1f6ba0c20fb8f"
+sourceCommit: "92a275c30b379c62ee3593f6c727a195565c146f"
 translationStatus: "translated"
 sidebar:
   order: 6000
@@ -15,6 +15,8 @@ sidebar:
 これらのノートは**非規範的であり、執筆時点を日付として刻まれています** — 内部で示されたRigorのバージョンに対して、書かれた時点で真であった内容を反映します。多くは`Status:`行を持ちます。調査／エッセイレビューのノートは明示的に*「research note, no design commitments.」*です。ノートは[ADR](../adr/)・[設計ノート](../design/)・エンジン作業の材料になることがあります — ただし拘束力を持つのは仕様とADRであり、ノートではありません。記載されたファイル・メソッド・フラグが今も存在するか、それに基づいて行動する前に確認してください。
 
 ファイル名は`YYYYMMDD-<slug>.md`で、執筆日を日付とします。
+
+先行事例を探して掃くとき見落としやすい、隣接する2つのエビデンスストアがある: [`deep-research/`](deep-research/)は**取り込まれた外部の**リサーチレポート（LLMのdeep-research出力 —— ファーストパーティとして決して引用可能ではない;規則はそのREADMEに登録する）を保持し、CHANGELOG（[`CHANGELOG.md`](https://github.com/rigortype/rigor/blob/master/CHANGELOG.md)、アーカイブ済みの[`docs/CHANGELOG-0.1.x.md`](../changelog-0.1.x/)）は機能ごとの着地の物語を保持し、その比較エビデンス（例: `rbs_rails`のカバレッジ比較）はこの索引の他のどこにも現れない。
 
 ## ライブラリ・エコシステム調査
 

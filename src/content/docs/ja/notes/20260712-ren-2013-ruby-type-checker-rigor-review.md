@@ -4,7 +4,7 @@ description: "Imported from rigortype/rigor docs/notes/20260712-ren-2013-ruby-ty
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260712-ren-2013-ruby-type-checker-rigor-review.md"
 sourcePath: "docs/notes/20260712-ren-2013-ruby-type-checker-rigor-review.md"
 sourceSha: "c92df76aca26d26d0f17439ab1b2b3e70d16b4c5f86f6054d4f48a16adc64dc7"
-sourceCommit: "ca611a0fa195c049e8e56b0aa4a78145864c4d54"
+sourceCommit: "92a275c30b379c62ee3593f6c727a195565c146f"
 sourceDate: "2026-07-12T23:14:14+09:00"
 sourceLanguage: "ja"
 sidebar:
