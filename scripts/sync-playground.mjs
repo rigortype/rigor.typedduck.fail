@@ -3,7 +3,7 @@
 //
 // ADR-29 (rigor) WD9/WD10: the playground page is a self-contained static app
 // that boots a ruby.wasm VM. It lives in the rigor repo at
-// plugins/rigor-playground/wasm/index.html; this script copies it verbatim into
+// apps/rigor-playground/wasm/index.html; this script copies it verbatim into
 // public/playground/ (served at /playground/) and injects the URL of the wasm
 // binary — which is hosted on Cloudflare R2, not committed here (it is ~70 MB,
 // over the 25 MiB Workers Static Assets cap) — into the page's
@@ -30,7 +30,7 @@ const execFileAsync = promisify(execFile);
 
 const projectRoot = fileURLToPath(new URL('..', import.meta.url));
 const sourceRoot = path.resolve(projectRoot, process.env.RIGOR_SOURCE_DIR ?? 'upstream/rigor');
-const sourcePage = path.join(sourceRoot, 'plugins/rigor-playground/wasm/index.html');
+const sourcePage = path.join(sourceRoot, 'apps/rigor-playground/wasm/index.html');
 const outputDir = path.resolve(projectRoot, 'public/playground');
 const outputPage = path.join(outputDir, 'index.html');
 
