@@ -3,8 +3,8 @@ title: "ADR-54 — キャッシュのスリム化: definitions-blobの廃止、�
 description: "rigortype/rigor docs/adr/54-cache-slimming.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/54-cache-slimming.md"
 sourcePath: "docs/adr/54-cache-slimming.md"
-sourceSha: "b41db604800cc63ed22139b3251d2ef006c66984a118c15ff43a049b13071076"
-sourceCommit: "a8b1d0b5be985ab476a08e5c8a48400f61e476cc"
+sourceSha: "3fccf61fface6b3aa12bf3fa5404972ee0e291883a780168518e2c5802eaeebe"
+sourceCommit: "eb8e9996d113a1b5e1778d0988597c979814a219"
 translationStatus: "translated"
 sidebar:
   order: 4054
@@ -118,7 +118,7 @@ no-opにしていた。今日エントリー数がプロデューサーあたり
 | --- | --- | --- |
 | 定義blobを残しつつ圧縮する | 棄却 | WD1に支配される — 圧縮blobでもキャッシュ済みenvからの再計算より`Marshal.load`が遅く、依然としてディスクを支払う。 |
 | プロジェクト横断の共有キャッシュルート（`rbs.*`プロデューサーのためのXDG `~/.cache/rigor`） | 延期 | 安全（エントリーはコンテンツをキーとする。ADR-6が延期したのはマシン*横断*の共有のみ）だが、WD1/WD2後は重複が約1.7 MB × Nへ縮む — 第2のルート、そのロックの筋書き、読み取り専用 / エディタモードの相互作用に見合わない。env blobが桁違いに大きくなれば再評価する。 |
-| ADR-45の`fresh?`再ダイジェストのためのmtime高速パス | 棄却 | Mastodon規模の依存集合でウォーム約50〜150 msを節約するが、ADR-45が拠って立つダイジェスト厳格の健全性を犠牲にする。 |
+| ADR-45の`fresh?`再ダイジェストのためのmtime高速パス | 棄却 — **[ADR-87](87-null-build-floor.md)が優越** | Mastodon規模の依存集合でウォーム約50〜150 msを節約するが、ADR-45が拠って立つダイジェスト厳格の健全性を犠牲にする。ADR-87は、Rigorがその後オンボーディングしたはるかに大きいモノレポ依存集合でこの前提を再計測し、SHA-256を唯一の変更権威として保ったまま（statは再ハッシュするかどうかを決めるだけ）*stat-then-digest*の階層を採用するので、ADR-45が拠って立つ健全性は保たれる。 |
 | gem依存を介したzstd | 棄却 | zlibは標準ライブラリですでに13〜16%の範囲内である。圧縮gemは、ADR-6が独自フォーマットバックエンドを選んだ新しい依存なしの姿勢に反する。 |
 | クラスごとのディスクエントリー（ADR-7のslice 6-Dの再審） | 棄却のまま | ADR-7の計測は立つ: エントリーごとのディスクオープン + ロードがウォーム実行を`--no-cache`より遅くした。WD1はその階層を再シャーディングするのではなく丸ごと除去する。 |
 | シークインデックス付きの遅延blob（オフセットテーブル + 部分読み取り） | 棄却 | WD1と同じ先行ロードの問題を、厳密により多くのフォーマット機構で解く。 |

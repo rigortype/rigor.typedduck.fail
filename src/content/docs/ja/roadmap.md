@@ -3,9 +3,9 @@ title: "Rigorロードマップ"
 description: "rigortype/rigor docs/ROADMAP.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/ROADMAP.md"
 sourcePath: "docs/ROADMAP.md"
-sourceSha: "361c5a4a0287dcacbe2462730163280648613a3f663853fdd034cb835b676a3b"
-sourceCommit: "ca611a0fa195c049e8e56b0aa4a78145864c4d54"
-sourceDate: "2026-06-13T19:23:25+09:00"
+sourceSha: "cfd917fedcc086fbcd8dbc8a56be86cc6aa1b324b11e960455068f43611e8bf0"
+sourceCommit: "eb8e9996d113a1b5e1778d0988597c979814a219"
+sourceDate: "2026-07-15T12:33:37+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9050
@@ -73,7 +73,7 @@ v0.2.0のゲート条件 —— すべて**達成済み**:
 
 **リリース済みバージョンの詳細は`CHANGELOG.md`にある**（上記のマイルストーン表が各`§`を指す）: v0.1.18（CI環境サポート、[ADR-51](../adr/51-ci-diagnostic-output-formats/) —— 6つのCIネイティブな`--format`レンダリング + ランタイムCI自動検出）、v0.1.19（精度と信頼 + freeze前のプラグイン契約統合[ADR-60]）、v0.2.0（検出のティース[ADR-62] + 保護カバレッジ[ADR-63] + 互換性サーフェスの試行[ADR-50]）。
 
-**ADR-50の残り（v0.2.0以降）:**サポートラインモデル（WD5 —— 最新 + 1つ前のマイナー、→ post-1.0でPHPStanの`1.x`デフォルトブランチ）、`rigor upgrade`マイグレーションコマンド（WD7、具体的なBCが対象を与えるまで先送り）、そして次のメジャー境界の規律がキューに入ったときの最初のbleeding-edge `FEATURES`エントリー（オーバーレイは今日時点で空）。
+**ADR-50の残り（v0.2.0以降）:**バージョニングモデル + サポートライン（WD5 —— 1.0後はエディション方式: `bleeding_edge:` / ベースラインの背後にあるソフトブレイクのマイナー、ハードブレイクのメジャー;メンテナンスラインは直近の*ハード*なブレイクの一つ前のリリースにのみ存在する —— 1.0前は1つ前のマイナー、1.0後は1つ前のメジャー —— バックポートはオンデマンドであり保証されない）と、`rigor upgrade`マイグレーションコマンド（WD7、具体的なBCが対象を与えるまで先送り）。最初のbleeding-edge `FEATURES`エントリーが着地した（`reject-unparseable-signatures`、[PR #96](https://github.com/rigortype/rigor/pull/96)）;以降の規律は単一の機能エントリーとして着地する。
 
 ### v0.2.x — 高完成度の評価ライン
 
@@ -91,11 +91,11 @@ v0.2.9に**入らなかった**偽陽性に安全な推論精度の候補 ——
 
 M3 / メンバーシェイプの弧（[ADR-67](../adr/67-parameter-type-inference/)の`check`ウォーク配線 → [ADR-68](../adr/68-class-builder-folding/) → [ADR-66](../adr/66-discriminated-union-member-typing/)）は需要ゲート付きのままだ: ADR-67 WD2の本体内推論はスパイクされ、延期された（保護の天井は計測されたハードなフロアだ、[`20260706-adr67-wd2-in-body-inference-design-spike.md`](../notes/20260706-adr67-wd2-in-body-inference-design-spike/)を参照）、そして`check`ウォーク配線の価値は不透明だ。
 
-**v0.3.0 —— 非推奨の一掃 + パフォーマンスのマイナー（破壊しうる最初のカット）**。Semverの`0.x`はマイナーが破壊することを許し、あらゆるハード非推奨は`0.2.x`を通じてエイリアス/警告の猶予期間とともにここでの削除が予定されていた:
+**v0.3.0 —— 非推奨の一掃 + パフォーマンスのマイナー（破壊しうる最初のカット）**。Semverの`0.x`はマイナーが破壊することを許し、あらゆるハード非推奨は`0.2.x`を通じてエイリアス/警告の猶予期間とともにここでの削除が予定されていた。**3つすべてDONEだ**（非推奨一掃バッチ、masterに着地済み）:
 
-1. **CLIの動詞サブコマンドを削除** —— `rigor docs list` / `path`と`rigor skill list` / `print` / `path`（フラグ`--list` / `--path` / `--print`が正規）。`cli/docs_command.rb` + `cli/skill_command.rb`の`LEGACY_VERB_REMOVAL = "v0.3.0"`;下記の §「Scheduled CLI deprecations」を参照。
-2. **`type_specifier`プラグインフックを削除** —— 非推奨エイリアスが落ち、`narrowing_facts`動詞が唯一の綴りになる（[ADR-80](../adr/80-narrowing-facts-rename/)、`plugin/base.rb`）。エイリアス削除は、ADR-80の持ち越し——内部リーダー`type_specifiers`と`rigor plugins --capabilities`のJSON `type_specifier_methods`キー——を再検討するときでもある（別個の改名判断）。
-3. **`parallel_tests`依存を削除** —— `binpacker`が主要なテストランナーだ（PR #27）;gem依存 + `test-parallel` / `spec_parallel`ターゲットを削除する。
+1. **CLIの動詞サブコマンドを削除** —— `rigor docs list` / `path`と`rigor skill list` / `print` / `path`（フラグ`--list` / `--path` / `--print`が正規）。削除された動詞は今や未知のdoc / skill名として解決される;下記の §「CLI deprecations」を参照。
+2. **`type_specifier`プラグインフックを削除** —— 非推奨エイリアスは消え（今やクラス定義時に`NoMethodError`をraiseする）、`narrowing_facts`が唯一の綴りになる（[ADR-80](../adr/80-narrowing-facts-rename/)）。ADR-80の持ち越しは**削除時に、完全な一貫性を優先する形で決定された**: リーダー`type_specifiers` → `narrowing_facts_rules`、エンジン消費者`#type_specifier_facts` → `#narrowing_facts_for`、そして`rigor plugins --capabilities`のJSONキー`type_specifier_methods` → `narrowing_facts_methods`。このキーはv1.0で凍結される公開語彙（[ADR-50](../adr/50-release-engineering-and-stability-strategy/) WD1）なので、破壊的なマイナーが誤名を修正する最後の窓だった。
+3. **`parallel_tests`依存を削除** —— `binpacker`がテストランナーだ（PR #27）;gem依存、`make test-parallel`、そして`rake spec_parallel`タスクは消えた。
 
 削除と並んで、**クリーンに出荷できるだけのパフォーマンス最適化**:
 
@@ -104,11 +104,11 @@ M3 / メンバーシェイプの弧（[ADR-67](../adr/67-parameter-type-inferenc
 
 削除は`docs/compatibility.md`の更新と`CHANGELOG.md`の移行ノートとともに着地しなければならない;パフォーマンス作業がアロケーションを動かすにつれて`bench/baseline.json`をCI計測値から再較正する。[ADR-50](../adr/50-release-engineering-and-stability-strategy/)のv1.0ハードフリーズはまだ先だ——`0.3.0`は非推奨バックログを一掃しパフォーマンスを蓄える通常の`0.x`マイナーであって、フリーズではない。
 
-### Scheduled CLI deprecations —— `docs` / `skill`の動詞サブコマンド → フラグ（v0.3.0で削除）
+### CLI deprecations —— `docs` / `skill`の動詞サブコマンド → フラグ（v0.3.0でREMOVED）
 
 `rigor docs`と`rigor skill`は、発見系のサブコマンドをフラグへ移動しました。これにより位置スロットが曖昧さなくドキュメント／スキルの*名前*になります（旧来の`list` / `path` / `print`動詞はそのスロットを共有しており、同名のページをシャドウしかねませんでした）。現在の正規形:
 
-| アクション | 正規形 | 非推奨（引き続き動作・警告あり） |
+| アクション | 正規形 | 削除された綴り（v0.3.0） |
 | --- | --- | --- |
 | docsの索引 / 一覧 | `rigor docs` · `rigor docs --list [category]` | `rigor docs list` |
 | docsのパス | `rigor docs --path <name>` | `rigor docs path <name>` |
@@ -118,7 +118,7 @@ M3 / メンバーシェイプの弧（[ADR-67](../adr/67-parameter-type-inferenc
 
 `rigor docs`はカテゴリー修飾されたアドレッシング（`handbook/03-narrowing`）も得て、いまやマニュアルと並んで**ハンドブック**をバンドルします。`rigor skill describe` / `--describe`（およびトップレベルの`rigor describe`）は変わりません——`describe`は引数なしのアクションであって名前スロットを取る動詞ではないため、非推奨にはなりません。
 
-非推奨の動詞綴りは1行のstderr通知を出力し、**v0.3.0で削除されます**（現在の`0.2.x`評価ラインの次のマイナーリリース）。それまではどちらの綴りも動作します。バンドルされたジェネレータとドキュメントはすでに正規形のみを出力するため、SKILL駆動のUXがこの通知を引き起こすことはありません。フラグの語彙は[ADR-50](../adr/50-release-engineering-and-stability-strategy/) WD1のもとv1.0で凍結されます。[ADR-74](../adr/74-offline-doc-access-and-llms-txt/)（docsの文法＋ハンドブックのバンドル）と[ADR-73](../adr/73-skill-driven-user-experience/)（skillの文法）を改訂します。
+非推奨の動詞綴りは`0.2.x`を通じてstderrで警告し、**v0.3.0で削除されます**: 位置スロットは名前なので、削除された動詞は今や未知のdoc / skillとして解決されます。バンドルされたジェネレータとドキュメントはもともと正規形しか出力していなかったため、SKILL駆動のUXはこの削除の影響を受けません。フラグの語彙は[ADR-50](../adr/50-release-engineering-and-stability-strategy/) WD1のもとv1.0で凍結されます。[ADR-74](../adr/74-offline-doc-access-and-llms-txt/)（docsの文法＋ハンドブックのバンドル）と[ADR-73](../adr/73-skill-driven-user-experience/)（skillの文法）を改訂します。
 
 ### 互換性を壊さない強化バックログ（0.2.x） — BCリスクによる分類
 
@@ -168,13 +168,13 @@ v0.1.x作業を通じて浮かび上がった項目で、次の実装者がフ�
 
 **残り（すべて非ゲート、需要駆動のエルゴノミクス;各々が独自の振る舞いを保存するスライス——着地前に各々を検証する）:**
 
-1. **`dynamic_return`の一般化**（オプションの`methods:`ゲート／動的レシーバー述語）——脱出弁コンシューマー（rspecの`let`バインディング、sorbet、activerecord、activestorage）を`flow_contribution_for`から移行するためのパス。太いフックはサポートされた非推奨の弁であり、それらのコンシューマーは変更なく動作する;これは狭いサーフェスを広げるだけである。
+1. **`dynamic_return`の一般化 + `flow_contribution_for`の廃止 —— [ADR-52](../adr/52-compiled-plugin-contribution-dispatch/)経由でDONE**。これはこのパスのADR-37のスケッチだった;ADR-52がそれを構築し（ランタイムの`methods:` / `receivers:` / `file_methods:`ゲート、スライス2〜5a）、その後太い`flow_contribution_for`フックを**削除した**（スライス5b、意図的なpre-1.0のBC破壊 —— 今それを定義するとロード時にraiseする）。5つの脱出弁コンシューマー（rspecの`let`バインディング、sorbet、activerecord、activestorage、rspec-rails）すべてが狭いゲート付きサーフェスへ移行済みだ。もうオープンではない。
 2. **[ADR-38](../adr/38-additional-initializers/)ブロック形式**の`additional_initializers`（ivar書き込みが`DefNode`ではなく呼び出しブロック内に存在するrspecの`before`／`let`）——ivar書き込み収集器が宣言された呼び出しブロックへ降りていく必要がある。
 3. **インターフェースごとのテストハーネス**（`NodeRuleTest` / `DynamicReturnTest`）——プラグイン作成者が必要とするまで延期。
 4. **[ADR-39](../adr/39-plugin-target-library-invocation/)のフォローオン**——スライス3（プロジェクト独自の語形変化のための`config/initializers/inflections.rb`の静的取り込み;デフォルトのASルールセットが一般的なケースをカバー）、最大忠実度の正確なgemバージョンロード（ターゲットの`Gemfile.lock`に固定された`process`／`ruby_box`ワーカー）、`rigor-rspec-rails`のRackカタログを`Isolation`経由でルーティングすること、そして上流の`Ruby::Box` VM segfaultが修正され次第の`ruby_box`の再有効化。
 5. **`Source::Literals`採用の残り**——assocキーの*名前一致*イディオム（`el.key.is_a?(SymbolNode) && el.key.unescaped == "x"`）は値抽出ではなくキー比較なので、4ヘルパーグリッドの外に位置する;専用の`symbol_named?(node, name)`ヘルパーがそれを吸収できるが、独自のスライスである。
 
-脱出弁コンシューマー（sorbet / activerecord / activestorage / rspec-let）、dry-rb/graphqlの純粋なFactProviderプラグイン（移行するものなし）、hanami/web（ADR-28 ProtocolContractChecker——別の共通ベース軸）は、**node_rule／スライス2移行のスコープ外**であり、現状のまま留まる。
+dry-rb/graphqlの純粋なFactProviderプラグイン（移行するものなし）とhanami/web（ADR-28 ProtocolContractChecker——別の共通ベース軸）は、**node_rule／スライス2移行のスコープ外**であり、現状のまま留まる。（旧脱出弁コンシューマー——sorbet / activerecord / activestorage / rspec-let——は上記項目1のADR-52によって`flow_contribution_for`から移行済みだ。）
 
 ### 型言語 / エンジン
 - **ナローイング駆動の節到達可能性（ADR-47） —— WD1 + WD2 + WD3a着地 + WD4スイープ済み（v0.1.17）;WD3b残り**。デッドな`case`/`when`節に対する新しい`flow.unreachable-clause`診断で、Elixir v1.20の冗長節報告に触発された（レビューノート: [`docs/notes/20260604-elixir-v1.20-type-system-rigor-review.md`](../notes/20260604-elixir-v1.20-type-system-rigor-review/) § 4-2）。`if`/`unless`到達可能性ファミリーの3人目（`flow.unreachable-branch`のリテラル限定 + `flow.always-truthy-condition`の推論された定数）を`case`に拡張したもの —— `case`はエンジンが既に絞り込んでいる: `eval_case_when_branches`が`Narrowing.case_when_scopes`を介して`falsey_scope`を`when`分岐にまたいで通すため、節が到達不能になるのは、計算された`body_scope`が対象を`bot`に絞り込む（節ごとのdisjointness、互いに素）か、入口の`falsey_scope`が既に`bot`な対象を持つ（先行網羅）ときちょうどである —— これはElixirの`dynamic()`の*compatibility*テストが使うのと同じdisjointnessシグナルであり、Rigorが既に持つキャリア代数で表現できる。**WD1 + WD2着地**（`UnreachableClauseCollector` + `RULE_UNREACHABLE_CLAUSE`）: ナローイングされた対象が`Type::Bot`となる`case <local>`に対する`when String` / `when MyClass`を、`scope_index`からエンジン自身の節ごとの`body_scope`を読み取って処理（ダイバージェンスなし）;FPエンベロープ強制（対象は絞り込まれなければならない、`Dynamic`/既に`Bot`では発火しない、クラス/モジュール定数の`when`限定、ループ/ブロックをスキップ）;Rigor自身の`lib`/`plugins`/`examples`でクリーン;lenient/balancedで`:info`、strictで`:warning`を出荷。WD2は先行網羅対disjointメッセージ精度（各節の最初の条件ノードにエンジンが記録する入口`falsey_scope`で区別）と、防御的な`raise`/`fail`/`throw`ガードを除外するデッドな末尾`else`チェックを追加した。WD3aはベアクラスパターン限定（`in C` / `in C => x`、純粋な`is_a?`、`when C`と同様に`Narrowing.case_when_scopes`経由で健全にナローイング）でルールを`case`/`in`に拡張した;非構造化/値/変数パターンは保守的なまま。WD4は16のOSSコーパスをスイープした（[ノート](../notes/20260605-adr47-unreachable-clause-corpus-sweep/)）—— 発火ゼロ、FPゼロ;空虚なパスはより大きなデフォルトの根拠にならないので、balancedは`:info`のまま（strictは`:warning`）、昇格は実際の発火を待つ。**残り:** WD3b（非構造化 / 値 / 変数キャッチオールパターン網羅性、先送りされた[ADR-36](../adr/36-mangrove-enum-nested-class-emission/)の`is_a?`が隣接 —— アドホックに推論しないこと;ゼロ発火スイープで優先度が下がった）。`flow.always-truthy-condition`の偽陽性エンベロープをそのまま再利用し、評価時に収集することでルールとボディ型付けが同一のナローイングを読む。strong arrowsによる健全性は対比のために記録、採用はしない（Rigorは[ADR-5](../adr/5-robustness-principle/)のもとで意図的に不健全なまま）。[ADR-47](../adr/47-narrowing-driven-clause-reachability/)を参照。
@@ -245,7 +245,7 @@ v0.1.17パフォーマンスサイクル。出荷済みの詳細は`CHANGELOG.md
 
 ### パフォーマンス / スケーラビリティ — キャッシュのスキーママーカーABIゲート + コンパクションのハードニング（[PR #57](https://github.com/rigortype/rigor/pull/57)、ブランチ`cache/schema-marker-and-compaction-hardening`）
 
-[2026-07-07の引き継ぎ監査](../notes/20260707-cache-mechanism-audit-sakana/)から再計画され、[2026-07-07の計画](../notes/20260707-cache-hardening-plan/)に従って実行されたハードニングスライス（フェーズ1〜6すべて着地）: `Rigor::VERSION`をキャッシュの`schema_version.txt`マーカーへ畳み込み（ペイロードABIゲート）、`ensure_schema_version!`をブール返却にして、読み取り専用ストア（LSP / エディターモード）が陳腐化または読めないマーカーでディスクを信頼する代わりにメモのみへ降格するようにし、`fetch_or_compute` / `fetch_or_validate`にまたがる書き込み失敗のrescueを統一し（`try_write_entry`）、`atomically_replace`にensureクリーンアップを追加し、`evict!`の陳腐化した一時ファイルのクリーンアップ + プロジェクト全体の世代上限を`max_bytes: nil`のもとでも実行する。**残り（需要ゲート付き、低優先度）:**
+[2026-07-07の引き継ぎ監査](../notes/20260707-cache-mechanism-audit-sakana/)から再計画され、[2026-07-07の計画](../notes/20260707-cache-hardening-plan/)に従って実行されたハードニングスライス（フェーズ1〜6すべて着地）: `Rigor::VERSION`をキャッシュの`schema_version.txt`マーカーへ畳み込み（ペイロードABIゲート）、`ensure_schema_version!`をブール返却にして、読み取り専用ストア（LSP / エディタモード）が陳腐化または読めないマーカーでディスクを信頼する代わりにメモのみへ降格するようにし、`fetch_or_compute` / `fetch_or_validate`にまたがる書き込み失敗のrescueを統一し（`try_write_entry`）、`atomically_replace`にensureクリーンアップを追加し、`evict!`の陳腐化した一時ファイルのクリーンアップ + プロジェクト全体の世代上限を`max_bytes: nil`のもとでも実行する。**残り（需要ゲート付き、低優先度）:**
 
 - ハードコードされた`Store::GENERATION_CAP_BY_PRODUCER`許可リストを、プロデューサーが宣言する`generation_cap:`メタデータに置き換え、新しいプロジェクト全体プロデューサーが黙って上限なしのまま残されないようにする。
 - `analysis.run-diagnostics`の上限16を、実際のマルチ呼び出しパス使用に対して検証する —— 多くの異なるパス集合を回すワークフローは、上限が想定するより速くライブ世代を蓄積しうる。
@@ -304,6 +304,7 @@ v0.1.17パフォーマンスサイクル。出荷済みの詳細は`CHANGELOG.md
 - ~~**インメモリ`Analysis::Runner.run_source`エントリーポイント（パブリック + テスト専用）**。~~ 着地済み —— 上記（b）を参照。
 
 ### Sig-gen（ADR-14）
+- **LANDED —— sig-genはパースできないRBSを出力できなくなった（出力妥当性ガード）**。 `rbs`自身が拒否するRBSを出荷していたバグが2つあった: 非識別子のレコードキー（`{ :"data-contrast" => T }`、ADR-82の弧で修正済み）と、括弧の前にレンダリングされる`&block`コンストラクタパラメータ（[PR #51](https://github.com/rigortype/rigor/pull/51)）。どちらも*下流*で、汚染された`sig/`ツリーとして発見された —— そしてその結果は、パースできない`.rbs`が隔離された（型が削除された）ファイルになり、`reject-unparseable-signatures`のもとではビルド失敗になった時点で先鋭化した。今やレンダリングされるすべての行が、ジェネレータの単一の候補構築のボトルネックでパースされる（そのためガードは`--print` / `--diff` / `--write` / MCPを一度にカバーする）: `rbs`が拒否する行はスキップされ（`sig.skipped.unrenderable-rbs`）、出力されるのではなく、それが実際にそうであるRigorのレンダリング欠陥としてstderrに報告される。ライターは完全に組み立てられたファイルに対する2つ目のガードを保つ —— 不正なマージのつぎはぎは書き込まれず拒否されるので、そのファイル内のユーザー自身の手書きシグネチャは生き残る —— そして`--write`は要求された書き込みが拒否されたとき非ゼロで終了する。スキップ（失敗ではなく）がジェネレータ側のデフォルトだ: これは、病的なメソッドを1つ持つプロジェクトでもsig-genを有用に保つ。Rigor自身の`lib` + 5つのサーベイプロジェクトにわたってクリーンと検証済み。
 - **`--params=observed` attr_reader / attr_writer / attr_accessorの`initialize`観測からの推論 — 着地済み**（コミット`f2aa8de`、v0.1.9サイクル）。`rigor sig-gen --params=observed --write`は、`def initialize`の`@ivar = param`代入経由で観測された呼び出しサイト引数型を`attr_reader` / `attr_accessor`メソッドに伝播するようになり、`:untyped_return`としてスキップされる代わりに具体的なユニオン（union、合併型とも）戻り値型を受け取る。実装: `build_observed_ivar_map` → `collect_init_ivar_obs` → `ivar_obs_from_initialize`（+ `build_ivar_obs_type_map` / `collect_param_obs_types`）。新しいロジックはすべて`Generator`に留まり`ScopeIndexer`には触れない。TypeProfコンパチビリティスペック追加（`spec/rigor/sig_gen/typeprof_compat_spec.rb`）。
 - **`--params=observed`後の残りギャップ**（需要駆動フォローアップ）: `initialize`以外のソース（DB読み込み、設定、副作用）からivarが設定される`attr_reader`は依然`:untyped_return`にフォールバック;修正は手書きのsigアノテーション。untyped受信者への深いチェーンは`rbs collection install` / ADR-10が必要。動的メソッド（`define_method`、DSLマクロ）はプロジェクトプラグインが必要。
 - **`update_existing`がまだ兄弟の親 / 子クラスブロックを畳み込まない**。ギャップ（c）のツリービルダー修正は`Writer#render_new_file`（新規作成パス）に存在する。既存のターゲットファイルを更新する際、`merge_class`は依然として各候補の`class_name`を独立して解決する — フラット兄弟レイアウトはフラットなまま。既存のファイルをネスト型レイアウトに再フローするには既存の宣言ツリーをパースして書き換える必要があり、フォローアップ修正のスコープ外。正準のネスト型レイアウトを望むユーザーはゼロから再生成する（ターゲットsigファイルを削除して再実行）。

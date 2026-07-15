@@ -3,8 +3,8 @@ title: "`rigor sig-gen`でRBSを生成する"
 description: "rigortype/rigor docs/handbook/11-sig-gen.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/11-sig-gen.md"
 sourcePath: "docs/handbook/11-sig-gen.md"
-sourceSha: "1225770be69021a7117d23a8ded933784a4a1ea639756fe27d87ad04c4370b88"
-sourceCommit: "106b93dd777b71aeef323dce1e4087c226c8ce37"
+sourceSha: "99fa474ccbfa338d57afbb687e4193d8d4c8826652d07ca66e45ecd7d327bb1a"
+sourceCommit: "eb8e9996d113a1b5e1778d0988597c979814a219"
 translationStatus: "translated"
 sidebar:
   order: 1011
@@ -75,11 +75,12 @@ end
 | `equivalent` | 推論された戻り値が宣言された戻り値の真の部分型ではない（同一・より広い・無関係のいずれか）ので、締めるものがない。サイレントにスキップ。 |
 | `skipped` | 以下のいずれかの理由で対象外。 |
 
-3つの`sig.skipped.*`理由は:
+`sig.skipped.*`理由は:
 
 - `sig.skipped.complex-shape`: メソッドが任意・rest・キーワード・ブロック・転送パラメータを持つ。MVPの本体型付けパスは必須位置パラメータしか扱えない;複雑な形状は将来のスライス（slice）を必要とする。
 - `sig.skipped.untyped-return`: メソッド本体の最終式が`Dynamic[top]`として型付けされる。`untyped`を絞り込みとして発行することは助けではなくノイズになる。
 - `sig.skipped.user-authored`: `--overwrite`が設定されておらず、メソッドの既存のRBS宣言を置き換える必要がある。
+- `sig.skipped.unrenderable-rbs`: このメソッドに対してRigorがレンダリングしたシグネチャがRBSとしてパースできない。これは**Rigor自身のバグ**であり、あなたのコードの性質ではない——生成された行はすべて出力される前にパースされ、`rbs`が拒否した行は書き出される代わりに破棄される。パースできない`.rbs`は`rigor check`によって*丸ごと*隔離されるため、1つの不正な行がファイル内の他のすべての型を道連れにしてしまうからだ。他のシグネチャには影響しない;スキップされたメソッドはstderrに報告され、私たちに報告する価値がある。
 
 3つの`sig.generated.*`識別子（`sig.generated.new-file` / `new-method` / `tighter-return`）は`--format=json`の下でJSONフィールドとして発行されるため、CIゲートの消費者がこれらをルーティングできます。
 

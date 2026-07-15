@@ -3,8 +3,8 @@ title: "CLIコマンドリファレンス"
 description: "rigortype/rigor docs/manual/02-cli-reference.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/02-cli-reference.md"
 sourcePath: "docs/manual/02-cli-reference.md"
-sourceSha: "e20ae6f3ab7dabd95be5d4295e1c97289cbea95986cf2f1e3736f0d3e7ea3bf9"
-sourceCommit: "4c03f62d04f594030bd79aa00f3a5978e0457d4c"
+sourceSha: "b3b992543107c9a41efd8842bbf07d0e57cbb98b4c71793ef919dbe7f78a6ee7"
+sourceCommit: "eb8e9996d113a1b5e1778d0988597c979814a219"
 sourceDate: "2026-06-21T05:49:38+09:00"
 translationStatus: "translated"
 sidebar:
@@ -45,12 +45,12 @@ rigor check [paths...]
 | `--cache-stats` | 終了時にオンディスクキャッシュのインベントリを表示する。 |
 | `--[no-]stats` | 実行サマリー（ファイル数、クラス数、メモリ、経過時間）をstderrに表示する。デフォルトはオン。 |
 | `--coverage` | 型精度カバレッジのブロックを出力に追加する（`--format json`では`coverage`オブジェクト、テキストモードでは1行のサマリー）。デフォルトではオフ。解析対象ファイルに対する2度目の精度パスであり、[`rigor coverage`](#rigor-coverage)が実行するのと同じスキャンなので、オプトインである。 |
-| `--workers=N` | `N`個の並列ワーカープロセスに解析を分散する（現在はfork方式のプール、ADR-15）。デフォルトは`0`（逐次処理）。 |
+| `--workers=N` | `N`個の並列ワーカープロセスに解析を分散する（現在はfork方式のプール、ADR-15）。デフォルトは`0`（逐次処理）。フル実行と同様に`--incremental`の再チェックにも適用される。 |
 | `--baseline=PATH` | 設定を上書きしてベースライン（baseline）ファイルを読み込む。 |
 | `--no-baseline` | 設定されたベースラインを無視する。 |
 | `--baseline-strict` | ベースラインのドリフトで実行を失敗させる。CIゲートとして使用。 |
 | `--treat-all-as-inline-rbs` | `rigor-rbs-inline`を`require_magic_comment: false`で強制ロードし、解析されるすべてのファイルを`# rbs_inline: enabled`コメントなしでインラインRBSとして扱う（ADR-32）。 |
-| `--bleeding-edge[=ids]` | この実行に対してbleeding-edgeオーバーレイを採用し、設定された[`bleeding_edge:`](03-configuration/)の選択を上書きする（ADR-50 § WD2）。引数なしではキューに積まれたすべてのfeatureを採用し、`--bleeding-edge=a,b`は名指ししたfeature idのみを採用する。本リリースではオーバーレイは空なので、現状ノーオペである。[`rigor show-bleedingedge`](#rigor-show-bleedingedge)で検査する。 |
+| `--bleeding-edge[=ids]` | この実行に対してbleeding-edgeオーバーレイを採用し、設定された[`bleeding_edge:`](03-configuration/)の選択を上書きする（ADR-50 § WD2）。引数なしではキューに積まれたすべてのfeatureを採用し、`--bleeding-edge=a,b`は名指ししたfeature idのみを採用する。[`rigor show-bleedingedge`](#rigor-show-bleedingedge)で検査する。 |
 | `--no-bleeding-edge` | この実行に対して設定された`bleeding_edge:`の選択を無視する（何も採用しない）。 |
 | `--tmp-file=PATH --instead-of=PATH` | エディタモード: `--tmp-file`のバッファを使って`PATH`を解析する。両方必須。 |
 
@@ -146,6 +146,8 @@ rigor sig-gen [paths]
 | `--observe=PATH` | コールサイト観察のために`PATH`をスキャンする。繰り返し可能。 |
 | `--new-files` / `--new-methods` / `--tighter-returns` | その分類のみ出力する。 |
 | `--format=text\|json` | 出力形式。 |
+
+各シグネチャは出力される前にパースされます。生成されたRBSがパースできないメソッドは**スキップ**され（`sig.skipped.unrenderable-rbs`）、書き出される代わりにstderrへ報告されます——パースできない`.rbs`は`rigor check`によって*丸ごと*隔離されるため、1つの不正な行がファイル内の他のすべての型を道連れにしてしまうからです。`--write`では、組み立てたコンテンツがパースできないファイルは**拒否され**（既存のファイルは変更されないまま残ります）、コマンドは`1`で終了します。書き込みを求めたのに得られなかった、というわけです。このようなスキップはあなたのコードではなくRigorのRBSレンダリングのバグです——報告してください。
 
 ## `rigor lsp`
 
@@ -302,7 +304,7 @@ rigor skill [<name>] [--full <name>] [--path <name>] [--list] [--describe]
 | `--path <name>` | 1行の絶対`SKILL.md`パスを出力。ファイル読み取りツールへの入力に適する。 |
 | `--describe` | プロジェクトの状態（設定 / ベースライン / `sig/` / CI、存在の有無のみで、`rigor check`は決して実行しない）をプローブし、次に実行すべきスキルを推奨する。`describe`とも書け、トップレベルでは後述の[`rigor describe`](#rigor-describe)として前面に出してある。 |
 
-`rigor skill list` / `print <name>` / `path <name>`という動詞表記は**非推奨**です（stderrに1行の通知を出し、v0.3.0で削除）——上記の形式を使ってください。`describe` / `--describe`は引き続き第一級です。
+`rigor skill list` / `print <name>` / `path <name>`という動詞表記は**v0.3.0で削除されました**——位置引数はスキル名を表すスロットなので、これらは今や未知のスキルとして読まれます。上記の形式を使ってください。`describe` / `--describe`は引き続き第一級です。
 
 ## `rigor describe`
 
@@ -331,7 +333,7 @@ rigor docs [<name>] [--path <name>] [--list [<category>]]
 | `--path <name>` | ドキュメントの絶対パスを1行で出力する。ファイル読み取りツールへの入力に適する。 |
 | `--list [<category>]` | 同梱されたすべてのドキュメントの表（名前＋絶対パス）。`manual`または`handbook`で絞り込める。 |
 
-`rigor docs list` / `path <name>`という動詞表記は**非推奨**です（stderrに1行の通知を出し、v0.3.0で削除）——`--list` / `--path`を使ってください。
+`rigor docs list` / `path <name>`という動詞表記は**v0.3.0で削除されました**——位置引数はドキュメント名を表すスロットなので、これらは今や未知のドキュメントとして読まれます。`--list` / `--path`を使ってください。
 
 索引の正典となるWeb版は<https://rigor.typedduck.fail/llms.txt>です。`rigor docs`はインストール済みのgemから同じページをHTTPリクエストなしで提供します。
 
@@ -348,7 +350,13 @@ rigor show-bleedingedge [--config PATH] [--format text|json]
 | `--config PATH` | 自動探索の代わりにこの`.rigor.yml`を使用する。 |
 | `--format text\|json` | 出力形式。デフォルトは`text`。 |
 
-オーバーレイは**このリリースでは空**です。機構は配線済みで準備が整っていますが、まだどの規律もメジャーに向けてキューに積まれていないため、コマンドは現在空のセットを報告します。機能がキューに積まれると、その安定したid、それが課す重要度、そしてあなたの設定がそれを採用しているかどうかとともに、ここに現れます。ブリーディングエッジが安定性モデルにどう収まるかは[`docs/compatibility.md`](../../compatibility/)を参照してください。
+キューに積まれた各機能は、その安定したid、それが課す重要度、そしてあなたの設定がそれを採用しているかどうかとともに現れます。ブリーディングエッジが安定性モデルにどう収まるかは[`docs/compatibility.md`](../../compatibility/)を参照してください。
+
+現在キューに積まれているもの:
+
+| Feature id | 変わる内容 |
+| --- | --- |
+| `reject-unparseable-signatures` | `signature_paths:`配下のパースできない`.rbs`は、警告付きでスキップされる代わりに**実行を失敗させます**（`rbs.coverage.quarantined-signature` → `error`）。 |
 
 ## `rigor doctor`
 
@@ -405,6 +413,9 @@ rigor upgrade
 | `RIGOR_RACTOR_WORKERS=N` | 並列解析のワーカー数。優先順位ではCLIフラグと設定キーの間に位置する: `--workers=N` > `RIGOR_RACTOR_WORKERS` > `parallel.workers:` > `0`（逐次）。 |
 | `RIGOR_POOL_BACKEND=ractor` | アクティブなforkベースのプールの代わりに、（デフォルトでオフの）Ractorワーカープールに戻す（[ADR-15](../../adr/15-ractor-concurrency/)）。非ゼロのワーカー数のときのみ関係する;サポートされるバックエンドはforkプールである。 |
 | `RIGOR_PLUGIN_ISOLATION=none\|process\|ruby_box` | プラグインがターゲットライブラリへ行う直接呼び出しをどう隔離するか。デフォルトは`process`。[プラグインの使用 § 隔離戦略](07-plugins/)を参照。`RIGOR_BOX`は`ruby_box`のレガシーエイリアス。 |
+| `RIGOR_STRICT_VALIDATION=1` | 1回の実行に対してフルコンテンツのキャッシュ検証を強制する（`cache.validation: digest`と同じで、それより優先する）——各ファイルのstatメタデータを信用する代わりに、その内容を毎回再ハッシュする。ファイルシステムのタイムスタンプやinode番号が信用できない場合に使用する。[キャッシュ § ファイルの変更確認方法](12-caching/)を参照。 |
+| `RIGOR_DISABLE_YJIT=1` | Rigorの遅延YJIT有効化をオプトアウトする。Rigorは長時間の`check` / `coverage`実行の途中でYJITを有効化するので、短い実行はJITのウォームアップコストを一切払わない;この変数はYJITを完全にオフのままにする。診断結果とアロケーションはどちらの場合も同一で、影響は実行時間のみ。 |
+| `RIGOR_YJIT_DEADLINE=<seconds>` | 上級者向け: 遅延YJITが有効化されるまでに実行がどれだけ続く必要があるかを調整する（デフォルト`5.0`）。実行が長くYJITをもっと早く欲しいなら下げ、短い実行を保護したいなら上げる。`RIGOR_DISABLE_YJIT=1`が設定されているか、YJITが利用できない場合は無視される。 |
 
 さらに3つの変数（`RIGOR_BUDGET_TRACE`、`RIGOR_HEAP_PROFILE`、`RIGOR_HEAP_TRACE`）は、Rigor自身の推論カットオフとメモリに関する開発者向けの診断を有効にします。[トラブルシューティング § 高度な診断](13-troubleshooting/#高度な診断)を参照してください。
 

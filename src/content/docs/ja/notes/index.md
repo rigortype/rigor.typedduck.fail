@@ -3,8 +3,8 @@ title: "リサーチ・サーベイノート"
 description: "rigortype/rigor docs/notes/README.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/README.md"
 sourcePath: "docs/notes/README.md"
-sourceSha: "da83f3b83f9c69f82a3d53a5d10d5f0210f5a9bf0d6bf116adf1f6ba0c20fb8f"
-sourceCommit: "92a275c30b379c62ee3593f6c727a195565c146f"
+sourceSha: "765372eae396d3dd0b75b98e9299816b8bedf72b2d077c41f409922e64c4ad5d"
+sourceCommit: "eb8e9996d113a1b5e1778d0988597c979814a219"
 translationStatus: "translated"
 sidebar:
   order: 6000
@@ -30,6 +30,7 @@ sidebar:
 | 2026-05-30 | [Real Sorbet/Tapioca app survey — strap + dependabot-core](20260530-sorbet-real-app-survey/) |
 | 2026-05-31 | [TypeProf internals survey — inference logic + internal type representation](20260531-typeprof-internals-survey/) |
 | 2026-06-03 | [PHPStan内部の型演算（TypeCombinator / TypeUtils / 二項演算評価）とRigorの比較](20260603-phpstan-type-algebra-comparison/) |
+| 2026-07-15 | [PHPStan `src/Rules`全ルール分類とRigor再実装価値の再評価](20260715-phpstan-rules-survey-rigor-reevaluation/) |
 
 ## 型カバレッジ監査
 
@@ -81,7 +82,7 @@ sidebar:
 | 2026-06-01 | [「Revenge of the Types」（Armin Ronacher） — ランタイム × 型チェッカー横断考察](20260601-revenge-of-the-types-runtime-checker-survey/) |
 | 2026-06-01 | [「型システムポエム」（myuon） — Rigor観点考察](20260601-type-system-poem-rigor-review/) |
 | 2026-06-04 | [Elixir v1.20の漸進的集合論型システム — Rigor観点考察](20260604-elixir-v1.20-type-system-rigor-review/) |
-| 2026-07-12 | [Ren et al. 2013「The Ruby Type Checker (rtc)」— Rigor観点考察](20260712-ren-2013-ruby-type-checker-rigor-review/) |
+| 2026-07-12 | [Ren et al. 2013「The Ruby Type Checker（rtc）」— Rigor観点考察](20260712-ren-2013-ruby-type-checker-rigor-review/) |
 
 ## インフラストラクチャ・upstream
 

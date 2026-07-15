@@ -3,8 +3,8 @@ title: "診断ポリシー"
 description: "rigortype/rigor docs/type-specification/diagnostic-policy.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/type-specification/diagnostic-policy.md"
 sourcePath: "docs/type-specification/diagnostic-policy.md"
-sourceSha: "f913c2d5957e55256e218981ac21e46ab185da385a045086a6426fb4007cb281"
-sourceCommit: "73d7a0a2d4628b0614948fe2fa043945b45d5de4"
+sourceSha: "3d5af57745ef55d538b87a1306e7210b8d7692ad29d5d918e5e8de27d9ef7b7c"
+sourceCommit: "eb8e9996d113a1b5e1778d0988597c979814a219"
 translationStatus: "translated"
 sidebar:
   order: 2050
@@ -46,11 +46,11 @@ Rigorは静かな拡幅よりも精密な診断を優先すべきです（SHOULD
 | `call.*` | メソッド呼び出しサイトの診断: `call.undefined-method`（メソッドがレシーバーの静的に既知のクラスに定義されていない）、`call.self-undefined-method`（暗黙的self呼び出しが、確実にクローズドな単独クラス上のどのメソッドにも解決しない、[ADR-24](../../adr/24-self-method-call-resolution/)スライス4 —— エンジン自身の解決ミスを消費し、ファイル内メソッドサーフェスが完全な単独プロジェクトクラスに限定、外部コーパスFPゲート待ちで`:off`で出荷）、`call.unresolved-toplevel`（トップレベルの暗黙的self呼び出しが、同一ファイルの`def`・`pre_eval:`パッチ・`Kernel` / `Object`メソッドのいずれにも解決しない、[ADR-34](../../adr/34-toplevel-unresolved-self-call-default/)）、`call.wrong-arity`（位置引数の数がどのシグネチャにもマッチしない）、`call.argument-type-mismatch`（引数がパラメータ契約を証明可能に違反する）、`call.possible-nil-receiver`（レシーバーが`T \| nil`でメソッドが`NilClass`に定義されていない）。 |
 | `def.*` | メソッド定義の診断。オーバーライドシグネチャ互換性ファミリー`def.override-visibility-reduced` / `def.override-return-widened` / `def.override-param-narrowed`（[ADR-35](../../adr/35-override-signature-compatibility/)）を含み、これらはオーバーライドを、プロジェクト定義の先祖から継承するシグネチャに対して検証する。発火するのはオーバーライドと隠された先祖の両方が著者供給のシグネチャを持つときのみ（どちらか一方が推論のみなら沈黙する）で、`severity_profile:`を通じて深刻度をマップする;リスコフの推論は[robustness-principle.md](../robustness-principle/)にある。 |
 | `rbs_extended.*` | `RBS::Extended`ペイロードの有効性、バージョン互換性、競合レポート。`rbs_extended.unsatisfied-conformance`（[rbs-extended.md](../rbs-extended/) §「明示的な適合ディレクティブ」）を含む: `%a{rigor:v1:conforms-to _Interface}`を持つクラスが、指名された構造的インターフェースが要求するメソッドを欠いている（存在）か、またはRBSシグネチャがインターフェースのそれの振る舞い的部分型でないメソッドを提供している（戻り値の共変 / パラメータの反変）。シグネチャ層がFPセーフなのは、両側が手書きRBSであり（ADR-35の両側手書き構成）、単一メソッド型かつ非`Dynamic`な位置のみを比較するためで、すでにインターフェースを満たすクラスを怖がらせることは決してない。`:warning`で作成（`strict`下では`:error`）;ディレクティブはオプトインなので、診断が頼まれもせず出ることはない。解決不能なインターフェース名は代わりに`dynamic.rbs-extended.unresolved` `:info`として表面化する。 |
-| `rbs.coverage.*` | RBS環境のカバレッジ／整形式性テレメトリ。`rbs.coverage.missing-gem`は利用可能なRBSがないロック済みgemを報告する;`rbs.coverage.synthesized-namespace`はプロジェクトの`signature_paths:` RBSが、囲む名前空間なしに修飾名（`class Foo::Bar`）を宣言しているものを報告する——これはupstreamでは不正であり（`rbs validate`が拒否する）、Rigorはシグネチャが依然として解決できるよう`module`を合成する。どちらも`:info`で発行する。 |
+| `rbs.coverage.*` | RBS環境のカバレッジ／整形式性テレメトリ。`rbs.coverage.missing-gem`は利用可能なRBSがないロック済みgemを報告する;`rbs.coverage.synthesized-namespace`はプロジェクトの`signature_paths:` RBSが、囲む名前空間なしに修飾名（`class Foo::Bar`）を宣言しているものを報告する——これはupstreamでは不正であり（`rbs validate`が拒否する）、Rigorはシグネチャが依然として解決できるよう`module`を合成する。どちらも`:info`で発行する。`rbs.coverage.quarantined-signature`は、パースできず**スキップ**された`signature_paths:`の`.rbs`を報告する:環境の残りは引き続きロードされるが、そのファイルが宣言していた型は失われるので、実行はクリーンになるのではなく*静かになる*。`:warning`で発行する（壊れたシグネチャ集合が黙って通ってはならないが、アップグレードがグリーンなビルドをレッドに変えてもいけないため）;`reject-unparseable-signatures`ブリーディングエッジ機能はこれを`:error`へ昇格させ、これが将来のメジャーでの意図されたデフォルトである。 |
 | `plugin.<plugin-id>.*` | プラグインが貢献した診断 |
 | `generated.<provider>.*` | 生成シグネチャプロバイダの診断 |
 | `hint.*` | スタイルとリファクタリングの提案、設定でゲート（例: `hint.role-generalization.*`） |
-| `sig.*` | [ADR-14](../../adr/14-rbs-sig-generation/)に基づくRBSシグネチャ生成器のテレメトリ。`sig.generated.new-file` / `sig.generated.new-method` / `sig.generated.tighter-return`（`rigor sig-gen`コマンドがRBSを生成する際に発行するメソッドごとの分類）と、`sig.skipped.complex-shape` / `sig.skipped.user-authored` / `sig.skipped.untyped-return`（生成器が発行を控えたメソッドごとの理由）を予約する。スライス1のMVPはこれらの識別子を診断ストリームではなくコマンドのJSON出力で公開する。後続のスライスで`--write`パスがランディングした際に`:info`診断として接続する。 |
+| `sig.*` | [ADR-14](../../adr/14-rbs-sig-generation/)に基づくRBSシグネチャ生成器のテレメトリ。`sig.generated.new-file` / `sig.generated.new-method` / `sig.generated.tighter-return`（`rigor sig-gen`コマンドがRBSを生成する際に発行するメソッドごとの分類）と、`sig.skipped.complex-shape` / `sig.skipped.user-authored` / `sig.skipped.untyped-return` / `sig.skipped.unrenderable-rbs`（生成器が発行を控えたメソッドごとの理由;最後のものはRigorのレンダリング上の欠陥である——生成された行がRBSとしてパースできないため、発行される代わりに破棄される。パースできない`.rbs`は消費者によって丸ごと隔離されるからだ）を予約する。スライス1のMVPはこれらの識別子を診断ストリームではなくコマンドのJSON出力で公開する。後続のスライスで`--write`パスがランディングした際に`:info`診断として接続する。 |
 
 ## `Dynamic[T]`の表示規則
 

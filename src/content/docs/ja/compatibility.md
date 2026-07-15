@@ -3,8 +3,8 @@ title: "互換性と公開サーフェス"
 description: "rigortype/rigor docs/compatibility.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/compatibility.md"
 sourcePath: "docs/compatibility.md"
-sourceSha: "2c801abc1ad3d5930b299b3803a21fe65b4e0830bd339406b471fa849e03f21a"
-sourceCommit: "4c03f62d04f594030bd79aa00f3a5978e0457d4c"
+sourceSha: "6a36fe6acc9b4ffb23e1726a906e4e28638dbe2be1e24a8335a8d64b3d21377b"
+sourceCommit: "eb8e9996d113a1b5e1778d0988597c979814a219"
 translationStatus: "translated"
 sidebar:
   order: 9050
@@ -42,7 +42,7 @@ Rigorは**トライアルしてから凍結する**経路をたどります（AD
 | --- | --- | --- | --- |
 | **CLIコマンド＋フラグ**（`check`、`triage`、`baseline`、`sig-gen`、`lsp`、`mcp`、`annotate`、`type-of`、`coverage`、`plugins`、`plugin`、`skill`、…） | [`lib/rigor/cli.rb`](https://github.com/rigortype/rigor/blob/master/lib/rigor/cli.rb)と`lib/rigor/cli/`内の`CLI::HANDLERS`＋コマンドごとの`OptionParser` | [Manual ch. 2 — CLI reference](../manual/02-cli-reference/) | **yes** ── 文書化されたコマンド／フラグは名前と意味を保つ。削除／改名は破壊的 |
 | **`.rigor.yml`のキー＋値の文法** | [`lib/rigor/configuration.rb`](https://github.com/rigortype/rigor/blob/master/lib/rigor/configuration.rb)内の`Configuration::DEFAULTS`＋強制変換器 | [Manual ch. 3 — Configuration](../manual/03-configuration/) | **yes** ── 文書化されたキーは名前・形・デフォルト意味論を保つ |
-| **プラグイン契約** ── `Plugin::Base`のフック＋マニフェストフィールド（[ADR-37](../adr/37-plugin-interface-segregation/)のナロープロトコル`node_rule` / `dynamic_return` / `narrowing_facts`（ADR-80で`type_specifier`から改名;旧動詞は0.3.0で削除される非推奨エイリアス）＋宣言的フィールド）と読み取り側の名前空間（`Scope`、`Type`、`Reflection`、`Environment`、…） | [`docs/internal-spec/public-api.md`](../internal-spec/public-api/)、[`public_api_drift_spec.rb`](https://github.com/rigortype/rigor/blob/master/spec/rigor/public_api_drift_spec.rb)が固定 | [ADR-2](../adr/2-extension-api/)＋[`examples/`](https://github.com/rigortype/rigor/blob/master/examples/README.md)配下のプラグイン例 | **yes** ── ADR-37のナロープロトコル（非推奨のファットフックは1.0前に削除。例: ADR-52 slice 5b / ADR-60） |
+| **プラグイン契約** ── `Plugin::Base`のフック＋マニフェストフィールド（[ADR-37](../adr/37-plugin-interface-segregation/)のナロープロトコル`node_rule` / `dynamic_return` / `narrowing_facts`（ADR-80で`type_specifier`から改名;旧動詞・そのリーダー・そのエンジン消費者・`rigor plugins --capabilities`キーはすべて0.3.0で削除された）＋宣言的フィールド）と読み取り側の名前空間（`Scope`、`Type`、`Reflection`、`Environment`、…） | [`docs/internal-spec/public-api.md`](../internal-spec/public-api/)、[`public_api_drift_spec.rb`](https://github.com/rigortype/rigor/blob/master/spec/rigor/public_api_drift_spec.rb)が固定 | [ADR-2](../adr/2-extension-api/)＋[`examples/`](https://github.com/rigortype/rigor/blob/master/examples/README.md)配下のプラグイン例 | **yes** ── ADR-37のナロープロトコル（非推奨のファットフックは1.0前に削除。例: ADR-52 slice 5b / ADR-60） |
 | **診断識別子**（`flow.always-truthy-condition`、`call.unresolved-toplevel`、…）＋**抑制マーカー**（`# rigor:disable <id>` / `# rigor:disable-file <id>`）＋**`severity_overrides:`のキー** | [`lib/rigor/analysis/check_rules.rb`](https://github.com/rigortype/rigor/blob/master/lib/rigor/analysis/check_rules.rb)内のルールID（`ALL_RULES`、`LEGACY_RULE_ALIASES`）、[`lib/rigor/analysis/rule_catalog.rb`](https://github.com/rigortype/rigor/blob/master/lib/rigor/analysis/rule_catalog.rb)内のメタデータ | [Manual ch. 4 — Diagnostics](../manual/04-diagnostics/)、`rigor explain <rule>` | **yes ── 語彙であって発火集合ではない**（§ compatibility model 2） |
 | **ベースラインファイル形式**（`.rigor-baseline.yml`） | [`lib/rigor/analysis/baseline.rb`](https://github.com/rigortype/rigor/blob/master/lib/rigor/analysis/baseline.rb)内の`Baseline::CURRENT_VERSION`（現在`1`） | [Manual ch. 6 — Baselines](../manual/06-baseline/) | **yes** ── オンディスク形式。バージョンの引き上げは無効化するが、決して誤読しない |
 | **キャッシュスキーマバージョン** | [`lib/rigor/cache/`](https://github.com/rigortype/rigor/tree/master/lib/rigor/cache/)内の`Store::PAYLOAD_ABI_VERSION`（= `Rigor::VERSION`）＋`Descriptor::SCHEMA_VERSION`＋`Store::FORMAT_VERSION`（マーカー`<version>.4.2`） | [Manual ch. 12 — Caching](../manual/12-caching/) | **yes** ── スキーマ／形式の引き上げはキャッシュを無効化するが、決して静かに誤読しない |
@@ -79,8 +79,9 @@ ADR-50（これらすべての権威）から要約します。
 
 - **v0.2.0**はリリースエンジニアリングの機構を出荷し、上記のサーフェスでのマイナー非破壊をトライアルの規律として約束します。
 - **v1.0.0**はサーフェスを凍結します。それを破ることはメジャーバージョンでのみ可能になります。
-- **サポートライン**（ADR-50 § WD5）: 1.0前は、最新のマイナーと直前のマイナーがセキュリティ＋リグレッションのバックポートを受けます。バックポートはそのラインのRubyピンを保ちます。1.0後は、`1.x`ブランチがデフォルトの開発ライン（PHPStanのモデル）になります。
-- **新しい規律**（以前は慣用的だったコードに記述の変更を要求するルール）は、`bleeding_edge:`オプトインの背後でデフォルト無効として着地し、メジャーでのみオンになります（ADR-50 § WD2/WD3/WD7）。オプトインの土台は出荷済みです ── `bleeding_edge:`設定（`true` / 機能IDのリスト / `{ all:, except: }`）＋`rigor show-bleedingedge`インスペクターであり、あなた自身の`severity_overrides:`の下位でのseverity解決に組み込まれます。それが参照するオーバーレイは今日のところ空です。キューに入った最初の規律は、単一の機能エントリーとして着地します。
+- **バージョニングモデル**（ADR-50 § WD5）: 1.0後のRigorは、厳密なsemverではなく、エディション方式の周期に従います。**パッチ**は修正のみです。**マイナー**は機能や診断を追加しうりますが、それらは`bleeding_edge:`の背後でデフォルト無効として到着するか、あなたのベースラインに吸収されるので、マイナーアップグレードは常に可能です（せいぜいベースラインの更新で済みます）── *ソフト*なブレイクです。**メジャー**は*ハード*なブレイクであり、凍結されたサーフェスが変更されうり、bleeding-edgeの規律がデフォルトでオンになり、非推奨の形式が削除されます。（PHPの`8.4`/`8.5`対`8.0`/`9.0`;PHPStanの`bleedingEdge`。）
+- **サポート**（ADR-50 § WD5）は2つの別々のものです。質問への回答とトラブルシューティングは、走らせているバージョンが何であれ常時提供されます。*メンテナンスライン*── セキュリティと正しさのバックポートであって、機能や新しい診断は決して含まず、そのライン自身のRubyピンを保ちます ── は、直近の*ハード*なブレイクの一つ前のリリースにのみ存在します: 1.0前は1つ前のマイナー（`0.y-1`）、1.0後は1つ前のメジャー（`(N+1).0`の後の`(N).x`）です。メジャー内でのマイナーごとのメンテナンスはありません ── マイナーアップグレードはソフトだからです。バックポートは**オンデマンドであり保証されません** ── ブレイクを越えられないユーザーが修正を必要とするとき、古いラインにパッチが当てられ、次のラインがデフォルトになると先細りします;決まったサポート期間は約束されません。機構的には、開発は単一トランク（`master`）です。メンテナンスブランチは、そのような修正が実際に必要になったときにのみ、一つ前のラインのリリースタグから切られ、常設ではありません。
+- **新しい規律**（以前は慣用的だったコードに記述の変更を要求するルール）は、`bleeding_edge:`オプトインの背後でデフォルト無効として着地し、メジャーでのみオンになります（ADR-50 § WD2/WD3/WD7）。オプトインの土台は出荷済みです ── `bleeding_edge:`設定（`true` / 機能IDのリスト / `{ all:, except: }`）＋`rigor show-bleedingedge`インスペクターであり、あなた自身の`severity_overrides:`の下位でのseverity解決に組み込まれます。最初の規律`reject-unparseable-signatures`は、オーバーレイにキュー済みです。
 
 ## 関連項目
 

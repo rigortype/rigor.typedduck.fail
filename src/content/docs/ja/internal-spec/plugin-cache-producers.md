@@ -3,8 +3,8 @@ title: "プラグイン側キャッシュプロデューサー（スライス6�
 description: "rigortype/rigor docs/internal-spec/plugin-cache-producers.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/plugin-cache-producers.md"
 sourcePath: "docs/internal-spec/plugin-cache-producers.md"
-sourceSha: "3bdc388c6b8432c73e37cf358d15018332f919786b9f50c53f9ce454ea31ca7b"
-sourceCommit: "212f2c491920cc5c39a12d75aee385cb6c51fa0c"
+sourceSha: "0b3460c86bc5d977df0dd7be2ff7f2c51731f955184cf36bf23c25bd268e0f97"
+sourceCommit: "eb8e9996d113a1b5e1778d0988597c979814a219"
 translationStatus: "translated"
 sidebar:
   order: 3050
@@ -83,6 +83,28 @@ end
 `cache_for`の前の`read_file`はディスクリプタに格納される`:digest`の`FileEntry`を記録します；ファイルが実行間で変更された場合、ダイジェストが変わり、キャッシュキーが変わり、`cache_for`はプロデューサーにフォールスルーします。プロデューサー本体は同じパスのファイルを再読み込みします；キャッシュミス時に境界が再びデータを収集し、事後のダイジェストが新しいエントリーに書き込まれます。
 
 より豊かな無効化（gemバージョン・外部設定ファイル・兄弟プラグインの状態）を求めるプラグイン作成者は現在それらをparamsハッシュに合成します；将来の拡張が`cache_for`に明示的なディスクリプタパラメータを追加するかもしれません。
+
+### `Rigor::Plugin::Base#incremental_state_fingerprint` — `--incremental`のファクトサーフェス（[ADR-88](../../adr/88-incremental-plugin-fact-soundness/)）
+
+`--incremental`スナップショットの`plugin_fact_digest`（[`cache.md` § IncrementalSnapshot](../cache/#plugin_fact_digest--プラグインファクトの健全性adr-88)を参照）は、キャッシュ済み診断が依存しうるすべてのクロスファイル値をカバーしなければなりません。さもなければプラグインの編集がコンシューマーを陳腐化させたまま放置しかねません。2つのチャネルは自動です —— すべてのADR-9ファクトストア公開とすべての`producer`値は、プラグインの協力なしにダイジェストされます。この**オプションの**フックは3番目のチャネルであり、`dynamic_return` / `narrowing_facts`の貢献が、ファクトストア公開でも`producer`値でもない内部カタログから読み込むプラグインのためのものです。
+
+```ruby
+class MyPlugin < Rigor::Plugin::Base
+  # Return a stable, Marshal-clean value that CHANGES exactly when this
+  # plugin's cross-file contribution surface changes, and is STABLE across
+  # runs when it does not.
+  def incremental_state_fingerprint
+    catalog_digest   # e.g. a SHA-256 over the plugin's parsed sig catalog
+  end
+end
+```
+
+契約:
+
+- フックは**オプション**です —— それを定義するプラグインは（`respond_to?`を通じて）参照され、定義しないプラグインは参照されません。`Plugin::Base`上にデフォルトはありません。
+- 貢献が各解析対象ファイル自身の内容**のみ**から導出される（そのファイルが変わったときに既に再解析される）プラグインは、それ*自身の*クロスファイルサーフェスを持ちません。それでもフックを定義して**安定したセンチネル文字列**（例: `"per-file-lets"`）を返すべきです —— これは「クロスファイルのファクトサーフェスなし」を積極的に宣言し、プラグインをインクリメンタル対応のまま保ちます。バンドルされた`rigor-rspec`・`rigor-minitest`・`rigor-mangrove`はまさにこれを行います。
+- `dynamic_return` / `narrowing_facts`の貢献を登録し、3つのチャネルの**いずれも**提供しないプラグインは、そのランでスナップショットを再利用不能にし、ランの出力で名指しされます —— インクリメンタルは、陳腐化した再利用のリスクを冒すのではなく、フル解析へ格下げされます。
+- `--verify-incremental`は常設のバックストップです: プラグインの実際の貢献が動いたのに動かなかったフックは、そこでバイト不一致として表面化します。
 
 ## キャッシュidサンドボックス（6-C）
 

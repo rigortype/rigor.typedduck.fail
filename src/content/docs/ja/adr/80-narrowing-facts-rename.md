@@ -3,19 +3,19 @@ title: "ADR-80 — `type_specifier`プラグインフックを`narrowing_facts`�
 description: "rigortype/rigor docs/adr/80-narrowing-facts-rename.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/80-narrowing-facts-rename.md"
 sourcePath: "docs/adr/80-narrowing-facts-rename.md"
-sourceSha: "93c92f19ef3807082b1a6c3f8916c9e00fa7676dfe8eaeb19bee6d7cdca72c01"
-sourceCommit: "450a3016ca812067f6baa96e415442ed936ad49a"
+sourceSha: "00f1382f73f167de899c16749d127dd38de58251ef2b77bc7d71f3a2b43eb85b"
+sourceCommit: "eb8e9996d113a1b5e1778d0988597c979814a219"
 translationStatus: "translated"
 sidebar:
   order: 4080
 ---
 
-ステータス: **Accepted、2026-06-26**。プラグイン作者向けDSL動詞`type_specifier`は
-`narrowing_facts`にリネームされます。`type_specifier`は0.2.x系を通じて警告を出すエイリアスとして
-生き残り、**0.3.0で削除されます**。バンドルされたminitest／sorbet／rspecの各プラグインは移行
-されます。エンジン側の内部（`type_specifiers`、`#type_specifier_facts`）と`rigor plugins
---capabilities`のJSONフィールド`type_specifier_methods`は、このスライスでは変更されないまま
-です（決定を参照）。
+ステータス: **Accepted、2026-06-26。0.3.0で完了**。プラグイン作者向けDSL動詞`type_specifier`は
+`narrowing_facts`にリネームされ、0.2.x系を通じて警告を出すエイリアスとして生き残り、
+**0.3.0で削除されました**（クラス定義時に`NoMethodError`を送出するようになりました）。
+バンドルされたminitest／sorbet／rspecの各プラグインは移行されます。**本ADRが先送りした
+持ち越しは、その削除の時点で完全な一貫性を採る方向に決定されました**——下記の0.3.0の補遺を
+参照してください。
 
 根拠: 2026-06-26のrigor-rsポートからのフィードバック（項目5——名前が誤解を招く）、
 [ADR-60](../60-pre-freeze-plugin-contract-consolidation/)の契約凍結との突き合わせ、
@@ -72,13 +72,38 @@ sidebar:
 
 ## 帰結
 
-- **ポジティブ:** 動詞が実際に行うことを言い表すようになります。バンドルされたプラグインは
+- **ポジティブ:**動詞が実際に行うことを言い表すようになります。バンドルされたプラグインは
   明快に読めます。rigor-rsのミラーは、古い名前を2つの実装にわたって固定化するのではなく、
   より真実に近い名前を採用できます。
 - **ネガティブ:** 1マイナーバージョン分の、生きたエイリアス＋警告付きの非推奨期間があります。
   2つ目の内部リネームが0.3.0に向けて保留のまま残ります（本ADRで追跡）。
 - **持ち越し:** 0.3.0はエイリアスを削除し、一貫性のため内部リーダー／capability-JSONの
-  名前を見直します。
+  名前を見直します——下記で解決します。
+
+## 補遺（0.3.0）—— 持ち越し、決定
+
+エイリアスの削除は非推奨一掃バッチとともに着地し、先送りされた名前は残されるのではなく
+**完全に**リネームされました:
+
+| サーフェス | 旧 | 新 |
+| --- | --- | --- |
+| クラスレベルのリーダー | `type_specifiers` | `narrowing_facts_rules` |
+| エンジンが呼び出す消費側 | `#type_specifier_facts(call_node:, scope:)` | `#narrowing_facts_for(call_node:, scope:)` |
+| `rigor plugins --capabilities`のJSONキー | `type_specifier_methods` | `narrowing_facts_methods` |
+
+決定のscope制限は2つの主張に拠っていました。1つ目——内部はプラグイン作者が決して書かない
+APIである——は真ですが、本ADRが誤解を招くと呼ぶ名前を*維持する*理由にはなりません。ドリフト
+で固定されたリーダーはエンジンを拡張する者なら誰でも読むものであり、古い名前のまま残すと、
+契約が実装されるまさにその場所で誤ったメンタルモデルが保たれてしまいます。2つ目——JSONキーは
+別途凍結されるサーフェスであり、そのリネームは別個の決定である——は、まさにそれを*ここで*
+決着させねばならなかった理由です: このキーはv1.0で公開語彙として凍結され（[ADR-50](../50-release-engineering-and-stability-strategy/)のWD1）、
+0.3.0は破壊を許すマイナーなので、これが修正が無料である最後のウィンドウでした。再び先送り
+すれば、外部の消費者が実際に読む唯一のサーフェスにおいて誤った名前を凍結させてしまった
+はずです。
+
+コスト: `rigor plugins --capabilities`の消費者は新しいキーを読まねばなりません（値の形状は
+変わりません）。そのコストは1.0前に、小さく列挙可能な聴衆によって一度だけ支払われます——本ADR
+が動詞そのものについて行ったのと同じトレードオフです。
 
 ## 他のADRとの関係
 
