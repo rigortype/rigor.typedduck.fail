@@ -3,8 +3,8 @@ title: "エラーの読み方"
 description: "rigortype/rigor docs/handbook/08-understanding-errors.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/08-understanding-errors.md"
 sourcePath: "docs/handbook/08-understanding-errors.md"
-sourceSha: "968ba97981616030d602d70b90a67c4aca717cff8cc20de4bfbb8074b64d0f8e"
-sourceCommit: "4c03f62d04f594030bd79aa00f3a5978e0457d4c"
+sourceSha: "908e0a73637a86aefed3d00ab76bdc3aaf5ebdb822dce374886048879b4699d7"
+sourceCommit: "026f5700e2e13ed5e8e99e9df80a2871ab4293ab"
 translationStatus: "translated"
 sidebar:
   order: 1008
@@ -71,6 +71,7 @@ lib/user.rb:42:7: error: undefined method `upcas' for "alice" [call.undefined-me
 | `flow.always-truthy-condition` | `if` / `unless` / 三項演算子の述語が推論型により証明可能に真値（または偽値）で、ループボディ内と防衛的述語コールに外科的スキップあり。 | warning |
 | `flow.unreachable-clause` | `case <local>; when <Class>`（または素のクラスの`case`/`in`）節で、対象のナローイングによりそれが決してマッチしないことが証明される。対象の型と素であるか、または先行する節ですでに尽くされている。 | `balanced`でinfo、`strict`でwarning、`lenient`でinfo |
 | `flow.dead-assignment` | 同じ`def`ボディ内で一度も読まれないローカル変数への単純な書き込み。 | warning |
+| `flow.duplicate-hash-key` | 1つのHashリテラルの2つのエントリーが同じリテラルキーを持つ（`{ a: 1, a: 2 }`、`m("x" => 1, "x" => 2)`）。実行時には最後のエントリーが静かに勝つ。リテラルキーのみが対象。`:a`と`"a"`、`1`と`1.0`は別のキーであり、決して比較されない。 | warning |
 
 `flow.unreachable-branch`、`flow.always-truthy-condition`、`flow.unreachable-clause`は**到達可能性ファミリー**です。それぞれがブランチまたは`case`節が死んでいることを証明します。`unreachable-clause`は最新のメンバーです: `case <local>; when <Class>`（および素のクラスの`case`/`in`）を監視し、先行する節がすでにメンバーの型をカバーしているか、または節が対象と素であるときに発火します。コーパスの偽陽性ゲートが完成するまでは`balanced`では`:info`で出荷されます（兄弟より1段下）;もっと目立たせたいなら`severity_overrides:`で引き上げてください。
 

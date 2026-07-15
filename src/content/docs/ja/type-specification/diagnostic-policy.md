@@ -3,8 +3,8 @@ title: "診断ポリシー"
 description: "rigortype/rigor docs/type-specification/diagnostic-policy.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/type-specification/diagnostic-policy.md"
 sourcePath: "docs/type-specification/diagnostic-policy.md"
-sourceSha: "3d5af57745ef55d538b87a1306e7210b8d7692ad29d5d918e5e8de27d9ef7b7c"
-sourceCommit: "eb8e9996d113a1b5e1778d0988597c979814a219"
+sourceSha: "aaa893c92e69b79dca36a13e83faeea5ce7cca9c419c1f681326e3e1960f4d73"
+sourceCommit: "026f5700e2e13ed5e8e99e9df80a2871ab4293ab"
 translationStatus: "translated"
 sidebar:
   order: 2050
@@ -111,4 +111,4 @@ Rigorネイティブのマーカーは、PHPStanのアノテーションの感�
 
 ### 有効性規則
 
-- 未知または空のマーカーは、現在のところフラグされるのではなく通常のコメントとして扱われます（黙って無視されます）。死んだ（未知ルールの）抑制をリファクタリング中に浮上させるために警告することは、計画中の改良です。
+- 未知または空のマーカーは、文書化されたマッチング挙動を保ちます（認識されないトークンはそのまま保持され、トークンのないマーカーは何も抑制しません）が、もはや静かではありません。既知の識別子——正規のルールID、レガシーエイリアス、`all`、ファミリーワイルドカード、既知の非カタログエンジンID、既知の非checkファミリー下のドット付きID（決してフラグされない`plugin.`接頭辞付きのトークンを含む）のいずれか——に解決されないマーカートークンは`suppression.unknown-rule`を、ルールをまったく挙げないマーカーは`suppression.empty`を発火します（どちらもすべてのプロファイルで`:warning`）。検証は抑制フィルタリングの前に行われるため、両診断とも他のルールと同様にそれ自体を抑制できます。マーカーに言及したあと非トークンのテキストが続くだけのコメントは、通常のコメントのままです。

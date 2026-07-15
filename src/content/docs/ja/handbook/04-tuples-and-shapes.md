@@ -3,8 +3,8 @@ title: "タプルとハッシュシェイプ"
 description: "rigortype/rigor docs/handbook/04-tuples-and-shapes.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/04-tuples-and-shapes.md"
 sourcePath: "docs/handbook/04-tuples-and-shapes.md"
-sourceSha: "af060d804d847fdef6edfab273c4b161811ddb4acc26e975e2f968396bb024ce"
-sourceCommit: "98bd3fb5bcd0434c814c1d4e3c864e3888ddeae4"
+sourceSha: "922f168d2c51de3d8f8d3d994f96082e8427f2a2ed0dbe44233fa804ef41aee1"
+sourceCommit: "026f5700e2e13ed5e8e99e9df80a2871ab4293ab"
 translationStatus: "translated"
 sidebar:
   order: 1004
@@ -193,7 +193,7 @@ arr = [1, ARGV.first]
 # Array[Constant<1> | String?]
 ```
 
-キーが証明可能にシンボル/文字列リテラルでないハッシュも同様です。Rigorは`HashShape`ではなく`Hash[K, V]`を生成します。
+キーが証明可能にスカラーリテラル（シンボル、素の文字列、整数、浮動小数点数、`true` / `false` / `nil`）でないハッシュも同様です。Rigorは`HashShape`ではなく`Hash[K, V]`を生成します。シェイプ内では、キーの同一性は`Hash#eql?`に従います。`1`と`1.0`は別のキーであり、同じリテラルキーが繰り返されると最後のエントリーが残ります。これは実行時とまったく同じ挙動です。シンボルでも文字列でもないキーはハッシュロケット形式（`{ 1 => 2 }`）で表示されます。
 
 ## 新しいシェイプを派生させる: `pick_of` / `omit_of` / `partial_of` / `required_of` / `readonly_of`
 

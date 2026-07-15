@@ -3,8 +3,8 @@ title: "診断"
 description: "rigortype/rigor docs/manual/04-diagnostics.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/04-diagnostics.md"
 sourcePath: "docs/manual/04-diagnostics.md"
-sourceSha: "6ad7d187163818fc42a91d0104f38d9bbb6f13a19bfbf7ec8ca94badde6a73a3"
-sourceCommit: "ee19f4b60fca3bd0ceb677ebb395593203f2ea48"
+sourceSha: "962534c958fbfb22fe388befe9a0dac83083aa4dc4aa5dc7055e573fa09c3353"
+sourceCommit: "026f5700e2e13ed5e8e99e9df80a2871ab4293ab"
 sourceDate: "2026-06-15T14:10:58+09:00"
 translationStatus: "translated"
 sidebar:
@@ -38,18 +38,24 @@ sidebar:
 | <a id="rule-call-wrong-arity"></a>`call.wrong-arity` | 位置引数の数がどのシグネチャとも一致しない。 | high |
 | <a id="rule-call-argument-type-mismatch"></a>`call.argument-type-mismatch` | 引数の型がパラメータ契約（contract）に違反することが証明できる。 | high |
 | <a id="rule-call-possible-nil-receiver"></a>`call.possible-nil-receiver` | 受信側が`T \| nil`で、メソッドが`NilClass`で定義されていない。 | high |
+| <a id="rule-call-raise-non-exception"></a>`call.raise-non-exception` | `raise` / `fail`の引数の具体型が、Exceptionクラス、Exceptionインスタンス、String、`#exception`を定義するオブジェクトのいずれでもないと証明される。実行時の`TypeError`。 | high |
 | <a id="rule-call-unresolved-toplevel"></a>`call.unresolved-toplevel` | トップレベルの暗黙的self呼び出しが、同一ファイルの`def`、`pre_eval:`パッチ、`Kernel` / `Object`メソッドのいずれにも解決されない。 | low |
 | <a id="rule-flow-always-raises"></a>`flow.always-raises` | 式が到達可能なすべてのパスで例外を投げることが証明できる。 | high |
 | <a id="rule-flow-unreachable-branch"></a>`flow.unreachable-branch` | `if` / `unless` / 三項演算子のブランチが静的に到達不能。 | high |
 | <a id="rule-flow-always-truthy-condition"></a>`flow.always-truthy-condition` | 条件が証明可能に常に真または常に偽。 | medium |
 | <a id="rule-flow-dead-assignment"></a>`flow.dead-assignment` | ローカル変数が同じメソッド内で書かれるが読まれない。 | medium |
 | <a id="rule-flow-unreachable-clause"></a>`flow.unreachable-clause` | `case`/`when`または`case`/`in`の節が静的に到達不能。すなわちその対象の型がパターンと素であるか、先行する節がすでに対象を網羅している。 | medium |
+| <a id="rule-flow-duplicate-hash-key"></a>`flow.duplicate-hash-key` | Hashリテラルがリテラルキー（シンボル、素の文字列、整数、浮動小数点数、`true`/`false`/`nil`）を繰り返す。実行時には最後のエントリーが先行するものを静かに上書きする。リテラルキーのみが対象。シンボルと文字列、`1`と`1.0`は衝突せず、補間・定数・計算されたキーは決して比較されない。2つの同一リテラルキーの間に`**splat`があってもそのペアは救済されない。 | high |
+| <a id="rule-flow-return-in-ensure"></a>`flow.return-in-ensure` | `ensure`節内の明示的な`return`。メソッドの実行中の戻り値を上書きし、実行中の例外を静かに握りつぶす。`ensure`内のネストした`def`、ラムダ、`define_method`ブロック内の`return`は発火しない（それは内側のフレームを抜けるだけ）。 | high |
+| <a id="rule-flow-shadowed-rescue-clause"></a>`flow.shadowed-rescue-clause` | 同じチェーンの先行する節が、この節の挙げるすべての例外クラスのスーパークラス（または同一クラス）をすでに捕捉するため、この`rescue`節が決して実行されない。 | high |
 | <a id="rule-def-return-type-mismatch"></a>`def.return-type-mismatch` | メソッドボディの結果が宣言されたRBSの戻り値型に違反する。 | medium |
 | <a id="rule-def-ivar-write-mismatch"></a>`def.ivar-write-mismatch` | インスタンス変数が最初の書き込みと異なる型で書かれる。 | high |
 | <a id="rule-def-method-visibility-mismatch"></a>`def.method-visibility-mismatch` | 明示的レシーバーの呼び出しがprivateメソッドに到達する。 | high |
 | <a id="rule-def-override-visibility-reduced"></a>`def.override-visibility-reduced` | オーバーライドが、プロジェクト定義の祖先から継承した可視性を下げる。 | high |
 | <a id="rule-def-override-return-widened"></a>`def.override-return-widened` | オーバーライドの宣言された戻り値型が、継承した戻り値型を広げる（共変性）。 | high |
 | <a id="rule-def-override-param-narrowed"></a>`def.override-param-narrowed` | オーバーライドが、継承したパラメータ型を狭める（反変性）。 | high |
+| <a id="rule-suppression-unknown-rule"></a>`suppression.unknown-rule` | `# rigor:disable[-file]`コメントが存在しないルール（多くはタイポ）を挙げているため、抑制が静かに何もしない。`plugin.`接頭辞付きのトークンは決してフラグされない。 | high |
+| <a id="rule-suppression-empty"></a>`suppression.empty` | `# rigor:disable[-file]`コメントがルールを1つも挙げていないため、何も抑制しない。 | high |
 | <a id="rule-rbs_extended-unsatisfied-conformance"></a>`rbs_extended.unsatisfied-conformance` | クラスがRBSで`%a{rigor:v1:conforms-to _Interface}`を宣言しているが、インターフェースが要求するメソッドを欠いている。存在ベース: 明確に欠落している必須メソッドのみが発火する。 | — |
 | <a id="rule-assert-type-mismatch"></a>`assert.type-mismatch` | `assert_type`の期待値が推論型と一致しない。 | high |
 | <a id="rule-dump-type"></a>`dump.type` | `dump_type`呼び出し。情報として推論型を出力する。 | — |
@@ -153,6 +159,8 @@ config.merge(extra)  # rigor:disable call.undefined-method
 ```
 
 修飾IDファミリーワイルドカード（`call`）、カンマまたはスペース区切りのリスト、または`all`を受け付けます。
+
+機能し得ないマーカーは、静かに無視されるのではなくフラグされます。既知のルールを1つも指さないトークン（`call.undefined-metod`のようなタイポ）は[`suppression.unknown-rule`](#rule-suppression-unknown-rule)を、ルールをまったく持たない素のマーカーは[`suppression.empty`](#rule-suppression-empty)を発火します。どちらもすべてのプロファイルで`:warning`です。`plugin.`接頭辞のトークンは決してフラグされず（プラグインのルール語彙は動的にロードされるため）、両診断とも他のルールと同様にそれ自体を抑制できます。
 
 **ソース内、ファイル全体**。ファイル内のどこかに`# rigor:disable-file <rules>`を記述すると、すべての行でそれらのルールが抑制されます。`# rigor:disable-file all`でファイルを黙らせます。
 
