@@ -3,8 +3,8 @@ title: "診断"
 description: "rigortype/rigor docs/manual/04-diagnostics.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/04-diagnostics.md"
 sourcePath: "docs/manual/04-diagnostics.md"
-sourceSha: "962534c958fbfb22fe388befe9a0dac83083aa4dc4aa5dc7055e573fa09c3353"
-sourceCommit: "026f5700e2e13ed5e8e99e9df80a2871ab4293ab"
+sourceSha: "4e2b6fdf7ded511eba36582617424f0760dbe984224ea25da1092689dbfd4b38"
+sourceCommit: "162fd2becdab2973101b49683ec89d14ba2d532b"
 sourceDate: "2026-06-15T14:10:58+09:00"
 translationStatus: "translated"
 sidebar:
@@ -56,6 +56,7 @@ sidebar:
 | <a id="rule-def-override-param-narrowed"></a>`def.override-param-narrowed` | オーバーライドが、継承したパラメータ型を狭める（反変性）。 | high |
 | <a id="rule-suppression-unknown-rule"></a>`suppression.unknown-rule` | `# rigor:disable[-file]`コメントが存在しないルール（多くはタイポ）を挙げているため、抑制が静かに何もしない。`plugin.`接頭辞付きのトークンは決してフラグされない。 | high |
 | <a id="rule-suppression-empty"></a>`suppression.empty` | `# rigor:disable[-file]`コメントがルールを1つも挙げていないため、何も抑制しない。 | high |
+| <a id="rule-suppression-unknown-marker"></a>`suppression.unknown-marker` | コメントがRigorの認識しない抑制マーカーを使っている。典型的にはRuboCopの反射で`# rigor:disable-next-line <rule>`や`# rigor:enable <rule>`。Rigorのマーカーは`# rigor:disable <rules>`（その行で抑制）と`# rigor:disable-file <rules>`だけなので、このコメントは何も抑制しない。 | high |
 | <a id="rule-rbs_extended-unsatisfied-conformance"></a>`rbs_extended.unsatisfied-conformance` | クラスがRBSで`%a{rigor:v1:conforms-to _Interface}`を宣言しているが、インターフェースが要求するメソッドを欠いている。存在ベース: 明確に欠落している必須メソッドのみが発火する。 | — |
 | <a id="rule-assert-type-mismatch"></a>`assert.type-mismatch` | `assert_type`の期待値が推論型と一致しない。 | high |
 | <a id="rule-dump-type"></a>`dump.type` | `dump_type`呼び出し。情報として推論型を出力する。 | — |
@@ -160,7 +161,7 @@ config.merge(extra)  # rigor:disable call.undefined-method
 
 修飾IDファミリーワイルドカード（`call`）、カンマまたはスペース区切りのリスト、または`all`を受け付けます。
 
-機能し得ないマーカーは、静かに無視されるのではなくフラグされます。既知のルールを1つも指さないトークン（`call.undefined-metod`のようなタイポ）は[`suppression.unknown-rule`](#rule-suppression-unknown-rule)を、ルールをまったく持たない素のマーカーは[`suppression.empty`](#rule-suppression-empty)を発火します。どちらもすべてのプロファイルで`:warning`です。`plugin.`接頭辞のトークンは決してフラグされず（プラグインのルール語彙は動的にロードされるため）、両診断とも他のルールと同様にそれ自体を抑制できます。
+機能し得ないマーカーは、静かに無視されるのではなくフラグされます。既知のルールを1つも指さないトークン（`call.undefined-metod`のようなタイポ）は[`suppression.unknown-rule`](#rule-suppression-unknown-rule)を、ルールをまったく持たない素のマーカーは[`suppression.empty`](#rule-suppression-empty)を、Rigorの文法の外にあるマーカー語（RuboCopの反射である`# rigor:disable-next-line <rule>`や`# rigor:enable`）は[`suppression.unknown-marker`](#rule-suppression-unknown-marker)を発火します。いずれもすべてのプロファイルで`:warning`です。`plugin.`接頭辞のトークンは決してフラグされず（プラグインのルール語彙は動的にロードされるため）、これらの抑制診断はいずれも他のルールと同様にそれ自体を抑制できます。
 
 **ソース内、ファイル全体**。ファイル内のどこかに`# rigor:disable-file <rules>`を記述すると、すべての行でそれらのルールが抑制されます。`# rigor:disable-file all`でファイルを黙らせます。
 
