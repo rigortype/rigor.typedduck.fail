@@ -3,8 +3,8 @@ title: "ADR-73 — SKILL駆動のRigorユーザー体験（`rigor-next-steps`エ
 description: "rigortype/rigor docs/adr/73-skill-driven-user-experience.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/73-skill-driven-user-experience.md"
 sourcePath: "docs/adr/73-skill-driven-user-experience.md"
-sourceSha: "0588967b486952eadfe736d64459da1e7a8d2400cdcb231e5bc20b08870ad3df"
-sourceCommit: "47c1c7d35efbce222a6a888268b263808b49796c"
+sourceSha: "cc5e55c4abf9418e8235ad62bae40146b670606d25ead88694fc826001c76605"
+sourceCommit: "78b18cea6a576475c92bce020535269f2eebc20d"
 translationStatus: "translated"
 sidebar:
   order: 4073
@@ -20,7 +20,7 @@ sidebar:
 
 `rigor skill --full`は、既存の`rigor skill`サーフェスと並んで、[ADR-50](../50-release-engineering-and-stability-strategy/) WD1のもとv1.0で凍結された公開語彙に加わります。
 
-**改訂（2026-06-21）—— `rigor skill`のフラグ文法**。[ADR-74](../74-offline-doc-access-and-llms-txt/)の`rigor docs`変更に揃えて、`rigor skill`の発見系の動詞はフラグへ移動しました: `rigor skill <name>`（引数なし＝本体を出力）、`rigor skill --list`、`rigor skill --path <name>`。`describe`アクションは**変わりません**——`rigor skill describe`と`rigor skill --describe`はどちらも引き続き第一級です（これは引数なしのアクションであって、名前スロットを取る動詞ではないため）。トップレベルの`rigor describe`エイリアスも同様です。レガシーの`list` / `print <name>` / `path <name>`動詞は引き続き動作しますが、1行のstderr非推奨通知を出力し、**v0.3.0で削除されます**（[ROADMAP](../../roadmap/) §「Scheduled CLI deprecations」を参照）。バンドルされたジェネレータ——`rigor skill --describe`のカタログ＋推奨出力、`rigor-next-steps` SKILL、CI検出ヒント——は、いまや正規の`rigor skill <name>`形のみを出力するため、SKILL駆動のUXが自らの非推奨通知を引き起こすことはありません。
+**改訂（2026-06-21）—— `rigor skill`のフラグ文法**。[ADR-74](../74-offline-doc-access-and-llms-txt/)の`rigor docs`変更に揃えて、`rigor skill`の発見系の動詞はフラグへ移動しました: `rigor skill <name>`（引数なし＝本体を出力）、`rigor skill --list`、`rigor skill --path <name>`。`describe`アクションは**変わりません**——`rigor skill describe`と`rigor skill --describe`はどちらも引き続き第一級です（これは引数なしのアクションであって、名前スロットを取る動詞ではないため）。トップレベルの`rigor describe`エイリアスも同様です。レガシーの`list` / `print <name>` / `path <name>`動詞は引き続き動作しますが、1行のstderr非推奨通知を出力し、**v0.3.0で削除されます**（ROADMAP §「Scheduled CLI deprecations」を参照）。バンドルされたジェネレータ——`rigor skill --describe`のカタログ＋推奨出力、`rigor-next-steps` SKILL、CI検出ヒント——は、いまや正規の`rigor skill <name>`形のみを出力するため、SKILL駆動のUXが自らの非推奨通知を引き起こすことはありません。
 
 根拠: 既存の`rigor skill`コマンド（[`lib/rigor/cli/skill_command.rb`](https://github.com/rigortype/rigor/blob/master/lib/rigor/cli/skill_command.rb)、[ADR-22](../22-baseline-and-project-onboarding/) WD8によりv0.1.13で出荷）、保留されていたact-on-coverageスケルトン（[`docs/design/20260616-act-on-coverage-skill.md`](../../design/20260616-act-on-coverage-skill/)、[ADR-63](../63-type-protection-coverage/) WD5、パイロット検証済み）、そして[`docs/install.md`](../../install/)のエージェント向けインストールフロー。
 

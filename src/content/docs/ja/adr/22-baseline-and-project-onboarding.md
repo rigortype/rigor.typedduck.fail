@@ -3,8 +3,8 @@ title: "ADR-22 — ベースラインメカニズム + プロジェクトオン�
 description: "rigortype/rigor docs/adr/22-baseline-and-project-onboarding.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/22-baseline-and-project-onboarding.md"
 sourcePath: "docs/adr/22-baseline-and-project-onboarding.md"
-sourceSha: "35c053159bdce9db899c1df636c0d2bf4e9f0b81f15e3241b5d3367cdf8349bd"
-sourceCommit: "73d7a0a2d4628b0614948fe2fa043945b45d5de4"
+sourceSha: "77530ac77f6a1cfe2f8bd4c488679aec2a2a2610a43e4fa9855a3da97c94153a"
+sourceCommit: "78b18cea6a576475c92bce020535269f2eebc20d"
 sourceDate: "2026-05-21T21:49:08+09:00"
 translationStatus: "translated"
 sidebar:
@@ -243,7 +243,7 @@ CLIは診断ストリームの後に1行サマリーを追加する:
 
 - **公開済み`rigortype` gemサーフェス**を消費する — モノリポのチェックアウトから`bundle exec exe/rigor`ではなく、Bundler経由でインストールされた`rigor`実行ファイル。`make verify`なし、Nix Flakeなし、`spec/integration/...`の前提なし。
 - **公開CLIフラグと設定キーのみ**を参照する — エンドユーザーが`rigor --help`で見る同じサーフェス。内部ヘルパー（`Rigor::Analysis::Runner.new(...)`、Phoenix形の内部専用モジュール）は対象外。
-- ROADMAPがv0.2.0外部SKILLトラック用に予約した**`skills/`トップレベルツリー**の下に住む（[`docs/ROADMAP.md`](../../roadmap/) §「エージェントワークフロー / SKILL」を参照）。`skills/rigor-project-init/`と`skills/rigor-baseline-reduce/`ディレクトリは、来たる`skills/rigor-plugin-author/`外部バリアントと並んでそのツリーの最初の具体的な占有者になる。3つのSKILLはv0.2.0外部ユーザートラックの一貫したオンボーディング + 継続的品質 + プラグイン拡張トリオを形成する。
+- ROADMAPがv0.2.0外部SKILLトラック用に予約した**`skills/`トップレベルツリー**の下に住む（`docs/ROADMAP.md` §「エージェントワークフロー / SKILL」を参照）。`skills/rigor-project-init/`と`skills/rigor-baseline-reduce/`ディレクトリは、来たる`skills/rigor-plugin-author/`外部バリアントと並んでそのツリーの最初の具体的な占有者になる。3つのSKILLはv0.2.0外部ユーザートラックの一貫したオンボーディング + 継続的品質 + プラグイン拡張トリオを形成する。
 - `rigor-plugin-author`が`skills/`下に一時的にあったとき（コミット`25e98cc` / `f2dcc5a`）に確立された**ポータブル / agentskills.io互換**規約に従う: 自己完結、クロスリポジトリ参照の絶対GitHubURL（相対`../../`パスではない）、`name:` + `description:` + オプションの`metadata: {version:, homepage:}`フロントマター、wazaのモジュール数アドバイザリーをクリアするための最大4つの`references/`モジュール。
 
 スケジューリングへの影響: WD8は2つのSKILLを**v0.1.9サイクル**にコミットする — 先行バージョン（v0.1.7 / v0.1.8）は実地からの実際のプロジェクトエラーデータを収集・対処するために予約され、SKILLがデフォルトのプラグイン / 重要度 / ベースラインルール選択の背後に具体的な実証的シグナルを持って出荷されるようにする。外部`rigor-plugin-author`の再定式化も同じv0.1.9の列に乗る。ADRのスライシングセクションはそれらをスライス3 + 4として外部出荷可能な作業として配置し、貢献者実験としてではない。
@@ -377,7 +377,7 @@ $ rigor baseline regenerate
 
 ### 繰り越し
 
-- 2つのSKILLは`.claude/skills/`下の貢献者向けアーティファクトとして出荷する。v0.2.0にキューされた外部著者バリアント（[`docs/ROADMAP.md`](../../roadmap/) §「エージェントワークフロー / SKILL（コミット済み: v0.2.0）」に従い）は、rigorモノリポの外で自分のgem / プロジェクトチェックアウト内でRigorを実行するユーザーに対して同じワークフロー形をカバーする。
+- 2つのSKILLは`.claude/skills/`下の貢献者向けアーティファクトとして出荷する。v0.2.0にキューされた外部著者バリアント（`docs/ROADMAP.md` §「エージェントワークフロー / SKILL（コミット済み: v0.2.0）」に従い）は、rigorモノリポの外で自分のgem / プロジェクトチェックアウト内でRigorを実行するユーザーに対して同じワークフロー形をカバーする。
 - 命名: このADRは一貫して**baseline**を使用する。CLIサブコマンドファミリーは`rigor baseline {...}`下に住む。
 
 ## 実装スライシング
@@ -444,4 +444,4 @@ $ rigor baseline regenerate
 - [ADR-8](../8-steep-inspired-improvements/) — このADRが上に構築する重要度プロファイル（前のレイヤー）。
 - [`docs/notes/20260519-oss-library-survey.md`](../../notes/20260519-oss-library-survey/) — 設計ニーズを駆動した5プロジェクトサーベイ。
 - [`docs/notes/20260521-mastodon-v4.5-regression-sweep.md`](../../notes/20260521-mastodon-v4.5-regression-sweep/) — Mastodonのv4.5.xラインにわたる16タグのベースラインドリフト掃引: 表面化した診断はリリースライン全体で0のままで、acknowledgeモードの「一度採用し、リグレッションのみを表面化する」契約を実証的に検証した。
-- [`docs/ROADMAP.md`](../../roadmap/) §「エージェントワークフロー / SKILL（コミット済み: v0.2.0）」— このADRのSKILLが貢献するコンパニオン外部著者SKILLトラック。
+- `docs/ROADMAP.md` §「エージェントワークフロー / SKILL（コミット済み: v0.2.0）」— このADRのSKILLが貢献するコンパニオン外部著者SKILLトラック。

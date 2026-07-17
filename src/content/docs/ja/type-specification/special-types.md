@@ -3,8 +3,8 @@ title: "特殊型"
 description: "rigortype/rigor docs/type-specification/special-types.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/type-specification/special-types.md"
 sourcePath: "docs/type-specification/special-types.md"
-sourceSha: "03907b6b2ce006f7e2c07af7e718804c0bd274c9fb0483489943e72557c43d6c"
-sourceCommit: "f87b68f852350994a182dca35c52464a59be6e53"
+sourceSha: "11af0352228e9ac06e396602070d7cd8a128d9dcee28e32c845bc4e756e901ae"
+sourceCommit: "78b18cea6a576475c92bce020535269f2eebc20d"
 translationStatus: "translated"
 sidebar:
   order: 2050
@@ -18,7 +18,7 @@ Rigorは特定の意味論的役割を持ち、互換性がない複数の特殊
 
 `top`型の値の使用は依然としてチェックされます。`top`へのメソッド呼び出しは、メソッドがすべての可能な住民に対して利用可能であることが既知の場合、またはプラグインがより強い事実を提供する場合にのみ受け付けられなければなりません（MUST）。
 
-`top`はTypeScriptの`unknown`の安全な頂点軸における役割を果たします: `top`型の値は任意のRuby値を保持できますが、解析器はガード、シグネチャ、またはプラグインの事実を必要とします。`top`に対するガードなしの呼び出しの診断は`static.*`ファミリーに属します（[diagnostic-policy.md](../diagnostic-policy/)参照）。
+`top`はTypeScriptの`unknown`の安全な頂点軸における役割を果たします: `top`型の値は任意のRuby値を保持できますが、解析器はガード、シグネチャ、またはプラグインの事実を必要とします。`top`に対するガードなしの呼び出しの診断は`static.*`ファミリーに属します（[diagnostic-policy.md](../diagnostic-policy/)参照） —— **これは現時点では実装された識別子を持たない予約済みファミリーです**。ガードなしの`top`呼び出しは今日のところ診断されません。
 
 ## `bot`
 
@@ -74,6 +74,12 @@ Rigorは診断のために動的由来のソースを区別すべきです（SHO
 ストリクト動的モードは、動的から精密な代入、引数、戻り値、`Array[Dynamic[top]]`のようなジェネリックスロットのリークを報告できます（MAY）。ストリクト静的モードはさらに、チェックされた静的事実ではなく動的由来の事実に安全性が依存するメソッド呼び出しやブランチ証明を報告できます（MAY）。
 
 ## `void`
+
+> **ステータス —— 部分的に組み込み済み（現時点）**。エンジンはRBSの`void`を**`top`**に変換します（[`rbs_type_translator.rb`](https://github.com/rigortype/rigor/blob/master/lib/rigor/inference/rbs_type_translator.rb)の`RBS::Types::Bases::Void => :translate_top`）。これはRBS自身の定義です —— 「型システムにとってこれらはすべて同等であり、すべて*top型*である」（`docs/syntax.md` §「`void`、`boolish`、`top`のどれか？」）。したがって本セクションの拡幅の側は成立します: 作者の`void`戻り値は本体の推論値として型付けされず、呼び出し側がそれに暗黙裡に依存することはできません。
+>
+> **実装されていない**のは、`void`が`top`と*区別される*ことを要求するすべてです: `void`キャリア（carrier）がなく、「void値の使用」診断がなく、ジェネリックスロットの保持がなく、`void | bot`の正規化がありません。また、`top`に対するガードなしの呼び出しも今日のところ診断されないことにも注意してください —— それを行う`static.*`ファミリーは予約済み（Reserved）であるため（[diagnostic-policy.md](../diagnostic-policy/) §「識別子分類体系」参照）、`top`はまだ噛みつきません。このファミリーが、本セクションの値コンテキストルールに欠けている連結子です。
+>
+> 意図は[ADR-1](../../adr/1-types/) §「特殊なRBS型…は場当たり的なエイリアスとしてではなく型理論的な明快さをもって扱われなければならない」に従って保持されます;残りの作業は[ADR-92](../../adr/92-normative-status-fidelity/) WD2が引き継ぎます。値コンテキスト診断の実装は新たに要求される規律（discipline）であるため、[ADR-50](../../adr/50-release-engineering-and-stability-strategy/) WD1に従って`bleeding_edge:`の背後で出荷されます。
 
 `void`はRigorでは通常の値型では**ありません**。戻り値を使うべきでない式の結果マーカーです。
 

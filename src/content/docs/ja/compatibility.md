@@ -3,8 +3,8 @@ title: "互換性と公開サーフェス"
 description: "rigortype/rigor docs/compatibility.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/compatibility.md"
 sourcePath: "docs/compatibility.md"
-sourceSha: "6a36fe6acc9b4ffb23e1726a906e4e28638dbe2be1e24a8335a8d64b3d21377b"
-sourceCommit: "eb8e9996d113a1b5e1778d0988597c979814a219"
+sourceSha: "8fd65c77292310d937ab272b5ed3fb6ab79ef599289c05242b5eb4845a79f92d"
+sourceCommit: "78b18cea6a576475c92bce020535269f2eebc20d"
 translationStatus: "translated"
 sidebar:
   order: 9050
@@ -41,7 +41,7 @@ Rigorは**トライアルしてから凍結する**経路をたどります（AD
 | Surface | Authoritative enumeration | User reference | Contract |
 | --- | --- | --- | --- |
 | **CLIコマンド＋フラグ**（`check`、`triage`、`baseline`、`sig-gen`、`lsp`、`mcp`、`annotate`、`type-of`、`coverage`、`plugins`、`plugin`、`skill`、…） | [`lib/rigor/cli.rb`](https://github.com/rigortype/rigor/blob/master/lib/rigor/cli.rb)と`lib/rigor/cli/`内の`CLI::HANDLERS`＋コマンドごとの`OptionParser` | [Manual ch. 2 — CLI reference](../manual/02-cli-reference/) | **yes** ── 文書化されたコマンド／フラグは名前と意味を保つ。削除／改名は破壊的 |
-| **`.rigor.yml`のキー＋値の文法** | [`lib/rigor/configuration.rb`](https://github.com/rigortype/rigor/blob/master/lib/rigor/configuration.rb)内の`Configuration::DEFAULTS`＋強制変換器 | [Manual ch. 3 — Configuration](../manual/03-configuration/) | **yes** ── 文書化されたキーは名前・形・デフォルト意味論を保つ |
+| **`.rigor.yml`のキー＋値の文法** | **2つの対等な情報源:** [`lib/rigor/configuration.rb`](https://github.com/rigortype/rigor/blob/master/lib/rigor/configuration.rb)内の`Configuration::DEFAULTS`＋強制変換器（どのキーが存在し何を意味するか）、**および**[`schemas/rigor-config.schema.json`](https://github.com/rigortype/rigor/blob/master/schemas/rigor-config.schema.json)（宣言された形。姉妹実装のために予約されここでは決して読まれない名前空間を含む）。意味論: [`docs/internal-spec/config.md`](../internal-spec/config/)（[ADR-99](../adr/99-config-schema-authority/)） | [Manual ch. 3 — Configuration](../manual/03-configuration/) | **yes** ── 文書化されたキーは名前・形・デフォルト意味論を保つ |
 | **プラグイン契約** ── `Plugin::Base`のフック＋マニフェストフィールド（[ADR-37](../adr/37-plugin-interface-segregation/)のナロープロトコル`node_rule` / `dynamic_return` / `narrowing_facts`（ADR-80で`type_specifier`から改名;旧動詞・そのリーダー・そのエンジン消費者・`rigor plugins --capabilities`キーはすべて0.3.0で削除された）＋宣言的フィールド）と読み取り側の名前空間（`Scope`、`Type`、`Reflection`、`Environment`、…） | [`docs/internal-spec/public-api.md`](../internal-spec/public-api/)、[`public_api_drift_spec.rb`](https://github.com/rigortype/rigor/blob/master/spec/rigor/public_api_drift_spec.rb)が固定 | [ADR-2](../adr/2-extension-api/)＋[`examples/`](https://github.com/rigortype/rigor/blob/master/examples/README.md)配下のプラグイン例 | **yes** ── ADR-37のナロープロトコル（非推奨のファットフックは1.0前に削除。例: ADR-52 slice 5b / ADR-60） |
 | **診断識別子**（`flow.always-truthy-condition`、`call.unresolved-toplevel`、…）＋**抑制マーカー**（`# rigor:disable <id>` / `# rigor:disable-file <id>`）＋**`severity_overrides:`のキー** | [`lib/rigor/analysis/check_rules.rb`](https://github.com/rigortype/rigor/blob/master/lib/rigor/analysis/check_rules.rb)内のルールID（`ALL_RULES`、`LEGACY_RULE_ALIASES`）、[`lib/rigor/analysis/rule_catalog.rb`](https://github.com/rigortype/rigor/blob/master/lib/rigor/analysis/rule_catalog.rb)内のメタデータ | [Manual ch. 4 — Diagnostics](../manual/04-diagnostics/)、`rigor explain <rule>` | **yes ── 語彙であって発火集合ではない**（§ compatibility model 2） |
 | **ベースラインファイル形式**（`.rigor-baseline.yml`） | [`lib/rigor/analysis/baseline.rb`](https://github.com/rigortype/rigor/blob/master/lib/rigor/analysis/baseline.rb)内の`Baseline::CURRENT_VERSION`（現在`1`） | [Manual ch. 6 — Baselines](../manual/06-baseline/) | **yes** ── オンディスク形式。バージョンの引き上げは無効化するが、決して誤読しない |
@@ -88,4 +88,4 @@ ADR-50（これらすべての権威）から要約します。
 - [ADR-50](../adr/50-release-engineering-and-stability-strategy/) ── 統治するリリースエンジニアリングと安定性戦略（権威）。
 - [`docs/internal-spec/public-api.md`](../internal-spec/public-api/) ── 固定された名前空間とプロモーション経路をプラグイン作者の視点から見たもの。
 - [Manual ch. 11 — Running Rigor in CI](../manual/11-ci/) § version pinning ── パイプラインでRigorバージョンを固定する方法。
-- [`docs/ROADMAP.md`](../roadmap/) § "Release strategy — the road to v0.2.0" ── 将来を見据えたコミットメントの包絡線。
+- [ADR-50](../adr/50-release-engineering-and-stability-strategy/) ── リリース戦略（v1.0.0への道）。リリース計画はGitHub Milestonesのサーフェスである。

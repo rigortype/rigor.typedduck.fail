@@ -3,8 +3,8 @@ title: "内部型API"
 description: "rigortype/rigor docs/internal-spec/internal-type-api.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/internal-type-api.md"
 sourcePath: "docs/internal-spec/internal-type-api.md"
-sourceSha: "ccea4c52e72c32432c81acca98d399a761f1c7e88a48eb6600536e39130823cc"
-sourceCommit: "4c03f62d04f594030bd79aa00f3a5978e0457d4c"
+sourceSha: "e6e1bff899cb9a935916cbe7d2d7200ec16cc0e8d16b26db9624661ae41ede34"
+sourceCommit: "78b18cea6a576475c92bce020535269f2eebc20d"
 translationStatus: "translated"
 sidebar:
   order: 3050
@@ -15,6 +15,12 @@ sidebar:
 これは[`docs/type-specification/`](../../type-specification/)の型言語セマンティクスと対になるエンジン内部の仕様です。ここでの記述が型言語の振る舞いと矛盾する場合は、型仕様が優先されます。
 
 このドキュメントで定められた決定事項は安定しています。[`docs/adr/3-type-representation.md`](../../adr/3-type-representation/)で追跡されている2つの未解決問題——定数スカラー/オブジェクトキャリア（carrier）形状と三値返却メソッドの命名規約——はいずれも契約がそれらに依存しないよう、ここでは意図的に抽象化されています。
+
+> **ステータス — *メソッドサーフェス*は目標状態であって出荷済み状態ではありません（本執筆時点）**。
+> 拘束的かつ実装済み: 同一性・不変性・等価性のルール（§ *同一性と不変性*）、`describe(verbosity)`、`erase_to_rbs`、そして`accepts(other, mode:)`（[`Rigor::Type::AcceptanceRouter`](https://github.com/rigortype/rigor/blob/master/lib/rigor/type/acceptance_router.rb)を通じてルーティングされます）。
+> **どのキャリアにも未実装**: 以下で名付けられるその他すべてのメソッド ── § *関係クエリ*の残り（`subtype_of`、`consistent_with`、`equal_value`）、§ *構造クエリ*のすべて（`has_method`、`method`、`members`、`key_type`、`value_type`、`tuple_arity`、`iterable_*`）、そして§ *メタ操作*の`normalize` / `traverse`です。例えば`Rigor::Type::Nominal`は`initialize` / `describe` / `erase_to_rbs` / `inspect`を公開し、それ以外は何も公開しません。
+>
+> 第2の実装者にとって重要な区別: **サブタイピングと受理はエンジンが持つケイパビリティです** ── 型オブジェクト上のメソッドとしてではなく、異なる形状のエンジン内部ヘルパー（`rbs_subtype?`とその近傍）を通じて到達されます ── 一方で**`normalize`、`traverse`、`consistent_with`、`equal_value`は`lib/`のどこにも実装がありません**。[ADR-92](../../adr/92-normative-status-fidelity/) WD2により、このドキュメントはケイパビリティが出荷される実装に従い（ルーティングが出荷済みの設計であり、キャリアメソッド形状がそれに勝るという証拠はありません）、出荷されない箇所ではケイパビリティとして印付けします。以下の§ *スコープ*は既に具体的なメソッド名を束縛することを辞退しています（ADR-3 OQ2）── その適用除外は*綴り*を免除するのであってサーフェスの不在を免除するのではないため、代わりにここに記録されます。
 
 ## スコープ
 

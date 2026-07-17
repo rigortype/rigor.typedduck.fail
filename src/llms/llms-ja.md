@@ -130,7 +130,7 @@ https://raw.githubusercontent.com/rigortype/rigor/refs/heads/master/docs/install
 - [設計ノート](/ja/design.md): より詳細な設計・研究文書。
 - [開発レポート](/ja/notes.md): ライブラリ調査、カバレッジ監査、リグレッションスイープ。
 - [型理論との接続](/ja/handbook/appendix-type-theory.md): 設計を支える理論。
-- [互換性](/ja/compatibility.md)・[ロードマップ](/ja/roadmap.md): 対応Rubyバージョンと今後の方針。
+- [互換性](/ja/compatibility.md): 対応Rubyバージョン。
 - [変更履歴](/ja/changelog-01x.md): リリース履歴。
 - [chibirigorの本](/ja/chibirigor.md): 小さなRigor風チェッカーを作る併読オンラインブック。
 - [ソースコード](https://github.com/rigortype/rigor): Rigorの実装・issue・リリース。

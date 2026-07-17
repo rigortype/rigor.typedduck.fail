@@ -3,8 +3,8 @@ title: "付録: mypy / Pyrightから来た場合"
 description: "rigortype/rigor docs/handbook/appendix-mypy.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/appendix-mypy.md"
 sourcePath: "docs/handbook/appendix-mypy.md"
-sourceSha: "9af189b72eef21636a3f756fda545f1244c9a7e645a09d755cc9e00aa0af529d"
-sourceCommit: "212f2c491920cc5c39a12d75aee385cb6c51fa0c"
+sourceSha: "24fb311afcba969b73f6cd3572ff835bfd8b83a8d1f98aefdb67461b45055e49"
+sourceCommit: "78b18cea6a576475c92bce020535269f2eebc20d"
 translationStatus: "translated"
 sidebar:
   order: 1050
@@ -268,7 +268,7 @@ def classify_input: (String s) -> Symbol
 def shout: (String s) -> non-empty-string
 ```
 
-得られるもの: `s.empty?`は認識されたリファインメントナローワー（`assert s`は不要）。`match?(/\A\d+\z/)`はまだ`numeric-string`にナローイングしない（v0.1.1のロードマップにある。[`docs/ROADMAP.md`](../../roadmap/)参照）が、最終的な動作はPyrightでの`s.isdigit()`ナローイングを反映する。
+得られるもの: `s.empty?`は認識されたリファインメントナローワー（`assert s`は不要）。`match?(/\A\d+\z/)`はまだ`numeric-string`にナローイングしない（[#164](https://github.com/rigortype/rigor/issues/164)としてキューに入っている）が、最終的な動作はPyrightでの`s.isdigit()`ナローイングを反映する。
 
 ## 次のステップ
 

@@ -3,14 +3,14 @@ title: "ADR-89 — 意味的な伝播ゲート：宣言シェイプと観測キ�
 description: "rigortype/rigor docs/adr/89-semantic-propagation-gates.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/89-semantic-propagation-gates.md"
 sourcePath: "docs/adr/89-semantic-propagation-gates.md"
-sourceSha: "895fee19e02e6c09e0e1faaf29df501f0709b867c1f1b0a308f14ed607dfea1f"
-sourceCommit: "eb8e9996d113a1b5e1778d0988597c979814a219"
+sourceSha: "e5621b4f0f8ef45948cd8fc6ab90c957f17dfee918d501d37be8fb682054363f"
+sourceCommit: "78b18cea6a576475c92bce020535269f2eebc20d"
 translationStatus: "translated"
 sidebar:
   order: 4089
 ---
 
-Status: **Accepted — WD1（祖先／ファイルレベル依存者のための宣言シェイプゲート）＋WD2（シンボル依存者のための観測キー戻り値サマリーゲート）実装済み（[PR #90](https://github.com/rigortype/rigor/pull/90)）**。 PR #88のB1コメントのみゲートを**本体**編集へ拡張する：依存者が再解析されるのは、それが消費できる何かが実際に変わったときだけである。ADR-88の上でのみ健全である── プラグインファクトの値フィンガープリントこそが、「プラグインから見えるサーフェスは不変」を検査可能な前提にするものである。
+Status: **Accepted — WD1（祖先／ファイルレベル依存者のための宣言シェイプゲート）＋WD2（シンボル依存者のための観測キー戻り値サマリーゲート）実装済み（[PR #90](https://github.com/rigortype/rigor/pull/90)）**。PR #88のB1コメントのみゲートを**本体**編集へ拡張する：依存者が再解析されるのは、それが消費できる何かが実際に変わったときだけである。ADR-88の上でのみ健全である── プラグインファクトの値フィンガープリントこそが、「プラグインから見えるサーフェスは不変」を検査可能な前提にするものである。
 
 根拠：[`20260714-edit-shape-recon.md`](../../notes/20260714-edit-shape-recon/)（クロージャの形状。S5aのクラスメソッド編集 → 341ファイルの祖先クロージャ。あらゆるコメント形状にわたり`diags_changed = 0`）＋[ADR-88](../88-incremental-plugin-fact-soundness/)。
 
@@ -71,9 +71,9 @@ Status: **Accepted — WD1（祖先／ファイルレベル依存者のための
 
 ## Consequences
 
-S5a形の編集は潰れる（gitlabの`def self.safe_find_or_create_by`戻り値保存編集：**341 → 1**。WD1が340の祖先依存者すべてを落とす。`label.rb reference_prefix`のリテラル変更：**19 → 1**）ので、「自分の編集は型を変えるか？」という問いが伝播境界となる。適格なリーフの呼び出される側の戻り値保存リファクタは、その呼び出し側の再チェックをやめる（WD2）。ネガティブ：スナップショットはサマリーの分だけ増える（境界の定まった文字列／stat記述子）。完全に保つべき2つの新しい比較器サーフェス（WD4バッテリー＋`--verify-incremental`が保険）。観測キー再評価は変更ファイルごとに境界の定まった作業を加える── 宣言安定なペアがサマリーを持つときだけ。全体を通して精密性を加える（precision-additive）── 型／診断／重大度の変更なし。コールド診断は`origin/master`とバイト一致（mail 26、kramdown 68）。gitlabの`--verify-incremental`はバイト一致（887/1,774、2,494、不一致0）。
+S5a形の編集は潰れる（gitlabの`def self.safe_find_or_create_by`戻り値保存編集：**341 → 1**。WD1が340の祖先依存者すべてを落とす。`label.rb reference_prefix`のリテラル変更：**19 → 1**）ので、「自分の編集は型を変えるか？」という問いが伝播境界となる。適格なリーフの呼び出される側の戻り値保存リファクタは、その呼び出し側の再チェックをやめる（WD2）。ネガティブ：スナップショットはサマリーの分だけ増える（境界の定まった文字列／stat記述子）。完全に保つべき2つの新しい比較器サーフェス（WD4バッテリー＋`--verify-incremental`が保険）。観測キー再評価は変更ファイルごとに境界の定まった作業を加える── 宣言安定なペアがサマリーを持つときだけ。全体を通して精密性を加える（precision-additive）── 型／診断／重大度の変更なし。コールド診断は`origin/master`とバイト一致（mail 26、kramdown 68）。gitlabの`--verify-incremental`はバイト一致（887/1,774、2,494、不一致0）。S1の単一ファイル再チェックの壁時計は`origin/master`のノイズ内にとどまる── ゲートはその精度を、依存者を落とすことで買うのであって、計測可能な実行ごとのコストを加えることで買うのではない。
 
-**計測に関する注記（ゲートの期待数値からの乖離）**。 gitlabのS5aクロージャは、偵察が見積もった〜13〜14ではなく**1**に潰れた。`safe_find_or_create_by`は記録されたスコープ内シンボル呼び出し側が**ゼロ**だから（app/models＋app/controllers）── 偵察の「13呼び出し側」はテキスト的なものであって、記録された`symbol_dependents`ではなかった。だからWD1が計測されたgitlabの見出しである（340の祖先依存者を落とす）。WD2の戻り値ドロップはこの特定のgitlabメソッドでは発火しない（`safe_find_or_create_by`は不適格── `find_by`／`transaction`を自己呼び出しする。`Label.reference_prefix`はクロスファイルのシンボル呼び出し側を持たない）。その機構は代わりにWD4の作り込みバッテリーで証明される。
+**計測に関する注記（ゲートの期待数値からの乖離）**。gitlabのS5aクロージャは、偵察が見積もった〜13〜14ではなく**1**に潰れた。`safe_find_or_create_by`は記録されたスコープ内シンボル呼び出し側が**ゼロ**だから（app/models＋app/controllers）── 偵察の「13呼び出し側」はテキスト的なものであって、記録された`symbol_dependents`ではなかった。だからWD1が計測されたgitlabの見出しである（340の祖先依存者を落とす）。WD2の戻り値ドロップはこの特定のgitlabメソッドでは発火しない（`safe_find_or_create_by`は不適格── `find_by`／`transaction`を自己呼び出しする。`Label.reference_prefix`はクロスファイルのシンボル呼び出し側を持たない）。その機構は代わりにWD4の作り込みバッテリーで証明される。
 
 ## Relationship
 

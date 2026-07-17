@@ -3,8 +3,8 @@ title: "ADR-49 — ADR執筆ガイドライン（必要十分なADRのための�
 description: "rigortype/rigor docs/adr/49-adr-authoring-guidelines.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/49-adr-authoring-guidelines.md"
 sourcePath: "docs/adr/49-adr-authoring-guidelines.md"
-sourceSha: "cbcd60fda30a6b6a02f0ff66c2febf33fe58e0961701a0e4dcb91ab1c77b8618"
-sourceCommit: "73d7a0a2d4628b0614948fe2fa043945b45d5de4"
+sourceSha: "0a8ce992d44bb387db1a7a3b9a7348d7cc6cc4f82d11f84df9eb3183ae2275dc"
+sourceCommit: "78b18cea6a576475c92bce020535269f2eebc20d"
 translationStatus: "translated"
 sidebar:
   order: 4049
@@ -80,7 +80,7 @@ N/Aはゼロではない: 免除された評価軸は**分母から除外され�
 
 ネガティブ:
 
-- アーキタイプとステークスのタグ付けは人間の判断; deliberative/mechanicalの境界で2人のレビュアーが異なるタグを付けることがある。作業済み事例（43/46はdeliberative、40はmechanical）をアンカーとすること、およびスコアが助言的であることで軽減される。
+- アーキタイプとステークスのタグ付けは人間の判断; deliberative/mechanicalの境界で2人のレビュアーが異なるタグを付けることがある。作業済み事例（43/46はdeliberative×`high`ステークス、40はmechanical×`low`）をキャリブレーションセットおよびタグ付けのアンカーとすること、およびスコアが助言的であることで軽減される。
 - 8つの評価軸はクイックな勘チェックより多い。明らかに些細な機械的ADRでは、評価軸3/6/8だけが合理的な高速パスになる; 8つ全部はdeliberativeなケースとコーパス監査のためにある。
 
 ## 他のADRとの関係

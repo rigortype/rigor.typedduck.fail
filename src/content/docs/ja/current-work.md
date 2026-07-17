@@ -1,174 +1,127 @@
 ---
-title: "現在の作業 — 再開ブックマーク"
+title: "現在の作業 — セッション引き継ぎ"
 description: "rigortype/rigor docs/CURRENT_WORK.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/CURRENT_WORK.md"
 sourcePath: "docs/CURRENT_WORK.md"
-sourceSha: "776f153342dc0c88c56dfebb7d9c27151a9a839be539b6ee3165f50e3a0118ad"
-sourceCommit: "eb8e9996d113a1b5e1778d0988597c979814a219"
-sourceDate: "2026-07-15T03:56:26+09:00"
+sourceSha: "c93efd6f491ca64bd32acbda8e0026133fab5565bc889bfe7a21d09cd8106af8"
+sourceCommit: "78b18cea6a576475c92bce020535269f2eebc20d"
+sourceDate: "2026-07-18T00:05:14+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9050
 ---
 
-次の実装者のための一時的なブックマーク: 直近の次セッションのエントリーポイントに加え、他では完全には捕捉されていないエンジン内部の項目。**規範的な**契約（contract）は[`docs/internal-spec/inference-engine.md`](../internal-spec/inference-engine/)と[`docs/adr/4-type-inference-engine.md`](../adr/4-type-inference-engine/)に残ります;将来を見据えたコミットメントエンベロープ（リリース戦略 + 完全なバックログ）は[`docs/ROADMAP.md`](../roadmap/)にあり;リリース済みバージョンの記録は[`CHANGELOG.md`](https://github.com/rigortype/rigor/blob/master/CHANGELOG.md)です。このファイルがそれらのいずれかと矛盾する場合、仕様 / ADR / ロードマップが拘束力を持ち、このファイルは古くなっています。
+<!--
+セッション引き継ぎ（ADR-98）。たった1つの問いに答える: 次のセッションは何をすべきか？
 
-## ステータス
+- 作業をゴールまで運んだら、このファイルの内容を置き換えること;下に追記しないこと。
+  2セッションを超えて生き延びるものはここに属さない: バックログ → GitHub issue
+  （docs/agents/issue-tracker.md）、運用上の落とし穴 → ワークフローのスキル、決定 → ADR、
+  計測 → docs/notes/、出荷済み → CHANGELOG.md。
+- 主張を持ち越す前に検証すること。1週間で3つの項目がこれで死んだ: 「現存するバグ、まずこれを
+  やれ」がそれ自身の再現で反証された（2026-05-01以降ガード済み）、「未解決」のARラムダ項目が
+  2026-05-28以降修正済み（`fde760a2`）、そして旧ROADMAPバックログの約40%が既に出荷済み。
+-->
 
-**▶ 2026-07-15 —— v0.3.0の非推奨一掃はDONEで、パフォーマンスベースラインは弧の後の現実へ再較正された**。 v0.3.0での削除が予定されていたハード非推奨はすべて一掃された（[PR #94](https://github.com/rigortype/rigor/pull/94)）: `docs` / `skill`の動詞サブコマンド（削除された動詞は今や未知の名前として解決される）、`type_specifier`プラグインフック（今やクラス定義時に`NoMethodError`）—— **ADR-80の先送りされていた持ち越し事項を含む。完全な一貫性を優先する決定がなされた**（`type_specifiers` → `narrowing_facts_rules`、`#type_specifier_facts` → `#narrowing_facts_for`、そして`rigor plugins --capabilities`のJSONキー`type_specifier_methods` → `narrowing_facts_methods`;このキーはv1.0で公開語彙として凍結されるので、破壊的なマイナーが最後の自由な窓だった）—— そして`parallel_tests`の開発依存（`binpacker`がランナーだ）。移行ノートは`CHANGELOG.md` § `[Unreleased]` → `### Removed`にある;ADR-80の補遺がこの決定を記録する。**[PR #95](https://github.com/rigortype/rigor/pull/95)は`bench/baseline.json`を再較正し、診断は持ち越す価値のある前提を訂正した:** masterが自身のゲートに落ちていたのは、パフォーマンスの弧のアロケーション削減が帯を超えたからではなく、**ピークRSSが+15%**だったからだ —— これは**YJITであってリークではない**（PR #75のデッドラインは5秒でそれを起動し、`lib`の実行は約13.8秒続くので、JITコード + メタデータがそのほとんどの間常駐する;同じインプロセスcheckでのA/Bは、YJITありで336 MB対`RIGOR_DISABLE_YJIT=1`で292 MB、+14.9%を計測し、CIの差分と一致した）。1.7倍の壁時計勝利のメモリ代として容認された;アロケーションは2933万 → 2224万に引き締まったので、5%の帯は歯を保つ。Linuxでリリースゲートはグリーン（アロケーションは29オブジェクト以内で再現;Mastodonスイープはグリーン）。
 
-**▶ 2026-07-14 —— v0.3.0パフォーマンスの弧はCLOSED（計測済み）**。第2波は戻り値メモの完成（[ADR-84](../adr/84-cross-file-return-memo-scoping/)、PR #79/#80: 実行スコープのバケット + 依存関係のcache-and-replay + 深度ログのイベントテイントゲート —— mailの本体評価3,355 → 557）と事前パスのインクリメンタル化（[ADR-85](../adr/85-seed-bundles-and-lazy-def-node-handles/)、PR #81/#82: インクリメンタルなリチェックがプラグインプロデューサーのキャッシュを再利用 + 遅延`(path, node_id)`のdefハンドルを持つファイルごとのシードバンドル —— gitlabのウォームインクリメンタル1670万 → 206万アロケーション、8.1倍）を着地させた。`3424840b`（全9 PR）での締めの再プロファイルは、**22個のコールド+ウォームセルすべてでアロケーション減 —— コールド中央値−20.6%、ウォーム中央値−75.4%、診断は10/10バイト安定**を計測し、2つの構造的な問いを決着させた: **キャリアインターニングは却下のまま**（等価性のチャーンは残余アロケーションの2〜5%;残るコールドの塊はウォームキャッシュがカバーするパース作業）、そして**デーモン/watchモードは需要ゲート付きのプロダクト判断**（ウォームのフロアは小さいプロジェクトで約61〜73%の`require`対モノレポ規模での約55%のglob+ダイジェスト再検証に割れる —— 2つの異なる問題）。4つのノイズ疑いのウォーム壁時計の上昇は、N≥3の静かなホストでの再チェックのためにノートで指摘されている。完全な記録 + テーブル: [`20260713-corpus-perf-campaign.md`](../notes/20260713-corpus-perf-campaign/) §「Closing re-profile」。残るパフォーマンスバックログ（すべて需要ゲート付き）: プールワーカーのYJITアーミング、`plugins/*/lib`ウォーカーの移行、デーモンの判断、デフォルト並列。
+一時的;まるごと置き換えられる。バックログはGitHub Issuesに、リリース計画はMilestones
+（`v0.3.0` / `v0.4.x` / `v1.0.0`）に存在する。このファイルがADR、CHANGELOG、またはissueと
+矛盾する場合、間違っているのはこのファイルのほうだ。
 
-**▶ セッション境界2026-07-13 —— v0.3.0パフォーマンスサイクルはOPENで、その最初のレバー波は着地済み**。コーパス全体のコールド/ウォーム再プロファイル（9プロジェクト + Railsセット + セルフチェック、壁時計/オブジェクトのStackProf、YJIT A/B、コミットごとのbisect）が4つの計測ゲート付きレバーを駆動し、すべてサーベイコーパスでバイト同一: **PR #74**（dry-typesのprepareスキャンをキャッシュ —— GitLabウォーム−40%）、**PR #75**（デッドライン遅延のYJIT、`Runtime::Jit` —— mastodon `app`+`lib`コールド25.4秒 → 15.1秒、短い実行は構成上パリティ）、**PR #76 + `0e80d04e`**（`rigor_each_child`をPrismノードクラスにコンパイル;すべてのASTウォークが子配列のアロケーションをやめる —— mailコールドアロケーション−56%、セルフチェック2930万 → 1520万、あらゆるゲートターゲットが高速化）、そして**PR #77（オープン）**（遅延発見事前パス + 単一パース事前パス + 遅延RBSダイジェスト + 実行ごとのダイジェストメモ —— ウォームrigor-lib壁時計−68% / アロケーション−80%、gitlab app/modelsウォーム−31%）。完全な分析、2つの計測方法論の訂正（インプロセス対フレッシュプロセスのウォーム数値は比較*できない*;セルフチェックのアロケーションは`vendor/bundle`の存在を要する）、成長の帰属（0.2.6→0.2.9のセルフチェック+960万＝PR #62の意図されたモジュールディスパッチのコスト + env面 + libの成長であって、拡散的なリグレッションでは*ない*）、そして計測で負だったプローブ（ユニオンソートキーメモ —— ユニオン正規化はローカルな手段では削減不能と今や三重に確認された）は[`20260713-corpus-perf-campaign.md`](../notes/20260713-corpus-perf-campaign/)にある。**次にキュー（エビデンスでランク付け）: スコープ安全な実行スコープの戻り値メモADR**（3度目の表面化;制約はADR-24 WD5 / ADR-52 WD5）、次にファイルごとのシードキャッシュ / 事前パスのインクリメンタル化の弧（ADR-46の完成）、プールワーカーのYJITアーミング、`plugins/*/lib`ウォーカーの移行。プロセスメモ: `0e80d04e`はサブエージェントからの偶発的な直接プッシュでmasterに到達した（ゲートはグリーン;PR #76のコメントで開示）;master CIはそれでグリーン。
+## 現状
 
-**▶ セッション境界2026-07-11 —— v0.2.9はCUTされた（リリース準備は`release/0.2.9`で完了）;公開だけが残るユーザーゲート付きのステップだ**。前セッションで描かれた3ステップのリリース実行は完了した: ステップ1（カバレッジパフォーマンス、[PR #67](https://github.com/rigortype/rigor/pull/67)）とステップ2（ドキュメント整合性、[PR #69](https://github.com/rigortype/rigor/pull/69)）はどちらもマージされ、L3のmanual↔handbook重複はレビューされそのまま残された（削減ではなく記録）、そして`rigor-playground` → `apps/`への再配置（[PR #72](https://github.com/rigortype/rigor/pull/72)）もマージされた。本セッションは`rigor-release-prep`を実行した: `[Unreleased]`ブロックを`## [0.2.9] - 2026-07-11`へ封印し（サマリー + 1つのマージアーティファクトの分割 —— 孤立した`unknown-permit-key`の子を`rigor-actionpack`の親へ復元）、`Rigor::VERSION` + `README`のStatus + `Gemfile.lock`をバンプし、リリースPRを開いた。**`rake release`（タグ + RubyGemsプッシュ + GitHub Release）はユーザーゲート付きのまま —— 自律的に実行しないこと**。
+- **v0.2.9は2026-07-11に公開**。masterは**v0.3.0**へ向けて蓄積している。2つの必須要素は
+  どちらも完了しており（非推奨一掃#94、パフォーマンス再較正#95）、カットはすでに出荷可能だ ——
+  以下に続くのは、それが*獲得する*ものだ。
+- **v0.3.0の軸は型推論の品質だ**（2026-07-17にトリアージ）: 12件のissueがオープン、5件が
+  `ready-for-agent`。LSPの作業は**`v0.4.x`**に存在する —— シリーズ全体で少しずつ改善され、
+  単一のカットに固定されない。マイルストーン未設定のissueは、需要ゲート付き作業の健全な休止状態だ。
+- `make verify`と`make docs-check`はクリーン;masterと`origin/master`は一致している。
 
-**最新の公開リリース: v0.2.8（2026-07-06）** —— 8番目の`0.2.x`評価ラインのカットであり、[ADR-50](../adr/50-release-engineering-and-stability-strategy/)が統制する。**v0.2.9（2026-07-11）は準備済みで、ユーザーゲート付きの公開を待っている**。カットごとの完全な記録は`CHANGELOG.md`（§ `[0.2.9]` … `[0.2.0]`）にある;ここで再要約しないこと。`make verify`はクリーン。
+## 次のセッション —— 実装し、それからリリースする
 
-**v0.2.9が実際に何になったか**（ROADMAPの以前の「型推論の強化カット」という枠付けはGitLabオンボーディングの弧に置き換えられた）: **大規模Railsの型カバレッジ**カットだ —— `db/structure.sql`スキーマ、ストロングパラメータのチェーン型付け、ルートヘルパー命名の忠実度、ファイルをまたぐモジュールファサード解決（[ADR-57](../adr/57-self-call-return-adoption/) WD3）、外部gemのRBS欠落由来ラベリング（[ADR-82](../adr/82-dynamic-provenance-wiring/) WD9）—— に加え、forkで並列な`coverage --protection`スキャン、永続キャッシュのアップグレード/ABIハードニング、そして`rigor-playground` → `apps/`の再配置。**v0.3.0はハード非推奨の一掃 + パフォーマンスのマイナーのまま**（`docs`/`skill`の動詞サブコマンド + `type_specifier`エイリアス + `parallel_tests`を削除;ADR-46のインクリメンタル解析 + その他のパフォーマンスレバーを着地）。v0.2.9が最後の`0.2.x`だ（1桁ポリシー → 次は`0.3.0`）。
+**1. v0.3.0のセットを実装する**。`gh issue list --milestone v0.3.0`。5件が`ready-for-agent`だ。
 
-**master上の未リリース分:**空 —— 以前の`[Unreleased]`エントリーはすべて本セッションで`## [0.2.9]`へ封印された。次に着地する作業が、v0.3.0へ向けて蓄積する新しい`[Unreleased]`ブロックを開始する。
+2026-07-17に見つかった4つの推論品質バグのうち2つが着地した: **#174**（`(?)`の戻り値破棄、
+PR #175）と**#176**（ミューテーターが今や`non-empty-array`リファインメントを撤回する、PR #179 ——
+再現コードはmasterでクリーンと再検証、変異前のナローイングは無傷）。**#178**は意図された挙動として
+クローズされた —— 下記の決定済みリストを参照。これでこのバッチから残るオープンは1つ:
 
-**GitLabサーベイのオンボーディング + 型カバレッジ改善計画（2026-07-08、`docs/notes/`のみ —— まだエンジン変更なし）** —— `~/repo/ruby/rigor-survey/gitlab`をオンボーディングし（acknowledgeモード、`app`+`lib`、11,344ファイル;ベースライン1,255バケット / 3,909診断、最終checkはクリーン）、保護**0.2836**（対Mastodon 0.3148 / Redmine 0.339）を計測し、そのギャップからランク付けされたP0〜P3のエンジン改善計画を統合した。ランク付けされたレバーは下記の「次セッションのエントリーポイント」 § （0b）を参照;[`20260708-gitlab-type-coverage-improvement-plan.md`](../notes/20260708-gitlab-type-coverage-improvement-plan/)が記録上の計画だ。
+- **#177** —— `$+`はあらゆる真マッチエッジで`String`に束縛されるが、成功したマッチのグループが
+  すべてオプショナルのときはnilだ。偽陰性側;小さい。`ready-for-agent`。
+- **#172** —— 下記のrbs-inlineチェーンを参照。`ready-for-agent`。
 
-**出荷済み、master上で未リリース: キャッシュのスキーママーカーABIゲート + コンパクションのハードニング（[PR #57](https://github.com/rigortype/rigor/pull/57)、2026-07-08マージ）** —— `Rigor::VERSION`をキャッシュの`schema_version.txt`マーカーへ畳み込み（ペイロードABIゲート）、`ensure_schema_version!`をブール返却にして読み取り専用ストア（LSP / エディタモード）が陳腐化または読めないマーカーでディスクを信頼する代わりにメモのみへ降格するようにし、`fetch_or_compute`/`fetch_or_validate`にまたがる書き込み失敗のrescueを統一し、`evict!`の陳腐化した一時ファイルのクリーンアップ + 世代上限を`max_bytes: nil`のもとでも実行する。計画 + 監査ノート: [`20260707-cache-hardening-plan.md`](../notes/20260707-cache-hardening-plan/)（フェーズ1〜6すべて実行）+ [`20260707-cache-mechanism-audit-sakana.md`](../notes/20260707-cache-mechanism-audit-sakana/)。`## [0.2.9]`のCHANGELOGの`[cache]`エントリーで出荷された。計画の「見送り」項目（プロデューサー宣言の`generation_cap:`メタデータ、`analysis.run-diagnostics`上限の検証）は今やこのブックマークではなく[`docs/ROADMAP.md`](../roadmap/) §「Future cycles」で追跡される。
+他の3つの`ready-for-agent`: **#121**（FPに安全なビルトイン/stdlibのフォールド ——
+`rigor-type-coverage-uplift`スキルが手順だ）、**#131**（Data/Structの値フォールド）、**#155**
+（`call.self-undefined-method`のためのサブクラス認識ゲーティング）。
 
-**v0.2.8で出荷 —— Railsの型カバレッジの弧**（`rigor-survey`のredmine / mastodonターゲットのオンボーディングから、2026-07-04 → 2026-07-06;ノート[`20260704-rails-coverage-onboarding-carrier-trap.md`](../notes/20260704-rails-coverage-onboarding-carrier-trap/) + [`20260706-mastodon-coverage-provenance-and-siggen-rbs-validity.md`](../notes/20260706-mastodon-coverage-provenance-and-siggen-rbs-validity/)）。スレッド、順に:
+残りはまず決定を要する。**#126**（length-rangeキャリア）には設計パスが付いており、その推奨自身が
+*作るな*だ —— 見返りが薄く、よくある上限イディオムはレシーバーを自身のガード内で変異させる;#176は
+それが表面化させた前提条件で、今や出荷済みだ。2つはADR-50のv1.0で凍結された診断語彙に触れるので、
+そのルールIDとデフォルト重大度は意図的な選択だ: **#161**（RBS env-buildの全面的な失敗が、プロジェクト
+全体で`Dynamic[top]`を返して診断なしで0終了する）と**#162**（`static.*`ファミリー + `void_origins`
+サイドテーブル）。**#120**（成熟した`--incremental`をデフォルト可能へ）はパフォーマンスの目玉だ;その
+受け入れ基準はすでに存在する —— `--verify-incremental`（インクリメンタル == 完全な`--no-cache`、
+バイト同一）、CIに配線済み。
 
-- **カバレッジスコープの忠実度（2026-07-04）** —— `rigor coverage --protection`が保護を約13ポイント過小カウントしていた: そのスキャンスコープが（a）プラグインレジストリと（b）クロスファイルのクラス発見を欠いていたため、プラグインが型付けするレシーバー（`params`、`Model.where → Relation[Model]`）と兄弟ファイルのクラス定数が`Dynamic`と読まれていた。両方修正済み;メトリクスは今や`check`が型付けするものと一致する（redmine `app`+`lib` 0.195 → 0.339、mastodon `app/models` 0.177 → 0.311）。加えてrigor-actionpackがリクエストコンテキストのリーダー（`params`/`session`/`request`/`flash`/`cookies`、寛容な名前的型、バンドルRBSなし）を型付けし、sig-genのスーパークラス修正 + それが表面化させたenvクラッシュ耐性。**要となる教訓: `check`経由の`dump_type`がグラウンドトゥルースだ;単一ファイルの`dump_type`プローブはクロスファイルのシンボルには誤りだ——ディレクトリ全体を解析すること**。
-- **[ADR-82](../adr/82-dynamic-provenance-wiring/)の`Dynamic[T]`由来配線の弧（2026-07-06、WD1+2+3+6+7+8、PR #42〜48）** —— `coverage --protection`は今や各ホールが*なぜ*動的なのかをラベリングし、それをルーティングする（型なしパラメータ → ADR-67、束縛されていないivar → ADR-58、解決済みだが推論不能な戻り値 → 推論）。記録（WD2/3） → バインディング伝播（WD1） → チェーン伝播（WD6） → **サイトごとの正確な`cause_site_counts`メトリクス（WD7）** → パラメータ + ivarの根の拡充（WD7/WD8）。Mastodonの原因なしホールは49%→26%に落ち、アクション可能な推論ルーティング済みバケットは351→5,399（15倍）に増え、比率は不変（精度加算的）。**要となる訂正（WD7）: 旧来のグループ支配的な`add_a_type_here`集約はロッシーだった** —— 混在グループの原因なしサイトを隠していたので、WD1/WD6の「null 2,921→1,356」という数字はアーティファクトだった（WD1〜6後の真の原因なしは10,390）。Redmineでクロスプロジェクト検証済み（推論バケット30% 対mastodon 26%）。この弧にはもう1つ: sig-genのレコードキーのRBS妥当性修正（`Type::HashShape#erase_key_prefix`が非識別子のシンボルキーをクォートするので`{ :"data-contrast" => T }`がパース可能なRBSへ消去される——パースできないものは環境全体をnullにし、偽の約5ポイントのカバレッジ*低下*として読まれていた）。
-- **[ADR-67](../adr/67-parameter-type-inference/)の呼び出しサイトのパラメータ推論、シェイプ拡張（2026-07-06、PR #49）** —— コレクターは今や、末尾にオプショナル/キーワード/レスト/ブロックパラメータが続く場合でも（`def f(x, opts = {})`）、メソッドの先頭の必須パラメータを推論し、WD3の実証済みの健全性（解決された実引数のユニオン）を再利用する。コレクターの既存の+190に上乗せしてmastodonで+36保護サイト。**呼び出しサイトのレバー全体は控えめだ（約+226サイト、mastodonで+0.75ポイント）。というのも、パラメータの穴のほとんどが、呼び出しサイト推論では見えない動的ディスパッチ / フレームワークコールバックで到達されるからだ** —— これがWD2の本体内推論のスパイクを動機づけた天井である（次項）。
-- **env / sig-genのロバストネス + WD2の停止（2026-07-06、PR #50/#51）** —— 由来マップはADR-67 WD2（本体内パラメータ推論）を最後の保護レバーと名指したが、**計測されたスパイクがそれを延期させた**（ARの属性の罠 + 保護メトリックの循環性 + 見返りの出ない構造的インターフェースキャリアが必要——[スパイクノート](../notes/20260706-adr67-wd2-in-body-inference-design-spike/)）。マップがそれより*上位*にランクした、範囲の限られたロバストネスレバーが代わりに着地した: **env-buildの耐性（#50** —— 1つのパースできない`signature_paths:`の`.rbs`が隔離され、RBS環境全体を崩さなくなる。スキップしたファイルを名指す一度きりの警告付き）と**2つ目のsig-genのRBS妥当性修正（#51** —— `&block`コンストラクタパラメータが、環境を壊す`(**untyped, ?{ (?) -> void })`ではなく、括弧の*後ろ*に有効なRBSブロックとしてレンダリングされるようになった）。この弧のレコードキー修正と合わせて、sig-genは環境を壊すRBSをもう出さず、不正な`.rbs`はもう環境を吹き飛ばさない。**保護の天井は今や計測されたフロアだ;次の動きは別のエンジン機能ではなく、評価ラインの目的そのものだ**。
+**2. リリースする —— そしてCHANGELOGに予算を組む**。`[Unreleased]`は**57個の項目**を抱えている。
+それらを封印することは`rigor-release-prep`の最も価値が高く最も飛ばされがちなステップであり、
+サイクル全体のコンテキストを要し、`make verify`が救済できない唯一のリリースステップだ。カットで
+発見するのではなく、それに向けて計画すること。**バージョンバンプと`rake release`はユーザーゲート付きの
+まま** —— エントリーを着地させ、止まり、切り替えはユーザーに委ねること（AGENTS.md §「Release Cadence」）。
 
-ラインは**`0.2.x` —— 評価**のままだ: 外部からのフィードバックを集め、計画された機能セットを高い完成度へ持っていく。道は**v1.0.0**、ハードな契約フリーズを指している。[`docs/ROADMAP.md`](../roadmap/) §「Release strategy」を参照。
+## rbs-inlineチェーン —— 順序が要だ
 
-**リリースゲート:**両ベースライン（`bench/baseline.json` + `data/oss-sweep/mastodon-thresholds.json`）は正確なカウント / 帯であり、決定的なシグナルがドリフトしたときにのみ再較正される —— 再較正の規律については下記の`bench-perf` gotchaを参照（アロケーションは決定的だ;`wall_s`は再実行可能なフレークだ;より高いカウントを容認する前にOSSスイープの診断を偽陽性についてdiffすること）。
+**#172 → #173**。ADR-93 WD1aとADR-57のプロトコルに従い、ADR-93のデフォルトフリップがherbで
+表面化させるアーティファクトは、フリップが着地する**前に**根本で修正される。
 
-ヘッドラインのリアリズム（**v0.1.12のOSSリアリズムカット** —— このツールを実コードで信頼に足るものにした偽陽性削減の成果;偽陽性削減のフロアであって、今日の正確なカウントではない —— v0.2.0の検出の歯は、精度を変えずにこれらのコーパスで表面化するカウントを意図的に*引き上げる*）:
+**#172は`ready-for-agent`で、その当初の枠付けは誤りだった**。 それは2つの健全性の判断に設計がないと
+主張したが、どちらも2026-06-12に着地した（`0cfa4f55`、`b6affe87`）。本当のギャップは1つの認識
+アップグレードだ —— パターンのオペランドが構文的な`Prism::RegularExpressionNode`としてのみマッチ
+される一方、herbのそれはタイパーがすでに値固定の`Constant[Regexp]`へフォールドする定数だ。使い捨て
+パッチで検証: herb 12 → 8診断、−3の勝ちは保たれ、4つのコーパスはバイト同一。詳細なブリーフはissueに。
 
-| プロジェクト | スコープ | Before | After | Delta |
-|---|---|---:|---:|---:|
-| Mastodon | `app + lib` | 789 | 6 | **−99.2%** |
-| Redmine | フルプラグインセット | 163 | 79 | −51% |
-| GitLab FOSS | `app/{controllers,mailers,workers,services}` | ~670 | ~140 | ~−79% |
+**#173はエージェントではなくユーザーの判断だ**。 デフォルトフリップは機械的だ;WD2（バンドルされた
+プラグインをデフォルト配線する）は、オープンなオプトアウトスキーマを伴うADR-27/ADR-31の自動ロード
+先送りの部分的な反転であり、WD3（スタンドアロンの残余）は2つ目のオープンな選択だ。ADR-93は依然として
+**Proposed**だ。
 
-## 次セッションのエントリーポイント
+恒常的なコンテキスト: ADR-94は、rbs 4.0がリーダー（`RBS::InlineParser`）を吸収したことを記録しており、
+それはWD2とWD3を丸ごと引退させるだろう。`rbs >= 3.0, < 5.0`のフロア（ADR-79）の後ろに先送りされて
+いる;v0.3.0には**予定されていない**。ADR-94のWD2のテキストは2026-07-17に訂正された（PR #175）——
+その「現存するクラッシュ」はサイト、症状、トリガーを取り違えて名指していた。もっとも欠陥は本物で、
+今は修正されている。
 
-> **▶ 次: v0.3.0は今や機能作業のみだ —— その2つの必須要素（非推奨の一掃 + パフォーマンス）はどちらもDONEだ**。 v0.2.9は公開済みだ;非推奨の一掃（#94）とパフォーマンスベースラインの再較正（#95）はマージ済みだ。v0.3.0が*追加で*何を運ぶかはオープンだ: 下記の（A）/（B）/（D）キューが候補プールであり、需要ゲート付きのパフォーマンスバックログ（プールワーカーのYJITアーミング、`plugins/*/lib`ウォーカーの移行、デーモン/watchの判断、デフォルト並列）は2026-07-13のコーパスパフォーマンスノートに記録されている。まだ開いている範囲の限られたエンジン項目は1つ、env隔離の**CI可視性フォローアップ**だ（`signature_paths:`の隔離の`warn`を診断 / 非ゼロ終了に変える）—— これはADR-50のv1.0で凍結される語彙に新しいルールIDが触れるので、まず重大度の判断が必要だ。`make verify` + `make docs-check`はクリーン;リリースゲートはLinuxでグリーンだ。
->
-> **（0）Railsの型カバレッジの弧 —— 2026-07-04 → 07-06の引き継ぎ（状態 + なぜ天井がハードなフロアなのか）:**
-> カバレッジスコープの忠実度（2026-07-04）と**[ADR-82](../adr/82-dynamic-provenance-wiring/)の由来配線の弧（2026-07-06）**はどちらもDONEでマージ済み。`coverage --protection`は今や（a）`check`のスコープを鏡写しにし、（b）各ホールのdynamic-origin原因をラベリングしてそのレバーへルーティングし、（c）**サイトごとの正確な`cause_site_counts`**を報告する（以前のグループ支配的な`add_a_type_here`集約はロッシーだった——メソッドグループごとの合計ではなく`cause_site_counts`を信頼すること）。弧の後の正確な図、mastodon app+lib（未保護21,119件、比率0.316）: **約26%が原因なし（本当に未モデル化——`yield`/`super`/ブロックの結果 + cvar/gvar）、約48%が`unsupported_syntax`（未解決の呼び出しに根ざしたチェーン）、約26%が`inferred_return_untyped`（型なしパラメータ / 束縛されていないivar → アクション可能なADR-67/58のバケット）**。
-> - **由来の作業は保護の獲得ではなくマップだ** —— ホールを精度加算的にラベリングする（比率は不変）ので、天井を動かさずに天井が*どこ*にあるかをロードマップに伝える。Redmineでクロスプロジェクト検証済み（同じ形）。
-> - **ADR-67（呼び出しサイトのパラメータ推論）は実装済み + 拡張済み**（WD1+WD3+WD5 + 2026-07-06の先頭必須シェイプ拡張）で、`coverage --protection`内でのみ走り（`ParameterInferenceCollector.collect`、上限付き不動点）、`check`では走らない（診断はバイト同一）。計測された天井: 合計で**約+226 mastodonサイト（+0.75ポイント）**。これは*本質的に*控えめだ——パラメータの穴のほとんどが、呼び出しサイト推論では根本的に見えない動的ディスパッチ / フレームワークコールバック（`before_action`、ミドルウェア）で到達される。
-> - **[ADR-67](../adr/67-parameter-type-inference/) WD2（本体内の構造的推論）はスパイクされ、延期された（2026-07-06、PR #50ブランチ）** —— 計測されたスパイクが以前の「残る唯一のレバー」という枠付けを覆した（[スパイクノート](../notes/20260706-adr67-wd2-in-body-inference-design-spike/) + ADR-67 WD2補遺）。mastodon/redmine/rigor-libにわたる純AST的なプローブ: 型なしパラメータのうち、**44〜58%は本体内で一度もレシーバーにならず**（→ WD3 / ADR-58、WD2ではない）、19〜27%はユニバーサルなダックメソッドしか呼ばず（名前的型を絞り込まない）、何らかの弁別的なメソッドを持つのは23〜29%の天井にとどまり——そのうち名前的型を少しでも絞り込めるのは**約10%の「2つ以上の弁別的メソッド」の部分集合**だけだ。その約10%さえ（i）**ARの属性の罠**（絞り込めそうに見えるドメインパラメータはRailsのヘルパーで、その弁別的なメソッドは静的な発見インデックスにない動的なARアクセサだ）と（ii）本体由来の構造的境界の**循環性**（それはまさに自らが構築される基となったサイトを保護済みとマークし、同一本体内のタイポを噛めない）に沈められる。WD2は新しい構造的インターフェースキャリア（ハイステークスな型の動物園の拡張）を必要とするが、その見返りは正当化されない。ARの罠が存在しない（スキーマ＋プラグインが完全、または非Railsのドメインオブジェクトコード）のでない限り、**WD2を再推奨しないこと**。
-> - **保護の天井は今や、欠けているクイックスライスではなく、計測されたハードなフロアだ**。そして由来ノートが大機能作業より上位にランクした範囲の限られたロバストネスレバーは尽きた: env-buildの耐性が着地し（**#50** —— 1つのパースできない`signature_paths:`の`.rbs`が隔離され、RBS環境全体を崩さなくなる）、sig-genのRBS妥当性のバグは両方修正された（レコードキーはADR-82の弧内;`&block`コンストラクタのレンダリングは**#51**）。ADR-58のivar型付けはDONE（保護ではなくpossible-nilの発火ポリシーを統制する）;呼び出しサイトのパラメータ推論は動的ディスパッチの天井にある;WD2は見返りが出ない。**したがって次の方向は、別のエンジン精度機能ではなく、`0.2.x`評価ラインの実際の目的（C）——外部からのフィードバックを集め、計画された機能セットをv1.0完成へ駆動すること——だ**。まだ開いている範囲の限られたエンジン項目は1つ、env耐性の**CI可視性フォローアップ**だ（隔離の`warn`を適切な診断 / 非ゼロ終了に変える）;これはADR-50の語彙に触れる（新しいルールIDがv1.0で凍結される）ので、まず重大度の判断が必要だ——純粋に機械的なスライスではない。
-> - オンボーディングの成果物はサーベイのチェックアウト内にUNTRACKEDで存在する（`~/repo/ruby/rigor-survey/{redmine,mastodon}/.rigor.dist.yml` + `.rigor-baseline.yml`、acknowledgeモード、プラグイン配線済み、`sig/`なし）;由来のエンリッチメントの各スライスが`coverage_command_spec`のnil時省略フィクスチャを壊した（依然として原因なしのレシーバーが必要: パラメータ/ivarがエンリッチされたので`def f(x)`→`@x`→`$x`——今やグローバル読み取り）。
->
-> **（0b）GitLabサーベイのオンボーディング + 型カバレッジ改善計画 —— 計画COMPLETE（P0〜P2すべて2026-07-10/11に着地、PR #58〜66）:**
-> `~/repo/ruby/rigor-survey/gitlab`をオンボーディングした（Rails 7.2、`app`+`lib`、11,344ファイル;acknowledgeモード、ベースライン1,255バケット / 3,909診断、最終checkはクリーン）。保護**0.2836**（対Mastodon 0.3148 / Redmine 0.339）はADR-82の由来の図を再現し、4つの新しいエンジンレバーを表面化させた —— **すべて今や対処済み**（レバーごとの着地は下記に列挙）。計画のP3（ツール）の残りは、「なお未解決」で**P3-10**として追跡されるカバレッジパフォーマンスのスライスだ。当初の調査が見つけた4つのレバー:
-> - **P1（単一で最大のレバー）—— `rigor-activerecord`が`db/structure.sql`のみのスキーマでINERTだ**。GitLabは`structure.sql`をコミットし`schema.rb`はない → `plugin.activerecord.load-error`となり、全モデルのカラム型付けがゼロになる: 約3,000件の直接ARボキャブラリのホール（`where`/`find`/`exists?`…）に加え、約42サイトのFPカスケード（リレーションが`Array[String]`に誤推論される）。`schema_format = :sql`のあらゆるRailsアプリが影響を受ける —— これはRedmine-O1の発見（Redmineはコミットされたスキーマがそもそもない;GitLabのそれはリポジトリ内に*ある*が、DDL形式だ）を一般化する。修正＝PG DDLから`CREATE TABLE`のカラム/型ペアをパースする。
-> - **P0 —— `rigor-rails-routes`がルートヘルパー名を誤って合成する**。マルチセグメントの文字列パス（`collection do get 'granular/new' end`）と`scope(as:)` + 素の`get`の合成について、actionpack自身の`name_for_action` / `Mapper.normalize_name` / `Scope#action_name`（`routing/mapper.rb`）に対して。159件の`unknown-helper`発火のうち約91件がこのFPだ。**監査で捕捉:**裁定するサブエージェントは最初これらのサイトの2つを本物のGitLabバグと誤読した;実際のactionpackソースに対して再検証すると両方がFPに覆った —— 恒久的な教訓として記録（ホットな本番コードパスでのGENUINE判定は、フレームワーク自身のソースに対して確認されるまで推定FPだ）。
-> - **P0 —— `rigor-actionpack`が`Parameters#require`/`#permit`の戻り値を型付けしない**（108サイト）—— `params`自体は保護されている（動作を確認済み）が、チェーンは1ホップ後に漏れる。
-> - **P2 —— モジュールシングルトンのファサード解決**（素の`module`上の`class << self`、ADR-57が明示的に見送ったスライス）—— `Feature.enabled?`だけで695件の未保護サイトを占める;`Gitlab::Utils.*`は同じ形だ。
->
-> 完全なランク付け計画（P0〜P3、順序付け、ゲート）: [`20260708-gitlab-type-coverage-improvement-plan.md`](../notes/20260708-gitlab-type-coverage-improvement-plan/)。データノート: [`20260708-gitlab-protection-coverage-survey.md`](../notes/20260708-gitlab-protection-coverage-survey/)（カバレッジ計測）+ [`20260708-gitlab-diagnostic-adjudication.md`](../notes/20260708-gitlab-diagnostic-adjudication/)（289エラー + 238警告をクラスタリング/サンプリング;2件の本物と確認されたGitLabバグ、どちらもupstreamに報告可能でRigorの作業ではない）。
-> - **P0-1（rails-routesの命名忠実度）—— [PR #58](https://github.com/rigortype/rigor/pull/58)で着地（2026-07-10、ブランチ上で未リリース）**。`routes_parser.rb`の2つの`unknown-helper` FPシェイプを修正: (a) `member`/`collection`ブロック内のマルチセグメント文字列アクション（`collection { get 'granular/new' }`）は今や`normalize_name`（スラッシュ → アンダースコア）で命名される → `granular_new_<scope>_<plural>_path`;(b) `scope(as: :user)`内の素の`get :activity`は今や`<scope_as>_activity_path`を合成する（以前は何も登録しなかった）。**要となる落とし穴（コーパス再実行のコストがかかった）: （a）はコレクションルートの`get '/'`を除外しなければならない** —— 空の正規化アクション名が不正な`_<plural>_path`を生み、サイトをマスクしdid-you-meanを汚染した;今は汎用ハンドラへ落ちる。ゲート: GitLab `app`のunknown-helper 159 → 141（−18 FP、**新規エラーサイトゼロ**、wrong-arityは不変）、Redmine + Mastodonのルート診断はバイト同一。`make verify`はクリーン。
-> - **P0-2（`rigor-actionpack`の`Parameters#require`/`#permit`戻り値型付け）—— [PR #59](https://github.com/rigortype/rigor/pull/59)で着地**。`Parameters`レシーバー上の`require`/`permit`/`permit!`は、`receivers:`ゲート付きの`dynamic_return`経由で寛容な名前的型へ再型付けされ、ストロングパラメータのチェーンを保護し続ける。ゲート: GitLabコントローラーはバイト同一、abuse_reports_controllerの保護済み2 → 9。
-> - **P1（`rigor-activerecord`が`db/structure.sql`を受理）—— [PR #60](https://github.com/rigortype/rigor/pull/60)で着地**。新しい行指向のPG-DDLパーサ（`StructureSqlParser`、schema.rbがなければ → フォールバック;実際のGitLabで1080テーブル / 11,107カラム）。**ARのINERT解除は既存の3つのcheck FPクラスを表面化させ、すべて同じPRで修正:** (a) Devise/仮想属性上の`unknown-permit-key` → **タイポゲート**（Levenshtein ≤ 2、カラム名に近いタイポでのみ発火）;(b) `where(assoc: {hash})`のネストしたjoin → Hash値のキーをスキップ;(c) `serialize`/`mount_uploader`/`attribute :x, CustomType`のカラムが`String`に絞られる → **グローバルな`type_override_columns`集合**（concernの`included do`ブロックを含めて収集、ディスカバラーは`include`を辿らない）が`ruby_type`を`Object`へ再マッピング。ゲート: GitLab `app` 322 → 303（約26のカスケード + 3つのFPクラスが消える、+約3k保護）、Mastodonはバイト同一、Redmineはload-errorテキストのみ変化。**残余の12件の新規GitLab発火＝普遍的なacknowledgeクラス**（possible-nil/ivar/relation-arity、Mastodonと同じ、ベースライン吸収済み）—— P1では修正不能。**教訓: 大きなアプリで大きなプラグインをINERT解除すると、FPクラスの長い尾を表面化させる —— 出荷前にすべての新規発火をschema.rbコーパス（Mastodon）に対して裁定すること**。
-> - **P0-3（AS-core-extカバレッジ）+ P0-4（core_overlayの`Psych.parse` / `CSV::MalformedCSVError`アリティ）—— [PR #61](https://github.com/rigortype/rigor/pull/61)で着地**。AS-core-extバンドルに`String#upcase_first`/`#remove`/`#titlecase`/`#dasherize`、`Object#in?`、`Date`/`Time#advance`/`#all_day`、`Date#to_time(form)`、`ERB::Util.html_escape_once`を追加 + `data/core_overlay/psych.rbs` + `csv.rbs`。**重大な教訓（CIのみの失敗）: `ERB`/`CSV`はrbsではモジュールではなくクラスだ** —— `module ERB`/`module CSV`の再オープンは`RBS::DuplicatedDeclarationError`を起こし、stdlibがロードされると*全*envを`RBS classes available: 0`に崩す（rigorリポジトリはerb/csvをロードしないのでセルフチェックは捕捉できない —— GitLabはロードする）。かつ、フラットにネストした`class CSV::MalformedCSVError`（親CSVが未ロード）はRBSに`CSV`名前空間を*合成*させ、`synthesized_namespaces`スペックを失敗させる —— ローカルでは通るがCIで失敗するbinpacker並列のフレークだ。両方を修正: upstreamのクラス/モジュールのKINDに合わせ、ネストクラスを明示的な親でラップする（`class CSV; class MalformedCSVError`）。**RBSのコアクラス再オープンは、stdlibをロードするプロジェクトに対して検証し、影響を受けるスペックを単独で実行すること（binpackerは順序依存の失敗をマスクする）**。
-> - **P2モジュールシングルトンのファサード —— 本セッションでSCOPED、未着手（P1規模のエンジンスライス、ユーザーにより見送り）**。根本原因を正確に特定: `ScopeIndexer#discovered_classes_for_paths`（`scope_indexer.rb:2003`、`collect_class_decls`経由で:2141）が**プロジェクト全体のシードからMODULE宣言を意図的に除外している**（クラスは記録される → `Widget`はクロスファイルで`singleton(Widget)`と型付け;モジュールは記録されない → `Feature`/`Gitlab::Utils`はクロスファイルで`Dynamic[top]`と型付け）。除外コメント（:1992）が阻害要因を示す: `singleton(M)`を表面化させると、未発見の`M.x`が**`Kernel#x` / Module祖先メソッドへ落ちて → 誤った型**（`Kernel.select → Array[String]`）になる、「クロスファイルの`discovered_methods`が同じプロジェクト全体のシードに従うまで」。その前提条件は今や満たされた —— `discovered_def_index_for_paths`（:2034）がクロスファイルの`singleton_def_nodes`を構築する（ADR-24スライス2）。インファイルの機構はすでにモジュールシングルトンを解決する（プローブ: インファイルの`Feature.enabled?` → `true`;クロスファイル → `Dynamic`;`expression_typer.rb:1126`「Module-singleton call resolution（ADR-57 follow-up）」）。**残りの作業（P1規模）:**（1）プロジェクトシードにモジュールを記録する、（2）`M.x`ディスパッチをゲートして未発見のシングルトンメソッドが`Kernel`/`Module`祖先へ落ちる代わりに`Dynamic`を返すようにする、（3）GitLab発火変化のADR-57採用ゲート裁定。残る最大の保護レバー（`Feature.enabled?` 695サイト + `Gitlab::Utils.*`）。**grape-path-helpers（68サイト、プラグイン内で完結するFP削減）がより軽い代替の次スライスだ**。
-> - **P2-6（モジュールシングルトンのファサード）—— [PR #62](https://github.com/rigortype/rigor/pull/62)で着地、[ADR-57](../adr/57-self-call-return-adoption/) WD3として記録**。ブックマークの「P1規模のエンジンスライス」という見積もりは**誤りで、それが信頼した除外コメントは陳腐化していた**: `record_declarations`は常にモジュールをファイルごとに登録してきたので、プロジェクト全体のシード`collect_class_decls`だけがそれらを除外しており、コメントの`Kernel.select → Array[String]`の危険は再現しない（Kernelのprivateインスタンスメソッドは`Singleton[M]`レシーバーで何にも解決しない;素のモジュールで解決する28個のObject/Kernel/Module/Classメソッドのうち26個は正しく——正しくない2つ、`M.new`/`M.superclass`は例外を起こすコードだけを誤型付けする）。修正は`collect_class_decls`の1分岐だった。**成果: GitLab `lib`の保護0.2457 → 0.2757（+2,812サイト、分母93,796は同一）—— 規模の比較として、ADR-67の呼び出しサイトレバー全体はMastodonで+0.75ポイントだった**。コーパスは、1件のセルフチェック潜在的厳格さの発火（根本修正: `DiagnosticFormats.render`を全域化）と1件のRedmine `possible nil receiver`を除いて、どこでもバイト同一。**教訓: 陳腐化した「Xでブロックされている」というコメントは仮説であって事実ではない —— スライスを見積もる前にそれをプローブせよ**。
-> - **Redmineの発火の根 → [PR #63](https://github.com/rigortype/rigor/pull/63)ユニオンアーム述語極性（オープン）**。`Narrowing#resolve_rbs_extended_method`は**ユニオン**レシーバーに`rigor:v1:predicate-if-true`ファクトを一切渡さないので、ActiveSupportの`login.present?`ガードがnilを決してナローイングしない —— そのようなガードの下で`Dynamic`を`T | nil`に変えるあらゆる精度作業がそれを表面化させる。修正にアノテーションは不要: 引数なし述語の真エッジで、RBSの戻り値が文字通り`false`であるすべてのユニオンアームを落とし（`NilClass#present?: () -> false`が既にそう言っている）、偽エッジで鏡写しにする。健全なのは、値固定の`nil`/`true`/`false`アームだけが参加するからだ（サブクラスがオーバーライドできない）;**safe navigationは除外**（`x&.blank?`は宣言された`true`ではなく`nil`を生むので、その偽エッジはnilを許容する —— リグレッションスペックがこれを固定する）。Redmine 4件 + GitLab 16件のFPを除去、新規ゼロ。GitLabの2件はADR-57の戻り値採用を介して推移的だ（呼び出し先の`return x if x.present?`がその推論戻り値を鋭くする）ので、ルールの効果はガードされた式に限定されない。
-> - **P2-8（grape-path-helpers）—— 着地**。計画の枠付け（「gemの`api_v4_*`ヘルパー名生成をモデル化する」）は**誤りで、gemを読んだことがそれを示した**: `DecoratedRoute#path_helper_name`は各名前を`Grape::API::Instance.routes`（*ランタイム*テーブル）から取ったルートのパスセグメントから構築し、実際のgrapeソースはそれをメタプログラミングで構築する —— だからどんな静的パーサも名前を列挙できず、一部だけを導出するのは何もしないより悪い（見逃した各ルートは動作するコードで発火し続ける）。静的なのは名前空間だ: `prefix` + パス戦略の`version`を、スーパークラス連鎖が`Grape::API`に届くクラスで。`<prefix>_<version>_…_path`は今やオープンな名前空間だ（プラグインがDeviseのランタイムプロバイダOmniAuthファミリーに既に適用しているADR-26の`open_receivers`の理由付け）、プロジェクト自身の宣言に基づく。gemの契約がそれらを健全にする箇所で歯を保つ: それは`_url`ヘルパーを定義しないので、`api_v4_*_url`は依然として発火し、宣言されたprefixの外のあらゆる名前も同様だ。GitLabの`unknown-helper` 141 → 73、`wrong-arity`は不変;Redmine / Mastodon（grapeなし）はバイト同一。**教訓: モデル化する前に対象ライブラリのソースを読め —— 計画のスライス記述は、メカニズムではなく症状から書かれていた**。
-> - **P2-7（外部gem由来）—— [ADR-82](../adr/82-dynamic-provenance-wiring/) WD9として着地（[PR #65](https://github.com/rigortype/rigor/pull/65)）**。ルートをロック済みのRBSのないgemが宣言する未解決の定数は、`external_gem_without_rbs`→`add_rbs`とラベリングされる;所有権はgemのエントリーファイルから読まれる（決して推測しない —— `activesupport`→`ActiveSupport`はキャメライズを壊す）、gemディレクトリは*ターゲット*のバンドルから解決される（rigorは自身のバンドルの下で走るので、`Gem::Specification`は誤ったgemを見る）。**「ターゲットの`GEM_PATH`認識」フォローアップは見送りではなくCLOSEDだ:**それはADR-27の境界であり（ターゲットのデフォルトgemホームを自動検出することは、そのツールチェーンを走らせるか、あらゆるバージョンマネージャーのレイアウトを推測することになる）、既存の`bundler.bundle_path:`オプトインを持つ。Redmineのバンドルを`vendor/bundle`へインストールすると既存のエンジンが**279**件の正しく帰属された外部gemサイト（`Rails`→railties、loofah、i18n）を生むことで完全性が証明された;サーベイアプリのフロアは、gemが一度も`bundle install`されていなかったことであって、エンジンのギャップではなかった。ノート: [`20260711-external-gem-constant-provenance.md`](../notes/20260711-external-gem-constant-provenance/) + [`20260711-external-gem-install-boundary.md`](../notes/20260711-external-gem-install-boundary/)。**教訓: 構築する前に既存の設計境界を読め —— `BundleSigDiscovery`のADR-27コメントを読んだ途端、Aはドキュメントノートへ溶けた**。
-> - **P3-10（`coverage`のパフォーマンス）—— [PR #67](https://github.com/rigortype/rigor/pull/67)で着地（リリース実行のステップ1、オープン）**。両方を並列化、バイト同一、`check`と同じワーカーノブでオプトイン。**スライスを方向転換させた要となる発見: 保護*スキャン*はコストの約17%にすぎなかった —— ADR-67のパラメータ推論の事前パス（`ParameterInferenceCollector.collect`）が約81%だ**（Mastodon `app lib`、ウォームキャッシュ: 61秒のうち事前パス48.6秒 / スキャン11.0秒 / env 1.2秒）。エントリーポイントの「スキャンをforkプールする」という枠付けは誤った17%を狙っていた;まずプロファイリングしたことがそれを捕らえた。事前パスのラウンドとスキャンの両方が今や新しい汎用の`Inference::ForkMap`（スライスをまたぐfork、親側のenv/シード/パース済みASTを一度構築 + COW継承、スライスごとのMarshalペイロードをスライス順にマージ、クラッシュしたスライスはインプロセスで再実行）を通って走る。コレクターのマージは結合的で順序保存的（いずれかのスライスが毒なら毒 · ファイル順の観測の連結 · マージした総数に対する`MAX_CALL_SITE_TYPES`の再キャップ）なので、推論テーブルはバイト同一だ。ワーカー数は`CheckRunnerFactory.resolve_workers`で解決される（同じ`--workers` › `RIGOR_RACTOR_WORKERS` › `parallel.workers:` › 0の優先順位）;**デフォルトは逐次のまま**（`check`とのパリティ/決定論性 —— 並列check用に設定されたプロジェクトは並列カバレッジをタダで得る）。パート（b）の設定`paths:`フォールバックも着地した。ゲートMET: Mastodon `app lib`の新しい逐次AND 4ワーカーの出力がどちらも変更前ベースラインとバイト同一;壁時計は4ワーカーで61秒 → 43秒、ピークRSSは約半減（814→351 MB）、事前パス単独では8ワーカーで2.3倍。**残余（需要ゲート付き）: サブリニアなスケーリングは、ディスパッチごとの解決メモのfork再ウォームに内在する**（各ワーカーはコールドから再ウォームする;`rbs_loader.prewarm`はRBSの*env*だけを共有し、ディスパッチメモは共有しない）—— それを閉じるにはそれらのメモを事前ウォームする必要があるが、それは逐次作業そのものなので、プロファイルが要求するまで見合わない。`make bench-perf`は`coverage`ではなく`check`をベンチするので影響を受けない（カバレッジのタイミングゲートは追加していない —— 上記のとおり手で計測）。
-> - **モジュール側のフォローアップ**（需要ゲート付き、ADR-57 WD3に記録）: `Singleton[Object]`フォールバックレシーバーが`Class`専用メソッド（`M.new` / `M.superclass`）をモジュールに漏らすこと —— 精度の衛生であり、例外を起こすコードだけを誤型付けする;そしてシングルトン祖先解決（`extend SomeModule` / 継承されたクラスメソッド）。
-> - **再び`coverage --protection`を実行する人への運用メモ:**それは明示的なパス引数を要し（`check`と違い、設定の`paths:`にデフォルトしない）、このツリーで2時間17分 / ピークRSS 14.6 GBかかった（対`check`の39分 / 7.3 GB —— 保護スキャンは`check`のforkプール並列性を欠く）;それに応じて予算を組み、決して同じターゲットに対して2つの`rigor`プロセスを同時に走らせないこと（キャッシュロック競合が本セッションで1つの実行を破損させた）。**ルートコーパスゲートのレシピ（本セッション）:** `cd $proj; BUNDLE_GEMFILE=$rigor/Gemfile nix develop $rigor -c bundle exec $rigor/exe/rigor check --no-cache --no-baseline app 2>/dev/null | grep -E "rails-routes\.(unknown-helper|wrong-arity)"`、プラグインファイルに`git stash`をかけて前後をdiffする（サーベイのチェックアウトは`mise trust`を先に要する`mise.toml`を携える）。オンボーディングの成果物は`~/repo/ruby/rigor-survey/gitlab/.rigor.dist.yml` + `.rigor-baseline.yml`にUNTRACKEDで存在する。
->
-> **（A）エンジン精度 —— M3 / メンバーシェイプの弧（キュー済み・ゲート順;2026-06-16に留保付きで先送り —— 順序を違えて着手しないこと）:**
-> 1. **[ADR-67](../adr/67-parameter-type-inference/)の`check`ウォーク配線** —— ADR-66/68が実アプリで効くための前提条件。WD1+WD3+WD5は着地済み（呼び出しサイトでのパラメータ型推論（parameter type inference） + 上限付き不動点、`coverage --protection`のみに配線）;残るステップは`param_inferred_types`をメインのcheckウォークに供給することで、ウォーク前の収集（予算ゲート付き、おそらくオプトイン / インクリメンタル裏付け）に加え、WD1の本体内由来（provenance）**マーク** + 診断ガードを要する。**価値は不透明だ** —— WD1の抑制によってfold精度のみとなり、下流の偽陽性を表面化させればネットでマイナスになりうるため、具体的な需要が現れるまで先送りが妥当なままかもしれない。**エンジンのエントリーポイント（ウォームコンテキスト）:**収集は`ScopeIndexer.discovered_*_for_paths`に乗る;再利用する戻り値メモは`9a3d6f5c`（[ADR-57](../adr/57-self-call-return-adoption/)）;パラメータは`lib/rigor/inference/method_parameter_binder.rb:203`（`default_types_for`）でデフォルト`untyped`。
-> 2. **[ADR-68](../adr/68-class-builder-folding/)のビルダー畳み込み** —— #1にゲートされる（パラメータ推論なしでは見返り~0、faradayで計測済み）。**三度のウォーク・二段階**の変更だ: 2つのサイドテーブル（`struct_member_layouts[Const]` + `discovered_classes[Const] = Singleton[Const]`、さもないとStructFolding層が決して発火しない）に加え、`collect_class_decls`へのスーパークラスのスレッド + レシーバー名解決 + 推移的な`< Struct`チェック。偽陽性に安全な部分的選択肢は、完全なスーパークラスのシードを既に持つファイルごとの2経路での同一ファイル限定の認識だ。ADRの「Corrected scope」補遺を参照。
-> 3. **[ADR-66](../adr/66-discriminated-union-member-typing/)のタグナローイング** —— 同じゲート、より難しく（tag⇒payloadマップ + ビジターディスパッチ）、ADR-58より下位にランクされる。3つのうち最も優先度が低い。
->
-> **（B）ゲートなしのエンジン精度（リリース / M3依存なし）:**
-> - **type-coverage-uplift** —— より多くのビルトインメソッドを精密な型へfoldする（`rigor-type-coverage-uplift`スキル）。2026-06-17に`Range#first(n)` / `#last(n)` / `#take(n)` → `Tuple`、`Array#minmax` → `Tuple[min, max]`、`String#codepoints` → `Tuple`が着地;2026-06-19（v0.2.1で）はスカラー完全性バッチ`Symbol#name` / `#id2name` / `#intern`、`Integer#finite?` / `#infinite?` / `#nonzero?`、`Float#nonzero?` / `#integer?`、`String#grapheme_clusters` → `Tuple`を追加した。2026-06-21はニッチなキャリアの残り物を最後まで枯渇させた: `Float#numerator` / `#denominator` / `#arg` / `#angle` / `#phase`、`Pathname#split` → `Tuple`、そして`String#shellescape` / `#shellsplit`（`Shellwords.escape` / `.split`のString受信者版の双子）。キャリアスイープはこれで勝ちの取れるものをすべて使い果たした —— 残る名前付きのギャップ（`coerce`、`unpack1`）は内部プロトコルである / フォーマット依存が強すぎて健全にfoldできない。**教訓（再確認）:** 2026-05-22のカバレッジドキュメントは🔲ギャップを過大報告する（カタログの`leaf`パスがほとんどのスカラーメソッドを自動foldする）—— 実装前に`MethodDispatcher.dispatch`を経験的にプローブすること（候補ごとに定数レシーバー上でディスパッチして非nilの精密な結果をチェックする使い捨てスクリプトが最速のフィルタだ）;本当のギャップは、Tuple昇格ハンドラ + キャリアの`*_HANDLERS`エントリーを要するArray / 構造を返すメソッドに集まり、加えてたまにあるスカラー述語の一貫性ギャップにも集まる。
-> - **[ADR-47](../adr/47-narrowing-driven-clause-reachability/) WD3b** —— 分解 / 値 / 変数キャッチオール（catch-all）パターンの`case`/`in`網羅性（ゼロ発火のWD4スイープにより優先度引き下げ;アドホックに推論しないこと）。
-> - **セルフミューテーションのファイルごとの有効性（Product C）—— 成熟;扱いやすい層はCOMPLETE、巨大コア層は需要ゲート付き**。`tool/mutation/self_mutate.rb <file…>`（融合したself-check ∪ rspec）で`lib/rigor`のテストスイートの穴を塞ぐ。2026-07-01時点で、spec済みの約600 LOC以下のすべてのファイル + specのないキャリアは、100%融合 / 等価ミュータントのフロアにある（ツリー全体のコールドメソッド層はすでに枯渇していた）。**巨大なコアエンジンファイル**（`statement_evaluator` 3388、`expression_typer` 3059、`scope_indexer`、`narrowing`、…）はCHARACTERIZEDされ、選択によってSTOPPEDされている: `--type-only`はすべての噛める（biteable）サイトが型で保護されていることを示すが、融合軸は本物の未テストのエッジパスを表面化させる（例: `statement_evaluator`の約316サバイバー、統合スイートで本物と確認済み、カバーされていない）。それらのクローズは大規模で低収穫のマルチセッション作業だ。実演的なスライスが1つ着地した（`e486fc11`、begin/rescue/retryのクラスタ + デッドコード除去）。**再開:**巨大ファイルを1つ選ぶ → サバイバーを凝集した領域に分割する → 各領域をSonnetサブエージェントに委譲する（それぞれ互いに素なspecファイル1つ;まず`--type-only`、次にファイルごとの融合を`run_in_background`で）。load-bearingなポリシー + 6つの再利用可能なkill技法 + UTF-8ロケール要件（`450a3016`で修正）は、トラッカー[`docs/notes/20260618-self-mutation-testing-plan.md`](../notes/20260618-self-mutation-testing-plan/)とROADMAP §「Analyzer self-testing」にある。
->
-> **（C）`0.2.x`評価ライン + [ADR-50](../adr/50-release-engineering-and-stability-strategy/)の残り:**
-> - 外部からのフィードバックを集める（評価ラインの目的）;[`docs/ROADMAP.md`](../roadmap/) §「Future cycles」の需要駆動バックログが`0.2.x`の完成目標だ（Ractor並行性トラックを除くすべて）。
-> - **ADR-50の残りWD:**サポートラインモデル（WD5 —— 最新 + 1つ前のマイナー）、`rigor upgrade`マイグレーションコマンド（WD7、具体的なBCが対象を与えるまで先送り）、そして次のメジャー境界の規律がキューに入ったときの最初の**bleeding-edge `FEATURES`エントリー**（オーバーレイは今日時点で空 —— `Rigor::BleedingEdge`、`bleeding_edge:`設定キー、`rigor show-bleedingedge`、`rigor check --bleeding-edge[=ids]`はすべて配線済み;最初の規律は単一の`FEATURES`エントリーとして着地し、エンジン配線は不要）。
->
-> **（D）ADR著作バックログ —— 2026-06-22の互換性安全な強化サーベイから**（[ノート](../notes/20260622-rigor-0.2.x-compatibility-safe-strengthening-survey/);11のルート + P0〜P7は[`docs/ROADMAP.md`](../roadmap/) §「Compatibility-safe strengthening backlog（0.2.x）」でBCバケットに分類されている）。既存のADRがすでに所有する内部的 / 機械的な作業ではなく、真に*代替案のある決定*であるものだけがADRタスクになった。**バケット1 —— 3つのADRすべてが2026-06-24にWRITTEN + IMPLEMENTED（Accepted;`make check`/`check-plugins`クリーン、208 spec + drift green、rubocopクリーン）:**
-> 1. **[ADR-75](../adr/75-dynamic-provenance/) —— `Dynamic[T]`の来歴（provenance）と説明**（実装済み`01e291cb`;サーベイ§3 / P2）。dynamic由来の原因ファクト（外部gem・RBSなし / DSLマクロ境界 / 予算打ち切り / プラグイン宣言 / 明示的untyped / 非サポート構文）を運び、`coverage --protection`ラベル + `--format json`経由で加算的に表面化する;`untyped = Dynamic[top]`関係のセマンティクスは保存する。**最高価値** —— #4の前提条件でもあり、上記ですでにキュー済みの**カバレッジ扱いやすさラベル**フォローアップ（ADR-73 §「P6」）の具体的な実現でもある。ステークスは中（キャリアに触れる、加算のみ）。
-> 2. **[ADR-76](../adr/76-effect-modeling-freeze-dup-shape-preservation/) —— `freeze`/`dup`/`clone`のエフェクトモデリング & シェイプキャリア保存**（WD1実装済み`2751bc78`;**WD2は2026-06-26に完全着地** —— HashShape + Tuple、`c75161a0`、ADR-78 WD1のブロック形式オーバーfold修正後;サーベイ§4）。分割された決定を記録する: 保守的な無効化（バケット1、FP削減） + `freeze`/`dup`/`clone`/`itself`を通したシェイプキャリア保存であり、再帰的な`always-truthy`のルート修正（今や完了）にゲートされる。ステークスは高（FP / 健全性）;`lib` + mail/kramdownコーパスで診断同一と検証済み。
-> 3. **[ADR-77](../adr/77-doctor-and-upgrade-commands/) —— `rigor doctor` / `rigor upgrade`のエビデンスルーティングコマンド**（実装済み`8048991c`、`upgrade`はスケルトン;共有の`CLI::CheckRunnerFactory`抽出はADR-73の`describe --deep`も解放する;サーベイ§7 / P5）。デフォルトの`check`挙動を変えずに既存のcheck / baseline / プラグインのエビデンスを再利用する加算的コマンド;初日から安定した構造化JSON契約、深いプローブはオプトイン。ADR-50 WD7（`rigor upgrade`、具体的なBCの対象があるまで先送り） + ADR-73の`rigor-doctor`スキル（今日はカタログのみ） + 先送りされた`describe --deep`フォローアップを結びつける。ステークスは中;前例はADR-23 / ADR-33 / ADR-51。
->
-> **ゲート済み / 需要先送り —— 順序を違えて着手しないこと:**
-> 4. **ADR —— 最初の`bleeding_edge:`規律（strict-dynamicプレビュー）**（サーベイ§11 / §3-tail / P7、バケット2）。最初の`BleedingEdge::FEATURES`エントリー;**#1にブロックされる**（来歴ファクトの上に構築される） + 具体的な次メジャーの著作の期待に需要ゲートされる —— オーバーレイは設計上今日空である（（C）「ADR-50の残り」を参照）。あらゆる将来のエントリーのfeature-idスタイルを設定するので、真の規律のために取っておくこと、精度修正のダンピンググラウンドにしないこと。
-> 5. **ADR-41を改訂 —— 設定可能な推論バジェットを配線**（サーベイ§6、原則的にはバケット1）。新しいADRでは*ない*;設定サーフェスWD（現行挙動のデフォルト、exhaustion-as-explanation、意図的なキー命名、事実上のAPIとしての内部fuel定数なし）でADR-41をproposed→acceptedへ進める。**需要先送り** —— 下記「オープンエンジニアリング項目 §推論バジェット」の通り、バジェット型のコストを示すコーパスプロジェクトはまだない;まずADR-41 WD3の分布プローブを再実行すること。
->
-> **意図的にADRに値しない**（再トリアージされないよう記録）: セルフミューテーション / ティース、決定論的fold、キャッシュ / パフォーマンス、加算的な診断メタデータフィールド、加算的なプラグイン精度 —— 内部的 / 機械的で、ADR-62/63/65/61/54と（B）のキューが所有する。バケット4の罠（`rigor:v1:`文法の変更、`untyped=Dynamic[top]`セマンティクス、エイリアスなしのID変更、必須プラグインフック、サイレントなアーティファクトの誤読）はメジャーバージョン限定の「してはならない」であって、タスクではない。
->
-> **▶ [ADR-48](../adr/48-data-struct-value-folding/)の`Struct`値fold —— スライス1 + 2 + 3が2026-06-15に着地;スライス4は完全な設計とともに先送り**（セッターを通じた変更されたメンバーの精密な再型付け;ルートaの書き戻しをスライス3で証明されたno-alias/no-escapeケースに絞ったもの、設計は[`docs/notes/20260615-struct-folding-slice3-design.md`](../notes/20260615-struct-folding-slice3-design/)）。`Data.define`はスライス1〜4を出荷した（v0.1.17）。残るより小さな項目: `Data.define`の素のローカルブロック形式のパリティ（`c = Data.define(:x) do … end` —— リーダー再定義ガード用の解決可能なクラス名なし、保守的にbail）。
->
-> **▶ [ADR-73](../adr/73-skill-driven-user-experience/)のSKILL駆動ユーザー体験 —— 2026-06-20に着地（本セッション;未リリース、`CHANGELOG.md` § `[Unreleased]`）**。v0.1.xのSKILL三点セットを超えるオンボーディングUXの向上だ: `rigor skill describe`（**presence限定**の状態プローブ → 推奨される次のスキル、WD2;`rigor describe`トップレベルエイリアス） + `rigor-next-steps`エントリーポイント + **13スキルカタログ**（`rigor-rbs-setup` / `rigor-editor-setup` / `rigor-mcp-setup` / `rigor-protection-uplift` / `rigor-monkeypatch-resolve` / `rigor-plugin-tune` / `rigor-upgrade` / `rigor-doctor`を追加）であり、**vercel-labs/skills** + バンドルされたgem経由で配布される（貢献者の`.claude/skills/`は`metadata.internal: true`でマークされる）。**フィールドトライアルで堅牢化済み** —— カンファレンスアプリのドッグフード + **13モデルのOpenCode ACPクロスベンダー検証**（13個すべての非Claudeモデルがラッパースクリプトでフローを忠実に駆動した;唯一の失敗は並列実行下でのOpenCodeの単一SQLiteセッションロックであり、今や`acp-agent-runner`スキルに記録済み）;ノートは[`20260620-skill-driven-onboarding-dogfood.md`](../notes/20260620-skill-driven-onboarding-dogfood/) + [`20260620-opencode-acp-cross-model-validation.md`](../notes/20260620-opencode-acp-cross-model-validation/)。トライアルは**6件のUX修正（すべて着地）**を駆動した: `target_ruby`のPrismフロアメッセージ（サポートされるフロア + 値の読み取り場所を明示する）、実行可能な便利メタgem（`rigor-rails`）のロードエラー、有効なパスに紛れた欠落パスに対する`check`のwarn-and-skip、空のRBS環境のWARNINGバナー（`RBS classes available: 0`は壊れた`signature_paths:`であって、クリーンな実行ではない）、**checkを認識する`describe`のエージェントプロンプトルーティング**（「presenceヘッドラインがときどき誤る」へのWD2を保つ答え —— *エージェント*がすでに持っている`check`の所見から精緻化する）、そしてRailsロック済みだがRailsプラグインなし → `plugin-tune`の推奨。
->
-> **2件の先送りフォローアップ**（ADR-73 §「Field-trial follow-ups」、未決の決定 —— 着手したら先送りを解除する）: **（1）`rigor skill describe --deep`** —— *ヘッドライン*の推奨をcheck認識にする（スコープを絞った`rigor check`を実行 + 実際の所見でルーティングする: エラー → baseline削減、モンキーパッチのクラスタ → monkeypatch-resolve、`RBS 0` / 設定エラー → doctor）。必要な共有の「checkを実行 → `Analysis::Result`」ヘルパは**2026-06-24に`CLI::CheckRunnerFactory`として着地した**（ADR-77により`CheckCommand#build_check_runner`から抽出）ので、`describe --deep`は今やメカニズムの面ではブロック解除されている;限界価値は依然として**控えめ**だ —— 着地済みのエージェントプロンプトルーティングは、エージェントがどのみち実行する`check`の所見でエージェントをルーティングさせるので、これはエージェントの推論を省くだけだ。**（2）カバレッジ可解性ラベル**（トライアルの「P6」） —— `coverage --protection`の「ここに型を追加」の穴をジェネリック型パラメータ / 外部gem / フレームワークDSLで分類し、ユーザーが解決不能なものを追いかけずに済むようにする。ブロックしていた**`Dynamic`由来（provenance）追跡**は**2026-06-24に[ADR-75](../adr/75-dynamic-provenance/)として着地した**（`Scope#dynamic_origins`のアイデンティティキー付きサイドテーブル + `ProtectionScanner::Site`の`dynamic_origin`フィールド / JSONレポート）、そして**可解性ラベル自体は2026-06-26に着地した**: `coverage --protection`は各穴の`dynamic_origin`（`DynamicOrigin.tractability`）から`tractability`軸（`add_rbs` / `enable_plugin` / `engine_gap`）を今や導出し、`--format json`とテキストレポートに表面化する。**このフォローアップはDONEだ**。残る磨き込みは需要ゲート済みのみ: 原因ごとのより詳細なヒント / 軸によるレポートのグループ化。
->
-> check-rulesルート経由でADR-24スライス4を**再起動しない**こと（2026-06-05にリバート済み、135件の偽陽性 —— 着地済みのルートは評価時の`SelfCallResolutionRecorder`）。`Runner#initialize`のivar事前シードをヘルパに**抽出しない**こと（エンジン自身のフロー解析からそれらが隠れる → self-check偽陽性;「Gotchas」を参照）。`make verify`クリーンのシグナルだけでユニオン / nilableレシーバーの診断を**広げない**こと —— `rigor-survey`コーパスに対してゲートすること（外部コードは誤って型付けされたレシーバーの偽陽性を露呈する;「Gotchas」を参照）。**`freeze` / `dup` / `clone` / `itself`を通したシェイプキャリア保存は（2026-06-26）DONEだ**——`HashShape`と`Tuple`の両方について（[ADR-76](../adr/76-effect-modeling-freeze-dup-shape-preservation/) WD2 / [ADR-78](../adr/78-reflexive-overfold-always-truthy/) WD3、`ShapeDispatch`内の`shape_self`）。Tuple側は**まずブロック形式のオーバーfoldのルート修正**を必要とした（ADR-78 WD1の持ち越し分）: `ShapeDispatch.try_dispatch`は今やブロックが存在する場合に処理を辞退する —— ハンドラはノーブロックのセマンティクスをfoldするだけでどれもブロックを評価しないため —— `CONST = [...].freeze; CONST.any? { … }`はブロックを無視して`Constant[true]`にfoldしていた、これがTuple層が最初に露呈した6件の反射的`always-truthy`発火だ。ゲート: `lib`のself-check + mail/kramdownコーパスがmasterと診断同一、reconノートの8プロジェクト検証、471件のshape/foldスペックがグリーン。（先行する反射的send`REFLECTIVE_SEND_METHODS`ガード`89be0860`は必要だったが、残存クラスは`public_send`ではなくブロック形式だった。）
+## 本サイクルで決定 —— 再提案しないこと
 
-### 参照読書
+- **#152（`&&`/`||`の極性ゲートを広げる）はエビデンスにより却下され、需要ゲート付きだ**。意図的に
+  v0.3.0から外す。計測された評価はissueにある: 14プロジェクトのコーパスでドリフトゼロ、広げられた
+  エッジはコーパス全体で**1度**発火し、その発火（kramdownの`ESCAPE_MAP[m] || m`）は型を*誤らせた*
+  だろう —— それは動的キーのHashルックアップの意図的なnilフリー読み取りに依拠しており、`5d5a9359`は
+  今やそれを証明ではなく楽観として記録し、確実性の判断がそれに依拠してはならないという明示的なルールを
+  付けている（#178の解決 —— 下記参照）。`a || b`は、作者がまさにその楽観に対して保険をかける
+  イディオムだ;ADR-78 WD1はこの線を一度引いている。需要シグナルがあるときにのみ再オープンし、まず
+  issueの前提条件を読むこと。2つの発見が却下を超えて残る: **7976例のスイートには変更されたエッジを
+  固定するものが何もない**、そして広げることはb7c155fbの2タイパー分岐を再現するだろう。
+- **#178（定数ハッシュ + 非静的キー → nilフリーのユニオン）は意図された挙動としてクローズされた**。
+  最初に提出されたような仕様違反ではない。シェイプ層は正しく先送りする;nilフリーの答えは、
+  `RbsDispatch`がコアRBSの`%a{implicitly-returns-nil}`を意図的に尊重しないことだ。尊重すると
+  Rigor自身の`lib`で25件の偽陽性がかかるからだ（`Hash.new(0)` / `default_proc` / 空でない
+  `Array#max`）。`5d5a9359`はその楽観を仕様に記録し、境界を定める。バグとして再提出しないこと。
+- **#130のスライス5は#156にブロックされている**。意図的にマイルストーン未設定だ —— そのテキスト
+  自身が、一般的な戻り値推論の精度にゲートされていると言っている。v0.3.0は#130のブロックされていない
+  2つのフォローオンだけを運ぶ。
+- **#162は、#158（v1.0.0、推論バジェット）が自身の打ち切りを予約する先の`static.*`ファミリーを作る**。
+  ファミリーを先にするのが正しい順序だ;#158はいずれにせよ需要先送りのままだ。
 
-1. [`docs/ROADMAP.md`](../roadmap/) §「Release strategy」—— `0.2.x`評価ラインとv1.0.0フリーズへの道のり（ADR-50が統制する）。
-2. [`docs/adr/50-release-engineering-and-stability-strategy.md`](../adr/50-release-engineering-and-stability-strategy/) —— v0.2.0→v1.0.0のリリース / QA契約（互換性サーフェス、診断の非契約 + bleeding-edge、パフォーマンスゲート、サポートライン、昇格ケイデンス）。
-3. [`CHANGELOG.md`](https://github.com/rigortype/rigor/blob/master/CHANGELOG.md) § `[0.2.1]` / `[0.2.0]` —— 現在の評価ラインのカット。アーカイブされた`0.1.x`サイクル（[`docs/CHANGELOG-0.1.x.md`](../changelog-0.1.x/)）はパフォーマンス / インクリメンタル（[0.1.17]）、プラグイン契約 + ADR-43（[0.1.16]）、OSSリアリズム（[0.1.12]）の各サイクルを保持する。
-4. [`docs/internal-spec/public-api.md`](../internal-spec/public-api/) —— パブリック対内部の安定性境界（ADR-50 WD1がそれを列挙する）;ピン留めされた名前空間を拡張する前に`spec/rigor/public_api_drift_spec.rb`をクロスリファレンスする。
+## ユーザー待ち
 
-## Gotchas（load-bearing、苦労して学んだもの）
-
-- **ADR-46** —— `Runner#initialize`のivar事前シード（`@class_decl_paths_snapshot = {}`等）をヘルパに抽出**しない**こと;コンストラクタの外に移すと、エンジン自身のフロー解析からそれらが隠れ、`make check`が`snapshot.size`をnil-receiver偽陽性として自己フラグする。インラインに保つこと（コンストラクタは`AbcSize`のdisableを持つ）。
-- **ADR-45** —— `@collect_stats`はデフォルトで真（キャッシュをこれでゲートできない;ヒットはnil統計を返す）;フリーズ済みプラグインへの遅延`@io_boundary ||=` → `FrozenError`（`instance_variable_get`を使う）;キャッシュの書き込み / シリアライズ失敗は握り潰される（実行を決して壊さない）。
-- **ADR-24** —— セルフ呼び出し解決のcheck-rules*再実装*は、エンジン実際の解決（精度のために`module_function` / `Data.define`アクセサ / mixinを既に処理する）から乖離する → 135件のFP（リバート済み）。着地済みのルートは評価時`SelfCallResolutionRecorder`（「collect, don't recompute」）。
-- **ADR-62 / ADR-63** —— `make verify`がゲートするのは`lib` + `plugins`のみ;**外部コーパスは依然として偽陽性を露呈しうる**、Rigorが誤って型付けするレシーバーから。ユニオン/nilableのundefined-methodルールはスカラールールの「推論された型と同程度にしか良くない」露出を継承する —— nilableスタディはmailでの`Hash | Hash`#pack FPを捕捉した（`compose_codepoints`が`Array`を誤って型付けした）。ユニオン / nilableレシーバー上のいかなる診断拡張を信頼する前にも、`rigor-survey`コーパス差分（`cd $proj; BUNDLE_GEMFILE=$rigor/Gemfile nix develop $rigor -c bundle exec $rigor/exe/rigor check --format json $paths`）を実行すること。さらに: 推論スキャナ（`PrecisionScanner` / `ProtectionScanner`）は`require "rigor"`で自動ロードされない（そのspecがそうするように明示的にrequireすること）;rubocopは注釈付きの`%<name>s`フォーマットトークンを強制する;そして`Data.define(:method, …)`メンバーは`Data#method`をシャドウする（`:method_name`を使う）。
-- **セルフミューテーション（Product C、`tool/mutation/self_mutate.rb` —— `lib/rigor`自体をミューテートし、self-check ∪ Rigor自身のrspecでkillする）** —— `--coverage-gap`のツリー全体の穴のカウントは、**メソッドコールドネス**によるノイズ除去なしには無意味だ: Rubyの行カバレッジは複数行の式をその**最初の行**に計上するので、*カバー済み*の式の継続行（テスト済みの`to_h`のハッシュリテラルのエントリー）が未カバーとして読まれてしまう。穴は完全に未カバーの`def`の内側でのみカウントすること;クラスボディ／定数のサイトは除外する（ロジックではなくデータ）。このノイズ除去は`lib/rigor`の生のツリー全体カウントを**1969 → 22**にした（すべて`cli/mcp_command`内で、今や解消済み —— ユニットスイートはそれ以外メソッドレベルで完全）。テスト軸は**in-bundle**のrspecランナーを要する —— `with_unbundled_env`では**なく**、それは*外部*プロジェクトのGemfile向けでありRigor自身のスイートを壊すからだ。有効性層（カバー済みだがアサートされていない）は融合モードを介してファイルごとに進められ、ゼロではなく等価ミュータント（メッセージ / inspectテキスト）のフロアに収束する。生きたトラッカー: [`docs/notes/20260618-self-mutation-testing-plan.md`](../notes/20260618-self-mutation-testing-plan/);ロードマップのエントリーは §「Analyzer self-testing」の下にある。
-- **コーパスゲーティング —— gitワークツリーはENGINEを分離するが、PLUGINは決して分離しない**。`exe/rigor`は自身のツリーの`lib/`をunshiftするので、サーベイプロジェクトに対して`$worktree/exe/rigor`を走らせるとそのワークツリーのエンジンを計測する。それは`plugins/`を**分離しない** —— それらはメインリポジトリから解決されるので、ワークツリーの「before」実行は黙って変更後のプラグインをロードし、diffが空になる（`rigor plugins`で検証、各プラグインのマニフェストバージョンを表示する）。プラグイン変更では、代わりにプラグインディレクトリを差し替える: `git checkout origin/master -- plugins/rigor-<name>`（加えて変更が追加するファイルを`rm`）、before側を実行、その後`git checkout HEAD -- plugins/rigor-<name>`。その周りの`trap restore EXIT`は2行の価値がある。これは一度噛んだ（2026-07-10、grapeスライス）し、*通過する*ゲートとして現れる。
-- **パフォーマンス計測（2026-07-13、キャンペーン中に学んだ）** —— （1）ウォーム実行の数値は1つのプロセスモデル内でのみ比較可能だ: インプロセスのコールド→ウォームの連鎖は、純粋にRuby VMのプロセスごとのウォームアップから約186kアロケーション安く、これが`20260627`ノートに対する幻の「ウォームリグレッション」を製造した。（2）セルフチェックのアロケーション数値は`vendor/bundle`の存在を要する（RBS envがベンダリングされたgemのsigを取り込む、このリポジトリで約800万アロケーション）;バンドルのないワークツリーは黙って小さいenvを計測する。（3）YJITはアロケーションを動かさない（≤ +0.007%）ので、決定論的なゲートはPR #75を生き延びる。詳細: [`20260713-corpus-perf-campaign.md`](../notes/20260713-corpus-perf-campaign/)。
-- **bench-perf** —— Makeターゲットは`bench`ではなく`bench-perf`（素の名前は`bench/`データディレクトリと衝突する;ファイルは`.PHONY`なしの規約を保つ）。`release/x.y.z`へのプッシュでこれを走らせる`release-gate.yml`ワークフローは**`0.2.x`の試行中はアドバイザリー**だ —— レポートはするがマージをブロックしない（必須ゲートは`ci.yml`）;シグナルは依然としてリリース品質でレビューする価値がある。両方のベースライン（`bench/baseline.json`のパフォーマンスターゲット + `data/oss-sweep/mastodon-thresholds.json`）は**決定論的なシグナルがドリフトしたときだけ再較正される** —— v0.2.0カットはlibのアロケーションを≈1877万 / ピークRSS ≈232 MB / 壁時計13.75秒に、Mastodonの`app lib config`を468診断・最小精度0.4284に設定した;**v0.2.1は両方とも据え置いた**（アロケーション≈1930万は帯内に収まり、スイープはグリーン）。これらは余裕の少ない厳密カウント / 帯ゲートなので、精度やアロケーションの変化は設計上、**再較正されるまで**赤にフリップする。パフォーマンスは失敗した実行のログ内の**CIで計測されたLinux値**から再較正すること（アロケーションが決定論的なシグナル;**wall_sはノイジー → `gh run rerun --failed`が壁時計のみのフレークを片付ける。壁時計だけのためにベースラインを再較正してはならない** —— v0.2.1の唯一の赤はまさにこれだった）、そして**より高いカウントを容認する前にOSSスイープの診断を偽陽性についてdiffすること**（v0.2.0の再較正は3件の`StringScanner#[]`偽陽性を発見 → `data/core_overlay/string_scanner.rbs`経由で修正、しきい値へは容認していない）。
-
-## オープンエンジニアリング項目
-
-次の実装者が直接見ることで恩恵を受けるエンジン内部の項目。完全な需要駆動バックログは[`docs/ROADMAP.md`](../roadmap/) §「Future cycles」にある。
-
-### ADR-52 — コンパイル済みプラグイン貢献ディスパッチ（完了 —— スライス1〜6が2026-06-10/11着地）
-
-呼び出しごと / defごと / ファイルごと / ノードごとのすべてのプラグイン参照は、レジストリ構築時に実行ごとに一度コンパイルされるテーブルを介して、エンジンが既に保持する鍵でゲートされる —— プラグインコードは候補ヒット時にのみ走る。5つすべてのレガシー`flow_contribution_for`ユーザーが移行し（ARの「receivers-ゲートブロッカー」は**新しいゲート形式なしで**解決された —— ランタイムの`methods:` callableはレシーバー型を決して読まないので、既存のスライス4ゲートに適合する）、フックは**削除され**（ロード時`ArgumentError` + CHANGELOG移行ノート）、そしてエンジン所有の単一の`Plugin::NodeRuleWalk`がファイルごとに走る。スライスごとの完全な記録（コミットハッシュ、解決されたARブロッカー、委譲の教訓）は[ADR-52](../adr/52-compiled-plugin-contribution-dispatch/) + [`docs/ROADMAP.md`](../roadmap/) §「compiled plugin contribution dispatch」にある。需要ゲートの残り物のみ: ノードメジャー診断の再ソート（取らない —— バイト同一性を壊す）、そしてプロファイルがレシーバー祖先ウォークがホットだと示した場合の厳密メンバーシップSetゲートの精緻化。
-
-### ADR-24 — 暗黙的selfメソッド呼び出し解決、残り
-
-- **スライス4（レコーダー + `call.self-undefined-method`ルール、`:off`で出荷）—— 着地済みv0.1.17;WD4コーパスFP評価は2026-06-14に完了 → ルールは`:off`のまま、昇格不可**（[ノート](../notes/20260614-adr24-slice4-self-undefined-fp-eval/)）。評価は普遍ベース除外（バケット1、`Object`/`BasicObject`/`Kernel`、287件のコーパスFP）を着地させたが、**抽象 / テンプレートメソッドの基底クラスパターン**（バケット2、167件）が現在のクラスごとのゲートでは対処不能なFPであることを見出した。抽象ベースのFPが解決されるまで、**スタンドアロンのみのゲートをスーパークラス / includeチェーンへ拡張しない**こと —— 必要な形は**サブクラス認識ゲーティング**（見逃したメソッドが既知のサブクラスに定義されているかをレコーダーで記録し、そうなら抑制する）だ。解決されたclosed-classセルフ呼び出しに対する**arity診断**はスライス4の一部では**なかった**（undefined-methodのみ） —— ルールが実績を積んだ後の後続拡張。
-- **クラスボディ内の非`Bot`一般採用** —— 解決されたセルフ呼び出しの戻り値型は、それが`Bot`であるときのみ採用される。精確な非`Bot`戻り値の無条件採用は`rigor check lib`を16診断リグレッションさせた（既存の呼び出し先戻り推論の不精度が下流で表面化した）;このフォローアップは、精確な型を採用してもそれらの不精度が表面化しないほど呼び出し先戻り推論が精確である必要がある。
-
-### ARスコープボディのラムダ`self`
-
-`scope :x, -> { select(...).group(...) }`のインスタンスラムダ内で、ラムダの`self`がモデルクラスにリバインドされる必要が依然ある。v0.1.12は通常のメソッドボディに対する暗黙的selfのクラス側解決をクローズした;ラムダボディは残る（ADR-26領域）。経験的なケースは[`docs/notes/20260523-mastodon-v4.5-regression-sweep-v0.1.9.md`](../notes/20260523-mastodon-v4.5-regression-sweep-v0.1.9/) §「What is increasing」項目2にある。
-
-### ADR-23 — `rigor triage`スライス4プラグイン認識器
-
-残り: プラグインが自身の認識器（recognizer）を貢献できる`Plugin`フック（先送り）。（構造化された`receiver_type` / `method_name`フィールド + SKILL統合はv0.1.8 / v0.1.9サイクルで出荷。）
-
-### 推論バジェット — 仕様表は未配線（Layer 1ドキュメント衛生は完了）
-
-仕様の設定可能な`budgets:`表（[`docs/type-specification/inference-budgets.md`](../type-specification/inference-budgets/)）はv1向けに規範的でありながら**配線されていない** —— 実際に効いているカットオフは、ハードコードされた3つのサイレントガード（再帰の再入≈深さ1、祖先ウォーク100、HKT fuel 64）とADR-10の`budget_per_gem`だけ。**Layer 2は解決済み、そしてそれはバジェットではなかった:**大規模アプリのコストの崖は`rigor-activerecord`の4.2 M保持Stringリーク（v0.1.16で修正）で、`union_size`はメモリと無相関と反証された。バジェット配線は**需要先送り** —— バジェット型のコストを示すコーパスプロジェクトは存在しない;もし現れたら、まず2aの分布プローブを再実行する（[ADR-41 WD3](../adr/41-inference-budget-design/)）。`RIGOR_BUDGET_TRACE` / `RIGOR_HEAP_PROFILE` / `RIGOR_HEAP_TRACE`プローブは再利用可能。
-
-### Stdlib RBSカバレッジギャップパターン + ステージ済みの上流PR
-
-上流の`ruby/rbs`ギャップが単一の内部呼び出しサイトで表面化したとき、**（a'）**インソースの`# rigor:disable` + ライブラリのロードを好む;複数の呼び出しサイトまたはユーザー向けコードでは、**（b）**Rigor自身の`sig/`下の焦点を絞ったRBSオーバーレイ、または**（c）**上流`ruby/rbs`修正にエスカレートする。`references/rbs`ブランチ`widen-strscan-resolv-stdlib-sigs`（`StringScanner#[]`、`Resolv#initialize`を拡張）はステージ済み —— **ブランチプッシュ + `ruby/rbs` PR作成はユーザーのタスク**。
-
-### Sig-gen（ADR-14）残りギャップ
-
-`initialize`以外のソース（DB読み取り、設定、副作用）からivarが設定される`attr_reader`は依然`:untyped_return`を生成 → 手書きのsig。untypedレシーバーへの深いチェーンは`rbs collection install` / ADR-10の`source_inference:`。動的メソッド（`define_method`、DSLマクロ）はプロジェクトプラグイン。`update_existing`は兄弟の親/子クラスブロックを畳み込まない（回避策: ターゲットsigを削除 + 再生成）。`skills/rigor-project-init/references/04-sig-uplift.md`に記載。
-
-### ADR-49コーパス経済フォローアップ（オプション）
-
-2026-06-05のコーパス監査は、過剰情報がコーパスの唯一の系統的ドリフトであることを見出した;ADR-22のSKILLスケッチ肥大はトリミングされた（v0.1.17）。ADR-1 / ADR-16が残る長さの外れ値だが、その長さは監査によれば「弁護可能」（高ステークス）で、抽出は基礎的な根拠を分断するため —— **割に合わない**と評価、完全性のために記録、キューには入れない。
+- **ステージされた`ruby/rbs`のupstream修正を公開する** —— `references/rbs`のブランチ
+  `widen-strscan-resolv-stdlib-sigs`（`StringScanner#[]`、`Resolv#initialize`を広げる）;プッシュ +
+  upstream PRはユーザーのアクションだ。#159として追跡され、意図的にマイルストーン未設定だ: 私たちの
+  カットでは出荷できない。
+- upstreamの`rbs-inline`のRDoc修正（[soutaro/rbs-inline#249](https://github.com/soutaro/rbs-inline/pull/249)）は
+  ユーザーのフォークの下でオープンだ;upstreamが応答するまでリポジトリ側ですることはない。
+- **rigor-rs:**予約パイプライン（ADR-99）は最初の予約を得た —— `rigor_rs.ruby`が私たちのスキーマで
+  宣言されているので、ポートはそれに対して実装でき、そのベンダーコピーは次のサブモジュールバンプで
+  自身のキーを拒否しなくなる。

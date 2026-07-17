@@ -3,8 +3,8 @@ title: "ナローイング"
 description: "rigortype/rigor docs/handbook/03-narrowing.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/03-narrowing.md"
 sourcePath: "docs/handbook/03-narrowing.md"
-sourceSha: "55581f22b92cb3b8f9d538f6b0bad19c47712d9f48bd3914cbf0c43cc02b5182"
-sourceCommit: "212f2c491920cc5c39a12d75aee385cb6c51fa0c"
+sourceSha: "8047ec7e5cde10ecb6e7f020414152f11f334e9970652b37e090735a3901baa9"
+sourceCommit: "78b18cea6a576475c92bce020535269f2eebc20d"
 translationStatus: "translated"
 sidebar:
   order: 1003
@@ -230,7 +230,7 @@ def parse_date(s)
 end
 ```
 
-（真値エッジをさらに特定のリファインメントキャリアにナローイングすること（`\d{4}`なら`decimal-int-string`を生成する）は、正規表現パターン → リファインメント名の認識器のトラックにおける需要駆動のフォローアップです。[`docs/ROADMAP.md`](../../roadmap/)を参照。）
+（真値エッジをさらに特定のリファインメントキャリアにナローイングすること（`\d{4}`なら`decimal-int-string`を生成する）は、正規表現パターン → リファインメント名の認識器のトラックにおける需要駆動のフォローアップで、[#164](https://github.com/rigortype/rigor/issues/164)として追跡されています。）
 
 ## 否定と`unless`
 

@@ -3,8 +3,8 @@ title: "CLIコマンドリファレンス"
 description: "rigortype/rigor docs/manual/02-cli-reference.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/02-cli-reference.md"
 sourcePath: "docs/manual/02-cli-reference.md"
-sourceSha: "b3b992543107c9a41efd8842bbf07d0e57cbb98b4c71793ef919dbe7f78a6ee7"
-sourceCommit: "eb8e9996d113a1b5e1778d0988597c979814a219"
+sourceSha: "7ebf9003a5a4e0f5da23fd52c17d3b0a6518a39e829da4e0c5db6b42ab904fb2"
+sourceCommit: "78b18cea6a576475c92bce020535269f2eebc20d"
 sourceDate: "2026-06-21T05:49:38+09:00"
 translationStatus: "translated"
 sidebar:
@@ -378,6 +378,7 @@ rigor doctor [--config PATH] [--format text|json]
 - **プラグインのロードエラー** — 設定されたすべてのプラグインがロードされたかどうか。
 - **ベースラインドリフト** — 現在の診断が保存済みベースラインからドリフトしているかどうか。
 - **Railsプラグインのギャップ** — `Gemfile.lock`にRails gemが含まれているのにRailsプラグインが有効化されていないかどうか。
+- **Gemfileへのインストール** — Rigor自身がプロジェクトの依存関係の1つとして解決されるかどうか。これは[Rigorのインストール](../01-installation/)がしないよう指示していることです。**GEM**リモートから解決された`rigortype`だけがカウントされます。`PATH`や`GIT`ソースは意図的にRigorを開発またはベンダリングしていることを意味し、Rigor自身のリポジトリはまさにそのように見えます。
 
 テキスト出力はチェックごとに`[PASS]`・`[FAIL]`・`[WARN]`と、振り分けられたヒント（例:「`rigor baseline regenerate`を実行してください」）を表示します。JSON出力は安定した契約です:
 

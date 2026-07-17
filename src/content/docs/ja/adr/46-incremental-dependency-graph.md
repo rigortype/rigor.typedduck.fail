@@ -3,8 +3,8 @@ title: "ADR-46 — ファイル間依存グラフによるインクリメンタ�
 description: "rigortype/rigor docs/adr/46-incremental-dependency-graph.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/46-incremental-dependency-graph.md"
 sourcePath: "docs/adr/46-incremental-dependency-graph.md"
-sourceSha: "1552fbbc6e7d55f8f8b99e0656d7076986c60876bfc290de940d018a7f8216eb"
-sourceCommit: "73d7a0a2d4628b0614948fe2fa043945b45d5de4"
+sourceSha: "5aee4ac1f7b5480a4bfd957a4d63338d512cf212b058cffcc310b78dd7acdadb"
+sourceCommit: "78b18cea6a576475c92bce020535269f2eebc20d"
 translationStatus: "translated"
 sidebar:
   order: 4046
@@ -106,3 +106,7 @@ AのASTと、Aの解析が消費したすべてのファイル横断（cross-fil
 - **記録の完全性は正確さの不変条件であり、パフォーマンスのノブではない**。`--verify-incremental`ゲートは必須であり、オプションではない。
 - **推論戻り値の揮発性**。メソッドの推論戻り値を変えるボディ編集はすべての呼び出し元に波及する。深いコールグラフは「影響を受けるクロージャ」を大きくしうる。戻り値型**サマリー**（依存先の推論サマリーが変わった場合のみdependentを再チェックする）がこれを抑えるが、それ自体が独立したスライスだ。
 - **永続化コスト**。`deps` / `dependents` / ファイル単位エントリーはプロジェクトとともに肥大する。これらはADR-6の退避なしバックエンドを共有しており、サイズに関する方針が必要だ（ファイル単位エントリーは安定したパスをキーとしているため、ADR-45のスロットと同様に蓄積ではなく上書きになる）。
+
+## 実装上の罠（これをリファクタリングで消し去らないこと）
+
+`Runner#initialize`のivarの事前シード（`@class_decl_paths_snapshot = {}`など）をヘルパーメソッドへ抽出**しない**こと。それらをコンストラクタの外へ動かすと、エンジン**自身**のフロー解析から隠れてしまい、`make check`が`snapshot.size`をnilレシーバーの偽陽性として自己フラグする。インラインのまま保つこと——コンストラクタはまさにこの理由で`AbcSize`のrubocop disableを携えている。

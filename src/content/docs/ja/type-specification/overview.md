@@ -3,8 +3,8 @@ title: "概要"
 description: "rigortype/rigor docs/type-specification/overview.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/type-specification/overview.md"
 sourcePath: "docs/type-specification/overview.md"
-sourceSha: "3ab28c89f9b3836f0189c4e495d514417742326c08f7e280bcb01c7975c31a41"
-sourceCommit: "db8d01bf94926a72e6a2aaf15639d1591b7e142e"
+sourceSha: "b63a9ce4b250efdccaba8ad32381755fa768456d42c8831413c276e919179057"
+sourceCommit: "78b18cea6a576475c92bce020535269f2eebc20d"
 translationStatus: "translated"
 sidebar:
   order: 2050
@@ -74,6 +74,8 @@ RigorはPHPStan、TypeScript、Pythonのtyping仕様からアイデアを借り�
 - TypeScript、PHPStan、Python typingはデザイン参照であり、構文互換のターゲットではない。
 
 3者が異なるとき、Rigorは[README.md](../)に記載された解決順序に従います。
+
+> **ステータス —— 出荷済みの取り込みはこの条項から乖離しています（現時点）**。インラインのrbs-inline注釈は、オプトインの`rigor-rbs-inline`プラグインが設定されている場合にのみ読み取られます（[ADR-32](../../adr/32-rbs-inline-comment-ingestion/)）。そしてそのプラグインのデフォルト（`require_magic_comment: true`）は、まさにこの条項が要求を禁じている`# rbs_inline: enabled`コメントを要求します。準拠するセマンティクスはプラグインの`require_magic_comment: false`モードとして存在します（upstreamは`# rbs_inline: disabled`を無条件に尊重するため、ファイルごとのオプトアウトは残ります）;乖離しているのはデフォルトと組み込みです。[ADR-93](../../adr/93-default-rbs-inline-ingestion/)がその調整を引き継ぎ、[ADR-92](../../adr/92-normative-status-fidelity/)がなぜこの乖離を黙って保持するのではなく明示するのかを記録しています。
 
 インライン注釈の取り扱い: RigorはRBSとrbs-inlineの構文に対して100% 互換でなければならず、インライン注釈の解釈と優先順位についてはSteep 2.0の挙動に従うべきです。既存のrbs-inlineおよびSteep互換の注釈は型のソースとして公式に扱います。Rigorはそれらを書き換えてはならず、複雑であることだけを理由に警告してはならず、解析を始めるために`# rbs_inline: enabled`を要求してはなりません。`# rbs_inline: enabled`や`# rbs_inline: disabled`のようなrbs-inline設定ディレクティブのみが解釈されます。rbs-inlineの注釈コメント自体（`#: String`、`# @rbs`、パラメータ注釈など）は、存在すれば常にパースされ利用されます。
 

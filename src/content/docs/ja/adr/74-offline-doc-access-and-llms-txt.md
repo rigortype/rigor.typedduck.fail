@@ -3,8 +3,8 @@ title: "ADR-74 — オフラインドキュメントアクセス（`rigor docs`�
 description: "rigortype/rigor docs/adr/74-offline-doc-access-and-llms-txt.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/74-offline-doc-access-and-llms-txt.md"
 sourcePath: "docs/adr/74-offline-doc-access-and-llms-txt.md"
-sourceSha: "bc09281f3f0c3d426e4ee0c4dbaafacc969090d71fbd88b7ce561f71ddd1bc06"
-sourceCommit: "2af27a27c6c16a452d0a72850625ce7de9ca1552"
+sourceSha: "e6bebe5301d67a5a399e0829faf351b43514b2dd88746f917d775230bfe8d26b"
+sourceCommit: "78b18cea6a576475c92bce020535269f2eebc20d"
 translationStatus: "translated"
 sidebar:
   order: 4074
@@ -12,7 +12,7 @@ sidebar:
 
 ステータス: **Accepted — WD1〜WD4を2026-06-20に実装**。[ADR-73](../73-skill-driven-user-experience/)のSKILL駆動UXを*ドキュメント*の軸で完成させます。インストール済みのRigorは、エージェントが必要とするドキュメントを**オフラインで**提供し（gemにバンドルされた`docs/manual`を対象とする`rigor docs`コマンド）、プロジェクトのエージェント向けドキュメント発見インデックス——`llms.txt`——は新しいスキルサーフェスを反映すると同時に、ネットワークなしでローカルにそれらのドキュメントを読めることをエージェントへ伝えます。WD1＋WD2（gemが`docs/install.md`＋`docs/llms.txt`＋`docs/manual/**`を出荷する。`rigor docs`コマンド）とWD3（スキルが`rigor docs <chapter>`を優先する）はrigor側に着地し、WD4（サイトの`llms.md` / `llms-ja.md`を`rigor-next-steps`＋オフライン注記＋第17章で更新し、ビルドのデッドリンクガードがグリーン）はサイトリポジトリに着地しました。
 
-**改訂（2026-06-21）—— フラグ文法＋ハンドブックのバンドル**。WD2の発見系の動詞（`rigor docs list` / `path <name>`）はフラグ（`--list [category]` / `--path <name>`）へ移動しました。これにより位置スロットが曖昧さなくドキュメントの*名前*になります（`list` / `path`という名前のページがあった場合、動詞にシャドウされかねないため）。引数なしの`rigor docs <name>`出力形は変わりません。レガシーの動詞綴りは引き続き動作しますが、1行のstderr非推奨通知を出力し、**v0.3.0で削除されます**（[ROADMAP](../../roadmap/) §「Scheduled CLI deprecations」を参照）。WD1のバンドルはマニュアルのみから**マニュアル＋ハンドブック**へ広がります（`docs/handbook/**/*.md`をgemspecに追加）——ハンドブックはユーザー向けのRigor運用の概念資料なので、上記のオフラインドキュメント基準を満たします。貢献者向けのADR / 仕様 / 開発レポートのコーパスは引き続きWeb限定のままです。2つのカテゴリーがあるため、`<name>`はカテゴリー修飾されたパス（`handbook/03-narrowing`）、プレフィックス付きのベース名（`03-narrowing`）、または一意なときは短い名前を解決し（`plugins`のようなカテゴリー横断の衝突は修飾された候補とともにエラーになります）、`--list`はオプションのカテゴリーフィルタを取ります。[ADR-73](../73-skill-driven-user-experience/)も同じ`rigor skill`の文法変更を受けます。凍結される公開語彙（ADR-50 WD1）は改訂後のフラグサーフェスです。
+**改訂（2026-06-21）—— フラグ文法＋ハンドブックのバンドル**。WD2の発見系の動詞（`rigor docs list` / `path <name>`）はフラグ（`--list [category]` / `--path <name>`）へ移動しました。これにより位置スロットが曖昧さなくドキュメントの*名前*になります（`list` / `path`という名前のページがあった場合、動詞にシャドウされかねないため）。引数なしの`rigor docs <name>`出力形は変わりません。レガシーの動詞綴りは引き続き動作しますが、1行のstderr非推奨通知を出力し、**v0.3.0で削除されます**（ROADMAP §「Scheduled CLI deprecations」を参照）。WD1のバンドルはマニュアルのみから**マニュアル＋ハンドブック**へ広がります（`docs/handbook/**/*.md`をgemspecに追加）——ハンドブックはユーザー向けのRigor運用の概念資料なので、上記のオフラインドキュメント基準を満たします。貢献者向けのADR / 仕様 / 開発レポートのコーパスは引き続きWeb限定のままです。2つのカテゴリーがあるため、`<name>`はカテゴリー修飾されたパス（`handbook/03-narrowing`）、プレフィックス付きのベース名（`03-narrowing`）、または一意なときは短い名前を解決し（`plugins`のようなカテゴリー横断の衝突は修飾された候補とともにエラーになります）、`--list`はオプションのカテゴリーフィルタを取ります。[ADR-73](../73-skill-driven-user-experience/)も同じ`rigor skill`の文法変更を受けます。凍結される公開語彙（ADR-50 WD1）は改訂後のフラグサーフェスです。
 
 **フォローアップ（2026-06-21）—— `rigor-ask`スキル**。ADR-73のカタログに、このADRのエージェント向けの具現化である`rigor-ask`が加わります。ユーザーがRigorについて平易な言葉で何かを尋ねると（「なぜこれが発火したのか？」「ナローイング（narrowing）はどう動くのか？」「このフラグは何をするのか？」）、スキルは`rigor docs`を（診断idの場合は加えて`rigor explain <rule>`を）駆動し、バンドルされたソースから回答します——人間は`rigor docs`コマンドを覚える必要がなく、問いだけを覚えればよいのです。`rigor-next-steps`と対にすることで、ユーザーは2スキルのメンタルモデルを得ます——*次は何をするか？*（`rigor-next-steps`）と*Rigorについて尋ねる*（`rigor-ask`）——他のカタログスキルはこの2つを通じて到達します。ADR-73のもとカタログ限定（問いで起動し、存在検出で推奨されることは決してありません）なので、新しい公開CLIサーフェスは追加しません。`rigor skill describe`カタログに配線された`skills/`への追加です。
 

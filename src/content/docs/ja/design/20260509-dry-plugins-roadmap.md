@@ -3,8 +3,8 @@ title: "dry-rbエコシステムプラグイン — 調査"
 description: "rigortype/rigor docs/design/20260509-dry-plugins-roadmap.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/design/20260509-dry-plugins-roadmap.md"
 sourcePath: "docs/design/20260509-dry-plugins-roadmap.md"
-sourceSha: "5484b23347eb3f9c87ee07c351fd4b9be38cd46784e92b782c7456c54a675644"
-sourceCommit: "aec4ca7f5f87b1972dea8fecaaf5b62c8880a3af"
+sourceSha: "948d96f3da0f772597213429519d696e5974af87268453a7acd1b947e18470b9"
+sourceCommit: "78b18cea6a576475c92bce020535269f2eebc20d"
 translationStatus: "translated"
 sidebar:
   order: 20265509
@@ -432,7 +432,7 @@ dry-rails          -> dry-system       (runtime, plugin)
 - **ADR-9クロスプラグインAPI**（[`docs/adr/9-cross-plugin-api.md`](../../adr/9-cross-plugin-api/)）
   — 別のプラグインのファクトを消費するプラグイン（dry-schemaの強制変換シェイプを必要とするdry-validation、dry-systemのコンテナマップを必要とするdry-auto_inject）には必須。戦略1はそれを回避する。戦略2と3はクロスプラグインの受け渡しにブロックされる。
 - **v0.1.1正規表現→リファインメント名認識器**
-  （[`docs/ROADMAP.md`](../../roadmap/)参照）
+  （`docs/ROADMAP.md`参照）
   — スライス1は未リリースでランディング済み。フルの認識器が出荷されると、`gt?: 18`や`format?: /\A.../`等のdry-schemaの述語がビルトインのリファインメント名にきれいにマッピングされる。それまでは述語ファクトは記録されるが型ナローイングはされない。
 
 どちらも、ドライを限定するMVP（dry-types + dry-struct + dry-monadsの3つのgem: 別のプラグインからファクトを消費する必要なくローカルにファクトを生成するもの）をブロックしない。その密接なサブセットは3つの戦略いずれでも妥当なv1である。

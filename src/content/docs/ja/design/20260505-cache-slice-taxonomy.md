@@ -3,14 +3,14 @@ title: "キャッシュスライス分類体系 — v0.1.0前の設計ノート"
 description: "rigortype/rigor docs/design/20260505-cache-slice-taxonomy.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/design/20260505-cache-slice-taxonomy.md"
 sourcePath: "docs/design/20260505-cache-slice-taxonomy.md"
-sourceSha: "690d8986a2aacc55f108a210785bf17aebcbd005a18e370efe060ccc976d2bf9"
-sourceCommit: "035915291e331f3bcd5ce804a1e30dc284ffbd48"
+sourceSha: "4671ba14d5044867274782d77ab9ecf4f41d8b31fdcef28eeab17841c295ed27"
+sourceCommit: "78b18cea6a576475c92bce020535269f2eebc20d"
 translationStatus: "translated"
 sidebar:
   order: 20265505
 ---
 
-ステータス: **草案**。規範的ではありません。v0.1.0の永続的なオンディスクキャッシュ（[ROADMAP.md](../../roadmap/)および[ADR-2 §「登録、設定、キャッシュ」](../../adr/2-extension-api/)を参照）が準拠すべきキャッシュディスクリプタスキーマを記述します。純粋な設計出力であり、このドキュメントからコード変更は発生しません。このドラフトの後継は、スキーマが実装された時点で`docs/internal-spec/`内の規範的仕様となります。
+ステータス: **草案**。規範的ではありません。v0.1.0の永続的なオンディスクキャッシュ（ROADMAP.mdおよび[ADR-2 §「登録、設定、キャッシュ」](../../adr/2-extension-api/)を参照）が準拠すべきキャッシュディスクリプタスキーマを記述します。純粋な設計出力であり、このドキュメントからコード変更は発生しません。このドラフトの後継は、スキーマが実装された時点で`docs/internal-spec/`内の規範的仕様となります。
 
 この作業は、v0.0.7のReflectionファサード移行（[`docs/internal-spec/reflection.md`](../../internal-spec/reflection/)）に続くpre-v0.1.0サブスライスです（[`20260505-v0.1.0-readiness.md`](../20260505-v0.1.0-readiness/)にてシーケンシングを参照）。この設計から生まれる永続化レイヤーはv0.0.xには**含まれません**——プラグインAPIとともにv0.1.0でリリースされます。
 

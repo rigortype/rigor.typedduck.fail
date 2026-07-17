@@ -3,8 +3,8 @@ title: "Rigorのインストール — AIエージェント向け手順"
 description: "rigortype/rigor docs/install.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/install.md"
 sourcePath: "docs/install.md"
-sourceSha: "4f45588da0ef772aef62261c579f2be011dda3247967e30864755fa9e89632ab"
-sourceCommit: "450a3016ca812067f6baa96e415442ed936ad49a"
+sourceSha: "fd79981d3da34cd1c5c1ca4ee5e1f461f5242213385c633ccba954e4e1247907"
+sourceCommit: "78b18cea6a576475c92bce020535269f2eebc20d"
 sourceDate: "2026-05-29T03:05:46+09:00"
 translationStatus: "translated"
 sidebar:
@@ -37,16 +37,18 @@ which docker  # 最終手段——ステップ2Dを参照
 ### ケースA — miseが利用可能（推奨）
 
 **miseとは？**
-[mise](https://mise.jdx.dev/)はランタイムとツールのバージョンマネージャーです——`rbenv`と`nvm`を合わせたようなもので、タスクランナーも兼ねています。Rubyランタイム（Ruby、Node、Pythonなど）とツールgem（`rigortype`など）をプロジェクトごとにインストール・管理し、バージョンを`mise.toml`に記録してコードと一緒にコミットできます。他の貢献者やCIは`mise install`を実行するだけで、`Gemfile`を変更せずにまったく同じバージョンを再現できます。
+[mise](https://mise.jdx.dev/)はランタイムとツールのバージョンマネージャーです——`rbenv`と`nvm`を合わせたようなもので、タスクランナーも兼ねています。Rubyランタイム（Ruby、Node、Pythonなど）とツールgem（`rigortype`など）をプロジェクトごとにインストール・管理し、バージョンを`mise.toml`に記録してコードと一緒にコミットできます。他の貢献者やCIは`mise install`を実行するだけで、`Gemfile`を変更せずにそれらのバージョンを再現できます。
 
 プロジェクトルートで実行してください。
 
 ```sh
 mise use ruby@4.0
-mise use gem:rigortype
+mise use --pin gem:rigortype
 ```
 
 `mise use`はツールをインストールし、一ステップでバージョンを`mise.toml`に書き込みます。バージョンを共有するために`mise.toml`をコミットしてください。
+
+`--pin`は正確なRigorバージョン（`"gem:rigortype" = "0.2.9"`）を記録します。これがないとmiseは`"gem:rigortype" = "latest"`と書き込み、各マシンが最初にインストールするときにそのとき最新のものへ再解決します——つまりコミットされた`latest`はチームに1つの共有バージョンを与えません。トレードオフとして、pinはひとりでに動かず、`mise outdated`はpinされたツールを遅れているとは報告できません。アップグレードは`mise upgrade --bump gem:rigortype`で行います。
 
 確認してください。
 
@@ -159,4 +161,4 @@ rigor skill rigor-project-init
 
 `rigor skill <name>`はSKILL定義を出力します——ファイルパスを含むヘッダーに続いてSKILL本文です。上から下まで従ってください。project-initスキルはプロジェクトのスタックを検出し、プラグインを提案し、`.rigor.dist.yml`を書き込み、必要に応じてベースラインをスナップショットします。プロジェクトのセットアップが済んだら、その次のステップのために`rigor skill describe`を再実行してください。
 
-`rigor skill describe`が認識されない場合は、お使いのRigorのバージョンがそれより古いということです。`rigor --version`を実行し、`mise use gem:rigortype`（またはケースC/Bの場合は`gem update rigortype`）でアップグレードしてください。古いバージョンでは、`rigor skill rigor-project-init`を直接実行してください。
+`rigor skill describe`が認識されない場合は、お使いのRigorのバージョンがそれより古いということです。`rigor --version`を実行し、`mise upgrade --bump gem:rigortype`（またはケースB/Cの場合は`gem update rigortype`）でアップグレードしてください。古いバージョンでは、`rigor skill rigor-project-init`を直接実行してください。

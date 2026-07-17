@@ -241,7 +241,6 @@ export default defineConfig({
           collapsed: true,
           items: [
             { slug: 'current-work' },
-            { slug: 'roadmap' },
             { slug: 'compatibility' },
             { slug: 'types' },
           ],

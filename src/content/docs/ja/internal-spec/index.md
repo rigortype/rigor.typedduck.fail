@@ -3,8 +3,8 @@ title: "Rigor内部仕様"
 description: "rigortype/rigor docs/internal-spec/README.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/README.md"
 sourcePath: "docs/internal-spec/README.md"
-sourceSha: "fcb0e986988c4c818edacd337159707878458e68b0e1ea090e2af812c4409ec3"
-sourceCommit: "212f2c491920cc5c39a12d75aee385cb6c51fa0c"
+sourceSha: "e862d2e7616fd28e817b70b89afa909b5277f5217fac00ba853a08f82f8d15a7"
+sourceCommit: "78b18cea6a576475c92bce020535269f2eebc20d"
 translationStatus: "translated"
 sidebar:
   order: 3000
@@ -41,6 +41,7 @@ Rubyの識別子（`Rigor::Type`、`Rigor::Trinary`、`Rigor::Type::Combinator`�
 | [inference-engine.md](inference-engine/) | `Rigor::Scope#type_of(node)`問い合わせ — 純粋性、不変なScope規律、`Dynamic[top]`への安全フォールバックポリシー、環境ローディング境界。 |
 | [reflection.md](reflection/) | `Rigor::Reflection`読み取り側ファサード — `ClassRegistry` + `RbsLoader` + `Scope`で発見した事実を統合した読み取り表面。v0.1.0のプラグインAPIレディネス向け公開読み取り表面。 |
 | [cache.md](cache/) | `Rigor::Cache`層 — ディスクリプタスキーマ、ファイルシステム実装のStore、最初のキャッシュ生成器（`RbsConstantTable`）、CLIの可観測性、診断provenance。 |
+| [config.md](config/) | `.rigor.yml`のセマンティクス — 対等な2つの信頼できる情報源（`Configuration::DEFAULTS`とJSONスキーマ）、3つの検証ティアとそれぞれの失敗モード、予約された名前空間（スキーマで検査されるが評価はされない）、姉妹実装のキーのための予約パイプライン（ADR-99）。 |
 | [flow-contribution.md](flow-contribution/) | `Rigor::FlowContribution`バンドル — プラグイン、`RBS::Extended`注釈、組み込みナローイングルールが、単一の呼び出しエッジで解析器に事実と効果を渡すための公開パッケージ。 |
 | [flow-contribution-merger.md](flow-contribution-merger/) | `Rigor::FlowContribution::Merger` — 1つの呼び出しエッジでの複数の貢献を、権限ティアと競合検出を備えた単一のタグ付き要素リストへ畳み込む決定論的なマージポリシー。 |
 | [plugin.md](plugin/) | プラグイン契約 — `Rigor::Plugin::Base`、`Manifest`（すべての拡張フィールド）、`Loader` / `Registry`の登録 + トポロジカル順序付け、`Services`注入。 |

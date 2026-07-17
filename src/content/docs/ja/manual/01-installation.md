@@ -3,8 +3,8 @@ title: "Rigorのインストール"
 description: "rigortype/rigor docs/manual/01-installation.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/01-installation.md"
 sourcePath: "docs/manual/01-installation.md"
-sourceSha: "4001205fa8de4a958876591c725faedccb1078eb66620057e9a72d032537a6aa"
-sourceCommit: "4c03f62d04f594030bd79aa00f3a5978e0457d4c"
+sourceSha: "32c480d0bc8716fa10d4155743cc4137d90d640f11c00d1862b7386d29352c98"
+sourceCommit: "78b18cea6a576475c92bce020535269f2eebc20d"
 translationStatus: "translated"
 sidebar:
   order: 9001
@@ -228,7 +228,13 @@ mise use gem:rigortype
 miseを使ったことがない場合に知っておくべきことをいくつか紹介します:
 
 - **`mise use`はプロジェクトレベルで動作します**。選択したバージョンを記録した`mise.toml`を*カレントディレクトリ*に書き込み、同じコマンドでツールもインストールします。別途インストールステップは不要です。（miseはasdf形式の`.tool-versions`も読み込みます。）
-- **バージョンを共有するためにconfigをコミットしてください**。生成された`mise.toml`をGitにコミットすれば、すべての貢献者とCIの実行が同じRuby 4.0と同じRigorバージョンを使用します。
+- **バージョンを共有するためにconfigをコミットしてください——そして本気なら`--pin`を渡してください**。生成された`mise.toml`をGitにコミットすれば、すべての貢献者とすべてのCIの実行が同じバージョンを解決します。上記2つのコマンドが実際に何を記録するかに注意してください。両者は異なります: `mise use ruby@4.0`はあなたが求めた精度を保ち`ruby = "4.0"`（任意の4.0.x）と書き込みますが、`mise use gem:rigortype`は保つべき要求バージョンがなく`"gem:rigortype" = "latest"`と書き込みます——これは*各マシンで、そのマシンが最初にインストールするとき*に最新のものへ解決されます。コミットされた`latest`は共有バージョンではありません。共有するにはpinしてください:
+
+  ```sh
+  mise use --pin gem:rigortype     # records e.g. "gem:rigortype" = "0.2.9"
+  ```
+
+  そして[Rigorを最新に保つ](#rigorを最新に保つ)を読んでください。pinとは、あなたが動かすまで動かないバージョンのことです。
 - **マシン全体へのインストールには`-g`を追加します**。`mise use -g gem:rigortype`はプロジェクトの`mise.toml`の代わりにmiseのグローバルconfig（`~/.config/mise/config.toml`）に書き込み、すべてのディレクトリで`rigor`が使えるようになります。
 
 gemの名前は`rigortype`で、インストールされる実行ファイル（実際に使うコマンド）は`rigor`です。
@@ -248,6 +254,28 @@ gemの名前は`rigortype`で、インストールされる実行ファイル（
 
 どちらの方法でもmiseが組み込まれていない場合でも、`mise exec gem:rigortype -- rigor`で明示的にRigorを実行できます。エディタ側については[エディタ統合](../09-editor-integration/)を参照してください。
 
+### Rigorを最新に保つ
+
+Rigorは頻繁にリリースされます。どうアップグレードするかは、configが何を記録しているかに依存します——そして1つのケースでは、miseがアップグレードの存在を教えてくれないと知っているかどうかに依存します。
+
+- **`"gem:rigortype" = "latest"`** —— 素の`mise use gem:rigortype`が書き込むものです。`mise upgrade gem:rigortype`で最新リリースに移動します。
+- **正確なpin** —— `--pin`または`mise use gem:rigortype@0.2.9`による`"gem:rigortype" = "0.2.9"`です。この場合、`mise upgrade`は**それを動かさず、`mise outdated`もそれを報告しません**。どちらもインストール済みバージョンをconfigが要求する範囲と比較しますが、正確なpinは自分自身だけを含む範囲なので、pinされたRigorはどれほど後れを取っていても、いつまでも自分は最新だと報告します。`--bump`を使ってください。これは最新リリースをインストールし、*かつ*pinを書き換えます:
+
+  ```sh
+  mise upgrade --bump gem:rigortype
+  ```
+
+どちらも回避すべきバグではありません——何もしないpinは、機能しているpinです。しかしこれは、pinされたセットアップには新しいRigorが存在するという受動的なシグナルがないことを意味します: `--bump`は、見る方法であると同時に動かす方法でもあるのです。
+
+**Rubyを変更した後**。miseの`gem:`バックエンドは各ツールをインストール時にアクティブだったRubyに対してインストールします。その[gemバックエンドのドキュメント](https://mise.jdx.dev/dev-tools/backends/gem.html)は、「gemパッケージが使うrubyバージョンが（miseまたはシステムのrubyによって）変わった場合、gemを再インストールする必要があるかもしれない」と述べています。Rigorがpinした`ruby@4.0`はこれを稀にします——4.0.x内のパッチアップグレードは自動的に追随されます——が、そのRubyを削除または置き換えた場合は再インストールしてください:
+
+```sh
+mise install -f gem:rigortype     # or, for every gem-backend tool:
+mise install -f "gem:*"
+```
+
+素の`gem install`（下記）では、同等の操作は`gem update rigortype`です。
+
 ## asdf
 
 `asdf`も同じモデルに従います。[`asdf-ruby`](https://github.com/asdf-vm/asdf-ruby)プラグインでRuby 4.0.xをインストールし、プロジェクトに設定してから、そのRubyにgemをインストールします:
@@ -259,7 +287,7 @@ asdf local ruby latest:4.0
 gem install rigortype
 ```
 
-`asdf`には汎用的なgemバックエンドがないため、gemは`asdf`コマンドではなく`gem install`でインストールします。上述の`mise`はその`gem:`バックエンドがgemをRubyと同じようにピン留めするため、より統合されたオプションです。
+`asdf`には汎用的なgemバックエンドがないため、gemは`asdf`コマンドではなく`gem install`でインストールします。上述の`mise`は、その`gem:`バックエンドがRubyを記録するのと同じconfigにgemを記録し、そして——次のセクションで説明するように——両者が干渉しないよう保つため、より統合されたオプションです。
 
 ## シンプルな代替手段: gem install
 
@@ -270,6 +298,20 @@ gem install rigortype
 ```
 
 gemの名前は`rigortype`です（`rigor`はすでにRubyGemsで取得済みです）。インストールされる実行ファイルは`rigor`です。これは最も手軽な方法ですが、プロジェクト単位では何も記録しません: バージョンマネージャーを使えばプロジェクトの横にRigorバージョンをピン留めできるため、ローカルの実行とCIがずれることがありません。
+
+またこの方法では、Rigorがあなたの作業と1つのRubyを共有したままになります。これがバージョンマネージャーを先に挙げている、より深い理由です。RubyGemsがインストールする実行ファイルは`#!/usr/bin/env ruby`で始まるため、*呼び出した瞬間に*`PATH`の先頭にある`ruby`の下で実行されます——そしてRigorはRuby 4.0を必要とする一方、あなたのプロジェクトはそれぞれ独自のバージョンをpinするため、Ruby 3.xのプロジェクト内で`rigor`を実行すると、起動する前に失敗します。miseの`gem:`バックエンドにはこの失敗モードがありません。各ツールをそれ自身のプライベートなgemディレクトリにインストールし、実行ファイルをそのツールがインストールされたRubyへ向けるため、プロジェクトのRubyのpinはそこに到達できません。切り替えて離れることのないRuby 4.0の下での`gem install`はまったく問題ありませんが、切り替えて使うプロジェクトとRubyを共有するものはフットガン（footgun）です。
+
+## Bundlerにバージョンを管理させたい場合
+
+本章冒頭のルールは、あなたの*アプリケーションの*`Gemfile`——Bundlerがアプリのgemに対して解決し、そのエントリーを`Bundler.require`が起動時にロードするもの——についてのものです。Bundlerに反対するルールではありません。Rigorだけを含み、別途解決して`BUNDLE_GEMFILE`で選択する`Gemfile`は、この禁止事項が守ろうとするすべての性質を保ちます: あなたのアプリケーションの依存関係グラフがRigorのそれと出会うことは決してなく、あなたのアプリケーションのRubyがRigorのそれによって制約されることも決してありません。
+
+その構成——`.github/rigor/`配下の`Gemfile`と、それを最新に保つDependabot設定——は、CIの章の[Rigorバージョンのピン留め](../11-ci/#rigorバージョンのピン留め)に記載されています。それについてCI固有のものは何もありません:
+
+```sh
+BUNDLE_GEMFILE=.github/rigor/Gemfile bundle exec rigor check
+```
+
+これは`mise use --pin gem:rigortype`よりも可動部が多く、後者は同じバージョンを1行で記録し`bundle exec`も不要です。チームがすでにすべてをBundler経由で実行しており、Rigorを同じ土台に乗せたい場合に手を伸ばしてください——第一の選択肢としてではありません。
 
 ## Nix
 

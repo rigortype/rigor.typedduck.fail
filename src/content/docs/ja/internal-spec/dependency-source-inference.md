@@ -3,8 +3,8 @@ title: "オプトイン依存関係ソース推論"
 description: "rigortype/rigor docs/internal-spec/dependency-source-inference.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/dependency-source-inference.md"
 sourcePath: "docs/internal-spec/dependency-source-inference.md"
-sourceSha: "9f1bd67199119e11a3f22deb175bc623427843d5e8c028d322a85d34c1618f0b"
-sourceCommit: "212f2c491920cc5c39a12d75aee385cb6c51fa0c"
+sourceSha: "fd65a9cef92e5ecd6d99324fb39101fc6f052ba8296c961cadf6b069278ddc45"
+sourceCommit: "78b18cea6a576475c92bce020535269f2eebc20d"
 translationStatus: "translated"
 sidebar:
   order: 3050
@@ -12,7 +12,7 @@ sidebar:
 
 ステータス: **安定（v0.1.4で出荷）**。[ADR-10](../../adr/10-dependency-source-inference/)のスライス1、2a、2b-i、2b-ii、3、4、5がすべて着地・出荷され（v0.1.3のエンベロープはv0.1.4としてカット）、ADR-10の実装エンベロープは完了。このドキュメントは提供されたサーフェス（surface）の解析器契約（contract）を固定し、ADR-10 §「オープンクエスチョン」で引き続き追跡されるオープンなフォローアップ（特にgemソースからの呼び出しごとの戻り値型精度）を名付けます。
 
-拘束力のある設計サーフェスは[ADR-10](../../adr/10-dependency-source-inference/)にあります。リリースごとのコミットメントエンベロープは[`docs/ROADMAP.md`](../../roadmap/)にあります。この仕様がADR-10と不一致の場合、ADRが拘束力を持ち、このドキュメントは古くなっています。
+拘束力のある設計サーフェスは[ADR-10](../../adr/10-dependency-source-inference/)にあります。リリースごとの計画サーフェスはGitHub Issues / Milestonesです（[`docs/agents/issue-tracker.md`](../../agents/issue-tracker/)を参照）。この仕様がADR-10と不一致の場合、ADRが拘束力を持ち、このドキュメントは古くなっています。
 
 ## スコープ
 

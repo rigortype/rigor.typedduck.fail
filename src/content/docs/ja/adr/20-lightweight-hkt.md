@@ -3,8 +3,8 @@ title: "ADR-20: 軽量高階多相性（Lightweight HKT）"
 description: "rigortype/rigor docs/adr/20-lightweight-hkt.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/20-lightweight-hkt.md"
 sourcePath: "docs/adr/20-lightweight-hkt.md"
-sourceSha: "7ac6e2dc798b836c0f4a1a50a1dd624dc4549690d6a6614d476f2cad659cd1f9"
-sourceCommit: "aec4ca7f5f87b1972dea8fecaaf5b62c8880a3af"
+sourceSha: "c46fde069d9bedf4dc8f024209d85718f7b1c96f1ce192856713b56f60463533"
+sourceCommit: "78b18cea6a576475c92bce020535269f2eebc20d"
 translationStatus: "translated"
 sidebar:
   order: 4020
@@ -441,7 +441,7 @@ end
 
 ## リビジョン履歴
 
-- 2026-05-18 — 初回提案。ユーザーの要求が発端、[ROADMAP](../../roadmap/) § 将来のサイクル（「DSLシグネチャでの軽量HKT（高階型）」）にキューされた軽量HKT方向の設計を開始する、`JSON.parse`の`untyped`スロットを置き換えるという具体的な目標で。スコープはユーザーが選んだ参考文献（Yallop & White 2014論文とfp-tsの`HKT.ts`）で設定された。
+- 2026-05-18 — 初回提案。ユーザーの要求が発端、ROADMAP § 将来のサイクル（「DSLシグネチャでの軽量HKT（高階型）」）にキューされた軽量HKT方向の設計を開始する、`JSON.parse`の`untyped`スロットを置き換えるという具体的な目標で。スコープはユーザーが選んだ参考文献（Yallop & White 2014論文とfp-tsの`HKT.ts`）で設定された。
 - 2026-05-18 — **スライス1着地**。キャリア + レジストリ + パーサ。56のspec例。まだ簡約なし。
 - 2026-05-18 — **スライス2a着地**。HktBodyノード型 + 遅延自己再帰 + 燃料予算を持つHktReducer。33の新しいspec例（HKT spec合計: 89）。
 - 2026-05-18 — **スライス2c + 2d + 3着地 + ステータスがacceptedに昇格**。Environment#hkt_registry;%a{rigor:v1:return:}内のApp[uri, args]構文;METHOD_RETURN_OVERRIDESテーブル + ディスパッチャー層。エンドツーエンドのJSON.parse目標達成（`rigor type-of`で検証済み）。9の新しい統合specケース（HKT spec合計: 98）。

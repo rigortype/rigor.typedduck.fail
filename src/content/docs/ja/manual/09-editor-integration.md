@@ -3,8 +3,8 @@ title: "Rigor LSP: エディタ統合"
 description: "rigortype/rigor docs/manual/09-editor-integration.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/09-editor-integration.md"
 sourcePath: "docs/manual/09-editor-integration.md"
-sourceSha: "9238b292b124e52263bf708b03a7dab1b97a17d4ce2e60774ea0d55769549c7f"
-sourceCommit: "212f2c491920cc5c39a12d75aee385cb6c51fa0c"
+sourceSha: "9e81d0baa8e611d939e925be9a6475592a47cfe04d320d165990e1f1d1986c1e"
+sourceCommit: "78b18cea6a576475c92bce020535269f2eebc20d"
 translationStatus: "translated"
 sidebar:
   order: 9009
@@ -159,7 +159,7 @@ Rubyバッファでアタッチするには`M-x eglot`を実行します。プ�
 **補完ポップアップが空**。
 
 - 補完は型がわかっているノードでのみ発火します。型が`Dynamic[top]`に折りたたまれるレシーバーでは補完が生成されません。`rigor type-of <file>:<line>:<col>`でアナライザーがレシーバーに何の型を割り当てているかを確認します。
-- 編集中のバッファサポートはベストエフォートです。パースが失敗し、かつカーソルが`.` / `::`の直後にない場合、v1 LSPは補完を返しません。より深いリカバリーはキュー待ちです（ROADMAPの「Editor / IDE integration」セクションを参照）。
+- 編集中のバッファサポートはベストエフォートです。パースが失敗し、かつカーソルが`.` / `::`の直後にない場合、v1 LSPは補完を返しません。より深いリカバリーはキュー待ちです（オープンな[`area:editor`のissue](https://github.com/rigortype/rigor/issues?q=is%3Aissue+is%3Aopen+label%3Aarea%3Aeditor)を参照）。
 
 **ホバーが`untyped`ばかり表示される**。
 
@@ -183,6 +183,6 @@ LSP v1の設計ターゲット（ウォームセッション、5Kファイルプ
 
 ## ステータス + ロードマップ
 
-LSP v1 + v2はv0.1.6で着地し、`0.1.x`ラインで出荷されています。キュー待ちのフォローアップ（`textDocument/signatureHelp`、ハッシュキー補完、`textDocument/definition`、インクリメンタル`didChange`同期、Ractorプールディスパッチ、codeAction / rename / semanticTokens / inlayHint）は需要駆動です。現在のキューはROADMAPの「Editor / IDE integration」セクションを参照してください。
+LSP v1 + v2はv0.1.6で着地し、`0.1.x`ラインで出荷されています。キュー待ちのフォローアップ（`textDocument/signatureHelp`、ハッシュキー補完、`textDocument/definition`、インクリメンタル`didChange`同期、Ractorプールディスパッチ、codeAction / rename / semanticTokens / inlayHint）は需要駆動です。現在のキューはオープンな[`area:editor`のissue](https://github.com/rigortype/rigor/issues?q=is%3Aissue+is%3Aopen+label%3Aarea%3Aeditor)です。
 
 キュー待ちの機能をリクエストするかLSPの問題を報告するには、次の情報を添えてGitHub issueを開いてください: エディタ + バージョン、Rigorバージョン（`rigor version`）、LSPログ（`--log=PATH`）、最小限の再現手順。

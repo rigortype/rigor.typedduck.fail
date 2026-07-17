@@ -3,8 +3,8 @@ title: "設定"
 description: "rigortype/rigor docs/manual/03-configuration.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/03-configuration.md"
 sourcePath: "docs/manual/03-configuration.md"
-sourceSha: "e303a995a3ceebdcb32eae29bf66559a036525bad7041a800b93bdb1fce5b17f"
-sourceCommit: "eb8e9996d113a1b5e1778d0988597c979814a219"
+sourceSha: "a089570a1003b9a262d6a9c4b5c5ca6cf9c71b748f2421325d9dbd64e9ffdef5"
+sourceCommit: "78b18cea6a576475c92bce020535269f2eebc20d"
 sourceDate: "2026-06-15T14:21:04+09:00"
 translationStatus: "translated"
 sidebar:
@@ -25,6 +25,16 @@ Rigorはプロジェクトルートから単一のYAML設定ファイルを読�
 設定を置き換えではなく*継承*するには、設定ファイルで`includes:`（再帰的）を使ってベースを指定できます。`--config=PATH`は探索を完全にバイパスします。
 
 設定ファイル内のすべての相対パスは、そのファイル自身のディレクトリを基準に解決されます。
+
+## エディタ検証
+
+RigorはこのファイルのためのJSON Schemaを同梱しています。[`yaml-language-server`](https://github.com/redhat-developer/yaml-language-server)のマジックコメントを理解するエディタ（VS CodeのYAML拡張、IntelliJファミリー、Helix、`yaml-ls`を使うNeovim）では、入力しながらオートコンプリート、ホバードキュメント、構造検証が得られます:
+
+```yaml
+# yaml-language-server: $schema=https://github.com/rigortype/rigor/raw/master/schemas/rigor-config.schema.json
+```
+
+`rigor init`がその行を書き込みます。このスキーマはこのページのコピーではなく、それ自体が独立した信頼できる情報源であり、specによってローダーと歩調を合わせて保たれます。したがって、それが拒否するキーはRigorが受け付けないキーです。
 
 ## 最小限の設定
 
@@ -63,6 +73,7 @@ cache:
 `rigor check`は、設定された値が黙って何にも解決しないとき（タイポがシグネチャを1つも読み込まない（あるいは抑制を無効なままにする）のに、唯一の症状が下流で混乱を招くという種類の間違い）にSTDERRへ警告します。たとえば、欠落したRBSパスは、それが記述するはずだった型へのすべての呼び出しを高信頼の`call.undefined-method`に変えてしまうので、1文字の間違いが数百もの本物の型エラーのように見えることがあります。この監査は次をカバーします:
 
 ```
+rigor: `excludee` is not a recognized configuration key; it has no effect. Did you mean `exclude`?
 rigor: signature_paths: "/path/to/sig" does not exist (no signatures loaded from it)
 rigor: signature_paths: "/path/to/sig" matched 0 signature files
 rigor: libraries: "csb" is not an available RBS library (no signatures loaded from it)
@@ -70,6 +81,8 @@ rigor: disable: "call.undefined-methdo" is not a recognized rule id; the suppres
 rigor: severity_overrides: "flow.bogus" is not a recognized rule id; the override has no effect
 rigor: bundler.lockfile: "./missing/Gemfile.lock" does not exist
 ```
+
+未認識キーのチェックは**トップレベル**のキーを対象とし、他の実装のために予約された名前空間（下記参照）はスキップします。グループの*内側*でのタイポ（`cache: { pth: … }`）は、check時ではなく入力しながらJSONスキーマによって捕捉されます。
 
 これらはエラーではなく警告です。部分的またはオプションのバンドルや、先を見越した設定は妥当なセットアップです。この監査は、明示的で、正常なセットアップに対して安全なシグナルでのみ発火します。未設定のデフォルト（自動検出される`<root>/sig`、自動検出されるバンドル）が警告されることは決してなく、*プラグイン*ファミリー（`rspec.…`、`rbs_extended.…`）配下の`disable:` / `severity_overrides:`トークンは放置されます。そのルールIDは静的に列挙できず、実行時に解決される可能性があるためです。同じ所見は`--format=json`のペイロードでも`config_warnings`の下に（それぞれ`kind`タグ付きで）現れるので、CIはそれらに対してアサートできます。
 
@@ -111,6 +124,12 @@ rigor: bundler.lockfile: "./missing/Gemfile.lock" does not exist
 | `plugins_io.network` | String | `"disabled"` | プラグインネットワークポリシー。`disabled`または`allowlist`。 |
 | `plugins_io.allowed_paths` | Array | `[]` | プラグインが読み取り可能なファイルシステムパス。 |
 | `plugins_io.allowed_url_hosts` | Array | `[]` | `network: allowlist`のときプラグインがフェッチ可能なURLホスト。 |
+
+### 他の実装のために予約済み
+
+| キー | 型 | デフォルト | 意味 |
+| --- | --- | --- | --- |
+| `rigor_rs` | Hash | — | **予約済み。この実装はスキップする**。別のRigor実装がこの名前空間の下のキーを読み取るため、1つの`.rigor.yml`で両方に対応できます。Rigorはその形をスキーマレベルでのみ検証し、値を決して読み取らず、無効な値もここでは実行時エラーになりません。それを読み取るツールが別の指示をしない限り、そのままにしておいてください。 |
 
 ## 設定例
 

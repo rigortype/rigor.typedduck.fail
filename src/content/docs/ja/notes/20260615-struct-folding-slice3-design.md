@@ -3,14 +3,14 @@ title: "Struct値の畳み込み — スライス3（畳み込み安全なバイ
 description: "rigortype/rigor docs/notes/20260615-struct-folding-slice3-design.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260615-struct-folding-slice3-design.md"
 sourcePath: "docs/notes/20260615-struct-folding-slice3-design.md"
-sourceSha: "997868d7d42c8c92f4736d62af8fc03cd457dc38b4f5c862dab01a64898fd965"
-sourceCommit: "aec4ca7f5f87b1972dea8fecaaf5b62c8880a3af"
+sourceSha: "c82c38cd9c6332d04a8ed734fe039986fbfb329694761c6ce62069c06b7bcb20"
+sourceCommit: "78b18cea6a576475c92bce020535269f2eebc20d"
 translationStatus: "translated"
 sidebar:
   order: 20266615
 ---
 
-2026-06-15。**スライス3は2026-06-15に着地**、以下の設計どおりだ（[`Inference::StructFoldSafety`](https://github.com/rigortype/rigor/blob/master/lib/rigor/inference/struct_fold_safety.rb) + `Scope#struct_fold_safe?`フィールド + トップレベル / メソッド本体の配線）;このノートはその設計記録、そして依然先送りされている**スライス4**（変異済みメンバーの精密な再型付け）の生きた仕様として保持される。スライス1 + 2はそれ以前に着地した（健全な*トランジェント*（transient）形式）。以下の健全性の議論が、実装が実現するものだ。
+2026-06-15。**スライス3は2026-06-15に着地**、以下の設計どおりだ（[`Inference::StructFoldSafety`](https://github.com/rigortype/rigor/blob/master/lib/rigor/inference/struct_fold_safety.rb) + `Scope#struct_fold_safe?`フィールド + トップレベル / メソッド本体の配線）。**スライス4も着地した**、下記 §「スライス4」の設計どおりに: 同じ畳み込み安全スキャンが直列のメンバーセッターを許すよう緩められ、`StructFolding.apply_setter_writeback`が`eval_call`の呼び出し後スコープでローカルの`StructInstance`バインディングを再型付けするので、`s.x = 5; s.x`が代入された型へ畳み込まれる。スライス1 + 2はそれ以前に着地した（健全な*トランジェント*（transient）形式）。以下の健全性の議論が、実装が実現するものだ。
 
 ## 着地したもの（スライス1 + 2）
 

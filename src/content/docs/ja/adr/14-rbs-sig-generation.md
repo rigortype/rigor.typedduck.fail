@@ -3,8 +3,8 @@ title: "ADR-14 — 推論からのRBSシグネチャ生成と拡張"
 description: "rigortype/rigor docs/adr/14-rbs-sig-generation.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/14-rbs-sig-generation.md"
 sourcePath: "docs/adr/14-rbs-sig-generation.md"
-sourceSha: "cf9fcd718eb67da20f69dd88bf1db6e0ed717baf8f2d58e69ecf44dc49d42228"
-sourceCommit: "aec4ca7f5f87b1972dea8fecaaf5b62c8880a3af"
+sourceSha: "53db745bc43d50963735be9c80d2fe66980da358a4fc049cfb3b76c2957c3150"
+sourceCommit: "78b18cea6a576475c92bce020535269f2eebc20d"
 translationStatus: "translated"
 sidebar:
   order: 4014
@@ -262,6 +262,29 @@ ADR-12は既存のロードマップに従いdry-rbパッケージングのた�
 - [`docs/notes/20260518-matsumoto-2008-poly-records-rigor-review.md`](../../notes/20260518-matsumoto-2008-poly-records-rigor-review/)
   — 松本＆南出2008は、ML推論が多相再帰を扱えないため、`map`呼び出しチェーンに対する多クラス再帰（`Array#0` / `Array#1`）を型推論エンジンの中で手動展開せざるをえなかった。ADR-14は逆のスタンスを取る——ジェネリクスは人間がRBSで事前に宣言し、ジェネレータはその宣言を信頼する。`--params`ポリシー（`untyped` / `observed` / `observed-strict`）の議論のための有用な背景——この論文は、Rigorが採用しなかった*自動展開*の代替案である。
 
+## 著者ポリシーとその理由
+
+`AGENTS.md` §「RBS Authorship」がそのルールを担う——このリポジトリでは手書きやAIが著したRBSより`rigor sig-gen`を優先する。その理由付けはここに置く。
+
+**目指すところ**は、決定論的な推論が十分に精密で、AIが著したRBSを不要にすることだ。したがって、誰かをフリーハンドのRBSへ押しやるギャップはすべて、エンジンにまだ作業が残っている箇所についての情報であり、望ましい対応は回避策で迂回するのではなく生成器を拡張することだ。AIの支援は禁じられていない——ここでは正しい第一手であることがまれというだけで、AIが著したRBSはいずれも明示的な人間のレビューを経てはじめて着地する。
+
+手書きが迂回してしまう、`sig-gen`が強制するもの:
+
+- `def.return-type-mismatch`のstrict受理チェック——生成器はアナライザー自身が拒否するような締め付けを決して出力しない。
+- ADR-5のロバストネスの非対称性: 戻り値には厳格、パラメータには寛容（デフォルトで`--params=untyped`、`--observe=PATH`経由で`observed`をオプトイン）。
+- `erase_to_rbs`のラウンドトリップ規律——忠実なRBS表記を持たないキャリアはすべて、その名前的なエンベロープへ消去される。
+
+sig-genがあるメソッドの形状で力及ばないとき（`sig.skipped.complex-shape`、欠けているキャリア）、手早いからと手で埋め戻すのではなく、そのギャップをエンジンへのフォローアップ候補として記録する。ギャップの方が価値あるシグナルだ。
+
+### 推論対RBSの矛盾ルール
+
+`sig-gen`が既存のRBSと矛盾する**`tighter-return`**を提案するとき、デフォルトは**`--overwrite`を付けても上書きしない**ことだ。
+
+Rigor自身の`lib/`に対するドッグフード実行（2026-05-12）は7つのtighter-return候補を生んだが、**そのすべてが**本物の精度向上ではなく**推論の不完全性**だった: 早期リターンの`return nil unless …`経路の取りこぼし、2値のブーリアンが1つにリテラル畳み込みされる、`Array[T]`が`Tuple[T, ...]`へ潰れる。手で保守されたRBSはエンジンがまだ見ていない分岐を捉えていたので、既存の形の方がより正確だった。
+
+したがって、宣言されたRBSに対して**ユニオンメンバーを失う**締め付けはすべて矛盾のシグナルとして扱う: それを適用せず、その食い違いをエンジンへのフォローアップとして表面化させる。既存のRBSを持たない新しいメソッドはレビュー後も自由に適用可能なまま;`equivalent`の分類はno-opだ。
+
 ## リビジョン履歴
 
 - 2026-05-12 — 初期ドラフト。
+- 2026-07-17 — ポリシーの理由付けとtighter-returnの矛盾ルールを、AGENTS.mdからここへ移した。AGENTS.mdはルールだけを保つ（ADR-97: 契約はすべてのセッションに読み込まれ;理由付けは参照事項だ）。

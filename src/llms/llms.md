@@ -135,7 +135,7 @@ version.
 - [Design Notes](/design.md): longer design and research documents.
 - [Development Notes](/notes.md): library surveys, coverage audits, and regression sweeps.
 - [Connections to type theory](/handbook/appendix-type-theory.md): the theory behind the design.
-- [Compatibility](/compatibility.md) and [Roadmap](/roadmap.md): supported Ruby versions and what's planned.
+- [Compatibility](/compatibility.md): supported Ruby versions.
 - [Changelog](/changelog-01x.md): release history.
 - [chibirigor book](/chibirigor.md): the companion online book on building a small Rigor-like checker.
 - [Source code](https://github.com/rigortype/rigor): the Rigor implementation, issues, and releases.

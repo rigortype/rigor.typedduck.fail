@@ -3,8 +3,8 @@ title: "ADR-31 — 貢献およびサプライチェーンポリシー"
 description: "rigortype/rigor docs/adr/31-contribution-and-supply-chain-policy.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/31-contribution-and-supply-chain-policy.md"
 sourcePath: "docs/adr/31-contribution-and-supply-chain-policy.md"
-sourceSha: "8d1cfca110ba712639c00490c02c61ec902de321e6b4b8495e59e47355ef53d2"
-sourceCommit: "a5d648b126d5ed7b1e04a16a87927bca7883e069"
+sourceSha: "20364c39cb549ca7a80dc914d4781b2608e05ebba4a066628264db00d9c1635a"
+sourceCommit: "78b18cea6a576475c92bce020535269f2eebc20d"
 translationStatus: "translated"
 sidebar:
   order: 4031
@@ -214,7 +214,7 @@ Subtreeマージは**サードパーティ著者が前提とすべきパスで�
 | 2 | [`rigor-plugin-author`](https://github.com/rigortype/rigor/blob/master/.claude/skills/rigor-plugin-author/SKILL.md) SKILLが更新: 新しいPhase 0.5「このプラグインがどこに住むか」が新著者をWD2 / WD4にルーティング;モノレポ内パスはすでにバンドルされたプラグインのメンテナンスのためだけに保持される。 |
 | 3 | [`rigor-ffi-plugin-author`](https://github.com/rigortype/rigor/blob/master/.claude/skills/rigor-ffi-plugin-author/SKILL.md) SKILLが更新: Phase 2とPhase 6がADR-31を参照;Phase 3/4がラップ済みgemのバージョンピン留めノートを追加。 |
 | 4 | [CLAUDE.md](https://github.com/rigortype/rigor/blob/master/CLAUDE.md)のADR表がADR-31行を追加;ADR-30行が単純化;SKILL行が更新;既存の「v0.2.0キュー済み外部SKILL」ノートが新ポリシーと和解される。 |
-| 5 | [`docs/ROADMAP.md`](../../roadmap/): プラグイン / エコシステムセクションがトップにADR-31ガバナンス参照を追加;FFIエントリーが単純化される。 |
+| 5 | `docs/ROADMAP.md`: プラグイン / エコシステムセクションがトップにADR-31ガバナンス参照を追加;FFIエントリーが単純化される。 |
 | 6 | （延期、スライス未スケジュール。）WD2フィールドを捕捉するプラグイン提案のためのGitHub issueテンプレート（ラップされたgemアイデンティティ、採用エビデンス、サンプル実装ポインタ、アップストリーム努力確認）。 |
 | 7 | （延期、スライス未スケジュール。）サードパーティプラグイン著者が自分の作品をリストする情報的カタログ（Wikiまたはピン留め討論）。 |
 

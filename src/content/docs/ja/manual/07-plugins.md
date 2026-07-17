@@ -3,8 +3,8 @@ title: "プラグインの使用"
 description: "rigortype/rigor docs/manual/07-plugins.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/07-plugins.md"
 sourcePath: "docs/manual/07-plugins.md"
-sourceSha: "8256c0da95213f17a732dadd4b4d33016463c346ba2bfb4e73c4c49fd8fc9987"
-sourceCommit: "4c03f62d04f594030bd79aa00f3a5978e0457d4c"
+sourceSha: "b65c5ef055fb012b74149bbc8c20e888f568ca007516f47efe221d8eed1ea803"
+sourceCommit: "78b18cea6a576475c92bce020535269f2eebc20d"
 translationStatus: "translated"
 sidebar:
   order: 9007
@@ -36,7 +36,7 @@ plugins:
 
 Rigorは[`plugins/`](https://github.com/rigortype/rigor/blob/master/plugins/README.md)配下にプロダクションプラグインのカタログを同梱しています。リリース間でセットは増えます（現在のリストと各プラグインのオプションはそのディレクトリを参照してください）。現在のファミリーは以下のとおりです:
 
-- **Rails**: `rigor-activerecord`、`rigor-actionpack`、`rigor-rails-routes`、`rigor-rails-i18n`、`rigor-actionmailer`、`rigor-activejob`、`rigor-activestorage`、`rigor-actioncable`。`rigor-rails`メタgemはGemfileの利便性のためにRailsセットをバンドルしています。`plugins:`の下に使いたい個別プラグインは引き続き列挙する必要があります。
+- **Rails**: `rigor-activerecord`、`rigor-actionpack`、`rigor-rails-routes`、`rigor-rails-i18n`、`rigor-actionmailer`、`rigor-activejob`、`rigor-activestorage`、`rigor-actioncable`。使いたいものを`plugins:`の下に列挙してください。Railsセットをグループとしてまとめて有効化する包括的なエントリーはありません（[ADR-96](../adr/96-plugin-target-gems/) WD3が1つ提案しています）。
 - **Testing**: `rigor-rspec`、`rigor-rspec-rails`、`rigor-minitest`、`rigor-shoulda-matchers`、`rigor-factorybot`。
 - **dry-rb**: `rigor-dry-types`、`rigor-dry-schema`、`rigor-dry-struct`、`rigor-dry-validation`。
 - **その他のエコシステム**: `rigor-sinatra`、`rigor-hanami`、`rigor-devise`、`rigor-pundit`、`rigor-sidekiq`、`rigor-graphql`、`rigor-statesman`、`rigor-sorbet`、`rigor-typescript-utility-types`、`rigor-activesupport-core-ext`。

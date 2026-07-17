@@ -3,8 +3,8 @@ title: "ADR-24 スライス4 — `call.self-undefined-method` WD4コーパスの
 description: "rigortype/rigor docs/notes/20260614-adr24-slice4-self-undefined-fp-eval.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260614-adr24-slice4-self-undefined-fp-eval.md"
 sourcePath: "docs/notes/20260614-adr24-slice4-self-undefined-fp-eval.md"
-sourceSha: "1044606996f1a5b96a77750bed6b876279a5672633ad11688f240c947778a102"
-sourceCommit: "7f5a54c352ff4370788bf7aef5fc1b70f8a92e4a"
+sourceSha: "97a3bd8ad7f782f4d0f19ce8063519e2e2b1c70bd4d3a0c8cc7d5249a3b48f03"
+sourceCommit: "78b18cea6a576475c92bce020535269f2eebc20d"
 translationStatus: "translated"
 sidebar:
   order: 20266614
@@ -51,6 +51,6 @@ Date: 2026-06-14。根拠: [ADR-24 §「Slice 4」](../../adr/24-self-method-cal
 - **普遍ベース除外**（バケット1、287件）**+ サブクラス認識ゲーティング + 動的スーパークラスガード**（バケット2の抽象ベース / デリゲートクラス、約15件）**を着地させた** —— すべて純粋なナローイングであり、今日ルールを使えるオプトインユーザー（`severity_overrides:`）にとって健全な漸進的精度の勝ちだ。
 - スタンドアロンのみのゲートをスーパークラス / includeチェーン（スライス4バックログのもう半分）へ**広げない** —— C拡張 / メタプログラミングのFPクラスを拡大するだけだ。
 
-## フォローアップ（需要ゲート付き）
+## フォローアップ
 
-サブクラス認識ゲーティング: 取りこぼされたメソッドがそのクラスの既知のサブクラスのいずれかに定義されているかを、レコーダーで記録する（プロジェクトクラス階層は既に発見インデックスにある）;そうであれば発火を抑制する。それが将来の昇格試行が必要とする形であり、この評価がそれが必要だという証拠だ。
+サブクラス認識ゲーティング —— ここで必要な形として記録された —— は**このまさに同じコミット**（`01491c63`）で**着地した**;上記の「修正済み —— 抽象 / テンプレートメソッドの基底クラス」を参照。それは文字どおり「レコーダーで」ではなく、プロジェクト全体の発見インデックスに対して`CheckRules`のリード側（`method_defined_on_known_subclass?`）で実装されており、機能的に等価でクロスファイルに正しい。ここに未解決のものは残っていない: ルールが`:off`のままなのは、ソースのみのスキャンが列挙できないC拡張 / メタプログラミングされた**残り**のクラスのためであり —— サブクラス認識ゲーティングが欠けているからではない。

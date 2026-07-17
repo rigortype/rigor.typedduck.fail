@@ -3,8 +3,8 @@ title: "リサーチ・サーベイノート"
 description: "rigortype/rigor docs/notes/README.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/README.md"
 sourcePath: "docs/notes/README.md"
-sourceSha: "765372eae396d3dd0b75b98e9299816b8bedf72b2d077c41f409922e64c4ad5d"
-sourceCommit: "eb8e9996d113a1b5e1778d0988597c979814a219"
+sourceSha: "6011bc9e7740ea93ba1abd8c5ee6111f3087fde875e037e8b5980d2621b3ac7e"
+sourceCommit: "78b18cea6a576475c92bce020535269f2eebc20d"
 translationStatus: "translated"
 sidebar:
   order: 6000
@@ -31,6 +31,7 @@ sidebar:
 | 2026-05-31 | [TypeProf internals survey — inference logic + internal type representation](20260531-typeprof-internals-survey/) |
 | 2026-06-03 | [PHPStan内部の型演算（TypeCombinator / TypeUtils / 二項演算評価）とRigorの比較](20260603-phpstan-type-algebra-comparison/) |
 | 2026-07-15 | [PHPStan `src/Rules`全ルール分類とRigor再実装価値の再評価](20260715-phpstan-rules-survey-rigor-reevaluation/) |
+| 2026-07-16 | [mizchi/dspec — 形式仕様基盤としての評価 + トレーサビリティ規律の移植検討](20260716-dspec-formal-spec-substrate-evaluation/) |
 
 ## 型カバレッジ監査
 
