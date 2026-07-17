@@ -3,8 +3,8 @@ title: "診断"
 description: "rigortype/rigor docs/manual/04-diagnostics.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/04-diagnostics.md"
 sourcePath: "docs/manual/04-diagnostics.md"
-sourceSha: "4e2b6fdf7ded511eba36582617424f0760dbe984224ea25da1092689dbfd4b38"
-sourceCommit: "162fd2becdab2973101b49683ec89d14ba2d532b"
+sourceSha: "9fcbb467f64e999f8b4fdb39405d7c6a7824fba5790829e676b8e3917276d284"
+sourceCommit: "7a69f1427bb5d1985ccc87080ee90023ffb42665"
 sourceDate: "2026-06-15T14:10:58+09:00"
 translationStatus: "translated"
 sidebar:
@@ -54,6 +54,7 @@ sidebar:
 | <a id="rule-def-override-visibility-reduced"></a>`def.override-visibility-reduced` | オーバーライドが、プロジェクト定義の祖先から継承した可視性を下げる。 | high |
 | <a id="rule-def-override-return-widened"></a>`def.override-return-widened` | オーバーライドの宣言された戻り値型が、継承した戻り値型を広げる（共変性）。 | high |
 | <a id="rule-def-override-param-narrowed"></a>`def.override-param-narrowed` | オーバーライドが、継承したパラメータ型を狭める（反変性）。 | high |
+| <a id="rule-static-value-use-void"></a>`static.value-use.void` | 作者が宣言した`-> void`の戻り値から復元した値が、値コンテキスト（代入の右辺、呼び出しのレシーバー、または呼び出し引数）で使われている。既定ではオフで、`use-of-void-value`のbleeding-edge機能（ADR-100）を通じてのみ実行に到達する。素の文としての`void`呼び出しと、正当な`top`値はどちらも沈黙のまま。 | high |
 | <a id="rule-suppression-unknown-rule"></a>`suppression.unknown-rule` | `# rigor:disable[-file]`コメントが存在しないルール（多くはタイポ）を挙げているため、抑制が静かに何もしない。`plugin.`接頭辞付きのトークンは決してフラグされない。 | high |
 | <a id="rule-suppression-empty"></a>`suppression.empty` | `# rigor:disable[-file]`コメントがルールを1つも挙げていないため、何も抑制しない。 | high |
 | <a id="rule-suppression-unknown-marker"></a>`suppression.unknown-marker` | コメントがRigorの認識しない抑制マーカーを使っている。典型的にはRuboCopの反射で`# rigor:disable-next-line <rule>`や`# rigor:enable <rule>`。Rigorのマーカーは`# rigor:disable <rules>`（その行で抑制）と`# rigor:disable-file <rules>`だけなので、このコメントは何も抑制しない。 | high |

@@ -3,8 +3,8 @@ title: "リサーチ・サーベイノート"
 description: "rigortype/rigor docs/notes/README.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/README.md"
 sourcePath: "docs/notes/README.md"
-sourceSha: "6011bc9e7740ea93ba1abd8c5ee6111f3087fde875e037e8b5980d2621b3ac7e"
-sourceCommit: "78b18cea6a576475c92bce020535269f2eebc20d"
+sourceSha: "25eb66e5084ca09362e5c3bc762c72034fe4dedc203356b3fad2141f5c1db707"
+sourceCommit: "7a69f1427bb5d1985ccc87080ee90023ffb42665"
 translationStatus: "translated"
 sidebar:
   order: 6000
@@ -105,6 +105,7 @@ sidebar:
 | 2026-06-10 | [キャッシュ機構監査 — ディスク使用量とwarm-runロードコスト](20260610-cache-disk-runtime-audit/) |
 | 2026-06-13 | [プラグインインターフェイス最終レビュー — v1.0凍結前のBC-break機会監査](20260613-plugin-interface-bc-review/) |
 | 2026-06-27 | [Corpus cold/warm re-profile — v0.2.6 new-bottleneck check](20260627-corpus-cold-warm-reprofile/) |
+| 2026-07-18 | [CIテスト時間の伸び — 要因分解（instance gacha vsテスト増加vs binpacker）、カテゴリー分割・有料runnerの否定、md-only PRスキップの落としどころ](20260718-ci-test-time-growth-attribution/) |
 
 ## プロセス・メタ
 

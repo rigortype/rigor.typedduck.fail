@@ -3,8 +3,8 @@ title: "診断ポリシー"
 description: "rigortype/rigor docs/type-specification/diagnostic-policy.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/type-specification/diagnostic-policy.md"
 sourcePath: "docs/type-specification/diagnostic-policy.md"
-sourceSha: "bce6bdb92c6d3a388585e034ac19cc4592afbdfddba618e7c99197191b0145e6"
-sourceCommit: "78b18cea6a576475c92bce020535269f2eebc20d"
+sourceSha: "46e9a3ad1af365da96cb26eba4a9b132e22cd4d07bb09b6546ceeb466cd3dd68"
+sourceCommit: "7a69f1427bb5d1985ccc87080ee90023ffb42665"
 translationStatus: "translated"
 sidebar:
   order: 2050
@@ -12,11 +12,11 @@ sidebar:
 
 Rigorは静かな拡幅よりも精密な診断を優先すべきです（SHOULD）。この文書は診断識別子の分類体系、表示規則、抑制マーカー文法を定義します。
 
-推論バジェットが使うカットオフ識別子は`static.*`ファミリーの下に予約されています（[inference-budgets.md](../inference-budgets/)参照）;そのサーフェスは**まだ組み込まれていません** —— 下記の分類体系テーブルを参照してください。否定的事実と差分型の表示規則は[type-operators.md](../type-operators/)にあります。`Dynamic[T]`の表示規則はここにあります。
+`static.*`ファミリーは、[ADR-100](../../adr/100-static-diagnostic-family-and-void-origins/)により、使用地点ガード（`static.value-use.*`）と不完全推論カットオフ（`static.incomplete-inference.*`）に分かれます。最初に実装された識別子は`static.value-use.void`（作者が宣言した`-> void`の戻り値が値コンテキストで使われるケース）で、`use-of-void-value`のbleeding-edge機能の背後で出荷されています。バジェットカットオフの識別子は依然として予約されており（[inference-budgets.md](../inference-budgets/)参照）、**まだ組み込まれていません**。否定的事実と差分型の表示規則は[type-operators.md](../type-operators/)にあります。`Dynamic[T]`の表示規則はここにあります。
 
 ## 診断ガイドライン
 
-> **ステータス**。これらのガイドラインは各状況における意図されたポリシーを述べるものであり、すべてが実装されているという主張ではありません。診断が下記の分類体系で**予約済み**（Reserved）とマークされたファミリー（`static.*`、`compat.*`、`hint.*`、`generated.*`）、またはまだ組み込まれていない`void`サーフェス（[special-types.md](../special-types/) §`void`）に属することになるガイドラインは、意図を記述しています —— 第1・第2・カットオフ報告の箇条書きが現在のケースです。[ADR-92](../../adr/92-normative-status-fidelity/)を参照。
+> **ステータス**。これらのガイドラインは各状況における意図されたポリシーを述べるものであり、すべてが実装されているという主張ではありません。診断が下記の分類体系で**予約済み**（Reserved）とマークされたファミリー（`compat.*`、`hint.*`、`generated.*`）、または`static.incomplete-inference.*`のバジェット半分に属することになるガイドラインは、意図を記述しています。`void`値ガードは、直接の作者宣言ケースについては`bleeding_edge:`の背後で現在実装されています（[special-types.md](../special-types/) §`void`；[ADR-100](../../adr/100-static-diagnostic-family-and-void-origins/)）。[ADR-92](../../adr/92-normative-status-fidelity/)を参照。
 
 - 値として`void`を使うことは一次診断です;下流のリカバリーは`top`を使い、同じ式に対して重複するカスケードレポートを避けるべきです（SHOULD）。
 - 証明なしに`top`のメソッドを呼ぶことは診断です。
@@ -44,7 +44,8 @@ Rigorは静かな拡幅よりも精密な診断を優先すべきです（SHOULD
 | プレフィックス | 使用 |
 |---|---|
 | `dynamic.*` | `untyped`と`Dynamic[T]`の境界越境、チェックされていないジェネリックリーク、動的由来に証明が依存するメソッド呼び出し。[ADR-10](../adr/10-dependency-source-inference/)（解析器契約: [`docs/internal-spec/dependency-source-inference.md`](../internal-spec/dependency-source-inference/)）に従ったオプトインGemソース推論パス向けの`dynamic.dependency-source.*`（例: `gem-not-found`）を含む。 |
-| `static.*` | **予約済み —— 現時点では実装された識別子はありません**。不完全推論カットオフを含む、証明に至らない静的チェック。バジェットカットオフの半分は[ADR-41](../../adr/41-inference-budget-design/)（Proposed）が追跡し、その出所である[inference-budgets.md](../inference-budgets/) §「Budget table」でマークされている;ガードなし`top`呼び出しの半分（[special-types.md](../special-types/) §`top`）には実装もADRもない。 |
+| `static.*` | 証明に至らずに止まった静的チェック。*どちら向きに*足りなかったかで分かれる（[ADR-100](../../adr/100-static-diagnostic-family-and-void-origins/)）。**`static.value-use.*`** —— 証明を要求する値が使用位置に到達した: `static.value-use.void`（実装済み、下の行を参照）と`static.value-use.top`（ガードなし`top`呼び出しの半分、[special-types.md](../special-types/) §`top`;まだ実装もADRもない）。**`static.incomplete-inference.*`** —— 推論が諦めて広げた: [ADR-41](../../adr/41-inference-budget-design/)（Proposed）/ [#158](https://github.com/rigortype/rigor/issues/158)が追跡し、その出所である[inference-budgets.md](../inference-budgets/) §「Budget table」でマークされたバジェットカットオフ識別子（`.recursion`、`.union-size`、…）;作者指定は`:info`で、実装された識別子を持たないまま先送りされている。 |
+| `static.value-use.void` | 作者が宣言した`-> void`の戻り値が値コンテキスト（代入の右辺、呼び出しのレシーバー、または呼び出し引数）で使われる: 作者が依存するなと言った値が`top`に復元されて使われた。直接ディスパッチのケースのみ（[ADR-100](../../adr/100-static-diagnostic-family-and-void-origins/) WD2;推移的／祖先フォールバックのケースはWD4に先送り）。作者指定は`:warning`、すべてのプロファイルで`:off`に解決され、`use-of-void-value`のbleeding-edge機能によってのみ`:warning`に昇格する —— 新しい必須診断は[ADR-50](../../adr/50-release-engineering-and-stability-strategy/) WD1の互換性変更である。 |
 | `flow.*` | 制御フローのナローイング失敗、等価性と述語のリファインメント問題、事実安定性の違反 |
 | `compat.*` | **予約済み —— 現時点では実装された識別子はありません**。RBS、rbs-inline、Steep互換シグネチャの互換性。創成期の予約（[ADR-1](../../adr/1-types/)）;出荷済みのシグネチャ互換性ルールは代わりに`def.override-*`（[ADR-35](../../adr/35-override-signature-compatibility/)）の下にある。 |
 | `call.*` | メソッド呼び出しサイトの診断: `call.undefined-method`（メソッドがレシーバーの静的に既知のクラスに定義されていない）、`call.self-undefined-method`（暗黙的self呼び出しが、確実にクローズドな単独クラス上のどのメソッドにも解決しない、[ADR-24](../../adr/24-self-method-call-resolution/)スライス4 —— エンジン自身の解決ミスを消費し、ファイル内メソッドサーフェスが完全な単独プロジェクトクラスに限定、外部コーパスFPゲート待ちで`:off`で出荷）、`call.unresolved-toplevel`（トップレベルの暗黙的self呼び出しが、同一ファイルの`def`・`pre_eval:`パッチ・`Kernel` / `Object`メソッドのいずれにも解決しない、[ADR-34](../../adr/34-toplevel-unresolved-self-call-default/)）、`call.wrong-arity`（位置引数の数がどのシグネチャにもマッチしない）、`call.argument-type-mismatch`（引数がパラメータ契約を証明可能に違反する）、`call.possible-nil-receiver`（レシーバーが`T \| nil`でメソッドが`NilClass`に定義されていない）。 |
