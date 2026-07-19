@@ -105,18 +105,29 @@ Stars.new.render(3)     #=> "***"
   </Fragment>
 
 ```ruby
-if @current_journal          # @current_journal : Journal | nil
-  @current_journal.save      # typed Journal — no possible-nil warning
+class Journal
+  def save = true
+end
+
+class Issue
+  def close
+    @current_journal = Journal.new if rand < 0.5   #=> Journal?
+    if @current_journal
+      @current_journal.save    # narrowed to Journal — no possible-nil warning
+    end
+  end
 end
 ```
 
 ```ruby
-case kind
-when 1 then v = "a"
-when 2 then v = "b"
-else raise ArgumentError
+def classify(kind)
+  case kind
+  when 1 then v = "a"
+  when 2 then v = "b"
+  else raise ArgumentError
+  end
+  v   #=> "a" | "b"
 end
-v   #=> "a" | "b"
 ```
 </ShowcasePanel>
 
@@ -142,9 +153,9 @@ config.empty?         #=> false
 
 ```ruby
 Point = Data.define(:x, :y)
-p = Point.new(1, "two")
-p.x                   #=> 1
-p.with(x: 99).x       #=> 99
+p = Point.new(1, "two")   #=> Point(x: 1, y: "two")
+p.x                       #=> 1
+p.with(x: 99).x           #=> 99
 ```
 </ShowcasePanel>
 
@@ -180,6 +191,7 @@ Rigorが精密なのは、それを証明できる間だけです。ミューテ
   </Fragment>
 
 ```ruby
+arr = gets.to_s.chars
 return if arr.empty?     # arr : non-empty here
 arr.clear                # the mutation retracts that fact
 puts "emptied" if arr.size == 0   # correctly NOT folded to false
