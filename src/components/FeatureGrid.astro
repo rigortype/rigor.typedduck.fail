@@ -1,0 +1,55 @@
+---
+/**
+ * Compact splash-page feature grid: a flat list of short links into the
+ * docs, three columns at desktop width. The nani.now-style counterpart to
+ * the ShowcasePanel examples — names capabilities without demonstrating
+ * them.
+ */
+interface Item {
+  href: string;
+  title: string;
+}
+
+interface Props {
+  items: Item[];
+}
+
+const { items } = Astro.props;
+---
+
+<ul class="feature-grid">
+  {items.map((item) => (
+    <li class="feature-grid__item">
+      <a href={item.href}>{item.title}</a>
+    </li>
+  ))}
+</ul>
+
+<style>
+  .feature-grid {
+    list-style: none;
+    padding: 0;
+    margin: 1.25rem 0 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr));
+    gap: 0.5rem;
+  }
+
+  .feature-grid__item a {
+    display: block;
+    padding: 0.55rem 0.75rem;
+    border: 1px solid var(--sl-color-hairline);
+    border-radius: 2px;
+    font-family: var(--sl-font-system);
+    font-size: var(--sl-text-sm);
+    font-weight: 500;
+    color: var(--sl-color-text);
+    text-decoration: none;
+    transition: border-color var(--rigor-transition), color var(--rigor-transition);
+  }
+
+  .feature-grid__item a:hover {
+    border-color: var(--sl-color-text-accent);
+    color: var(--sl-color-text-accent);
+  }
+</style>

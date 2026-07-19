@@ -339,6 +339,18 @@ site-search input {
 /* Parenthesis fallback (<rp>) stays hidden when ruby renders natively. */
 .sl-markdown-content rp { display: none; }
 
+/* ─── Splash-page showcase (index.mdx / ja/index.mdx) ───────────── */
+/* Starlight widens --sl-content-width on hero pages (67.5rem). Keep
+ * running prose at the 45rem Rigor measure, but let the showcase
+ * panels and the feature grid span the full hero container so the
+ * prose + code columns both get a readable width. */
+[data-has-hero] .sl-markdown-content {
+  max-width: none;
+}
+[data-has-hero] .sl-markdown-content > :not(.showcase-panel, .feature-grid) {
+  max-width: 45rem;
+}
+
 /* ─── MDX utility classes — diagnostic severities ───────────────── */
 /* Use as <span class="r-error">error:</span> etc. inside MDX. */
 .r-error    { color: var(--rigor-error);    font-weight: 600; }
