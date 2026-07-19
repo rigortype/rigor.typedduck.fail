@@ -201,13 +201,15 @@ puts "emptied" if arr.size == 0   # correctly NOT folded to false
 distance = 100.kilometers
 time     = 2.hours
 distance / time      #=> Speed
-distance + time      # error: dimensional mismatch: 'Distance + Time'
+distance + time
+# error: dimensional mismatch: `Distance + Time` is not defined
 ```
 
 ```ruby
 # rigor-activerecord — checked against db/schema.rb
 User.find_by(emial: "a@example.com")
-# error: unknown column 'emial' — did you mean :email?
+# error: `User.find_by(emial: ...)` references unknown column
+#        `emial` on table `users` (did you mean `:email`?)
 ```
 </ShowcasePanel>
 
