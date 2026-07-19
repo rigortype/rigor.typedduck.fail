@@ -121,5 +121,3 @@ PHPStanの`CiDetectedErrorFormatter`（`OndraM/ci-detector`を使う）をモデ
 - [ADR-50](../50-release-engineering-and-stability-strategy/)——WD1が新しい出力フォーマットを公開契約にする；WD2テーブルが凍結される対象だ。
 - [ADR-8](../8-steep-inspired-improvements/)——severityプロファイル、これらのフォーマットがマップする`:error`／`:warning`／`:info`レベルの出どころ。
 - [ADR-22](../22-baseline-and-project-onboarding/)——これらのフォーマットが不変のまま残す終了コードを形作るベースライン／strictゲート（WD4）。
-</content>
-</invoke>
