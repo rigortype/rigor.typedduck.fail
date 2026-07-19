@@ -3,8 +3,8 @@ title: "アーキテクチャ決定記録"
 description: "rigortype/rigor docs/adr/README.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/README.md"
 sourcePath: "docs/adr/README.md"
-sourceSha: "ce0ef076583f7177a0ea940349fa15a1694110189a6d3e614153fd2fd43f7e19"
-sourceCommit: "78b18cea6a576475c92bce020535269f2eebc20d"
+sourceSha: "a9cbbee322ba895deb01adddea250ee1977ab3ce224c5a25db165fca1937b16d"
+sourceCommit: "d88effcae8b2998d1f4f40432e6d4f20ce17946e"
 translationStatus: "translated"
 sidebar:
   order: 4000
@@ -81,7 +81,7 @@ sidebar:
 | ADR-55 | [再帰メソッドの戻り値型精度（定数引数の有界アンロール + 不動点の戻り値型サマリー）](55-recursive-return-precision/) | Accepted（スライス1とスライス2をどちらも実装） |
 | ADR-56 | [ブロックがキャプチャしたローカルのライトバックとループ本体の不動点（ミューテーション効果の健全性）](56-block-captured-local-mutation/) | Accepted（スライスAとBを2026-06-11に実装；スライスCを2026-06-12に実装） |
 | ADR-57 | [implicit-self呼び出しの戻り値採用ゲートを開く（ADR-24 WD3の再検討）](57-self-call-return-adoption/) | Accepted（ゲートを2026-06-12にオープン；WD3のモジュールシングルトンのシード修正を2026-07-10に着地） |
-| ADR-58 | [インスタンス変数のフィールド型付け: 宣言由来のnilポリシー、同種書き込みの読み取り、コンストラクタの確定代入](58-ivar-field-typing/) | Accepted（WD1は部分的、WD1bはキュー入り；WD2はalready-realized；WD3を実装） |
+| ADR-58 | [インスタンス変数のフィールド型付け: 宣言由来のnilポリシー、同種書き込みの読み取り、コンストラクタの確定代入](58-ivar-field-typing/) | Accepted（WD1は部分的、WD1bはキュー入り；WD2はalready-realized；WD3/WD5を実装；`\|\|=`シードは見送り） |
 | ADR-59 | [スペックのアサーションは実装のシグネチャではない](59-spec-assertions-are-not-signatures/) | Accepted（強形は却下；弱形を3つ記録、需要ゲート付き） |
 | ADR-60 | [フリーズ前のプラグイン契約統合](60-pre-freeze-plugin-contract-consolidation/) | Accepted（2026-06-13） |
 | ADR-61 | [エージェントに優しい診断統計（構造化セレクタ軸）](61-agent-friendly-diagnostic-statistics/) | Accepted（2026-06-13に実装；精度加算的） |
@@ -90,7 +90,7 @@ sidebar:
 | ADR-64 | [非nilの引数型不一致とcoerceの障壁](64-non-nil-argument-type-mismatch/) | Accepted（非nilチャネルを構築し、多重オーバーロードメソッドに対してゲート） |
 | ADR-65 | [診断の証拠ティアとドキュメントURL](65-diagnostic-evidence-tier-and-doc-url/) | Accepted（2026-06-15に実装；精度加算的） |
 | ADR-66 | [タグ付きユニオンのメンバー型付け（タグキーによるナローイング）](66-discriminated-union-member-typing/) | Proposed（未実装；需要ゲート付き） |
-| ADR-67 | [パラメータ型推論（M3フロンティア）: 呼び出しサイトと本体内、精度加算的のみ](67-parameter-type-inference/) | Accepted（WD1+WD3+WD5を2026-06-16に実装、2026-07-06に拡張；WD2の本体内推論とcheckウォークへの配線は見送り） |
+| ADR-67 | [パラメータ型推論（M3フロンティア）: 呼び出しサイトと本体内、精度加算的のみ](67-parameter-type-inference/) | Accepted（WD1+WD3+WD5を実装；WD6のcheckウォーク有効化を2026-07-19に設計、スライスはキュー入り；WD2は見送り） |
 | ADR-68 | [プラグインが宣言可能なクラスビルダー畳み込み（Struct / Dataを超えるメンバーシェイプキャリア）](68-class-builder-folding/) | Proposed（需要ゲート付き） |
 | ADR-69 | [プラグイン可能なミューテーション基盤（キルオラクル + オペレータシーム）](69-pluggable-mutation-substrate/) | Accepted（両シームを2026-06-17に実装） |
 | ADR-70 | [静的∪動的の融合保護カバレッジ](70-fused-protection-coverage/) | Accepted（2026-06-17に実装；ADR-69のシーム1と同時着地） |
@@ -116,14 +116,14 @@ sidebar:
 | ADR-90 | [解析対象プロジェクトのバンドルからのターゲットライブラリ解決](90-target-library-resolution-from-project-bundle/) | Accepted（2026-07-16に実装；WD1〜WD3が着地） |
 | ADR-91 | [Kernel組み込み畳み込みの所有権ゲート＋綴りパリティ不変条件](91-kernel-intrinsic-fold-ownership-gate/) | Accepted（2026-07-16に実装、WD1〜WD4；コーパスゲートはバイト同一） |
 | ADR-92 | [規範的ステータスの忠実性: 創設期の地層とdeclare-or-markゲート](92-normative-status-fidelity/) | Accepted（2026-07-16に実装、WD1〜WD5；void判定はオプションbで解決） |
-| ADR-93 | [デフォルトのrbs-inline取り込み: ADR-32のオプトインとalways-parse仕様の調停](93-default-rbs-inline-ingestion/) | Proposed（WD4の計測を実施；デフォルトの切り替えは未実装のまま） |
+| ADR-93 | [デフォルトのrbs-inline取り込み: ADR-32のオプトインとalways-parse仕様の調停](93-default-rbs-inline-ingestion/) | Accepted（WD5のエンジンアンカーな同梱プラグイン解決を2026-07-19に追加、スライスはキュー入り） |
 | ADR-94 | [インラインRBSリーダー: `RBS::InlineParser`とrbs 3.xの下限](94-rbs-inline-reader-and-the-rbs-3x-floor/) | Accepted（移行は見送り；rigor-rbs-inlineがリーダーのまま） |
 | ADR-95 | [Homebrew配布: シングルバイナリの後ろに先送り](95-homebrew-tap-deferral/) | Proposed（先送り、トリガーゲート付き；未実装） |
 | ADR-96 | [プラグインのターゲットgem宣言、プラグインギャップ勧告、存在ゲート付きアンブレラ拡張](96-plugin-target-gems/) | Accepted（WD1〜WD2をコミット；WD3のアンブレラ拡張はProposed） |
 | ADR-97 | [索引エントリーはサマリーではない: ADR索引のバジェットとそのゲート](97-adr-index-budgets/) | Accepted（2026-07-17に実装；両方のADR索引を宣言された契約まで圧縮し、`spec/docs/agent_index_spec.rb`でゲート） |
 | ADR-98 | [開発フロー文書の役割: ハンドオフ、issue、changelog](98-development-flow-document-roles/) | Accepted（2026-07-17に実装；バックログをGitHub Issuesへ移行、`ROADMAP.md`を解消、ハンドオフに上限を設けてゲート） |
 | ADR-99 | [設定スキーマは信頼できる情報源である: `.rigor.yml`のティアと予約パイプライン](99-config-schema-authority/) | Accepted（2026-07-17に実装；スキーマを信頼できる情報源と定め、`rigor_rs:`を予約、ネスト＋予約＋URLのゲートを追加） |
-| ADR-100 | [`static.*`診断ファミリーの形状と`void_origins`サイドテーブル](100-static-diagnostic-family-and-void-origins/) | Accepted（ファミリーの形状は決定；direct-void-useスライスはready-for-agent、推移的ケース＋`static.incomplete-inference.*`のバジェットidは見送り） |
+| ADR-100 | [`static.*`診断ファミリーの形状と`void_origins`サイドテーブル](100-static-diagnostic-family-and-void-origins/) | Accepted（directスライスを出荷；WD4の推移的な設計を2026-07-19に追加、スライスはキュー入り；バジェットidは見送り） |
 
 ## 新しいADRの追加
 

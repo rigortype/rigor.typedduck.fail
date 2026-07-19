@@ -3,8 +3,8 @@ title: "推論エンジン"
 description: "rigortype/rigor docs/internal-spec/inference-engine.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/inference-engine.md"
 sourcePath: "docs/internal-spec/inference-engine.md"
-sourceSha: "a41f05bebd8e1472d3f2926c8b73e762f1adae2e4405271f51ac2576e960882f"
-sourceCommit: "78b18cea6a576475c92bce020535269f2eebc20d"
+sourceSha: "cf2bf57b94bfca57e42699cb9b21dd500509cf100577bfba8864cd799548b757"
+sourceCommit: "d88effcae8b2998d1f4f40432e6d4f20ce17946e"
 translationStatus: "translated"
 sidebar:
   order: 3050
@@ -321,9 +321,9 @@ Slice 7 phase 2はivarのメソッドローカル境界を持ち上げます。�
 
 #### 書き込み前読み取りnilゲートと追加のイニシャライザー（ADR-38）
 
-付随する前パスが各インスタンスメソッド本体をAST（実行）順に歩き、**最初**の参照が読み取りであるivar名（書き込み前読み取り）を追跡します。それらの名前はクラス全体の`read_before_write`アキュムレータにunionされ、確定時にクラスはそれぞれに`Constant[nil]`を貢献します——「メソッドが`@x`への書き込みの前に`@x`を読む」形のための健全性で、Rubyは`nil`を返します。
+付随する前パスが各インスタンスメソッド本体をAST（実行）順に歩き、**最初**の参照が読み取りであるivar名（書き込み前読み取り）を追跡します。それらの名前はクラス全体の`read_before_write`アキュムレータにunionされ、確定時にクラスはそれぞれに`Constant[nil]`を貢献します——「メソッドが`@x`への書き込みの前に`@x`を読む」形のための健全性で、Rubyは`nil`を返します。この前パスにおける**書き込み**とは、直接的な形式のいずれか（`Prism::InstanceVariableWriteNode`・`…OrWriteNode`・`…AndWriteNode`・`…OperatorWriteNode`）、または`Prism::MultiWriteNode` / ネストした`Prism::MultiTargetNode` / スプラット（並列代入、`@m, @n = …`）のターゲットとして現れる`Prism::InstanceVariableTargetNode`のいずれかです；`MultiWriteNode`の右辺はそのターゲットより先に訪問されるので、右辺でのivar読み取りは依然として書き込み前読み取りとして数えられます。
 
-`initialize`は組み込みの例外です: `initialize`本体については、すべてのivar書き込みターゲットが書き込み前読み取りの証拠を貢献する**代わりに**クラスの`init_writes`セットに折り込まれるので、コンストラクタが代入を保証するivarが兄弟リーダーで`nil`への幅広げを受けません。
+`initialize`は組み込みの例外です: `initialize`本体については、すべてのivar書き込みターゲット——上記の書き込みの定義に従い並列代入のターゲットを含む——が書き込み前読み取りの証拠を貢献する**代わりに**クラスの`init_writes`セットに折り込まれるので、コンストラクタが代入を保証するivarが兄弟リーダーで`nil`への幅広げを受けません。
 
 ADR-38はその例外を**プラグイン宣言の追加のイニシャライザー**へ一般化します。`Inference::ScopeIndexer`はこの単一のゲートで集約された`Plugin::Registry#additional_initializers`セットを参照します: エントリーが`covers_method?`である名前を持つ`def`で、**かつ**その囲みクラスがエントリーの`receiver_constraint`に等しいか継承する（`Environment#class_ordering`経由でマッチ、ADR-16ティアAが使うのと同じメカニズム）ものについて、メソッドのivar書き込みは`initialize`のものとまさに同じように`init_writes`に折り込まれます。これはPHPStanの`AdditionalConstructorsExtension`のRuby版です——`Minitest::Test#setup`、Railsの`after_initialize`、または本体が走る前にフレームワークが呼び出すivar状態を確立するDIセッター。値オブジェクトのシェイプ（shape）は[`plugin.md`](plugin.md#rigorpluginmanifest)（`additional_initializers:`）で規定されています。
 

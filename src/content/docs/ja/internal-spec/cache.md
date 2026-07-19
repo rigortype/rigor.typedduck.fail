@@ -3,8 +3,8 @@ title: "キャッシュレイヤー — `Rigor::Cache`"
 description: "rigortype/rigor docs/internal-spec/cache.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/cache.md"
 sourcePath: "docs/internal-spec/cache.md"
-sourceSha: "dae94df60b1fa2115789ae099b14f074c6a1a2457a33e77377264e73cfb4ae72"
-sourceCommit: "eb8e9996d113a1b5e1778d0988597c979814a219"
+sourceSha: "9d1915678ffb2c69245e39b4ffaaca689c063c5cba41e180da26fecc9fe6d3be"
+sourceCommit: "d88effcae8b2998d1f4f40432e6d4f20ce17946e"
 translationStatus: "translated"
 sidebar:
   order: 3050
@@ -34,7 +34,7 @@ GlobEntry       :: { root: String, pattern: String, value: String }
 
 各エントリーはキーワード引数で構築され、即座にフリーズされます。`FileEntry#new`はcomparatorのenumを検証し、`DependencyEntry#new`は`mode`のenumを検証し、それぞれ未知の値に対して`ArgumentError`を発生させます。他のエントリーは任意の文字列コンテンツを受け入れます（その値は慣例上すでに正規化されたハッシュです）。`DependencyEntry`はADR-10のgemバージョンごとのスロットです: その`(gem_name, gem_version, mode)`のトリプルがオプトインの依存関係ソース推論キャッシュスライス（slice）をキー付けるので、`Gemfile.lock`のバンプや`source_inference:`モード変更（[`dependency-source-inference.md`](dependency-source-inference.md)）がちょうど影響を受けるgemだけを無効化します。`GlobEntry`はADR-60 WD3のレコードアンドバリデートスロットです: その`value`は`root`/`pattern`に一致するすべてのファイルのダイジェスト（`GlobEntry.compute`で構築される）であり、再globによって再検証されるため、プラグインプロデューサーの`watch:` globのカバレッジが編集をまたいで鮮度を保ちます。[ADR-87](../adr/87-null-build-floor.md) WD2以降、このglobごとのダイジェストはファイルの内容ではなく、ソートされた**statタプル**（`"<path>\0<size>\0<mtime_ns>\0<ctime_ns>\0<inode>\n"`の各行）に対するSHA-256です —— 再検証は再globして再statし、変更のないツリーでは内容を1バイトも読まない一方、任意の編集（mtime + ctimeを動かす）は依然としてシグネチャを動かします。
 
-`:stat` comparatorは、個々の`FileEntry`スロット向けのADR-87 WD1のstatしてからダイジェストの階層です。その`value`は`"<digest> <size> <mtime_ns> <ctime_ns> <inode> <recording_instant_ns>"`をパックします: 検証（`FileDigest.stat_fresh?`）はまずファイルをstatし、タプルが動いたとき、またはレーシーウィンドウガードが発火したとき（ファイルのmtimeがエントリーの記録時刻より厳密に古くない）にのみ、完全な内容ハッシュ（`FileDigest.hexdigest`）へフォールバックします。valueにパックされたSHA-256ダイジェストは依然として唯一の変更**authority（権威）**のままです —— 動かなかったstatは検証がその再計算をスキップできるようにするだけです;statは動いたが内容は同一（素の`touch`）である`:stat`エントリーは再ハッシュされ、正しく鮮度ありと判定されます。`:stat`階層は検証専用ディスクリプタ（ADR-45の依存関係ディスクリプタ、プラグインの`watch:` glob）に乗ります;キャッシュ*キー*ディスクリプタは決定的な`:digest` comparatorを保ちます。`cache.validation: digest`（または、それが優先される`RIGOR_STRICT_VALIDATION=1` env）は、statを信頼できないファイルシステムのために、すべてのエントリーを`:digest`へ強制的に戻します。
+`:stat` comparatorは、個々の`FileEntry`スロット向けのADR-87 WD1のstatしてからダイジェストの階層です。その`value`は`"<digest> <size> <mtime_ns> <ctime_ns> <inode> <recording_instant_ns>"`をパックします: 検証（`FileDigest.stat_fresh?`）はまずファイルをstatし、タプルが動いたとき、またはレーシーウィンドウガードが発火したとき（ファイルのmtimeがエントリーの記録時刻より厳密に古くない）にのみ、完全な内容ハッシュ（`FileDigest.hexdigest`）へフォールバックします。valueにパックされたSHA-256ダイジェストは依然として唯一の変更**authority（権威）**のままです —— 動かなかったstatは検証がその再計算をスキップできるようにするだけです;statは動いたが内容は同一（素の`touch`）である`:stat`エントリーは再ハッシュされ、正しく鮮度ありと判定されます。`:stat`階層は検証専用ディスクリプタ（ADR-45の依存関係ディスクリプタ、プラグインの`watch:` glob）に乗ります;キャッシュ*キー*ディスクリプタは決定的な`:digest` comparatorを保ちます。`cache.validation: digest`（または、それが優先される`RIGOR_STRICT_VALIDATION=1` env）は、statを信頼できないファイルシステムのために、すべてのエントリーを`:digest`へ強制的に戻します。このキーのデフォルトは`auto`（#190）です: `CiDetector`がCIプロバイダを認識したときは`digest`へ解決され——新鮮なチェックアウトはすべてのstatタプルを再生成するため、stat階層は決してショートサーキットできず、statシグネチャのglobスロットは毎回のランで陳腐と読まれてしまう——、それ以外のあらゆる場所では`stat`へ解決されます。解決はランごとに行われ（`Configuration#cache_validation_strict?`）、`RIGOR_CI_DETECT=0`のキルスイッチを尊重し、明示的な`stat` / `digest`は常に優先されます（永続ワークスペースのCIランナーは`stat`でstatフロアへオプトインし直します）。
 
 ### `Descriptor.new(files: [], gems: [], plugins: [], configs: [], dependencies: [], globs: [])`
 

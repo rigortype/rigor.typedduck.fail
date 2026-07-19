@@ -3,8 +3,8 @@ title: "キャッシング"
 description: "rigortype/rigor docs/manual/12-caching.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/12-caching.md"
 sourcePath: "docs/manual/12-caching.md"
-sourceSha: "59125251913810d6a4782f10421d516ee18ba7a6634539ec6f15b4f0a40c9ac0"
-sourceCommit: "eb8e9996d113a1b5e1778d0988597c979814a219"
+sourceSha: "18ae61a0d93822f3cdeba691ff1b13105127241dc260cc0974cd8d58fddaa16a"
+sourceCommit: "d88effcae8b2998d1f4f40432e6d4f20ce17946e"
 translationStatus: "translated"
 sidebar:
   order: 9012
@@ -42,14 +42,20 @@ cache:
 
 ファイルが実際に変更されたかどうかの唯一の権威（authority）は内容のハッシュのままです: statの検査はハッシュを再計算する必要があるかどうかを決めるだけです。単に`touch`されただけのファイル（タイムスタンプは新しいが内容は同一）は一度再ハッシュされ、正しく変更なしと判定されます。ファイルを編集すると必ずそのタイムスタンプが動くため、編集が見逃されることはありません。
 
-タイムスタンプやinode番号を信頼できないファイルシステムで作業している場合は、毎回すべてのファイルをハッシュする方式に切り替えてください:
+statの検査は、それが機能しない場所では省略されます: デフォルト設定は`validation: auto`で、自分のマシンでは`stat`として振る舞い、CI環境が検出されたときには全ファイルをハッシュする方式（`digest`）に切り替わります。CIはstatメタデータが信頼できない代表的なケースです── フレッシュなチェックアウトがすべてのタイムスタンプとinodeを再生成するため、CI実行をまたいでリストアされたキャッシュ（たとえば`actions/cache`によるもの）はstatの検査を決してパスせず、その一部（プラグインのwatch-globエントリー。これはstatシグネチャのみ）は毎回の実行で再計算されてしまいます。コンテンツハッシュはチェックアウトをまたいでも同一なので、`digest`のもとではリストアされたキャッシュは単純にヒットします。
+
+この設定はどちらにも強制できます:
 
 ```yaml
 cache:
-  validation: digest    # default is "stat"
+  validation: digest    # hash always — for any filesystem whose
+                        # timestamps or inodes cannot be trusted
+  # validation: stat    # stat always — e.g. a self-hosted CI
+                        # runner that reuses its workspace, where
+                        # stat metadata IS stable across runs
 ```
 
-または、単一の実行に対しては`RIGOR_STRICT_VALIDATION=1`を設定します（これは設定キーより優先されます）。
+単一の実行に対しては、`RIGOR_STRICT_VALIDATION=1`が`digest`を強制し、設定キーより優先されます;`RIGOR_CI_DETECT=0`は`auto`が依拠するCI検出をオフにします。
 
 ## キャッシュの制御
 

@@ -3,8 +3,8 @@ title: "概要"
 description: "rigortype/rigor docs/type-specification/overview.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/type-specification/overview.md"
 sourcePath: "docs/type-specification/overview.md"
-sourceSha: "b63a9ce4b250efdccaba8ad32381755fa768456d42c8831413c276e919179057"
-sourceCommit: "78b18cea6a576475c92bce020535269f2eebc20d"
+sourceSha: "c7208b10645ad468d756369a116b8e9398f6b7e1c70645a225dfcc55a2e3d918"
+sourceCommit: "d88effcae8b2998d1f4f40432e6d4f20ce17946e"
 translationStatus: "translated"
 sidebar:
   order: 2050
@@ -75,7 +75,7 @@ RigorはPHPStan、TypeScript、Pythonのtyping仕様からアイデアを借り�
 
 3者が異なるとき、Rigorは[README.md](../)に記載された解決順序に従います。
 
-> **ステータス —— 出荷済みの取り込みはこの条項から乖離しています（現時点）**。インラインのrbs-inline注釈は、オプトインの`rigor-rbs-inline`プラグインが設定されている場合にのみ読み取られます（[ADR-32](../../adr/32-rbs-inline-comment-ingestion/)）。そしてそのプラグインのデフォルト（`require_magic_comment: true`）は、まさにこの条項が要求を禁じている`# rbs_inline: enabled`コメントを要求します。準拠するセマンティクスはプラグインの`require_magic_comment: false`モードとして存在します（upstreamは`# rbs_inline: disabled`を無条件に尊重するため、ファイルごとのオプトアウトは残ります）;乖離しているのはデフォルトと組み込みです。[ADR-93](../../adr/93-default-rbs-inline-ingestion/)がその調整を引き継ぎ、[ADR-92](../../adr/92-normative-status-fidelity/)がなぜこの乖離を黙って保持するのではなく明示するのかを記録しています。
+> **ステータス —— `rbs-inline`ライブラリが存在する場所ではどこでも準拠。スタンドアロンインストールに残る残余が1点**。[ADR-93](../../adr/93-default-rbs-inline-ingestion/)が以前の乖離を解消しました。バンドルされた`rigor-rbs-inline`プラグインは、いまや注釈でゲートされたマジックコメント不要のモードをデフォルトとします（WD1: ファイルが実際に注釈を持つときは常にそれをパースし、`# rbs_inline: disabled`をファイルごとのオプトアウトとする —— upstreamはこれを無条件に尊重します）。そして`Configuration.load`は、upstreamの`rbs-inline`ライブラリがプロジェクトのバンドルまたはRigor自身の環境で解決可能なときは常にそのプラグインを自動配線します（WD2）。そのため`plugins:`エントリーは不要です。唯一の残余（WD3）は、`rbs-inline`ライブラリがどこにもないスタンドアロンの`gem install rigortype`です: 「存在すれば常にパースされる」がそのとき満たせなくなり、そして —— コアをゼロ依存に保つため（[ADR-0](../../adr/0-concept/)）—— Rigorはライブラリをバンドルせず、シンセサイザーが利用できない状態で注釈形のコメントを見たときに`rbs.coverage.inline-annotations-unsynthesized` `:info`のルーティングヒントを表面化させます。[ADR-92](../../adr/92-normative-status-fidelity/)が、なぜこの残余を黙って保持するのではなく明示するのかを記録しています。
 
 インライン注釈の取り扱い: RigorはRBSとrbs-inlineの構文に対して100% 互換でなければならず、インライン注釈の解釈と優先順位についてはSteep 2.0の挙動に従うべきです。既存のrbs-inlineおよびSteep互換の注釈は型のソースとして公式に扱います。Rigorはそれらを書き換えてはならず、複雑であることだけを理由に警告してはならず、解析を始めるために`# rbs_inline: enabled`を要求してはなりません。`# rbs_inline: enabled`や`# rbs_inline: disabled`のようなrbs-inline設定ディレクティブのみが解釈されます。rbs-inlineの注釈コメント自体（`#: String`、`# @rbs`、パラメータ注釈など）は、存在すれば常にパースされ利用されます。
 

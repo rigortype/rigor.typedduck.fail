@@ -3,8 +3,8 @@ title: "CLIコマンドリファレンス"
 description: "rigortype/rigor docs/manual/02-cli-reference.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/02-cli-reference.md"
 sourcePath: "docs/manual/02-cli-reference.md"
-sourceSha: "7ebf9003a5a4e0f5da23fd52c17d3b0a6518a39e829da4e0c5db6b42ab904fb2"
-sourceCommit: "78b18cea6a576475c92bce020535269f2eebc20d"
+sourceSha: "d939af8b9d7dc974163705aa370e57ef605ddc43e85650dc7595c071c21089a6"
+sourceCommit: "d88effcae8b2998d1f4f40432e6d4f20ce17946e"
 sourceDate: "2026-06-21T05:49:38+09:00"
 translationStatus: "translated"
 sidebar:
@@ -253,6 +253,8 @@ rigor mcp [--transport=stdio] [--config=PATH]
 
 `.rigor.yml`に設定された各プラグインの有効化状態（ロード済み、ロードエラー（理由付き）、各プラグインの宣言した拡張サーフェス（surface））を報告します。[プラグイン](../07-plugins/)を参照してください。
 
+ロードされた各プラグインの行は、解決された実際のロード元ファイルも報告します（テキストでは`path:`の行、JSONでは`"path"`キー）。そのため、古いインストール済みgemが新しいチェックアウトのバンドル済みプラグインコピーを覆い隠している場合、その不一致が一目で分かります。
+
 ```sh
 rigor plugins [--format=text|json] [--strict] [--capabilities] [--config=PATH]
 ```
@@ -379,6 +381,7 @@ rigor doctor [--config PATH] [--format text|json]
 - **ベースラインドリフト** — 現在の診断が保存済みベースラインからドリフトしているかどうか。
 - **Railsプラグインのギャップ** — `Gemfile.lock`にRails gemが含まれているのにRailsプラグインが有効化されていないかどうか。
 - **Gemfileへのインストール** — Rigor自身がプロジェクトの依存関係の1つとして解決されるかどうか。これは[Rigorのインストール](../01-installation/)がしないよう指示していることです。**GEM**リモートから解決された`rigortype`だけがカウントされます。`PATH`や`GIT`ソースは意図的にRigorを開発またはベンダリングしていることを意味し、Rigor自身のリポジトリはまさにそのように見えます。
+- **プラグインインストールのずれ** — Rigorがバンドルするプラグインが、エンジンとは別の`rigortype`インストールからロードされていないかどうかを、両方のパスを示して報告します。エンジンとそのバンドル済みプラグインはまとめてバージョン管理されているため、別のインストールからのコピーはエンジンを不一致のプラグインで動かしかねません。失敗ではなく警告です;自分自身のバンドルに含まれるサードパーティプラグインが対象になることはありません。
 
 テキスト出力はチェックごとに`[PASS]`・`[FAIL]`・`[WARN]`と、振り分けられたヒント（例:「`rigor baseline regenerate`を実行してください」）を表示します。JSON出力は安定した契約です:
 

@@ -3,8 +3,8 @@ title: "特殊型"
 description: "rigortype/rigor docs/type-specification/special-types.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/type-specification/special-types.md"
 sourcePath: "docs/type-specification/special-types.md"
-sourceSha: "8a5e6bb23f8340f583812cac3fb37150fc7c0cac0e29dc2a7513c35098fb6bb6"
-sourceCommit: "7a69f1427bb5d1985ccc87080ee90023ffb42665"
+sourceSha: "b548002568b7cb50e17c0f3462a1a32ad8d13c2830681d0960366f330e0498fc"
+sourceCommit: "d88effcae8b2998d1f4f40432e6d4f20ce17946e"
 translationStatus: "translated"
 sidebar:
   order: 2050
@@ -75,11 +75,13 @@ Rigorは診断のために動的由来のソースを区別すべきです（SHO
 
 ## `void`
 
-> **ステータス —— 直接の値コンテキスト診断は実装済み;区別された`void`の機構は未実装**。エンジンはRBSの`void`を**`top`**に変換します（[`rbs_type_translator.rb`](https://github.com/rigortype/rigor/blob/master/lib/rigor/inference/rbs_type_translator.rb)の`RBS::Types::Bases::Void => :translate_top`）。これはRBS自身の定義です —— 「型システムにとってこれらはすべて同等であり、すべて*top型*である」（`docs/syntax.md` §「`void`、`boolish`、`top`のどれか？」）。したがって本セクションの拡幅の側は成立します: 作者の`void`戻り値は本体の推論値として型付けされず、呼び出し側がそれに暗黙裡に依存することはできません。
+> **ステータス —— 値コンテキスト診断は直接・推移的の両方で実装済み;区別された`void`の機構は未実装**。エンジンはRBSの`void`を**`top`**に変換します（[`rbs_type_translator.rb`](https://github.com/rigortype/rigor/blob/master/lib/rigor/inference/rbs_type_translator.rb)の`RBS::Types::Bases::Void => :translate_top`）。これはRBS自身の定義です —— 「型システムにとってこれらはすべて同等であり、すべて*top型*である」（`docs/syntax.md` §「`void`、`boolish`、`top`のどれか？」）。したがって本セクションの拡幅の側は成立します: 作者の`void`戻り値は本体の推論値として型付けされず、呼び出し側がそれに暗黙裡に依存することはできません。
 >
 > **値コンテキスト診断は現在存在します** —— 直接のケースについて: [ADR-100](../../adr/100-static-diagnostic-family-and-void-origins/)が`void_origins`サイドテーブル（`void → top`が拡幅する戻り値型付けの層で投入される）と`static.value-use.void`チェックルール（[diagnostic-policy.md](../diagnostic-policy/) §「識別子分類体系」の`static.value-use.*`）を追加しました。これは、**作者が宣言した`-> void`**戻り値から復元され、直接ディスパッチのパスで解決された`top`が、値コンテキスト（代入の右辺、呼び出しのレシーバー、または呼び出し引数）で使われ、下流の復元のために`top`として実体化されたときに発火します。新しい必須診断は[ADR-50](../../adr/50-release-engineering-and-stability-strategy/) WD1の互換性変更であるため、`use-of-void-value`の`bleeding_edge:`機能の背後で出荷されます。
 >
-> まだ**実装されていない**もの: `void`キャリア（carrier）がなく、ジェネリックスロットの保持がなく、`void | bot`の正規化がありません;**推移的**なケース（自身のシグネチャが何も宣言しないメソッドを通じて返される値）は先送りされており（ADR-100 WD4）、兄弟であるガードなし`top`呼び出し診断（`static.value-use.top`、下の`top`セクション —— まだ実装なし）も同様です。意図は[ADR-1](../../adr/1-types/) §「特殊なRBS型…は場当たり的なエイリアスとしてではなく型理論的な明快さをもって扱われなければならない」に従って保持されます。
+> **推移的**なケース（自身のシグネチャが何も宣言しないメソッドを通じて返される値）は、ADR-100 WD4の追補に従って実装されています: `def`ごとの遅延したvoid末尾サマリーが、ディスパッチのチョークポイントで結果に依存せず参照され、作者の`-> void`リーフを起点として同じ`void_origins`エントリーを記録します —— `def`はvoid末尾が唯一の戻り経路であるときにのみ許容されるので、それ以外の何かを返しうるメソッドは決して発火しません。
+>
+> まだ**実装されていない**もの: `void`キャリア（carrier）がなく、ジェネリックスロットの保持がなく、`void | bot`の正規化がありません;兄弟であるガードなし`top`呼び出し診断（`static.value-use.top`、下の`top`セクション）はまだ実装なしです。意図は[ADR-1](../../adr/1-types/) §「特殊なRBS型…は場当たり的なエイリアスとしてではなく型理論的な明快さをもって扱われなければならない」に従って保持されます。
 
 `void`はRigorでは通常の値型では**ありません**。戻り値を使うべきでない式の結果マーカーです。
 

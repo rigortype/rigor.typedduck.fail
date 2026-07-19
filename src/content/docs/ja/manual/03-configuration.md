@@ -3,8 +3,8 @@ title: "設定"
 description: "rigortype/rigor docs/manual/03-configuration.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/03-configuration.md"
 sourcePath: "docs/manual/03-configuration.md"
-sourceSha: "a089570a1003b9a262d6a9c4b5c5ca6cf9c71b748f2421325d9dbd64e9ffdef5"
-sourceCommit: "78b18cea6a576475c92bce020535269f2eebc20d"
+sourceSha: "b2e808204b64a0c76f5384dd6176f7f6c41a689eb2f32695fddaacc6ce23f187"
+sourceCommit: "d88effcae8b2998d1f4f40432e6d4f20ce17946e"
 sourceDate: "2026-06-15T14:21:04+09:00"
 translationStatus: "translated"
 sidebar:
@@ -119,7 +119,7 @@ rigor: bundler.lockfile: "./missing/Gemfile.lock" does not exist
 | --- | --- | --- | --- |
 | `cache.path` | String | `.rigor/cache` | 永続キャッシュディレクトリ。[キャッシュ](../12-caching/)を参照。 |
 | `cache.max_bytes` | Integerまたは`null` | `268435456`（256 MB） | キャッシュディレクトリのLRU退避の上限。`null`で退避を無効化する。[キャッシュ § サイズと退避](../12-caching/#サイズと退避)を参照。 |
-| `cache.validation` | String | `"stat"` | キャッシュがファイルの未変更をどう確認するか: `stat`はサイズ＋ナノ秒単位のタイムスタンプ＋inodeを比較し、statが動いたファイルだけを再ハッシュする;`digest`は実行のたびに全ファイルの内容を再ハッシュする。どちらも内容ハッシュを変更判定の唯一の権威として保つ——`stat`はstatがファイルの未変更を証明できるときにハッシュ計算を省くだけである。[キャッシュ § ファイルの変更確認方法](../12-caching/#ファイルの変更確認方法)を参照。環境変数`RIGOR_STRICT_VALIDATION=1`は1回の実行に対して`digest`を強制し、このキーより優先する。 |
+| `cache.validation` | String | `"auto"` | キャッシュがファイルの未変更をどう確認するか: `auto`はCI環境が検出されたときは`digest`として、それ以外では`stat`として振る舞う;`stat`はサイズ＋ナノ秒単位のタイムスタンプ＋inodeを比較し、statが動いたファイルだけを再ハッシュする;`digest`は実行のたびに全ファイルの内容を再ハッシュする。どちらも内容ハッシュを変更判定の唯一の権威として保つ——`stat`はstatがファイルの未変更を証明できるときにハッシュ計算を省くだけである。[キャッシュ § ファイルの変更確認方法](../12-caching/#ファイルの変更確認方法)を参照。環境変数`RIGOR_STRICT_VALIDATION=1`は1回の実行に対して`digest`を強制し、このキーより優先する;`RIGOR_CI_DETECT=0`はCI検出を無効化する。 |
 | `parallel.workers` | Integer | `0` | ファイルごとの解析用の並列ワーカープロセス（現在はfork方式のプール、ADR-15）。`0`は逐次処理。CLI `--workers`と`RIGOR_RACTOR_WORKERS`が優先される。フル実行と同様に`--incremental`の再チェックにも適用される。 |
 | `plugins_io.network` | String | `"disabled"` | プラグインネットワークポリシー。`disabled`または`allowlist`。 |
 | `plugins_io.allowed_paths` | Array | `[]` | プラグインが読み取り可能なファイルシステムパス。 |

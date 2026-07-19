@@ -3,8 +3,8 @@ title: "プラグインの登録／読み込み（スライス1）"
 description: "rigortype/rigor docs/internal-spec/plugin.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/plugin.md"
 sourcePath: "docs/internal-spec/plugin.md"
-sourceSha: "071a6b958db59352203a695120448d6ca76249266751a98f2f63fd3b96563513"
-sourceCommit: "eb8e9996d113a1b5e1778d0988597c979814a219"
+sourceSha: "5264bc03d57d6342cf47d64ae73205b78f77c1dc60a6715d8a9f478a1f63d7f6"
+sourceCommit: "d88effcae8b2998d1f4f40432e6d4f20ce17946e"
 translationStatus: "translated"
 sidebar:
   order: 3050
@@ -243,7 +243,7 @@ RBS::Extendedの`%a{rigor:v1:…}`ペイロードに現れるカスタムな**�
 
 ### `Rigor::Plugin::LoadError`
 
-プラグインエントリーが解決できない場合にローダー内で発生するパブリック例外。`plugin_ref`（問題のあるgem名またはプラグインid）と`cause_class`（該当する場合の基底例外クラス）を持ちます。ランナーはそれぞれを`source_family: :plugin_loader`・`rule: "load-error"`を持つ`Rigor::Analysis::Diagnostic`に変換します。
+プラグインエントリーが解決できない場合にローダー内で発生するパブリック例外。`plugin_ref`（問題のあるgem名またはプラグインid）・`cause_class`（該当する場合の基底例外クラス）・`resolved_path`（プラグインgemがロードされたファイル。`require`は成功したが後続の設定／インスタンス化ステップが失敗したときにローダーが刻む；まったく失敗した`require`ではnil）を持ちます。ランナーはそれぞれを`source_family: :plugin_loader`・`rule: "load-error"`を持つ`Rigor::Analysis::Diagnostic`に変換します。
 
 ## 内部サーフェス（パブリックではない）
 
@@ -268,6 +268,12 @@ plugins:
 
 ローダーはユーザーが記述した順序で`.rigor.yml`の`plugins:`エントリーを処理します。複数の登録済みプラグインクラスに解決されるエントリー（1つのgemが1つ以上のプラグインを登録している場合）の場合、明示的な`id:`フィールドが曖昧さを解消します；なければローダーは推測するのではなく`LoadError`を発行します。エントリー間での重複するidはエラーであり、サイレントな重複排除ではありません。
 
+## 同梱プラグインの解決（[ADR-93](../../adr/93-default-rbs-inline-ingestion/) WD5）
+
+`gem`がエンジン自身の同梱するプラグインを指すエントリー——`<engine root>/plugins/<gem>/lib/<gem>.rb`が存在し、エンジンルートはローダー自身の位置からアンカーされる——は、gem名ではなく**その絶対パスで**`require`されます。エンジンとその同梱プラグインは一緒にバージョン管理されるため、たまたま勝ったインストールの`require_paths`に対する名前解決は定義上スキューを起こしやすいのです: 古いインストール済みの`rigortype` gemがさもなければエンジン自身のコピーをサイレントに置き換えかねません（[#194][i194]のハザード）。アンカーは代わりにエンジン自身のベンダー済みファイルをロードします。アンカーされたファイルが存在**しない**とき——切り詰めたパッケージング、[ADR-27](../../adr/27-tool-distribution-model/)の単一バイナリターゲット——には、ローダーは素のgem名の`require`にフォールバックするので、どのインストールモードもリグレッションしません。この規則は自動配線される`rigor-rbs-inline`デフォルトとすべてのユーザー列挙エントリーで一様です。gem解決へ戻る名前レベルの脱出弁はありません；外部のコピーはサイレントな名前レースではなく、エントリーごとの明示的な`path:`キー（[ADR-99](../../adr/99-config-schema-authority/)）を得ることになります。`rigor doctor`は、依然としてエンジンツリーの外で解決された同梱プラグインをフラグします——フォールバックパスと、アンカーが見られない真に混在したインストールのためのガードです。
+
+[i194]: https://github.com/rigortype/rigor/issues/194
+
 ## 障害の隔離（ADR-2 §「プラグイントラストとI/Oポリシー」に従う）
 
 ロードはすべてのプラグインエントリーを独立して処理します；1つのエントリーの失敗は他のエントリーを中断しません。各失敗は結果レジストリの`LoadError`として収集され、次に`Analysis::Runner#run`が以下を持つ`:error`の`Diagnostic`として表面化します：
@@ -277,7 +283,7 @@ plugins:
 - `column`: `1`
 - `source_family`: `:plugin_loader`
 - `rule`: `"load-error"`
-- `message`: `LoadError`のメッセージ（失敗の種類に応じてgemパス/登録/configスキーマ/`#init`例外）。
+- `message`: `LoadError`のメッセージ（失敗の種類に応じてgemパス/登録/configスキーマ/`#init`例外）。`require`は成功したが後続のステップが失敗したときは末尾に` (loaded from <path>)`が付く——設定/初期化の失敗はロード元となった正確なプラグインのコピーを名指しします；まったく失敗した`require`にはresolved pathがなく、メッセージは変わりません。
 
 `rigor check`は解析を続行します；正常にロードされたプラグインは後のv0.1.0スライスに引き続き参加します。
 

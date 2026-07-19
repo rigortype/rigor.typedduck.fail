@@ -3,8 +3,8 @@ title: "ADR-58 — インスタンス変数のフィールド型付け: 宣言�
 description: "rigortype/rigor docs/adr/58-ivar-field-typing.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/58-ivar-field-typing.md"
 sourcePath: "docs/adr/58-ivar-field-typing.md"
-sourceSha: "10b0c14b5e39cad0a8035d0cdd6b51da147576288087d484b50a0687abbafcce"
-sourceCommit: "222d8e03ee0f4252795f6c7294672a76c20b7ae3"
+sourceSha: "db6d54cb9f1d027abf7fa5a9670db236a5102c9d16a556be1e2322eb8deea805"
+sourceCommit: "d88effcae8b2998d1f4f40432e6d4f20ce17946e"
 translationStatus: "translated"
 sidebar:
   order: 4058
@@ -18,7 +18,13 @@ sidebar:
 とおりuntypedパラメータ／再帰戻り値のDynamicソースに拘束される）。
 WD3は実装済み（2026-06-12 ── 無条件の同一クラス呼び出しを通して
 コンストラクタの確定代入をクレジット。ipaddrの`@mask_addr` 6サイト
-クラスタを解消、WD3ステータス参照）。
+クラスタを解消、WD3ステータス参照）。WD5は実装済み（2026-07-19 ──
+`initialize`内の`MultiWriteNode` ivarターゲットがクラスivarの型
+ユニオンには記録されていたものの`init_writes`には記録されて
+いなかったため、read-before-write nilゲートがすべての兄弟読み取りで
+偽の`nil`を再注入していた。`detect_read_before_write`はいまやmassign
+ターゲットを書き込みとしてカウントする、WD5ステータス参照。`||=`
+シードの延伸はそこで**理由付きで見送り（deferred-with-reason）**である）。
 アーキタイプ: 熟議的（deliberative）。ステークス: 高 ── これは
 `possible-nil-receiver`がivar由来のオプショナリティに対していつ発火してよいかを
 規定するものであり、慣用的なデータ構造Rubyにおける最大の偽陽性（false positive、
@@ -301,6 +307,67 @@ WD1bはしたがって「キュー入り」から**デマンドゲート**へ移
 新規ゼロ／裁定された勝利（ADR-56 WD4プロトコル）。識別的な形を手でプローブする
 ことが必須（走査ループ、回転読み取り、発火し続けるべき（MUST）真の
 ローカル`@x = nil; @x.foo`、発火し続けるべき（MUST）失敗ガード読み取り）。
+
+### WD5 — スライス5: massignのコンストラクタターゲットはinit書き込みである（潜在的なWD2のギャップ）
+
+WD2の「同質な書き込みユニオン」という約束は、ある書き込み形を密かに
+除外していた。クラスivarのプリパスはN1以来、並列代入（`@m, @n = [], []`）を
+アキュムレータへ分解している: 各`InstanceVariableTargetNode`はそのタプル位置の
+rvalue型を記録するので、*アキュムレータ*は`@m → Tuple[]`を保持していた。しかし
+`detect_read_before_write` ── `init_writes`（read-before-write nilの寄与を
+ゲートするコンストラクタの確定代入集合）をポピュレートする別のウォーク ── は、
+`InstanceVariableWriteNode`と複合形の`@x ||= / &&= / +=`だけを認識し、
+`MultiWriteNode`ターゲットは決して認識しなかった。そのため`initialize`内で
+massign経由**のみ**で書かれたivarは`init_writes`に不在だった。兄弟メソッドが
+それを書き込む前に読むと、`contribute_read_before_write_nil!`が記録済みの型の
+上に`Constant[nil]`をユニオンし、シードは`Tuple[]`ではなく`Tuple[] | nil`として
+読み取りに到達した。すると宣言由来のpossible-nilの印が、具象型が表出させる
+べきだった当の診断を黙らせてしまう（`@m.no_such_method`は`T | nil`レシーバーを
+読むので、undefined-methodルールが辞退する）。記録された型は存在していた。
+nilゲートがそれを覆い隠していたのだ。
+
+修正はレコーダーではなく1つのウォークである: `detect_read_before_write`は
+いまや、まず`MultiWriteNode`の`value`を降下し（RHS上のivar読み取りは
+read-before-writeのまま）、それからネストした`MultiTargetNode`とスプラット
+ターゲットを含むすべてのivarターゲットを`seen_writes`へ記録するので、
+コンストラクタのmassignは素の`@x = …`書き込みとまったく同じように
+`init_writes`をクレジットする。書き込みの*ユニバース*では何も変わらない:
+解析不能なmassignのRHSはN1に従い依然として`Dynamic`にフロアする（決して`nil`には
+ならず、推測した名前的型にもならない）し、`guarded`／`falsey_constant?`／
+read-before-write-nilの規律は手つかず ── この変更は、既に記録済みで既に意図
+された型の上に偽のnilが上書きするのを止めるだけである。構成によりFP安全
+（nil構成要素を*取り除く*ことしかできず、これはFPを減らす方向である）。
+
+**ステータス、2026-07-19 ── 実装済み**。mastodon／redmine／rails-coreの保護
+カバレッジスカウトが動機であり、それはuntypedなivarフィールド読み取りを支配的な
+エンジンギャップとしてフラグした。FP安全でクローズ可能な部分が、この潜在的な
+massignシードの隠蔽である。計測されたTier-1保護リフト（`coverage --protection`、
+キャッシュクリア、ベースラインワークツリーvs新）: mastodon `app/models`は
+1837 → 1844の保護されたディスパッチサイト（31.2% → 31.3%）、redmine `app`は
+6121 → 6135（32.2% → 32.3%）。診断ゲート（`check --no-cache --no-baseline`、
+ベースラインvs新）: mail／kramdown／haml／liquidの`lib`、mastodonの`app/models`、
+redmineの`app`はすべて**バイト同一**（調査したスライスで新規発火も除去された発火も
+なし ── 隠蔽された診断の修正は合成の再現ケースで実証されており、コーパスのスライスは
+たまたまコンストラクタmassign読み取りのメソッド間の形を持たないので、勝ちは診断
+デルタなしの保護メトリック移動として現れる）。`make verify`＋セルフチェック＋
+`check-plugins`はクリーン。+3ユニットspec（メソッド間のmassign読み取りが素の
+`Tuple`のまま、解析不能なmassign読み取りが`Dynamic`のまま、ネストしたターゲットが
+クレジットされる）。mastodon `app/models`でのパフォーマンス（コールド、3回）:
+wallはフラット（～3.7秒）、ピークRSSは261 → 254 MB ── ノイズの範囲内。
+
+**`||=`シード ── 理由付きで見送り**。memoイディオム（`@memo ||= []`、
+`@config ||= {}`）は遍在しており、プリパスは意図的に
+`Prism::InstanceVariableOrWriteNode`をシードしない（`@x ||= v`を`Constant[v]`
+としてシードすると`if @x`が常に真とフォールドされ → FP）。WD2の形をした
+`union(v_type, nil)`モデルはプロトタイプされ、同じコーパスゲートに通された:
+6つのターゲットすべてで**診断バイト同一**（新規のalways-truthy／always-falsey／
+possible-nil発火なし）**かつ保護メトリックの移動はゼロ**（mastodon 1844 → 1844、
+redmine 6135 → 6135 ── `T | nil`シードはmassignバグとまったく同じように
+undefined-methodを黙らせるので、ここでは新しい保護サイトを1つも買わない）。
+これを出荷すると、計測されるコーパス収量なしにnilユニオンのシードサーフェスを
+足すことになるので、WD4の決定規則（証明可能にクリーン**かつ**裁定された価値を
+運ぶ場合にのみ出荷する）に従い見送る。`union(v, nil)`シードが新規発火なしに
+証明可能に改善するmemo読み取りの形をコーパスが表出させた場合にのみ再開する。
 
 ## 却下／先送りした代替案
 

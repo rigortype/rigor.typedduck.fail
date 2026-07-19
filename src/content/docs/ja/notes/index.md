@@ -3,8 +3,8 @@ title: "リサーチ・サーベイノート"
 description: "rigortype/rigor docs/notes/README.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/README.md"
 sourcePath: "docs/notes/README.md"
-sourceSha: "25eb66e5084ca09362e5c3bc762c72034fe4dedc203356b3fad2141f5c1db707"
-sourceCommit: "7a69f1427bb5d1985ccc87080ee90023ffb42665"
+sourceSha: "7ffee1d21083685513691f0c6d1e17402d71226a6173bd8e1dc4641376a34078"
+sourceCommit: "d88effcae8b2998d1f4f40432e6d4f20ce17946e"
 translationStatus: "translated"
 sidebar:
   order: 6000
@@ -117,6 +117,7 @@ sidebar:
 | 2026-06-22 | [Rigor 0.2.x compatibility-safe strengthening survey](20260622-rigor-0.2.x-compatibility-safe-strengthening-survey/) |
 | 2026-07-04 | [`examples/`プラグイン近代化調査 — 最初期プラグインと現行契約面のギャップ](20260704-examples-plugin-modernization-survey/) |
 | 2026-07-04 | [`plugins/`近代化スイープ — SKILL適用による本番プラグインのドリフト監査](20260704-plugins-modernization-sweep/) |
+| 2026-07-19 | [Webサイトショーケース — 「これに型が付くの？！」推論例集（コア + プラグイン）](20260719-website-showcase-inference-examples/) |
 
 ## ノートの追加
 
