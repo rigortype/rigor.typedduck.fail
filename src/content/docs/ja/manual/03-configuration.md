@@ -3,8 +3,8 @@ title: "設定"
 description: "rigortype/rigor docs/manual/03-configuration.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/03-configuration.md"
 sourcePath: "docs/manual/03-configuration.md"
-sourceSha: "b2e808204b64a0c76f5384dd6176f7f6c41a689eb2f32695fddaacc6ce23f187"
-sourceCommit: "d88effcae8b2998d1f4f40432e6d4f20ce17946e"
+sourceSha: "c0656090f497aaad56a564e7d2001dea0ddbe7545aa233859b8221a8d59c6af5"
+sourceCommit: "295e3c12dfe3c9d1a07f4d1790a907042e240ab3"
 sourceDate: "2026-06-15T14:21:04+09:00"
 translationStatus: "translated"
 sidebar:
@@ -58,6 +58,7 @@ cache:
 | `exclude` | Array | `[]` | スキップするGlobパターン。`vendor/bundle`、`.bundle`、`node_modules`は常に除外される。 |
 | `includes` | Array | `[]` | このファイルの下に継承する他の設定ファイル。 |
 | `fold_platform_specific_paths` | Boolean | `false` | ソース探索時にRubyバージョン条件付きロードパスを解決する。 |
+| `parameter_inference` | Boolean | `false` | `check`ウォークでのオプトインのコールサイトパラメータ型推論（[ADR-67](../../adr/67-parameter-type-inference/) WD6）。`true`のとき、宣言されていない`def` / `initialize` / セッターのパラメータは、解決されたコールサイト引数型のユニオンに型付けされ、下流のivar読み取り・畳み込み・保護カバレッジを精密化する。精度加算的のみ —— 否定的ルールは推論されたパラメータに対して決して発火しない。`--incremental`とは併用できない。 |
 
 ### 型ソース
 

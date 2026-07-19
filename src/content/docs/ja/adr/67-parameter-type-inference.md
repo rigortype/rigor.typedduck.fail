@@ -3,14 +3,14 @@ title: "ADR-67 — パラメータ型推論（M3フロンティア）: 呼び出
 description: "rigortype/rigor の docs/adr/67-parameter-type-inference.md から取り込み。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/67-parameter-type-inference.md"
 sourcePath: "docs/adr/67-parameter-type-inference.md"
-sourceSha: "8d394e46ad77a0e5fdb6e1a71cdc10625b8eb5e1df8dc61d94c59fa1c893387b"
-sourceCommit: "d88effcae8b2998d1f4f40432e6d4f20ce17946e"
+sourceSha: "e93790b54df6520e286bf4219ad6c5d818fdf2cbad1c441bdfd0c17d0c333e37"
+sourceCommit: "295e3c12dfe3c9d1a07f4d1790a907042e240ab3"
 translationStatus: "translated"
 sidebar:
   order: 4067
 ---
 
-ステータス: **Accepted — WD1＋WD3＋WD5（上限付き不動点）を2026-06-16に実装;WD3の引数シェイプカバレッジを2026-07-06に拡張;`check`ウォークへの配線はWD6として2026-07-19に設計（下記の付録 ── その需要ゲートは3コードベースの保護スカウトで発火した）、実装はキュー入り;WD2の本体内推論は延期のまま**。アルゴリズムコーパス調査の判定「M3 — 型なしパラメータ→メソッド全体がDynamic: **EXCUSED、追求しない**」を、新たな**保護カバレッジ**の根拠にもとづいて再検討する。メソッド／コンストラクタのパラメータ（parameter）は今日では既定で`untyped`（漸進的（gradual）なエントリポイント）になるが、パイロットの結果、パラメータがインスタンス変数（ivar）やレシーバーへ流れ込むケースが**実アプリに残る最大の保護の穴**であることが示された。ロバストネス原則（robustness principle）との整合がこの決定の核心だ──推論はあくまで**下流の精度を鋭くする**ことはできるが、**パラメータ境界では決して診断を厳格化しない**。
+ステータス: **Accepted — WD1＋WD3＋WD5（上限付き不動点）を2026-06-16に実装;WD3の引数シェイプカバレッジを2026-07-06に拡張;`check`ウォークへの配線（WD6、下記の付録 ── その需要ゲートは3コードベースの保護スカウトで発火した）はオプトインの`parameter_inference:`ゲートの背後で2026-07-19に実装された;WD2の本体内推論は延期のまま**。アルゴリズムコーパス調査の判定「M3 — 型なしパラメータ→メソッド全体がDynamic: **EXCUSED、追求しない**」を、新たな**保護カバレッジ**の根拠にもとづいて再検討する。メソッド／コンストラクタのパラメータ（parameter）は今日では既定で`untyped`（漸進的（gradual）なエントリポイント）になるが、パイロットの結果、パラメータがインスタンス変数（ivar）やレシーバーへ流れ込むケースが**実アプリに残る最大の保護の穴**であることが示された。ロバストネス原則（robustness principle）との整合がこの決定の核心だ──推論はあくまで**下流の精度を鋭くする**ことはできるが、**パラメータ境界では決して診断を厳格化しない**。
 
 実装に入ったスライス（slice）は**基盤**である: `[class, method, kind]`をキーとする呼び出しサイトの引数ユニオン収集器（`Inference::ParameterInferenceCollector`）、`param_inferred_types`という`DiscoveryIndex`の副テーブル、そして`build_method_entry_scope`での消費（宣言されていないパラメータには推論された型がシードされ、RBSで宣言されたパラメータが優先される）だ。これは**上限付き不動点**（WD5）として動く: 各ラウンドで前ラウンドの推論済みパラメータをシードしてプロジェクトを再型付けするので、*別の*パラメータを渡されたパラメータはラウンドごとに1ホップ先まで型付けされる（上限3、`BodyFixpoint`の慣習、収束時には早期停止。ラウンド1だけならシングルレベル（single-level）パスにあたる）。引数がまだ型付けされていないパラメータである呼び出しサイトは、*そのラウンドでは*そのパラメータを毒する（WD4）が、自分の引数が解決すれば後のラウンドで型付けされうる。配線は**`coverage --protection`のみ**だ: `check`ウォークはテーブルを空のまま残すので、その診断はバイト単位で同一であり、WD1の「パラメータ境界では決して発火しない」は*構成上*成り立つ（推論された型は本体ローカルであってRBS契約（contract）ではなく、境界ルールはRBSを参照する）。
 
@@ -65,7 +65,7 @@ RBSシグネチャを持たないメソッド／コンストラクタのパラ�
 
 **トリガー（a）が発火、2026-07-19**。3コードベースの保護スカウト（mastodon `app/models`＋`app/services`、redmine `app`＋`lib`、rails activemodel／actionpack／activesupport `lib`）は、正しく帰属された`inferred_return_untyped`の量を、どこでも保護されていないサイトの20〜51%に置き、サイトレベルのドリルダウンはそれを圧倒的に型なしの`call`／`initialize`／セッターパラメータへ辿った（[ADR-58](../58-ivar-field-typing/)のivarが直近の第2ホップ: `@options = options`）。ADD_RBSはどのコードベースでも1〜2.4%だった ── 穴は欠けているシグネチャではなく、この推論である。下記の`check`ウォークの付録がそのフォローアップだ。
 
-## 付録 — WD6: WD3テーブルの`check`ウォーク有効化（2026-07-19、設計）
+## 付録 — WD6: WD3テーブルの`check`ウォーク有効化（2026-07-19、実装）
 
 消費側は既に出荷済みだ: `StatementEvaluator#seed_inferred_param_types`（`build_method_entry_scope`）は`Scope#param_inferred_types`を参照し、型なしの束縛だけを上書きし、RBSで宣言されたパラメータを優先させ、空のテーブルではno-opになる ── これがcheckパスのこれまでの姿だ。したがって有効化とは、`coverage --protection`がやるのとまったく同じように（`ParameterInferenceCollector.collect` → `seed[:param_inferred_types]`）*checkコマンドのディスカバリーシードでテーブルをポピュレートする*ことに、本ADRが常にそれと共に着地しなければならないと言ってきたガードを加えたものである。4つの作業上の決定:
 
@@ -74,6 +74,12 @@ RBSシグネチャを持たないメソッド／コンストラクタのパラ�
 - **WD6c — インクリメンタルは明示的に対象外**。`--incremental`（[ADR-46](../46-incremental-dependency-graph/)）の下では、テーブルがレコーダーのまだ運んでいないファイル間エッジ（呼び出し元の引数型 → 呼び出し先の本体診断）を導入する;パラメータシードが変わったキャッシュ済みファイルは古い結果を返すことになる。スライス1: `parameter_inference:`と`--incremental`は相互排他だ（ゲートがメッセージ付きで拒否する）。そしてエッジの配線が、両者を合成する前の名指されたフォローアップだ。
 - **WD6d — 計測ゲート（ADR-93のWD4パターン）**。ゲートがオフのとき: コーパスは構成によりバイト同一だ（空テーブルのno-op）。ゲートがオンのとき: (1) mail／kramdown／haml／liquid＋mastodonのmodels＋redmineのappにおけるすべての診断デルタを手で裁定する（WD6bがあらゆる負のルールをガードするので期待値は≈0 ── 新規発火はすべてガードの穴であり、着地前に修正する）;(2) 2つのアプリでの保護リフトが報告される収量だ;（3）コレクターのプリパスのコストを最大のコーパスターゲット上でコールド計測し、実行はパフォーマンスバンド内に収まる（wall ≤5%;プリパスは対価なので別途報告する）;（4）ラウンド上限が効く場合は`RIGOR_BUDGET_TRACE`風の可視性。既定オン化はこの根拠にもとづくADR-50の下での*別個の、後の*決定だ。
 WD2（本体内の下界）は独立かつ早期に進めてよい──ローカルで偽陽性（FP）安全だからだ。
+
+**WD6の計測＋実装の現実（2026-07-19）**。`parameter_inference:`（スキーマ管理下、あらゆるプロファイルによってオフに解決される）の背後に着地した;プリパスは`ParameterInferenceCollector.collect`を1ラウンド、checkのディスカバリーシードへと走らせ（`Runner#seed_parameter_inference` → `project_scope_seed_tables`、そのため逐次スコープとフォークワーカースコープの双方が同じ凍結されたテーブルを見る）、`parameter_inference:`＋`--incremental`はきっぱり拒否される（hard refusal、WD6c）。印はADR-58-WD1の副次的な印を、区別された`:inferred_param`種（`Scope#with_inferred_param_mark` / `#inferred_param?`）のもとで再利用したものであり、`build_method_entry_scope`でシードされた各パラメータに刻印される。
+
+*「少なくとも直接のパラメータローカルまで」という伝播スコープは、コーパスとの接触を生き延びなかった。*6つのターゲットにわたるゲートオンの差分は、当初**5つ**の負のルールにまたがる発火を浮上させたが、そのどれも素のパラメータレシーバーに対するものではなかった: `mail`は`vindex = codepoints[i] - HANGUL_VBASE; vindex < n`で`call.undefined-method` / `argument-type-mismatch`を発火させ（値は、パラメータから派生した*ローカル*を通って流れ、`rescue`修飾子がそれをユニオンしている）、`kramdown` / `haml` / `redmine`は、対象がパラメータそのものである`if opts.key?(:x)` / `case obj`で`flow.always-truthy-condition` / `flow.unreachable-clause`を発火させた。したがってガードは3つのものでなければならず、いずれも同じ下界の論法によって偽陽性（FP）安全だ: (a)**構文的なルートウォーク**（`CheckRules::InferredParamGuard.rooted?`）── 推論パラメータを*根とする*任意のレシーバー／引数／対象に対する診断が見送られるようにする。インデックス（`param[i]`）、メソッドチェイン（`param.foo.bar`）、そして値を組み合わせる形式（`a rescue b`、`&&`、`||`）を貫いてだ;これは`call.undefined-method`、誤ったアリティ、`argument-type-mismatch`、`possible-nil-receiver`、`call.visibility-mismatch`、`flow.always-truthy-condition`、`flow.unreachable-clause`をガードする。（b）RHSがパラメータを根とするローカル書き込みを通した**粘着的な汚染（taint）伝播**（`eval_local_write`）── これにより`vindex`が印を継承する。印は`with_local`（ナローイング）では意図的に落ちず、真に非パラメータな書き換えによってのみクリアされる。`0 <= v`と`v < n`のあいだの`and`ナローイングが、さもなければそれを剥ぎ取ってしまうからだ。（c）`:inferred_param`種に対する**ユニオン結合（union join）**（ADR-58の種はインターセクション結合を保つ）── マージのどちらか*一方*の分岐で汚染された値は下界だからだ。これは付録の「タダで手に入るなら取る」が見込んでいたよりも多くの伝播の配管作業だが、FPの責務は交渉の余地がなく、各要素はいずれも診断を*抑制する*だけである（オプトインゲート下での偽陰性であって、決して偽陽性ではない）。
+
+*計測（6ターゲット、`check --no-cache`）。*ゲートオフ: masterとバイト単位で同一（mail 26=26、redmine 52=52診断、stashしたベースライン（baseline）と照合して確認済み）。ゲートオン: 上記のガード作業の後、6つすべてで**新規発火ゼロ**（当初の各発火はガードの穴であり、着地前に修正した）、そしてredmineで1件の偽陽性が*除去*された（`app/models/issue.rb:605` ── `allowed_trackers.detect {|t| t.core_fields…}`はもはや`possible-nil-receiver`を発火しない。推論された要素型が`t`の非nilを証明するからだ）。保護リフト（`coverage --protection`、コレクターのオフ対オン、A/B間でキャッシュをクリア）: mastodon `app/models` 0.3044 → 0.3122（+46保護サイト）、redmine `app` 0.3161 → 0.3219（+110サイト）。パフォーマンス（mastodon `app/models`、コールド、3回実行）: ゲートオフは約2.2秒／161MBで、masterから変化なし（約2.5秒、ノイズの範囲内 ── ゲートオフのガードは空の印集合に対するO（1）のno-opだから）;ゲートオンは約3.1秒／191MB ── 1ラウンドのコレクタープリパスが約0.9秒（+40% wall、+19% RSS）で、5%のバンドを大きく超える。付録のとおりプリパスはオプトインの*対価*であり別途報告される;checkウォーク自体は変わっていない（バイト単位で同一のゲートオフ実行がそれを証明する）ので、コストはまるごとWD3コレクターが行うプロジェクト全体の再型付けだ。このコストこそ、ゲートが既定でオフのまま留まり既定オン化が延期される理由である。
 
 ## 帰結
 
