@@ -4,7 +4,7 @@ description: "Imported from rigortype/rigor docs/notes/20260610-user-docs-review
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260610-user-docs-review-battery-design.md"
 sourcePath: "docs/notes/20260610-user-docs-review-battery-design.md"
 sourceSha: "744c691ced890934fb03537176c16bbf78620b8e81724b8d534c576b538ce85f"
-sourceCommit: "295e3c12dfe3c9d1a07f4d1790a907042e240ab3"
+sourceCommit: "5802c990ff226483b4cfa421090900fd2b8ace2c"
 sourceDate: "2026-06-10T23:05:34+09:00"
 sourceLanguage: "ja"
 sidebar:
