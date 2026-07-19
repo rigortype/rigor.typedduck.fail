@@ -28,6 +28,8 @@ hero:
 
 import LanguageChooser from '../../components/LanguageChooser.astro';
 import LatestRelease from '../../components/LatestRelease.astro';
+import ShowcasePanel from '../../components/ShowcasePanel.astro';
+import FeatureGrid from '../../components/FeatureGrid.astro';
 
 <LanguageChooser current="en" />
 
@@ -35,20 +37,24 @@ import LatestRelease from '../../components/LatestRelease.astro';
 
 Rigor runs `rigor check` over your Ruby code and reports real bugs — undefined methods on typed receivers, wrong argument counts, provable nil dereferences — with no type annotations required in source. Every type is inferred from what your code actually produces. Your team never writes a single annotation.
 
-Point `rigor check` at ordinary Ruby — no annotations, no setup — and it reports real bugs:
+A realistic typo, caught with the receiver's *computed value* in the message:
 
 ```ruby
-# lib/demo.rb
-"hello".no_such_method        # typo'd method name
-[1, 2, 3].rotate(1, 2)        # too many arguments
+# demo.rb
+def slug(title)
+  title.downcase.gsub(/\s+/, "-")
+end
+
+s = slug("Hello World")
+s.lenght
 ```
 
-```text
-lib/demo.rb:1:9: error: undefined method `no_such_method' for "hello" [call.undefined-method]
-lib/demo.rb:2:11: error: wrong number of arguments to `rotate' on Array (given 2, expected 0..1) [call.wrong-arity]
+```shell-session inferred
+$ rigor check demo.rb
+demo.rb:7:3: error: undefined method `lenght' for "hello-world"
 ```
 
-Two paths below: one for **getting Rigor into your project**, one for **evaluating how it works and how it compares**.
+Note the receiver: not ``for String`` but **`for "hello-world"`** — Rigor traced the value through the method call and the `downcase.gsub` chain, with no annotations anywhere.
 
 **Get started in two commands:**
 
@@ -56,6 +62,209 @@ Two paths below: one for **getting Rigor into your project**, one for **evaluati
 mise use ruby@4.0
 mise use gem:rigortype
 ```
+
+## See what Rigor sees
+
+Everything below is plain Ruby — no type annotations, no configuration, and no plugin unless one is named. Each ⇒ badge is what [`rigor annotate`](/manual/05-inspecting-types/) prints in the margin as a `#=> …` comment: the inferred type, which in Rigor is often the value itself. Copying a block keeps the plain comment form, ready to paste into the [playground](/playground/).
+
+<ShowcasePanel
+  kicker="Constant folding"
+  title="Inference that computes"
+  link="/handbook/02-everyday-types/"
+  linkText="Everyday types in the handbook →"
+>
+  <Fragment slot="prose">
+No signature on `factorial`, yet the method types as `Integer` — and at the call site, where the argument is known, Rigor folds the whole computation down to the value `120`. Value-pinned recursion is actually unrolled under a fuel budget; results that outgrow it widen gracefully back to `Integer` instead of failing.
+  </Fragment>
+
+```ruby inferred
+def factorial(n)        #=> Integer
+  (1..n).reduce(1, :*)
+end
+
+answer = factorial(5)   #=> 120
+```
+
+```ruby inferred
+class Stars
+  def render(n) = n <= 0 ? "" : "*" + render(n - 1)
+end
+
+Stars.new.render(3)     #=> "***"
+```
+</ShowcasePanel>
+
+<ShowcasePanel
+  kicker="Flow-sensitive narrowing"
+  title="Narrowing, down to instance variables"
+  link="/handbook/03-narrowing/"
+  linkText="Narrowing in the handbook →"
+>
+  <Fragment slot="prose">
+Guards narrow locals — and instance variables too; this exact pattern was six false positives in Redmine before Rigor modeled it. An `else` that raises removes the phantom `nil`: `v` is exactly `"a" | "b"`. Comparisons, regexp matches, and `case/in` patterns narrow the same way.
+  </Fragment>
+
+```ruby inferred
+class Journal
+  def save = true
+end
+
+class Issue
+  def close
+    @current_journal = Journal.new if rand < 0.5   #=> Journal?
+    if @current_journal
+      @current_journal.save    # narrowed to Journal — no possible-nil warning
+    end
+  end
+end
+```
+
+```ruby inferred
+def classify(kind)
+  case kind
+  when 1 then v = "a"
+  when 2 then v = "b"
+  else raise ArgumentError
+  end
+  v   #=> "a" | "b"
+end
+```
+</ShowcasePanel>
+
+<ShowcasePanel
+  kicker="Tuples and hash shapes"
+  title="Per-position, per-key precision"
+  link="/handbook/04-tuples-and-shapes/"
+  linkText="Tuples and shapes in the handbook →"
+>
+  <Fragment slot="prose">
+Arrays of known size are tuples, and element operations stay exact where other checkers hold `Array[Integer]` at best. Hash literals are shapes, so predicates on them are proven — and `Data` values keep full value semantics through `with`.
+  </Fragment>
+
+```ruby inferred
+xs = [10, 20, 30]
+xs.rotate(2)          #=> [30, 10, 20]
+xs.minmax             #=> [10, 30]
+
+config = { host: "example.com", port: 8080 }
+config.key?(:host)    #=> true
+config.empty?         #=> false
+```
+
+```ruby inferred
+Point = Data.define(:x, :y)
+p = Point.new(1, "two")   #=> Point(x: 1, y: "two")
+p.x                       #=> 1
+p.with(x: 99).x           #=> 99
+```
+</ShowcasePanel>
+
+<ShowcasePanel
+  kicker="Blocks"
+  title="Blocks are typed per element"
+  link="/handbook/05-methods-and-blocks/"
+  linkText="Methods and blocks in the handbook →"
+>
+  <Fragment slot="prose">
+A block body is re-typed once per tuple position. Writes to captured locals are tracked soundly, so the canonical build-a-hash idiom infers a precise union-keyed shape — where RBS alone says `untyped`.
+  </Fragment>
+
+```ruby inferred
+[1, "two", :three].map { |x| x.to_s }   #=> ["1", "two", "three"]
+```
+
+```ruby inferred
+table = {}
+[1, 2, 3].each { |x| table[x] = x.to_s }
+table   #=> Hash[1 | 2 | 3, "1" | "2" | "3"]
+```
+</ShowcasePanel>
+
+<ShowcasePanel
+  kicker="Sound under mutation"
+  title="Precision that withdraws itself"
+  link="/type-specification/"
+  linkText="What Rigor guarantees →"
+>
+  <Fragment slot="prose">
+Rigor is precise only while it can prove it. A mutation retracts the flow refinement it invalidates — the final check is *not* folded to `false`, because after `clear` the fact no longer holds. False positives outrank worst-case static reading: precision must never turn into a lie.
+  </Fragment>
+
+```ruby
+arr = gets.to_s.chars
+return if arr.empty?     # arr : non-empty here
+arr.clear                # the mutation retracts that fact
+puts "emptied" if arr.size == 0   # correctly NOT folded to false
+```
+</ShowcasePanel>
+
+<ShowcasePanel
+  kicker="Plugins"
+  title="DSLs and frameworks, understood"
+  link="/manual/plugins/"
+  linkText="The plugin reference →"
+>
+  <Fragment slot="prose">
+The plugin API computes types. rigor-units gives numeric literals physical dimensions; the Rails plugins read your actual `schema.rb`, `routes.rb`, locale YAML, policies, and factories, and answer with did-you-mean diagnostics. 30 production plugins ship in-tree.
+  </Fragment>
+
+```ruby inferred
+# rigor-units
+distance = 100.kilometers
+time     = 2.hours
+distance / time      #=> Speed
+distance + time
+# error: dimensional mismatch: `Distance + Time` is not defined
+```
+
+```ruby inferred
+# rigor-activerecord — checked against db/schema.rb
+User.find_by(emial: "a@example.com")
+# error: `User.find_by(emial: ...)` references unknown column
+#        `emial` on table `users` (did you mean `:email`?)
+```
+</ShowcasePanel>
+
+<ShowcasePanel
+  kicker="sig-gen"
+  title="Inference you can keep"
+  link="/handbook/11-sig-gen/"
+  linkText="Signature generation in the handbook →"
+>
+  <Fragment slot="prose">
+When you do want signatures, Rigor writes them: `rigor sig-gen` emits literal-precise RBS from unannotated defs, and every emitted signature is re-parsed by `rbs` before it is written.
+  </Fragment>
+
+```ruby
+class Widget
+  def n = 42
+end
+
+# rigor sig-gen emits:
+#   def n: () -> 42
+```
+</ShowcasePanel>
+
+## More in the box
+
+<FeatureGrid
+  items={[
+    { href: '/manual/plugins/', title: '30 production plugins' },
+    { href: '/manual/06-baseline/', title: 'Gradual adoption via baseline' },
+    { href: '/manual/03-configuration/', title: 'Severity profiles' },
+    { href: '/manual/11-ci/', title: 'CI templates' },
+    { href: '/manual/09-editor-integration/', title: 'Editor integration' },
+    { href: '/manual/10-mcp-server/', title: 'MCP server' },
+    { href: '/manual/12-caching/', title: 'Warm-run caching' },
+    { href: '/manual/05-inspecting-types/', title: 'annotate, type-of, trace' },
+    { href: '/handbook/07-rbs-and-extended/', title: 'RBS and extended annotations' },
+    { href: '/handbook/10-sorbet/', title: 'Coming from Sorbet' },
+    { href: '/manual/14-rails-quickstart/', title: 'Rails quickstart' },
+    { href: '/playground/', title: 'Browser playground' },
+  ]}
+/>
+
+Two paths below: one for **getting Rigor into your project**, one for **evaluating how it works and how it compares**.
 
 ## Adopting Rigor
 

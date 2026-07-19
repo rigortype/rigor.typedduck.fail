@@ -118,6 +118,16 @@
 
 /* ─── Dark theme ────────────────────────────────────────────────── */
 :root[data-theme='dark'] {
+  /* Carrier / severity tokens are tuned for parchment; lift them so they
+   * hold contrast on the dark code and page surfaces. */
+  --rigor-type-nominal:   #7FA9E0;
+  --rigor-type-constant:  #D98A82;
+  --rigor-type-refined:   #B08FD8;
+  --rigor-error:          #E06C60;
+  --rigor-warning:        #D9A84E;
+  --rigor-info:           #7FA9E0;
+  --rigor-success:        #6FB383;
+
   --sl-color-white:         #F6F4EE;
   --sl-color-gray-1:        #F6F4EE;
   --sl-color-gray-2:        #C7C2B4;
@@ -338,6 +348,59 @@ site-search input {
 }
 /* Parenthesis fallback (<rp>) stays hidden when ruby renders natively. */
 .sl-markdown-content rp { display: none; }
+
+/* ─── Splash-page showcase (index.mdx / ja/index.mdx) ───────────── */
+/* Starlight widens --sl-content-width on hero pages (67.5rem). Keep
+ * running prose at the 45rem Rigor measure, but let the showcase
+ * panels and the feature grid span the full hero container so the
+ * prose + code columns both get a readable width. */
+[data-has-hero] .sl-markdown-content {
+  max-width: none;
+}
+[data-has-hero] .sl-markdown-content > :not(.showcase-panel, .feature-grid) {
+  max-width: 45rem;
+}
+
+/* ─── Inference-hint badges (```ruby inferred showcase blocks) ──── */
+/* Rendered by the `rigorInferenceHints` Expressive Code plugin
+ * (src/lib/ec-inference-hints.mjs): the source keeps CLI-faithful
+ * `#=> value` comments; the plugin hides the marker and wraps the value
+ * in a badge so it reads as an editor inlay hint, not a source
+ * annotation. The `!important` colour overrides are required — Shiki
+ * paints the wrapped token spans with inline styles.
+ * Radius stays at the design system's 4px cap (no full pills). */
+.rigor-hint-marker { display: none; }
+.rigor-hint {
+  display: inline-block;
+  padding: 0 0.5em 0.08em;
+  border-radius: 4px;
+  font-size: 0.85em;
+  line-height: 1.5;
+  background: color-mix(in srgb, var(--rigor-hint-color) 12%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--rigor-hint-color) 30%, transparent);
+}
+.rigor-hint::before {
+  content: '⇒ ';
+  opacity: 0.6;
+}
+.rigor-hint,
+.rigor-hint span {
+  color: var(--rigor-hint-color) !important;
+  font-style: normal !important;
+}
+.rigor-hint--nominal  { --rigor-hint-color: var(--rigor-type-nominal); }
+.rigor-hint--constant { --rigor-hint-color: var(--rigor-type-constant); }
+
+/* Diagnostic severity keywords inside `inferred` blocks: colour the
+ * `error:` / `warning:` / `info:` token the way the CLI does. */
+.rigor-sev,
+.rigor-sev span {
+  font-weight: 600;
+  font-style: normal !important;
+}
+.rigor-sev--error,   .rigor-sev--error span   { color: var(--rigor-error) !important; }
+.rigor-sev--warning, .rigor-sev--warning span { color: var(--rigor-warning) !important; }
+.rigor-sev--info,    .rigor-sev--info span    { color: var(--rigor-info) !important; }
 
 /* ─── MDX utility classes — diagnostic severities ───────────────── */
 /* Use as <span class="r-error">error:</span> etc. inside MDX. */

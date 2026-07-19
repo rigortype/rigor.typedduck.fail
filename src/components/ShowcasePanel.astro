@@ -1,0 +1,109 @@
+---
+/**
+ * One landing-page showcase panel: a mono kicker label, a title, a short
+ * prose lead (slot="prose"), and one or more code blocks (default slot),
+ * laid out side by side when there is room. Used only on the two splash
+ * pages; the surrounding section wrapper is plain MDX.
+ */
+interface Props {
+  kicker: string;
+  title: string;
+  link?: string;
+  linkText?: string;
+}
+
+const { kicker, title, link, linkText } = Astro.props;
+---
+
+<article class="showcase-panel">
+  <header class="showcase-panel__header">
+    <p class="showcase-panel__kicker" aria-hidden="true">{kicker}</p>
+    <h3 class="showcase-panel__title">{title}</h3>
+  </header>
+  <div class="showcase-panel__cols">
+    <div class="showcase-panel__prose">
+      <slot name="prose" />
+      {link && (
+        <p class="showcase-panel__more">
+          <a href={link}>{linkText}</a>
+        </p>
+      )}
+    </div>
+    <div class="showcase-panel__code">
+      <slot />
+    </div>
+  </div>
+</article>
+
+<style>
+  .showcase-panel {
+    border-top: 1px solid var(--sl-color-hairline);
+    padding-top: 1.25rem;
+    margin-top: 2.5rem;
+  }
+
+  .showcase-panel__header {
+    margin-bottom: 0.75rem;
+  }
+
+  .showcase-panel__kicker {
+    font-family: var(--sl-font-mono);
+    font-size: var(--sl-text-xs);
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--sl-color-text-accent);
+    margin: 0 0 0.35rem;
+  }
+
+  .showcase-panel__title {
+    font-family: var(--sl-font-system);
+    font-size: var(--sl-text-xl);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    line-height: var(--sl-line-height-headings);
+    color: var(--sl-color-white);
+    margin: 0;
+  }
+
+  .showcase-panel__cols {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1rem 2rem;
+    align-items: start;
+  }
+
+  /* Side-by-side once the panel is wide enough for a readable code column. */
+  @media (min-width: 60rem) {
+    .showcase-panel__cols {
+      grid-template-columns: minmax(16rem, 20rem) minmax(0, 1fr);
+    }
+  }
+
+  .showcase-panel__prose {
+    font-size: var(--sl-text-base);
+  }
+
+  /* Slotted MDX paragraphs: tighten the default prose margins inside panels. */
+  .showcase-panel__prose :global(p) {
+    margin-top: 0;
+    margin-bottom: 0.75rem;
+  }
+
+  .showcase-panel__more {
+    font-family: var(--sl-font-system);
+    font-size: var(--sl-text-sm);
+    font-weight: 500;
+  }
+
+  .showcase-panel__code :global(.expressive-code:not(:first-child)),
+  .showcase-panel__code :global(pre:not(:first-child)) {
+    margin-top: 0.75rem;
+  }
+
+  /* Code blocks arrive from MDX with the prose top margin; flush them. */
+  .showcase-panel__code :global(.expressive-code:first-child),
+  .showcase-panel__code :global(pre:first-child) {
+    margin-top: 0;
+  }
+</style>

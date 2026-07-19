@@ -255,6 +255,25 @@ The full architecture of this surface is in
 [`../../../AGENTS.md`](../../../AGENTS.md) § "llms.txt, llms-full.txt, and
 per-page Markdown twins".
 
+### Splash showcase drift (manual, needs Nix)
+
+The two splash pages (`src/content/docs/index.mdx` + the `ja/` mirror) print
+real `rigor annotate` / `rigor check` output inside their `<ShowcasePanel>`
+code blocks. A submodule bump can silently change that output (diagnostic
+wording, display forms, plugin messages), so after bumping run
+
+```sh
+node scripts/verify-showcase-examples.mjs
+```
+
+It executes every showcase snippet against the **pinned** submodule through
+the upstream Nix Flake and diffs the page's `#=>` / diagnostic comments
+against actual CLI output (it also enforces EN↔JA code-block lockstep).
+One-time prerequisite: `cd upstream/rigor && nix --extra-experimental-features
+'nix-command flakes' develop --command make setup`. Not part of `pnpm build`
+(the site CI has no Nix); a failure means the page must be re-aligned to the
+new real output — fold that fix into the second commit.
+
 ## Step 4 — translate the stale / missing pages
 
 ### Forward direction (en → ja, the common case)

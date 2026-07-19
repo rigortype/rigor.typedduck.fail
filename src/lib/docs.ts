@@ -89,8 +89,24 @@ export function cleanMarkdown(body: string): string {
   const out: string[] = [];
   let inFence = false;
   let asideOpen = false;
+  let inJsxTag = false;
+  let jsxTagBuf = '';
 
   for (const raw of lines) {
+    // Inside a multi-line JSX component tag: drop attribute lines until the
+    // line that closes the tag (`>` or `/>`). A `title="…"` attribute is the
+    // component's visible heading (e.g. the splash ShowcasePanel) — surface
+    // it as an H3 so the flattened page keeps its structure.
+    if (inJsxTag) {
+      jsxTagBuf += ` ${raw}`;
+      if (/>\s*$/.test(raw)) {
+        inJsxTag = false;
+        const title = jsxTagBuf.match(/\btitle="([^"]*)"/);
+        if (title) out.push(`### ${title[1]}`, '');
+      }
+      continue;
+    }
+
     // Fence boundary: toggle and emit verbatim.
     if (/^\s*(`{3,}|~{3,})/.test(raw)) {
       inFence = !inFence;
@@ -105,6 +121,11 @@ export function cleanMarkdown(body: string): string {
     // Drop MDX scaffolding.
     if (/^\s*import\s.+\bfrom\b.+;?\s*$/.test(raw)) continue;
     if (/^\s*<\/?[A-Z][A-Za-z0-9]*(\s[^>]*)?\/?>\s*$/.test(raw)) continue;
+    if (/^\s*<[A-Z][A-Za-z0-9]*(\s[^>]*)?$/.test(raw)) {
+      inJsxTag = true;
+      jsxTagBuf = raw;
+      continue;
+    }
 
     // Starlight aside open: `:::note` / `:::tip[Heads up]`.
     const open = raw.match(
