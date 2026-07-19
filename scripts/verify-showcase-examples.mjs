@@ -100,7 +100,9 @@ function rigor(args, { cwd, env = {} } = {}) {
 /**
  * Walk the MDX source and return its fenced code blocks in order, each tagged
  * with the kicker of the enclosing <ShowcasePanel> (null before the first
- * panel — the hero area).
+ * panel — the hero area). The fence line may carry a meta string (e.g.
+ * ```ruby inferred — the Expressive Code inlay-hint opt-in); it does not
+ * affect the assertions but is captured for the EN/JA lockstep check.
  */
 function extractBlocks(source) {
   const lines = source.split('\n');
@@ -110,13 +112,13 @@ function extractBlocks(source) {
   for (const line of lines) {
     const kickerMatch = line.match(/^\s*kicker="([^"]+)"/);
     if (kickerMatch) kicker = kickerMatch[1];
-    const fenceMatch = line.match(/^```(\S*)\s*$/);
+    const fenceMatch = line.match(/^```(\w[\w-]*)(?:\s+(\S.*?))?\s*$/);
     if (fenceMatch && !fence) {
-      fence = { lang: fenceMatch[1], kicker, lines: [] };
+      fence = { lang: fenceMatch[1], meta: fenceMatch[2] ?? '', kicker, lines: [] };
       continue;
     }
     if (fence) {
-      if (line === '```') {
+      if (line.trim() === '```') {
         blocks.push({ ...fence, code: fence.lines.join('\n') });
         fence = null;
       } else {
@@ -344,10 +346,11 @@ const jaBlocks = extractBlocks(jaSource);
   if (en.length !== ja.length) {
     fail('EN/JA lockstep', `EN has ${en.length} ruby/shell-session block(s), JA has ${ja.length}`);
   } else {
+    const same = (b, i) => b.code === ja[i].code && b.lang === ja[i].lang && b.meta === ja[i].meta;
     en.forEach((b, i) => {
-      if (b.code !== ja[i].code) fail('EN/JA lockstep', `block ${i + 1} (${b.kicker ?? 'hero'}) differs between locales`);
+      if (!same(b, i)) fail('EN/JA lockstep', `block ${i + 1} (${b.kicker ?? 'hero'}) differs between locales (code, lang, or fence meta)`);
     });
-    if (en.every((b, i) => b.code === ja[i].code)) pass(`EN/JA lockstep: ${en.length} code blocks identical`);
+    if (en.every(same)) pass(`EN/JA lockstep: ${en.length} code blocks identical`);
   }
 }
 

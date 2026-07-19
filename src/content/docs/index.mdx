@@ -49,7 +49,7 @@ s = slug("Hello World")
 s.lenght
 ```
 
-```shell-session
+```shell-session inferred
 $ rigor check demo.rb
 demo.rb:7:3: error: undefined method `lenght' for "hello-world"
 ```
@@ -65,7 +65,7 @@ mise use gem:rigortype
 
 ## See what Rigor sees
 
-Everything below is plain Ruby — no type annotations, no configuration, and no plugin unless one is named. The `#=>` comments are what [`rigor annotate`](/manual/05-inspecting-types/) prints in the margin: the inferred type, which in Rigor is often the value itself. Each example can be pasted straight into the [playground](/playground/).
+Everything below is plain Ruby — no type annotations, no configuration, and no plugin unless one is named. Each ⇒ badge is what [`rigor annotate`](/manual/05-inspecting-types/) prints in the margin as a `#=> …` comment: the inferred type, which in Rigor is often the value itself. Copying a block keeps the plain comment form, ready to paste into the [playground](/playground/).
 
 <ShowcasePanel
   kicker="Constant folding"
@@ -77,7 +77,7 @@ Everything below is plain Ruby — no type annotations, no configuration, and no
 No signature on `factorial`, yet the method types as `Integer` — and at the call site, where the argument is known, Rigor folds the whole computation down to the value `120`. Value-pinned recursion is actually unrolled under a fuel budget; results that outgrow it widen gracefully back to `Integer` instead of failing.
   </Fragment>
 
-```ruby
+```ruby inferred
 def factorial(n)        #=> Integer
   (1..n).reduce(1, :*)
 end
@@ -85,7 +85,7 @@ end
 answer = factorial(5)   #=> 120
 ```
 
-```ruby
+```ruby inferred
 class Stars
   def render(n) = n <= 0 ? "" : "*" + render(n - 1)
 end
@@ -104,7 +104,7 @@ Stars.new.render(3)     #=> "***"
 Guards narrow locals — and instance variables too; this exact pattern was six false positives in Redmine before Rigor modeled it. An `else` that raises removes the phantom `nil`: `v` is exactly `"a" | "b"`. Comparisons, regexp matches, and `case/in` patterns narrow the same way.
   </Fragment>
 
-```ruby
+```ruby inferred
 class Journal
   def save = true
 end
@@ -119,7 +119,7 @@ class Issue
 end
 ```
 
-```ruby
+```ruby inferred
 def classify(kind)
   case kind
   when 1 then v = "a"
@@ -141,7 +141,7 @@ end
 Arrays of known size are tuples, and element operations stay exact where other checkers hold `Array[Integer]` at best. Hash literals are shapes, so predicates on them are proven — and `Data` values keep full value semantics through `with`.
   </Fragment>
 
-```ruby
+```ruby inferred
 xs = [10, 20, 30]
 xs.rotate(2)          #=> [30, 10, 20]
 xs.minmax             #=> [10, 30]
@@ -151,7 +151,7 @@ config.key?(:host)    #=> true
 config.empty?         #=> false
 ```
 
-```ruby
+```ruby inferred
 Point = Data.define(:x, :y)
 p = Point.new(1, "two")   #=> Point(x: 1, y: "two")
 p.x                       #=> 1
@@ -169,11 +169,11 @@ p.with(x: 99).x           #=> 99
 A block body is re-typed once per tuple position. Writes to captured locals are tracked soundly, so the canonical build-a-hash idiom infers a precise union-keyed shape — where RBS alone says `untyped`.
   </Fragment>
 
-```ruby
+```ruby inferred
 [1, "two", :three].map { |x| x.to_s }   #=> ["1", "two", "three"]
 ```
 
-```ruby
+```ruby inferred
 table = {}
 [1, 2, 3].each { |x| table[x] = x.to_s }
 table   #=> Hash[1 | 2 | 3, "1" | "2" | "3"]
@@ -208,7 +208,7 @@ puts "emptied" if arr.size == 0   # correctly NOT folded to false
 The plugin API computes types. rigor-units gives numeric literals physical dimensions; the Rails plugins read your actual `schema.rb`, `routes.rb`, locale YAML, policies, and factories, and answer with did-you-mean diagnostics. 30 production plugins ship in-tree.
   </Fragment>
 
-```ruby
+```ruby inferred
 # rigor-units
 distance = 100.kilometers
 time     = 2.hours
@@ -217,7 +217,7 @@ distance + time
 # error: dimensional mismatch: `Distance + Time` is not defined
 ```
 
-```ruby
+```ruby inferred
 # rigor-activerecord — checked against db/schema.rb
 User.find_by(emial: "a@example.com")
 # error: `User.find_by(emial: ...)` references unknown column

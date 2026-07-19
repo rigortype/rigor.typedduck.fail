@@ -4,6 +4,7 @@ import mdx from '@astrojs/mdx';
 import starlight from '@astrojs/starlight';
 import starlightSidebarTopics from 'starlight-sidebar-topics';
 import remarkCjkFriendly from 'remark-cjk-friendly';
+import { rigorInferenceHints } from './src/lib/ec-inference-hints.mjs';
 
 // Shiki (via Expressive Code) bundles `ruby` but not `rbs`, so a fenced
 // ```rbs block would fall back to unhighlighted `txt` and emit a build
@@ -45,6 +46,9 @@ export default defineConfig({
       title: 'Rigor',
       description: 'Documentation for the Rigor Ruby static analyzer.',
       expressiveCode: {
+        // Splash-page showcase blocks opt in with the `inferred` fence meta
+        // flag to render `#=>` / diagnostic comments as inlay-hint badges.
+        plugins: [rigorInferenceHints()],
         shiki: {
           // Register `rbs` (vendored grammar) and alias the Sorbet `rbi`
           // dialect to the bundled `ruby` grammar. Without these, ```rbs and
