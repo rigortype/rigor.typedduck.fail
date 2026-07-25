@@ -59,9 +59,30 @@ function stripSpacesAroundJp(text) {
   // Matches only a lone `*` + one space (not `**bold` or `*italic*`).
   const BULLET = '\0B\0';
   next = next.replace(/^([ \t]*\*)[ ](?=\S)/gm, `$1${BULLET}`);
+  // Protect the space after a label like `**ステータス:** Accepted`.
+  //
+  // CommonMark's flanking rules make a closing `**` that is preceded by ASCII
+  // punctuation and followed by a non-space fail to close, leaking a literal
+  // `**` into the prose (AGENTS.md, "Emphasis markers next to punctuation",
+  // case 2). `*` is an ASCII_LEFT char, so the strip below would delete exactly
+  // the space that keeps this working.
+  //
+  // BUT this only breaks when what follows is NOT CJK: `remark-cjk-friendly`
+  // (wired into astro.config.mjs) makes the rules CJK-aware, so
+  // `**ステータス:**ドラフト` closes correctly and renders <strong> — verified
+  // against the sibling Rigor site's built HTML, where that shape occurs ~300
+  // times and its leaked-emphasis scanner reports zero. So restrict the guard
+  // to a following non-CJK character; a following CJK char keeps the no-space
+  // rule (rule 1), which is what the house style wants.
+  const LABEL = '\0L\0';
+  next = next.replace(
+    new RegExp(`([:.,;!?)\\]][*_]{1,2})[ ](?!${JP})(?=\\S)`, 'g'),
+    `$1${LABEL}`,
+  );
   next = next.replace(new RegExp(`(${JP})[ ]+(?=${ASCII_RIGHT})`, 'g'), '$1');
   next = next.replace(new RegExp(`(?<=${ASCII_LEFT})[ ]+(${JP})`, 'g'), '$1');
   next = next.split(BULLET).join(' ');
+  next = next.split(LABEL).join(' ');
   return next;
 }
 
@@ -119,6 +140,31 @@ function unescapePipes(text) {
 function transformProse(text) {
   let next = text;
   next = unescapePipes(next);
+
+  // AGENTS.md rule 4: inline code is exempt. Blank out each code span's
+  // CONTENT before the prose rules run, or they reach inside it — the CJK/ASCII
+  // space strip and the full-width-paren rule would rewrite `(slot, key)` into
+  // `（スロット,キー）`, silently corrupting a code sample.
+  //
+  // Two things this must NOT break, both learned the hard way:
+  //
+  //  1. The backtick DELIMITERS stay visible. `` ` `` is in ASCII_LEFT/RIGHT, so
+  //     stripSpacesAroundJp needs them to collapse `日本語 \`code\`` →
+  //     `日本語\`code\``. The blanked content is ASCII `x`, which keeps that
+  //     boundary behaving exactly as real code text would.
+  //  2. A code span MAY cross a newline (`` `severity_profile:\nlenient` ``).
+  //     A line-bounded tokenizer mis-pairs every backtick after such a span and
+  //     silently protects the wrong regions. So spans are tokenized over the
+  //     whole text, and blanking preserves newlines so the line-anchored rules
+  //     (the `^…\*` bullet guard) still see the same line structure.
+  //
+  // Order matters: this runs AFTER unescapePipes, which deliberately DOES reach
+  // inside a span — a `\|` there is a literal backslash, not an escape.
+  const proseCodeSpans = codeSpanContents(next);
+  next = replaceCodeSpanContents(next, (inner) =>
+    inner.replace(/[^\n]/g, 'x'),
+  );
+
   next = stripSpacesAroundJp(next);
 
   const jpRe = new RegExp(JP);
@@ -197,5 +243,55 @@ function transformProse(text) {
     new RegExp(`(？|！)(\\*{0,2})(?=${WORD_START})`, 'g'),
     '$1$2 ',
   );
-  return next;
+
+  // The prose rules never add or remove a backtick, so the spans tokenize back
+  // in the same order and the originals drop straight back in.
+  let restoreAt = 0;
+  return replaceCodeSpanContents(next, () => proseCodeSpans[restoreAt++]);
+}
+
+/**
+ * Offsets of every inline code span's content, tokenized CommonMark-style: a
+ * run of N backticks closed by the next run of exactly N. Spans may cross
+ * newlines. A run with no matching closer is not a span and is skipped.
+ */
+function codeSpanRanges(text) {
+  const ranges = [];
+  let i = 0;
+  while (i < text.length) {
+    if (text[i] !== '`') { i += 1; continue; }
+    let n = 1;
+    while (text[i + n] === '`') n += 1;
+    let j = i + n;
+    let close = -1;
+    while (j < text.length) {
+      if (text[j] === '`') {
+        let m = 1;
+        while (text[j + m] === '`') m += 1;
+        if (m === n) { close = j; break; }
+        j += m;
+      } else {
+        j += 1;
+      }
+    }
+    if (close === -1) { i += n; continue; }
+    ranges.push([i + n, close]);
+    i = close + n;
+  }
+  return ranges;
+}
+
+function codeSpanContents(text) {
+  return codeSpanRanges(text).map(([a, b]) => text.slice(a, b));
+}
+
+function replaceCodeSpanContents(text, fn) {
+  const ranges = codeSpanRanges(text);
+  let out = '';
+  let cursor = 0;
+  for (const [a, b] of ranges) {
+    out += text.slice(cursor, a) + fn(text.slice(a, b));
+    cursor = b;
+  }
+  return out + text.slice(cursor);
 }

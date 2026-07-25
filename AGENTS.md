@@ -121,7 +121,9 @@ page:
    Question and exclamation marks inside code (e.g. `String?` in RBS,
    `!=` in Ruby) stay half-width.
 4. **Code fences and inline code are exempt.** Anything inside a fenced
-   code block or between backticks preserves Western spacing as-is.
+   code block or between backticks preserves Western spacing as-is; the
+   normaliser masks inline code spans so the prose rules never reach into
+   them (see "Code-span punctuation" below).
 5. **YAML frontmatter is exempt.** The `---` block at the top of every
    page is parsed as YAML at build time, so its colons, hyphens, and
    structure must not be normalised. The script splits the file on the
@@ -147,10 +149,30 @@ page:
 node scripts/normalize-ja-typography.mjs src/content/docs/ja/**/*.md
 ```
 
-The script is safe to re-run; it skips fenced code blocks and
-Markdown link URLs. Newly bootstrapped skeleton pages contain the
+The script is safe to re-run; it skips fenced code blocks, inline code
+spans, and Markdown link URLs. Newly bootstrapped skeleton pages contain the
 English body verbatim, so translators must apply the convention as
 they replace the body — the script catches any oversight.
+
+### Code-span punctuation (inline code stays half-width)
+
+Typography rule 4 exempts inline code, but the normaliser used to reach
+inside a `` `code span` `` anyway — its CJK/ASCII space strip and its
+full-width-paren rule rewrote `(slot, key)` into `（スロット,キー）`, silently
+corrupting a code sample. `normalize-ja-typography.mjs` now blanks each span's
+content (tokenised CommonMark-style, so multi-backtick and newline-crossing
+spans are handled) before the prose rules run and restores it afterward, so
+code spans are left byte-for-byte intact. The backtick delimiters themselves
+still collapse against adjacent Japanese (`日本語` `` `code` `` → ``日本語`code` ``),
+exactly as before.
+
+`node scripts/scan-code-span-punctuation.mjs` is the regression guard: it
+reports any inline code span carrying a full-width `（` `）` `、` or a `,` glued
+to a CJK character (the fingerprint of the old bug). It scans the owned JA and
+`translations/` trees (skipping `sourceLanguage: "ja"` upstream pages and
+fenced blocks); the expected baseline is **zero**. Fix a hit by hand against
+the English source — the words stay Japanese, only the punctuation is
+restored.
 
 ### Emphasis markers (`**`/`*`) next to punctuation
 
@@ -165,11 +187,15 @@ into the HTML. Two distinct cases:
 2. **ASCII punctuation immediately before a closing delimiter, followed by
    a non-space** (e.g. `**ステータス:**Accepted`, `*POPL 2008.*occurrence`).
    The plugin does **not** cover this — it breaks in plain English
-   CommonMark too. The no-space sweep above can *introduce* it by deleting
-   the space the English source had. Fix by keeping a space after the
-   label/citation (`**ステータス:** Accepted`, `*POPL 2008.* occurrence` —
-   an ASCII↔ASCII boundary, so the space is correct) or moving the
-   punctuation outside the markers.
+   CommonMark too. The no-space sweep above would otherwise *introduce* it by
+   deleting the space the English source had, so `normalize-ja-typography.mjs`
+   protects the space after a closing `**`/`*` that sits behind ASCII
+   punctuation and is followed by a non-CJK character (a following CJK char is
+   safe — `remark-cjk-friendly` closes it — and keeps the no-space rule).
+   Writing it by hand, keep a space after the label/citation
+   (`**ステータス:** Accepted`, `*POPL 2008.* occurrence` — an ASCII↔ASCII
+   boundary, so the space is correct) or move the punctuation outside the
+   markers.
 
 `node scripts/scan-leaked-emphasis.mjs` (run after `pnpm build`) scans the
 built HTML and reports any `**`/`*` that leaked into rendered prose; the

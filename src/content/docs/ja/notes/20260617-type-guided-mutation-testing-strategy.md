@@ -80,7 +80,7 @@ sidebar:
 
 ## 実プロジェクトでの検証（2026-06-17）
 
-ADR-69のシーム1＋ADR-70（`coverage --protection --mutation --with-tests`）の着地後、3つのサブエージェントが`rigor-survey`のターゲット（faraday／liquid／mail;rglとkramdownはターゲットとして却下──下記の摩擦を参照）に対してこれを検証した。手順: 隔離された`bundle install`、対応する`（ソースファイル、単一のグリーンなテストファイル）`の組、そしてその組にスコープを絞った融合オーバーレイ。
+ADR-69のシーム1＋ADR-70（`coverage --protection --mutation --with-tests`）の着地後、3つのサブエージェントが`rigor-survey`のターゲット（faraday／liquid／mail;rglとkramdownはターゲットとして却下──下記の摩擦を参照）に対してこれを検証した。手順: 隔離された`bundle install`、対応する`(ソースファイル, 単一のグリーンなテストファイル)`の組、そしてその組にスコープを絞った融合オーバーレイ。
 
 **機能は動作し、偽陽性はない**。動的（テスト）軸は本物の型生存者に対して真に発火する: faraday `nested_params_encoder.rb`（test_killed 3）、liquid `lexer.rb:152`の`output.last&.first`（1）、mail `utilities.rb`（11）／`parts_list`（2）／`field_list`（2）。mailの実行は型のみのベースラインに対して厳密に整合し（9件の型キル＋11件のテストキル＋7件の無保護＝27件の生存者）、**テスト軸が型生存者に対してのみ参照されることを証明した**（漸進的短絡は本物だ）。手検証したすべての`unprotected`サイトは本物のカバレッジギャップだった（偽陽性ゼロ）;ファイルは毎回の実行後にバイト単位で復元された（`ensure`が効いている）;JSONの形は正しい。実行ごとのコスト = `type_survivors × スコープを絞ったテスト実行`（これら小さなスイートで約2〜9秒）。
 

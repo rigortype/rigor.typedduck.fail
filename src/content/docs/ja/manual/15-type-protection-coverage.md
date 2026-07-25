@@ -113,7 +113,7 @@ rigor coverage --protection --mutation --with-tests --include-dynamic \
 
 テキストレポートは「Add a type here」の見出しの下に1行の`by tractability:`内訳を出力し、JSONも同じ集計を`tractability_summary`として運びます。`add_rbs`の穴から着手してください。それらは型が実際に捕まえてくれる穴です。
 
-> **`external_gem_without_rbs`は、Rigorが読める場所にgemがインストールされている必要があります。** 未解決の定数がgemに属するかどうかを判断するために、Rigorはそのgemのソースを読みます —— なのでディスク上にgemを見つけられなければなりません。プロジェクトのBundlerインストールツリー（`vendor/bundle`、または`bundler.bundle_path:`で設定したパス;[設定](../03-configuration/)を参照）を探します。gemがアクティブなRubyのデフォルトgemホームに存在するプロジェクト——`--path`を設定していない一般的な`rbenv` / `mise`のケース——は、設計上、隔離されたアナライザーには見えません（[ADR-27](https://github.com/rigortype/rigor/blob/master/docs/adr/27-tool-distribution-model.md)）: `bundler.bundle_path:`でRigorをそこへ向けてください。そうするまで、これらの穴は`add_rbs`ではなく汎用的な`engine_gap`原因を保ちます —— ラベルが欠けているのであって、決して誤っているのではありません。
+> **`external_gem_without_rbs`は、Rigorが読める場所にgemがインストールされている必要があります**。未解決の定数がgemに属するかどうかを判断するために、Rigorはそのgemのソースを読みます —— なのでディスク上にgemを見つけられなければなりません。プロジェクトのBundlerインストールツリー（`vendor/bundle`、または`bundler.bundle_path:`で設定したパス;[設定](../03-configuration/)を参照）を探します。gemがアクティブなRubyのデフォルトgemホームに存在するプロジェクト——`--path`を設定していない一般的な`rbenv` / `mise`のケース——は、設計上、隔離されたアナライザーには見えません（[ADR-27](https://github.com/rigortype/rigor/blob/master/docs/adr/27-tool-distribution-model.md)）: `bundler.bundle_path:`でRigorをそこへ向けてください。そうするまで、これらの穴は`add_rbs`ではなく汎用的な`engine_gap`原因を保ちます —— ラベルが欠けているのであって、決して誤っているのではありません。
 
 Provenance（由来）は精度に加算されるだけです: 型を変えることも、診断を発火させることも、深刻度や保護比率に影響することも決してありません。
 
@@ -122,7 +122,7 @@ Provenance（由来）は精度に加算されるだけです: 型を変える�
 融合ティアは本物の解析と本物のテストスイートを実行するので、キーストロークごとのチェックではなく深掘りとして扱ってください:
 
 - **スコープを絞る**。変更ファイルのデフォルト（パスを与えない）は、実行を差分に比例させ続けます;意図的に広げるには明示的なパスを渡します。
-- **スイートを速く保つ**。コストは`（計測される破壊数） × （スイートの実行時間）`です。速く、よくスコープされたテストコマンドが最大のレバーです。
+- **スイートを速く保つ**。コストは`(計測される破壊数) × (スイートの実行時間)`です。速く、よくスコープされたテストコマンドが最大のレバーです。
 - **`--limit`で上限を設ける**: `--include-dynamic`や大きなファイルで。
 
 ## CIでは

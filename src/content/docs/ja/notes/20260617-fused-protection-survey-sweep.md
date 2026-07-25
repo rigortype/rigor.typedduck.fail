@@ -65,7 +65,7 @@ sidebar:
 - **到達されない条件分岐／エラー分岐** — `rescue`内での`#raise`の再raise（liquid lexer :168、rgl base :155）、バージョンディスパッチのアーム（rubocop-ast `parser_engine`／`ruby_version`のcase、erubi `LoadError` rescue内の`RUBY_VERSION >= '1.9'`）。
 - **Dynamicレシーバーのコラボレータ** — 外部gemのオブジェクト（rgl `PairingHeap::MinPriorityQueue`）、フレームワーク／定数のファサード（`Mail.random_tag`）、ダックタイピングされたパラメータ／ビジター（rubocop-ast `token`、rgl `@visitor`）、そして**メタプログラミングDSL**（mangroveのSorbet `sig { returns … }`／`params`／`override`——型もexampleテストもそれらを行使せず、本物のシグナルだ）。
 
-**4. コスト**。実行ごとのウォール時間は2〜25秒で、`（計測されるミューテーション数） × （スコープされたテストの実行時間）`に比例する。`--limit 40`は`--include-dynamic`を効果的に抑えた;より大きなファイル（`attribute_parser.rb`は39サイト）は約24秒に達した。変更ファイルのスコープ＋速いスコープ済みテスト＋`--limit`が正しいコストのレバーであることを裏づける。
+**4. コスト**。実行ごとのウォール時間は2〜25秒で、`(計測されるミューテーション数) × (スコープされたテストの実行時間)`に比例する。`--limit 40`は`--include-dynamic`を効果的に抑えた;より大きなファイル（`attribute_parser.rb`は39サイト）は約24秒に達した。変更ファイルのスコープ＋速いスコープ済みテスト＋`--limit`が正しいコストのレバーであることを裏づける。
 
 ## 摩擦の分類体系（採用障壁——すべて環境的で、Rigorのバグは1つもない）
 

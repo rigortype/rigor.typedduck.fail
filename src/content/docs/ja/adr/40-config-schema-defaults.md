@@ -68,7 +68,7 @@ config_schema: {
 
 - **値文法の純粋なスーパーセット**。素の種別の値（`"key" => :string`）はデフォルトを記録せず以前と全く同じようにパースされるので、既存のあらゆるマニフェストと未移行のあらゆるプラグインは手つかずです。それらに対して`config_defaults`は`{}`であり、マージはノーオペレーションです。
 - **新しい診断なし、推論変更なし**。これはプラグイン設定のエルゴノミクスであり、型束もどのルールも変えません。偽陽性を導入することはできません。
-- **キャッシュセーフ**。永続キャッシュはプラグインを`（id, version,ユーザー設定ハッシュ）`（[`Cache::Descriptor::PluginEntry`](https://github.com/rigortype/rigor/blob/master/lib/rigor/cache/descriptor.rb)）でキーイングし、マニフェストの`to_h`ではキーイングしません。デフォルトはプラグインの*コード*（そのバージョン）の一部なので、デフォルトを変えることは他のあらゆる振る舞い変更と同様のバージョンバンプです——既存のキーイングが既にそれを捕捉しています。`config_defaults`を`Manifest#to_h`に追加しても`Manifest#==` / `#hash`にのみ影響し、キャッシュキーには決して影響しません。
+- **キャッシュセーフ**。永続キャッシュはプラグインを`(id, version, ユーザー設定ハッシュ)`（[`Cache::Descriptor::PluginEntry`](https://github.com/rigortype/rigor/blob/master/lib/rigor/cache/descriptor.rb)）でキーイングし、マニフェストの`to_h`ではキーイングしません。デフォルトはプラグインの*コード*（そのバージョン）の一部なので、デフォルトを変えることは他のあらゆる振る舞い変更と同様のバージョンバンプです——既存のキーイングが既にそれを捕捉しています。`config_defaults`を`Manifest#to_h`に追加しても`Manifest#==` / `#hash`にのみ影響し、キャッシュキーには決して影響しません。
 
 ## 実装スライス
 
