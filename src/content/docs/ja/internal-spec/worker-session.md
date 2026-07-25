@@ -3,8 +3,8 @@ title: "ワーカーセッションプロトコル"
 description: "rigortype/rigor docs/internal-spec/worker-session.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/worker-session.md"
 sourcePath: "docs/internal-spec/worker-session.md"
-sourceSha: "ec86710857d42926516ee9e29b318ea5f4a77ff2a836f76915a1dbdbde28fe3f"
-sourceCommit: "18ef11c9f393b495cd9a6ed7277846069c08c516"
+sourceSha: "3e02202295e96db31c774814a48a1cce661ddc5add13381be45a6a32cb5bc6a3"
+sourceCommit: "e3eb424c3c88035e453246710c8df3dc5cc8e7e1"
 translationStatus: "translated"
 sidebar:
   order: 3050
@@ -26,7 +26,8 @@ sidebar:
 - `plugin_blueprints` ── `Array<Rigor::Plugin::Blueprint>`
   （`Ractor.shareable?`）。ワーカーごとのプラグインインスタンスはこれらから具体化されます（[`plugin.md`](../plugin/#concurrency-and-value-object-shareability-adr-15)を参照）。
 - `explain` ── Boolean。
-- `synthetic_method_index` / `project_patched_methods` / `project_scope_seed` ── 任意、デフォルトは`nil` / `{}`。これらは`Ractor.shareable?`では**ありません**（シードテーブルがPrismのdefノードを保持するため）。そのためRactorプールはこれらを未設定のままにします。forkバックエンド（親プロセスでfork前にセッションを構築する）はランナーのプロジェクトスキャン結果をここに通し、ファイルごとの推論が逐次パスと正確に一致するようにします。`project_scope_seed`はランナーのクロスファイル事前パステーブル群（`Runner#project_scope_seed_tables` ── 逐次パスで`seed_project_scope`が適用するのと同じテーブル群）です。これを渡さずに構築したセッションは、プロジェクト内の他ファイルで定義されたメソッドへの呼び出しを解決できず、偽の`call.undefined-method`診断を出して等価性契約に違反します。
+- `record_dependencies` ── Boolean（デフォルト`false`）。設定されると、`#analyze`は各ファイルの解析をADR-46の`DependencyRecorder`ウィンドウでラップし、ワーカーがそのファイルのクロスファイル読み込みを捕捉して、`#drain_reporters`と並んで`#drain_dependencies`で排出します。レコーダー自身の無効化時のファストパスにより、未設定のケースはコストゼロです。
+- `synthetic_method_index` / `project_patched_methods` / `project_scope_seed` ── 任意、デフォルトは`nil` / `{}`。これらは`Ractor.shareable?`では**ありません**（シードテーブルがPrismのdefノードを保持するため）。そのためRactorプールはこれらを未設定のままにします。forkバックエンド（親プロセスでfork前にセッションを構築する）はランナーのプロジェクトスキャン結果をここに通し、ファイルごとの推論が逐次パスと正確に一致するようにします。`source_files`はセッションの環境が構築される対象となる解析対象ファイル集合で、同じ等価性の理由からスレッド化されます。`project_scope_seed`はランナーのクロスファイル事前パステーブル群（`Runner#project_scope_seed_tables` ── 逐次パスで`seed_project_scope`が適用するのと同じテーブル群）です。これを渡さずに構築したセッションは、プロジェクト内の他ファイルで定義されたメソッドへの呼び出しを解決できず、偽の`call.undefined-method`診断を出して等価性契約に違反します。
 
 ## 所有権の境界
 
@@ -34,7 +35,7 @@ sidebar:
 
 - ワーカーごとの`Store`に束縛された`Rigor::Plugin::Services`。
 - ブループリントから具体化された`Rigor::Plugin::Registry`。すべてのプラグインインスタンスと、その可変な実行ごとのアキュムレータ（探索インデックス、到達可能性集合）を含む。
-- `RbsExtended::Reporter`と、依存元の`BoundaryCrossReporter`（どちらもMutexを持ち、意図的にワーカーごと。ランナーはプール後に`#drain_reporters`でそれらのエントリーをマージする）。
+- `RbsExtended::Reporter`と、依存元の`BoundaryCrossReporter`（どちらもMutexを持ち、意図的にワーカーごと。ランナーはプール後に`#drain_reporters`でそれらのエントリーを、`#drain_dependencies`で記録された依存関係をマージする）。
 - ワーカーごとのレポーターを通した`Rigor::Environment`。これにより推論／ディスパッチからのレポーター書き込みがワーカー自身の状態に蓄積されます。
 
 プラグインの`#prepare`は**構築時に一度**実行され、各ワーカーが最初の`#analyze`呼び出し前にウォームになるようにします。`prepare`からのraiseはすべて`#prepare_diagnostics`に捕捉され、ワーカーを中断する代わりにランナーがファイルごとのストリームと並べて顕在化させます。

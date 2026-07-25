@@ -3,15 +3,15 @@ title: "公開APIの安定性境界"
 description: "rigortype/rigor docs/internal-spec/public-api.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/public-api.md"
 sourcePath: "docs/internal-spec/public-api.md"
-sourceSha: "8bf43c844414cb52cde748465e9dcf5345462c8b0bdb9ca899aecd06e373897f"
-sourceCommit: "212f2c491920cc5c39a12d75aee385cb6c51fa0c"
+sourceSha: "0bea773e9834170b2f5f0768d2fff5f765d4d5644c6e6db262859c167785016c"
+sourceCommit: "e3eb424c3c88035e453246710c8df3dc5cc8e7e1"
 sourceDate: "2026-06-13T18:59:34+09:00"
 translationStatus: "translated"
 sidebar:
   order: 3050
 ---
 
-ステータス：**アクティブ（v0.1.0契約は出荷済み;v0.2.0へ向けて安定化中）**。プラグイン契約（contract）が設計される対象となるネームスペースをリストし、[パブリックAPIドリフトスペック](https://github.com/rigortype/rigor/blob/master/spec/rigor/public_api_drift_spec.rb)を通じてそれらを固定します。v0.1.0プラグイン契約は出荷され、`0.1.x`プレビューラインがサーフェスを拡張してきました（クロスプラグインファクト、`signature_paths:`、`open_receivers:`、`protocol_contracts:`、`source_rbs_synthesizer:`）;v0.2.0は、このサーフェスが外部の`rigor-*` gem向けに安定化される最初のラインです。（`rigor <command>` CLI自体 — `mcp`、`triage`、`baseline`、`plugin`、`skill`のような新しいサブコマンドを含む — は以下の除外リストに従って内部の配管にとどまります;そのユーザー向け契約は`docs/manual/`にあります。）ドリフトスペックは偶発的なシグネチャ変更を検出するため、すべての変更は意図的でレビュー可能なままです。
+ステータス：**アクティブ — 列挙されたサーフェスは`v0.2.0`評価試行の下にあります**（[`docs/compatibility.md`](../../compatibility/) §3つの段階: `v0.2.0`から試行としてコミットされ、`v1.0.0`で拘束的になる）。プラグイン契約（contract）が設計される対象となるネームスペースをリストし、[パブリックAPIドリフトスペック](https://github.com/rigortype/rigor/blob/master/spec/rigor/public_api_drift_spec.rb)を通じてそれらを固定します。v0.1.0プラグイン契約は出荷され、`0.1.x`プレビューラインがサーフェスを拡張してきました（クロスプラグインファクト、`signature_paths:`、`open_receivers:`、`protocol_contracts:`、`source_rbs_synthesizer:`）;`v0.2.0`は、外部の`rigor-*` gem向けにこのサーフェスのマイナー非破壊を誓約した最初のラインでした。（`rigor <command>` CLI自体 — `mcp`、`triage`、`baseline`、`plugin`、`skill`のような新しいサブコマンドを含む — は以下の除外リストに従って内部の配管にとどまります;そのユーザー向け契約は`docs/manual/`にあります。）ドリフトスペックは偶発的なシグネチャ変更を検出するため、すべての変更は意図的でレビュー可能なままです。
 
 このドキュメントは、固定されたネームスペースの**プラグイン作成者ビュー**です。プロジェクト全体の互換性コミットメント——完全な公開サーフェス（CLI、`.rigor.yml`キー、診断語彙、ベースライン＋キャッシュ形式、`RBS::Extended`文法）と、それが拘束する試行後フリーズの軌道——は[`docs/compatibility.md`](../../compatibility/)（[ADR-50](../../adr/50-release-engineering-and-stability-strategy/) WD1サーフェスドキュメント）にあります;このファイルは、その傘下のネームスペースレベルの詳細です。
 
@@ -49,11 +49,11 @@ ADR-2はRigorをプラグインアーキテクチャにコミットさせてお�
 
 ## 意図的にまだロックされていないもの
 
-- **`Rigor::FlowContribution`** — v0.0.9（`c48f05f`）で出荷されたバンドル構造体；スライス3が`#to_element_list`を追加し、パブリックAPIドリフトスペックを通じてバンドル形状を固定しました。プラグイン作成者はパブリックリーダー/`to_h`形式を通じてバンドルを消費し、v0.1.0が確定するまでスロットごとの値形状（`PredicateEffect`・`AssertEffect`など）を直接固定するのは避けてください。
+- **`Rigor::FlowContribution`** — v0.0.9（`c48f05f`）で出荷されたバンドル構造体；スライス3が`#to_element_list`を追加し、パブリックAPIドリフトスペックを通じてバンドル形状を固定しました。プラグイン作成者はパブリックリーダー/`to_h`形式を通じてバンドルを消費し、スロットごとの値形状（`PredicateEffect`・`AssertEffect`など）を直接固定するのは避けてください——v0.1.0が確定させたのはバンドルであって、それらではありません。
 - **`Rigor::FlowContribution::Element` / `MergeResult` / `Conflict` / `Merger`** — スライス3のサーフェス；ドリフトスペックによって固定済み。平坦化とマージポリシーは[`flow-contribution-merger.md`](../flow-contribution-merger/)に従って規範的です。
-- **`Rigor::Analysis::Diagnostic`** — `source_family`と`qualified_rule`はv0.0.8（`ed9ae0a`）で追加されましたが、v0.1.0プラグインの可観測性ストーリーが確定するにつれてルールごとの診断識別子はまだ流動的です。
-- **`Rigor::Cache::*`** — プロデューサー向けの`Store#fetch_or_compute(producer_id:, params:, descriptor:, serialize:, deserialize:)` APIは最も安定したレイヤーであり、プラグイン側キャッシュプロデューサーが使用するものです。ディスクリプタスキーマはADR-6とスライス分類設計ドキュメントによって固定されています；プラグイン作成者は新しいスロット種類ではなく`PluginEntry`行を追加すべきです。
-- **`Rigor::RbsExtended`ディレクティブパーサ** — パブリックリーダーメソッド（`read_predicate_effects`・`read_assert_effects`・`read_return_type_override`・`read_param_type_overrides`・`read_flow_contribution`）は現在安定した形状です；エフェクトごとのデータキャリア（carrier）（`PredicateEffect`・`AssertEffect`・`ParamOverride`）は`FlowContribution`と同じv0.1.0の精緻化の対象です。
+- **`Rigor::Analysis::Diagnostic`** — `source_family`と`qualified_rule`はv0.0.8（`ed9ae0a`）で追加されました;ルールごとの識別子自体は固定されたサーフェスの外にとどまり、`v1.0.0`でパブリック語彙としてフリーズします（ADR-50）。これが`Rigor::Analysis::Diagnostic`がドリフトスペックの外にとどまる理由です。
+- **`Rigor::Cache::*`** — プロデューサー向けの`Store#fetch_or_compute(producer_id:, params:, descriptor:, serialize:, deserialize:)` APIは最も安定したレイヤーであり、プラグイン側キャッシュプロデューサーが使用するものです（[plugin-cache-producers.md](../plugin-cache-producers/)）。ディスクリプタスキーマはADR-6とスライス分類設計ドキュメントによって固定されています；プラグイン作成者は新しいスロット種類ではなく`PluginEntry`行を追加すべきです。
+- **`Rigor::RbsExtended`ディレクティブパーサ** — パブリックリーダーメソッド（`read_predicate_effects`・`read_assert_effects`・`read_return_type_override`・`read_param_type_overrides`・`read_flow_contribution`）は現在安定した形状です；エフェクトごとのデータキャリア（carrier）（`PredicateEffect`・`AssertEffect`・`ParamOverride`）は`FlowContribution`のスロットごとの形状と同じ理由で未固定です。
 - **`Rigor::Plugin::*`** — 登録/ロードサーフェスはv0.1.0スライス1で到着しました。インスタンスレベルの`Rigor::Plugin::Base#init`フックは現在安定しています；スライス3〜6で追加されるプロトコルフックは`Base`のパブリックメソッドセットを精緻化するかもしれません。プラグイン作成者はv0.1.0の開発中は特定のRigorバージョンにgemを固定すべきです。
 
 ## 内部サーフェス（パブリックではない）

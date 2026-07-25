@@ -3,15 +3,15 @@ title: "ベースライン"
 description: "rigortype/rigor docs/manual/06-baseline.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/06-baseline.md"
 sourcePath: "docs/manual/06-baseline.md"
-sourceSha: "76ded8449528fc580b927bc53189f05635543ab38d5f658e2b0d6454f575e8ff"
-sourceCommit: "ee19f4b60fca3bd0ceb677ebb395593203f2ea48"
+sourceSha: "991cbc4e017cbb4cc36f231d001da1269c35443f63f90ea64e19a1bebabc8c0d"
+sourceCommit: "e3eb424c3c88035e453246710c8df3dc5cc8e7e1"
 sourceDate: "2026-06-13T17:48:47+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9006
 ---
 
-**ベースライン**（baseline）は、プロジェクトがすでに抱えている診断を記録し、`rigor check`がそれらについて黙り、*新しい*ものだけを表面化できるようにします。既存のコードベースにRigorを導入するための実用的な入り口です: チェックがCIで役立つ前に診断をゼロにする必要はありません。
+**ベースライン**（baseline）は、プロジェクトがすでに抱えている診断を記録し、`rigor check`がそれらについて黙り、*新しい*ものだけを表面化できるようにします。既存のコードベースにRigorを導入するための実用的な入り口です: チェックがCIで役立つ前に診断をゼロにする必要はありません。これはまた、オンボーディング時に[`rigor-project-init`スキル](../08-skills/)があなたのためにスナップショットするものでもあります（設計は[ADR-22](../../adr/22-baseline-and-project-onboarding/)）。
 
 ## ベースラインファイル
 
@@ -66,6 +66,23 @@ baseline: .rigor-baseline.yml
 `generate`と`regenerate`は`--match-mode=rule`（デフォルト: ファイル×ルール単位で1バケット）または`--match-mode=message`（メッセージごとに1バケット: より精密だがチャーンが増える）を受け付けます。
 
 `--match-mode=message`は各バケットを**レンダリングされたメッセージテキスト**（表示されるレシーバー型などの詳細を含む）でキーにします。これにより同じルールの2つの診断を1行の中で区別する精度は上がりますが、**壊れやすく**もなります: Rigorのアップグレードがメッセージの言い回しを変えたり型の表示方法を変えたりすると、キーが一致しなくなり、以前ベースラインに入れた診断が新規のものとして再浮上します。`--match-mode=rule`は`(file, rule)`だけをキーにするため、メッセージの言い回し変更の影響を受けません。メッセージ単位の識別が特に必要でない限りはこちらを優先し、Rigorをアップグレードした後は`message`モードのベースラインを`regenerate`することを見込んでおいてください。
+
+## アドホックな形式 —— `rigor diff`
+
+管理されたベースラインだけが、*新しい*診断だけでCIを失敗させる方法ではありません。軽量な代替手段は、プレーンなJSONスナップショットをリポジトリに保持し、それに対して明示的に比較します:
+
+```sh
+# 一度だけ: 現在の診断サーフェスをキャプチャする。
+rigor check --format=json > rigor.baseline.json
+git add rigor.baseline.json
+
+# PRごと: コミットされたスナップショットと比較する。
+rigor diff rigor.baseline.json
+```
+
+[`rigor diff`](../02-cli-reference/#rigor-diff)は、スナップショットに存在しないすべての診断に`+ NEW`行を、それ以降に解消されたすべての診断に`- FIXED`行を表示し、何か新しいものがあれば`1`で終了します —— そのため、違反を追加したPRは失敗する一方で、記録された既存のものは黙ったままになります。エディタやダッシュボードとの統合のために`--format=json`が利用できます。行を修正するたびに同じ`rigor check --format=json`のリダイレクトでスナップショットを再生成すれば、プロジェクトは単調に引き締まっていきます。
+
+管理されたベースラインとの違いは、知識がどこに存在するかです: `rigor diff`はCIスクリプトが実行しなければならない別個のステップですが、`baseline:`ファイルは`rigor check`自体を記録された診断についてクリーンに終了させます。生のJSONスナップショットを特に必要とするのでない限り、管理された形式を優先してください。
 
 ## ベースラインを削減する
 

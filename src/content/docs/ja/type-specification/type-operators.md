@@ -3,8 +3,8 @@ title: "型演算子"
 description: "rigortype/rigor docs/type-specification/type-operators.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/type-specification/type-operators.md"
 sourcePath: "docs/type-specification/type-operators.md"
-sourceSha: "f9b25e6900592e29ed4fcc619c7fdca82a958da2e149cbe0fb71990d6dcfa10f"
-sourceCommit: "4c03f62d04f594030bd79aa00f3a5978e0457d4c"
+sourceSha: "be4ec178930af9276d5cd297ab9662610edd387d4effede1a0cd2f7b0c7642e9"
+sourceCommit: "e3eb424c3c88035e453246710c8df3dc5cc8e7e1"
 translationStatus: "translated"
 sidebar:
   order: 2050
@@ -13,6 +13,8 @@ sidebar:
 Rigorの型演算子サーフェス（surface）はRBS互換演算子（`|`、`&`、`T?`、`[…]`）を、負のファクト（fact）、差分型、シェイプ（shape）投影に使われる内部形式と組み合わせます。
 
 この文書はそれらの演算子のセマンティクス、診断表示契約（contract）、および負のファクト診断を読みやすくするための省略ルールを定義します。リファインメント（refinement、篩型とも）と型関数の予約済み組み込み名は[imported-built-in-types.md](../imported-built-in-types/)にカタログ化されています。これらの演算子が存在する束は[value-lattice.md](../value-lattice/)にあります。
+
+内部形式は`.rbs`内にコメント拡張（`%a{rigor:v1:…}`）として記述され、[`lib/rigor/builtins/imported_refinements.rb`](https://github.com/rigortype/rigor/blob/master/lib/rigor/builtins/imported_refinements.rb)によって解析されます。文法を拡張するには、そのパーサと本ページの行を同じコミットで編集する必要があります。
 
 ## 演算子カタログ
 

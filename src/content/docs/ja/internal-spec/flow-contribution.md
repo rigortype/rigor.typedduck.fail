@@ -3,14 +3,14 @@ title: "フロー寄与バンドル — `Rigor::FlowContribution`"
 description: "rigortype/rigor docs/internal-spec/flow-contribution.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/flow-contribution.md"
 sourcePath: "docs/internal-spec/flow-contribution.md"
-sourceSha: "43ccdaba6a8b10a4889deb8bafeae644d1dac15438dbdad4839c5c3a1947568e"
-sourceCommit: "450a3016ca812067f6baa96e415442ed936ad49a"
+sourceSha: "1cd59e4d26e9e70297250413df15dec8050a0cc7ae0dd11c5007b4c182ffd4cc"
+sourceCommit: "e3eb424c3c88035e453246710c8df3dc5cc8e7e1"
 translationStatus: "translated"
 sidebar:
   order: 3050
 ---
 
-ステータス: **公開リード形（v0.0.9グループB）**。このドキュメントは、内部のフローコントリビューションプロデューサー（組み込みナローイング（narrowing）ルールおよび`RBS::Extended`アノテーション）が単一の呼び出しエッジで運ぶバンドル形を固定します。これらのバンドルを消費するマージポリシーは[ADR-2 § "Plugin Contribution Merging"](../../adr/2-extension-api/)が所有します。v0.0.9ではバンドル構造体のみを提供し、マージャーはv0.1.0でプラグインAPIとともに導入されます。
+ステータス: **公開リード形（v0.0.9グループB）**。このドキュメントは、内部のフローコントリビューションプロデューサー（組み込みナローイング（narrowing）ルールおよび`RBS::Extended`アノテーション）が単一の呼び出しエッジで運ぶバンドル形を固定します。これらのバンドルを消費するマージポリシーは[ADR-2 § "Plugin Contribution Merging"](../../adr/2-extension-api/)が所有します。v0.0.9ではバンドル構造体のみを出荷しました;マージャーはv0.1.0でプラグインAPIとともに着地し、[flow-contribution-merger.md](flow-contribution-merger/)で規定されています。
 
 **プラグインはこのバンドルをもう構築しません**。ADR-37はプラグイン作者向けのバンドルフックを、狭い`dynamic_return`（素の`Type`を返す）と`narrowing_facts`（ファクト（fact）を返す）のDSLに置き換え、ADR-52 WD3は基底の`flow_contribution_for`フックを完全に削除しました。プラグインの`dynamic_return`の結果は、マージャーに到達する前に**エンジン**（`MethodDispatcher#collect_gated_contributions`）が`FlowContribution`にラップします。したがってこのバンドルは、プラグイン作者向けのサーフェス（surface）ではなく、マージティア用のアナライザー内部キャリア（carrier）です。
 
@@ -52,7 +52,7 @@ contribution = Rigor::FlowContribution.new(
 | `exceptional` | エフェクトタグまたは`nil` | 返らない・例外を投げる・到達不能エフェクト。 |
 | `role_conformance` | `Array`または`nil` | コントリビューションが提供するケイパビリティ（capability）ロール適合ファクト。 |
 
-コレクションスロット内の値のシェイプ（shape）は、v0.0.9では意図的に固定されていません。v0.1.0で導入されるマージャーがタグ付き要素フォームを定義します。それまでの間、コントリビューションは組み込みルールをすでに動かしているアナライザー内部のナローイング表現を自由に使用できます。
+コレクションスロット内の値のシェイプ（shape）は、v0.0.9では意図的に固定されませんでした。v0.1.0のマージャーが、値が展開されるタグ付き要素フォームを定義します（`#to_element_list`、§ *要素リストへの展開*）;スロット値そのものは依然として、組み込みルールを動かすアナライザー内部のナローイング表現です。
 
 ## 来歴（Provenance）
 

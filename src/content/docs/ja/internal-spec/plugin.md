@@ -1,16 +1,16 @@
 ---
-title: "プラグインの登録／読み込み（スライス1）"
+title: "プラグインの登録と読み込み"
 description: "rigortype/rigor docs/internal-spec/plugin.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/plugin.md"
 sourcePath: "docs/internal-spec/plugin.md"
-sourceSha: "5264bc03d57d6342cf47d64ae73205b78f77c1dc60a6715d8a9f478a1f63d7f6"
-sourceCommit: "d88effcae8b2998d1f4f40432e6d4f20ce17946e"
+sourceSha: "6ac3b9be4fe98a97e7e29d4e63d85199a8880ecca89cc6ae1cc236baa3f4cd17"
+sourceCommit: "e3eb424c3c88035e453246710c8df3dc5cc8e7e1"
 translationStatus: "translated"
 sidebar:
   order: 3050
 ---
 
-ステータス：**v0.1.0スライス（slice）1規範的**。プラグイン作成者がプラグインの**登録**・**マニフェスト宣言**・`Analysis::Runner`による**ロード**に関して使用するパブリックサーフェス（surface）を固定します。貢献プロトコル（動的返却・型指定・動的リフレクション）は後続のv0.1.0スライスで追加されるため、ここでは定義しません。
+ステータス：**規範的**。プラグイン作成者がプラグインの**登録**・**マニフェスト宣言**・`Analysis::Runner`による**ロード**・ADR-37の狭いプロトコルを通じた**貢献**に関して使用するパブリックサーフェス（surface）を固定します。創成期の貢献プロトコル（動的返却・型指定・動的リフレクション）はすべて`0.1.x`サイクルを通じて着地しました;`dynamic_return` / `narrowing_facts`は下記で仕様化され、`flow_contribution_for`はADR-52 WD3で除去されました。
 
 拘束力のある設計サーフェスは[ADR-2](../../adr/2-extension-api/)です；v0.1.0の準備状況マップは[`docs/design/20260505-v0.1.0-readiness.md`](../../design/20260505-v0.1.0-readiness/)にあります。この仕様がADR-2と矛盾する場合、ADRが優先されます。
 
@@ -52,7 +52,7 @@ end
 
 クラスレベルの`manifest(**fields)`はクラス定義時に一度マニフェストを宣言します；引数なしで呼び出すと、キャッシュされた`Manifest`を返します。インスタンスレベルの`manifest`はクラスに委譲します。
 
-`#initialize(services:, config: {})`は注入されたサービスとユーザーのconfigの凍結コピーを格納します。`#init(services)`はプラグインがサービスコンテナから状態を接続するために使用するオーバーライドフックで、デフォルト実装はno-opです。
+`#initialize(services:, config: {})`は注入されたサービスと、マニフェストの宣言されたデフォルトをその**下に**マージしたユーザーのconfigの凍結コピーを格納します（下記の_宣言されたconfigデフォルト_を参照）。`#init(services)`はプラグインがサービスコンテナから状態を接続するために使用するオーバーライドフックで、デフォルト実装はno-opです。
 
 `Base`の完全なサーフェスはRBS（[`sig/rigor/plugin/base.rbs`](https://github.com/rigortype/rigor/blob/master/sig/rigor/plugin/base.rbs)）で宣言され、**自己チェック**されます。すなわちバンドルされたプラグイン／サンプルlibツリーが`rigor check`（`make verify`とCIにチェーンされた`make check-plugins`ゲート）を通ります。プラグインの部分型が継承する契約呼び出し（`manifest.…`・`io_boundary.…`）を`Base`のRBSに対して解決する[ADR-43](../../adr/43-rbs-complete-ancestor-resolution/)のRBS完全祖先解決と組み合わせることで、契約サーフェスを誤用するプラグイン（契約が宣言しないメソッドや、名前変更されたヘルパーを呼ぶプラグイン）は`call.undefined-method`でビルドを失敗させます。補完的な構造スペック（[`spec/integration/plugin_contract_conformance_spec.rb`](https://github.com/rigortype/rigor/blob/master/spec/integration/plugin_contract_conformance_spec.rb)）がもう半分をカバーします。すなわち各フックのオーバーライド（`init` / `prepare` / `diagnostics_for_file`）はエンジンの呼び出しでMUST呼び出し可能であり続けます ── エンジンが供給するパラメータを落とすナローイングオーバーライドは失敗します（パラメータ／アリティのリスコフ互換性、ADR-5）。
 
@@ -60,7 +60,7 @@ end
 
 #### ノードスコープのルール — `node_rule` / `#node_rule_diagnostics`（ADR-37）
 
-`node_rule(node_type) { |node, scope, path, file_context, context| … }`は、ノードスコープの診断ルールを宣言するクラスレベルのDSL（`producer`スタイルの形状）です。エンジンは解析される各ファイルのASTを**一度**走査し、`node.is_a?(node_type)`となるすべてのノードをそのルールへディスパッチします。そのためプラグイン作成者はチェックを書き、走査は決して書きません——これがプラグインから手書きの`def walk` / `compact_child_nodes.each`の再帰を取り除けるようにするものです。ブロックは`instance_exec`を通して実行され（そのため`self`はプラグインインスタンス——`config`・`services`・`services.fact_store`・`diagnostic`がすべてスコープ内）、`(node, scope, path, file_context, context)`を受け取り、`Array<Rigor::Analysis::Diagnostic>`を返します（何も発火させない場合は空）。`node_type`は`Prism::Node`サブクラスでなければなりません（MUST）。型ごとの複数のルールは宣言順に実行されます。エンジンはそれらをインスタンスメソッド`#node_rule_diagnostics(path:, scope:, root:)`を通して呼び出し、ランナーは同じ`plugin.<id>`スタンプとプラグインごとの例外隔離のもとで`#diagnostics_for_file`と並んでそれを呼びます;ルールを宣言しないプラグインはゼロコストです。
+`node_rule(node_type) { |node, scope, path, file_context, context| … }`は、ノードスコープの診断ルールを宣言するクラスレベルのDSL（`producer`スタイルの形状）です。エンジンは解析される各ファイルのASTを**一度**走査し、`node.is_a?(node_type)`となるすべてのノードをそのルールへディスパッチします。そのためプラグイン作成者はチェックを書き、走査は決して書きません——これがプラグインから手書きの`def walk` / `compact_child_nodes.each`の再帰を取り除けるようにするものです。ブロックは`instance_exec`を通して実行され（そのため`self`はプラグインインスタンス——`config`・`services`・`services.fact_store`・`diagnostic`がすべてスコープ内）、`(node, scope, path, file_context, context)`を受け取り、`Array<Rigor::Analysis::Diagnostic>`を返します（何も発火させない場合は空）。`node_type`は`Prism::Node`サブクラスでなければなりません（MUST）。型ごとの複数のルールは宣言順に実行されます。エンジンはそれらを1つの共有された実行ごとのウォーク`Plugin::Registry#node_rule_walk`（[`NodeRuleWalk`](https://github.com/rigortype/rigor/blob/master/lib/rigor/plugin/node_rule_walk.rb)、ADR-52 WD4）を通じてディスパッチします: ファイルごとの単一の走査がすべてのnode-ruleプラグインに供され、ランナーは各プラグインのバケットをその`#diagnostics_for_file`の結果と、同じ`plugin.<id>`スタンプとプラグインごとの例外隔離のもとでマージします;ルールを宣言しないプラグインはゼロコストです。インスタンスメソッド`#node_rule_diagnostics(path:, scope:, root:)`は同等の単一プラグインエントリーポイントとして`Base`に残っています（ドリフト固定済み、プラグインスペックが使用）が、エンジンはもはやそれを経由してルーティングしません。
 
 **5番目**のブロック引数`context`（ADR-37スライス1d）は、ノードのレキシカルな祖先チェーンを担う`Rigor::Plugin::NodeContext`です——ADR-2が約束した`ContextInfo`です。これは`#ancestors`（完全なチェーン、最も外側が先、ノード自体を除く）に加えて、便利メソッド`#enclosing_def`・`#enclosing_module`・`#enclosing_block(name)`を公開します。ルールは、チェックがノードの*位置*に依存するときにそれを読みます: `before_action` / `render`が属する内包コントローラー（`rigor-actionpack`は名前空間修飾されたコントローラー名を`context.ancestors`から再導出する）、マッチャーが配置される`describe <Model>`（`rigor-shoulda-matchers`）、または遅延`t('.key')`が展開されるアクション（`rigor-rails-i18n`）など。より少ないパラメータを取るブロックは、末尾の引数を単に無視します（後方互換）。
 
@@ -76,7 +76,7 @@ end
 
 `#read_fact(plugin_id:, name:)`（ADR-60 WD4）は、別のプラグインの`#prepare`が公開したクロスプラグインファクト（ADR-9）を読み、インスタンス上で`(plugin_id, name)`ごとに**nil結果も含めて**メモ化します。nilを含むメモは、「ファクトが未公開」と「まだ読んでいない」を区別するために発見プラグインが抱えていた手書きの`@x_resolved`フラグを退役させます;ロードされたどのプロデューサーも公開していないファクトは`nil`として読まれます。（`#producer_value` / `#producer_error`——これらのヘルパーのキャッシュプロデューサー版の双子——は[`plugin-cache-producers.md`](plugin-cache-producers/)で仕様化されています。）
 
-`#prepare(services)`（ADR-9）はプロジェクト全体の事前パスフックで、ファイルごとの解析が始まる前に一度呼ばれます。クロスプラグインファクト（`manifest(produces:)`）を公開するプラグインはこれをオーバーライドしてプロジェクトを走査し、`services.fact_store.publish(...)`を呼びます;ローダーのトポロジカル順序付けが、プロデューサーの`prepare`がいずれのコンシューマーのものよりも先に実行されることを保証します。デフォルトはno-opです。
+`#prepare(services)`（ADR-9）はプロジェクト全体の事前パスフックで、プラグインインスタンスごとに、そのインスタンスのファイルごとの解析が始まる前に一度呼ばれます（§_並行性と値オブジェクトの共有可能性_を参照）。クロスプラグインファクト（`manifest(produces:)`）を公開するプラグインはこれをオーバーライドしてプロジェクトを走査し、`services.fact_store.publish(...)`を呼びます;ローダーのトポロジカル順序付けが、プロデューサーの`prepare`がいずれのコンシューマーのものよりも先に実行されることを保証します。デフォルトはno-opです。
 
 #### 引数リテラルの抽出 — `Source::Literals`（ボイラープレート計画 §0a）
 
@@ -89,7 +89,7 @@ end
 | `:sym`のみ | `.symbol(node)` | `.symbol_name(node)` |
 | `:sym`または`"str"` | `.symbol_or_string(node)` | `.symbol_or_string_name(node)` |
 
-`SymbolNode`のみの形式が存在するのは、`state :draft`と`state "draft"`を区別するDSLが、サイレントに拡幅するのではなくその区別を保てるようにするためです。`#value`ではなく`#unescaped`が使われるのは、補間のない`"foo"` / `:foo`が両方のノード種別で一貫して`:foo` / `"foo"`へラウンドトリップするようにするためです。
+`SymbolNode`のみの形式が存在するのは、`state :draft`と`state "draft"`を区別するDSLが、サイレントに拡幅するのではなくその区別を保てるようにするためです。`#value`ではなく`#unescaped`が使われるのは、補間のない`"foo"` / `:foo`が両方のノード種別で一貫して`:foo` / `"foo"`へラウンドトリップするようにするためです。グリッドと並んで、`.symbol_named?(node, name)`は述語形式です——`node`が`#unescaped`が`String`の`name`と等しい`SymbolNode`であるとき`true`、それ以外のいかなるノードに対しても`false`——`.symbol(node)`の結果を比較することになる「この引数はちょうど`:draft`か？」というテスト向けです。`SymbolNode`のみのグリッド列と同様に、これは`"draft"`という文字列リテラルには**一致しません**。
 
 グリッドの上に2つの呼び出し引数ヘルパーが乗ります:
 
@@ -102,7 +102,7 @@ end
 
 - `dynamic_return(receivers:, methods:, file_methods:) { |call_node, scope| Type | nil }` — レシーバーのクラス、メソッド名、またはその両方でゲートされた、呼び出しサイトごとの**戻り値型**（少なくとも1つのゲートがREQUIRED ── どちらでもゲートしない規則はすべてのディスパッチで発火してしまうため、`dynamic_return`はロード時にそれを拒否します）。`receivers:`（クラス名の空でない`Array`、または`#prepare`の後に実行ごとに一度解決される`-> { … }`のcallable、ADR-52スライス3）を指定すると、エンジンは呼び出しのレシーバー型のクラスが宣言されたエントリーと等しいか、それを継承する場合にのみブロックを呼びます（`Environment#class_ordering`経由でマッチ）。`methods:`（Symbol／String名の`Array`、または実行時callable、ADR-52スライス4）は`call_node.name`でゲートします。`file_methods:`（パスを受け取り`(rule, path)`ごとにメモ化されるcallable、ADR-52スライス5a）は、解析対象ファイルによって変わる名前集合（rigor-rspecの`let`名）向けのファイルごとの特殊化であり、`methods:`を置き換えます。最初の非`nil`が勝ちます。エンジンはそれを`#dynamic_return_type(call_node:, scope:, receiver_type:)`を通して呼び出します。`rigor-mangrove`（アンラップ → 担われた`type_args[0]`）が実装済みのコンシューマーです。
   - **二項演算子はここでは通常の呼び出しです**。Rubyの`a + b`は`:+`という名前の`Prism::CallNode`に解析されるため、他のあらゆる呼び出しと同様にこのフックへ到達します。すなわち`dynamic_return(receivers: ["Money"])`規則は`call_node.name ∈ {:+, :-, :*, :/, :<=>, …}`で分岐して演算子の結果型を返すことができ ── これはself／左オペランドのケースに対するPHPStanの`OperatorTypeSpecifyingExtension`のRigor版であり、演算子固有の拡張ポイントを持ちません。`spec/integration/plugin_operator_dynamic_return_spec.rb`によって確認済みです。**注意（coerce方向）：**ゲートは*レシーバー*のクラスにかかり、Rubyは`1 + money`を`Integer`でディスパッチするため、`["Money"]`規則はそこでは発火しません。その結果は`Integer`として左バイアスで型付けされます（ADR-42を参照）。
-- `narrowing_facts(methods:) { |call_node, scope| facts | nil }` — `call_node.name`が宣言された`methods:`に含まれることでゲートされた、**戻り値後のナローイングファクト**。エンジンはそれを`#narrowing_facts_for(call_node:, scope:)`を通して呼び出します。`rigor-minitest`（アサーションナローイング）と`rigor-rspec`のマッチャーナローイングが実装済みのコンシューマーです。`narrowing_facts`は[ADR-80](../../adr/80-narrowing-facts-rename/)により`type_specifier`から改名されました;旧来の動詞は`0.2.x`の間は非推奨のエイリアスであり、0.3.0では、それが残していたリーダー（`narrowing_facts_rules`）・エンジンコンシューマー（`#narrowing_facts_for`）・ケイパビリティキー（`narrowing_facts_methods`）とともに消えました。
+- `narrowing_facts(methods:) { |call_node, scope| facts | nil }` — `call_node.name`が宣言された`methods:`に含まれることでゲートされた、**戻り値後のナローイングファクト**。エンジンはそれを`#narrowing_facts_for(call_node:, scope:)`を通して呼び出します。`rigor-minitest`（アサーションナローイング）と`rigor-rspec`のマッチャーナローイングが実装済みのコンシューマーです。`narrowing_facts`は[ADR-80](../../adr/80-narrowing-facts-rename/)により`type_specifier`から改名されました;旧来の動詞は`0.2.x`の間は非推奨のエイリアスであり、0.3.0では、それが残していたリーダー（`type_specifiers`）・エンジンコンシューマー（`#type_specifier_facts`）・ケイパビリティキー（`type_specifier_methods`）とともに消えました。
 
 `receivers:` / `methods:`は、`rigor plugins --capabilities`カタログ（ADR-37 §「機械可読なケイパビリティカタログ」）が列挙する、grep可能でインデックス可能なゲートです。
 
@@ -136,7 +136,7 @@ end
 
 [ADR-39](../../adr/39-plugin-target-library-invocation/)は、プラグインがターゲットとするライブラリの**純粋で許可リストに載ったメソッドを直接呼び出す**ことを許します（PHPStan拡張が実際のフレームワークを呼び出すことのRuby版）——それらを再実装するのではなく。ライブラリの実際の振る舞いから逸脱する再実装は誤ったファクト、すなわち偽陽性です。このルールは、エンジンの定数畳み込み層が使うのと同じハーネスによって境界づけられます: 明示的な純粋メソッドの許可リスト、Rigor由来の入力、チェックされたデータ結果、そしてライブラリが到達不能なときの**辞退（決して近似しない）**。これはADR-2の、解析対象の*アプリケーション*自身のコードを実行することの禁止を**緩めるものではありません**——ターゲットライブラリは信頼された宣言済みの依存であり、プロジェクトのソースとは区別されます。
 
-- `Rigor::Plugin::Inflector` — 実装済みのコンシューマー + Railsファミリープラグインのための共有の語形変化ヘルパー。`underscore` / `camelize` / `singularize` / `pluralize` / `classify` / `tableize`は実際の`ActiveSupport::Inflector`に委譲します;これは**近似を一切持ちません**（gemが到達不能なときは例外を投げるので、呼び出し側は黙らせるために辞退します）。`rigor-rails-routes` / `rigor-activerecord` / `rigor-actionpack` / `rigor-actionmailer` / `rigor-factorybot`がこれを使います。
+- `Rigor::Plugin::Inflector` — 実装済みのコンシューマー + Railsファミリープラグインのための共有の語形変化ヘルパー。`underscore` / `camelize` / `singularize` / `pluralize` / `classify`は実際の`ActiveSupport::Inflector`（固定された`ALLOWED_METHODS`許可リスト）に委譲します;`tableize`は意図的に委譲され**ません**——ASに支えられた`underscore` / `pluralize`を、ActiveRecordの実際のテーブル名計算が適用する`::` → `_`の平坦化と合成するので、`Admin::User` → `admin_users`となり、ASの`admin/users`にはなりません。これは**近似を一切持ちません**（gemが到達不能なときは例外を投げるので、呼び出し側は黙らせるために辞退します）。`rigor-rails-routes` / `rigor-activerecord` / `rigor-actionpack` / `rigor-actionmailer` / `rigor-factorybot`がこれを使います。
 - `Rigor::Plugin::Isolation` — 呼び出しのための**選択可能な分離戦略**で、`RIGOR_PLUGIN_ISOLATION`によって選ばれます（`exe/rigor`ランチャーが`.rigor.yml`の`plugins_isolation:`をそれにマップします）。3つのバックエンドにわたる1つの`call(feature:, receiver:, method:, args:)`インターフェースで、**`process`がデフォルト**:
   - `process`（デフォルト） — 単一のforkされた**永続ワーカー**（呼び出しごとではなく、一度だけforkして再利用）がライブラリをロード + 呼び出し、Marshalパイプ経由でデータを返します;ワーカーのクラッシュ（`SIGSEGV`さえも）は封じ込められます——親は辞退して再生成します。`fork`が利用できない場所では`none`にフォールバックします。
   - `none` — メイン空間にロードして直接呼び出します（分離なし;forkなしのフォールバック + 明示的なオプトアウト）。
@@ -166,12 +166,12 @@ end
 | `owns_receivers` | `Array<String>` | ディスパッチルーティングのためにこのプラグインが所有するレシーバークラス名。 |
 | `open_receivers` | `Array<String>` | `call.undefined-method`から免除されるレシーバークラス名（そのメソッド表面が無制限 — 例: `ActiveRecord::Relation`）（ADR-26）。 |
 | `type_node_resolvers` | `Array` | カスタムなRBS型名解決を貢献する`Plugin::TypeNodeResolver`エントリー（ADR-13）。 |
-| `protocol_contracts` | `Array<ProtocolContract>` | パススコープの振る舞い契約（`path_glob` + `method_name` + param/return型 + 重大度）;provide-and-check（ADR-28）。 |
+| `protocol_contracts` | `Array<ProtocolContract>` | パススコープの振る舞い契約（`path_glob` + `method_name` + `singleton` + param/return型 + 重大度）;provide-and-check（ADR-28）。 |
 | `source_rbs_synthesizer` | `#call(path) -> String?` | env構築時にプロジェクトソースファイルからRBSを合成する呼び出し可能オブジェクト（例: rbs-inline取り込み）（ADR-32）。 |
 | `block_as_methods`, `heredoc_templates`, `trait_registries` | `Array<Plugin::Macro::*>` | ADR-16のマクロ / DSL展開基板のティア（A / C / B;一度も配線されなかったティアD `external_files:`はADR-60 WD1で削除された）。値オブジェクトの形状は[`macro-substrate.md`](../macro-substrate/)で仕様化されています。 |
 | `nested_class_templates` | `Array<Plugin::Macro::NestedClassTemplate>` | enum形状のブロックDSL（`variant <Const>, <Type>`）からのネストされたサブクラス放出;メソッドだけでなくクラスを生み出すマクロ基板ティア（ADR-36）。[`macro-substrate.md`](../macro-substrate/)で仕様化されています。 |
 | `hkt_registrations`, `hkt_definitions` | `Array` | 軽量HKTの型関数登録（ADR-20）。 |
-| `additional_initializers` | `Array<AdditionalInitializer>` | クラス（およびそのサブクラス）上のどの`initialize`以外の`def`形式メソッドがivar状態も確立するかを宣言する`{ receiver_constraint:, methods: }`ペアで、`ScopeIndexer`の書き込み前読み込みnil健全性ゲートに供給する（ADR-38）。 |
+| `additional_initializers` | `Array<AdditionalInitializer>` | クラス（およびそのサブクラス）上のどの`initialize`以外のメソッドがivar状態も確立するかを宣言する`{ receiver_constraint:, methods:, block_methods: }`エントリー——`methods:`は`def`形式（`def setup`）向け、`block_methods:`はブロック付き呼び出し形式（`before { … }`・`let(:x) { … }`）向け;少なくとも1つは空でないことが必要。`ScopeIndexer`の書き込み前読み込みnil健全性ゲートに供給する（ADR-38）。 |
 
 `#validate_config(config)`はエラー文字列の配列を返します；ローダーは空でない結果を`LoadError`に変換します。各拡張フィールドは`Manifest#initialize`で独自のバリデーションを持ちます。
 
@@ -247,7 +247,7 @@ RBS::Extendedの`%a{rigor:v1:…}`ペイロードに現れるカスタムな**�
 
 ## 内部サーフェス（パブリックではない）
 
-- `Rigor::Plugin::Loader` — ローダーは内部インフラです。プラグイン作成者はそのプライベートヘルパーをサブクラス化したり依存したりすべきではありません；パブリックエントリーポイントは`Loader.load(configuration:, services:, requirer:)`です。
+- `Rigor::Plugin::Loader` — ローダーは内部インフラです。プラグイン作成者はそのプライベートヘルパーをサブクラス化したり依存したりすべきではありません；パブリックエントリーポイントは`Loader.load(configuration:, services:, requirer:, feature_resolver:)`です（後者の2つは素の`require`とバンドルされたフィーチャーリゾルバにデフォルトします;スペックは独自のものを渡します）。
 
 ## `.rigor.yml`のプラグインエントリー
 
@@ -260,9 +260,11 @@ plugins:
     id: rspec                           # only required when the gem registers > 1 plugin
     config:
       include_specs: true
+  - gem: rigor-rbs-inline
+    enabled: false                      # opts the entry out entirely (ADR-93 WD3)
 ```
 
-`Configuration`はすべてのエントリーをその2つの形式のどちらかに正規化し、`Configuration#plugins`を通じて公開します。
+`Configuration`はすべてのエントリーをその2つの形式のどちらかに正規化し、`Configuration#plugins`を通じて公開します。第4のキー`enabled:`はデフォルトで`true`です;明示的な`false`のみが無効化します——ローダーはgemをrequireせずにそのエントリーをスキップします。これは自動配線される`rigor-rbs-inline`デフォルトに対するプロジェクトレベルのオプトアウトですが、どのエントリーに対しても機能します。
 
 ## ロード順序
 
@@ -285,14 +287,14 @@ plugins:
 - `rule`: `"load-error"`
 - `message`: `LoadError`のメッセージ（失敗の種類に応じてgemパス/登録/configスキーマ/`#init`例外）。`require`は成功したが後続のステップが失敗したときは末尾に` (loaded from <path>)`が付く——設定/初期化の失敗はロード元となった正確なプラグインのコピーを名指しします；まったく失敗した`require`にはresolved pathがなく、メッセージは変わりません。
 
-`rigor check`は解析を続行します；正常にロードされたプラグインは後のv0.1.0スライスに引き続き参加します。
+`rigor check`は解析を続行します；正常にロードされたプラグインは実行の残りに引き続き参加します。
 
 ## 並行性と値オブジェクトの共有可能性（ADR-15）
 
 Rigorは並列ワーカーをまたいでファイルを解析します。出荷されているバックエンドは**forkされた永続ワーカー**プール（[ADR-15](../../adr/15-ractor-concurrency/)の修正;Ractorプールは延期されたターゲット）ですが、契約はそのターゲットが到達可能なままになるよう、より厳格なRactor境界に対して書かれています。したがってプラグインコードへの永続的な要求は次のとおりです:
 
 - **マニフェストが担うすべての値オブジェクトは、構築時に深く凍結され、`Ractor.shareable?`でなければなりません（MUST）**。これは`Manifest`自体と、それが保持するすべてのネストされたキャリア（carrier）——`Macro::*`基板ティア（[`macro-substrate.md`](../macro-substrate/)）・`ProtocolContract`・`AdditionalInitializer`・`Consumption`、および作成者が提供するいかなる`TypeNodeResolver` / `source_rbs_synthesizer`呼び出し可能オブジェクト（作成者は呼び出し可能オブジェクトが捕捉した状態のスレッドセーフティを所有する）——をカバーします。本仕様全体にわたるクラスごとの「`#initialize`後に`Ractor.shareable?`がtrueを返す」という注記は、この単一のルールのインスタンスであり、別個の保証ではありません。
-- **プラグインの*インスタンス*はワーカーごとに構築され、決して共有されません**。境界を越えるのは`Rigor::Plugin::Blueprint`キャリア（凍結済み、`Ractor.shareable?`）です: それはプラグインクラスの**定数パスString**（クラスオブジェクトではない——gemはいずれのワーカーがスポーンする前にメインRactor上で`require`されるので、各ワーカーは`Object.const_get`経由で同じ定数を解決する）に加えて、深くコピーされ共有可能にされた`config` Hashを保持します。各ワーカーは起動時に一度`Blueprint#materialize(services:)`を呼び——`const_get` → `klass.new(services:, config:)` → `#init(services)`で、`Loader#instantiate`を写し取る——、それからワーカーの生存期間にわたって自身のプラグインインスタンスとそれらの可変な実行ごとのアキュムレータを所有します。したがって可変なプラグイン状態が境界を越えることは決してなく、凍結されたBlueprintだけが越えます。
+- **プラグインの*インスタンス*はワーカーごとに構築され、決して共有されません**。境界を越えるのは`Rigor::Plugin::Blueprint`キャリア（凍結済み、`Ractor.shareable?`）です: それはプラグインクラスの**定数パスString**（クラスオブジェクトではない——gemはいずれのワーカーがスポーンする前にメインRactor上で`require`されるので、各ワーカーは`Object.const_get`経由で同じ定数を解決する）に加えて、深くコピーされ共有可能にされた`config` Hashを保持します。各ワーカーは起動時に一度`Blueprint#materialize(services:)`を呼び——`const_get` → `klass.new(services:, config:)` → `#init(services)`で、`Loader#instantiate`を写し取る——、それからワーカーの生存期間にわたって自身のプラグインインスタンスとそれらの可変な実行ごとのアキュムレータを所有します。各`WorkerSession`はその後、構築時に、最初の`#analyze`の前に、自身の具体化されたインスタンスに対して`#prepare(services)`を実行するので、`#prepare`は実行ごとに一度ではなく、**プラグインインスタンスごと**（コーディネーターと各ワーカー）に一度呼ばれ、各ワーカーの`fact_store`は境界を越えて出荷されるのではなく再構築されます。したがって可変なプラグイン状態が境界を越えることは決してなく、凍結されたBlueprintだけが越えます。
 - **文書化された例外:** `Environment::Reflection`（パブリックな`Rigor::Reflection`ファサードを支える内部の読み取り側キャリア）は凍結されていますが`Ractor.shareable?`では**ありません**——その背後のテーブルが共有可能でない`RBS::Location`オブジェクトを通すためです（[ADR-15](../../adr/15-ractor-concurrency/) WD6）。その結果、境界をまたいで共有されるのではなく、共有された`Cache::Store`からワーカーごとに再構築されます。これはエンジン内部のキャリアであり、プラグインサーフェスではありません（[`public-api.md`](../public-api/)を参照）。
 
 ## 各機能が着地した場所（歴史的スライスマップ）

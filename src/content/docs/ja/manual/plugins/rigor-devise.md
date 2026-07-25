@@ -3,8 +3,8 @@ title: "rigor-devise"
 description: "rigortype/rigor docs/manual/plugins/rigor-devise.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/plugins/rigor-devise.md"
 sourcePath: "docs/manual/plugins/rigor-devise.md"
-sourceSha: "7a13e64718e91a0a1120ab31fd69ad708c94bf4ccaba41446c8f9a2a2db332d3"
-sourceCommit: "5c304b2c680eccdbfaffc114c0f31ce89f740ad4"
+sourceSha: "d80036dfc9fa5c09e2d523755c33405fce973d7ad4e94bd34c34bf9df2d2a44d"
+sourceCommit: "e3eb424c3c88035e453246710c8df3dc5cc8e7e1"
 translationStatus: "translated"
 sidebar:
   order: 9050
@@ -46,4 +46,4 @@ user.send_reset_password_instructions   # （モジュールのRBSの戻り値�
 
 ## プラグインの内部
 
-マクロマニフェスト（各ストラテジーをそのモジュールにマッピングするトレイトレジストリ）、concernの再ターゲットウォーク、デモ、そしてこのプラグインが行使する契約（contract）サーフェスは、[プラグインのREADME](https://github.com/rigortype/rigor/blob/master/plugins/rigor-devise/README.md)にあります。[ハンドブック第9章](../../../handbook/09-plugins/)はTier Bのマクロ基盤を全般的に扱います。プラグインの書き方については、[`examples/`](https://github.com/rigortype/rigor/blob/master/examples/README.md)と[`rigor-plugin-author`](../../08-skills/)スキルを参照してください。
+マクロマニフェスト（各ストラテジーをそのモジュールにマッピングするトレイトレジストリ）、concernの再ターゲットウォーク、デモ、そしてこのプラグインが行使する契約（contract）サーフェスは、[プラグインのREADME](https://github.com/rigortype/rigor/blob/master/plugins/rigor-devise/README.md)にあります。[`docs/internal-spec/macro-substrate.md`](../../../internal-spec/macro-substrate/)はTier Bのトレイトレジストリを全般的に仕様化しており、[ハンドブック第9章](../../../handbook/09-plugins/)は入門です。プラグインの書き方については、[`examples/`](https://github.com/rigortype/rigor/blob/master/examples/README.md)と[`rigor-plugin-author`](../../08-skills/)スキルを参照してください。

@@ -3,8 +3,8 @@ title: "プラグイン"
 description: "rigortype/rigor docs/handbook/09-plugins.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/09-plugins.md"
 sourcePath: "docs/handbook/09-plugins.md"
-sourceSha: "ae78c79d581ee4c563dc9bc6d2110517337c8bdeb12c86320aa86dfe08ee48c2"
-sourceCommit: "450a3016ca812067f6baa96e415442ed936ad49a"
+sourceSha: "3a5548ab0a7cd186d5292abd3f83e9990194727b9523a565203047227ab32ff9"
+sourceCommit: "e3eb424c3c88035e453246710c8df3dc5cc8e7e1"
 translationStatus: "translated"
 sidebar:
   order: 1009
@@ -12,7 +12,7 @@ sidebar:
 
 プラグインが存在する理由はひとつ: 一部のメソッドの型が、どんなRBSシグでも表現できない方法で**ランタイムでの引数のシェイプ（shape）に依存する**からです。この章は、それがプラグインに値するのはいつか、そして値しないのはいつかを判断する助けになります。
 
-この章はプラグインの*作成*は教え**ません**。それは[`examples/`](https://github.com/rigortype/rigor/blob/master/examples/README.md)にあります。6個のチュートリアルウォークスルーで、それぞれが1つの拡張サーフェスにスポットを当てています。実際のフレームワーク向けのすぐにインストールできるgemは[`plugins/`](https://github.com/rigortype/rigor/blob/master/plugins/README.md)にあります。プラグインが必要かどうかを判断するには読み進めてください;作成したくなったら`examples/`へ、既存のものをインストールするなら`plugins/`へ進んでください。
+この章はプラグインの*作成*は教え**ません**。それは[`examples/`](https://github.com/rigortype/rigor/blob/master/examples/README.md)にあります。6個のチュートリアルウォークスルーで、それぞれが1つの拡張サーフェスにスポットを当てています。実際のフレームワーク向けのすぐにインストールできるgemは[`plugins/`](https://github.com/rigortype/rigor/blob/master/plugins/README.md)にあり、その有効化は[マニュアル: プラグインの使用](../../manual/07-plugins/)です。プラグインが必要かどうかを判断するには読み進めてください;書きたくなったら`examples/`へ進んでください。
 
 ## プラグインを使うとき
 
@@ -35,72 +35,22 @@ Lisp.eval([:if, true, "a", 0])  # ランタイムでString | Integer
 
 これらのそれぞれに[`examples/`](https://github.com/rigortype/rigor/blob/master/examples/README.md)に実例があります。[`examples/README.md`](https://github.com/rigortype/rigor/blob/master/examples/README.md)ページは6の実例をアーキテクチャ軸（設定スキーマ、ファイルI/O、キャッシュプロデューサー、`Scope#type_of`を通じたエンジン連携、クロスプラグインファクト（fact）、戻り値型コントリビューションなど）で比較し、読む順序を推奨しています。
 
-## プラグインが今日できること
+## 2つの作成パス
 
-> まだここにいますか？ ほとんどの読者はまず[プラグインを書くべきか？](#プラグインを書くべきか)へ飛ぶべきです。答えはたいてい「いいえ、RBSと`RBS::Extended`で事足ります」です。下記のサーフェスは、「はい」のときのためのものです。
+> まだここにいますか？ ほとんどの読者はまず[プラグインを書くべきか？](#プラグインを書くべきか)へ飛ぶべきです。答えはたいてい「いいえ、RBSと`RBS::Extended`で事足ります」です。以下は、「はい」のときのためのものです。
 
-v0.1.0+プラグイン契約（contract）（[`docs/internal-spec/plugin.md`](../../internal-spec/plugin/)に固定されており、同ディレクトリのいくつかのスライス（slice）仕様に展開されています）はプラグインに5つの主要サーフェス（surface）を与えます:
+他のすべてを形づくる決定は、あなたのDSLが2つの作成パスの*どちら*に該当するかです。
 
-1. **`#diagnostics_for_file(path:, scope:, root:)`**: ファイルごとの出力フック。解析されたASTを辿り、`Rigor::Analysis::Diagnostic`行の配列を返します。ランナーは各行に`source_family: "plugin.<your-id>"`をスタンプします。
-2. **`dynamic_return(receivers:, methods:, file_methods:)` / `narrowing_facts(methods:)`**: コールサイトごとの戻り値型およびフローナローイング（narrowing）のコントリビューションサーフェス（ADR-37スライス2）。`dynamic_return`ブロックはマッチするコールサイトでの推論された戻り値型を命名します;解析器のディスパッチャーはコントリビューションをマージし、それをRBS宣言済みかのように使います。`narrowing_facts`ブロックはブランチナローイングのファクトを寄与します。（`narrowing_facts`はADR-80で`type_specifier`から改名されました;`type_specifier`は0.3.0で削除される非推奨エイリアスとして残っているので、新しいプラグインでは`narrowing_facts`を使ってください。）（これらは削除された`flow_contribution_for`フックを置き換えました（ADR-52 WD3）;依然としてそれを定義するプラグインはロード時に例外を投げます。）
-3. **`Plugin::IoBoundary#read_file`** / **`#open_url`**: アクティブな`TrustPolicy`の下でサンドボックス化されたファイルおよび（v0.1.2以降）HTTPSの読み取り。プラグインがプロジェクトファイル（ルートテーブル、スキーマ、ロケールファイル）を読む、または安定したURLをフェッチする必要があるときに使います。
-4. **`Plugin::Base.producer` + `#cache_for`**: プラグイン側キャッシュプロデューサー。クロスランキャッシングが欲しいほど高コストなパース/ルックアップに使います。IoBoundaryが結果を構築している間に読んだすべてのファイルのダイジェスト（およびURLのコンテンツハッシュ）で自動的に無効化されます。
-5. **`Plugin::FactStore` + `#prepare(services)`**: クロスプラグインファクト公開サーフェス（v0.1.1 Track 2、ADR-9）。プラグインは`prepare`でファクトを公開します;下流のプラグインは`services.fact_store`を通じてそれらを消費するため、プロデューサー側の解析（例: `config/routes.rb`）をすべてのコンシューマーで再利用できます。
+**宣言する**。 DSLがリテラルシンボル引数を伴うクラスレベルの呼び出し ── Railsスタイルの`has_one_attached`、dry-structの`attribute`、Deviseの`devise :strategy`、Sinatraの`get "/foo" do … end` ── なら、**マクロ展開基板**（[ADR-16](../../adr/16-macro-expansion/)）はすでにその形状を知っています。呼び出しを記述するマニフェストエントリーを書けば、基板がリテラルシンボル抽出、名前補間、メソッドごとの合成を行います。このパス上のバンドルされた3つのプラグインは、ASTウォーキングをまったく伴わない60〜110行の宣言的なRubyです。基板は`ActiveSupport::Concern`の遅延された`included do … end`ブロックも理解するので、concern内に書かれたDSL呼び出しは、concernではなくそれをincludeするクラスに届きます。
 
-いくつかの実例（`rigor-lisp-eval`、`rigor-pattern`、`rigor-units`、`rigor-activerecord`）は、診断を発行するだけでなく`dynamic_return`を通じてナローイング（narrowing）された戻り値型を寄与するため、プラグイン型の値へのチェーンされたコールがRBSレベルの`untyped`エンベロープではなく解析器の通常のディスパッチで解決されます。各プラグインのREADMEを参照して、それぞれがどのサーフェスをデモしているか確認してください。
+**歩く**。型が、呼び出しの形状からは分からない何か ── 引数の*値*（上記の`Lisp.eval`）、プロジェクトの別の場所でなされた宣言、またはルートテーブルやスキーマダンプのような外部ファイルの内容 ── に依存するなら、代わりにウォーカーを書きます。そしてプラグイン契約（contract）がそのためのフックを与えます: ファイルごとの出力パス、コールサイトごとの戻り値型とフローナローイング（narrowing）のコントリビューション、トラストポリシー下でのサンドボックス化されたファイルおよびHTTPS読み取り、高コストなパースのためのキャッシュされたプロデューサー、そして1つのプラグインのパースが別のプラグインのチェックを養うクロスプラグインファクト（fact）ストア。
 
-## マクロ / DSL展開基板（ADR-16）
+2つのパスは共存します ── 1つのプラグインが基板エントリーを宣言し*かつ*ファイルを歩けます ── そして次にどこへ進むかは、どちらが必要かによります:
 
-上記の手書きウォーカー契約の上に、2つ目の作成パスが追加されました: **マクロ展開基板**（ADR-16）。メタプログラミングを多用するDSL（Railsスタイルの`has_one_attached`、dry-structの`attribute`、Deviseの`devise :strategy`、Sinatraの`get '/foo' do ... end`）に対して、基板はプラグイン作者がASTを手で歩く代わりにコール形状を**宣言する**ことを可能にします。プラグインの本体は単一のマニフェストエントリーになります;基板がリテラルシンボル抽出、名前補間、レジストリルックアップ、メソッドごとの合成を処理します。
-
-4つのティア形状が認識されます。[ライブラリごとのサーベイ](../../notes/20260515-macro-expansion-library-survey/)が、どのライブラリが各ティアに収まり、どのライブラリが基板のスコープ外に該当するかを特定します。
-
-| ティア | 形状 | マニフェスト宣言 | 動作例 |
-| --- | --- | --- | --- |
-| **A: ブロック-as-メソッド** | DSL呼び出しのブロックがレシーバークラス上のインスタンスメソッドとして実行される（`Sinatra::Base#generate_method`） | `block_as_methods: [Macro::BlockAsMethod.new(receiver_constraint:, method_names:)]` | [`rigor-sinatra`](../../manual/plugins/rigor-sinatra/) |
-| **B: トレイトインライニングレジストリ** | クラスレベルの呼び出しがシンボルを列挙 → バンドルされたレジストリが各々をモジュールにマップ → 基板がモジュールのRBSメソッドを呼び出し元クラスに展開 | `trait_registries: [Macro::TraitRegistry.new(receiver_constraint:, method_name:, modules_by_symbol:, always_included:)]` | [`rigor-devise`](../../manual/plugins/rigor-devise/) |
-| **C: heredocテンプレート** | クラスレベルの呼び出しがリテラルシンボルをメソッド名テンプレートに補間;基板が合成リーダーを発行 | `heredoc_templates: [Macro::HeredocTemplate.new(receiver_constraint:, method_name:, symbol_arg_position:, emit:)]` | [`rigor-dry-struct`](../../manual/plugins/rigor-dry-struct/) |
-
-上記の3つのTier A/B/Cプラグインは各々60〜110 LoCの**純粋に宣言的な**Ruby（ウォーカーなし、`diagnostics_for_file`なし、プラグイン側の状態なし）です。基板のプレパス + ディスパッチャー統合が作業を行います。
-
-### Concern再ターゲティング
-
-`ActiveSupport::Concern.included do ... end`は*遅延されたclass_eval*: ブロック内のDSL呼び出しはconcernモジュール自身ではなく、includeした人に対して発火します。基板のスキャナはこの再ターゲティングを自動的に処理します。次のようなソースに対して:
-
-```ruby
-module Auditable
-  extend ActiveSupport::Concern
-  included do
-    attribute :audited_at, Types::Time
-  end
-end
-
-class Address < Dry::Struct
-  include Auditable
-  attribute :city, Types::String
-end
-```
-
-`Address`は`city`（直接）AND `audited_at`（`Auditable`から再ターゲティング）の両方を合成リーダーとして取得します。同じパターンがTier Bトレイト（Concern経由でincludeされるDeviseモジュール）でも動作します。
-
-### フロア / シーリング
-
-ADR-16 § WD13に従い、**フロア**は合成メソッドが名前で発行されることであり、これによってクロスファイルディスパッチが解決されます（`call.undefined-method`なし）。一般的なケースでは精密な戻り値型も回復されます: **Tier B**は由来モジュールが著作したRBSに再ディスパッチし（Deviseの`valid_password?`は`Dynamic[T]`ではなく`bool`に解決される）、**Tier C**は素のクラス名の戻り値をその`Nominal`に解決します。依然`Dynamic[T]`に縮退するのは、パラメータ化された／ユーティリティ型形のTier Cの戻り値（`Array[String]`、`Pick<T, K>`）です;それらを[ADR-13](../../adr/13-typenode-resolver-plugin/)リゾルバチェイン経由でルーティングすることが**シーリング**で、需要駆動です。基板はADR-5のロバストネスに従い、精度を*捏造*しません。
-
-### 基板と手書きウォーカーの選択
-
-| DSLが… | 基板を使う | 手書きウォーカーを使う |
-| --- | --- | --- |
-| `クラスレベル呼び出し + リテラルシンボル引数 + フレームワークclass_eval'dヘレドック` | ✓ Tier C | なし |
-| `クラスレベル呼び出し + リテラルシンボル引数 + レジストリ駆動のモジュールinclude` | ✓ Tier B | なし |
-| `クラスレベル呼び出し + インスタンスメソッドとして実行されるdo…endブロック` | ✓ Tier A | なし |
-| `宣言されたself下でinstance_eval'dされた外部Rubyファイル` | ✓ Tier D（v0.1.x時点では契約のみ） | なし |
-| `戻り型が引数のシェイプに依存するドメインDSL` | なし | `dynamic_return`（[`rigor-lisp-eval`](https://github.com/rigortype/rigor/tree/master/examples/rigor-lisp-eval/)） |
-| `クロスファイル検証（宣言を収集してから使用を検証）` | なし | 2パスウォーカー（[`rigor-statesman`](../../manual/plugins/rigor-statesman/)） |
-| `外部プロジェクトファイル（ルート、スキーマ、ロケール）のパース` | なし | `IoBoundary` + キャッシュプロデューサー（[`rigor-routes`](https://github.com/rigortype/rigor/tree/master/examples/rigor-routes/)） |
-| `スキーマグラフレコーダー（GraphQL-Rubyスタイル）` | なし | スキーマ解決パス（プラグインまだ未作成） |
-
-基板と手書きウォーカー契約は共存します。プラグインは`manifest`で宣言された基板エントリーを`diagnostics_for_file`ウォーカーと混在させられます。[`skills/rigor-plugin-author/SKILL.md`](https://github.com/rigortype/rigor/blob/master/skills/rigor-plugin-author/SKILL.md) SKILLが決定フローを詳細にキャプチャします;[`docs/notes/20260515-macro-expansion-library-survey.md`](../../notes/20260515-macro-expansion-library-survey/)のサーベイが、基板がどのRubyライブラリをカバーし、どのライブラリがスコープ外に該当するかを記録します。
+- [`examples/README.md`](https://github.com/rigortype/rigor/blob/master/examples/README.md): 6つのウォークスルー。それぞれが1つの契約サーフェス（surface）にスポットを当て、どの実例がどれをデモするかのマップ付き。
+- [`docs/internal-spec/plugin.md`](../../internal-spec/plugin/): 拘束力を持つプラグイン契約 ── マニフェスト、フック、サービス、レジストリ、ロード順。その兄弟[`plugin-trust.md`](../../internal-spec/plugin-trust/)と[`plugin-cache-producers.md`](../../internal-spec/plugin-cache-producers/)がI/Oとキャッシュのサーフェスを扱います。
+- [`docs/internal-spec/macro-substrate.md`](../../internal-spec/macro-substrate/): 基板のティア、各ティアが宣言するマニフェストフィールド、そして各ティアがどれだけの戻り値型の精度を回復するか。
+- [マクロ展開ライブラリサーベイ](../../notes/20260515-macro-expansion-library-survey/): どの実際のRubyライブラリがどのティアに収まり、どのライブラリが基板のスコープ外に完全に該当するか。
 
 ## プラグインを書くべきか？
 
@@ -114,7 +64,7 @@ ADR-16 § WD13に従い、**フロア**は合成メソッドが名前で発行�
 
 ## 次に読むもの
 
-プロジェクトが[Sorbet](https://sorbet.org/)を使っているなら、[次の章](../10-sorbet/)で`rigor-sorbet`アダプターを扱います。Rigorは`sig { ... }`ブロック、RBIファイル、`T.let` / `T.cast` / `T.must` / `T.unsafe`アサーションを型ソースとして読み取るので、`srb tc`と並行して`rigor check`を実行し始めるためにRBSで何かを書き直す必要はありません。Sorbetを使っていないなら、第10章は読み飛ばして問題ありません。
+プロジェクトが[Sorbet](https://sorbet.org/)を使っているなら、[次の章](../10-sorbet/)で`rigor-sorbet`アダプタを扱います。Rigorは`sig { ... }`ブロック、RBIファイル、`T.let` / `T.cast` / `T.must` / `T.unsafe`アサーションを型ソースとして読み取るので、`srb tc`と並行して`rigor check`を実行し始めるためにRBSで何かを書き直す必要はありません。Sorbetを使っていないなら、第10章は読み飛ばして問題ありません。
 
 ここからは:
 

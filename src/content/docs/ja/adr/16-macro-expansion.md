@@ -3,8 +3,8 @@ title: "ADR-16 — マクロ / DSL展開基板"
 description: "rigortype/rigor docs/adr/16-macro-expansion.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/16-macro-expansion.md"
 sourcePath: "docs/adr/16-macro-expansion.md"
-sourceSha: "a301dc93d6ebea31b4ddba07770f1d7cea4191e2086dc2a2141adf3932a2c7b3"
-sourceCommit: "222d8e03ee0f4252795f6c7294672a76c20b7ae3"
+sourceSha: "bb110c1ea227af36c35f2bae8d3bea3b1a47dbaf78e7ae4c243a2fa908e6ced8"
+sourceCommit: "e3eb424c3c88035e453246710c8df3dc5cc8e7e1"
 translationStatus: "translated"
 sidebar:
   order: 4016
@@ -255,26 +255,28 @@ end
 
 ### 計画されたライブラリごとのプラグイン
 
-トレーサビリティのため — これらは基板が奉仕するために設計されたプラグイン。各々が基板（ティアを命名する行）または通常のADR-2拡張API（「基板なし」行）のいずれかを消費する将来のライブラリユーザー向けプラグイン。各々の著作はユーザー承認にゲートされる;基板は特定のものにコミットすることなくそれらを有効化する。「authored」とマークされた行はすでに`examples/`下に存在し、基板への移行候補。
+トレーサビリティのため — これらは基板が奉仕するために設計されたプラグイン。各々が基板（ティアを命名する行）または通常のADR-2拡張API（「基板なし」行）のいずれかを消費する将来のライブラリユーザー向けプラグイン。各々の著作はユーザー承認にゲートされる;基板は特定のものにコミットすることなくそれらを有効化する。
+
+テーブルは各候補の**設計**を記録する — どのティアを消費するか、何に依存するか、なぜ移行候補である（またはない）か。それは、その後どの行が著作されたかを意図的に述べない: そのインベントリはドリフトし、[`plugins/README.md`](https://github.com/rigortype/rigor/blob/master/plugins/README.md)が運ぶ。そこがそれの唯一の在り処である。下記のいくつかの行は、このADRが書かれた後に出荷された。
 
 **副次的ヒューリスティックとの相互作用**（§ オーディエンスと目的、WD11）: 下記のいずれかの行が`.rigor.yml`の`plugins:`で有効化されているとき、基板の副次的目的ヒューリスティックはそのライブラリの呼び出しサイトで並行して実行**されない**。専用プラグインがそのクレームされた呼び出し形状を所有する;ヒューリスティックは専用プラグインが設定されていないライブラリでのみ発火する。
 
-| プラグイン | 消費するティア | サーベイ参照 | ステータス |
+| プラグイン | 消費するティア | サーベイ参照 | 設計ノート |
 | --- | --- | --- | --- |
-| `rigor-sinatra` | A | Sinatraセクション | まだ著作されていない。**基板スライス1検証ターゲット**（新規プラグイン;競合するウォーカーなし）。 |
-| `rigor-devise` | B（モデル側）+ C（マッピングごとのコントローラーヘルパー） | Deviseセクション | まだ著作されていない。**基板スライス3検証ターゲット**。バンドルされたモジュールレジストリが`lib/devise/modules.rb`をミラーする。 |
-| `rigor-aasm` | B（ステート / イベントメソッドテーブル） | AASMセクション | まだ著作されていない。`rigor-statesman`の兄弟。 |
-| `rigor-sequel` | B（アソシエーション + `plugin :name`レジストリ） | Sequelセクション | まだ著作されていない。カラムアクセサは別個のスキーマオラクルADRに先送り。 |
-| `rigor-activestorage` | —（WD13に従い移行先送り） | ActiveStorageセクション | 著作済み。**基板の品質がマッチするまで手書きウォーカーにとどまる**。サーベイは正典のTier Cとして識別するが、基板v1での移行はリグレッションになるだろう（WD13フロア / シーリングに従い）。 |
-| `rigor-redmine-payloads`（作業名） | D（外部の`instance_eval`されたRubyファイル） | RedmineサイトE | まだ著作されていない。基板スライス5検証ターゲット。tDiaryのプラグインローダーが兄弟ケース。 |
-| `rigor-redmine-settings`（作業名） | C（YAML駆動の名前セット + バンドルされたトリプレットテンプレート） | RedmineサイトC | まだ著作されていない。プロジェクト側のmonkey-patch事前評価メモリノートとフォローアップとしてペア。 |
-| `rigor-graphql` | なし — 基板を消費しない | GraphQL-Rubyセクション | まだ著作されていない。ADR-2ファクト貢献フックを使う;マクロ基板は適用されない（スキーマグラフレコーダー）。需要駆動。 |
-| `rigor-factorybot` | なし — 基板を消費しない | factory_botセクション | 著作済み。ADR-2 + ADR-9（レジストリ + 動的戻り値型）を使う。基板移行は計画されていない;形状が合わない。 |
-| `rigor-dry-types` | C（バンドルされた`core.rb`レジストリ経由の定数発行;`const_set`フレーバーでのtier C） + ADR-2 `Dry::Types[<literal>]`の動的戻り値型 + `\|` `&` `>` `.optional` `.constrained` `.constructor`のキャリア代数処理 | dry-typesセクション | まだ著作されていない。**基板スライス2の成果物**（`rigor-dry-struct`とペア）。`rigor-dry-schema`と`rigor-dry-struct`の共有依存関係、gem依存関係グラフをミラー。パッケージング戦略はADR-12にゲート。 |
-| `rigor-dry-struct` | C（`attribute :name, T` → 5行発行テーブル: リーダー / スキーマキー / `to_h`行 / `[:key]`アクセス / `.new(name:)` kwarg） + ネストされた`attribute :x do … end`ブロックのTier A | dry-structセクション | まだ著作されていない。**基板スライス2主要検証ターゲット**（教科書のTier C、競合するウォーカーなし）。属性ごとの`T`キャリアのために`rigor-dry-types`を**消費**する。 |
-| `rigor-dry-schema` | A（ブロックは`Dry::Schema::DSL`上で`instance_eval`を実行;素の単語サーフェス（surface）を宣言 — `required` / `optional` / `value` / `filled` / `maybe` / `each` / `array`） + `key → type`マップを構築するASTレコーダー + `Processor#call(input) -> Result[T]`上のADR-2動的戻り値型ルール | dry-schemaセクション | まだ著作されていない。キーごとの型解決のために`rigor-dry-types`を**消費**する。スキーマクラス自体はメソッド拡張されない;価値はプロセッサの戻り形状の型付けにある。 |
-| `rigor-activerecord`（既存） | —（WD13に従い移行先送り） | — | 著作済み。手書きウォーカーにとどまる。Tier B移行は将来作業で、ADR-16のスライシングの一部ではない。 |
-| `rigor-statesman`（既存） | —（WD13に従い移行先送り） | — | 著作済み。同上。 |
+| `rigor-sinatra` | A | Sinatraセクション | **基板スライス1検証ターゲット**（新規プラグイン;競合するウォーカーなし）。 |
+| `rigor-devise` | B（モデル側）+ C（マッピングごとのコントローラーヘルパー） | Deviseセクション | **基板スライス3検証ターゲット**。バンドルされたモジュールレジストリが`lib/devise/modules.rb`をミラーする。 |
+| `rigor-aasm` | B（ステート / イベントメソッドテーブル） | AASMセクション | `rigor-statesman`の兄弟。 |
+| `rigor-sequel` | B（アソシエーション + `plugin :name`レジストリ） | Sequelセクション | カラムアクセサは別個のスキーマオラクルADRに先送り。 |
+| `rigor-activestorage` | —（WD13に従い移行先送り） | ActiveStorageセクション | **基板の品質がマッチするまで手書きウォーカーにとどまる**。サーベイは正典のTier Cとして識別するが、基板v1での移行はリグレッションになるだろう（WD13フロア / シーリングに従い）。 |
+| `rigor-redmine-payloads`（作業名） | D（外部の`instance_eval`されたRubyファイル） | RedmineサイトE | 基板スライス5検証ターゲット。tDiaryのプラグインローダーが兄弟ケース。 |
+| `rigor-redmine-settings`（作業名） | C（YAML駆動の名前セット + バンドルされたトリプレットテンプレート） | RedmineサイトC | プロジェクト側のmonkey-patch事前評価（[ADR-17](../17-monkey-patch-pre-evaluation/)の`pre_eval:`）とフォローアップとしてペア。 |
+| `rigor-graphql` | なし — 基板を消費しない | GraphQL-Rubyセクション | ADR-2ファクト貢献フックを使う;マクロ基板は適用されない（スキーマグラフレコーダー）。需要駆動。 |
+| `rigor-factorybot` | なし — 基板を消費しない | factory_botセクション | ADR-2 + ADR-9（レジストリ + 動的戻り値型）を使う。基板移行は計画されていない;形状が合わない。 |
+| `rigor-dry-types` | C（バンドルされた`core.rb`レジストリ経由の定数発行;`const_set`フレーバーでのtier C） + ADR-2 `Dry::Types[<literal>]`の動的戻り値型 + `\|` `&` `>` `.optional` `.constrained` `.constructor`のキャリア代数処理 | dry-typesセクション | **基板スライス2の成果物**（`rigor-dry-struct`とペア）。`rigor-dry-schema`と`rigor-dry-struct`の共有依存関係、gem依存関係グラフをミラー。[ADR-12](../12-dry-rb-packaging/)に従いパッケージング。 |
+| `rigor-dry-struct` | C（`attribute :name, T` → 5行発行テーブル: リーダー / スキーマキー / `to_h`行 / `[:key]`アクセス / `.new(name:)` kwarg） + ネストされた`attribute :x do … end`ブロックのTier A | dry-structセクション | **基板スライス2主要検証ターゲット**（教科書のTier C、競合するウォーカーなし）。属性ごとの`T`キャリアのために`rigor-dry-types`を**消費**する。 |
+| `rigor-dry-schema` | A（ブロックは`Dry::Schema::DSL`上で`instance_eval`を実行;素の単語サーフェス（surface）を宣言 — `required` / `optional` / `value` / `filled` / `maybe` / `each` / `array`） + `key → type`マップを構築するASTレコーダー + `Processor#call(input) -> Result[T]`上のADR-2動的戻り値型ルール | dry-schemaセクション | キーごとの型解決のために`rigor-dry-types`を**消費**する。スキーマクラス自体はメソッド拡張されない;価値はプロセッサの戻り形状の型付けにある。 |
+| `rigor-activerecord`（既存） | —（WD13に従い移行先送り） | — | 手書きウォーカーにとどまる。Tier B移行は将来作業で、ADR-16のスライシングの一部ではない。 |
+| `rigor-statesman`（既存） | —（WD13に従い移行先送り） | — | 同上。 |
 
 テーブルが明示的にする2つの事実:
 
@@ -338,7 +340,7 @@ end
    - **6a-TierB**。SyntheticMethodがprovenance内に`origin_module:`を記録するとき（スライス3bスキャナからのTier B発行）、既存の`RbsDispatch`経由で`Nominal[origin_module]`上で呼び出しを再ディスパッチする。モジュールの著作RBS戻り値型が勝つ;モジュールがenv内にないときは`Dynamic[T]`にフォールバック。Deviseの`valid_password?`は`untyped`ではなく`bool`を返す。
    - **6b-TierC**。SyntheticMethodが素の`return_type:`文字列を記録するとき（マニフェストの発行テーブルからのTier C発行）、`environment.nominal_for_name(return_type)`経由でルックアップする。合成リーダーはクラスがRBS env内にあるとき`Nominal[<class>]`を返す;それ以外は`Dynamic[T]`にフォールバック。Tier Bのプレースホルダー`"untyped"`とRBSスタイルの`"void"`はTier Cパスから除外され、それらはTier Bブランチまたはフロアに自己ルーティングする。
    パラメータ化形式（`Array[String]`、`Hash[K, V]`）とプラグイン提供のユーティリティ型名（`Pick<T, K>`）は、ADR-13の完全な`Plugin::TypeNodeResolver`チェイン経由でルーティングする必要がある — まだ**先送り**、ADR-13スライス3時点でチェインは`%a{rigor:v1:…}`ペイロード用にのみ配線されており、基板マニフェストの`returns:`文字列用ではないため。フォローアップは具体的なプラグイン作者がユーティリティ型形の基板戻り値を必要とするときにトリガーされる。
-7. **ドキュメント**。✅ **着地**（`0359152`）。ハンドブック章`docs/handbook/09-plugins.md` §「マクロ / DSL展開基板（ADR-16）」が4ティア + Concern再ターゲティング + フロア/シーリングフレーミング + 決定マトリックスを紹介;`skills/rigor-plugin-author/SKILL.md`フェーズ2が「ステップ2A — マクロ基板を最初に試す」 / 「ステップ2B — 手書きウォーカー」に分割;ROADMAP / CURRENT_WORK O2が「キュー」から「基板フロア着地」に再フレーム;`examples/README.md`比較テーブルが3つの新しい基板消費者行を成長。
+7. **ドキュメント**。✅ **着地**（`0359152`）。ハンドブック章`docs/handbook/09-plugins.md` §「マクロ / DSL展開基板（ADR-16）」が4ティア + Concern再ターゲティング + フロア/シーリングフレーミング + 決定マトリックスを紹介（そのティアの詳細はその後`docs/internal-spec/macro-substrate.md`に移動し、ハンドブック章はその憲章が求める1ページのポインタとして残った）;`skills/rigor-plugin-author/SKILL.md`フェーズ2が「ステップ2A — マクロ基板を最初に試す」 / 「ステップ2B — 手書きウォーカー」に分割;ROADMAP / CURRENT_WORK O2が「キュー」から「基板フロア着地」に再フレーム;`examples/README.md`比較テーブルが3つの新しい基板消費者行を成長。
 
 **ADR-16スコープ外（将来のイテレーションに先送り）**。
 
@@ -498,3 +500,4 @@ WD12は副次的ヒューリスティックのベストエフォート姿勢を�
 - 2026-05-15 — WD13 / ゴール / Tier Cの再重み付け: フロアはv0.1.xの**配信コミットメント**、シーリングはロードマップ上の長期的な願望（このADRの配信要件ではない）。以前の定式化（「安価ならシーリングを目指し、高価ならフロアに縮退」）はシーリングがデフォルトターゲットであるかのように読めた;実用的な解釈は「基準はフロア;シーリングは将来のスライスがプロモートできる場所」。どのティア発行行もv0.1.x精度コミットメントを運ばない — マニフェストテーブルの`returns:`宣言は今日記録され、リゾルバフックアップがランディングしたとき後でアンロックされる。
 - 2026-05-15 — **基板フロア着地**。ステータスが「proposed」から「accepted — フロア着地（スライス1〜7）、スライス5b + スライス6は需要に先送り」にプロモート。12のコミット（`584ae85`から`9d54955`）がTier A/B/Cエンジン統合 + Tier D契約 + Concern再ターゲティング + 3つの動作消費者プラグイン（`rigor-sinatra`、`rigor-dry-struct`、`rigor-devise`） + ハンドブックドキュメントを配信。§ 実装のスライス分けが各スライスに着地 / 先送りステータスと発端コミットを注釈。プラグイン例の数が21から24にバンプ。残りのフォローアップ（Tier Dエンジン、精度プロモーション）は需要駆動のまま。
 - 2026-05-15 — **スライス6精度プロモーション着地**。2つのコミット（`d174fff`スライス6a-TierB、`d7b1943`スライス6b-TierC）。Tier B発行が既存の`RbsDispatch.try_dispatch`経由で`origin_module:`provenanceを通じてプロモート（モジュールの著作RBS戻り値が勝つ — Deviseの`valid_password?`は`Dynamic[T]`の代わりに`bool`を返す）。Tier C発行が素のクラス名に対して`environment.nominal_for_name(return_type)`経由でプロモート（合成リーダーは、マニフェストの`returns:`文字列がRBS env内で解決されたときに`Nominal[<class>]`を返す）。先送りスライスノートが固定していた3つのオープン設計判断（NameScope供給、Tier B対Tier Cプロモーションパス、キャッシング）は、最小スコープパスを通じて解決: 既存のRbsDispatchキャッシュを超えるキャッシュレイヤーなし、origin_moduleとreturn_typeの間のマッチごとの自己ルーティング、ADR-13リゾルバチェイン配線なし（素の`nominal_for_name`が現在のTier Cマニフェスト — `rigor-dry-struct`、ActiveStorage attachedなど — に十分、それらは非パラメータ化クラス名を使う）。パラメータ化形式（`Array[String]`、`Hash[K, V]`）とプラグイン提供のユーティリティ型名（`Pick<T, K>`）をADR-13の`Plugin::TypeNodeResolver`チェイン経由でルーティングすることは将来のイテレーションのまま、具体的な需要にゲート。ステータスが「accepted — フロア + 精度プロモーション着地（スライス1〜7 + 6a/6b）、スライス5b + ユーティリティ型戻り値のためのADR-13リゾルバチェイン配線は需要に先送り」にプロモート。
+- 2026-07-25 — § 計画されたライブラリごとのプラグインテーブルの4番目の列、「Status」という見出しは腐っていた: その12行の「まだ著作されていない」行のうち8つが出荷されており（`rigor-sinatra`、`rigor-devise`、`rigor-graphql`、そしてdry-rbファミリー全体）、それが保留と呼んでいたADR-12のパッケージング決定は2026-05-16に受理された。列を「設計ノート」に改名し、すべての行から著作済み / 未著作の判定を削除して、ティア、依存関係、移行候補性のペイロード — ドリフトしない部分 — を保持した。ライブインベントリは`plugins/README.md`であり、AGENTS.md § Repository Layoutがすでにその唯一の在り処として名指ししている;2つ目のコピーは[ADR-97](../97-adr-index-budgets/)の基準2が警告するものであり、このテーブルは1つ隣のドキュメントでの同じ失敗である。

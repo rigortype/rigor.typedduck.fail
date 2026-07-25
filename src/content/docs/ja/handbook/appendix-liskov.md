@@ -3,8 +3,8 @@ title: "付録: リスコフの置換原則"
 description: "rigortype/rigor docs/handbook/appendix-liskov.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/appendix-liskov.md"
 sourcePath: "docs/handbook/appendix-liskov.md"
-sourceSha: "76798c2394d9d46b30c4a1db1f22d36e72726e4e61e4900bf431e543865c69f2"
-sourceCommit: "450a3016ca812067f6baa96e415442ed936ad49a"
+sourceSha: "7284988a17b61be84f8bf4c9230d683745cfc115dfd380050088f7beb8ffaaac"
+sourceCommit: "e3eb424c3c88035e453246710c8df3dc5cc8e7e1"
 translationStatus: "translated"
 sidebar:
   order: 1050
@@ -267,6 +267,6 @@ v0.1.15以降（[ADR-35](../../adr/35-override-signature-compatibility/)）、Ri
 - [付録: 型理論との接続](../appendix-type-theory/): このページが依拠する形式的足場（分散、漸進的保証、self型 / F有界多相、健全性対完全性のトレードオフ）について。
 - [第6章: クラス](../06-classes/): インスタンス側対クラス側の型付け、`self`、`Data.define`。LSPが扱うオブジェクト指向のサーフェス。
 - [第7章: RBSと`RBS::Extended`](../07-rbs-and-extended/): `def.return-type-mismatch`がチェックする相手の宣言された契約を著作することについて。
-- [第8章: エラーを理解する](../08-understanding-errors/): `def.return-type-mismatch` / `call.argument-type-mismatch`のルールと重大度プロファイルについて。
+- [第8章: エラーを理解する](../08-understanding-errors/): `def.*`ファミリーが何を主張するかについて。そして`def.return-type-mismatch` / `call.argument-type-mismatch`の項目と重大度プロファイルについては[マニュアル: 診断](../../manual/04-diagnostics/)。
 
 *原則*ではなく別の*ツール*と比較したい場合は、姉妹の付録が[TypeScript](../appendix-typescript/)、[PHPStan](../appendix-phpstan/)、[mypy / Pyright](../appendix-mypy/)、[Steep](../appendix-steep/)をカバーする。

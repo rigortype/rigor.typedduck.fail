@@ -3,8 +3,8 @@ title: "診断"
 description: "rigortype/rigor docs/manual/04-diagnostics.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/04-diagnostics.md"
 sourcePath: "docs/manual/04-diagnostics.md"
-sourceSha: "9fcbb467f64e999f8b4fdb39405d7c6a7824fba5790829e676b8e3917276d284"
-sourceCommit: "7a69f1427bb5d1985ccc87080ee90023ffb42665"
+sourceSha: "196c55e5b33bdce4836135efb5bbb763ed64d158fdf39c8cccce3af5a1dad7f1"
+sourceCommit: "e3eb424c3c88035e453246710c8df3dc5cc8e7e1"
 sourceDate: "2026-06-15T14:10:58+09:00"
 translationStatus: "translated"
 sidebar:
@@ -84,7 +84,17 @@ sidebar:
 | --- | --- |
 | `lenient` | 証明された診断のみがエラー。不確かなものは`warning` / `info`に下がる。レガシーコードへの段階的導入向け。 |
 | `balanced` *（デフォルト）* | ほとんどのルールが`error`。`dump.type`は`info`。不確かなルールは`warning`。 |
-| `strict` | ほぼすべてのルールが`error` —— 例外は`call.self-undefined-method`（`off`のまま、オプトインのみ）と`flow.unreachable-clause`（`warning`、偽陽性ゲート待ち）です。CIに適している。 |
+| `strict` | ほぼすべてのルールが`error`。例外は次のとおり: `call.self-undefined-method`と`static.value-use.void`は`off`のまま（どちらもオプトインのみ）、`flow.unreachable-clause`は偽陽性ゲート待ちで`warning`のまま、そして3つの`suppression.*`ルールは`warning`のまま —— 古くなった抑制コメントは知らせる価値があるが、ビルドを失敗させる理由にはならない。CIに適している。 |
+
+`balanced`では、`error`として発行され**ない**ルールは次のとおりです:
+
+| 重要度 | ルール |
+| --- | --- |
+| `warning` | `call.unresolved-toplevel`、`def.ivar-write-mismatch`、`def.return-type-mismatch`、`def.override-visibility-reduced`、`def.override-return-widened`、`def.override-param-narrowed`、`flow.unreachable-branch`、`flow.always-truthy-condition`、`flow.dead-assignment`、`flow.duplicate-hash-key`、`flow.return-in-ensure`、`flow.shadowed-rescue-clause`、`suppression.unknown-rule`、`suppression.empty`、`suppression.unknown-marker` |
+| `info` | `flow.unreachable-clause`、`dump.type` |
+| `off` | `call.self-undefined-method`、`static.value-use.void` |
+
+それ以外はすべて`error`として発行されます。任意の1つのルールについて、3つのプロファイルすべてにわたり、`rigor explain <rule>`は`Authored severity:`と`Severity by profile:`を表示します —— この出力はルールカタログ自体から生成されるため、ルール単位の真実の情報源です。
 
 より細かい制御のために、`severity_overrides:`はルールIDまたはファミリーを`error`、`warning`、`info`、または`off`のいずれかにマッピングします:
 
@@ -95,7 +105,9 @@ severity_overrides:
   call: warning
 ```
 
-ルール固有のオーバーライドはファミリーオーバーライドより優先されます。
+ルール固有のオーバーライドはファミリーオーバーライドより優先されます。`off`は診断を結果から完全に除去するため、`severity_overrides:`は下記の`disable:`のより軽いタッチの兄弟になります —— どちらもルールを黙らせますが、オーバーライドはプロファイルの残りと並んで「この1つのルールを、この重要度で」と読めます。
+
+YAMLはベアワードの`off`をブール値として予約しています。それを指定するオーバーライドが適用されないように見える場合は、`"off"`と引用符で囲んでください —— `on`も同様です。
 
 ## 機械可読な出力（`--format json`）
 
@@ -160,11 +172,13 @@ rigor check --format json \
 config.merge(extra)  # rigor:disable call.undefined-method
 ```
 
-修飾IDファミリーワイルドカード（`call`）、カンマまたはスペース区切りのリスト、または`all`を受け付けます。
+修飾IDファミリーワイルドカード（`call`）、カンマまたはスペース区切りのリスト、または`all`を受け付けます。コメントは診断が指す行に置かなければなりません。`disable-block`形式はないため、複数行にまたがる式では、発火する各行にコメントが必要です。
 
 機能し得ないマーカーは、静かに無視されるのではなくフラグされます。既知のルールを1つも指さないトークン（`call.undefined-metod`のようなタイポ）は[`suppression.unknown-rule`](#rule-suppression-unknown-rule)を、ルールをまったく持たない素のマーカーは[`suppression.empty`](#rule-suppression-empty)を、Rigorの文法の外にあるマーカー語（RuboCopの反射である`# rigor:disable-next-line <rule>`や`# rigor:enable`）は[`suppression.unknown-marker`](#rule-suppression-unknown-marker)を発火します。いずれもすべてのプロファイルで`:warning`です。`plugin.`接頭辞のトークンは決してフラグされず（プラグインのルール語彙は動的にロードされるため）、これらの抑制診断はいずれも他のルールと同様にそれ自体を抑制できます。
 
-**ソース内、ファイル全体**。ファイル内のどこかに`# rigor:disable-file <rules>`を記述すると、すべての行でそれらのルールが抑制されます。`# rigor:disable-file all`でファイルを黙らせます。
+**ソース内、ファイル全体**。ファイル内のどこかに`# rigor:disable-file <rules>`を記述すると、すべての行でそれらのルールが抑制されます。`# rigor:disable-file all`でファイルを黙らせます。慣例では先頭付近に置きます —— 典型的には生成ファイル、フィクスチャ、またはベンダリングされたスニペットで —— が、ファイル内のすべてのコメントがスキャンされるため、どこに置いても機能します。
+
+3つのレイヤーは**合成されます**: ファイルスコープのマーカーは行スコープのものを打ち消さず、プロジェクト全体の`disable:`はどちらも持たないファイルにも依然として適用されます。
 
 **プロジェクト全体**。`disable:`設定キーで実行全体のルールをオフにします:
 

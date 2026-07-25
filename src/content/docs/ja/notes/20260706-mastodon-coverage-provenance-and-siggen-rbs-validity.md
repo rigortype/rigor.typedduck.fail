@@ -4,7 +4,7 @@ description: "Imported from rigortype/rigor docs/notes/20260706-mastodon-coverag
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260706-mastodon-coverage-provenance-and-siggen-rbs-validity.md"
 sourcePath: "docs/notes/20260706-mastodon-coverage-provenance-and-siggen-rbs-validity.md"
 sourceSha: "bd972dcd9d427a9fa0895264ee4a613de01a7dff28278d7d10fa9327bf7a39a9"
-sourceCommit: "5802c990ff226483b4cfa421090900fd2b8ace2c"
+sourceCommit: "e3eb424c3c88035e453246710c8df3dc5cc8e7e1"
 sourceDate: "2026-07-06T20:29:30+09:00"
 sourceLanguage: "ja"
 sidebar:
@@ -276,7 +276,7 @@ WD1の計測が示した「dominantはチェーンreceiver」を受け、WD6を�
 **既存コメント**（「Dynamic receiverの結果はdynamic originを継承する」— 未実装だった）を実装:
 `ExpressionTyper#inherit_receiver_origin`がDynamic receiverの呼び出し結果callノードに
 receiverの実効originを記録（`return dynamic_top`は不変）。実効originは共有
-`Inference::OriginLookup.origin_for`（`dynamic_origins[node] || local/ivar伝播`）で、WD1の
+`Inference::OriginLookup.origin_for`（`dynamic_origins[node] || local/ivar 伝播`）で、WD1の
 ルックアップと統一（`ProtectionScanner`も同ヘルパへ）。
 
 ### 計測（mastodon app+lib, no-sig, cause別site数、group-dominant集計）

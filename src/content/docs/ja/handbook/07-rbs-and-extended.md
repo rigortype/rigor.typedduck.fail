@@ -3,8 +3,8 @@ title: "RBSと`RBS::Extended`"
 description: "rigortype/rigor docs/handbook/07-rbs-and-extended.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/07-rbs-and-extended.md"
 sourcePath: "docs/handbook/07-rbs-and-extended.md"
-sourceSha: "5096b01d91e72663f3b51b80a8ff821fb65aea5c7f4e6451b252003f12dd2abb"
-sourceCommit: "212f2c491920cc5c39a12d75aee385cb6c51fa0c"
+sourceSha: "536e86ecc03d34a43a4f458759f6eca61f20726643299a34a79a82d31cd8ad7a"
+sourceCommit: "e3eb424c3c88035e453246710c8df3dc5cc8e7e1"
 translationStatus: "translated"
 sidebar:
   order: 1007
@@ -91,21 +91,11 @@ s == "hello-world"  # bool（等値ナローイングが適用される）
 
 ## ディレクティブ文法
 
-`RBS::Extended`は[`docs/type-specification/rbs-extended.md`](../../type-specification/rbs-extended/)にあります。メソッドごとのディレクティブ:
+メソッド単位のディレクティブは7つあり、それらが運ぶ事実が*いつ*真になるかで分かれます: `return:`と`param:`はシグネチャそのものを型付けし直し、`predicate-if-true` / `predicate-if-false`は条件の分岐をまたいで変数をナローイング（narrowing）し、`assert` / `assert-if-true` / `assert-if-false`は呼び出しが返った後に1つをナローイングします。それぞれは、絞り込む対象の`def`の上に置く1つの`%a{rigor:v1:…}`アノテーションです;スタックでき、順序は問いません。
 
-| ディレクティブ | 意味 |
-| --- | --- |
-| `%a{rigor:v1:return: <type>}` | メソッドの戻り値型を締め付ける。 |
-| `%a{rigor:v1:param: <name> is <type>}` | 呼び出し元でのパラメータの受け入れ型を締め付け、かつ本体内のローカル変数をナローイング（narrowing）する。 |
-| `%a{rigor:v1:assert <name> is <type>}` | このメソッドが返った後、呼び出し元スコープの名前付きローカル変数は`<type>`である。 |
-| `%a{rigor:v1:predicate-if-true <name> is <type>}` | このメソッドが真値を返したとき、呼び出し元スコープの名前付きローカル変数は`<type>`である。（対称な`predicate-if-false`。） |
-| `%a{rigor:v1:assert-if-true <name> is <type>}` | このメソッドが真値を返したとき、呼び出し元スコープの名前付きローカル変数は`<type>`である。（`false` / `nil`を返すときの対称な`assert-if-false`。） |
+網羅的な表 ── すべてのディレクティブ、そのペイロード構文、そして`<type>`スロットが受け入れるもの（RBSクラス名、リファインメント（refinement、篩型とも）ペイロード、パラメータ化形式と境界付き形式、そして`~T`否定が許される箇所と許されない箇所）── は[マニュアル: RBS::Extendedアノテーション](../../manual/16-rbs-extended-annotations/#メソッド単位のディレクティブ)にあります;競合・マージ・由来に関する規範的なルールは[`docs/type-specification/rbs-extended.md`](../../type-specification/rbs-extended/)です。
 
-`<type>`スロットは以下を受け入れます:
-
-- **RBSクラス名**: `String`、`Integer`、`::Foo::Bar`。
-- **インポートされたリファインメント（refinement、篩型とも）名**: `non-empty-string`、`lowercase-string`、`numeric-string`、`int<5, 10>`、`non-empty-array[Integer]`、`literal-string`など。
-- **否定`~T`**: `~lowercase-string`は「非小文字string」を意味します。
+この章の残りでは、ディレクティブを1つずつ例を挙げて説明していきます。
 
 ## リファインメント名
 
@@ -122,7 +112,7 @@ s == "hello-world"  # bool（等値ナローイングが適用される）
 
 ## 適合を宣言する: `conforms-to`
 
-上記のディレクティブは`def`に付きます。もう1つは`class` / `module`宣言に付き、いずれかの呼び出し箇所がそれを行使するかどうかに関わらず、検査される設計アサーションとして、クラス全体が名前付きの構造的インターフェースを満たすことを表明します:
+上記のディレクティブは`def`に付きます。もう1つは`class` / `module`宣言に付き、クラス全体が名前付きの構造的インターフェースを満たすことを表明します:
 
 ```rbs
 %a{rigor:v1:conforms-to _RewindableStream}
@@ -132,7 +122,9 @@ class MyBuffer
 end
 ```
 
-`MyBuffer`が`_RewindableStream`インターフェースの要求するメソッドを欠いている（またはシグネチャが互換でない）場合、Rigorは`rbs_extended.unsatisfied-conformance`を報告します;インターフェースを満たすクラスは沈黙します。1つのクラスに複数の`conforms-to`ディレクティブを付けると、インターフェースのインターセクション（intersection、交叉型とも）のように組み合わされます。このディレクティブは純粋に追加的です。呼び出し箇所での暗黙の構造的互換性は、それがあってもなくても動作し続けます。
+`MyBuffer`が`_RewindableStream`インターフェースの要求するメソッドを欠いている場合、Rigorは`rbs_extended.unsatisfied-conformance`を報告します;インターフェースを満たすクラスは沈黙します。
+
+これに手を伸ばす理由は、Rigorが構造的インターフェースを必要とする位置に値が流れ込むところではどこでも、構造的互換性を*暗黙に*すでにチェックしているからです ── つまり、現在どこにも渡されていないクラスはまったくチェックされません。`conforms-to`はこの契約を、呼び出し箇所がそれを行使するかどうかに関わらず成り立つ設計アサーションに変えます。これは、構造的なシェイプこそが要点であるときにライブラリが求めるものです。これは純粋に追加的です: それを付けたからといって、以前に型チェックを通っていたものが通らなくなることはありません。スタックと診断のセマンティクスは[マニュアル: `conforms-to`](../../manual/16-rbs-extended-annotations/#conforms-to-チェック付きの構造的契約)にあります。
 
 ## 実例: アサーションゲート
 
@@ -152,6 +144,38 @@ end
 ```
 
 ランタイム側は`assert_non_empty`が何をするかです（空のとき例外、ログなど）。Rigorはディレクティブのみを読みます。
+
+## 実例: 否定のアサート
+
+アサーションのペイロードは`~T`で否定できます。これは、どんなコードベースにも育つ「これはもう確実にnilではない」というヘルパーをモデル化する方法です:
+
+```rbs
+# sig/asserts.rbs
+class Asserts
+  %a{rigor:v1:assert x is ~nil}
+  def self.not_nil: (untyped x) -> void
+end
+```
+
+```ruby
+# lib/configure.rb
+def configure(maybe)
+  Asserts.not_nil(maybe)
+  # maybe: (~nil)、ナローイングされた型で.upcaseが解決される
+  maybe.upcase
+end
+```
+
+ターゲットはレシーバー自身にもできます ── `self`で名指しすれば、事実はメソッドが呼び出されたオブジェクトに届きます:
+
+```rbs
+class Connection
+  %a{rigor:v1:assert self is Connected}
+  def assert_connected!: () -> void
+end
+```
+
+PHPDocの`@phpstan-assert`ファミリーがこのすべてのメンタルモデルなら、読み方はほぼ一対一です;マッピング表は[付録: PHPStanから来た人へ](../appendix-phpstan/#phpstan-assertファミリー)にあります。
 
 ## 実例: 型述語
 
@@ -267,58 +291,10 @@ def deserialize: (String) -> untyped
 
 `untyped`は契約フリーのハッチです。あらゆるメソッドがそれに存在し、あらゆる引数シェイプが受け入れられます。Rigorの診断は`untyped`レシーバーに対して沈黙します。正当に動的な境界（デシリアライズ、`eval`、プラグインエントリーポイント）に使います。失う静的解析は「これは何でもあり得る」と認めることの誠実さで補われます。
 
-## PHPStanから来た方へ: `@phpstan-assert`ファミリー
-
-PHPStanのPHPDocアノテーションに慣れている場合、RigorのRBS::Extendedディレクティブは、PHPStanが「アサート」や「型指定関数」と呼ぶポストリターン / 条件付きナローイングのプリミティブに直接マッピングされます。挙動は同一です:
-
-> 「このメソッドが返した後、名前付き引数は`T`です。」
-
-PHPStanでは`@phpstan-assert`、Rigorでは`%a{rigor:v1:assert}`です。
-
-| PHPStan PHPDoc | Rigor RBS::Extended | 効果 |
-| --- | --- | --- |
-| `@phpstan-assert T $x` | `%a{rigor:v1:assert x is T}` | このメソッドが正常に返った後、呼び出し元の`x`は`T`。 |
-| `@phpstan-assert-if-true T $x` | `%a{rigor:v1:predicate-if-true x is T}` | このメソッドが真値を返した場合、呼び出し元の`x`は`T`。 |
-| `@phpstan-assert-if-false T $x` | `%a{rigor:v1:predicate-if-false x is T}` | このメソッドが偽値を返した場合、呼び出し元の`x`は`T`。 |
-| `@phpstan-assert !T $x` | `%a{rigor:v1:assert x is ~T}` | このメソッドが返った後、呼び出し元の`x`は`T`**ではない**（否定形式）。 |
-| `@phpstan-assert-if-true !T $x` | `%a{rigor:v1:predicate-if-true x is ~T}` | 条件付き否定。`predicate-if-false`と対称。 |
-
-実践例: PHPStanのドキュメントからの典型的な「assertNotNull」パターン:
-
-```rbs
-# sig/asserts.rbs
-class Asserts
-  %a{rigor:v1:assert x is ~nil}
-  def self.not_nil: (untyped x) -> void
-end
-```
-
-```ruby
-# lib/configure.rb
-def configure(maybe)
-  Asserts.not_nil(maybe)
-  # maybe: (~nil)、ナローイングされた型で.upcaseが解決される
-  maybe.upcase
-end
-```
-
-selfターゲット形式もサポートされています。PHPStanのアナログは`$this`をナローイングするメソッドになります。レシーバーを`self`で名指しします:
-
-```rbs
-class Connection
-  %a{rigor:v1:assert self is Connected}
-  def assert_connected!: () -> void
-end
-```
-
-RigorのディレクティブのグラマーはPHPStanが`@phpstan-assert*`ファミリーで提供するものをカバーします。ディレクティブは**RBSからのみ**発火します（ADR-5に従い: 戻り値では厳格に、パラメータでは寛容に）; PHPStan側では関数のすぐ上のPHPDocに`@phpstan-assert`を直接書けます。Rigorでの等価表現は同じRBSファイルの`def`行です。
-
-**コールシェイプ**によってアサーションを認識するプラグイン側の等価表現が必要な場合（PHPStanの「型指定拡張」）は[第9章](09-plugins/)を参照してください。プラグイン契約はディレクティブが使うのと同じ`Fact(target_kind: :self)`と`Fact(target_kind: :parameter)`キャリアを提供しているため、プラグイン作者はRubyからPHPStanの`StaticMethodTypeSpecifyingExtension`に相当するものを書けます。
-
 ## RBSが助けにならないとき: プラグインの逃げ道
 
 メソッドの動作が**ランタイムでの引数のシェイプに依存する**場合（`Lisp.eval([:+, 1, 2])`はIntegerを返すが、`Lisp.eval([:<, 1, 2])`はboolを返す）、どんなRBSシグもその関係を表現できません。それがプラグインのためのものです。[第9章](../09-plugins/)と[examples/](https://github.com/rigortype/rigor/blob/master/examples/README.md)ディレクトリを参照してください。
 
 ## 次に読むもの
 
-第8章はルールカタログを扱います（各診断の意味、発火するタイミング、それが間違いまたはノイズのときの抑制方法）。
+第8章は診断を読むことについてです ── 各ルールファミリーが何を主張するか、期待していないときになぜ1つが発火するか、そして静かにしたいときにどのレイヤーに手を伸ばすか。

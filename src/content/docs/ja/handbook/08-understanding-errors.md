@@ -3,14 +3,16 @@ title: "エラーの読み方"
 description: "rigortype/rigor docs/handbook/08-understanding-errors.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/08-understanding-errors.md"
 sourcePath: "docs/handbook/08-understanding-errors.md"
-sourceSha: "908e0a73637a86aefed3d00ab76bdc3aaf5ebdb822dce374886048879b4699d7"
-sourceCommit: "026f5700e2e13ed5e8e99e9df80a2871ab4293ab"
+sourceSha: "4c987f9f281eac9a69f39ca41470704cc6fdfbb0d123598e8851a09411889fe2"
+sourceCommit: "e3eb424c3c88035e453246710c8df3dc5cc8e7e1"
 translationStatus: "translated"
 sidebar:
   order: 1008
 ---
 
-この章はRigorが出荷する診断のカタログ、それらが属するファミリー、そして診断が間違っているとき（または深刻度を変えたいとき）に抑制する方法です。診断に、どちらの方向であれ、驚かされたときに最初に開くページです。
+診断とは、Rigorがあなたのコードについて証明した何かを伝えるものです。この章はそれを*読む*ことについてです: 各部分が何を意味するか、各ルールファミリーが実際に何を主張しているか、期待していないのになぜ1つが発火するか、期待したのになぜ1つが沈黙したままか、そして採用したばかりのプロジェクトをクリーンな実行まで追い込む方法。
+
+リファレンスは隣の扉にあります。完全なルールカタログ、各ルールのエビデンスティア、深刻度プロファイル表、そしてすべての抑制形式の正確な構文は、マニュアルの[診断](../../manual/04-diagnostics/)にあります;この章はそれを再掲するのではなく、そこへリンクします。
 
 ## 診断の構造
 
@@ -33,180 +35,35 @@ lib/user.rb:42:7: error: undefined method `upcas' for "alice" [call.undefined-me
 
 シェルを離れずにルールの内容を調べたい場合は、`rigor explain <rule>`でルールのサマリー、発火条件、非発火条件、抑制トークン、作成重大度、プロファイルごとの重大度を確認できます。引数なしの`rigor explain`は出荷済みすべてのルールのインデックスを表示します。
 
-### 信頼度と参照フィールド
+### 信頼度: エビデンスティアを読む
 
-`rigor check --format json`を消費するエージェントやダッシュボードのために（そして`rigor explain --format json`の各ルールにも）、すべての組み込み診断には2つの追加フィールドが付随します:
+すべての組み込み診断は`evidence_tier`（`high` / `medium` / `low`）を持ちます。これはその発火が*真陽性*であるというRigor自身の信頼度で、深刻度ではなくルールのゲートから導かれます。これは設定のつまみとしてではなく、読み方の習慣として身につける価値があります: `high`の発火（具体的なレシーバーに対する`call.undefined-method`）はほぼ常に本物のバグで、そのまま対処できます。一方`low`の発火（`call.unresolved-toplevel`）は通常、解析器がコンテキストを欠いていること ── 解析されていないファイル、一度も見ていないモンキーパッチ ── を意味し、「これを直せ」よりも「ここを見ろ」と読むほうが適切です。ティアは深刻度に反映されることはなく、診断が発火するかどうかを変えることもありません。あなたの注意を振り向けるだけです。
 
-- **`evidence_tier`**: `high` / `medium` / `low`: その発火が真陽性であるというRigor自身の信頼度で、ルールの深刻度ではなくゲートから導かれます。`high`は、メタプログラミングの逃げ道がない、具体的で静的に既知の型を意味します（例: `call.undefined-method`）;`medium`は、文書化された偽陽性の許容範囲を持つフロー／推論の証明に依拠します（例: `flow.always-truthy-condition`）;`low`は解決またはカバレッジのギャップシグナルで、しばしばバグではなくコンテキスト不足を意味します（例: `call.unresolved-toplevel`）。ティアは深刻度には決して反映されません。それは`severity_profile:`の判断のままです。情報提供のヘルパー（`dump.type`）はティアを持ちません。
-- **`documentation_url`**: 公開された診断カタログ内のルールのエントリーへの安定したリンク。
+ルールごとのティアと、`--format json`でそれらに寄り添う`documentation_url`フィールドは[マニュアル: エビデンスティア](../../manual/04-diagnostics/#エビデンスティア)にあります。
 
-どちらも表示用のメタデータです。診断が発火するかどうかを決して変えません。
+## 5つのファミリー
 
-## ルールカタログ
+すべてのルールIDは`family.rule`と読め、ファミリーはどの種類の証明が失敗したかを教えます。カタログ ── すべてのルール、何に対して発火するか、そのエビデンスティア ── は[マニュアル: 診断](../../manual/04-diagnostics/#カタログ)にあります。以下は各ファミリーが*何についてのもの*かです。
 
-5つのファミリー、それぞれに1つ以上のルール:
+**`call.*`: 呼び出し箇所の形状が間違っている**。未定義メソッド、どのシグネチャも受け入れないアリティ、パラメータ契約（contract）を証明可能に破る型の引数、`nil`かもしれないレシーバー。これらは実際のコードで最も量の多い診断であり、また最も洗練されています: それぞれが、静的に既知のレシーバーについて根底にある事実をRigorが証明できるときにのみ発火します。だからこそ`call.*`の発火はたいてい最初に読む価値があります。
 
-### `call.*`: 呼び出し元ルール
+**`flow.*`: 制御フロー自体が不健全（unsound）**。何かがすべてのパスで証明可能に例外を投げる、ブランチが死んでいる、`case`節が決してマッチしない、ローカルが書かれて決して読まれない、Hashリテラルがキーを繰り返す。`flow.unreachable-branch`、`flow.always-truthy-condition`、`flow.unreachable-clause`は**到達可能性ファミリー**を形成します ── それぞれがコードの一部が実行され得ないことを証明します。`unreachable-clause`は最新のメンバーで、コーパスの偽陽性ゲートが完成するまでは兄弟より意図的に静かです（`balanced`では`:info`）;もっと目立たせたいなら`severity_overrides:`で引き上げてください。
 
-メソッド呼び出しの形状が間違っているときに発火します。
+**`def.*`: 定義が宣言した契約に違反する**。宣言されたRBSの戻り値からずれる本体の戻り値、2つの食い違う型で書かれたインスタンス変数、プライベートメソッドへの明示的レシーバーの呼び出し。3つの`def.override-*`ルールは、プロジェクト定義の階層（上位クラスチェーンとinclude/prependされたモジュール、クロスファイルで解決）をまたいで適用されたリスコフの置換原則のシグネチャ規則です: 戻り値は狭めてよく、パラメータは広げてよく、可視性は縮小してはなりません。これらは[付録: リスコフの置換](appendix-liskov/)の概念的な主題です。
 
-| ルール | 発火するとき | デフォルト深刻度 |
-| --- | --- | --- |
-| `call.undefined-method` | レシーバークラスが静的に既知で、メソッドがそれに定義されていない（RBSまたはインソース）。 | error |
-| `call.wrong-arity` | 位置引数の数がどのオーバーロードのアリティも満たさない。 | error |
-| `call.argument-type-mismatch` | 引数の型がパラメータ契約（contract）（RBSまたは`RBS::Extended` `param:`）を証明可能に満たさない。 | error |
-| `call.possible-nil-receiver` | レシーバー型が`T \| nil`で、メソッドが`NilClass`で定義されていない。 | error（`lenient`でwarning） |
-| `call.unresolved-toplevel` | トップレベル（どの`def` / `class` / `module`の外側でもない）の暗黙的self呼び出しが、同一ファイルの`def`、`pre_eval:`モンキーパッチ、`Kernel` / `Object`のメソッドのいずれにも解決しない。スタンドアロンスクリプトのタイポを顕在化させる。 | `balanced`でwarning、`strict`でerror、`lenient`で抑制 |
+**`assert.*`と`dump.*`: イントロスペクションヘルパー**。 `assert.type-mismatch`は`assert_type("expected", value)`呼び出しが推論された型と食い違うときに発火します。したがってこのハンドブックのスニペットは、説明であると同時にエンジンのテストでもあります。`dump.type`はそもそも問題の報告ではありません ── デバッグ時のあなたのプローブです: 疑わしいコードに`dump_type(value)`を散りばめ、`rigor check`を実行し、診断ストリームからそのまま推論された型を読みます。
 
-`call.*`ルールは実際のコードで最も量の多い診断です。また最も洗練されています。それぞれがRigorが根底にある事実を証明できる場合にのみ発火します。
+## 診断を静かにする
 
-### `flow.*`: フロー解析ルール
+Rigorは5つのレイヤーを与えます。正しいものを選ぶことは、ほとんどが*どれだけ*言いたいかの問題です:
 
-制御フロー自体が健全（soundness）でないときに発火します。
+1. **`severity_profile:`**: プロジェクト全体の姿勢。Rigorをそっと導入していくレガシーコードベースには`lenient`、日常の作業には`balanced`、レガシーノイズのないプロジェクトには`strict`。
+2. **`severity_overrides:`**: プロファイルの残りとは異なる深刻度にした1つのルール（または1つのファミリー）。あるルールがあなたにとって*有用だがブロックするほどではない*ときに適したレイヤーです。
+3. **`disable:`**: ルールをプロジェクト全体でオフにする。`off`へのオーバーライドより強力です;どちらも機能し、選択はほとんどスタイルの問題です。
+4. **`# rigor:disable` / `# rigor:disable-file`**: この行、またはこのファイル。解析器が*ここでは*間違っていて他のすべての場所では正しいときに適したレイヤーです。プロジェクト全体のスイッチよりこちらを選んでください: 例外を、それを必要としたコードのすぐ隣に見える形で保ち、後で`RBS::Extended`ディレクティブに格上げする対象になります。
+5. **[ベースライン](../../manual/06-baseline/)**（baseline）: 既存のバックログ全体を、隠すのではなく記録するので、新しい診断は依然として表面化します。採用初日に手を伸ばすレイヤーであり、ルールが本当に何かを見つけているがまだ直していないだけのときに`disable:`の*代わりに*手を伸ばすレイヤーです。
 
-| ルール | 発火するとき | デフォルト深刻度 |
-| --- | --- | --- |
-| `flow.always-raises` | 式のすべての到達可能な評価が例外を投げる（例: `n: Integer`のとき`n / 0`）。 | error |
-| `flow.unreachable-branch` | `if` / `unless` / 三項演算子の述語が構文的リテラルで、対応する到達不能ブランチが空でない。 | warning |
-| `flow.always-truthy-condition` | `if` / `unless` / 三項演算子の述語が推論型により証明可能に真値（または偽値）で、ループボディ内と防衛的述語コールに外科的スキップあり。 | warning |
-| `flow.unreachable-clause` | `case <local>; when <Class>`（または素のクラスの`case`/`in`）節で、対象のナローイングによりそれが決してマッチしないことが証明される。対象の型と素であるか、または先行する節ですでに尽くされている。 | `balanced`でinfo、`strict`でwarning、`lenient`でinfo |
-| `flow.dead-assignment` | 同じ`def`ボディ内で一度も読まれないローカル変数への単純な書き込み。 | warning |
-| `flow.duplicate-hash-key` | 1つのHashリテラルの2つのエントリーが同じリテラルキーを持つ（`{ a: 1, a: 2 }`、`m("x" => 1, "x" => 2)`）。実行時には最後のエントリーが静かに勝つ。リテラルキーのみが対象。`:a`と`"a"`、`1`と`1.0`は別のキーであり、決して比較されない。 | warning |
-
-`flow.unreachable-branch`、`flow.always-truthy-condition`、`flow.unreachable-clause`は**到達可能性ファミリー**です。それぞれがブランチまたは`case`節が死んでいることを証明します。`unreachable-clause`は最新のメンバーです: `case <local>; when <Class>`（および素のクラスの`case`/`in`）を監視し、先行する節がすでにメンバーの型をカバーしているか、または節が対象と素であるときに発火します。コーパスの偽陽性ゲートが完成するまでは`balanced`では`:info`で出荷されます（兄弟より1段下）;もっと目立たせたいなら`severity_overrides:`で引き上げてください。
-
-### `def.*`: メソッド定義ルール
-
-メソッドの本体が宣言された契約に違反するときに発火します。
-
-| ルール | 発火するとき | デフォルト深刻度 |
-| --- | --- | --- |
-| `def.return-type-mismatch` | 本体の最後の式の推論された型がRBS宣言の戻り値型を満たせない。`%a{rigor:v1:return: <refinement>}`オーバーライドを尊重。 | `balanced`プロファイルでwarning、`strict`でerror |
-| `def.ivar-write-mismatch` | 同じクラスボディ内で後の`@var = ...`書き込みの具体クラスが最初の書き込みのクラスと異なる（NilClass-to-clearはアローリスト）。 | `balanced`プロファイルでwarning、`strict`でerror |
-| `def.method-visibility-mismatch` | 明示的レシーバーのコールが、周囲のクラスボディで`：private`として発見されたメソッドを持つ`Nominal[X]`をターゲットにする。 | error |
-| `def.override-visibility-reduced` | オーバーライドが、プロジェクト定義の祖先から継承した可視性を縮小する（public → protected/private、protected → private）。上位型を保持する呼び出し元を壊す。 | `balanced`でwarning、`strict`でerror、`lenient`で抑制 |
-| `def.override-return-widened` | オーバーライドの宣言された戻り値が、継承した戻り値を広げる（共変性）。両側が著作されたRBSシグネチャを持つ場合の、証明可能な違反でのみ発火する。 | `balanced`でwarning、`strict`でerror、`lenient`で抑制 |
-| `def.override-param-narrowed` | オーバーライドが、継承したパラメータ型を狭める（反変性）。一致する位置パラメータどうしを比較する。両側に著作された単一オーバーロードのRBSシグネチャが必要。 | `balanced`でwarning、`strict`でerror、`lenient`で抑制 |
-
-3つの`def.override-*`ルールは、プロジェクト定義のクラス/モジュール階層（上位クラスチェーン + include/prependされたモジュール、クロスファイルで解決）をまたいで適用されたリスコフの置換原則のシグネチャ規則です。これらは[付録: リスコフの置換](appendix-liskov/)の概念的な主題です。
-
-### `assert.*`: ランタイムアサーションルール
-
-| ルール | 発火するとき | デフォルト深刻度 |
-| --- | --- | --- |
-| `assert.type-mismatch` | `assert_type("expected", value)`呼び出しの実際の推論された型が期待文字列と一致しない。 | error |
-
-### `dump.*`: デバッグヘルパー
-
-| ルール | 発火するとき | デフォルト深刻度 |
-| --- | --- | --- |
-| `dump.type` | `dump_type(value)`が呼ばれた。推論された型を名前付きのinfo診断として出力する。 | info |
-
-`dump_type`はデバッグ時のイントロスペクションプローブです: 疑わしいコードに散りばめて、`rigor check`を実行し、診断ストリームから推論された型を読みます。
-
-## 深刻度プロファイル
-
-Rigorは出荷された深刻度を再スタンプする3つの名前付き深刻度プロファイルを提供します:
-
-| プロファイル | 動作 |
-| --- | --- |
-| `lenient` | 証明済みのルールだけが`error`のまま（`call.undefined-method`、`wrong-arity`、`assert.type-mismatch`）;不確かなルールは`warning`に下がり、いくつかは`off`に下がる。レガシーコードへの漸進的な採用向け。 |
-| `balanced`（デフォルト） | ほとんどのルール → `error`;不確かなルール → `warning`; `dump.type` → `info`。出荷された動作。 |
-| `strict` | ほぼすべてのルール → `error`。例外: `call.self-undefined-method`は`off`のまま（オプトインのみ）、`flow.unreachable-clause`は`warning`（偽陽性ゲート待ち）。レガシーノイズのない新しいプロジェクトに適しています。 |
-
-`.rigor.yml`で設定:
-
-```yaml
-severity_profile: strict
-```
-
-## ルールごとのオーバーライド
-
-単一ルールの深刻度をオーバーライド:
-
-```yaml
-severity_overrides:
-  call.argument-type-mismatch: warning
-  def.return-type-mismatch: off
-```
-
-`off`は診断を結果から完全に除去します。プロファイル全体の設定をほとんどのルールに使いつつ、1つだけ沈黙させたいときに有用です。
-
-ファミリーワイルドカードもオーバーライドで使えます:
-
-```yaml
-severity_overrides:
-  call: warning   # すべてのcall.*ルールを降格
-  dump: off       # すべてのdump.*ルールを除去
-```
-
-ルールごとのエントリーはファミリーワイルドカードエントリーより優先されます:
-
-```yaml
-severity_overrides:
-  call: warning                    # すべてのcall.* → warning
-  call.undefined-method: error     # ただしundefined-methodは依然としてerror
-```
-
-YAMLは裸の`off`を予約済みにしています。削除された深刻度が適用されないように見える場合は、クォートしてください: `"off"`。`on`も同様です。
-
-## インソース抑制
-
-```ruby
-"hello".no_such_method  # rigor:disable call.undefined-method
-```
-
-コメントは診断と同じ行になければなりません。修飾ルール、ファミリーワイルドカード、または`all`を使います:
-
-```ruby
-"hello".no_such_method   # rigor:disable call
-"hello".no_such_method   # rigor:disable all
-```
-
-複数行のブロックの場合は、各行で抑制します。Rigorはまだ`disable-block`構文を出荷していません。
-
-### ファイルスコープの抑制
-
-ファイル内のルールをすべての箇所でサイレンスする必要がある場合（典型的には生成されたファイル、フィクスチャ、既知の偽陽性を引き起こすベンダーのスニペット）、ファイルのどこかに1つの`# rigor:disable-file`コメントを置きます:
-
-```ruby
-# rigor:disable-file call.undefined-method
-
-# このファイル全体は生成済みです; 解析器のコールサーフェスは
-# これらのスタブのランタイムレイヤーと不一致です。
-```
-
-慣習的にコメントは先頭近くに置きますが、Rigorはファイル内のすべてのコメントをスキャンするため、どこに置いても機能します。同じトークン形式が適用されます: 修飾ルール、ファミリーワイルドカード、または`all`。行スコープの`# rigor:disable`形式は引き続き機能します。両者は組み合わせて使え、`.rigor.yml`のプロジェクト全体の`disable: [...]`も引き続き適用されます。
-
-## プロジェクト全体の抑制
-
-```yaml
-# .rigor.yml
-disable:
-  - call.possible-nil-receiver
-```
-
-プロジェクト全体でルールを除去します。`severity_overrides: { call.possible-nil-receiver: off }`よりも強力なハンマーです。どちらも機能します;選択はスタイルの問題です。
-
-## CIのためのベースライン差分
-
-既存のコードベースにRigorを採用する場合、今日すぐには修正しない正当だが既存の診断の長いテールを引き継ぐことがよくあります。実用的な方法は**現在の状態をベースライン（baseline）としてスナップショットし**、CIがPRによって*新たに*導入された診断のみで失敗するようにすることです:
-
-```sh
-# 一度: 現在の診断サーフェスをキャプチャ。
-rigor check --format=json > rigor.baseline.json
-git add rigor.baseline.json
-git commit
-
-# PRごと: コミットされたベースラインと比較。
-rigor diff rigor.baseline.json
-```
-
-`rigor diff`はベースラインになかった各診断の`+ NEW`行と、解消された各診断の`- FIXED`行を出力します。新しい診断が現れた場合の終了コードは`1`、そうでない場合は`0`です。したがって新しい違反を追加するとCIは失敗しますが、ベースラインに記録されたレガシー診断は問題ありません。
-
-ベースラインの行を修正した場合は、同じ`rigor check --format=json > rigor.baseline.json`で再生成して、プロジェクトが単調に厳しくなるようにします。`rigor diff`自身の`--format=json`形式もエディタ / ダッシュボード統合のために利用可能です。
-
-`rigor diff`は軽量でアドホックな形式です。CIスクリプトの中で手作業でdiffするJSONファイルです。ほとんどのプロジェクトは代わりに**管理されたベースライン**を採用します: `rigor baseline generate`が`.rigor-baseline.yml`を書き出し、`baseline:`設定キーでそれを指定すれば、以降は`rigor check`自身が記録済みの診断ではクリーンに終了し、新しいものだけを表面化します。別途のdiffステップは不要です。これは[`rigor-project-init`スキル](../../manual/14-rails-quickstart/)がセットアップしてくれる道筋です;完全なワークフローは[ベースライン](../../manual/06-baseline/)を（設計は[ADR-22](../../adr/22-baseline-and-project-onboarding/)を）参照してください。
+5つすべての正確な構文 ── プロファイル表、オーバーライドの優先順位、3つの抑制形式、ベースラインファイルとその`rigor baseline`コマンド ── は[マニュアル: 診断](../../manual/04-diagnostics/#重要度プロファイル)と[マニュアル: ベースライン](../../manual/06-baseline/)にあります。
 
 ## 期待していたのに診断が発火しない理由
 
@@ -248,6 +105,8 @@ Rigorを採用したばかりのプロジェクトでの実用的なループ:
 3. 再実行します。診断ストリームがきれいになるまで繰り返します。
 4. `rigor check lib`を`balanced`プロファイル（またはより厳密）の下でCIに追加します。
 5. プロジェクトの不変条件がより証明されるにつれて、`# rigor:disable`行を`RBS::Extended`ディレクティブに格上げして、解析器に実際の契約を教えます。
+
+一度に手順2をこなすには大きすぎるコードベースでは、まず既存の診断を[ベースライン](../../manual/06-baseline/)として記録し、CIが新たに表面化するものに対してループを回してください。
 
 クリーンな`rigor check`の実行が目標です;グリーンのCIバッジは「発火するすべての診断は受け入れるものだ」を意味します。
 

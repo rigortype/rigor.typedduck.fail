@@ -3,14 +3,14 @@ title: "リフレクションファサード — `Rigor::Reflection`"
 description: "rigortype/rigor docs/internal-spec/reflection.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/reflection.md"
 sourcePath: "docs/internal-spec/reflection.md"
-sourceSha: "fc13aae6d2536fa251b317db4f845b1bc8a7b2d03d18d100981a622a96b14887"
-sourceCommit: "a3ab53dd2b8aa0a84fd7ddbd64339f316d8d12ec"
+sourceSha: "3b62d767d8fe77fa057ea4babfc89a1b53a1d074b902de04e99c34223de4da5f"
+sourceCommit: "e3eb424c3c88035e453246710c8df3dc5cc8e7e1"
 translationStatus: "translated"
 sidebar:
   order: 3050
 ---
 
-ステータス：**パブリック読み取り形状（v0.0.7）**。このモジュールはRigorの3つのリフレクションソースに対する統合された読み取り側ファサードです。v0.1.0プラグインAPIが設計される基盤となります；[`docs/design/20260505-v0.1.0-readiness.md`](../../design/20260505-v0.1.0-readiness/)に従い、ファサードの実装はv0.1.0準備のための最もレバレッジの高いコールドスタートスライス（slice）でした。
+ステータス：**パブリック読み取り形状、v0.0.7で実装されて以来不変**。このモジュールはRigorの3つのリフレクションソースに対する統合された読み取り側ファサードです；[`docs/design/20260505-v0.1.0-readiness.md`](../../design/20260505-v0.1.0-readiness/)に従い、ファサードの実装はv0.1.0準備のための最もレバレッジの高いコールドスタートスライス（slice）でした。v0.1.0プラグインAPIはこれを基盤に設計されましたが、§「将来の進化」がそのリリースで見込んでいた3つの拡張のいずれも実装されていません——そこにあるマーカーを参照してください。
 
 このモジュールは**読み取り専用で追加的**です。`Rigor::Scope`や`Rigor::Environment::RbsLoader`から直接読み込む既存の呼び出しサイトは変更なく動作し続けます；それらは自分たちのペースでファサードに移行します。
 
@@ -57,7 +57,7 @@ RBSを参照するメソッドは`scope:` **または** `environment:`の**ど�
 
 ## 来歴
 
-APIの来歴側（どのソースファミリーが各ファクトを提供したか）はv0.0.7の初回実装の**スコープ外**です。v0.1.0のプラグインAPIはそれを別の関心事として追加します——ADR-2 §「プラグイン診断来歴」と、プラグイン作成者が診断説明のために来歴を必要とするまでファサードを狭く保つというreadiness分析の推奨に従います。
+APIの来歴側（どのソースファミリーが各ファクトを提供したか）はv0.0.7の初回実装の**スコープ外**であり、いまだ実装されていません——それはプラグインAPIの別の関心事となるはずでした。ADR-2 §「プラグイン診断来歴」と、プラグイン作成者が診断説明のために来歴を必要とするまでファサードを狭く保つというreadiness分析の推奨に従います。どのプラグイン作成者も要望していないため、ファサードはいまだ狭いままです；§「将来の進化」のマーカーを参照してください。
 
 ## 安定性
 
@@ -67,10 +67,12 @@ APIの来歴側（どのソースファミリーが各ファクトを提供し�
 
 ## 将来の進化
 
-v0.1.0プラグインAPIはこのモジュールを[`docs/design/20260505-v0.1.0-readiness.md`](../../design/20260505-v0.1.0-readiness/)で言及される3つの軸に沿って拡張します：
+> **ステータス — 以下の3つの軸はいずれも（本稿執筆時点で）実装されていない**。これらはv0.1.0プラグインAPIで見込まれていたが、そのリリースは過ぎ去り、`lib/rigor/reflection.rb`はいまだ来歴サーフェスも、Rigor側の`MethodDefinition`キャリアも、キャッシュスライスディスクリプタも持たない。これらは契約ではなく意図としてここに記録される——このドキュメントに対して実装する読者（特に`rigor-rs`ポート）はそれらを期待してはならない。[ADR-92](../../adr/92-normative-status-fidelity/) WD2に従い、意図は削除ではなくマークされる。
+
+3つの軸が[`docs/design/20260505-v0.1.0-readiness.md`](../../design/20260505-v0.1.0-readiness/)で言及されました：
 
 - **来歴** — すべての読み込みが`(value, source_family)`ペアを返すため、プラグイン診断がファクトがソース/RBS/生成済み/プラグインのどこから来たかを説明できます。
-- **統合された`MethodDefinition`キャリア** — 現在`instance_method_definition`は生の`RBS::Definition::Method`を返します；v0.1.0はソースの`def`ノード・RBSシグネチャ・プラグインの動的メンバーを1つの形状に結合するRigor側のキャリア（carrier）を導入します。
+- **統合された`MethodDefinition`キャリア** — `instance_method_definition`は生の`RBS::Definition::Method`を返します；この軸はソースの`def`ノード・RBSシグネチャ・プラグインの動的メンバーを1つの形状に結合するRigor側のキャリア（carrier）でした。
 - **キャッシュスライスディスクリプタ** — 各読み込みがADR-2 §「キャッシュ無効化には宣言的なAPIが必要」の型付きスロットスキーマから導出されたキャッシュキーを返すまたは受け取るため、リフレクションルックアップに依存するプラグインファクトは基底ソースが変更されたときに正しく無効化されます。
 
 これらはv0.0.x契約の一部ではありません。

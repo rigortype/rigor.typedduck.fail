@@ -3,8 +3,8 @@ title: "Rigorハンドブック"
 description: "rigortype/rigor docs/handbook/README.mdからインポートされたドキュメントの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/README.md"
 sourcePath: "docs/handbook/README.md"
-sourceSha: "bed9ed1d607e21d76ca4c81cd2e62f3022cfa146e2092df6e1e201f8e1e5b2d0"
-sourceCommit: "212f2c491920cc5c39a12d75aee385cb6c51fa0c"
+sourceSha: "915024a85cfd2001311a97b33e9077923bfe815ea0ac28145b07921120a3ba3a"
+sourceCommit: "e3eb424c3c88035e453246710c8df3dc5cc8e7e1"
 translationStatus: "translated"
 sidebar:
   order: 1000
@@ -33,7 +33,7 @@ Rubyプログラマー向けに書かれた、Rigorの型モデルの解説で�
 5. [**メソッドとブロック**](05-methods-and-blocks/): 引数の型付け、戻り値型の推論、ブロックパラメータ、引数個数（arity）。
 6. [**クラス**](06-classes/): インスタンス側とクラス側、`self`、`attr_accessor`、`Data.define`。
 7. [**RBSとRBS::Extended**](07-rbs-and-extended/): 推論で実際の戻り値型を証明できないとき、`.rbs`ファイルや`%a{rigor:v1:…}`ディレクティブで推論を後押しする方法。
-8. [**エラーの読み方**](08-understanding-errors/): ルールカタログ（`call.undefined-method`、`call.argument-type-mismatch`、`flow.always-raises`、…）、深刻度プロファイル、`# rigor:disable`による抑制。
+8. [**エラーの読み方**](08-understanding-errors/): 診断の読み方。各ルールファミリーが何を主張するのか、なぜ予期しないときに発火し（予期したときには沈黙し）、静かにしたいときにどのレイヤーに手を伸ばせばよいのか。カタログそのものは[マニュアル: 診断](../manual/04-diagnostics/)。
 9. [**プラグイン**](09-plugins/): プラグインを書くべきタイミングと、[examples/](https://github.com/rigortype/rigor/blob/master/examples/README.md)ランディングページへの導線。
 10. [**Sorbetとの共存**](10-sorbet/): Sorbetを使用しているプロジェクトから来たユーザー向け: [`rigor-sorbet`](../manual/plugins/rigor-sorbet/)アダプタが`sig { ... }`ブロック、RBIファイル、`T.let` / `T.cast` / `T.must` / `T.unsafe`アサーションをRBSで書き直さずに型ソースとして読み取ります。
 11. [**`rigor sig-gen`でRBSを生成する**](11-sig-gen/): Rigorの推論結果からRBSを発行する方法、`new-file`/`new-method`/`tighter-return`の分類モデル、`--print`/`--diff`/`--write`モード、`--params`ポリシーとADR-5のトレードオフ、RSpecを意識した観察。

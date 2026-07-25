@@ -3,8 +3,8 @@ title: "ADR-54 — キャッシュのスリム化: definitions-blobの廃止、�
 description: "rigortype/rigor docs/adr/54-cache-slimming.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/54-cache-slimming.md"
 sourcePath: "docs/adr/54-cache-slimming.md"
-sourceSha: "3fccf61fface6b3aa12bf3fa5404972ee0e291883a780168518e2c5802eaeebe"
-sourceCommit: "eb8e9996d113a1b5e1778d0988597c979814a219"
+sourceSha: "5b00ba9d866f540245ffcb32b2999e77f5a6c28adb6dfafe8736d790a0fc2057"
+sourceCommit: "e3eb424c3c88035e453246710c8df3dc5cc8e7e1"
 translationStatus: "translated"
 sidebar:
   order: 4054
@@ -105,7 +105,9 @@ no-opにしていた。今日エントリー数がプロデューサーあたり
 （WD1/WD2後はプロジェクトあたりの完全な集合が約2 MBなので、キャップはオーファンのみを
 刈り取る）。明示的な`max_bytes:`設定は依然として上書きする。
 
-*追補（2026-07-07のフォローアップ）:*寛大な256 MBキャップは、まさに小さなリポジトリで決してそれが発動しない理由だ —— 実際のリポジトリの`.rigor/cache`を監査すると、バイトキャップが触れる理由のなかった`rbs.environment`の約7世代のオーファン（各約1.77 MB、キャッシュ合計約16 MB）が見つかった。バイトキャップだけでは、内容キーで管理されるプロジェクト全体プロデューサーのオーファン世代がキャップ以下に無期限に居座る。`Store#evict!`は今や、2つ目の直交するコンパクション軸として世代キャップを走らせる: プロジェクト全体プロデューサーIDの小さなハードコードされた許可リストが、それらの最新N世代だけを保つ（RBSプロデューサーは2、`analysis.run-diagnostics`は16）。これは`max_bytes:`とは独立で、ストアが無制限（`max_bytes: nil`）のときでも走る —— サイズ予算を強制するのではなく、証明可能なほど死んだバイトを回収するからだ。完全なメカニズム（同時に着地した陳腐化した一時ファイルのスイープと、`Rigor::VERSION`を運ぶマーカー——アップグレード時のペイロードABI境界——を含む）は`docs/internal-spec/cache.md` §「Compaction（`#evict!`）」を参照。
+*追補（2026-07-07のフォローアップ）:*寛大な256 MBキャップは、まさに小さなリポジトリで決してそれが発動しない理由だ —— 実際のリポジトリの`.rigor/cache`を監査すると、バイトキャップが触れる理由のなかった`rbs.environment`の約7世代のオーファン（各約1.77 MB、キャッシュ合計約16 MB）が見つかった。バイトキャップだけでは、内容キーで管理されるプロジェクト全体プロデューサーのオーファン世代がキャップ以下に無期限に居座る。`Store#evict!`は今や、2つ目の直交するコンパクション軸として世代キャップを走らせる: コンパクションパスを生き残るのはプロジェクト全体プロデューサーの最新N世代だけだ（RBSプロデューサーは2、`analysis.run-diagnostics`は16）。これは`max_bytes:`とは独立で、ストアが無制限（`max_bytes: nil`）のときでも走る —— サイズ予算を強制するのではなく、証明可能なほど死んだバイトを回収するからだ。完全なメカニズム（同時に着地した陳腐化した一時ファイルのスイープと、`Rigor::VERSION`を運ぶマーカー——アップグレード時のペイロードABI境界——を含む）は`docs/internal-spec/cache.md` §「Compaction（`#evict!`）」を参照。
+
+*追補（[#151](https://github.com/rigortype/rigor/issues/151)）:*キャップは`Cache::Store`内部のハードコードされたid→キャップテーブルとして始まったが、それはつまり後から追加されたプロジェクト全体プロデューサーは、メンテナーがテーブルを思い出すまでキャップされないままだった。今や各プロデューサーは自身の予算を宣言し、すべてのフェッチ呼び出しがそれを運ぶ（`generation_cap:`、必須）ため、その見落としは表現できない。ストアは、手渡されたid文字列を、受け取った宣言にマッピングする。
 
 **WD4（マイナー）— ローダーごとに`RbsDescriptor.build`をメモ化する**。これは
 プロデューサーフェッチごとに一度走る（実行あたり7回、結果は同一）。今日1.3 ms × 7と

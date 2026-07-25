@@ -3,8 +3,8 @@ title: "推論エンジン"
 description: "rigortype/rigor docs/internal-spec/inference-engine.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/inference-engine.md"
 sourcePath: "docs/internal-spec/inference-engine.md"
-sourceSha: "cf2bf57b94bfca57e42699cb9b21dd500509cf100577bfba8864cd799548b757"
-sourceCommit: "d88effcae8b2998d1f4f40432e6d4f20ce17946e"
+sourceSha: "b4570b61b1cbb8e82707763558dd83b4dd31fc120253a79399497883de086ef5"
+sourceCommit: "e3eb424c3c88035e453246710c8df3dc5cc8e7e1"
 translationStatus: "translated"
 sidebar:
   order: 3050
@@ -31,7 +31,9 @@ sidebar:
 
 ## `Scope#type_of(node)`契約
 
-`Rigor::Scope#type_of(node)`はMUST純粋なクエリです。レシーバースコープやそこから到達可能な任意のオブジェクトをMUST NOT変更し、解析器の他のどこでも永続的な状態変更をMUST NOT引き起こしません。同じ`(scope, node)`ペアは、単一の解析器実行内の呼び出しを通じて構造的に等しい`Rigor::Type`の結果をMUST生成します。
+`Rigor::Scope#type_of(node)`はMUST純粋なクエリです。レシーバースコープのいかなるフロー状態フィールド ── ローカル・インスタンス・クラス・グローバル変数の束縛マップ、ファクトストア、`self_type`、ナローイング（narrowing）マップ ── も、そこから到達可能な任意のオブジェクトもMUST NOT変更し、解析器の他のどこでも永続的な状態変更をMUST NOT引き起こしません。同じ`(scope, node)`ペアは、単一の解析器実行内の呼び出しを通じて構造的に等しい`Rigor::Type`の結果をMUST生成します。
+
+**本稿執筆時点で、その純粋性は戻り値とフロー状態を束縛するのであって、スコープが到達しうるすべてのオブジェクトを束縛するのではありません。** `Rigor::Scope`は、恒等キーの*助言的（advisory）*なサイドテーブルを2つ運びます ── `dynamic_origins`（[ADR-75](../../adr/75-dynamic-provenance/) / [ADR-82](../../adr/82-dynamic-provenance-wiring/)、`Dynamic`値がなぜ動的なのか）と`void_origins`（[ADR-100](../../adr/100-static-diagnostic-family-and-void-origins/)、作者が宣言した`-> void`から回復された`top`がどこから来たか） ── で、これらは`Rigor::Inference::ExpressionTyper`と`Rigor::Inference::MethodDispatcher`が型付け中にin-placeで書き込み、すべての遷移を通じて参照でスレッドされるため、レシーバースコープ上で観測可能です。3つの性質がクエリの契約を無傷に保ち、MUST維持されねばなりません: テーブルはノードの恒等でキー付けされ、値が*何であるか*の一部ではなく値に*ついての*来歴を保持します;`Scope#==`と`Scope#hash`から除外されるため、フローの重複排除やキャッシュキーをフォークすることは決してありません;そしてエンジン内のどこも、それらを型付けの判断に読み戻しません ── 診断とカバレッジのレイヤーによってのみ、推論の下流で消費されます。したがって実装は、それらをノードにキー付けされた純粋に外部の状態としてMAY運べます。
 
 クエリは[`internal-type-api.md`](../internal-type-api/)に従って`Rigor::Type`をMUST返します。`nil`をMUST NOT返し、サポートされないノードでMUST NOTraiseし、戻り値にPrismオブジェクトをMUST NOT露出させません。
 
@@ -72,7 +74,7 @@ sidebar:
 
 ### ディスカバリインデックス（ADR-53トラックA）
 
-フロー状態と並んで、すべての`Rigor::Scope`スナップショットは単一の不変な**ディスカバリインデックス**（`Rigor::Scope::DiscoveryIndex`）を保持します。これはシード時のディスカバリテーブル群 ── `declared_types`・`class_ivars`・`class_cvars`・`program_globals`・`discovered_classes`・`in_source_constants`・`discovered_methods`・`discovered_def_nodes`・`discovered_singleton_def_nodes`・`discovered_def_sources`・`discovered_method_visibilities`・`discovered_superclasses`・`discovered_includes`・`discovered_class_sources`・`data_member_layouts`・`struct_member_layouts`・`param_inferred_types`（ADR-67の呼び出しサイトパラメータ推論テーブル） ── を保持します。メンバーシップは[ADR-53](../adr/53-scope-discovery-index-separation.md)の基準で固定されます。あるフィールドがインデックスに属するのは、**いかなるフロー遷移も、そのフィールドの値がシードと異なるスコープを生成しないとき、かつそのときに限り**です。
+フロー状態と並んで、すべての`Rigor::Scope`スナップショットは単一の不変な**ディスカバリインデックス**（`Rigor::Scope::DiscoveryIndex`）を保持します。これはシード時のディスカバリテーブル群 ── `declared_types`・`class_ivars`・`class_cvars`・`program_globals`・`discovered_classes`・`in_source_constants`・`discovered_methods`・`discovered_def_nodes`・`discovered_singleton_def_nodes`・`discovered_def_sources`・`discovered_singleton_def_sources`・`discovered_method_visibilities`・`discovered_superclasses`・`discovered_includes`・`discovered_class_sources`・`data_member_layouts`・`struct_member_layouts`・`param_inferred_types`（ADR-67の呼び出しサイトパラメータ推論テーブル）・`run_generation`（ユーザーメソッド戻り値メモがバケット化する、ADR-84の実行ごとの恒等トークン） ── を保持します。メンバーシップは[ADR-53](../adr/53-scope-discovery-index-separation.md)の基準で固定されます。あるフィールドがインデックスに属するのは、**いかなるフロー遷移も、そのフィールドの値がシードと異なるスコープを生成しないとき、かつそのときに限り**です。
 
 - インデックスはMUST不変です。これはフローズンな`Data`であり、シードされたインデックスは`DiscoveryIndex#with`を通じて導出されます。
 - すべてのフロー遷移（`with_local`・`with_fact`・`join`・…）は、レシーバーのインデックスを参照で、検査せずに結果へMUST引き継がねばなりません。`Scope#==`はインデックスをMUST NOT比較しません（これはフロー状態ではなく環境コンテキストです）。
@@ -94,7 +96,7 @@ sidebar:
 
 ### フォールバックトレーサー
 
-`Rigor::Scope#type_of`はオプショナルな`tracer:`キーワード引数をMUST受け付けます。`tracer`が`nil`（デフォルト）のとき、エンジンはトレーサーが取り付けられていないかのようにMUST振る舞います。すなわちMUSTイベントは記録されず、フェイルソフト経路で戻り値を生成するために必要な範囲を超える割り当てがMUST行われません。
+`Rigor::Scope#type_of`はオプショナルな`tracer:`キーワード引数をMUST受け付けます。`tracer`が`nil`（デフォルト）のとき、エンジンはトレーサーが取り付けられていないかのようにMUST振る舞います。すなわちMUSTトレーサーイベントは記録されず、フェイルソフト経路は、戻り値を生成することとノードの`dynamic_origins`来歴を記録すること（上記 §「`Scope#type_of(node)`契約」の助言的サイドテーブルのカーブアウトに従う）が必要とする範囲を超えてMUST NOT割り当てを行いません。
 
 `tracer`が非`nil`のとき、フェイルソフトフォールバック（PrismとSyntheticの両方）はすべて、単一のメソッド呼び出しを通じてトレーサーにMUST記録されます。
 
@@ -117,7 +119,7 @@ tracer.record_fallback(event)
 - `empty?`と`size`はMUST現在の記録済みイベント数を報告します。
 - `each`はMUST挿入順に記録済みイベントを反復します。トレーサーはMUST`include Enumerable`します。
 
-トレーサーは`Scope#type_of`から観測可能な**唯一の**可変状態です。`type_of`の戻り値をMUST NOT変更し、`Rigor::Scope`のアクセサを通じてMUST NOT公開されません。実装は追加の`record_*`メソッドをMAY追加できます（例えばSlice 2ディスパッチャーがティアを得たときのよりリッチな`record_dispatch_miss`や、Slice 6での`record_budget_cutoff`など）。これにより複数のイベントファミリーが1つのトレーサーを共有します。新しいメソッドはMUST上記の不変イベント値オブジェクトパターンに従います。
+トレーサーは`Scope#type_of`から観測可能な唯一の*イベント記録*状態です ── クエリが触れるそれ以外の唯一の可変状態は、上記 §「`Scope#type_of(node)`契約」の助言的な`dynamic_origins` / `void_origins`来歴のカーブアウトであり、これはイベントを記録せずクエリにも答えません。トレーサーは`type_of`の戻り値をMUST NOT変更し、`Rigor::Scope`のアクセサを通じてMUST NOT公開されません。実装は追加の`record_*`メソッドをMAY追加できます（例えばSlice 2ディスパッチャーがティアを得たときのよりリッチな`record_dispatch_miss`や、Slice 6での`record_budget_cutoff`など）。これにより複数のイベントファミリーが1つのトレーサーを共有します。新しいメソッドはMUST上記の不変イベント値オブジェクトパターンに従います。
 
 ## 仮想ノード
 
@@ -140,7 +142,7 @@ tracer.record_fallback(event)
 - エンジンは内部型をMUST NOT変更・正規化・注釈付け・ラップしません。`TypeNode`を通じたラウンドトリップは観測可能に恒等です。
 - `TypeNode`は`Scope#type_of`の副作用として、`Dynamic[T]`・リファインメント（refinement、篩型とも）・任意の他のキャリア（carrier）にMUST NOTラップされません。
 
-追加の合成ノード種別（呼び出し式・コンテナリテラル・ナローイング（narrowing）ラッパー）は後のスライスで追加され、昇格されるまで規範的ではありません。新しい種別はMUST上記の不変性・構造的等価性・合成可能性の規則に従います。
+追加の合成ノード種別（呼び出し式・コンテナリテラル・ナローイングラッパー）は後のスライスで追加され、昇格されるまで規範的ではありません。新しい種別はMUST上記の不変性・構造的等価性・合成可能性の規則に従います。
 
 ## メソッドディスパッチ境界
 
@@ -164,6 +166,11 @@ Rigor::Inference::MethodDispatcher.dispatch(
                          #   so a return like `Array[U]` resolves to
                          #   `Array[block_type]`.
   environment: nil,      # Rigor::Environment; required for RBS-backed dispatch
+  call_node: nil,        # Prism::CallNode or nil; the call site being folded.
+                         #   Required by the plugin return-type contribution
+                         #   tier and by every dynamic-/void-origin provenance
+                         #   record; the dispatcher's own internal re-entrant
+                         #   callers pass nil, which makes those inert.
   scope: nil             # Rigor::Scope or nil; when present, enables the
                          #   ADR-43 RBS-complete-ancestor resolution described
                          #   in the RBS-backed tier below. Defaults to nil, in
@@ -174,7 +181,7 @@ Rigor::Inference::MethodDispatcher.dispatch(
 
 `nil`の戻り値は意図的な「規則なし」のシグナルです。呼び出し元はフェイルソフトフォールバックをMUST所有します（`ExpressionTyper`は`FallbackTracer`イベントを記録して`Dynamic[top]`を返します）。ディスパッチャー自体はトレーサーにMUST NOT触れず、認識されない入力でMUST NOTraiseします。
 
-ディスパッチャーはMUST以下の順序でティアを参照します: 精密ティア（定数畳み込み、形状認識、ファイル畳み込み、カーネル畳み込み、ブロック畳み込み）を最初に、次にプラグイン戻り値型コントリビューションティア（v0.1.1 Track 2スライス7、[ADR-2](../../adr/2-extension-api/) §「プラグインコントリビューションマージ」に従う）、次にHKT組み込み戻り値ティア（[ADR-20](../../adr/20-lightweight-hkt/)）とRigorバンドルの静的リファインメントティア、次にRBSバックのディスパッチティア、次に[ADR-16](../../adr/16-macro-expansion/)合成メソッドティア（基板Tier B / Tier Cのemitテーブル — ユーザー著作のRBSはなおその上で勝つ）、次に[ADR-17](../../adr/17-monkey-patch-pre-evaluation/)プロジェクトパッチメソッドティア（`pre_eval:`宣言された再オープンクラスのメソッドのために`Environment#project_patched_methods`を参照し、`Dynamic[top]`を返して呼び出しが`call.undefined-method`なしにクロスファイルで解決されるようにする）、次に依存関係ソース推論ティア（v0.1.3 / [ADR-10](../../adr/10-dependency-source-inference/)スライス2b-ii — オプトインGemの`(class_name, method_name)`カタログエントリーのために`Environment#dependency_source_index`を参照し、ヒット時に`Dynamic[top]`を返してコールサイトが動的由来マーカーを持つようにする）、次に発見済みメソッドティア（[ADR-24](../../adr/24-self-method-call-resolution/)に従うクロスファイルのユーザー定義`def`解決。レシーバーがメソッドの記録された発見済みクラスを名指すとき、素の`def`形状に対して`Dynamic[top]`を返しますが、`Scope#user_def_for` / `singleton_def_for`が再型付け可能な本体を運ぶときは**辞退**し（`nil`を返し）、`ExpressionTyper#try_user_method_inference`が呼び出し先本体を再型付けして推論された戻り値を採用できるようにします ── [ADR-57](../../adr/57-self-call-return-adoption/)はその採用ゲートを無条件に開き、かつての`adoptable_self_call_result?`ガードを除去しました）、最後にRigorが名前で知っているがRBSでは知らないレシーバーに対して`Object` / `Class`に対して再試行するユーザークラス祖先フォールバック。非`nil`の`Rigor::Type`を返す最初のティアが勝ちます。ヒット時に後続のティアはMUST NOT参照されません。ディスパッチャーは、Prismの子ノードまたは（上記の*仮想ノード*契約を介した）合成`Rigor::AST::Node`引数のいずれかを運べる統一された呼び出し形状として入力をMUST取り、これによって合成された式と実際の式が単一のディスパッチ経路を共有します。
+ディスパッチャーはMUST以下の順序でティアを参照します: 最初に`Type::BoundMethod`の後方畳み込み（`MethodFolding.try_backward`。束縛された`(receiver_type, method_name)`を代入して`dispatch`へ再入するので、`Method`キャリアが`Method`レシーバーとして下位ティアへ到達して`Method#call: (*untyped) -> untyped`への束縛を失うことは決してありません）、次に精密ティア（定数畳み込み、形状認識、ファイル畳み込み、カーネル畳み込み、ブロック畳み込み） ── 丸括弧内はバンドを名指すのであって完全なカタログではなく、§ スコープに従い参考情報です ── 、次にプラグイン戻り値型コントリビューションティア（v0.1.1 Track 2スライス7、[ADR-2](../../adr/2-extension-api/) §「プラグインコントリビューションマージ」に従う）、次にHKT組み込み戻り値ティア（[ADR-20](../../adr/20-lightweight-hkt/)）とRigorバンドルの静的リファインメントティア、次にRBSバックのディスパッチティア、次に[ADR-16](../../adr/16-macro-expansion/)合成メソッドティア（基板Tier B / Tier Cのemitテーブル — ユーザー著作のRBSはなおその上で勝つ）、次に[ADR-17](../../adr/17-monkey-patch-pre-evaluation/)プロジェクトパッチメソッドティア（`pre_eval:`宣言された再オープンクラスのメソッドのために`Environment#project_patched_methods`を参照し、`Dynamic[top]`を返して呼び出しが`call.undefined-method`なしにクロスファイルで解決されるようにする）、次に依存関係ソース推論ティア（v0.1.3 / [ADR-10](../../adr/10-dependency-source-inference/)スライス2b-ii — オプトインGemの`(class_name, method_name)`カタログエントリーのために`Environment#dependency_source_index`を参照し、ヒット時に`Dynamic[top]`を返してコールサイトが動的由来マーカーを持つようにする）、次に発見済みメソッドティア（[ADR-24](../../adr/24-self-method-call-resolution/)に従うクロスファイルのユーザー定義`def`解決。レシーバーがメソッドの記録された発見済みクラスを名指すとき、素の`def`形状に対して`Dynamic[top]`を返しますが、`Scope#user_def_for` / `singleton_def_for`が再型付け可能な本体を運ぶときは**辞退**し（`nil`を返し）、`ExpressionTyper#try_user_method_inference`が呼び出し先本体を再型付けして推論された戻り値を採用できるようにします ── [ADR-57](../../adr/57-self-call-return-adoption/)はその採用ゲートを無条件に開き、かつての`adoptable_self_call_result?`ガードを除去しました）、次に[ADR-5](../../adr/5-robustness-principle/)の合成スタブ型ティア（さもなくば構築不能なプロジェクトシグネチャを解決させるためにRigorが発明したレシーバー ── 欠落した名前空間や、参照されているが宣言されていない型のスタブ ── はメソッドを運ばないので、それに対する未解決の呼び出しは`call.undefined-method`を誤発火させてしまう;代わりに、依存関係ソースティアと同じ偽陽性なしの契約の下で`Dynamic[top]`に解決されます）、最後にRigorが名前で知っているがRBSでは知らないレシーバーに対して`Object` / `Class`に対して再試行するユーザークラス祖先フォールバック。非`nil`の`Rigor::Type`を返す最初のティアが勝ちます。ヒット時に後続のティアはMUST NOT参照されません。ディスパッチャーは、Prismの子ノードまたは（上記の*仮想ノード*契約を介した）合成`Rigor::AST::Node`引数のいずれかを運べる統一された呼び出し形状として入力をMUST取り、これによって合成された式と実際の式が単一のディスパッチ経路を共有します。
 
 ### ディスパッチティアの契約
 
@@ -205,7 +212,9 @@ RBSバックのティアは、レシーバー型を`kind`が`:instance`または
 - 位置引数のアリティ（arity）でオーバーロードをフィルタします。実際の`arg_types.size`はMUST`required_positionals.size + trailing_positionals.size <= n`を満たし、かつ`rest_positionals`が存在するか`n <= required + optional + trailing`のいずれかです。
 - `required_keywords`が空でないオーバーロードをスキップします。Slice 4 phase 2cはキーワード引数を呼び出し位置に通さないため、キーワード必須のオーバーロードは現在の呼び出し形状から到達不能です。
 - 残ったオーバーロードのうち、すべての（仮引数、実引数）位置ペアについてMUST`param_type.accepts(arg_type, mode: :gradual)`を参照します（rest位置引数は1つの宣言を繰り返し消費します）。すべてのペアが`yes`または`maybe`を返すとき、オーバーロードはマッチします。
-- 宣言順で最初にマッチしたオーバーロードを取ります。どのオーバーロードもマッチしないとき、`method_types.first`にフォールバックします。このフォールバックは「最初のマッチが勝つ」からの唯一の規範的な逸脱です。これは、（`untyped`に劣化したインターフェイス・ジェネリクス・まだ配線していない呼び出し元のため）実際の引数型がどのオーバーロードにもマッチしない呼び出し位置について、Slice 4 phase 1 / 2bのフェイルソフト契約を保ちます。
+- マッチングの前に、セレクタはレシーバー親和性（`ReceiverAffinity.reorder`）でオーバーロードリストをMAY並べ替え、パラメータクラスがレシーバークラスの互いに素な兄弟であるアームを降格します。これにより、別のgemのRBSがそのクラスに再オープンしたアーム（`Integer#+(BigDecimal)`）が宣言位置だけで勝つことはできません。以下のすべての規則はその並べ替え済みリストを読みます。
+- マッチングは次いで3つの順序付きパスとして走り、候補を生成した最初のパスが勝ちます: （1）**strict** ── すべての位置パラメータが具体的なキャリアに翻訳される（`Alias` / `Interface` / `Intersection`のいずれもなく、これらはすべて翻訳器が`Dynamic[top]`へ劣化させ、したがって何でも受理する）オーバーロードで、その実引数を受理するもの;いずれかの実引数が素の`Dynamic[top]`のときこのパスは丸ごとスキップされます。漸進的な受理が任意のstrictアームを固定してしまうからです。（2）**alias-strict-arm** ── パラメータがすべてstrictまたは既知のコアエイリアスであるオーバーロードについて、実引数をエイリアスのstrictアームに照合します。これにより、両パラメータが`Dynamic[top]`へ翻訳されても、Integer実引数に対して`Array#*(::int)`が`Array#*(::string)`に勝ちます。（3）**gradual** ── 素の`accepts(…, mode: :gradual)`マッチで、実引数が素の`Dynamic[top]`のときは値を固定するパラメータ（`nil`またはリテラル）を持つオーバーロードを除外し、引数の不精密さだけで値精密なアームが偽の定数を注入できないようにします。したがって「宣言順で最初のマッチ」はパス*内*で束縛するのであって、パスをまたいでは決して束縛しません。
+- どのパスもマッチしないとき、並べ替え済みリストの中でブロックを*要求しない*最初のオーバーロードにフォールバックし、それからようやくそのリストの最初の要素にフォールバックします。このパス構造とこのフォールバックが「最初のマッチが勝つ」からの規範的な逸脱です。どちらも、（`untyped`に劣化したインターフェイス・ジェネリクス・まだ配線していない呼び出し元のため）実際の引数型がどのオーバーロードにもマッチしない呼び出し位置について、Slice 4 phase 1 / 2bのフェイルソフト契約を保ちます。そしてブロック優先は、呼び出しが実際には`Enumerator`をyieldするとき、ブロックなしの`[1, 2].filter`がブロックを持つアームの`Array[Elem]`を採用してしまうのを防ぎます。
 
 実装はパフォーマンスのためにオーバーロードごとに引数型を事前翻訳してMAYかまいませんが、`self_type`と`instance_type`の置換はディスパッチ位置に依存するため、`(class_name, method_name)`キーにまたがって結果をMUST NOTキャッシュしません。
 
@@ -214,7 +223,7 @@ RBSバックのティアは、レシーバー型を`kind`が`:instance`または
 - `Bases::Self`はMUST`self_type:`で置換されます。インスタンスディスパッチでは`Nominal[C]`、シングルトンディスパッチでは`Singleton[C]`です。
 - `Bases::Instance`はMUST`instance_type:`で置換されます。ディスパッチャーは、レシーバーが`Singleton[C]`であっても`def self.create: () -> instance`が`Nominal[C]`に解決されるよう、ディスパッチ種別に関係なく`Nominal[C]`を渡します。
 - `Variable`（Slice 4 phase 2d）はMUST`type_vars:`で置換されます。マップはRBS変数の`name`シンボル（`:Elem`・`:K`・`:V`...）でキー付けされます。束縛された変数はMUST束縛された`Rigor::Type`値に置換されます。束縛されていない変数はMUST`Dynamic[top]`に劣化します。
-- `ClassInstance`はMUST同じ`translate`呼び出しを通じて`args`を再帰的に翻訳し、`::Array[Elem]`が`Nominal["Array", [type_vars[:Elem]]]`へラウンドトリップするようにします。兄弟ジェネリック形式（`Tuple`・`Record`・`Proc`）の翻訳器は、Slice 5以降でジェネリック搭載が育てば、同じ再帰規則に従います。
+- `ClassInstance`はMUST同じ`translate`呼び出しを通じて`args`を再帰的に翻訳し、`::Array[Elem]`が`Nominal["Array", [type_vars[:Elem]]]`へラウンドトリップするようにします。`Tuple`と`Record`はすでにその再帰を運びます（Slice 5 phase 1;後述のシェイプディスパッチ契約を参照）。`Proc`は依然として素の`Nominal["Proc"]`へ翻訳され、ジェネリック搭載が育ったときに同じ規則に従います。
 - 任意のキーワードはMAY省略でき、対応するRBSトークンは`Dynamic[top]`に劣化します。`type_vars:`のデフォルトはMUST空ハッシュで、これによりキーワードは非ジェネリック呼び出しに影響しません。
 
 マッピングを精緻化する将来のスライス（交差・インターフェイス・エイリアス解決）は、漸進的型付け軸において既存エントリーの出力をMUST変更しません。精度のいかなる引き締めも、結果型に対する部分型（subtype）クエリへの非破壊変更でMUSTあります。
@@ -283,7 +292,7 @@ Slice 3 phase 2で評価器がMUST認識するノードのカタログは以下�
 - `Prism::WhenNode`と`Prism::InNode` — レシーバースコープ下で文を評価します。空本体はMUST`[Constant[nil], scope]`です。
 - `Prism::BeginNode` — 主経路（本体、それからオプショナルなelse節。else節はMUST本体の値を置き換えますが、elseの前に本体が実行されたため本体のスコープ効果は依然として適用されます）を評価します。チェーン内の各`Prism::RescueNode`はエントリースコープ下で評価される代替の出口経路です。出口型はMUST主経路とrescue出口のunionです。出口スコープはMUST主経路とrescueスコープのnil注入付き結合です。`ensure_clause`が存在するとき、そのスコープ効果はMUST結合された出口スコープの上に重ねられ、これによりensure内のみで束縛されたローカルが観測可能なまま残ります。ensureの値はMUST NOT出口型に寄与しません。
 - `Prism::WhileNode`と`Prism::UntilNode` — 述語を評価し（その後置スコープは本体で観測可能です）、それから本体を評価します。結果型はMUST`Constant[nil]`です。ベース後置スコープはMUST後置述語スコープと単一パス後置本体スコープのnil注入付き結合で、「本体は0回以上実行されたかもしれない」をモデル化します。[ADR-56](../adr/56-block-captured-local-mutation.md)スライスBは、本体が再束縛しうる各ローカルについて、上限付きの本体不動点結果をそのベースにオーバーレイします（`loop_rebind_fixpoint`。`Inference::BodyFixpoint`ヘルパーを共有し、上限3、最終的な`Constant→Nominal`への拡大、非収束時は`Dynamic[top]`の下限）。既存のローカルはその後置述語束縛でシードされ、本体内で初めて代入されるローカルは0回反復経路のために`Constant[nil]`でシードされ、述語のループ入口エッジは反復ごとに再ナローイングされます。どのローカルも再束縛しないループ本体は単一パスのベースとバイト単位で同一です。
-- `Prism::AndNode`と`Prism::OrNode` — LHSを評価し、それからLHSの後置スコープ下でRHSを評価します。結果型はMUST2つのオペランド型のunionです。後置スコープはMUSTLHSとRHSの後置スコープのnil注入付き結合（「LHSは常に実行された。RHSはときどきしか実行されなかった」をモデル化）です。Slice 3 phase 2はLHSの真偽値性でナローイングしません。その精緻化はSlice 6の仕事です。
+- `Prism::AndNode`と`Prism::OrNode` — LHSを評価し、それからLHSの*ナローイングされた*入口エッジ（`&&`では真値エッジ、`||`では偽値エッジ;Slice 6の規則で、後述の §「StatementEvaluatorとの統合」で規範的）下でRHSを評価します。結果型はMUST`&&`では`union(narrow_falsey(left_type), right_type)`、`||`では`union(narrow_truthy(left_type), right_type)`です ── オペランドの短絡フラグメントだけがノードの値になりうるので、`s : String?`の`s || full`は、剥がされた`nil`を再び受け入れるのではなく`String | <full>`と型付けされます。後置スコープはMUSTLHSとRHSの後置スコープのnil注入付き結合（「LHSは常に実行された。RHSはときどきしか実行されなかった」をモデル化）ですが、RHSが証明可能に終了する（`a or raise`）ときは例外で、そこでは制御がRHSエッジを通じて後続に決して到達せず、型もスコープもMUST生き残ったLHSエッジのみです。
 - `Prism::ParenthesesNode` — 内側の式を通じてスコープをスレッドし、これにより`(x = 1; x + 2)`が`x`を束縛して`Constant[3]`を生成します。
 - `Prism::ClassNode`と`Prism::ModuleNode` — 本体を*新鮮な*スコープで評価します（Rubyのクラス／モジュールスコープは外側のローカルを見**ません**。Environmentのみを共有します）。本体の値は本体の最後の文（空本体については`Constant[nil]`）です。クラス／モジュール定義は囲みスコープ内のいかなるローカルも束縛しないため、後置スコープはMUSTレシーバースコープを変更せずに残します。評価器は本体の評価のためにMUST新しいレキシカルクラスフレームを`class_context`にプッシュします。ネストされた`def`は、RBSルックアップを解決するためにそのフレームを参照します。フレームの修飾名はMUSTレンダリングされた`constant_path`です（例えば`class Foo::Bar`に対して`"Foo::Bar"`、`class A; class B`に対しては全ネスト名のジョイン）。
 - `Prism::SingletonClassNode` — 同じ新鮮スコープ契約です。シングルトン式が`self`のとき、最内のレキシカルクラスフレームは本体の評価のためにMUST`singleton: true`にフリップされ、これにより`class << self`内の`def foo`が`RbsLoader#singleton_method`を通じて解決されます。`self`でない式についてはレシーバークラスは静的に解決可能ではありません。評価器は既存のクラスコンテキストをMUST変更せずに保ち、ネストされたdefが`Dynamic[top]`の引数デフォルトに劣化することを受け入れます。
@@ -311,13 +320,15 @@ Slice 3 phase 2で評価器がMUST認識するノードのカタログは以下�
 - `Scope#ivar(name)`・`#cvar(name)`・`#global(name)` — `name`の束縛された型を返すか、解析されたプログラムのスライスに書き込みが記録されていなければ`nil`を返します。
 - `Scope#with_ivar(name, type)`・`#with_cvar`・`#with_global` — 名前付き束縛が追加された新鮮なスコープを返します。`with_local`が行うのと正確に同様に`locals`・`fact_store`・`self_type`・`declared_types`をMUST保ちます。
 
-`StatementEvaluator`は`Prism::InstanceVariableWriteNode`・`Prism::ClassVariableWriteNode`・`Prism::GlobalVariableWriteNode`をMUST`LocalVariableWriteNode`と対称に処理します。すなわちエントリースコープ下で右辺値を評価し、`[rvalue_type, post_rvalue_scope.with_<kind>(name, rvalue_type)]`を返します。複合書き込み形式（`@x ||= …`・`@x &&= …`・`@x += …`）は、後続のスライスが後置スコープでそれらを束縛するまで、既存の`type_of_assignment_write`式型付け器経路に残ります。`ExpressionTyper`は`Prism::InstanceVariableReadNode`・`Prism::ClassVariableReadNode`・`Prism::GlobalVariableReadNode`を、対応するスコープ束縛マップを参照しMUST処理し、束縛が存在しないとき（フォールバックイベントを記録せずに）`Dynamic[top]`へフォールスルーします。
+`StatementEvaluator`は`Prism::InstanceVariableWriteNode`・`Prism::ClassVariableWriteNode`・`Prism::GlobalVariableWriteNode`をMUST`LocalVariableWriteNode`と対称に処理します。すなわちエントリースコープ下で右辺値を評価し、`[rvalue_type, post_rvalue_scope.with_<kind>(name, rvalue_type)]`を返します。複合書き込み形式（`@x ||= …`・`@x &&= …`・`@x += …`）は、後述のSlice 7 phase 3ハンドラによって後置スコープで束縛されます。`ExpressionTyper`は`Prism::InstanceVariableReadNode`・`Prism::ClassVariableReadNode`・`Prism::GlobalVariableReadNode`を、対応するスコープ束縛マップを参照しMUST処理し、束縛が存在しないとき（フォールバックイベントを記録せずに）`Dynamic[top]`へフォールスルーします。
 
 `Scope#join`はivar/cvar/グローバル束縛をローカルをunionするのと同じ方法でMUSTunionします（**両**側で束縛されていない任意の名前は落とします。半束縛の名前のnil注入は、カタログがそれを必要とする制御フロー構成へ拡張されたときに文レベル評価器の責任です）。`Scope#==`と`Scope#hash`はMUST3つの束縛マップを含めます。
 
 Slice 7 phase 2はivarのメソッドローカル境界を持ち上げます。すなわち`Scope`は修飾クラス名でキー付けされた`class_ivars: Hash[String, Hash[Symbol, Type]]`アキュムレータを運びます。`ScopeIndexer`は、すべての`Prism::ClassNode` / `Prism::ModuleNode`を歩き、ネストされた各インスタンス`Prism::DefNode`に降下し、適切な`self_type`を運ぶスコープ下で各`Prism::InstanceVariableWriteNode`右辺値を型付けする別個の前パスを通じて、インデックス時に1度だけそれを埋めます（インスタンスdefのみ — シングルトンdefは異なる`self`で動作します）。クラス内で同じivarへの複数書き込みは`Type::Combinator.union`を介してunionされます。`StatementEvaluator#build_method_entry_scope`はインスタンスメソッド本体の`ivars`をMUST`Scope#class_ivars_for(current_class_path)`からシードします。シングルトンメソッド本体（`def self.foo`や`class << self`内のレキシカルなdef）は、`self`がクラスオブジェクト自体であるため、アキュムレータをMUST NOT参照しません。
 
-前パスはローカル束縛なしで右辺値を型付けするため、`@x = 1`は`Constant[1]`を記録しますが、`@x = some_local + 1`は`Dynamic[top]`を記録します。Cvarsとグローバルはメソッドローカルのままです。同等のクラスレベル／プロセスレベルのアキュムレータは後続のスライスです。
+前パスはローカル束縛なしで右辺値を型付けするため、`@x = 1`は`Constant[1]`を記録しますが、`@x = some_local + 1`は`Dynamic[top]`を記録します。
+
+Slice 7 phase 6はcvarsとグローバルについて同じ境界を持ち上げます。`ScopeIndexer`は前パスをさらに2回走らせます: クラスごとに1回、`Prism::ClassVariableWriteNode`右辺値について同じシェイプの`class_cvars`アキュムレータを埋め、プログラム全体で1回、`Prism::GlobalVariableWriteNode`右辺値について`program_globals`を埋めます。`StatementEvaluator#build_method_entry_scope`はMUSTインスタンス本体とシングルトン本体の**両方**でメソッド本体の`cvars`を`Scope#class_cvars_for(current_class_path)`からシードします ── ivarsと異なり、Rubyのクラス変数はどちらからも可視だからです ── 、そしてインデクサーはMUSTさらに`program_globals`をトップレベルスコープの`globals`マップに実体化し、これによりファイルスコープでの読み取りと、メソッド本体に決して入らないCLIプローブが、ルックアップのたびにアキュムレータを参照せずに精密な型を観測します。
 
 #### 書き込み前読み取りnilゲートと追加のイニシャライザー（ADR-38）
 
@@ -360,7 +371,7 @@ Slice 7 phase 3は`StatementEvaluator`を、すべての変数種別の**複合�
 - `Prism::ClassNode#constant_path`はMUST対応する`Singleton[<qualified-path>]`にマップされます。
 - オーバーライドはMUST**最外**の`constant_path`ノードのみをカバーします。`class Foo::Bar`について、内側の`Foo`参照は実際のルックアップのままです（レキシカルウォークを通じて解決されます）。
 
-`index`が生成するシードされたスコープはMUST埋められたテーブルを運び、これによりStatementEvaluatorのクラス本体およびメソッド本体の新鮮スコープ（`Scope.empty(environment: ...)`に続いて`with_self_type`と`with_declared_types`）がオーバーライドをネストされた本体へ伝播します。インデクサーが生成したスコープは、オーバーライドが実際に発火するよう、`Rigor::Scope#type_of`の呼び出し元（CLIプローブ・テストフィクスチャ）によってMUST用いられます。素の`Rigor::Scope.empty`スコープは、テスト分離のために空テーブル挙動を意識的に保ちます。
+`index`が生成するシードされたスコープはMUST埋められたテーブルを運び、これによりStatementEvaluatorのクラス本体およびメソッド本体の新鮮スコープ（`Scope.empty(environment: ...)`に続いて`with_self_type`と`with_discovery`）がオーバーライドをネストされた本体へ伝播します。インデクサーが生成したスコープは、オーバーライドが実際に発火するよう、`Rigor::Scope#type_of`の呼び出し元（CLIプローブ・テストフィクスチャ）によってMUST用いられます。素の`Rigor::Scope.empty`スコープは、テスト分離のために空テーブル挙動を意識的に保ちます。
 
 トップレベルスコープ（`self_type`が設定されていない）は、クラスコンテキストを設定しないテストでウォーク前の挙動が観測可能であるよう、MUST素の候補のみを生成します。ウォークはレシーバースコープをMUST NOT変更せず、解決に失敗する名前でMUST NOTraiseせず、シングルトンの祖先チェーンをMUST NOT走査しません — その精緻化は将来のスライスです。
 
@@ -378,7 +389,7 @@ Slice 7 phase 3は`StatementEvaluator`を、すべての変数種別の**複合�
 
 `Rigor::Inference::ScopeIndexer.index(root, default_scope:)`は、Prismプログラムのサブツリーをノードごとのスコープルックアップに変換する標準サーフェスです。MUST以下を満たします。
 
-- 戻り値はMUST同一性比較の`Hash{Prism::Node => Rigor::Scope}`です。`root`のサブツリーに含まれないノードをルックアップするとMUST`default_scope`（`Hash#default`スロット）を生成します。
+- 戻り値はMUST同一性比較の`Hash{Prism::Node => Rigor::Scope}`です。`root`のサブツリーに含まれないノードをルックアップすると、MUST`Hash#default`スロットを通じて*シードされた*スコープを生成します ── インデクサー自身の宣言オーバーライド・クラスivar・クラスcvar・プログラムグローバル・ソース内定数・発見済みメソッドのシードパスが適用された後の`default_scope`であって、呼び出し元が渡した素の`default_scope`ではありません。したがってミスはヒットと同じ環境ディスカバリコンテキストを観測します。
 - `evaluate(root)`の間にStatementEvaluatorが訪れる各Prismノードについて、インデクサーはMUSTその訪問時に観測されたエントリースコープを記録します。訪問は、インデクサーが新鮮な評価器に配線する`on_enter:`コールバックを通じて発火されます（したがってStatementEvaluatorは状態フリーのままです。インデクサーがテーブルを運びます）。
 - `root`のサブツリーでStatementEvaluatorが訪れ**ない**Prismノード（評価器のデフォルト分岐がフォールスルーしたノードの式内部の子）について、インデクサーはMUST記録されたスコープを最も近い記録された祖先のスコープに設定します。DFS事前順伝播は契約です。すなわち子はMUST親と少なくとも同程度に情報量のあるエントリースコープを観測し、決して弱くありません。
 - インデクサーは内部のStatementEvaluatorをMUST`tracer: nil`で実行します。フェイルソフトフォールバックイベントを欲しがるCLI呼び出し元は、イベントがちょうど第2パスから来てインデクサー自身のプログラムツリー型付けによって二重記録されないよう、MUSTインデックス後の`type_of`プローブにのみトレーサーを取り付けます。
@@ -557,7 +568,7 @@ Slice 4は以下を導入します。
 - `Rigor::Environment#nominal_for_name(name)` — まずクラスレジストリを参照し、それから（存在するとき）RBSローダーを参照します。最初のヒットの`Rigor::Type::Nominal`を返すか、ヒットなしのとき`nil`を返します。これは「クラス`name`の*インスタンス*」のための構築ヘルパーです。
 - `Rigor::Environment#singleton_for_name(name)` — Slice 4 phase 2b。定数のクラスオブジェクトに対する`Rigor::Type::Singleton`を返すか、レジストリまたはRBSローダーのいずれにも`name`のクラスが知られていないとき`nil`を返します。これは`Prism::ConstantReadNode`/`Prism::ConstantPathNode`を型付けするための標準エントリーポイントです。`ExpressionTyper`は、結果がインスタンス型ではなくクラスオブジェクトの型になるよう、MUSTこれを通じてルーティングします。
 - `Rigor::Environment#class_known?(name)` — Slice 4 phase 2b。レジストリまたはRBSローダーが`name`を知っているとき`true`を返す便利な述語です。キャリアを実体化せずに存在チェックが必要な呼び出し元に有用です。
-- `Rigor::Environment.for_project(root:, libraries:, signature_paths:)` — Slice 4 phase 2a。プロジェクト対応のEnvironmentを構築するファクトリーです。`signature_paths`が`nil`でディレクトリが存在するとき、`<root>/sig`をデフォルトのシグネチャパスとして自動検出します。それ以外では空リストを使います。呼び出し元は明示的な`signature_paths`配列（無効化のための`[]`を含む）を渡してMAY自動検出をオーバーライドできます。プロジェクト対応のローダーは呼び出し元の作業ディレクトリと設定に依存するため、ファクトリーはMUST新鮮なEnvironmentインスタンスを返します — `Environment.default`とMUST NOTメモ化または共有しません。Slice Aのstdlib拡張: ファクトリーはMUST`Environment::DEFAULT_LIBRARIES`（厳選されたstdlibセット: `pathname`・`optparse`・`json`・`yaml`・`fileutils`・`tempfile`・`uri`・`logger`・`date`、加えて解析器隣接の`prism`と`rbs`gem）を呼び出し元の`libraries:`引数の前にマージし、順序を保ちながら結果を重複排除します。未知のライブラリはMUSTフェイルソフトのまま残ります。`RbsLoader#build_env`はすでに`RBS::EnvironmentLoader#has_library?`を通じてフィルタしています。
+- `Rigor::Environment.for_project(root:, libraries:, signature_paths:)` — Slice 4 phase 2a。プロジェクト対応のEnvironmentを構築するファクトリーです。`signature_paths`が`nil`でディレクトリが存在するとき、`<root>/sig`をデフォルトのシグネチャパスとして自動検出します。それ以外では空リストを使います。呼び出し元は明示的な`signature_paths`配列（無効化のための`[]`を含む）を渡してMAY自動検出をオーバーライドできます。プロジェクト対応のローダーは呼び出し元の作業ディレクトリと設定に依存するため、ファクトリーはMUST新鮮なEnvironmentインスタンスを返します — `Environment.default`とMUST NOTメモ化または共有しません。Slice Aのstdlib拡張: ファクトリーはMUST`Environment::DEFAULT_LIBRARIES`を呼び出し元の`libraries:`引数の前にマージし、順序を保ちながら結果を重複排除します。そのセットは、Rubyプログラムがインポートしそうなstdlibの厳選されたスライスに、このバンドルで自身のRBSを出荷する解析器隣接のgem（`prism`・`rbs`）を加えたものです;規範的には[`lib/rigor/environment/default_libraries.rb`](https://github.com/rigortype/rigor/blob/master/lib/rigor/environment/default_libraries.rb)の定数そのものであり、本ドキュメントは意図的にそれを再掲しません ── リストは数十の名前にのぼり、増え続けます。未知のライブラリはMUSTフェイルソフトのまま残ります。`RbsLoader#build_env`はすでに`RBS::EnvironmentLoader#has_library?`を通じてフィルタしています。
 
 `0.1.x`サイクルは以下の読み取り側アクセサを追加しました（すべて`Environment.new` / `for_project`のキーワード引数経由でシードされ`attr_reader`として公開されます;対応する事前パスを省略した環境が以前と同じく振る舞うよう、それぞれは空 / `nil`安全な値をデフォルトとします）:
 
@@ -573,7 +584,7 @@ Slice 6はファクトストアアクセスを導入します。後のスライ�
 
 2つのプラグイン宣言のマニフェストサーフェスがディスパッチャーティアの外でエンジンに消費されます;それらの値オブジェクトのシェイプ（shape）は[`plugin.md`](plugin.md#rigorpluginmanifest) / [`macro-substrate.md`](macro-substrate.md)にあり、それらのエンジン消費はここで規範的です。
 
-- **`source_rbs_synthesizer:`ファイルごと合成（ADR-32）**。env構築時に、解析された各ソースファイル × ロードされた各プラグインのシンセサイザー呼び出し可能オブジェクトについて、`Environment#collect_virtual_rbs`が`callable.call(path)`を呼び出します。返されたRBS Stringは仮想名`virtual:<plugin id>:<path>`の下で解析環境にマージされます;`nil`または空の返り値は何も貢献しません;`[:error, message]`タプルはraiseされる代わりに合成レポーターへルーティングされます（フェイルソフト）。各`(file, plugin)`呼び出しは`Cache::Store`を通じて、ファイルのコンテンツSHAをプラグインの`PluginEntry`（id + version + config_hash）と合成したキーでメモ化されるので、コンテンツや設定の変更がちょうどそのエントリーを無効化します。`signature_paths:`（静的なバンドルRBS）とは異なります: シンセサイザーは毎回の実行でプロジェクトソースからRBSを導出します。
+- **`source_rbs_synthesizer:`ファイルごと合成（ADR-32）**。env構築時に、解析された各ソースファイル × ロードされた各プラグインのシンセサイザー呼び出し可能オブジェクトについて、`Environment.collect_virtual_rbs`（`Environment`シングルトン上のprivateなクラスメソッドで、`for_project`ファクトリーから呼び出される ── 構築済み環境から到達可能なインスタンスメソッドではありません）が`callable.call(path)`を呼び出します。返されたRBS Stringは仮想名`virtual:<plugin id>:<path>`の下で解析環境にマージされます;`nil`または空の返り値は何も貢献しません;`[:error, message]`タプルはraiseされる代わりに合成レポーターへルーティングされます（フェイルソフト）。各`(file, plugin)`呼び出しは`Cache::Store`を通じて、ファイルのコンテンツSHAをプラグインの`PluginEntry`（id + version + config_hash）と合成したキーでメモ化されるので、コンテンツや設定の変更がちょうどそのエントリーを無効化します。`signature_paths:`（静的なバンドルRBS）とは異なります: シンセサイザーは毎回の実行でプロジェクトソースからRBSを導出します。
 
 - **`block_as_methods:` self型ナローイング（ADR-16ティアA）**。`ExpressionTyper`がブロックを伴う呼び出しを型付けするとき、`Inference::MacroBlockSelfType.narrow_self_type_for(scope:, call_node:, receiver_type:)`を参照します。マッチ契約は狭いです: 呼び出しのレシーバー型はMUST`Singleton[X]`（クラスレベルのDSL呼び出し——クラス本体内の暗黙的self、または明示的な`App.get(...)`）であり、`X`はMUST登録されたエントリーの`receiver_constraint`に等しいか継承する（`Environment#class_ordering`経由）でなければならず、呼び出しのメソッド名はMUSTそのエントリーの`method_names`にあります。マッチ時にはブロック本体が`self_type`を**インスタンス**型`Nominal[X]`にナローイングして型付けされます（Sinatraの`generate_method`に対応し、これはブロックをユーザーのアプリクラスのインスタンスメソッドに変えます）;マッチしないときヘルパーは`nil`を返し、ブロックの`self`は変わりません。ルックアップはフェイルソフトです（`class_ordering`の失敗は「マッチなし」に劣化します）。これはティアAの床です: ブロック内の裸の識別子メソッドルックアップは、その後エンジンの通常の`self_type`駆動の経路を通じて解決されます。
 

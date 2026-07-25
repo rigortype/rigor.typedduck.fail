@@ -3,8 +3,8 @@ title: "付録: 型理論との接続"
 description: "rigortype/rigor docs/handbook/appendix-type-theory.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/appendix-type-theory.md"
 sourcePath: "docs/handbook/appendix-type-theory.md"
-sourceSha: "be20bdf9dd4f48e16fb98662c39874c54ea0e875200f1ac30fe450e346441d1f"
-sourceCommit: "212f2c491920cc5c39a12d75aee385cb6c51fa0c"
+sourceSha: "7fc8ff42217d52b2bcc55e76861ffaf93157794eef4345bcde4c1c651b593bd1"
+sourceCommit: "e3eb424c3c88035e453246710c8df3dc5cc8e7e1"
 translationStatus: "translated"
 sidebar:
   order: 1050
@@ -908,7 +908,7 @@ RBSは`Dynamic[T]`レシーバー上の不明なメソッドを**オープンワ
 - 表面レベルのキャリア群については[第2章: 日常的に出会う型](../02-everyday-types/)。
 - 実践でのoccurrence typingについては[第3章: ナローイング](../03-narrowing/)。
 - カスタム述語についてRigorに教えられるディレクティブ文法については[第7章: RBSと`RBS::Extended`](../07-rbs-and-extended/)。
-- ルールカタログ（3値の確実性のユーザーから見える端）については[第8章: エラーの読み方](../08-understanding-errors/)。
+- 診断の読み方については[第8章: エラーの読み方](../08-understanding-errors/)。そしてルールカタログ（3値の確実性のユーザーから見える端）については[マニュアル: 診断](../../manual/04-diagnostics/)。
 
 *理論*ではなく別の*ツール*と比較したいなら、姉妹の付録が
 [TypeScript](../appendix-typescript/)、

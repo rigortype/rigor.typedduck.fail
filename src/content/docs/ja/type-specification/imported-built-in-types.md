@@ -3,8 +3,8 @@ title: "インポートされた組み込み型"
 description: "rigortype/rigor docs/type-specification/imported-built-in-types.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/type-specification/imported-built-in-types.md"
 sourcePath: "docs/type-specification/imported-built-in-types.md"
-sourceSha: "dfd35085e32b37836c67b4d211d7909d2c5e7310e19129ef0d3e23186aa32a62"
-sourceCommit: "212f2c491920cc5c39a12d75aee385cb6c51fa0c"
+sourceSha: "792ce84d6eecde987b3c7ec25f1ea6aab8d1cc23b4d432f571eba43615672abf"
+sourceCommit: "e3eb424c3c88035e453246710c8df3dc5cc8e7e1"
 translationStatus: "translated"
 sidebar:
   order: 2050
@@ -13,6 +13,8 @@ sidebar:
 Rigorは明確なRubyの意味を持つ場合にのみ、PHPStan、TypeScript、Pythonの型付けからアイデアをインポートします。デフォルトでは互換性のために外来構文は保持されません。
 
 この文書はRigorがリファインメントと型関数に使う予約済み組み込み**名前**を定義します。これらの名前を裏打ちする内部形式は[rigor-extensions.md](../rigor-extensions/)にカタログ化されています。演算子形式（`~T`、`T - U`、`key_of[T]`など）は[type-operators.md](../type-operators/)にあります。
+
+これらの名前は`.rbs`内にコメント拡張（`%a{rigor:v1:…}`）として記述され、[`lib/rigor/builtins/imported_refinements.rb`](https://github.com/rigortype/rigor/blob/master/lib/rigor/builtins/imported_refinements.rb)によって解析されます。文法を拡張するには、そのパーサと本ページの行を同じコミットで編集する必要があります。
 
 ## 命名規則
 

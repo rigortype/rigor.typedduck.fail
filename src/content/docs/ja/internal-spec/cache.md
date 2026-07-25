@@ -3,14 +3,14 @@ title: "キャッシュレイヤー — `Rigor::Cache`"
 description: "rigortype/rigor docs/internal-spec/cache.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/cache.md"
 sourcePath: "docs/internal-spec/cache.md"
-sourceSha: "9d1915678ffb2c69245e39b4ffaaca689c063c5cba41e180da26fecc9fe6d3be"
-sourceCommit: "d88effcae8b2998d1f4f40432e6d4f20ce17946e"
+sourceSha: "8b18583fc98a75fd4c74a1dfce61aa68c77f4f08f26d4fe5e51d6743f868d2af"
+sourceCommit: "e3eb424c3c88035e453246710c8df3dc5cc8e7e1"
 translationStatus: "translated"
 sidebar:
   order: 3050
 ---
 
-ステータス: **安定（v0.0.8で導入;現行ディスクリプタスキーマv5）**。このドキュメントはキャッシュレイヤーの公開リード形を追跡します。以下のスライス（slice）はすべて着地し、v0.1.x全体で安定しています;ディスクリプタの`SCHEMA_VERSION`はADR-10のgemバージョンごとの`dependencies`スロットのために`2`へ、`RbsLoader.build_env_for`が欠落した`signature_paths:`名前空間を合成し始めたときに`3`へ（古いRigorによってmarshalされたRBS環境——それらのシグネチャを不活性なまま残してしまう——は再構築されます）、[ADR-60](../adr/60-pre-freeze-plugin-contract-consolidation.md) WD3がレコードアンドバリデートのプラグインプロデューサーキャッシュ向けに`globs`スロット（`GlobEntry`）を追加したときに`4`へ、そして[ADR-87](../adr/87-null-build-floor.md) WD1が`:stat` `FileEntry` comparator（statしてからダイジェストの検証）を追加したときに`5`へ引き上げられました。スライス1と2がすでに完成しています。`Rigor::Cache::Descriptor`（すべてのキャッシュ済み値が付随する基板）と`Rigor::Cache::Store`（ディスクリプタ・プロデューサー・パラメータを消費してキャッシュ済みまたは新規計算済みの値を返すファイルシステムバックのストレージ）です。後続のスライスでは最初のキャッシュ済みプロデューサー（RBS環境ローダー）とCLI可観測フラグ（`--cache-stats`・`--clear-cache`）を追加します。
+ステータス: **安定（v0.0.8で導入;現行ディスクリプタスキーマv5）**。このドキュメントはキャッシュレイヤーの公開リード形を追跡します。以下のスライス（slice）はすべて着地し、v0.1.x全体で安定しています;ディスクリプタの`SCHEMA_VERSION`はADR-10のgemバージョンごとの`dependencies`スロットのために`2`へ、`RbsLoader.build_env_for`が欠落した`signature_paths:`名前空間を合成し始めたときに`3`へ（古いRigorによってmarshalされたRBS環境——それらのシグネチャを不活性なまま残してしまう——は再構築されます）、[ADR-60](../adr/60-pre-freeze-plugin-contract-consolidation.md) WD3がレコードアンドバリデートのプラグインプロデューサーキャッシュ向けに`globs`スロット（`GlobEntry`）を追加したときに`4`へ、そして[ADR-87](../adr/87-null-build-floor.md) WD1が`:stat` `FileEntry` comparator（statしてからダイジェストの検証）を追加したときに`5`へ引き上げられました。v0.0.8の5つのスライスがすべて着地しました。`Rigor::Cache::Descriptor`（スライス1 —— すべてのキャッシュ済み値が付随する基板）、`Rigor::Cache::Store`（スライス2 —— ディスクリプタ・プロデューサー・パラメータを消費してキャッシュ済みまたは新規計算済みの値を返すファイルシステムバックのストレージ）、最初のキャッシュ済みプロデューサー —— RBS定数テーブル（スライス3）——、CLI可観測フラグ`--cache-stats` / `--clear-cache`（スライス4）、そして診断の来歴（スライス5）です。さらに4つのRBS由来のプロデューサーがv0.0.9で着地しました。
 
 このモジュールが実装するスキーマは以下によって固定されています。
 
@@ -44,7 +44,7 @@ GlobEntry       :: { root: String, pattern: String, value: String }
 
 任意の数のディスクリプタを1つのディスクリプタに合成します。スロットごとの合成ルールは**キーによるユニオン（union、合併型とも）**です。
 
-- `files`は`path`でグループ化します。グループ内のエントリーはより**厳格な**comparatorを優先します（`:digest > :mtime > :exists`）。最も厳格なcomparatorの中で、すべてのエントリーが`value`について合意していなければ`Descriptor::Conflict`が発生します。
+- `files`は`path`でグループ化します。グループ内のエントリーはより**厳格な**comparatorを優先します（`:stat > :digest > :mtime > :exists`;`:stat`と`:digest`を別々にランク付けすることが、両方の下で貢献したパスが値の`Conflict`を決して発生させないことを保証します。両者の`value`文字列は構築上異なるからです）。最も厳格なcomparatorの中で、すべてのエントリーが`value`について合意していなければ`Descriptor::Conflict`が発生します。
 - `gems`は`name`でグループ化します。グループ内のすべてのエントリーは`(requirement, locked)`の下で構造的に等しくなければなりません。そうでなければ`Conflict`が発生します。
 - `plugins`は`id`でグループ化します。`(version, config_hash)`で同じ等値ルールが適用されます。
 - `configs`は`key`でグループ化します。`value_hash`で同じ等値ルールが適用されます。
@@ -76,8 +76,6 @@ GlobEntry       :: { root: String, pattern: String, value: String }
 
 コンストラクタシグネチャと合成セマンティクスはv0.0.xの公開リード形として安定しています。新しいスロット種（例: `env_vars`）の追加はtaxonomyドキュメントとADR-6に従いスキーマバージョンバンプになります。`FileEntry::VALID_COMPARATORS`（現在は`%i[digest stat mtime exists]`）へのcomparatorの追加は挙動としては加算的ですが、comparatorは`cache_key_for`を通じてキャッシュキーに畳み込まれるため、ADR-87の`:stat`追加は`SCHEMA_VERSION`のバンプ（4 → 5）を要しました —— `:stat`以前のエントリーが、古いライターが決して使わなかったcomparatorの下で信頼されるのではなく、クリーンなミスとして読まれるようにするためです。
 
-永続化レイヤー（[`Rigor::Cache::Store`](#cache-store-v008-slice-2)、v0.0.8スライス2）とキャッシュプロデューサー統合は後続に続きます。このドキュメントは各スライスが着地するたびに更新されます。
-
 ## `Rigor::Cache::Store`（v0.0.8スライス2）
 
 ファイルシステムバックのキャッシュストア。ADR-6 § "Decisions in detail"が契約（contract）を固定します。このセクションはプロデューサーとCLIが消費する公開リード形を文書化します。
@@ -86,26 +84,31 @@ GlobEntry       :: { root: String, pattern: String, value: String }
 
 `root`（ディレクトリパス、通常は`.rigor/cache`）をルートにするストアを構築します。ディレクトリは積極的に作成されません。最初の書き込みで`schema_version.txt`マーカーとともに実体化されます。`read_only:`はすべての書き込みを抑制します（ワーカーが親のキャッシュと競合せずに共有できるようにする）。`max_bytes:`はディスク上のサイズに上限を設け、LRUの`#evict!`パスを起動します（本番デフォルトは256 MBで、[ADR-54](../adr/54-cache-slimming.md) WD3に従いCLIが設定します。ここで`nil`にするとキャッシュは無制限になります）。
 
-すべての`fetch_or_compute` / `fetch_or_validate`呼び出しは、まずStoreの生存期間についてディスク層の可用性を解決します（最初のチェック後にメモ化される —— 下記の「スキーマバージョンマーカー」を参照）: 利用不可なら、プロデューサーブロックは依然として走りその結果は依然としてインプロセスのメモに着地しますが、ディスクの読み書きは試みられません。これは2つの状況をカバーします —— 信頼してはならないマーカーに直面した読み取り専用ストアと、キャッシュルートを読めない/修復できない書き込み可能なストア（パーミッションエラー、ディスクフル、ルート削除、読み取り専用マウント）—— どちらも解析実行を決して壊してはなりません。
+すべての`fetch_or_compute` / `fetch_or_validate`呼び出しは、まずStoreの生存期間についてディスク層の可用性を解決します（最初のチェック後にメモ化される —— 下記の「スキーマバージョンマーカー」を参照）: 利用不可なら、プロデューサーブロックは依然として走り——`fetch_or_compute`についてはその結果も依然としてインプロセスのメモに着地しますが——ディスクの読み書きは試みられません。`fetch_or_validate` / `peek_validated`は意図的にインプロセスでは**メモ化されません**: 検証は常にファイルシステムを再チェックします。これは2つの状況をカバーします —— 信頼してはならないマーカーに直面した読み取り専用ストアと、キャッシュルートを読めない/修復できない書き込み可能なストア（パーミッションエラー、ディスクフル、ルート削除、読み取り専用マウント）—— どちらも解析実行を決して壊してはなりません。
 
-### `store.fetch_or_compute(producer_id:, params:, descriptor:, serialize: nil, deserialize: nil) { ... } -> Object`
+### `store.fetch_or_compute(producer_id:, params:, descriptor:, generation_cap:, serialize: nil, deserialize: nil) { ... } -> Object`
 
-プロデューサー向けの単一エントリーポイントです。
+計算キーのプロデューサーエントリーポイント。下記の`fetch_or_validate`はレコードアンドバリデートのバリアントで、`peek_validated`はその読み取り専用のプローブ半分です。
 
 - `producer_id`（String） — キャッシュ名前空間。`[a-z][a-z0-9._-]*`のみ受け入れます。この制約により、大小文字を区別しないファイルシステム上でもファイルシステムに適したディレクトリ名が保証されます。
 - `params`（Hash） — プロデューサーの入力引数。{Descriptor#cache_key_for}でキャッシュキーに組み込まれます。プロデューサーはキャッシュキー自体を導出しません。
 - `descriptor`（[`Rigor::Cache::Descriptor`](#rigorcachedescriptor-v008-slice-1)） — キャッシュ済み値の無効化ディスクリプタ。
+- `generation_cap`（Integerまたは`:unbounded`、**必須**） — プロデューサー自身のコンパクション予算。下記 § 「コンパクション（`#evict!`）」に従います。省略可能ではありません: ディスクに到達するプロデューサーは、自身の何世代が蓄積されうるかを表明済みです。
 - `serialize`（callable、省略可能） — プロデューサーの戻り値をバイナリ`String`に変換します。デフォルトは`Marshal.dump(value).b`です。`Marshal`でクリーンでない戻り値（`RBS::Location`メンバーを持つRBSネイティブオブジェクト・生の`IO`など）を持つプロデューサーはシリアライザをMUST提供しなければなりません。
 - `deserialize`（callable、省略可能） — バイトをプロデューサーの値に戻します。デフォルトは`Marshal.load`です。`(serialize, deserialize)`のペアはラウンドトリップをMUST保証しなければなりません。一方の戦略で読み込み他方で書き込むプロデューサーは自分のキャッシュスライスを破壊します。デシリアライザが発生させた例外（`StandardError`）はキャッシュミスとして扱われます。エントリーは破損とみなされ、プロデューサーブロックが再実行され、次の書き込みでそれが上書きされます。これは以下の読み込みフォールトトレランスルールと一致します。
 - ブロック（`yield`）は**キャッシュミス時のみ**呼び出されます。
 
 キャッシュ済み値を返します（ヒット時はディスクからロード、ミス時はブロックが生成）。
 
-### `store.fetch_or_validate(producer_id:, key_descriptor:, params: {}, serialize: nil, deserialize: nil) { ... } -> Object`
+### `store.fetch_or_validate(producer_id:, key_descriptor:, generation_cap:, params: {}, serialize: nil, deserialize: nil) { ... } -> Object`
 
-レコードアンドバリデートのバリアント（[ADR-45](../adr/45-unchanged-project-fast-path.md)）。`fetch_or_compute`——エントリーを入力のディスクリプタでキー付けるため、プロデューサー実行前にすべての入力が既知でなければMUSTならない——とは異なり、これは`key_descriptor`（前もって既知の安定した入力のみ）でキー付け、値とともに、その値が実際に読み込んだファイルの`dependency_descriptor`を、**計算中に発見された入力も含めて**（例: 解析の途中でプロジェクトファイルを読むプラグイン）格納します。ブロックは`[value, dependency_descriptor]`をMUST返さなければなりません。次回のランでは、格納された依存関係ディスクリプタが`Descriptor#fresh?`を通じてファイルシステムに対して再検証され——記録された各`FileEntry` / `GlobEntry`がまだ一致していなければならず——古い依存関係は再計算を強制します。`Marshal`でクリーンでない書き込み（または任意のディスクエラー）は飲み込まれます。新たに計算された値が返され、次回のランで再計算されます。これは、Rigorが前もって見えないファイルをプラグインが読むと古くなってしまう解析前フィンガープリントの、健全な後継です。
+レコードアンドバリデートのバリアント（[ADR-45](../adr/45-unchanged-project-fast-path.md)）。`fetch_or_compute`——エントリーを入力のディスクリプタでキー付けるため、プロデューサー実行前にすべての入力が既知でなければMUSTならない——とは異なり、これは`key_descriptor`（前もって既知の安定した入力のみ）でキー付け、値とともに、その値が実際に読み込んだファイルの`dependency_descriptor`を、**計算中に発見された入力も含めて**（例: 解析の途中でプロジェクトファイルを読むプラグイン）格納します。ブロックは`[value, dependency_descriptor]`をMUST返さなければなりません。次回のランでは、格納された依存関係ディスクリプタが`Descriptor#fresh?`を通じてファイルシステムに対して再検証され——記録された各`FileEntry` / `GlobEntry`がまだ一致していなければならず——古い依存関係は再計算を強制します。**ディスク側**の書き込み失敗（パーミッション、ディスクフル、ルート削除、読み取り専用マウント）は飲み込まれます。新たに計算された値が返され、次回のランで再計算されます。**プロデューサーの契約違反はそうではありません** —— `Marshal.dump`がシリアライズできない値、または非`String`を返すカスタムの`serialize:`は、`fetch_or_validate`から送出され**ランを中断します**。コールドランへ劣化はしません: 書き込みパスは意図的に`SystemCallError` / `IOError`のみをrescueするので、バグは、毎回のランに黙って再計算のコストを課すのではなく、可視になります。値が`Marshal`でクリーンでないプロデューサーは`serialize:` / `deserialize:`のペアをMUST提供しなければなりません。これは、Rigorが前もって見えないファイルをプラグインが読むと古くなってしまう解析前フィンガープリントの、健全な後継です。
 
 `Descriptor#fresh?`は、ディスクリプタの`gems` / `plugins` / `configs` / `dependencies`スロットがすべて空であるときにのみそのディスクリプタを鮮度ありとみなします（これらの非ファイル入力は検証対象セットではなくキャッシュの*キー*に属します）。いずれかを持つディスクリプタは決して鮮度ありになりません。
+
+### `store.peek_validated(producer_id:, key_descriptor:, params: {}, deserialize: nil) -> Object?`
+
+`fetch_or_validate`の読み取り半分（[ADR-87](../adr/87-null-build-floor.md) WD4）で、計算も書き込みもありません: 鮮度のあるヒットではキャッシュ済み値を返し、ミス・古い依存関係ディスクリプタ・利用不可のディスク層では`nil`を返します。ブロックを取らずプロデューサーを決して走らせないため、永続化するものは何もありません。ブートスリミングのプローブがこれを呼び出し、推論エンジンをまったくロードせずにランの診断を提供します。ヒットは記録しますが（`--cache-stats`が依然として釣り合うように）、ミスは決して記録しません —— プローブのミスはフルパスへ引き継がれ、そちらが自身のミスを記録します。
 
 ### 読み込みフォールトトレランス
 
@@ -187,7 +190,11 @@ sha256               32バイト — 直前のすべてのバイトの整合性�
 `evict!`は読み取り専用ストアではno-opです。そうでなければ、順に3つのパスを走らせます:
 
 1. **陳腐化した一時ファイルのクリーンアップ**。1時間より古い`*.tmp.*`の隣接ファイルはすべて`unlink`されます。通常動作では`atomically_replace`が決してそれを残しません（上記の「アトミック性とロック」を参照）;これは、tempファイル書き込みとrenameの間で死んだプロセスに対するバックストップです。
-2. **プロジェクト全体の世代上限**。一部のプロデューサーは内容キーで管理されます（キャッシュキーが安定したプロジェクトごとのキーではなく、値の依存関係の関数だ）ので、異なる入力で再実行すると新しいエントリーが書かれ、古いものは到達不能になります —— しかし依然ディスク上にあります。プロジェクト全体プロデューサーIDの小さなハードコードされた許可リスト（`rbs.environment`、`rbs.class_ancestor_table`、`rbs.class_type_param_names`、`rbs.constant_type_table`、`rbs.known_class_names`、`analysis.run-diagnostics`）が、それぞれの何世代がコンパクションパスを生き延びるかに上限を設けます;上限を超えると、mtimeが最も古い世代から先に`unlink`されます。ファイルごと・プラグインごとのプロデューサーは、このテーブルから意図的に外されています —— 1つのそのようなプロデューサーIDの下で多くの現在のエントリーが同時にライブでありうるので、そこでは世代数が陳腐化の意味ある代理指標にならないからです。上限は現在、プロデューサーが宣言するメタデータではなく、保守される定数です;新しいプロジェクト全体プロデューサーは、恩恵を受けるには手でリストに追加しなければなりません。
+2. **プロデューサー宣言の世代上限**。一部のプロデューサーは内容キーで管理されます（キャッシュキーが安定したプロジェクトごとのキーではなく、値の依存関係の関数だ）ので、異なる入力で再実行すると新しいエントリーが書かれ、古いものは到達不能になります —— しかし依然ディスク上にあります。すべてのフェッチ呼び出し（`#fetch_or_compute`・`#fetch_or_validate`）は`generation_cap:`をMUST携えなければなりません。これは正の`Integer`（そのプロデューサーの何世代がコンパクションパスを生き延びるか）か、`Cache::Store::UNBOUNDED_GENERATIONS`（`:unbounded` —— プロデューサーは多くのエントリーを同時にライブに保つので、世代数は陳腐化の代理指標にならず、パス3だけがそれを制限する）のいずれかです。上限を超えると、mtimeが最も古い世代から先に`unlink`されます。このキーワードはREQUIREDです: 省略すると`ArgumentError`になるので、後から追加されたプロジェクト全体プロデューサーが黙って上限なしになることはありえません —— #151以前のプロデューサーIDのハードコードされた許可リストが招いていた失敗です。
+
+   値は呼び出し側の判断ではなく、プロデューサー自身の宣言です: `RbsCacheProducer.generation_cap`（2、すべての`rbs.*`サブクラスが継承する）、`Analysis::RunCacheKey::GENERATION_CAP`（`analysis.run-diagnostics`向けに16、解析対象パスのSETごとに1つのライブ世代）、そしてプラグイン側プロデューサー向けの`Plugin::Base.producer generation_cap:`（デフォルトは`:unbounded`）です。ファイルごとの`plugin.source_rbs_synthesizer`プロデューサーは`:unbounded`を宣言します。
+
+   Storeはフェッチ呼び出しが到着するたびにプロデューサーIDに対して各宣言を記録し、コンパクションパスはその記録を読みます。このStoreインスタンスが宣言されたのを一度も見ていないプロデューサーIDは、したがって推測でコンパクトされるのではなく放置されます。それが安全な方向です: ランの間に参照されなかったプロデューサーは新しい世代も書いていないので、パスはすでにそこにあったエントリーをスキップできるだけで、ライブなエントリーを立ち退かせることは決してありません。
 3. **サイズベースのLRUパス**。以前のリリースから変わりません: 残るすべての`.entry`ファイルを走査し、mtimeの昇順でソートし、合計が`max_bytes:`以下になるまで最も古いものから`unlink`します。
 
 パス1と2は、**`max_bytes:`が設定されているかどうかに関係なく**走ります —— サイズ予算を強制するのではなく、証明可能なほど死んだバイト（漏れたtempファイル、到達不能な内容キー世代）を回収するので、明示的に無制限のストア（`max_bytes: nil`）も依然としてそれらの恩恵を受けます。パス3だけが`max_bytes:`が設定されていることにゲートされます。いずれのパス中のファイルシステムエラーも飲み込まれます —— `evict!`は決して実行を壊してはなりません。
@@ -234,7 +241,7 @@ B1のコメントのみゲートを本体の編集へ一般化します: 変更�
 
 以下に記述されるバンドルされたRBS由来のプロデューサー（`RbsConstantTable`・`RbsKnownClassNames`・`RbsClassAncestorTable`・`RbsClassTypeParamNames`・`RbsEnvironment`）はいずれも一つのシェイプを満たします ── すなわち`fetch(loader:, store:)`に応答し、キャッシュ済みまたは新たに計算された値を返すクラスオブジェクトです。これは[`sig/rigor/cache.rbs`](https://github.com/rigortype/rigor/blob/master/sig/rigor/cache.rbs)において構造的インターフェース`_CacheProducer`として成文化されています。これは構造的インターフェース（RBS／Goの意味での）であり、ADR-28のプロトコル契約ではなく、また[`plugin-cache-producers.md`](plugin-cache-producers/)のプラグイン側プロデューサーサーフェスとも区別されます。
 
-`fetch`本体はプロデューサー間で同一です。すなわちRBSディスクリプタ（`RbsDescriptor.build(loader)`）を構築し、それから`store.fetch_or_compute(producer_id:, params: {}, descriptor:)`を呼び出してプロデューサーの`compute(loader)`へyieldします。異なるのは`PRODUCER_ID`定数と`compute`本体だけです。その共有された配線は`Rigor::Cache::RbsCacheProducer`基底クラスに置かれます。プロデューサーはそれをサブクラス化し、自身の`PRODUCER_ID`と（privateな）`self.compute(loader)`をMUST宣言します。基底クラスは`self::PRODUCER_ID`を読むため、定数は具象サブクラス上で解決されます。以下のプロデューサーごとのセクションは、各プロデューサーの`PRODUCER_ID`、`compute`の出力型、およびそれを読む`cache_store`コンシューマーを規定します。
+`fetch`本体はプロデューサー間で同一です。すなわち共有RBSディスクリプタ（`loader.rbs_cache_descriptor`、`RbsDescriptor.build`まわりのローダーごとのメモ）を読み、それから`store.fetch_or_compute(producer_id:, params: {}, descriptor:, generation_cap:)`を呼び出してプロデューサーの`compute(loader)`へyieldします。異なるのは`PRODUCER_ID`定数と`compute`本体だけです。その共有された配線は`Rigor::Cache::RbsCacheProducer`基底クラスに置かれます。プロデューサーはそれをサブクラス化し、自身の`PRODUCER_ID`と（privateな）`self.compute(loader)`をMUST宣言します。基底クラスは`self.generation_cap`（2 —— § 「コンパクション」を参照）も宣言し、サブクラスはそれを継承しオーバーライドできます;したがってコンパクション予算なしに`rbs.*`プロデューサーを追加することはできません。基底クラスは`self::PRODUCER_ID`を読むため、定数は具象サブクラス上で解決されます。以下のプロデューサーごとのセクションは、各プロデューサーの`PRODUCER_ID`、`compute`の出力型、およびそれを読む`cache_store`コンシューマーを規定します。
 
 ## `Rigor::Cache::RbsConstantTable`（v0.0.8スライス3）
 

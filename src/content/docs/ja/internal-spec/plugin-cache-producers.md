@@ -3,8 +3,8 @@ title: "プラグイン側キャッシュプロデューサー（スライス6�
 description: "rigortype/rigor docs/internal-spec/plugin-cache-producers.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/plugin-cache-producers.md"
 sourcePath: "docs/internal-spec/plugin-cache-producers.md"
-sourceSha: "0b3460c86bc5d977df0dd7be2ff7f2c51731f955184cf36bf23c25bd268e0f97"
-sourceCommit: "eb8e9996d113a1b5e1778d0988597c979814a219"
+sourceSha: "7ab8a18da95e40a9e7d3297eedf24b0756764681a4224b72e95d40019fe00fb6"
+sourceCommit: "e3eb424c3c88035e453246710c8df3dc5cc8e7e1"
 translationStatus: "translated"
 sidebar:
   order: 3050
@@ -24,11 +24,13 @@ ADR-7 §「スライス6」は3つの実装上の選択を固定します：
 
 ## パブリックサーフェス（ドリフト固定済み）
 
-### `Rigor::Plugin::Base.producer(id, watch: nil, serialize: nil, deserialize: nil, &block)`
+### `Rigor::Plugin::Base.producer(id, watch: nil, serialize: nil, deserialize: nil, generation_cap: :unbounded, &block)`
 
 プロデューサーを登録するクラスレベルDSL。ブロックはプロデューサー本体です；`instance_exec`を通じて実行されるため、ブロック内の`self`はプラグインインスタンス——`io_boundary`・`services`・`manifest`・`config`がすべてスコープ内にあります。ブロックは呼び出しサイトの`params`ハッシュを唯一の引数として受け取ります；`params`は`Cache::Descriptor#cache_key_for`（v0.0.8）に従ってキャッシュキーに混合されます。
 
 `watch:`（ADR-60 WD3）は発見スタイルのプロデューサーのグロブカバレッジ——プロデューサーブロックが入力をグロブで読み込んだ場合でも、ファイルの*追加*／*削除*がキャッシュ値を無効化しなければならないディレクトリ——を宣言します（ブロック内の読み込みは、そこに存在しなかったファイルを見ることができないため）。これは`[roots, pattern, …]`タプルの静的な`Array`（`roots`は`String`または`Array<String>`；1タプルにつき1つ以上のグロブパターンサフィックス）か、または`cache_for`時にプラグインインスタンス上で`instance_exec`を通じて実行され（クラス定義時ではなく——検索ルートは通常`#init`でconfigから計算されます）そのArrayを返す`Proc`のいずれかです。評価された各`(root, pattern)`はプロデューサーの依存ディスクリプタ内の`Cache::Descriptor::GlobEntry`行になります——1つのエントリーがグロブ全体をダイジェストするので、コンテンツ変更・追加・削除のいずれもが無効化を引き起こします。
+
+`generation_cap:`は、このプロデューサーのエントリーの何世代が`Cache::Store#evict!`のコンパクションパスを生き延びるかを宣言します（[`cache.md`](../cache/) § 「コンパクション」を参照）。デフォルトの`Cache::Store::UNBOUNDED_GENERATIONS`は、通常のプラグインプロデューサー——ファイルごと・発見単位ごとにキー付けされ、多くのエントリーが同時にライブ——に適し、サイズベースのLRUパスだけに委ねます。エントリーがプロジェクト全体かつ内容キーである（各実行が前のエントリーを孤立させる）プロデューサーは、代わりに小さな正の`Integer`を宣言します。他の任意の値はクラス定義時に`ArgumentError`を発生させるので、プロジェクト全体のプラグインプロデューサーが黙って上限なしになることはありえません。
 
 `serialize:` / `deserialize:`はプロデューサーの返り**値**に適用されます（キャッシュ層が格納される`[value, dependency_descriptor]`ペアの周りにそれらをラップします）。デフォルトのラウンドトリップはv0.0.9の呼び出し可能サーフェスに従う`Marshal.dump` / `Marshal.load`です；返り値がMarshalクリーンでないプロデューサー（`RBS::Location`メンバーを持つRBSネイティブオブジェクト・生の`IO`など）は独自のペアを提供しなければなりません（MUST）。
 

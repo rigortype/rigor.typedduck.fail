@@ -3,12 +3,16 @@ title: "実装の期待事項"
 description: "rigortype/rigor docs/internal-spec/implementation-expectations.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/implementation-expectations.md"
 sourcePath: "docs/internal-spec/implementation-expectations.md"
-sourceSha: "5bf469a9f3ff7d97e94bc293744d332ae46267466ad08e0c104e1727fecc0a6b"
-sourceCommit: "9f40e22193647dc06e3ab70c5ba82768b0bfe738"
+sourceSha: "eb59f78f76446a5f51ec324554aac040be7af74a395b2635a156b2e025cab49a"
+sourceCommit: "e3eb424c3c88035e453246710c8df3dc5cc8e7e1"
 translationStatus: "translated"
 sidebar:
   order: 3050
 ---
+
+> **ステータス —— § *エンジンサーフェス*の9つの箇条書きのうち2つは、（本稿執筆時点で）出荷済みの状態ではなく目標状態です**。
+> **推論バジェットと不完全推論結果**: `lib/`に不完全推論の結果キャリア（carrier）は存在せず、設定可能な`budgets:`サーフェスは未配線です —— マーカーは[`inference-budgets.md`](../../type-specification/inference-budgets/)にあり、それを消費する`static.incomplete-inference.*`ファミリーはReservedです。出荷されているのは、ハードコードされた再帰／ファンアウトのガード一式とADR-10のgemごとのバジェットであり、理由は結果オブジェクトとしてではなく値上の`DynamicOrigin`原因（`ANALYZER_BUDGET_CUTOFF`）として残ります。
+> **ケイパビリティ（capability）ロール推論**: その*明示的*な半分だけが出荷されています。`RbsExtended::ConformanceChecker`は、作者が書いた`conforms-to`ディレクティブをRBSで定義されたインターフェースに照合します;メソッド本体から要求ロールを導出すること、メソッドごとの要求サマリーをキャッシュすること、それらをインデックス済み名前付きインターフェースに照合することには、**`lib/`のどこにも実装がありません**。その先送りはすでに[`control-flow-analysis.md`](../../type-specification/control-flow-analysis/) § "capability-role *requirement inference* from method bodies"に記録されています;このドキュメントは未出荷の半分を現在形で述べていましたが、いまやそう明言します。[ADR-92](../../adr/92-normative-status-fidelity/) WD2に従い、意図は削除されるのではなくマークされます —— どちらも依然として望まれています。
 
 実装はパース処理・内部型表現・サブタイピング（subtyping）・一貫性・正規化・スコープ遷移・エフェクト適用・RBS消去を、それぞれ独立した概念としてMUST分離しなければなりません。この分離によりRBS互換性の安定性が保たれ、推論指向の内部精度を高める余地が確保されます。
 
@@ -23,7 +27,7 @@ sidebar:
 - **推論バジェットと、推論が停止した理由を保持する不完全推論結果**。[inference-budgets.md](../../type-specification/inference-budgets/)を参照してください。
 - **ファクト（fact）ストア**。値ファクト・否定ファクト・関係ファクト・メンバー存在ファクト・シェイプ（shape）ファクト・動的由来の来歴・安定性ファクト・エスケープファクト・キャプチャされたローカル書き込みファクトを表現できます。[control-flow-analysis.md](../../type-specification/control-flow-analysis/)を参照してください。
 - **エフェクトモデル**。レシーバーおよび引数の変更・ブロック呼び出しタイミング・クロージャエスケープ・純粋性・ファクト無効化を扱います。[control-flow-analysis.md](../../type-specification/control-flow-analysis/)と[rbs-extended.md](../../type-specification/rbs-extended/)を参照してください。
-- **ケイパビリティ（capability）ロール推論**。メソッドごとの要求サマリーをキャッシュし、インデックス済み名前付きインターフェースが利用できる場合はそれに照合し、照合が曖昧またはコスト過多な場合は匿名シェイプを保持できます。[structural-interfaces-and-object-shapes.md](../../type-specification/structural-interfaces-and-object-shapes/)を参照してください。
+- **ケイパビリティロール推論**。メソッドごとの要求サマリーをキャッシュし、インデックス済み名前付きインターフェースが利用できる場合はそれに照合し、照合が曖昧またはコスト過多な場合は匿名シェイプを保持できます。[structural-interfaces-and-object-shapes.md](../../type-specification/structural-interfaces-and-object-shapes/)を参照してください。
 - **正規化**。ユニオン（union、合併型とも）・インターセクション・補集合・差・不可能な絞り込みを対象とします。[normalization.md](../../type-specification/normalization/)を参照してください。
 - **拡張向けセマンティック型クエリ**。プラグイン作者が具体的な型クラスを検査するのではなく、ケイパビリティ質問を投げかけられるようにします。[rbs-extended.md](../../type-specification/rbs-extended/)を参照してください。
 - **保守的なRBS消去（オプションで精度損失の説明付き）**。[rbs-erasure.md](../../type-specification/rbs-erasure/)を参照してください。

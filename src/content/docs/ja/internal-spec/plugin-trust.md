@@ -3,8 +3,8 @@ title: "プラグインの信頼とI/Oポリシー（スライス2）"
 description: "rigortype/rigor docs/internal-spec/plugin-trust.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/plugin-trust.md"
 sourcePath: "docs/internal-spec/plugin-trust.md"
-sourceSha: "fdf00fd254782e61a6f8b8554dbdcb1772753ee742099fdac08255cabba3f497"
-sourceCommit: "aec4ca7f5f87b1972dea8fecaaf5b62c8880a3af"
+sourceSha: "4156b2d5d9dd76f8336b0f12654af8a7954230826565e9600df9dda0d8967b3c"
+sourceCommit: "e3eb424c3c88035e453246710c8df3dc5cc8e7e1"
 translationStatus: "translated"
 sidebar:
   order: 3050
@@ -104,5 +104,8 @@ plugins_io:
 - **強制的な隔離**。ADR-2はトレードオフを明示的に受け入れています：境界を迂回するプラグインはスコープ外です；スライス2の仕事は宣言的なポリシーと文書化されたエッジを提供することです。強力な隔離（Ruby::Box、プロセス境界）は将来のオプションであり、スライス2のコミットメントではありません。
 - **`realpath`によるシンボリックリンクの解決**。`File.expand_path`が唯一の正規化ステップです。敵対的なプラグインはスコープ外です。
 
-（v0.1.2でネットワークゲートが解放されました: `network_policy`は`:allowlist`も受け付けるようになり、`IoBoundary#open_url`を通じて`allowed_url_hosts`内のホストへのHTTPS GETを、リクエストタイムアウトとレスポンスサイズ上限付きで許可します。デフォルトは`:disabled`のままです。）
-- **境界のキャッシュディスクリプタを`Cache::Store`に接続すること**。それはスライス6の仕事です——プラグイン側キャッシュプロデューサーは`PluginEntry`行をディスクリプタスキーマに含む`Store#fetch_or_validate(serialize:, deserialize:)`（ADR-60 WD3のレコードアンドバリデート）を使用します。スライス2はディスクリプタを構築するだけです；まだ何もそれを消費しません。
+- **境界のキャッシュディスクリプタを`Cache::Store`に接続すること**。それはスライス6の仕事でした——プラグイン側キャッシュプロデューサーは`PluginEntry`行をディスクリプタスキーマに含む`Store#fetch_or_validate(serialize:, deserialize:)`（ADR-60 WD3のレコードアンドバリデート）を使用します（[plugin-cache-producers.md](../plugin-cache-producers/)）。スライス2はディスクリプタを構築しただけです。
+
+v0.1.2でネットワークゲートが解放されました: `network_policy`は`:allowlist`も受け付けるようになり、`IoBoundary#open_url`を通じて`allowed_url_hosts`内のホストへのHTTPS GETを、リクエストタイムアウトとレスポンスサイズ上限付きで許可します。デフォルトは`:disabled`のままです。
+
+境界が蓄積するディスクリプタはもはや未消費ではありません：`Analysis::Runner#run_dependency_descriptor`がすべてのプラグイン境界の`#cache_descriptor`ファイルを実行の依存ディスクリプタに畳み込むため、プラグインが境界を通じて読み込んだファイルは、解析対象ファイルや`sig`ファイルと同様に実行結果のキャッシュ無効化に関与します。

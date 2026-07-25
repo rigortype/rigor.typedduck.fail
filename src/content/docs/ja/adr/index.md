@@ -3,8 +3,8 @@ title: "アーキテクチャ決定記録"
 description: "rigortype/rigor docs/adr/README.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/README.md"
 sourcePath: "docs/adr/README.md"
-sourceSha: "a9cbbee322ba895deb01adddea250ee1977ab3ce224c5a25db165fca1937b16d"
-sourceCommit: "d88effcae8b2998d1f4f40432e6d4f20ce17946e"
+sourceSha: "4a0a1414a14bea5e8da92cfd3f995bf42710966d78f15b53f9ca49d5a2538257"
+sourceCommit: "e3eb424c3c88035e453246710c8df3dc5cc8e7e1"
 translationStatus: "translated"
 sidebar:
   order: 4000
@@ -115,7 +115,7 @@ sidebar:
 | ADR-89 | [セマンティックな伝播ゲート: 宣言シェイプと観測キーの戻り値サマリー](89-semantic-propagation-gates/) | Accepted（WD1の宣言シェイプゲート＋WD2の戻り値サマリーゲートを実装、PR #90；gitlab 341→1） |
 | ADR-90 | [解析対象プロジェクトのバンドルからのターゲットライブラリ解決](90-target-library-resolution-from-project-bundle/) | Accepted（2026-07-16に実装；WD1〜WD3が着地） |
 | ADR-91 | [Kernel組み込み畳み込みの所有権ゲート＋綴りパリティ不変条件](91-kernel-intrinsic-fold-ownership-gate/) | Accepted（2026-07-16に実装、WD1〜WD4；コーパスゲートはバイト同一） |
-| ADR-92 | [規範的ステータスの忠実性: 創設期の地層とdeclare-or-markゲート](92-normative-status-fidelity/) | Accepted（2026-07-16に実装、WD1〜WD5；void判定はオプションbで解決） |
+| ADR-92 | [規範的ステータスの忠実性: 創設期の地層とdeclare-or-markゲート](92-normative-status-fidelity/) | Accepted（2026-07-16にWD1〜WD5、2026-07-25にWD6を実装；void判定はオプションbで解決） |
 | ADR-93 | [デフォルトのrbs-inline取り込み: ADR-32のオプトインとalways-parse仕様の調停](93-default-rbs-inline-ingestion/) | Accepted（WD5のエンジンアンカーな同梱プラグイン解決を2026-07-19に追加、スライスはキュー入り） |
 | ADR-94 | [インラインRBSリーダー: `RBS::InlineParser`とrbs 3.xの下限](94-rbs-inline-reader-and-the-rbs-3x-floor/) | Accepted（移行は見送り；rigor-rbs-inlineがリーダーのまま） |
 | ADR-95 | [Homebrew配布: シングルバイナリの後ろに先送り](95-homebrew-tap-deferral/) | Proposed（先送り、トリガーゲート付き；未実装） |

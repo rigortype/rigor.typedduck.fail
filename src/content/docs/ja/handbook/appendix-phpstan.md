@@ -3,8 +3,8 @@ title: "付録: PHPStanから来た場合"
 description: "rigortype/rigor docs/handbook/appendix-phpstan.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/appendix-phpstan.md"
 sourcePath: "docs/handbook/appendix-phpstan.md"
-sourceSha: "0630a47a1aedc1c562f66d56a68bed139480ea1a3e22f0c59f1288ad0d6fab84"
-sourceCommit: "450a3016ca812067f6baa96e415442ed936ad49a"
+sourceSha: "789448b8388570c438f0afaec3393c64b7296539bad62a24848d35ef03f5fc02"
+sourceCommit: "e3eb424c3c88035e453246710c8df3dc5cc8e7e1"
 translationStatus: "translated"
 sidebar:
   order: 1050
@@ -69,7 +69,7 @@ PHPStanとRigorには重複するリファインメント（refinement、篩型�
 
 ## `@phpstan-assert`ファミリー
 
-PHPStanのアサーションナローイングPHPDocタグは、Rigorの`RBS::Extended`ディレクティブ文法に直接対応する。第7章でテーブルを詳しく説明しているが、参照のためここに再掲する:
+PHPStanのアサーションナローイングPHPDocタグは、Rigorの`RBS::Extended`ディレクティブ文法に直接対応する。これがそのマッピングであり、[第7章](../07-rbs-and-extended/)がRigor側を例で扱い、ディレクティブリファレンスそのものは[マニュアル: RBS::Extendedアノテーション](../../manual/16-rbs-extended-annotations/)である:
 
 | PHPStanのPHPDoc | Rigorの`RBS::Extended` | 効果 |
 | --- | --- | --- |
@@ -120,7 +120,7 @@ PHPStanの`phpstan.neon`とRigorの`.rigor.yml`/`.rigor.dist.yml`は同じ形状
 | `phpstan analyse --baseline` | `baseline: .rigor-baseline.yml`を設定した`rigor check`（管理型）。またはアドホックの`rigor diff rigor.baseline.json` |
 | パス解決: 宣言ファイルからの相対 | パス解決: 宣言ファイルからの相対（同じルール）。 |
 
-Rigorにはふたつのベースライン機構がある: **管理型**ベースライン（`rigor baseline generate`で`.rigor-baseline.yml`を生成し、`baseline:`設定キー経由で次回の`rigor check`が読み込む。PHPStanの`--baseline`に最も近い）と、**軽量**なアドホックスナップショット（`--format=json`ダンプに対する`rigor diff`）だ。第8章にウォークスルーがある。
+Rigorにはふたつのベースライン機構がある: **管理型**ベースライン（`rigor baseline generate`で`.rigor-baseline.yml`を生成し、`baseline:`設定キー経由で次回の`rigor check`が読み込む。PHPStanの`--baseline`に最も近い）と、**軽量**なアドホックスナップショット（`--format=json`ダンプに対する`rigor diff`）だ。[マニュアル: ベースライン](../../manual/06-baseline/)が両方を説明している。
 
 `includes:`のセマンティクスもPHPStanのものと一致する: 宣言順、後のものが前のものをオーバーライドし、現在のファイルのキーはincludeされたファイルより優先される。Rigorの`.rigor.yml`は`.rigor.dist.yml`と自動マージしない。オーバーライドは`includes:`の下にdistファイルを明示的にリストしなければならない。PHPStanも`phpstan.neon`と`phpstan.neon.dist`の両方がある場合に同じ動作をする。
 
@@ -230,8 +230,8 @@ end
 
 この付録セクションの残りを順番に読む必要はおそらくない。3つの有用なポインタ:
 
-- [第7章: RBSと`RBS::Extended`](../07-rbs-and-extended/): このページがまとめているPHPStanマッピングテーブルを含む完全なディレクティブ文法がある。
-- [第8章: エラーの読み方](../08-understanding-errors/): ルールカタログ、深刻度プロファイル、ベースラインdiff。すべてのPHPStanオンボーディング対応物。
+- [第7章: RBSと`RBS::Extended`](../07-rbs-and-extended/): ディレクティブ文法を例で扱う。リファレンステーブルは[マニュアル: RBS::Extendedアノテーション](../../manual/16-rbs-extended-annotations/)。
+- [第8章: エラーの読み方](../08-understanding-errors/): 診断の読み方とどのつまみに手を伸ばすかを説明する。カタログ、深刻度プロファイル、ベースライン（すべてのPHPStanオンボーディング対応物）は[マニュアル: 診断](../../manual/04-diagnostics/)と[マニュアル: ベースライン](../../manual/06-baseline/)。
 - [第9章: プラグイン](../09-plugins/): Type-Specifying / Dynamic-Return対応物のために。
 
 他のツールと比較したい場合は、兄弟付録ページが[TypeScript](../appendix-typescript/)、[mypy](../appendix-mypy/)、[Steep](../appendix-steep/)、[TypeProf](../appendix-typeprof/)、[Java / C#](../appendix-java-csharp/)、[Rust](../appendix-rust/)、[Go](../appendix-go/)、[Elixir](../appendix-elixir/)をカバーしている。

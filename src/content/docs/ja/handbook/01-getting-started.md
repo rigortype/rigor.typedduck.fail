@@ -3,8 +3,8 @@ title: "はじめに"
 description: "rigortype/rigor docs/handbook/01-getting-started.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/01-getting-started.md"
 sourcePath: "docs/handbook/01-getting-started.md"
-sourceSha: "72a6bfc1b9f299d271764b0b139a1bddfeced0f9a066815bfa93087891932b4a"
-sourceCommit: "4c03f62d04f594030bd79aa00f3a5978e0457d4c"
+sourceSha: "12e545475fafd3a1352bd923114e3f8bf5848a7dc5552dceca0ff66c0bae2733"
+sourceCommit: "e3eb424c3c88035e453246710c8df3dc5cc8e7e1"
 translationStatus: "translated"
 sidebar:
   order: 1001
@@ -58,7 +58,7 @@ Rigorはプロジェクトの`.rb`ファイルを読み、各ファイルにフ�
 - 引数の数が間違っているメソッド呼び出し
 - 必ず例外を送出する算術（`5 / 0`）
 - リファインされたパラメータ契約（contract）を満たさない引数の型
-- そのほか、すべて[第8章「エラーの読み方」](../08-understanding-errors/)に列挙してあります。
+- そのほか、すべて[マニュアル: 診断](../../manual/04-diagnostics/)にカタログ化され、[第8章「エラーの読み方」](../08-understanding-errors/)で解説されています。
 
 RigorはRubyソースに型注釈を書くことを**要求しません**。証明できる範囲だけ推論し、絞り込めない箇所では沈黙します。十分な静的情報があり確信をもって判断できるときだけ、診断を出します。
 
@@ -128,7 +128,7 @@ lib/demo.rb:1:9: error: undefined method `no_such_method' for "hello" [call.unde
 "hello".no_such_method  # rigor:disable call.undefined-method
 ```
 
-同じ識別子は`disable:`と`severity_overrides:`設定キーも駆動し、ファミリー単位のワイルドカードも使えます（`# rigor:disable call`はその行の`call.*`ルールをすべて抑制します）。ファミリーとルールの全リスト、そしてどの抑制メカニズムをいつ使うべきかは、[第8章「エラーの読み方」](../08-understanding-errors/)にあります。
+同じ識別子は`disable:`と`severity_overrides:`設定キーも駆動し、ファミリー単位のワイルドカードも使えます（`# rigor:disable call`はその行の`call.*`ルールをすべて抑制します）。ファミリーとルールの全リストは[マニュアル: 診断](../../manual/04-diagnostics/)にあります;どの抑制メカニズムを選ぶべきかを読むなら[第8章「エラーの読み方」](../08-understanding-errors/)です。
 
 ## 「注釈なし」のスタンス
 
@@ -183,27 +183,9 @@ hello    = "#{greeting}#{name}!"     # リテラル文字列キャリア:
 
 最小限の有用な実行に設定ファイルは一切不要です。`rigor check lib`はそのままで動きます。設定ファイルは、追加の`paths`、別の`severity_profile`、プロジェクト全体のルール無効化、プラグインなど、デフォルト以外の挙動のために用意します。
 
-[AI支援セットアップ](#速いパス-aiエージェントにセットアップさせる)を使ったなら、`rigor-project-init`スキルが既に1つ書いてくれています。手書きでスターターを書くには、`rigor init`が`.rigor.dist.yml`を出力します。これはコミット対象のプロジェクトデフォルトです:
+[AI支援セットアップ](#速いパス-aiエージェントにセットアップさせる)を使ったなら、`rigor-project-init`スキルが既に1つ書いてくれています。手書きでスターターを書くには、`rigor init`が`.rigor.dist.yml`を出力します。これはコミット対象のプロジェクトデフォルトで、`target_ruby`・`paths`・`severity_profile`が埋められ、残りはコメントアウトされています。ほとんどのプロジェクトに必要なのはこれだけです;主要なリファレンス、JSONスキーマによるエディタ統合、`includes:`による合成は[設定](../../manual/03-configuration/)にあります。
 
-```yaml
-target_ruby: "3.4"   # あなたのプロジェクトのRuby（Rigor自身の4.0ではない）
-
-paths:
-  - lib
-
-# signature_paths: [sig]   # 省略時は自動検出されます
-
-severity_profile: balanced
-
-# severity_overrides:
-#   call.argument-type-mismatch: warning
-
-# disable: []
-
-# plugins: []
-```
-
-ほとんどのプロジェクトに必要なのはこれだけです。残りのメカニズム（同梱のJSONスキーマによるエディタオートコンプリート、`.rigor.yml`対`.rigor.dist.yml`の優先順位ルール、`includes:`による合成、そしてパスを取るキーが宣言ファイルを基準にどう解決されるか）は[設定](../../manual/03-configuration/)で扱います。最初に知っておく価値のある唯一のルール: 開発者がローカルの`.rigor.yml`を保持しているとき、それはその実行における設定の*唯一の*ソースであり（2つのファイルが自動的にマージされることは決してありません）、共有デフォルトを拡張するにはそれを`includes:`に列挙しなければなりません。
+最初に知っておく価値のあることが2つあります。意外に思われがちだからです。`target_ruby`は*あなたのプロジェクトの*Rubyであり、Rigor自身が動作する4.0ではありません ── 両者は意図的に独立しています。そして開発者がローカルの`.rigor.yml`を保持しているとき、それはその実行における設定の*唯一の*ソースであり（2つのファイルが自動的にマージされることは決してありません）、共有デフォルトを拡張するにはそれを`includes:`に列挙しなければなりません。
 
 ## 次に読むもの
 

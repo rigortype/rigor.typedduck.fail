@@ -3,8 +3,8 @@ title: "付録: Steepから来た場合"
 description: "rigortype/rigor docs/handbook/appendix-steep.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/appendix-steep.md"
 sourcePath: "docs/handbook/appendix-steep.md"
-sourceSha: "64de544864765b1841176cfe68ed247bcc644433cc80af2f126e41c14f85119a"
-sourceCommit: "212f2c491920cc5c39a12d75aee385cb6c51fa0c"
+sourceSha: "ae63f7a4b52d809a28ad0ab8e832f9f96dadd9cf370c7eb412a7ddb6c570ad03"
+sourceCommit: "e3eb424c3c88035e453246710c8df3dc5cc8e7e1"
 translationStatus: "translated"
 sidebar:
   order: 1050
@@ -212,7 +212,7 @@ end
 この付録セクションの残りを順番に読む必要はおそらくない。3つの有用なポインタ:
 
 - [第7章: RBSと`RBS::Extended`](../07-rbs-and-extended/): 既にRBSを書いていて、ディレクティブ文法がその上にどう重なるかを知りたい場合。
-- [第8章: エラーの読み方](../08-understanding-errors/): ルールカタログ、深刻度プロファイル、ベースライン（baseline）diff。Steepの診断設定の対応物。
+- [第8章: エラーの読み方](../08-understanding-errors/): 診断の読み方について。そしてルールカタログと深刻度プロファイルについては[マニュアル: 診断](../../manual/04-diagnostics/)。Steepの診断設定の対応物。
 - [`docs/notes/20260503-steep-cross-check-triage.md`](../../notes/20260503-steep-cross-check-triage/): 同じプロジェクトでSteepとRigorを並行実行した作業例（このプロジェクト自体）。
 
 他のツールと比較したい場合は、兄弟付録ページが、Rubyの推論優先（inference-first）ツールでありRigor自身の`sig-gen`に最も近い親戚である[TypeProf](../appendix-typeprof/)に加え、[TypeScript](../appendix-typescript/)、[PHPStan](../appendix-phpstan/)、[mypy](../appendix-mypy/)、[Java / C#](../appendix-java-csharp/)、[Rust](../appendix-rust/)、[Go](../appendix-go/)、[Elixir](../appendix-elixir/)をカバーしている。

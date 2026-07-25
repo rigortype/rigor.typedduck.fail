@@ -3,18 +3,38 @@ title: "ADR-92 — 規範的ステータスの忠実性: 創成期の地層と�
 description: "rigortype/rigor docs/adr/92-normative-status-fidelity.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/92-normative-status-fidelity.md"
 sourcePath: "docs/adr/92-normative-status-fidelity.md"
-sourceSha: "a858fc5895e91a3f0cfbf5ae64a453ea77796c8011084db23a0439556575af7a"
-sourceCommit: "78b18cea6a576475c92bce020535269f2eebc20d"
+sourceSha: "cd1b5bc03bd8aa56e9751d00f7a8f6680fdcbbca86318bc7b7aa54f1ac743e7c"
+sourceCommit: "e3eb424c3c88035e453246710c8df3dc5cc8e7e1"
 translationStatus: "translated"
 sidebar:
   order: 4092
 ---
 
-Status: <strong>Accepted — 2026-07-16実装済み（WD1–WD5）。WD2の`void`判定はオプション（b）に決着し、投入済み。</strong>WD2の判定＋WD3のマーカーは`special-types.md`（§ `void`、§ `top`）、`diagnostic-policy.md`（4つのファミリー行＋ガイドライン前文）、`internal-type-api.md`（メソッドサーフェスを出荷済みのものへ狭めるドキュメントレベルのステータスブロック）に投入された。WD4のゲートは[`spec/docs/manual_drift_spec.rb`](https://github.com/rigortype/rigor/blob/master/spec/docs/manual_drift_spec.rb)の軸5であり、双方向で要となる（未実装のファミリーからマーカーを外すとレッドになり、後に出荷されたファミリーにマーカーを残してもレッドになる── マーカーは期限切れとなる）。`make docs-check`はグリーン、246例。`void`の「実装するか狭めるか」の決定は意図的にキャリーオーバーされている（WD2、測定によりゲート）── **現在は決着: オプション（b）が投入された**（`Bases::Void => :translate_top`）。これにより、`special-types.md` § `void`の「distinctな`void`」という意図だけがキャリーオーバーとして残る。散文の節（prose-clause）の本体は、設計上ゲートされないままである（WD1）。
+Status: <strong>Accepted — 2026-07-16（WD1–WD5）および2026-07-25（WD6、コーパススイープとそのゲート）に実装済み。WD2の`void`判定はオプション（b）に決着し、投入済み。</strong>WD2の判定＋WD3のマーカーは`special-types.md`（§ `void`、§ `top`）、`diagnostic-policy.md`（4つのファミリー行＋ガイドライン前文）、`internal-type-api.md`（メソッドサーフェスを出荷済みのものへ狭めるドキュメントレベルのステータスブロック）に投入された。WD4のゲートは[`spec/docs/manual_drift_spec.rb`](https://github.com/rigortype/rigor/blob/master/spec/docs/manual_drift_spec.rb)の軸5であり、双方向で要となる（未実装のファミリーからマーカーを外すとレッドになり、後に出荷されたファミリーにマーカーを残してもレッドになる── マーカーは期限切れとなる）。`make docs-check`はグリーン、246例。`void`の「実装するか狭めるか」の決定は意図的にキャリーオーバーされている（WD2、測定によりゲート）── **現在は決着: オプション（b）が投入された**（`Bases::Void => :translate_top`）。これにより、`special-types.md` § `void`の「distinctな`void`」という意図だけがキャリーオーバーとして残る。散文の節（prose-clause）の本体は、設計上ゲートされないままである（WD1）。
 
 記録に値する進行中の修正が1つある: ゲートの初回実行は`sig.*`で失敗した。specはそれを正直にマークして*いた*のだが、WD3の`Reserved`とは異なる言葉で書かれていた。これは草稿が見落としていた第三のステータスを浮かび上がらせた── **実装済みだが、別のサーフェスを通じてユーザーに届く**（診断ストリームではなく`rigor sig-gen`のJSON）── これは*主張されているが未実装*とは区別される。そのためマーカーの語彙は、コーパスに既存のイディオム、すなわち**「as of this writing（本稿執筆時点で）」**という語句（`inference-budgets.md`の未配線の`budgets:`テーブルがすでに使っていた）に鍵を置き、両方のステータスを認める。
 
 根拠: [`docs/notes/20260716-dspec-formal-spec-substrate-evaluation.md`](../../notes/20260716-dspec-formal-spec-substrate-evaluation/) § P1 / § (b) / § 段0 ── 3つの発見と、それらを生み出したプローブ。
+
+**修正（2026-07-25）── スイープを完遂して見つかった2つ目のクラス（WD6）。**上記のキャリーオーバー（「`internal-spec`の他のドキュメントはスイープされていない」）は解消された（[#163](https://github.com/rigortype/rigor/issues/163)；台帳: [`docs/notes/20260725-internal-spec-status-fidelity-sweep.md`](../../notes/20260725-internal-spec-status-fidelity-sweep/)）。*主張されているが一度も実装されなかった*クラスは、ちょうど一度だけ再発した ── [`implementation-expectations.md`](../../internal-spec/implementation-expectations/) § Engine surfaceで、不完全な推論の結果キャリア（carrier）と、ケイパビリティロールの*推論*側の半分が、どちらも`lib/`のどこにも存在しないサーフェスに名前を付けている。5つの発見のうち3つは、このADRが予期しなかったクラスだった:
+
+> **リリースがその後追い越した、バージョンに固定された未来時制。**
+
+「マージはv0.1.0で着地する」（`flow-contribution.md`、v0.0.9時点で書かれ、v0.3.0でもまだそこにあり、それが出荷されたという注記の4節上にある）；「v0.1.0のプラグインAPIが設計される対象となる基盤」に加えて、それが一度も得なかった3つの拡張（`reflection.md`）；「まだ何もそれを消費しない」（`plugin-trust.md`、実行結果キャッシュがプラグイン境界の読み取りを実行依存記述子に畳み込み始めて以降は偽）。**それぞれ書かれた日には真だった。**それがこのクラスを創成期の地層から分けるものだ: 誰も何も誤って述べておらず、訂正すべき著者の誤りが存在しない。コーパスには単に、そのような文を期限切れにする仕組みがないため、リリース日が正確な計画を静かに偽の主張へと変えてしまう ── そしてWD4のゲートはそれを見ることができない。なぜならそのゲートは診断ファミリーテーブルを読み、WD1は散文の本体をゲートしないまま残すからだ。
+
+その逆方向も同じクラスに属する: `plugin-trust.md`は出荷されるものを*過少に*主張していた。WD4はすでにこれに名前を付けている（「マーカーは期限切れとなる」）；この修正は、マークされていない先送りがマーカーと同じように腐ることを記録する。
+
+**WD6 ── ゲート: `manual_drift_spec.rb`の軸6。**`docs/type-specification/`＋`docs/internal-spec/`にわたり、どの文も、保留中のマーカー（`will` / `lands` / `introduces` / `adds` / …）を、`Rigor::VERSION`以下に**固定された**バージョンリテラルと対にしてはならない。一般的な散文の本体ではゲートできないのに、これをゲート可能にする3つの性質がある:
+
+- **比較は決定可能である** ── `Rigor::VERSION`に対するバージョンリテラルであり、節が満たされているかどうかの判断では決してない。それはWD1の一線であり、その例外ではない。
+- **リリースラインは期限切れにならない。**`v0.4.x` / `v1`はリリースではなくラインに名前を付けるため、その1つについての文はラインが成長しても真であり続ける。コーパスはすでにオープンな作業にその綴りを使っており（`plugin-cache-producers.md`）、ゲートの是正策はそれを採用することだ。
+- **過去時制は決して一致しない。**`landed` / `added` / `shipped`は訂正済みの文の読み方であり、それらに一致させると修正と戦うことになる。
+
+検出器は自身の非空虚性の例を持つ ── 上記の3つの実際の文に加えて、発火してはならない形。それらがなければ軸は沈黙の形をとる: クリーンなコーパスは永遠に通過し、検出器が静かに検出をやめたときもそうである。
+
+ライブコーパス上での精度: 2つの偽陽性、どちらも示唆に富む。1つは、あるマーカーが1つの箇条書きにあり、次の箇条書きのバージョンリテラルと対になっていた（行を結合する前にリスト項目を分割することで修正）；もう1つは、*歴史*のために古いバージョンに言及しつつ、まったく別の何かを約束していた文だった（バージョンがマーカーの短い窓の中に収まることを要求することで修正 ── 約束はバージョンを*支配*しなければならず、単に同じ文を共有するだけではいけない）。
+
+ゲートは床であって天井ではない。`public-api.md`は軸6が一致しない3つの陳腐化した文を抱えていた（「v0.1.0がそれらを批准するまで」「v0.1.0のプラグイン可観測性のストーリーが確定するにつれて」）；それらは読むことで見つかり、同じパスで修正された。WD1に従い、手動プローブは散文の本体のための計器であり続ける。
 
 ## Context
 
@@ -82,7 +102,7 @@ Status: <strong>Accepted — 2026-07-16実装済み（WD1–WD5）。WD2の`void
 
   **（b）はこの変更セットで投入された**（`Bases::Void => :translate_top`。フルスイート7,914例がグリーン、`make check` / `check-plugins`はクリーン、コーパスはmail/kramdown/haml/liquidでバイト同一）。あるユーザー報告が、忠実性の議論を超えてこのケースを鋭くし、待つのではなく今投入された理由となった: `#: void`を書く作者は「この戻り値に依存するな」と宣言しているのであり、`Dynamic[top]`── 漸進的境界ではあらゆるものと一貫する── は、それでも呼び出し側にその依存をサイレントに築かせてしまう。それは`void`が防ぐために存在する、まさにその一つの帰結である。`top`は証明を要求するので、宣言された契約に奉仕する。作者が求めた拡大は`top`への拡大であり、まさにRBSが定義するとおりである。
 
-  **キャリーオーバーとして残るのは**（a）である: `special-types.md` § `void`のdistinctな`void`という意図。その値位置の診断は、あと2つのピースを必要とする── **`static.*`ファミリー**（Reservedであり、`top`を実際に噛みつかせる連結子でもある: それがなければ`top`と`Dynamic[top]`は等しく沈黙し、それが（b）が無償と測定された理由である）と、推移的なケースのための**`void_origins`サイドテーブル**（`def bar; foo; end; a = bar`── `bar`は何も宣言しないので、`bar`のRBSを読む呼び出し箇所の規則は、本体を通じてそこに到達した`void`を見ることができない）である。（2）散文の節の本体はゲートされないままである（WD1）── P1クラスのプローブは依然として手動の計器である。（3）`internal-spec`の他のドキュメントはスイープされておらず、`internal-type-api.md`だけがプローブされた。
+  **キャリーオーバーとして残るのは**（a）である: `special-types.md` § `void`のdistinctな`void`という意図。その値位置の診断は、あと2つのピースを必要とする── **`static.*`ファミリー**（Reservedであり、`top`を実際に噛みつかせる連結子でもある: それがなければ`top`と`Dynamic[top]`は等しく沈黙し、それが（b）が無償と測定された理由である）と、推移的なケースのための**`void_origins`サイドテーブル**（`def bar; foo; end; a = bar`── `bar`は何も宣言しないので、`bar`のRBSを読む呼び出し箇所の規則は、本体を通じてそこに到達した`void`を見ることができない）である。（2）散文の節の本体はゲートされないままである（WD1）── P1クラスのプローブは依然として手動の計器である。（3）`internal-spec`の他のドキュメントはスイープされておらず、`internal-type-api.md`だけがプローブされた ── **2026-07-25に解決**、上記のWD6の修正を参照: スイープはこのADRのクラスの事例をもう1つ、そして2つ目のクラスの事例を3つ見つけ、いまや軸6でゲートされている。最大の3つのドキュメント（`inference-engine.md`、`plugin.md`、`cache.md`）は、行ごとの読み込みではなく列挙されたサーフェスのパスを受けており、それが#163を開いたままにしているものだ。
 
 ## Relationship to other ADRs
 
