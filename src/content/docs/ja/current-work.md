@@ -3,9 +3,9 @@ title: "現在の作業 — セッション引き継ぎ"
 description: "rigortype/rigor docs/CURRENT_WORK.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/CURRENT_WORK.md"
 sourcePath: "docs/CURRENT_WORK.md"
-sourceSha: "e05ef167286356b20b187e2186cf9dc49a99c85b88142b1ebc77e1bf0e0b3ed2"
-sourceCommit: "e3eb424c3c88035e453246710c8df3dc5cc8e7e1"
-sourceDate: "2026-07-25T21:14:59+09:00"
+sourceSha: "13ec4a846bc7dafe1b2525ce3fb80ddeba4cb929d32a7b5c9dd9a6ed5a3c523c"
+sourceCommit: "42402864a316beb0d5ba4357ec29454ab55f6657"
+sourceDate: "2026-07-29T22:42:00+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9050
@@ -18,10 +18,10 @@ sidebar:
   2セッションを超えて生き延びるものはここに属さない: バックログ → GitHub issue
   （docs/agents/issue-tracker.md）、運用上の落とし穴 → ワークフローのスキル、決定 → ADR、
   計測 → docs/notes/、出荷済み → CHANGELOG.md。
-- 主張を持ち越す前に検証すること。今回のカットそのものの教訓: このセッションで拾い上げた3つのissueの
-  うち2つは、ファイルシステムとの接触に耐えられない前提を持っていた。issueが記述する形がまだ存在するか
-  を、それに対して実装する前に確認すること —— `ready-for-agent`は記述の準備状態にラベルを付けるので
-  あって、前提の準備状態ではない。
+- 主張を持ち越す前に検証すること。今回のカットそのものの教訓: 緑の`make verify`は、ピン留めされた
+  バンドルが動くことを証明するのであって、サポートされている範囲を証明するのではない。このセッションの
+  3つのリグレッションのうち2つは、ピンの外側からしか見えなかった —— rbs 3.xのCIジョブと
+  `rbs -I sig validate`だ。
 -->
 
 
@@ -31,19 +31,36 @@ sidebar:
 
 ## 現状
 
-- **v0.3.0はリリース済み**（2026-07-19）;`CHANGELOG.md`の`[Unreleased]`にはそれ以降、
-  Changed / Fixed / Performanceの項目が蓄積している。バージョンバンプは不要 —— リリースは明示的な
-  要求を待つ。
-- **2026-07-25のセッションは5つのPRを着地させ**、すべてマージ済み: #210（最後の単独ルールウォークを
-  畳み込む）、#212（ADR-92 WD6ゲート）、#213（internal-specの一掃、31件の発見）、#214（シグネチャ
-  生成のネストした更新パス）、#215（プロデューサー宣言のキャッシュ世代上限）。issue #151、#153、
-  #163、#211はクローズ。
-- `make verify`（8,199例）/ `make docs-check`はmasterでクリーン。
+- **v0.3.1はリリース済み**（2026-07-29）: タグ、RubyGemsへのプッシュ、GitHub Releaseがすべて存在する。
+  バージョンバンプは不要 —— リリースは明示的な要求を待つ。
+- **[#230](https://github.com/rigortype/rigor/pull/230)は、サポート範囲の残りに対するrbs-4.1の
+  バックポートを着地させた**: `Resolv#initialize`のコアオーバーレイ（Mastodonの偽陽性、
+  ruby/rbs#2960）と、RBSパーサの手前での不正なUTF-8の隔離だ。後者のspecを書いていて、不正な
+  UTF-8が**ピン留めした4.1**でもクラッシュすることが明らかになった（`RBS::Parser.magic_comment`から
+  素の`ArgumentError`が出て、それを捕まえる`ParsingError`のrescueがない） —— このガードは、3.xの
+  ハングガードであるだけでなく、現に起きるクラッシュの修正だ。
+- **[#231](https://github.com/rigortype/rigor/pull/231)は、sig-genのパスで同じバグクラスを閉じた**:
+  不正なUTF-8のターゲットに対する`--write`は、クラッシュする代わりに大きな声で拒否するようになり
+  （`:skipped_invalid_encoding`、非ゼロ終了）、レイアウトインデックスはそのようなファイルをパーサの
+  手前でスキップする。外部から制御される`RBS::Parser`のエントリーポイントはすべてガードされた;
+  `RbsValidity`は設計上ガードされないままだ（sig-gen自身の出力をパースするため）。
+- **2026-07-29のセッションは`rbs` 4.1.0に追従し**（[#225](https://github.com/rigortype/rigor/pull/225)）、
+  リリースをカットした（[#226](https://github.com/rigortype/rigor/pull/226)）。また
+  `sig/rigor/inference/void_origin.rbs`を`master`に直接着地させ（e3b132a3）、@f440による外部からの
+  READMEリンク修正[#223](https://github.com/rigortype/rigor/pull/223)をマージした。
+- **`0.2.x`サイクルはアーカイブ済み**で、`docs/CHANGELOG-0.2.x.md`に移された —— アーカイブルールが
+  `0.3.1`で発火した。`CHANGELOG.md`は497行から216行に戻った。
+- issue [#144](https://github.com/rigortype/rigor/issues/144)はクローズ（作業を1リリース分だけ生き延びて
+  いた）。3つの新しいissue —— **#227** / **#228** / **#229** —— が開かれ、いずれもrbsバンプが明らかに
+  したものからだ;#229 / #228 / #207にはそれぞれ根拠づけのコメント（v4.1.0のツリーとこのコードベースに
+  対して事実を確認したもの）が付いており、それらの評価は記憶ではなくエビデンスから始まる。
+- `make verify`（8,286例）と`make docs-check`は、リリースコミットの時点でクリーン;その上に載っている
+  唯一の変更はmarkdownだ。
 
 ## 次のセッション
 
-リリースをブロックするものはない。残っている2つのv0.4.x項目は**どちらも`ready-for-human`**であり
-—— 実装ではなく判断を必要とする:
+リリースをブロックするものはない。2つのv0.4.xの判断項目は変わらず、依然として`ready-for-human`の
+ままだ —— 実装ではなく判断を必要とする:
 
 - **[#204](https://github.com/rigortype/rigor/issues/204)**（area:engine） —— ADR-46のクロスファイル
   の呼び出し元→呼び出し先パラメータエッジを配線し、`parameter_inference:`が`--incremental`と
@@ -54,43 +71,46 @@ sidebar:
 
 エージェント対応可能な作業、労力順:
 
-- **[#207](https://github.com/rigortype/rigor/issues/207)**（area:perf） —— スコープが変わった:
-  走査共有のレバーは尽きた（−0.49%がその全てだった）ので、残るのは**コレクターごとの
-  アロケーション帰属**であり、v0.3.0の+45.7%のドリフトが実際にどこにあるのかを突き止めることだ。それは
-  重複したウォークではなく、#101のルール本体と#102のHash/Kernel型付けが実際にノードごとの作業を
-  していることによる。リファクタではなく調査だ。
-- **[#216](https://github.com/rigortype/rigor/issues/216)**（area:perf） —— `evict!`が空のシャード
-  ディレクトリを永遠に残す（ある実際のキャッシュでは16の有効エントリーに対して57ディレクトリ）。
-  1行の修正、inodeのみの影響。
+- **[#227](https://github.com/rigortype/rigor/issues/227)**（area:sig-gen） —— `sig-gen`は
+  `Const = Data.define(...)`を読めない: それを囲む*モジュール*を`class`として出力し、クラス名と
+  すべてのメンバーを落とし、ブロック本体のメソッドだけを残す。単に薄いのではなく誤った出力であり、
+  これが今回のセッションを、AGENTS.mdのポリシーに反して手書きのRBSへと追い込んだものだ。境界が明確で、
+  issueに再現手順がある。
+- **[#207](https://github.com/rigortype/rigor/issues/207)**（area:perf） —— 前回の引き継ぎから変わらず:
+  走査共有のレバーは尽きた（−0.49%がその全てだった）ので、残るのは**コレクターごとのアロケーション
+  帰属**であり、v0.3.0の+45.7%のドリフトがどこにあるのかを突き止めることだ。リファクタではなく調査だ。
+- **[#229](https://github.com/rigortype/rigor/issues/229)**（area:plugins） —— Rigorがどのインライン
+  RBS実装を話すかを判断する。`rigor-rbs-inline`は`rbs-inline` gemの上に構築されているが、rbs 4.1の
+  3つの新しいインライン機能（`def self.`、`module-self`、モジュールレベルのivarアノテーション）はRBSの
+  *組み込みの*`InlineParser`に着地した。ADR-93はこのプラグインをデフォルトで配線するので、これは
+  オプトイングループのものではなく、ユーザーベース全体の方言だ。その結末はADR-32の改訂に属する。
+- **[#228](https://github.com/rigortype/rigor/issues/228)**（area:sig-gen） —— `sig-gen`ライターの
+  インプレース更新パスに向けて、`RBS::Rewriter`（rbs 4.1で新規）を評価する。明示的に評価であり;
+  「ノー、なぜなら」も許容される答えで、rbsの下限（floor）の問いが核心だ。
 - **#121** —— 進行中のFP安全なビルトイン/標準ライブラリのフォールド（需要ゲート付き）。
-- エディタクラスタ（**#144** / **#142** / **#146** / **#147**）は、v0.4.xマイルストーンで
-  最大の未着手の`ready-for-agent`ブロックだ。
+- エディタクラスタは今や**#142** / **#146** / **#147**（#144はv0.3.1で出荷）だ —— v0.4.xマイルストーン
+  で最大の未着手の`ready-for-agent`ブロックであることに変わりはない。
 
 ## このセッションが学んだこと、コミットにないもの
 
-- **issueの前提はエビデンスではない**。#207は5つのルールが単独のウォークを走らせると述べていたが、
-  4つは着地した日から`RuleWalk`にホストされていた。#163のADR-92クラスは14の文書のうち1つで再発した
-  だけで、*別の*クラスが発見の大半を占めていた。`git log --diff-filter=A`と`rg`の10分がどちらにも
-  答えた。まず確認し、それから実装すること。
-- **機械的なリネームは文章を反転させうる**。ADR-80の`type_specifier` → `narrowing_facts`の一掃は、
-  *削除された*サーフェスを名指ししていた括弧書きを書き換えてしまい、その結果`plugin.md`は1リリースの
-  あいだ、生きていてドリフトピン留めされた3つのAPIが削除されたとプラグイン作者に伝え続けた。検索置換
-  は、名前が*使われている*のと*削除されたものとして引用されている*のを区別できない —— リネーム後は
-  文章中で旧名をgrepし、各ヒットを読むこと。
-
-## その他のオープン項目、低優先度
-
-- `static.value-use.top`、`static.incomplete-inference.*`（ADR-100 / ADR-41 / #158）は予約されたまま。
-- 次のリリース（`0.3.1`）は、CHANGELOGのアーカイブルールを初めてトリガーする —— `0.2.x`サイクルを
-  `docs/CHANGELOG-0.2.x.md`に移す（`rigor-release-prep`スキルに手順がある）。
-
-## ユーザー待ち / 外部待ち
-
-- dependabotのrubocop **PR #86**は意図的に保留のままだ（upstreamのautocorrectのバグ）。
-- **ステージされた`ruby/rbs`のupstream修正を公開する** —— `references/rbs`のブランチ
-  `widen-strscan-resolv-stdlib-sigs`;プッシュ + upstream PRはユーザーのアクションだ。#159として
-  追跡されている。
-- upstreamの`rbs-inline`のRDoc修正（[soutaro/rbs-inline#249](https://github.com/soutaro/rbs-inline/pull/249)）は
-  ユーザーのフォークの下でオープンだ。
-- **rigor-rs:**`rigor_rs.ruby`は私たちのスキーマで予約されている（ADR-99）;ハーネスは再ピンされ、
-  バッテリーはクリーン。
+- **緑の`make verify`は、ピン留めされたバンドルを証明するにすぎない**。gemspecは`rbs >= 3.0, < 5.0`を
+  サポートしており、4.1を通すための`Elem` → `E`のspec更新は、`rbs-compat` CIジョブの3.x側を壊した ——
+  これは`make verify`が構造上見ることのできない失敗だ。バージョン範囲を持つ依存への変更をプッシュする
+  *前に*、そのジョブをローカルで再現すること（範囲の反対端にピン留めした`Gemfile.rbs-compat`）。修正の
+  パターンは、インストールされているバージョンを読むサポートヘルパー（`spec/support/rbs_core_type_params.rb`）
+  であって、範囲の片側からハードコードした名前ではない。
+- **`rbs -I sig validate`は、他に誰も走らせないゲートだ**。`sig/rigor/scope.rbs`は、
+  `static.value-use.void`診断が着地して以来、宣言されていない`Inference::VoidOrigin`を参照しており、
+  その間`make check`はずっと緑のままだった —— Rigorが参照された欠落型をスタブするからだ。私たち自身の
+  フェイルソフトが、私たち自身の`sig/`の穴を隠していた。`sig/`を編集したあとには走らせる価値がある。
+- **アイデンティティ的な値をメモ化しはじめる依存は、キャッシュの危険要因だ**。rbs 4.1は`TypeName#hash`を
+  ivarにキャッシュした;その値はプロセスごとにシードされる`Array#hash`から導出され、`Marshal`はivarを
+  そのまま持ち運ぶので、キャッシュされた型名はどれも`eql?`だがハッシュが等しくない状態で返り、
+  `class_decls`のルックアップはすべてミスした。何も送出されなかった。同一プロセス内のラウンドトリップの
+  specでは再現できない —— ガードは、書き込み側のプロセスを代役として立てるためにivarを汚染しなければ
+  ならない（`spec/rigor/cache/rbs_environment_marshal_patch_spec.rb`）。
+- **リリースをカットする前に、コアシグネチャのバンプを実プロジェクトに対してスポットチェックすること**。
+  rbs 4.1は`Array` / `Hash` / `Integer` / `String`を書き換えた。MastodonでのA/B（同じエンジン、
+  `--no-baseline`）は**新規診断0件、削除1件**という結果だった —— 削除された1件は、ruby/rbs#2960が
+  upstreamで修正した本物の偽陽性だ。10分で、それが「スイートは緑だ」を「これは出荷して安全だ」に変えた
+  ものだ。

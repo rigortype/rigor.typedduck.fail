@@ -3,8 +3,8 @@ title: "アーキテクチャ決定記録"
 description: "rigortype/rigor docs/adr/README.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/README.md"
 sourcePath: "docs/adr/README.md"
-sourceSha: "4a0a1414a14bea5e8da92cfd3f995bf42710966d78f15b53f9ca49d5a2538257"
-sourceCommit: "e3eb424c3c88035e453246710c8df3dc5cc8e7e1"
+sourceSha: "1f5149d28d5ed2a14c0cf7ac42b2d56be981a29ade926e2e3bc78178838c9925"
+sourceCommit: "42402864a316beb0d5ba4357ec29454ab55f6657"
 translationStatus: "translated"
 sidebar:
   order: 4000
@@ -40,7 +40,7 @@ sidebar:
 | ADR-14 | [推論からのRBSシグネチャ生成と拡張](14-rbs-sig-generation/) | Accepted |
 | ADR-15 | [アナライザーのRactorベース並行性モデル](15-ractor-concurrency/) | Accepted（フォークバックエンドがアクティブ；Ractorプールは見送り） |
 | ADR-16 | [マクロ / DSL展開基板](16-macro-expansion/) | Accepted |
-| ADR-17 | [プロジェクト側monkey-patchの事前評価](17-monkey-patch-pre-evaluation/) | Accepted（v0.1.13で実装） |
+| ADR-17 | [プロジェクト側monkey-patchの事前評価](17-monkey-patch-pre-evaluation/) | Accepted（スライス1〜4を実装;5〜6は未解決） |
 | ADR-18 | [基板の呼び出しサイトごとの戻り値型DSL](18-substrate-per-call-site-return-type/) | Accepted（v0.1.6で実装） |
 | ADR-19 | [言語サーバーのパッケージング](19-language-server-packaging/) | Accepted（v0.1.6でLSP v1実装;v2 + フォローアップはv0.1.x全体で） |
 | ADR-20 | [軽量高階多相性（Lightweight HKT）](20-lightweight-hkt/) | Accepted（部分実装） |

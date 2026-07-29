@@ -3,8 +3,8 @@ title: "キャッシュレイヤー — `Rigor::Cache`"
 description: "rigortype/rigor docs/internal-spec/cache.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/cache.md"
 sourcePath: "docs/internal-spec/cache.md"
-sourceSha: "8b18583fc98a75fd4c74a1dfce61aa68c77f4f08f26d4fe5e51d6743f868d2af"
-sourceCommit: "e3eb424c3c88035e453246710c8df3dc5cc8e7e1"
+sourceSha: "acff734a6dd59dd8733e6e4d563c3cc84b01d5d8cda0366d2fd2956c8f1bb919"
+sourceCommit: "42402864a316beb0d5ba4357ec29454ab55f6657"
 translationStatus: "translated"
 sidebar:
   order: 3050
@@ -198,6 +198,8 @@ sha256               32バイト — 直前のすべてのバイトの整合性�
 3. **サイズベースのLRUパス**。以前のリリースから変わりません: 残るすべての`.entry`ファイルを走査し、mtimeの昇順でソートし、合計が`max_bytes:`以下になるまで最も古いものから`unlink`します。
 
 パス1と2は、**`max_bytes:`が設定されているかどうかに関係なく**走ります —— サイズ予算を強制するのではなく、証明可能なほど死んだバイト（漏れたtempファイル、到達不能な内容キー世代）を回収するので、明示的に無制限のストア（`max_bytes: nil`）も依然としてそれらの恩恵を受けます。パス3だけが`max_bytes:`が設定されていることにゲートされます。いずれのパス中のファイルシステムエラーも飲み込まれます —— `evict!`は決して実行を壊してはなりません。
+
+3つのパスすべてにおける各`unlink`のあとには、そのファイルを保持していたシャードディレクトリ（`entry_path`の`key[0, 2]`成分）に対するベストエフォートの`Dir.rmdir`が続き、`unlink`がちょうどそれを空にしたときにそのディレクトリを削除します。シャードは書き込み時（`FileUtils.mkdir_p`）に作成され、それ以外に削除するものは何もないので、これがなければ、エビクトされた世代や一掃されたtempファイルが空のシャードディレクトリを永久に残していました。これは見た目を整えるためだけのものです —— inodeの回収であって、エビクションポリシーの一部ではありません —— そして競合（並行するライターの`mkdir_p`がシャードを再作成する、あるいは別のパスがすでにそれを削除済みである）は、これらのパスにおける他のファイルシステムエラーと同じように飲み込まれます。
 
 ## `Rigor::Cache::IncrementalSnapshot`（ADR-46）
 

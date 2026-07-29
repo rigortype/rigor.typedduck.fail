@@ -3,9 +3,9 @@ title: "CLIコマンドリファレンス"
 description: "rigortype/rigor docs/manual/02-cli-reference.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/02-cli-reference.md"
 sourcePath: "docs/manual/02-cli-reference.md"
-sourceSha: "d939af8b9d7dc974163705aa370e57ef605ddc43e85650dc7595c071c21089a6"
-sourceCommit: "d88effcae8b2998d1f4f40432e6d4f20ce17946e"
-sourceDate: "2026-06-21T05:49:38+09:00"
+sourceSha: "2e2acffe92d0171369ed8540b7450d7882aba6874a57fdd492da4fc410f626c7"
+sourceCommit: "42402864a316beb0d5ba4357ec29454ab55f6657"
+sourceDate: "2026-07-25T21:39:13+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9002
@@ -296,6 +296,7 @@ rigor playground
 
 ```sh
 rigor skill [<name>] [--full <name>] [--path <name>] [--list] [--describe]
+rigor skill describe [--deep]
 ```
 
 | 形式 | 目的 |
@@ -305,6 +306,24 @@ rigor skill [<name>] [--full <name>] [--path <name>] [--list] [--describe]
 | `--full <name>` | `SKILL.md`本体に**続けてすべての`references/*.md`をインラインで**出力する——完全でバージョン最新の手順を1回の呼び出しで。これはスキルの「まず: バージョン最新のコピーを読み込む」ディレクティブが指す先であり、プロジェクトにベンダリングされたコピー（例: `npx skills add`経由）が凍結されたコピーに従う代わりに、インストール済みgemから現行の手順を再取得できるようにする。 |
 | `--path <name>` | 1行の絶対`SKILL.md`パスを出力。ファイル読み取りツールへの入力に適する。 |
 | `--describe` | プロジェクトの状態（設定 / ベースライン / `sig/` / CI、存在の有無のみで、`rigor check`は決して実行しない）をプローブし、次に実行すべきスキルを推奨する。`describe`とも書け、トップレベルでは後述の[`rigor describe`](#rigor-describe)として前面に出してある。 |
+| `describe --deep` | 同じレポートだが、まず**`rigor check`を実行**し、その結果に基づいて先頭の推奨をルーティングする。オプトイン方式である。完全な解析のコストがかかり`.rigor/cache`へ書き込むためで、フラグなしの形式は存在の有無のみで副作用がないままにしてある。 |
+
+### `describe --deep`
+
+既定では推奨は存在の有無のみのプローブから得られるので、プロジェクトが設定を*持っている*ことは分かっても、解析が健全かどうかは分かりません。`--deep`はチェックを代わりに実行し、その結果に先頭の推奨を選ばせます。ルーティングは`## For the agent`セクションがすでに教えているものと同じです:
+
+| ディープチェックの結果 | 先頭の推奨 |
+| --- | --- |
+| RBS環境が0クラスにビルドされた、または`configuration-error`診断がある | `rigor-doctor`——セットアップが直るまで解析は空虚。 |
+| 呼び出し箇所がプロジェクト自身の定義（再オープンされたコア / gemクラス）に解決し、それがエラーの少なくとも3分の1を占める | `rigor-monkeypatch-resolve`——`pre_eval:`に列挙すればまとめて解消される。 |
+| 残りのエラー診断がある | `rigor-baseline-reduce`。共通する、下記の証明済みモンキーパッチ箇所もここで引き続き報告されるので、先頭がより大きな問題に留まっても所見は残る。 |
+| クリーン、またはプロジェクトにまだ設定がない | 変更なし——存在の有無のみの推奨がそのまま立つ。 |
+
+チェックが**まったく実行できない**場合（設定がない、読み込めないプラグイン、不正な設定）、`--deep`は失敗せず、プロジェクトがクリーンだと偽ることもしません。何が問題だったかを報告し、存在の有無のみの推奨にフォールバックし、`rigor doctor`を案内します。弱いシグナルでのルーティングは意図的に*行いません*——「フレームワークの呼び出しが`Dynamic`として型付けされる」は依然としてあなたとあなたのエージェントに委ねられた判断です。
+
+```sh
+rigor skill describe --deep   # also: rigor describe --deep
+```
 
 `rigor skill list` / `print <name>` / `path <name>`という動詞表記は**v0.3.0で削除されました**——位置引数はスキル名を表すスロットなので、これらは今や未知のスキルとして読まれます。上記の形式を使ってください。`describe` / `--describe`は引き続き第一級です。
 
@@ -317,6 +336,8 @@ rigor describe
 ```
 
 存在の有無のみのプロジェクト状態プローブ（`.rigor.yml`、`.rigor-baseline.yml`、`sig/`ディレクトリ、CI統合は存在するか？）と、推奨される次のスキルを報告します。読み取り専用で副作用がなく、`rigor check`を決して実行しません。`rigor skill describe`と同一の出力です。
+
+`rigor describe --deep`は[`rigor skill describe --deep`](#rigor-skill)に転送します。こちらはまずチェックを実行するオプトインで——遅く、キャッシュへ書き込みます。
 
 ## `rigor docs`
 

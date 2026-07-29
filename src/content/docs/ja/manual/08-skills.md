@@ -3,8 +3,8 @@ title: "提供スキル"
 description: "rigortype/rigor docs/manual/08-skills.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/08-skills.md"
 sourcePath: "docs/manual/08-skills.md"
-sourceSha: "3b105caa8c54aacfcb7965d7e9236fc3056cce54fc0dec89a0a286c326ffa53e"
-sourceCommit: "47c1c7d35efbce222a6a888268b263808b49796c"
+sourceSha: "b7b4211a1064abdd23d343591fb897827ebbde68b4841a498cf78849660a935b"
+sourceCommit: "42402864a316beb0d5ba4357ec29454ab55f6657"
 translationStatus: "translated"
 sidebar:
   order: 9008
@@ -57,13 +57,14 @@ Rigorは一連の**エージェントスキル**をバンドルしています�
 
 ```sh
 rigor skill describe        # probe the project + recommend the next skill (alias: rigor describe)
+rigor skill describe --deep # same, but run `rigor check` first and route on its result
 rigor skill --list            # name + absolute path for each bundled skill
 rigor skill <name>    # print the SKILL.md body (with a references/ header)
 rigor skill --full <name>   # the body + every references/*.md inline (complete procedure)
 rigor skill --path  <name>    # one-line absolute SKILL.md path, for a file-reading tool
 ```
 
-`rigor skill describe`は`rigor-next-steps`が駆動するレコメンデーションエンジンです。`rigor skill rigor-project-init`は、リポジトリを指し示すことなくエージェントにオンボーディングワークフローを手渡す正規の方法です。`list` / `print` / `path`という動詞表記は非推奨です（v0.3.0で削除）。[CLIリファレンス](../02-cli-reference/#rigor-skill)を参照してください。
+`rigor skill describe`は`rigor-next-steps`が駆動するレコメンデーションエンジンです。既定では存在の有無のみのプローブ——安価で副作用がありません。推奨を実際の解析から得たいときは`--deep`を付けてください（[CLIリファレンス](../02-cli-reference/#describe---deep)）。`rigor skill rigor-project-init`は、リポジトリを指し示すことなくエージェントにオンボーディングワークフローを手渡す正規の方法です。`list` / `print` / `path`という動詞表記は非推奨です（v0.3.0で削除）。[CLIリファレンス](../02-cli-reference/#rigor-skill)を参照してください。
 
 ## スキルをプロジェクトにインストールする
 

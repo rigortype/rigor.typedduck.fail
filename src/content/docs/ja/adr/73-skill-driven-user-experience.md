@@ -3,8 +3,8 @@ title: "ADR-73 — SKILL駆動のRigorユーザー体験（`rigor-next-steps`エ
 description: "rigortype/rigor docs/adr/73-skill-driven-user-experience.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/73-skill-driven-user-experience.md"
 sourcePath: "docs/adr/73-skill-driven-user-experience.md"
-sourceSha: "cc5e55c4abf9418e8235ad62bae40146b670606d25ead88694fc826001c76605"
-sourceCommit: "78b18cea6a576475c92bce020535269f2eebc20d"
+sourceSha: "35ca888fbd9f3ddd30747e24afd81301cf4f710828435330a7402f5e7326ae44"
+sourceCommit: "42402864a316beb0d5ba4357ec29454ab55f6657"
 translationStatus: "translated"
 sidebar:
   order: 4073
@@ -135,7 +135,7 @@ Rigorは`skills/`配下に少数のAgent Skills——`rigor-project-init`、`rig
 
 **未決の決定**（批准に向けて記録。トライアルが俎上に載せたもの）:
 
-- **見出しのcheck認識（WD2を再検討）**。*推奨行そのもの*が——エージェントプロンプトだけでなく——check結果を加味すべきでしょうか？ WD2を保つ2つの形:（a）既存の`.rigor/`キャッシュの最後の`check`結果を読み、そのエラークラスタでルーティングする（新しい解析なし、依然として副作用なし）。（b）スコープ付きのcheckを先に実行する`rigor skill describe --deep`のオプトイン（既定は純粋なまま）。追求する場合の基準: *既定の*`describe`に`check`を決して実行させない。**先送り**——実装済みのエージェントプロンプトのルーティングで足りるかもしれません。見出しそのものが実際に誤誘導すると判明したら再検討します。
+- **見出しのcheck認識（WD2を再検討）**。*推奨行そのもの*が——エージェントプロンプトだけでなく——check結果を加味すべきでしょうか？ WD2を保つ2つの形:（a）既存の`.rigor/`キャッシュの最後の`check`結果を読み、そのエラークラスタでルーティングする（新しい解析なし、依然として副作用なし）。（b）スコープ付きのcheckを先に実行する`rigor skill describe --deep`のオプトイン（既定は純粋なまま）。追求する場合の基準: *既定の*`describe`に`check`を決して実行させない。**形（b）として確定、2026-07-25に着地**（[#148](https://github.com/rigortype/rigor/issues/148)）: `rigor skill describe --deep`は本物の`rigor check`を実行し——設定されたキャッシュとワーカーを用いるので遅く、しかも実際に`.rigor/cache`へ書き込みます——その結果に見出しを選ばせます。WD2は手付かずです: フラグなしのコマンドは依然として存在のみで副作用がなく、それは<ruby>規律<rp>（</rp><rt>discipline</rt><rp>）</rp></ruby>ではなくロード境界によって強制されます（`CLI::SkillDeepProbe`が解析を実行する唯一のファイルであり、`CLI::SkillDescribe`はフラグの下でのみそれをロードするので、既定の`describe`はエンジンを決してロードしません）。上で名指しした前提条件は、まず`CLI::CheckInvocation`として着地しました——`check`・`doctor`・`describe --deep`がいまやすべて通る、「checkを実行 → `Analysis::Result`」という共有のエントリーポイントです。ルーティングはエージェントプロンプトの語彙をそのまま再利用し（空のRBS環境 / `configuration-error`→`rigor-doctor`;`project_definition_site`で証明されたモンキーパッチ→`rigor-monkeypatch-resolve`;残りのエラー→`rigor-baseline-reduce`）、より弱い`Dynamic`なフレームワーク呼び出しシグナルは意図的に退けます: 実行できないcheck、あるいは推測にすぎないシグナルは、誰かを誤ったワークフローへルーティングするのではなく、存在のみの推奨へと縮退します。
 - **`rbs-setup`の優先度の緩和**。トライアルは、`rbs-setup`の見出しが過剰に推奨されることを見出しました。**2026-06-20に実装**: Railsプラグインが有効化されていない設定済みのRailsプロジェクトは、`rbs-setup`より先に`rigor-plugin-tune`を推奨するようになりました（存在のみ——`Gemfile.lock`にRailsがあり ∧ 設定に`rigor-rails-*`プラグインがない、というstrapのケース）。残るケース——RBSなしのgemがすべて`development`／`test`のときは優先度を下げ、設定済みのプロジェクトではネットワークに縛られる`rbs collection install`の前に`ci`／`baseline`を優先する——は、型付けされていないgemが実際に*この*プロジェクトの解析を損なうかどうかを知る必要があるため、さらなる存在ヒューリスティックではなく、上記の見出しのcheck認識の作業へ畳み込まれます。
 - **壊れた`sig/`の盲点（明確な勝ち筋、キュー済み）**。`describe`は、RBS環境のビルドに失敗しても「sig/ present」と報告します（`DuplicatedDeclarationError`→`RBS classes available: 0`→空疎な解析。redmine）。キュー済み: 環境が空のときの`check`／`coverage`バナー、および構造的な問題が検出可能なときの`rigor-doctor`の昇格。WD2は再検討しません（これはcheck時のサーフェス化であって、describe時の解析ではありません）。
 

@@ -3,15 +3,15 @@ title: "ADR-17 — プロジェクト側monkey-patchの事前評価"
 description: "rigortype/rigor docs/adr/17-monkey-patch-pre-evaluation.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/17-monkey-patch-pre-evaluation.md"
 sourcePath: "docs/adr/17-monkey-patch-pre-evaluation.md"
-sourceSha: "347e7e9e21dc5fb564536a37c1d40fc9b04e9c85eba88725bad07018ec073897"
-sourceCommit: "aec4ca7f5f87b1972dea8fecaaf5b62c8880a3af"
-sourceDate: "2026-05-29T00:21:31+09:00"
+sourceSha: "b949d34c45d998669ae6613369e963167ccdbd692f3dffb77f2c8c6f9b6b0981"
+sourceCommit: "42402864a316beb0d5ba4357ec29454ab55f6657"
+sourceDate: "2026-07-25T22:03:10+09:00"
 translationStatus: "translated"
 sidebar:
   order: 4017
 ---
 
-ステータス: **Accepted, 2026-05-16; v0.1.13で実装**。
+ステータス: **Accepted, 2026-05-16;スライス1〜4を実装（スライス4のglob展開も同じ週に`30bc2213`で着地）。スライス5（フルプロジェクト2パス発見）と6（プラグインAPIフック）は未解決で、[#129](https://github.com/rigortype/rigor/issues/129)として追跡**。
 
 `pre_eval:`設定軸とプロジェクト全体の`Inference::ProjectPatchedMethods`レジストリが出荷され、境界のある事前パスによって投入され、プラグインと依存ソース推論の間のディスパッチャーティアで参照されるほか、`call.undefined-method` / `call.unresolved-toplevel`（[ADR-34](../34-toplevel-unresolved-self-call-default/)）の発行でも参照される。「explicit list MVP」のフロアとglob展開がランディングした;プラグインAPI発見フックとフルプロジェクト2パスは需要駆動のままである。
 
@@ -144,7 +144,7 @@ Rigorのアナライザーが起動すると次のように動作します。
 2. **コスト有界**。事前評価コストは「列挙されたファイル数 × 解析・ウォークコスト」きっかり。自動発見のコストは開いており、プロジェクトサイズに伴って上昇する。
 3. **可逆性**。ユーザーは1ファイルを列挙してMVPを試せる。自動発見もオプトインだが、その失敗モード（誤ったファイルが拾われる）は「このリストが間違っている」よりも診断が難しい。
 
-パターンベース発見（スライス4）は、ユーザーが明示リストの保守コストに気づくほど長く付き合った後の自然なフォローアップ。
+パターンベース発見（スライス4）は**2026-05-16に着地**（`30bc2213`）: `*`・`?`・`[`を含む`pre_eval:`エントリーは`Dir.glob`経由で展開されるので、`pre_eval: [lib/core_ext/**/*.rb]`が明示ファイルリストを置き換える。何にもマッチしないglobはエラーにせず静かに縮退し、前向きな設定を有効なまま保つ。
 
 ### WD2 — なぜ専用のディスパッチャーtierなのか（プラグインに混ぜないのか）？
 
@@ -188,7 +188,7 @@ Rigorのアナライザーが起動すると次のように動作します。
 
 ## 考慮した代替案
 
-- **構文パターン経由の自動発見**（オプションB）。WD1に従いMVPでは却下。スライス4として追跡。
+- **構文パターン経由の自動発見**（オプションB）。WD1に従いMVPでは却下、スライス4として追跡——**2026-05-16に出荷**（`Configuration#expand_pre_eval_entries`）。
 - **フルプロジェクト2パス発見**（オプションC）。WD4（コスト）に従いMVPでは却下、スライス5として開いたまま。
 - **プラグインAPIフック**（オプションD）。有用だがMVPには重すぎる。スライス6として追跡。
 - **事前評価中に（発見だけでなく）推論を走らせる**。WD4に従い却下。2パス形態は必要になれば別途着地する。

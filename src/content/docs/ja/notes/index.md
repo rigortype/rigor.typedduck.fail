@@ -3,8 +3,8 @@ title: "リサーチ・サーベイノート"
 description: "rigortype/rigor docs/notes/README.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/README.md"
 sourcePath: "docs/notes/README.md"
-sourceSha: "7ffee1d21083685513691f0c6d1e17402d71226a6173bd8e1dc4641376a34078"
-sourceCommit: "d88effcae8b2998d1f4f40432e6d4f20ce17946e"
+sourceSha: "2a7945c5204c4ea689ea9b6dcbb3ff1f83229f1d097ab34474c931663b312956"
+sourceCommit: "42402864a316beb0d5ba4357ec29454ab55f6657"
 translationStatus: "translated"
 sidebar:
   order: 6000
@@ -106,6 +106,7 @@ sidebar:
 | 2026-06-13 | [プラグインインターフェイス最終レビュー — v1.0凍結前のBC-break機会監査](20260613-plugin-interface-bc-review/) |
 | 2026-06-27 | [Corpus cold/warm re-profile — v0.2.6 new-bottleneck check](20260627-corpus-cold-warm-reprofile/) |
 | 2026-07-18 | [CIテスト時間の伸び — 要因分解（instance gacha vsテスト増加vs binpacker）、カテゴリー分割・有料runnerの否定、md-only PRスキップの落としどころ](20260718-ci-test-time-growth-attribution/) |
+| 2026-07-25 | [`rigor check lib`アロケーション帰属 — 55%は一度きりのRBS環境ビルド、#101ルールは0.24%](20260725-check-allocation-attribution/) |
 
 ## プロセス・メタ
 

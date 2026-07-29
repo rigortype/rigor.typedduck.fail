@@ -3,8 +3,8 @@ title: "Rigor LSP: エディタ統合"
 description: "rigortype/rigor docs/manual/09-editor-integration.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/09-editor-integration.md"
 sourcePath: "docs/manual/09-editor-integration.md"
-sourceSha: "9e81d0baa8e611d939e925be9a6475592a47cfe04d320d165990e1f1d1986c1e"
-sourceCommit: "78b18cea6a576475c92bce020535269f2eebc20d"
+sourceSha: "a8bc98e2a43668c8de09788bbe0d570d51d739fbe3b5cc17036224070ca788dd"
+sourceCommit: "42402864a316beb0d5ba4357ec29454ab55f6657"
 translationStatus: "translated"
 sidebar:
   order: 9009
@@ -18,6 +18,7 @@ sidebar:
 
 | LSPメソッド | 動作 |
 |---|---|
+| `textDocument/didOpen` / `didChange` / `didClose` | インクリメンタル同期（`TextDocumentSyncKind::Incremental`）: `didChange`は範囲編集を運び、キーストロークごとに文書全体を再送・再パースする代わりに、サーバーがすでに保持しているバッファへスプライスされる。位置はUTF-16コードユニットオフセットとして読まれる（`positionEncoding: "utf-16"`）ので、絵文字などの非BMP文字は2つとして数えられる。全文変更の形式も引き続きサポートされる。 |
 | `textDocument/publishDiagnostics` | `didChange`のたびにプッシュ、200msデバウンス。重要度 / ルール / ソースはRigorの診断分類に直接対応。 |
 | `textDocument/hover` | 型認識Markdown。ノードクラスごとのディスパッチで、メソッド呼び出しはレシーバー型+RBSシグネチャ、定数はFQN+シングルトン型+定義パス、ローカルはナローイング（narrowing）された型+バインド位置、`Refined` / `Difference`キャリア（carrier）には正規リファインメント（refinement、篩型とも）名（`non-empty-string`、…）を表示。 |
 | `textDocument/completion` | `.`の後のメソッド補完（推論レシーバー型で動作）、`::`の後の定数パス補完。複合レシーバー（Union → メソッドの積集合、Tuple / HashShape → 祖先名前的、Refined → 基底名前的）を処理。パースリカバリーセンチネルにより、編集中の`obj.` / `Foo::バッファが動作する。 |
@@ -183,6 +184,6 @@ LSP v1の設計ターゲット（ウォームセッション、5Kファイルプ
 
 ## ステータス + ロードマップ
 
-LSP v1 + v2はv0.1.6で着地し、`0.1.x`ラインで出荷されています。キュー待ちのフォローアップ（`textDocument/signatureHelp`、ハッシュキー補完、`textDocument/definition`、インクリメンタル`didChange`同期、Ractorプールディスパッチ、codeAction / rename / semanticTokens / inlayHint）は需要駆動です。現在のキューはオープンな[`area:editor`のissue](https://github.com/rigortype/rigor/issues?q=is%3Aissue+is%3Aopen+label%3Aarea%3Aeditor)です。
+LSP v1 + v2はv0.1.6で着地し、`0.1.x`ラインで出荷されています。キュー待ちのフォローアップ（`textDocument/signatureHelp`、ハッシュキー補完、`textDocument/definition`、Ractorプールディスパッチ、codeAction / rename / semanticTokens / inlayHint）は需要駆動です。現在のキューはオープンな[`area:editor`のissue](https://github.com/rigortype/rigor/issues?q=is%3Aissue+is%3Aopen+label%3Aarea%3Aeditor)です。
 
 キュー待ちの機能をリクエストするかLSPの問題を報告するには、次の情報を添えてGitHub issueを開いてください: エディタ + バージョン、Rigorバージョン（`rigor version`）、LSPログ（`--log=PATH`）、最小限の再現手順。

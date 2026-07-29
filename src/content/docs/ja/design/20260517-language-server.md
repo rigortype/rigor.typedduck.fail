@@ -3,9 +3,9 @@ title: "Language Server — Rigor向けインプロセスRuby LSP"
 description: "rigortype/rigor docs/design/20260517-language-server.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/design/20260517-language-server.md"
 sourcePath: "docs/design/20260517-language-server.md"
-sourceSha: "40a692f750611a6c1931aee02b470408715477210df59c7166b6388bd39f8bae"
-sourceCommit: "dac915a9ee49b89e89774c34c518e8501275f6a3"
-sourceDate: "2026-05-17T01:48:41+09:00"
+sourceSha: "c24242aaf22b7db6b6f2931cced5f9a5b2a1fd62d2c07259503c2c3d3be205bf"
+sourceCommit: "42402864a316beb0d5ba4357ec29454ab55f6657"
+sourceDate: "2026-07-25T22:13:35+09:00"
 translationStatus: "translated"
 sidebar:
   order: 20265517
@@ -247,7 +247,7 @@ LSP `Diagnostic`の`source`フィールドは`"rigor"`。`code`はルール識�
 {
   textDocumentSync: {
     openClose: true,
-    change: TextDocumentSyncKind::FULL  # incremental queued
+    change: TextDocumentSyncKind::FULL  # now INCREMENTAL — see below
   },
   diagnosticProvider: {
     interFileDependencies: false,        # single-file scope
@@ -259,13 +259,13 @@ LSP `Diagnostic`の`source`フィールドは`"rigor"`。`code`はルール識�
 }
 ```
 
-`change: FULL`を先に出荷する。インクリメンタルな変更処理はUTF-16コード
+`change: FULL`を先に出荷した。インクリメンタルな変更処理はUTF-16コード
 ユニットに対する行／列追跡を必要とし、これは些細でない正確性の作業だ
 からである。`FULL`はキーストロークごとにバッファ全体を再送する。ネット
 ワークはローカルのstdioであり帯域は無関係である。コストはランナーに
 あり、トランスポートにはない。
 
-インクリメンタルな変更処理はスライス9以降にキューイングされる。
+**置き換え済み**: サーバーはいまや`TextDocumentSyncKind::INCREMENTAL`をアドバタイズし、`Rigor::LanguageServer::IncrementalSync`が各`contentChanges`のレンジ編集を、保持されたバッファへUTF-16コードユニット空間で適用する。フルテキストのエントリー形式（`range`のない変更）は依然として正当で、引き続き処理される。確信を持って適用できない変更はバッファを手付かずのまま残し、URIを同期がずれた状態としてマークする——診断はクリアされ、フルテキストの変更または再オープンがそれを再確立するまでプロバイダは応答を差し控える。
 
 ## ライブラリ選択
 
@@ -321,8 +321,8 @@ here」表面を仮定する。Rigorは多拡張足場を必要としない。�
    `documentSymbol`はメインRactorのままとする。
 9. **（先送り）`textDocument/definition`** — FILE:LINEをキーとする
    `Reflection`側シンボルインデックスを必要とする。
-10. **（先送り）インクリメンタルな`didChange`** — UTF-16オフセット
-    管理＋行／列変換。
+10. **インクリメンタルな`didChange`**（着地済み） — UTF-16オフセット
+    管理＋行／列変換（`Rigor::LanguageServer::IncrementalSync`）。
 
 スライス8のあとで、エディタモードv1がすでに目標としていた「キース
 トローク高速のリント＋ホバー型」ループに対して、ただし10倍の応答性で
@@ -339,7 +339,7 @@ v1 LSPは機能完成となる。
 - `textDocument/inlayHint`（装飾的、オプション）。
 - マルチルートワークスペース（v1は単一ルートのみ）。
 - TCP／ソケットトランスポート。
-- インクリメンタル同期（スライス10としてキューイング）。
+- インクリメンタル同期（スライス10としてキューイングされていたが、その後着地）。
 - リクエストごとより細かいキャンセル（キューイング）。
 
 ## オープンクエスチョン

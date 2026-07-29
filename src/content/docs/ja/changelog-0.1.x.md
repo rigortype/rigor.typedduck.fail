@@ -3,8 +3,8 @@ title: "チェンジログ — 0.1.xアーカイブ"
 description: "rigortype/rigor docs/CHANGELOG-0.1.x.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/CHANGELOG-0.1.x.md"
 sourcePath: "docs/CHANGELOG-0.1.x.md"
-sourceSha: "ce89a9e0648c84c05a402d10e2a4c73db2cc42a237583dd207d41b22d252fed1"
-sourceCommit: "7ba81e144fcabd69b653017dcf248004e9635a5e"
+sourceSha: "488aa38cbbe7704b1a8e0c1e0ff1f4b20146ad796086c6b6a46bd14e698862a4"
+sourceCommit: "42402864a316beb0d5ba4357ec29454ab55f6657"
 translationStatus: "translated"
 sidebar:
   order: 9050
@@ -16,7 +16,7 @@ sidebar:
 
 このファイルは`0.1.0`から`0.1.19`までの静的アーカイブであり、プロジェクトのアーカイブルールに従ってメインの[`CHANGELOG.md`](https://github.com/rigortype/rigor/blob/master/CHANGELOG.md)から移動されました: **マイナーバンプ後の最初のリリース（例: `0.1.x` → `0.2.x`バンプ後の最初のリリースである`0.2.1`）の時点で、以前のマイナーの範囲全体が`docs/CHANGELOG-<old-prefix>.md`アーカイブファイルに移動されます**。
 
-現在のサイクルのリリースノートは[`CHANGELOG.md`](https://github.com/rigortype/rigor/blob/master/CHANGELOG.md)に存在します。次のマイナーバンプの最初のパッチ（`0.3.1`）が着地すると、`0.2.x`ブロックが同じルールに従って`docs/CHANGELOG-0.2.x.md`に移動します。
+現在のサイクルのリリースノートは[`CHANGELOG.md`](https://github.com/rigortype/rigor/blob/master/CHANGELOG.md)に存在します。`0.2.x`ブロックは同じルールに従い、`0.3.1`の時点で[`docs/CHANGELOG-0.2.x.md`](../changelog-0.2.x/)に移動しました。
 
 ## [0.1.19] - 2026-06-13
 
