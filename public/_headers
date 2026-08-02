@@ -12,3 +12,15 @@
 
 /sitemap-*.xml
   Cache-Control: public, max-age=3600
+
+# Agent discovery (RFC 8288 Link headers), homepage only — each relation
+# below is a registered IANA type pointed at a resource that genuinely fits
+# it, not a placeholder. service-desc/service-doc split on RFC 8631's own
+# distinction: machine- vs human-consumption. `api-catalog` (RFC 9727) is
+# deliberately absent — Rigor is a CLI/library, not a web API, and there is
+# no OpenAPI/AsyncAPI catalog to point at.
+/
+  Link: </llms.txt>; rel="service-desc"; type="text/plain", </llms-full.txt>; rel="alternate"; type="text/plain", </manual/>; rel="service-doc", </sitemap-index.xml>; rel="sitemap"
+
+/ja/
+  Link: </ja/llms.txt>; rel="service-desc"; type="text/plain", </ja/llms-full.txt>; rel="alternate"; type="text/plain", </ja/manual/>; rel="service-doc", </sitemap-index.xml>; rel="sitemap"
