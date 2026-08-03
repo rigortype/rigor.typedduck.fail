@@ -1,6 +1,8 @@
 node_modules/
 dist/
 .astro/
+# `wrangler dev` local state (miniflare's KV/cache/DO simulation).
+.wrangler/
 .direnv/
 .pnpm-home/
 result

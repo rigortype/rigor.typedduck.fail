@@ -1,10 +1,28 @@
 name = "rigor-typedduck-fail"
 compatibility_date = "2026-05-08"
 
-# Workers Static Assets: no `main`, just upload the directory and let
-# Cloudflare serve it. The Worker already exists in the dashboard
-# with the rigor.typedduck.fail custom domain attached, so each
-# `wrangler deploy` from CI just refreshes its assets in place.
+# The Worker exists for one reason: Markdown content negotiation (worker/index.ts).
+# An agent sending `Accept: text/markdown` gets the page's pre-built `.md` twin;
+# every other request is handed straight to the static assets below, unchanged.
+main = "./worker/index.ts"
+
+# Workers Static Assets: upload the directory and let Cloudflare serve it. The
+# Worker already exists in the dashboard with the rigor.typedduck.fail custom
+# domain attached, so each `wrangler deploy` from CI just refreshes its assets
+# in place.
 [assets]
 directory = "./dist"
 not_found_handling = "404-page"
+binding = "ASSETS"
+
+# Negotiation only makes sense for pages, so the Worker is kept off everything
+# else: the content-hashed bundles, the search index, and the standalone wasm
+# playground page would otherwise pay a Worker invocation each. Negative
+# patterns win over positive ones, so `/*` here means "pages, and nothing
+# listed below".
+run_worker_first = [
+  "/*",
+  "!/_astro/*",
+  "!/pagefind/*",
+  "!/playground/*",
+]
