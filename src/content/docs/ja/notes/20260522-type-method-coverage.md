@@ -3,8 +3,8 @@ title: "型別メソッドカバレッジ — ConstantFolding / ShapeDispatch / 
 description: "rigortype/rigor docs/notes/20260522-type-method-coverage.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260522-type-method-coverage.md"
 sourcePath: "docs/notes/20260522-type-method-coverage.md"
-sourceSha: "6ba21e7024fffe48d4bd83a88d5723df01cd74624d378a82a002694384a5d383"
-sourceCommit: "78b18cea6a576475c92bce020535269f2eebc20d"
+sourceSha: "d965cc58c49eea876f5df4247f396964999a7e9cc619ae1b91ccbffd23e9134e"
+sourceCommit: "17f7d081a694f9cfdfaebd7fc71ebfc7171e2a6d"
 translationStatus: "translated"
 sidebar:
   order: 20266522
@@ -225,7 +225,9 @@ IntegerRange向け専用ハンドラ群は別途`shape_dispatch.rb`に存在。
 | `odd?` | ✅ | INTEGER_UNARY → `Constant[bool]`。 |
 | `pow` | 🔲 | `**`の別名（ただし`pow(exp, mod)`は剰余乗算）。低優先度。 |
 | `pred` | ✅ | INTEGER_UNARY → `Constant[Integer]`。 |
-| `rationalize` / `to_r` | 🔲 | INTEGER_UNARY追加で`Constant[Rational]`。低優先度。 |
+| `rationalize`（0引数） | ✅ | INTEGER_UNARYに追加（#121 P3）。`Constant[Rational]`。`eps`引数形式はcatalogに`rationalize`エントリーが無いため未対応（Floatと同じ制約、意図的に非対応のまま）。 |
+| `to_r` | ✅ | INTEGER_UNARY → `Constant[Rational]`。 |
+| `abs2` | ✅ | INTEGER_UNARYに追加（#121 P3）。`Rational#abs2` / `Complex#abs2`のInteger版。`Constant[Integer]`（`self * self`、常に非負）。 |
 | `round` | ✅ | INTEGER_UNARY（引数なし）→ `Constant[Integer]`。 |
 | `size` | 🔲 | プラットフォーム依存バイト幅。低優先度。 |
 | `to_c` | 🔲 | INTEGER_UNARY追加で`Constant[Complex]`。低優先度。 |
@@ -257,7 +259,9 @@ IntegerRange向け専用ハンドラ群は別途`shape_dispatch.rb`に存在。
 [x] allbits? / anybits? / nobits? → NUMERIC_BINARY → Constant[bool]
 
 低優先度:
-[ ] rationalize / to_r  → INTEGER_UNARY
+[x] rationalize (0 引数) → INTEGER_UNARY — #121 P3
+[x] to_r                 → INTEGER_UNARY（先行実装済み、本表未反映だった）
+[x] abs2                 → INTEGER_UNARY — #121 P3
 [x] gcdlcm              → try_fold_integer_array_binary → Tuple[Constant[Integer], Constant[Integer]]
 [ ] pow(exp, mod)       → 専用ハンドラ（3 引数形式）
 ```
@@ -280,6 +284,7 @@ IntegerRange向け専用ハンドラ群は別途`shape_dispatch.rb`に存在。
 | `<=>`, `<`, `<=`, `>`, `>=`, `==`, `!=` | ✅ | NUMERIC_BINARY → `Constant[bool\|Integer]`。 |
 | `-@`, `+@` | ✅ | FLOAT_UNARY。 |
 | `abs` / `magnitude` | ✅ | FLOAT_UNARY → `Constant[Float]`。 |
+| `abs2` | ✅ | FLOAT_UNARYに追加（#121 P3）。`Rational#abs2` / `Complex#abs2` / （今回）`Integer#abs2`のFloat版。`Constant[Float]`（`self * self`）。 |
 | `between?` | ✅ | `try_fold_ternary`（catalog経由）→ `Constant[bool]`。 |
 | `ceil` | ✅ | FLOAT_UNARY（引数なし）→ `Constant[Integer]`。 |
 | `ceil(n)` | 🔲 | 小数点指定形式の専用ハンドラ → `Constant[Float]`。低優先度。 |
@@ -298,7 +303,7 @@ IntegerRange向け専用ハンドラ群は別途`shape_dispatch.rb`に存在。
 | `negative?` / `positive?` / `zero?` | ✅ | FLOAT_UNARY → `Constant[bool]`。 |
 | `next_float` | ✅ | FLOAT_UNARY → `Constant[Float]`。 |
 | `prev_float` | ✅ | FLOAT_UNARY → `Constant[Float]`。 |
-| `rationalize` / `to_r` | 🔲 | FLOAT_UNARY追加で`Constant[Rational]`。低優先度。 |
+| `rationalize` / `to_r` | ✅ | FLOAT_UNARY → `Constant[Rational]`。（先行実装済み、本表未反映だった。`eps`引数形式はcatalogに`rationalize`エントリーが無いため未対応。） |
 | `round` | ✅ | FLOAT_UNARY（引数なし）→ `Constant[Integer]`。 |
 | `round(n)` | 🔲 | 小数点指定形式 → `Constant[Float]`。低優先度。 |
 | `to_c` | 🔲 | FLOAT_UNARY追加で`Constant[Complex]`。低優先度。 |
@@ -320,7 +325,9 @@ IntegerRange向け専用ハンドラ群は別途`shape_dispatch.rb`に存在。
 [ ] ceil(n) / floor(n) / round(n) → 小数点 n 指定形式専用ハンドラ
 [x] next_float / prev_float       → FLOAT_UNARY
 [x] fdiv                          → NUMERIC_BINARY
-[ ] rationalize / to_r / to_c    → FLOAT_UNARY
+[x] rationalize / to_r            → FLOAT_UNARY（先行実装済み、本表未反映だった）
+[x] abs2                          → FLOAT_UNARY — #121 P3
+[ ] to_c                          → FLOAT_UNARY
 ```
 
 実装ファイル: `constant_folding.rb`の`FLOAT_UNARY`拡張 / `NUMERIC_BINARY`追加。
@@ -361,11 +368,19 @@ IntegerRange向け専用ハンドラ群は別途`shape_dispatch.rb`に存在。
 
 ### 5-1. メソッド一覧
 
+> **2026-07-31の再スイープ**: この文書の🔲は実装より古く、過大報告する（カタログの純粋関数経路が
+> 多くを自動的に畳むため）。`dispatch_precise_tiers`を直接叩く経験的スイープでString / Array / Hash /
+> Integer / Float / Symbolを再確認し、残っていた真の欠落は本節の集合演算群のみだった。以降この文書を
+> 実装の根拠にする前に、必ず同じ経験的プローブで確認すること。
+
 | メソッド | 状態 | 備考 |
 |----------|------|------|
 | `[]` / `fetch` | ✅ | `tuple_lookup` / `tuple_fetch` — 整数インデックスで位置別型を返す。 |
 | `+`（連結） | ✅ | `Tuple + Tuple` → 新しいTuple。**高優先度**。`tuple_concat`実装。 |
-| `-`（差集合） | 🔲 | 差集合 → 型が複雑。低優先度。 |
+| `at` | ✅ | `tuple_at` — 単一Integer形式のみ。`[]` / `slice`と違い範囲外は畳まずRBSに委ねる（証明されたnilは新規診断を生むため、#121の対象外）。 |
+| `intersect?` | ✅ | `tuple_intersect?` — `Constant[bool]`（#121, 2026-07-31）。 |
+| `one?`（ブロックなし） | ✅ | `tuple_one?` — 全要素Constantなら真偽が決定可能（#121, 2026-07-31）。 |
+| `-`（差集合） | ✅ | `tuple_difference` — 全要素ConstantのTuple同士でRubyの`-`を実行して畳む（#121, 2026-07-31）。 |
 | `*`（繰り返し） | 🔲 | `Tuple * n` → 繰り返しTuple。低優先度。 |
 | `<<` / `push` / `append` | 🚫 | 破壊的変更（形状変化）。 |
 | `<=>` | 🔷 | RBS `Integer?`で十分。 |
@@ -380,7 +395,7 @@ IntegerRange向け専用ハンドラ群は別途`shape_dispatch.rb`に存在。
 | `compact` | ✅ | `Constant[nil]`エントリーを除去したTuple。**高優先度**。`tuple_compact`実装。 |
 | `count` | ✅ | `tuple_count` — ブロックなしで`Constant[Integer]`。 |
 | `cycle` | 🚫 | Enumerable。 |
-| `deconstruct` | 🔲 | パターンマッチ用 — `to_a`と等価。低優先度。 |
+| `deconstruct` | ✅ | `shape_self` — レシーバーのTupleをそのまま返す（#121, 2026-07-31）。 |
 | `delete` / `delete_at` / `delete_if` | 🚫 | 破壊的変更。 |
 | `detect` / `find` | ✅ | `PER_ELEMENT_TUPLE_METHODS` — ブロック毎要素で要素型を返す。 |
 | `dig` | ✅ | `tuple_dig` — 入れ子Tuple / HashShapeを掘る。 |
@@ -393,16 +408,16 @@ IntegerRange向け専用ハンドラ群は別途`shape_dispatch.rb`に存在。
 | `fill` | 🚫 | 破壊的変更。 |
 | `filter` / `select` | 🔷 | BlockFolding `FILTER_KEEP_ON_TRUTHY / FALSEY`。 |
 | `filter_map` | ✅ | `PER_ELEMENT_TUPLE_METHODS` → `nil`除去後のUnion Tuple。 |
-| `first` | ✅ | `tuple_first` → 先頭n要素（Tupleまたは単一型）。 |
+| `first` | ✅ | `tuple_first` → 0引数は先頭要素、`first(n)`は先頭n要素の部分Tuple（`take`/`drop`と同じ形、#121 2026-08-01）。 |
 | `flat_map` / `collect_concat` | ✅ | `PER_ELEMENT_TUPLE_METHODS` — 単一ネスト除去。 |
 | `flatten` | 🔲 | 入れ子Tupleを再帰展開。中優先度。 |
 | `include?` | ✅ | `tuple_include?` → `Constant[bool]`（Constant引数のとき）。 |
 | `index` / `find_index` | ✅ | `PER_ELEMENT_TUPLE_METHODS` → `Constant[Integer\|nil]`。 |
 | `insert` | 🚫 | 破壊的変更。 |
-| `intersection` | 🔲 | 集合交差。低優先度。 |
+| `intersection` / `&` | ✅ | `tuple_intersection` — `eql?`意味論を保つためRubyの`&`をそのまま実行（#121, 2026-07-31）。 |
 | `join` | ✅ | `tuple_join` — すべてConstantのとき`Constant[String]`。全要素が`Constant[String]`かつセパレータがConstant/省略の場合は`LiteralStringFolding`が精密フォールドに道を譲る（2026-07-18）。 |
 | `keep_if` | 🚫 | 破壊的変更。 |
-| `last` | ✅ | `tuple_last` → 末尾n要素。 |
+| `last` | ✅ | `tuple_last` → 0引数は末尾要素、`last(n)`は末尾n要素の部分Tuple（#121 2026-08-01）。 |
 | `length` / `size` | ✅ | `tuple_size` → `Constant[Integer]`。 |
 | `max` / `min` | ✅ | `tuple_max` / `tuple_min` → 要素型のUnion。 |
 | `max_by` / `min_by` | 🔲 | ブロックあり形式。BlockFolding非対応。中優先度。 |
@@ -430,7 +445,7 @@ IntegerRange向け専用ハンドラ群は別途`shape_dispatch.rb`に存在。
 | `to_a` | ✅ | `tuple_to_a` → self。 |
 | `to_h` | ✅ | `tuple_to_h` → HashShape（`Tuple[Tuple[K,V]…]`形式）。 |
 | `transpose` | 🔲 | 2次元Tupleの行列転置。低優先度。 |
-| `union` | 🔲 | 集合和（dedup）。低優先度。 |
+| `union` / `\|` | ✅ | `tuple_union` — `tuple_intersection`と同じ経路（#121, 2026-07-31）。 |
 | `uniq` | ✅ | `tuple_uniq` → Constant要素の重複除去Tuple。 |
 | `values_at` | ✅ | `values_at(*indices)` → 位置指定Tuple。**高優先度**。`tuple_values_at`実装。 |
 | `zip` | ✅ | `tuple_zip` → 要素ペアTuple。 |

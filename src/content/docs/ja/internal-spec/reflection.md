@@ -3,8 +3,8 @@ title: "リフレクションファサード — `Rigor::Reflection`"
 description: "rigortype/rigor docs/internal-spec/reflection.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/reflection.md"
 sourcePath: "docs/internal-spec/reflection.md"
-sourceSha: "3b62d767d8fe77fa057ea4babfc89a1b53a1d074b902de04e99c34223de4da5f"
-sourceCommit: "e3eb424c3c88035e453246710c8df3dc5cc8e7e1"
+sourceSha: "394b3254761134eff182d1792c7c2ade4d07d19f070e64f254dff97e9b5b1fa5"
+sourceCommit: "17f7d081a694f9cfdfaebd7fc71ebfc7171e2a6d"
 translationStatus: "translated"
 sidebar:
   order: 3050
@@ -53,7 +53,7 @@ RBSを参照するメソッドは`scope:` **または** `environment:`の**ど�
 ### ソース側の発見
 
 - `Rigor::Reflection.discovered_class?(class_name, scope: Scope.empty)` — 解析対象ソースにクラス/モジュール宣言が含まれる場合に`true`。RBSローダーを参照しない（ユニオン（union、合併型とも）には`class_known?`を使用）。
-- `Rigor::Reflection.discovered_method?(class_name, method_name, kind: :instance, scope: Scope.empty)` — `ScopeIndexer`が指定のクラスの指定のメソッドに対して一致する種類の`def`を記録した場合に`true`。
+- `Rigor::Reflection.discovered_method?(class_name, method_name, kind: :instance, scope: Scope.empty)` — `ScopeIndexer`が指定のクラスの指定のメソッドに対して一致する種類の`def`を記録した場合に`true`。背後のテーブルはメソッド名ごとに1つの値しか保持しないため、クラスの**両側**に定義された名前（`def helper`と`class << self`側の双子）は`Scope::DiscoveryIndex::METHOD_KIND_BOTH`として記録され、どちらの種類に対しても`true`を返さなければならない（MUST）—— 一方の側の種類をもう一方で上書きしてしまうライターは、実際に動作するコードに対して偽の`call.undefined-method`を生む。
 
 ## 来歴
 

@@ -3,8 +3,8 @@ title: "ADR-32 — オプトインプラグインとしてのインラインRBS�
 description: "rigortype/rigor docs/adr/32-rbs-inline-comment-ingestion.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/32-rbs-inline-comment-ingestion.md"
 sourcePath: "docs/adr/32-rbs-inline-comment-ingestion.md"
-sourceSha: "85956d5daa50286ebb585119a8a65fc89082e4fd1cc25d6590e68b95ac53fb00"
-sourceCommit: "73d7a0a2d4628b0614948fe2fa043945b45d5de4"
+sourceSha: "764f0dc3d96235f3a3f2cd6db020c6856a1d5c0f2761af408f86c93ba46170cc"
+sourceCommit: "17f7d081a694f9cfdfaebd7fc71ebfc7171e2a6d"
 translationStatus: "translated"
 sidebar:
   order: 4032
@@ -15,6 +15,8 @@ sidebar:
 バンドルされた`rigor-rbs-inline`プラグイン、`source_rbs_synthesizer:`マニフェストフィールド、env構築時の合成フック、マジックコメントゲーティング、`require_magic_comment:`設定ノブ、ファイル単位のキャッシュ / フェイルソフト処理がすべて出荷された;`--treat-all-as-inline-rbs` CLIフラグも同じリリースでランディングした。上流の[rbs-inline](https://github.com/soutaro/rbs-inline)コメント語彙（`# @rbs name: T`、`#: () -> T`、`# @rbs return: T`、属性`#:`など）を消費するという決定を記録する。上流ライブラリをenv構築時に実行し合成RBSを解析環境に貢献する`rigor-rbs-inline`プラグインを出荷することで実現する。Rigorのコアはゼロランタイム依存のまま（ADR-0）;rbs-inline gemはコアの責任ではなくプラグインの責任になる。
 
 **修正2026-05-25** WD10追加 — ホストコンテキストがファイルごとのマジックコメントゲートをスキップできる`require_magic_comment:`プラグイン設定ノブ（デフォルト`true`）。ADR-29ブラウザプレイグラウンドはこれを`false`に設定することで、ユーザーが`# rbs_inline: enabled`を入力することなく、貼り付けられたスニペットがインラインRBSとして解析される。
+
+**修正2026-07-30** WD11とWD12を追加し、[#229](https://github.com/rigortype/rigor/issues/229)をクローズした。WD11は、rbs 4.xに組み込まれた`RBS::InlineParser`へ移行せず`rbs-inline` gemをリーダーとして維持し、再検討のための同等性の基準を定める: 組み込みパーサは上位集合ではなく、`class << self`をサイレントに誤帰属する。WD12は、Rigorがパースするが尊重しないアノテーションを飲み込まずに報告する、というルールを追加する —— `module-self`の2つの非互換な綴りが露呈させたケースであり、WD6の合成エラー経路ではカバーされない。
 
 ## コンテキスト
 
@@ -129,6 +131,41 @@ rbs-inlineがプロジェクトファイルでパースエラーを発生させ�
 - エスケープハッチは**プラグインインスタンスごと、プラグイン設定経由**——Rigor全体のポリシー変更ではない。
 - プラグインの`config_schema`がキーを宣言;ユーザーは`.rigor.yml`の`plugins:`エントリーの既存プラグイン設定サーフェスを通じて提供する。
 
+### WD11 — `rbs-inline` gemがリーダーであり続ける; `RBS::InlineParser`はまだ上位集合ではない
+
+rbs 4.0は`rbs` gemに組み込まれた`RBS::InlineParser`を出荷し、rbs 4.1はそれを前進させた。WD3が`rbs-inline` gemを選んだのはそれが唯一の実装だったときなので、この選択は今や生きた問いであり、[ADR-93](../93-default-rbs-inline-ingestion/)がプラグインをデフォルトで配線したことで、これはオプトインの一群ではなくユーザーベース全体の方言になる。
+
+**決定: gemを維持する。** 組み込みパーサは上位集合ではなく、問題になる差は機能数ではなく正しさの差だ。
+
+実測された文法差分[`docs/notes/20260730-inline-rbs-parser-grammar-diff.md`](../../notes/20260730-inline-rbs-parser-grammar-diff/)（両パーサを1つのコーパスに掛け、宣言された`(class, kind, member, type)`のタプルに正規化）に基づく:
+
+- **`class << self`がサイレントに誤帰属される。** 組み込みパーサは内側の`def`を診断ゼロで**インスタンス**メソッドとして宣言する。これは機能の欠落ではなく、環境へ注入される誤ったファクトだ: 実在するシングルトンメソッドへの呼び出しが`call.undefined-method`の偽陽性になり、捏造されたインスタンスメソッドが本物の診断を抑制する。[ADR-5](../5-robustness-principle/)は偽陽性を最悪ケースの静的な読みより上位に置いており、ADR-93のデフォルト配線は`rbs-inline`が解決するすべてのユーザーがこれを抱え込むことを意味する。
+- **4つの構文が失われる**: `@rbs generic T`（型パラメータが落ちる）・`@rbs!`の埋め込みRBS・`@rbs inherits`・メソッド可視性。いずれも組み込みパーサに端的に拒否される。
+- **この問いのきっかけになった機能は差ではない。** `def self.`のシングルトン定義と`class`/`module`下の`# @rbs @ivar: T`は両者で同一に扱われる。`module-self`は両者がサポートするが、**非互換な綴り**で —— WD12を参照。
+- **rbsのフロアは障害ではない**。[ADR-94](../94-rbs-inline-reader-and-the-rbs-3x-floor/)の隣接する問いとは違い、`rbs-inline`自身が`rbs (~> 4.0)`を要求するので、ADR-93の自動配線が有効化しうるユーザーはすでに全員4.x上にいる。
+- **移行は差し替えではなく書き直しになる。** 組み込みパーサには`opt_in:`のマジックコメントモードがなく（WD2 / WD10に対応物がない）、アノテーション存在プローブもなく（ADR-93のゲーティングを作り直すことになる —— そしてそのゲーティングは効いている: ゲートなしのモードはmailで26 → 42診断と実測された）、テキストライターもない。RBSソースではなく`Environment#add_source`向けの宣言を返すからだ。最後の点はこのADRのレンダリングして再パースする経路より恐らく優れているが、それはまったく別の統合である。
+
+**再検討のための同等性の基準**: `RBS::InlineParser`におけるgenerics・`@rbs!`・正しい`class << self`の扱い。3つ目は機能ではなく前提条件だ —— それが成り立つまで、組み込みパーサの採用は偽陰性を偽陽性と交換することになる。
+
+上流の進む方向に疑いはない（ADR-94は、soutaroがgemを、その実装が`rbs`へマージされるプロトタイプと呼んだことを記録している）。この作業上の決定は方向ではなく到達についてのものだ。
+
+### WD12 — Rigorがパースするが尊重しないインラインアノテーションを報告する
+
+`module-self`は、WD6がカバーしない失敗モードを露呈させた。WD6は合成**エラー**に対してフェイルソフトである。こちらは*成功した*合成が、作者が求めた宣言をサイレントに省くケースだ:
+
+| 綴り | 結果 |
+| --- | --- |
+| `# @rbs module-self Comparable` —— gemの文法 | 尊重される |
+| `# @rbs module-self: Comparable` —— **上流の`docs/inline.md`** | `ModuleSelf`アノテーションへパースされたのち、self型なしで出力され、何も報告されない |
+
+上流のインラインドキュメントに従うユーザーは2番目の形式を書く。そのアノテーションコメントは合成されたRBSへエコーすらされるので、この脱落は実行時だけでなく目視でも見えない。
+
+**決定: パースはされるが何も寄与しないアノテーションは、飲み込まずに報告する。** `self_types`が空のパース済み`ModuleSelf`アノテーションはそれの精密なシグネチャであり、プラグインはADR-93の存在プローブのためにすでに`AnnotationParser`を走らせているので、このチェックはパスを増やさない。重大度は`:info` —— コードは正しいRubyであり、アノテーションは兄弟方言では合法なので、これはユーザーのプログラムのエラーではなく型ソースの適用不足である。
+
+これが具体化する一般ルール: **2つの方言が綴りで食い違うところでは、避けるべき失敗は沈黙である。** ユーザーが目にできる拒否されたアノテーションは回復可能だが、パーサに受理されライターに捨てられたものはそうではない。
+
+下流での報告は緩和であって修正ではない。自分自身のライターが捨てるアノテーションを受理するパーサは上流`rbs-inline`の欠陥であり、そこで直せばRigorのユーザーだけでなくすべてのrbs-inlineユーザーに対して差が閉じる。
+
 ## 結果
 
 ### 正の結果
@@ -177,3 +214,6 @@ rbs-inlineがプロジェクトファイルでパースエラーを発生させ�
 - [ADR-6](../6-cache-persistence-backend/) — シンセサイザーフックが拡張するファイルごとキャッシュ（WD5）。
 - [ADR-25](../25-plugin-contributed-rbs/) — 静的バンドルRBS貢献;ここで使われるプラグイン境界の先例。
 - [ADR-29](../29-browser-playground/) — ブラウザプレイグラウンド;WD10（`require_magic_comment: false`）を行使する最初のホストコンテキスト。
+- [ADR-93](../93-default-rbs-inline-ingestion/) — このプラグインをデフォルトで配線するもの。WD11の選択を、オプトインの一群ではなくユーザーベース全体の方言にしている。
+- [ADR-94](../94-rbs-inline-reader-and-the-rbs-3x-floor/) — 隣接する移行の問い。rbsのフロアを理由に見送られた。WD11は同じ移行を別の理由で見送る: ここではフロアは拘束しない。
+- [`docs/notes/20260730-inline-rbs-parser-grammar-diff.md`](../../notes/20260730-inline-rbs-parser-grammar-diff/) — WD11とWD12が依拠する実測された文法差分。

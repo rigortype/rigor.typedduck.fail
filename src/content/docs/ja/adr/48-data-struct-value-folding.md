@@ -3,8 +3,8 @@ title: "ADR-48 — Struct / Data値畳み込み（メンバーシェイプキャ
 description: "rigortype/rigor docs/adr/48-data-struct-value-folding.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/48-data-struct-value-folding.md"
 sourcePath: "docs/adr/48-data-struct-value-folding.md"
-sourceSha: "6d678b7ddecd2eef6b63826627fd0958dc59ccc3ec94e2dd4db911c450adf17c"
-sourceCommit: "78b18cea6a576475c92bce020535269f2eebc20d"
+sourceSha: "c1d03de855173aea4fea085c42c22f244c19114ef1a58a51a83a806490509fa7"
+sourceCommit: "17f7d081a694f9cfdfaebd7fc71ebfc7171e2a6d"
 translationStatus: "translated"
 sidebar:
   order: 4048
@@ -97,7 +97,9 @@ inst.members               → Tuple[Constant[:x], Constant[:y]]
 4. **畳み込み不可能な引数型** — `Dynamic[top]`のメンバー引数はメンバーマップに`Dynamic[top]`として保存される（インスタンスは引き続き*構造的に*畳み込まれる。メンバー読み取りは`Dynamic[top]`を返すが、これは正しく、インスタンス全体がdynamicであるよりも依然良い — *隣接する*メンバーは精度を保つため）。
 5. **クラスの再オープン**（`Point = Data.define(...); Point.class_eval …`または後続の`class Point; def m; end; end`）— スコープ外。メンバー*リーダー*は有効なまま（Dataリーダーは凍結合成済みで削除できない）なのでメンバー値の畳み込みに影響なし。追加メソッドはユーザーメソッドパスで解決される。
 
-畳み込みは`Dynamic[top]`から証明済みメンバー型へ型を*絞り込む*のみで、不確かな場合は現状に劣化するため、**このADRは偽陽性のサーフェスを導入しない** — 正常に動作するプログラムが新たにチェックに失敗することはない。メンバー読み取りをより精密にできるだけだ。
+6. **メンバー引数としての空のコンテナリテラル**（`R.new([], {})`）— メンバーはコンストラクタに渡されたコンテナへの*参照*を保持するので、その空であることは構築の瞬間におけるその引数についてのファクトであって、値オブジェクトの性質ではない: 呼び出し元は自分のエイリアスを持ち続けるし、「空で構築してから詰める」（`r = R.new([], []); xs.each { |x| r.items << x }`）はRubyで支配的な形だ。したがって空の`Tuple` / クローズドな空の`HashShape`は、素の名前的型（`Array[untyped]` / `Hash[untyped, untyped]`）へ**広げて**記録される —— `MutationWidening`が変更されたローカルのリテラル形状を撤回するのに使うのと同じヘルパーを通す。非空のリテラルには手を触れない: その要素の証拠は追加操作を生き延びるし、その読み取りが`nil`へ畳み込まれることはない。
+
+1〜5は`Dynamic[top]`から証明済みメンバー型へ型を*絞り込む*のみで、不確かな場合は現状に劣化するため、偽陽性のサーフェスを足さない。6はその推論に穴があったと判明した箇所であり、それが招いた偽陽性から書き起こされている: 空であることのピン留めは、その読み取りが`nil`へ畳み込まれる唯一のメンバーファクトであり、`nil`はまさに`call.undefined-method`が発火するレシーバー型だ。issue #293はこれを正しいコードに対して報告した —— `Struct.new(:items, :errors).new([], [])`を返しつつ次の行で`<<`で詰めるファクトリで、その消費側の`.items.first.local`がundefinedと報告された。空であることを除けば、このティアは純粋な精度の向上のままだ。
 
 ### 重大度/診断姿勢
 

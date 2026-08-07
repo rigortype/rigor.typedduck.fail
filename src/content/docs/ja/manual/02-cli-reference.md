@@ -3,8 +3,8 @@ title: "CLIコマンドリファレンス"
 description: "rigortype/rigor docs/manual/02-cli-reference.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/02-cli-reference.md"
 sourcePath: "docs/manual/02-cli-reference.md"
-sourceSha: "2e2acffe92d0171369ed8540b7450d7882aba6874a57fdd492da4fc410f626c7"
-sourceCommit: "42402864a316beb0d5ba4357ec29454ab55f6657"
+sourceSha: "76b31b4dff24d43c89bfb77225590cbd944f1303275b184d16af7d50c93b815e"
+sourceCommit: "17f7d081a694f9cfdfaebd7fc71ebfc7171e2a6d"
 sourceDate: "2026-07-25T21:39:13+09:00"
 translationStatus: "translated"
 sidebar:
@@ -52,9 +52,22 @@ rigor check [paths...]
 | `--treat-all-as-inline-rbs` | `rigor-rbs-inline`を`require_magic_comment: false`で強制ロードし、解析されるすべてのファイルを`# rbs_inline: enabled`コメントなしでインラインRBSとして扱う（ADR-32）。 |
 | `--bleeding-edge[=ids]` | この実行に対してbleeding-edgeオーバーレイを採用し、設定された[`bleeding_edge:`](03-configuration/)の選択を上書きする（ADR-50 § WD2）。引数なしではキューに積まれたすべてのfeatureを採用し、`--bleeding-edge=a,b`は名指ししたfeature idのみを採用する。[`rigor show-bleedingedge`](#rigor-show-bleedingedge)で検査する。 |
 | `--no-bleeding-edge` | この実行に対して設定された`bleeding_edge:`の選択を無視する（何も採用しない）。 |
-| `--tmp-file=PATH --instead-of=PATH` | エディタモード: `--tmp-file`のバッファを使って`PATH`を解析する。両方必須。 |
+| `--tmp-file=PATH --instead-of=PATH` | エディタモード: `--tmp-file`のバッファを使って`PATH`を解析する。両方必須。単独ではバッファ自身のファイルしか診断を出さない。プロジェクト全体を対象にするには`--incremental`を足す（下記参照）。 |
 
 エラー重要度の診断がない場合は`0`で終了、診断がある場合は`1`で終了、使用法エラーの場合は`64`で終了します。
+
+### エディタモードの対象範囲
+
+`--tmp-file` / `--instead-of`だけでは、解析されるのはバッファのファイル**のみ**です。高速ですが、未保存の編集がプロジェクトの他の部分に何をするかは見えません。
+
+`--incremental`を加えると、**バッファを差し替えたプロジェクト全体**が解析されます —— 編集されたファイルとそれに依存するファイルが再解析され、残りはインクリメンタルスナップショットから提供されます。したがってメソッドの戻り値型に対する未保存の変更は、編集中のファイルだけでなくその呼び出し元にも表面化します。
+
+知っておくべきことが2つあります:
+
+- 再利用できるスナップショットが必要です。`rigor check --incremental`を一度実行しておけば（これは通常のターミナルでのチェックでも使うべきものです）、以降のエディタからの起動はプロジェクト全体を対象にできます。スナップショットがない場合、Rigorはstderrにその旨を伝え、バッファ単独で解析します。
+- エディタモードの実行がスナップショットを書くことはありません —— バッファのバイト列はあなたのエディタの中にしか存在せず、それを記録すると次の通常実行が、実際には存在しなかった状態のファイルをすでに解析したと信じ込んでしまうからです。
+
+`--verify-incremental`はバッファを拒否します。これはディスク上のファイルのフル解析と突き合わせるものであり、バッファは構造上それと矛盾するからです。
 
 ## `rigor init`
 
@@ -216,19 +229,21 @@ rigor coverage [paths]
 
 `--protection`は**型保護カバレッジ（type-protection coverage）**に切り替えます。「自分の型がどれだけ精密か」ではなく「バグを混入させたとき、Rigorがそれを捕捉できるか」を報告します。各ディスパッチサイト（明示的なレシーバーを持つ呼び出し）は、レシーバーが具象クラスに解決するとき（Rigorの呼び出しルールが誤ったメソッドや引数を捕捉できるサイト）*保護されている（protected）*とみなされ、レシーバーが`Dynamic`のとき*保護されていない（unprotected）*とみなされます。レポートはまず保護された比率を示し、続いてランク付けされた「ここに型を追加せよ（add a type here）」リスト（型のないレシーバーで最も多く呼ばれているメソッド）、そして最も保護されていないファイルを示します。`--threshold`と`--format=json`は同じように機能します。これは実際の保護に対する健全な上界です。具象的なレシーバーは診断が発火するための必要条件ですが、十分条件ではありません。`--workers=N`は保護スキャン（パラメータ推論の事前パスとファイルごとのスキャンの両方）をforkで並列化し、出力は逐次実行とバイト同一です;ワーカー数は`check`と同じ方法で解決されます —— `--workers` › `RIGOR_RACTOR_WORKERS` › [`parallel.workers:`](../03-configuration/) › `0`（逐次デフォルト）。
 
-`--protection`に加えて`--mutation`を付けると、**有効性**ティアに切り替わります。「ここでRigorがバグを捕捉できるか」ではなく、Rigorが*実際に捕捉するか*を計測します。各ディスパッチサイトに型から見える破壊を導入し（呼び出し引数を`nil`に落とす、その型を入れ替える、呼び出しを存在しないメソッドへ改名する）、ミューテーションされたソースをクリーンなベースラインと突き合わせて再解析し、キルレート（捕捉された破壊）を報告します。デフォルトではgitで変更された`.rb`ファイルを対象とし（プロジェクト全体は数分かかる;広げるには明示的なパスを渡します）、まず有効性比率を示し、続いてRigorが見逃した破壊（「ここに型を追加せよ（add a type here）」）、そして最も有効性の低いファイルを示します。`--threshold`は有効性比率でゲートし、`--format=json`は`mode`、`killed`、`survived`、`effectiveness_ratio`、ファイルごとの行、そして`add_a_type_here`を運びます。これは静的な`--protection`プロキシの背後にある真実のティアであり、多数の解析というコストを伴います。対話的なチェックではなく、オプトインのCI深掘りです。
+`--protection`に加えて`--mutation`を付けると、**有効性**ティアに切り替わります。「ここでRigorがバグを捕捉できるか」ではなく、Rigorが*実際に捕捉するか*を計測します。各ディスパッチサイトに型から見える破壊を導入し（呼び出し引数を`nil`に落とす、その型を入れ替える、呼び出しを存在しないメソッドへ改名する）、ミューテーションされたソースをクリーンなベースラインと突き合わせて再解析し、キルレート（捕捉された破壊）を報告します。デフォルトではgitで変更された`.rb`ファイルを対象とし（プロジェクト全体は数分かかる;広げるには明示的なパスを渡します）、まず有効性比率を示し、続いてRigorが見逃した破壊（「ここに型を追加せよ（add a type here）」）、そして最も有効性の低いファイルを示します。`--threshold`は有効性比率でゲートし、`--format=json`は`mode`、`killed`、`survived`、`effectiveness_ratio`、ファイルごとの行、そして`add_a_type_here`を運びます。これは静的な`--protection`プロキシの背後にある真実のティアであり、多数の解析というコストを伴います。対話的なチェックではなく、オプトインのCI深掘りです。`--workers=N`はこのティアもforkで並列化します（プロジェクト全体の事前パスは親で一度だけ支払われ、ファイルごとの計測がワーカーに分散されます）。優先順位の連鎖は同じで、出力もバイト単位で同一です。
 
 ```sh
 rigor coverage --protection --mutation [paths]
 ```
 
-`--protection --mutation`に`--with-tests`を加えると、それは**融合静的∪動的（fused static∪dynamic）**ビューになります。型チェッカーが捕捉*しない*破壊ごとに、あなたのテストスイートを実行して**テスト**がそれを捕捉するかを確かめます。各サイトはその後、`type-protected`（型チェッカーが捕捉した）、`test-protected`（型チェッカーが見逃したものをテストが捕捉した）、`unprotected`（どちらも捕捉しない、実行可能な「ここに型**または**テストを足せ」リスト）に分類され、レポートはより安価な欠落軸を指摘します。型でキルされたミュータントはスイートに到達しない（漸進的短絡）ので、コストは保護穴に比例します。`--format=json`は`mode`（`protection-fused`）、`type_killed`、`test_killed`、`unprotected`、`protected_ratio`、ファイルごとの行、そして`add_protection_here`を運びます;`--threshold`は融合比率でゲートします。
+`--protection --mutation`に`--with-tests`を加えると、それは**融合静的∪動的（fused static∪dynamic）**ビューになります。型チェッカーが捕捉*しない*破壊ごとに、あなたのテストスイートを実行して**テスト**がそれを捕捉するかを確かめます。各サイトはその後、`type-protected`（型チェッカーが捕捉した）、`test-protected`（型チェッカーが見逃したものをテストが捕捉した）、`unprotected`（どちらも捕捉しない、実行可能な「ここに型**または**テストを足せ」リスト）に分類され、レポートはより安価な欠落軸を指摘します。型でキルされたミュータントはスイートに到達しない（漸進的短絡）ので、コストは保護穴に比例します。`--format=json`は`mode`（`protection-fused`）、`type_killed`、`test_killed`、`unprotected`、`protected_ratio`、ファイルごとの行、そして`add_protection_here`を運びます;`--threshold`は融合比率でゲートします。このティアは常に逐次実行です —— スイートのフックがあなたのテストランナーへシェルアウトし、並行実行は1つの作業ツリーを取り合ってしまうため —— したがって`--workers`は適用されず、明示的に指定された場合はstderrで無視した旨が報告されます。
 
 `--test-command=CMD`はランナーフックです（デフォルトは`bundle exec rake`）。スイートはまずクリーンなコードでパスしなければならず、さもなければ実行は中断します。素のパス／フェイルのランナーへ向けてください（パスするスイートでも非ゼロ終了するカバレッジフロアがこれに引っかかります）。これはBundlerの環境を取り除いて実行されるので、Rigor自身がそれ自体のbundleの下で起動されたときでも、`bundle exec`コマンドはあなたのプロジェクトのbundleを解決します。環境ラッパーは不要です。コマンドは**シェルなし**で実行され（argvに分割されて直接実行される）、シェル構文は解釈されません（インラインの`BUNDLE_GEMFILE=… `プレフィックスを含めて）。デフォルトでないGemfileには、`bundle config set --local gemfile PATH`で設定する（`.bundle/config`に永続化されます）か、コマンドを`bash -c '…'`で包んでください。
 
 `--include-dynamic`はオーバーレイを`Dynamic`レシーバー（型のない）サイトへ拡張します。そこではテストが唯一可能な保護です。マップを、Rigorが型チェックできるサイトだけでなく*すべての*ディスパッチサイトへと完成させます。そのようなサイトはどれも型生存者なので、スイートをはるかに多く実行します;明示的なオプトインです。
 
 `--limit=N`（`--seed=N`付き、デフォルトは`1`）は計測をファイルごとの`N`個のミューテーションの決定的なサンプルに上限し、大きなファイルでのコストを抑えます。ファイルごとの比率はその後推定値となり、`--format=json`のstdoutがクリーンに保たれるようstderrに注記されます。
+
+再実行は、あるファイルの数値を変えうるものが何も動いていない限り、ファイルごとの計測キャッシュから提供されます: そのファイル自身、それが読み取っていると記録されたファイル、解決済みの設定、`sig/`、gemのセット、エンジンのバージョン、`--limit` / `--seed`、そして採用されたbleeding-edgeフィーチャーです。これは`rigor check --incremental`の実行が記録するクロスファイルのエッジを読むので、プロジェクトごとに一度ウォームしておいてください。使えるスナップショットがない場合は全ファイルが計測されます —— 黙って提供されることは決してありません。`--no-cache`はすべてを最初から計測します。そのどちらが起きたかは1行のstderrレポートが伝えます —— [型保護カバレッジ](../15-type-protection-coverage/)を参照してください。
 
 ```sh
 rigor coverage --protection --mutation --with-tests \
@@ -362,7 +377,7 @@ rigor docs [<name>] [--path <name>] [--list [<category>]]
 
 ## `rigor show-bleedingedge`
 
-**ブリーディングエッジオーバーレイ**（次のメジャーに向けてキューに積まれた診断規律のRigor管理セット。[ADR-50](../../adr/50-release-engineering-and-stability-strategy/) § WD2）を表示し、そのうちどれをプロジェクトの[`bleeding_edge:`](../03-configuration/)設定が採用しているかを報告します。読み取り専用です。アクティブな選択を解決するために`.rigor.yml`を読み込みますが、解析は実行しません。
+**ブリーディングエッジオーバーレイ**（次のメジャーに向けてキューに積まれた変更のRigor管理セット。[ADR-50](../../adr/50-release-engineering-and-stability-strategy/) § WD2）を表示し、そのうちどれをプロジェクトの[`bleeding_edge:`](../03-configuration/)設定が採用しているかを報告します。読み取り専用です。アクティブな選択を解決するために`.rigor.yml`を読み込みますが、解析は実行しません。
 
 ```sh
 rigor show-bleedingedge [--config PATH] [--format text|json]
@@ -373,13 +388,18 @@ rigor show-bleedingedge [--config PATH] [--format text|json]
 | `--config PATH` | 自動探索の代わりにこの`.rigor.yml`を使用する。 |
 | `--format text\|json` | 出力形式。デフォルトは`text`。 |
 
-キューに積まれた各機能は、その安定したid、それが課す重要度、そしてあなたの設定がそれを採用しているかどうかとともに現れます。ブリーディングエッジが安定性モデルにどう収まるかは[`docs/compatibility.md`](../../compatibility/)を参照してください。
+キューに積まれた各フィーチャーは、その安定したid、その**種別**（`severity`または`behaviour`）、そしてあなたの設定がそれを採用しているかどうかとともに現れます。`severity`フィーチャーはそれが課すルール → 重要度の差分も出力します。`behaviour`フィーチャーは、どのルールの重要度も動かさずに測定・アルゴリズム・デフォルトを変えるので、そうした差分を持たず、そのサマリーが説明のすべてです。ブリーディングエッジが安定性モデルにどう収まるかは[`docs/compatibility.md`](../../compatibility/)を参照してください。
 
 現在キューに積まれているもの:
 
-| Feature id | 変わる内容 |
-| --- | --- |
-| `reject-unparseable-signatures` | `signature_paths:`配下のパースできない`.rbs`は、警告付きでスキップされる代わりに**実行を失敗させます**（`rbs.coverage.quarantined-signature` → `error`）。 |
+| Feature id | 種別 | 変わる内容 |
+| --- | --- | --- |
+| `reject-unparseable-signatures` | severity | `signature_paths:`配下のパースできない`.rbs`は、警告付きでスキップされる代わりに**実行を失敗させます**（`rbs.coverage.quarantined-signature` → `error`）。 |
+| `use-of-void-value` | severity | 作者が宣言した`-> void`の戻り値から復元された値を値コンテキストで使うことが、`static.value-use.void`（`warning`）として報告されます。 |
+| `discovery-seeded-mutation-sites` | behaviour | [`rigor coverage --protection --mutation`](../15-type-protection-coverage/)が、ティア1がすでに使っているのと同じクロスファイルのプロジェクトディスカバリーに対して計測します —— サイトを選ぶときも、破壊が捕捉されたかを判定するときも —— そのため*兄弟*ファイルで宣言されたプロジェクトクラスへの呼び出しが、捨てられる代わりに計測され、そこでの破壊が実際に捕捉されうるようになります。**分母にサイトを足すので、報告される有効性比率が動きます** —— 採用前に、CIで固定している`--threshold`と突き合わせて確認してください。 |
+| `dependent-closure-kill-oracle` | behaviour | [`rigor coverage --protection --mutation`](../15-type-protection-coverage/)が、破壊を捕捉されたとみなす条件を、ミューテーションされたファイル**またはそれに依存するファイル**のどこかに診断が現れることに広げます（従来はミューテーションされたファイル内のみ）—— メソッドの戻り値の変更が、エラーがその呼び出し元に現れたときに捕捉としてカウントされます。キルを**足す**ことしかできないので比率は上がるか変わらないかのどちらかです。ミュータント1つあたりの実時間コストが約3分の1増え、これを有効にして計測した比率は、無効で計測したものとは比較できません。 |
+
+フィーチャーが**卒業**する —— メジャーでデフォルトになる（[ADR-50](../../adr/50-release-engineering-and-stability-strategy/) § WD7）—— と、キューのリストを離れて`Graduated`の下に現れます。これは`bleeding_edge:`でそれを名指ししてももう何も起きないことの確認です: その挙動は全員に対して有効になっています。何も卒業していない間、このセクションは現れません。`--format json`では同じ情報が`graduated`配列であり、`overlay`（キューに積まれたすべてのフィーチャー。それぞれ`kind`付き）・`active`・`unknown_selected`と並びます。
 
 ## `rigor doctor`
 

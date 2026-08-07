@@ -3,14 +3,14 @@ title: "キャッシュレイヤー — `Rigor::Cache`"
 description: "rigortype/rigor docs/internal-spec/cache.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/cache.md"
 sourcePath: "docs/internal-spec/cache.md"
-sourceSha: "acff734a6dd59dd8733e6e4d563c3cc84b01d5d8cda0366d2fd2956c8f1bb919"
-sourceCommit: "42402864a316beb0d5ba4357ec29454ab55f6657"
+sourceSha: "0444d851f550588b0e4d55d40a64e790743c4654ab70f69519777a54faa833b8"
+sourceCommit: "17f7d081a694f9cfdfaebd7fc71ebfc7171e2a6d"
 translationStatus: "translated"
 sidebar:
   order: 3050
 ---
 
-ステータス: **安定（v0.0.8で導入;現行ディスクリプタスキーマv5）**。このドキュメントはキャッシュレイヤーの公開リード形を追跡します。以下のスライス（slice）はすべて着地し、v0.1.x全体で安定しています;ディスクリプタの`SCHEMA_VERSION`はADR-10のgemバージョンごとの`dependencies`スロットのために`2`へ、`RbsLoader.build_env_for`が欠落した`signature_paths:`名前空間を合成し始めたときに`3`へ（古いRigorによってmarshalされたRBS環境——それらのシグネチャを不活性なまま残してしまう——は再構築されます）、[ADR-60](../adr/60-pre-freeze-plugin-contract-consolidation.md) WD3がレコードアンドバリデートのプラグインプロデューサーキャッシュ向けに`globs`スロット（`GlobEntry`）を追加したときに`4`へ、そして[ADR-87](../adr/87-null-build-floor.md) WD1が`:stat` `FileEntry` comparator（statしてからダイジェストの検証）を追加したときに`5`へ引き上げられました。v0.0.8の5つのスライスがすべて着地しました。`Rigor::Cache::Descriptor`（スライス1 —— すべてのキャッシュ済み値が付随する基板）、`Rigor::Cache::Store`（スライス2 —— ディスクリプタ・プロデューサー・パラメータを消費してキャッシュ済みまたは新規計算済みの値を返すファイルシステムバックのストレージ）、最初のキャッシュ済みプロデューサー —— RBS定数テーブル（スライス3）——、CLI可観測フラグ`--cache-stats` / `--clear-cache`（スライス4）、そして診断の来歴（スライス5）です。さらに4つのRBS由来のプロデューサーがv0.0.9で着地しました。
+ステータス: **安定（v0.0.8で導入;現行ディスクリプタスキーマv6）**。このドキュメントはキャッシュレイヤーの公開リード形を追跡します。以下のスライス（slice）はすべて着地し、v0.1.x全体で安定しています;ディスクリプタの`SCHEMA_VERSION`はADR-10のgemバージョンごとの`dependencies`スロットのために`2`へ、`RbsLoader.build_env_for`が欠落した`signature_paths:`名前空間を合成し始めたときに`3`へ（古いRigorによってmarshalされたRBS環境——それらのシグネチャを不活性なまま残してしまう——は再構築されます）、[ADR-60](../adr/60-pre-freeze-plugin-contract-consolidation.md) WD3がレコードアンドバリデートのプラグインプロデューサーキャッシュ向けに`globs`スロット（`GlobEntry`）を追加したときに`4`へ、そして[ADR-87](../adr/87-null-build-floor.md) WD1が`:stat` `FileEntry` comparator（statしてからダイジェストの検証）を追加したときに`5`へ、そして`append_stub_declarations`が、参照型スタブそれぞれに必要な宣言の種別を出力し、各宣言を個別に検証し始めたときに`6`へ引き上げられました（古いRigorによってキャッシュされた環境 —— ぶら下がった`interface`や型エイリアスの参照に当たるとスタブのバッチ全体を捨てていた —— は再構築されます）。v0.0.8の5つのスライスがすべて着地しました。`Rigor::Cache::Descriptor`（スライス1 —— すべてのキャッシュ済み値が付随する基板）、`Rigor::Cache::Store`（スライス2 —— ディスクリプタ・プロデューサー・パラメータを消費してキャッシュ済みまたは新規計算済みの値を返すファイルシステムバックのストレージ）、最初のキャッシュ済みプロデューサー —— RBS定数テーブル（スライス3）——、CLI可観測フラグ`--cache-stats` / `--clear-cache`（スライス4）、そして診断の来歴（スライス5）です。さらに4つのRBS由来のプロデューサーがv0.0.9で着地しました。
 
 このモジュールが実装するスキーマは以下によって固定されています。
 
@@ -57,7 +57,7 @@ GlobEntry       :: { root: String, pattern: String, value: String }
 
 プロデューサー・入力・ディスクリプタの組み合わせに対して標準的なhex SHA-256キャッシュキーを返します。キーは以下を組み込みます。
 
-1. `Descriptor::SCHEMA_VERSION`（現在は`5` — v2はADR-10のgemバージョンごとのキャッシュスライスのために`dependencies`スロットを追加した;v3は`build_env_for`が欠落した`signature_paths:`名前空間を合成し始める前にmarshalされたRBS環境を無効化する;v4はADR-60 WD3のレコードアンドバリデートのプラグインプロデューサーキャッシュのために`globs`スロットを追加した;v5はADR-87 WD1のstatしてからダイジェストの検証のために`:stat` `FileEntry` comparatorを追加した）。この定数をバンプするとすべてのキャッシュ済み値が無効化されます。
+1. `Descriptor::SCHEMA_VERSION`（現在は`6` — v2はADR-10のgemバージョンごとのキャッシュスライスのために`dependencies`スロットを追加した;v3は`build_env_for`が欠落した`signature_paths:`名前空間を合成し始める前にmarshalされたRBS環境を無効化する;v4はADR-60 WD3のレコードアンドバリデートのプラグインプロデューサーキャッシュのために`globs`スロットを追加した;v5はADR-87 WD1のstatしてからダイジェストの検証のために`:stat` `FileEntry` comparatorを追加した;v6は`append_stub_declarations`が参照型スタブそれぞれに必要な宣言の種別を出力し各宣言を個別に検証するようになる前にmarshalされたRBS環境を無効化する。これによりぶら下がった`interface`や型エイリアスの参照がスタブのバッチ全体を捨てることはなくなった（#237））。この定数をバンプするとすべてのキャッシュ済み値が無効化されます。
 2. `producer_id`（キャッシュスライスの名前空間となる安定した文字列）。
 3. `params`（プロデューサーの入力ハッシュ）。再帰的に正規化されます。ハッシュキーは文字列化してソートし、シンボルは文字列化し、配列は順序を保持します。
 4. ディスクリプタの正規ハッシュ形式。
@@ -109,6 +109,23 @@ GlobEntry       :: { root: String, pattern: String, value: String }
 ### `store.peek_validated(producer_id:, key_descriptor:, params: {}, deserialize: nil) -> Object?`
 
 `fetch_or_validate`の読み取り半分（[ADR-87](../adr/87-null-build-floor.md) WD4）で、計算も書き込みもありません: 鮮度のあるヒットではキャッシュ済み値を返し、ミス・古い依存関係ディスクリプタ・利用不可のディスク層では`nil`を返します。ブロックを取らずプロデューサーを決して走らせないため、永続化するものは何もありません。ブートスリミングのプローブがこれを呼び出し、推論エンジンをまったくロードせずにランの診断を提供します。ヒットは記録しますが（`--cache-stats`が依然として釣り合うように）、ミスは決して記録しません —— プローブのミスはフルパスへ引き継がれ、そちらが自身のミスを記録します。
+
+### 計算値のキーにおけるエンジンの同一性
+
+値がアナライザーの*計算*の関数であるキャッシュ —— `analysis.run-diagnostics`・`protection.mutation-file-result`・`IncrementalSnapshot` —— は、`Rigor::VERSION`だけでなくエンジンのソースをMUSTキーにしなければなりません。バージョンがバイト列を固定するのはRubyGemsからインストールされたgemの場合だけであり、それ以外では固定しません。そのため編集された作業ツリーではウォームな実行が編集前の診断を再生してしまい、エンジン変更の前後比較は、稼いでいないゼロを報告してしまいます（[#285](https://github.com/rigortype/rigor/issues/285)）。
+
+`Cache::EngineSource.identity`がこのスロットを供給します。2つのレジームがあります:
+
+- **バージョン固定** —— ツリーが`<gem_home>/gems/rigortype-<VERSION>`にあり、`.git`を持たない場合。`nil`を返し、呼び出し元は設定エントリーを**追加しません**。したがってリリース済みgemのキーは#285以前のものとバイト単位で同一であり、計算コストもゼロです。この述語は固定されていることに対して肯定的なので、認識できないレイアウトはすべて可変側に落ちます。
+- **可変** —— それ以外すべて（チェックアウト、`bundle add rigor, github:`のクローン、`path:` gem）。呼び出し元は`engine-source`設定エントリーを追加します。これはgemルート下の`lib/`と`plugins/`にあるすべての`.rb`に対するSHA-256で、各ファイルはその**ルート相対パス**と**内容**を寄与します。statタプルではなく内容です: statタプルはキャッシュ*キー*に入れることが禁じられており（`FileEntry`参照）、パス相対の内容ダイジェストこそが、同じコミットの再クローンやCIの新規チェックアウトをまたいでキーを生き延びさせるものだからです。
+
+ソースを読めない可変ツリーは`EngineSource::Unavailable`をraiseし、すべての呼び出し元がこれを「この実行にキャッシュなし」へ変換します。バージョンのみのキーへフォールバックすることは禁止されています: それはこのスロットが塞ぐために存在するまさにその盲点を復活させるからです。`IncrementalSnapshot.fingerprint`にとってそれは`nil`を返すことを意味し、スナップショットを両側で無効化します —— `IncrementalSession`はロードとセーブの両方をそれでガードするので、同じく同定不能な次の実行が突き合わせるための`nil`キーのブロブが書かれることはありません。
+
+本番の呼び出し元は`EngineSource.process_identity`を通じてダイジェストを読み、これはプロセスごとに一度だけ計算します。このメモ化は最適化である前に正しさの表明です: あるキャッシュ値を計算したエンジンはrequireが終わった時点で固定されるので、実行の途中で`lib/`を読み直せば、それを実行していないソースに対して値をキー付けることになります。forkプールのワーカーが親のメモを継承するのが正しいのも同じ理由です —— それは親のイメージを走らせているからです。`identity`自体は非キャッシュのまま、計算そのものであり、specが差し替える継ぎ目です。
+
+エンジンの変更は`IncrementalSnapshot`の**全体**を落とし、一部ではありません。`digests`を除くすべてのセクションはアナライザーが計算した値なので、変わったエンジンはそのどれをも動かしえます —— 依存エッジも含みます。新しいエンジンが旧エンジンの取り逃がしたエッジを記録した場合、再チェックはまさに再解析が必要だったファイルをスキップしてしまいます。唯一のエンジン非依存セクションを残すことも割に合いません: `digests`はこのリポジトリの2.5 MBのスナップショットの2.5%であり、再導出はファイルダイジェストの走査で、節約するはずのフル実行の約0.2%のコストです。したがってエンジンの編集は、設定や`sig/`の編集がすでにそう振る舞うのとまったく同じに振る舞います。
+
+`Protection::MutationCache`はスナップショットをロードする前に`EngineSource`をプローブします。どちらでも健全です —— 同定不能なエンジンは`nil`のフィンガープリントを生み、それがスナップショットのロードを失敗させてキャッシュを無効化します —— が、そうしないとユーザーが目にする理由が`NO_SNAPSHOT`になってしまい、それは`rigor check --incremental`を実行せよという、別の問題に対する対処を伝えてしまいます。
 
 ### 読み込みフォールトトレランス
 
@@ -356,13 +373,15 @@ Rigor::Cache::RbsDescriptor.build(loader)
 
 ```
 Cache (root: .rigor/cache)
-  schema_version: 0.2.8.4.2
+  schema_version: 0.3.1.6.2
   3 entries, 12.4 KiB
     rbs.constant_type_table: 1 entries, 11.0 KiB
-    reflection.instance_method_definition: 2 entries, 1.4 KiB
+    rbs.environment: 2 entries, 1.4 KiB
   this run: 5 hits, 1 miss, 1 write
     rbs.constant_type_table: 5 hits, 1 miss, 1 write
 ```
+
+`schema_version`の行は固定のリテラルではありません —— `Store.schema_marker_value`、すなわち`"<PAYLOAD_ABI_VERSION>.<Descriptor::SCHEMA_VERSION>.<Store::FORMAT_VERSION>"`（`PAYLOAD_ABI_VERSION`は`Rigor::VERSION`）です。上のサンプルは執筆時点でそれが構成する値（`0.3.1` + スキーマ`6` + フォーマット`2`）です。インストール済みのリリースと食い違っている場合は、不具合ではなくこのサンプルが古いのだと読んでください。
 
 キャッシュディレクトリが存在しない場合、`schema_version`は`absent`と表示され、本文は`(empty)`を示します。ランナーにStoreがない場合（例: `--no-cache`下）、`this run:`セクションは省略されます。報告するインメモリ状態がないためです。
 

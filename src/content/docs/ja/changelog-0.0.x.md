@@ -3,8 +3,8 @@ title: "チェンジログ — 0.0.xアーカイブ"
 description: "rigortype/rigor docs/CHANGELOG-0.0.x.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/CHANGELOG-0.0.x.md"
 sourcePath: "docs/CHANGELOG-0.0.x.md"
-sourceSha: "c8e306aa8616582c423e680d63270f24edf661c7f2c0e4b42e3b913e8d1f2295"
-sourceCommit: "94bccefcb8e324ea2322199418f33e80617b8e33"
+sourceSha: "49f83421c535e3c054a0d0e4fe147158e0c82b9447c0cf28c7d47e8f8624bed9"
+sourceCommit: "17f7d081a694f9cfdfaebd7fc71ebfc7171e2a6d"
 translationStatus: "translated"
 sidebar:
   order: 9050
@@ -49,7 +49,7 @@ sidebar:
 - **`Rigor::Scope`、`Rigor::Environment`、`Rigor::Type::Combinator`、`Rigor::Reflection`のパブリックAPIドリフトスペック**。`spec/rigor/public_api_drift_spec.rb`のスナップショットスタイルスペックが各名前空間のインスタンス + シングルトンメソッドセットをピン留めし、偶発的なシグネチャ変更がサイレントな破壊ではなくテスト失敗として現れるようにします。4つの名前空間はv0.1.0プラグイン契約の接続点です。
 - **`docs/internal-spec/public-api.md`**。パブリック / 内部安定性境界が明示的に宣言されました: 今日どの名前空間がドリフトピン留めされているか（Scope / Environment / Type::Combinator / Reflection）、v0.1.0まで流動的なパブリック形状のもの（FlowContribution、Diagnostic、Cache::Store#fetch_or_compute、RbsExtendedディレクティブリーダー）、および厳密に内部のもの（Inference::*、Analysis::FactStore / CheckRules / Runner、AST::*バーチャル、Source / CLI / Configurationプラミング）。
 
-### 内部
+### 変更
 
 - キャッシュレイヤーのパブリック読み取り形状が[`docs/internal-spec/cache.md`](../docs/internal-spec/cache/)の全6プロデューサーをカバーするよう拡大: `Descriptor`、`Store`（新しい`serialize:` / `deserialize:` kwargsと`Store#stats`を含む）、`RbsConstantTable`、`RbsKnownClassNames`、`RbsClassAncestorTable`、`RbsClassTypeParamNames`、`RbsEnvironment`、共有`RbsDescriptor`ビルダー、`RBS::Location` Marshalパッチ。
 - `Rigor::FlowContribution`が[`docs/internal-spec/flow-contribution.md`](../docs/internal-spec/flow-contribution/)に文書化されました（スロットテーブル、等値性 / `to_h` / `empty?`セマンティクス、`RbsExtended.read_flow_contribution`マッピング（predicate-if-* → `truthy_facts` / `falsey_facts`、`assert*` → `post_return_facts`、`return:` → `return_type`）、延期された要素リストフラット化のノートを含む）。
@@ -66,8 +66,6 @@ sidebar:
 - **`rigor check --cache-stats`**。ランの最終にオンディスクインベントリを出力します（プロデューサーごとのエントリーカウント、合計バイト、スキーマバージョンマーカー）。新しい`Rigor::Cache::Store.disk_inventory(root:)`クラスメソッドから取得。ランごとのヒット / ミスカウンタはプロダクションコードがキャッシュを配線するまで延期。
 - **`rigor check --clear-cache`**。解析ランの前に`.rigor/cache`ディレクトリ（CWD相対）を削除します。`Cleared cache: .rigor/cache`または`Cache already empty: .rigor/cache`を出力します。チェック自体は完了まで実行されます。
 - **診断ソースファミリー由来**。`Rigor::Analysis::Diagnostic`に`source_family:` kwarg（デフォルト`:builtin`）と非デフォルトファミリーには`"#{source_family}.#{rule}"`を、組み込み診断には`rule`を返す`qualified_rule`アクセサが追加されました。JSON出力（`to_h`）は`source_family`と生の`rule`の両方を並べて持ちます。プラグインAPI自体にコミットすることなくADR-2のプラグイン可観測性ストーリーを準備します; v0.0.8でデフォルト以外のソースファミリーを設定するプロダクション呼び出し元はありません。
-
-### 内部
 
 - 新しい規範的仕様[`docs/internal-spec/cache.md`](../docs/internal-spec/cache/)がキャッシュレイヤーのパブリック読み取り形状を追跡します（Descriptor API、Store API、ファイルフォーマット、アトミシティとロック、スキーマバージョン不一致動作、ディスクインベントリ、診断由来）。
 
@@ -375,14 +373,13 @@ gemはRubyGemsに**`rigortype`**として公開されています（`rigor`の�
 - **PHPStan形式の型ヘルパー**。`Rigor::Testing.dump_type`は推論された型を`:info`診断として表面化します; `Rigor::Testing.assert_type("expected", value)`は推論された型の短い説明がマッチしない場合にエラーを発生させます。フィクスチャを自己アサーティングにするために使用します。
 - **自己アサーティング統合スイート**。`spec/integration/fixtures/`下のフィクスチャ駆動の例——等価性 / case-when / 複合書き込み / is_a?ナローイング / TupleとHashShapeアクセス / Array#mapブロック戻り値型アップリフト / 早期リターンナローイング / RBS::Extended述語 / ユーザー定義メソッドディスパッチをカバーします。
 
-### 既知の制限事項（v0.0.2に延期）
+**既知の制限事項**（v0.0.2に延期）:
 
 - ユーザー定義メソッドのプロシージャ間推論。`def is_odd(n) = n.odd?`のようなヘルパーはdef内で正しく型付けされますが、呼び出し元はRBSシグが提供されるまで`Dynamic[top]`を観察します。
 - `RBS::Extended`は述語効果サーフェスのみをリリースします。`assert` / `assert-if-true` / `assert-if-false`、否定（`~T`）、自己ターゲットナローイング、積集合 / ユニオン精製、`param` / `return` / `conforms-to`ディレクティブは延期されます。
 - 永続キャッシュなし——すべての`rigor check`実行がプロジェクトを再解析して再型付けします。
 - バンドルされた`RBS::Extended`リーダーを超えたプラグイン貢献レイヤーなし。
 - ルールごとの重大度は`:error`にハードコードされています（`dump_type`用の`:info`を予約）;ルールごとの設定と抑制コメントは延期されます。
-
 
 [0.0.9]: https://github.com/rigortype/rigor/compare/v0.0.8...v0.0.9
 [0.0.8]: https://github.com/rigortype/rigor/compare/v0.0.7...v0.0.8

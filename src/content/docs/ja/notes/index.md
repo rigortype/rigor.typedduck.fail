@@ -3,8 +3,8 @@ title: "リサーチ・サーベイノート"
 description: "rigortype/rigor docs/notes/README.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/README.md"
 sourcePath: "docs/notes/README.md"
-sourceSha: "2a7945c5204c4ea689ea9b6dcbb3ff1f83229f1d097ab34474c931663b312956"
-sourceCommit: "42402864a316beb0d5ba4357ec29454ab55f6657"
+sourceSha: "8908edb80120f4725f0968a9e0f4eb6e8b36645437371f01cb5aa57821a85c05"
+sourceCommit: "17f7d081a694f9cfdfaebd7fc71ebfc7171e2a6d"
 translationStatus: "translated"
 sidebar:
   order: 6000
@@ -63,6 +63,9 @@ sidebar:
 | 2026-06-20 | [OpenCode (ACP) cross-model validation — driving `rigor-next-steps` across 13 models](20260620-opencode-acp-cross-model-validation/) |
 | 2026-07-04 | [Railsカバレッジ強化オンボーディング — sig-gen carrierトラップとengine-boundな天井（redmine / mastodon）](20260704-rails-coverage-onboarding-carrier-trap/) |
 | 2026-07-06 | [Mastodon型カバレッジ穴のprovenance分析 + sig-genのRBS妥当性クラッシュ](20260706-mastodon-coverage-provenance-and-siggen-rbs-validity/) |
+| 2026-08-05 | [`&&` / `\|\|`の値極性ゲート —— FPリスクの評価（issue #152）](20260805-issue-152-and-or-polarity-gate-fp-evaluation/) |
+| 2026-08-05 | [`if` / `unless`の真偽性による削除 —— 判定が何に依拠しているかのコーパス調査（issue #286）](20260805-issue-286-if-unless-truthiness-elision-census/) |
+| 2026-08-06 | [`if` / `unless`の削除 —— 楽観的キャリアのprovenance調査と双方向A/B（issue #286）](20260806-issue-286-optimistic-carrier-provenance-census/) |
 
 ## アナライザーの自己テスト（teeth・偽陰性）
 
@@ -93,6 +96,8 @@ sidebar:
 | 2026-05-28 | [Upstream `ruby/rbs` PR — `Resolv::DNS` typeclass-narrowed return](20260528-rbs-upstream-pr-resolv-typeclass/) |
 | 2026-06-03 | [プラグインファイルを`Plugin::Base`契約に対して型付けする — スパイク調査の所見](20260603-plugin-contract-self-typing-spike/) |
 | 2026-06-03 | [セッションレポート — プラグイン契約を型付けする（6コミットの着地）](20260603-plugin-contract-typing-session-report/) |
+| 2026-07-30 | [sig-genライターの更新パスに`RBS::Rewriter`を使う —— 評価](20260730-rbs-rewriter-sig-gen-writer-evaluation/) |
+| 2026-07-30 | [インラインRBS: `rbs-inline` gem vs `RBS::InlineParser` —— 文法差分](20260730-inline-rbs-parser-grammar-diff/) |
 
 ## パフォーマンス・プロファイリング
 
@@ -107,6 +112,7 @@ sidebar:
 | 2026-06-27 | [Corpus cold/warm re-profile — v0.2.6 new-bottleneck check](20260627-corpus-cold-warm-reprofile/) |
 | 2026-07-18 | [CIテスト時間の伸び — 要因分解（instance gacha vsテスト増加vs binpacker）、カテゴリー分割・有料runnerの否定、md-only PRスキップの落としどころ](20260718-ci-test-time-growth-attribution/) |
 | 2026-07-25 | [`rigor check lib`アロケーション帰属 — 55%は一度きりのRBS環境ビルド、#101ルールは0.24%](20260725-check-allocation-attribution/) |
+| 2026-07-30 | [参照型スタブのパス1 —— 静的検出はビルダーと一致し（コールドラン比−32.8%）、スタブ合成の実バグを2件検出](20260730-stub-pass1-static-detection-evaluation/) |
 
 ## プロセス・メタ
 

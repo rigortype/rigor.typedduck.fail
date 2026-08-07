@@ -3,8 +3,8 @@ title: "チェンジログ — 0.2.xアーカイブ"
 description: "rigortype/rigor docs/CHANGELOG-0.2.x.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/CHANGELOG-0.2.x.md"
 sourcePath: "docs/CHANGELOG-0.2.x.md"
-sourceSha: "452da8b92c3633674f2906179fac08ea5566524a7a056ea506d0debce7a2a70d"
-sourceCommit: "42402864a316beb0d5ba4357ec29454ab55f6657"
+sourceSha: "e392aee10b3019b9c54337a9ed77a911271ff5743e303d6f18e027830ab1de07"
+sourceCommit: "17f7d081a694f9cfdfaebd7fc71ebfc7171e2a6d"
 translationStatus: "translated"
 sidebar:
   order: 9050
@@ -206,11 +206,9 @@ v0.2.2はSKILL駆動のオンボーディング体験を中心に据えます。
 - **[cli]** `rigor skill describe`が、Railsプラグインが1つも有効化されていない*設定済みの*Railsプロジェクトに対して、今や`rigor-rbs-setup`よりも先に`rigor-plugin-tune`を推奨します——ActiveRecord / routes / i18nのプラグインを配線することは、コミュニティRBSよりも多くを解決します（2026-06-20のフィールドトライアルの目玉のケース）。手がかりは存在ベースです: `Gemfile.lock`にRailsがあり、かつ設定に`rigor-rails-*`プラグインがないこと。
 - **[cli]** `rigor check`が、RBS環境が空である（`RBS classes available: 0`）ときに、今や目立つWARNINGを出力します。通常の実行は常にバンドルされたコア + 標準ライブラリのRBSを読み込むので、ゼロは環境の構築が失敗した——たいていは`signature_paths:`内の重複宣言——ことを意味し、空へフォールバックして、それ以外は「成功した」実行を、ほぼ役に立たない型カバレッジで残します（ほとんどの診断とカバレッジが発火できません）。それを表面化させることは、壊れたセットアップがクリーンな解析と取り違えられるのを止めます——フィールドトライアルのredmineのケースは、さもなければ0カバレッジのcheckをCIに配線していたでしょう。
 
-### パフォーマンス
-
 - **[inference]** `ScopeIndexer`のシードパスが、各ファイルのASTをより少ない回数歩きます。ディスカバリーの事前パスは、テーブルごとに別々のフルツリー降下を実行していました;とりわけ、発見されたメソッドの走査とインスタンスメソッドのdefノードの走査は、バイト単位で同一のクラス / モジュール / シングルトンの走査を持ちながら独立して実行され、クロスファイルの事前パスはdefノードツリーを*2回*歩いていました（一度は`merge_discovered_defs`で、一度は`record_class_sources`で）。1つの結合された`walk_methods_and_def_nodes`降下が、今や両方のテーブルを一度に生成し、defノードのテーブルは再計算される代わりにその2番目の消費者へスレッドされます。定義密度の高いライブラリが最も恩恵を受けます——`mail` gem（196ファイル）でのコールドな`rigor check --no-cache`は、約8%少ないオブジェクトを確保します（20.6M → 18.9M）;MastodonとRedmineは約0.5〜1%下がります。診断は調査コーパス全体でバイト単位で同一です（[プロファイリングノート](../docs/notes/20260620-corpus-cold-warm-reprofile/)）。
 
-### ドキュメント
+### 修正
 
 - **[docs]**ハンドブック、マニュアル、および内部 / 型仕様のツリー横断の一貫性監査が、実装に対して表面化した矛盾のバッチを修正しました。
   - 重大度と文法: ハンドブックのエラーの章が2つのルールに対して誤ったデフォルト重大度をリストしていました（`call.possible-nil-receiver`は`warning`ではなく`error`;`def.ivar-write-mismatch`は`balanced`下では`error`ではなく`warning`）;`RBS::Extended`のディレクティブ文法が、`assert` / `assert-if-*` / `predicate-if-*` / `conforms-to`のディレクティブに余分なコロンを持ち（`return:`と`param:`だけがコロンを取ります）、存在しない`assertion-on`ディレクティブを文書化していました。一方で、実在する`assert-if-true` / `assert-if-false`ディレクティブは今やディレクティブテーブルに入っています;そしてハンドブックの第9章と複数の付録が、削除された`flow_contribution_for`プラグインフックを依然として現行として提示しており、今は`dynamic_return` / `type_specifier`です（[ADR-52](../docs/adr/52-compiled-plugin-contribution-dispatch/)）。

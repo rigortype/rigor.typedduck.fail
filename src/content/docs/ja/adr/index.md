@@ -3,8 +3,8 @@ title: "アーキテクチャ決定記録"
 description: "rigortype/rigor docs/adr/README.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/README.md"
 sourcePath: "docs/adr/README.md"
-sourceSha: "1f5149d28d5ed2a14c0cf7ac42b2d56be981a29ade926e2e3bc78178838c9925"
-sourceCommit: "42402864a316beb0d5ba4357ec29454ab55f6657"
+sourceSha: "8e385dac9a11188fb21fa0ec6f8b41d41a6c8148490fb9d4ecb47c34ca8ac8cb"
+sourceCommit: "17f7d081a694f9cfdfaebd7fc71ebfc7171e2a6d"
 translationStatus: "translated"
 sidebar:
   order: 4000
@@ -55,7 +55,7 @@ sidebar:
 | ADR-29 | [ブラウザプレイグラウンド](29-browser-playground/) | Accepted（v0.1.10〜0.1.11でサーバーサイドプレイグラウンド；ブラウザ内`ruby.wasm`ビルドを2026-06-14/15に出荷） |
 | ADR-30 | [`rigor-ffi`プラグインの形状](30-rigor-ffi-plugin-shape/) | Proposed（未実装） |
 | ADR-31 | [貢献およびサプライチェーンポリシー](31-contribution-and-supply-chain-policy/) | Accepted（発効中） |
-| ADR-32 | [オプトインプラグインとしてのインラインRBSコメント取り込み](32-rbs-inline-comment-ingestion/) | Accepted（v0.1.10で実装） |
+| ADR-32 | [オプトインプラグインとしてのインラインRBSコメント取り込み](32-rbs-inline-comment-ingestion/) | Accepted（WD11/WD12はrbs-inline gemをリーダーとして維持、2026-07-30） |
 | ADR-33 | [MCPサーバーパッケージング](33-mcp-server/) | Accepted（v0.1.10で実装） |
 | ADR-34 | [トップレベルのunresolved implicit-self呼び出しはデフォルトで警告する](34-toplevel-unresolved-self-call-default/) | Accepted（v0.1.13で実装；ADR-29のPlaygroundデフォルト重大度の配線も出荷——そのサンドボックス設定が`severity_profile: strict`を設定する） |
 | ADR-35 | [オーバーライドのシグネチャ互換性（リスコフのシグネチャ規則）](35-override-signature-compatibility/) | Accepted（スライス1〜4完了；スライス5は見送り） |
@@ -90,7 +90,7 @@ sidebar:
 | ADR-64 | [非nilの引数型不一致とcoerceの障壁](64-non-nil-argument-type-mismatch/) | Accepted（非nilチャネルを構築し、多重オーバーロードメソッドに対してゲート） |
 | ADR-65 | [診断の証拠ティアとドキュメントURL](65-diagnostic-evidence-tier-and-doc-url/) | Accepted（2026-06-15に実装；精度加算的） |
 | ADR-66 | [タグ付きユニオンのメンバー型付け（タグキーによるナローイング）](66-discriminated-union-member-typing/) | Proposed（未実装；需要ゲート付き） |
-| ADR-67 | [パラメータ型推論（M3フロンティア）: 呼び出しサイトと本体内、精度加算的のみ](67-parameter-type-inference/) | Accepted（WD1+WD3+WD5を実装；WD6のcheckウォーク有効化を2026-07-19に設計、スライスはキュー入り；WD2は見送り） |
+| ADR-67 | [パラメータ型推論（M3フロンティア）: 呼び出しサイトと本体内、精度加算的のみ](67-parameter-type-inference/) | Accepted（WD6をオプトインで投入；デフォルト有効化は2026-07-30に見送り；WD6cのインクリメンタル除外を解除；WD2は見送り） |
 | ADR-68 | [プラグインが宣言可能なクラスビルダー畳み込み（Struct / Dataを超えるメンバーシェイプキャリア）](68-class-builder-folding/) | Proposed（需要ゲート付き） |
 | ADR-69 | [プラグイン可能なミューテーション基盤（キルオラクル + オペレータシーム）](69-pluggable-mutation-substrate/) | Accepted（両シームを2026-06-17に実装） |
 | ADR-70 | [静的∪動的の融合保護カバレッジ](70-fused-protection-coverage/) | Accepted（2026-06-17に実装；ADR-69のシーム1と同時着地） |
@@ -124,6 +124,7 @@ sidebar:
 | ADR-98 | [開発フロー文書の役割: ハンドオフ、issue、changelog](98-development-flow-document-roles/) | Accepted（2026-07-17に実装；バックログをGitHub Issuesへ移行、`ROADMAP.md`を解消、ハンドオフに上限を設けてゲート） |
 | ADR-99 | [設定スキーマは信頼できる情報源である: `.rigor.yml`のティアと予約パイプライン](99-config-schema-authority/) | Accepted（2026-07-17に実装；スキーマを信頼できる情報源と定め、`rigor_rs:`を予約、ネスト＋予約＋URLのゲートを追加） |
 | ADR-100 | [`static.*`診断ファミリーの形状と`void_origins`サイドテーブル](100-static-diagnostic-family-and-void-origins/) | Accepted（directスライスを出荷；WD4の推移的な設計を2026-07-19に追加、スライスはキュー入り；バジェットidは見送り） |
+| ADR-101 | [分岐の削除は楽観的にnilフリーとされたキャリアに依拠してはならない](101-optimistic-carrier-branch-elision/) | Accepted（2026-08-06に実装；コーパス2,060判定のうち47件に影響、診断は両方向でバイト単位一致） |
 
 ## 新しいADRの追加
 

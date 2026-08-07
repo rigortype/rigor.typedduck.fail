@@ -3,8 +3,8 @@ title: "チェンジログ — 0.1.xアーカイブ"
 description: "rigortype/rigor docs/CHANGELOG-0.1.x.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/CHANGELOG-0.1.x.md"
 sourcePath: "docs/CHANGELOG-0.1.x.md"
-sourceSha: "488aa38cbbe7704b1a8e0c1e0ff1f4b20146ad796086c6b6a46bd14e698862a4"
-sourceCommit: "42402864a316beb0d5ba4357ec29454ab55f6657"
+sourceSha: "983f721ddfac7e21c465175df4d2196b99de276a1a353d603884fe5e05ca1ff8"
+sourceCommit: "17f7d081a694f9cfdfaebd7fc71ebfc7171e2a6d"
 translationStatus: "translated"
 sidebar:
   order: 9050
@@ -46,6 +46,11 @@ v0.1.19は手続き的なRubyに対する精度と信頼性のリリースです
 - **[plugin-api]** `Plugin::Base.producer`は`watch:`——ディスカバリープロデューサーのための宣言的なグロブカバレッジ——を受け付けるようになり、手で組み立てたディスクリプタと「`cache_for`の前にIoBoundaryをプライムする」イディオムを置き換えます;監視対象のグロブ下でのコンテンツ変更、ファイル追加、削除はすべてキャッシュされたインデックスを無効化します（[ADR-60](../docs/adr/60-pre-freeze-plugin-contract-consolidation/) WD3）。
 - **[plugin-api]** 3つの追加的な`Plugin::Base`オーサリングヘルパー——`read_fact`、`producer_value`（`producer_error`付き）、`diagnostics_for`——が、バンドルされたプラグインが手書きしていたプラグイン横断のファクト（fact）読み取り、キャッシュされたプロデューサーメモ、違反から診断へのマップを集約します（[ADR-60](../docs/adr/60-pre-freeze-plugin-contract-consolidation/) WD4）。
 
+- **[inference]** `lib`全体のチェックは、1プロセスで解析されるファイル数に対してもはや超線形にスケールしません。[ADR-57](../docs/adr/57-self-call-return-adoption/)の戻り値採用は呼び出しサイトごとに一度呼び出し先の本体を再型付けしていました;ラン単位の戻り値メモ——メソッド定義、レシーバー型、引数シグネチャをキーとし、再帰推論が実行中はバイパスされる——が、安定した結果をキャッシュするようになりました。
+  - コールドの`rigor check --no-cache lib`セルフチェックは約26%減り、採用コストを取り戻して余りあり、病的なディープヘルパーチェーンのファイル（ActiveStorageの`video_analyzer.rb`）は約1115秒から約0.9秒へ減ります。
+- **[inference]**定数解決が`Environment`ごとにメモ化されるようになりました。`Environment#constant_for_name`はランの間その名前の純粋な関数です（事前定義定数のリファインメントテーブルとRBS定数テーブルはどちらも固定）が、大規模なRailsアプリでは最もホットな非ディスパッチパスでした: `ExpressionTyper#resolve_constant_name`は定数参照ごとにレキシカル候補のはしごを剥がすので、同じ修飾名が何千回も繰り返され——そして外れるたびに、プロジェクト定義の定数ごとに`NameError`をraise + rescueする`const_get`走査を実行していました（よくあるケース）。凍結されたEnvironmentが保持する名前キーのキャッシュ（`HktRegistryHolder`パターン）が、繰り返しをハッシュルックアップへ折りたたみます。Mastodonの`app`+`lib`（1,307ファイル）でのコールドな`rigor check --no-cache`は壁時計時間が約18%減り（約29.3秒 → 約24.0秒）、アロケーションが約16%減ります（62.3M → 52.5M）;診断はバイト単位で同一です。
+- **[plugins/rigor-rails-i18n]**ロケールインデックスの構築は、大規模な翻訳ツリー上でのアロケーションがはるかに少なくなりました。平坦化走査は各ノードで新しいパンくず`Array`を、各レベルで中間結果の`Array`を構築していました（`flat_map { flatten_tree(v, breadcrumbs + [k]) }`）——530ファイル／14 MBのMastodon `config/locales`コーパス上のトップのアロケーションサイト——そしてリーフごとのプレースホルダースキャンは、`%{var}`を持たない大多数も含め、すべての文字列に対してスキャン／平坦化／セットの三点セットをアロケートしていました。走査は今や単一の再利用されるパンくずスタック（push/pop）上でyieldし、プレースホルダー抽出器は`%{`を持たない文字列を短絡します。ロケールの重いRailsアプリのコールド解析は、約17%少ないオブジェクトをアロケートし（Mastodon `app/models`: 11.3M → 9.35M）、ロケールインデックスはバイト単位で同一です。
+
 ### 変更
 
 - **[inference]**再帰メソッドは戻り値型を`Dynamic[top]`で汚染する代わりに、精密な戻り値型を推論するようになりました（[ADR-55](../docs/adr/55-recursive-return-precision/)）。
@@ -86,13 +91,6 @@ v0.1.19は手続き的なRubyに対する精度と信頼性のリリースです
 - **[types]** `Numeric`型付けされた値は偽の`undefined method`エラーなしに`to_f`／`to_i`／`to_r`を呼べるようになり、`Pathname#expand_path`は`Pathname`のベースディレクトリを受け付けます——どちらもupstreamの`ruby/rbs`シグネチャに前置される小さなRigor所有のコアRBSオーバーレイ経由です。
 - **[plugin/sorbet]**強制された`sig { returns(T.untyped) }`は、暗黙のself呼び出しに対しても本体推論を抑制するようになったので、同じクラス内のレシーバーレス呼び出しは、外部呼び出しサイトがすでに読んでいたのと同じ寄与された戻り値型を読みます。
 
-### パフォーマンス
-
-- **[inference]** `lib`全体のチェックは、1プロセスで解析されるファイル数に対してもはや超線形にスケールしません。[ADR-57](../docs/adr/57-self-call-return-adoption/)の戻り値採用は呼び出しサイトごとに一度呼び出し先の本体を再型付けしていました;ラン単位の戻り値メモ——メソッド定義、レシーバー型、引数シグネチャをキーとし、再帰推論が実行中はバイパスされる——が、安定した結果をキャッシュするようになりました。
-  - コールドの`rigor check --no-cache lib`セルフチェックは約26%減り、採用コストを取り戻して余りあり、病的なディープヘルパーチェーンのファイル（ActiveStorageの`video_analyzer.rb`）は約1115秒から約0.9秒へ減ります。
-- **[inference]**定数解決が`Environment`ごとにメモ化されるようになりました。`Environment#constant_for_name`はランの間その名前の純粋な関数です（事前定義定数のリファインメントテーブルとRBS定数テーブルはどちらも固定）が、大規模なRailsアプリでは最もホットな非ディスパッチパスでした: `ExpressionTyper#resolve_constant_name`は定数参照ごとにレキシカル候補のはしごを剥がすので、同じ修飾名が何千回も繰り返され——そして外れるたびに、プロジェクト定義の定数ごとに`NameError`をraise + rescueする`const_get`走査を実行していました（よくあるケース）。凍結されたEnvironmentが保持する名前キーのキャッシュ（`HktRegistryHolder`パターン）が、繰り返しをハッシュルックアップへ折りたたみます。Mastodonの`app`+`lib`（1,307ファイル）でのコールドな`rigor check --no-cache`は壁時計時間が約18%減り（約29.3秒 → 約24.0秒）、アロケーションが約16%減ります（62.3M → 52.5M）;診断はバイト単位で同一です。
-- **[plugins/rigor-rails-i18n]**ロケールインデックスの構築は、大規模な翻訳ツリー上でのアロケーションがはるかに少なくなりました。平坦化走査は各ノードで新しいパンくず`Array`を、各レベルで中間結果の`Array`を構築していました（`flat_map { flatten_tree(v, breadcrumbs + [k]) }`）——530ファイル／14 MBのMastodon `config/locales`コーパス上のトップのアロケーションサイト——そしてリーフごとのプレースホルダースキャンは、`%{var}`を持たない大多数も含め、すべての文字列に対してスキャン／平坦化／セットの三点セットをアロケートしていました。走査は今や単一の再利用されるパンくずスタック（push/pop）上でyieldし、プレースホルダー抽出器は`%{`を持たない文字列を短絡します。ロケールの重いRailsアプリのコールド解析は、約17%少ないオブジェクトをアロケートし（Mastodon `app/models`: 11.3M → 9.35M）、ロケールインデックスはバイト単位で同一です。
-
 ## [0.1.18] - 2026-06-11
 
 このサイクルはRigorをCIの一級市民にします: `rigor check`は6つのCIネイティブな出力フォーマット（SARIF、GitHub Actionsアノテーション、GitLab Code Quality、Checkstyle/reviewdog、JUnit、TeamCity）を獲得し、CI環境を自動検出してフラグなしでプル／マージリクエスト内に診断をインライン表示し、加えてコピーペースト用のセットアップテンプレートと`rigor-ci-setup`スキルを備えます。内部では**プラグイン契約リリース**でもあります: ホットパス上のプラグイン参照はラン単位で一度コンパイルされ、エンジンがすでに保持しているキーでゲートされ、`dynamic_return` DSLは移行が必要とするランタイムの`receivers:`／`methods:`／`file_methods:`ゲートを増やし、レガシーな`flow_contribution_for`フックは**削除**されます——以下に移行テーブルを伴う、認可された1.0前の破壊です（バンドルされたプラグインはすべてすでに移行済み;エンジン所有の単一ノードルール走査がプラグインごとのAST走査を置き換えます）。キャッシュもプロジェクトあたり約33 MBから約2 MBへスリム化します。
@@ -127,14 +125,6 @@ v0.1.19は手続き的なRubyに対する精度と信頼性のリリースです
   - ノードルールプラグインはもはや各自がファイルのASTを走査しません;エンジンがファイルごとに単一の走査を所有し、各ノードをすべてのマッチするルールへディスパッチします。プラグイン向けの振る舞いと診断順序は変わりません。
 - **[plugin contract]** `Rigor::Scope`の14個のテーブル単位のディスカバリー種付けライター（`with_discovered_classes`、`with_class_ivars`、…）が削除されました。意図的な1.0前の破壊です（[ADR-53](../docs/adr/53-scope-discovery-index-separation/)）;`scope.with_discovered_foo(table)`を`scope.with_discovery(scope.discovery.with(foo: table))`へ移行してください（これらのライターは種付け時のみで、実際にはプラグイン向けでありませんでした）。
 
-### 修正
-
-- **[rigor check]** `--workers N`（フォークワーカープール）は、別のプロジェクトファイルで定義されたメソッドへの呼び出しに対して偽の`call.undefined-method`エラーをもはや出さなくなりました。
-  - ワーカープロセスは、逐次パスが種付けするファイル横断の事前パステーブルなしに、各ファイルを空のスコープから解析していたので、ワーカーがローカルに再導出できないファイル横断のプロジェクト呼び出しが未定義として表面化していました（Rigor自身の`--workers 2`セルフチェックで20件のそうしたエラー）;プールコーディネーターが今や種テーブルをすべてのワーカーへスレッドし、バイト単位で同一の診断を回復します（[ADR-15](../docs/adr/15-ractor-concurrency/)）。
-- **[engine]** `untyped`引数は、純粋に宣言順だけで値ピン留めのRBSオーバーロードを選ぶことがなくなりました。これは`Array(arg)`を空のタプルへ畳み込んで偽の`flow.always-truthy-condition`を発火していました。
-  - 値ピン留めのオーバーロード（そのパラメータが`nil`またはリテラル型のみを受け入れるもの）は、今や引数がその値を証明することを要求します;`Array(nil)`のようなリテラル引数は精密な畳み込みを保ちます。
-- **[engine]** `Data.define`のメンバー畳み込みがメソッド本体内部で動作するようになったので、`def`内の`Point.new(3, 4).x`のような読み取りは`Dynamic[top]`へ縮退する代わりに`3`へ畳み込まれます（[ADR-48](../docs/adr/48-data-struct-value-folding/)）。
-
 ### 削除
 
 - **[plugin-api]** `Plugin::Base#flow_contribution_for`が削除されました——1.0前の認可されたBC破壊です（[ADR-52](../docs/adr/52-compiled-plugin-contribution-dispatch/) WD3、2026-06-11）。依然としてこのフックを定義するプラグインは、ロード時にこのエントリーを指す`ArgumentError`をraiseします。`dynamic_return`／`type_specifier` DSLへ移行してください:
@@ -149,6 +139,14 @@ v0.1.19は手続き的なRubyに対する精度と信頼性のリリースです
   | `FlowContribution`の`exceptional:`スロット | マージャーに無視されていた（`return_type`のみが生き残った）。到達不能性は`dynamic_return`ブロックから`bot`を返すことで表現する（`Rigor::Type::Combinator.bot`）。 |
 
   `dynamic_return`ブロックは素の`Rigor::Type`または`nil`（スキップ）を返します。`receivers:`でも`methods:`でもゲートされないルールは、ロード時に拒否されます（それはあらゆるディスパッチで発火し、`flow_contribution_for`が背負っていたコストになるからです）。
+
+### 修正
+
+- **[rigor check]** `--workers N`（フォークワーカープール）は、別のプロジェクトファイルで定義されたメソッドへの呼び出しに対して偽の`call.undefined-method`エラーをもはや出さなくなりました。
+  - ワーカープロセスは、逐次パスが種付けするファイル横断の事前パステーブルなしに、各ファイルを空のスコープから解析していたので、ワーカーがローカルに再導出できないファイル横断のプロジェクト呼び出しが未定義として表面化していました（Rigor自身の`--workers 2`セルフチェックで20件のそうしたエラー）;プールコーディネーターが今や種テーブルをすべてのワーカーへスレッドし、バイト単位で同一の診断を回復します（[ADR-15](../docs/adr/15-ractor-concurrency/)）。
+- **[engine]** `untyped`引数は、純粋に宣言順だけで値ピン留めのRBSオーバーロードを選ぶことがなくなりました。これは`Array(arg)`を空のタプルへ畳み込んで偽の`flow.always-truthy-condition`を発火していました。
+  - 値ピン留めのオーバーロード（そのパラメータが`nil`またはリテラル型のみを受け入れるもの）は、今や引数がその値を証明することを要求します;`Array(nil)`のようなリテラル引数は精密な畳み込みを保ちます。
+- **[engine]** `Data.define`のメンバー畳み込みがメソッド本体内部で動作するようになったので、`def`内の`Point.new(3, 4).x`のような読み取りは`Dynamic[top]`へ縮退する代わりに`3`へ畳み込まれます（[ADR-48](../docs/adr/48-data-struct-value-folding/)）。
 
 ## [0.1.17] - 2026-06-06
 
@@ -189,11 +187,6 @@ v0.1.17は実プロジェクトの解析を著しく高速にすることに焦�
 
 ## [0.1.16] - 2026-06-03
 
-### 削除
-
-- **[plugin contract]**不活性な`protocols:`マニフェストフィールドが退役しました（[ADR-2](../docs/adr/2-extension-api/)の名残）;それは宣言されていましたが、どのルール、ディスパッチャー、ローダー、または`rigor plugins --capabilities`カタログにも読まれていませんでした。
-  - これは語彙を鋭くします: **インターフェース**は構造的型（RBSの`interface`）であり、一方**プロトコル契約**は[ADR-28](../docs/adr/28-path-scoped-protocol-contracts/)のパススコープな振る舞い契約です。`Manifest`へのほぼゼロのブラスト半径を持つ1.0前の破壊的変更——どのバンドルされたプラグインもそれを宣言していませんでした。
-
 ### 追加
 
 - **[plugin contract]**ノードスコープな診断ルール: プラグインが`node_rule(Prism::CallNode) { |node, scope, path| … }`を宣言し、エンジンがファイルごとに単一のAST走査を所有するので、作者は走査を手で組み立てることなくチェックを書きます（[ADR-37](../docs/adr/37-plugin-interface-segregation/)スライス1）。
@@ -230,6 +223,19 @@ v0.1.17は実プロジェクトの解析を著しく高速にすることに焦�
 - **[docs]**新しいハンドブック付録[プロトコル、インターフェース、構造的型付け](../docs/handbook/appendix-protocols-and-structural-typing/)は、PythonとSwiftの読者が尋ねる問い——「Rigorの`Protocol`はどこ？」——に、**インターフェース**（RBSの構造的型）を**プロトコル契約**（[ADR-28](../docs/adr/28-path-scoped-protocol-contracts/)のパススコープな振る舞い契約）から分離することで答えます。また用語の慣習（ハンドブックREADME）を確立します: 初出時に「インターフェース」を「構造的インターフェース」／「RBSインターフェース」と限定すること。なぜならRubyには`interface`キーワードがなく、素の語はそうしないとRBSが実装する構造的な意味ではなくJava／PHPの*名前的*な意味に読めるからです。
 - **[docs]**新しいハンドブック付録[TypeProfから来る](../docs/handbook/appendix-typeprof/)は、Rigorの語彙をRubyの公式型推論ツールへマッピングし、Steep／TypeScript／PHPStan／mypyの付録に加わります。
 
+### 変更
+
+- **[rigor coverage]**精度メトリックは今や値を生成する式のみを計測します;非式の構文（引数／パラメータリスト、`key => value`ペア、節ヘッダー）は、不透明としてカウントされる代わりに、分子と分母の両方から除外されます。
+  - これは計測の修正であり、推論の変更ではありません: shugo/textbringerは今や精密62.9%を報告します（約 +13ポイント）。古い数値に合わせて調整された`rigor coverage --threshold`は引き上げが必要かもしれません。
+- **[plugins/rigor-sorbet]** Sorbet型語彙の翻訳器は、今や`sig`位置でのユーザー定義のジェネリック適用（`Mangrove::Result::Ok[String, StandardError]`、`Box[Integer]`、任意の非`T::`な`Const[A, B]`）を`untyped`へ縮退させる代わりに`Nominal[name, type_args]`へマッピングするので、ジェネリックなレシーバーがそのインスタンス化を保ちます——これが`rigor-mangrove`に`type_args`を読ませるものです。
+- **[engine]**ユニオン表示は今や2つの簡潔なRBSの綴りを採用し、診断がユーザーが書いたRBSのように読めるようにします: `true | false`のペアは`bool`としてレンダリングされ、`nil`を伴う単一メンバーはオプショナル糖衣構文`T?`でレンダリングされ（`String | nil` → `String?`）、この2つが合成されて`false | true | nil`は`bool?`と読めます。
+  - どちらの折りたたみも[normalization.md](../docs/type-specification/normalization/) §「表示との相互作用」と[rbs-compatible-types.md](../docs/type-specification/rbs-compatible-types/) §「オプショナル」に従い表示のみです;`Union#members`、型の同一性、RBS消去は変わりません。
+
+### 削除
+
+- **[plugin contract]**不活性な`protocols:`マニフェストフィールドが退役しました（[ADR-2](../docs/adr/2-extension-api/)の名残）;それは宣言されていましたが、どのルール、ディスパッチャー、ローダー、または`rigor plugins --capabilities`カタログにも読まれていませんでした。
+  - これは語彙を鋭くします: **インターフェース**は構造的型（RBSの`interface`）であり、一方**プロトコル契約**は[ADR-28](../docs/adr/28-path-scoped-protocol-contracts/)のパススコープな振る舞い契約です。`Manifest`へのほぼゼロのブラスト半径を持つ1.0前の破壊的変更——どのバンドルされたプラグインもそれを宣言していませんでした。
+
 ### 修正
 
 - **[plugins/rigor-activerecord]**設定された`schema_file`（例: `db/schema.rb`）が欠落しているプロジェクトは、もはや大規模アプリでメモリと実行時間を膨らませません;失敗したスキーマ読み取りは今や、ActiveRecordの呼び出しサイトごとに再試行される代わりにメモ化されます。
@@ -245,14 +251,6 @@ v0.1.17は実プロジェクトの解析を著しく高速にすることに焦�
   - `assert_type`は型文字列を最初に要求します（`assert_type("Integer", expr)`）;41個すべてのハンドブックの例は値を最初に書かれていてサイレントにノーオペしていましたが、今や反転されました。
   - 抑制設定キーは`disable`であり、ドキュメントに示された`disabled_rules:`ではありません;ハンドブックとマニュアル全体で修正されました。
   - `--workers=N`／`parallel.workers`はフォークベースであり（[ADR-15](../docs/adr/15-ractor-concurrency/)）、「Ractorワーカー」ではありません;キャッシュ／トラブルシューティング／設定／CLIのページで修正されました。診断カタログは、欠けていた4つの出荷済みルール（`call.unresolved-toplevel`、`def.override-*`ファミリー）を獲得しました。
-
-### 変更
-
-- **[rigor coverage]**精度メトリックは今や値を生成する式のみを計測します;非式の構文（引数／パラメータリスト、`key => value`ペア、節ヘッダー）は、不透明としてカウントされる代わりに、分子と分母の両方から除外されます。
-  - これは計測の修正であり、推論の変更ではありません: shugo/textbringerは今や精密62.9%を報告します（約 +13ポイント）。古い数値に合わせて調整された`rigor coverage --threshold`は引き上げが必要かもしれません。
-- **[plugins/rigor-sorbet]** Sorbet型語彙の翻訳器は、今や`sig`位置でのユーザー定義のジェネリック適用（`Mangrove::Result::Ok[String, StandardError]`、`Box[Integer]`、任意の非`T::`な`Const[A, B]`）を`untyped`へ縮退させる代わりに`Nominal[name, type_args]`へマッピングするので、ジェネリックなレシーバーがそのインスタンス化を保ちます——これが`rigor-mangrove`に`type_args`を読ませるものです。
-- **[engine]**ユニオン表示は今や2つの簡潔なRBSの綴りを採用し、診断がユーザーが書いたRBSのように読めるようにします: `true | false`のペアは`bool`としてレンダリングされ、`nil`を伴う単一メンバーはオプショナル糖衣構文`T?`でレンダリングされ（`String | nil` → `String?`）、この2つが合成されて`false | true | nil`は`bool?`と読めます。
-  - どちらの折りたたみも[normalization.md](../docs/type-specification/normalization/) §「表示との相互作用」と[rbs-compatible-types.md](../docs/type-specification/rbs-compatible-types/) §「オプショナル」に従い表示のみです;`Union#members`、型の同一性、RBS消去は変わりません。
 
 ## [0.1.15] - 2026-05-29
 
@@ -548,14 +546,6 @@ AI支援オンボーディング体験を改善し、`rbs collection install`が
 
 ## [0.1.7] - 2026-05-20
 
-### 変更
-
-- **SKILL再配置——`rigor-plugin-author`が`skills/`から`.claude/skills/`に戻る**、コントリビュータ専用SKILLとして。同じ`[Unreleased]`サイクルの早い段階で、SKILLは「外部プラグイン作者に配布可能」という枠組みの下で`skills/rigor-plugin-author/`に昇格しました。レビューの結果、内容はエンドツーエンドで**rigorモノレポ内部**です——リポジトリの`Makefile`（`make verify`）、`spec/integration/{plugins,examples}/`レイアウト、`spec/integration/support/plugin_helpers.rb`、`.rubocop.yml`の`plugins/**/*` + `examples/**/*`除外、Flake（`nix develop --command ...`）、`plugins/<id>/demo/` / `examples/<id>/demo/`配置慣習を前提とします。ミスマッチは、Troubleshootingの箇条書きが`make verify`（rigor内部のMakefileターゲット）を参照したときに顕在化しました——コントリビュータには使えますが外部の`rigor-foo` gem作者には使えません。これを実体どおりに呼ぶ方がクリーンです。パス調整: すべての外向きdocs/specリンクが絶対`https://github.com/rigortype/rigor/{blob,tree}/master/...` URLから相対`../../../X`（SKILL.md、`.claude/skills/rigor-plugin-author/`から3つ上）または`../../../../X`（references/*.md、4つ上）に戻されました。トップレベルの`skills/`ディレクトリは完全に削除されます;そのスロットは`docs/ROADMAP.md` §「Agent workflows / SKILLs」に従って**v0.2.0にコミットされた外部作者向けSKILL**のために予約されます。`CLAUDE.md`のskillsテーブルは、v0.2.0コミットメントへの前方ポインタ付きで、単一ツリー形状（`.claude/skills/`配下の4つのコントリビュータSKILL）に再折りたたみされます。
-
-- **リポジトリレイアウト——SKILLツリーを`.claude/skills/`（コントリビュータ専用）+ `skills/`（配布可能）に分割**。以前`.codex/skills/`（誤解を招くパス——どのスキルもCodex固有ではなく、ディレクトリはCodexに読まれると壊れた）に住んでいた4つのエージェント向けSKILLのリリース前再配置。3つのコントリビュータ専用ワークフロー（`rigor-release-prep`、`rigor-builtin-import`、`rigor-add-reference`）が`.claude/skills/`に移動し、コントリビュータがこのリポジトリで作業するときClaude Codeに自動発見されます。1つのユーザー向けスキル（`rigor-plugin-author`）はリポジトリルートの`skills/rigor-plugin-author/`に移動しました——`rigortype`の上にプラグインを書くサードパーティによるインストールを意図した、自己完結型・移植可能な[agentskills.io](https://agentskills.io/)互換レイアウトです。4つすべての`SKILL.md`ファイルはすでにAnthropic Agent Skills形状（YAMLの`name:` + `description:`フロントマター、kebab-caseディレクトリ名）に従っています。`skills/rigor-plugin-author/SKILL.md`内の内部相対リンク深度は、新しい2段深い位置にマッチするよう`../../../`から`../../`に再アンカーされました; `CLAUDE.md`、`AGENTS.md`、`CHANGELOG.md`、`docs/ROADMAP.md`、`docs/CURRENT_WORK.md`、`docs/handbook/09-plugins.md`、複数のADR（`12-dry-rb-packaging`、`13-typenode-resolver-plugin`、`16-macro-expansion`、`19-language-server-packaging`、`21-rubydex-evaluation`）、`docs/design/20260508-rails-plugins-roadmap.md`、そして`plugins/rigor-{activerecord,rails}/README.md`のクロスリポジトリ参照が新しいパスに更新されました。`.codex/`ディレクトリは完全に削除されます。
-
-- **リポジトリレイアウト——`examples/`を`plugins/`（プロダクション）+ `examples/`（ウォークスルー）に分割**。`examples/`の下に蓄積された概念的に別個の2カテゴリーを分離するリリース前リファクタ: （1）実gem / フレームワーク（Railsエコシステム、RSpec / Minitest / rspec-rails / shoulda-matchers、dry-rb基盤、Sorbet、Devise、Sidekiq、Pundit、GraphQL、Statesman、TypeScriptユーティリティ型、`rigor-rails`メタgem）をターゲットとする**プロダクションプラグイン**——`plugins/`に移動; (2) **プラグイン契約ウォークスルー**（`rigor-deprecations` / `rigor-lisp-eval` / `rigor-pattern` / `rigor-routes` / `rigor-units`）——意図的に単純化された仮想ユースケース上のチュートリアルリファレンスとして`examples/`に残ります。27個のプラグインが`examples/<id>/`から`plugins/<id>/`に移動; 26個の統合スペックが`spec/integration/examples/<id>_plugin_spec.rb`から`spec/integration/plugins/<id>_plugin_spec.rb`に移動（5個のウォークスルースペックは`spec/integration/examples/`の下に残る）。新しい`plugins/README.md`がプロダクションカタログ（Tier 1 / Tier 2 / Tier 3 / testing-and-matchers / dry-rb基盤 / ADR-16基板消費者 / クロスプラグインファクトチャネル）を運びます;書き直された`examples/README.md`は5つのウォークスルーとプラグイン作成のためのアーキテクチャサーフェスマップのみを運びます。トップレベルの`README.md`、`AGENTS.md`、`CLAUDE.md`、`.rubocop.yml`、ROADMAP、CURRENT_WORK、ハンドブック章、ADR、設計ノート、そして`rigor-plugin-author` SKILLがすべて新しいデュアルレイアウトを参照するよう更新されました。`git mv`が移動をまたいでファイル履歴を保存しました。共有の`PluginHelpers`モジュールが`spec/integration/examples/support/`から`spec/integration/support/`に移動したので、両ディレクトリのプラグインスペックが`define_derived_metadata`フィルタ（`spec/integration/plugins/`と`spec/integration/examples/`の両方にマッチするよう広げられた）を通じてそれを自動インクルードします。移動後484個すべての統合スペックがパス; rubocopの`Metrics` / `Naming/FileName` / `Style/TopLevelMethodDefinition` / `Style/OneClassPerFile` / `Lint/StructNewOverride` / `Layout/LineLength` / `Lint/DuplicateBranch` / `Style/EmptyElse`の`Exclude:`リストが`examples/**/*`から`examples/**/*`と`plugins/**/*`の両方に拡張され、プロダクションプラグインが緩和されたデモフレンドリーなcopを保ちます。プラグイン公開の軌道——`rigor-rails`メタgemの`add_dependency`テンプレートに従ったsubtree-split + RubyGems公開——がいまやよりクリーンな住処を持ちます（`plugins/`は公開キュー; `examples/`はドキュメンテーションツリー）。
-
 ### 追加
 
 - **ADR-22 Slices 1 + 2 — プロジェクトごとのベースラインメカニズム + `rigor baseline {generate,dump,drift,prune}` CLI**。ADR-22トラック（ベースライン + プロジェクトオンボーディングSKILL）の最初のv0.1.7成果物。rigor側調整付きのPHPStan形状のプロジェクトごと診断抑制: 専用スキーマ（`version: 1` + `ignored:`——WD9）、デフォルトで`(file, qualified_rule, count)`粒度かつオプトインの`--match-mode message`呼び出しサイトごと精密性（WD1）、ALL-or-NOTHINGのバケットごとしきい値セマンティクス（WD4——`actual <= count`はバケット内のすべての診断を沈黙させる; `actual > count`はすべての診断を顕在化させる）、`.rigor.yml` / `.rigor.dist.yml`の`baseline: <path>`または`--baseline=PATH` CLIオーバーライドを通じた明示的ローディングのみ（WD2 (b)——ディスク上のファイル存在だけでは休眠）、`# rigor:disable` / severity_profileの後の最後の抑制レイヤーとして適用されるフィルタ（WD6）、サイレントなCIパスが可視に顕在化するようstderrの「N diagnostic(s) silenced by baseline」サマリー行（WD7）。新しい`Rigor::Analysis::Baseline`値オブジェクト（凍結; load / from_diagnostics / filter / audit / without / to_yaml）;新しい`Rigor::CLI::BaselineCommand`サブコマンドルーター（`generate`は`rigor check`実行から新鮮なベースラインを書く; `dump`は`--rule` / `--file` globフィルタ + `--format json|text`で検査する; `drift`はバケットごとに監査し`:within` / `:over` / `:cleared` / `:reducible`ステータスでグループ化する; `prune`はクリアされたバケットを落とし`--dry-run`をサポートする）; `rigor check --baseline=PATH` / `--no-baseline` CLIフラグに加えてマッチする`.rigor.yml`の`baseline:`設定キー + JSONスキーマプロパティ。スペックカバレッジ: 45例（24ユニット + 21 CLI統合）。slice 5（`regenerate` + `--baseline-strict` CIゲート）とv0.1.9の外部ユーザー向けSKILLトリオ（`rigor-project-init` / `rigor-baseline-reduce` / 外部`rigor-plugin-author`）はADRに従ってキューに残ります。成熟したコードベースが初回接触時に数百〜数千の診断を運ぶ5プロジェクト調査（[`docs/notes/20260519-oss-library-survey.md`](../docs/notes/20260519-oss-library-survey/)）が駆動しました。
@@ -589,6 +579,12 @@ AI支援オンボーディング体験を改善し、`rbs collection install`が
 - **`StaticReturnRefinements`——`File.expand_path`と`File.dirname`が`non-empty-string`にタイトになる**。どちらのクラスメソッドもそのパス文字列引数上の純粋関数で常に非空の結果を返します（`File.expand_path("")`はcwd絶対パスに展開する; `File.dirname("foo")`は`"."`を返す）。upstream `ruby/rbs`の行は`String`を返します;リファインメントは、[`lib/rigor/inference/method_dispatcher/file_folding.rb`](lib/rigor/inference/method_dispatcher/file_folding.rb)がすでにプラットフォーム非依存のデフォルトモードの「将来の方向」として名指ししたギャップを閉じます。`File.basename`は意図的にリファインされません——`File.basename("")`は`""`を返すので、`non-empty-string`はアンサウンドです。オプトインの`fold_platform_specific_paths: true`パスは依然定数引数で勝ちます（FileFoldingは静的リファインメントより上の`dispatch_precise_tiers`チェーンで走りより精密な`Constant<String>`エンベロープを生む）;変数引数 / デフォルトモードの定数引数のみがいまや新しい`non-empty-string`行を通じてルーティングされます。[`docs/CURRENT_WORK.md`](../docs/current-work/) §「Queued StaticReturnRefinements extensions」の下に記録されたキューに入った単一テーブル行を、実際のupstream RBSに対してno-opとファクトチェックされる3エントリー（`Kernel#caller()` / `caller_locations()`はすでに`Array[String]`として精密; `__method__` / `__callee__`はすでに`Symbol?`で`Symbol | nil`と構造的に同一）を除いて引き継ぎます。`spec/integration/fixtures/file_path_folding.rb`が`File.dirname`のタイトになった`non-empty-string`形状をアサートするよう更新されました。
 
 ### 変更
+
+- **SKILL再配置——`rigor-plugin-author`が`skills/`から`.claude/skills/`に戻る**、コントリビュータ専用SKILLとして。同じ`[Unreleased]`サイクルの早い段階で、SKILLは「外部プラグイン作者に配布可能」という枠組みの下で`skills/rigor-plugin-author/`に昇格しました。レビューの結果、内容はエンドツーエンドで**rigorモノレポ内部**です——リポジトリの`Makefile`（`make verify`）、`spec/integration/{plugins,examples}/`レイアウト、`spec/integration/support/plugin_helpers.rb`、`.rubocop.yml`の`plugins/**/*` + `examples/**/*`除外、Flake（`nix develop --command ...`）、`plugins/<id>/demo/` / `examples/<id>/demo/`配置慣習を前提とします。ミスマッチは、Troubleshootingの箇条書きが`make verify`（rigor内部のMakefileターゲット）を参照したときに顕在化しました——コントリビュータには使えますが外部の`rigor-foo` gem作者には使えません。これを実体どおりに呼ぶ方がクリーンです。パス調整: すべての外向きdocs/specリンクが絶対`https://github.com/rigortype/rigor/{blob,tree}/master/...` URLから相対`../../../X`（SKILL.md、`.claude/skills/rigor-plugin-author/`から3つ上）または`../../../../X`（references/*.md、4つ上）に戻されました。トップレベルの`skills/`ディレクトリは完全に削除されます;そのスロットは`docs/ROADMAP.md` §「Agent workflows / SKILLs」に従って**v0.2.0にコミットされた外部作者向けSKILL**のために予約されます。`CLAUDE.md`のskillsテーブルは、v0.2.0コミットメントへの前方ポインタ付きで、単一ツリー形状（`.claude/skills/`配下の4つのコントリビュータSKILL）に再折りたたみされます。
+
+- **リポジトリレイアウト——SKILLツリーを`.claude/skills/`（コントリビュータ専用）+ `skills/`（配布可能）に分割**。以前`.codex/skills/`（誤解を招くパス——どのスキルもCodex固有ではなく、ディレクトリはCodexに読まれると壊れた）に住んでいた4つのエージェント向けSKILLのリリース前再配置。3つのコントリビュータ専用ワークフロー（`rigor-release-prep`、`rigor-builtin-import`、`rigor-add-reference`）が`.claude/skills/`に移動し、コントリビュータがこのリポジトリで作業するときClaude Codeに自動発見されます。1つのユーザー向けスキル（`rigor-plugin-author`）はリポジトリルートの`skills/rigor-plugin-author/`に移動しました——`rigortype`の上にプラグインを書くサードパーティによるインストールを意図した、自己完結型・移植可能な[agentskills.io](https://agentskills.io/)互換レイアウトです。4つすべての`SKILL.md`ファイルはすでにAnthropic Agent Skills形状（YAMLの`name:` + `description:`フロントマター、kebab-caseディレクトリ名）に従っています。`skills/rigor-plugin-author/SKILL.md`内の内部相対リンク深度は、新しい2段深い位置にマッチするよう`../../../`から`../../`に再アンカーされました; `CLAUDE.md`、`AGENTS.md`、`CHANGELOG.md`、`docs/ROADMAP.md`、`docs/CURRENT_WORK.md`、`docs/handbook/09-plugins.md`、複数のADR（`12-dry-rb-packaging`、`13-typenode-resolver-plugin`、`16-macro-expansion`、`19-language-server-packaging`、`21-rubydex-evaluation`）、`docs/design/20260508-rails-plugins-roadmap.md`、そして`plugins/rigor-{activerecord,rails}/README.md`のクロスリポジトリ参照が新しいパスに更新されました。`.codex/`ディレクトリは完全に削除されます。
+
+- **リポジトリレイアウト——`examples/`を`plugins/`（プロダクション）+ `examples/`（ウォークスルー）に分割**。`examples/`の下に蓄積された概念的に別個の2カテゴリーを分離するリリース前リファクタ: （1）実gem / フレームワーク（Railsエコシステム、RSpec / Minitest / rspec-rails / shoulda-matchers、dry-rb基盤、Sorbet、Devise、Sidekiq、Pundit、GraphQL、Statesman、TypeScriptユーティリティ型、`rigor-rails`メタgem）をターゲットとする**プロダクションプラグイン**——`plugins/`に移動; (2) **プラグイン契約ウォークスルー**（`rigor-deprecations` / `rigor-lisp-eval` / `rigor-pattern` / `rigor-routes` / `rigor-units`）——意図的に単純化された仮想ユースケース上のチュートリアルリファレンスとして`examples/`に残ります。27個のプラグインが`examples/<id>/`から`plugins/<id>/`に移動; 26個の統合スペックが`spec/integration/examples/<id>_plugin_spec.rb`から`spec/integration/plugins/<id>_plugin_spec.rb`に移動（5個のウォークスルースペックは`spec/integration/examples/`の下に残る）。新しい`plugins/README.md`がプロダクションカタログ（Tier 1 / Tier 2 / Tier 3 / testing-and-matchers / dry-rb基盤 / ADR-16基板消費者 / クロスプラグインファクトチャネル）を運びます;書き直された`examples/README.md`は5つのウォークスルーとプラグイン作成のためのアーキテクチャサーフェスマップのみを運びます。トップレベルの`README.md`、`AGENTS.md`、`CLAUDE.md`、`.rubocop.yml`、ROADMAP、CURRENT_WORK、ハンドブック章、ADR、設計ノート、そして`rigor-plugin-author` SKILLがすべて新しいデュアルレイアウトを参照するよう更新されました。`git mv`が移動をまたいでファイル履歴を保存しました。共有の`PluginHelpers`モジュールが`spec/integration/examples/support/`から`spec/integration/support/`に移動したので、両ディレクトリのプラグインスペックが`define_derived_metadata`フィルタ（`spec/integration/plugins/`と`spec/integration/examples/`の両方にマッチするよう広げられた）を通じてそれを自動インクルードします。移動後484個すべての統合スペックがパス; rubocopの`Metrics` / `Naming/FileName` / `Style/TopLevelMethodDefinition` / `Style/OneClassPerFile` / `Lint/StructNewOverride` / `Layout/LineLength` / `Lint/DuplicateBranch` / `Style/EmptyElse`の`Exclude:`リストが`examples/**/*`から`examples/**/*`と`plugins/**/*`の両方に拡張され、プロダクションプラグインが緩和されたデモフレンドリーなcopを保ちます。プラグイン公開の軌道——`rigor-rails`メタgemの`add_dependency`テンプレートに従ったsubtree-split + RubyGems公開——がいまやよりクリーンな住処を持ちます（`plugins/`は公開キュー; `examples/`はドキュメンテーションツリー）。
 
 - **ルール——`def.ivar-write-mismatch`が正準型を確立する際に先頭のnilプレースホルダー書き込みをスキップする**。Bundler後の`references/ruby/lib`調査が駆動: `initialize`内の`@parse_method = nil`プレースホルダーに続く状態ごとの`@parse_method = :parse_source` / `:parse_dependency` / ...代入が、`first_class = NilClass`で各後続`Symbol`書き込みがドリフトと数えられたため、すべての具象書き込みで発散ルールを発火しました。正準型はいまや最初の非NilClass書き込みです（既存の`other_class == "NilClass"`スキップはすでに下流のnilリセットを許容します——nullableスロットイディオムは両面的です）。先頭のnilプレースホルダーがあっても2つの別個の具象クラス間の本物のドリフトは依然発火します。調査デルタ: **−16個のnilプレースホルダー警告**を除去（Bundler::CompactIndexClient::Parser、Bundler::Definition、Bundler::Dsl、Bundler::EndpointSpecification、Bundler::LockfileParser、Bundler::Settings::Mirror、Bundler::Source::Git::GitProxy、Bundler::FileUtils::Entry_、Bundler::Worker、FileUtils::Entry_、OpenURI::Buffer + rubygemsベンダー化コピー）。スペックカバレッジ: +2ケース（nullableスロットイディオムは発火しない; nilプレースホルダー後の本物の`Symbol → String`ドリフトは依然発火する）。
 
@@ -663,7 +659,7 @@ AI支援オンボーディング体験を改善し、`rbs collection install`が
 - **ADR-17 slice 1 — `pre_eval:`設定配管 + ファイル存在診断**。新しい`Rigor::Configuration#pre_eval`アクセサ + マッチする`pre_eval:` JSONスキーマエントリーが、slice 2がレジストリを着地させたらRigorがファイルごと推論の前にプリ評価するプロジェクトファイルをユーザーに宣言させます。Slice 1は**配管のみ**を出荷します: 設定ローダーがリストを読み、各エントリーを設定ファイルのディレクトリ相対に解決し（`PATH_KEYS`）、`Analysis::Runner#pre_file_diagnostics`がディスク上に存在しない解決されたパスごとに1つの`pre-eval.file-not-found` `:error`診断を発します。設計でconfig間違いにラウド——欠落したpre_evalパスはユーザーが修正可能なエラーであり、フェイルソフト警告ではありません。レジストリなし、ディスパッチャティアなし、ウォーカー統合なし;それらは[ADR-17](../docs/adr/17-monkey-patch-pre-evaluation/) §「Implementation slicing」に従ってslice 2で着地します。スペックカバレッジ: 3 Runner統合ケース（欠落パス → 1診断、存在パス → 沈黙、2つの欠落パス → 2診断）。
 - **ADR-10ウォーカー——ヒューリスティック戻り値型抽出（Phase Bフロア）**。オプトインのgemソース推論のウォーカー（`Rigor::Analysis::DependencySourceInference::Walker`）がいまや各メソッドボディの末尾式からヒューリスティックな戻り値型を抽出しメソッドごとの`CatalogEntry`に記録します。ディスパッチャーはヒューリスティックを`Type::Combinator.dynamic(static_facet)`を通じて消費します: オプトインgem内の`def foo; "hello"; end`がいまや`obj.foo`を拡張前の`Dynamic[Top]`でなく`Dynamic[Nominal[String]]`に解決し、下流チェーン（`obj.foo.bytesize`）が前進できます。ヒューリスティックは**厳格フロア**です: リテラルスカラー末尾（`Integer` / `Float` / `Symbol` / `true` / `false` / `nil`）は`Constant<value>`に折りたたむ;リテラル`String`末尾は`Nominal[String]`に折りたたむ（`Constant<"x">`でない——文字列リテラルは`# frozen_string_literal: false`の下でミュータブル）;リテラル`Array` / `Hash`末尾は`Nominal[Array]` / `Nominal[Hash]`に折りたたむ（要素型推論は延期）;それ以外すべて（メソッド呼び出し、明示的`return`、`self`、ivar読み取り、…）は`nil`を返しディスパッチャーが`Dynamic[Top]`にフォールバックします。ウォーカー`Outcome.catalog`値形状が素な`Symbol`（`:instance` / `:singleton`）から`Walker::CatalogEntry(kind:, return_type:)`に移りました; `DependencySourceInference::Index`が構築時にレガシーの素なSymbol呼び出し元を正規化するので既存のイントリースペックが変更なく動き続けます。ADR-10 §「Open questions — `mode: :full` should be allowed at all」は答えられたまま（`:full`は依然サポート）、gemごとの予算契約は変わりません。遅延 / オンデマンド戻り値型推論（設計議論のオプションC）は後のスライスのため需要駆動のままです。スペックカバレッジ: 13個の`ReturnTypeHeuristic`ユニットケース（リテラルスカラー / String → Nominal / Array→Nominal / Hash→Nominal / 複数文末尾 / 非リテラル末尾 / 空ボディ / 明示的return / self / ivar）; 3個の`MethodDispatcher`統合ケース（Constant<Integer>ラップ / Nominal[String]ラップ / nilヒューリスティックフォールバック）。
 
-### パフォーマンス
+### 変更
 
 - **スペックスイート——`plugin_helpers#run_plugin`のオプトイン共有キャッシュ（`sorbet_plugin_spec`が最初の消費者）**。`spec/integration/plugins/sorbet_plugin_spec.rb`の分離ウォールタイム**13.1s → 4.7s（-64%）**;完全な統合シーケンシャル**90.2s → 78.6s（-13%）**。`PluginHelpers`がプロセス全体の`shared_cache_store`（遅延`Dir.mktmpdir`ルートの`Cache::Store`）に加えて、スペックファイルがオプトインにオーバーライドする`default_run_plugin_cache_store`インスタンスメソッド（`let(:default_run_plugin_cache_store) { :shared }`）を得ます。パターンはデフォルトでなくオプトインです。キャッシュI/Oオーバーヘッドが、スペックファイルあたり約17例まで（およびそれを含めて）呼び出しごとのenv構築の節約を超えるからです（`units_plugin_spec`の17例ファイルでの実証的計測が共有キャッシュ下で約12%の減速を示した）;交差点はプラグインスペック例数の高い端により近く座るので、今日は最も重いファイルのみがオプトインします（sorbetが48）。3つの統合スペック（actioncable / actionmailer / rails-i18n）は、そのプラグインの`cache_for(...)`プロデューサーディスクリプタがプロデューサーが読むプロジェクトファイル（それぞれ`app/channels/**/*.rb`、`app/mailers/**/*.rb` + `app/views/**/*.{erb,html,text}`、`config/locales/**/*.{yml,yaml}`）を含むまでオプトインできません;同じキャッシュ不完全性が永続キャッシュ付き`rigor check`のユーザーに影響します——`docs/CURRENT_WORK.md` § Open Engineering Itemsにフォローアップとして捕捉。プロダクションコードは触れられていません;変更は完全に`spec/integration/examples/support/plugin_helpers.rb` + `sorbet_plugin_spec.rb`の1つのオプトイン行の下にあります。
 - **スペックスイート——`RunnerHelpers#analyze`の内容キー付きsigディレクトリ + 共有ワークスペース**。`runner_spec.rb`の分離ウォールタイム**39.6s → 25.4s（-36%）**; `make verify`並列ウォールタイム12コアで**65.6s → 52.6s（-20%）**。根本原因: 永続`Cache::Store`がRBS環境を`RbsDescriptor::FileEntry`ごとに`(path, sha256)`でキーするので、以前のヘルパーの呼び出しごと`Dir.mktmpdir`がすべての`analyze(sig: ...)`にenvをゼロから再構築させました（デフォルトライブラリで呼び出しごと約1.8s）。新しいヘルパーは`sig:`内容をハッシュし安定した`<sig_cache_root>/<sha-prefix>/`パスでそれを実体化するので、等価なsigが1つのウォームキャッシュエントリーを共有します——`runner_spec.rb`の12個のsig使用例はわずか3つの異なるsigハッシュを共有していたので、12 × 1.8sが3 × 1.8s + 9 × 約30msに崩れます。ソースのみの高速パス（`analyze`呼び出しの支配的な約80%）はプロセスごとに1つの空ワークスペースディレクトリを再利用するので、ランナーの`Dir.pwd`依存サーフェス（Gemfile.lock / bundler / rbs collectionディスカバリー）が呼び出しごとの新鮮なtmpdirでなく安定した空ルートを観測します。`files:`を渡すか`config:`で`paths:` / `signature_paths:`をオーバーライドする呼び出し元は既存の呼び出しごと`Dir.mktmpdir`パスを続けます。プロダクションコードは触れられていません;変更は完全に`spec/support/runner_helpers.rb`の下にあります。[docs/ROADMAP.md](../docs/roadmap/) §「Performance / scalability」のキューに入った「Spec-suite runtime breakdown（a）」フォローアップを、元のスケッチとは異なるメカニズム（スペックでの`before(:context)` Environment共有でなくヘルパー側のキャッシュキー正規化——ヘルパー側修正はrunner_spec.rbのグループ構造への変更ゼロを必要とした）を通じて閉じます。
@@ -770,8 +766,6 @@ AI支援オンボーディング体験を改善し、`rbs collection install`が
   「プロセス再起動」シナリオをミラー）、メモが
   テスト下のディスク読み取りパスをマスクしないようにします。
 
-### パフォーマンス
-
 - **スペックスイートのウォールクロック162秒 → 27秒**（12コア開発マシンで
   約6倍;シーケンシャルの約1.6倍）。3つの
   複合的な変更を通じて: `RunnerHelpers#analyze`での
@@ -820,8 +814,6 @@ AI支援オンボーディング体験を改善し、`rbs collection install`が
 - **ADR-13スライス3 —— `NameScope` + `ResolverChain`を通じたパーサ統合と別個のAST → Typeリゾルバパス**。`Rigor::Builtins::ImportedRefinements::Parser`をインラインの「スキャン+解決」から「ASTへスキャン」+ASTを歩いて`Rigor::Type`キャリアを生成する兄弟`ImportedRefinements::Resolver`にリファクタリングします。リゾルバはすべての名前付き型生成でADR-13の解決順を適用します: 組み込み`lookup` → `PARAMETERISED_TYPE_BUILDERS` / `PARAMETERISED_INT_BUILDERS` → プラグイン`TypeNodeResolver`チェーン（`name_scope:`が供給されたとき）→ クラス形状名のRBS Nominalフォールバック。3つの新しいAST値オブジェクトがスライス1の`Identifier` / `Generic`と並んで乗ります: `int<5, 10>` / `int_mask[1, 2, 4]`整数引数のための`Rigor::TypeNode::IntegerLiteral(value:)`、`T[K]`末尾チェーンのための`Rigor::TypeNode::IndexedAccess(receiver:, key:)`、同じ名前空間下の2つのリゾルバコンテキストプリミティブ —— `Rigor::TypeNode::NameScope(resolver:, class_context:, type_alias_table:)`と`Rigor::TypeNode::ResolverChain`（順序付きリゾルバリストを歩き、ADR-13 WD3 / WD5に従い最初の非nilが勝つ）。`ImportedRefinements.parse(payload, name_scope: nil)`は新しいキーワードを受け入れます;`nil`（デフォルト）を渡すとスライス2の動作をビット単位で保ちます。`Generic#args`検証は、パーサが両方の括弧フレーバーに統一されたASTをエミットできるよう`IntegerLiteral`も受け入れるよう追加的に拡張されました。ドリフトスナップショット更新;`UNSIGNED_NAMESPACES`が4つの新しい`TypeNode::*`名前空間を拡大します。まだ診断エミッションなし（`dynamic.rbs-extended.unresolved`は`RbsExtended`からの呼び出しサイトスレッディングとともにスライス3bに延期）。
 
 第13プレビュー。テーマ: **ADR-10（オプトイン依存ソース推論）をエンドツーエンドで提供し、ADR-11（rigor-sorbetプラグイン）とRails Tier 2（rigor-actionpack 4フェーズ + rigor-factorybot）を吸収する**。ADR-10の5スライスエンベロープと4つの「Open questions」フォローアップ（レシーバーごとのプラグインビトー / β予算セマンティクス / 設定衝突診断;boundary-crossは`mode: full`の弁別的ディスパッチ前提条件の背後に延期されたとドキュメント化されている）をクローズします。ADR-11の主要サーフェスをクローズします —— 元の計画のスライス1–6 + 8に加え`T.must_because` / `T.reveal_type` / `T.assert_type!` / `T.bind` / ファイルごとの`enforce_sigil`ゲーティングの軽いフォローアップ —— 呼び出しサイトごとのシジル強制だけを延期されたADR-11項目として残します。rigor-actionpackの完全な4フェーズサーフェス（ルートヘルパー / フィルタチェーン / レンダーターゲット / ストロングパラメータ → ARカラム検証）とrigor-factorybotフェーズ1 (a)+（c）を着地させ、rigor-activerecordが`:model_index`を最初のADR-9のpublish-and-consumeサイクルとしてエンドツーエンドで行使して公開します。プラグイン側の`truthy_facts` / `falsey_facts` / `post_return_facts`は今やナローイングエンジンを流れ、ADR-7 § 「Slice 4-A」のプラグイン半分をクローズします —— PHPStanスタイルのType-Specifying Extensionsが任意のRigorプラグインから作成可能であるために必要とする同じ基板です。
-
-### 追加
 
 #### ADR-10 —— オプトイン依存ソース推論（5スライスエンベロープ）
 

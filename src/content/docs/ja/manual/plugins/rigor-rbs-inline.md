@@ -3,8 +3,8 @@ title: "rigor-rbs-inline"
 description: "rigortype/rigor docs/manual/plugins/rigor-rbs-inline.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/plugins/rigor-rbs-inline.md"
 sourcePath: "docs/manual/plugins/rigor-rbs-inline.md"
-sourceSha: "454f19b992054a61e69c50f6487e8157eb15136c1e29a3360a3dfeadce1711ea"
-sourceCommit: "6e5bd55274e20dfb59183559c4971d34f878c907"
+sourceSha: "cc1fad86cee47db8b11630e23eab94b2a01025b6e925f512149a9b2e9920a98e"
+sourceCommit: "17f7d081a694f9cfdfaebd7fc71ebfc7171e2a6d"
 translationStatus: "translated"
 sidebar:
   order: 9050
@@ -41,6 +41,18 @@ AscDesc.new.ascdesc(:bad)   # エラー: 引数の型の不一致（:asc | :desc
 | ルール | 重大度 | 発火条件 |
 | --- | --- | --- |
 | `plugin.rbs-inline.source-rbs-synthesis-failed` | info | rbs-inlineがファイルをパースできなかった。解析はインラインRBSの寄与なしにフォールバックし、diagnosticはupstreamのエラーを伴う |
+| `plugin.rbs-inline.source-rbs-annotation-not-honoured` | info | アノテーションのパースは成功したが何も寄与しなかった —— そのファイルの他のアノテーションは引き続き適用される。現時点では`# @rbs module-self: Foo`という綴りを指す。下記参照 |
+
+## RigorはインラインRBSのどの方言を読むか
+
+インラインRBSには2つの実装があります。このプラグインが動かす[`rbs-inline` gem](https://github.com/soutaro/rbs-inline)と、`rbs` 4.xに組み込まれた`RBS::InlineParser`です。**Rigorはgemの方言を読みます**（[ADR-32](../../../adr/32-rbs-inline-comment-ingestion/) WD11）。両者はほぼ完全に重なっており —— `#:`、`@rbs`のメソッド型、`def self.`、インスタンス変数のアノテーション、`@rbs skip`はすべて同一に振る舞います —— しかし同じ文法ではなく、1つの違いが実務で噛みつきます:
+
+| 書き方 | Rigorが尊重するか |
+| --- | --- |
+| `# @rbs module-self Comparable` | する |
+| `# @rbs module-self: Comparable` | **しない** —— rbs自身の`docs/inline.md`にある綴りはこちら |
+
+Rigorは2番目の形式を黙って捨てるのではなく、`plugin.rbs-inline.source-rbs-annotation-not-honoured`として報告します。gemがサポートし組み込みパーサがサポートしない構文 —— `@rbs generic T`、`@rbs!`の埋め込みRBSブロック、`@rbs inherits`、メソッド可視性 —— はすべてここで動作します。
 
 ## 設定
 

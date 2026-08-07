@@ -3,8 +3,8 @@ title: "設定"
 description: "rigortype/rigor docs/manual/03-configuration.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/03-configuration.md"
 sourcePath: "docs/manual/03-configuration.md"
-sourceSha: "c0656090f497aaad56a564e7d2001dea0ddbe7545aa233859b8221a8d59c6af5"
-sourceCommit: "295e3c12dfe3c9d1a07f4d1790a907042e240ab3"
+sourceSha: "4fa3fc49054645dd4e6a91c4ac95fa45b25e29fa10edec933e5793935bc97f29"
+sourceCommit: "17f7d081a694f9cfdfaebd7fc71ebfc7171e2a6d"
 sourceDate: "2026-06-15T14:21:04+09:00"
 translationStatus: "translated"
 sidebar:
@@ -95,7 +95,14 @@ rigor: bundler.lockfile: "./missing/Gemfile.lock" does not exist
 | `severity_profile` | String | `"balanced"` | `lenient`、`balanced`、または`strict`。[診断](../04-diagnostics/)を参照。 |
 | `severity_overrides` | Hash | `{}` | ルール/ファミリーごとの重要度。例: `{ call: warning, flow.always-truthy-condition: off }`。 |
 | `baseline` | String / `false` | `nil` | `.rigor-baseline.yml`へのパス、または`false`で継承されたベースライン（baseline）を無効化。[ベースライン](../06-baseline/)を参照。 |
-| `bleeding_edge` | Boolean / Array / Hash | `false` | 次のメジャーでキューに積まれた診断規律を前倒しで採用する（[ADR-50](../../adr/50-release-engineering-and-stability-strategy/) § WD2）。`false`は何も採用せず;`true`はオーバーレイ全体を採用し;feature idのリストはそれらのみを採用し;`{ all: true, except: [ids] }`は名指ししたもの以外すべてを採用する。`severity_profile`とは直交する。単一の実行に対しては[`rigor check --bleeding-edge[=ids]`](../02-cli-reference/#rigor-check) / `--no-bleeding-edge`で上書きする。[`rigor show-bleedingedge`](../02-cli-reference/#rigor-show-bleedingedge)で検査する。 |
+| `bleeding_edge` | Boolean / Array / Hash | `false` | 次のメジャーでキューに積まれた変更を前倒しで採用する（[ADR-50](../../adr/50-release-engineering-and-stability-strategy/) § WD2）。`false`は何も採用せず;`true`はオーバーレイ全体を採用し;feature idのリストはそれらのみを採用し;`{ all: true, except: [ids] }`は名指ししたもの以外すべてを採用する。`severity_profile`とは直交する。単一の実行に対しては[`rigor check --bleeding-edge[=ids]`](../02-cli-reference/#rigor-check) / `--no-bleeding-edge`で上書きする。[`rigor show-bleedingedge`](../02-cli-reference/#rigor-show-bleedingedge)で検査する。 |
+
+キューに積まれたフィーチャーは2つの種別のいずれかであり、`bleeding_edge:`はどちらも同じやり方で選択します:
+
+- **severity**フィーチャーは1つ以上のルールを昇格させます —— Rigorがすでに静かに報告している規律が、エラーまたは警告になります。その差分はルールidのリストで、`rigor show-bleedingedge`が出力します。
+- **behaviour**フィーチャーは測定・アルゴリズム・デフォルトを変更するもので、どのルールの重大度も動かしません。読むべきルールidの差分がないため、`rigor show-bleedingedge`が出すサマリーが、それを採用すると何が起きるかの説明のすべてです。
+
+名指ししたidをこのバージョンのRigorが知らない場合、拒否されるのではなく無視されます。そのため共有された`.rigor.yml`が、使用中の一部のバージョンでしかキューに積まれていないフィーチャーを名指ししても構いません。
 
 ### 依存関係RBS探索
 

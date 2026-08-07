@@ -3,8 +3,8 @@ title: "ADR-50 — リリースエンジニアリングと安定化戦略（v0.2
 description: "rigortype/rigor docs/adr/50-release-engineering-and-stability-strategy.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/50-release-engineering-and-stability-strategy.md"
 sourcePath: "docs/adr/50-release-engineering-and-stability-strategy.md"
-sourceSha: "a5f541a3b934305f51e9b5f53ad2d16363736f7bee3fb56d666a4ce681524aab"
-sourceCommit: "eb8e9996d113a1b5e1778d0988597c979814a219"
+sourceSha: "1f6ba0e0c07dcfc2cb347d104a268b88685887135ea976bbda67ce5696b298bb"
+sourceCommit: "17f7d081a694f9cfdfaebd7fc71ebfc7171e2a6d"
 sourceDate: "2026-07-15T12:42:34+09:00"
 translationStatus: "translated"
 sidebar:
@@ -97,6 +97,8 @@ bleeding-edgeは**Rigorがメンテナンスするデフォルトオーバーラ
 **基盤が着地（v0.1.19）**。WD2の*サーフェス*は、いずれの規律もキューに入る前にエンドツーエンドで配線された: `Rigor::BleedingEdge`がメンテナンスされる`Feature`レジストリ（安定id＋サマリー＋`severity_overrides`マップ）であり、`.rigor.yml`の`bleeding_edge:`は`true` / feature-idのリスト / `{ all:, except: }`を受け入れ、正規化されて`Configuration`に公開される。`rigor show-bleedingedge`はオーバーレイ＋プロジェクトが採用するものを表示する（`--format text|json`）。そして`Configuration::SeverityProfile.resolve`は、ユーザー自身の`severity_overrides:`（完全一致またはファミリー）よりも*下*、かつプロファイルテーブルよりも*上*で合成される`bleeding_edge_overrides:`マップを得た。レジストリが空なら合成マップは`{}`なので、解決はビットレベルで変わらないまま——最初のキューに入った規律は、それ以上のエンジン配線なしに単一の`FEATURES`エントリーとして着地する。
 
 **CLIミラーが着地（Unreleased）**。`rigor check --bleeding-edge[=ids]` / `--no-bleeding-edge`は、設定された`bleeding_edge:`の選択を単一の実行に対して上書きする（`--workers` / `--no-cache`と同じCLI-over-configの優先順位）。並行する上書きをすべての`Runner`構築サイト（およびワーカー境界越し）に通す代わりに、CLIは新しい`Configuration#with_bleeding_edge`——`bleeding_edge_severity_overrides`を再導出する凍結された`dup`——を介してロード済みの`Configuration`を再構築する。これにより2つの`SeverityProfile.resolve`サイトとワーカーパスは実行の選択を変わらず見ることになり、`Configuration`が単一の真実の源であり続ける。フラグはOptionParserの`=[LIST]`（attached-value-only）形式を使うので、裸の`--bleeding-edge lib`はオーバーレイを採用しつつパスを消費せず`lib`をチェックする。リスト形式を表面化したことで`coerce_bleeding_edge`のセレクタidも凍結され、config-fileのリストパスに対する`Ractor.shareable?`が復元された。**まだ出荷されていないもの:**専用のbleeding-edge CHANGELOGセクション（まだ運ぶエントリーはない——最初のキューに入ったフィーチャーとともに着地する）。
+
+> **kindsのノート（2026-08-01）:** `Feature`は今や`kind:`を宣言する —— `:severity`（上記の昇格）か、`:behaviour`（測定・アルゴリズム・デフォルトに対するキューに入った変更で、どのルールの重大度も動かさず、呼び出しサイトで`Configuration#bleeding_edge_active?`を通して読まれる）のいずれか。卒業したidは`BleedingEdge::GRADUATED`へ移り、そこでは§WD7がそのフィーチャーを全員に対して有効化したあとも、この述語は`true`を返し続ける。
 
 ### WD3 — Breaking診断変更の定義（規律テスト）
 
