@@ -3,8 +3,8 @@ title: "型別メソッドカバレッジ — ConstantFolding / ShapeDispatch / 
 description: "rigortype/rigor docs/notes/20260522-type-method-coverage.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260522-type-method-coverage.md"
 sourcePath: "docs/notes/20260522-type-method-coverage.md"
-sourceSha: "d965cc58c49eea876f5df4247f396964999a7e9cc619ae1b91ccbffd23e9134e"
-sourceCommit: "17f7d081a694f9cfdfaebd7fc71ebfc7171e2a6d"
+sourceSha: "45a05b080d4eb2bf84179257c3d7c06134444e254787569df8d17a8e94eea44e"
+sourceCommit: "3eb7b4c256e7aae802b605ef7897408bc25495b9"
 translationStatus: "translated"
 sidebar:
   order: 20266522
@@ -381,7 +381,7 @@ IntegerRange向け専用ハンドラ群は別途`shape_dispatch.rb`に存在。
 | `intersect?` | ✅ | `tuple_intersect?` — `Constant[bool]`（#121, 2026-07-31）。 |
 | `one?`（ブロックなし） | ✅ | `tuple_one?` — 全要素Constantなら真偽が決定可能（#121, 2026-07-31）。 |
 | `-`（差集合） | ✅ | `tuple_difference` — 全要素ConstantのTuple同士でRubyの`-`を実行して畳む（#121, 2026-07-31）。 |
-| `*`（繰り返し） | 🔲 | `Tuple * n` → 繰り返しTuple。低優先度。 |
+| `*`（繰り返し / join別名） | ✅ | `tuple_star` — `Constant[String]`引数は`join`に委譲、`Constant[Integer]`引数（n>=0）は要素をn回繰り返したTuple。結果要素数は64上限（`MAX_SET_OPERATION_SIZE`流用）。nが負・引数が非Constant/2個以上は宣言どおり`ArgumentError`／不確定なのでRBSに委譲（#121, 2026-08-08）。 |
 | `<<` / `push` / `append` | 🚫 | 破壊的変更（形状変化）。 |
 | `<=>` | 🔷 | RBS `Integer?`で十分。 |
 | `all?` | ✅ | `tuple_all?` — ブロックなしで要素型確認。BlockFoldingでブロックあり対応。 |
@@ -393,6 +393,7 @@ IntegerRange向け専用ハンドラ群は別途`shape_dispatch.rb`に存在。
 | `collect` / `map` | ✅ | `PER_ELEMENT_TUPLE_METHODS` — ブロック毎要素適用で新Tuple。 |
 | `combination` / `permutation` | 🚫 | Enumerable。 |
 | `compact` | ✅ | `Constant[nil]`エントリーを除去したTuple。**高優先度**。`tuple_compact`実装。 |
+| `concat` | 🚫 | レシーバーを破壊的に変更する（`ARRAY_MUTATORS`に登録済み、`<<`と同じ理由）。フォールドは呼び出し式の値しか返せず、レシーバー側local/ivarへの書き戻しは表現できないため不健全。精度は`MutationWidening.widen_after_call`が別経路（`size`/`empty?`等の陳腐化した固定形状事実を破棄）で担保する（#121, 2026-08-08）。 |
 | `count` | ✅ | `tuple_count` — ブロックなしで`Constant[Integer]`。 |
 | `cycle` | 🚫 | Enumerable。 |
 | `deconstruct` | ✅ | `shape_self` — レシーバーのTupleをそのまま返す（#121, 2026-07-31）。 |
@@ -414,6 +415,7 @@ IntegerRange向け専用ハンドラ群は別途`shape_dispatch.rb`に存在。
 | `include?` | ✅ | `tuple_include?` → `Constant[bool]`（Constant引数のとき）。 |
 | `index` / `find_index` | ✅ | `PER_ELEMENT_TUPLE_METHODS` → `Constant[Integer\|nil]`。 |
 | `insert` | 🚫 | 破壊的変更。 |
+| `inspect` / `to_s` | ✅ | `tuple_inspect` — 全要素がConstantのとき、実Ruby Arrayを再構築して本物の`inspect`を呼ぶ（フォーマットを再導出しない）。`TUPLE_JOIN_BYTE_LIMIT`（4096）でキャップ。`to_s`は`Array#to_s`が`inspect`の厳密な別名であることに対応する同一ハンドラ（#121, 2026-08-08）。 |
 | `intersection` / `&` | ✅ | `tuple_intersection` — `eql?`意味論を保つためRubyの`&`をそのまま実行（#121, 2026-07-31）。 |
 | `join` | ✅ | `tuple_join` — すべてConstantのとき`Constant[String]`。全要素が`Constant[String]`かつセパレータがConstant/省略の場合は`LiteralStringFolding`が精密フォールドに道を譲る（2026-07-18）。 |
 | `keep_if` | 🚫 | 破壊的変更。 |
@@ -471,6 +473,13 @@ IntegerRange向け専用ハンドラ群は別途`shape_dispatch.rb`に存在。
 低優先度:
 [x] uniq      → TUPLE_HANDLERS → `tuple_uniq`（Constant 要素の重複除去 Tuple）
 [x] minmax    → TUPLE_HANDLERS → `tuple_minmax_pair` → Tuple[Constant[min], Constant[max]]
+[x] inspect / to_s → TUPLE_HANDLERS `tuple_inspect`（全要素 Constant のとき、実 Array#inspect を
+    呼んで Constant[String]）。HashShape 側も同一スライスで `hash_inspect` を追加（closed かつ
+    optional key なしのときのみ、Ruby 4.0 の `{a: 1}` 形式に一致）（#121, 2026-08-08）。
+[x] *(n)      → TUPLE_HANDLERS `tuple_star`（String 引数は join 委譲、Integer 引数は繰り返し、
+    64 要素上限）（#121, 2026-08-08）。
+[x] concat    → 🚫 に格下げ（実装せず）。破壊的変更のため `<<` と同じ理由で対象外と判断
+    （#121, 2026-08-08）。
 [ ] max_by / min_by → ExpressionTyper ブロックフォールド追加
 ```
 

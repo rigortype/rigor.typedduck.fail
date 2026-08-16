@@ -1,8 +1,8 @@
 ---
 title: "Hash method coverage — ShapeDispatch & block-fold audit"
 description: "English translation of the JA-native upstream audit for Hash method coverage."
-sourceSha: "e9eafee6dbec672f69184e83528f8068343ecff13d2d573b281b57013aa915e7"
-sourceCommit: "1d0381f3ade3f4b208d95b9d649f1e80c381b775"
+sourceSha: "faf702632bb0986397f0dd702f4b9f16d39fa61f77b09c2d4f2d35f197a9d8af"
+sourceCommit: "3eb7b4c256e7aae802b605ef7897408bc25495b9"
 translationStatus: "translated"
 ---
 
@@ -88,6 +88,7 @@ Tracks which methods produce precise `HashShape` results and what is still open.
 | `has_value?` | ✅ | `Constant[true/false]` when all values are Constant. Low priority. |
 | `include?` | ✅ | Alias of `has_key?`. Same handler registered in `ShapeDispatch#hash_has_key?`. |
 | `inject` | 🚫 | Enumerable accumulator. |
+| `inspect` | ✅ | `hash_inspect` — only when CLOSED with no optional keys and all values are Constant. Rebuilds a real Hash and calls actual `inspect` (does not re-derive Ruby 4.0's `{a: 1}` form). Capped at `TUPLE_JOIN_BYTE_LIMIT` (4096). Same gate predicate as `URIFolding#hash_form_pairs` (`URI.encode_www_form`) — "closed with no optional keys" (#121, 2026-08-08). |
 | `invert` | ✅ | `hash_invert` — returns inverted HashShape when all values are Constant[Symbol/String]. |
 | `keep_if` | 🚫 | Destructive mutation (equivalent to `select!`). |
 | `key` | ✅ | Value → key reverse lookup. `Constant[k]` when all values are Constant and unique. Low priority. |
@@ -134,6 +135,7 @@ Tracks which methods produce precise `HashShape` results and what is still open.
 | `to_h` | ✅ | `hash_to_h` — returns self. |
 | `to_hash` | ✅ | Alias of `to_h`. Just add same entry to HASH_SHAPE_HANDLERS. Low priority. |
 | `to_proc` | 🚫 | Returns `Proc`. Not needed for static typing. |
+| `to_s` | ✅ | Exact alias of `inspect` (`Hash#to_s` is identical to `Hash#inspect`). Registers the same `hash_inspect` handler (#121, 2026-08-08). |
 | `to_set` | 🚫 | Returns `Set`. |
 | `transform_keys` | ✅ | ExpressionTyper `try_hash_shape_block_fold` — new HashShape with transformed keys. |
 | `transform_keys!` | ✅ | Same (bang form). |

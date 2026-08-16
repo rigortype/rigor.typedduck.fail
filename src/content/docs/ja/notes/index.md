@@ -3,8 +3,8 @@ title: "リサーチ・サーベイノート"
 description: "rigortype/rigor docs/notes/README.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/README.md"
 sourcePath: "docs/notes/README.md"
-sourceSha: "8908edb80120f4725f0968a9e0f4eb6e8b36645437371f01cb5aa57821a85c05"
-sourceCommit: "17f7d081a694f9cfdfaebd7fc71ebfc7171e2a6d"
+sourceSha: "31f467d1ce8a95fd57c1d7e5be065e1499481d88006f69c81c9c2c872ce366d3"
+sourceCommit: "3eb7b4c256e7aae802b605ef7897408bc25495b9"
 translationStatus: "translated"
 sidebar:
   order: 6000
@@ -75,6 +75,7 @@ sidebar:
 | 2026-06-17 | [Type-guided mutation testing — internal teeth vs. an external test-suite tool (strategy)](20260617-type-guided-mutation-testing-strategy/) |
 | 2026-06-17 | [Fused protection (`--with-tests`) — broad survey sweep across 12 OSS targets](20260617-fused-protection-survey-sweep/) |
 | 2026-06-18 | [Mutation-testing Rigor's own codebase — plan (RSpec ∪ self-check, independent type oracle)](20260618-self-mutation-testing-plan/) |
+| 2026-08-09 | [`check_rules.rb`の融合保護 再計測 —— 型軸が生きた状態での初めての全数調査](20260809-check-rules-mutation-remeasure/) |
 
 ## 外部研究・エッセイレビュー
 

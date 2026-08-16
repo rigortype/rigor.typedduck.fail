@@ -3,8 +3,8 @@ title: "プラグインの登録と読み込み"
 description: "rigortype/rigor docs/internal-spec/plugin.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/plugin.md"
 sourcePath: "docs/internal-spec/plugin.md"
-sourceSha: "6ac3b9be4fe98a97e7e29d4e63d85199a8880ecca89cc6ae1cc236baa3f4cd17"
-sourceCommit: "e3eb424c3c88035e453246710c8df3dc5cc8e7e1"
+sourceSha: "65187c885ef2fc36e9bba7ef9202d44347d501976b8ba1074550d1c3b88b1b39"
+sourceCommit: "3eb7b4c256e7aae802b605ef7897408bc25495b9"
 translationStatus: "translated"
 sidebar:
   order: 3050
@@ -60,7 +60,7 @@ end
 
 #### ノードスコープのルール — `node_rule` / `#node_rule_diagnostics`（ADR-37）
 
-`node_rule(node_type) { |node, scope, path, file_context, context| … }`は、ノードスコープの診断ルールを宣言するクラスレベルのDSL（`producer`スタイルの形状）です。エンジンは解析される各ファイルのASTを**一度**走査し、`node.is_a?(node_type)`となるすべてのノードをそのルールへディスパッチします。そのためプラグイン作成者はチェックを書き、走査は決して書きません——これがプラグインから手書きの`def walk` / `compact_child_nodes.each`の再帰を取り除けるようにするものです。ブロックは`instance_exec`を通して実行され（そのため`self`はプラグインインスタンス——`config`・`services`・`services.fact_store`・`diagnostic`がすべてスコープ内）、`(node, scope, path, file_context, context)`を受け取り、`Array<Rigor::Analysis::Diagnostic>`を返します（何も発火させない場合は空）。`node_type`は`Prism::Node`サブクラスでなければなりません（MUST）。型ごとの複数のルールは宣言順に実行されます。エンジンはそれらを1つの共有された実行ごとのウォーク`Plugin::Registry#node_rule_walk`（[`NodeRuleWalk`](https://github.com/rigortype/rigor/blob/master/lib/rigor/plugin/node_rule_walk.rb)、ADR-52 WD4）を通じてディスパッチします: ファイルごとの単一の走査がすべてのnode-ruleプラグインに供され、ランナーは各プラグインのバケットをその`#diagnostics_for_file`の結果と、同じ`plugin.<id>`スタンプとプラグインごとの例外隔離のもとでマージします;ルールを宣言しないプラグインはゼロコストです。インスタンスメソッド`#node_rule_diagnostics(path:, scope:, root:)`は同等の単一プラグインエントリーポイントとして`Base`に残っています（ドリフト固定済み、プラグインスペックが使用）が、エンジンはもはやそれを経由してルーティングしません。
+`node_rule(node_type) { |node, scope, path, file_context, context| … }`は、ノードスコープの診断ルールを宣言するクラスレベルのDSL（`producer`スタイルの形状）です。エンジンは解析される各ファイルのASTを**一度**走査し、`node.is_a?(node_type)`となるすべてのノードをそのルールへディスパッチします。そのためプラグイン作成者はチェックを書き、走査は決して書きません。この走査は`Prism::DefinedNode`自体は生成しますが、そのオペランドの内部には降りません（issue #318）: `defined?`は自分の引数を静的に検査するだけで決してそれを評価しないので、あるルールがその下のノードを目にすることはありません。これはこのファイルごとの走査が到達する他のあらゆるノードと同様です——これがプラグインから手書きの`def walk` / `compact_child_nodes.each`の再帰を取り除けるようにするものです。ブロックは`instance_exec`を通して実行され（そのため`self`はプラグインインスタンス——`config`・`services`・`services.fact_store`・`diagnostic`がすべてスコープ内）、`(node, scope, path, file_context, context)`を受け取り、`Array<Rigor::Analysis::Diagnostic>`を返します（何も発火させない場合は空）。`node_type`は`Prism::Node`サブクラスでなければなりません（MUST）。型ごとの複数のルールは宣言順に実行されます。エンジンはそれらを1つの共有された実行ごとのウォーク`Plugin::Registry#node_rule_walk`（[`NodeRuleWalk`](https://github.com/rigortype/rigor/blob/master/lib/rigor/plugin/node_rule_walk.rb)、ADR-52 WD4）を通じてディスパッチします: ファイルごとの単一の走査がすべてのnode-ruleプラグインに供され、ランナーは各プラグインのバケットをその`#diagnostics_for_file`の結果と、同じ`plugin.<id>`スタンプとプラグインごとの例外隔離のもとでマージします;ルールを宣言しないプラグインはゼロコストです。インスタンスメソッド`#node_rule_diagnostics(path:, scope:, root:)`は同等の単一プラグインエントリーポイントとして`Base`に残っています（ドリフト固定済み、プラグインスペックが使用）が、エンジンはもはやそれを経由してルーティングしません。
 
 **5番目**のブロック引数`context`（ADR-37スライス1d）は、ノードのレキシカルな祖先チェーンを担う`Rigor::Plugin::NodeContext`です——ADR-2が約束した`ContextInfo`です。これは`#ancestors`（完全なチェーン、最も外側が先、ノード自体を除く）に加えて、便利メソッド`#enclosing_def`・`#enclosing_module`・`#enclosing_block(name)`を公開します。ルールは、チェックがノードの*位置*に依存するときにそれを読みます: `before_action` / `render`が属する内包コントローラー（`rigor-actionpack`は名前空間修飾されたコントローラー名を`context.ancestors`から再導出する）、マッチャーが配置される`describe <Model>`（`rigor-shoulda-matchers`）、または遅延`t('.key')`が展開されるアクション（`rigor-rails-i18n`）など。より少ないパラメータを取るブロックは、末尾の引数を単に無視します（後方互換）。
 

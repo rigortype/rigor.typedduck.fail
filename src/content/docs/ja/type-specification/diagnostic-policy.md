@@ -3,8 +3,8 @@ title: "診断ポリシー"
 description: "rigortype/rigor docs/type-specification/diagnostic-policy.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/type-specification/diagnostic-policy.md"
 sourcePath: "docs/type-specification/diagnostic-policy.md"
-sourceSha: "276bf166a0e91854c8d58e30ecf3aeb8961bc2f6ace881aade39c5c912892bf3"
-sourceCommit: "17f7d081a694f9cfdfaebd7fc71ebfc7171e2a6d"
+sourceSha: "03a56e068568ddc527c93a3f12a6a1d5843244aa4fcbe9eefd74c4630576dbb8"
+sourceCommit: "3eb7b4c256e7aae802b605ef7897408bc25495b9"
 translationStatus: "translated"
 sidebar:
   order: 2050
@@ -98,6 +98,14 @@ Rigorネイティブのマーカーは、PHPStanのアノテーションの感�
 ルールリストはカンマ区切りおよび/または空白区切りで、上記のルールIDプレフィックス（`call.undefined-method`）を使います。リテラルの`all`キーワードと短い旧来のエイリアスは、`rigor explain`が使うのと同じ展開を通じて解決されます。ブロックスコープ（`start` / `end`）の形式はありません。
 
 インラインマーカーは、設定された`severity_profile:`より前、そしてプロジェクトベースライン（ADR-22、最後の抑制レイヤー）より前に適用されます。運用ガイドはユーザーマニュアル § 「診断」を参照してください。
+
+### コメント内でのマーカーの位置
+
+マーカーが認識されるのは**コメントを開いているときのみ**です: 実装は、`#`から始まるコメントトークンに対してあらゆる抑制認識パターンをアンカー（`\A`）付きでマッチさせます。本物のディレクティブの形はどちらもこの形です——行全体の`# rigor:disable-file <rules>`と、末尾の`expr # rigor:disable <rules>`です——一方、マーカーを単に*言及している*だけのコメントは、引用された`#`の前に散文があり、ディレクティブとしてMUST NOT扱われてはなりません。これは`suppression.*`の監視ルールも同じく縛ります: 引用されたマーカーはマーカーではないので、`suppression.unknown-rule`も`suppression.empty`も`suppression.unknown-marker`も発火しません。同じアンカーから2つの帰結が導かれ、規範的です: 二重にした`##`コメント（ドキュメントツール慣習）は決してマーカーを作動させません。2番目の`#`は空白でもマーカー語でもないからです;そして`=begin` / `=end`の埋め込みドキュメントコメントも決してそれを作動させません。そのトークンは`=begin`から始まるからです。`#`とマーカー語の間の空白は許容され、まったくなくても構いません（`#rigor:disable <rules>`）。
+
+*ファイル*内での位置は制約されず、それは変わりません——ファイルレベルのマーカーはそれがどこに現れても尊重され、行レベルのマーカーはそのコメントが乗っている物理行に束縛されます。
+
+このパターンはissue #306より前はアンカーされておらず、ドキュメントコメントの内部のどこかに引用されたディレクティブが黙って効いてしまっていました——その誤認識は、Rigor自身の`lib/rigor/analysis/check_rules.rb`上のあらゆる診断を抑制していました。
 
 ### トークン解決
 

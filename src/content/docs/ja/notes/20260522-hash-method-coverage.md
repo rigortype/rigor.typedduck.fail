@@ -3,9 +3,9 @@ title: "Hash method coverage — ShapeDispatch & block-fold audit"
 description: "Imported from rigortype/rigor docs/notes/20260522-hash-method-coverage.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260522-hash-method-coverage.md"
 sourcePath: "docs/notes/20260522-hash-method-coverage.md"
-sourceSha: "e9eafee6dbec672f69184e83528f8068343ecff13d2d573b281b57013aa915e7"
-sourceCommit: "c6b91b9ed767a5fb70204890947e31fa87e53e68"
-sourceDate: "2026-05-23T00:42:39+09:00"
+sourceSha: "faf702632bb0986397f0dd702f4b9f16d39fa61f77b09c2d4f2d35f197a9d8af"
+sourceCommit: "3eb7b4c256e7aae802b605ef7897408bc25495b9"
+sourceDate: "2026-08-08T20:14:05+09:00"
 sourceLanguage: "ja"
 sidebar:
   order: 20266522
@@ -93,6 +93,7 @@ Tracks which methods produce precise `HashShape` results and what is still open.
 | `has_value?` | ✅ | 全値Constantのとき`Constant[true/false]`。低優先度。 |
 | `include?` | ✅ | `has_key?`の別名。`ShapeDispatch#hash_has_key?`に同一ハンドラ登録。 |
 | `inject` | 🚫 | Enumerable accumulator。 |
+| `inspect` | ✅ | `hash_inspect` — CLOSEDかつoptional keyなし、かつ全値Constantのときのみ。実Hashを再構築して本物の`inspect`を呼ぶ（Ruby 4.0の`{a: 1}`形式を再導出しない）。`TUPLE_JOIN_BYTE_LIMIT`（4096）でキャップ。ゲート述語は`URIFolding#hash_form_pairs`（`URI.encode_www_form`）と同じ「closedかつoptional keyなし」（#121, 2026-08-08）。 |
 | `invert` | ✅ | `hash_invert` — 全値がConstant[Symbol/String] のとき反転HashShapeを返す。 |
 | `keep_if` | 🚫 | 破壊的変更（`select!`相当）。 |
 | `key` | ✅ | 値 → キー逆引き。全値Constantで一意なら`Constant[k]`。低優先度。 |
@@ -139,6 +140,7 @@ Tracks which methods produce precise `HashShape` results and what is still open.
 | `to_h` | ✅ | `hash_to_h` — selfを返す。 |
 | `to_hash` | ✅ | `to_h`の別名。HASH_SHAPE_HANDLERSに`to_h`と同じエントリを追加するだけ。低優先度。 |
 | `to_proc` | 🚫 | `Proc`を返す。静的型付けには不要。 |
+| `to_s` | ✅ | `inspect`の厳密な別名（`Hash#to_s`は`Hash#inspect`と同一）。同一ハンドラ`hash_inspect`を登録（#121, 2026-08-08）。 |
 | `to_set` | 🚫 | `Set`を返す。 |
 | `transform_keys` | ✅ | ExpressionTyper `try_hash_shape_block_fold` — キーを変換した新HashShape。 |
 | `transform_keys!` | ✅ | 同上（bang形式）。 |

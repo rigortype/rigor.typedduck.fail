@@ -3,8 +3,8 @@ title: "診断"
 description: "rigortype/rigor docs/manual/04-diagnostics.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/04-diagnostics.md"
 sourcePath: "docs/manual/04-diagnostics.md"
-sourceSha: "196c55e5b33bdce4836135efb5bbb763ed64d158fdf39c8cccce3af5a1dad7f1"
-sourceCommit: "e3eb424c3c88035e453246710c8df3dc5cc8e7e1"
+sourceSha: "1669a3a0e2b02dbaf181523e8c318d85f08aed7c98d58348e014acf2dfd9366d"
+sourceCommit: "3eb7b4c256e7aae802b605ef7897408bc25495b9"
 sourceDate: "2026-06-15T14:10:58+09:00"
 translationStatus: "translated"
 sidebar:
@@ -173,6 +173,8 @@ config.merge(extra)  # rigor:disable call.undefined-method
 ```
 
 修飾IDファミリーワイルドカード（`call`）、カンマまたはスペース区切りのリスト、または`all`を受け付けます。コメントは診断が指す行に置かなければなりません。`disable-block`形式はないため、複数行にまたがる式では、発火する各行にコメントが必要です。
+
+このマーカーは**コメントの先頭**になければなりません——行全体の`# rigor:disable …`か、末尾の`expr  # rigor:disable …`です。このマニュアルが随所でそうしているように、構文を単に引用しているだけのコメントは普通の散文です: それは何も抑制せず、何も警告しません。二重にした`## rigor:disable …`や、`=begin` / `=end`ブロックの中に書かれたマーカーについても同様です——どちらも作動しません。
 
 機能し得ないマーカーは、静かに無視されるのではなくフラグされます。既知のルールを1つも指さないトークン（`call.undefined-metod`のようなタイポ）は[`suppression.unknown-rule`](#rule-suppression-unknown-rule)を、ルールをまったく持たない素のマーカーは[`suppression.empty`](#rule-suppression-empty)を、Rigorの文法の外にあるマーカー語（RuboCopの反射である`# rigor:disable-next-line <rule>`や`# rigor:enable`）は[`suppression.unknown-marker`](#rule-suppression-unknown-marker)を発火します。いずれもすべてのプロファイルで`:warning`です。`plugin.`接頭辞のトークンは決してフラグされず（プラグインのルール語彙は動的にロードされるため）、これらの抑制診断はいずれも他のルールと同様にそれ自体を抑制できます。
 
