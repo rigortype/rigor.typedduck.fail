@@ -3,8 +3,8 @@ title: "プラグインの登録と読み込み"
 description: "rigortype/rigor docs/internal-spec/plugin.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/plugin.md"
 sourcePath: "docs/internal-spec/plugin.md"
-sourceSha: "65187c885ef2fc36e9bba7ef9202d44347d501976b8ba1074550d1c3b88b1b39"
-sourceCommit: "3eb7b4c256e7aae802b605ef7897408bc25495b9"
+sourceSha: "3df1377e3322758432a18183931a1cc390bc4912d5a4faab05d85191ce4773ee"
+sourceCommit: "0cf313582cfbe2fa7da8148dc498d0b2a0893438"
 translationStatus: "translated"
 sidebar:
   order: 3050
@@ -77,6 +77,61 @@ end
 `#read_fact(plugin_id:, name:)`（ADR-60 WD4）は、別のプラグインの`#prepare`が公開したクロスプラグインファクト（ADR-9）を読み、インスタンス上で`(plugin_id, name)`ごとに**nil結果も含めて**メモ化します。nilを含むメモは、「ファクトが未公開」と「まだ読んでいない」を区別するために発見プラグインが抱えていた手書きの`@x_resolved`フラグを退役させます;ロードされたどのプロデューサーも公開していないファクトは`nil`として読まれます。（`#producer_value` / `#producer_error`——これらのヘルパーのキャッシュプロデューサー版の双子——は[`plugin-cache-producers.md`](plugin-cache-producers/)で仕様化されています。）
 
 `#prepare(services)`（ADR-9）はプロジェクト全体の事前パスフックで、プラグインインスタンスごとに、そのインスタンスのファイルごとの解析が始まる前に一度呼ばれます（§_並行性と値オブジェクトの共有可能性_を参照）。クロスプラグインファクト（`manifest(produces:)`）を公開するプラグインはこれをオーバーライドしてプロジェクトを走査し、`services.fact_store.publish(...)`を呼びます;ローダーのトポロジカル順序付けが、プロデューサーの`prepare`がいずれのコンシューマーのものよりも先に実行されることを保証します。デフォルトはno-opです。
+
+#### 到達可能性ルートの貢献 —— `:reachability_roots`ファクト（[ADR-102](../../adr/102-unused-code-reachability-report/) WD3）
+
+`:reachability_roots`は**予約済みファクト名**です: コアはロード済みのすべてのプラグインからこれを読むので、コンシューマーが別のプラグインではなくRigor自身である唯一のファクトです。
+
+プラグインは`produces: [:reachability_roots]`を宣言し、`#prepare`から完全修飾された定数名の`Array<String>`を公開します:
+
+```ruby
+manifest(id: "rails-routes", version: "0.29.0",
+         produces: %i[helper_table reachability_roots])
+
+def prepare(services)
+  services.fact_store.publish(plugin_id: manifest.id, name: :reachability_roots,
+                              value: ["Admin::UsersController", "HomeController"])
+end
+```
+
+`rigor unused`（[ADR-102](../../adr/102-unused-code-reachability-report/)）はプロジェクトのプラグインをロードし、すべての`#prepare`を実行し、これらのファクトの和集合でマークアンドスイープをシードします。定数パスの形をしていないエントリーは落とされます;先頭の`::`は剥がされます。何も公開しない（またはファクトを完全に省く）ことが、プラグインが「ルートは貢献しない」と言う方法です。
+
+契約のポイントは3つで、間違えたときの代償が大きい順に:
+
+1. **供給不足は供給過多に勝ります**。プロジェクトが宣言していない定数を名指しするルートは不活性です。実際には到達しないものを主張するルートは本物の死んだコードを黙って隠し、それが起きたことを示す下流のシグナルはありません。ルートのターゲットが静的に読めないとき —— `to: redirect(...)`、補間されたコントローラー名 —— は、推測ではなく何も公開しないでください。
+2. **値はオブジェクトではなくデータです**。これはワーカーセッションがプロセスごとに再構築するのと同じファクトストアを渡ります;Stringだけにとどめてください。
+3. **ルートはエントリポイントのためのものであって、「たぶん使われている」のためのものではありません**。このファクトは「解析対象コードの外側の何かがこれを名前で呼ぶ」に答えるものであり、だからこそルートテーブル、DIの配線、登録DSLは該当し、ヒューリスティックは該当しません。
+
+`rigor unused`は、供給されたルートのうちどの宣言にもマッチしなかった件数を報告するので、貢献を実プロジェクトでコーパスチェックできます。
+
+#### 到達可能性参照の貢献 —— `:reachability_references`ファクト（WD3 / WD8）
+
+`:reachability_references`は2つ目の予約済みファクト名で、上のファクトの兄弟です。答える問いが違います: 「フレームワークは外側から何を呼ぶか？」ではなく「このファイルは、定数走査には見えない何を名指ししているか？」です。
+
+プラグインは`produces: [:reachability_references]`を宣言し、`#prepare`から`{name:, role:}`の`Array<Hash>`を公開します:
+
+```ruby
+manifest(id: "factorybot", version: "0.3.0",
+         produces: [:reachability_references])
+
+def prepare(services)
+  services.fact_store.publish(plugin_id: manifest.id, name: :reachability_references,
+                              value: [{ name: "Admin::User", role: :test }])
+end
+```
+
+`name`はルートとまったく同じように検証されます。`role`は`:production`・`:test`・`:task`・`:config` —— `Reachability::Scan.role_for`がファイルに割り当てるロール（WD8）—— のいずれかでなければなりません（MUST）。認識されないロールは、`:production`にデフォルトするのではなくエントリーを落とします: デフォルトすればテストツリーの参照を黙って昇格させることになり、それこそWD8が防ぐために存在する唯一の結果だからです。StringのキーとStringのロールも受け付けられるので、キャッシュスロットを往復した値も届きます。
+
+エントリーは、そのロールを運ぶファイルレベルの参照としてグラフに入り、ルートとしては**入りません**。2つのファクトのどちらにするかは、誰が名指しするのかを問うて選びます:
+
+| クラスを名指しするのは誰か | ファクト |
+| --- | --- |
+| フレームワーク（解析対象コードの外側から） | `:reachability_roots` |
+| コード自身（ただし定数ノードとしてではなく） | `:reachability_references` |
+
+`rigor-factorybot`が2行目の動機となる事例です。`factory :user, class: "Admin::User"`はクラスを文字列で名指しし、素の`factory :user`はFactoryBot自身によるファクトリー名の定数化です —— どちらも定数ノードをどこにも残しません。しかしファクトリーはテストツリーに住んでいるので、それらをルートとして公開すれば、ファクトリーを持つすべてのクラスが本番到達可能になり、WD8の「テストからのみ到達可能」という答えが、まさにそれが最も関わりそうなクラスについて消えてしまいます。ロールがこの指摘を守ります。
+
+両ファクトともオプションで、同じ方法でフェイルソフトです: `#prepare`で例外を投げる、あるいはゴミを公開するプラグインは、自身の貢献だけを失い、他には何も失いません。
 
 #### 引数リテラルの抽出 — `Source::Literals`（ボイラープレート計画 §0a）
 
@@ -172,8 +227,96 @@ end
 | `nested_class_templates` | `Array<Plugin::Macro::NestedClassTemplate>` | enum形状のブロックDSL（`variant <Const>, <Type>`）からのネストされたサブクラス放出;メソッドだけでなくクラスを生み出すマクロ基板ティア（ADR-36）。[`macro-substrate.md`](../macro-substrate/)で仕様化されています。 |
 | `hkt_registrations`, `hkt_definitions` | `Array` | 軽量HKTの型関数登録（ADR-20）。 |
 | `additional_initializers` | `Array<AdditionalInitializer>` | クラス（およびそのサブクラス）上のどの`initialize`以外のメソッドがivar状態も確立するかを宣言する`{ receiver_constraint:, methods:, block_methods: }`エントリー——`methods:`は`def`形式（`def setup`）向け、`block_methods:`はブロック付き呼び出し形式（`before { … }`・`let(:x) { … }`）向け;少なくとも1つは空でないことが必要。`ScopeIndexer`の書き込み前読み込みnil健全性ゲートに供給する（ADR-38）。 |
+| `effect_root` | `/\A[a-z][a-z0-9_]*\z/`にマッチする`String?` | このプラグインが開くことを求めるエフェクトラベルのルート（[ADR-103](../../adr/103-effect-labels/) WD2）。ファーストパーティのバンドルプラグインにのみ認められる;下記の_エフェクトの貢献_を参照。 |
+| `effect_labels` | `Array<String>` | このプラグインがランのボキャブラリーへ登録するエフェクトラベル（ADR-103 WD2）。 |
+| `effect_attributions` | `Array<EffectAttribution>` | このプラグインがモデル化するフレームワークへの呼び出しが何をするか（ADR-103 WD6 / WD10）。 |
+| `effect_edges` | `Array<EffectEdge>` | 構文が含まないフレームワークの呼び出しグラフのエッジ —— コールバック、`perform_now`、メーラー本体（ADR-103 WD10）。 |
+| `effect_entry_points` | `Array<EffectEntryPoints>` | 名前付きの`effects.snapshot.reach:`プリセット（ADR-103 WD14）。 |
 
 `#validate_config(config)`はエラー文字列の配列を返します；ローダーは空でない結果を`LoadError`に変換します。各拡張フィールドは`Manifest#initialize`で独自のバリデーションを持ちます。
+
+#### エフェクトの貢献 —— `effect_root` / `effect_labels` / `effect_attributions` / `effect_edges` / `effect_entry_points`（[ADR-103](../../adr/103-effect-labels/)、issue #387）
+
+**ステータス: #387時点で規範的**。フレームワークをモデル化するプラグインは、アプリケーションのソースをどれだけ読んでも回復できないエフェクトに関する事柄を知っています: `save`はクラス本体のコールバックを走らせること、`perform_later`はSidekiqの下ではRedisへの書き込みでSolid Queueの下ではデータベースへの書き込みであること、`Rails.env`は可変なプロセス状態であること。この5つのフィールドが、プラグインがそれを言う方法です。
+
+プラグインがここで宣言するものはすべて**宣言的かつ凍結済み**です: StringとSymbolの上に組み立てた値オブジェクトで、Marshalクリーンで、プロセスごとに一度`Rigor::Effects::PluginFacts`へコンパイルされます。エフェクト走査の中でプラグインコードが走ることはありません —— ADR-103 WD13はそこで解決・走査・型付けする何かを禁じており、コールバックは収集ウィンドウがまたぐフォークプールの境界も生き延びられないでしょう。
+
+##### エフェクトがオフのときのコスト
+
+マニフェストの確保を超えてゼロです。`Plugin::Registry#effect_contributions`は**遅延**です —— 遅延である唯一の集約で、プラグインがプロジェクトファクトから行を計算してよい（MAY）ためです（rigor-activejobは`config.active_job.queue_adapter`を読みますが、これは`IoBoundary`の読み取りです）—— そして、プロジェクトに`effects:`ブロックがない限り何もこれを呼びません。ブロックのない`rigor check`はバイト単位で同一で、余分なファイルを1つも開きません。
+
+##### 行がどのチャネルに属するか
+
+プラグインがフレームワークのメソッドに色を付ける方法は2つあり、その選択は好みの問題ではありません:
+
+| プラグインが… | チャネル | 理由 |
+| --- | --- | --- |
+| そのメソッドのRBSシグネチャを既に出荷している | `signature_paths:`内の`%a{rigor:v1:effect …}` / `%a{pure}` | Tier 1。アノテーションは**受理済みシグネチャ**の層に乗ります。ADR-103 WD6が型について既に信頼している層で、境界は`Effects::EnvelopeIndex`によって呼び出し箇所にインポートされ、解消します。rigor-activerecordの`sig/active_record/relation.rbs`が実例です —— ビルダー／実体化子の分割はそこにあります。ファイルが既にその線を引いているからです。 |
+| 出荷していない、あるいはアプリごとにメソッドを名指しできない | `effect_attributions:` | アソシエーションのリーダー、`find_by_*`、スコープ、Relation上の`Enumerable`委譲は、プロジェクトごとに異なるか、宣言すればメソッドの**型付け**を変えてしまうものです。プラグインがシグネチャをまったく出荷していないクラスも同様です。 |
+
+1つの行が両方にあってはなりません: 1つのメソッドに2つのチャネルは1つのファクトに対して2つの起点を生み、`rigor effects explain`では重複として読めてしまいます。
+
+##### `EffectAttribution`
+
+`Rigor::Plugin::EffectAttribution.new(receiver:, method:, labels:, why:, singleton: false, narrow: nil,
+discharge: false, within: nil, on_result: false, taint: nil)`。
+
+`why:`は**必須かつ空でない**こと。`data/effects/core.yml`のすべての行が1つ要求するのとまったく同じです: 理由の述べられていないラベルは、誰もレビューできない主張です。
+
+`receiver:`は3通りのいずれかで綴られ、その綴りがマッチング規則を選びます:
+
+| 綴り | 例 | マッチ対象 |
+| --- | --- | --- |
+| クラス名 | `"ActiveRecord::Base"` | レシーバーが射影されるクラス。**プロジェクト自身の`class … <`行を通じて**たどる。1行でアプリのすべてのモデルに届く。 |
+| レシーバーパス | `"Rails.cache"` | 書かれたとおりのレシーバー*式*。`Rails.cache`は`config.cache_store`が名指しする何かを返すので、キーにできるクラスがない。 |
+| selfパス | `"self.session"` | 同上、ただし暗黙のselfをルートとする。`within:`を運ばなければならない（MUST）—— 無関係なプロジェクトクラス内のレシーバーなし`session`は別の`session`である。 |
+
+`on_result: true`はクラス名の行を1リンク外側へずらします: **そのクラスへの呼び出しが返したもの**に対する呼び出しにマッチします。`UserMailer.welcome(u).deliver_now`と`WelcomeJob.set(wait: 1.hour).perform_later`が、これを必要とする2つのイディオムです —— 中間のオブジェクトは誰も型を宣言していない遅延の`MessageDelivery` / `ConfiguredJob`ですが、それを生み出したクラスはすぐそこに書かれています。
+
+継承の走査はクロスファイル発見事前パスの`discovered_superclasses`を読みます —— プロジェクト自身の宣言であって、意図的にRBSの祖先チェーン**ではありません**。RBSを読めば、行の到達範囲がプロジェクトがたまたま`rbs prototype`を走らせているかどうかの関数になり、貢献が無関係なツールとともに現れたり消えたりしてしまいます。モデルがRBSでのみ宣言されているプロジェクトはプラグインの帰属も汚染も得ません。それがフェイルクワイエットの方向です。
+
+`narrow:`は`Rigor::Effects::Narrowing`ハンドラを名指しし、行では決められない問いを呼び出し自身の引数リテラルで決着させます: `connection.execute("UPDATE …")`は書き込みで、`execute(sql)`は`io.db`のままです。
+
+`taint:`は、行が境界を述べつつ、その境界が話の全部ではないと言うことを可能にします。`template-not-analysed`と`opaque-callable`に限定されます —— フレームワークモデルが正直に見えないと言える、たった2つのものです。`render`がその事例です: コントローラーがすることは完全に述べられており、テンプレートがすることはビューがエフェクト単位になるまで未知です。
+
+##### 解消とファーストパーティの資格
+
+ADR-103 WD6は、**ファーストパーティのバンドル**プラグインに、そしてそれ以外の何にも与えないものを2つ認めます:
+
+- モデル化するフレームワークのエフェクトラベルルートを開いてよい（`rails.*`であって`activerecord.*`ではない）;
+- その帰属は`discharge: true`を運んでよく、これは呼び出し箇所を汚染ではなく**網羅的**にします —— 受理済みシグネチャの`%a{…}`が持つのと同じ資格で、理由も同じです: 貢献はエンジンとともにバージョン管理され、このリポジトリでレビューされ、`make check-plugins`でゲートされています。
+
+「ファーストパーティ」は**導出されるものであり、決して列挙されません**: `Rigor::Plugin::FirstParty.bundled?(id)`はエンジンが`rigor-<id>`をバンドルしているかを問い、これは`Loader.bundled_plugin_path`がプラグインをどうrequireするか決めるときに既に答えているのと同じ問いです。リストは`plugins/`と同期を保つべき第2の情報源になり、最初のドリフトがプラグインの行を黙って降格させるでしょう。
+
+サードパーティプラグインの越権は**部分的に受理され、決して致命的ではありません**: その`effect_root:`は無視され、そのラベルはプラグインidにちなむルートを開きます;その`discharge: true`は無視され、その行はプロジェクト自身の`effects.attribution:`テーブルのように振る舞います —— 宣言されたもので、`plugin-attribution`汚染を運びます。両方の降格は`PluginFacts#warnings`に記録され、`rigor effects`で表面化されます。これらは診断では**ありません**: ユーザーが選んだプラグインは、プロジェクトの誤りとしてフラグされるべきものではないからです。ルートが存在もせず拡張者に属してもいないラベルは即座に拒否され（`Registry::OwnershipError`）、そのプラグインのラベルだけが落ちます —— 越権する1つのプラグインが別のプラグインのボキャブラリーの名を奪ってはなりません。
+
+いずれにせよ、ラベルは**宣言**レーンに着地し、証明レーンには決して着地しません。解消する行は信頼された主張であって証明ではありません: 「これがそれのすることだ」であって、「アナライザーが本体を読んでこれを見た」ではありません。
+
+##### `EffectEdge`
+
+`Rigor::Plugin::EffectEdge.new(receiver:, target:, why:, method: nil, singleton: false)`。`target:`はエンジンが実装する**閉じたenum**です;プラグインはパラメータだけを供給します。
+
+| `target:` | エンジンがすること |
+| --- | --- |
+| `:activerecord_callbacks` | 祖先が`receiver:`に到達するすべてのプロジェクトクラスについて、クラス本体のコールバック／バリデーションマクロ（`before_save :sym`、`validate :sym`、`after_commit :sym`、…）を読み、永続化セレクタ（`save`、`create!`、`destroy`、`valid?`、…）をそれらのメソッドへエッジを張ったエフェクト単位として合成する。`validates … uniqueness: true`は追加で`io.db.read`起点を貢献する。 |
+| `:perform_now` | `receiver:`のプロジェクトサブクラス上の`Job.perform_now(…)`は`Job#perform`に到達する。`method:`は合成されるセレクタを名指しし、デフォルトは`perform_now`。 |
+| `:mailer_body` | `receiver:`のプロジェクトサブクラス上の`UserMailer.welcome(u)`は`UserMailer#welcome`に到達する。 |
+
+エッジは、呼び出し箇所のエッジとしてではなく、**フレームワーククラス自身の上の合成エフェクト単位**（`Rigor::Effects::FrameworkUnits`）として実体化します: 呼び出し箇所は別のファイルにあり、コールバックはモデルのファイルにあるからです。伝播器はその後、通常の`(User, :instance, "save")`エッジを、他のあらゆるエッジを解決するのとまったく同じに —— 祖先と閉世界のオーバーライドjoinも含めて —— 合成単位へ解決します。
+
+このenumには**`perform_later` → `perform`の綴りがなく**、その不在がADR-103 WD4の強制です: 遅延実行される本体は別のプロセスの別のスタックで走るので、呼び出し元のコードはそれを含みません。唯一の例外はプラグインではなくプロジェクトによって許可されます —— 宣言された`queue_adapter = :inline`の下ではRailsは本当に呼び出し元のスタックでジョブを走らせるので、rigor-activejobはその宣言を読んだ後にのみ`target: :perform_now, method: :perform_later`を発行します。
+
+##### `EffectEntryPoints`
+
+`Rigor::Plugin::EffectEntryPoints.new(name:, globs:, why: "")`。`PluginFacts`のコンパイル時に`Rigor::Effects::EntryPoints`へ登録され、`effects.snapshot.reach:`で名前によって採用されます。
+
+プリセットはプラグインが名付け、プラグインは検証中の設定**から**ロードされるので、`Configuration`は`reach:`エントリーがプリセット名の*形をしている*ことだけをチェックします;存在チェックは`Effects::Snapshot.expand_reach`で走ります。登録済みの集合が完全になる最初の地点だからです。異なるglobで2回登録された名前は本物の衝突で例外を投げます;同じ名前に同じglobならno-opなので、1プロセス内の2つのランは衝突しません。
+
+##### キャッシュアイデンティティ
+
+`PluginFacts#digest` —— コンパイル済みのすべてのラベル・帰属・エッジ・プリセットを、それぞれ貢献したプラグインとともに含む内容ダイジェスト —— は`Effects::Identity`に加わります。したがって行を動かすプラグインのアップグレードは、再監査された`data/effects/core.yml`の行とまったく同じにエフェクトキャッシュスロットを無効化します。このダイジェストは意図的にプロジェクトのスーパークラステーブルから独立しています。それは診断のアイデンティティが既にカバーしているプロジェクト入力だからです。
+
+`--incremental`スナップショット自身のエフェクトアイデンティティは意図的にプラグインに**盲目**です: その2つの側はランの反対側に位置し（復元はプラグインがロードされる前に問い、保存はその後）、プラグインファクトを折り込めば盲目のダイジェストと目の見えるダイジェストを比べることになって毎回外れます。それが残す境界 —— プラグインのアップグレードは`--incremental`スナップショットのエフェクトコレクションを無効化しない —— は[`effect-summaries.md`](effect-summaries/)に記録されています;主要なフルラン経路にはそのような穴はありません。
 
 #### 宣言されたconfigデフォルト — `config_schema`の`{ kind:, default: }`（ADR-40）
 

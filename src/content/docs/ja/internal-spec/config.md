@@ -3,8 +3,8 @@ title: "設定 — `.rigor.yml`のセマンティクス"
 description: "rigortype/rigor docs/internal-spec/config.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/config.md"
 sourcePath: "docs/internal-spec/config.md"
-sourceSha: "080c587164f87e76827fbdf572ffc69c8e559a4c16c661d94e481866cb85eb15"
-sourceCommit: "78b18cea6a576475c92bce020535269f2eebc20d"
+sourceSha: "429cb612d9200384210227af8d3f2bf5e2ac28f930a8690d285cb7e7eaf7afaf"
+sourceCommit: "0cf313582cfbe2fa7da8148dc498d0b2a0893438"
 translationStatus: "translated"
 sidebar:
   order: 3050
@@ -37,7 +37,7 @@ sidebar:
 | **2. `Configuration`のロード** | この実装 | ロード時 | `ArgumentError` ── 実行が停止します。 |
 | **3. 設定監査** | この実装 | チェック時 | STDERR警告、および`--format=json`ペイロード内の`config_warnings`下のタグ付きエントリー。**終了コードは変わりません**。 |
 
-ティア2は、ローダーが処理を進められない値のためのものです（不正な形式の`dependencies.source_inference[]`エントリー、範囲外の`budget_per_gem`）。ティア3は、整った形式でありながら**静かに何も解決しない**値のためのものです ── 欠落したシグネチャパス、未知のライブラリ名、効果のない抑制、認識されないトップレベルキーであり、唯一の兆候が紛らわしく下流に現れるという類の誤りです。ティア3は警告するのみで決してエラーにはなりません。部分的あるいは先取り的な設定は妥当なセットアップであり、未設定のデフォルトに対しては決して発火しないからです。
+ティア2は、ローダーが処理を進められない値のためのものです（不正な形式の`dependencies.source_inference[]`エントリー、範囲外の`budget_per_gem`、enumの外にある`effects.snapshot.gate`、登録されたエントリーポイントのプリセットを名指さない`effects.snapshot.reach`エントリー、整形式のエフェクトラベルでない`effects.tolerated` / `effects.labels` / `effects.attribution` / `effects.envelopes[].effect`のメンバー、メソッドキーでない`effects.attribution`のキー、`match:` / `namespace:`の両方または両方ともでないものを名指す`effects.envelopes[]`エントリー、あるいは`effect:`の境界をまったく運ばないもの）。ティア2は*意味*ではなく*形*に答えます: エフェクトレジストリが聞いたことのないラベルは、どこに現れても問題なくロードされます。未知のラベルはフェイルオープンし、`effect.unknown-label`の仕事だからです。ティア3は、整った形式でありながら**静かに何も解決しない**値のためのものです ── 欠落したシグネチャパス、未知のライブラリ名、効果のない抑制、認識されないトップレベルキーであり、唯一の兆候が紛らわしく下流に現れるという類の誤りです。ティア3は警告するのみで決してエラーにはなりません。部分的あるいは先取り的な設定は妥当なセットアップであり、未設定のデフォルトに対しては決して発火しないからです。
 
 ティア1と3は認識されない**トップレベル**キーで重なり合い、両方が必要です。すなわちティア1は入力された時点で誤りを捕捉しますが、エディタがスキーマを読み込むユーザーに限られます。一方ティア3は常に実行されます。`Configuration::KNOWN_KEYS`は、適合するファイルが運びうる完全な集合です（`DEFAULTS`のキー + `includes:` + 予約名前空間）。それ以外はすべて`Configuration#unknown_keys`に記録されます ── ローダーは自身が所有する各キーを取得し、残りを決して列挙しないため、その記録がなければキーは監査がConfigurationを見る前に失われてしまいます。
 
@@ -66,8 +66,8 @@ sidebar:
 
 両方の信頼できる情報源が固定されており、2つの軸は一方が他方に到達できないため別々です。
 
-- **`DEFAULTS` → スキーマ、ネスト**。 `Configuration::DEFAULTS`内のすべてのキーは、あらゆる深さで、一致する形状のスキーマエントリーを持ちます（`spec/rigor/config_schema_spec.rb`）。列挙値のキーはランタイムの`VALID_*`定数に対して固定されます。
+- **`DEFAULTS` → スキーマ、ネスト**。`Configuration::DEFAULTS`内のすべてのキーは、あらゆる深さで、一致する形状のスキーマエントリーを持ちます（`spec/rigor/config_schema_spec.rb`）。列挙値のキーはランタイムの`VALID_*`定数に対して固定されます。
 - **予約名前空間 → スキーマ**。別の軸です。すなわち予約名前空間は**定義上`DEFAULTS`キーではない**ため、上記の軸は決してそれに到達できません。すべての予約名前空間はスキーマエントリーを持ち、スキーマで宣言されたすべての予約は予約リストに含まれます。
-- **`$id` ↔ initが書き込むURL**。 1つの定数から読み取られるため、両者が矛盾することはありません。
+- **`$id` ↔ initが書き込むURL**。1つの定数から読み取られるため、両者が矛盾することはありません。
 
 マニュアルに現れるすべての設定はスキーマに対して検証されます。

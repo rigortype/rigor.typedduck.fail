@@ -3,8 +3,8 @@ title: "Rigor型仕様"
 description: "rigortype/rigor docs/type-specification/README.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/type-specification/README.md"
 sourcePath: "docs/type-specification/README.md"
-sourceSha: "8c510b0c05349a820c016b57f3050980651c74cc3ac16869b1810374aa015154"
-sourceCommit: "db8d01bf94926a72e6a2aaf15639d1591b7e142e"
+sourceSha: "cf5152c40d5368e5f37aafa3a79acee53de1a1fe9a76b3a5c518df90349ab33f"
+sourceCommit: "0cf313582cfbe2fa7da8148dc498d0b2a0893438"
 translationStatus: "translated"
 sidebar:
   order: 2000
@@ -63,6 +63,7 @@ Steepが上位の参照源と食い違う箇所では、Rigorは上位の参照�
 | [normalization.md](normalization/) | 決定論的な正規化規則。 |
 | [rbs-erasure.md](rbs-erasure/) | 保守的なRBS消去（ハッシュシェイプ消去アルゴリズムを含む）。 |
 | [inference-budgets.md](inference-budgets/) | バジェット表、設定、境界契約の挙動。 |
+| [effect-labels.md](effect-labels/) | エフェクトラベルの文法と包摂、共有レジストリとその語彙進化規則、エフェクトサマリーと汚染原因、エフェクトエンベロープの構文。 |
 | [diagnostic-policy.md](diagnostic-policy/) | 診断識別子の分類体系、`Dynamic[T]`の表示規則、抑制マーカー。 |
 
 ## 関連: 解析器内部の契約

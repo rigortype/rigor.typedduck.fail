@@ -3,8 +3,8 @@ title: "rigor-rspec"
 description: "rigortype/rigor docs/manual/plugins/rigor-rspec.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/plugins/rigor-rspec.md"
 sourcePath: "docs/manual/plugins/rigor-rspec.md"
-sourceSha: "e945c48db83d54482fc8033998ec8da558ebe5881477449fb358135f992e2b1f"
-sourceCommit: "5c304b2c680eccdbfaffc114c0f31ce89f740ad4"
+sourceSha: "a601977c7151122636a328a20a667605eef7e6bd984428733cec4b6028d73808"
+sourceCommit: "0cf313582cfbe2fa7da8148dc498d0b2a0893438"
 translationStatus: "translated"
 sidebar:
   order: 9050
@@ -55,6 +55,7 @@ spec/user_spec.rb:7:3: error:   `let(:tags)` references its own name `tags` — 
 - **共有コンテキストの解決はなし**。`include_context`、`shared_context`、`it_behaves_like`は無視されます。
 - **自己参照検出はブロック内のみ**。間接的なループ（`let(:user) { foo }`で`foo`が`user`を呼び戻す場合）はフラグされません。
 - 定数検証（`RSpec.describe SomeClass`）はこのプラグインではなくエンジンの仕事です。
+- **[`rigor unused`](../../02-cli-reference/#rigor-unused)向けのルートは公開しません**。`RSpec.describe User`は既に参照として記録されており、specに由来するため`test`ロールが刻印されています。specの参照をルートとして公開すればそのロールが剥がれ、specから参照されるすべてのクラスが本番到達可能に昇格し、レポートの**テストコードからのみ到達可能**セクション —— 生きたテストを持つ死んだ本番コードだと教えてくれる行 —— が消えてしまいます。通常の扱いこそが正しい扱いです。
 
 ## 関連プラグイン
 

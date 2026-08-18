@@ -3,8 +3,8 @@ title: "rigor-activejob"
 description: "rigortype/rigor docs/manual/plugins/rigor-activejob.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/plugins/rigor-activejob.md"
 sourcePath: "docs/manual/plugins/rigor-activejob.md"
-sourceSha: "c9a0328bf5f7324e61dba79485b66e58f4087a1e7324631b32b5670399b31925"
-sourceCommit: "5c304b2c680eccdbfaffc114c0f31ce89f740ad4"
+sourceSha: "4048fcc1ff9577ab844de9eca2a99ff88bdb048f3359d53f44c2fd4ffaf9f683"
+sourceCommit: "0cf313582cfbe2fa7da8148dc498d0b2a0893438"
 translationStatus: "translated"
 sidebar:
   order: 9050
@@ -46,6 +46,7 @@ plugins:
 - **直接のスーパークラスのみマッチ**。`BaseJob < ApplicationJob`である状況下での`class WelcomeJob < BaseJob`は、`BaseJob`を`job_base_classes`に追加しない限り発見されません。
 - **構文上のアリティ**。`#perform`のアリティはパラメータリストから読み取られます。`define_method`で構築された`#perform`は対象外です。
 - **位置アリティのみ**。必須のキーワード引数は発見器によって記録されますが、呼び出し箇所ではまだ検証されません。
+- **[`rigor unused`](../../02-cli-reference/#rigor-unused)向けのルートは公開しません**。`MyJob.perform_later`はジョブを通常の定数として名指ししており、レポートはそれを既に記録しています。代わりに`app/jobs`配下のすべてのクラスをルートにすれば、孤児になったジョブを、証拠なしに永久に到達可能とマークしてしまいます。
 
 ## プラグインの内部
 

@@ -3,8 +3,8 @@ title: "ADR-1: 型モデルとRBSスーパーセット戦略"
 description: "rigortype/rigor docs/adr/1-types.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/1-types.md"
 sourcePath: "docs/adr/1-types.md"
-sourceSha: "54d92ec81b1484256b8e4de1da8583dc7caf988b29300fb7390d3f9e0c740644"
-sourceCommit: "94bccefcb8e324ea2322199418f33e80617b8e33"
+sourceSha: "f9070c11dfbacc49bde73671ea3b3e40b1d65c40391b4f7957ec84a15cb9e396"
+sourceCommit: "0cf313582cfbe2fa7da8148dc498d0b2a0893438"
 translationStatus: "translated"
 sidebar:
   order: 4001
@@ -435,7 +435,7 @@ Rubyの等価性はメソッドディスパッチであるため、等価ナロ�
 プラグイン前の純粋性ポリシーは、再呼び出しにわたってメソッド呼び出し結果がどう記憶または忘れられるか、PHPStanスタイルの記憶された値がどうRigorのカテゴリーバケットにマップするかを制御します。
 
 - メソッドはデフォルトで非純粋として扱われます。レシーバー上の非純粋メソッドを呼び出すと、レシーバーのオブジェクト内容バケットが無効化され、同じレシーバーへの先行呼び出しの記憶された値ファクトが破棄されます。
-- 純粋性は権威あるソースが宣言したときにのみ有効になります。Rigorとともに配布されるコアRubyとstdlibのRBS・受け付けられた通常のRBSファイル・`RBS::Extended`上の明示的な`rigor:v1:pure`注釈が初期ソースです。生成されたシグネチャとプラグイン貢献はそのティア内で純粋性を精緻化してかまいません。
+- 純粋性は権威あるソースが宣言したときにのみ有効になります。Rigorとともに配布されるコアRubyとstdlibのRBS・受け付けられた通常のRBSファイル・`RBS::Extended`上の明示的な`%a{pure}`注釈（元は`rigor:v1:pure`と綴られていたが、実装されることなく[ADR-103](103-effect-labels/) WD14で廃止された）が初期ソースです。生成されたシグネチャとプラグイン貢献はそのティア内で純粋性を精緻化してかまいません。
 - 設定スイッチは、繰り返しの呼び出しにわたるより強いナローイングを望むプロジェクトのために、デフォルトをPHPStanの「値返却は非純粋と宣言されない限り純粋」ポリシーに似たものにすべきです。スイッチはデフォルトを反転させますが、明示的な`pure`または変異宣言を決してオーバーライドしません。
 - `pure`が任意のレシーバー変異・引数変異・ファクト無効化効果と組み合わされることは、`RBS::Extended`マージ規則ですでに指定されているとおり、契約衝突のままです。
 

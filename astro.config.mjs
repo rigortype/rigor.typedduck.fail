@@ -204,6 +204,7 @@ export default defineConfig({
             { slug: 'manual/15-type-protection-coverage' },
             { slug: 'manual/16-rbs-extended-annotations' },
             { slug: 'manual/17-driving-improvement' },
+            { slug: 'manual/18-removing-dead-code' },
           ],
         },
         {

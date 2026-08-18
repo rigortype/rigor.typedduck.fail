@@ -3,8 +3,8 @@ title: "RBS::Extendedアノテーション"
 description: "rigortype/rigor docs/type-specification/rbs-extended.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/type-specification/rbs-extended.md"
 sourcePath: "docs/type-specification/rbs-extended.md"
-sourceSha: "6ca5b74eadb4e34976de922cbb377d2b8bad92d0adf01e40d0c80744b159a2d1"
-sourceCommit: "212f2c491920cc5c39a12d75aee385cb6c51fa0c"
+sourceSha: "7a02ff4fb16405e7ce44691fcab2487f6d7eb2f0ca9053ef2ec1d3d9b8fb4c11"
+sourceCommit: "0cf313582cfbe2fa7da8148dc498d0b2a0893438"
 translationStatus: "translated"
 sidebar:
   order: 2050
@@ -88,6 +88,7 @@ def valid_string?: (untyped value) -> bool
 | `rigor:v1:assert target is T` | メソッドが正常にリターンした後に`target`を絞り込みます。 |
 | `rigor:v1:assert-if-true target is T` | メソッドが真値を返したときに`target`を絞り込みます。 |
 | `rigor:v1:assert-if-false target is T` | メソッドが`false`または`nil`を返したときに`target`を絞り込みます。 |
+| `rigor:v1:effect <label-list>` | **エフェクトエンベロープ**——メソッドのコードが行ってよいエフェクトラベルの上界——を宣言します。`class` / `module`宣言上でも有効で、そこでは分配されます（§「エフェクトエンベロープ」）。 |
 
 真ブランチのみの述語はPythonの`TypeGuard`的な挙動に十分です。両ブランチを記述する述語ペアはPythonの`TypeIs`的な挙動に十分です。偽ブランチはより明確な場合は明示的な負の型として書く場合があります（MAY）:
 
@@ -135,6 +136,28 @@ end
 ディレクティブはRigorに対して、現在の呼び出しサイトがその要件を実行するかどうかに関係なく適合を検証するよう指示します。これは構造的契約を使用から生まれるプロパティではなくチェックされた設計アサーションにしたいライブラリに有用です。同じクラス上の複数の`conforms-to`ディレクティブは許可され、インターフェースの積集合のように結合します。宣言された`conforms-to`インターフェースが満たされない場合、Rigorは診断を報告しなければなりません（MUST）;満たされたディレクティブはサイレントです。
 
 ディレクティブは純粋に追加的です。暗黙の構造的互換性は引き続き適用され、すでにインターフェースを満たすクラスはアノテーションなしで型チェックを続けます。
+
+## エフェクトエンベロープ
+
+**エフェクトエンベロープ**は、メソッドが何を返すかではなく何を*してよいか*を束縛します。2つの綴りがそれを運び、上のあらゆる他のディレクティブと違って、そのうち1つはRigorのものではありません:
+
+```rbs
+class UserRepository
+  %a{rigor:v1:effect io.db}
+  def find: (Integer) -> User
+
+  %a{pure}
+  def slug: (String) -> String
+end
+```
+
+`%a{pure}`はエコシステムの既存の純粋性アノテーションです——rbs coreがそれを運び、Steepがそれを読む——のでRigorは同義語を発明するのではなくそれを読みます;それは空のエンベロープを意味し、`mutate.local`を許容します。`rigor:v1:pure`は一度仕様化されましたが実装されることはなく、言語の一部ではありません（[ADR-103](../../adr/103-effect-labels/) WD14）。1つの宣言上の2つの綴りは矛盾します: `pure`が勝ち、その矛盾は`RBS::Extended`の競合チャネルを通じて報告されます。
+
+ペイロードは`assert` / `conforms-to`の形に従います——スペース区切りのヘッド、続いて素のラベルトークンのカンマ区切りリスト。パーレンで囲んだコメント形式はありません。RBSには本物のコメントがあるからです。そして空のリストは不正です。不正なペイロード、またはエフェクトレジストリが認識しないラベルを名指すものは、パースできた部分ではなく、タグ全体を*無制限*として読ませます: フェイルオープンの方向なので、タイポは発見を捏造するのではなく抑制します。
+
+`class`または`module`宣言に書かれると、エンベロープはそのRubyクラス自身のメソッド——再オープン、他ファイルの定義、合成された`attr_*`メンバーを含む——に分配され、サブクラスへは決して分配されず、メソッドレベルのエンベロープが分配されたものに勝ちます。
+
+ラベル文法、包摂関係、境界が何に対してチェックされるか、そして`effect.envelope-exceeded`診断は[effect-labels.md](../effect-labels/)で規範的です。ここにあるものは、`.rigor.yml`に`effects:`ブロックを持たないプロジェクトには何の影響も及ぼしません。
 
 ## 高階型ディレクティブ（ADR-20）
 

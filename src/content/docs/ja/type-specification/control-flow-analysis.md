@@ -3,8 +3,8 @@ title: "制御フロー解析"
 description: "rigortype/rigor docs/type-specification/control-flow-analysis.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/type-specification/control-flow-analysis.md"
 sourcePath: "docs/type-specification/control-flow-analysis.md"
-sourceSha: "b370a78a6a3d450b7ad87738def0ee2febb8ffd438cff895d9ccc3cb351a2566"
-sourceCommit: "78b18cea6a576475c92bce020535269f2eebc20d"
+sourceSha: "debde045c1d5dd28b77be5c9798ca6e8f9888fea9de7ce89603483c52c4db625"
+sourceCommit: "0cf313582cfbe2fa7da8148dc498d0b2a0893438"
 translationStatus: "translated"
 sidebar:
   order: 2050
@@ -193,7 +193,7 @@ Rigorは等価ファクトを信頼レベルで分類すべきです（SHOULD）
 プラグイン前の純粋性ポリシーは、メソッド呼び出し結果が再呼び出しを越えて記憶されるか忘れられるかを制御します:
 
 - メソッドはデフォルトで**不純**として扱われます。レシーバーで不純なメソッドを呼び出すと、レシーバーのオブジェクトコンテンツバケットが無効化され、同じレシーバーへの以前の呼び出しで記憶された値ファクトが破棄されます。
-- 純粋性は権威あるソースがそれを宣言した場合にのみ有効になります: Rigorと共に配布されるコアRubyとstdlibのRBS、受け付けられた通常のRBSファイル、または`RBS::Extended`の明示的な`rigor:v1:pure`アノテーション。生成されたシグネチャとプラグインの貢献はそのティア内で純粋性を絞り込む場合があります（MAY）。
+- 純粋性は権威あるソースがそれを宣言した場合にのみ有効になります: Rigorと共に配布されるコアRubyとstdlibのRBS、受け付けられた通常のRBSファイル、または`RBS::Extended`の明示的な`%a{pure}`アノテーション。生成されたシグネチャとプラグインの貢献はそのティア内で純粋性を絞り込む場合があります（MAY）。純粋性アノテーションは`%a{pure}`——エコシステムの既存の綴りであり、`mutate.local`を許容する空のエフェクトエンベロープとして読まれる（[effect-labels.md](../effect-labels/)）。`rigor:v1:pure`はこの節が元々名指していた綴りだ;それは実装されることなく、`%a{pure}`を優先して廃止された（[ADR-103](../../adr/103-effect-labels/) WD14）。
 - 設定スイッチにより、デフォルトがより「値を返すことは不純として宣言されない限り純粋」というPHPStanのポリシーに似た挙動になり、繰り返し呼び出しを越えてより強いナローイングを望むプロジェクトに対応します。スイッチはデフォルトを切り替えますが、明示的な`pure`またはミューテーション宣言をオーバーライドすることはありません。
 - `pure`とレシーバーミューテーション、引数ミューテーション、またはファクト無効化効果を組み合わせることは契約（contract）の競合であり、[rbs-extended.md](../rbs-extended/)で指定されています。
 

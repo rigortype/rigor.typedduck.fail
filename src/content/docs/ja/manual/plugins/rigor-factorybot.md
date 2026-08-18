@@ -3,8 +3,8 @@ title: "rigor-factorybot"
 description: "rigortype/rigor docs/manual/plugins/rigor-factorybot.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/plugins/rigor-factorybot.md"
 sourcePath: "docs/manual/plugins/rigor-factorybot.md"
-sourceSha: "d370fc11bad1d29f0850a4ffd1656fbe9f08a1f9a7618f7618a5d373d8669114"
-sourceCommit: "5c304b2c680eccdbfaffc114c0f31ce89f740ad4"
+sourceSha: "3e8280373c1ae7b5f23821cded9e6769604bb11d32db3c26afd195d8fe3b6dfa"
+sourceCommit: "0cf313582cfbe2fa7da8148dc498d0b2a0893438"
 translationStatus: "translated"
 sidebar:
   order: 9050
@@ -53,6 +53,12 @@ plugins:
       factory_search_paths: ["spec/factories", "spec/factories.rb"]  # default
       # Minitest projects: ["test/factories"]
 ```
+
+## `rigor unused`向けのファクトリー参照
+
+`factory :user, class: "Admin::User"`はクラスを文字列で名指しし、素の`factory :user`はFactoryBotがファクトリー名を定数化することに頼っています。どちらも定数参照ではないので、[`rigor unused`](../../02-cli-reference/#rigor-unused)にはそれらが見えず、ファクトリーを持つモデルを死んでいると報告してしまいます。
+
+このプラグインはそれらのモデルクラスを —— ルートとしてではなく、**testロールの参照**として —— 供給します。したがって、ファクトリー経由でしか到達されないクラスは候補リストから外れ、代わりに**テストコードからのみ到達可能**の下に現れます。これは意図的です: ファクトリーとspecだけに生かされているモデルは、生きたテストを持つ死んだ本番コードであり、ファクトリーをルートにしていたらまさにその指摘を隠してしまっていたはずです。
 
 ## 制限
 

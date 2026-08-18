@@ -3,8 +3,8 @@ title: "rigor-rspec-rails"
 description: "rigortype/rigor docs/manual/plugins/rigor-rspec-rails.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/plugins/rigor-rspec-rails.md"
 sourcePath: "docs/manual/plugins/rigor-rspec-rails.md"
-sourceSha: "7316681db8290a8ba6bac919f0a49a5487535feb62d8a7a305bc1c8be6d5dedd"
-sourceCommit: "6e5bd55274e20dfb59183559c4971d34f878c907"
+sourceSha: "839ad0d5cf3b17f1325b8c3491380f293fbbdc5546e927dad78da4072c522173"
+sourceCommit: "0cf313582cfbe2fa7da8148dc498d0b2a0893438"
 translationStatus: "translated"
 sidebar:
   order: 9050
@@ -49,6 +49,7 @@ end
 
 - **`have_http_status`のみ**。他のrspec-railsマッチャーは、プラグイン間の調整待ちのキューに入っています。`render_template`（rigor-actionpackのレンダーターゲット検証と重複）、`route_to` / `redirect_to` / `be_routable`（rigor-rails-routesのテーブルが必要）、`have_enqueued_job` / `have_received`（エンジンの定数 / undefined-methodルールと重複）。
 - **リテラル引数のみ** ── 変数やメソッド呼び出し経由で渡されたステータスは静的に検査できないため、黙って受理されます。
+- **[`rigor unused`](../../02-cli-reference/#rigor-unused)向けのルートは公開しません**。理由は[`rigor-rspec`](../rigor-rspec/#制限事項)が述べるとおりです: specの定数参照は`test`ロール付きで既に記録されており、それをルートにすればレポートの「テストからのみ到達可能」という答えが消えてしまいます。
 
 ## プラグインの内部
 

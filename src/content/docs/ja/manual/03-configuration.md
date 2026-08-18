@@ -3,8 +3,8 @@ title: "設定"
 description: "rigortype/rigor docs/manual/03-configuration.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/03-configuration.md"
 sourcePath: "docs/manual/03-configuration.md"
-sourceSha: "4fa3fc49054645dd4e6a91c4ac95fa45b25e29fa10edec933e5793935bc97f29"
-sourceCommit: "17f7d081a694f9cfdfaebd7fc71ebfc7171e2a6d"
+sourceSha: "1d49940df3bd51b0330ff64a4d4922f8bd50a53906eac09022cdca513eb77fe5"
+sourceCommit: "0cf313582cfbe2fa7da8148dc498d0b2a0893438"
 sourceDate: "2026-06-15T14:21:04+09:00"
 translationStatus: "translated"
 sidebar:
@@ -66,7 +66,7 @@ cache:
 | --- | --- | --- | --- |
 | `libraries` | Array | `[]` | バンドルされたRBSを読み込む標準ライブラリ/gem名。 |
 | `signature_paths` | Array | `nil` | `.rbs`ファイルの追加ディレクトリ。相対パスのエントリーは設定ファイルのディレクトリを基準に解決されます。 |
-| `pre_eval` | Array | `[]` | ファイルごとの解析前に走査するファイル（またはglob）。プロジェクトのモンキーパッチを登録するために使用。 |
+| `pre_eval` | Array | `[]` | ファイルごとの解析前に走査するファイル（またはglob）。プロジェクトのモンキーパッチを登録し、そのトップレベル定数をプロジェクト全体に公開するために使用。 |
 | `plugins` | Array | `[]` | 有効化するプラグイン。[プラグインの使い方](../07-plugins/)を参照。 |
 
 ### 設定検証の警告
@@ -132,6 +132,69 @@ rigor: bundler.lockfile: "./missing/Gemfile.lock" does not exist
 | `plugins_io.network` | String | `"disabled"` | プラグインネットワークポリシー。`disabled`または`allowlist`。 |
 | `plugins_io.allowed_paths` | Array | `[]` | プラグインが読み取り可能なファイルシステムパス。 |
 | `plugins_io.allowed_url_hosts` | Array | `[]` | `network: allowlist`のときプラグインがフェッチ可能なURLホスト。 |
+
+### エフェクトラベル
+
+| キー | 型 | デフォルト | 意味 |
+| --- | --- | --- | --- |
+| `effects` | Hash | なし | **エフェクトラベルへのオプトイン（[ADR-103](../../adr/103-effect-labels/)）**。このブロックの*存在*がスイッチです —— `effects: {}`はすべてのサブキーをデフォルトのまま収集を有効にし、書かなければ`rigor check`はバイト単位で同一かつ無償のままです。他の何によっても収集はオンになりません: RBSの`%a{pure}`や`%a{rigor:v1:effect …}`アノテーションもオンにしません。アノテーションが黙ってすべてのランを高くつくものにしてはならないからです —— そのようなプロジェクトは代わりに、アノテーションが不活性である旨の`effect.annotations-unchecked`（`:info`）をランごとに1件受け取ります。キーがないとき`rigor effects`は暗黙の空ブロックの下で走るので、何も設定せずにレポートを試せます。エフェクトサマリーは固有のアイデンティティ（Rigorのエフェクトボキャブラリー、その組み込みカタログ、そしてこのブロック）の下でキャッシュされるので、同じジョブで`rigor check`の後に走る`rigor effects`はキャッシュヒット＋伝播で済み、このブロックのオン／オフはあなたの診断キャッシュを無効化しません。サブキーは下記のとおりです。`views`はスキーマに宣言済みの予約キーで、受理はされますが**まだ読まれません**。[`rigor effects`](../02-cli-reference/#rigor-effects)を参照。 |
+| `effects.check` | Boolean | `true` | あなたが宣言したエンベロープ —— RBSの`%a{pure}`と`%a{rigor:v1:effect …}`、および下記の`effects.envelopes:`スタンザ —— をRigorが証明したものと照合し、`effect.envelope-exceeded`と、ボキャブラリーが認識しないラベルについては`effect.unknown-label`を表面化させるかどうか。`false`にすると、レポートとスナップショットは保ったまま両方を黙らせます。`effects:`ブロックなしでオンになることはありません。 |
+| `effects.snapshot.path` | String | `.rigor-effects.yml` | `rigor effects update`がコミット対象の記録を書き出す場所。 |
+| `effects.snapshot.reach` | Array | `[]` | スナップショットが`reach:`の下に**推移的**フットプリントを記録するエントリポイント。各エントリーはプロジェクト相対のファイルglob（`unused --entry-point`のセマンティクス —— ディレクトリ境界をまたぐ唯一の方法は`**`）か、プラグインが登録したエントリポイント**プリセット**の名前。Railsアプリでは`reach: [rails]`が求めるものです —— 下記参照。何も登録していない名前は、スナップショットの構築時にエラーになります（設定のロード時ではありません。プリセットを名付けるプラグインはその設定*から*ロードされるためです）。 |
+| `effects.snapshot.gate` | String | `symmetric` | `rigor effects check`が何をドリフトとして扱うか。`symmetric`はあらゆる差異で失敗します —— エンキューを*やめた*ジョブもニュースです;`additions`は増加のみのラチェットです。 |
+| `effects.labels` | Array | `[]` | **あなたのプロジェクト**が登録するエフェクトラベル。Rigorが出荷するボキャブラリーの上に重ねられます。プロジェクトは任意のルート（`acme.cache`）を開けます —— ここにラベルを列挙することが保証の行為です。いったん登録されれば、そのラベルは下記の他のすべてのキーで使えるようになり、未知として報告されなくなります。不正な綴りはロードエラーです。 |
+| `effects.attribution` | Hash | `{}` | Rigorが見えないコードへの呼び出しが*何をするか*を、メソッドをキーにして記述: `{"Net::HTTP.get": [io.net.http], "Logger#info": [telemetry]}`。キーはメソッドキー —— `Owner#instance_method`または`Owner.singleton_method` —— で、それ以外はロードエラーです。ラベルは呼び出し元の**宣言**レーンに着地し、証明レーンには決して着地しないので、帰属によって診断が発火することはありえません;その呼び出しは引き続き未解決として数えられます。あなたがそのコードの振る舞いをRigorに教えただけで、Rigorが読んだわけではないからです。誰もプラグインを書いていないgemに使ってください。 |
+| `effects.envelopes` | Array | `[]` | **規約による**エフェクトエンベロープ。アーキテクチャの層全体を、メソッドごとのアノテーションではなく1つのスタンザで制限します。各エントリーは`match:`（クラスが定義されているファイルに対するプロジェクト相対のパスglob）または`namespace:`（定数glob: `*`は1セグメント、`**`は1つ以上）のちょうど一方と、`effect:` —— 選択されたクラスが行ってよいラベル、純粋なら`[]` —— を指定します。最も近いものが勝ちます: メソッド単位のアノテーションはクラスレベルのものに勝ち、クラスレベルはスタンザに勝ちます;スタンザ同士では**最初**にマッチしたものが勝ちます。下記の例を参照。 |
+| `effects.tolerated` | Array | `[]` | プロジェクトが対処しないと決めたラベル。境界や差異が**裁定される**ときに適用され、記録が書かれるときには決して適用されず、しかも**起点ごと**に適用されます: `Logger#info`は`io`と`telemetry`を一緒に運ぶので、`tolerated: [telemetry]`はロギングに伴ってきた`io`を免除し、同じメソッド内の`File.read`に由来する`io.fs.read`はそのままの位置に残します。`rigor check --no-tolerated-effects`（および`rigor effects check`の同じフラグ）はリストが空であるかのように再裁定します —— このポリシーの監査スイッチです。 |
+
+ブロックを書かずにオンにしたいですか？[`effects-on-by-default`](../02-cli-reference/#rigor-show-bleedingedge)ブリーディングエッジ機能（`bleeding_edge: [effects-on-by-default]`）は、`effects:`キーをまったく持たない設定を`effects: {}`であるかのように振る舞わせます —— 収集、`effects.check`、そしてこのページのその他すべてがデフォルトでオンになります。これは*不在*だけを埋めます: `effects: false`と書けばあなたは何があろうとオプトアウトのままで、あなたが書いた`effects:`ブロックは書かれたとおりそのまま残ります。これは**v0.4.0**でデフォルトになるものをプレビューします（[ADR-103](../../adr/103-effect-labels/) § WD15）。
+
+#### エントリポイントプリセット
+
+`reach:`は「誰のフットプリントを記録が覆うべきか」を問い、フレームワーク上での正直な答えは、あなたのコードについてではなくフレームワークについての事実です。だから、それをモデル化するプラグインがその集合に名前を付け、あなたはそれを採用します:
+
+```yaml
+plugins:
+  - rigor-railties
+  - rigor-activerecord
+  - rigor-actionpack
+
+effects:
+  snapshot:
+    reach: [rails]
+```
+
+`rails` —— [`rigor-railties`](../plugins/rigor-rails/)が登録 —— は`app/controllers/**`・`app/jobs/**`・`app/mailers/**`・`app/channels/**`を表します: 外の世界がアプリケーションに入ってくるすべての経路です。コンポーネントプラグインは、4つ全部ではなく1つの層のフットプリントが欲しい場合に備えて、より狭い`rails-controllers`・`rails-jobs`・`rails-mailers`・`rails-channels`も登録します。プリセットはglobに付けた名前にすぎません;1つのリストで両者を混ぜても構いません。
+
+プラグインを列挙することがそのプリセットを登録する行為なので、`plugins:`に`rigor-railties`がないまま`reach: [rails]`と書くと、その旨のエラーになります。
+
+#### 規約によるエンベロープ
+
+`envelopes:`リストは、RBSを1行も書く前の初日から元が取れるサーフェスです:
+
+```yaml
+effects:
+  envelopes:
+    - match: "app/presenters/**/*.rb"   # presenters render; they do not query
+      effect: []
+    - namespace: "Policies::*"          # Policies::Edit, not Policies::Admin::Edit
+      effect: [mutate.local]
+    - match: "app/jobs/**/*.rb"
+      effect: [io]
+  tolerated: [telemetry]
+```
+
+スタンザは、選択したすべてのクラスのすべてのメソッドにその境界を付けます。クラスに書いたアノテーションとまったく同じです。それを超えるメソッドは、破ったスタンザを名指しする`effect.envelope-exceeded`を`def`の位置に1件受け取ります:
+
+```
+app/presenters/user_presenter.rb:14:1: warning: Method Presenters::User#render performs io.fs.read
+  (File.read), but is declared effect: [] at .rigor.yml effects.envelopes[0], so io.fs.read exceeds
+  the envelope. [effect.envelope-exceeded]
+```
+
+1つのメソッドが意図的な例外であるときは、そのメソッドにRBSでより狭いエンベロープを書いてください —— 最も近いものが勝つので、`except:`キーは要りません。ある*種類*のエフェクトがどこでも許容できるときは、すべてのスタンザを緩める代わりに`tolerated:`にそれを名指ししてください。
+
+ある層がまだ境界を持つ準備ができていないなら、`envelopes:`は書かずに、コミット対象のスナップショット（[`rigor effects update`](../02-cli-reference/#エフェクトスナップショット)）から始めてください —— それには宣言が一切要りません。スタンザは第2段階で、記録がその層の実際の振る舞いを教えてくれてから書くものです。
 
 ### 他の実装のために予約済み
 

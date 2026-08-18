@@ -3,8 +3,8 @@ title: "rigor-actionmailer"
 description: "rigortype/rigor docs/manual/plugins/rigor-actionmailer.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/plugins/rigor-actionmailer.md"
 sourcePath: "docs/manual/plugins/rigor-actionmailer.md"
-sourceSha: "0620017845b9f1e6c5a59d814da104081a0509147dcdd4f932304584e7b3f990"
-sourceCommit: "5c304b2c680eccdbfaffc114c0f31ce89f740ad4"
+sourceSha: "681c178e086548adfb24de0124e0e90d9a0f1f175a82b62af34c01b1f9e8193d"
+sourceCommit: "0cf313582cfbe2fa7da8148dc498d0b2a0893438"
 translationStatus: "translated"
 sidebar:
   order: 9050
@@ -51,6 +51,7 @@ plugins:
 - **構文的なアクションリスト**。アクションはインスタンス側の`def`から読み取られます。`define_method`、`initialize`、`_`始まりの名前は除外されます。
 - **標準のビューファイル名パターンのみ**（`<action>.{html,text}.{erb,haml,slim}`）。カスタムエンジン／ビューパスは対象外です。
 - 真新しいビューファイルは、メーラーファイルが参照する何かが変わるまでキャッシュされたインデックスを無効化しません（リード追跡のトレードオフです）。
+- **[`rigor unused`](../../02-cli-reference/#rigor-unused)向けのルートは公開しません**。`MyMailer.welcome(...)`はメーラーを通常の定数として名指ししており、レポートはそれを既に記録しています。代わりに`app/mailers`配下のすべてのクラスをルートにすれば、何も送信しないメーラーを、証拠なしに永久に到達可能とマークしてしまいます。
 
 ## プラグイン内部
 

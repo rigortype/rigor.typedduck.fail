@@ -3,8 +3,8 @@ title: "rigor-pundit"
 description: "rigortype/rigor docs/manual/plugins/rigor-pundit.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/plugins/rigor-pundit.md"
 sourcePath: "docs/manual/plugins/rigor-pundit.md"
-sourceSha: "e9944ce9ea11fd18d80c2087e13fbb40d0aa0ac9c6c30fe0b02d2c49e0f4ea04"
-sourceCommit: "5c304b2c680eccdbfaffc114c0f31ce89f740ad4"
+sourceSha: "f9dceb260621c5d1ccfe7d86bbbd4870adffe0ca8015cac7be7406dc18d882b8"
+sourceCommit: "0cf313582cfbe2fa7da8148dc498d0b2a0893438"
 translationStatus: "translated"
 sidebar:
   order: 9050
@@ -51,7 +51,18 @@ plugins:
     config:
       policy_search_paths: ["app/policies"]    # デフォルト
       policy_base_classes: ["ApplicationPolicy"]  # デフォルト
+      authorization_call_paths: ["app/controllers"]  # デフォルト
 ```
+
+`authorization_call_paths`は、下記の到達可能性ルートの背後にある`authorize` / `policy` / `policy_scope`呼び出しをプラグインが探す場所です。`app/graphql`や`app/services`からも認可しているなら広げてください;この走査はランごとにファイル1つにつき1回のパースになるため、デフォルトは狭くしてあります。
+
+## `rigor unused`向けのポリシールート
+
+`authorize @post`は`PostPolicy#update?`を実行しますが、`PostPolicy`という名前はどこにも書かれません。だから助けがなければ、[`rigor unused`](../../02-cli-reference/#rigor-unused)はアプリのすべてのポリシーを死んでいる可能性ありと報告します。このプラグインは、あなたのコードが実際に認可の対象としているポリシーを供給するので、それらは候補リストから外れます。
+
+公開されるのは**認可呼び出しが名指しする**ポリシーであって、`policy_search_paths`配下のすべてのクラスではありません。何も認可の対象としないポリシーはレポートに残ります。それこそがあなたの見たかった答えです: 示せる以上のことを主張するルートソースは、本物の死んだコードを黙って隠してしまいます。
+
+プラグインが呼び出しに帰属させられないポリシー —— 名前空間付きの`Admin::PostPolicy`、読み取れないレコード引数 —— は、推測されるのではなく候補のままにとどまります。
 
 ## 制限事項
 

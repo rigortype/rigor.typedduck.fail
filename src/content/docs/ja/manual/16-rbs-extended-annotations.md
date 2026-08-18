@@ -3,8 +3,8 @@ title: "RBS::Extendedアノテーション"
 description: "rigortype/rigor docs/manual/16-rbs-extended-annotations.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/16-rbs-extended-annotations.md"
 sourcePath: "docs/manual/16-rbs-extended-annotations.md"
-sourceSha: "b4f2b790b5515dd08cfb1b9674a057c0b5ae3c06551ab4e3fcf84cf8f882ca07"
-sourceCommit: "aec4ca7f5f87b1972dea8fecaaf5b62c8880a3af"
+sourceSha: "48ca1377d484ae48763604c730197d56ab88493726f2db97929e1e93893caa8b"
+sourceCommit: "0cf313582cfbe2fa7da8148dc498d0b2a0893438"
 translationStatus: "translated"
 sidebar:
   order: 9016
@@ -19,7 +19,23 @@ sidebar:
 def read_name: () -> String
 ```
 
-素の`() -> String`は互換性のための契約のままです;アノテーションは、戻り値が空でない文字列だとRigorに伝えます。このページは*運用上*のリファレンス（書けるディレクティブとその構文）です。規範的なルール（衝突の扱い、マージ、由来）については[`docs/type-specification/rbs-extended.md`](../../type-specification/rbs-extended/)を、型モデルのウォークスルーについては[ハンドブック第7章](../../handbook/07-rbs-and-extended/)を参照してください。
+素の`() -> String`は互換性のための契約のままです;アノテーションは、戻り値が空でない文字列だとRigorに伝えます。
+
+これらはどれも、rbs-inlineの`# @rbs %a{…}`コメントとして**`.rb`ファイル内に**書くこともできます —— `%a{}`はrbs-inline自身のupstream文法であり、アノテーションは生成されるシグネチャと同じ経路でRigorに届きます:
+
+```rb
+# rbs_inline: enabled
+
+class Reader
+  # @rbs %a{rigor:v1:return: non-empty-string}
+  # @rbs return: String
+  def read_name = "x"
+end
+```
+
+これには`rbs-inline`ライブラリのインストールが必要です;インストールされていれば、Rigorはインラインアノテーションをデフォルトで取り込みます（[ADR-93](../../adr/93-default-rbs-inline-ingestion/)）。Rigor専用のコメント方言はありません: `# rigor:`コメントは引き続き抑制専用です。
+
+このページは*運用上*のリファレンス（書けるディレクティブとその構文）です。規範的なルール（衝突の扱い、マージ、由来）については[`docs/type-specification/rbs-extended.md`](../../type-specification/rbs-extended/)を、型モデルのウォークスルーについては[ハンドブック第7章](../../handbook/07-rbs-and-extended/)を参照してください。
 
 ## メソッド単位のディレクティブ
 
@@ -88,6 +104,43 @@ end
 ```
 
 クラスがインターフェースの要求するメソッドを欠いている場合、Rigorは[`rbs_extended.unsatisfied-conformance`](../04-diagnostics/#rule-rbs_extended-unsatisfied-conformance)を発火します;満たされたディレクティブは沈黙します。1つのクラスに複数の`conforms-to`ディレクティブがあると、インターフェースのインターセクションのように組み合わさります。このディレクティブは純粋に加算的です。すでにインターフェースを満たすクラスは、それがあってもなくても型チェックを通ります。
+
+## エフェクトエンベロープ —— メソッドが*何をするか*を制限する
+
+上のディレクティブはどれも、メソッドが何を返すかを記述します。メソッドが*何をするか*を記述するものが2つあります: `%a{pure}` —— rbs自身の純粋性アノテーションで、「何もしない」と読む —— と、`%a{rigor:v1:effect <labels>}` —— メソッドが超えてはならない、素の[エフェクトラベル](../../type-specification/effect-labels/)のカンマ区切りリスト —— です。どちらもメソッドまたは`class` / `module`に付けられ、後者の場合はそのクラス自身のメソッドへ分配されます（最も近いものが勝つ）。また、どちらも、メソッド自身が確保して決して外に出さないオブジェクトの変更は許容します:
+
+```rbs
+class UserRepository
+  %a{rigor:v1:effect io.db, nondet.time}
+  def find: (Integer) -> User
+
+  %a{pure}
+  def slug: (String) -> String
+end
+```
+
+同じ2つは、`.rb`ファイル内のrbs-inlineコメントとしても機能します:
+
+```rb
+# rbs_inline: enabled
+
+class UserRepository
+  # @rbs %a{rigor:v1:effect io.db}
+  # @rbs id: Integer
+  # @rbs return: User
+  def find(id) = User.find(id)
+
+  # @rbs %a{pure}
+  # @rbs return: String
+  def slug(s) = s.strip.downcase
+end
+```
+
+これから3つのことが導かれ、3つとも`.rigor.yml`の`effects:`ブロックを必要とします —— アノテーションだけでエフェクト収集がオンになることは決してありません:
+
+- 証明されたエフェクトが境界を逸脱するメソッドは、Rubyの`def`に位置付けて[`effect.envelope-exceeded`](../04-diagnostics/#rule-effect-envelope-exceeded)を発火します。
+- レジストリが認識しないラベルは**アノテーション全体**を無制限として読ませ —— タイポが指摘をでっち上げることは決してない ——、その綴りが明らかにラベルのつもりである場合には、宣言位置で[`effect.unknown-label`](../04-diagnostics/#rule-effect-unknown-label)としてそのことを伝えます。
+- ブロックがなければ、ランごとに1件の[`effect.annotations-unchecked`](../04-diagnostics/#rule-effect-annotations-unchecked)（`:info`）が、アノテーションが不活性であることを伝えます。
 
 ## 高カインド型ディレクティブ
 

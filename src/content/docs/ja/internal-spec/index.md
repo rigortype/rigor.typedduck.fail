@@ -3,8 +3,8 @@ title: "Rigor内部仕様"
 description: "rigortype/rigor docs/internal-spec/README.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/README.md"
 sourcePath: "docs/internal-spec/README.md"
-sourceSha: "e862d2e7616fd28e817b70b89afa909b5277f5217fac00ba853a08f82f8d15a7"
-sourceCommit: "78b18cea6a576475c92bce020535269f2eebc20d"
+sourceSha: "7f5f4323019fe9f4c84adea927449d7386da8e71767d94a4ec62ccc800322750"
+sourceCommit: "0cf313582cfbe2fa7da8148dc498d0b2a0893438"
 translationStatus: "translated"
 sidebar:
   order: 3000
@@ -53,5 +53,6 @@ Rubyの識別子（`Rigor::Type`、`Rigor::Trinary`、`Rigor::Type::Combinator`�
 | [baseline.md](baseline/) | ベースライン（baseline）のバケットキー導出 — `[file, rule, message_regex]`のタプル、パスの相対化、`:rule` / `:message`のマッチモード（ADR-22）。 |
 | [worker-session.md](worker-session/) | ワーカーセッションプロトコル — `WorkerSession`の共有可能な入力、ワーカーごとの所有境界、並列解析の背後にある逐次等価性契約（ADR-15）。 |
 | [dependency-source-inference.md](dependency-source-inference/) | オプトイン依存関係ソース推論（ADR-10）— `dependencies.source_inference:`設定、ウォーカー / ディスパッチャーティア、`DependencyEntry`キャッシュスライス、`dynamic.dependency-source.*`診断ファミリー。 |
+| [effect-summaries.md](effect-summaries/) | エフェクトラベルの収集と伝播（ADR-103）— `effects:`有効化スイッチとオフのときのコスト、単位の同一性、スキャンが観測してよいもの、ファイルごとの形とマージ、プール後の不動点、フェイルソフトのレベル。 |
 
 このリストは、追加の内部契約が安定するにつれて拡大します。

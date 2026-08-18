@@ -3,8 +3,8 @@ title: "アーキテクチャ決定記録"
 description: "rigortype/rigor docs/adr/README.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/README.md"
 sourcePath: "docs/adr/README.md"
-sourceSha: "8e385dac9a11188fb21fa0ec6f8b41d41a6c8148490fb9d4ecb47c34ca8ac8cb"
-sourceCommit: "17f7d081a694f9cfdfaebd7fc71ebfc7171e2a6d"
+sourceSha: "df60aafc8b8e50013d5ccbf7dd160175416fedb67c3cb37fcb8fe3402fcd8861"
+sourceCommit: "0cf313582cfbe2fa7da8148dc498d0b2a0893438"
 translationStatus: "translated"
 sidebar:
   order: 4000
@@ -125,6 +125,8 @@ sidebar:
 | ADR-99 | [設定スキーマは信頼できる情報源である: `.rigor.yml`のティアと予約パイプライン](99-config-schema-authority/) | Accepted（2026-07-17に実装；スキーマを信頼できる情報源と定め、`rigor_rs:`を予約、ネスト＋予約＋URLのゲートを追加） |
 | ADR-100 | [`static.*`診断ファミリーの形状と`void_origins`サイドテーブル](100-static-diagnostic-family-and-void-origins/) | Accepted（directスライスを出荷；WD4の推移的な設計を2026-07-19に追加、スライスはキュー入り；バジェットidは見送り） |
 | ADR-101 | [分岐の削除は楽観的にnilフリーとされたキャリアに依拠してはならない](101-optimistic-carrier-branch-elision/) | Accepted（2026-08-06に実装；コーパス2,060判定のうち47件に影響、診断は両方向でバイト単位一致） |
+| ADR-102 | [未使用コードの到達可能性レポートは診断ではなくレポートである](102-unused-code-reachability-report/) | Proposed（`rigor unused`のスライス群のための決定;8つの作業上の決定はすべて確定） |
+| ADR-103 | [エフェクトラベル: オプトインの、スナップショット優先のエフェクトシステム](103-effect-labels/) | Proposed（設計ノートは2026-08-16に着地;何も実装されていない;Proposedの時点で4項目が未決） |
 
 ## 新しいADRの追加
 

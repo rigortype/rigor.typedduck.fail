@@ -4,7 +4,7 @@ description: "Imported from rigortype/rigor docs/notes/deep-research/20260712/ra
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/deep-research/20260712/rails-sorbet-adoption-guide.md"
 sourcePath: "docs/notes/deep-research/20260712/rails-sorbet-adoption-guide.md"
 sourceSha: "2d21e7674c3176eec001c7917201b5e4065d2b735abbd2e59aa843fb9bb0fb39"
-sourceCommit: "3eb7b4c256e7aae802b605ef7897408bc25495b9"
+sourceCommit: "0cf313582cfbe2fa7da8148dc498d0b2a0893438"
 sourceDate: "2026-07-12T23:33:17+09:00"
 sourceLanguage: "ja"
 sidebar:

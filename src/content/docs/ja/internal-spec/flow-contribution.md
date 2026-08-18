@@ -3,8 +3,8 @@ title: "フロー寄与バンドル — `Rigor::FlowContribution`"
 description: "rigortype/rigor docs/internal-spec/flow-contribution.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/flow-contribution.md"
 sourcePath: "docs/internal-spec/flow-contribution.md"
-sourceSha: "1cd59e4d26e9e70297250413df15dec8050a0cc7ae0dd11c5007b4c182ffd4cc"
-sourceCommit: "e3eb424c3c88035e453246710c8df3dc5cc8e7e1"
+sourceSha: "5f6142cc4a0749f0f5700e3ecfc1e5d7cfa6049b93a7eb9108ad5e01fe098f3a"
+sourceCommit: "0cf313582cfbe2fa7da8148dc498d0b2a0893438"
 translationStatus: "translated"
 sidebar:
   order: 3050
@@ -26,6 +26,7 @@ contribution = Rigor::FlowContribution.new(
   invalidations: [...],
   exceptional: nil,
   role_conformance: [...],
+  effects: Rigor::Effects::LabelSet.new(["io.db"]),
   provenance: Rigor::FlowContribution::Provenance.new(
     source_family: "plugin.my-gem",
     plugin_id: "my-gem",
@@ -39,7 +40,7 @@ contribution = Rigor::FlowContribution.new(
 
 ## スロット定義
 
-8つのコンテンツスロットは[ADR-2 § "Flow Contribution Bundle"](../../adr/2-extension-api/)に対応します。
+9つのコンテンツスロットは[ADR-2 § "Flow Contribution Bundle"](../../adr/2-extension-api/)に対応します。
 
 | スロット | 型 | 意味 |
 | --- | --- | --- |
@@ -51,6 +52,7 @@ contribution = Rigor::FlowContribution.new(
 | `invalidations` | `Array`または`nil` | `mutations`がすでに示す範囲を超えた、特定ファクトの無効化。 |
 | `exceptional` | エフェクトタグまたは`nil` | 返らない・例外を投げる・到達不能エフェクト。 |
 | `role_conformance` | `Array`または`nil` | コントリビューションが提供するケイパビリティ（capability）ロール適合ファクト。 |
+| `effects` | `Rigor::Effects::LabelSet`または`nil` | 呼び出しの呼び出し先に上界として帰属されるエフェクトラベル（[ADR-103](../../adr/103-effect-labels/) WD5）。`return_type`と同様にスカラーの形: `nil`だけが「何も主張しない」を意味し、**空の**ラベル集合は呼び出しがエフェクトを行わないという肯定的な主張——`%a{pure}`の読み——なので、`#empty?`はそれを未設定として扱いません。**和**でマージされ、無条件に、あらゆる権威ティアをまたいで: フットプリントの一部をそれぞれ名指す2つのソースは合わせてより多くを名指すので、一方が他方を打ち消す読みはなく、報告すべき競合もありません。 |
 
 コレクションスロット内の値のシェイプ（shape）は、v0.0.9では意図的に固定されませんでした。v0.1.0のマージャーが、値が展開されるタグ付き要素フォームを定義します（`#to_element_list`、§ *要素リストへの展開*）;スロット値そのものは依然として、組み込みルールを動かすアナライザー内部のナローイング表現です。
 
@@ -117,3 +119,7 @@ ADR-2では、各バンドルを`(target, flow edge, effect kind)`をキーと�
 ## 安定性
 
 コンストラクタサーフェスとスロット名は、v0.0.xの公開リード形として安定しています。新しいスロットを追加することは、ADR-2の修正とこのドキュメントへのスキーマバージョン注記を伴う公開API拡張です。スロットのリネームや削除はメジャーバージョンバンプが必要な破壊的変更です。
+
+### スロットの追加
+
+- **`effects`**——[ADR-103](../../adr/103-effect-labels/) WD5（[#383](https://github.com/rigortype/rigor/issues/383)）のために追加。これはアノテーションまたはプラグインが呼び出しエッジでエフェクトラベルを帰属させる際のキャリアです。スロット、その和マージ、その要素リストのタグ（`kind: :effects`）は存在し上で仕様化されています;その**プロデューサーは存在しません**——設定された`effects.attribution:`表（[#385](https://github.com/rigortype/rigor/issues/385)）とプラグインが寄与する帰属（[#387](https://github.com/rigortype/rigor/issues/387)）がそれを埋めるスライスであり、どちらかがそうするまでエンジンの何もそこから値を読みません。エンベロープ自体はこのスロットに乗りません: エンベロープは呼び出しエッジではなく*宣言*を束縛し、`RbsExtended::EnvelopeScanner`によって読まれます（[effect-summaries.md](../effect-summaries/) §エンベロープ）。

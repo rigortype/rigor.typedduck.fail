@@ -3,8 +3,8 @@ title: "Rigorユーザーマニュアル"
 description: "rigortype/rigor docs/manual/README.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/README.md"
 sourcePath: "docs/manual/README.md"
-sourceSha: "76a0fbdfff06ebd9f713e858b75ba0a6f418f0b88d003ba0b8d249a410ee5ad2"
-sourceCommit: "51a679f3ccd12f5bee48c24150401d10e978efce"
+sourceSha: "f8019589a9d730b901d007dc77bb6695f42dc2e364df3551f867f3694eb26c31"
+sourceCommit: "0cf313582cfbe2fa7da8148dc498d0b2a0893438"
 translationStatus: "translated"
 sidebar:
   order: 9000
@@ -20,6 +20,7 @@ Rigorのインストール、実行、設定、運用方法について説明し
 
 1. [Rigorのインストール](01-installation/): `mise`、`asdf`、`gem install`、Nix、dev-containerのガイダンス。Rigorはツールであり、プロジェクトの依存関係ではありません。
 17. [`rigor-next-steps`によるプロジェクト改善の推進](17-driving-improvement/): 単一エントリポイントのループ: オンボーディング、Rigorが見つけたものの確認、型保護の引き上げ、CIでの保護。`rigor skill describe`が駆動します。
+18. [デッドコードの除去](18-removing-dead-code/) — 古いコードベースでの`rigor unused`のキャンペーン運用: なぜリストが最初は長いのか、実際にそれを短くするレバーはどれか、削除前に何を確認するか、レビュアーへどう主張を通すか。
 14. [Railsプロジェクトへのセットアップ: miseを使ったステップバイステップ](14-rails-quickstart/): Ruby 4.0 + Rigorを`mise`でインストールし、Railsプラグインセットを有効化して`rigor check`を実行し、設定をチームで共有する。約10分で完了。
 
 ### リファレンス

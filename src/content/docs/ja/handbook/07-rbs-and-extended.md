@@ -3,8 +3,8 @@ title: "RBSと`RBS::Extended`"
 description: "rigortype/rigor docs/handbook/07-rbs-and-extended.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/07-rbs-and-extended.md"
 sourcePath: "docs/handbook/07-rbs-and-extended.md"
-sourceSha: "536e86ecc03d34a43a4f458759f6eca61f20726643299a34a79a82d31cd8ad7a"
-sourceCommit: "e3eb424c3c88035e453246710c8df3dc5cc8e7e1"
+sourceSha: "1f2328a38b06ca0a2a33248ab4355d7d2688d18ad7120aae974b0805d0fbd5a1"
+sourceCommit: "0cf313582cfbe2fa7da8148dc498d0b2a0893438"
 translationStatus: "translated"
 sidebar:
   order: 1007
@@ -126,6 +126,39 @@ end
 
 これに手を伸ばす理由は、Rigorが構造的インターフェースを必要とする位置に値が流れ込むところではどこでも、構造的互換性を*暗黙に*すでにチェックしているからです ── つまり、現在どこにも渡されていないクラスはまったくチェックされません。`conforms-to`はこの契約を、呼び出し箇所がそれを行使するかどうかに関わらず成り立つ設計アサーションに変えます。これは、構造的なシェイプこそが要点であるときにライブラリが求めるものです。これは純粋に追加的です: それを付けたからといって、以前に型チェックを通っていたものが通らなくなることはありません。スタックと診断のセマンティクスは[マニュアル: `conforms-to`](../../manual/16-rbs-extended-annotations/#conforms-to-チェック付きの構造的契約)にあります。
 
+## メソッドが*何をするか*を制限する: エフェクトエンベロープ
+
+ここまでのディレクティブはどれも、メソッドが何を返すかを記述します。メソッドが*何をするか*を記述するものが1つあります:
+
+```rbs
+class UserRepository
+  %a{rigor:v1:effect io.db}
+  def find: (Integer) -> User
+
+  %a{pure}
+  def slug: (String) -> String
+end
+```
+
+`%a{rigor:v1:effect io.db}`は「このメソッドはデータベースに触れてよいが、ボキャブラリーが名指しする他の何にも触れない」と言います。`%a{pure}`は「何もしない」と言います —— これはrbs自身の純粋性アノテーションで、Steepが既に読んでいるものなので、Rigorは同義語を発明するのではなく既存の綴りを尊重します。どちらも、メソッド自身が確保して決して外に出さないオブジェクトの変更は許容するので、`%a{pure}`のメソッドでもローカルな配列を組み立てて埋めることはできます。
+
+ペイロードは、[effect-labels.md](../../type-specification/effect-labels/)のボキャブラリーから取った、素のラベルのカンマ区切りリストです（`%a{rigor:v1:effect io.db, nondet.time}`）。代わりに`class`や`module`宣言にアノテーションを書けば、そのクラスのすべてのメソッドに適用されます —— 再オープンや`attr_writer`が生成したメソッドも含みますが、サブクラスには決して及びません。自前のエンベロープを持つメソッドはそれを保ちます;最も近いものが勝ちます。
+
+境界はメソッドの*コード*全体をカバーし、そのメソッドが呼ぶものも含みます。`io.db`と宣言された`find`がヘルパー経由でHTTPリクエストに到達すればエンベロープを超えており、Rigorはそう言います —— Rubyの`def`の位置で、たどった経路を名指しして:
+
+```text
+lib/user_repository.rb:12: warning: Method UserRepository#find
+performs io.net.http (Net::HTTP.get via PaymentGateway#charge),
+but is declared %a{rigor:v1:effect io.db} at sig/repo.rbs:3,
+so io.net.http exceeds the envelope.
+```
+
+しないことが2つあります。単に*疑わしい*だけのエフェクトは決して報告しません: Rigorが解決できなかった呼び出しはサマリーを「and possibly more（そしておそらくそれ以上）」と読ませますが、「おそらく」は指摘ではありません。そして、あなたが求めない限りこれらは何も起きません —— このチェックには`.rigor.yml`の`effects:`ブロックが必要なので、Steepのためにシグネチャに既に置いてある`%a{pure}`は、あなたがオプトインするまで不活性のままです。`effects.check: false`を設定すれば、`rigor effects`レポートとそのスナップショットは保ったまま診断を黙らせられます。不活性は言及なしと同じではありません: `effects:`ブロックのないアノテーションはランごとに1件の[`effect.annotations-unchecked`](../../manual/04-diagnostics/#rule-effect-annotations-unchecked)（`:info`）を受け取るので、誰もチェックしない境界が見過ごされることはありません。
+
+ラベルの綴りを間違えても、アノテーションはRigorが認識した部分にナローイングされはしません —— タグ**全体**が無制限として読まれるので、タイポが正しいコードに対する指摘に化けることは決してありません。それは、あなたが持っているつもりだった契約の静かな喪失になるので、綴りが明らかにラベルのつもりである場合にはRigorはそう言います: [`effect.unknown-label`](../../manual/04-diagnostics/#rule-effect-unknown-label)を、あなたが書いた行に、最も近い実在のラベルを名指しして。ボキャブラリーの何にも似ていない語は沈黙のままです —— あなたは自前のルートを開こうとしているのかもしれないからです。
+
+機能の全体 —— ラベルのボキャブラリー、コミット対象のエフェクトスナップショット、そして`rigor effects`自身 —— は[ADR-103](../../adr/103-effect-labels/)です;まずは[`rigor effects`](../../manual/02-cli-reference/#rigor-effects)から始めてください。
+
 ## 実例: アサーションゲート
 
 ```ruby
@@ -238,7 +271,22 @@ class Slug
 end
 ```
 
-これらの`%a{rigor:v1:…}`ディレクティブを`.rb`ファイルの内側に置くことは**できません**。ディレクティブはRBSから読まれたときのみ発火します。これは設計上の選択です（ADR-5、ロバストネス原則: 戻り値に対して厳密、パラメータに対して寛大を参照）。
+これらは、rbs-inlineの`# @rbs %a{…}`コメントとして**`.rb`ファイル内に**書くこともできます:
+
+```rb
+# rbs_inline: enabled
+
+class Slug
+  # @rbs %a{rigor:v1:return: non-empty-string}
+  # @rbs id: String
+  # @rbs return: String
+  def normalise(id) = id.strip
+end
+```
+
+`%a{}`は*rbs-inline自身の*文法であってRigorの方言ではなく、アノテーションは通常の経路でRigorに届きます: rbs-inlineのライターがそれを生成するシグネチャへそのままコピーし、そのシグネチャはあなたの`sig/`ツリーが着地するのと同じRBS環境に合流します。つまりこれはディレクティブ単位の機能ではありません —— どのバッファから届いたものであれ、すべての`RBS::Extended`ディレクティブは同じアノテーションオブジェクトから読まれます —— 上のエフェクトエンベロープ（`%a{pure}`、`%a{rigor:v1:effect …}`）も含めて。これらを読むにはrbs-inlineライブラリが必要で、インストールされていればRigorはデフォルトで取り込みます（[ADR-93](../../adr/93-default-rbs-inline-ingestion/)）。
+
+Rigorが提供**しない**のはRigor専用のコメント方言です —— `# rigor:effect`ディレクティブも、ファイルプラグマもありません。`# rigor:`コメントファミリーは抑制専用（`disable`、`disable-file`）のままです。アプリケーションコードがRigor固有の構文を運ばなければならないことは決してありません（[ADR-0](../../adr/0-concept/)）;望むなら使ってよいupstreamのアノテーション形式は、要件とは別物です。
 
 ## RubyソースへのインラインRBS: `rigor-rbs-inline`プラグイン
 

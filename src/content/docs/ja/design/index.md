@@ -3,8 +3,8 @@ title: "設計ノート"
 description: "rigortype/rigor docs/design/README.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/design/README.md"
 sourcePath: "docs/design/README.md"
-sourceSha: "f78d1d6a73a0bd56b6f5c48d88768a0a6a9ce83d1dd26fb0b1c198297c1c27a7"
-sourceCommit: "d966039262656ed4e9d1900ebe003c332990a0ce"
+sourceSha: "1132cfbec3185927bd69e81f814f5f4532484c9b30baa985cc57fd928d765f20"
+sourceCommit: "0cf313582cfbe2fa7da8148dc498d0b2a0893438"
 translationStatus: "translated"
 sidebar:
   order: 5000
@@ -35,6 +35,7 @@ sidebar:
 | 2026-05-22 | [VSCode extension — first-party marketplace client for `rigor lsp`](20260522-vscode-extension/) | Draft |
 | 2026-06-01 | [Plugin mechanism — pre-1.0 review（過不足 / ペインポイント / ボイラープレート）](20260601-plugin-mechanism-pre-1.0-review/) | Research (pre-1.0 optimization; would inform an [ADR-2](../adr/2-extension-api/) revision) |
 | 2026-06-02 | [Plugin boilerplate reduction — phased plan](20260602-plugin-boilerplate-reduction-plan/) | Plan (implements review §1; tied to [ADR-37](../adr/37-plugin-interface-segregation/)) |
+| 2026-08-16 | [エフェクトラベル — Rigorのためのオプトインのエフェクトシステム](20260816-effect-labels/) | Draft（決定は[ADR-103](../adr/103-effect-labels/)で固定;`docs/type-specification/effect-labels.md`へ卒業する予定） |
 
 ## 設計ノートの追加
 

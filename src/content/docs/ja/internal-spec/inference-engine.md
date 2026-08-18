@@ -3,8 +3,8 @@ title: "推論エンジン"
 description: "rigortype/rigor docs/internal-spec/inference-engine.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/inference-engine.md"
 sourcePath: "docs/internal-spec/inference-engine.md"
-sourceSha: "b22050d7241abdafaebf9f89dc8aad4fb0a0db378b5468f21b2941ccb5091b50"
-sourceCommit: "3eb7b4c256e7aae802b605ef7897408bc25495b9"
+sourceSha: "f19af3a6d19c908146e600e3fe55412c69f337219966972c5963d37518202ebf"
+sourceCommit: "0cf313582cfbe2fa7da8148dc498d0b2a0893438"
 translationStatus: "translated"
 sidebar:
   order: 3050
@@ -33,7 +33,7 @@ sidebar:
 
 `Rigor::Scope#type_of(node)`はMUST純粋なクエリです。レシーバースコープのいかなるフロー状態フィールド ── ローカル・インスタンス・クラス・グローバル変数の束縛マップ、ファクトストア、`self_type`、ナローイング（narrowing）マップ ── も、そこから到達可能な任意のオブジェクトもMUST NOT変更し、解析器の他のどこでも永続的な状態変更をMUST NOT引き起こしません。同じ`(scope, node)`ペアは、単一の解析器実行内の呼び出しを通じて構造的に等しい`Rigor::Type`の結果をMUST生成します。
 
-**本稿執筆時点で、その純粋性は戻り値とフロー状態を束縛するのであって、スコープが到達しうるすべてのオブジェクトを束縛するのではありません**。 `Rigor::Scope`は、恒等キーの*助言的（advisory）*なサイドテーブルを2つ運びます ── `dynamic_origins`（[ADR-75](../../adr/75-dynamic-provenance/) / [ADR-82](../../adr/82-dynamic-provenance-wiring/)、`Dynamic`値がなぜ動的なのか）と`void_origins`（[ADR-100](../../adr/100-static-diagnostic-family-and-void-origins/)、作者が宣言した`-> void`から回復された`top`がどこから来たか） ── で、これらは`Rigor::Inference::ExpressionTyper`と`Rigor::Inference::MethodDispatcher`が型付け中にin-placeで書き込み、すべての遷移を通じて参照でスレッドされるため、レシーバースコープ上で観測可能です。3つの性質がクエリの契約を無傷に保ち、MUST維持されねばなりません: テーブルはノードの恒等でキー付けされ、値が*何であるか*の一部ではなく値に*ついての*来歴を保持します;`Scope#==`と`Scope#hash`から除外されるため、フローの重複排除やキャッシュキーをフォークすることは決してありません;そしてエンジン内のどこも、それらを型付けの判断に読み戻しません ── 診断とカバレッジのレイヤーによってのみ、推論の下流で消費されます。したがって実装は、それらをノードにキー付けされた純粋に外部の状態としてMAY運べます。
+**本稿執筆時点で、その純粋性は戻り値とフロー状態を束縛するのであって、スコープが到達しうるすべてのオブジェクトを束縛するのではありません**。`Rigor::Scope`は、恒等キーの*助言的（advisory）*なサイドテーブルを2つ運びます ── `dynamic_origins`（[ADR-75](../../adr/75-dynamic-provenance/) / [ADR-82](../../adr/82-dynamic-provenance-wiring/)、`Dynamic`値がなぜ動的なのか）と`void_origins`（[ADR-100](../../adr/100-static-diagnostic-family-and-void-origins/)、作者が宣言した`-> void`から回復された`top`がどこから来たか） ── で、これらは`Rigor::Inference::ExpressionTyper`と`Rigor::Inference::MethodDispatcher`が型付け中にin-placeで書き込み、すべての遷移を通じて参照でスレッドされるため、レシーバースコープ上で観測可能です。3つの性質がクエリの契約を無傷に保ち、MUST維持されねばなりません: テーブルはノードの恒等でキー付けされ、値が*何であるか*の一部ではなく値に*ついての*来歴を保持します;`Scope#==`と`Scope#hash`から除外されるため、フローの重複排除やキャッシュキーをフォークすることは決してありません;そしてエンジン内のどこも、それらを型付けの判断に読み戻しません ── 診断とカバレッジのレイヤーによってのみ、推論の下流で消費されます。したがって実装は、それらをノードにキー付けされた純粋に外部の状態としてMAY運べます。
 
 クエリは[`internal-type-api.md`](../internal-type-api/)に従って`Rigor::Type`をMUST返します。`nil`をMUST NOT返し、サポートされないノードでMUST NOTraiseし、戻り値にPrismオブジェクトをMUST NOT露出させません。
 
@@ -267,7 +267,7 @@ Slice 5 phase 2のシェイプ対応ディスパッチティア（`Rigor::Infere
 
 確実性の判断はそれをそのように扱わMUST。[ADR-78](../../adr/78-reflexive-overfold-always-truthy/) WD1により、証明可能な真値性は本物の定数にのみ依拠でき、実際の式より狭い形に健全性が条件付けられる畳み込みには決して依拠できません。動的キーから生成されたnilフリーの値ユニオンはまさにその形状です。すなわちシェイプが宣言するキーに対しては健全ですが、それらのいずれにもマッチしないかもしれない読み取りに適用されます。
 
-**この除外はこの判断のあらゆる読み手を拘束し、読み手は3つあります**。 `flow.always-truthy-condition`とそれが共有する`&&`/`||`の`constant_value_polarity`ゲートは、そのような値から真値性をMUST NOT結論しなければならず、キャリアを制限するのではなくマークを参照することでそれをMUST強制しなければなりません。`Constant`専用のゲートでは**不十分**です。値が1つの型を共有するリテラルハッシュは単独の`Constant`として読まれるので、`UNIFORM[key] || key`は作者のフォールバックを捨ててしまいますし、`if UNIFORM[key]`は拡張が一切関与せずにこのルールを発火させます（issue #313）。`Constant`を越えたゲートのいかなる拡張（issue #152、評価のうえ見送り）も同様にこの除外をMUST保持しなければなりません。3番目の読み手は`if`/`unless`の分岐の削除 —— `StatementEvaluator#live_branch_for_if`/`#live_branch_for_unless`と`ExpressionTyper#elide_or_union`が消費する`Narrowing.predicate_certainty` —— であり、[ADR-101](../../adr/101-optimistic-carrier-branch-elision/)により、キャリアが楽観的とマークされている判定はMUST辞退しなければなりません。理由は同じですが影響はより広くなります: 上のゲートは診断を出さないだけなのに対し、削除はルックアップが外れたときにプログラムが実際に通る分岐を消してしまうからです。
+**この除外はこの判断のあらゆる読み手を拘束し、読み手は3つあります**。`flow.always-truthy-condition`とそれが共有する`&&`/`||`の`constant_value_polarity`ゲートは、そのような値から真値性をMUST NOT結論しなければならず、キャリアを制限するのではなくマークを参照することでそれをMUST強制しなければなりません。`Constant`専用のゲートでは**不十分**です。値が1つの型を共有するリテラルハッシュは単独の`Constant`として読まれるので、`UNIFORM[key] || key`は作者のフォールバックを捨ててしまいますし、`if UNIFORM[key]`は拡張が一切関与せずにこのルールを発火させます（issue #313）。`Constant`を越えたゲートのいかなる拡張（issue #152、評価のうえ見送り）も同様にこの除外をMUST保持しなければなりません。3番目の読み手は`if`/`unless`の分岐の削除 —— `StatementEvaluator#live_branch_for_if`/`#live_branch_for_unless`と`ExpressionTyper#elide_or_union`が消費する`Narrowing.predicate_certainty` —— であり、[ADR-101](../../adr/101-optimistic-carrier-branch-elision/)により、キャリアが楽観的とマークされている判定はMUST辞退しなければなりません。理由は同じですが影響はより広くなります: 上のゲートは診断を出さないだけなのに対し、削除はルックアップが外れたときにプログラムが実際に通る分岐を消してしまうからです。
 
 そのマークは`Rigor::Inference::OptimisticOrigin`で、ディスパッチャーがアノテーションを読み飛ばす箇所で記録され、[ADR-75](../../adr/75-dynamic-provenance/) / [ADR-82](../../adr/82-dynamic-provenance-wiring/)の意味でのサイドチャネルとして伝播されます: サブタイピング・一貫性・正規化・消去にMUST NOT参加し、そこからいかなる診断もMUST NOT発火しません。3つの性質が規範的です。これは**選択されたオーバーロードごとに**決定されるので、`Array#first`はマークされますが`Array#first(3)`はされませんし、すでに`?`でミスを綴っているシグネチャ（`String#[]`・`Enumerable#find`）が決してマークされることはありません。シェイプティアが解決した読み取りにはMUST NOT適用されません。`ShapeDispatch`は、その読み取りがミスしえないことを証明するレシーバーから答えているからです（宣言済みシェイプ上の静的キー、非空の`Tuple`に対する`first`）。そして辞退はMUST消費側で実装され、`Narrowing.falsey_nominal?` / `.narrow_falsey`を広げることによってはMUST NOT実装されません。これらは`&&=`/`||=`とand/orの生き残る左辺のエッジも読んでおり、そこでfalsey側の断片を広げると束縛されたローカルに`nil`を再び入れてしまい、possible nil receiverの偽陽性を招くからです。
 
@@ -377,7 +377,7 @@ Slice 7 phase 3は`StatementEvaluator`を、すべての変数種別の**複合�
 
 [ADR-58](../../adr/58-ivar-field-typing/)はivar由来のオプショナリティを2つに分ける。`nil`が**フローライブ**であるのは、それが解析対象のメソッド内で読み取りに到達する経路上で代入または観測されているとき（メソッドローカルな`@x = nil`、束縛にnilを戻すナローイング）だ;**宣言由来**であるのは、その唯一の起点が上で規定されたクロスメソッド機構のとき ── クラスivarアキュムレータのコンストラクタ`@x = nil`シード、あるいは確定的に代入されていないivarに対して書き込み前読み取りゲートが貢献する`Constant[nil]` ── だ。宣言由来のオプショナリティは本物の型情報であり、エンジンが報告する型に留まらなければならない（`Node | nil`は`Node | nil`のまま）が、それ自体で診断の燃料にMUST NOTなってはならない: 動作しているプログラムのクロスメソッド不変条件は[ADR-5](../../adr/5-robustness-principle/)の下で前提とされ、そのADR自身の調査は、代替案がイディオマティックなデータ構造Rubyに対して単一最大の偽陽性クラスであると計測した。ここで規定するマークは、その判断をシードからルールへ運ぶ1ビットだ。これが規範的であるのは、それをルールに委ねると、明示されない契約がまさに生むドリフトが実際に生じたからだ: issue #324より前、2つのルールが独立にこのルックアップを綴っており、ADR-58自身の動機となった形についてすら一致していなかった。一方は`r = @right; r.key`を許しながら、もう一方は`c = @count; sink.take_int(c)`に発火していた。
 
-**キャリアと規律**。 `Rigor::Scope`は`(kind, name)`参照のフローズンな`Set[[Symbol, Symbol]]`を運び、あらゆるスコープ遷移を値渡しでスレッドされ、`Scope#declaration_sourced?(kind, name)`を通じて読まれる。これは[ADR-75](../../adr/75-dynamic-provenance/) / [ADR-82](../../adr/82-dynamic-provenance-wiring/)の意味でのサイドチャネルであり、同じ規律が縛る: サブタイピング・一貫性・正規化・消去にMUST NOT参加せず、いかなる`Rigor::Type`もそれをMUST NOT運んだり公開したりせず、そして**そこから診断がMUST NOT発火してはならない** ── 消費者は自分が本来行うはずの発火を*差し控える*ことしかできず、したがってこのマークは精度を失うことはあっても偽陽性を捏造することは決してない。これは§ [`Scope#type_of(node)`契約](#the-scopetype_ofnode-contract)の`dynamic_origins` / `void_origins`のアドバイザリテーブルとは、読み手がMUST NOT一般化してはならない2点で異なる: これは所定の位置で書かれるノードキー付きテーブルではなく普通の不変なスコープフィールドであり、`Scope#hash`には含まれないが`Scope#==`にはIS含まれる。
+**キャリアと規律**。`Rigor::Scope`は`(kind, name)`参照のフローズンな`Set[[Symbol, Symbol]]`を運び、あらゆるスコープ遷移を値渡しでスレッドされ、`Scope#declaration_sourced?(kind, name)`を通じて読まれる。これは[ADR-75](../../adr/75-dynamic-provenance/) / [ADR-82](../../adr/82-dynamic-provenance-wiring/)の意味でのサイドチャネルであり、同じ規律が縛る: サブタイピング・一貫性・正規化・消去にMUST NOT参加せず、いかなる`Rigor::Type`もそれをMUST NOT運んだり公開したりせず、そして**そこから診断がMUST NOT発火してはならない** ── 消費者は自分が本来行うはずの発火を*差し控える*ことしかできず、したがってこのマークは精度を失うことはあっても偽陽性を捏造することは決してない。これは§ [`Scope#type_of(node)`契約](#the-scopetype_ofnode-contract)の`dynamic_origins` / `void_origins`のアドバイザリテーブルとは、読み手がMUST NOT一般化してはならない2点で異なる: これは所定の位置で書かれるノードキー付きテーブルではなく普通の不変なスコープフィールドであり、`Scope#hash`には含まれないが`Scope#==`にはIS含まれる。
 
 **確立**。確立する遷移はキャリアの種類ごとにちょうど1つ、合計2つしかなく、実装は、下の*非推移性*で述べる決定として扱うのでなければ、3つ目をMUST NOT追加してはならない。
 
@@ -390,7 +390,7 @@ Slice 7 phase 3は`StatementEvaluator`を、すべての変数種別の**複合�
 - `Scope#with_local`は、その名前への**あらゆる**再束縛で`(:local, name)`を削除する。
 - `Scope#join`は`:ivar`と`:local`の参照を**積**として取る（intersect）: ある参照がマージ後にマークされているのは、両方の分岐がそれをマークしているときだけだ。どちらか一方の経路がその束縛をフローライブにしていれば、マージもフローライブになる。
 
-**非推移性、そしてその正確な境界**。 `eval_local_write`はちょうど1つの右辺値の形 ── 素の`Prism::InstanceVariableReadNode` ── だけを認識するので、このマークはivarからローカルへの高々**1回**のホップを越えて伝播する。あるマークが別のマークから導出されることはない。実装は消費側での推論によってこれを広げることはMUST NOTならず、広げるという決定は`eval_local_write`（または文書化された後継）でのみ下すべきものであり、ADR-58 WD4のゼロ新規発火プロトコルでゲートされる。場当たり的に修復すべき見落としではない ── ADR-58のWD1ステータスは、より広いメソッド戻り値をまたぐ形についても同じ結論を記録している。それは計測され、WD1bとしてスコープされ、そのうえで近似ではなく需要ゲート付きとされた。
+**非推移性、そしてその正確な境界**。`eval_local_write`はちょうど1つの右辺値の形 ── 素の`Prism::InstanceVariableReadNode` ── だけを認識するので、このマークはivarからローカルへの高々**1回**のホップを越えて伝播する。あるマークが別のマークから導出されることはない。実装は消費側での推論によってこれを広げることはMUST NOTならず、広げるという決定は`eval_local_write`（または文書化された後継）でのみ下すべきものであり、ADR-58 WD4のゼロ新規発火プロトコルでゲートされる。場当たり的に修復すべき見落としではない ── ADR-58のWD1ステータスは、より広いメソッド戻り値をまたぐ形についても同じ結論を記録している。それは計測され、WD1bとしてスコープされ、そのうえで近似ではなく需要ゲート付きとされた。
 
 以下の形はマークを運ぶ（プローブで検証済み ── `call.possible-nil-receiver`と`call.argument-type-mismatch`はどちらも沈黙のままだ）:
 
@@ -415,7 +415,7 @@ Slice 7 phase 3は`StatementEvaluator`を、すべての変数種別の**複合�
 | `call.argument-type-mismatch` | `nil_arg_overload_mismatch`（複数オーバーロードのnilチャネル） | オーバーロードごとの経路での同じ基準。 |
 | `call.argument-type-mismatch` | `argument_genuinely_mismatches?`経由の`declaration_sourced_nil_only_mismatch?` | 引数がマークされており、**かつ**その拒否がnilの構成要素だけによって引き起こされているときにのみ辞退する ── nilを除いた型がgradualモードで受理されなければならない。引数の型は変わらない;ゲートされるのは発火の判断だけだ。 |
 
-**この`Set`は2つ目の、異なる振る舞いをするマークと共有されている**。 [ADR-67](../../adr/67-parameter-type-inference/) WD6bは、推論されたパラメータの汚染を同じ`Scope`のセットに、3つ目の種類`:inferred_param`として保存しており、その意味論は両方の軸でADR-58のものと正反対だ: `Scope#join`はそれを**和**でマージし（どちらかの分岐の汚染が生き残る。オープンな呼び出しサイトの下界に対して発火することは、それを運ぶ経路上では偽陽性だからだ）、`with_local`をまたいで**粘着**し、`Scope#without_inferred_param_mark`による本物の書き換えでのみクリアされる。`join_declaration_sourced`の読み手・保守者は、この2つのポリシーをMUST分離しておかなければならず、`declaration_sourced?(:inferred_param, …)`はADR-67の問いの綴りとしてMUST NOT使われてはならない ── `Scope#inferred_param?`がその問いだ。
+**この`Set`は2つ目の、異なる振る舞いをするマークと共有されている**。[ADR-67](../../adr/67-parameter-type-inference/) WD6bは、推論されたパラメータの汚染を同じ`Scope`のセットに、3つ目の種類`:inferred_param`として保存しており、その意味論は両方の軸でADR-58のものと正反対だ: `Scope#join`はそれを**和**でマージし（どちらかの分岐の汚染が生き残る。オープンな呼び出しサイトの下界に対して発火することは、それを運ぶ経路上では偽陽性だからだ）、`with_local`をまたいで**粘着**し、`Scope#without_inferred_param_mark`による本物の書き換えでのみクリアされる。`join_declaration_sourced`の読み手・保守者は、この2つのポリシーをMUST分離しておかなければならず、`declaration_sourced?(:inferred_param, …)`はADR-67の問いの綴りとしてMUST NOT使われてはならない ── `Scope#inferred_param?`がその問いだ。
 
 ### レキシカル定数ルックアップ（Slice A constant-walk）
 
@@ -423,11 +423,25 @@ Slice 7 phase 3は`StatementEvaluator`を、すべての変数種別の**複合�
 
 1. 修飾候補`<class_path>::<name>`がMUST最初に試されます。ここで`<class_path>`は`Scope#self_type`が`Type::Nominal`または`Type::Singleton`のときのその`class_name`です。
 2. それから候補パスはMUST`::segment`ごとに1つずつ剥がされて再試行されます（`<class_path>::<name>` → `<parent_path>::<name>` → ... → `<top>::<name>`）。
-3. 素の`<name>`がMUST最後に試され、ウォーク前のトップレベル挙動を保ちます。
-4. 各候補について、型付け器はMUSTまず`Environment#singleton_for_name(candidate)`（クラスオブジェクト → `Type::Singleton[candidate]`を解決）、それから`Environment#constant_for_name(candidate)`（非クラスのRBS定数宣言を翻訳された`Rigor::Type`に解決）を参照します。最初のヒットが勝ちます。その候補で両方がミスしたときのみウォークが続きます。
-5. どちらのクエリでも候補が解決されないとき、エンジンは以前と同様にMUST`fallback_for(node, family: :prism)`へフォールスルーします。
+3. それから、**最内のクレストするスコープの祖先**がMUST素の名前より前に試されます: `<class_path>`の祖先連鎖内の各プロジェクトクラスまたはモジュールについて、候補`<ancestor>::<name>`。順序はMUST幅優先で、各レベルでincludeされた / prependされたモジュールがスーパークラスより前で、Rubyの祖先順序をミラーします;`<class_path>`自体はステップ1がすでにカバーしたので除外されます。ウォークは巡回する`discovered_superclasses` / `discovered_includes`グラフでMUST終了しなければなりません。プロジェクトの祖先だけが参加します: `Scope#superclass_of` / `#includes_of`は書かれたとおりの名前を運び、それぞれはサブクラスのレキシカルネスト（最内から）に対して解決され、発見されたプロジェクトのクラスまたはモジュールに解決されない名前はMUST落とされなければなりません——したがってRBSで既知の祖先は候補を寄与せず、それが所有する定数は素の名前がステップ4でそれに到達する場合にのみ到達可能です。このステップを省くことは単に解決を失うだけではありません: 同じ名前がトップレベルにも存在するとき、ステップ4はRubyが祖先に与えるルックアップに答えてしまうので、`class Sub < Base`内の`KEY`は`Base::KEY`ではなくトップレベルの定数として型付けされます——正しいコードに対する誤った型です（[#354](https://github.com/rigortype/rigor/issues/354)）。
+4. 素の`<name>`がMUST最後に試され、ウォーク前のトップレベル挙動を保ちます。
+5. 各候補について、型付け器はMUSTまず`Environment#singleton_for_name(candidate)`（クラスオブジェクト → `Type::Singleton[candidate]`を解決）、それから`Environment#constant_for_name(candidate)`（非クラスのRBS定数宣言を翻訳された`Rigor::Type`に解決）を参照します。最初のヒットが勝ちます。その候補で両方がミスしたときのみウォークが続きます。
+6. どちらのクエリでも候補が解決されないとき、エンジンは以前と同様にMUST`fallback_for(node, family: :prism)`へフォールスルーします。
 
 `Environment#constant_for_name(name)`は取り付けられた`RbsLoader`をMUST参照し、ローダーが不在のときや名前が定数宣言を持たないとき`nil`を返します。`RbsLoader#constant_type(name)`は`RBS::AST::Declarations::Constant#type`を`Rigor::Inference::RbsTypeTranslator.translate`を通じてMUST翻訳し、結果の`Rigor::Type`を返すか、翻訳が`Type::Bot`（空型）を生成するとき`nil`を返します。クエリは不正な入力でMUST NOTraiseしません。ローダーはフェイルソフトのままです。
+
+### 到達可能性レポートの層（ADR-102）
+
+`rigor unused`は、`Analysis::Reachability::Scan`（型付けパスではない、独立したPrism走査）が構築し`Analysis::Reachability::Graph`がスイープする参照グラフについて報告します。出力の層は規範的です:
+
+1. **`candidates`**——到達可能な宣言が1つも参照しないプロジェクト所有の宣言。参照カウントではなくマークアンドスイープ: エッジはそのソース自体が到達可能であるときにのみMUST到達可能性を伝播しなければならないので、互いを参照し合う死んだ宣言のクラスタは依然としてMUST報告されなければなりません。
+2. **`undecidable`**——実行時に何かが名指しうる宣言。対象が**リテラル**の文字列またはシンボルである`constantize` / `safe_constantize` / `const_get`はMUSTその正確な定数に解決され通常の参照を寄与しなければなりません;非リテラルの対象だけが降格させます。リテラルの先頭を持つ補間された対象（`"Foo::#{k}"`）はMUST`Foo`とその配下のすべてを汚染し、他は何も汚染してはなりません;リテラルの先頭を持たない対象はMUST**何も**汚染してはなりません——プロジェクト全体を毒するとレポートが空になってしまいます。完全修飾名がテンプレートまたはデータファイル（`.erb`・`.haml`・`.slim`・`.yml`・`.yaml`・`.json`）内に文字列として現れる宣言は、参照として数えられるのではなくMUSTこの層へ降格されなければなりません: データファイルのマッチは定数ノードより弱い証拠であり、それを証明として扱うと本物のデッドコードを隠してしまいます。すべての行はMUST降格された理由を運ばなければなりません。
+3. **`test_only`**——到達可能だが、参照するファイルが`:test`ロールを持つエッジを通じてのみ。他の2つの層とは別に報告されます（ADR-102 WD8）。
+4. **`namespaces`**——その配下に何らかの*到達可能な*宣言が住む、到達されない宣言。`candidates`から除外されます。何も中間の名前空間セグメント自体を参照しないからです。内容が**すべて**到達不能な名前空間はMUST候補のままでなければなりません。
+
+所有権: 宣言がプロジェクト所有であるのは、解析対象ファイルで宣言されており、**かつ**その名前がプロジェクト自身の`signature_paths`**なしで**構築された環境に未知であるときのみです。gemまたは標準ライブラリのクラスの再オープンはMUST NOTそれを候補にしてはなりません。
+
+レポート内の定数解決は`Reflection.resolve_constant_type`と同じ候補順序（ネスト、次に祖先、次に素の名前）にMUST従わなければならず、1つの追加があります: 名前が宣言に解決されないとき、末尾の`::segment`がMUST剥がされて再試行されなければならないので、`Foo::BAR`への参照は`Foo`への参照として数えられます。
 
 ### 宣言位置のオーバーライド（Slice A-declarations）
 
@@ -480,7 +494,7 @@ RBSを持たないユーザー定義クラスに対する暗黙的self呼び出�
 
 これらのテーブルはスコープの[ディスカバリインデックス](#ディスカバリインデックスadr-53トラックa)上に存在します。シードされたインデックスが`Scope#with_discovery`を通じてそれらを派生スコープへ前方に通します。
 
-**定数上に開かれたシングルトンクラス本体**。 `class << X`の本体は、その`def`を定数`X`が名指す**非修飾**な描画（`Foo`・`A::Foo`・`::Foo`はいずれも囲みレキシカルプレフィックスとは独立に、書かれたとおりに描画される;`class Foo`の直接内側にある`class << Foo`は囲みプレフィックスへ潰れる。そのときそれは`class << self`の綴りだからだ）の下で、`:singleton`側にMUST登録します。オペランドは定数の*書き込み*（`class << Foo = <expr>`、プライベートシングルトンオブジェクトのイディオム）でもMAYよく: Rubyはその代入を評価してから、結果として得られたオブジェクト（定数が今保持しているもの）のシングルトンを開くので、その書き込みの綴りは、その定数への後続の素の読み取りで開かれた本体と同じキーの下にMUST登録されなければならない。他のオペランド（ローカル変数、メソッド呼び出し）は定数へ静的に解決できず、本体をMUST未登録のままにしなければならない。
+**定数上に開かれたシングルトンクラス本体**。`class << X`の本体は、その`def`を定数`X`が名指す**非修飾**な描画（`Foo`・`A::Foo`・`::Foo`はいずれも囲みレキシカルプレフィックスとは独立に、書かれたとおりに描画される;`class Foo`の直接内側にある`class << Foo`は囲みプレフィックスへ潰れる。そのときそれは`class << self`の綴りだからだ）の下で、`:singleton`側にMUST登録します。オペランドは定数の*書き込み*（`class << Foo = <expr>`、プライベートシングルトンオブジェクトのイディオム）でもMAYよく: Rubyはその代入を評価してから、結果として得られたオブジェクト（定数が今保持しているもの）のシングルトンを開くので、その書き込みの綴りは、その定数への後続の素の読み取りで開かれた本体と同じキーの下にMUST登録されなければならない。他のオペランド（ローカル変数、メソッド呼び出し）は定数へ静的に解決できず、本体をMUST未登録のままにしなければならない。
 
 その定数がクラスまたはモジュールを名指すとき、それの読み取りは`Singleton[X]`と型付けされ、ディスパッチャーはレシーバー型から`X`を回収します。それが普通のオブジェクトを保持しているとき、その読み取りは`Nominal[Object]`と型付けされ、名前は型の中にないので、`ExpressionTyper`はそのような呼び出しをレシーバーの*構文*から加えてMUST解決しなければなりません: レシーバーが定数参照であり、レシーバー型が`Nominal`（`Singleton`は決してない ── 上のクラス／モジュール経路がそれらを所有する）である呼び出しについて、シングルトンdefテーブルはその定数の名前の下でMUST参照されなければならず、ヒットは呼び出しの引数型を束縛してその本体をMUST再型付けしなければなりません。`call.undefined-method`は抑制プローブとして同じ回収をMUST適用しなければなりません。両方とも、このテーブルが実際に記録している名前にスコープされているので、シングルトン本体に存在しないメソッドは引き続き発火します。
 
@@ -642,8 +656,8 @@ Slice 4は以下を導入します。
 - `Rigor::Environment::RbsLoader#instance_method(class_name:, method_name:)` — 与えられたインスタンスメソッドの解決された`RBS::Definition::Method`を返すか、クラスまたはメソッドが未知のとき`nil`を返します。継承されたメソッドはMUSTこの呼び出しを通じて見えます（ローダーは祖先チェーンを歩く`RBS::DefinitionBuilder#build_instance`を使います）。
 - `Rigor::Environment::RbsLoader#singleton_method(class_name:, method_name:)` — Slice 4 phase 2b。与えられた*クラスメソッド*の解決された`RBS::Definition::Method`を返すか、クラスまたはメソッドが未知のとき`nil`を返します。継承されたクラスメソッドはMUST見えます（例: `Class#new`・`Module#name`）。ローダーは`RBS::DefinitionBuilder#build_singleton`を使います。インスタンスとシングルトンの名前空間はMUST互いに素です — 例えば`Module#instance_methods`はシングルトン側で解決され、インスタンス側では静かに不在です。
 - `Rigor::Environment::RbsLoader.new(libraries:, signature_paths:)` — Slice 4 phase 2a。呼び出し元がローダーをRBSコアを越えて拡張できるようにします。`libraries`は`RBS::EnvironmentLoader#add(library:, version:)`が受け付けるstdlibライブラリ名の配列です。`signature_paths`は追加の`.rbs`ファイルの`Pathname`または`String`ディレクトリの配列です。未知のライブラリ名はMUSTフェイルソフトです（ローダーは`RBS::EnvironmentLoader#has_library?`を介してそれらをスキップします）。存在しないシグネチャパスはMUSTビルド時に静かに落とされます。`RbsLoader#libraries`と`#signature_paths`は、ラウンドトリップと可観測性のために設定された値を公開します。
-- **シャドウされたライブラリの削除**。 `RBS::EnvironmentLoader`はライブラリ名を、rbs自身の`stdlib/`のコピーよりもインストール済みgemの`sig/`を優先して解決するため、1つのリストにある2つのライブラリ名が同じモジュールの2つの宣言に解決されうます。それが既知かつ無条件である場合、`RbsLoader.build_env_for`はライブラリを追加する前にシャドウされたエントリーをMUST落とします。代替となるのが診断ではなく沈黙だからです: `RBS::DefinitionBuilder`が`DuplicatedMethodDefinitionError`をraiseし、Rigorはフェイルソフトし、そのモジュール上のあらゆる呼び出しが`Dynamic[top]`へ劣化します。今日削除されているのは1組 —— 解決された`bigdecimal`ライブラリがすでに`big_math.rbs`を出荷しているとき`bigdecimal-math`が落とされます —— であり、この削除はMUSTその解決を条件とし、決して無条件であってはなりません。`bigdecimal`が`sig/`を持たないホストでも`BigMath`をrbsのstdlibのコピーから得られるようにするためです。この削除は実効的なローダーのリストにのみ適用され、`Environment::DEFAULT_LIBRARIES`とカバレッジ報告およびディスカバリーのスキップリストに供給される`merged_libraries`集合は影響を受けません。
-- **ライブラリでゲートされたバンドル補完**。 Rigorのバンドル済みRBS（`data/vendored_gem_sigs/`・`data/core_overlay/`）はあらゆる環境へ無条件にロードされますが、例外が1つあります: stdlibライブラリ自身の宣言を補完するバンドル済みソース —— ライブラリが宣言するクラスをミックスイン・スーパークラス・`| ...`のオーバーロード継続で再オープンするもの —— は、そのライブラリが実際にローダー上で解決されたとき（実効的な、削除後のリストに対して`has_library?`が通ったとき）にのみMUSTロードされます。ライブラリなしにロードしても環境のビルドは失敗しません。`RBS::DefinitionBuilder`が後になってraiseし（`NoMixinFoundError` / `NoSuperclassFoundError` / `InvalidOverloadMethodError`）、Rigorはフェイルソフトし、再オープンされたクラス全体が静かに`Dynamic[top]`へ劣化します —— 実在のメソッドもタイポも等しく証拠にされなくなります。ゲート対象の集合は規範的に`RbsLoader::LIBRARY_SUPPLEMENT_VENDORED_DIRS` + `LIBRARY_SUPPLEMENT_CORE_OVERLAYS`です。所属はファイルの主題ではなく、基底の宣言がどこにあるかで決まります（`core_overlay/pathname.rbs`は`| ...`の継続を運びますが無条件のままです。その基底がサポート対象のすべてのrbsリリースでrbsの*コア*にあるからです）。ゲートするライブラリはすべてMUST`Environment::DEFAULT_LIBRARIES`に留まるので、本番の`for_project`環境は影響を受けません。このゲートは明示的に絞られた`RbsLoader.new(libraries:)`環境のために存在します。ガードスペック: `spec/rigor/environment/bundled_rbs_definition_build_spec.rb`。
+- **シャドウされたライブラリの削除**。`RBS::EnvironmentLoader`はライブラリ名を、rbs自身の`stdlib/`のコピーよりもインストール済みgemの`sig/`を優先して解決するため、1つのリストにある2つのライブラリ名が同じモジュールの2つの宣言に解決されうます。それが既知かつ無条件である場合、`RbsLoader.build_env_for`はライブラリを追加する前にシャドウされたエントリーをMUST落とします。代替となるのが診断ではなく沈黙だからです: `RBS::DefinitionBuilder`が`DuplicatedMethodDefinitionError`をraiseし、Rigorはフェイルソフトし、そのモジュール上のあらゆる呼び出しが`Dynamic[top]`へ劣化します。今日削除されているのは1組 —— 解決された`bigdecimal`ライブラリがすでに`big_math.rbs`を出荷しているとき`bigdecimal-math`が落とされます —— であり、この削除はMUSTその解決を条件とし、決して無条件であってはなりません。`bigdecimal`が`sig/`を持たないホストでも`BigMath`をrbsのstdlibのコピーから得られるようにするためです。この削除は実効的なローダーのリストにのみ適用され、`Environment::DEFAULT_LIBRARIES`とカバレッジ報告およびディスカバリーのスキップリストに供給される`merged_libraries`集合は影響を受けません。
+- **ライブラリでゲートされたバンドル補完**。Rigorのバンドル済みRBS（`data/vendored_gem_sigs/`・`data/core_overlay/`）はあらゆる環境へ無条件にロードされますが、例外が1つあります: stdlibライブラリ自身の宣言を補完するバンドル済みソース —— ライブラリが宣言するクラスをミックスイン・スーパークラス・`| ...`のオーバーロード継続で再オープンするもの —— は、そのライブラリが実際にローダー上で解決されたとき（実効的な、削除後のリストに対して`has_library?`が通ったとき）にのみMUSTロードされます。ライブラリなしにロードしても環境のビルドは失敗しません。`RBS::DefinitionBuilder`が後になってraiseし（`NoMixinFoundError` / `NoSuperclassFoundError` / `InvalidOverloadMethodError`）、Rigorはフェイルソフトし、再オープンされたクラス全体が静かに`Dynamic[top]`へ劣化します —— 実在のメソッドもタイポも等しく証拠にされなくなります。ゲート対象の集合は規範的に`RbsLoader::LIBRARY_SUPPLEMENT_VENDORED_DIRS` + `LIBRARY_SUPPLEMENT_CORE_OVERLAYS`です。所属はファイルの主題ではなく、基底の宣言がどこにあるかで決まります（`core_overlay/pathname.rbs`は`| ...`の継続を運びますが無条件のままです。その基底がサポート対象のすべてのrbsリリースでrbsの*コア*にあるからです）。ゲートするライブラリはすべてMUST`Environment::DEFAULT_LIBRARIES`に留まるので、本番の`for_project`環境は影響を受けません。このゲートは明示的に絞られた`RbsLoader.new(libraries:)`環境のために存在します。ガードスペック: `spec/rigor/environment/bundled_rbs_definition_build_spec.rb`。
 - `Rigor::Environment#nominal_for_name(name)` — まずクラスレジストリを参照し、それから（存在するとき）RBSローダーを参照します。最初のヒットの`Rigor::Type::Nominal`を返すか、ヒットなしのとき`nil`を返します。これは「クラス`name`の*インスタンス*」のための構築ヘルパーです。
 - `Rigor::Environment#singleton_for_name(name)` — Slice 4 phase 2b。定数のクラスオブジェクトに対する`Rigor::Type::Singleton`を返すか、レジストリまたはRBSローダーのいずれにも`name`のクラスが知られていないとき`nil`を返します。これは`Prism::ConstantReadNode`/`Prism::ConstantPathNode`を型付けするための標準エントリーポイントです。`ExpressionTyper`は、結果がインスタンス型ではなくクラスオブジェクトの型になるよう、MUSTこれを通じてルーティングします。
 - `Rigor::Environment#class_known?(name)` — Slice 4 phase 2b。レジストリまたはRBSローダーが`name`を知っているとき`true`を返す便利な述語です。キャリアを実体化せずに存在チェックが必要な呼び出し元に有用です。

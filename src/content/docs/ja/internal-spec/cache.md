@@ -3,8 +3,8 @@ title: "キャッシュレイヤー — `Rigor::Cache`"
 description: "rigortype/rigor docs/internal-spec/cache.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/cache.md"
 sourcePath: "docs/internal-spec/cache.md"
-sourceSha: "0444d851f550588b0e4d55d40a64e790743c4654ab70f69519777a54faa833b8"
-sourceCommit: "17f7d081a694f9cfdfaebd7fc71ebfc7171e2a6d"
+sourceSha: "93ea8921b36fb37c39d45bb23658f0d19fd24f93fdadcf7b9bdeaf17dde28eb8"
+sourceCommit: "0cf313582cfbe2fa7da8148dc498d0b2a0893438"
 translationStatus: "translated"
 sidebar:
   order: 3050
@@ -112,7 +112,7 @@ GlobEntry       :: { root: String, pattern: String, value: String }
 
 ### 計算値のキーにおけるエンジンの同一性
 
-値がアナライザーの*計算*の関数であるキャッシュ —— `analysis.run-diagnostics`・`protection.mutation-file-result`・`IncrementalSnapshot` —— は、`Rigor::VERSION`だけでなくエンジンのソースをMUSTキーにしなければなりません。バージョンがバイト列を固定するのはRubyGemsからインストールされたgemの場合だけであり、それ以外では固定しません。そのため編集された作業ツリーではウォームな実行が編集前の診断を再生してしまい、エンジン変更の前後比較は、稼いでいないゼロを報告してしまいます（[#285](https://github.com/rigortype/rigor/issues/285)）。
+値がアナライザーの*計算*の関数であるキャッシュ —— `analysis.run-diagnostics`・`analysis.run-effects`・`protection.mutation-file-result`・`IncrementalSnapshot` —— は、`Rigor::VERSION`だけでなくエンジンのソースをMUSTキーにしなければなりません。バージョンがバイト列を固定するのはRubyGemsからインストールされたgemの場合だけであり、それ以外では固定しません。そのため編集された作業ツリーではウォームな実行が編集前の診断を再生してしまい、エンジン変更の前後比較は、稼いでいないゼロを報告してしまいます（[#285](https://github.com/rigortype/rigor/issues/285)）。
 
 `Cache::EngineSource.identity`がこのスロットを供給します。2つのレジームがあります:
 
@@ -209,7 +209,7 @@ sha256               32バイト — 直前のすべてのバイトの整合性�
 1. **陳腐化した一時ファイルのクリーンアップ**。1時間より古い`*.tmp.*`の隣接ファイルはすべて`unlink`されます。通常動作では`atomically_replace`が決してそれを残しません（上記の「アトミック性とロック」を参照）;これは、tempファイル書き込みとrenameの間で死んだプロセスに対するバックストップです。
 2. **プロデューサー宣言の世代上限**。一部のプロデューサーは内容キーで管理されます（キャッシュキーが安定したプロジェクトごとのキーではなく、値の依存関係の関数だ）ので、異なる入力で再実行すると新しいエントリーが書かれ、古いものは到達不能になります —— しかし依然ディスク上にあります。すべてのフェッチ呼び出し（`#fetch_or_compute`・`#fetch_or_validate`）は`generation_cap:`をMUST携えなければなりません。これは正の`Integer`（そのプロデューサーの何世代がコンパクションパスを生き延びるか）か、`Cache::Store::UNBOUNDED_GENERATIONS`（`:unbounded` —— プロデューサーは多くのエントリーを同時にライブに保つので、世代数は陳腐化の代理指標にならず、パス3だけがそれを制限する）のいずれかです。上限を超えると、mtimeが最も古い世代から先に`unlink`されます。このキーワードはREQUIREDです: 省略すると`ArgumentError`になるので、後から追加されたプロジェクト全体プロデューサーが黙って上限なしになることはありえません —— #151以前のプロデューサーIDのハードコードされた許可リストが招いていた失敗です。
 
-   値は呼び出し側の判断ではなく、プロデューサー自身の宣言です: `RbsCacheProducer.generation_cap`（2、すべての`rbs.*`サブクラスが継承する）、`Analysis::RunCacheKey::GENERATION_CAP`（`analysis.run-diagnostics`向けに16、解析対象パスのSETごとに1つのライブ世代）、そしてプラグイン側プロデューサー向けの`Plugin::Base.producer generation_cap:`（デフォルトは`:unbounded`）です。ファイルごとの`plugin.source_rbs_synthesizer`プロデューサーは`:unbounded`を宣言します。
+   値は呼び出し側の判断ではなく、プロデューサー自身の宣言です: `RbsCacheProducer.generation_cap`（2、すべての`rbs.*`サブクラスが継承する）、`Analysis::RunCacheKey::GENERATION_CAP`（`analysis.run-diagnostics`向けに16、解析対象パスのSETごとに1つのライブ世代）とその双子の`EFFECTS_GENERATION_CAP`（`analysis.run-effects`、ADR-103のエフェクトサイドカー —— 解析対象パスのSET×エフェクトアイデンティティごとに1世代）、そしてプラグイン側プロデューサー向けの`Plugin::Base.producer generation_cap:`（デフォルトは`:unbounded`）です。ファイルごとの`plugin.source_rbs_synthesizer`プロデューサーは`:unbounded`を宣言します。
 
    Storeはフェッチ呼び出しが到着するたびにプロデューサーIDに対して各宣言を記録し、コンパクションパスはその記録を読みます。このStoreインスタンスが宣言されたのを一度も見ていないプロデューサーIDは、したがって推測でコンパクトされるのではなく放置されます。それが安全な方向です: ランの間に参照されなかったプロデューサーは新しい世代も書いていないので、パスはすでにそこにあったエントリーをスキップできるだけで、ライブなエントリーを立ち退かせることは決してありません。
 3. **サイズベースのLRUパス**。以前のリリースから変わりません: 残るすべての`.entry`ファイルを走査し、mtimeの昇順でソートし、合計が`max_bytes:`以下になるまで最も古いものから`unlink`します。
@@ -227,7 +227,7 @@ sha256               32バイト — 直前のすべてのバイトの整合性�
 1. **グローバルフィンガープリント（ロードをゲートする）**。`IncrementalSnapshot.fingerprint(configuration:, roots:)`は、エンジンバージョン + `SCHEMA`、設定ハッシュ、解析**ルート**（展開されたファイルリストではない —— なのでルート以下のファイルの追加/削除ではスナップショットは破棄されない）、`Gemfile.lock`、`rbs_collection.lock.yaml`、およびプロジェクトの`signature_paths` RBSに対するSHA-256です —— ただし解析対象ソースの内容は**含みません**。不一致はスナップショットを破棄します。
 2. **ファイルごとのダイジェスト（判断を駆動する）**。フィンガープリントが一致すると、`Payload`が無条件にロードされ、そのファイルごとの内容ダイジェストが変更セット`ΔF`を決定します;影響を受ける閉包`ΔF ∪ dependents[ΔF]`が再解析され、残りは`Payload#cache`から提供されます。
 
-### `Payload`（現在の`SCHEMA = 10`）
+### `Payload`（現在の`SCHEMA = 12`）
 
 ```
 Payload :: Data[
@@ -237,11 +237,13 @@ Payload :: Data[
   missing, class_decls,                       # negative (unresolved) edges + per-file declared-class sets
   seed_bundles,                               # ADR-85 per-file pre-pass contribution (plain data + def-node handles)
   plugin_fact_digest,                         # ADR-88 plugin-fact surface fingerprint (see below)
-  return_summaries                            # ADR-89 observed-key return summaries (see below)
+  return_summaries,                           # ADR-89 observed-key return summaries (see below)
+  param_table,                                # ADR-67 WD6c the inferred-param seed table the run analysed under
+  effect_collections, effects_identity        # ADR-103 the effects sidecar and its own identity (see below)
 ]
 ```
 
-留め置く価値のあるスキーマの履歴: `6`はシードバンドルを`(node_id, name, fingerprint)`のdefノードハンドルとして格納した（ADR-85）;`8`はB1のコメントのみゲートのために各バンドルのコメントを剥いだ`code_fingerprint`を追加した;`9`は`plugin_fact_digest`を追加した（ADR-88）;`10`は`return_summaries`を追加した（ADR-89）。古いスキーマのblobは`SCHEMA`ゲートに不一致となり`nil`としてロードされます —— マイグレーションではなく、クリーンなコールドリビルドです。
+留め置く価値のあるスキーマの履歴: `6`はシードバンドルを`(node_id, name, fingerprint)`のdefノードハンドルとして格納した（ADR-85）;`8`はB1のコメントのみゲートのために各バンドルのコメントを剥いだ`code_fingerprint`を追加した;`9`は`plugin_fact_digest`を追加した（ADR-88）;`10`は`return_summaries`を追加した（ADR-89）;`11`は`param_table`を追加した（ADR-67 WD6c）;`12`はエフェクトサイドカーを追加した（ADR-103 WD13）。古いスキーマのblobは`SCHEMA`ゲートに不一致となり`nil`としてロードされます —— マイグレーションではなく、クリーンなコールドリビルドです。
 
 ### `plugin_fact_digest` — プラグインファクトの健全性（[ADR-88](../adr/88-incremental-plugin-fact-soundness.md)）
 
@@ -255,6 +257,14 @@ B1のコメントのみゲートを本体の編集へ一般化します: 変更�
 - **観測キーの戻り値サマリー** —— ADR-84のメモから収穫したdefごとの`(receiver, args) → return`ディスクリプタに、ADR-56の内容変異エフェクトセット（戻り値を超えて呼び出し先から見えるサーフェス）を加えたもの。再チェック時、宣言が安定している変更済みdefは、格納された各キーでメモを通じて再評価されます;すべての戻り値が等しく**かつ**エフェクトが等しければ、そのdefのシンボル依存側が外されます。いずれかの不一致、シグネチャの変更、defの欠落、不適格なdef（ivar/cvar書き込みや`yield`値も露出するもの）、または上限オーバーフローは、依存側を保ちます —— 保守的な方向です。
 
 両ゲートは、そのランについて`plugin_fact_digest`が一致していることを前提とします（仮定ではなくコード内でアサートされます）;`--verify-incremental`は機構全体に対する常設のバイト同一性のバックストップです。
+
+### `effect_collections` / `effects_identity` —— エフェクトサイドカー（[ADR-103](../adr/103-effect-labels.md) WD13）
+
+`effect_collections`は、解析対象の各パスを、そのファイルが貢献した`Rigor::Effects::FileCollection`にマップします —— *直接の*サマリーと未解決の呼び出しエッジであって、伝播済みテーブルでは決してありません。伝播済みテーブルはランのたびにマージ済みの全体に対して再実行されます（リーフのサマリーはすべての呼び出し元に届くので、格納された閉包はそのすべてによって無効化されなければならなくなります）。再チェックは変更された閉包だけを再収集し、残りはここから畳み戻します。
+
+`effects_identity`は、上記のグローバルフィンガープリントとは独立した**第2のゲート**です。これが存在するのは、`effects:`ブロックが`configuration.to_h`から意図的に外されているためです: 収集を有効にしても診断は一切無効化されてはならないので、永続化されたサマリーが自分のボキャブラリーとカタログの言うとおりの意味を持つかどうかをランに教えるのは、グローバルフィンガープリントではありえません。このスロットは`Rigor::Effects::Identity.digest` —— ボキャブラリーのバージョン、カタログのアイデンティティ（`Catalog#identity`: スキーマ＋`data/effects/core.yml`の内容ダイジェスト）、そして`effects:`ブロックのダイジェスト —— を、それを書いたランの時点の値で格納し、収集がオフだったときは`nil`を格納します。不一致は収集**のみ**を破棄します。ペイロードの診断側は手つかずで、セッションはその後フルベースラインを取ります。再チェックは閉包だけを再収集するので、部分的な収集をプロジェクト全体の不動点へ閉じることはできないためです。収集オフのランはコレクションを保持せず、`{}` / `nil`を書き、スロットが存在する前とまったく同じに振る舞います。
+
+契約の全容 —— 両スロット、2つのアイデンティティ、それぞれが何を無効化するか —— は[`effect-summaries.md` § キャッシュ](effect-summaries/)にあります。
 
 ## バンドルされたRBSプロデューサー契約
 
