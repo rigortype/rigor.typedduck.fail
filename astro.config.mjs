@@ -50,6 +50,46 @@ export default defineConfig({
           // build.
           langAlias: { rbi: 'ruby', 'shell-session': 'shellsession' },
         },
+        // Starlight's night-owl-derived themes ship no `tokenColors` rule for
+        // the shell-session scopes, so a ```shell-session transcript renders in
+        // one flat colour even though the grammar matches it correctly. Add the
+        // missing rules, taking the colours from each theme's own palette so
+        // light and dark stay in step:
+        //   - the `$` prompt is chrome, so it borrows the comment colour and
+        //     recedes behind what was typed;
+        //   - the command itself borrows the function colour and reads as the
+        //     action.
+        // The output line deliberately keeps the default foreground: it is the
+        // payload of these blocks, and rigorInferenceHints() already accents
+        // its `error:` label. Both selectors are nested under
+        // `text.shell-session`, so plain ```sh fences (rooted at `source.shell`)
+        // are left untouched.
+        customizeTheme: (theme) => {
+          const paletteColor = (...scopes) => {
+            for (const scope of scopes) {
+              const rule = theme.settings.find(
+                (setting) =>
+                  setting.settings?.foreground &&
+                  [setting.scope ?? []].flat().includes(scope),
+              );
+              if (rule) return rule.settings.foreground;
+            }
+          };
+          const prompt = paletteColor('comment');
+          const command = paletteColor('entity.name.function', 'support.function');
+          if (prompt) {
+            theme.settings.push({
+              scope: ['text.shell-session punctuation.separator.prompt.shell-session'],
+              settings: { foreground: prompt },
+            });
+          }
+          if (command) {
+            theme.settings.push({
+              scope: ['text.shell-session source.shell'],
+              settings: { foreground: command },
+            });
+          }
+        },
       },
       defaultLocale: 'root',
       locales: {
