@@ -3,8 +3,8 @@ title: "CIセットアップテンプレート"
 description: "rigortype/rigor docs/manual/ci-templates/README.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/ci-templates/README.md"
 sourcePath: "docs/manual/ci-templates/README.md"
-sourceSha: "5e55dea76441c46a024c83ccdb9da1d650d612a1543d8210bea8b13b60394108"
-sourceCommit: "106b93dd777b71aeef323dce1e4087c226c8ce37"
+sourceSha: "bf2eea8fdf7b06d962e586f5f24b5ec5ec4bde8e0bbe2c564ad9a2ea197675fb"
+sourceCommit: "bed65a462b04db02312f208b9dda2dda3a26ef13"
 translationStatus: "translated"
 sidebar:
   order: 9000
@@ -23,6 +23,8 @@ sidebar:
 | [`gitlab-ci.yml`](gitlab-ci.yml) | `.gitlab-ci.yml`（または`include:`する） | GitLab Code Qualityレポート → マージリクエストウィジェット。 |
 
 GitHubテンプレートは**1つ**だけ選ぶ。**デフォルトはアノテーション**。セットアップ不要であらゆるリポジトリで動く唯一の選択肢だ。code scanningが利用でき（公開リポジトリ、またはGitHub Advanced Securityを備えた非公開リポジトリ）セキュリティタブが欲しい場合はSARIFを、スレッド化されたレビューコメントが欲しい場合はreviewdogを使う（reviewdogはGitLab、Gerrit、Bitbucket、Giteaに対しても同じように動く。[`rigor-ci-setup`](https://github.com/rigortype/rigor/blob/master/skills/rigor-ci-setup/SKILL.md)スキルを参照）。いずれもRigorの実行方法は同じで、出力フォーマットと公開手順だけが異なる。
+
+どのテンプレートも**コメントアウトされた`rigor effects check`ステップ**で終わる。プロジェクトに`effects:`ブロックとコミット済みの`.rigor-effects.yml`が揃ったらコメントを外せば、ブランチがコードの*すること*を変えたとき —— ネットワークと話し始めたジョブ、クエリし始めたプレゼンター —— にCIが失敗するようになる。コメントアウトされたまま出荷されるのは、`effects check`がスナップショットファイルの不在時に`1`で終了するからだ。それはスナップショットを持つプロジェクトではまさに望みどおりの挙動で、持たないプロジェクトでは純粋なノイズになる。これを取り巻くワークフローは[第19章「エフェクトラベル」](../19-effect-labels/)にある。
 
 ## ほかのランナー（汎用レシピ）
 

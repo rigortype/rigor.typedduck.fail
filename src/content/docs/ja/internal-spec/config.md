@@ -3,8 +3,8 @@ title: "設定 — `.rigor.yml`のセマンティクス"
 description: "rigortype/rigor docs/internal-spec/config.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/config.md"
 sourcePath: "docs/internal-spec/config.md"
-sourceSha: "429cb612d9200384210227af8d3f2bf5e2ac28f930a8690d285cb7e7eaf7afaf"
-sourceCommit: "0cf313582cfbe2fa7da8148dc498d0b2a0893438"
+sourceSha: "75bd9400871f4b0fbec11e117e65bd456615790df1a23e5e7cf2e1a88f0d35ab"
+sourceCommit: "bed65a462b04db02312f208b9dda2dda3a26ef13"
 translationStatus: "translated"
 sidebar:
   order: 3050
@@ -34,10 +34,16 @@ sidebar:
 | ティア | チェッカー | タイミング | 失敗時 |
 | --- | --- | --- | --- |
 | **1. スキーマ** | エディタ / CI | 編集時 | エディタの波線。**ランタイムへの影響は一切ありません**。 |
-| **2. `Configuration`のロード** | この実装 | ロード時 | `ArgumentError` ── 実行が停止します。 |
+| **2. `Configuration`のロード** | この実装 | ロード時 | `Rigor::ConfigurationError`（`ArgumentError`の一種） ── 実行が停止します。 |
 | **3. 設定監査** | この実装 | チェック時 | STDERR警告、および`--format=json`ペイロード内の`config_warnings`下のタグ付きエントリー。**終了コードは変わりません**。 |
 
-ティア2は、ローダーが処理を進められない値のためのものです（不正な形式の`dependencies.source_inference[]`エントリー、範囲外の`budget_per_gem`、enumの外にある`effects.snapshot.gate`、登録されたエントリーポイントのプリセットを名指さない`effects.snapshot.reach`エントリー、整形式のエフェクトラベルでない`effects.tolerated` / `effects.labels` / `effects.attribution` / `effects.envelopes[].effect`のメンバー、メソッドキーでない`effects.attribution`のキー、`match:` / `namespace:`の両方または両方ともでないものを名指す`effects.envelopes[]`エントリー、あるいは`effect:`の境界をまったく運ばないもの）。ティア2は*意味*ではなく*形*に答えます: エフェクトレジストリが聞いたことのないラベルは、どこに現れても問題なくロードされます。未知のラベルはフェイルオープンし、`effect.unknown-label`の仕事だからです。ティア3は、整った形式でありながら**静かに何も解決しない**値のためのものです ── 欠落したシグネチャパス、未知のライブラリ名、効果のない抑制、認識されないトップレベルキーであり、唯一の兆候が紛らわしく下流に現れるという類の誤りです。ティア3は警告するのみで決してエラーにはなりません。部分的あるいは先取り的な設定は妥当なセットアップであり、未設定のデフォルトに対しては決して発火しないからです。
+ティア2は、ローダーが処理を進められない値のためのものです（不正な形式の`dependencies.source_inference[]`エントリー、範囲外の`budget_per_gem`、enumの外にある`effects.snapshot.gate`、登録されたエントリーポイントのプリセットを名指さない`effects.snapshot.reach`エントリー、整形式のエフェクトラベルでない`effects.tolerated` / `effects.labels` / `effects.attribution` / `effects.envelopes[].effect`のメンバー、メソッドキーでない`effects.attribution`のキー、`match:` / `namespace:`の両方または両方ともでないものを名指す`effects.envelopes[]`エントリー、あるいは`effect:`の境界をまったく運ばないもの）。ティア2は*意味*ではなく*形*に答えます: エフェクトレジストリが聞いたことのないラベルは、どこに現れても問題なくロードされます。未知のラベルはフェイルオープンし、`effect.unknown-label`の仕事だからです。
+
+そもそもパース可能なYAMLでないファイルも、一歩手前で同じ形で失敗します。その際、位置はPsych自身のプレフィックス形式ではなく`path:line:column`として再レンダリングされます。
+
+**ティア2の失敗は、バックトレースではなく`rigor:`行としてユーザーに届かなければなりません（MUST）**。`Rigor::CLI#run`はすべてのコマンドについて`Rigor::ConfigurationError`をrescueし、`rigor: <message>`を出力して`64`で終了します ── 不正なフラグと同じ形です。`.rigor.yml`の誤りは同じ種類の出来事だからです。これがクラスを`ArgumentError`より狭くした理由です: このクラスは*ユーザーがファイルを誤った*ことと*Rigor自身が誤った*ことを切り分け、提示に値するのは前者だけです。`ArgumentError`のサブクラスであり続けるため、長年のティア2契約と、その名前でrescueするCLI外のすべての呼び出し元は影響を受けません。メッセージが診断のすべてです ── 問題のキーを名指さなければならず（MUST）、答えが知りうる場合はそれを運ばなければなりません（MUST）（`effects.snapshot.reach`の未登録プリセットエラーは、このプロジェクトのプラグインが実際に登録したプリセットを列挙します）。
+
+ティア2のチェックのうち1つだけはロード時に実行されません: `effects.snapshot.reach`の**プリセット名**は、スナップショットがそれを展開する場所で検証されます。プリセットはプラグインによって登録され、そのプラグインは検証中の設定*から*ロードされるからです。ロード時にはエントリーの形をチェックし、レジストリは解析が始まって初めて完全になります。その2つの半分が`Configuration#coerce_effects_reach`と`Rigor::Effects::EntryPoints.resolve!`であり、CLIは両方を同じ形でレンダリングします。ティア3は、整った形式でありながら**静かに何も解決しない**値のためのものです ── 欠落したシグネチャパス、未知のライブラリ名、効果のない抑制、認識されないトップレベルキーであり、唯一の兆候が紛らわしく下流に現れるという類の誤りです。ティア3は警告するのみで決してエラーにはなりません。部分的あるいは先取り的な設定は妥当なセットアップであり、未設定のデフォルトに対しては決して発火しないからです。
 
 ティア1と3は認識されない**トップレベル**キーで重なり合い、両方が必要です。すなわちティア1は入力された時点で誤りを捕捉しますが、エディタがスキーマを読み込むユーザーに限られます。一方ティア3は常に実行されます。`Configuration::KNOWN_KEYS`は、適合するファイルが運びうる完全な集合です（`DEFAULTS`のキー + `includes:` + 予約名前空間）。それ以外はすべて`Configuration#unknown_keys`に記録されます ── ローダーは自身が所有する各キーを取得し、残りを決して列挙しないため、その記録がなければキーは監査がConfigurationを見る前に失われてしまいます。
 

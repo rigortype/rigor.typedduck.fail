@@ -3,8 +3,8 @@ title: "リサーチ・サーベイノート"
 description: "rigortype/rigor docs/notes/README.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/README.md"
 sourcePath: "docs/notes/README.md"
-sourceSha: "ebcf0f35b3faff42fd9d084fe995a621382ce2dba9d56506c263b23afad61733"
-sourceCommit: "0cf313582cfbe2fa7da8148dc498d0b2a0893438"
+sourceSha: "1df6ecc16bf2ee915bf9b85d8c8a10c22025b2d9b9927a56b5f6843d59458076"
+sourceCommit: "bed65a462b04db02312f208b9dda2dda3a26ef13"
 translationStatus: "translated"
 sidebar:
   order: 6000
@@ -70,6 +70,9 @@ sidebar:
 | 2026-08-17 | [エフェクトカタログ —— コーパス計測、前後（issue #380）](20260817-effect-catalogue-corpus/) |
 | 2026-08-17 | [エフェクト収集 —— WD13の予算がどこへ行き、何がそれを取り戻したか（issue #382）](20260817-effect-collection-perf/) |
 | 2026-08-17 | [Railsエフェクト層 —— コーパス計測、前後（issue #387）](20260817-effect-rails-layer-corpus/) |
+| 2026-08-22 | [エフェクトシステム —— Redmineでの最初の採用者のユーザーストーリー](20260822-effect-user-story-redmine/) |
+| 2026-08-23 | [`super`エフェクトエッジ —— コーパス計測（issue #446）](20260823-effect-super-edge-corpus/) |
+| 2026-08-23 | [エフェクトラベル —— 10のユーザーストーリー、コーパスに照らして裁定（redmine + mastodon）](20260823-effect-user-stories-corpus/) |
 
 ## アナライザーの自己テスト（teeth・偽陰性）
 

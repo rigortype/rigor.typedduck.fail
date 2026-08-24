@@ -3,8 +3,8 @@ title: "エフェクトラベル"
 description: "rigortype/rigor docs/type-specification/effect-labels.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/type-specification/effect-labels.md"
 sourcePath: "docs/type-specification/effect-labels.md"
-sourceSha: "929eb5928701e34fa4a7dc5e01ff88d18fb1fb4ff02d805a3b6e6663df8f9d7a"
-sourceCommit: "0cf313582cfbe2fa7da8148dc498d0b2a0893438"
+sourceSha: "ec69231860dc3af960ef0c993b03ff850ac6223bcc71a82801bb56b849336614"
+sourceCommit: "bed65a462b04db02312f208b9dda2dda3a26ef13"
 translationStatus: "translated"
 sidebar:
   order: 2050
@@ -62,12 +62,13 @@ segment = [a-z] [a-z0-9]*
 
 | 層 | 内容 | 所有者 |
 | --- | --- | --- |
-| 共有ベース | Steinsのv1集合をそのまま: `exit`・`ffi`・`global.read`・`global.write`・`io`・`io.db`・`io.fs`・`io.fs.read`・`io.fs.write`・`io.input`・`io.ipc`・`io.net`・`io.net.http`・`io.output`・`io.output.buffer`・`io.output.header`・`io.output.stdout`・`io.output.stderr`・`io.process`・`io.signal`・`mutate`・`mutate.local`・`nondet`・`nondet.random`・`nondet.time` | SteinsとRigorが共同で;乖離は出荷前に上流へ提起される |
+| 共有ベース | Steinsのv1集合: `exit`・`ffi`・`global.read`・`global.write`・`io`・`io.db`・`io.fs`・`io.fs.read`・`io.fs.write`・`io.input`・`io.ipc`・`io.net`・`io.net.http`・`io.output`・`io.output.buffer`・`io.output.header`・`io.output.stdout`・`io.output.stderr`・`io.process`・`io.signal`・`mutate`・`mutate.local`・`nondet`・`nondet.random`・`nondet.time` | SteinsとRigorが共同で;乖離は出荷前に上流へ提起される |
+| Steins側、ここでは未生成 | `failure`・`failure.environment`・`failure.input`・`failure.resource` | Steins（そのADR-0042）;Steinsに対して書かれたポリシーがここでパースできるように登録されている |
 | Rubyの葉 | `mutate.self`（selfの状態）、`mutate.instance`（selfでもフレーム所有でもないレシーバー）、`mutate.static` | Rigor |
 | 提案中の共有コアの葉 | `io.db.read`・`io.db.write`・`io.db.transaction` | Rigor、Steinsによる採用待ち |
-| アプリケーション意味 | `telemetry`・`email.send`・`job.enqueue`・`cache.read`・`cache.write` | 共有;これらはポリシーが名指し`tolerated:`集合が掴むラベルなので、両アナライザーで同じにMUST綴られなければならない |
+| アプリケーション意味 | `telemetry`・`email.send`・`job.enqueue`・`cache.read`・`cache.write` | Rigor、Steinsに提案中（[ADR-103](../../adr/103-effect-labels/) WD16）。これらはポリシーが名指し`tolerated:`集合が掴むラベルなので、プロジェクトはそれを書けるようになる前にプラグインを必要としてはならない——だがSteinsはエコシステムラベルを組み込み集合の外に置き、プラグインマニフェストを通じて供給するので、共有された綴りは意図であって、まだ合意ではない |
 
-`io.output.buffer`と`io.output.header`は登録されていますがRubyでは生成されません: Steinsに対して書かれたポリシーがここでパースできるように存在します。
+`io.output.buffer`・`io.output.header`と`failure.*`ファミリーは登録されていますがRubyでは生成されません: Steinsに対して書かれたポリシーがここでパースできるように存在します。`failure.*`は毛色が違います——Steinsではそれはエフェクトではなくfailureアームの*値のprovenance*を名指し、接頭辞の包摂が届くようにレジストリを共有しているだけです。Rigorは`failure.*`ラベルを生成せず、それを推論することもMUST NOTしてはなりません;それを名指す境界は空虚に満たされます。
 
 フレームワークルート（`rails.*`）はフレームワークをモデル化するプラグインが寄与し、出荷されるファイルの一部ではありません。
 
@@ -124,6 +125,7 @@ segment = [a-z] [a-z0-9]*
 | `dynamic-send` | 非リテラルのセレクタを伴う`send` / `public_send` |
 | `method-missing` | ディスパッチがアナライザーのモデル化しない`method_missing`に到達した |
 | `unresolved-self-call` | プロジェクトが知る定義を持たない暗黙的self呼び出し |
+| `unresolved-super` | プロジェクト自身の祖先関係がそのターゲットを定義しない`super` |
 | `opaque-callable` | アナライザーが本体まで追えなかったブロックまたはproc |
 | `unknown-ownership` | レシーバーがフレーム所有であると証明できなかった変更呼び出し;その変更は証明された`mutate`ラベルではなく汚染として記録される |
 | `plugin-attribution` | 信頼ティアが解消しないソースから寄与されたラベル |
@@ -133,7 +135,7 @@ segment = [a-z] [a-z0-9]*
 
 このenumは閉じています。新しい原因はこの文書への変更であり、プロデューサーの自由な選択ではありません。
 
-> 執筆時点で`method-missing`・`template-not-analysed`・`budget`は予約済みで未生成です;他の7つにはプロデューサーがあります（`plugin-attribution`は[#385](https://github.com/rigortype/rigor/issues/385)以降、設定された帰属表から）。どの形がどの原因に到達するかは[`effect-summaries.md`](../../internal-spec/effect-summaries/) §汚染です。
+> 執筆時点で`method-missing`・`template-not-analysed`・`budget`は予約済みで未生成です;他の8つにはプロデューサーがあります（`plugin-attribution`は[#385](https://github.com/rigortype/rigor/issues/385)以降、設定された帰属表から;`unresolved-super`は[#446](https://github.com/rigortype/rigor/issues/446)以降）。どの形がどの原因に到達するかは[`effect-summaries.md`](../../internal-spec/effect-summaries/) §汚染です。
 
 ## エフェクトエンベロープ
 
@@ -177,6 +179,8 @@ end
 - **`effects.tolerated:`はラベルごとではなく起点ごとに解消します**（§ポリシーによる解消）。チェックが比較する対象は、証明レーン*からポリシーが解消するあらゆる起点バンドルを引いたもの*なので、ポリシーは起点全体を黙らせ、由来がどこであれラベルを黙らせることは決してありません。
 
 境界が認めない証明ラベルは（メソッド,ラベル）ごとに1つの`effect.envelope-exceeded`診断であり、`.rbs`の行ではなく**Rubyの`def`に位置づけられます**——そこが修正の入る場所であり、`# rigor:disable`が読まれる場所です。メソッドがRubyの`def`を持たない場合（クラスレベルの分配で到達される合成された`attr_*`アクセサ）、位置はクラス自身のファイルへフォールバックします。メッセージはラベル、それを証明する起点への最短経路、作者自身の境界の綴り、そしてその境界が書かれた場所を名指します;識別子の分類体系とその重大度は[diagnostic-policy.md](../diagnostic-policy/)です。
+
+「その境界が書かれた場所」とは、作者が持っているファイル内の位置です: シグネチャツリーの宣言なら`.rbs`の行、rbs-inlineのものならそのコメントが載っている`.rb`の行、設定されたものなら`.rigor.yml effects.envelopes[N]`。rbs-inlineのアノテーションは、`.rb`から導出された*合成された*シグネチャの中でリーダーに到達しますが、そこでそれが占める行は決して報告されません——その文書はディスク上に存在せず、ライセンスヘッダーを持つファイルではその番号は著作権表示の中に落ち、そこでは間違っていることが見えることすらありません（[#432](https://github.com/rigortype/rigor/issues/432)）。宣言への参照はメッセージのうち行動につながる半分なので、読者が開いて編集できる行を名指さなければなりません。同じ規則は宣言を描画するあらゆるサーフェスを拘束します: `effect.liskov-widened`・`effect.unknown-label`・`effect.annotations-unchecked`、そして4つすべてのJSONとLSPの描画。
 
 このチェックは、設定が`effects:`ブロックを運び、**かつ**`effects.check`が`false`でないときにのみ走ります;`effects.check`は存在するブロックの下では既定でtrueです。`effects:`ブロックのないプロジェクトでの`%a{pure}`は不活性です——静かな既定サーフェスでそれをチェック済みの契約として読むと、既存のアノテーションが失敗し始めてしまいます（[ADR-50](../../adr/50-release-engineering-and-stability-strategy/) WD1）。
 

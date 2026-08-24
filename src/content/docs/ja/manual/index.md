@@ -3,8 +3,8 @@ title: "Rigorユーザーマニュアル"
 description: "rigortype/rigor docs/manual/README.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/README.md"
 sourcePath: "docs/manual/README.md"
-sourceSha: "f8019589a9d730b901d007dc77bb6695f42dc2e364df3551f867f3694eb26c31"
-sourceCommit: "0cf313582cfbe2fa7da8148dc498d0b2a0893438"
+sourceSha: "97baefeeeeed387023c38f8a99af5a9d63db60f25856ba6e0e1faffc356a4b0d"
+sourceCommit: "bed65a462b04db02312f208b9dda2dda3a26ef13"
 translationStatus: "translated"
 sidebar:
   order: 9000
@@ -37,6 +37,7 @@ Rigorのインストール、実行、設定、運用方法について説明し
 7. [プラグインの使い方](07-plugins/): `plugins:`設定キーによるフレームワーク・gemプラグインの有効化。プラグインごとのユーザードキュメントは[プラグインリファレンス](plugins/)にあります。
 8. [提供スキル](08-skills/): `rigor-next-steps`ループが振り分ける付属エージェントスキル: オンボーディング、RBS / プラグインのセットアップ、保護の引き上げ、ベースライン削減、CI / エディタ / MCPの配線、プラグイン作成。
 15. [型保護カバレッジ](15-type-protection-coverage/): バグが*捕まる*かどうかを計測し、あなたの型とあなたのテストを1枚のセーフティネットに融合します（`rigor coverage --protection [--mutation --with-tests --include-dynamic]`）。
+19. [エフェクトラベル](19-effect-labels/) — コードが何を返すかと並んで何を*するか*: ラベルのボキャブラリー、`rigor effects`レポート、コミット対象の`.rigor-effects.yml`スナップショットとそのレビューループ、CIゲート、そして層を制限するエンベロープと`%a{pure}`アノテーション。
 
 ### 統合と運用
 

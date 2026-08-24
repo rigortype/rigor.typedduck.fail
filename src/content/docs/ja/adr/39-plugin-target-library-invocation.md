@@ -3,8 +3,8 @@ title: "ADR-39 — プラグインは対象ライブラリの安全なメソッ�
 description: "rigortype/rigor docs/adr/39-plugin-target-library-invocation.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/39-plugin-target-library-invocation.md"
 sourcePath: "docs/adr/39-plugin-target-library-invocation.md"
-sourceSha: "fc662643825a7208a5ffd74f2a2d5fbc58c0b423edcd44900f71233ce4575a07"
-sourceCommit: "d5d6614800bfc53f00e23b51f4c914d0e42f237f"
+sourceSha: "508441516d07f2c0c82f529b93a187a6efa3e196f186665f80719e1f5168c0ba"
+sourceCommit: "bed65a462b04db02312f208b9dda2dda3a26ef13"
 translationStatus: "translated"
 sidebar:
   order: 4039
@@ -112,8 +112,9 @@ Flake Ruby（4.0.5）で検証済み: `Ruby::Box.new` + `box.require` + `box.eva
 - 分離メカニズムは検証済み——ターゲットライブラリがボックス内でロード + 応答し、メイン空間に漏れない;`Plugin::Inflector`は`RUBY_BOX=1`のもとでボックスを経由してルーティングする（ユニットテスト済み）。
 - 些細な`rigor check`は`RUBY_BOX=1`のもとで問題なく動作する。
 - しかし**フルの実世界解析はsegfaultしうる**: `RUBY_BOX=1`のもとでのRedmine `app`に対する`rigor check`がクラッシュした（`SIGSEGV`）。一見、そのプロジェクト自身の不正な形式の`sig/`（`RBS::DuplicatedDeclarationError`）のエラーパスで——非ボックス実行はこれを適切に処理する。クラッシュはVMのメソッドルックアップパス（`prepare_callable_method_entry`）でのNULL参照であり、ユーザーのサブボックスなし（プロセス全体の`RUBY_BOX=1`のみ）で再現する——これはRigorの`Plugin::Box`によって**引き起こされるものではありません**。Rubyのバグ報告ドラフトが[`docs/notes/20260602-ruby-box-segfault-bug-report.md`](../../notes/20260602-ruby-box-segfault-bug-report/)にあります。
+- **2026-08-24: segfaultの根本原因が特定され、（ローカルで）パッチ済み**。原因はクラス／モジュール本体のprocに対する`Ractor.make_shareable`: `env_copy`がTOP/CLASS envのSPECVALスロットに格納されたボックスを上書きしてしまうため、分離されたprocの内部での最初のメソッド呼び出しがNULLボックスを参照する——Rigorは`Plugin::Box`経由ではなく、Ractor共有可能なモジュールスコープのラムダを通じてこれを踏んだ。1行のVM修正 + 回帰テストをCRuby masterに対して検証済み（上記の更新されたノートを参照;パッチはローカルのCRubyチェックアウトの`fix/box`ブランチにあり、上流へ提出中）。パッチ済みのRubyでは、フルのRedmine `app`実行が`RUBY_BOX=1`のもとで完了し、さらに——PR #469の2つのRigor側修正（`::ScriptError`に安全な辞退と、`Ruby::Box#require`が生の`$LOAD_PATH`しか参照しないことによるボックス内`Kernel#require`へのgem解決フォールバック）を併せると——`ruby_box`戦略はRedmine `app/models`上で`none` / `process`と同一の診断を、ボックスが語形変化に応答しながら生成する。
 
-したがって**`process`（fork）がデフォルト**です——今日機能する本番対応の分離: フルのRedmine `app`実行（バイト単位同一の診断、segfaultなし）と環境変数を設定しない全スペックスイートで検証済みです。なぜならforkの境界が、`ruby_box`を壊すクラッシュをまさに封じ込めるからです。`fork`が利用できない場所では`none`にフォールバックします。`ruby_box`は**着地済みだが実験的としてゲート**されています（選択可能だが、上記の上流`Ruby::Box` VMバグでブロック中）;そのバグが修正されれば魅力的になります（より軽量、インプロセス、+ 正確なバージョンの共存）。`none`は明示的なオプトアウト + forkのないフォールバックです。
+したがって**`process`（fork）がデフォルト**です——今日機能する本番対応の分離: フルのRedmine `app`実行（バイト単位同一の診断、segfaultなし）と環境変数を設定しない全スペックスイートで検証済みです。なぜならforkの境界が、`ruby_box`を壊すクラッシュをまさに封じ込めるからです。`fork`が利用できない場所では`none`にフォールバックします。`ruby_box`は**着地済みだが実験的としてゲート**されています（選択可能だが、上記の上流`Ruby::Box` VMバグでブロック中——2026-08-24にローカルで根本原因を特定しパッチ済みで、修正を載せた上流リリース待ち）;修正済みのRubyがリリースされれば魅力的になります（より軽量、インプロセス、+ 正確なバージョンの共存）。`none`は明示的なオプトアウト + forkのないフォールバックです。
 
 ### エンジンサポート
 

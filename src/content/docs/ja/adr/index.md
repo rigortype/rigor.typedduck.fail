@@ -3,8 +3,8 @@ title: "アーキテクチャ決定記録"
 description: "rigortype/rigor docs/adr/README.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/README.md"
 sourcePath: "docs/adr/README.md"
-sourceSha: "df60aafc8b8e50013d5ccbf7dd160175416fedb67c3cb37fcb8fe3402fcd8861"
-sourceCommit: "0cf313582cfbe2fa7da8148dc498d0b2a0893438"
+sourceSha: "816083ccecd74ec0e591cb9cfc058e6bff1f73b4a655796287e5fb4e34475fbd"
+sourceCommit: "bed65a462b04db02312f208b9dda2dda3a26ef13"
 translationStatus: "translated"
 sidebar:
   order: 4000
@@ -88,7 +88,7 @@ sidebar:
 | ADR-62 | [アナライザーのミューテーションテスト（偽陰性／歯の計測）](62-mutation-testing-teeth-measurement/) | Accepted（ハーネス＋最初の修正が2026-06-13に着地；残りのバックログは需要ゲート付き） |
 | ADR-63 | [ユーザー向け型保護カバレッジ](63-type-protection-coverage/) | Accepted（ティア1とティア2をどちらも2026-06-14に実装） |
 | ADR-64 | [非nilの引数型不一致とcoerceの障壁](64-non-nil-argument-type-mismatch/) | Accepted（非nilチャネルを構築し、多重オーバーロードメソッドに対してゲート） |
-| ADR-65 | [診断の証拠ティアとドキュメントURL](65-diagnostic-evidence-tier-and-doc-url/) | Accepted（2026-06-15に実装；精度加算的） |
+| ADR-65 | [診断の証拠ティアとドキュメントURL](65-diagnostic-evidence-tier-and-doc-url/) | Accepted（2026-06-15に実装；ドキュメントURLを2026-08-23に改訂） |
 | ADR-66 | [タグ付きユニオンのメンバー型付け（タグキーによるナローイング）](66-discriminated-union-member-typing/) | Proposed（未実装；需要ゲート付き） |
 | ADR-67 | [パラメータ型推論（M3フロンティア）: 呼び出しサイトと本体内、精度加算的のみ](67-parameter-type-inference/) | Accepted（WD6をオプトインで投入；デフォルト有効化は2026-07-30に見送り；WD6cのインクリメンタル除外を解除；WD2は見送り） |
 | ADR-68 | [プラグインが宣言可能なクラスビルダー畳み込み（Struct / Dataを超えるメンバーシェイプキャリア）](68-class-builder-folding/) | Proposed（需要ゲート付き） |

@@ -4,7 +4,7 @@ description: "Imported from rigortype/rigor docs/notes/20260613-plugin-interface
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260613-plugin-interface-bc-review.md"
 sourcePath: "docs/notes/20260613-plugin-interface-bc-review.md"
 sourceSha: "293a93c8c0a1285978ee0c345663aa634b4d1209c4d5da18fc57b5faf353a262"
-sourceCommit: "0cf313582cfbe2fa7da8148dc498d0b2a0893438"
+sourceCommit: "bed65a462b04db02312f208b9dda2dda3a26ef13"
 sourceDate: "2026-06-13T17:22:26+09:00"
 sourceLanguage: "ja"
 sidebar:

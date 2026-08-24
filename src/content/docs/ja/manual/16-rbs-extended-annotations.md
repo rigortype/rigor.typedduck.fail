@@ -3,8 +3,8 @@ title: "RBS::Extendedアノテーション"
 description: "rigortype/rigor docs/manual/16-rbs-extended-annotations.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/16-rbs-extended-annotations.md"
 sourcePath: "docs/manual/16-rbs-extended-annotations.md"
-sourceSha: "48ca1377d484ae48763604c730197d56ab88493726f2db97929e1e93893caa8b"
-sourceCommit: "0cf313582cfbe2fa7da8148dc498d0b2a0893438"
+sourceSha: "bc1d309cc9a05ddf00ab7096f215f6f369f5fd9a20f19a4d79b47d19da35203d"
+sourceCommit: "bed65a462b04db02312f208b9dda2dda3a26ef13"
 translationStatus: "translated"
 sidebar:
   order: 9016
@@ -107,7 +107,7 @@ end
 
 ## エフェクトエンベロープ —— メソッドが*何をするか*を制限する
 
-上のディレクティブはどれも、メソッドが何を返すかを記述します。メソッドが*何をするか*を記述するものが2つあります: `%a{pure}` —— rbs自身の純粋性アノテーションで、「何もしない」と読む —— と、`%a{rigor:v1:effect <labels>}` —— メソッドが超えてはならない、素の[エフェクトラベル](../../type-specification/effect-labels/)のカンマ区切りリスト —— です。どちらもメソッドまたは`class` / `module`に付けられ、後者の場合はそのクラス自身のメソッドへ分配されます（最も近いものが勝つ）。また、どちらも、メソッド自身が確保して決して外に出さないオブジェクトの変更は許容します:
+上のディレクティブはどれも、メソッドが何を返すかを記述します。メソッドが*何をするか*を記述するものが2つあります: `%a{pure}` —— rbs自身の純粋性アノテーションで、「何もしない」と読む —— と、`%a{rigor:v1:effect <labels>}` —— メソッドが超えてはならない、素の[エフェクトラベル](../19-effect-labels/)のカンマ区切りリスト —— です。どちらもメソッドまたは`class` / `module`に付けられ、後者の場合はそのクラス自身のメソッドへ分配されます（最も近いものが勝つ）。また、どちらも、メソッド自身が確保して決して外に出さないオブジェクトの変更は許容します:
 
 ```rbs
 class UserRepository
@@ -140,7 +140,9 @@ end
 
 - 証明されたエフェクトが境界を逸脱するメソッドは、Rubyの`def`に位置付けて[`effect.envelope-exceeded`](../04-diagnostics/#rule-effect-envelope-exceeded)を発火します。
 - レジストリが認識しないラベルは**アノテーション全体**を無制限として読ませ —— タイポが指摘をでっち上げることは決してない ——、その綴りが明らかにラベルのつもりである場合には、宣言位置で[`effect.unknown-label`](../04-diagnostics/#rule-effect-unknown-label)としてそのことを伝えます。
-- ブロックがなければ、ランごとに1件の[`effect.annotations-unchecked`](../04-diagnostics/#rule-effect-annotations-unchecked)（`:info`）が、アノテーションが不活性であることを伝えます。
+- ブロックがなければ、ランごとに1件の[`effect.annotations-unchecked`](../04-diagnostics/#rule-effect-annotations-unchecked)（`:info`）が、アノテーションが不活性であることを —— どちらのレーンからでも —— 伝えます。ただし1つ例外があります: ファイルを**まったく解析しない**実行（何も変わっていないウォームな`rigor check --incremental`）には読み取る合成RBSがないので、`.rbs`のアノテーションは報告してもインラインのものは報告しません。何かを解析する実行なら両方を報告します。
+
+実用上の注意が2つあります。`.rbs`ファイルで1つのメソッドにアノテーションを付けると、そのシグネチャ全体を宣言することを強いられます —— RBSには宣言していないメソッドにアノテーションを付ける方法がありません —— が、上記のrbs-inline形式ならそうはならないので、境界だけが欲しいときはインラインのレーンを選んでください。そしてエンベロープは**証明された**レーンに対してのみチェックされます: ラベルがすべて宣言（`≤`）レーンにあるメソッドは、`%a{pure}`を沈黙のままパスします。[エフェクトラベル](../19-effect-labels/)が、これらのアノテーションが引くボキャブラリーとともに両方をカバーしています。
 
 ## 高カインド型ディレクティブ
 

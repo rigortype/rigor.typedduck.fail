@@ -3,8 +3,8 @@ title: "プラグインの登録と読み込み"
 description: "rigortype/rigor docs/internal-spec/plugin.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/plugin.md"
 sourcePath: "docs/internal-spec/plugin.md"
-sourceSha: "3df1377e3322758432a18183931a1cc390bc4912d5a4faab05d85191ce4773ee"
-sourceCommit: "0cf313582cfbe2fa7da8148dc498d0b2a0893438"
+sourceSha: "38503cb46359a1a80730787881e5ddff565501ce61a23bc4efac398bb67799ac"
+sourceCommit: "bed65a462b04db02312f208b9dda2dda3a26ef13"
 translationStatus: "translated"
 sidebar:
   order: 3050
@@ -232,10 +232,11 @@ end
 | `effect_attributions` | `Array<EffectAttribution>` | このプラグインがモデル化するフレームワークへの呼び出しが何をするか（ADR-103 WD6 / WD10）。 |
 | `effect_edges` | `Array<EffectEdge>` | 構文が含まないフレームワークの呼び出しグラフのエッジ —— コールバック、`perform_now`、メーラー本体（ADR-103 WD10）。 |
 | `effect_entry_points` | `Array<EffectEntryPoints>` | 名前付きの`effects.snapshot.reach:`プリセット（ADR-103 WD14）。 |
+| `effect_ancestry` | `Array<EffectAncestry>` | このプラグイン自身のgemが導入し、プロジェクトのソースが決して書かない祖先エッジ（ADR-103 WD17）。バンドルプラグイン限定;下記の「解消とファーストパーティの資格」を参照。 |
 
 `#validate_config(config)`はエラー文字列の配列を返します；ローダーは空でない結果を`LoadError`に変換します。各拡張フィールドは`Manifest#initialize`で独自のバリデーションを持ちます。
 
-#### エフェクトの貢献 —— `effect_root` / `effect_labels` / `effect_attributions` / `effect_edges` / `effect_entry_points`（[ADR-103](../../adr/103-effect-labels/)、issue #387）
+#### エフェクトの貢献 —— `effect_root` / `effect_labels` / `effect_attributions` / `effect_edges` / `effect_entry_points` / `effect_ancestry`（[ADR-103](../../adr/103-effect-labels/)、issue #387）
 
 **ステータス: #387時点で規範的**。フレームワークをモデル化するプラグインは、アプリケーションのソースをどれだけ読んでも回復できないエフェクトに関する事柄を知っています: `save`はクラス本体のコールバックを走らせること、`perform_later`はSidekiqの下ではRedisへの書き込みでSolid Queueの下ではデータベースへの書き込みであること、`Rails.env`は可変なプロセス状態であること。この5つのフィールドが、プラグインがそれを言う方法です。
 
@@ -284,7 +285,10 @@ discharge: false, within: nil, on_result: false, taint: nil)`。
 ADR-103 WD6は、**ファーストパーティのバンドル**プラグインに、そしてそれ以外の何にも与えないものを2つ認めます:
 
 - モデル化するフレームワークのエフェクトラベルルートを開いてよい（`rails.*`であって`activerecord.*`ではない）;
-- その帰属は`discharge: true`を運んでよく、これは呼び出し箇所を汚染ではなく**網羅的**にします —— 受理済みシグネチャの`%a{…}`が持つのと同じ資格で、理由も同じです: 貢献はエンジンとともにバージョン管理され、このリポジトリでレビューされ、`make check-plugins`でゲートされています。
+- その帰属は`discharge: true`を運んでよく、これは呼び出し箇所を汚染ではなく**網羅的**にします —— 受理済みシグネチャの`%a{…}`が持つのと同じ資格で、理由も同じです: 貢献はエンジンとともにバージョン管理され、このリポジトリでレビューされ、`make check-plugins`でゲートされています;
+- その`effect_ancestry:`の主張は尊重されます（[#465](https://github.com/rigortype/rigor/issues/465)）。主張はラベルを一切運ばず、それがこれを3つのうち無害なものに見せている点です: 実際にすることは**他の**プラグインの行を到達可能にすることであり、したがって`Foo < ActiveRecord::Base`を主張するサードパーティプラグインは、rigor-activerecordのファーストパーティの解消する行を`Foo`の上に引き込むことになるでしょう。拒否された主張は黙って落とされるのではなく警告されます —— `effect_root:`の降格と同じ理屈で、主張が消えた作者にはそれが行が消えたことに読めるからです。
+
+`EffectAncestry`は`{ child:, parent:, why: }`であり、`parent:`は直接のスーパークラスである必要はなく、**真の**祖先でありさえすればよいのです。祖先関係の唯一の用途は行を到達可能にすることであり、プロジェクトのクラスをキーとするプラグイン行は存在しないため、中間のリンクを飛ばしても何も失われません —— 一方で直接の親を要求すれば、プロジェクトが偽にできる主張を強いることになります: `Devise::SessionsController`の本当の親は`DeviseController`で、その親は`Devise.parent_controller`であり、これはアプリケーションが設定しうるものです。リンクを飛ばす主張はその旨を`why:`で述べます。
 
 「ファーストパーティ」は**導出されるものであり、決して列挙されません**: `Rigor::Plugin::FirstParty.bundled?(id)`はエンジンが`rigor-<id>`をバンドルしているかを問い、これは`Loader.bundled_plugin_path`がプラグインをどうrequireするか決めるときに既に答えているのと同じ問いです。リストは`plugins/`と同期を保つべき第2の情報源になり、最初のドリフトがプラグインの行を黙って降格させるでしょう。
 
@@ -303,6 +307,8 @@ ADR-103 WD6は、**ファーストパーティのバンドル**プラグイン�
 | `:mailer_body` | `receiver:`のプロジェクトサブクラス上の`UserMailer.welcome(u)`は`UserMailer#welcome`に到達する。 |
 
 エッジは、呼び出し箇所のエッジとしてではなく、**フレームワーククラス自身の上の合成エフェクト単位**（`Rigor::Effects::FrameworkUnits`）として実体化します: 呼び出し箇所は別のファイルにあり、コールバックはモデルのファイルにあるからです。伝播器はその後、通常の`(User, :instance, "save")`エッジを、他のあらゆるエッジを解決するのとまったく同じに —— 祖先と閉世界のオーバーライドjoinも含めて —— 合成単位へ解決します。
+
+合成された単位はセレクタ全体を代表するので、その`(class, singleton, selector)`についてプラグイン自身の`effect_attributions:`が言うことも併せて運びます —— `ActiveRecord::Base#save`を`io.db.write`として行に載せるプラグインは、その書き込みを`user.save`の呼び出し箇所だけでなく`User#save`の上にも得ます。規範的なルール（`super`に到達せずにセレクタを置き換えるクラス本体という唯一の免除を含む）は[エフェクトサマリー仕様](effect-summaries/)を参照してください。
 
 このenumには**`perform_later` → `perform`の綴りがなく**、その不在がADR-103 WD4の強制です: 遅延実行される本体は別のプロセスの別のスタックで走るので、呼び出し元のコードはそれを含みません。唯一の例外はプラグインではなくプロジェクトによって許可されます —— 宣言された`queue_adapter = :inline`の下ではRailsは本当に呼び出し元のスタックでジョブを走らせるので、rigor-activejobはその宣言を読んだ後にのみ`target: :perform_now, method: :perform_later`を発行します。
 

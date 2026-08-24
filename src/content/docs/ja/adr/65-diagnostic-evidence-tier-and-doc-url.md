@@ -3,14 +3,16 @@ title: "ADR-65 — 診断の証拠ティアとドキュメントURL"
 description: "rigortype/rigor docs/adr/65-diagnostic-evidence-tier-and-doc-url.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/65-diagnostic-evidence-tier-and-doc-url.md"
 sourcePath: "docs/adr/65-diagnostic-evidence-tier-and-doc-url.md"
-sourceSha: "a842026023bb135f82e66bbc2d480de46995b74b54122ef29aea8811446cd92f"
-sourceCommit: "aec4ca7f5f87b1972dea8fecaaf5b62c8880a3af"
+sourceSha: "5db7c9c13a927cbf7859ad6b286d1cd4cb1bde21adf47ec34c6c9a56ffb7edfb"
+sourceCommit: "bed65a462b04db02312f208b9dda2dda3a26ef13"
 translationStatus: "translated"
 sidebar:
   order: 4065
 ---
 
-ステータス: **Accepted — 2026-06-15に実装**。公開診断サーフェス（surface）に
+ステータス: **Accepted — 2026-06-15に実装;`documentation_url`は
+GitHubのblobパスから公開ドキュメントホストへ移動（Amendment
+2026-08-23）**。公開診断サーフェス（surface）に
 追加した2つのフィールド。すべての組み込みルールが
 **`evidence_tier`**（`high` / `medium` / `low`、情報提供用ヘルパーには
 付かない）── 発火が真陽性であるというRigor自身の確信度 ── を持ち、さらに
@@ -112,6 +114,9 @@ Rigorはすでに、強力な偽陽性の<ruby>規律<rp>（</rp><rt>discipline<
 
 ### WD3 — `documentation_url`は公開カタログ内のルールごとのアンカーである
 
+*以下のベースURLは2026-08-23のAmendmentにより置き換えられている;
+ルールごとのアンカー方式は変わっていない。*
+
 URLはルールごとにアンカーが付いた公開診断マニュアルページ ──
 `…/docs/manual/04-diagnostics.md#rule-<id-with-dots-as-dashes>` ── であり、
 gemspecの`documentation_uri`方式を踏襲する。カタログページは対応する
@@ -160,3 +165,68 @@ gemspecの`documentation_uri`方式を踏襲する。カタログページは対
   参照であり、マニュアルのアンカーは今日すでに解決する。
 - **ティアを深刻度または終了コードに供給する** — 却下: ティアは注意を振り向ける
   のであって、ゲートはしない（WD2のガードレール）。
+
+## Amendment（2026-08-23） — URLはgit refを捨てる（[#438](https://github.com/rigortype/rigor/issues/438)）
+
+WD3は`…/blob/main/docs/manual/04-diagnostics.md`というベースを出荷した。
+このリポジトリのデフォルトブランチは`master`であり、`origin`に`main`が
+存在したことは一度もない。つまり**Rigorがこれまで出力したすべての
+`documentation_url`は404だった** ── フィールドの全生涯にわたり、すべての
+`rigor check --format json`とすべての`rigor explain`で。カタログのアンカーは
+正しかったが、それがぶら下がるページのほうが存在しなかった。
+`DOCUMENTATION_BASE`は現在`https://rigor.typedduck.fail/manual/04-diagnostics/`
+である。
+
+**この形を選んだ理由、そして自明な修理にしなかった理由**。`main`を`master`に
+書き換えれば今日は直るが、欠陥クラスを復活させる: ブランチ名は、我々が凍結した
+契約の内側に座る*可変*コンポーネントであり、それを壊すリネームはここで起きる
+必要すらない ── GitHubのデフォルトブランチ移行は、このリポジトリがいずれ
+たどったであろうまさにその出来事だ。リリース済みタグ（`blob/v0.3.4/…`）は
+不変だが、そのタグがプッシュされて初めて解決する。つまりバージョンバンプと
+そのタグの間のすべてのビルド ── 貢献者とエージェントが実際に
+これらのURLを読む期間であり、#438が発見された期間 ── は再び404を出力し、
+大半のバージョンでは機能するぶん気づきにくくなる。公開ドキュメントホストは
+refをまったく運ばない: リネームやリリースが無効化しうるものは文字列のどこにも
+ない。ホストは`docs/manual/04-diagnostics.md`を`<a id="rule-…">`タグも含めて
+そのままレンダリングするので、WD3のフラグメント側 ──
+`spec/docs/manual_drift_spec.rb`の軸4がすでにガードしていた側 ── は変わらず、
+アンカーは切り替え時に1対1でそのまま引き継がれた。
+
+これはWD3によるドキュメントサイトの却下を覆すもの**ではない**。却下された
+のは、存在しないルールごとのサーフェスである`rigor.dev/rules/<kind>`を
+*でっち上げる*ことだった ── 「存在しないページへのURLは不誠実である」。
+ドキュメントホストはカタログの章そのものを公開しており、それこそWD3が指す
+ことを選んだものだ。移るのはレンダリングだけである。単一の信頼できる情報源は
+依然としてこのリポジトリの`docs/manual/04-diagnostics.md`であり、
+`rigor explain <rule>`は依然としてオフラインの権威である。
+
+**凍結された契約の値を変えるのは破壊的変更か？** 否、そして非推奨化の儀式も
+要らない。ADR-50が公開出力サーフェスを凍結するのはコンシューマーがそれに
+*依存できる*ようにするためであり、凍結されているのはフィールドの存在・名前・
+型・意味 ── 「公開カタログ内のこのルールのエントリーへの安定したURL」 ──
+であって、そのどれにも手は付いていない。値は一度も使用可能ではなかった: 誰に
+とっても解決しなかったので、それに依存して構築したコンシューマーは存在しえず、
+誰かにとって変わる唯一の振る舞いは、リンクをたどると今度は機能することだけで
+ある。ここで非推奨化の窓を設けることは、誰も持っていない互換性を守るために
+もう1リリースのあいだ既知の404を意図的に出力することを意味する。WD3が
+引き合いに出す偽陽性／誠実さの精神は逆向きに走る: 解決するものだけを出力せよ。
+これが次の同種のケースに定める規則は狭い ── 凍結されたフィールドの*値*は、
+古い値が明白に機能不全である（404になる、パースに失敗する、存在しないものを
+名指す）ときに限り、儀式なしに訂正してよい。機能しているが単に我々の気に
+入らない値は破壊的変更であり、完全な手続きを踏む。
+
+**不変条件、そして今それを強制するもの**。凍結された公開契約は可変なgit ref
+を埋め込んではならない。2つのゲートがあり、どちらもネットワーク不要なので、
+不安定な接続ではなくリネームで失敗する:
+
+- `spec/docs/manual_drift_spec.rb`の軸4は、フラグメントに加えて*ページ*も
+  チェックするようになった ── ベースは`<host>/manual/<slug>/`形式のURLで
+  なければならず、そのホストはREADME.md自身が使うもの、その
+  `docs/manual/<slug>.md`はgemspecが実際にパッケージするものであり、かつ
+  `blob` / `tree` / `raw`のパスセグメントを含まない。
+- `spec/docs/link_integrity_spec.rb`は出荷されるすべてのサーフェスから
+  自己参照の`github.com/rigortype/rigor/<blob|tree|raw>/<ref>/`URLを掃き
+  出し、`<ref>`が`.github/workflows/ci.yml`に名指されたデフォルトブランチで
+  あることを要求する。これは同じ仮定とともに出荷された、さらに3つの生きた
+  404を発見した: `rigor init`の設定テンプレートのpluginsリンク、そして
+  VS Code拡張の`homepage`とREADMEである。

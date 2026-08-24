@@ -3,8 +3,8 @@ title: "`Rigor::Analysis::Diagnostic`のシェイプ"
 description: "rigortype/rigor docs/internal-spec/diagnostic-shape.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/diagnostic-shape.md"
 sourcePath: "docs/internal-spec/diagnostic-shape.md"
-sourceSha: "25c19f8f42e50f1a0c355ebcc6bfdc1cb6717b3c2b02e9d5cc7e78caf6bddd88"
-sourceCommit: "212f2c491920cc5c39a12d75aee385cb6c51fa0c"
+sourceSha: "15905f8d23fe7e6fca72cd2d5550e145ffde505b43b8b16a345c3c64644911ec"
+sourceCommit: "bed65a462b04db02312f208b9dda2dda3a26ef13"
 translationStatus: "translated"
 sidebar:
   order: 3050
@@ -42,7 +42,7 @@ sidebar:
 | フィールド | 型 | 意味 |
 | --- | --- | --- |
 | `evidence_tier` | `String?` | 発火が真陽性であることへのRigor自身の確度: `"high"` / `"medium"` / `"low"`。ティアを持たない情報ルールでは**省略**されます（不在）。`severity`とは直交し、決してゲートしません。 |
-| `documentation_url` | `String` | 公開されたdiagnosticsカタログ（`docs/manual/04-diagnostics.md#…`）への、安定したルールごとのURL。 |
+| `documentation_url` | `String` | 公開されたdiagnosticsカタログへの、安定したルールごとのURL: `https://rigor.typedduck.fail/manual/04-diagnostics/#rule-<id-with-dots-as-dashes>`（`docs/manual/04-diagnostics.md`の公開レンダリング）。このURLは**gitのrefを含まない** ── `blob/<branch>`や`tree/<tag>`のパスを持たない ── フリーズされた契約の内側にあるrefは腐るからです（ADR-65のAmendmentを参照）。 |
 
 両者は`CLI::CheckCommand#enrich_json`において、`source_family`がデフォルトの`:builtin`であり、かつ`rule`が非`nil`であるdiagnosticに対してのみ付加されます。プラグイン／`rbs_extended`／パースエラーのdiagnosticはそのまま残されます（これらは独自のドキュメントと確度を持ちます）。同じ2つのフィールドは、`rigor explain` / `rigor explain --format json`が公開する各`Entry#to_h`にも現れます。
 
