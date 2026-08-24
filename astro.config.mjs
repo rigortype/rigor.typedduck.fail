@@ -1,21 +1,9 @@
-import { readFileSync } from 'node:fs';
 import { defineConfig } from 'astro/config';
 import mdx from '@astrojs/mdx';
 import starlight from '@astrojs/starlight';
 import starlightSidebarTopics from 'starlight-sidebar-topics';
 import remarkCjkFriendly from 'remark-cjk-friendly';
 import { rigorInferenceHints } from './src/lib/ec-inference-hints.mjs';
-
-// Shiki (via Expressive Code) bundles `ruby` but not `rbs`, so a fenced
-// ```rbs block would fall back to unhighlighted `txt` and emit a build
-// warning. Load the vendored RBS TextMate grammar (scope `source.rbs`,
-// the same one GitHub Linguist uses); see src/grammars/README.md for
-// provenance. The Sorbet `rbi` dialect is valid Ruby, so it is aliased to
-// the bundled `ruby` grammar via `langAlias` rather than vendoring a
-// second grammar.
-const rbsGrammar = JSON.parse(
-  readFileSync(new URL('./src/grammars/rbs.tmLanguage.json', import.meta.url), 'utf-8'),
-);
 
 const sidebarTranslations = {
   recentlyUpdated: { ja: '最近の更新' },
@@ -50,10 +38,13 @@ export default defineConfig({
         // flag to render `#=>` / diagnostic comments as inlay-hint badges.
         plugins: [rigorInferenceHints()],
         shiki: {
-          // Register `rbs` (vendored grammar) and alias the Sorbet `rbi`
-          // dialect to the bundled `ruby` grammar. Without these, ```rbs and
-          // ```rbi fences fall back to plain text and warn on a cold build.
-          langs: [rbsGrammar],
+          // Shiki bundles `rbs` since 4.4.0 (the same soutaro/vscode-rbs-syntax
+          // grammar this repo used to vendor at src/grammars/), so no `langs`
+          // entry is needed — `package.json` floors shiki at >=4.4.0 to keep it
+          // that way. The Sorbet `rbi` dialect still has no grammar of its own;
+          // `.rbi` is valid Ruby, so it is aliased to the bundled `ruby`
+          // grammar. Without the alias, ```rbi fences fall back to plain text
+          // and warn on a cold build.
           langAlias: { rbi: 'ruby' },
         },
       },
