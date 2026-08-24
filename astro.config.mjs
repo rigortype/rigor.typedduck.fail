@@ -43,9 +43,12 @@ export default defineConfig({
           // entry is needed — `package.json` floors shiki at >=4.4.0 to keep it
           // that way. The Sorbet `rbi` dialect still has no grammar of its own;
           // `.rbi` is valid Ruby, so it is aliased to the bundled `ruby`
-          // grammar. Without the alias, ```rbi fences fall back to plain text
-          // and warn on a cold build.
-          langAlias: { rbi: 'ruby' },
+          // grammar. `shell-session` (the Linguist spelling our fences use) is
+          // bundled under the id `shellsession`, whose only alias is `console`,
+          // so it needs the same treatment. Without these aliases, ```rbi and
+          // ```shell-session fences fall back to plain text and warn on a cold
+          // build.
+          langAlias: { rbi: 'ruby', 'shell-session': 'shellsession' },
         },
       },
       defaultLocale: 'root',
