@@ -3,8 +3,8 @@ title: "アーキテクチャ決定記録"
 description: "rigortype/rigor docs/adr/README.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/README.md"
 sourcePath: "docs/adr/README.md"
-sourceSha: "816083ccecd74ec0e591cb9cfc058e6bff1f73b4a655796287e5fb4e34475fbd"
-sourceCommit: "bed65a462b04db02312f208b9dda2dda3a26ef13"
+sourceSha: "325aa1b5ac6ed0b7c19eed68d2078f5157b1c2bfef95795ce6ae45b9f4a5b0ba"
+sourceCommit: "74330669d672d9291ca22525402f61fbcbb09ceb"
 translationStatus: "translated"
 sidebar:
   order: 4000
@@ -127,6 +127,7 @@ sidebar:
 | ADR-101 | [分岐の削除は楽観的にnilフリーとされたキャリアに依拠してはならない](101-optimistic-carrier-branch-elision/) | Accepted（2026-08-06に実装；コーパス2,060判定のうち47件に影響、診断は両方向でバイト単位一致） |
 | ADR-102 | [未使用コードの到達可能性レポートは診断ではなくレポートである](102-unused-code-reachability-report/) | Proposed（`rigor unused`のスライス群のための決定;8つの作業上の決定はすべて確定） |
 | ADR-103 | [エフェクトラベル: オプトインの、スナップショット優先のエフェクトシステム](103-effect-labels/) | Proposed（設計ノートは2026-08-16に着地;何も実装されていない;Proposedの時点で4項目が未決） |
+| ADR-104 | [エフェクトサーフェスのためのブートスリムプローブ](104-effects-boot-slim-probe/) | Proposed（2026-08-25のウォーム/コールドキャンペーンに基づく;実装はまだない） |
 
 ## 新しいADRの追加
 
