@@ -3,8 +3,8 @@ title: "rigor-typescript-utility-types"
 description: "rigortype/rigor docs/manual/plugins/rigor-typescript-utility-types.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/plugins/rigor-typescript-utility-types.md"
 sourcePath: "docs/manual/plugins/rigor-typescript-utility-types.md"
-sourceSha: "6e1948c94545e5abbe51491622dd84ee4771aa5968f2d4e1ad16880ff8e98ce7"
-sourceCommit: "aec4ca7f5f87b1972dea8fecaaf5b62c8880a3af"
+sourceSha: "5a2b709121ef585b68eee319d094e0397a25c938ddcf8955b623fb766c9e30d9"
+sourceCommit: "18d6992f544e6222fd7ed015ba6bbee6f0bd7f14"
 translationStatus: "translated"
 sidebar:
   order: 9050

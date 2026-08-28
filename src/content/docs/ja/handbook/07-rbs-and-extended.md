@@ -3,8 +3,8 @@ title: "RBSと`RBS::Extended`"
 description: "rigortype/rigor docs/handbook/07-rbs-and-extended.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/07-rbs-and-extended.md"
 sourcePath: "docs/handbook/07-rbs-and-extended.md"
-sourceSha: "1f2328a38b06ca0a2a33248ab4355d7d2688d18ad7120aae974b0805d0fbd5a1"
-sourceCommit: "0cf313582cfbe2fa7da8148dc498d0b2a0893438"
+sourceSha: "81fff6045640263c3012391563211321eab85be8af1bf940be5363d803dd320e"
+sourceCommit: "18d6992f544e6222fd7ed015ba6bbee6f0bd7f14"
 translationStatus: "translated"
 sidebar:
   order: 1007

@@ -3,8 +3,8 @@ title: "rigor-actionmailer"
 description: "rigortype/rigor docs/manual/plugins/rigor-actionmailer.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/plugins/rigor-actionmailer.md"
 sourcePath: "docs/manual/plugins/rigor-actionmailer.md"
-sourceSha: "681c178e086548adfb24de0124e0e90d9a0f1f175a82b62af34c01b1f9e8193d"
-sourceCommit: "0cf313582cfbe2fa7da8148dc498d0b2a0893438"
+sourceSha: "803700ca2ef9df815abdd5dbfa6a21285a6ffc850516b9d8cbc71d1cb2ab48a2"
+sourceCommit: "18d6992f544e6222fd7ed015ba6bbee6f0bd7f14"
 translationStatus: "translated"
 sidebar:
   order: 9050
@@ -22,10 +22,10 @@ plugins:
 ## チェック内容
 
 ```text
-demo.rb:7:1:  info:  `UserMailer.welcome` matches mailer action (arity 1..2)
-errors_demo.rb:7:1:  error: `UserMailer.welcome` expects 1..2 argument(s), got 0
-errors_demo.rb:15:1: error: `UserMailer.does_not_exist` is not a defined mailer action (known actions: digest, reset_password, welcome)
-app/mailers/user_mailer.rb:14:7: warning: `UserMailer#digest` has no view template under `app/views/user_mailer/`
+demo.rb:7:1: info: `UserMailer.welcome` matches mailer action (arity 1..2) [plugin.actionmailer.mailer-call]
+errors_demo.rb:10:1: error: `UserMailer.welcome` expects 1..2 argument(s), got 0 [plugin.actionmailer.wrong-arity]
+errors_demo.rb:18:1: error: `UserMailer.does_not_exist` is not a defined mailer action (known actions: digest, reset_password, welcome) [plugin.actionmailer.unknown-action]
+app/mailers/user_mailer.rb:26:7: warning: `UserMailer#digest` has no view template under `app/views/user_mailer/` [plugin.actionmailer.missing-view]
 ```
 
 1. **アクションの存在**: `Mailer.unknown_action(...)` → `unknown-action`（未解決の`include`がある場合は、推測する代わりにこれを抑制します）。

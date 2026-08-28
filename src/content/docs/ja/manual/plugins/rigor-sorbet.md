@@ -3,8 +3,8 @@ title: "rigor-sorbet"
 description: "rigortype/rigor docs/manual/plugins/rigor-sorbet.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/plugins/rigor-sorbet.md"
 sourcePath: "docs/manual/plugins/rigor-sorbet.md"
-sourceSha: "fcb6822a866a4b165495036ea45ee0ab9f672daec5b7807ebdb4c4c03e65d95e"
-sourceCommit: "212f2c491920cc5c39a12d75aee385cb6c51fa0c"
+sourceSha: "ab238ccbfe576274a7759012cd53c240baa45b04392bab10f6048a485f7c3b76"
+sourceCommit: "18d6992f544e6222fd7ed015ba6bbee6f0bd7f14"
 translationStatus: "translated"
 sidebar:
   order: 9050

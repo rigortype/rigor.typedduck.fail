@@ -3,8 +3,8 @@ title: "Rigorハンドブック"
 description: "rigortype/rigor docs/handbook/README.mdからインポートされたドキュメントの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/README.md"
 sourcePath: "docs/handbook/README.md"
-sourceSha: "915024a85cfd2001311a97b33e9077923bfe815ea0ac28145b07921120a3ba3a"
-sourceCommit: "e3eb424c3c88035e453246710c8df3dc5cc8e7e1"
+sourceSha: "651ba413cf8d4d936f0c80338a4ee859e7715e7def951a7b3fcdb1bba6692a92"
+sourceCommit: "18d6992f544e6222fd7ed015ba6bbee6f0bd7f14"
 translationStatus: "translated"
 sidebar:
   order: 1000

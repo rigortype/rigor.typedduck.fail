@@ -3,8 +3,8 @@ title: "rigor-activejob"
 description: "rigortype/rigor docs/manual/plugins/rigor-activejob.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/plugins/rigor-activejob.md"
 sourcePath: "docs/manual/plugins/rigor-activejob.md"
-sourceSha: "d203c164b5de6c2e51de13c053282b2230a54d89203b2b430399362f5df7c9cd"
-sourceCommit: "bed65a462b04db02312f208b9dda2dda3a26ef13"
+sourceSha: "6243d0c034e7d5a10e7b8037e427edd75d4436a45add3236c143252de1b24f88"
+sourceCommit: "18d6992f544e6222fd7ed015ba6bbee6f0bd7f14"
 translationStatus: "translated"
 sidebar:
   order: 9050
@@ -24,9 +24,9 @@ plugins:
 `#perform`が必須引数1個と任意引数1個（アリティ`1..2`）を取るジョブがある場合:
 
 ```text
-demo.rb:6:1:  info:  `WelcomeEmailJob.perform_later` matches `#perform` (arity 1..2)
-demo.rb:9:1:  error: `WelcomeEmailJob.perform_later` expects 1..2 argument(s), got 0
-demo.rb:12:1: error: `WelcomeEmailJob.perform_later` expects 1..2 argument(s), got 3
+demo.rb:8:1: info: `WelcomeEmailJob.perform_later` matches `#perform` (arity 1..2) [plugin.activejob.job-call]
+errors_demo.rb:10:1: error: `WelcomeEmailJob.perform_later` expects 1..2 argument(s), got 0 [plugin.activejob.wrong-arity]
+errors_demo.rb:14:1: error: `WelcomeEmailJob.perform_later` expects 1..2 argument(s), got 3 [plugin.activejob.wrong-arity]
 ```
 
 `*rest`パラメータは上限のないアリティ（`arity 0+`）を生み出します。3つのエントリーポイントすべて ── `perform_later`（非同期）、`perform_now`（同期）、裸の`perform` ── は、同じ`#perform`のエンベロープに対して検証されます。

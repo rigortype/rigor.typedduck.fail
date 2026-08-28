@@ -3,8 +3,8 @@ title: "rigor-mangrove"
 description: "rigortype/rigor docs/manual/plugins/rigor-mangrove.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/plugins/rigor-mangrove.md"
 sourcePath: "docs/manual/plugins/rigor-mangrove.md"
-sourceSha: "27b6b8fd5c1f2a009afac3dee49da8e5129b19179a61848158d7693014953b99"
-sourceCommit: "212f2c491920cc5c39a12d75aee385cb6c51fa0c"
+sourceSha: "d0ae77ebe7630c2889a515cd96d25fa1ca158902460b322bffebd5e759f68ccb"
+sourceCommit: "18d6992f544e6222fd7ed015ba6bbee6f0bd7f14"
 translationStatus: "translated"
 sidebar:
   order: 9050

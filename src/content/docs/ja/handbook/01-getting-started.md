@@ -3,8 +3,8 @@ title: "はじめに"
 description: "rigortype/rigor docs/handbook/01-getting-started.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/01-getting-started.md"
 sourcePath: "docs/handbook/01-getting-started.md"
-sourceSha: "12e545475fafd3a1352bd923114e3f8bf5848a7dc5552dceca0ff66c0bae2733"
-sourceCommit: "e3eb424c3c88035e453246710c8df3dc5cc8e7e1"
+sourceSha: "59e2687a1ac255cd46776590ecfa71271bd04696956f45ea2a5f5174384074ab"
+sourceCommit: "18d6992f544e6222fd7ed015ba6bbee6f0bd7f14"
 translationStatus: "translated"
 sidebar:
   order: 1001

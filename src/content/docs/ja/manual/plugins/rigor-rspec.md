@@ -3,8 +3,8 @@ title: "rigor-rspec"
 description: "rigortype/rigor docs/manual/plugins/rigor-rspec.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/plugins/rigor-rspec.md"
 sourcePath: "docs/manual/plugins/rigor-rspec.md"
-sourceSha: "a601977c7151122636a328a20a667605eef7e6bd984428733cec4b6028d73808"
-sourceCommit: "0cf313582cfbe2fa7da8148dc498d0b2a0893438"
+sourceSha: "0f8af18082620fbde2d4b4841bc000db178ef2ecad3381e33b4adc7d583782ed"
+sourceCommit: "18d6992f544e6222fd7ed015ba6bbee6f0bd7f14"
 translationStatus: "translated"
 sidebar:
   order: 9050
@@ -34,9 +34,11 @@ RSpec.describe "User" do
 end
 ```
 
+上のスニペットは読みやすさのために圧縮したものです;下の出力はこのプラグイン自身のデモ（`plugins/rigor-rspec/demo/`）に対してRigorが実際に印字するものなので、行番号はそのファイルのものです:
+
 ```text
-spec/user_spec.rb:5:3: warning: duplicate `let(:user)` in this scope (first declared at line 4); the last declaration wins at runtime
-spec/user_spec.rb:7:3: error:   `let(:tags)` references its own name `tags` — this will infinite-loop at runtime
+spec/errors_spec.rb:23:3: warning: duplicate `let(:user)` in this scope (first declared at line 22); the last declaration wins at runtime [plugin.rspec.duplicate-let]
+spec/errors_spec.rb:27:3: error: `let(:tags)` references its own name `tags` — this will infinite-loop at runtime [plugin.rspec.self-reference]
 ```
 
 1. **同一スコープ内での`let` / `subject`宣言の重複** ── `warning`。RSpecのランタイムは最後の宣言を優先するため、最初の宣言は黙ってシャドウされます。メッセージは最初の宣言の行を示します。

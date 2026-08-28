@@ -3,8 +3,8 @@ title: "日常的に出会う型"
 description: "rigortype/rigor docs/handbook/02-everyday-types.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/02-everyday-types.md"
 sourcePath: "docs/handbook/02-everyday-types.md"
-sourceSha: "2225e235da4f32320270c7ce59c38b067cb0f04803a666d0e7282af259df085e"
-sourceCommit: "4c03f62d04f594030bd79aa00f3a5978e0457d4c"
+sourceSha: "8596696099332b008107668fbe90e19b4c87628f9ef3b2bd7ee53b9e43499f8a"
+sourceCommit: "18d6992f544e6222fd7ed015ba6bbee6f0bd7f14"
 translationStatus: "translated"
 sidebar:
   order: 1002

@@ -3,8 +3,8 @@ title: "rigor-devise"
 description: "rigortype/rigor docs/manual/plugins/rigor-devise.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/plugins/rigor-devise.md"
 sourcePath: "docs/manual/plugins/rigor-devise.md"
-sourceSha: "d80036dfc9fa5c09e2d523755c33405fce973d7ad4e94bd34c34bf9df2d2a44d"
-sourceCommit: "e3eb424c3c88035e453246710c8df3dc5cc8e7e1"
+sourceSha: "8d5918fb50bf99233161a5e325ecce800dfc0d5c72f87f371979f2b436e441fb"
+sourceCommit: "18d6992f544e6222fd7ed015ba6bbee6f0bd7f14"
 translationStatus: "translated"
 sidebar:
   order: 9050

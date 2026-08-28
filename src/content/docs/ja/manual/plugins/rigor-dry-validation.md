@@ -3,8 +3,8 @@ title: "rigor-dry-validation"
 description: "rigortype/rigor docs/manual/plugins/rigor-dry-validation.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/plugins/rigor-dry-validation.md"
 sourcePath: "docs/manual/plugins/rigor-dry-validation.md"
-sourceSha: "984a523cdcbba53d7630055aaa888e6208475e17689fce78b6ed82918bac27e0"
-sourceCommit: "6e5bd55274e20dfb59183559c4971d34f878c907"
+sourceSha: "290d23b68fb27eb179a6c56964163b71966892b96be670c864cc03c1ed4e5285"
+sourceCommit: "18d6992f544e6222fd7ed015ba6bbee6f0bd7f14"
 translationStatus: "translated"
 sidebar:
   order: 9050

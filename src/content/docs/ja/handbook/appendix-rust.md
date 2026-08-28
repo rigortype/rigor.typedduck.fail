@@ -3,8 +3,8 @@ title: "付録: Rustから来た場合"
 description: "rigortype/rigor docs/handbook/appendix-rust.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/appendix-rust.md"
 sourcePath: "docs/handbook/appendix-rust.md"
-sourceSha: "b71d72baa1491a087f27ace7e8391674e046444441d4fc57a38fa925184ce118"
-sourceCommit: "212f2c491920cc5c39a12d75aee385cb6c51fa0c"
+sourceSha: "9e0f55429f0214f8f4a0084ba6620dcb5ffadd070d330939f6be7e4253be9720"
+sourceCommit: "18d6992f544e6222fd7ed015ba6bbee6f0bd7f14"
 translationStatus: "translated"
 sidebar:
   order: 1050

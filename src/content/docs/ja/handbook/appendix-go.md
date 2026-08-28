@@ -3,8 +3,8 @@ title: "付録: Goから来た場合"
 description: "rigortype/rigor docs/handbook/appendix-go.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/appendix-go.md"
 sourcePath: "docs/handbook/appendix-go.md"
-sourceSha: "a24eb14872f4d9cce9a462614f12b18aa86244778bb08acdcec8617e5cb02517"
-sourceCommit: "212f2c491920cc5c39a12d75aee385cb6c51fa0c"
+sourceSha: "0bf74549b0303af45aabc61dafdb4800779acb8ec8b3465bf62c556fc4407997"
+sourceCommit: "18d6992f544e6222fd7ed015ba6bbee6f0bd7f14"
 translationStatus: "translated"
 sidebar:
   order: 1050

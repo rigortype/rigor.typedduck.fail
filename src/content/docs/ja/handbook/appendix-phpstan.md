@@ -3,8 +3,8 @@ title: "付録: PHPStanから来た場合"
 description: "rigortype/rigor docs/handbook/appendix-phpstan.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/appendix-phpstan.md"
 sourcePath: "docs/handbook/appendix-phpstan.md"
-sourceSha: "789448b8388570c438f0afaec3393c64b7296539bad62a24848d35ef03f5fc02"
-sourceCommit: "e3eb424c3c88035e453246710c8df3dc5cc8e7e1"
+sourceSha: "a350abb2d269fc3186566415aa2e3a2438db6f6bd52dd4340fb60130890ccec7"
+sourceCommit: "18d6992f544e6222fd7ed015ba6bbee6f0bd7f14"
 translationStatus: "translated"
 sidebar:
   order: 1050

@@ -3,8 +3,8 @@ title: "Rigor LSP: エディタ統合"
 description: "rigortype/rigor docs/manual/09-editor-integration.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/09-editor-integration.md"
 sourcePath: "docs/manual/09-editor-integration.md"
-sourceSha: "a8bc98e2a43668c8de09788bbe0d570d51d739fbe3b5cc17036224070ca788dd"
-sourceCommit: "42402864a316beb0d5ba4357ec29454ab55f6657"
+sourceSha: "0d8c23f1d398a9621ba997d38c3f6255b599b53a81d719a30d827b9589e30005"
+sourceCommit: "18d6992f544e6222fd7ed015ba6bbee6f0bd7f14"
 translationStatus: "translated"
 sidebar:
   order: 9009

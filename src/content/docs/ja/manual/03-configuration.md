@@ -3,8 +3,8 @@ title: "設定"
 description: "rigortype/rigor docs/manual/03-configuration.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/03-configuration.md"
 sourcePath: "docs/manual/03-configuration.md"
-sourceSha: "af269d2ee96d16dfc7cc7a6ca64e7ea982d7d1c958e673d60a9755c2806fd5a7"
-sourceCommit: "bed65a462b04db02312f208b9dda2dda3a26ef13"
+sourceSha: "8a9c22f962b2ec77351d11adc4ae0e49e12b452e1ee5109b7f9fc3fee8e5ff6f"
+sourceCommit: "18d6992f544e6222fd7ed015ba6bbee6f0bd7f14"
 sourceDate: "2026-06-15T14:21:04+09:00"
 translationStatus: "translated"
 sidebar:
@@ -191,7 +191,7 @@ effects:
 ```
 app/presenters/user_presenter.rb:14:1: warning: Method Presenters::User#render performs io.fs.read
   (File.read), but is declared effect: [] at .rigor.yml effects.envelopes[0], so io.fs.read exceeds
-  the envelope.
+  the envelope. [effect.envelope-exceeded]
 ```
 
 1つのメソッドが意図的な例外であるときは、そのメソッドにRBSでより狭いエンベロープを書いてください —— 最も近いものが勝つので、`except:`キーは要りません。ある*種類*のエフェクトがどこでも許容できるときは、すべてのスタンザを緩める代わりに`tolerated:`にそれを名指ししてください。

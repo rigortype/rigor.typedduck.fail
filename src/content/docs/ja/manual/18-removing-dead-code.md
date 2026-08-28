@@ -3,8 +3,8 @@ title: "`rigor unused`でデッドコードを取り除く"
 description: "rigortype/rigor docs/manual/18-removing-dead-code.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/18-removing-dead-code.md"
 sourcePath: "docs/manual/18-removing-dead-code.md"
-sourceSha: "e4b478bba92359f15ab989f554e212883cbb85edeb67dbadad528c9ba854d623"
-sourceCommit: "0cf313582cfbe2fa7da8148dc498d0b2a0893438"
+sourceSha: "fdfe7108b9b13d38cb3daa774097635e5c454efa6695f1344a62ef26a0e397ec"
+sourceCommit: "18d6992f544e6222fd7ed015ba6bbee6f0bd7f14"
 translationStatus: "translated"
 sidebar:
   order: 9018
@@ -87,7 +87,7 @@ rigor unused --entry-point='lib/cli.rb' --entry-point='lib/workers/**/*.rb'
 
 | セクション | 意味 | すべきこと |
 | --- | --- | --- |
-| **Reachable only from test code** | 生きたテストがあり、本番の呼び出し元がない | 最初に処理する |
+| **Reachable only from test code** | 生きたテストがあり、Rigorに見えるあるいは疑える本番の呼び出し元がない | 最初に処理する |
 | **Candidates** | 到達可能なものが何もそれを名指ししない | 裁定する——ほとんどはまだ生きている |
 | **Cannot decide** | 実行時に何かがそれを名指しできる | 理由を読む;ここから削除しない |
 | **Namespace-only** | 生きたコードを包むモジュール | 候補から除外;数だけ |
@@ -118,12 +118,14 @@ Candidates — nothing reachable references these (45)
 
 ### Cannot decide: 理由を読み、削除しない
 
-これらは、実行時に何かがそのクラスを名指しできるために`candidates`から降格されたものです。各行はそれが何であるかを述べます:
+これらは、実行時に何かがそのクラスを名指しできるために降格されたものです——`candidates`から、あるいは**テストコードからのみ到達可能**から。各行はそれが何であるかを述べます:
 
 ```
   1  Handlers::Alpha                     lib/handlers.rb:2
        constantize on an interpolated string (lib/dispatch.rb:14)
 ```
+
+テスト専用のセクションから降格された行は2つ目の種類であり、それこそ知る価値のあるものです: あなたのspecが参照し、かつデータファイルも名指しているクラス——`config/recurring.yml`内のジョブ、YAMLの設定から名指されるクラス——は、死んだ本番のパスではありません。その設定こそがそれを駆動しているのかもしれないからです。テスト専用のセクションは本番について1つの主張をするので、Rigorがそれに反する証拠を保持している行は、ファイル名とともに代わりにここに属します。
 
 `"Foo".constantize`は`Foo`をちょうど名指しするので、通常の参照として数えられ、決してこのセクションには到達しません。`"Foo::#{key}".constantize`は名前空間を限定することしかできないので、`Foo`配下のすべてが降格されます。`.yml`・`.json`・テンプレートファイル内に文字列として現れるクラス名も同じように降格されます——定数参照より弱い証拠であり、使用の証明でも、死んでいると呼ぶ根拠でもありません。
 

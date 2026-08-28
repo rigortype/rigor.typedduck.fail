@@ -3,8 +3,8 @@ title: "付録: mypy / Pyrightから来た場合"
 description: "rigortype/rigor docs/handbook/appendix-mypy.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/appendix-mypy.md"
 sourcePath: "docs/handbook/appendix-mypy.md"
-sourceSha: "24fb311afcba969b73f6cd3572ff835bfd8b83a8d1f98aefdb67461b45055e49"
-sourceCommit: "78b18cea6a576475c92bce020535269f2eebc20d"
+sourceSha: "adb3d2a83348e31b769590134ab326fd70e7a4a0e588ace7b42523d10948fb64"
+sourceCommit: "18d6992f544e6222fd7ed015ba6bbee6f0bd7f14"
 translationStatus: "translated"
 sidebar:
   order: 1050

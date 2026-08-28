@@ -3,8 +3,8 @@ title: "軽量HKT（`JSON.parse`とその仲間たち）"
 description: "rigortype/rigor docs/handbook/12-lightweight-hkt.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/12-lightweight-hkt.md"
 sourcePath: "docs/handbook/12-lightweight-hkt.md"
-sourceSha: "21c83919d0b2fe8e76d08c8c16e4652bbe78d9779a41ab88370c7592a1198472"
-sourceCommit: "212f2c491920cc5c39a12d75aee385cb6c51fa0c"
+sourceSha: "08e39dc7599003cedb5244962c5cae6066ab833d45a3dbfbcd121560006628a3"
+sourceCommit: "18d6992f544e6222fd7ed015ba6bbee6f0bd7f14"
 translationStatus: "translated"
 sidebar:
   order: 1012

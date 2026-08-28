@@ -3,8 +3,8 @@ title: "タプルとハッシュシェイプ"
 description: "rigortype/rigor docs/handbook/04-tuples-and-shapes.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/04-tuples-and-shapes.md"
 sourcePath: "docs/handbook/04-tuples-and-shapes.md"
-sourceSha: "922f168d2c51de3d8f8d3d994f96082e8427f2a2ed0dbe44233fa804ef41aee1"
-sourceCommit: "026f5700e2e13ed5e8e99e9df80a2871ab4293ab"
+sourceSha: "594dfc336c175cdc34111e9f4af1a41edd49a6621f9ae3d904e9564e313fc76a"
+sourceCommit: "18d6992f544e6222fd7ed015ba6bbee6f0bd7f14"
 translationStatus: "translated"
 sidebar:
   order: 1004

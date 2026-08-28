@@ -3,8 +3,8 @@ title: "型保護カバレッジ"
 description: "rigortype/rigor docs/manual/15-type-protection-coverage.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/15-type-protection-coverage.md"
 sourcePath: "docs/manual/15-type-protection-coverage.md"
-sourceSha: "84d03f16ea16bc23ed510b5d3bd60d63adf74bc77c17163148b195971c77cd76"
-sourceCommit: "17f7d081a694f9cfdfaebd7fc71ebfc7171e2a6d"
+sourceSha: "7fb4f512d20ca6248fc40398e6c5fb3a45ab3e04555e3cb280605a303b23a9a8"
+sourceCommit: "18d6992f544e6222fd7ed015ba6bbee6f0bd7f14"
 translationStatus: "translated"
 sidebar:
   order: 9015

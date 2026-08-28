@@ -3,8 +3,8 @@ title: "rigor-hanami"
 description: "rigortype/rigor docs/manual/plugins/rigor-hanami.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/plugins/rigor-hanami.md"
 sourcePath: "docs/manual/plugins/rigor-hanami.md"
-sourceSha: "2c9c0ee33b1062f183c02b04b2493b7b35944ee8f64c49b366e7efce2008a651"
-sourceCommit: "6e5bd55274e20dfb59183559c4971d34f878c907"
+sourceSha: "db5f0e7064f74e4bdd2479faa8089e06d8aad0c930c8b3d294c628353c558b4c"
+sourceCommit: "18d6992f544e6222fd7ed015ba6bbee6f0bd7f14"
 translationStatus: "translated"
 sidebar:
   order: 9050

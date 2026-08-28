@@ -3,8 +3,8 @@ title: "エラーの読み方"
 description: "rigortype/rigor docs/handbook/08-understanding-errors.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/08-understanding-errors.md"
 sourcePath: "docs/handbook/08-understanding-errors.md"
-sourceSha: "4c987f9f281eac9a69f39ca41470704cc6fdfbb0d123598e8851a09411889fe2"
-sourceCommit: "e3eb424c3c88035e453246710c8df3dc5cc8e7e1"
+sourceSha: "3866de75b4813ec6a2ec31b9cc2e5949e2e2999373e71cb7a4eb54f0dba51a12"
+sourceCommit: "18d6992f544e6222fd7ed015ba6bbee6f0bd7f14"
 translationStatus: "translated"
 sidebar:
   order: 1008

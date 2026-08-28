@@ -3,8 +3,8 @@ title: "rigor-activerecord"
 description: "rigortype/rigor docs/manual/plugins/rigor-activerecord.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/plugins/rigor-activerecord.md"
 sourcePath: "docs/manual/plugins/rigor-activerecord.md"
-sourceSha: "4ff8f243248f347a3ee33e3ca60cd89753dec5cfdf3171c1f3969dd5b8cc6279"
-sourceCommit: "4c03f62d04f594030bd79aa00f3a5978e0457d4c"
+sourceSha: "ff92479b2784ba5ae0b9f0fe2617d5b05e5604a5edf106dd29203d823e23b369"
+sourceCommit: "18d6992f544e6222fd7ed015ba6bbee6f0bd7f14"
 translationStatus: "translated"
 sidebar:
   order: 9050
@@ -22,11 +22,11 @@ plugins:
 ## 何をチェックするか
 
 ```text
-demo.rb:20:1: info: `User.find` returns User (table: `users`) [plugin.activerecord.model-call]
-demo.rb:23:1: info: `User.where` (:admin) on table `users` [plugin.activerecord.model-call]
+demo.rb:18:1: info: `User.find` returns User (table: `users`) [plugin.activerecord.model-call]
+demo.rb:21:1: info: `User.where` (:admin) on table `users` [plugin.activerecord.model-call]
 
-errors_demo.rb:13:1: error: `User.where(emial: ...)` references unknown column `emial` on table `users` (did you mean `:email`?) [plugin.activerecord.unknown-column]
-errors_demo.rb:25:1: error: `User.find` expects at least 1 argument, got 0 [plugin.activerecord.wrong-arity]
+errors_demo.rb:12:1: error: `User.where(emial: ...)` references unknown column `emial` on table `users` (did you mean `:email`?) [plugin.activerecord.unknown-column]
+errors_demo.rb:24:1: error: `User.find` expects at least 1 argument, got 0 [plugin.activerecord.wrong-arity]
 ```
 
 | 診断 | 重大度 | ルール |

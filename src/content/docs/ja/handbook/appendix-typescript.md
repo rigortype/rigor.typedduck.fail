@@ -3,8 +3,8 @@ title: "付録: TypeScriptから来た場合"
 description: "rigortype/rigor docs/handbook/appendix-typescript.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/appendix-typescript.md"
 sourcePath: "docs/handbook/appendix-typescript.md"
-sourceSha: "40aba4057768d386d096fad9714655ca7612666656dd9052a357a343a5d0f491"
-sourceCommit: "212f2c491920cc5c39a12d75aee385cb6c51fa0c"
+sourceSha: "8d1808f7b1f07723eb8c32c3a1e439bda395812a26dad6e965002a6749f88490"
+sourceCommit: "18d6992f544e6222fd7ed015ba6bbee6f0bd7f14"
 translationStatus: "translated"
 sidebar:
   order: 1050

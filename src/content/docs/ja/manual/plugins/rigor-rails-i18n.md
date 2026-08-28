@@ -3,8 +3,8 @@ title: "rigor-rails-i18n"
 description: "rigortype/rigor docs/manual/plugins/rigor-rails-i18n.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/plugins/rigor-rails-i18n.md"
 sourcePath: "docs/manual/plugins/rigor-rails-i18n.md"
-sourceSha: "eb81c0748d3ced9d8d5c33c2d1255c8d6039731b80a2b20e9742272304e4ec78"
-sourceCommit: "2395ec303ae01e7ad25366bcb68363cf9701d1f5"
+sourceSha: "c0178b1697cd5b147367b583de2d6b9f2d8a91254d7583623f3f514d499f6ed7"
+sourceCommit: "18d6992f544e6222fd7ed015ba6bbee6f0bd7f14"
 translationStatus: "translated"
 sidebar:
   order: 9050
@@ -24,11 +24,11 @@ plugins:
 ロケールカタログに照らして、静的に解決可能なすべての呼び出し箇所が検証されます。
 
 ```text
-demo.rb:14:1: info:    `t('users.welcome')` resolves in en, ja
-errors_demo.rb:12:1: error:   missing translation key `users.welcom` in any locale (did you mean `users.welcome`?)
-errors_demo.rb:16:1: error:   `t('users.welcome')` expects interpolation `name`, got (none)
-errors_demo.rb:20:1: warning: `t('users.welcome')` does not use interpolation `extra` (known placeholders: `name`)
-errors_demo.rb:25:1: warning: `t('errors.messages.blank')` is missing from locale(s) ja
+demo.rb:12:1: info: `t('users.welcome')` resolves in en, ja [plugin.rails-i18n.translation-call]
+errors_demo.rb:10:1: error: missing translation key `users.welcom` in any locale (did you mean `users.welcome`?) [plugin.rails-i18n.unknown-key]
+errors_demo.rb:14:1: error: `t('users.welcome')` expects interpolation `name`, got (none) [plugin.rails-i18n.wrong-interpolation]
+errors_demo.rb:18:1: warning: `t('users.welcome')` does not use interpolation `extra` (known placeholders: `name`) [plugin.rails-i18n.extra-interpolation]
+errors_demo.rb:23:1: warning: `t('errors.messages.blank')` is missing from locale(s) ja [plugin.rails-i18n.missing-locale]
 ```
 
 1. **キーの存在**: どのロケールにも存在しないキーは`DidYouMean`の近似候補つきで指摘されます。

@@ -3,8 +3,8 @@ title: "診断"
 description: "rigortype/rigor docs/manual/04-diagnostics.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/04-diagnostics.md"
 sourcePath: "docs/manual/04-diagnostics.md"
-sourceSha: "8deb4362655dd538742f0853f2e23efeae32fc8615adabaaa49ff535fe52b0bd"
-sourceCommit: "bed65a462b04db02312f208b9dda2dda3a26ef13"
+sourceSha: "58f7e5f4dbdba229c9c4c29023b2d093dbed028d6fefbe9c90215749632fa424"
+sourceCommit: "18d6992f544e6222fd7ed015ba6bbee6f0bd7f14"
 sourceDate: "2026-06-15T14:10:58+09:00"
 translationStatus: "translated"
 sidebar:
@@ -24,6 +24,14 @@ sidebar:
 | `def` | メソッド定義: 戻り値型、ivar書き込み、可視性。 |
 | `assert` | `assert_type`チェック。 |
 | `dump` | `dump_type`通知。 |
+
+すべての診断は行末の角括弧の中に自身の識別子を運ぶので、`# rigor:disable`・`disable:`・`severity_profile:`に必要なIDは、すでに目にしているそれです:
+
+```text
+app/user.rb:11:3: error: undefined method `lenght' for "hello" [call.undefined-method]
+```
+
+どのルールも生成しなかった診断——パースエラー、パスのエラー、アナライザーの内部エラー——には抑制するものがなく、角括弧も運びません。
 
 `rigor explain <rule>`は任意の組み込みルールIDのカタログエントリー全体を表示します。引数なしの`rigor explain`はすべてを一覧表示します。
 

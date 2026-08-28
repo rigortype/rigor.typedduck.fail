@@ -3,8 +3,8 @@ title: "キャッシング"
 description: "rigortype/rigor docs/manual/12-caching.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/12-caching.md"
 sourcePath: "docs/manual/12-caching.md"
-sourceSha: "1e63fa5e596f890928329bbeac73a4d38738f933341bf801cbbdebc91c516c2a"
-sourceCommit: "bed65a462b04db02312f208b9dda2dda3a26ef13"
+sourceSha: "dc14cf1dc930c6a410bd3f1557763a6cd67a8e7aebec3a477a6cce4ef43f7cfd"
+sourceCommit: "18d6992f544e6222fd7ed015ba6bbee6f0bd7f14"
 translationStatus: "translated"
 sidebar:
   order: 9012
@@ -43,7 +43,7 @@ Rigorのバージョンがそれ自身のコードを識別するのは、リリ
 
 [エフェクトラベル](../19-effect-labels/)も他と並んでキャッシュされますが、**固有の**アイデンティティ —— Rigorのエフェクトボキャブラリー、その組み込みエフェクトカタログ、そしてあなたの`effects:`ブロック —— の下でキャッシュされます。知っておく価値のある帰結が2つあります:
 
-- **`effects:`のオン／オフは、`rigor check`が既に依存しているエントリーを無効化しません**。 2つのアイデンティティは別々なので、エフェクトラベルの採用は最初の収集パスのコストだけを払い、診断キャッシュには触れません。カタログが変わったRigorへのアップグレードはその逆をします —— checkを再実行せずに、あなたのエフェクトを読み直します。
+- **`effects:`のオン／オフは、`rigor check`が既に依存しているエントリーを無効化しません**。2つのアイデンティティは別々なので、エフェクトラベルの採用は最初の収集パスのコストだけを払い、診断キャッシュには触れません。カタログが変わったRigorへのアップグレードはその逆をします —— checkを再実行せずに、あなたのエフェクトを読み直します。
 - **`rigor effects`動詞群はそれらのサマリーを`rigor check`と共有します**。両方を走らせるジョブでは、2つ目のコマンドが払うのは2度目の解析ではなく伝播のコストです。
 
 例外は、`effects:`ブロックの**ない**プロジェクトでの`rigor effects`の実行です: 暗黙の空ブロックの下で収集し、`rigor check`とはキャッシュを共有しません。そのキャッシュから供給される実行は何も収集していなかったはずだからです。
@@ -79,7 +79,7 @@ cache:
 | --- | --- |
 | `rigor check --no-cache` | 永続キャッシュを読み書きせずに実行する。 |
 | `rigor check --clear-cache` | キャッシュディレクトリを削除してから実行する。 |
-| `rigor check --cache-stats` | 実行終了時にオンディスクキャッシュのインベントリを表示する。 |
+| `rigor check --cache-stats` | 実行終了時にオンディスクキャッシュのインベントリを表示する（`text`以外のすべての`--format`では標準エラー出力へ出すので、標準出力のドキュメントはパース可能なままである）。 |
 | `rigor check --incremental` | 変更箇所のみ再解析し、残りはインクリメンタルスナップショットから返す（後述）。 |
 
 キャッシュを恒久的に無効化する設定キーはありません。フラグは実行ごとのトグルです。習慣的に永続キャッシュなしで実行するには、`cache.path`を使い捨てのディレクトリに向けてください。
