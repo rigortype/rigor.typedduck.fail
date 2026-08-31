@@ -3,8 +3,8 @@ title: "付録: Steepから来た場合"
 description: "rigortype/rigor docs/handbook/appendix-steep.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/appendix-steep.md"
 sourcePath: "docs/handbook/appendix-steep.md"
-sourceSha: "238adc44fb72a8d125d749f3954002beb89a89e3e643b8a9a4d795bd7bf7e232"
-sourceCommit: "18d6992f544e6222fd7ed015ba6bbee6f0bd7f14"
+sourceSha: "ae63f7a4b52d809a28ad0ab8e832f9f96dadd9cf370c7eb412a7ddb6c570ad03"
+sourceCommit: "2d0ffe6f38d01cfd850527c57987b27487b414d4"
 translationStatus: "translated"
 sidebar:
   order: 1050

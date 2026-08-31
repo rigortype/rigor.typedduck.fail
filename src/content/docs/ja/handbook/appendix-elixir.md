@@ -3,8 +3,8 @@ title: "付録: Elixirから来た場合"
 description: "rigortype/rigor docs/handbook/appendix-elixir.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/appendix-elixir.md"
 sourcePath: "docs/handbook/appendix-elixir.md"
-sourceSha: "067a8864b7ab8917717c18206661d7c8c8b706651b846c44dbc0f53328423b97"
-sourceCommit: "18d6992f544e6222fd7ed015ba6bbee6f0bd7f14"
+sourceSha: "040e99a319dd8f94d35b44056b0c938bf4a1de63bff8ca90c9205a9979b2af06"
+sourceCommit: "2d0ffe6f38d01cfd850527c57987b27487b414d4"
 translationStatus: "translated"
 sidebar:
   order: 1050

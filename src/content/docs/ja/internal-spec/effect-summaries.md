@@ -3,8 +3,8 @@ title: "エフェクトサマリー — 収集と伝播"
 description: "rigortype/rigor docs/internal-spec/effect-summaries.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/effect-summaries.md"
 sourcePath: "docs/internal-spec/effect-summaries.md"
-sourceSha: "218df4215e0bd90cda1d378801182e7c2cd4b21db762aaa45e78d1aeedd7e72a"
-sourceCommit: "18d6992f544e6222fd7ed015ba6bbee6f0bd7f14"
+sourceSha: "a6ce566be6e8d7db016943958b73476e879d1a51625dbde56061fb9d021bd930"
+sourceCommit: "2d0ffe6f38d01cfd850527c57987b27487b414d4"
 translationStatus: "translated"
 sidebar:
   order: 3050
@@ -501,6 +501,16 @@ reach:
 `rigor effects explain`は同じグラフからリーチの半分に答えます: `EffectTable::Entry#edges`上の幅優先走査で、その*直接*サマリーがラベルを証明する最初のメソッドまで行き、そのメソッドの起点で終わります（`Rigor::Effects::PathFinder`）。最短なので、レビュアーは利用可能な最も締まった説明を得ます。`methods:`の変化には経路がありません——ラベルは単位自身の本体から来た——ので、それを説明するのは起点自体です。
 
 スナップショットコマンドはレポートが走らせるのと同じ解析を走らせ、どちらも診断を出さず`rigor check`のストリームに入りません。
+
+### ドリフト行の位置
+
+シンボルを名指すすべての行は、そのシンボルがどこで定義されているかも名指します: `Change#init_path  + io.fs.write  (app/models/change.rb:41)`——1つの丸括弧が位置を運び、そして（両方のテーブルをプールする`tolerated:`の下では）そのイベント自身のテーブルも運びます。`--format json`のイベントは同じものを`{path, line}`の`sources`配列として運びます。プルリクエストに注釈を付けるボットこそが、位置を最も活用でき、かつ自力で位置を見つける能力が最も乏しい消費者だからです。
+
+2つの半分は別々の場所から来ており、それがこの設計のすべてです。**ファイル**は`Runner#effect_sources`であり、キャッシュされたサマリーのエントリーに相乗りするのでコストはゼロです。**行**はこれらのコマンドが保持するどの値の中にもありません: `EnvelopeCheck::Positions`が読む`def`の位置のテーブルは、プロジェクトのすべてのファイルのPrismのパース1回によって構築されますが、それこそ[ADR-104](../../adr/104-effects-boot-slim-probe/)がこのパスから取り除いたものです——ウォームな`rigor effects check`が速いのは、プロジェクトをパースしない*からこそ*です。そこで`Effects::DefinitionLines`はドリフト自身のファイルだけをパースし、印字される行がそのファイルについて初めて尋ねたときにそのファイルをインデックスします: 新鮮なレポートは何もパースせず、コストはプロジェクトではなくドリフトに比例します。それは[#479](https://github.com/rigortype/rigor/pull/479)の`DeferredPositions`の形を1つ上の層で行うものであり、1つ上の層でそれができるのは、呼び出し元がすでにファイルを知っているからです。
+
+提供された実行と解析する実行が同じ行を名指すのは、提供されたテーブルがそもそも信頼される理由と同じです: エントリーはその依存関係ファイルのダイジェストに対して検証されるので、記録された実行以降に動いたソースファイルは、古い位置ではなく辞退になります。
+
+意図的に欠けている答えが3つあり、そのそれぞれは行をでっち上げるのではなくファイルを保ちます: Rubyの`def`を持たないメソッド（合成されたアクセサ——`Positions`がクラス自身のソースへフォールバックするときに行うのと同じ劣化）、エンジン不要のパスが持たない解決なしにはファイルの定数のネストが綴れないキー、そしてパースできないファイル。**`symbol-removed`の行は位置をまったく運ばず**、運べません: `effect_sources`は現在の実行のものであり、実行がもはや見ていないメソッドは、その実行が定義したものでは決してないからです。位置をドキュメントへ記録すればその1行には答えられますが、記録をコードがどこに座っているかの関数にしてしまう代償を払います——[§起点](#起点)が記録をその性質から自由に保っているのであり、[#434](https://github.com/rigortype/rigor/issues/434)がファイルを39%縮めて守ったのもその性質です。
 
 ## 失敗の隔離
 

@@ -3,8 +3,8 @@ title: "Sorbetとの共存"
 description: "rigortype/rigor docs/handbook/10-sorbet.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/10-sorbet.md"
 sourcePath: "docs/handbook/10-sorbet.md"
-sourceSha: "75e421c879c25b077e06998f4f2307c0f272a7b9cb917fac458a91cd7964160a"
-sourceCommit: "18d6992f544e6222fd7ed015ba6bbee6f0bd7f14"
+sourceSha: "6fba518f9b7a898ad7e3652100d058092d7690c2a9dddcc196d60610f3350bfa"
+sourceCommit: "2d0ffe6f38d01cfd850527c57987b27487b414d4"
 translationStatus: "translated"
 sidebar:
   order: 1010

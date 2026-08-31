@@ -3,8 +3,8 @@ title: "rigor-activesupport-core-ext"
 description: "rigortype/rigor docs/manual/plugins/rigor-activesupport-core-ext.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/plugins/rigor-activesupport-core-ext.md"
 sourcePath: "docs/manual/plugins/rigor-activesupport-core-ext.md"
-sourceSha: "1f3d9012260c9c717e21718551cd51bee16fe1bdcc7b642118ca0f5de90b1b9c"
-sourceCommit: "18d6992f544e6222fd7ed015ba6bbee6f0bd7f14"
+sourceSha: "e5561dfb4683afc259acacb9577f5a0292bee257bf10be77b774cc381241c03b"
+sourceCommit: "2d0ffe6f38d01cfd850527c57987b27487b414d4"
 translationStatus: "translated"
 sidebar:
   order: 9050

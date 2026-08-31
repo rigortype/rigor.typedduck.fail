@@ -3,8 +3,8 @@ title: "付録: 型理論との接続"
 description: "rigortype/rigor docs/handbook/appendix-type-theory.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/appendix-type-theory.md"
 sourcePath: "docs/handbook/appendix-type-theory.md"
-sourceSha: "9e65e0b306457998f682c16521fd208831c9e4342d7153125641391feccd4f42"
-sourceCommit: "18d6992f544e6222fd7ed015ba6bbee6f0bd7f14"
+sourceSha: "7fc8ff42217d52b2bcc55e76861ffaf93157794eef4345bcde4c1c651b593bd1"
+sourceCommit: "2d0ffe6f38d01cfd850527c57987b27487b414d4"
 translationStatus: "translated"
 sidebar:
   order: 1050

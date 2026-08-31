@@ -3,8 +3,8 @@ title: "付録: TypeProfから来た場合"
 description: "rigortype/rigor docs/handbook/appendix-typeprof.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/appendix-typeprof.md"
 sourcePath: "docs/handbook/appendix-typeprof.md"
-sourceSha: "8abd378b8d6be3f751423c75bbe3b8ee65b84b4c171348a447ca1335202a15ef"
-sourceCommit: "18d6992f544e6222fd7ed015ba6bbee6f0bd7f14"
+sourceSha: "45e2c412eb9b2809d36ce5748792c849217b05a45752da6973a960b2875080fd"
+sourceCommit: "2d0ffe6f38d01cfd850527c57987b27487b414d4"
 translationStatus: "translated"
 sidebar:
   order: 1050

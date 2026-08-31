@@ -3,8 +3,8 @@ title: "提供スキル"
 description: "rigortype/rigor docs/manual/08-skills.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/08-skills.md"
 sourcePath: "docs/manual/08-skills.md"
-sourceSha: "8ee9dcb40a58bfb5571e73dcf65ff9e007bb25abe08912b03d6bf89f296c46b1"
-sourceCommit: "18d6992f544e6222fd7ed015ba6bbee6f0bd7f14"
+sourceSha: "6666bad8328ba17718221fa739c94aa73e316d9377135fb45b78bd8fccecdd41"
+sourceCommit: "2d0ffe6f38d01cfd850527c57987b27487b414d4"
 translationStatus: "translated"
 sidebar:
   order: 9008

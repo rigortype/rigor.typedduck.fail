@@ -3,8 +3,8 @@ title: "CLIコマンドリファレンス"
 description: "rigortype/rigor docs/manual/02-cli-reference.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/02-cli-reference.md"
 sourcePath: "docs/manual/02-cli-reference.md"
-sourceSha: "4c5ff39648c8647a592465153db929cf2f33ca4d37516dd5fe4cd038070cc9b2"
-sourceCommit: "18d6992f544e6222fd7ed015ba6bbee6f0bd7f14"
+sourceSha: "b317d5f4d12814a5c3cf6354563b0204a9c2d1c7b18dd25db6123e77a7c0fb00"
+sourceCommit: "2d0ffe6f38d01cfd850527c57987b27487b414d4"
 sourceDate: "2026-07-25T21:39:13+09:00"
 translationStatus: "translated"
 sidebar:
@@ -92,14 +92,16 @@ rigor annotate [--[no-]color] [--[no-]bat] [--format=text|json] [--config=PATH] 
 
 ## `rigor type-of`
 
-1つのソース位置の推論型を表示します。
+1つ以上のソース位置の推論型を表示します。
 
 ```sh
-rigor type-of FILE:LINE:COL
-rigor type-of FILE LINE COL
+rigor type-of [options] FILE:LINE[:COL] [FILE:LINE[:COL] ...]
+rigor type-of [options] FILE LINE COL
 ```
 
-位置は単一の`file:line:col`トリプルまたは3つの引数として受け付けます。`--format=json`はマシン可読な形式を出力し、`--trace`はフェイルソフトフォールバックを記録します。`check`と同様にエディタモードの`--tmp-file` / `--instead-of`ペアも受け付けます。
+コロン形式は繰り返し可能で、引数の順序を保ちながら各ファイルのパースとスコープのインデックス化を1回だけ行います。`COL`を省くと、その行から始まる最大40個の式の表を、1始まりの各列で外側のものから順に表示します;さらに式が省略された場合、表はその旨を示します。旧来の3引数形式は厳密な位置を1つだけ受け付けます。
+
+`--format=json`は結果が1つなら元のフラットなオブジェクトのまま保ち、複数の結果は`results`配列で包みます。行のクエリでは`line_enumerations`配列が加わり、その`shown`と`total`のカウントが切り詰めを明示します。`--trace`はフェイルソフトフォールバックを記録し、テキスト出力では行の表の各行の後に置かれます。`check`と同様にエディタモードの`--tmp-file` / `--instead-of`ペアも受け付けます。
 
 ## `rigor trace`
 
@@ -214,13 +216,15 @@ CIに`rigor effects check`を追加してください。それ以降、コード
 Effect drift against .rigor-effects.yml:
 
 methods:
-  PaymentGateway#charge  + io.net.http
+  PaymentGateway#charge  + io.net.http  (app/services/payment_gateway.rb:18)
 
 reach:
-  OrdersController#create  + io.net.http
+  OrdersController#create  + io.net.http  (app/controllers/orders_controller.rb:7)
 
-Run `rigor effects update` and commit the result if this change is intended.
+Run `rigor effects explain` to see what caused this, and `rigor effects update` to accept it.
 ```
+
+各行はそのメソッドがどこで定義されているかを名指すので、レビュアーはメソッドを探し回るのではなくレポートを読めば済みます。
 
 作者は`rigor effects explain`を走らせて経路を見て ——
 

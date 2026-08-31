@@ -3,8 +3,8 @@ title: "付録: Java / C#から来た場合"
 description: "rigortype/rigor docs/handbook/appendix-java-csharp.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/appendix-java-csharp.md"
 sourcePath: "docs/handbook/appendix-java-csharp.md"
-sourceSha: "2bcec49f85b5182ca620f2078dc8ea8baefd5aa70b04e4c37c3690433b030a9c"
-sourceCommit: "18d6992f544e6222fd7ed015ba6bbee6f0bd7f14"
+sourceSha: "17471438f0653a720df17c668cdeae77465553c5ac7c005b3b8db89187a8562b"
+sourceCommit: "2d0ffe6f38d01cfd850527c57987b27487b414d4"
 translationStatus: "translated"
 sidebar:
   order: 1050

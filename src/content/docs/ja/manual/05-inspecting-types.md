@@ -3,8 +3,8 @@ title: "推論型の確認"
 description: "rigortype/rigor docs/manual/05-inspecting-types.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/05-inspecting-types.md"
 sourcePath: "docs/manual/05-inspecting-types.md"
-sourceSha: "fefa2aa2ec5764781063d5008107657351f2885c77a121949ffae6cb03c158ba"
-sourceCommit: "636f8725dd79aab2f711249ace6357a98b7e73a4"
+sourceSha: "f70f315989448f431de21a180f8b73029717ce76be749e3b7380c7cb5cde0ba7"
+sourceCommit: "2d0ffe6f38d01cfd850527c57987b27487b414d4"
 translationStatus: "translated"
 sidebar:
   order: 9005
@@ -47,15 +47,21 @@ name = gets   #=> String | nil
 
 ファイルを概観する最速の方法です。アノテーションは冪等です。再実行すると前の`#=>`コメント（手書きのもの、およびv0.2.0以前の`#=> dump_type:`綴りを含む）を積み重ねる代わりに置き換えます。ttyの場合は出力がシンタックスハイライトされます。[`bat`](https://github.com/sharkdp/bat)が`PATH`上に見つかればbat経由で（`--no-bat`でオプトアウト）、見つからなければ組み込みのカラライザーで行われます。`--no-color`（および`NO_COLOR`環境変数）でカラーを無効化できます。
 
-## `rigor type-of`: 1つの位置
+## `rigor type-of`: 厳密な位置、または行まるごと
 
-1つの式の型だけが必要な場合（通常は診断が発火した/しなかった理由を追いかけているとき）単一位置をクエリします:
+いくつかの式の型が必要な場合（通常は診断が発火した/しなかった理由を追いかけているとき）、厳密な位置をまとめてクエリします。そうすればRigorはプロジェクトと各ソースファイルを1回だけロードします:
 
 ```sh
-rigor type-of lib/example.rb:12:8
+rigor type-of lib/example.rb:12:8 lib/example.rb:12:14
 ```
 
-`--format=json`はツール向けのマシン可読な結果を出力します。これはエディタ統合がホバー時に回答するのと同じクエリです。
+列を手で数えずに済ませたいときは列を省いてください。Rigorはその行から始まる最初の40個の式を、1始まりの各列で外側のものから順に表として印字し、表が切り詰められた場合はその旨を示します:
+
+```sh
+rigor type-of lib/example.rb:12
+```
+
+`--format=json`はツール向けのマシン可読な結果を出力します: 結果が1つならフラットなオブジェクトのまま、複数なら`results`配列を使います。行のクエリでは、表示された式の数と総数を持つ`line_enumerations`のメタデータが加わります。厳密な位置は、エディタ統合がホバー時に回答するのと同じクエリです。
 
 ## `rigor trace`: 推論が進む様子を眺める
 

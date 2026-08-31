@@ -3,8 +3,8 @@ title: "rigor-rspec-rails"
 description: "rigortype/rigor docs/manual/plugins/rigor-rspec-rails.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/plugins/rigor-rspec-rails.md"
 sourcePath: "docs/manual/plugins/rigor-rspec-rails.md"
-sourceSha: "3cf277ef5b95c0d3e672e5337b5f6d4df2b2b79e173744251317252b173946dc"
-sourceCommit: "18d6992f544e6222fd7ed015ba6bbee6f0bd7f14"
+sourceSha: "839ad0d5cf3b17f1325b8c3491380f293fbbdc5546e927dad78da4072c522173"
+sourceCommit: "2d0ffe6f38d01cfd850527c57987b27487b414d4"
 translationStatus: "translated"
 sidebar:
   order: 9050

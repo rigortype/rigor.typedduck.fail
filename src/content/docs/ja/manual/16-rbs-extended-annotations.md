@@ -3,8 +3,8 @@ title: "RBS::Extendedアノテーション"
 description: "rigortype/rigor docs/manual/16-rbs-extended-annotations.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/16-rbs-extended-annotations.md"
 sourcePath: "docs/manual/16-rbs-extended-annotations.md"
-sourceSha: "488a9081bd8a939cc75f94bb0852c69e2f7b2b5876cf02651c143d4e0f430de1"
-sourceCommit: "18d6992f544e6222fd7ed015ba6bbee6f0bd7f14"
+sourceSha: "bc1d309cc9a05ddf00ab7096f215f6f369f5fd9a20f19a4d79b47d19da35203d"
+sourceCommit: "2d0ffe6f38d01cfd850527c57987b27487b414d4"
 translationStatus: "translated"
 sidebar:
   order: 9016

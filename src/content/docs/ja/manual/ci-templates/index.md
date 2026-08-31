@@ -3,8 +3,8 @@ title: "CIセットアップテンプレート"
 description: "rigortype/rigor docs/manual/ci-templates/README.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/ci-templates/README.md"
 sourcePath: "docs/manual/ci-templates/README.md"
-sourceSha: "328b51837c9e6f26895f9692374173d839d829dbbcff12468461fa73495f6138"
-sourceCommit: "18d6992f544e6222fd7ed015ba6bbee6f0bd7f14"
+sourceSha: "bf2eea8fdf7b06d962e586f5f24b5ec5ec4bde8e0bbe2c564ad9a2ea197675fb"
+sourceCommit: "2d0ffe6f38d01cfd850527c57987b27487b414d4"
 translationStatus: "translated"
 sidebar:
   order: 9000

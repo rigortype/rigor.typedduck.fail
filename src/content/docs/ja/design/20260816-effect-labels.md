@@ -3,8 +3,8 @@ title: "エフェクトラベル — Rigorのためのオプトインのエフ�
 description: "rigortype/rigor docs/design/20260816-effect-labels.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/design/20260816-effect-labels.md"
 sourcePath: "docs/design/20260816-effect-labels.md"
-sourceSha: "dbfd9a31931f356d96df50d3305d7843f36379b3a614452f8461321876f09723"
-sourceCommit: "0cf313582cfbe2fa7da8148dc498d0b2a0893438"
+sourceSha: "d17182ec7037884b68f19bb0928288cd22c6f619052dd828f8263294c3cda0ac"
+sourceCommit: "2d0ffe6f38d01cfd850527c57987b27487b414d4"
 translationStatus: "translated"
 sidebar:
   order: 20265816
@@ -131,7 +131,7 @@ PHPの`mutate.local`はフレームプライベートな束縛への参照渡し
 | クラスレベルの状態: `@@cv`、シングルトンコンテキストのivar、`const_set`、`define_method`、オブジェクトモデルの呼び出し | `mutate.static` |
 | それ以外——呼び出し結果、別オブジェクトのivar、分類不能 | `mutate`（素の、保守的な親） |
 
-`mutate.self` / `mutate.arg` / `mutate.static`はRubyの提案する葉である;Steins ADR-0055は`mutate.self` / `mutate.instance` / `mutate.static`を予約しているので、どちらかが出荷される前に名前を調整すべきだ（§13）。これらは二重にその場所を稼ぐ: `pure`は`mutate.local`の除外だけを必要とするが、ファクトストアの無効化バケット（ローカル束縛、オブジェクト内容、グローバルストレージ——control-flow-analysis.md §スコープスナップショット）はそれらに1対1で写像され、それが§8の「無効化キー」の消費者だ。Rigorはすでにメソッドごとに`mutate.arg`の半分を計算しており（`content_mutated_parameter_positions`、ADR-89 WD2、インクリメンタルスナップショットに永続化）;`mutate.self`の半分はivar書き込みの構文的スキャンであり;`mutate.local`の所有権の判定は仕様がすでに述べる新鮮さ / エスケープの証明義務であって、[ADR-76](../../adr/76-effect-modeling-freeze-dup-shape-preservation/)の`dup` / `clone`の扱いが確保の証人となる。
+`mutate.self` / `mutate.arg` / `mutate.static`はRubyの提案する葉*だった*;**調整はSteins ADR-0055の`mutate.self` / `mutate.instance` / `mutate.static`に着地した**（ADR-103 WD14）ので、この表の`mutate.arg`の行は`mutate.instance`として出荷される——selfでもフレーム所有でもないあらゆるレシーバーへ広げられ——そして所有権が証明されないときは素の`mutate`を生成するのではなく汚染する（§11.1、§13）。これらは二重にその場所を稼ぐ: `pure`は`mutate.local`の除外だけを必要とするが、ファクトストアの無効化バケット（ローカル束縛、オブジェクト内容、グローバルストレージ——control-flow-analysis.md §スコープスナップショット）はそれらに1対1で写像され、それが§8の「無効化キー」の消費者だ。Rigorはすでにメソッドごとに`mutate.arg`の半分を計算しており（`content_mutated_parameter_positions`、ADR-89 WD2、インクリメンタルスナップショットに永続化）;`mutate.self`の半分はivar書き込みの構文的スキャンであり;`mutate.local`の所有権の判定は仕様がすでに述べる新鮮さ / エスケープの証明義務であって、[ADR-76](../../adr/76-effect-modeling-freeze-dup-shape-preservation/)の`dup` / `clone`の扱いが確保の証人となる。
 
 Ruby固有の緊張: **メモ化イディオム**`@x ||= compute`は`mutate.self`なので、`pure`と宣言されたメモ化リーダーは発見である。それが真実の答えであり（書き込みは`instance_variable_get`・`inspect`・スレッドのインターリーブを通じて観測可能）、コンストラクタでの自身のプロパティ初期化だけを許容するSteinsと一致する。メモ化されたメソッドは`%a{rigor:v1:effect mutate.self}`を宣言する——またはプロジェクトがポリシーで`mutate.self`を許容する——のであって、チェッカーが推測するのではない。オーナーに対して未決（§13）。
 
@@ -387,12 +387,16 @@ Rigorには今日メソッドレベルの呼び出しグラフがない（`unuse
 
 ### 11.1共有レジストリ
 
-レジストリはSteinsのv1集合をそのまま——`exit ffi global.read global.write io io.db io.fs io.fs.read io.fs.write io.input io.ipc io.net io.net.http io.output io.output.buffer io.output.header io.output.stdout io.output.stderr io.process io.signal mutate mutate.local nondet nondet.random nondet.time`——加えてRubyの提案する葉`mutate.self mutate.arg mutate.static`。`io.output.buffer` / `io.output.header`は登録されたままだが生成されない（Rubyには出力バッファ層がない;最も近い類似物である`$stdout`の再代入は将来のマスキングの問い）。
+> **結果（2026-08-22）**。 Steinsと突き合わせて読むと、以下の3つの整合項目は本節が提案したのとは異なる形で決着した;[ADR-103](../../adr/103-effect-labels/) WD16と[#378](https://github.com/rigortype/rigor/issues/378)がその裁定を記録しており、出荷される`data/effects/registry.yml`は本文ではなくそちらに従う。要するに: `mutate`の葉はすでに一致しており、`io.db`の葉はRigor固有のもので[rigortype/steins#468](https://github.com/rigortype/steins/issues/468)として上流に提案済み、そしてアプリケーション意味のルートは共有ではなく**Rigor所有**である——そこでの乖離は語彙的ではなくアーキテクチャ上のもので、[rigortype/steins#469](https://github.com/rigortype/steins/issues/469)として上流に問うている。各箇条書きは自身の結果の行を運ぶ。整合はどちらの方向でもゲートではない: Steinsが後になって主張する綴りは、`retired:`と語彙のバンプを通じて着地する。
+
+レジストリはSteinsのv1集合をそのまま——`exit ffi global.read global.write io io.db io.fs io.fs.read io.fs.write io.input io.ipc io.net io.net.http io.output io.output.buffer io.output.header io.output.stdout io.output.stderr io.process io.signal mutate mutate.local nondet nondet.random nondet.time`——加えてRubyの葉`mutate.self mutate.instance mutate.static`。これらはRigorの提案ではなくSteins ADR-0055の予約名である（WD14;Steinsはまだそれらを実装していないので、今日そこで生成されるのは粗い`mutate`の親である）。`io.output.buffer` / `io.output.header`は登録されたままだが生成されない（Rubyには出力バッファ層がない;最も近い類似物である`$stdout`の再代入は将来のマスキングの問い）。そしてSteinsの`failure` / `failure.environment` / `failure.input` / `failure.resource`のファミリー（そのADR-0042）も同様だ——Steinsに対して書かれたポリシーがここでパースできるように認識されるが、Rigorが生成することは決してない。
 
 3つの層がその上に座り、Steinsの「トランスポートのファクトと意味のファクト」に従う（`io.net.http`は機構を、`sendgrid.mail.send`はプロバイダの操作を、`email.send`はアプリケーションの意味を記録する——「これらのラベルは共存する」）:
 
 - **共有の追加としてSteinsに提案する価値のあるコアの葉**。両エコシステムが生成でき、それらを名指すポリシーが移植されるべきだから: `io.db.read`・`io.db.write`・`io.db.transaction`（PDO / ActiveRecordを通じた`SELECT`はどちらの言語が発行しても読み取り;マイグレーションや`INSERT`は書き込み;`BEGIN`/`COMMIT`はどちらでもない）。葉の追加は§4の規則により進化安全だ——宣言された`io.db`は3つすべてを認める。
-- **アプリケーション意味のルート、小さく共有**: `telemetry`（ロガー、エラーレポーター、計装）、`email.send`、`job.enqueue`、`cache.read` / `cache.write`。これらはポリシーが実際に名指すラベル（「プレゼンターはジョブをエンキューしない」）であり、解消ポリシーが掴むもの（`tolerated: [telemetry]`）なので、SteinsとRigorで同じに綴らねばならない。今日Steinsは`email.send`を*プロジェクト*ラベルの例として扱う;一握りを共有レジストリへ昇格させることはそこで提起すべき提案だ。
+  **結果:** Steinsの組み込み集合は`io.db`で止まるので、これらはRigor所有のままであり、レジストリの表もそう述べる;steins#468として提起済みで、どちらの側もいつでも採用してよい。まさにこの追加が、認識される境界の認めるものを変えられないからだ。
+- **アプリケーション意味のルート、小さく共有**: `telemetry`（ロガー、エラーレポーター、計装）、`email.send`、`job.enqueue`、`cache.read` / `cache.write`。これらはポリシーが実際に名指すラベル（「プレゼンターはジョブをエンキューしない」）であり、解消ポリシーが掴むもの（`tolerated: [telemetry]`）だ。
+  **結果:**共有では*ない*。そしてこの箇条書きが主張していた「同じに綴らねばならない」には、裏付けとなる合意がなかった。Steinsは、エコシステムのラベル（`io.redis`・`email.send`）は**組み込みではなく**、パッケージ自身の`steins-plugin.json`のマニフェストを通じて到達すると考えている。Rigorはそれらを組み込みの行として保つ——プロジェクトが最初のポリシーを書くのにプラグインのインストールを必要としてはならないからだ——ので、レジストリの表はRigor所有かつ上流へ提案中と読め、steins#469がこの層がどこに属するのかを問うている。
 - **フレームワークルート、フレームワークをモデル化するプラグインが所有**: rigor-railsなら`rails.*`。Rigorのプラグインidに適応させたSteins ADR-0068のルート所有権規則による（ファーストパーティのプラグインはモデル化するフレームワークのルートを開く;サードパーティのプラグインは自身のプラグインidと等しいルートを開く;プロジェクトの設定は任意のルートを開いてよい）。プロジェクトは依然として自身のものを開く（`acme.cache`）。
 
 ### 11.2 Railsの語彙

@@ -3,8 +3,8 @@ title: "Rails向けRigor: miseを使ったステップバイステップセッ�
 description: "rigortype/rigor docs/manual/14-rails-quickstart.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/14-rails-quickstart.md"
 sourcePath: "docs/manual/14-rails-quickstart.md"
-sourceSha: "7b1a2be896620f7880702cd456560b2b58d7e14175461d58743cdb7448fc83e5"
-sourceCommit: "18d6992f544e6222fd7ed015ba6bbee6f0bd7f14"
+sourceSha: "05602a56bc0cd4cded2b6cbd2d798895962f797a1e267ad2e23357065597590a"
+sourceCommit: "2d0ffe6f38d01cfd850527c57987b27487b414d4"
 translationStatus: "translated"
 sidebar:
   order: 9014

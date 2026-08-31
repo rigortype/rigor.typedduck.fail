@@ -3,8 +3,8 @@ title: "rigor-actioncable"
 description: "rigortype/rigor docs/manual/plugins/rigor-actioncable.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/plugins/rigor-actioncable.md"
 sourcePath: "docs/manual/plugins/rigor-actioncable.md"
-sourceSha: "155d24427704bb6a648ebf67b35a310a43335d5dd4280fd5d923a595faad43a1"
-sourceCommit: "18d6992f544e6222fd7ed015ba6bbee6f0bd7f14"
+sourceSha: "51602cb98e3c9fc79c8e7a33e452a8a01d05a201c3cd79da973eff47cfe09fd9"
+sourceCommit: "2d0ffe6f38d01cfd850527c57987b27487b414d4"
 translationStatus: "translated"
 sidebar:
   order: 9050

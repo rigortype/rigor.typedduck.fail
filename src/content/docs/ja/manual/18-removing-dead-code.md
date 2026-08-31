@@ -3,8 +3,8 @@ title: "`rigor unused`でデッドコードを取り除く"
 description: "rigortype/rigor docs/manual/18-removing-dead-code.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/18-removing-dead-code.md"
 sourcePath: "docs/manual/18-removing-dead-code.md"
-sourceSha: "fdfe7108b9b13d38cb3daa774097635e5c454efa6695f1344a62ef26a0e397ec"
-sourceCommit: "18d6992f544e6222fd7ed015ba6bbee6f0bd7f14"
+sourceSha: "2ae4bd5cd56f3cc606b930c4dd1e1c50c6e0ae83d6385e563b36664053b067a7"
+sourceCommit: "2d0ffe6f38d01cfd850527c57987b27487b414d4"
 translationStatus: "translated"
 sidebar:
   order: 9018
@@ -177,5 +177,5 @@ Candidates — nothing reachable references these (45)
 
 **レポーティング**ジョブとして走らせるのは構いませんし、上で述べたドリフトに気づくための意図された方法です: スケジュールで走らせ、JSONを公開し、人に傾向を読ませてください。
 
-[adr-102]: https://github.com/rigortype/rigor/blob/master/docs/adr/102-unused-code-reachability-report.md
+[adr-102]: ../../adr/102-unused-code-reachability-report/
 [issue-363]: https://github.com/rigortype/rigor/issues/363

@@ -3,8 +3,8 @@ title: "プラグインリファレンス"
 description: "rigortype/rigor docs/manual/plugins/README.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/plugins/README.md"
 sourcePath: "docs/manual/plugins/README.md"
-sourceSha: "f6a0531a7da24250296937a71a32df3a93af7c5cdffe1790cccd6f22b9e35537"
-sourceCommit: "18d6992f544e6222fd7ed015ba6bbee6f0bd7f14"
+sourceSha: "0cca1a12a0650b0371237b570fadbe424713dfbdc12155d9db9473823be21208"
+sourceCommit: "2d0ffe6f38d01cfd850527c57987b27487b414d4"
 translationStatus: "translated"
 sidebar:
   order: 9000

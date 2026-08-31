@@ -3,8 +3,8 @@ title: "付録: リスコフの置換原則"
 description: "rigortype/rigor docs/handbook/appendix-liskov.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/appendix-liskov.md"
 sourcePath: "docs/handbook/appendix-liskov.md"
-sourceSha: "ab155ef67c529b63ce706e2c19fcab6f985777d74cf0baac79a8285a42b0d87d"
-sourceCommit: "18d6992f544e6222fd7ed015ba6bbee6f0bd7f14"
+sourceSha: "7284988a17b61be84f8bf4c9230d683745cfc115dfd380050088f7beb8ffaaac"
+sourceCommit: "2d0ffe6f38d01cfd850527c57987b27487b414d4"
 translationStatus: "translated"
 sidebar:
   order: 1050

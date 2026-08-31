@@ -3,8 +3,8 @@ title: "rigor-graphql"
 description: "rigortype/rigor docs/manual/plugins/rigor-graphql.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/plugins/rigor-graphql.md"
 sourcePath: "docs/manual/plugins/rigor-graphql.md"
-sourceSha: "e88f08555e2b465980d3351f960b9c4b9dea2b3b8a7f0580159dc0500c558017"
-sourceCommit: "18d6992f544e6222fd7ed015ba6bbee6f0bd7f14"
+sourceSha: "78ed379697ee0e6aadb35723b32750d7dae171b4d1c12df566691f8bf625a690"
+sourceCommit: "2d0ffe6f38d01cfd850527c57987b27487b414d4"
 translationStatus: "translated"
 sidebar:
   order: 9050

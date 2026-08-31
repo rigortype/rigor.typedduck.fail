@@ -3,8 +3,8 @@ title: "rigor-rbs-inline"
 description: "rigortype/rigor docs/manual/plugins/rigor-rbs-inline.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/plugins/rigor-rbs-inline.md"
 sourcePath: "docs/manual/plugins/rigor-rbs-inline.md"
-sourceSha: "0e22db5bc9bbb46638d343e96f3993bfdce95dacc1ae7b562dd2f6fab9ec5ade"
-sourceCommit: "18d6992f544e6222fd7ed015ba6bbee6f0bd7f14"
+sourceSha: "cc1fad86cee47db8b11630e23eab94b2a01025b6e925f512149a9b2e9920a98e"
+sourceCommit: "2d0ffe6f38d01cfd850527c57987b27487b414d4"
 translationStatus: "translated"
 sidebar:
   order: 9050

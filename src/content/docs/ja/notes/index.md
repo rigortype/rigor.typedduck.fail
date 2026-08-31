@@ -3,8 +3,8 @@ title: "リサーチ・サーベイノート"
 description: "rigortype/rigor docs/notes/README.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/README.md"
 sourcePath: "docs/notes/README.md"
-sourceSha: "1df6ecc16bf2ee915bf9b85d8c8a10c22025b2d9b9927a56b5f6843d59458076"
-sourceCommit: "bed65a462b04db02312f208b9dda2dda3a26ef13"
+sourceSha: "9278030cff33221ea465dc8e86eacc452ab5c43440705b1d83ec27c651fa2168"
+sourceCommit: "2d0ffe6f38d01cfd850527c57987b27487b414d4"
 translationStatus: "translated"
 sidebar:
   order: 6000
@@ -45,6 +45,7 @@ sidebar:
 | 2026-05-23 | [Date / Time / DateTime method coverage audit](20260523-date-time-method-coverage/) |
 | 2026-05-23 | [Struct / Encoding coverage audit](20260523-struct-encoding-coverage/) |
 | 2026-06-01 | [textbringer type-coverage survey — invalid bundled `sig/`, namespace-synthesis fix](20260601-textbringer-coverage-survey/) |
+| 2026-08-31 | [セルフチェックの型カバレッジ監査 — Rigor自身の`lib`のどこが型なしのままか](20260831-self-check-type-coverage-audit/) |
 
 ## リグレッションスイープ・実プロジェクトトリアージ
 

@@ -3,8 +3,8 @@ title: "エフェクトラベル — コードが何を「する」か"
 description: "rigortype/rigor docs/manual/19-effect-labels.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/19-effect-labels.md"
 sourcePath: "docs/manual/19-effect-labels.md"
-sourceSha: "d36ac65886a746bb7f0ff80e35f3a598978c5f3b50ed8f2a47084bf3fcd53cf0"
-sourceCommit: "18d6992f544e6222fd7ed015ba6bbee6f0bd7f14"
+sourceSha: "122f15e2853d6764658dfc38ac5a634b752e19cadf62a7b75e31546b509f52aa"
+sourceCommit: "2d0ffe6f38d01cfd850527c57987b27487b414d4"
 translationStatus: "translated"
 sidebar:
   order: 9019
@@ -288,12 +288,14 @@ CIが`rigor effects check`を走らせ、終了コード1で失敗します:
 Effect drift against .rigor-effects.yml:
 
 methods:
-  Change#init_path  + io.fs.write
-  Change#init_path  + nondet.time
-  Change#init_path  exhaustive → not
+  Change#init_path  + io.fs.write  (app/models/change.rb:41)
+  Change#init_path  + nondet.time  (app/models/change.rb:41)
+  Change#init_path  exhaustive → not  (app/models/change.rb:41)
 
-Run `rigor effects update` and commit the result if this change is intended.
+Run `rigor effects explain` to see what caused this, and `rigor effects update` to accept it.
 ```
+
+丸括弧はそのメソッドが定義されている場所です——ファイルと、ファイルが`def`を持つ場合はその`def`自身の行。開き直しによって定義されたメソッドは複数のファイルにまたがり、行はそのすべてを名指します;`-symbol`の行は位置を運びません。この実行がもはや見ていないメソッドは、この実行には位置を特定できないからです。
 
 `+ label`と`- label`は証明レーン;`≤+` / `≤-`は宣言レーン;`materialised`は宣言ラベルが証明済みになったこと;`exhaustive → not`は誰かがRigorの追えない呼び出しを導入したこと;`+symbol` / `-symbol`は現れたか消えたメソッドで、リネームはその1つずつです。
 

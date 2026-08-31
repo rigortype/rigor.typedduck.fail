@@ -3,8 +3,8 @@ title: "付録: プロトコル、インターフェース、構造的型付け"
 description: "rigortype/rigor docs/handbook/appendix-protocols-and-structural-typing.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/appendix-protocols-and-structural-typing.md"
 sourcePath: "docs/handbook/appendix-protocols-and-structural-typing.md"
-sourceSha: "82d6afd1b3f8ea1736142cca9749012e0431c33600ea2d5e4fca94905e1a4dfd"
-sourceCommit: "18d6992f544e6222fd7ed015ba6bbee6f0bd7f14"
+sourceSha: "51b648c78f5a4f22968939012e0c39355a95d00d3b2baaed68a237a5a4d87c94"
+sourceCommit: "2d0ffe6f38d01cfd850527c57987b27487b414d4"
 translationStatus: "translated"
 sidebar:
   order: 1050
