@@ -3,8 +3,8 @@ title: "アーキテクチャ決定記録"
 description: "rigortype/rigor docs/adr/README.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/README.md"
 sourcePath: "docs/adr/README.md"
-sourceSha: "6daaec91463adde705a538b863f44c6b007a7f1ebf7f57afbc434ddcaa67b6d1"
-sourceCommit: "18d6992f544e6222fd7ed015ba6bbee6f0bd7f14"
+sourceSha: "d273e938589b4430d146caedba7ba3d5a2a6c969c6feecce77f5c76e64e852e6"
+sourceCommit: "8e1432f5ada5240b33f140cb2024e6025450b2f9"
 translationStatus: "translated"
 sidebar:
   order: 4000
@@ -128,6 +128,8 @@ sidebar:
 | ADR-102 | [未使用コードの到達可能性レポートは診断ではなくレポートである](102-unused-code-reachability-report/) | Proposed（`rigor unused`のスライス群のための決定;8つの作業上の決定はすべて確定） |
 | ADR-103 | [エフェクトラベル: オプトインの、スナップショット優先のエフェクトシステム](103-effect-labels/) | Proposed（設計ノートは2026-08-16に着地;何も実装されていない;Proposedの時点で4項目が未決） |
 | ADR-104 | [エフェクトサーフェスのためのブートスリムプローブ](104-effects-boot-slim-probe/) | Accepted（レポートとスナップショットの動詞について、#482のエントリー分割とともに実装済み） |
+| ADR-105 | [PRの着地フロー: 逐次マージとchangelogフラグメント](105-pr-landing-flow/) | Accepted（`changelog.d/`の機構＋ゲートがADRとともに着地;規範はAGENTS.mdに） |
+| ADR-106 | [スペックスイートのminitestへの移行](106-minitest-migration/) | Accepted（却下——スイートはRSpecのまま;再評価トリガーを記録） |
 
 ## 新しいADRの追加
 

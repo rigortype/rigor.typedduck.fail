@@ -3,8 +3,8 @@ title: "プラグインの登録と読み込み"
 description: "rigortype/rigor docs/internal-spec/plugin.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/plugin.md"
 sourcePath: "docs/internal-spec/plugin.md"
-sourceSha: "38503cb46359a1a80730787881e5ddff565501ce61a23bc4efac398bb67799ac"
-sourceCommit: "bed65a462b04db02312f208b9dda2dda3a26ef13"
+sourceSha: "5768f700eb74f274eeb8aa5e545c70517aa1835277510ef30dcdc68dd5ef6af3"
+sourceCommit: "8e1432f5ada5240b33f140cb2024e6025450b2f9"
 translationStatus: "translated"
 sidebar:
   order: 3050
@@ -219,7 +219,7 @@ end
 | `consumes` | `Array<Consumption>` | このプラグインが読むクロスプラグインファクト（`{ plugin_id:, name:, optional: }`）;ローダーのトポロジカル順序付けを駆動する（ADR-9）。 |
 | `signature_paths` | `Array<String>` | プラグインが貢献するRBSシグネチャディレクトリ、プラグインgemルートからの相対;`Loader`が解決し環境にマージする（ADR-25）。 |
 | `owns_receivers` | `Array<String>` | ディスパッチルーティングのためにこのプラグインが所有するレシーバークラス名。 |
-| `open_receivers` | `Array<String>` | `call.undefined-method`から免除されるレシーバークラス名（そのメソッド表面が無制限 — 例: `ActiveRecord::Relation`）（ADR-26）。 |
+| `open_receivers` | `Array<String>` | メソッドのサーフェスが有界でないレシーバークラス名——たとえば`ActiveRecord::Relation`は、ユーザーが宣言したすべての`scope`をそのモデルへ委譲する（ADR-26）。そのようなクラスは`call.undefined-method`から丸ごと免除され、さらに、そのクラスが宣言したのではなく**継承した**メソッド名については、シグネチャを読む2つのルール（`call.wrong-arity`・`call.argument-type-mismatch`）からも免除される: 祖先の名前と衝突する委譲された名前（`relation.open` → `Kernel#open`）は、その呼び出しが実行しないシグネチャへ解決されるからだ。オープンクラス自身が宣言するメソッドは両方の検査を保つ;祖先を通じて本当に持っているメソッド（Relation上の`Enumerable`）も検査を失う——判定基準は委譲かどうかではなく定義サイトである。同じ免除は`RbsLoader#synthesized_type_names`のスタブ型、すなわち`CheckRules#unbounded_receiver_surface?`のプラグイン非依存の半分にも及ぶ。 |
 | `type_node_resolvers` | `Array` | カスタムなRBS型名解決を貢献する`Plugin::TypeNodeResolver`エントリー（ADR-13）。 |
 | `protocol_contracts` | `Array<ProtocolContract>` | パススコープの振る舞い契約（`path_glob` + `method_name` + `singleton` + param/return型 + 重大度）;provide-and-check（ADR-28）。 |
 | `source_rbs_synthesizer` | `#call(path) -> String?` | env構築時にプロジェクトソースファイルからRBSを合成する呼び出し可能オブジェクト（例: rbs-inline取り込み）（ADR-32）。 |

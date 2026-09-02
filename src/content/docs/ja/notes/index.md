@@ -3,8 +3,8 @@ title: "リサーチ・サーベイノート"
 description: "rigortype/rigor docs/notes/README.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/README.md"
 sourcePath: "docs/notes/README.md"
-sourceSha: "9278030cff33221ea465dc8e86eacc452ab5c43440705b1d83ec27c651fa2168"
-sourceCommit: "2d0ffe6f38d01cfd850527c57987b27487b414d4"
+sourceSha: "d6272fe9fbf3f7206c1b528d0e922fdbce50353f5e0af534a7937251e0a14d33"
+sourceCommit: "8e1432f5ada5240b33f140cb2024e6025450b2f9"
 translationStatus: "translated"
 sidebar:
   order: 6000
@@ -46,6 +46,8 @@ sidebar:
 | 2026-05-23 | [Struct / Encoding coverage audit](20260523-struct-encoding-coverage/) |
 | 2026-06-01 | [textbringer type-coverage survey — invalid bundled `sig/`, namespace-synthesis fix](20260601-textbringer-coverage-survey/) |
 | 2026-08-31 | [セルフチェックの型カバレッジ監査 — Rigor自身の`lib`のどこが型なしのままか](20260831-self-check-type-coverage-audit/) |
+| 2026-09-01 | [コーパス全体の不透明性の帰属 — 25個の対象で型がどこに付かないか](20260901-corpus-opacity-attribution/) |
+| 2026-09-01 | [キャンペーン後の不透明性の再帰属 — マージ済みmasterでのスイーププローブ再実行](20260901-post-campaign-opacity-recheck/) |
 
 ## リグレッションスイープ・実プロジェクトトリアージ
 

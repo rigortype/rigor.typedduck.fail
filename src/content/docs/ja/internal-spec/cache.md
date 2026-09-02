@@ -3,14 +3,14 @@ title: "キャッシュレイヤー — `Rigor::Cache`"
 description: "rigortype/rigor docs/internal-spec/cache.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/cache.md"
 sourcePath: "docs/internal-spec/cache.md"
-sourceSha: "93ea8921b36fb37c39d45bb23658f0d19fd24f93fdadcf7b9bdeaf17dde28eb8"
-sourceCommit: "0cf313582cfbe2fa7da8148dc498d0b2a0893438"
+sourceSha: "7db9ce443535d58d9d8287cf660544099e8851793165c866356e997545214556"
+sourceCommit: "8e1432f5ada5240b33f140cb2024e6025450b2f9"
 translationStatus: "translated"
 sidebar:
   order: 3050
 ---
 
-ステータス: **安定（v0.0.8で導入;現行ディスクリプタスキーマv6）**。このドキュメントはキャッシュレイヤーの公開リード形を追跡します。以下のスライス（slice）はすべて着地し、v0.1.x全体で安定しています;ディスクリプタの`SCHEMA_VERSION`はADR-10のgemバージョンごとの`dependencies`スロットのために`2`へ、`RbsLoader.build_env_for`が欠落した`signature_paths:`名前空間を合成し始めたときに`3`へ（古いRigorによってmarshalされたRBS環境——それらのシグネチャを不活性なまま残してしまう——は再構築されます）、[ADR-60](../adr/60-pre-freeze-plugin-contract-consolidation.md) WD3がレコードアンドバリデートのプラグインプロデューサーキャッシュ向けに`globs`スロット（`GlobEntry`）を追加したときに`4`へ、そして[ADR-87](../adr/87-null-build-floor.md) WD1が`:stat` `FileEntry` comparator（statしてからダイジェストの検証）を追加したときに`5`へ、そして`append_stub_declarations`が、参照型スタブそれぞれに必要な宣言の種別を出力し、各宣言を個別に検証し始めたときに`6`へ引き上げられました（古いRigorによってキャッシュされた環境 —— ぶら下がった`interface`や型エイリアスの参照に当たるとスタブのバッチ全体を捨てていた —— は再構築されます）。v0.0.8の5つのスライスがすべて着地しました。`Rigor::Cache::Descriptor`（スライス1 —— すべてのキャッシュ済み値が付随する基板）、`Rigor::Cache::Store`（スライス2 —— ディスクリプタ・プロデューサー・パラメータを消費してキャッシュ済みまたは新規計算済みの値を返すファイルシステムバックのストレージ）、最初のキャッシュ済みプロデューサー —— RBS定数テーブル（スライス3）——、CLI可観測フラグ`--cache-stats` / `--clear-cache`（スライス4）、そして診断の来歴（スライス5）です。さらに4つのRBS由来のプロデューサーがv0.0.9で着地しました。
+ステータス: **安定（v0.0.8で導入;現行ディスクリプタスキーマv8）**。このドキュメントはキャッシュレイヤーの公開リード形を追跡します。以下のスライス（slice）はすべて着地し、v0.1.x全体で安定しています;ディスクリプタの`SCHEMA_VERSION`はADR-10のgemバージョンごとの`dependencies`スロットのために`2`へ、`RbsLoader.build_env_for`が欠落した`signature_paths:`名前空間を合成し始めたときに`3`へ（古いRigorによってmarshalされたRBS環境——それらのシグネチャを不活性なまま残してしまう——は再構築されます）、[ADR-60](../adr/60-pre-freeze-plugin-contract-consolidation.md) WD3がレコードアンドバリデートのプラグインプロデューサーキャッシュ向けに`globs`スロット（`GlobEntry`）を追加したときに`4`へ、そして[ADR-87](../adr/87-null-build-floor.md) WD1が`:stat` `FileEntry` comparator（statしてからダイジェストの検証）を追加したときに`5`へ、そして`append_stub_declarations`が、参照型スタブそれぞれに必要な宣言の種別を出力し、各宣言を個別に検証し始めたときに`6`へ引き上げられました（古いRigorによってキャッシュされた環境 —— ぶら下がった`interface`や型エイリアスの参照に当たるとスタブのバッチ全体を捨てていた —— は再構築されます）。v0.0.8の5つのスライスがすべて着地しました。`Rigor::Cache::Descriptor`（スライス1 —— すべてのキャッシュ済み値が付随する基板）、`Rigor::Cache::Store`（スライス2 —— ディスクリプタ・プロデューサー・パラメータを消費してキャッシュ済みまたは新規計算済みの値を返すファイルシステムバックのストレージ）、最初のキャッシュ済みプロデューサー —— RBS定数テーブル（スライス3）——、CLI可観測フラグ`--cache-stats` / `--clear-cache`（スライス4）、そして診断の来歴（スライス5）です。さらに4つのRBS由来のプロデューサーがv0.0.9で着地しました。
 
 このモジュールが実装するスキーマは以下によって固定されています。
 
@@ -36,6 +36,8 @@ GlobEntry       :: { root: String, pattern: String, value: String }
 
 `:stat` comparatorは、個々の`FileEntry`スロット向けのADR-87 WD1のstatしてからダイジェストの階層です。その`value`は`"<digest> <size> <mtime_ns> <ctime_ns> <inode> <recording_instant_ns>"`をパックします: 検証（`FileDigest.stat_fresh?`）はまずファイルをstatし、タプルが動いたとき、またはレーシーウィンドウガードが発火したとき（ファイルのmtimeがエントリーの記録時刻より厳密に古くない）にのみ、完全な内容ハッシュ（`FileDigest.hexdigest`）へフォールバックします。valueにパックされたSHA-256ダイジェストは依然として唯一の変更**authority（権威）**のままです —— 動かなかったstatは検証がその再計算をスキップできるようにするだけです;statは動いたが内容は同一（素の`touch`）である`:stat`エントリーは再ハッシュされ、正しく鮮度ありと判定されます。`:stat`階層は検証専用ディスクリプタ（ADR-45の依存関係ディスクリプタ、プラグインの`watch:` glob）に乗ります;キャッシュ*キー*ディスクリプタは決定的な`:digest` comparatorを保ちます。`cache.validation: digest`（または、それが優先される`RIGOR_STRICT_VALIDATION=1` env）は、statを信頼できないファイルシステムのために、すべてのエントリーを`:digest`へ強制的に戻します。このキーのデフォルトは`auto`（#190）です: `CiDetector`がCIプロバイダを認識したときは`digest`へ解決され——新鮮なチェックアウトはすべてのstatタプルを再生成するため、stat階層は決してショートサーキットできず、statシグネチャのglobスロットは毎回のランで陳腐と読まれてしまう——、それ以外のあらゆる場所では`stat`へ解決されます。解決はランごとに行われ（`Configuration#cache_validation_strict?`）、`RIGOR_CI_DETECT=0`のキルスイッチを尊重し、明示的な`stat` / `digest`は常に優先されます（永続ワークスペースのCIランナーは`stat`でstatフロアへオプトインし直します）。
 
+`:exists` comparatorは`File.exist?`の答えを`"true"` / `"false"`として運びます（`FileEntry::PRESENT` / `FileEntry::ABSENT`）。`FileEntry.absent(path:)`が`"false"`の行を構築します——[ADR-45](../../adr/45-unchanged-project-fast-path/)のWD1（#577）の**不在の依存関係**であり、パスが欠けているために読み取りが失敗したとき`Plugin::IoBoundary#read_file`が記録するものです。これによって、ファイルの不在の上で計算されたエントリーは、そこに何かが現れた時点で古いものとして読まれます。`#absent?`がその行を識別します。検証は`File.exist?`1回です: 変更のないツリーでドリフトしうるstatのタプルもダイジェストもないので、不在の行がウォームなヒットをばたつかせることは決してありません。
+
 ### `Descriptor.new(files: [], gems: [], plugins: [], configs: [], dependencies: [], globs: [])`
 
 ディスクリプタを構築します。すべてのスロットはデフォルトで空配列になります。スロットはdupされてフリーズされるため、構築後に呼び出し元が変更することはできません。ディスクリプタ自体もフリーズされます。
@@ -57,7 +59,7 @@ GlobEntry       :: { root: String, pattern: String, value: String }
 
 プロデューサー・入力・ディスクリプタの組み合わせに対して標準的なhex SHA-256キャッシュキーを返します。キーは以下を組み込みます。
 
-1. `Descriptor::SCHEMA_VERSION`（現在は`6` — v2はADR-10のgemバージョンごとのキャッシュスライスのために`dependencies`スロットを追加した;v3は`build_env_for`が欠落した`signature_paths:`名前空間を合成し始める前にmarshalされたRBS環境を無効化する;v4はADR-60 WD3のレコードアンドバリデートのプラグインプロデューサーキャッシュのために`globs`スロットを追加した;v5はADR-87 WD1のstatしてからダイジェストの検証のために`:stat` `FileEntry` comparatorを追加した;v6は`append_stub_declarations`が参照型スタブそれぞれに必要な宣言の種別を出力し各宣言を個別に検証するようになる前にmarshalされたRBS環境を無効化する。これによりぶら下がった`interface`や型エイリアスの参照がスタブのバッチ全体を捨てることはなくなった（#237））。この定数をバンプするとすべてのキャッシュ済み値が無効化されます。
+1. `Descriptor::SCHEMA_VERSION`（現在は`8` — v2はADR-10のgemバージョンごとのキャッシュスライスのために`dependencies`スロットを追加した;v3は`build_env_for`が欠落した`signature_paths:`名前空間を合成し始める前にmarshalされたRBS環境を無効化する;v4はADR-60 WD3のレコードアンドバリデートのプラグインプロデューサーキャッシュのために`globs`スロットを追加した;v5はADR-87 WD1のstatしてからダイジェストの検証のために`:stat` `FileEntry` comparatorを追加した;v6は`append_stub_declarations`が参照型スタブそれぞれに必要な宣言の種別を出力し各宣言を個別に検証するようになる前にmarshalされたRBS環境を無効化する。これによりぶら下がった`interface`や型エイリアスの参照がスタブのバッチ全体を捨てることはなくなった（#237）;v7は`:extends`テーブルを運ぶようになる前に書かれたdefインデックスのシードバンドルを無効化する（#526）;v8は、探索したが見つからなかったパスについて`IoBoundary#read_file`が不在の行を記録するようになる前に書かれた実行結果とプラグインプロデューサーのエントリーを無効化する（ADR-45 WD1、#577）——8より前のエントリーは、まさにそれらの行が捕まえるために存在するファイル出現の編集をまたいで新鮮だと検証してしまうからだ）。この定数をバンプするとすべてのキャッシュ済み値が無効化されます。
 2. `producer_id`（キャッシュスライスの名前空間となる安定した文字列）。
 3. `params`（プロデューサーの入力ハッシュ）。再帰的に正規化されます。ハッシュキーは文字列化してソートし、シンボルは文字列化し、配列は順序を保持します。
 4. ディスクリプタの正規ハッシュ形式。
@@ -102,7 +104,7 @@ GlobEntry       :: { root: String, pattern: String, value: String }
 
 ### `store.fetch_or_validate(producer_id:, key_descriptor:, generation_cap:, params: {}, serialize: nil, deserialize: nil) { ... } -> Object`
 
-レコードアンドバリデートのバリアント（[ADR-45](../adr/45-unchanged-project-fast-path.md)）。`fetch_or_compute`——エントリーを入力のディスクリプタでキー付けるため、プロデューサー実行前にすべての入力が既知でなければMUSTならない——とは異なり、これは`key_descriptor`（前もって既知の安定した入力のみ）でキー付け、値とともに、その値が実際に読み込んだファイルの`dependency_descriptor`を、**計算中に発見された入力も含めて**（例: 解析の途中でプロジェクトファイルを読むプラグイン）格納します。ブロックは`[value, dependency_descriptor]`をMUST返さなければなりません。次回のランでは、格納された依存関係ディスクリプタが`Descriptor#fresh?`を通じてファイルシステムに対して再検証され——記録された各`FileEntry` / `GlobEntry`がまだ一致していなければならず——古い依存関係は再計算を強制します。**ディスク側**の書き込み失敗（パーミッション、ディスクフル、ルート削除、読み取り専用マウント）は飲み込まれます。新たに計算された値が返され、次回のランで再計算されます。**プロデューサーの契約違反はそうではありません** —— `Marshal.dump`がシリアライズできない値、または非`String`を返すカスタムの`serialize:`は、`fetch_or_validate`から送出され**ランを中断します**。コールドランへ劣化はしません: 書き込みパスは意図的に`SystemCallError` / `IOError`のみをrescueするので、バグは、毎回のランに黙って再計算のコストを課すのではなく、可視になります。値が`Marshal`でクリーンでないプロデューサーは`serialize:` / `deserialize:`のペアをMUST提供しなければなりません。これは、Rigorが前もって見えないファイルをプラグインが読むと古くなってしまう解析前フィンガープリントの、健全な後継です。
+レコードアンドバリデートのバリアント（[ADR-45](../adr/45-unchanged-project-fast-path.md)）。`fetch_or_compute`——エントリーを入力のディスクリプタでキー付けるため、プロデューサー実行前にすべての入力が既知でなければMUSTならない——とは異なり、これは`key_descriptor`（前もって既知の安定した入力のみ）でキー付け、値とともに、その値が実際に読み込んだファイルの`dependency_descriptor`を、**計算中に発見された入力も含めて**（例: 解析の途中でプロジェクトファイルを読むプラグイン）格納します。ブロックは`[value, dependency_descriptor]`をMUST返さなければなりません。次回のランでは、格納された依存関係ディスクリプタが`Descriptor#fresh?`を通じてファイルシステムに対して再検証され——記録された各`FileEntry` / `GlobEntry`がまだ一致していなければならず、不在の行（`FileEntry.absent`、ADR-45 WD1の負の半分）はそのパスが依然として欠けている間だけ一致し——古い依存関係は再計算を強制します。**ディスク側**の書き込み失敗（パーミッション、ディスクフル、ルート削除、読み取り専用マウント）は飲み込まれます。新たに計算された値が返され、次回のランで再計算されます。**プロデューサーの契約違反はそうではありません** —— `Marshal.dump`がシリアライズできない値、または非`String`を返すカスタムの`serialize:`は、`fetch_or_validate`から送出され**ランを中断します**。コールドランへ劣化はしません: 書き込みパスは意図的に`SystemCallError` / `IOError`のみをrescueするので、バグは、毎回のランに黙って再計算のコストを課すのではなく、可視になります。値が`Marshal`でクリーンでないプロデューサーは`serialize:` / `deserialize:`のペアをMUST提供しなければなりません。これは、Rigorが前もって見えないファイルをプラグインが読むと古くなってしまう解析前フィンガープリントの、健全な後継です。
 
 `Descriptor#fresh?`は、ディスクリプタの`gems` / `plugins` / `configs` / `dependencies`スロットがすべて空であるときにのみそのディスクリプタを鮮度ありとみなします（これらの非ファイル入力は検証対象セットではなくキャッシュの*キー*に属します）。いずれかを持つディスクリプタは決して鮮度ありになりません。
 
@@ -126,6 +128,22 @@ GlobEntry       :: { root: String, pattern: String, value: String }
 エンジンの変更は`IncrementalSnapshot`の**全体**を落とし、一部ではありません。`digests`を除くすべてのセクションはアナライザーが計算した値なので、変わったエンジンはそのどれをも動かしえます —— 依存エッジも含みます。新しいエンジンが旧エンジンの取り逃がしたエッジを記録した場合、再チェックはまさに再解析が必要だったファイルをスキップしてしまいます。唯一のエンジン非依存セクションを残すことも割に合いません: `digests`はこのリポジトリの2.5 MBのスナップショットの2.5%であり、再導出はファイルダイジェストの走査で、節約するはずのフル実行の約0.2%のコストです。したがってエンジンの編集は、設定や`sig/`の編集がすでにそう振る舞うのとまったく同じに振る舞います。
 
 `Protection::MutationCache`はスナップショットをロードする前に`EngineSource`をプローブします。どちらでも健全です —— 同定不能なエンジンは`nil`のフィンガープリントを生み、それがスナップショットのロードを失敗させてキャッシュを無効化します —— が、そうしないとユーザーが目にする理由が`NO_SNAPSHOT`になってしまい、それは`rigor check --incremental`を実行せよという、別の問題に対する対処を伝えてしまいます。
+
+### 計算された値のキーにおけるプロジェクトの依存関係の同一性
+
+値がアナライザーの計算するものの関数であるキャッシュは、エンジンのソースでキーを取るのと同じ理由で、プロジェクトの**依存関係のロックファイル**でもMUSTキーを取らなければなりません。ロックされたgemの集合は、どのバンドル同梱の`sig/`ディレクトリがロードされるか、どの`rbs_collection`のディレクトリがロードされるか、どの[ADR-72](../../adr/72-gemfile-lock-gated-rbs-overlays/)のgemオーバーレイが適用されるか、ADR-82 WD9の欠落gemの定数インデックスが何を所有するか、そして`rbs.coverage.missing-gem`が発火するかどうかを決めます——それでいてロックファイルの編集は、解析されるソースにも`.rbs`ファイルにも触れないので、実行の同一性の他のどの要素もそれとともに動きません。これなしでキーを取ると、ウォームな実行は`bundle add`より前の診断を再生します: `call.undefined-method`が、オーバーレイによってそれが撤回されることを許可する編集をまたいで生き延び、逆向きにプライムすれば、それを取り消す編集の後も沈黙したままになります（[#564](https://github.com/rigortype/rigor/issues/564)）。
+
+`Analysis::RunCacheKey.descriptor`はそのために2つの設定スロット`bundler.lockfile`と`rbs_collection.lockfile`を運び、それぞれ、対応するリゾルバ（`Environment::LockfileResolver.resolve_lockfile_path` / `Environment::RbsCollectionDiscovery.resolve_lockfile_path`）が実行の設定の下で解決するファイルのSHA-256を保持します:
+
+- **パスではなく内容**。キャッシュのキーはマシンローカルなデータを運んではなりません（`FileEntry`を参照）。そして内容だけのスロットこそが、移動したチェックアウト——CIのワークスペース、リネーム——でも同一のロックファイルならヒットさせるものです。
+- **不在も1つの値である**。解決されるロックファイルがないことは、スロットを落とすのではなく自身のセンチネルを運びます: 「不在」と「存在するが空」が同じキーになってはなりません。
+- **依存関係のエントリーではなくキーのスロット**。記録された依存関係ディスクリプタが言えるのは「私が記録したファイルが変わった」だけです;エントリーが書かれた時点では存在せず今は存在するロックファイルを表現できません。それが最初の`bundle install`のケースです。
+
+どちらのスロットも`descriptor`の内側で設定だけから構築されるので、ミスのパス（`Analysis::Runner`）とADR-87 WD4のブートスリムのヒットのパス（`Analysis::RunCacheProbe`）は構成上それらを得ることになり、キーの合意から乖離しえません——そのモジュールが存在して保持している不変条件がこれです。どちらのリゾルバも葉のファイルなので、プローブは`rigor/environment`もRBSの機構もロードせずにそれらへ到達します。
+
+`IncrementalSnapshot.fingerprint`は常に同じ2つのロックファイルをハッシュしてきました（上記の§2段階のゲーティング）;ここで述べているのは、他の計算された値のキャッシュも同じ規則に従わされる、ということです。
+
+残余が1つ、閉じられているのではなく意図的に残されています: **ロックファイルの変更なしにバンドルのルートの下で**gemがインストールまたは削除されたケースは、半分だけカバーされています。発見された`sig/*.rbs`のファイルは記録された依存関係なので削除は無効化しますが、出現は無効化しません。
 
 ### 読み込みフォールトトレランス
 

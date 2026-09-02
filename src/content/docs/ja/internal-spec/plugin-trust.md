@@ -3,8 +3,8 @@ title: "プラグインの信頼とI/Oポリシー（スライス2）"
 description: "rigortype/rigor docs/internal-spec/plugin-trust.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/plugin-trust.md"
 sourcePath: "docs/internal-spec/plugin-trust.md"
-sourceSha: "4156b2d5d9dd76f8336b0f12654af8a7954230826565e9600df9dda0d8967b3c"
-sourceCommit: "e3eb424c3c88035e453246710c8df3dc5cc8e7e1"
+sourceSha: "58a3a0008836d77bf26ce1972a7cc9140cd5fb74d91942cede099d6bf98897c2"
+sourceCommit: "8e1432f5ada5240b33f140cb2024e6025450b2f9"
 translationStatus: "translated"
 sidebar:
   order: 3050
@@ -45,11 +45,11 @@ ADR-2は**強制的な隔離より文書化**を明示的に選択していま�
 
 | メソッド | 目的 |
 | --- | --- |
-| `#read_file(path)` | 絶対パスをポリシーに対して検証し、バイトを読み込み、`:digest`の{Cache::Descriptor::FileEntry}を境界の蓄積エントリーに追加します。拒否されたパスに対しては{Rigor::Plugin::AccessDeniedError}（`reason: :read_outside_scope`）を発生させます。 |
+| `#read_file(path)` | 絶対パスをポリシーに対して検証し、バイトを読み込み、`:stat`の（ADR-87 WD1）{Cache::Descriptor::FileEntry}を境界の蓄積エントリーに追加します。拒否されたパスに対しては{Rigor::Plugin::AccessDeniedError}（`reason: :read_outside_scope`）を発生させます。パスが存在しないために読み取りが失敗した場合（`Errno::ENOENT`、または親の構成要素が通常ファイルであるときの`Errno::ENOTDIR`）は、再raiseする前に**不在の行**（`FileEntry.absent(path:)`、`:exists`の比較器）を記録します（ADR-45 WD1）。 |
 | `#open_url(url)` | `:disabled`の下では{Rigor::Plugin::AccessDeniedError}（`reason: :network_disabled`）を発生させます。`:allowlist`（v0.1.2）の下では、パース済みホストが`allowed_url_hosts`にあるときHTTPS経由でGETを実行し、リクエストタイムアウト（10秒）とレスポンスボディサイズ上限（10 MB）を強制します;失敗時は`reason:`が`:invalid_url_scheme`・`:host_not_allowed`・`:http_error`・`:request_timeout`・`:body_too_large`のいずれかの`AccessDeniedError`を発生させます。 |
 | `#cache_descriptor` | 境界が蓄積した`FileEntry`行を持つ新しい凍結された{Cache::Descriptor}を返します。後続の読み込みは基底レコードテーブルを拡張します；各呼び出しはその時点での読み込み履歴を反映した新しいディスクリプタを返します。 |
 
-パスごとの読み込みは絶対パスによって重複排除されます；内容が変更されたファイルの再読み込みはエントリーのダイジェストを上書きします。
+パスごとの読み込みは絶対パスによって重複排除されます；内容が変更されたファイルの再読み込みはエントリーのダイジェストを上書きします。読み取りの成功は、同じパスに対する以前の不在の行を置き換えます（ファイルが現れ、そのバイトが消費された）;不在の行が以前の内容の行を置き換えることは決してありません（1回の実行で1つのパスに2つの結果が出るということは、解析の足下でファイルが動いたということであり、内容と存在の両方を検証がカバーするのは内容の行のほうだからです）。
 
 ### `Rigor::Plugin::AccessDeniedError`
 

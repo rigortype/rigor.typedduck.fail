@@ -3,8 +3,8 @@ title: "リフレクションファサード — `Rigor::Reflection`"
 description: "rigortype/rigor docs/internal-spec/reflection.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/reflection.md"
 sourcePath: "docs/internal-spec/reflection.md"
-sourceSha: "394b3254761134eff182d1792c7c2ade4d07d19f070e64f254dff97e9b5b1fa5"
-sourceCommit: "17f7d081a694f9cfdfaebd7fc71ebfc7171e2a6d"
+sourceSha: "32d5073e924227a02d48fa1f53975cf7c16e53dcc752ce4ab88a0f642ed51d67"
+sourceCommit: "8e1432f5ada5240b33f140cb2024e6025450b2f9"
 translationStatus: "translated"
 sidebar:
   order: 3050
@@ -53,7 +53,7 @@ RBSを参照するメソッドは`scope:` **または** `environment:`の**ど�
 ### ソース側の発見
 
 - `Rigor::Reflection.discovered_class?(class_name, scope: Scope.empty)` — 解析対象ソースにクラス/モジュール宣言が含まれる場合に`true`。RBSローダーを参照しない（ユニオン（union、合併型とも）には`class_known?`を使用）。
-- `Rigor::Reflection.discovered_method?(class_name, method_name, kind: :instance, scope: Scope.empty)` — `ScopeIndexer`が指定のクラスの指定のメソッドに対して一致する種類の`def`を記録した場合に`true`。背後のテーブルはメソッド名ごとに1つの値しか保持しないため、クラスの**両側**に定義された名前（`def helper`と`class << self`側の双子）は`Scope::DiscoveryIndex::METHOD_KIND_BOTH`として記録され、どちらの種類に対しても`true`を返さなければならない（MUST）—— 一方の側の種類をもう一方で上書きしてしまうライターは、実際に動作するコードに対して偽の`call.undefined-method`を生む。
+- `Rigor::Reflection.discovered_method?(class_name, method_name, kind: :instance, scope: Scope.empty)` — `ScopeIndexer`が指定のクラスの指定のメソッドに対して一致する種類の`def`を記録した場合に`true`。背後のテーブルはメソッド名ごとに1つの値しか保持しないため、クラスの**両側**に定義された名前（`def helper`と`class << self`側の双子）は`Scope::DiscoveryIndex::METHOD_KIND_BOTH`として記録され、どちらの種類に対しても`true`を返さなければならない（MUST）—— 一方の側の種類をもう一方で上書きしてしまうライターは、実際に動作するコードに対して偽の`call.undefined-method`を生む。**ミス**は、`Analysis::DependencyRecorder`が有効なときは常にADR-46の負の依存関係`method:<Class>#<name>`（`kind: :singleton`なら`method:<Class>.<name>`）を記録しなければならない（MUST）: このファサードはプラグインのプロジェクト定義のゲートが参照する読み取りであり、寄与の層はディスパッチがエンジン自身の記録用アクセサ（`Scope#user_def_for` / `#singleton_def_for`）へ届くより前に答えるので、他の何もそのエッジを記録せず、ウォームな`--incremental`の再チェックは、プロジェクトがそのメソッドを定義した後もプラグインの答えを提供してしまう。キーの文法は`Analysis::IncrementalSession#negative_key_for`が逆変換するものである。ファイルをまたぐと、`kind: :instance`の答えがカバーするのは、インデクサーがクロスファイルのテーブルへ公開する名前だけ——アクセサ / エイリアス / `define_method`の名前とシングルトンの半分——であり、素のインスタンス`def`はそこでは意図的に差し控えられる（ADR-17のモンキーパッチの契約、`ScopeIndexer#finalize_def_index`）。したがって、プロジェクトの素のインスタンス`def`を見なければならないゲートは、この述語ではなくエンジンのディスパッチ（`Scope#user_def_for`）を参照する。トップレベルの擬似クラスはエンジンによって`method:<toplevel>#<name>`ではなく`toplevel:<name>`でキー付けされる;今日それを問い合わせる呼び出し元はない——追加する前に2つを統一すること。
 
 ## 来歴
 

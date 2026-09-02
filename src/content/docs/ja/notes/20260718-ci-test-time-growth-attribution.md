@@ -4,7 +4,7 @@ description: "Imported from rigortype/rigor docs/notes/20260718-ci-test-time-gro
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260718-ci-test-time-growth-attribution.md"
 sourcePath: "docs/notes/20260718-ci-test-time-growth-attribution.md"
 sourceSha: "08201db8f25ecb026a839cbf7ae3c1ee347b4231bf8887800be8412cffc7efe6"
-sourceCommit: "2d0ffe6f38d01cfd850527c57987b27487b414d4"
+sourceCommit: "8e1432f5ada5240b33f140cb2024e6025450b2f9"
 sourceDate: "2026-07-18T05:49:53+09:00"
 sourceLanguage: "ja"
 sidebar:

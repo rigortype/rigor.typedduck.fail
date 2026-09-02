@@ -3,8 +3,8 @@ title: "rigor-activerecord"
 description: "rigortype/rigor docs/manual/plugins/rigor-activerecord.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/plugins/rigor-activerecord.md"
 sourcePath: "docs/manual/plugins/rigor-activerecord.md"
-sourceSha: "ff92479b2784ba5ae0b9f0fe2617d5b05e5604a5edf106dd29203d823e23b369"
-sourceCommit: "18d6992f544e6222fd7ed015ba6bbee6f0bd7f14"
+sourceSha: "1ae508de82b36a3502b695aed5e2cc441df626f43f86433aaa306893ab0fb9ae"
+sourceCommit: "8e1432f5ada5240b33f140cb2024e6025450b2f9"
 translationStatus: "translated"
 sidebar:
   order: 9050
@@ -34,7 +34,8 @@ errors_demo.rb:24:1: error: `User.find` expects at least 1 argument, got 0 [plug
 | 認識された`Model.find`／`Model.find_by`／`Model.where`の呼び出し | `:info` | `plugin.activerecord.model-call` |
 | `Model.find_by(unknown: ...)`／`Model.where(unknown: ...)` | `:error` | `plugin.activerecord.unknown-column` |
 | 引数0個の`Model.find` | `:error` | `plugin.activerecord.wrong-arity` |
-| スキーマソース（`db/schema.rb`または`db/structure.sql`）が読み取れない | `:warning` | `plugin.activerecord.load-error` |
+| スキーマソース（`db/schema.rb`または`db/structure.sql`）が存在しない——縮退モード | `:info` | `plugin.activerecord.load-error` |
+| 存在するが読み取れない、またはパースできないスキーマソース | `:warning` | `plugin.activerecord.load-error` |
 
 「もしかして」候補は、解決されたテーブルのカラム名に対する`DidYouMean`のファジーマッチングを用います。
 
@@ -63,10 +64,15 @@ plugins:
 
 リレーションを返す呼び出し箇所 ── `User.where(...)`、`User.all`、`User.order(...)`、`has_many`／`has_and_belongs_to_many`のアクセサ（`user.posts`）、ユーザー宣言の`scope`（`Post.published`）── は`ActiveRecord::Relation[Model]`にナローイングされます。チェーンされたクエリメソッドは要素型を保持し、イテレーション（`user.posts.each { |p| ... }`）はモデルを生み出します。型付きリレーションに対して呼び出されたユーザー定義のスコープ（`User.where(...).published`）が、誤った`call.undefined-method`を表面化させることはありません。
 
+`User.table_name`は`String`と型付けされ、厳密な文字列になるのは、あなたのソースがその名前を述べているときだけです: クラス上またはSTIの祖先上のリテラルな`self.table_name = "people"`であって、その連鎖の中に実行時に名前を計算するものが何もない場合です（`def self.table_name`、その`class << self`版、補間を伴う代入は、いずれも計算しているとみなされます）。それ以外の名前——プラグインがクラス名を複数形化して導出したもの——はすべて素の`String`のままです。
+
+これには確定して見える名前も含まれます。スキーマ内の`users`テーブルは、それが`User`のテーブルであることの証拠にはなりません: ベースクラスに`self.table_name_prefix`があれば`User`は実際には`app_users`を読みますし、別のモデルに属する`users`テーブルが誤った推測を「確定」させてしまうこともあります。誤った厳密な文字列は、正直な`String`よりも悪い——`User.table_name`を比較するコードが黙って誤った分岐を取ってしまう——ので、このプラグインはあなたが書き下したものだけを固定します。`User.quoted_table_name`は常に`String`です;クォートの仕方はデータベースアダプタ次第だからです。
+
 ## 制限事項
 
 - **直接のスーパークラスのみマッチ**。`User < ApplicationRecord`である状況下での`class Admin < User`は発見されません。`User`を`model_base_classes`に追加するか、すべての具体的なモデルを明示的に列挙してください。
 - **PostgreSQLの`db/structure.sql`フォールバック**。`db/schema.rb`がないとき、プラグインは同じカラム／型テーブルのために`db/structure.sql`（`schema_format = :sql`のダンプ）をパースします。PostgreSQL DDLのみを読みます;SQL型にRubyのマッピングがないカラム（カスタムenum、`tsvector`、`ltree`）は`Object`へ降格し（決して落とさない）、`public`以外のスキーマのパーティションテーブルはスキップされます。
+- **コミットされたスキーマがない——縮退モード**。生のマイグレーションを出荷し`db/schema.rb`をgitignoreするプロジェクト（DBに依存しないRailsのパターン）でも、テーブル名・ファインダー・スコープ・関連は得られます: それらはスキーマではなくあなたのモデルのソースから読まれるからです。役目を降りるのはカラムに依存する半分だけです——カラムのリーダーは型なしのままになり、`where(col:)`のキーは検証されません。スキーマが記述していないテーブルに対するのとまったく同じです。プラグインは実行ごとに1回`:info`でそう述べます。スキーマのダンプをコミットする（または`schema_file` / `structure_sql_file`をそれへ向ける）と、次のコールドの実行からカラム側の半分が再びオンになります——ウォームなキャッシュは無効化されるまで縮退したインデックスを提供し続けるので、すぐに変化を見たいときは`rigor check --no-cache`（または`make cache-clean`）を使ってください。
 - **カラムの読み取りであり、セッターではない**。このプラグインはインスタンス側のカラムの*読み取り*（`user.name`、`user.admin?`）と単数の関連を型付けしますが、`name=`セッターやダーティトラッキング系（`name_changed?`、`name_was`、…）は型付けしません。
 - **プロジェクト独自のインフレクションはまだ読み取られない**。モデル↔テーブルの複数形化は本物のActiveSupportインフレクターを通ります（そのため`Person → people`、`Mouse → mice`は解決されます）が、`config/initializers/inflections.rb`で宣言したルールはまだ取り込まれません ── それに依存するモデルには`self.table_name`が必要です（ADR-39スライス3）。
 

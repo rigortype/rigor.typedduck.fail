@@ -3,8 +3,8 @@ title: "rigor-actionpack"
 description: "rigortype/rigor docs/manual/plugins/rigor-actionpack.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/plugins/rigor-actionpack.md"
 sourcePath: "docs/manual/plugins/rigor-actionpack.md"
-sourceSha: "68148018c4381f1be5611fabcec8ffd45b2cc4edf51fd12a673e3e6c783eb0cc"
-sourceCommit: "4c03f62d04f594030bd79aa00f3a5978e0457d4c"
+sourceSha: "9fc6a1a98cb3f67082bcc1eb79e7c52474293412c803a99c906a1fef84863fe8"
+sourceCommit: "8e1432f5ada5240b33f140cb2024e6025450b2f9"
 translationStatus: "translated"
 sidebar:
   order: 9050
@@ -54,11 +54,32 @@ plugins:
       view_search_paths: ["app/views"]               # default
 ```
 
+## 何を型付けするか
+
+コントローラーの内側では、`params`・`request`・`session`・`flash`・`cookies`はそれぞれのAction Packのクラスとして型付けされ、その上に組み立てられる連鎖も同様です:
+
+```ruby
+request.post?          # bool — and so do get? / put? / patch? / delete? /
+                       # head? / options? / trace? / link? / unlink? /
+                       # xhr? / xml_http_request? / ssl? / local? / form_data?
+flash.now              # ActionDispatch::Flash::FlashNow
+flash.keep             # ActionDispatch::Flash::FlashHash
+flash[:notice] = "hi"  # "hi" — an assignment is its right-hand side
+```
+
+RigorはこれらのAction Packのクラスについて意図的に**シグネチャを出荷しません**: レシーバーは具体的になり（`rigor coverage --protection`がそのサイトを数えます）、一方でメソッドのサーフェスは寛容なままになるので、`request.headers`・`flash.now[:alert] = x`、その他フレームワークが追加するものはすべて診断なしで解決されます。部分的なシグネチャは、ないよりも悪くなります——省いたメンバーはすべて偽の`call.undefined-method`になってしまうからです。
+
+これらの述語は`bool`——`true`と`false`のユニオン——として型付けされます。これは本物の契約でもあり（そのどれもがRailsまたはRackの中の`==`・`match?`・`include?`です）、そもそもこれらを型付けしても安全である理由でもあります: 畳み込まれる条件は*1つの*定数を証明する必要があり、両方のユニオンは決してそれを証明しないからです。`return unless request.post?`や`mode = request.get? ? :a : :b`は以前とまったく同じに読めます。
+
+`request.format`は型付けされ**ません**。この不活性の議論は見た目より狭いのです——それが成り立つのは2つの真偽値の定数のユニオンについてであって、通常のクラスのユニオンについてではありません。後者はnilを含まないので条件を畳み込むことが*できます*——そして`format`がフォーマットのないときに返す値`Mime::NullType`は、実在するオブジェクトでありながら`nil?`に`true`と答えます。これを型付けするにはnilを意識した答えが必要です。
+
 ## 制限事項
 
 - **暗黙のselfヘルパーのみ**。明示的なレシーバーを持つ`*_path`／`*_url`呼び出し（`Rails.application.routes.url_helpers.x_path`）は素通りします。
 - **パスベースのファイルフィルタ**。`controller_search_paths`下のファイルはクラス階層にかかわらずチェックされます。そこに置かれた非コントローラーファイル（まれ）もスキャンされてしまいます。
 - **カバレッジはアップストリームのファクトに従う**。ヘルパーの検証は`rigor-rails-routes`が公開したものだけを把握し、`permit`の検証は`rigor-activerecord`が公開したものだけを把握します ── これらのプロデューサーを有効化すると、このプラグインがチェックできる範囲が広がります。
+- **`params[:key]`は型なしのまま**。コントローラーの内側では`params`は`ActionController::Parameters`として型付けされ、常にそれを返すビルダーのメソッド——`require`・`permit`・`permit!`・`expect`・`slice`・`slice!`・`except`・`without`・`extract!`・`merge`・`merge!`・`reverse_merge`・`reverse_merge!`・`with_defaults`・`with_defaults!`・`compact`・`compact_blank`・`deep_dup`——の結果も同様なので、それらから組み立てた連鎖は全体を通じて具体的なレシーバーを保ちます。添字による読み取りは意図的に型なしのまま残されます: `params[:missing]`は実行時に`nil`であり、そうでないと述べる型は、フローのルールに生きた条件（`if params[:q]`・`url.nil?`）を定数へ畳み込ませ、動作するコードを報告させてしまうからです。結果が呼び出しに依存するメソッド——`dig`・`fetch`・`compact!`、およびブロックなしの`select` / `reject` / `transform_keys` / `transform_values`——も同じ理由で型なしです。
+- **`flash[:key]`と`session[:key]`も型なしのまま**。同じ理由であり、同じやり方で計測しました。どちらも、格納されたものを——設定されていないキーには`nil`を——返す葉の読み取りです。nilでない型は`mode = flash[:notice] ? … : …`を片方の腕へ畳み込み、その後の生きたガードを報告します;nil許容の型は`note = flash[:notice]; note.upcase`に`call.possible-nil-receiver`を乗せます。これらを通じた書き込みは影響を受けません: `flash[:k] = v`が`v`なのは、Rubyで代入式が意味するものがそれだからであり、ルールは必要ありません。
 
 ## プラグインの内部
 

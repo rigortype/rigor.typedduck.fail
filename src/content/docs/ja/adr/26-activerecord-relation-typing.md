@@ -3,8 +3,8 @@ title: "ADR-26 — ActiveRecord relationの型付け"
 description: "rigortype/rigor docs/adr/26-activerecord-relation-typing.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/26-activerecord-relation-typing.md"
 sourcePath: "docs/adr/26-activerecord-relation-typing.md"
-sourceSha: "026c930b6c906dece209f4c500a9d08619043e882534efc4eb026db46a24c4ca"
-sourceCommit: "a5d648b126d5ed7b1e04a16a87927bca7883e069"
+sourceSha: "f6d001c2713ae26cea63123dc03b9a515ac693e8ffa9d13c1136bce017b1e90d"
+sourceCommit: "8e1432f5ada5240b33f140cb2024e6025450b2f9"
 translationStatus: "translated"
 sidebar:
   order: 4026
@@ -84,6 +84,12 @@ G1〜G3は、リレーションレシーバーが、エンジンがディスパ�
 - **WD5 — 同梱RBSの衝突はADR-25のフェイラーメモを通じて縮退する**。自身のActiveRecord RBSを供給する（たとえば`rbs collection`経由）プロジェクトは、同梱の`ActiveRecord::Relation`と衝突する；その衝突は既存のプラグインRBSフェイラーメモ（ADR-25 WD4）によって処理される — より豊かな上流の定義が勝ち、`open_receivers`は依然としてそのクラスを免除する。
 
 - **WD6 — `open_receivers`は1.0以前のプラグイン契約（contract）に加法的である**。新しいオプショナルなマニフェストフィールドであり、既存のプラグインは何も壊れない；v0.1.x / v0.2.x内で安全である。
+
+- **WD7 — この免除はシグネチャを読むルールにも及ぶが、継承した名前に限る**。WD1は`call.undefined-method`を免除した。RBSが列挙できない名前はタイポの証拠にならない、という根拠で。同じ根拠が、そのような名前に対して解決された*シグネチャ*も失格にする: `Issue.visible.open`は宣言されたスコープだが、`open`は`Kernel#open`でもあるので、解決はRelationの祖先関係を歩き、呼び出しを`(String, ...)`に対して検査してしまう。Redmineでの#569のコーパス実行で発見された——動作するコードに対する3件の`call.wrong-arity`エラーと、`open(false)`に対する`call.argument-type-mismatch`。衝突する集合はObject/Kernelのすべての名前（`open`・`select`・`test`・`format`・`p`・`system`、…）なので、そう名付けられたスコープを持つプロジェクトは、最初のホップが型付けされた瞬間にこのエラーを引き継ぐ。したがって免除は`call.wrong-arity`と`call.argument-type-mismatch`へ拡張され、オープンクラスが宣言し**なかった**メソッドに限定される: `Relation#limit`はプラグイン自身の同梱RBSにあるので、引数なしの`relation.limit`は依然として発火する。
+
+  これが払うコストは、動機となった衝突より広く、そのコストは承知のうえで受け入れている。「継承した」は、解決された定義サイトに対する構文的な判定であって、そのメソッドが本当にそこにあるかどうかの判断ではない——だから、Relationが祖先*を通じて*本当に持っているサーフェスも、アリティと引数型の検査を失う。計測されたケースは同梱のrelationのRBS内の`include Enumerable[Elem]`である: 引数なしの`relation.each_slice`は実行時には本物の`ArgumentError`であり、この変更の前は捕まえられていたが、後では沈黙する。「継承かつ委譲」と「継承かつ本当に存在する」を区別するには、マニフェストが運んでいない祖先ごとの知識が要る。ここでは偽陽性が偽陰性に優先する——Kernelの衝突は、そう名付けられたスコープを持つあらゆるプロジェクトの動作するコードで発火するのに対し、失われる検査は稀であり、偽陰性が重要だと判明したなら明白な後続作業がある。
+
+- **WD8 — この免除は`open_receivers`だけでなく「有界でないサーフェス」でキーされる**。`CheckRules`はWD1とWD7の免除の両方に`unbounded_receiver_surface?`を通じて到達し、そのもう半分は`RbsLoader#synthesized_type_names`——Rigorが見つけられなかったクラスのために鋳造するスタブ型——である。スタブは自身の列挙可能なメソッドテーブルを持たないので、あらゆる名前が祖先を通じて解決され、シグネチャを読む両方のルールがそれに対して辞退する。これは同じ推論（照合すべき権威あるものが何もない）が同じ結論に達したものだ;ここで明示するのは、プラグインのマニフェストのフィールドを読む者には、この免除にプラグイン非依存の半分があると分からないからである。
 
 ## 却下された代替案
 

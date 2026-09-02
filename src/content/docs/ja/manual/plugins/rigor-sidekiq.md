@@ -3,8 +3,8 @@ title: "rigor-sidekiq"
 description: "rigortype/rigor docs/manual/plugins/rigor-sidekiq.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/plugins/rigor-sidekiq.md"
 sourcePath: "docs/manual/plugins/rigor-sidekiq.md"
-sourceSha: "2b728564bd237aedbd18a1dcc52bfb2aea6d01550ca3d97f47ecf0078b3669ba"
-sourceCommit: "0cf313582cfbe2fa7da8148dc498d0b2a0893438"
+sourceSha: "16114011e03431d6a7889b299d1af0fc1655b407524a3443705e4843c1b07320"
+sourceCommit: "8e1432f5ada5240b33f140cb2024e6025450b2f9"
 translationStatus: "translated"
 sidebar:
   order: 9050
@@ -43,6 +43,20 @@ WelcomeEmailWorker.perform_in                 # error: requires a schedule as it
 | `plugin.sidekiq.wrong-arity` | error | 転送される引数の個数が`#perform`のアリティの範囲外に収まる（メッセージは`perform_in` / `perform_at`のスケジュール切り出しを示します） |
 | `plugin.sidekiq.missing-schedule` | error | `perform_in()` / `perform_at()`が引数ゼロで呼ばれた（`#perform`が引数を取らない場合でもスケジュールは必須） |
 | `plugin.sidekiq.load-error` | warning | ワーカーの発見に失敗した（パース / 読み込みエラー） ── ファイルごとに1回 |
+
+## 何を型付けするか
+
+**発見された**ワーカー上の`perform_async` / `perform_in` / `perform_at`はジョブIDを返すので、代入される値は`String`です:
+
+```ruby
+jid = WelcomeEmailWorker.perform_async(123)
+jid.upcase                # String — resolved, and checked
+OtherThing.perform_async  # untouched: not a discovered worker
+```
+
+`perform_inline`は型付けされません——ジョブをインプロセスで実行し、あなたの`#perform`が返すものをそのまま返すからです。
+
+型は`String?`ではなく素の`String`です。クライアントのミドルウェアがチェーンを止めたとき`Sidekiq::Client#push`はnilを返すにもかかわらず、そうしています。そのパスには、あなた自身のアプリの中に`#call`からfalseを返すミドルウェアが必要であり——稀で、意図的で、すでにチェックすることを知っているコードです——一方でnil許容として型付けすると、ごく普通の`jid = W.perform_async(id); jid.length`に`call.possible-nil-receiver`のエラーが乗ってしまいます。Rigorは、よくあるコードに対して沈黙する側の答えを取ります。
 
 ## 設定
 

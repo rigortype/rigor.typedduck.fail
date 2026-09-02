@@ -3,8 +3,8 @@ title: "プラグイン側キャッシュプロデューサー（スライス6�
 description: "rigortype/rigor docs/internal-spec/plugin-cache-producers.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/plugin-cache-producers.md"
 sourcePath: "docs/internal-spec/plugin-cache-producers.md"
-sourceSha: "7ab8a18da95e40a9e7d3297eedf24b0756764681a4224b72e95d40019fe00fb6"
-sourceCommit: "e3eb424c3c88035e453246710c8df3dc5cc8e7e1"
+sourceSha: "601d9478e8510cb6feb19d58b867c5289559078863ca1d9abe99d0e68cba801f"
+sourceCommit: "8e1432f5ada5240b33f140cb2024e6025450b2f9"
 translationStatus: "translated"
 sidebar:
   order: 3050
@@ -38,7 +38,7 @@ ADR-7 §「スライス6」は3つの実装上の選択を固定します：
 
 ### `Rigor::Plugin::Base#io_boundary`
 
-プラグインごとにメモ化された`Rigor::Plugin::IoBoundary`（スライス2）。境界が蓄積したエントリーが`cache_for`ラウンドトリップのキャッシュ無効化に使われます: ADR-60 WD3のrecord-and-validateの下では、境界スナップショットはプロデューサーブロックの実行**後に**取られるため、ブロックが行うすべての読み込み（計算の途中で発見した読み込みを含む）がキャプチャされます——「`cache_for`の前に読む」という順序要件はありません。`#read_file(path)`は`:digest`の`FileEntry`を記録します;`#open_url(url)`は`"url:#{url}"`でキーされた`ConfigEntry`を記録し、その`value_hash`はレスポンスボディのSHA-256です。依存ディスクリプタ内の`ConfigEntry`（URL読み込み）はそのエントリーを決して新鮮（fresh）でない状態にします——URLをフェッチしたプロデューサーは毎回再計算しますが、これは健全です（リモートドキュメントには安価なローカル再検証手段がありません）。以下の「無効化契約」を参照してください。
+プラグインごとにメモ化された`Rigor::Plugin::IoBoundary`（スライス2）。境界が蓄積したエントリーが`cache_for`ラウンドトリップのキャッシュ無効化に使われます: ADR-60 WD3のrecord-and-validateの下では、境界スナップショットはプロデューサーブロックの実行**後に**取られるため、ブロックが行うすべての読み込み（計算の途中で発見した読み込みを含む）がキャプチャされます——「`cache_for`の前に読む」という順序要件はありません。`#read_file(path)`は`:stat`の`FileEntry`を記録します——あるいはパスが存在しないときは、ファイルが現れた時点で古くなる不在の行（`FileEntry.absent`、ADR-45 WD1 / #577）を記録します;`#open_url(url)`は`"url:#{url}"`でキーされた`ConfigEntry`を記録し、その`value_hash`はレスポンスボディのSHA-256です。依存ディスクリプタ内の`ConfigEntry`（URL読み込み）はそのエントリーを決して新鮮（fresh）でない状態にします——URLをフェッチしたプロデューサーは毎回再計算しますが、これは健全です（リモートドキュメントには安価なローカル再検証手段がありません）。以下の「無効化契約」を参照してください。
 
 ADR-60 WD3で`Plugin::Base#glob_descriptor(roots, *patterns)`は**プライベート**になりました（これは`watch:`が実装される土台となるビルディングブロックです）；プラグインコードはディスクリプタを手作業で合成する代わりに`watch:`を宣言します。
 
@@ -82,7 +82,7 @@ class MyRailsPlugin < Rigor::Plugin::Base
 end
 ```
 
-`cache_for`の前の`read_file`はディスクリプタに格納される`:digest`の`FileEntry`を記録します；ファイルが実行間で変更された場合、ダイジェストが変わり、キャッシュキーが変わり、`cache_for`はプロデューサーにフォールスルーします。プロデューサー本体は同じパスのファイルを再読み込みします；キャッシュミス時に境界が再びデータを収集し、事後のダイジェストが新しいエントリーに書き込まれます。
+`cache_for`の前の`read_file`はディスクリプタに格納される`:stat`の`FileEntry`を記録します；ファイルが実行間で変更された場合、ダイジェストが変わり、キャッシュキーが変わり、`cache_for`はプロデューサーにフォールスルーします。パスが存在しないために失敗する`read_file`は、代わりに不在の行を記録します（ADR-45 WD1、#577）。したがって、欠けているファイルに対してフォールバックを取ったプロデューサー——`Errno::ENOENT`をrescueした`:schema_table`——は、そのファイルが現れた時点で再計算します。プロデューサー本体は同じパスのファイルを再読み込みします；キャッシュミス時に境界が再びデータを収集し、事後のダイジェストが新しいエントリーに書き込まれます。
 
 より豊かな無効化（gemバージョン・外部設定ファイル・兄弟プラグインの状態）を求めるプラグイン作成者は現在それらをparamsハッシュに合成します；将来の拡張が`cache_for`に明示的なディスクリプタパラメータを追加するかもしれません。
 
