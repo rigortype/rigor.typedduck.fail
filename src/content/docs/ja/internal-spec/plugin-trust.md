@@ -3,8 +3,9 @@ title: "プラグインの信頼とI/Oポリシー（スライス2）"
 description: "rigortype/rigor docs/internal-spec/plugin-trust.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/plugin-trust.md"
 sourcePath: "docs/internal-spec/plugin-trust.md"
-sourceSha: "58a3a0008836d77bf26ce1972a7cc9140cd5fb74d91942cede099d6bf98897c2"
-sourceCommit: "8e1432f5ada5240b33f140cb2024e6025450b2f9"
+sourceSha: "2da4cfdf97d63cecbae5cee18c23744caaf535678134f1104d7aff24bfef3ca9"
+sourceCommit: "2a65ec8e52462c931fbfec94df68a18139259a43"
+sourceDate: "2026-09-02T14:42:06+09:00"
 translationStatus: "translated"
 sidebar:
   order: 3050
@@ -46,10 +47,11 @@ ADR-2は**強制的な隔離より文書化**を明示的に選択していま�
 | メソッド | 目的 |
 | --- | --- |
 | `#read_file(path)` | 絶対パスをポリシーに対して検証し、バイトを読み込み、`:stat`の（ADR-87 WD1）{Cache::Descriptor::FileEntry}を境界の蓄積エントリーに追加します。拒否されたパスに対しては{Rigor::Plugin::AccessDeniedError}（`reason: :read_outside_scope`）を発生させます。パスが存在しないために読み取りが失敗した場合（`Errno::ENOENT`、または親の構成要素が通常ファイルであるときの`Errno::ENOTDIR`）は、再raiseする前に**不在の行**（`FileEntry.absent(path:)`、`:exists`の比較器）を記録します（ADR-45 WD1）。 |
+| `#file?(path)` / `#directory?(path)` | **存在プローブ（existence probe）**（ADR-45 WD1b / #613）。スコープ内か外かに関わらず、一切例外を発生させることなく、`File.file?` / `File.directory?`が返すものを正確に返します——そしてその結果を`:exists`の{Cache::Descriptor::FileEntry}として記録します: プローブが求めたものを見つけた場合は`FileEntry.present`、パスに何も存在しない場合は`FileEntry.absent`、そこに何かが存在するが求められたものではない場合は**何も記録しません**（ファイルが欲しかった場所にディレクトリがある場合など。これは`#read_file`が`EISDIR`に対してピン留めする境界と同じです）。ポリシーがゲートするのは回答ではなく記録です: スコープ外の読み取りが何も行を寄与しないのとまったく同様に、スコープ外のパスは何も行を寄与しません。プラグインコードはプロジェクトのパスにおいて`File.file?` / `File.directory?`よりもこれらを優先しなければなりません（MUST）: 素の`File`プローブは何も記録しないため、その不在によって形作られた結果が、ファイルが現れた後も再び提供されてしまいます。 |
 | `#open_url(url)` | `:disabled`の下では{Rigor::Plugin::AccessDeniedError}（`reason: :network_disabled`）を発生させます。`:allowlist`（v0.1.2）の下では、パース済みホストが`allowed_url_hosts`にあるときHTTPS経由でGETを実行し、リクエストタイムアウト（10秒）とレスポンスボディサイズ上限（10 MB）を強制します;失敗時は`reason:`が`:invalid_url_scheme`・`:host_not_allowed`・`:http_error`・`:request_timeout`・`:body_too_large`のいずれかの`AccessDeniedError`を発生させます。 |
 | `#cache_descriptor` | 境界が蓄積した`FileEntry`行を持つ新しい凍結された{Cache::Descriptor}を返します。後続の読み込みは基底レコードテーブルを拡張します；各呼び出しはその時点での読み込み履歴を反映した新しいディスクリプタを返します。 |
 
-パスごとの読み込みは絶対パスによって重複排除されます；内容が変更されたファイルの再読み込みはエントリーのダイジェストを上書きします。読み取りの成功は、同じパスに対する以前の不在の行を置き換えます（ファイルが現れ、そのバイトが消費された）;不在の行が以前の内容の行を置き換えることは決してありません（1回の実行で1つのパスに2つの結果が出るということは、解析の足下でファイルが動いたということであり、内容と存在の両方を検証がカバーするのは内容の行のほうだからです）。
+パスごとの読み込みは絶対パスによって重複排除されます；内容が変更されたファイルの再読み込みはエントリーのダイジェストを上書きします。読み取りの成功は、同じパスに対する以前の不在の行を置き換えます（ファイルが現れ、そのバイトが消費された）;不在の行が以前の内容の行を置き換えることは決してありません（1回の実行で1つのパスに2つの結果が出るということは、解析の足下でファイルが動いたということであり、内容と存在の両方を検証がカバーするのは内容の行のほうだからです）。同じ順序付けがプローブ行にも適用されます: コンテンツ行は任意の存在行を置き換え、1つのパスに対する2つの存在行の間では最初に記録されたものが優先されます——それがどちらであれ、以前の決定が形作られた世界を記述しており、世界がそれに一致しなくなった瞬間に古くなるため、実行途中の変更は誤ったヒットではなく再計算のコストを伴うようになります。
 
 ### `Rigor::Plugin::AccessDeniedError`
 

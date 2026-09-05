@@ -3,8 +3,9 @@ title: "rigor-activesupport-core-ext"
 description: "rigortype/rigor docs/manual/plugins/rigor-activesupport-core-ext.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/plugins/rigor-activesupport-core-ext.md"
 sourcePath: "docs/manual/plugins/rigor-activesupport-core-ext.md"
-sourceSha: "d0d4be991c54b7dc281722e4380c5cf1d1e139f9ba6d0a6f043ed9730b713e18"
-sourceCommit: "8e1432f5ada5240b33f140cb2024e6025450b2f9"
+sourceSha: "e79f4c76c8c211f9107dd9dbfe0db3baa87dbf7ef79e6a3fa05636a1e2d9687a"
+sourceCommit: "2a65ec8e52462c931fbfec94df68a18139259a43"
+sourceDate: "2026-09-03T05:18:44+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9050
@@ -30,7 +31,7 @@ plugins:
 - **Object（全クラス共通）** ── `#blank?`、`#present?`、`#presence`、`#try`、`#try!`、`#acts_like?`（および`NilClass` / `TrueClass` / `FalseClass`）。
 - **Integer / Float** ── Duration乗数（`#days`、`#hours`、`#minutes`、…）とBytes乗数（`#megabytes`、`#gigabytes`、…）。
 - **String** ── 語形変化（`#underscore`、`#camelize`、`#classify`、`#constantize`、`#pluralize`、…）、フィルタ（`#squish`、`#truncate`）、`#html_safe`、`#starts_with?` / `#ends_with?`、変換。
-- **Time / Date / DateTime** ── `.current`、`.zone`、`#yesterday`、`#tomorrow`、`#beginning_of_*` / `#end_of_*`、`#ago`、`#since`。
+- **Time / Date / DateTime** ── `.current`、`.zone`、`#yesterday`、`#tomorrow`、`#beginning_of_*` / `#end_of_*`、`#ago`、`#since`。`Time`はさらにRailsインスタンスサーフェス**全体**を担います（後述）；`Date`と`DateTime`は従来と同じサブセットを担います。
 - **Array** ── `.wrap`、`#to_sentence`、`#in_groups_of`、`#second` … `#fifth`、`#compact_blank`、`#exclude?`。
 - **Hash** ── `#symbolize_keys` / `#stringify_keys`（およびdeep / bang版）、`#deep_merge`、`#with_indifferent_access`、`#except!`。
 - **Enumerable** ── `#index_by`、`#index_with`、`#pluck`、`#exclude?`。
@@ -55,9 +56,31 @@ Date.today - 1.week       # Date | Time
 
 `Date ± duration`がユニオンなのは、Railsがそうするからです: 日付単位のdurationは`Date`を返し、1日未満のものは`Time`を返します。
 
-Rigorは意図的に`ActiveSupport::Duration`の**シグネチャを出荷しません**。そうすることでDurationのサーフェス全体が寛容なままになり——`1.day.ago`・`5.minutes.from_now`・`3.hours.in_minutes`、その他Durationが`method_missing`を通じて転送するものはすべて診断なしで解決されます——一方でそのサイトは`rigor coverage --protection`にとって具体的なレシーバーとして数えられます。部分的なシグネチャは、ないよりも悪くなります: 省いたメンバーはすべて偽の`call.undefined-method`になってしまうからです。
+Rigorは`ActiveSupport::Duration`の**部分的な（partial）**シグネチャを出荷します: リーダーサーフェス——`#to_i` / `#in_seconds`、`#to_f`、`#in_minutes` / `#in_hours` / `#in_days` / `#in_weeks` / `#in_months` / `#in_years`、`#iso8601`、`#parts`——が型付けされているため、`3.hours.in_minutes`は`Float`になり、`1.day.to_i * 2`は`Integer`になります。`#ago` / `#until` / `#before` / `#since` / `#from_now` / `#after`はそのサーフェスの一部では**ありません**——それらは`Time.current`にデフォルト設定され、それらの型付けはRailsの`Time`インスタンス拡張がまず宣言されることがブロッカーになっていましたが、以下のセクションでそれが行われます; 乗数自体は個別に追跡されます。それ以外のすべてのメンバー——上記の算術演算子、`==`、その他Durationが`method_missing`を通じて転送するすべてのもの——も診断なしで解決され、一方でそのサイトは`rigor coverage --protection`にとって具体的なレシーバーとして数えられます。そもそも`ActiveSupport::Duration`を名指すことは通常なら誤った判断になります——実際のサーフェスが`method_missing`に転送するクラスに対する部分的なシグネチャは、省略されたすべてのメンバーを偽の`call.undefined-method`に変えてしまうからです——そのため、プラグインはそれを`open_receivers:`の下に列挙します。これは`rigor-activerecord`が`ActiveRecord::Relation`に与えているのと同じ免除です。
 
 乗数が発火するのは、Rigorが数値であると証明したレシーバーに対してだけなので、`created_at.day`・`Date.today.year`・あなた自身のオブジェクトの`#days`は、これまでどおりの答えを保ちます。
+
+## Railsの`Time`インスタンスサーフェスはサンプリングではなく宣言される
+
+`Time`はRubyのコアクラスであるため、RBSはそれを完全に知っており、**閉じられて（closed）**います: シグネチャが宣言していない名前は`call.undefined-method`と報告されます。これにより、`Time`での省略は誤った戻り値型とまったく同様に偽陽性となり、漸進的な中間（gradual middle）は存在しないため、本バンドルは「上位セレクタ」のサンプルではなく、gem自身のソースに対する監査によってActiveSupportが追加するサーフェスを宣言します。
+
+```ruby
+Time.current.to_fs(:db)             # String
+Time.current.formatted_offset       # String
+Time.current.past?                  # bool
+Time.current.at_beginning_of_hour   # Time
+Time.current.days_ago(3).all_week   # Range[Time]
+Time.current.in_time_zone("Hawaii") # untyped (ActiveSupport::TimeWithZone)
+Time.current.definitely_not_here    # 依然として call.undefined-method
+```
+
+これには述語（`#past?`、`#future?`、`#today?`、`#on_weekend?`、…）、`#days_ago` / `#months_since` / `#next_occurring`ファミリー全体、四半期および`at_`接頭辞の表記、`#all_week` / `#all_month` / `#all_quarter` / `#all_year`の範囲、`#to_fs` / `#to_formatted_s` / `#formatted_offset` / `#rfc3339`、`#in_time_zone`、そして`Time.`シングルトンである`.days_in_month`、`.days_in_year`、`.rfc3339`、`.use_zone`、`.find_zone` / `.find_zone!`、`.zone_default`が含まれます。
+
+正直に名前を付けられない戻り値については、推測するのではなく拡大されます: `#in_time_zone`は`ActiveSupport::TimeWithZone`を返しますが、本バンドルはこれをモデル化していないため、`untyped`と読まれます。
+
+実際の`require "active_support/all"`と比較して除外されているのは12の名前です: インスタンス10個とシングルトン2個で、いずれもActiveSupport自身の`+` / `-` / `<=>` / `eql?` / `Time.at`オーバーライドの`alias_method`アーティファクトです——`plus_with{,out}_duration`、`minus_with{,out}_duration`、`minus_with{,out}_coercion`、`compare_with{,out}_coercion`、`eql_with{,out}_coercion`、および`Time.at_with{,out}_coercion`のペアです。これらは実行時にpublicであり、ソース上では`:nodoc:`であり、ActiveSupportの外部のコードがそれらを呼び出すことはありません; 呼び出すコードに対しては報告されます。
+
+`Date`および`DateTime`は同じActiveSupportモジュールによって拡張されていますが、これらはまだこれを担って**いません**——`Date.current.past?`は依然として報告されます。
 
 ## diagnosticなし、設定なし
 
@@ -65,11 +88,11 @@ Rigorは意図的に`ActiveSupport::Duration`の**シグネチャを出荷しま
 
 ## 制限事項
 
-- **保守的な戻り値型**。`#html_safe`は（`SafeBuffer`ではなく）`String`として型付けされ、`#try` / `#try!`は`untyped`を返します ── それらについての目的はundefined-methodを黙らせることであり、精密な戻り値を与えることではありません。（Durationの乗数は例外です: バンドルでは`untyped`と宣言され、その後プラグインによって型付けされます。バンドルが宣言してはならないクラスを名指す唯一の方法がこれだからです。）
+- **保守的な戻り値型**。`#html_safe`は（`SafeBuffer`ではなく）`String`として型付けされ、`#try` / `#try!`は`untyped`を返します ── それらについての目的はundefined-methodを黙らせることであり、精密な戻り値を与えることではありません。（Durationの乗数は1つの例外です: バンドルでは`untyped`と宣言され、代わりにプラグインによって型付けされます——バンドルが`ActiveSupport::Duration`を名指すことができないからではなく（上述のとおり名指しています）、乗数の戻り値自体を一致させるようにRBSへ移動させることがまだ行われていないためです。`ActiveSupport::Duration`自身のリーダーサーフェスはもう1つの例外であり、上述のとおりです。）
 - **`duration / x`は型付けされない**。`1.day / 2`はDurationですが`1.day / 1.hour`は素の`24`です;答えがオペランドに依存するので、Rigorは推測せずに辞退します。
 - **`duration + Time`も型付けされない**。`30.minutes + Time.now`は実行時にraiseします——`Duration#+`はTimeを強制変換できず、`-`・`*`、そして右辺の`Date`や`DateTime`も同じように失敗します——ので、Rigorはそれについて何も主張しません。値を持つ形は`Time.now + 30.minutes`のほうであり、それは`Time`と型付けされます。
 - **プロジェクト固有のモンキーパッチはカバーされません** ── 本物のActiveSupport拡張のみが対象です。自前のコアクラスパッチについては`pre_eval:`メカニズム（[ADR-17](../../../adr/17-monkey-patch-pre-evaluation/)）を参照してください。
-- **上位40程度のセレクタであり、網羅的ではありません**。ActiveSupportは数百もの拡張を提供しています。本バンドルは実世界の分布の先頭部分をカバーします。
+- **上位40程度のセレクタであり、網羅的ではありません** ── `Time`を除きます。`Time`では上記の閉じられたコアクラスの議論によりサンプルが不健全となるため、監査はそこで挙げられた12個の`:nodoc:`エイリアスチェーンアーティファクトを除いて網羅的です。それ以外の場所ではActiveSupportは数百もの拡張を提供しており、本バンドルは実世界の分布の先頭部分をカバーします。
 
 ## プラグインの内部
 

@@ -3,8 +3,9 @@ title: "制御フロー解析"
 description: "rigortype/rigor docs/type-specification/control-flow-analysis.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/type-specification/control-flow-analysis.md"
 sourcePath: "docs/type-specification/control-flow-analysis.md"
-sourceSha: "debde045c1d5dd28b77be5c9798ca6e8f9888fea9de7ce89603483c52c4db625"
-sourceCommit: "0cf313582cfbe2fa7da8148dc498d0b2a0893438"
+sourceSha: "038e93dc10f1c5636b1c04981d98705789bc71c6c909fd4e38682b86e705e50e"
+sourceCommit: "2a65ec8e52462c931fbfec94df68a18139259a43"
+sourceDate: "2026-09-02T15:16:47+09:00"
 translationStatus: "translated"
 sidebar:
   order: 2050
@@ -232,6 +233,31 @@ Rigorは等価ファクトを信頼レベルで分類すべきです（SHOULD）
 - プラグイン提供のフロー貢献。
 
 各v1.1サーフェスはフィーチャーフラグの後ろで提供されるため、より大きなサーフェスが着地する間もv1の挙動は安定したままです。
+
+## バージョンガードの条件畳み込み
+
+**バージョンガード（version guard）**は、API世代間を選択するために、実行中のRuby——またはRigorが読み取れるバージョン定数——をリテラルと比較する`if` / `unless`述語です。複数バージョンをサポートするライブラリはこの形状を日常的に持っています:
+
+```ruby
+if Gem::Version.new(Psych::VERSION) >= Gem::Version.new("3.1.0.pre1")
+  ::YAML.safe_load(yaml, permitted_classes: permitted_classes)
+else
+  ::YAML.safe_load(yaml, permitted_classes)   # the Psych < 3.1 positional form
+end
+```
+
+そのような比較の両辺が決定可能である場合、Rigorはガードを畳み込み、実行できないブランチ（arm）を**到達不能（unreachable）**として扱わなければなりません（MUST）: そのブランチは診断を生成してはならず（MUST NOT）、そのバインディングは`if`後のスコープに結合してはなりません（MUST NOT）——これは`if false`がすでに受けている扱いとまったく同じです。Rigorはガード自体に対して`flow.always-truthy-condition`（またはその他の冗長な条件に関する診断）を報告してはなりません（MUST NOT）: バージョンガードは意図的なものであり、それを報告してしまうと正しいコードに対して発火してしまいます。
+
+基準値はアナライザーを実行しているRubyから読み取られます。これは`RUBY_VERSION`が絞り込まれ、core/stdlib RBSがロードされるのと同じ前提です。畳み込み可能なセットは意図的にクローズドになっています:
+
+- `<`, `<=`, `>`, `>=`, `==`, `!=`に対する`RUBY_VERSION <cmp> "x.y.z"`。比較は**String**のセマンティクスを使用しなければなりません（MUST）。なぜならそれが実行されるものだからです——Rubyは文字列を辞書順で比較するため、3.9上では`RUBY_VERSION >= "3.10"`は偽（false）となり、Rigorは理想化されたバージョン順序ではなくそれを再現しなければなりません（MUST）。
+- `Gem::Version.new(a) <cmp> Gem::Version.new(b)`。両辺がラップされ、`Gem::Version`のセマンティクスで比較されます。*混在した*比較（片方がラップされ、もう片方が素のString）は畳み込んではなりません（MUST NOT）: `Gem::Version#<=>`は非`Gem::Version`オペランドに対してnilを返すため、実行時に比較が例外を発生させ、どちらのブランチも生存しません。
+- `RUBY_ENGINE == / != "…"`。エンジン名に対する順序比較はバージョンガードではなく、畳み込んではなりません（MUST NOT）。
+- `X::VERSION`。**実行中のRubyのデフォルトgem**に属する定数に対してのみ。プロジェクトが自身の`Gemfile.lock`を通じてバージョンを解決するgemは、アナライザーのランタイムから読み取ってはなりません（MUST NOT）。2つのコピーが異なる可能性があるためです。
+
+それ以外のものはすべて両方のブランチを生存させたままにします。これは常に安全な回答です: `<=>`（評決ではなく順序を生成するため）、`RUBY_PLATFORM`（それに対するすべての比較は構築上プラットフォーム依存であり、チェックマシンが実行マシンである必要はないため）、`defined?`スタイルの機能プローブ、`!` / `&&` / `||`の合成、`case`の対象、および2つの素のStringリテラル間の比較（バージョンガードではなく定数比較）。読み取り不能なオペランドを持つガードは決定不能であり、その両方のブランチは生存したままでなければなりません（MUST）。
+
+根拠と偽陽性の議論: [ADR-47](../adr/47-narrowing-driven-clause-reachability/) § WD5。
 
 ## 診断
 

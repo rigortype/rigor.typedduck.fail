@@ -3,8 +3,9 @@ title: "アーキテクチャ決定記録"
 description: "rigortype/rigor docs/adr/README.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/README.md"
 sourcePath: "docs/adr/README.md"
-sourceSha: "d273e938589b4430d146caedba7ba3d5a2a6c969c6feecce77f5c76e64e852e6"
-sourceCommit: "8e1432f5ada5240b33f140cb2024e6025450b2f9"
+sourceSha: "189203514222eef2cbe3eac2f4b3138b49c5ee87c5161c86ba84ab16756d07a6"
+sourceCommit: "2a65ec8e52462c931fbfec94df68a18139259a43"
+sourceDate: "2026-09-03T22:06:38+09:00"
 translationStatus: "translated"
 sidebar:
   order: 4000
@@ -53,7 +54,7 @@ sidebar:
 | ADR-27 | [ツール配布・インストールモデル](27-tool-distribution-model/) | Accepted（部分実装；Nix flake・コンテナイメージ・CIテンプレートを出荷；シングルバイナリは見送り） |
 | ADR-28 | [パススコープのメソッドプロトコル契約](28-path-scoped-protocol-contracts/) | Accepted |
 | ADR-29 | [ブラウザプレイグラウンド](29-browser-playground/) | Accepted（v0.1.10〜0.1.11でサーバーサイドプレイグラウンド；ブラウザ内`ruby.wasm`ビルドを2026-06-14/15に出荷） |
-| ADR-30 | [`rigor-ffi`プラグインの形状](30-rigor-ffi-plugin-shape/) | Proposed（未実装） |
+| ADR-30 | [`rigor-ffi`プラグインの形状](30-rigor-ffi-plugin-shape/) | Accepted |
 | ADR-31 | [貢献およびサプライチェーンポリシー](31-contribution-and-supply-chain-policy/) | Accepted（発効中） |
 | ADR-32 | [オプトインプラグインとしてのインラインRBSコメント取り込み](32-rbs-inline-comment-ingestion/) | Accepted（WD11/WD12はrbs-inline gemをリーダーとして維持、2026-07-30） |
 | ADR-33 | [MCPサーバーパッケージング](33-mcp-server/) | Accepted（v0.1.10で実装） |
@@ -70,7 +71,7 @@ sidebar:
 | ADR-44 | [ディスパッチごと／ナローイングごとのアロケーションチャーン（Scope、CallContext）](44-dispatch-allocation-churn/) | Accepted（ボディスコープの折り畳み＋アロケーション衛生が着地；ミュータブルなプール化は却下；フィールド再グループ化は優先度引き下げ） |
 | ADR-45 | [変更なしプロジェクトの高速パス（実行結果キャッシュ）](45-unchanged-project-fast-path/) | Accepted（record-and-validateな実行キャッシュが着地；素朴な解析前フィンガープリントは不健全として却下） |
 | ADR-46 | [ファイル間依存グラフによるインクリメンタル解析](46-incremental-dependency-graph/) | Accepted（スライス1〜4が着地、ファイルの追加・削除を含む；`--incremental`はCIで`--verify-incremental`にゲートされる） |
-| ADR-47 | [ナローイング駆動の節到達可能性（`flow.unreachable-clause`）](47-narrowing-driven-clause-reachability/) | Accepted（WD1〜WD3aが着地、v0.1.17；WD4の16コーパススイープは発火ゼロ；WD3bは見送り） |
+| ADR-47 | [ナローイング駆動の節到達可能性（`flow.unreachable-clause`）](47-narrowing-driven-clause-reachability/) | Accepted（WD1〜WD3aが着地、v0.1.17；WD4の16コーパススイープは発火ゼロ；WD5バージョンガードアームが着地；WD3bは見送り） |
 | ADR-48 | [Struct / Data値畳み込み（メンバーシェイプキャリア）](48-data-struct-value-folding/) | Accepted（`Data.define`スライス1〜4が着地、v0.1.17；Structスライス1〜3が着地、スライス4は見送り） |
 | ADR-49 | [ADR執筆ガイドライン（必要十分なADRのためのルーブリック）](49-adr-authoring-guidelines/) | Accepted（発効中；生きているルーブリック） |
 | ADR-50 | [リリースエンジニアリングと安定化戦略（v0.2.0 → v1.0.0）](50-release-engineering-and-stability-strategy/) | Proposed（v0.2.0はリリースエンジニアリングの試行；v1.0.0はハードな契約フリーズ） |
@@ -108,7 +109,7 @@ sidebar:
 | ADR-82 | [`Dynamic[T]`の由来（provenance）配線: 実アプリでキャッチオールを打破する](82-dynamic-provenance-wiring/) | Accepted（WD1〜3,6〜9を2026-07-06／07-11に実装；WD4は見送り；原因なし49%→26%） |
 | ADR-83 | [Dynamic-origin代数: `Dynamic`へ吸収せずユニオンアームを保つ](83-dynamic-origin-algebra/) | Accepted（`value-lattice.md`のジョイン代数を置き換える;仕様をエンジンの振る舞いに合わせて改訂） |
 | ADR-84 | [クロスファイル戻り値メモのスコープ設定とtaint-preciseなストアゲート](84-cross-file-return-memo-scoping/) | Accepted（WD1をPR #79で着地；WD2〜WD3を実装；mailの本体評価3,355→557） |
-| ADR-85 | [ファイルごとのシードバンドルと遅延def-nodeハンドル（事前パスのインクリメンタル化）](85-seed-bundles-and-lazy-def-node-handles/) | Accepted（WD1をPR #81で；WD2〜WD3をPR #82で；gitlabのウォームインクリメンタルのアロケーション1670万→206万） |
+| ADR-85 | [ファイルごとのシードバンドルと遅延def-nodeハンドル（事前パスのインクリメンタル化）](85-seed-bundles-and-lazy-def-node-handles/) | Accepted（WD1をPR #81で；WD2〜WD3をPR #82で；WD5を#707で；gitlabのウォームインクリメンタルのアロケーション1670万→206万） |
 | ADR-86 | [残余のホットパスに対する部分的ネイティブ拡張（却下;rigor-rsがネイティブ速度を所有する）](86-partial-native-extensions/) | Accepted（ネイティブ拡張の恒久的な却下；rigor-rsがネイティブ速度を所有；WD4候補を段階化） |
 | ADR-87 | [ヌルビルドフロア: stat-then-digest検証、ゼロ変更のスナップショットスキップ、ヒットパスのブートスリム化](87-null-build-floor/) | Accepted（WD1〜WD5を実装、PR #85；ADR-54の却下されたmtime高速パスを優越） |
 | ADR-88 | [インクリメンタルなプラグインファクトの健全性](88-incremental-plugin-fact-soundness/) | Accepted（WD1〜WD4を実装、PR #89；WD5は見送り） |

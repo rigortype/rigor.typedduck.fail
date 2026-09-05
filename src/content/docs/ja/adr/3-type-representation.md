@@ -3,8 +3,9 @@ title: "ADR-3: 内部型表現"
 description: "rigortype/rigor docs/adr/3-type-representation.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/3-type-representation.md"
 sourcePath: "docs/adr/3-type-representation.md"
-sourceSha: "1b355d3ba0dd4bacb8998828aea9c259c923bc1ab4a5615fc1f19d570e9b4246"
-sourceCommit: "aec4ca7f5f87b1972dea8fecaaf5b62c8880a3af"
+sourceSha: "5f1d42e0a91902d76caa416d7984aac02a594c5017944468eaa6197c934815d5"
+sourceCommit: "2a65ec8e52462c931fbfec94df68a18139259a43"
+sourceDate: "2026-09-03T19:00:16+09:00"
 translationStatus: "translated"
 sidebar:
   order: 4003
@@ -135,7 +136,7 @@ RigorはRubyを対象とします。Rubyの3つの特性がPHPStanモデルか�
 - **特殊型**: `Top`、`Bot`、`Dynamic`、`Void`。`Untyped`は構築時に`Dynamic[Top]`に解決されます。
 - **名前的型**: `Nominal`、`Singleton`、`Self`、`Instance`、`ClassMarker`。
 - **構造的型**: `Interface`、`ObjectShape`、`Capability`、`MethodSignature`、`ProcSignature`、`BlockSignature`。
-- **コンテナ**: `ArrayShape`、`Tuple`、`HashShape`、`Record`。
+- **コンテナ**: `ArrayShape`、`Tuple`、`HashShape`、`Record`。また汎用エンベロープキャリア`Result[T, E]`と`Maybe[T]`（ADR-20スライス4修正）。
 - **定数**: `Constant`はスカラーリテラルを持ちます（OQ1オプションCで解決）。
 - **コンビネータ**: `Union`（実装済み）、`Intersection`、`Difference`、`Complement`。
 - **リファインメント**: OQ3オプションCごとに、リファインメントは2層に分割されます。点除去は`Difference[BaseType, RemovedSet]`を使用。述語サブセットは`Refined[BaseType, predicate]`を使用。`IntegerRange`は専用の有界整数キャリアとして残ります。

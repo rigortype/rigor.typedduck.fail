@@ -3,8 +3,9 @@ title: "プラグインの使用"
 description: "rigortype/rigor docs/manual/07-plugins.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/07-plugins.md"
 sourcePath: "docs/manual/07-plugins.md"
-sourceSha: "b65c5ef055fb012b74149bbc8c20e888f568ca007516f47efe221d8eed1ea803"
-sourceCommit: "2d0ffe6f38d01cfd850527c57987b27487b414d4"
+sourceSha: "02c0a3c520ecbcb4cf58b754e8f0e13180e9010f83a2516d0a9f293a5778cfc1"
+sourceCommit: "2a65ec8e52462c931fbfec94df68a18139259a43"
+sourceDate: "2026-09-04T16:47:48+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9007
@@ -20,8 +21,9 @@ sidebar:
 plugins:
   - rigor-activerecord
   - rigor-rspec
-  - rigor-rails-routes
 ```
+
+設定ファイルが存在しない場合、Rigorはプラグインなしで動作します。
 
 各名前は`rigortype` gem内にバンドル済みのプラグインです。追加のインストールは不要です。`plugins:`の下に列挙するだけで有効化できます。設定が必要なプラグインはオブジェクト形式を使います:
 
@@ -39,6 +41,7 @@ Rigorは[`plugins/`](https://github.com/rigortype/rigor/blob/master/plugins/READ
 - **Rails**: `rigor-activerecord`、`rigor-actionpack`、`rigor-rails-routes`、`rigor-rails-i18n`、`rigor-actionmailer`、`rigor-activejob`、`rigor-activestorage`、`rigor-actioncable`。使いたいものを`plugins:`の下に列挙してください。Railsセットをグループとしてまとめて有効化する包括的なエントリーはありません（[ADR-96](../adr/96-plugin-target-gems/) WD3が1つ提案しています）。
 - **Testing**: `rigor-rspec`、`rigor-rspec-rails`、`rigor-minitest`、`rigor-shoulda-matchers`、`rigor-factorybot`。
 - **dry-rb**: `rigor-dry-types`、`rigor-dry-schema`、`rigor-dry-struct`、`rigor-dry-validation`。
+- **FFI**: `rigor-ffi`およびサブプラグイン（`rigor-ffi-rzmq`、`rigor-rbnacl`、`rigor-sassc`、`rigor-ethon`）。プラグイン作者向けには、`rigor-ffi`はカスタムバインディング定義を認識するための`ffi_binding_recognizer`クラスDSLを`Rigor::Plugin::Base`上に提供します。
 - **その他のエコシステム**: `rigor-sinatra`、`rigor-hanami`、`rigor-devise`、`rigor-pundit`、`rigor-sidekiq`、`rigor-graphql`、`rigor-statesman`、`rigor-sorbet`、`rigor-typescript-utility-types`、`rigor-activesupport-core-ext`。
 
 ## `plugins/` vs `examples/`

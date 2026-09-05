@@ -3,8 +3,9 @@ title: "リフレクションファサード — `Rigor::Reflection`"
 description: "rigortype/rigor docs/internal-spec/reflection.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/reflection.md"
 sourcePath: "docs/internal-spec/reflection.md"
-sourceSha: "32d5073e924227a02d48fa1f53975cf7c16e53dcc752ce4ab88a0f642ed51d67"
-sourceCommit: "8e1432f5ada5240b33f140cb2024e6025450b2f9"
+sourceSha: "165fe4e4f73847c3bbeb8e6de88a8514005bc2b1a7b18aa7e39404ae5917ffff"
+sourceCommit: "2a65ec8e52462c931fbfec94df68a18139259a43"
+sourceDate: "2026-09-04T09:54:10+09:00"
 translationStatus: "translated"
 sidebar:
   order: 3050
@@ -47,13 +48,14 @@ sidebar:
 - `Rigor::Reflection.instance_definition(class_name, scope: nil, environment: nil)` — インスタンス側の完全な`RBS::Definition`（メソッドテーブル / メンバーリスト全体）、または`nil`。1メソッドではなくクラスを歩く呼び出し元向け。
 - `Rigor::Reflection.singleton_definition(class_name, scope: nil, environment: nil)` — シングルトン側の完全な`RBS::Definition`、または`nil`。
 - `Rigor::Reflection.class_type_param_names(class_name, scope: nil, environment: nil)` — RBS宣言された型パラメータ名を`Array<Symbol>`で（例: `Array[Elem]`なら`[:Elem]`）、非ジェネリックまたは未知のクラスなら`[]`。ジェネリックなメソッド型を具体的なレシーバーにバインドするときに使う。
+- `Rigor::Reflection.project_declared_class?(class_name, scope: nil, environment: nil)` — バンドルされたcore / stdlib / gem RBSではなく、プロジェクト自身の`signature_paths:`配下にそのクラスのRBS宣言が存在する場合に`true`。この区別はAUTHORITY（権威）の区別である: バンドルされたシグネチャはプロジェクトが所有していないクラスを記述するため、それに対するプロジェクトの`def`はモンキーパッチとなる。プロジェクトのサイドカーは解析対象のまさにそのソースを記述するため、プロジェクトの別のファイル内の`def`はそのクラス自身の定義である。帰属は宣言バッファ名によって行われ、特定できない場合（ローダーがない、環境がない、バッファ名の保持以前の環境BLOBなど）は常に`false`を返さなければならない（MUST）—— フェイルソフトな回答は診断を変更しない回答である。
 
 RBSを参照するメソッドは`scope:` **または** `environment:`の**どちらか**を受け付ける（後者は`Scope`を持たないディスパッチャー呼び出しサイト向け）;どちらも与えられないときは`Scope.empty`の環境にフォールバックする。
 
 ### ソース側の発見
 
 - `Rigor::Reflection.discovered_class?(class_name, scope: Scope.empty)` — 解析対象ソースにクラス/モジュール宣言が含まれる場合に`true`。RBSローダーを参照しない（ユニオン（union、合併型とも）には`class_known?`を使用）。
-- `Rigor::Reflection.discovered_method?(class_name, method_name, kind: :instance, scope: Scope.empty)` — `ScopeIndexer`が指定のクラスの指定のメソッドに対して一致する種類の`def`を記録した場合に`true`。背後のテーブルはメソッド名ごとに1つの値しか保持しないため、クラスの**両側**に定義された名前（`def helper`と`class << self`側の双子）は`Scope::DiscoveryIndex::METHOD_KIND_BOTH`として記録され、どちらの種類に対しても`true`を返さなければならない（MUST）—— 一方の側の種類をもう一方で上書きしてしまうライターは、実際に動作するコードに対して偽の`call.undefined-method`を生む。**ミス**は、`Analysis::DependencyRecorder`が有効なときは常にADR-46の負の依存関係`method:<Class>#<name>`（`kind: :singleton`なら`method:<Class>.<name>`）を記録しなければならない（MUST）: このファサードはプラグインのプロジェクト定義のゲートが参照する読み取りであり、寄与の層はディスパッチがエンジン自身の記録用アクセサ（`Scope#user_def_for` / `#singleton_def_for`）へ届くより前に答えるので、他の何もそのエッジを記録せず、ウォームな`--incremental`の再チェックは、プロジェクトがそのメソッドを定義した後もプラグインの答えを提供してしまう。キーの文法は`Analysis::IncrementalSession#negative_key_for`が逆変換するものである。ファイルをまたぐと、`kind: :instance`の答えがカバーするのは、インデクサーがクロスファイルのテーブルへ公開する名前だけ——アクセサ / エイリアス / `define_method`の名前とシングルトンの半分——であり、素のインスタンス`def`はそこでは意図的に差し控えられる（ADR-17のモンキーパッチの契約、`ScopeIndexer#finalize_def_index`）。したがって、プロジェクトの素のインスタンス`def`を見なければならないゲートは、この述語ではなくエンジンのディスパッチ（`Scope#user_def_for`）を参照する。トップレベルの擬似クラスはエンジンによって`method:<toplevel>#<name>`ではなく`toplevel:<name>`でキー付けされる;今日それを問い合わせる呼び出し元はない——追加する前に2つを統一すること。
+- `Rigor::Reflection.discovered_method?(class_name, method_name, kind: :instance, scope: Scope.empty)` — `ScopeIndexer`が指定のクラスの指定のメソッドに対して一致する種類の`def`を記録した場合に`true`。背後のテーブルはメソッド名ごとに1つの値しか保持しないため、クラスの**両側**に定義された名前（`def helper`と`class << self`側の双子）は`Scope::DiscoveryIndex::METHOD_KIND_BOTH`として記録され、どちらの種類に対しても`true`を返さなければならない（MUST）—— 一方の側の種類をもう一方で上書きしてしまうライターは、実際に動作するコードに対して偽の`call.undefined-method`を生む。**ミス**は、`Analysis::DependencyRecorder`が有効なときは常にADR-46の負の依存関係`method:<Class>#<name>`（`kind: :singleton`なら`method:<Class>.<name>`）を記録しなければならない（MUST）: このファサードはプラグインのプロジェクト定義のゲートが参照する読み取りであり、寄与の層はディスパッチがエンジン自身の記録用アクセサ（`Scope#user_def_for` / `#singleton_def_for`）へ届くより前に答えるので、他の何もそのエッジを記録せず、ウォームな`--incremental`の再チェックは、プロジェクトがそのメソッドを定義した後もプラグインの答えを提供してしまう。キーの文法は`Analysis::IncrementalSession#negative_key_for`が逆変換するものである。ファイルをまたぐと、`kind: :instance`の答えがカバーするのは、インデクサーがクロスファイルのテーブルへ公開する名前だけ——アクセサ / エイリアス / `define_method`の名前とシングルトンの半分——であり、素のインスタンス`def`はそこでは意図的に差し控えられる（ADR-17のモンキーパッチの契約、`ScopeIndexer#finalize_def_index`）。したがって、プロジェクトの素のインスタンス`def`を見なければならないゲートは、この述語ではなくエンジンのディスパッチ（`Scope#user_def_for`）を参照する。その差し控えはTABLE（テーブル）に関するものであり、すべてのコンシューマーに関するものではない: レシーバーの宣言がプロジェクトのサイドカー（`project_declared_class?`）である場合、いずれの側であってもプロジェクトが自身のファイルのいずれかで定義しているメソッドに対して`call.undefined-method`を発火してはならない（MUST NOT）—— そこでの「パッチ」はそのクラス自身の2番目のファイルであり、診断が持つ`pre_eval:`のアドバイスはユーザーに自身のアプリケーションを事前評価するよう求める。トップレベルの擬似クラスはエンジンによって`method:<toplevel>#<name>`ではなく`toplevel:<name>`でキー付けされる;今日それを問い合わせる呼び出し元はない——追加する前に2つを統一すること。
 
 ## 来歴
 

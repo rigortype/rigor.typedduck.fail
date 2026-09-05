@@ -3,8 +3,9 @@ title: "プラグイン側キャッシュプロデューサー（スライス6�
 description: "rigortype/rigor docs/internal-spec/plugin-cache-producers.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/plugin-cache-producers.md"
 sourcePath: "docs/internal-spec/plugin-cache-producers.md"
-sourceSha: "601d9478e8510cb6feb19d58b867c5289559078863ca1d9abe99d0e68cba801f"
-sourceCommit: "8e1432f5ada5240b33f140cb2024e6025450b2f9"
+sourceSha: "7b361830c22e3c178ab74d7f871b6460a684c2b820229184a38fbebab738d4a9"
+sourceCommit: "2a65ec8e52462c931fbfec94df68a18139259a43"
+sourceDate: "2026-09-02T14:42:06+09:00"
 translationStatus: "translated"
 sidebar:
   order: 3050
@@ -38,7 +39,7 @@ ADR-7 §「スライス6」は3つの実装上の選択を固定します：
 
 ### `Rigor::Plugin::Base#io_boundary`
 
-プラグインごとにメモ化された`Rigor::Plugin::IoBoundary`（スライス2）。境界が蓄積したエントリーが`cache_for`ラウンドトリップのキャッシュ無効化に使われます: ADR-60 WD3のrecord-and-validateの下では、境界スナップショットはプロデューサーブロックの実行**後に**取られるため、ブロックが行うすべての読み込み（計算の途中で発見した読み込みを含む）がキャプチャされます——「`cache_for`の前に読む」という順序要件はありません。`#read_file(path)`は`:stat`の`FileEntry`を記録します——あるいはパスが存在しないときは、ファイルが現れた時点で古くなる不在の行（`FileEntry.absent`、ADR-45 WD1 / #577）を記録します;`#open_url(url)`は`"url:#{url}"`でキーされた`ConfigEntry`を記録し、その`value_hash`はレスポンスボディのSHA-256です。依存ディスクリプタ内の`ConfigEntry`（URL読み込み）はそのエントリーを決して新鮮（fresh）でない状態にします——URLをフェッチしたプロデューサーは毎回再計算しますが、これは健全です（リモートドキュメントには安価なローカル再検証手段がありません）。以下の「無効化契約」を参照してください。
+プラグインごとにメモ化された`Rigor::Plugin::IoBoundary`（スライス2）。境界が蓄積したエントリーが`cache_for`ラウンドトリップのキャッシュ無効化に使われます: ADR-60 WD3のrecord-and-validateの下では、境界スナップショットはプロデューサーブロックの実行**後に**取られるため、ブロックが行うすべての読み込み（計算の途中で発見した読み込みを含む）がキャプチャされます——「`cache_for`の前に読む」という順序要件はありません。`#read_file(path)`は`:stat`の`FileEntry`を記録します——あるいはパスが存在しないときは、ファイルが現れた時点で古くなる不在の行（`FileEntry.absent`、ADR-45 WD1 / #577）を記録します; `#file?(path)` / `#directory?(path)`はプロデューサーが読み取らなかったプローブに対して同じ存在依存関係を記録します（`FileEntry.present` / `FileEntry.absent`、WD1b / #613）——代わりに`File.file?`で自身の処理をゲートしたプロデューサーは何も記録せず、ファイルが現れた後も提供されてしまいます; `#open_url(url)`は`"url:#{url}"`でキーされた`ConfigEntry`を記録し、その`value_hash`はレスポンスボディのSHA-256です。依存ディスクリプタ内の`ConfigEntry`（URL読み込み）はそのエントリーを決して新鮮（fresh）でない状態にします——URLをフェッチしたプロデューサーは毎回再計算しますが、これは健全です（リモートドキュメントには安価なローカル再検証手段がありません）。以下の「無効化契約」を参照してください。
 
 ADR-60 WD3で`Plugin::Base#glob_descriptor(roots, *patterns)`は**プライベート**になりました（これは`watch:`が実装される土台となるビルディングブロックです）；プラグインコードはディスクリプタを手作業で合成する代わりに`watch:`を宣言します。
 

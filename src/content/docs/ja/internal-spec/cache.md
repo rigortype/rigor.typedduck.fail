@@ -3,8 +3,9 @@ title: "キャッシュレイヤー — `Rigor::Cache`"
 description: "rigortype/rigor docs/internal-spec/cache.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/cache.md"
 sourcePath: "docs/internal-spec/cache.md"
-sourceSha: "7db9ce443535d58d9d8287cf660544099e8851793165c866356e997545214556"
-sourceCommit: "8e1432f5ada5240b33f140cb2024e6025450b2f9"
+sourceSha: "e01e9dae05239a94d814c354891807fa31b8ea36b2e97b194f8a33bf81000d6f"
+sourceCommit: "2a65ec8e52462c931fbfec94df68a18139259a43"
+sourceDate: "2026-09-03T03:44:43+09:00"
 translationStatus: "translated"
 sidebar:
   order: 3050
@@ -36,7 +37,7 @@ GlobEntry       :: { root: String, pattern: String, value: String }
 
 `:stat` comparatorは、個々の`FileEntry`スロット向けのADR-87 WD1のstatしてからダイジェストの階層です。その`value`は`"<digest> <size> <mtime_ns> <ctime_ns> <inode> <recording_instant_ns>"`をパックします: 検証（`FileDigest.stat_fresh?`）はまずファイルをstatし、タプルが動いたとき、またはレーシーウィンドウガードが発火したとき（ファイルのmtimeがエントリーの記録時刻より厳密に古くない）にのみ、完全な内容ハッシュ（`FileDigest.hexdigest`）へフォールバックします。valueにパックされたSHA-256ダイジェストは依然として唯一の変更**authority（権威）**のままです —— 動かなかったstatは検証がその再計算をスキップできるようにするだけです;statは動いたが内容は同一（素の`touch`）である`:stat`エントリーは再ハッシュされ、正しく鮮度ありと判定されます。`:stat`階層は検証専用ディスクリプタ（ADR-45の依存関係ディスクリプタ、プラグインの`watch:` glob）に乗ります;キャッシュ*キー*ディスクリプタは決定的な`:digest` comparatorを保ちます。`cache.validation: digest`（または、それが優先される`RIGOR_STRICT_VALIDATION=1` env）は、statを信頼できないファイルシステムのために、すべてのエントリーを`:digest`へ強制的に戻します。このキーのデフォルトは`auto`（#190）です: `CiDetector`がCIプロバイダを認識したときは`digest`へ解決され——新鮮なチェックアウトはすべてのstatタプルを再生成するため、stat階層は決してショートサーキットできず、statシグネチャのglobスロットは毎回のランで陳腐と読まれてしまう——、それ以外のあらゆる場所では`stat`へ解決されます。解決はランごとに行われ（`Configuration#cache_validation_strict?`）、`RIGOR_CI_DETECT=0`のキルスイッチを尊重し、明示的な`stat` / `digest`は常に優先されます（永続ワークスペースのCIランナーは`stat`でstatフロアへオプトインし直します）。
 
-`:exists` comparatorは`File.exist?`の答えを`"true"` / `"false"`として運びます（`FileEntry::PRESENT` / `FileEntry::ABSENT`）。`FileEntry.absent(path:)`が`"false"`の行を構築します——[ADR-45](../../adr/45-unchanged-project-fast-path/)のWD1（#577）の**不在の依存関係**であり、パスが欠けているために読み取りが失敗したとき`Plugin::IoBoundary#read_file`が記録するものです。これによって、ファイルの不在の上で計算されたエントリーは、そこに何かが現れた時点で古いものとして読まれます。`#absent?`がその行を識別します。検証は`File.exist?`1回です: 変更のないツリーでドリフトしうるstatのタプルもダイジェストもないので、不在の行がウォームなヒットをばたつかせることは決してありません。
+`:exists` comparatorは`File.exist?`の答えを`"true"` / `"false"`として運びます（`FileEntry::PRESENT` / `FileEntry::ABSENT`）。`FileEntry.absent(path:)`が`"false"`の行を構築します——[ADR-45](../../adr/45-unchanged-project-fast-path/)のWD1（#577）の**不在の依存関係**であり、パスが欠けているために読み取りが失敗したとき`Plugin::IoBoundary#read_file`が記録するものです。これによって、ファイルの不在の上で計算されたエントリーは、そこに何かが現れた時点で古いものとして読まれます。`#absent?`がその行を識別します。`FileEntry.present(path:)`が`"true"`の行を構築します——WD1b（#613）であり、反対方向の同じ依存関係です。これは存在プローブが求めていたものを見つけ、かつプラグインがバイトを読み取らなかった場合（自身がglobした探索ルート、その存在だけでモードを切り替えた設定ファイルなど）に`Plugin::IoBoundary#file?` / `#directory?`によって記録されます。どちらの方向の検証も`File.exist?`1回です: 変更のないツリーでドリフトしうるstatのタプルもダイジェストもないので、存在の行がウォームなヒットをばたつかせることは決してありません。また、これは最も弱いファイル行でもあります——インプレースの書き換えは存在の行を新鮮なまま残します——そのため、真に存在そのものだけに依存している依存関係の行にのみ用いられます; 読み取りはそれより上の`:stat`行を記録します。
 
 ### `Descriptor.new(files: [], gems: [], plugins: [], configs: [], dependencies: [], globs: [])`
 
@@ -245,14 +246,14 @@ sha256               32バイト — 直前のすべてのバイトの整合性�
 1. **グローバルフィンガープリント（ロードをゲートする）**。`IncrementalSnapshot.fingerprint(configuration:, roots:)`は、エンジンバージョン + `SCHEMA`、設定ハッシュ、解析**ルート**（展開されたファイルリストではない —— なのでルート以下のファイルの追加/削除ではスナップショットは破棄されない）、`Gemfile.lock`、`rbs_collection.lock.yaml`、およびプロジェクトの`signature_paths` RBSに対するSHA-256です —— ただし解析対象ソースの内容は**含みません**。不一致はスナップショットを破棄します。
 2. **ファイルごとのダイジェスト（判断を駆動する）**。フィンガープリントが一致すると、`Payload`が無条件にロードされ、そのファイルごとの内容ダイジェストが変更セット`ΔF`を決定します;影響を受ける閉包`ΔF ∪ dependents[ΔF]`が再解析され、残りは`Payload#cache`から提供されます。
 
-### `Payload`（現在の`SCHEMA = 12`）
+### `Payload`（現在の`SCHEMA = 13`）
 
 ```
 Payload :: Data[
   cache, sources, digests, analyzed,          # per-file diagnostics, read-sets, content digests, analyzed set
   symbol_sources, ancestry_sources,           # the ADR-46 dependency edges (method-symbol and class-ancestry)
   symbol_fingerprints,                        # path -> { "Class#method" => sha256 } — per-method source fingerprints
-  missing, class_decls,                       # negative (unresolved) edges + per-file declared-class sets
+  missing, class_decls, constant_decls,        # name-keyed edges + per-file declared-class sets / constant publication census
   seed_bundles,                               # ADR-85 per-file pre-pass contribution (plain data + def-node handles)
   plugin_fact_digest,                         # ADR-88 plugin-fact surface fingerprint (see below)
   return_summaries,                           # ADR-89 observed-key return summaries (see below)
@@ -261,7 +262,7 @@ Payload :: Data[
 ]
 ```
 
-留め置く価値のあるスキーマの履歴: `6`はシードバンドルを`(node_id, name, fingerprint)`のdefノードハンドルとして格納した（ADR-85）;`8`はB1のコメントのみゲートのために各バンドルのコメントを剥いだ`code_fingerprint`を追加した;`9`は`plugin_fact_digest`を追加した（ADR-88）;`10`は`return_summaries`を追加した（ADR-89）;`11`は`param_table`を追加した（ADR-67 WD6c）;`12`はエフェクトサイドカーを追加した（ADR-103 WD13）。古いスキーマのblobは`SCHEMA`ゲートに不一致となり`nil`としてロードされます —— マイグレーションではなく、クリーンなコールドリビルドです。
+留め置く価値のあるスキーマの履歴: `6`はシードバンドルを`(node_id, name, fingerprint)`のdefノードハンドルとして格納した（ADR-85）;`8`はB1のコメントのみゲートのために各バンドルのコメントを剥いだ`code_fingerprint`を追加した;`9`は`plugin_fact_digest`を追加した（ADR-88）;`10`は`return_summaries`を追加した（ADR-89）;`11`は`param_table`を追加した（ADR-67 WD6c）;`12`はエフェクトサイドカーを追加した（ADR-103 WD13）;`13`は`constant_decls`（ファイルごとの定数PUBLICATION CENSUS —— `{name => [literal] | :unpublishable}`であり、その差分が`constant:`エッジのプロデューサーを駆動する）を追加し、各シードバンドルにそれ自身の`constant_writes`センサスを与えた（[#644](https://github.com/rigortype/rigor/issues/644)）。古いスキーマのblobは`SCHEMA`ゲートに不一致となり`nil`としてロードされます —— マイグレーションではなく、クリーンなコールドリビルドです。
 
 ### `plugin_fact_digest` — プラグインファクトの健全性（[ADR-88](../adr/88-incremental-plugin-fact-soundness.md)）
 

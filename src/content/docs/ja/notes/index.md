@@ -3,8 +3,9 @@ title: "リサーチ・サーベイノート"
 description: "rigortype/rigor docs/notes/README.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/README.md"
 sourcePath: "docs/notes/README.md"
-sourceSha: "d6272fe9fbf3f7206c1b528d0e922fdbce50353f5e0af534a7937251e0a14d33"
-sourceCommit: "8e1432f5ada5240b33f140cb2024e6025450b2f9"
+sourceSha: "75a09e3ca4313d9467c0eada5b236062cf38a5aa4b33c727c52263fa1fdcab02"
+sourceCommit: "2a65ec8e52462c931fbfec94df68a18139259a43"
+sourceDate: "2026-09-05T00:25:38+09:00"
 translationStatus: "translated"
 sidebar:
   order: 6000
@@ -76,6 +77,7 @@ sidebar:
 | 2026-08-22 | [エフェクトシステム —— Redmineでの最初の採用者のユーザーストーリー](20260822-effect-user-story-redmine/) |
 | 2026-08-23 | [`super`エフェクトエッジ —— コーパス計測（issue #446）](20260823-effect-super-edge-corpus/) |
 | 2026-08-23 | [エフェクトラベル —— 10のユーザーストーリー、コーパスに照らして裁定（redmine + mastodon）](20260823-effect-user-stories-corpus/) |
+| 2026-09-05 | [トップレベル`def`のcref —— リトラクト前のピールの規模測定（issue #716）](20260905-toplevel-def-cref-movable-sites/) |
 
 ## アナライザーの自己テスト（teeth・偽陰性）
 

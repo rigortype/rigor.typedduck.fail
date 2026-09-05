@@ -3,9 +3,9 @@ title: "CLIコマンドリファレンス"
 description: "rigortype/rigor docs/manual/02-cli-reference.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/02-cli-reference.md"
 sourcePath: "docs/manual/02-cli-reference.md"
-sourceSha: "b317d5f4d12814a5c3cf6354563b0204a9c2d1c7b18dd25db6123e77a7c0fb00"
-sourceCommit: "2d0ffe6f38d01cfd850527c57987b27487b414d4"
-sourceDate: "2026-07-25T21:39:13+09:00"
+sourceSha: "7d6ca86e3276313acf78d8f848c1caedcdef27b215bf6de5f6e5c54012efdff1"
+sourceCommit: "2a65ec8e52462c931fbfec94df68a18139259a43"
+sourceDate: "2026-09-03T19:32:01+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9002
@@ -553,7 +553,7 @@ rigor show-bleedingedge [--config PATH] [--format text|json]
 
 | Feature id | 種別 | 変わる内容 |
 | --- | --- | --- |
-| `reject-unparseable-signatures` | severity | `signature_paths:`配下のパースできない`.rbs`は、警告付きでスキップされる代わりに**実行を失敗させます**（`rbs.coverage.quarantined-signature` → `error`）。 |
+| `reject-unparseable-signatures` | severity | 壊れたRBSセットは、暗黙に劣化させる代わりに**実行を失敗させます**: `signature_paths:`配下のパースできない`.rbs`（`rbs.coverage.quarantined-signature` → `error`）、解決時に衝突して環境全体を破綻させる宣言（`rbs.coverage.environment-build-failed` → `error`）、および1クラスのメソッドサーフェスを破綻させる重複メソッド定義（`rbs.coverage.definition-build-failed` → `error`）。 |
 | `use-of-void-value` | severity | 作者が宣言した`-> void`の戻り値から復元された値を値コンテキストで使うことが、`static.value-use.void`（`warning`）として報告されます。 |
 | `discovery-seeded-mutation-sites` | behaviour | [`rigor coverage --protection --mutation`](../15-type-protection-coverage/)が、ティア1がすでに使っているのと同じクロスファイルのプロジェクトディスカバリーに対して計測します —— サイトを選ぶときも、破壊が捕捉されたかを判定するときも —— そのため*兄弟*ファイルで宣言されたプロジェクトクラスへの呼び出しが、捨てられる代わりに計測され、そこでの破壊が実際に捕捉されうるようになります。**分母にサイトを足すので、報告される有効性比率が動きます** —— 採用前に、CIで固定している`--threshold`と突き合わせて確認してください。 |
 | `dependent-closure-kill-oracle` | behaviour | [`rigor coverage --protection --mutation`](../15-type-protection-coverage/)が、破壊を捕捉されたとみなす条件を、ミューテーションされたファイル**またはそれに依存するファイル**のどこかに診断が現れることに広げます（従来はミューテーションされたファイル内のみ）—— メソッドの戻り値の変更が、エラーがその呼び出し元に現れたときに捕捉としてカウントされます。キルを**足す**ことしかできないので比率は上がるか変わらないかのどちらかです。ミュータント1つあたりの実時間コストが約3分の1増え、これを有効にして計測した比率は、無効で計測したものとは比較できません。 |

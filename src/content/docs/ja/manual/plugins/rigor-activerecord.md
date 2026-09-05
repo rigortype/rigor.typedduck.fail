@@ -3,8 +3,9 @@ title: "rigor-activerecord"
 description: "rigortype/rigor docs/manual/plugins/rigor-activerecord.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/plugins/rigor-activerecord.md"
 sourcePath: "docs/manual/plugins/rigor-activerecord.md"
-sourceSha: "1ae508de82b36a3502b695aed5e2cc441df626f43f86433aaa306893ab0fb9ae"
-sourceCommit: "8e1432f5ada5240b33f140cb2024e6025450b2f9"
+sourceSha: "461342c7d0fba5cda30b4cd31aed5bdb225a5a71b0adf63a58cf4a88ffc77561"
+sourceCommit: "2a65ec8e52462c931fbfec94df68a18139259a43"
+sourceDate: "2026-09-04T15:32:06+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9050
@@ -68,9 +69,15 @@ plugins:
 
 これには確定して見える名前も含まれます。スキーマ内の`users`テーブルは、それが`User`のテーブルであることの証拠にはなりません: ベースクラスに`self.table_name_prefix`があれば`User`は実際には`app_users`を読みますし、別のモデルに属する`users`テーブルが誤った推測を「確定」させてしまうこともあります。誤った厳密な文字列は、正直な`String`よりも悪い——`User.table_name`を比較するコードが黙って誤った分岐を取ってしまう——ので、このプラグインはあなたが書き下したものだけを固定します。`User.quoted_table_name`は常に`String`です;クォートの仕方はデータベースアダプタ次第だからです。
 
+Rubyのモジュールまたはクラスの内部で宣言されたモデル（`Blog::Post`）は、以下の場合においてRailsと同じ方法でそのテーブルを解決します: ネームスペースはドロップされ、名前にフラット化されないため、`Blog::Post`は`blog_posts`ではなく`posts`を読みます。囲むネームスペースがリテラルとして宣言した`table_name_prefix` / `table_name_suffix`（`def self.table_name_prefix = "blog_"`、同様の`class << self`、または`mattr_accessor :table_name_prefix, default: "blog_"`）はその上に適用されるため、`Blog`がそれを設定すると同じモデルは`blog_posts`を読みます。`mattr_writer`はカウントされません——リーダーを定義しないため、Railsは実際に値を読み戻すことはなく、プラグインも同様です。
+
+`Blog`のprefix/suffixがプラグインがリテラルとして読み取れない形状（計算された値、2つの矛盾する宣言）で宣言されている場合、`Blog::Post.table_name`は依然として素のdemodulizeされた名前（`posts`）として読まれます——ただしこの場合、その文字列は情報提供のみを目的とします。プラグインはそれに対してカラムをルックアップするほどには信頼しません: 素の名前を推測することは、ネームスペース付きアプリにおいて無関係な実際のテーブルにヒットする可能性が最も高い推測であり、誤った裏付けは裏付けがないことよりも悪いため、`Blog::Post`のカラム、エイリアス、および関連のチェックは、実際のテーブルではないかもしれないテーブルに対して実行されるのではなく、完全に役目を降ります。
+
 ## 制限事項
 
 - **直接のスーパークラスのみマッチ**。`User < ApplicationRecord`である状況下での`class Admin < User`は発見されません。`User`を`model_base_classes`に追加するか、すべての具体的なモデルを明示的に列挙してください。
+- **別の非抽象モデルクラスの内部にネストされたモデルは、推測するのではなく役目を降ります**。`Post < ApplicationRecord`であり`Post`が抽象でない`Post::Comment`は、まったく異なるRailsの名前付けルールに当たります——親自身のテーブル名がprefix/suffixではなく子の真ん中に結合されるため、プラグインはその形状を認識し、実際の名前を計算（または推測）する代わりに`Comment`のカラム / エイリアス / 関連のチェックの役目を降ろします。（`Base`が`self.abstract_class = true`または`primary_abstract_class`を宣言している`Base::Comment`のように、*抽象*親クラスの内部にネストされたモデルは、完全なカラムチェックを伴って素のdemodulizeされたテーブル名を正しく解決します。）
+- **外部の`table_name_prefix` / `table_name_suffix`宣言とエンジン**。`model_search_paths`外の宣言（例: `lib/`やエンジンの`isolate_namespace`内）はプロジェクト全体で検出され、誤ったテーブル名を推測するのではなく、空のカラムセットで影響を受けるモデルを安全に役目から降ろします。`model_search_paths`内では、モデルレベルおよびベースクラスの`table_name_prefix`宣言（リテラルまたは計算済み）が直接解決されます。
 - **PostgreSQLの`db/structure.sql`フォールバック**。`db/schema.rb`がないとき、プラグインは同じカラム／型テーブルのために`db/structure.sql`（`schema_format = :sql`のダンプ）をパースします。PostgreSQL DDLのみを読みます;SQL型にRubyのマッピングがないカラム（カスタムenum、`tsvector`、`ltree`）は`Object`へ降格し（決して落とさない）、`public`以外のスキーマのパーティションテーブルはスキップされます。
 - **コミットされたスキーマがない——縮退モード**。生のマイグレーションを出荷し`db/schema.rb`をgitignoreするプロジェクト（DBに依存しないRailsのパターン）でも、テーブル名・ファインダー・スコープ・関連は得られます: それらはスキーマではなくあなたのモデルのソースから読まれるからです。役目を降りるのはカラムに依存する半分だけです——カラムのリーダーは型なしのままになり、`where(col:)`のキーは検証されません。スキーマが記述していないテーブルに対するのとまったく同じです。プラグインは実行ごとに1回`:info`でそう述べます。スキーマのダンプをコミットする（または`schema_file` / `structure_sql_file`をそれへ向ける）と、次のコールドの実行からカラム側の半分が再びオンになります——ウォームなキャッシュは無効化されるまで縮退したインデックスを提供し続けるので、すぐに変化を見たいときは`rigor check --no-cache`（または`make cache-clean`）を使ってください。
 - **カラムの読み取りであり、セッターではない**。このプラグインはインスタンス側のカラムの*読み取り*（`user.name`、`user.admin?`）と単数の関連を型付けしますが、`name=`セッターやダーティトラッキング系（`name_changed?`、`name_was`、…）は型付けしません。

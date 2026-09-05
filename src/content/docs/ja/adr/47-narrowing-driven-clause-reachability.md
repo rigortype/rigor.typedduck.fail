@@ -3,20 +3,23 @@ title: "ADR-47 — ナローイング駆動の節到達可能性（`flow.unreach
 description: "rigortype/rigor docs/adr/47-narrowing-driven-clause-reachability.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/47-narrowing-driven-clause-reachability.md"
 sourcePath: "docs/adr/47-narrowing-driven-clause-reachability.md"
-sourceSha: "aafdb1681424e93c7aaf997a97485ee9f0795ffd5090e24794584494c6e73df5"
-sourceCommit: "aec4ca7f5f87b1972dea8fecaaf5b62c8880a3af"
+sourceSha: "17e0070a171a1934915f69aebaac08f916381e6b67dd6cced8c336480526a297"
+sourceCommit: "2a65ec8e52462c931fbfec94df68a18139259a43"
+sourceDate: "2026-09-02T15:16:47+09:00"
 translationStatus: "translated"
 sidebar:
   order: 4047
 ---
 
-ステータス: **Accepted —— WD1 + WD2 + WD3a実装済み。Rigorの既存の2つの`if`/`unless`到達可能性ルールを、フロー（flow）エンジンが既に計算しているナローイング（narrowing）を用いて`case`/`when`および`case`/`in`節に拡張する。Elixir v1.20の冗長な`case`節報告に触発されたもの;Rigorの偽陽性エンベロープ内に収まるようスコープを限定する**。
+ステータス: **Accepted —— WD1 + WD2 + WD3a + WD5実装済み。Rigorの既存の2つの`if`/`unless`到達可能性ルールを、フロー（flow）エンジンが既に計算しているナローイング（narrowing）を用いて`case`/`when`および`case`/`in`節に拡張する。WD5は鏡像の方向を実行する——決定可能なバージョンガードが非選択とした`if`/`unless`ブランチは到達不能であり、何も報告しない。Elixir v1.20の冗長な`case`節報告に触発されたもの;Rigorの偽陽性エンベロープ内に収まるようスコープを限定する**。
 
 **WD1 landed（v0.1.17）**。`flow.unreachable-clause`は、`case <local>`節のクラス/モジュール定数条件（`when String` / `when MyClass`）が対象を`Type::Bot`に絞り込むときに発火する —— `scope_index`（評価器自身の節ごとの`body_scope`）から読み返すため、ルールとボディ型付けは乖離しえない。単一の`body_scope == bot`シグナルが設計で挙げる両方の形をカバーする（節ごとのdisjointnessと先行網羅の両方。網羅済みの入口スコープも`bot`に絞り込まれるため）。偽陽性エンベロープを強制: 対象は絞り込み済みのローカルでなければならず、`Dynamic`（<ruby>漸進的保証<rp>（</rp><rt>gradual guarantee</rt><rp>）</rp></ruby>）でも既に`Bot`（デッドコード）でもいけない。クラス/モジュール定数条件のみ（`when nil` / 範囲 / 正規表現 / 式は除外）、ループ/ブロック内の節はスキップ。**WD4**に従い、lenient + balanced（デフォルト）では`:info`、strictのみ`:warning`で出荷。balanced→`:warning`昇格は回帰コーパスFPゲートを待つ;Rigor自身の`lib` + `plugins` + `examples`でクリーン（ゼロ発火）。
 
 **WD2 landed（v0.1.17）**。メッセージ精度向上 + デッドな末尾`else`。デッドな`when`はWD1の`:disjoint`表現に対して`:prior_exhaustion`（「より前の`when`で既にカバー済み」）と表現されるようになった。節に入る時点のスコープで区別する: `eval_case_when_branches`は節の最初の条件ノードにその入口`falsey_scope`を記録し（`on_enter`のみ、新しい型付けなし;`propagate`が保持）、コレクターはそのエントリーが既に対象を`bot`に絞り込んでいたかどうかで分類する。末尾の`else`で、最終的な`falsey_scope`が対象を`bot`に絞り込む場合も`:exhausted_else`としてフラグされる —— ただし防御的な`else`ボディ（むき出しの`raise` / `fail` / `throw` / `abort` / `exit`）は除く。これは意図的なガードであり、削除可能なデッドコードではないからだ（偽陽性規律のカーブアウト）。新しいナローイングなし;エンジン自身のスコープを読む。Rigor自身のコーパスでもクリーン;同じ`:info`/`:warning`の重大度姿勢。
 
 **WD3a landed（v0.1.17）**。**裸のクラスパターンのみ**の`case`/`in`（`CaseMatchNode`）—— `in C` / `in C => x`はマッチが正確に`C === subject`（純粋な`is_a?`、分解なし）のため、`when C`と同様に健全に絞り込まれる。`eval_case_when_branches`は裸クラスの`in`を`Narrowing.case_when_scopes`にルーティングし（`bare_class_pattern_node`が`ConstantReadNode` / `ConstantPathNode`と、それをラップする`CapturePatternNode`を認識）;コレクターは同じ`body_scope == bot`シグナルで`CaseMatchNode` + `InNode`を処理する。これはその場限りの網羅性ではない —— 真偽両方のナローイングが健全な、唯一のパターン形状に限定して、既存の健全な`when`クラスナローイングを再利用する。Rigor自身のコーパスでクリーン。**WD4 run（v0.1.17）**。16のOSSコーパスをスイープ（[`docs/notes/20260605-adr47-unreachable-clause-corpus-sweep.md`](../../notes/20260605-adr47-unreachable-clause-corpus-sweep/)を参照）—— ゼロ発火、偽陽性ゼロ。ヒットなしの空虚なパス（vacuous pass）はデフォルトをより大きくする積極的根拠にはならないため、**balancedは`:info`のまま**（strictは`:warning`を維持）;昇格は実際の発火を待つ。**残り:** WD3b（分解 / 値 / 変数キャッチオールパターンの網羅性 —— ADR-36の`is_a?`網羅性隣接プロジェクトである真に大規模な作業;その場限りで推論して出荷**しない**こと;ゼロ発火スイープで優先度を下げ）。
+
+**WD5 landed**。バージョンガードのブランチ到達可能性（[#627](https://github.com/rigortype/rigor/issues/627)）。実行中のRuby（またはデフォルトgemのバージョン）をリテラルと比較するガードは決定可能であり、それが非選択としたブランチはユーザーがチェックに使用しているRuby上ではデッドである——したがってそこでの診断は最悪ケースの解釈ではなく偽陽性である。`Inference::VersionGuard.verdict`は、`RUBY_VERSION <cmp> "x.y.z"`（実行されるものに合わせるためStringセマンティクス）、`Gem::Version.new(a) <cmp> Gem::Version.new(b)`（両辺ともラップ）、`RUBY_ENGINE ==`/`!=`、および実行中のRubyのデフォルトgemに対する`X::VERSION`を決定する;それ以外のものはすべて両方のブランチを生存させたままにする。`StatementEvaluator`は`if false`に対して行うのとまったく同様にデッドなブランチを省略し（評価されないため、その書き込みが`if`を越えて結合することはない）、`CheckRules::DeadVersionGuardArms`は診断時に同じ純粋関数を再度参照して、そのブランチの内部にある診断をドロップする。`flow.always-truthy-condition`は意図的にガード上で発火**しない**——バージョンガードは意図的なものだからである。規範的サーフェス: [control-flow-analysis.md § バージョンガードの条件畳み込み](../type-specification/control-flow-analysis/#バージョンガードの条件畳み込み)。
 
 ## 動機
 
@@ -76,6 +79,27 @@ Rigorはこの作業の難しい半分を既に行っている。欠けている
 - **WD3a —— `in`裸クラスパターン（landed、v0.1.17）**。`in C` / `in C => x`は`C === subject`（純粋な`is_a?`、分解なし）でマッチするため、`when C`と全く同様に健全に絞り込まれる。`branch_body_and_falsey_scopes`は裸クラスの`in`を`Narrowing.case_when_scopes`にルーティングする（`bare_class_pattern_node`が`ConstantReadNode` / `ConstantPathNode`と、それをラップする`CapturePatternNode`を認識）;コレクターは同じ`body_scope == bot`シグナルで`CaseMatchNode` + `InNode`を処理する。これはその場限りの網羅性ではない —— 真偽両方のナローイングが健全な、唯一のパターン形状に限定して、既存の健全な`when`クラスナローイングを再利用する。
 - **WD3b —— 分解 / 値 / 変数キャッチオールパターン（先送り）**。配列 / ハッシュ / findパターン、値パターン、`in x`キャッチオールは実際の`InNode`パターン網羅性が必要だ —— より大きく独立した精度プロジェクトだ（先送りされたADR-36の`is_a?`網羅性が隣接する）。網羅性をその場限りで推論して出荷**しない**こと;現在これらは保守的なfalsey変更なし形状を維持しているため、より前の裸クラス節が既に対象を網羅した場合にのみ発火する。
 - **WD4 —— コーパスFPゲート（run、v0.1.17;balancedは`:info`のまま）**。16のOSSコーパスをスイープ（Mastodon + Redmineの`app lib`;parser、rubocop-ast、kramdown、mail、liquid、haml、hamlit、herb、slim、oj、ox、protobuf、textbringer、rglの`lib`）を`--no-cache`で —— [`docs/notes/20260605-adr47-unreachable-clause-corpus-sweep.md`](../../notes/20260605-adr47-unreachable-clause-corpus-sweep/)。**どこもゼロ発火**（GitLab FOSSは`lib`全体スコープで遅すぎるため中断、カウントなし）。ゼロヒット ⇒ 偽陽性ゼロだが、*空虚な*パスは不在証拠であり安全性の証拠ではない: トリアージする実際の発火がない状態では、デフォルトをより大きくすることが正当化されるシグナルがないため、balancedは**`:info`のまま**（strictは`:warning`を維持）。昇格は検査すべき実際のコーパス発火を待つ。保守的エンベロープがその仕事をしている —— キャッチ可能な形（具体的型を持つローカルがdisjointな / 既にカバー済みのクラスにマッチされる）はプログラマーが滅多に書かない。明らかに冗長だからだ。
+- **WD5 —— バージョンガードのブランチ到達可能性（landed）**。上記のルールは*「どの節が決してマッチしないか？」*を問う。WD5は`if`/`unless`について鏡像の問いをする: *「このRuby上でどのブランチが決して実行されないか？」* —— そしてそれをナローイングからではなくリテラルから答える。
+
+  きっかけは#614コーパスブランチによって表面化した`mail/lib/mail/yaml.rb:26`だった。`::YAML`がレキシカルな`Mail::YAML`シャドウではなくPsychに解決されるようになると、以下で`call.wrong-arity`が発火した:
+
+  ```ruby
+  if Gem::Version.new(Psych::VERSION) >= Gem::Version.new("3.1.0.pre1")
+    ::YAML.safe_load(yaml, permitted_classes: permitted_classes)
+  else
+    ::YAML.safe_load(yaml, permitted_classes)   # Psych < 3.1の位置引数形式
+  end
+  ```
+
+  この報告はRuby 4のPsychシグネチャに対しては*正直*（honest）だが、それを実行している人間にとっては*誤り*（wrong）である: その行は彼らのRuby上では決して実行されないからだ。これは最も重大な偽陽性 —— 動いているコードに対する診断 —— であり、「プログラムが動くこと」は最悪ケースの静的解釈に優越する（[ADR-5](../5-robustness-principle/)）。複数バージョン対応のgemはこの形状をいたるところに抱えている: `mail`、`concurrent-ruby`（`RUBY_VERSION >= '3.2'`、`RUBY_ENGINE == 'jruby'`）、`net-ssh`（`RUBY_VERSION < "2.1"`ブランチからなる`pageant.rb`全体）。
+
+  **メカニズム**。 `Inference::VersionGuard.verdict`は述語ASTの純粋関数であり —— スコープも環境も持たない —— したがってそれを必要とする2つの読み手がドリフトすることはない: `StatementEvaluator#live_branch_for_if` / `#live_branch_for_unless`はキャリア確実性の判定の*前に*これを参照し、`Constant[false]`に対して行うのとまったく同様にデッドなブランチを省略する（そのブランチは評価されないため、その書き込みが`if`を越えて結合することはない）。そして`CheckRules::DeadVersionGuardArms`は診断時に同じ純粋関数を再度参照して、そのブランチの内部に落ちた診断をドロップする。後半部分は重要である（load-bearing）: ルールの巡回は評価器が型付けしたかどうかにかかわらずすべてのノードを訪問するため、自身で型付け可能なレシーバー（定数やリテラル）を持つ呼び出しは、この処理がなければ報告されてしまう。このフィルタのコストは、ファイルが何らかの診断を生成した場合にのみ支払われる。
+
+  **偽陽性エンベロープ**。畳み込まれるセットは閉じられており小さい（[control-flow-analysis.md § バージョンガードの条件畳み込み](../../type-specification/control-flow-analysis/#バージョンガードの条件畳み込み)で規範的）: 比較は実際に書かれた表記のセマンティクスに従う（むき出しの`RUBY_VERSION`比較にはString —— `RUBY_VERSION >= "3.10"`は3.9上では実際にfalseであり、それを再現することが要点である;ラップされた形式には`Gem::Version`）。混在した表記や`<=>`は決して畳み込まれず、読み取れないオペランドは両方のブランチを生存させたままにする。`RUBY_PLATFORM`は完全に除外される —— それに対するすべての比較はプラットフォームに依存し、チェックを行うマシンが実行マシンであるとは限らないためだ。`X::VERSION`は実行中のRubyのデフォルトgemに対してのみ読み取られる。そこでは「アナライザーのRubyがターゲットのRubyである」という前提（`PredefinedConstantRefinements`やバンドルされたコアRBSが既に依拠しているのと同じ前提）がそれをカバーする。`Gemfile.lock`で解決されたgemは対象外である。アナライザーのコピーとプロジェクトのコピーが異なる可能性があるためだ。
+
+  **`flow.always-truthy-condition`は意図的にガード上で沈黙を保つ**。バージョンガードは意図的なものであり、冗長な条件ではない。そこで発火させることは、この修正が取り除くのと同クラスの偽陽性になってしまう。これは特例による除外ではなく構造によって沈黙を保つ: ガード自体の式型は依然として`bool`であるため、ルールが畳み込まれた定数を見ることはない。
+
+  **スコープ外、記録用:** `defined?(Ractor)` / `respond_to?`の機能プローブ（「このビルドに機能があるか」であって「どのバージョンか」ではない異なる問い）、`!` / `&&` / `||`の合成、`case`の対象、およびアナライザー自身のRubyと一致しない`target_ruby`の尊重（この設定は現在Prismの*パース*バージョンであり、推論レイヤーには伝播されていない）。
 
 ## 却下 / 先送りした代替案
 
