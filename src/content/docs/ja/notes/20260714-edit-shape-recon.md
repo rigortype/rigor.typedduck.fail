@@ -318,7 +318,7 @@ change_detect 0.035 s · closure_compute 0.001 s · **closure_analysis 6.27 s** 
 ──あらゆるコメント編集の再チェック（S1～S4、次節）は、元のクロージャサイズにかかわらず
 `closure_analysis` 6.3～6.6 sに着地する。分解（リコン§2のstackprof＋ソース監査）:
 
-- **プラグインのツリー全体の再スキャン（1a）── 本質的**。 DryTypes `AliasScanner`とSorbet
+- **プラグインのツリー全体の再スキャン（1a）── 本質的**。DryTypes `AliasScanner`とSorbet
   `CatalogWalker`は、再チェックのたびにすべてのプロジェクトファイルを再パースする。DryTypesは
   キャッシュゲート済み（ADR-85 WD1）だが、その`producer watch:` globは`paths:`ツリー全体を
   カバーするので、**どんな**編集も集約されたstatシグネチャを動かす → キャッシュMISS →
@@ -329,7 +329,7 @@ change_detect 0.035 s · closure_compute 0.001 s · **closure_analysis 6.27 s** 
   インクリメンタルスキャン（ADR-85のseedバンドルパターンをプラグインスキャンに適用）で、より
   大きな後続作業である。これらが駆動するプロジェクト全体の`Prism.parse`がリコンの固定的な
   ~2.3 sである。
-- **要求されたASTのパース（1b）── 本質的、1つの重複排除を修正済み**。 DefHandle解決（ADR-85
+- **要求されたASTのパース（1b）── 本質的、1つの重複排除を修正済み**。DefHandle解決（ADR-85
   WD3）は正しく要求駆動である（再チェックあたり0～6ファイル、実行ごとにmemo化。
   `symbol_fingerprints`はパースせずにハンドルフィンガープリントを読む）。1つの冗長性──
   `affected_closure`が変更セットを2回パースした（`symbol_fingerprints_for`と

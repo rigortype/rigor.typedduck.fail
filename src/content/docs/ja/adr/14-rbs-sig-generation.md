@@ -3,8 +3,9 @@ title: "ADR-14 — 推論からのRBSシグネチャ生成と拡張"
 description: "rigortype/rigor docs/adr/14-rbs-sig-generation.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/14-rbs-sig-generation.md"
 sourcePath: "docs/adr/14-rbs-sig-generation.md"
-sourceSha: "53db745bc43d50963735be9c80d2fe66980da358a4fc049cfb3b76c2957c3150"
-sourceCommit: "78b18cea6a576475c92bce020535269f2eebc20d"
+sourceSha: "47ec577ce882b95b3a024faacdc6a96de14820d3f060a00930628d465cba4ad8"
+sourceCommit: "ffb456b0cc9e068a59d0ba03ba464b60ad83280a"
+sourceDate: "2026-09-08T03:53:03+09:00"
 translationStatus: "translated"
 sidebar:
   order: 4014
@@ -119,7 +120,7 @@ Output:
 - `sig.generated.new-file`
 - `sig.generated.new-method`
 - `sig.generated.tighter-return`
-- `sig.skipped.complex-shape` — 本体推論がメソッドを失格にした（任意/rest/キーワード/ブロックパラメータ;`user_method_param_shape_simple?`を参照）。
+- `sig.skipped.complex-shape` ── レンダラーが表記できないパラメータ形状のために予約。スライス1はすべてのオプショナル／rest／キーワード／ブロックパラメータに対してこれを生成していましたが、#778がそのゲートを廃止し（以下のリビジョン履歴を参照）、現在では`def`が宣言できるいかなる形状もこれを生成しません。
 - `sig.skipped.user-authored` — `--overwrite`が設定されておらず、既存のRBS宣言がユーザー著作である。
 - `sig.skipped.untyped-return` — 推論された戻り値が`Dynamic[top]`;有用な絞り込みは存在しない。
 
@@ -244,7 +245,7 @@ ADR-12は既存のロードマップに従いdry-rbパッケージングのた�
 
 - **ケイパビリティロールカタログ**。`--params=observed-strict`は著作されたキャリアとして`_ToStr` / `_ToS` / `_ReadableStream` / …を必要とします。構造シェイプ（shape）仕様（[`docs/type-specification/structural-interfaces-and-object-shapes.md`](../../type-specification/structural-interfaces-and-object-shapes/)）はサーフェスを予約していますが、カタログはまだ満たされていません。それがあるまで、`observed-strict`は不活性です。
 - **ジェネリックメソッド**。生成器は、本体が戻り値がパラメータ型に関係なく`Integer`であることを証明するメソッドに対して`def foo: (untyped) -> Integer`を発行します。本体の戻り値がパラメータ型に代数的に依存する場合、生成器は型パラメータ導入ステップを必要とします。軽量HKT探索（プロジェクトメモリ）が具体的なサーフェスをランディングするまで先送り。
-- **ブロックパラメータシグネチャ**。今日生成器は、ブロックパラメータを持つメソッド（`user_method_param_shape_simple?`の`params.block.nil?`）を拒否します。将来のスライスは、推論エンジンが端から端までブロックyield形状を追跡したら`() { (E) -> R } -> …`を発行できる。
+- **ブロックパラメータシグネチャ**。生成器はすべてのブロックパラメータを最も寛容な`?{ (*untyped) -> untyped }`としてレンダリングします（#778がメソッド全体を拒絶していた以前のゲートを廃止しました）。将来のスライスは、推論エンジンが端から端までブロックyield形状を追跡したら`() { (E) -> R } -> …`を出力できる可能性があります。
 - **マージモードでのコメントの保持**。`RBS::Writer`は上流の設計でコメントに損失があります。スライス2は可能な限りバイト範囲で操作することで、触れない宣言を逐語的に保ちますが、同じクラス宣言内の手書き + 生成器出力の混在は、触れた宣言内のコメントを失います。`--diff`レビューサーフェスがこれをフラグします。
 - **`sorbet/rbi/`下のTapioca生成RBI**。スコープ外 — 生成器はRBIではなく`sig/`下のRBSをターゲットにします。`rigor-sorbet`プラグイン（ADR-11）はRBIを読みます;生成器はRBSレーンにとどまります。
 
@@ -288,3 +289,4 @@ Rigor自身の`lib/`に対するドッグフード実行（2026-05-12）は7つ�
 
 - 2026-05-12 — 初期ドラフト。
 - 2026-07-17 — ポリシーの理由付けとtighter-returnの矛盾ルールを、AGENTS.mdからここへ移した。AGENTS.mdはルールだけを保つ（ADR-97: 契約はすべてのセッションに読み込まれ;理由付けは参照事項だ）。
+- 2026-09-08 ── #778がスライス1の`sig.skipped.complex-shape`ゲートを廃止した。RBSがメソッドを宣言していない場合、本体型付け器はすべてのパラメータを`untyped`に束縛するため、推論された戻り値はすでにすべての形状に対する節1の答えとなっていた; `def`が宣言するすべての形状は、`initialize`スタブが導入したパラメータレンダラーを通じてレンダリングされるようになり、JSONペイロードは上記の「JSON出力フィールド」の記述が常に主張していたとおり、スキップされたすべての行をその理由とともに運ぶ。

@@ -31,14 +31,14 @@ Rigorのユーザー向け**概要**ドキュメント（フロントドア＋�
 - **参照されているスキル** —— `rigor-plugin-author`、`rigor-baseline-reduce`、`rigor-next-steps`、`rigor-ask`はすべて`skills/`配下に存在する。
 - **キャッシュディレクトリ** —— READMEの「caches under `.rigor/`」は`.rigor/cache`の既定（`configuration.rb:59`）と一致する。
 - **ベースラインのバージョン**`1`、**`documentation_uri` → master**、CIのネイティブフォーマット、そして「Hello, Rigor」の`demo.rb:7:3`の行／列はすべて確認済み。
-- **READMEの設計上のコミットメント** —— アノテーション不要／値からの推論／sig-genの同期／偽陽性は最悪のバグ／spec assertions のスタンス（ADR-59）に関する記述は、現在の挙動と矛盾しない。
+- **READMEの設計上のコミットメント** —— アノテーション不要／値からの推論／sig-genの同期／偽陽性は最悪のバグ／spec assertionsのスタンス（ADR-59）に関する記述は、現在の挙動と矛盾しない。
 - **今サイクルの機能**（`db/structure.sql`、actionpackのstrong-params、モジュールのシングルトンADR-57 WD3、外部gemの由来ADR-82 WD9、grape-path-helpersの名前空間、`coverage`の並列化＋パス無しの`paths:`フォールバック）はすべて`[Unreleased]`にある。READMEの`Status`が依然`v0.2.8`と読めるのは正しい（まだリリースされていない）ので、これは追随漏れではない。
 
 ## 意図的な簡略化（フラグしない）
 
 - `docs/types.md`の表示規約（`Constant<3>`、`int<0, max>`）は、エンジンの`#describe`／internal-specのブラケット形式とは意図的に異なる —— ドキュメントがそう明言している（29行目）。概念的なクイックガイドで、正しく非網羅的である。
 - `docs/compatibility.md:71`のCLIリストは「…」で終わっている。明示的な非網羅マーカーがあるので、名前付きの集合から新しめの`docs`／`doctor`を省くのは問題ない（せいぜい重箱の隅）。
-- `plugins/README.md:6`「(v0.1.11)」はバンドリングが入った時点を示す歴史的なアンカーであり、現在のバージョンに関する主張ではない —— 書かれているとおり正確。
+- `plugins/README.md:6`「（v0.1.11）」はバンドリングが入った時点を示す歴史的なアンカーであり、現在のバージョンに関する主張ではない —— 書かれているとおり正確。
 
 ## 結論
 

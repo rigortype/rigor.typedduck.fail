@@ -3,9 +3,9 @@ title: "診断"
 description: "rigortype/rigor docs/manual/04-diagnostics.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/04-diagnostics.md"
 sourcePath: "docs/manual/04-diagnostics.md"
-sourceSha: "58f7e5f4dbdba229c9c4c29023b2d093dbed028d6fefbe9c90215749632fa424"
-sourceCommit: "18d6992f544e6222fd7ed015ba6bbee6f0bd7f14"
-sourceDate: "2026-06-15T14:10:58+09:00"
+sourceSha: "718bed3c4dec89ecb00d8b78c3ecc03ee9f54f05a74fbf796f13396efcaaa274"
+sourceCommit: "ffb456b0cc9e068a59d0ba03ba464b60ad83280a"
+sourceDate: "2026-09-07T23:08:19+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9004
@@ -66,7 +66,7 @@ app/user.rb:11:3: error: undefined method `lenght' for "hello" [call.undefined-m
 | <a id="rule-effect-envelope-exceeded"></a>`effect.envelope-exceeded` | メソッドが、宣言されたエンベロープが認めないエフェクトを行っている——その証明済みエフェクトラベル（自身の本体と、それが呼ぶすべて）が、そのメソッドまたはそのクラスに書かれた`%a{pure}`または`%a{rigor:v1:effect …}`の境界にカバーされない。二重にオプトイン: `.rigor.yml`の`effects:`ブロックと、あなたが書いたエンベロープを必要とします。Rubyの`def`に位置づけられます。証明されていない（「そしておそらくそれ以上」）エフェクトは決して発火せず、`mutate.local`はあらゆるエンベロープに許容されます。 | high |
 | <a id="rule-effect-liskov-widened"></a>`effect.liskov-widened` | オーバーライドが、それがオーバーライドするメソッドに書かれたエンベロープから逃れている。`PgRepo`は`Repo`が使えるどこでも使えるので、`Repo#find`上の`%a{rigor:v1:effect io.db}`は`PgRepo#find`も束縛します: 実装は継承する境界より純粋であってよく、決して純粋でなくてはなりません。オーバーライドが*行うこと*が継承した境界を超えているか、オーバーライドが*自身のために宣言する*エンベロープがそれより広いかのどちらかです。両側が作者によるものでなければなりません——誰かが祖先にエンベロープを書かない限り何も発火しません——そしてサブクラス化だけが数えられ、`include`は数えられません。オーバーライドの`def`に位置づけられます。`effects:`ブロックが必要です。 | high |
 | <a id="rule-effect-unknown-label"></a>`effect.unknown-label` | エフェクト宣言がレジストリの知らないラベルを名指している——エンベロープ内のタイポ（`%a{rigor:v1:effect io.bd}`）、または`effects.tolerated:`のメンバー。タグ全体はそのとき無制限として読まれるので、宣言は黙って何もしなくなります;これがそう述べます。宣言に位置づけられます: `.rbs`の行、rbs-inlineアノテーションなら`.rb`の行、設定値なら`.rigor.yml`。`# rigor:disable`コメントは`.rbs`や`.rigor.yml`からは読まれないので、そこでは`disable:`かベースラインを使ってください。綴りが明らかにラベルのつもりである場所（既知のものに近い、既知のものの隣、ドット付き、または引退済み）でのみ発火します——何にも似ていない語は沈黙のままです。あなたが自身の語彙を開いているかもしれないからです。`effects:`ブロックが必要です。 | high |
-| <a id="rule-effect-annotations-unchecked"></a>`effect.annotations-unchecked` | あなたのシグネチャが`%a{pure}` / `%a{rigor:v1:effect …}`を運んでいるが`.rigor.yml`に`effects:`ブロックがないので、何もそれらをチェックしません。実行ごとに1つの`:info`で、最初のアノテーションに位置づけられます。アノテーションはそれ自体では決してエフェクトの収集をオンにしません——それは1つのファイルの1行をあらゆる実行にとって高価にしてしまう——ので、代わりにこうして伝えます。オプトインするには`effects: {}`を加えるか、アノテーションを文書的なままにするならそれを`disable:`してください。両方のアノテーションレーン —— `sig/*.rbs`とrbs-inlineコメント —— を読みますが、1つの例外として、ファイルをまったく解析しない実行（何も変わっていないウォームな`--incremental`）では`.rbs`レーンだけが見えます。 | — |
+| <a id="rule-effect-annotations-unchecked"></a>`effect.annotations-unchecked` | あなたのシグネチャが`%a{pure}` / `%a{rigor:v1:effect …}`を運んでいるが`.rigor.yml`に`effects:`ブロックがないので、何もそれらをチェックしません。実行ごとに1つの`:info`で、最初のアノテーションに位置づけられます。アノテーションはそれ自体では決してエフェクトの収集をオンにしません——それは1つのファイルの1行をあらゆる実行にとって高価にしてしまう——ので、代わりにこうして伝えます。オプトインするには`effects: {}`を加えるか、アノテーションを文書的なままにするならそれを`disable:`してください。両方のアノテーションレーン —— `sig/*.rbs`とrbs-inlineコメント —— を毎回の実行で読み、何も変更されていないウォームな`--incremental`も含みます。 | — |
 | <a id="rule-suppression-unknown-rule"></a>`suppression.unknown-rule` | `# rigor:disable[-file]`コメントが存在しないルール（多くはタイポ）を挙げているため、抑制が静かに何もしない。`plugin.`接頭辞付きのトークンは決してフラグされない。 | high |
 | <a id="rule-suppression-empty"></a>`suppression.empty` | `# rigor:disable[-file]`コメントがルールを1つも挙げていないため、何も抑制しない。 | high |
 | <a id="rule-suppression-unknown-marker"></a>`suppression.unknown-marker` | コメントがRigorの認識しない抑制マーカーを使っている。典型的にはRuboCopの反射で`# rigor:disable-next-line <rule>`や`# rigor:enable <rule>`。Rigorのマーカーは`# rigor:disable <rules>`（その行で抑制）と`# rigor:disable-file <rules>`だけなので、このコメントは何も抑制しない。 | high |

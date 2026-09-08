@@ -10,7 +10,7 @@ sidebar:
   order: 20266620
 ---
 
-日付: 2026-06-20。ステータス: **フィールドトライアルレポート**。 [ADR-73](../../adr/73-skill-driven-user-experience/)のSKILL駆動のユーザー体験──`rigor-next-steps`エントリポイント＋ライブの`rigor skill describe`＋カタログスキル──を、`~/repo/ruby/conference-app`（Rails 8.1アプリ）と6プロジェクトの`~/repo/ruby/rigor-survey`スライス（slice）に対して、初めて実プロジェクトで動かした記録である。この演習の目的は**UXへのフィードバック**であって診断調査ではない。何がうまくいき、何が摩擦になり、サーフェス（surface）が凍結される前に何を改善すべきか。
+日付: 2026-06-20。ステータス: **フィールドトライアルレポート**。[ADR-73](../../adr/73-skill-driven-user-experience/)のSKILL駆動のユーザー体験──`rigor-next-steps`エントリポイント＋ライブの`rigor skill describe`＋カタログスキル──を、`~/repo/ruby/conference-app`（Rails 8.1アプリ）と6プロジェクトの`~/repo/ruby/rigor-survey`スライス（slice）に対して、初めて実プロジェクトで動かした記録である。この演習の目的は**UXへのフィードバック**であって診断調査ではない。何がうまくいき、何が摩擦になり、サーフェス（surface）が凍結される前に何を改善すべきか。
 
 ## 何を動かしたか
 
@@ -33,7 +33,7 @@ describe (state probe) → project-init (onboard) → check / coverage (value)
 2. **オンボード（`rigor-project-init`）**。スコープを絞った`.rigor.dist.yml`を書き出した（`target_ruby: "3.4"`、個別のRailsプラグイン群、`rigor-rbs-inline`）。`rigor plugins` → **7プラグインがアクティブ、0エラー**。Rigorはプロジェクト自身の`sig/`（353個のRBSクラス）を取り込んだ。
 3. **`rigor check lib`** → **バグなし**（rbs-inline＋`sig/`への投資が報われた）。**`rigor coverage --protection lib`** → **17.5 %（7/40）**、そして「ここに型を足せ」という的確なリストが2つの`Dynamic`発生源を名指しした。Faraday（`client.get(...).body`、`#post`、`#response`）と`Rails.configuration.x.tito.*`の動的チェーンである。APIクライアントの2ファイルはともに0 %。
 4. **`app/decorators`への`rigor-protection-uplift`**（M0＝13.0 %、3/23）。sig-genはまず1つのシグネチャ（`TalkDecorator#hashtagged_twitter_intent_url: () -> String`）を提示した。測定可能な残りは`Commonmarker.to_html`（3箇所、RBSのない外部gem）だった。**7行の本物のRBS**（`def self.to_html: (String, ?options: untyped, ?plugins: untyped) -> String`──戻り値を絞り込み、引数は緩いまま）→ **二重ゲートが保たれた。保護13.0 % → 26.1 %（+3箇所）、`check`は`No diagnostics`のまま**。
-5. **フルオンボード**（`paths: [app, lib]`、101個の.rb）。**269件の診断 ＝9件のerror＋260件のinfo**。 260件のinfoは、Railsプラグインがフレームワークの魔法を*肯定的に解決*しているもの（ARファインダー68、ルートヘルパー67、ActionPackヘルパー62、strong-params 34、i18n 13）であり、プラグインがアプリを理解している証である。**9件のerrorは本物**で、RBS/Steepには見えない、フレームワーク意味論上のバグである。
+5. **フルオンボード**（`paths: [app, lib]`、101個の.rb）。**269件の診断 ＝9件のerror＋260件のinfo**。260件のinfoは、Railsプラグインがフレームワークの魔法を*肯定的に解決*しているもの（ARファインダー68、ルートヘルパー67、ActionPackヘルパー62、strong-params 34、i18n 13）であり、プラグインがアプリを理解している証である。**9件のerrorは本物**で、RBS/Steepには見えない、フレームワーク意味論上のバグである。
    - **カラムでないstrong-paramsキー**（6件）。`start_date_jst → :start_date`、`end_date_jst → :end_date`、`start_at_date` / `start_at_time → :start_at`、`content`、`page_image`（一部は正当な仮想属性であり、レビューでゲートされる）。
    - **欠落／重複したi18nキー**（3件）。`sample_webpush_notifications.create.sample_webpush_notifications.create.title`を含む──明らかに重複した名前空間＝本物のバグ。
 6. **acknowledgeモードのベースライン**（baseline、`rigor baseline generate` → 128バケット / 269）＋`baseline:`を配線 → 再チェックは**No diagnostics**。**回帰ガードを実証**。わざと注入した`I18n.t("…not.a.real.key…")`はただちに新しいエラーとして表面化した（その後リバート）。
@@ -43,15 +43,15 @@ describe (state probe) → project-init (onboard) → check / coverage (value)
 
 - **存在プローブは正確で安価**。すべての状態軸が現実と一致し、ルーティングのために`rigor check`を走らせる必要は一度もなかった。
 - **状態を意識したルーティングが前進する**。オンボード後にproject-init → ci-setupへ。「常に最新」という約束が端から端まで保たれた。
-- **Railsプラグインこそが目玉の価値**。 260件のフレームワーク解決＋アプリの既存のRBS/Steepが捕まえなかった9件の本物のバグ。
+- **Railsプラグインこそが目玉の価値**。260件のフレームワーク解決＋アプリの既存のRBS/Steepが捕まえなかった9件の本物のバグ。
 - **protection-uplift二重ゲートは本物**。最小限の本物の型がゼロ診断コストでローカル保護を倍にし、スキルの「正直な境界」が残り（外部gemのDynamic）を正しく予測した。
 - **Rigorはプロジェクト自身の型付け**（`sig/`、`rbs_collection`、rbs-inline）を儀式なしに取り込む。
 
 ### 摩擦／うまくいかなかったこと（conference-app）
 
-- **`rigor-rails`は1つのプラグインとしてリストできないアンブレラ**。 `plugins: [rigor-rails]`とリストすると失敗する。*「registered multiple plugins (actionmailer, actionpack, activejob, activerecord, factorybot, rails-i18n, rails-routes); disambiguate with an explicit `id:` field.」*直感的な選択が罠になる。個別のgemへ展開せざるを得なかった。→ **改善候補:**アンブレラgemにバンドルされたプラグインを自動アクティブ化させるか、`rigor-project-init`のプラグイン表が`rigor-rails`を単一エントリーとして決して提案しないようにする。
+- **`rigor-rails`は1つのプラグインとしてリストできないアンブレラ**。`plugins: [rigor-rails]`とリストすると失敗する。*「registered multiple plugins (actionmailer, actionpack, activejob, activerecord, factorybot, rails-i18n, rails-routes); disambiguate with an explicit `id:` field.」*直感的な選択が罠になる。個別のgemへ展開せざるを得なかった。→ **改善候補:**アンブレラgemにバンドルされたプラグインを自動アクティブ化させるか、`rigor-project-init`のプラグイン表が`rigor-rails`を単一エントリーとして決して提案しないようにする。
 - **rbs-inlineの使用が自動提案されなかった**。アプリは`# @rbs`コメントで溢れているのに、`rigor-rbs-inline`の有効化を促すものは何もなかった──追加すべきだと自分は知っていた。→ `describe` / project-initが`# @rbs` / `#:`コメント（あるいはロックファイル中の`rbs-inline` gem）を検出してプラグインを推奨できるはずだ。
-- **infoレベルのプラグイン解決ノイズが支配的**。 269件中260件の診断が肯定的な解決であり、ベースラインはinfoを含む269件すべてを取り込んだ。→ infoのプラグインノートを既定でオフにするか、ベースラインから除外する（ゲートにも回帰にも関わらない）ことを検討する。
+- **infoレベルのプラグイン解決ノイズが支配的**。269件中260件の診断が肯定的な解決であり、ベースラインはinfoを含む269件すべてを取り込んだ。→ infoのプラグインノートを既定でオフにするか、ベースラインから除外する（ゲートにも回帰にも関わらない）ことを検討する。
 - **ソースからの呼び出しは壊れやすい（製品ではなくツーリングの問題）**。リポジトリの`exe/rigor`を`ruby -Ilib`経由で外部プロジェクトに対して走らせると、`check`が*静かに壊れる*。Bundlerをバイパスするのでバンドルされたプラグインがロードパスから外れ、さらにグローバルな`~/.gem`のrbsネイティブ拡張（別のRuby向けにビルドされたもの）が拾われて → `LoadError`になる。修正は、**絶対**`BUNDLE_GEMFILE`*かつ*`BUNDLE_PATH`を指定した`bundle exec`である（リポジトリの`BUNDLE_PATH: vendor/bundle`は相対パスで`cd`すると壊れる）。これは*ソースからのドッグフーディング*に固有のアーティファクトであり──`mise`/`gem install`でインストールしたエンドユーザーは自分のプロジェクトで`rigor`を実行するだけだ──しかしサーベイ／ドッグフーディングのレシピはこれを明記しなければならない。
 
 ### conference-appに書き出されたアーティファクト（未コミット、別リポジトリ）
@@ -98,10 +98,10 @@ describe (state probe) → project-init (onboard) → check / coverage (value)
 ### ⚠️ 繰り返し現れた摩擦（再発頻度の順）
 
 1. **[5/7] `describe`の推奨は存在のみに基づき、`check`が明らかにするものを無視する**。単独で支配的な所見であり、独立に複数回表面化した。ツリーは`Gemfile.lock ∧ コレクションなし`のときは必ず`rbs-setup`を推奨するが、*より適切な*次のステップは繰り返し別物だった。`baseline-reduce`（haml、55件のエラー）、`monkeypatch-resolve`（rgl、`pre_eval`クラスタ）、`plugin-tune`（strap、RailsプラグインのないRailsアプリ）、`doctor`（redmine、壊れた`sig/`）。エージェントはこれを「check/coverageが走ったかどうかではなく、静的なファイルシステムのシグナルだけに基づいている」「`rbs-setup`は、ユーザーがまだ何の所見も見ていないうちにネットワークタスクを前倒しする」と表現した。これは**[ADR-73](../../adr/73-skill-driven-user-experience/) WD2の存在のみ／`check`を決して走らせないガードレール**との直接的な緊張である──ガードレールは`describe`を高速で副作用なしに保つが、フィールドトライアルは最良の推奨がしばしばcheckの結果を必要とすることを示している。
-2. **[2/7、ただしハードブロック] `target_ruby`のPrism下限フットガン**。 `.ruby-version`がなければgemspecから推測する。`"3.0"` / `"3.2"`は設定フォーマットのバリデーターを通るが、Prismが`check`の途中でこれらを拒否し（「invalid version」）、下限（`3.3`）の手がかりはない。両エージェントとも当て推量にサイクルを浪費した。（faraday、haml。）
-3. **[redmine、深刻度高] `describe`が壊れた`sig/`を健全と報告する**。 `RBS::DuplicatedDeclarationError`が環境を0クラスへ落とし──解析は空虚なのに──`describe`は「sig/ present」と言い`ci-setup`へルーティングする。ユーザーは0カバレッジの解析をCIへ配線してしまうだろう。
-4. **[conference-app] `rigor-rails`アンブレラの罠**。 `plugins: [rigor-rails]`とリストすると失敗する（「registered multiple plugins; disambiguate with `id:`」）。直感的な選択が間違いになる。
-5. **[rgl、liquid、strap] `rbs-setup`が過剰に推奨される**。 RBSを欠くgemがdev/testツーリングだけのgem（rgl: rake/yard/simplecov）に対して。`ci`/`baseline`を先に行うほうが行動に移しやすい設定済みプロジェクト（liquid）に対して。コミュニティRBSより`plugin-tune`のほうが実りの多いRailsアプリ（strap）に対して。
+2. **[2/7、ただしハードブロック] `target_ruby`のPrism下限フットガン**。`.ruby-version`がなければgemspecから推測する。`"3.0"` / `"3.2"`は設定フォーマットのバリデーターを通るが、Prismが`check`の途中でこれらを拒否し（「invalid version」）、下限（`3.3`）の手がかりはない。両エージェントとも当て推量にサイクルを浪費した。（faraday、haml。）
+3. **[redmine、深刻度高] `describe`が壊れた`sig/`を健全と報告する**。`RBS::DuplicatedDeclarationError`が環境を0クラスへ落とし──解析は空虚なのに──`describe`は「sig/ present」と言い`ci-setup`へルーティングする。ユーザーは0カバレッジの解析をCIへ配線してしまうだろう。
+4. **[conference-app] `rigor-rails`アンブレラの罠**。`plugins: [rigor-rails]`とリストすると失敗する（「registered multiple plugins; disambiguate with `id:`」）。直感的な選択が間違いになる。
+5. **[rgl、liquid、strap] `rbs-setup`が過剰に推奨される**。RBSを欠くgemがdev/testツーリングだけのgem（rgl: rake/yard/simplecov）に対して。`ci`/`baseline`を先に行うほうが行動に移しやすい設定済みプロジェクト（liquid）に対して。コミュニティRBSより`plugin-tune`のほうが実りの多いRailsアプリ（strap）に対して。
 6. **[rgl、faraday、strap、conference-app] カバレッジの穴はしばしば手に負えない種類のもの**。ジェネリック型パラメータの呼び出し（rglの`Graph[V,E]`の重み）、フレームワークDSLの箇所（`#returns` Sorbet、`Options.new` DSL）、外部gemのDynamic（conference-appのFaraday/Commonmarker）。「ここに型を足せ」リストはこれらを修正可能な穴と混ぜてしまうので、ユーザーはsig-gen/手書きRBSでは塞げないものを追いかけてしまうかもしれない。
 7. **[より小さく、散在]**: 「N個のgemにRBSがない」というinfoが`.rigor.yml:1:1`にアンカーされ、コード診断と混ざって妙に見える（conference-app、liquid）。存在しないパス → warn-and-skipではなくexit 1（strap）。共有設定中の絶対パスの`cache.path`は可搬でなく、フラグも立たない（liquid、strap）。`rigor describe`（`skill`なし）が「Unknown command」になる（liquid）。rbs-inlineの`# @rbs`の使用がプラグインとして自動提案されない（conference-app）。「設定を今書き出した」という確認がない（faraday）。
 

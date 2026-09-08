@@ -56,7 +56,7 @@ Date.today - 1.week       # Date | Time
 
 `Date ± duration`がユニオンなのは、Railsがそうするからです: 日付単位のdurationは`Date`を返し、1日未満のものは`Time`を返します。
 
-Rigorは`ActiveSupport::Duration`の**部分的な（partial）**シグネチャを出荷します: リーダーサーフェス——`#to_i` / `#in_seconds`、`#to_f`、`#in_minutes` / `#in_hours` / `#in_days` / `#in_weeks` / `#in_months` / `#in_years`、`#iso8601`、`#parts`——が型付けされているため、`3.hours.in_minutes`は`Float`になり、`1.day.to_i * 2`は`Integer`になります。`#ago` / `#until` / `#before` / `#since` / `#from_now` / `#after`はそのサーフェスの一部では**ありません**——それらは`Time.current`にデフォルト設定され、それらの型付けはRailsの`Time`インスタンス拡張がまず宣言されることがブロッカーになっていましたが、以下のセクションでそれが行われます; 乗数自体は個別に追跡されます。それ以外のすべてのメンバー——上記の算術演算子、`==`、その他Durationが`method_missing`を通じて転送するすべてのもの——も診断なしで解決され、一方でそのサイトは`rigor coverage --protection`にとって具体的なレシーバーとして数えられます。そもそも`ActiveSupport::Duration`を名指すことは通常なら誤った判断になります——実際のサーフェスが`method_missing`に転送するクラスに対する部分的なシグネチャは、省略されたすべてのメンバーを偽の`call.undefined-method`に変えてしまうからです——そのため、プラグインはそれを`open_receivers:`の下に列挙します。これは`rigor-activerecord`が`ActiveRecord::Relation`に与えているのと同じ免除です。
+Rigorは`ActiveSupport::Duration`の**部分的な（partial）**シグネチャを出荷します: リーダーサーフェス——`#to_i` / `#in_seconds`、`#to_f`、`#in_minutes` / `#in_hours` / `#in_days` / `#in_weeks` / `#in_months` / `#in_years`、`#iso8601`、`#parts`——が型付けされているため、`3.hours.in_minutes`は`Float`になり、`1.day.to_i * 2`は`Integer`になります。`#ago` / `#until` / `#before` / `#since` / `#from_now` / `#after`はそのサーフェスの一部では**ありません**——それらは`Time.current`にデフォルト設定され、それらの型付けはRailsの`Time`インスタンス拡張がまず宣言されることがブロッカーになっていましたが、以下のセクションでそれが行われます;乗数自体は個別に追跡されます。それ以外のすべてのメンバー——上記の算術演算子、`==`、その他Durationが`method_missing`を通じて転送するすべてのもの——も診断なしで解決され、一方でそのサイトは`rigor coverage --protection`にとって具体的なレシーバーとして数えられます。そもそも`ActiveSupport::Duration`を名指すことは通常なら誤った判断になります——実際のサーフェスが`method_missing`に転送するクラスに対する部分的なシグネチャは、省略されたすべてのメンバーを偽の`call.undefined-method`に変えてしまうからです——そのため、プラグインはそれを`open_receivers:`の下に列挙します。これは`rigor-activerecord`が`ActiveRecord::Relation`に与えているのと同じ免除です。
 
 乗数が発火するのは、Rigorが数値であると証明したレシーバーに対してだけなので、`created_at.day`・`Date.today.year`・あなた自身のオブジェクトの`#days`は、これまでどおりの答えを保ちます。
 
@@ -78,7 +78,7 @@ Time.current.definitely_not_here    # 依然として call.undefined-method
 
 正直に名前を付けられない戻り値については、推測するのではなく拡大されます: `#in_time_zone`は`ActiveSupport::TimeWithZone`を返しますが、本バンドルはこれをモデル化していないため、`untyped`と読まれます。
 
-実際の`require "active_support/all"`と比較して除外されているのは12の名前です: インスタンス10個とシングルトン2個で、いずれもActiveSupport自身の`+` / `-` / `<=>` / `eql?` / `Time.at`オーバーライドの`alias_method`アーティファクトです——`plus_with{,out}_duration`、`minus_with{,out}_duration`、`minus_with{,out}_coercion`、`compare_with{,out}_coercion`、`eql_with{,out}_coercion`、および`Time.at_with{,out}_coercion`のペアです。これらは実行時にpublicであり、ソース上では`:nodoc:`であり、ActiveSupportの外部のコードがそれらを呼び出すことはありません; 呼び出すコードに対しては報告されます。
+実際の`require "active_support/all"`と比較して除外されているのは12の名前です: インスタンス10個とシングルトン2個で、いずれもActiveSupport自身の`+` / `-` / `<=>` / `eql?` / `Time.at`オーバーライドの`alias_method`アーティファクトです——`plus_with{,out}_duration`、`minus_with{,out}_duration`、`minus_with{,out}_coercion`、`compare_with{,out}_coercion`、`eql_with{,out}_coercion`、および`Time.at_with{,out}_coercion`のペアです。これらは実行時にpublicであり、ソース上では`:nodoc:`であり、ActiveSupportの外部のコードがそれらを呼び出すことはありません;呼び出すコードに対しては報告されます。
 
 `Date`および`DateTime`は同じActiveSupportモジュールによって拡張されていますが、これらはまだこれを担って**いません**——`Date.current.past?`は依然として報告されます。
 

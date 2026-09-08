@@ -3,9 +3,9 @@ title: "キャッシュレイヤー — `Rigor::Cache`"
 description: "rigortype/rigor docs/internal-spec/cache.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/cache.md"
 sourcePath: "docs/internal-spec/cache.md"
-sourceSha: "e01e9dae05239a94d814c354891807fa31b8ea36b2e97b194f8a33bf81000d6f"
-sourceCommit: "2a65ec8e52462c931fbfec94df68a18139259a43"
-sourceDate: "2026-09-03T03:44:43+09:00"
+sourceSha: "0a084506e5294af71e6f00ca097b987fdb22af2cb2d978988709cf5e58daeee5"
+sourceCommit: "ffb456b0cc9e068a59d0ba03ba464b60ad83280a"
+sourceDate: "2026-09-08T05:08:39+09:00"
 translationStatus: "translated"
 sidebar:
   order: 3050
@@ -37,7 +37,7 @@ GlobEntry       :: { root: String, pattern: String, value: String }
 
 `:stat` comparatorは、個々の`FileEntry`スロット向けのADR-87 WD1のstatしてからダイジェストの階層です。その`value`は`"<digest> <size> <mtime_ns> <ctime_ns> <inode> <recording_instant_ns>"`をパックします: 検証（`FileDigest.stat_fresh?`）はまずファイルをstatし、タプルが動いたとき、またはレーシーウィンドウガードが発火したとき（ファイルのmtimeがエントリーの記録時刻より厳密に古くない）にのみ、完全な内容ハッシュ（`FileDigest.hexdigest`）へフォールバックします。valueにパックされたSHA-256ダイジェストは依然として唯一の変更**authority（権威）**のままです —— 動かなかったstatは検証がその再計算をスキップできるようにするだけです;statは動いたが内容は同一（素の`touch`）である`:stat`エントリーは再ハッシュされ、正しく鮮度ありと判定されます。`:stat`階層は検証専用ディスクリプタ（ADR-45の依存関係ディスクリプタ、プラグインの`watch:` glob）に乗ります;キャッシュ*キー*ディスクリプタは決定的な`:digest` comparatorを保ちます。`cache.validation: digest`（または、それが優先される`RIGOR_STRICT_VALIDATION=1` env）は、statを信頼できないファイルシステムのために、すべてのエントリーを`:digest`へ強制的に戻します。このキーのデフォルトは`auto`（#190）です: `CiDetector`がCIプロバイダを認識したときは`digest`へ解決され——新鮮なチェックアウトはすべてのstatタプルを再生成するため、stat階層は決してショートサーキットできず、statシグネチャのglobスロットは毎回のランで陳腐と読まれてしまう——、それ以外のあらゆる場所では`stat`へ解決されます。解決はランごとに行われ（`Configuration#cache_validation_strict?`）、`RIGOR_CI_DETECT=0`のキルスイッチを尊重し、明示的な`stat` / `digest`は常に優先されます（永続ワークスペースのCIランナーは`stat`でstatフロアへオプトインし直します）。
 
-`:exists` comparatorは`File.exist?`の答えを`"true"` / `"false"`として運びます（`FileEntry::PRESENT` / `FileEntry::ABSENT`）。`FileEntry.absent(path:)`が`"false"`の行を構築します——[ADR-45](../../adr/45-unchanged-project-fast-path/)のWD1（#577）の**不在の依存関係**であり、パスが欠けているために読み取りが失敗したとき`Plugin::IoBoundary#read_file`が記録するものです。これによって、ファイルの不在の上で計算されたエントリーは、そこに何かが現れた時点で古いものとして読まれます。`#absent?`がその行を識別します。`FileEntry.present(path:)`が`"true"`の行を構築します——WD1b（#613）であり、反対方向の同じ依存関係です。これは存在プローブが求めていたものを見つけ、かつプラグインがバイトを読み取らなかった場合（自身がglobした探索ルート、その存在だけでモードを切り替えた設定ファイルなど）に`Plugin::IoBoundary#file?` / `#directory?`によって記録されます。どちらの方向の検証も`File.exist?`1回です: 変更のないツリーでドリフトしうるstatのタプルもダイジェストもないので、存在の行がウォームなヒットをばたつかせることは決してありません。また、これは最も弱いファイル行でもあります——インプレースの書き換えは存在の行を新鮮なまま残します——そのため、真に存在そのものだけに依存している依存関係の行にのみ用いられます; 読み取りはそれより上の`:stat`行を記録します。
+`:exists` comparatorは`File.exist?`の答えを`"true"` / `"false"`として運びます（`FileEntry::PRESENT` / `FileEntry::ABSENT`）。`FileEntry.absent(path:)`が`"false"`の行を構築します——[ADR-45](../../adr/45-unchanged-project-fast-path/)のWD1（#577）の**不在の依存関係**であり、パスが欠けているために読み取りが失敗したとき`Plugin::IoBoundary#read_file`が記録するものです。これによって、ファイルの不在の上で計算されたエントリーは、そこに何かが現れた時点で古いものとして読まれます。`#absent?`がその行を識別します。`FileEntry.present(path:)`が`"true"`の行を構築します——WD1b（#613）であり、反対方向の同じ依存関係です。これは存在プローブが求めていたものを見つけ、かつプラグインがバイトを読み取らなかった場合（自身がglobした探索ルート、その存在だけでモードを切り替えた設定ファイルなど）に`Plugin::IoBoundary#file?` / `#directory?`によって記録されます。どちらの方向の検証も`File.exist?`1回です: 変更のないツリーでドリフトしうるstatのタプルもダイジェストもないので、存在の行がウォームなヒットをばたつかせることは決してありません。また、これは最も弱いファイル行でもあります——インプレースの書き換えは存在の行を新鮮なまま残します——そのため、真に存在そのものだけに依存している依存関係の行にのみ用いられます;読み取りはそれより上の`:stat`行を記録します。
 
 ### `Descriptor.new(files: [], gems: [], plugins: [], configs: [], dependencies: [], globs: [])`
 
@@ -217,7 +217,7 @@ value payload        zlibでdeflateされたシリアライズ済みバイト（
 sha256               32バイト — 直前のすべてのバイトの整合性ハッシュ
 ```
 
-ディスクリプタと値は別々に格納されるため、将来のキャッシュ検査ツールがinflate + `Marshal.load`のコストを払わずにディスクリプタだけを読み取れます。フォーマットバージョン（現在は`2`）は`Descriptor::SCHEMA_VERSION`とは異なります。前者はバイトレイアウトを対象とし、後者はディスクリプタスキーマを対象とします。フォーマットバージョンのバンプは読み込みパスでエントリーを無効化します（ヘッダーの不一致 → キャッシュミス）。
+ディスクリプタと値は別々に格納されるため、将来のキャッシュ検査ツールがinflate + `Marshal.load`のコストを払わずにディスクリプタだけを読み取れます。フォーマットバージョン（現在は`4`）は`Descriptor::SCHEMA_VERSION`とは異なります。前者はバイトレイアウトを対象とし、後者はディスクリプタスキーマを対象とします。フォーマットバージョンのバンプは読み込みパスでエントリーを無効化します（ヘッダーの不一致 → キャッシュミス）。
 
 フォーマットv2（[ADR-54](../adr/54-cache-slimming.md) WD2）は書き込み時に値ペイロードをdeflateし、読み込み時にinflateします。ディスクリプタペイロードとSHA-256トレーラー（格納された圧縮後バイトに対して計算される）は変わりません。圧縮はプロデューサーには不可視です。カスタムの`serialize:` / `deserialize:`ペアは依然として厳密にそのバイトをラウンドトリップします。v1エントリーはヘッダーチェックに失敗し静かなミスとして読まれます ── マイグレーションはありません。
 
@@ -351,12 +351,18 @@ v0.0.8スライスでは代わりに**翻訳後**の成果物をキャッシュ�
 
 ```ruby
 class RBS::Location
-  def _dump(_) = ""
-  def self._load(_) = new(buffer: ..., start_pos: 0, end_pos: 0)
+  def _dump(_) = buffer&.name.to_s
+  def self._load(name) = new(buffer: Buffer.new(name: name, content: ""), start_pos: 0, end_pos: 0)
 end
 ```
 
-このパッチは純粋に加算的（以前に`TypeError`を発生させていたディスパッチのためのメソッドを追加するだけ）で冪等です（`method_defined?(:_dump)`でゲートされます）。キャッシュされた`RBS::Location`インスタンスはノードごとのソース位置情報を失いますが、Rigorのどの解析コードパスも`RBS::Location`を参照しないため（すべての診断はPrism自身のロケーションを通じてフローします）、この損失は実用上無害です。キャッシュヒット後にLocationを読み込むコードパス（例: サードパーティツール）はクラッシュするのではなく、無害なゼロ範囲のセンチネルを参照します。
+このパッチは純粋に加算的（以前に`TypeError`を発生させていたディスパッチのためのメソッドを追加するだけ）で冪等です（`method_defined?(:_dump)`でゲートされます）。
+
+キャッシュされたロケーションはバッファ名（NAME）を保持し、ノードごとのソース位置（POSITION）を破棄します。バッファ名は無害（inert）ではありません: `rbs.coverage.definition-build-failed`は競合するシグネチャファイルを名指ししますが、名前のないダンプではウォーム実行がその節を省略しコールド実行ではそれが出力されるという事態が生じていました（issue #696）。位置が破棄されるのは、それがはるかに大量に存在し（ASTノードごとに1つ）、かつどの解析パスもそれを参照しないためです: Rubyコードに対するすべての診断はPrism自身のロケーションを通じて流れます。キャッシュヒット後にLocationを読み取るコードパス（例: サードパーティツール）はクラッシュするのではなく、無害なゼロ範囲のセンチネルを参照します。
+
+**アノテーションは例外であり、その位置を保持しなければなりません（MUST）**。 `RBS::AST::Annotation`は自前の`marshal_dump` / `marshal_load`（issue #799）を定義し、`[string, [name, start_line, start_column, end_line, end_column]]`を運びます。これは`Rigor::Cache::AnnotationLocation`を通じて再構築され、そのネストされた`Buffer`は、運ばれたペア群から`pos_to_loc`に応答するコンテンツのない`RBS::Buffer`サブクラスです ── これは`RBS::Location`のCレベルの`start_line`やその兄弟たちが参照するすべてのものです。2つの`conforms-to`行（`rbs_extended.unsatisfied-conformance`と`dynamic.rbs-extended.unresolved`）は、Rubyの`def`ではなく作者が書いた`%a{…}`に位置づけられるため、アノテーションの位置はキャッシュされた環境内で診断が読み取る唯一の位置です（`effect.unknown-label`もアノテーションに位置づけられますが、`EnvelopeScanner`は構築された環境ではなくプロジェクト自身の`.rbs`をパースして到達します ── この損失を拒否することがそうしている2つの理由の1つです）。保持がない場合、それは`1:1`に潰れていました: `rigor check --verify-incremental`は満たされない`conforms-to`を持つすべてのプロジェクトで失敗し（レプリカは行を位置で正規化しますが、比較の片側のみがキャッシュされた環境に対して実行されます）、ウォームな`--incremental`実行は変更されていないツリー上で行を移動させてしまっていました。位置の保持を`RBS::Location#_dump`で行うのではなくアノテーションに限定したことが、それをコストゼロに保っています: LocationはあらゆるASTノードにぶら下がっており、その位置を保持すると環境ブロブで+2.9%が測定されましたが、アノテーションのみに限定した同じ保持は ── その環境で18個 ── 約10 MBに対して+1.4 KBでした。
+
+この保持の導入前に書き込まれたブロブも引き続きロードされます ── Marshalはivarダンプと`marshal_dump`ペイロードを異なってエンコードし、後者のみが`marshal_load`に到達するためです ── したがって古いブロブが移動した位置を無期限に報告し続けるのを防ぐのは`Store::FORMAT_VERSION`です（ADR-6のストアは決してエビクトしないため）。
 
 このパッチは`lib/rigor/cache/rbs_environment_marshal_patch.rb`にあり、プロデューサーによってrequireされます。プロデューサーが最初に参照されたときに1プロセスにつき一度だけロードされます。
 

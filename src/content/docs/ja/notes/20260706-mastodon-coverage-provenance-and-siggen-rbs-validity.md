@@ -4,7 +4,7 @@ description: "Imported from rigortype/rigor docs/notes/20260706-mastodon-coverag
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260706-mastodon-coverage-provenance-and-siggen-rbs-validity.md"
 sourcePath: "docs/notes/20260706-mastodon-coverage-provenance-and-siggen-rbs-validity.md"
 sourceSha: "bd972dcd9d427a9fa0895264ee4a613de01a7dff28278d7d10fa9327bf7a39a9"
-sourceCommit: "2a65ec8e52462c931fbfec94df68a18139259a43"
+sourceCommit: "ffb456b0cc9e068a59d0ba03ba464b60ad83280a"
 sourceDate: "2026-07-06T20:29:30+09:00"
 sourceLanguage: "ja"
 sidebar:

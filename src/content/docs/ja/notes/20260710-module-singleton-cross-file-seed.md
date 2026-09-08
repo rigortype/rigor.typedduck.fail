@@ -21,7 +21,7 @@ GitLab改善計画の**P2項目6**（[`20260708-gitlab-type-coverage-improvement
 ブロックされた**P1規模のエンジンスライス**として位置づけていた。直接の実測（2026-07-10）はその位置づけの大半を
 覆す。以下の4つのファクトはいずれもプローブで再現されたものであり、読解から推論したものではない。
 
-**F1 ── モジュールはファイル単位ではすでに`Singleton[M]`である**。 `ScopeIndexer#record_declarations`
+**F1 ── モジュールはファイル単位ではすでに`Singleton[M]`である**。`ScopeIndexer#record_declarations`
 （`scope_indexer.rb:2220`）は`Prism::ModuleNode`と`Prism::ClassNode`を同一に登録する。プロジェクト全体の
 シードである`collect_class_decls`（`:2141`）だけがモジュールを除外している。つまりモジュール定数の*型付けセマンティクス*は
 あらゆるリリースで出荷されあらゆるコーパス上で動作してきた。欠けているのは純粋にクロスファイルの到達だけである。
@@ -48,7 +48,7 @@ $ ScopeIndexer.discovered_def_index_for_paths(...)[:singleton_def_nodes]
 これらはこの変更（F1）よりも前から存在するので、シードがこれらを導入するわけではない。1ファイルからプロジェクトへと
 その到達を広げるだけである。
 
-**F3 ── プロジェクト側のシングルトンボディはすでに寛容なフォールバックに勝る**。 `try_user_class_fallback`
+**F3 ── プロジェクト側のシングルトンボディはすでに寛容なフォールバックに勝る**。`try_user_class_fallback`
 （`MethodDispatcher.dispatch`内の最終tier）が`ExpressionTyper#try_singleton_method_inference`が走る前に呼び出しを
 横取りするという懸念は根拠がない。`try_discovered_method`は`singleton_def_for`が再型付け可能なボディを保持しているときは
 辞退し、その後Objectフォールバックは外れる。ファイル内でプローブすると、`module Conf; def self.load = 42; end; Conf.load`は
@@ -60,7 +60,7 @@ $ ScopeIndexer.discovered_def_index_for_paths(...)[:singleton_def_nodes]
 RBSを持たないので、それをシードしてもルールが発火することはない。Rigorが発見しない`extend self` / `delegate` /
 `class_methods do`の寄与因子は、したがって診断ではなく`Dynamic`に劣化する。
 
-**F5 ── RBS既知の名前はシャドウできない**。 `resolve_constant_name`
+**F5 ── RBS既知の名前はシャドウできない**。`resolve_constant_name`
 （`expression_typer.rb:403`）は`discovered_classes`より*前に*`env.singleton_for_name(candidate)`を照会するので、
 プロジェクトの`module Math` / `module Comparable`の再オープンはRBSの答えを保つ。
 
@@ -115,7 +115,7 @@ ADR-57 WD2が拘束する。**ゲートは裁定された発火クラスごと�
 
 ## 結果（2026-07-10）
 
-**保護**。 GitLab `lib`（4,748ファイル、`lib/feature.rb`と`Gitlab::Utils`ファミリーの両方を含むスコープ）、
+**保護**。GitLab `lib`（4,748ファイル、`lib/feature.rb`と`Gitlab::Utils`ファミリーの両方を含むスコープ）、
 `coverage --protection --format json`、master対branch:
 
 | | 保護済み | 未保護 | 合計 | 比率 |
@@ -124,14 +124,14 @@ ADR-57 WD2が拘束する。**ゲートは裁定された発火クラスごと�
 | after | 25,856 | 67,940 | 93,796 | **0.2757** |
 
 **+3.00 pp、+2,812箇所の保護サイト**、分母は同一（分母の一致それ自体が、2回の実行が同じサイトをスキャンしたことの
-チェックになっている）。規模の目安として、ADR-67の呼び出しサイトパラメーター推論レバー全体はMastodonで+0.75 ppを
+チェックになっている）。規模の目安として、ADR-67の呼び出しサイトパラメータ推論レバー全体はMastodonで+0.75 ppを
 計測した。
 
-スコープが調査の`app lib`ではなく`lib`なのは、同じ週にランドしたP0/P1スライス（`structure.sql`、ストロングパラメーター、
+スコープが調査の`app lib`ではなく`lib`なのは、同じ週にランドしたP0/P1スライス（`structure.sql`、ストロングパラメータ、
 AS core-ext）も保護を動かしたためで、記録された0.2836というapp+lib値はもはや有効な「before」ではない。ここでは両側とも
 再計測している。
 
-**診断**。 haml、kramdown、liquid、rgl、Mastodon `app/models`、そしてGitLab `app`はすべてバイト単位で同一である
+**診断**。haml、kramdown、liquid、rgl、Mastodon `app/models`、そしてGitLab `app`はすべてバイト単位で同一である
 （`check --no-cache --no-baseline`）。2つの発火が裁定を要した:
 
 - rigor自身の`lib`（2エラー）── `CLI::DiagnosticFormats.render`は`else`のない`case/when`なので、いまや推論される戻り値は

@@ -301,7 +301,7 @@ fused classify per mutation: type-killed | test-killed | unprotected(+crash buck
 
 - `cache/store`（21 → 1-等価、Sonnet）: `#fetch_or_validate`の記録・検証フロー全体（行244〜268）には*直接の*カバレッジがなかった —— `Plugin::Base#cache_for`を介して間接的にしか行使されていなかった。`#fetch_or_validate`ブロック（ヒットはキャッシュされた値を返し`hits`をインクリメント;ミスはブロックを走らせ、書き込み、`misses`をインクリメント;ブロックなし → `[nil, Descriptor.new]`;古くなった依存ディスクリプタ → 再計算）、アトミック書き込みブロック（正確な値をラウンドトリップ、残留`.tmp`なし、スパイでピン留めした`SecureRandom.hex(4)`サフィックス）、そして`write_varint`の負値raiseテスト（`.send`経由）でクローズした。残る1つは行421の`File.open(path, RDWR|CREAT, 0o644)`だ —— `0o644`モードへの`nil_inject`は**等価ミュータント**だ: umask `022`の下ではデフォルトの作成モード`0666 & ~022 == 0644`となり、リテラルとバイト同一になるので、umaskに脆くないテストではそれを区別できない（`path` / `flags`引数は変数と定数ORであり、`nil_inject`が狙うリテラルではない）。
 
-**フェーズ1（中規模380〜620 LOCのspec済み層）完了**。 baseline、method_parameter_binder、cache/descriptor、rule_catalog、cache/storeはすべてその等価ミュータントのフロアにある。
+**フェーズ1（中規模380〜620 LOCのspec済み層）完了**。baseline、method_parameter_binder、cache/descriptor、rule_catalog、cache/storeはすべてその等価ミュータントのフロアにある。
 
 ## 14回目のバッチ —— spec不在のキャリアspecを執筆（フェーズ2、2026-07-01）
 

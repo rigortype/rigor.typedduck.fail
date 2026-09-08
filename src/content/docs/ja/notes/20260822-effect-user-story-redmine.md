@@ -367,7 +367,7 @@ STEP4 warm again             -> 0     ← same config that just produced 343
 
 11. **`rigor effects --help`はオプションをゼロ個列挙する**が、各サブコマンドは5〜6個列挙する。*最小の修正:* `--full`・`--format`・`--config`を列挙する。
 
-12. **`rigor effects explain --symbol <typo>`は`Nothing to explain.`と印字して0で終了する**。 *最小の修正:*「そのようなシンボルはない」（非ゼロ終了）と「エフェクトなし」を区別する。
+12. **`rigor effects explain --symbol <typo>`は`Nothing to explain.`と印字して0で終了する**。*最小の修正:*「そのようなシンボルはない」（非ゼロ終了）と「エフェクトなし」を区別する。
 
 13. **ドリフトレポートは`file:line`を運ばず、**`explain`はラベル行をカバーするが`exhaustive → not`は決してカバーしない。*最小の修正:*各ドリフト行に定義サイトを追加する;網羅性を失わせた呼び出しを`explain`が名指せるようにする。
 

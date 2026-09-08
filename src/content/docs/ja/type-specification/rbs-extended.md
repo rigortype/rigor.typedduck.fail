@@ -3,8 +3,9 @@ title: "RBS::Extendedアノテーション"
 description: "rigortype/rigor docs/type-specification/rbs-extended.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/type-specification/rbs-extended.md"
 sourcePath: "docs/type-specification/rbs-extended.md"
-sourceSha: "7a02ff4fb16405e7ce44691fcab2487f6d7eb2f0ca9053ef2ec1d3d9b8fb4c11"
-sourceCommit: "0cf313582cfbe2fa7da8148dc498d0b2a0893438"
+sourceSha: "ac5ce9bdf231c2aeec0a399f749c5edeec0d446bfcc9f97dcf8c148b0d130f47"
+sourceCommit: "ffb456b0cc9e068a59d0ba03ba464b60ad83280a"
+sourceDate: "2026-09-08T04:51:06+09:00"
 translationStatus: "translated"
 sidebar:
   order: 2050
@@ -178,6 +179,8 @@ end
 ```
 
 バンドルされた`json::value`の登録は`JSON.parse` / `YAML.safe_load`の戻り値判別を支えています。著作の実践的なウォークスルーはハンドブック第12章を参照してください。
+
+パーサが拒絶したディレクティブ ── 名前空間のない`uri=`、正でない`arity=`、アリティと一致しない`variance=`リスト、欠落した`params=`や`body=`、パース不能なボディ、認識されない`bound=` ── は、スキャンを中断（abort）することは決してなく、実行を失敗させることも決してありません。コンストラクタは未登録のままとなり、ファイル内の他のすべてのディレクティブは引き続き適用され、欠落したコンストラクタを名指す`App[<uri>, ...]`はそのバウンド（bound）を読み取ります。そうした機能低下はディレクティブを一切持たないシグネチャとそれ以外では区別がつかないため、拒絶は報告されなければなりません（MUST）: アノテーションの行においてちょうど1つの`dynamic.rbs-extended.hkt-directive-invalid` `:info`診断が報告され、これは[diagnostic-policy.md](../diagnostic-policy/) § `rbs_extended.*`で規範的です。
 
 ## フロー効果と拡張の貢献
 

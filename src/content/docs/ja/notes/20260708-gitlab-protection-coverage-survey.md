@@ -16,7 +16,7 @@ GitLab調査チェックアウト（`~/repo/ruby/rigor-survey/gitlab`、FOSSツ�
 app lib`、ウォームな`.rigor/cache`、実時間**約2時間17分**（12:20:46 → 約14:37 JST）、観測されたピークRSS約14.6 GB。
 stderrはクリーン── "RBS environment build failed"なし、プラグインエラーなし、パースエラー0件。生JSON:
 `~/repo/ruby/rigor-survey/_reports/init/gitlab.coverage.json`（4.9 MB、11,344ファイル、11,959個の相異なる
-未保護メソッド名クラスター）。
+未保護メソッド名クラスタ）。
 
 目的: エンジン改善計画のためのデータ── どこに穴があり、何が原因で、どれが`tractability`（扱いやすさ）を持つか。
 `20260706-mastodon-coverage-provenance-and-siggen-rbs-validity.md`内のMastodon/Redmine測定の姉妹資料。
@@ -75,7 +75,7 @@ MastodonのWD8後26%と対比）。ユーザーが対処可能な2つの原因�
 ロックされたgemがありrbs_collectionもないため、gem由来の動的性は一切gemに帰属されない。`add_rbs`軸は
 `explicit_untyped`（おそらくrigor-sorbet経由のSorbetスタイル`T.untyped`領域）によって丸ごと買われている。
 
-## 3. 上位の未保護メソッド名クラスター（上位25個 = 57,952サイト = 穴の38.5%）
+## 3. 上位の未保護メソッド名クラスタ（上位25個 = 57,952サイト = 穴の38.5%）
 
 | # | メソッド | サイト数 | 主要な起源 |
 | ---: | --- | ---: | --- |
@@ -106,7 +106,7 @@ MastodonのWD8後26%と対比）。ユーザーが対処可能な2つの原因�
 | 25 | `fetch` | 846 | inferred_return_untyped |
 
 シェイプはMastodonと一致する。Dynamicレシーバー上の普遍的な語彙のメソッド群で、`[]`が支配的
-（単独で全穴の12.2%── オプションハッシュ／params／config添字アクセスのイディオム）。AR語彙のクラスター
+（単独で全穴の12.2%── オプションハッシュ／params／config添字アクセスのイディオム）。AR語彙のクラスタ
 （`where` 1,427、`find` 423、`exists?` 341、`find_by` 133、`includes` 104、`find_each` 105、`preload` 92、`not` 268）は
 合計で約3,000となり、不活性なARプラグイン（§4.5）に直接帰属できる。ドメインのリーダー`project`（1,624）、`id`
 （4,075）、`name`（1,525）、`user`（413）、`group`（522）、`current_user`（202）は、ADR-58/67が狙うモデル境界を
@@ -118,7 +118,7 @@ MastodonのWD8後26%と対比）。ユーザーが対処可能な2つの原因�
    `::Feature.enabled?(:activity_pub)`。`Feature`は解析対象ツリー内にある（`lib/feature.rb`）し、当該メソッドは
    `class << self`の下に定義されている（95行目、`def enabled?`は141行目）。未保護、unsupported_syntax。
    **判定: モジュールのシングルトン（`class << self` / `def self.x`）解決のギャップ── ADR-57で名付けられた将来の
-   スライス。** `enabled?`クラスターだけで619サイト（＋`disabled?` 76）にのぼり、この1つのエンジンスライスは
+   スライス。** `enabled?`クラスタだけで619サイト（＋`disabled?` 76）にのぼり、この1つのエンジンスライスは
    GitLabで単独として最も普及したイディオムを保護することになる。
 2. **`declarative_policy`の条件** ── `app/policies/project_policy.rb`（比率**0.039**、319/332
    が未保護、app/policies全体では0.0516）。`condition(:guest) { team_member? }`、
@@ -140,7 +140,7 @@ MastodonのWD8後26%と対比）。ユーザーが対処可能な2つの原因�
    サポート（またはスキーマダンプのフォールバック）は、GitLabでのAR階層の勝利すべての前提条件である。**
 6. **strong paramsのチェーン** ── `app/controllers/abuse_reports_controller.rb:54`
    `params.require(:abuse_report).permit(…)`。rigor-actionpackは`params →
-   ActionController::Parameters`と型付けし、`params`/`require`のディスパッチは保護されている（`require`クラスター:
+   ActionController::Parameters`と型付けし、`params`/`require`のディスパッチは保護されている（`require`クラスタ:
    プロジェクト全体で未保護は2サイトのみ。未保護の70個の`params`サイトはすべてプラグインが適用されない
    ActionCableのチャンネル／ルート制約）。しかし`require`の戻り値は型なし（Parameters RBSがない）なので、
    `.permit`は未保護（108サイト）。**判定: rigor-actionpackは1リンク分だけ動作を検証済み。
@@ -149,7 +149,7 @@ MastodonのWD8後26%と対比）。ユーザーが対処可能な2つの原因�
    モノレポローカルなgem `gems/gitlab-utils/`に存在する── 解析対象の`[app, lib]`パスの**外側**。144
    個の未保護`to_boolean`サイト。**判定: モノレポローカルなgem（`gems/*`、30個以上）は不可視── それらは
    paths指定が除外しているプロジェクトコードである。安価なconfig修正: `gems/*/lib`をpathsに追加する（または
-   ADR-10の依存ソースエントリ）。エンジン作業は不要。**
+   ADR-10の依存ソースエントリー）。エンジン作業は不要。**
 8. **`strong_memoize`** ── `app/models/merge_request.rb:1176` `strong_memoize(:discussions_diffs) do …`。
    `gems/gitlab-utils`内に定義されている（#7と同じ穴）。ブロック形式の呼び出しが未解決 → その戻り値が
    型なし → 消費側が型なし。`strong_memoize_attr :name`という事後形式は無害である（その上の素の`def`が
@@ -173,13 +173,13 @@ MastodonのWD8後26%と対比）。ユーザーが対処可能な2つの原因�
     コンポーネントに集中している。**判定: 外部gemの穴がunsupported_syntaxと誤ラベル付けされている（またしても
     発火ゼロの`external_gem_without_rbs`）。**
 
-## 5. Mastodon（0.3148）／Redmine（0.339）との差分: ドライバーのランキング
+## 5. Mastodon（0.3148）／Redmine（0.339）との差分: ドライバのランキング
 
 GitLabの0.2836はMastodonより3.1 pp下だ。上記のサンプルに基づき、証拠づけられた重みでランク付けする。
 
 1. **ARプラグイン不活性**（structure.sqlのみ、`plugin.activerecord.load-error`）: 約3,000個の直接的な
    AR語彙の穴（§3）に加え、リレーション／モデル読み出しに根ざした下流チェーンすべて。MastodonとRedmineは
-   ともに生きたschema.rb → 生きたARプラグインを持っていた。単独として最大の差分ドライバー。
+   ともに生きたschema.rb → 生きたARプラグインを持っていた。単独として最大の差分ドライバ。
 2. **モデル定数のDynamic＋`class << self`シングルトン**: `Feature.enabled?`（619+76）、
    `Gitlab::Utils.*`、モデルの`.find/.where` ── GitLabのハウススタイルは、Mastodonよりはるかに多くの
    トラフィックをモジュールシングルトンのファサード経由でルーティングする（サンプル1、5、7）。
@@ -192,10 +192,10 @@ GitLabの0.2836はMastodonより3.1 pp下だ。上記のサンプルに基づき
    レイアウトに固有。利用可能な最も安価な修正（エンジンではなくconfig）。
 5. **806個のロックされたgem、RBSコレクションなし**: grape（lib/apiは0.2534）、ViewComponent（サンプル12）、
    gitaly-clientのprotobuf ── 素の外部gemの動的性であり、`external_gem_without_rbs`が決して発火しないため
-   帰属では不可視。Mastodonも同じドライバーを共有するが、より小さいgemサーフェスを伴う。
+   帰属では不可視。Mastodonも同じドライバを共有するが、より小さいgemサーフェスを伴う。
 6. **`prepend_mod`によるEE注入**: 存在する（例: `Project.prepend_mod_with('Project')`）が、この
    FOSSチェックアウトではEEモジュールが存在しないため、未解決呼び出しのルートであって大量の誤ラベル付け元では
-   ない── このスコープでは主要なドライバーではない（これに根ざしたサンプルチェーンはない）。
+   ない── このスコープでは主要なドライバではない（これに根ざしたサンプルチェーンはない）。
 
 ## 6. エンジン計画への含意（データであり、コミットメントではない）
 

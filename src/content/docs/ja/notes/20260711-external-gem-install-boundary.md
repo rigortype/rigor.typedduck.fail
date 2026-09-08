@@ -10,11 +10,11 @@ sidebar:
   order: 20266711
 ---
 
-調査ノート、2026-07-11。[ADR-82 WD9](../../adr/82-dynamic-provenance-wiring/)の外部gem定数由来のランディングと、そこで記録されたカバレッジの制限を受けたものである。問いは、「ターゲット`GEM_PATH`認識」を構築して、グローバルgemプロジェクト（mise/rbenv）がrigor共有のフロアではなく完全な外部gem集合を得られるようにすべきか、というものだった。**答えはノーだ── この制限はADR-27の設計境界であり、既存のオプトインが用意されている。そして本当の事前条件は、単にgemがインストールされていることだけである。**
+調査ノート、2026-07-11。[ADR-82 WD9](../../adr/82-dynamic-provenance-wiring/)の外部gem定数由来のランディングと、そこで記録されたカバレッジの制限を受けたものである。問いは、「ターゲット`GEM_PATH`認識」を構築して、グローバルgemプロジェクト（mise/rbenv）がrigor共有のフロアではなく完全な外部gem集合を得られるようにすべきか、というものだった。**答えはノーだ── この制限はADR-27の設計境界であり、既存のオプトインが用意されている。そして本当の事前条件は、単にgemがインストールされていることだけである**。
 
 ## フロアが実際に何だったか
 
-WD9が調査アプリで計測した収量（Mastodon `app/models` 47、GitLab `lib` 124）は、*すべて*rigor自身がバンドルするgem（`i18n`、`rack`、`activesupport`）から来ていた。プロジェクト固有のgem（`grape`、`banzai`、`globalid`、`railties`）はいずれも何も生み出さなかった。理由はリゾルバーではない── **調査用チェックアウトにはgemが1つもインストールされていない**からだ:
+WD9が調査アプリで計測した収量（Mastodon `app/models` 47、GitLab `lib` 124）は、*すべて*rigor自身がバンドルするgem（`i18n`、`rack`、`activesupport`）から来ていた。プロジェクト固有のgem（`grape`、`banzai`、`globalid`、`railties`）はいずれも何も生み出さなかった。理由はリゾルバではない── **調査用チェックアウトにはgemが1つもインストールされていない**からだ:
 
 ```
 $ cd rigor-survey/gitlab && bundle show globalid
@@ -29,7 +29,7 @@ GitLabの800を超えるロック済みgemは、その`Gemfile.lock`の中にし
 
 > 純粋なデフォルトのインストール場所── `path`を設定せずアクティブなRubyのGEM_HOMEにあるgem── は*プロジェクト*のRubyのgem homeであり、隔離されたアナライザーはプロジェクトのツールチェーンを実行しない限りそれを知り得ない。`bundler.bundle_path:`でrigorをそこに向けよ … rigor自身の環境からの`BUNDLE_PATH`は意図的に参照しない── それはrigorのバンドルを記述するものであり、解析対象プロジェクトのものではない。
 
-ターゲットのgem homeを自動検出するには、(a)プロジェクトのツールチェーンを実行する（ADR-27が依拠する隔離を破る）か、(b)あらゆるバージョンマネージャーのディスク上レイアウト（mise対rbenv対rvm対asdf、それぞれ異なる）を脆い当て推量として再実装するかのいずれかになる。しかもそれは**冗長**だ── 逃げ道はすでに存在し、すでに最後まで貫通している── `bundler.bundle_path:` → `Configuration` → `ProjectContext` → `Environment.for_project` → WD9定数インデックスの一次リゾルバー、というふうに。
+ターゲットのgem homeを自動検出するには、（a）プロジェクトのツールチェーンを実行する（ADR-27が依拠する隔離を破る）か、（b）あらゆるバージョンマネージャーのディスク上レイアウト（mise対rbenv対rvm対asdf、それぞれ異なる）を脆い当て推量として再実装するかのいずれかになる。しかもそれは**冗長**だ── 逃げ道はすでに存在し、すでに最後まで貫通している── `bundler.bundle_path:` → `Configuration` → `ProjectContext` → `Environment.for_project` → WD9定数インデックスの一次リゾルバ、というふうに。
 
 ## gemがインストールされていれば機能が完成している証明
 

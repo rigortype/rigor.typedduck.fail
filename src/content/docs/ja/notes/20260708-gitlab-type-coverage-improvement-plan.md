@@ -45,8 +45,8 @@ sigで閉じられない。`tractability_summary` = 99.4 % engine_gap）、さ�
    request-contextリーダーと同じFPゼロパターン）。
 3. **activesupport-core-extオーバーレイのギャップ**（残り約18サイト/発火）: `advance`、`titlecase`、
    `all_day`、`dasherize`、`Time#to_time(form)`、`ERB::Util#html_escape_once`。プラグインバンドル＋
-   ADR-72の`data/gem_overlay/activesupport`ツインへの追加RBSエントリ。
-4. **core_overlayエントリ** stdlib RBSの遅れ向け（ADR-79メカニズム）: `Psych.parse`、
+   ADR-72の`data/gem_overlay/activesupport`ツインへの追加RBSエントリー。
+4. **core_overlayエントリー** stdlib RBSの遅れ向け（ADR-79メカニズム）: `Psych.parse`、
    `CSV::MalformedCSVError.new(message, line)`のアリティ。着地済みの
    `StringScanner#peek_byte`修正と同じ形状。
 
@@ -61,7 +61,7 @@ sigで閉じられない。`tractability_summary` = 99.4 % engine_gap）、さ�
    `Array#from`/`#with`の衝突、`use_unnested_filters! for Integer`を生む）。`schema_format = :sql`の
    Railsアプリはすべて現状INERTである —— これはredmine-O1クラスを一般化したもので、Redmine
    （コミットされたスキーマが一切ない）と異なりデータはリポジトリ内にある。実装: PGのDDLから
-   `CREATE TABLE`のカラム/型ペアをパースする（行指向、SQLパーサー依存なし）。複数の
+   `CREATE TABLE`のカラム/型ペアをパースする（行指向、SQLパーサ依存なし）。複数の
    `db/*structure.sql`を受け入れる。ゲート: GitLabコーパスのdiff（42件のFPカスケードが消え、
    カバレッジ再計測を期待）、Mastodon/Redmineはバイト単位で同一（structure.sqlを使わない）。
 

@@ -3,8 +3,9 @@ title: "`rigor sig-gen`でRBSを生成する"
 description: "rigortype/rigor docs/handbook/11-sig-gen.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/11-sig-gen.md"
 sourcePath: "docs/handbook/11-sig-gen.md"
-sourceSha: "99fa474ccbfa338d57afbb687e4193d8d4c8826652d07ca66e45ecd7d327bb1a"
-sourceCommit: "2d0ffe6f38d01cfd850527c57987b27487b414d4"
+sourceSha: "ff6f418fe4f9675d8f7fbdf3f13fad51e3992d22511c33a68a21719425cf7c2c"
+sourceCommit: "ffb456b0cc9e068a59d0ba03ba464b60ad83280a"
+sourceDate: "2026-09-08T03:53:03+09:00"
 translationStatus: "translated"
 sidebar:
   order: 1011
@@ -77,24 +78,23 @@ end
 
 `sig.skipped.*`理由は:
 
-- `sig.skipped.complex-shape`: メソッドが任意・rest・キーワード・ブロック・転送パラメータを持つ。MVPの本体型付けパスは必須位置パラメータしか扱えない;複雑な形状は将来のスライス（slice）を必要とする。
+- `sig.skipped.complex-shape`: レンダラーが表記できないパラメータ形状のために予約。現在では`def`が宣言できるすべての形状（任意、rest、後続、キーワード、キーワードrest、`...`転送、`&block`）がレンダリングされるため、ジェネレータはこの理由を生成しません;そのようなメソッドすべてに対して以前発火していたゲートが廃止された際（#778）、予約されたまま残されました。
 - `sig.skipped.untyped-return`: メソッド本体の最終式が`Dynamic[top]`として型付けされる。`untyped`を絞り込みとして発行することは助けではなくノイズになる。
 - `sig.skipped.user-authored`: `--overwrite`が設定されておらず、メソッドの既存のRBS宣言を置き換える必要がある。
 - `sig.skipped.unrenderable-rbs`: このメソッドに対してRigorがレンダリングしたシグネチャがRBSとしてパースできない。これは**Rigor自身のバグ**であり、あなたのコードの性質ではない——生成された行はすべて出力される前にパースされ、`rbs`が拒否した行は書き出される代わりに破棄される。パースできない`.rbs`は`rigor check`によって*丸ごと*隔離されるため、1つの不正な行がファイル内の他のすべての型を道連れにしてしまうからだ。他のシグネチャには影響しない;スキップされたメソッドはstderrに報告され、私たちに報告する価値がある。
 
-3つの`sig.generated.*`識別子（`sig.generated.new-file` / `new-method` / `tighter-return`）は`--format=json`の下でJSONフィールドとして発行されるため、CIゲートの消費者がこれらをルーティングできます。
+3つの`sig.generated.*`識別子（`sig.generated.new-file` / `new-method` / `tighter-return`）は`--format=json`の下でJSONフィールドとして発行されるため、CIゲートの消費者がこれらをルーティングできます。すべての`skipped`行も同じペイロードの一部であり、`skip_reason`としてその`sig.skipped.*`識別子を運ぶため、あなたの`sig/`に欠けているメソッドは、出力された行の隣にその理由を持ちます。テキストモードでは代わりに1行のstderrサマリーが理由ごとのスキップされたメソッド数をカウントし、stdoutは貼り付けに適したクリーンさを保ちます。
 
 ## ジェネレータが対応するメソッド形状
 
 スライスごとに（各スライスはCHANGELOGエントリーを通じて出荷された。このリストは現在の状態です）:
 
-- 必須位置パラメータを持つ**素のインスタンス`def foo`**。new-methodとtighter-returnの両パスが適用される。
+- 任意のパラメータ形状（必須、任意、rest、後続、キーワード、キーワードrest、`...`転送、`&block`）を持つ**素のインスタンス`def foo`**。パラメータリストはすべての位置に`untyped`を置いて実行時形状を反映し（`--params=observed`下では観察されたユニオン）、ブロックは`?{ (*untyped) -> untyped }`としてレンダリングされます。new-methodとtighter-returnの両パスが適用されます。
 - **シングルトン側`def self.foo`**と`class << self; def foo; end`。`def self.foo: ...`としてレンダリングされ、既存のRBSに対しては`Reflection.singleton_method_definition`と照合される。
 - リテラルSymbol引数を持つ**`attr_reader` / `attr_writer` / `attr_accessor`**。戻り値型は`Scope#class_ivars_for`から累積されたivar型。ジェネレータは長形式の`def name: () -> T`スペルを発行し、ライターのマージパスが変更なしに適用されるようにします;既存の短形式の`attr_reader name: T`宣言はユーザー著作として認識され、重複する`def`挿入を生成しません。
 
-ジェネレータがまだ対応**しない**（サイレントにスキップする）メソッド形状:
+ジェネレータがまだ対応**しない**メソッド形状:
 
-- 任意 / rest / キーワード / ブロック / 転送パラメータ。
 - `define_method(:name) { ... }`。
 - 本体が`Dynamic[top]`として型付けされるメソッド（本体推論が有用な戻り値型を証明できない）。
 
@@ -189,7 +189,7 @@ rigor check
 
 ## 今日の制限
 
-- 任意 / rest / キーワード / ブロック / 転送パラメータを持つメソッドはサイレントにスキップ（`sig.skipped.complex-shape`）。
+- ブロックパラメータは常に寛容な`?{ (*untyped) -> untyped }`としてレンダリングされます;型付けされたブロックシグネチャは、エンジンがyield形状を端から端まで追跡するのを待ちます。
 - `define_method`と`Data.define`固有の発行は先送りのフォローアップ（`Data.define`由来のリーダーはメソッド本体が存在すれば通過）。
 - 真の部分型チェックは今日漸進的（gradual）モードの受理を使用;`Inference::Acceptance`に予約された`:strict`モードはフォローアップで到着。
 - `RBS::Writer`を介したラウンドトリップは使用されない（上流の設計でコメントを落とす）;ジェネレータのバイト範囲挿入は触れない宣言をそのまま保持しますが、触れた宣言の範囲*内に*散りばめられたコメントは保持できません。

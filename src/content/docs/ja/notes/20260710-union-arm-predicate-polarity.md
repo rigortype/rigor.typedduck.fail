@@ -54,7 +54,7 @@ end
 
 **値でピン留めされた`nil`／`true`／`false`**であるアームだけが参加する。`Nominal[Foo]`アームはFooの*サブクラス*を静的に許容し、そのいずれかが述語をオーバーライドして逆の極性を返しうるため、これを落とすのは健全でない。`NilClass`、`TrueClass`、`FalseClass`にはサブクラスがなく――宣言された戻り値が実行時の戻り値そのものである。この制限はカバレッジを犠牲にする保守的な近似ではない。nil許容ユニオンこそが動機となる母集団の全体なのだ。
 
-**ぼっち演算子（safe navigation）は除外する**。 `login&.blank?`はnilレシーバーに対して`NilClass#blank?`の宣言された`true`ではなく`nil`（偽）を返すため、偽の側の枝はnilを許容する。そこでアームを落とせば、このルールが避けるために存在するまさにその偽陰性を製造してしまう――`login.downcase unless login&.blank?`は本当に例外を投げうる。`analyse_safe_nav_receiver`が引き続きその形状の真の側の枝を担う。リグレッションのspecがこれをピン留めしている。
+**ぼっち演算子（safe navigation）は除外する**。`login&.blank?`はnilレシーバーに対して`NilClass#blank?`の宣言された`true`ではなく`nil`（偽）を返すため、偽の側の枝はnilを許容する。そこでアームを落とせば、このルールが避けるために存在するまさにその偽陰性を製造してしまう――`login.downcase unless login&.blank?`は本当に例外を投げうる。`analyse_safe_nav_receiver`が引き続きその形状の真の側の枝を担う。リグレッションのspecがこれをピン留めしている。
 
 ## ゲート
 
@@ -67,7 +67,7 @@ end
 | Redmine `app`+`lib` | 73 | **69** | 偽陽性4件を除去 |
 | GitLab `app` | 284 | **268** | 偽陽性16件を除去 |
 
-**どこにも新規発火はゼロ**。 20件の除去はすべて裁定されたものであり、想定ではない。Redmineの1件は、このスライスが解消するために存在するADR-57 WD3の発火である（`user.rb:559`、`if login.present?`の下の`login.downcase`）。Redmineの残り3件とGitLabの14件は、ルールが直接ターゲットとするのと同じガード付き形状である。
+**どこにも新規発火はゼロ**。20件の除去はすべて裁定されたものであり、想定ではない。Redmineの1件は、このスライスが解消するために存在するADR-57 WD3の発火である（`user.rb:559`、`if login.present?`の下の`login.downcase`）。Redmineの残り3件とGitLabの14件は、ルールが直接ターゲットとするのと同じガード付き形状である。
 
 - `issue_import.rb:306` ―― `return if content.blank?`の後に`content.split(",")`
 - `query.rb:765` ―― `values.present? ? values.split('|') : ['']`

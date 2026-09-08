@@ -3,9 +3,9 @@ title: "ワーカーセッションプロトコル"
 description: "rigortype/rigor docs/internal-spec/worker-session.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/worker-session.md"
 sourcePath: "docs/internal-spec/worker-session.md"
-sourceSha: "3e9de153a4bf9c8978d7244e474946506c51642851d6b17fa233a4ba9f18dbde"
-sourceCommit: "2a65ec8e52462c931fbfec94df68a18139259a43"
-sourceDate: "2026-09-03T21:05:26+09:00"
+sourceSha: "2bf5ebf2845792e288b88907d900b1c15000654896b411df3433588660db1628"
+sourceCommit: "ffb456b0cc9e068a59d0ba03ba464b60ad83280a"
+sourceDate: "2026-09-08T06:03:14+09:00"
 translationStatus: "translated"
 sidebar:
   order: 3050
@@ -39,7 +39,9 @@ sidebar:
 - `RbsExtended::Reporter`と、依存元の`BoundaryCrossReporter`（どちらもMutexを持ち、意図的にワーカーごと。ランナーはプール後に`#drain_reporters`でそれらのエントリーを、`#drain_dependencies`で記録された依存関係をマージする）。
 - ワーカーごとのレポーターを通した`Rigor::Environment`。これにより推論／ディスパッチからのレポーター書き込みがワーカー自身の状態に蓄積されます——これにはクラスごとのRBS定義構築の失敗が同じドレイン（drain）に乗る`RbsLoader`も含まれます（[#696](https://github.com/rigortype/rigor/issues/696)）。
 
-定義BUILD（構築）のみが観察できる実行全体の条件は、コーディネーター自身のローダーから読み取るのではなく、ワーカーから排出しなければなりません（MUST）。プール下ではコーディネーターはファイルを解析しないため、そのローダーが定義を要求することはなく、失敗したビルドに到達することはありません; それに結び付けられた診断は`--workers=0`で現れ、`--workers=N`で消えてしまいます。コーディネーターはクラス名で重複排除しながら、ワーカー全体のユニオン（union）を蓄積します: 各ワーカーは自身のローダーとクラスごとのメモを保持するため、2つのワーカーが触れたクラスは2回届き、1つのワーカーが触れたクラスは1回届き、どちらのワーカー単独でも実行が遭遇したセットにはなりません。これがドレインルールです; それが運ぶ診断は[diagnostic-policy.md](../type-specification/diagnostic-policy.md)において規範的であり、もう一方の軸にある関連ルールも含みます——プールの事前ウォーム（pre-warm）はすべての既知のクラスを解決するため、そこで発見されたものが診断に届いてはなりません（届いてしまうと、同じプロジェクトがコールドキャッシュとウォームキャッシュで異なる報告をしてしまいます）。
+定義BUILD（構築）のみが観察できる実行全体の条件は、コーディネーター自身のローダーから読み取るのではなく、ワーカーから排出しなければなりません（MUST）。プール下ではコーディネーターはファイルを解析しないため、そのローダーが定義を要求することはなく、失敗したビルドに到達することはありません;それに結び付けられた診断は`--workers=0`で現れ、`--workers=N`で消えてしまいます。コーディネーターはクラス名で重複排除しながら、ワーカー全体のユニオン（union）を蓄積します: 各ワーカーは自身のローダーとクラスごとのメモを保持するため、2つのワーカーが触れたクラスは2回届き、1つのワーカーが触れたクラスは1回届き、どちらのワーカー単独でも実行が遭遇したセットにはなりません。これがドレインルールです;それが運ぶ診断は[diagnostic-policy.md](../type-specification/diagnostic-policy.md)において規範的であり、もう一方の軸にある関連ルールも含みます——プールの事前ウォーム（pre-warm）はすべての既知のクラスを解決するため、そこで発見されたものが診断に届いてはなりません（届いてしまうと、同じプロジェクトがコールドキャッシュとウォームキャッシュで異なる報告をしてしまいます）。
+
+`#drain_reporters`ペイロード内のすべての値は、Marshal可能（Marshal-clean）かつ`Ractor.shareable?`でなければなりません（MUST）── forkバックエンドはそれを`Marshal.dump`で送り返すため、そこでのraiseはファイルが解析された*後に*ワーカーを終了させてしまい、コーディネーターはインプロセスでその割り当て分を再解析して`pool-degraded`を報告することでしか吸収できなくなります。したがってソース位置は`(path, line, column)`プリミティブとして渡され、`_dump`を持たないC拡張オブジェクトである`RBS::Location`としては決して渡されません。`RbsExtended::Reporter`の記録メソッドはこの3つ組（triple）を取るため、呼び出し側がエントリーに位置（location）を入れることはできません（[#785](https://github.com/rigortype/rigor/issues/785)、[#805](https://github.com/rigortype/rigor/issues/805)）。重複排除も独立して同じ形状を必要とします: `RBS::Location`は同一の`RBS::Buffer`オブジェクト上の位置に対してのみ同値と比較され、各ワーカーは自身でパースを行うため、位置を運ぶエントリーをマージするコーディネーターはワーカーごとに1行を出力してしまうからです。
 
 プラグインの`#prepare`は**構築時に一度**実行され、各ワーカーが最初の`#analyze`呼び出し前にウォームになるようにします。`prepare`からのraiseはすべて`#prepare_diagnostics`に捕捉され、ワーカーを中断する代わりにランナーがファイルごとのストリームと並べて顕在化させます。
 

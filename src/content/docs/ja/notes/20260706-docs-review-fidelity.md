@@ -28,16 +28,16 @@ sidebar:
 | 章 | 重大度 | 所見 | 根拠 | 修正 |
 | --- | --- | --- | --- | --- |
 | `04-diagnostics.md`（severity-profileテーブル） | **ERROR** | 「`strict` —— すべてのルールが`error`である。」は誤り。 | `SeverityProfile::PROFILES[:strict]`は`call.self-undefined-method → :off`および`flow.unreachable-clause → :warning`をマッピングしている。 | 「ほぼすべてのルール…例外は…」と言い換えた。 |
-| `15-type-protection-coverage.md`（`dynamic_origin`フィールド） | **ERROR** | 原因の集合が5個の値として列挙されているが、フィールドには6個ある。 | `DynamicOrigin::CAUSES`には`inferred_return_untyped`（ADR-82時代の実アプリで支配的な実際の原因、`→ engine_gap`）が含まれるが、章から欠落している。 | `inferred_return_untyped`を列挙と`engine_gap`のトラクタビリティの箇条書き（推論ギャップのケースとして: 型なしパラメーター／未束縛のivar）に追加した。 |
+| `15-type-protection-coverage.md`（`dynamic_origin`フィールド） | **ERROR** | 原因の集合が5個の値として列挙されているが、フィールドには6個ある。 | `DynamicOrigin::CAUSES`には`inferred_return_untyped`（ADR-82時代の実アプリで支配的な実際の原因、`→ engine_gap`）が含まれるが、章から欠落している。 | `inferred_return_untyped`を列挙と`engine_gap`のトラクタビリティの箇条書き（推論ギャップのケースとして: 型なしパラメータ／未束縛のivar）に追加した。 |
 | `06-baseline.md`（`--baseline-strict`） | MISLEADING | ベースラインが*増大*したときにのみ失敗すると記載されている。 | `check_command.rb#baseline_strict_violation?`（コメントL152-156）は、*不足*ドリフト（ベースラインがコードより緩い）を含む**あらゆる**ドリフトで失敗する。 | 「あらゆるベースラインドリフトで失敗する」と言い換え、超過／不足の切り分けを示した。 |
-| `04-diagnostics.md`（カタログの導入部と`rigor explain`の主張） | MISLEADING | `rigor explain`と`documentation_url`が「あらゆるID」／「各ルール」をカバーすると主張しているが、カタログに列挙されている`rbs_extended.unsatisfied-conformance`は組み込みではない。 | これは`SeverityProfile::PROFILES`にのみ存在し、`RuleCatalog::ENTRIES`／`CheckRules::ALL_RULES`には存在しない。`rigor explain`は「Unknown rule」を返し、これに対する`documentation_url`はnilである。 | 主張を「組み込みルール」に限定し、`rbs_extended`ファミリーの唯一の例外は`rigor explain`エントリ／`documentation_url`を持たない旨を注記した。 |
+| `04-diagnostics.md`（カタログの導入部と`rigor explain`の主張） | MISLEADING | `rigor explain`と`documentation_url`が「あらゆるID」／「各ルール」をカバーすると主張しているが、カタログに列挙されている`rbs_extended.unsatisfied-conformance`は組み込みではない。 | これは`SeverityProfile::PROFILES`にのみ存在し、`RuleCatalog::ENTRIES`／`CheckRules::ALL_RULES`には存在しない。`rigor explain`は「Unknown rule」を返し、これに対する`documentation_url`はnilである。 | 主張を「組み込みルール」に限定し、`rbs_extended`ファミリーの唯一の例外は`rigor explain`エントリー／`documentation_url`を持たない旨を注記した。 |
 
 編集後も`make docs-check`はグリーンのまま（96例）。
 
 ## クリーン（ドリフトなし）
 
-- **`02-cli-reference.md` —— 高忠実度**。 `CLI::HANDLERS`内のすべてのサブコマンドと、確認したすべてのフラグが、実際の`OptionParser`出力と一致している（`type-of`の3引数形式、7個のMCPツール名、coverage/fusedのJSONフィールド名、`--test-command`のデフォルトとシェルなし実行、終了コード0/1/64、そして正直な「`--log`は受理されるがまだ配線されていない」LSPの但し書きを含む）。
-- **`11-ci.md` —— 高忠実度**。 6個のCIネイティブな`--format`値、フォーマットごとの完全な重大度マッピングテーブル、そしてCI自動検出の階層は、`diagnostic_formats.rb`と`ci_detector.rb`とADR-51に対してバイト精度で一致している。**設計ノートが予測したADR-51のフォロースルーギャップは顕在化しなかった** —— CI章は同期が保たれていた。
+- **`02-cli-reference.md` —— 高忠実度**。`CLI::HANDLERS`内のすべてのサブコマンドと、確認したすべてのフラグが、実際の`OptionParser`出力と一致している（`type-of`の3引数形式、7個のMCPツール名、coverage/fusedのJSONフィールド名、`--test-command`のデフォルトとシェルなし実行、終了コード0/1/64、そして正直な「`--log`は受理されるがまだ配線されていない」LSPの但し書きを含む）。
+- **`11-ci.md` —— 高忠実度**。6個のCIネイティブな`--format`値、フォーマットごとの完全な重大度マッピングテーブル、そしてCI自動検出の階層は、`diagnostic_formats.rb`と`ci_detector.rb`とADR-51に対してバイト精度で一致している。**設計ノートが予測したADR-51のフォロースルーギャップは顕在化しなかった** —— CI章は同期が保たれていた。
 - **`03-configuration.md`** —— すべての`DEFAULTS`のキー／値、探索順序、`includes:`のレイヤリング、そして6個の設定検証の警告文字列がコードと一致している。**`12-caching.md`** —— あらゆる無効化の入力、デフォルト、フラグ、そしてルート上のインクリメンタルスナップショットキーの主張が`Cache::*`と一致している。
 - **`04-diagnostics.md`（残り）** —— 19個の組み込みルールの発火条件、証拠の階層、そして`--format json`のフィールドテーブルが、`RuleCatalog`と`Diagnostic#to_h`に正確に一致している。
 

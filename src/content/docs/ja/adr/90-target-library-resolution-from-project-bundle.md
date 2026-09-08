@@ -42,7 +42,7 @@ rigortypeはactivesupportを*開発*依存としてのみ持つ。したがっ�
 
 これに伴い、2つの状況を悪化させる欠陥が浮上した:
 
-- **機能低下がクリーンですらなかった**。 `Rigor::Plugin::LoadError`
+- **機能低下がクリーンですらなかった**。`Rigor::Plugin::LoadError`
   （`lib/rigor/plugin/load_error.rb`で定義されたStandardErrorであるプラグイン
   ロードエラー）は`Rigor::Plugin::Isolation`内でグローバルな`LoadError`を
   レキシカルにシャドウイングするため、ワーカーループの素の
@@ -52,7 +52,7 @@ rigortypeはactivesupportを*開発*依存としてのみ持つ。したがっ�
   `Isolation.call`再現ではクリーンな`[:error, …]`パスが返った── それは
   `rigor/plugin/load_error`を一切ロードしなかった、つまりシャドウを仕掛けなかった
   からである。
-- **機能低下が不可視だった**。 `rigor plugins`は、活用に依存するチェックが何の
+- **機能低下が不可視だった**。`rigor plugins`は、活用に依存するチェックが何の
   diagnosticも生まないプラグインについて`[OK]`と報告していた。
 
 ## Decision
@@ -95,7 +95,7 @@ rigortypeはactivesupportを*開発*依存としてのみ持つ。したがっ�
   `Plugin::Loader`の素の`rescue LoadError`節はシャドウされた
   `Rigor::Plugin::LoadError`を*意図しており*、そのままで正しい（本物の`::LoadError`
   はそのrequire地点で変換される）。
-- **WD3 — アクティベーション時の可視性**。 `Plugin::Inflector`は
+- **WD3 — アクティベーション時の可視性**。`Plugin::Inflector`は
   `CONSUMER_PLUGIN_IDS`（バンドルされた5つの消費者）を得る。`rigor plugins`が
   そのいずれかをロードすると、バンドルルートを解決し（env構築が使うのと同じ
   `BundleSigDiscovery.resolve_bundle_path`）、`Inflector.available?`をプローブする。

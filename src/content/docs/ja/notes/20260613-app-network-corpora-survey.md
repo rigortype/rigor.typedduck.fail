@@ -33,7 +33,7 @@ sidebar:
 
 `refined`/`dynamic_specific`はどこでも約0（これらのツリーにはRBSもリファインメントもない）。`dynamic_top`は24–57 %。高い側はパラメータ由来のM3漸進的型付け（免責）＋後述のivarメカニズムによる。
 
-\* **mailのカバレッジは測定上のアーティファクトである**。 `address_lists_parser.rb`単体でmailの422 116式のうち255 548を占める――定数畳み込み器が精密に型付けする機械生成のRagel状態テーブルであり、リポジトリ全体のprecise比率を0.977まで引き上げている。手書きのmailファイル（`address.rb` 0.32、`part.rb` 0.34、`common_address_field.rb` 0.34）が本当のシグナルで、コーパスの他のリポジトリと同水準にある。リポジトリのカバレッジは、生成パーサで水増しされたサマリーではなく、最悪ファイルのリストから読み取ること。
+\* **mailのカバレッジは測定上のアーティファクトである**。`address_lists_parser.rb`単体でmailの422 116式のうち255 548を占める――定数畳み込み器が精密に型付けする機械生成のRagel状態テーブルであり、リポジトリ全体のprecise比率を0.977まで引き上げている。手書きのmailファイル（`address.rb` 0.32、`part.rb` 0.34、`common_address_field.rb` 0.34）が本当のシグナルで、コーパスの他のリポジトリと同水準にある。リポジトリのカバレッジは、生成パーサで水増しされたサマリーではなく、最悪ファイルのリストから読み取ること。
 
 ## NEWメカニズムのバケットテーブル
 
@@ -62,7 +62,7 @@ sidebar:
 
 ## ランク付けした攻略順――NEWの一般コードメカニズムのみ
 
-1. **N1――多重／並列代入のivarターゲットをクラスivarのユニオンへ収集する**。 NEW最大の半径（net-ssh＋textbringerで約21以上）。ユビキタスなコールバックレジストリ（`old, @cb = @cb, block`）とpopenタプル捕捉（`@i,@o,@e,@thr = Open3.popen3`）イディオムに対するalways-falsey＋for-nilのFPクラスタ全体の根本原因。FPセーフ（本物の書き込みを加えるだけ）、難易度はlow–mediumで、stdlibの分割代入修正で既に追加した`MultiWriteNode`/`MultiTargetNode`処理を再利用できる。**最初にやる**。
+1. **N1――多重／並列代入のivarターゲットをクラスivarのユニオンへ収集する**。NEW最大の半径（net-ssh＋textbringerで約21以上）。ユビキタスなコールバックレジストリ（`old, @cb = @cb, block`）とpopenタプル捕捉（`@i,@o,@e,@thr = Open3.popen3`）イディオムに対するalways-falsey＋for-nilのFPクラスタ全体の根本原因。FPセーフ（本物の書き込みを加えるだけ）、難易度はlow–mediumで、stdlibの分割代入修正で既に追加した`MultiWriteNode`/`MultiTargetNode`処理を再利用できる。**最初にやる**。
 2. **N3――`&.m`のnilレシーバー側エッジで存在チェックを抑止する**。それ自体として健全性／FPのバグ（セーフナビゲーションがundefined-methodを出してはならない）。極小でFP-riskゼロ。サーフェスは部分的にN1と重なるが、`&.`配下の純粋なnilレシーバーを確実に沈黙させるため、それ自体の価値で修正する。安価なのでN1と並行して。
 3. **N4――`respond_to?(:m)`を非nil（理想的には構造的）ナローイング述語にする**。難易度low、ナローイングのみ（健全: `nil.respond_to?`はfalse）。きれいなダックタイピングFPのスライスを除去する。安価で独立した勝ち。
 4. **N2――ADR-58の「宣言由来nilは燃料にしない」を`possible-nil`から`argument-type-mismatch`へ拡張する**（`<`/`<=`内の`Dynamic[top]?`／`0?`オペランド）。medium。ADR-58 WD1とまったく同様に宣言由来であることでゲートし、Mastodon/hamlに対してFP検証。約9箇所。

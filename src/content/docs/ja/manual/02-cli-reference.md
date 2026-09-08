@@ -3,9 +3,9 @@ title: "CLIコマンドリファレンス"
 description: "rigortype/rigor docs/manual/02-cli-reference.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/02-cli-reference.md"
 sourcePath: "docs/manual/02-cli-reference.md"
-sourceSha: "7d6ca86e3276313acf78d8f848c1caedcdef27b215bf6de5f6e5c54012efdff1"
-sourceCommit: "2a65ec8e52462c931fbfec94df68a18139259a43"
-sourceDate: "2026-09-03T19:32:01+09:00"
+sourceSha: "d30d702cf615cc25fb1dfe9e1c5404bc421e38b745d8f92cf7febe1f4b30385b"
+sourceCommit: "ffb456b0cc9e068a59d0ba03ba464b60ad83280a"
+sourceDate: "2026-09-08T03:53:03+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9002
@@ -278,6 +278,8 @@ rigor sig-gen [paths]
 | `--format=text\|json` | 出力形式。 |
 
 各シグネチャは出力される前にパースされます。生成されたRBSがパースできないメソッドは**スキップ**され（`sig.skipped.unrenderable-rbs`）、書き出される代わりにstderrへ報告されます——パースできない`.rbs`は`rigor check`によって*丸ごと*隔離されるため、1つの不正な行がファイル内の他のすべての型を道連れにしてしまうからです。`--write`では、組み立てたコンテンツがパースできないファイルは**拒否され**（既存のファイルは変更されないまま残ります）、コマンドは`1`で終了します。書き込みを求めたのに得られなかった、というわけです。このようなスキップはあなたのコードではなくRigorのRBSレンダリングのバグです——報告してください。
+
+他のいかなる理由であれジェネレータが拒絶（decline）したメソッド（`untyped`しか証明できないボディ、上書きしないユーザー作成の宣言など）は、決して黙って欠落することはありません: `--format=json`では`candidates`配列の`skipped`行となり`skip_reason`にその`sig.skipped.*`識別子が入り、テキストモードでは1行のstderrサマリーが理由ごとのスキップされたメソッド数をカウントします。
 
 ## `rigor lsp`
 

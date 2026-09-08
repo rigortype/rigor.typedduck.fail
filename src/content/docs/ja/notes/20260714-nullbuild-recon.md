@@ -138,7 +138,7 @@ engine-require（~90～150）＋cached-analysis（6～18ms） ≈ **~150～220ms
 gitlabを拡張子別に: 50,912 `.rb`（104.5 MB）、1,650 `.haml`（1.8 MB）、139 `.erb`、26
 `.rbs`、**3 `.sql`（8.46 MB──`structure.sql`）**、9 `.yml`。
 
-**これが発見だ**。 *ウォームHIT*でgitlabは**52,739ファイルにわたる115 MBを再SHA-256する**──
+**これが発見だ**。*ウォームHIT*でgitlabは**52,739ファイルにわたる115 MBを再SHA-256する**──
 毎回。2つの消費者:
 1. **ADR-45 `Descriptor#fresh?`**（32,827ファイル、74 MB）: 実行診断の依存descriptor。1,225の
    解析モデルよりはるかに大きいのは、Railsプラグインがprepare中に`app`＋`lib`全体をスキャン
@@ -264,7 +264,7 @@ gitlab 209～214ms（deflate＋2 MBのファイルごとcache/digests/bundlesの
   エントリーは、MISSがそれらを`:stat`で書き直すまでdigest経由で検証し続ける──遅延ソフト
   マイグレーション、ハード破壊なし。クリーンな一発リビルドには`SCHEMA_VERSION 4→5`
   （descriptor.rb:30）をbumpする。どちらも実行可能。SCHEMA bumpのほうがクリーンである。
-- **GlobEntry: フォーマット互換、自己マイグレーション**。 comparatorフィールドなし；
+- **GlobEntry: フォーマット互換、自己マイグレーション**。comparatorフィールドなし；
   `digest_for`（descriptor.rb:178）をcontent-sha行の代わりに`"<path>\0<stat-tuple>\n"`行を
   ハッシュするよう変える。古いglobエントリーはミスマッチする → 既存のフォールトトレラントな
   パス（`glob_entry_fresh?` rescue → false → リビルド）経由で再計算する。フィールド追加なし；
@@ -295,7 +295,7 @@ mtimeを保存する復元は理論上変更を見逃しうる。ADR-54 §WDは�
 
 ## 7. ランク付けされた読み ── null / 1編集の下限は実際どこにあるか
 
-1. **大プロジェクトのウォームnull（gitlab A/B）: キャッシュ検証／digest束縛**。 52,739ファイル
+1. **大プロジェクトのウォームnull（gitlab A/B）: キャッシュ検証／digest束縛**。52,739ファイル
    / 115 MB（A）または29,746 / 67 MB（B）にわたるSHA-256の~1.3～2.0sで、ADR-45 `fresh?`
    （74 MB）＋ADR-60 plugin-glob（40 MB）＋plugin `fresh?`（23 MB）に分割される。ブートは
    287msの端役。**これが最も価値の高いターゲット**であり、stat-then-digest再設計（§6）の直接の
@@ -312,7 +312,7 @@ mtimeを保存する復元は理論上変更を見逃しうる。ADR-54 §WDは�
    プラグインglob検証（gitlab ~5.4s）**＋**スナップショット往復。gitlabではplugin-prepass単独で
    些細な編集でさえ>5sを要する──プラグインキャッシュ検証をstat fast-path（§6）に載せることが
    #1と同じレバーであり、それを直接削減するだろう。
-4. **1編集default = フルビルド（D）: ファイルごとの推論束縛**。 analyze_files 2.8s（mail）／
+4. **1編集default = フルビルド（D）: ファイルごとの推論束縛**。analyze_files 2.8s（mail）／
    5.3s（rigor）／13.5s（gitlab）──本質的な型付けコスト、＋ディスカバリプレパス、＋（gitlab
    では）5.4sのプラグインbuild。これがADR-46/85の勝ちケースである: インクリメンタルCは不変
    ファイルについてこれを再実行することを回避する（leaf気味の編集で4.5～7.5×）。

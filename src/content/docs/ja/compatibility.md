@@ -3,9 +3,9 @@ title: "互換性と公開サーフェス"
 description: "rigortype/rigor docs/compatibility.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/compatibility.md"
 sourcePath: "docs/compatibility.md"
-sourceSha: "e19f849507e769d154069b2122b8d479ef70b0771eedcd11899294323b2ed0a4"
-sourceCommit: "2a65ec8e52462c931fbfec94df68a18139259a43"
-sourceDate: "2026-09-02T14:41:45+09:00"
+sourceSha: "486edf0b6e9484ede31277d91cc93cdf75ab97fd041dc8a54f1a7f7abdcd1db5"
+sourceCommit: "ffb456b0cc9e068a59d0ba03ba464b60ad83280a"
+sourceDate: "2026-09-08T04:46:34+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9050
@@ -46,7 +46,7 @@ Rigorは**トライアルしてから凍結する**経路をたどります（AD
 | **プラグイン契約** ── `Plugin::Base`のフック＋マニフェストフィールド（[ADR-37](../adr/37-plugin-interface-segregation/)のナロープロトコル`node_rule` / `dynamic_return` / `narrowing_facts`（ADR-80で`type_specifier`から改名;旧動詞・そのリーダー・そのエンジン消費者・`rigor plugins --capabilities`キーはすべて0.3.0で削除された）＋宣言的フィールド）と読み取り側の名前空間（`Scope`、`Type`、`Reflection`、`Environment`、…） | [`docs/internal-spec/public-api.md`](../internal-spec/public-api/)、[`public_api_drift_spec.rb`](https://github.com/rigortype/rigor/blob/master/spec/rigor/public_api_drift_spec.rb)が固定 | [ADR-2](../adr/2-extension-api/)＋[`examples/`](https://github.com/rigortype/rigor/blob/master/examples/README.md)配下のプラグイン例 | **yes** ── ADR-37のナロープロトコル（非推奨のファットフックは1.0前に削除。例: ADR-52 slice 5b / ADR-60） |
 | **診断識別子**（`flow.always-truthy-condition`、`call.unresolved-toplevel`、…）＋**抑制マーカー**（`# rigor:disable <id>` / `# rigor:disable-file <id>`）＋**`severity_overrides:`のキー** | [`lib/rigor/analysis/check_rules.rb`](https://github.com/rigortype/rigor/blob/master/lib/rigor/analysis/check_rules.rb)内のルールID（`ALL_RULES`、`LEGACY_RULE_ALIASES`）、[`lib/rigor/analysis/rule_catalog.rb`](https://github.com/rigortype/rigor/blob/master/lib/rigor/analysis/rule_catalog.rb)内のメタデータ | [Manual ch. 4 — Diagnostics](../manual/04-diagnostics/)、`rigor explain <rule>` | **yes ── 語彙であって発火集合ではない**（§ compatibility model 2） |
 | **ベースラインファイル形式**（`.rigor-baseline.yml`） | [`lib/rigor/analysis/baseline.rb`](https://github.com/rigortype/rigor/blob/master/lib/rigor/analysis/baseline.rb)内の`Baseline::CURRENT_VERSION`（現在`1`） | [Manual ch. 6 — Baselines](../manual/06-baseline/) | **yes** ── オンディスク形式。バージョンの引き上げは無効化するが、決して誤読しない |
-| **キャッシュスキーマバージョン** | [`lib/rigor/cache/`](https://github.com/rigortype/rigor/tree/master/lib/rigor/cache/)内の`Store::PAYLOAD_ABI_VERSION`（= `Rigor::VERSION`）＋`Descriptor::SCHEMA_VERSION`＋`Store::FORMAT_VERSION`（マーカー`<version>.8.2`） | [Manual ch. 12 — Caching](../manual/12-caching/) | **yes** ── スキーマ／形式の引き上げはキャッシュを無効化するが、決して静かに誤読しない |
+| **キャッシュスキーマバージョン** | [`lib/rigor/cache/`](https://github.com/rigortype/rigor/tree/master/lib/rigor/cache/)内の`Store::PAYLOAD_ABI_VERSION`（= `Rigor::VERSION`）＋`Descriptor::SCHEMA_VERSION`＋`Store::FORMAT_VERSION`（マーカー`<version>.8.4`） | [Manual ch. 12 — Caching](../manual/12-caching/) | **yes** ── スキーマ／形式の引き上げはキャッシュを無効化するが、決して静かに誤読しない |
 | **`RBS::Extended`注釈文法**（`%a{rigor:v1:…}` ── 述語／表明／戻り値オーバーライド／`conforms-to`） | [`lib/rigor/rbs_extended.rb`](https://github.com/rigortype/rigor/blob/master/lib/rigor/rbs_extended.rb) | [Spec — rbs-extended.md](../type-specification/rbs-extended/)（規範的） | **yes** ── `rigor:v1:`ディレクティブ文法 |
 
 ## 明示的に契約で*ない*もの
@@ -64,7 +64,7 @@ Rigorは**トライアルしてから凍結する**経路をたどります（AD
 | Artifact | Constant | Current value |
 | --- | --- | --- |
 | ベースラインファイル | `Rigor::Analysis::Baseline::CURRENT_VERSION` | `1` |
-| 永続キャッシュ | `Cache::Store::PAYLOAD_ABI_VERSION`.`Cache::Descriptor::SCHEMA_VERSION`.`Cache::Store::FORMAT_VERSION`（`schema_version.txt`マーカー） | `<Rigor::VERSION>.8.2` |
+| 永続キャッシュ | `Cache::Store::PAYLOAD_ABI_VERSION`.`Cache::Descriptor::SCHEMA_VERSION`.`Cache::Store::FORMAT_VERSION`（`schema_version.txt`マーカー） | `<Rigor::VERSION>.8.4` |
 | `RBS::Extended`ディレクティブ | `rigor:v1:`名前空間タグ | `v1` |
 
 ## 機械的強制
