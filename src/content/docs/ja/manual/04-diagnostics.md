@@ -3,9 +3,9 @@ title: "診断"
 description: "rigortype/rigor docs/manual/04-diagnostics.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/04-diagnostics.md"
 sourcePath: "docs/manual/04-diagnostics.md"
-sourceSha: "718bed3c4dec89ecb00d8b78c3ecc03ee9f54f05a74fbf796f13396efcaaa274"
-sourceCommit: "ffb456b0cc9e068a59d0ba03ba464b60ad83280a"
-sourceDate: "2026-09-07T23:08:19+09:00"
+sourceSha: "a07b8a80acaa36ec2906b5767f1cb215f044dea2841d73b5fcf2dda189913995"
+sourceCommit: "04668e5f0d6205fdd5c8f44662041add7ab33ca3"
+sourceDate: "2026-09-09T11:14:33+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9004
@@ -75,6 +75,8 @@ app/user.rb:11:3: error: undefined method `lenght' for "hello" [call.undefined-m
 | <a id="rule-dump-type"></a>`dump.type` | `dump_type`呼び出し。情報として推論型を出力する。 | — |
 
 プラグインはさらにファミリーとルールを追加できます。`rigor explain`はアクティブな設定が読み込んだものをすべて一覧表示します。
+
+`flow.unreachable-branch`と`flow.always-truthy-condition`は、バージョンガード ── `RUBY_VERSION` / `RUBY_ENGINE`の比較、および実行中のRubyのデフォルトgemについての`X::VERSION` ── を、`target_ruby`ではなく`rigor`を実行しているRubyインタプリタに対して畳み込みます。そのため、診断セットはホスト依存です: 同じファイルであってもRuby 3.3上とRuby 4.0上とで異なるアームが畳み込まれる可能性があり、ワークステーションとは異なるRubyをCIで固定しているプロジェクトは、あなたのワークステーションの結果ではなくCI実行の結果を予期すべきです。正確な畳み込み可能なセットについては、[バージョンガード条件の畳み込み](../../type-specification/control-flow-analysis/#バージョンガード条件の畳み込み)を参照してください。
 
 ## エビデンスティア
 

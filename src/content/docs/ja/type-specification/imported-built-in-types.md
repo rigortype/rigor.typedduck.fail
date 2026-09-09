@@ -3,8 +3,9 @@ title: "インポートされた組み込み型"
 description: "rigortype/rigor docs/type-specification/imported-built-in-types.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/type-specification/imported-built-in-types.md"
 sourcePath: "docs/type-specification/imported-built-in-types.md"
-sourceSha: "792ce84d6eecde987b3c7ec25f1ea6aab8d1cc23b4d432f571eba43615672abf"
-sourceCommit: "e3eb424c3c88035e453246710c8df3dc5cc8e7e1"
+sourceSha: "e0c751564676adaa34e97081b5f319e9b30edbd864b2b590cfa21f5e9696a97b"
+sourceCommit: "04668e5f0d6205fdd5c8f44662041add7ab33ca3"
+sourceDate: "2026-09-09T00:56:50+09:00"
 translationStatus: "translated"
 sidebar:
   order: 2050
@@ -27,7 +28,7 @@ Rigorは明確なRubyの意味を持つ場合にのみ、PHPStan、TypeScript、
 - 型関数が`-`を避けるのは、`-`がRigorの型構文では差分演算子でもあるためです; `int_mask[1, 2, 4]`は`int-mask[1, 2, 4]`より曖昧さが少ないです。
 - 具体的な移行や可読性の問題を解決しない限り、互換性エイリアスを受け付けてはなりません（MUST NOT）。
 - RBS名はすでにその概念を表現している場合は正規のままです。`bot`はボトム型です; `never`、`noreturn`、`never-return`、`never-returns`、`no-return`、`Never`、`NoReturn`は初期エイリアスとして追加してはなりません（MUST NOT）。
-- 境界付き整数範囲は`int<1, 10>`のように予約済みリファインメント名`int<min, max>`を使います（`Integer`に消去されます）。これは`Builtins::ImportedRefinements`を通じて解析され、`IntegerRange`キャリア（carrier）によって表示されます。これはRigor予約済みのリファインメント名であり、任意の型に適用されるジェネリックの角括弧構文ではありません。
+- 境界付き数値範囲は、クラスの後に角括弧で囲まれたRubyの範囲リテラルとして綴られ（`Integer[1..10]`）、そのリテラルがカバーする正確な値を表します: `Integer[R]`は`{ x | x.is_a?(Integer) && R.cover?(x) }`です（[ADR-109](../adr/109-ruby-native-range-notation/)）。リテラルのあらゆるRubyの表記が受け入れられます（`1..10`、`1...10`、`1..`、`..10`、`nil..nil`）;排他的終端は閉じた形式に正規化され（`Integer[1...10]`は`Integer[1..9]`と表示される）、無制限の範囲は`Integer`と表示され、空の範囲（`Integer[5..1]`、`Integer[1...1]`）は`bot`に解決されるのではなく解決不能なペイロードとして拒絶されなければなりません（MUST decline）。この形式は`Builtins::ImportedRefinements`を通じてパースされ、`IntegerRange`キャリア（carrier）によって表示されます;これは数値クラスの範囲リファインメントであり、任意の型に適用されるジェネリック角括弧構文ではありません（`Integer[Foo]`はそのRBSの意味を保ちます）。PHPStanスタイルの`int<min, max>`は、1つの非推奨ウィンドウの間、非推奨の入力エイリアスとして受け入れられますが、表示されてはなりません（MUST NOT）。
 
 ## 初期スカラーリファインメント
 
@@ -52,7 +53,10 @@ Rigorは明確なRubyの意味を持つ場合にのみ、PHPStan、TypeScript、
 | `non-positive-int` | `0`以下の`Integer` | `Integer` |
 | `non-negative-int` | `0`以上の`Integer` | `Integer` |
 | `non-zero-int` | `0`を除く`Integer` | `Integer` |
-| `int<min, max>` | 閉区間の境界付き範囲`min..max`内の`Integer` | `Integer` |
+| `Integer[1..10]` | Rubyの範囲リテラルによってカバーされる`Integer`（`positive-int`は`Integer[1..]`、`non-positive-int`は`Integer[..0]`） | `Integer` |
+| `Float[0.0..1.0]` | Rubyの範囲リテラルによってカバーされる`Float`; `Float[0.0...1.0]`は終端を除外、`Float[0.0..]`は`+Infinity`を含む、`Float[0.0...Float::INFINITY]`は含まない;決して`NaN`ではない | `Float` |
+| `non-nan-float` | `Float[-Float::INFINITY..]`: `NaN`を除くすべての`Float` | `Float` |
+| `finite-float` | `Float[-Float::MAX..Float::MAX]`: `NaN`および無限大を除くすべての`Float` | `Float` |
 
 正規の小文字文字列名は`lowercase-string`です;具体的な使いやすさの問題が現れない限り、`lower-string`は別のエイリアスとして受け付けてはなりません（MUST NOT）。
 
@@ -62,7 +66,9 @@ Rigorは明確なRubyの意味を持つ場合にのみ、PHPStan、TypeScript、
 
 非整数数値リファインメントには別のルールがあります:
 
-- `Float`リテラル等価と完全性ナローイング（narrowing）はデフォルトで拒否されます。`NaN`、無限大、符号付きゼロ、強制変換に敏感な比較はリテラルパーティションを誤って述べやすくします。Rigorはfloat比較から関係的ファクト（fact）を保持する場合があります（MAY）、また将来の`finite-float`または非`NaN`証明がより狭いfloat固有のリファインメントを解放する場合があります（MAY）。
+- `Float`リテラル等価と網羅性ナローイング（narrowing）はデフォルトで拒否されます。`NaN`、無限大、符号付きゼロ、強制変換に敏感な比較はリテラルパーティションを誤って述べやすくします。Rigorはfloat比較から関係的ファクト（fact）を保持する場合があります（MAY）。
+- `Float`範囲は同じ`cover?`定義に従います（[ADR-109](../adr/109-ruby-native-range-notation/) WD4）: `Float[R]`は`{ x | x.is_a?(Float) && R.cover?(x) }`であり、`FloatRange`キャリアによって表示され、`Float`へと消去されます。`Float[0.0...1.0]`は半開区間、`Float[0.0..]`は`+Infinity`で閉じており、`Float[0.0...Float::INFINITY]`は有限かつ非負であり、いかなる有界な範囲も`NaN`を含みません。終端はFloatまたはIntegerリテラル（`(0..1).cover?(0.5)`と同様にIntegerは強制変換される）、明記された定数`Float::INFINITY`、`-Float::INFINITY`、`Float::MAX`、`-Float::MAX`、またはその側の無限大を表す省略 / `nil`です; `(nil..nil).cover?(Float::NAN)`は真であるため`Float[nil..nil]`は`Float`自体に正規化され、空の範囲（`Float[2.0..1.0]`、`Float[1.0...1.0]`）は解決不能なペイロードとして拒絶されなければなりません（MUST decline）。同じ倍精度浮動小数点数をカバーする2つの表記は同一の型です（`Float[0.0...1.0]`は`Float[0.0..0.9999999999999999]`と等しい）;表示は書かれた終端を保持します。2つの名前は範囲のエイリアスであり、独立したNaN性リファインメントではありません: `non-nan-float`は`Float[-Float::INFINITY..]`、`finite-float`は`Float[-Float::MAX..Float::MAX]`です;表示は名前を優先します。`FloatRange`は`Float`および`Float`のis-a関係にあるものによって受け入れられます;カバーされるFloatリテラルと含まれる`FloatRange`を受け入れ、`Float`自体は決して受け入れません（`Float`は`NaN`の可能性があるため）。`Float::NAN`は`Constant`キャリアになってはなりません（MUST NOT）。
+- `Float`比較ナローイング（ADR-109 WD5）は真値エッジのみをナローイングします: `x > c`および`x >= c`は閉じた`Float[c..]`へ（厳密な`(c, ∞]`よりも倍精度1つ分広い;厳密な`Float[c.next_float..]`はルールが除外された点を要求するまで延期される）、`x < c`は`Float[...c]`へ、`x <= c`は`Float[..c]`へ、`x.between?(a, b)`は`Float[a..b]`へナローイングし、それぞれより厳密な側で既存の範囲と交差します。偽値エッジは進入時の型を維持しなければなりません（MUST）。`!(x > c)`が`NaN`を許容するためです。`x.nan?`はその偽値エッジのみを`non-nan-float`へナローイングし、`x.finite?`はその真値エッジのみを`finite-float`へナローイングします。ユニオンでは、`Float`メンバーは任意の`FloatRange`メンバーを吸収し、`FloatRange`メンバーはそれが含むものを吸収するため、ガードの後の結合は1つの集合を指名します。規範的な述語カタログは[control-flow-analysis.md](control-flow-analysis.md)です。
 - `Rational`は正確で順序付けられていますが`Integer`ではありません。`Rational`の将来の符号または範囲ファクトはRational固有でなければならず（MUST）、`*-int`名を再使用してはなりません（MUST NOT）。
 - `Complex`はRubyでは全順序を持たないため、正、負、区間リファインメントは`Complex`に適用してはなりません（MUST NOT）。ゼロ性、実部、虚部、または大きさに関するファクトには明示的な述語またはプラグイン/RBS効果が必要です。
 - 混合数値演算と比較は部分型（subtype）昇格ではなく、Rubyのメソッドディスパッチと`coerce`に従います。リファインメントは`Integer`から`Float`、`Rational`、または別の`Numeric`クラスに自動的に越境してはなりません（MUST NOT）。混合演算が既知の場合、結果型はRuby/RBS演算子シグネチャまたは信頼されたプラグインファクトに従います;そうでなければRigorは関係的または動的由来ファクトを保持し、保守的に拡幅します。

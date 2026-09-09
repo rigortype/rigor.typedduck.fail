@@ -3,8 +3,9 @@ title: "付録: Elixirから来た場合"
 description: "rigortype/rigor docs/handbook/appendix-elixir.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/appendix-elixir.md"
 sourcePath: "docs/handbook/appendix-elixir.md"
-sourceSha: "040e99a319dd8f94d35b44056b0c938bf4a1de63bff8ca90c9205a9979b2af06"
-sourceCommit: "2d0ffe6f38d01cfd850527c57987b27487b414d4"
+sourceSha: "6e76e5ac83140150aa82abfec2cfac10e42348bd1d4a196a3760da0097ba690d"
+sourceCommit: "04668e5f0d6205fdd5c8f44662041add7ab33ca3"
+sourceDate: "2026-09-08T23:15:10+09:00"
 translationStatus: "translated"
 sidebar:
   order: 1050
@@ -155,7 +156,7 @@ end
 | --- | --- | --- |
 | `positive-int` | `when n > 0` | Rigorは結果に名前を付けて運ぶ。 |
 | `non-empty-string` | `when s != ""`/`byte_size(s) > 0` | Rigorは`unless s.empty?`から生成する。 |
-| `int<1, 9>` | `when x in 1..9` | Rigorの範囲キャリアは任意の境界を扱う。 |
+| `Integer[1..9]` | `when x in 1..9` | Rigorの範囲キャリアは任意の境界を扱う。 |
 | `non-empty-array[T]` | `when xs != []` | Rigorは`unless arr.empty?`から生成する。 |
 | `numeric-string` | `Integer.parse/1` + マッチ | Elixirに直接の対応物なし。 |
 
@@ -188,7 +189,7 @@ end
 
 - **今日、Rubyのために出荷されている**。Elixirの集合論的型は段階的に言語へ取り込まれつつあるが、RigorのアナライザーはRubyのために今ここにあり、false-positiveなしのスタンスはすでに発効している。
 - **メソッド呼び出しを通じた定数folding**。`"foo".upcase`は`String`ではなく`Constant<"FOO">`だ。Rigorはどのビルトインメソッドが純粋かをカタログ化し、それらを通じてfoldする。DialyzerやElixirの型は、呼び出し結果をこのようにシングルトン型へfoldしない。
-- **名前付きのリファインメントキャリア**。`non-empty-string`、`positive-int`、`int<1, 9>`、`numeric-string`等。ファーストクラスで、名前付きで、ガードから先へ流れる。
+- **名前付きのリファインメントキャリア**。`non-empty-string`、`positive-int`、`Integer[1..9]`、`numeric-string`等。ファーストクラスで、名前付きで、ガードから先へ流れる。
 - **推論されたオブジェクトシェイプとケイパビリティロール**。ビヘイビアやプロトコルを超えて、Rigorは値の使われ方から無名の構造的シェイプを推論する。
 - **アノテーション税なし**。`.rbs`ファイルがゼロのRubyプロジェクトに対する`rigor check`は、推論だけから有用な診断をもたらす。`.rbs`を加えるのは段階的だ。
 

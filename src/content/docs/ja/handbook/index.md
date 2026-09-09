@@ -3,8 +3,9 @@ title: "Rigorハンドブック"
 description: "rigortype/rigor docs/handbook/README.mdからインポートされたドキュメントの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/README.md"
 sourcePath: "docs/handbook/README.md"
-sourceSha: "9beb936d450427cc18fbbcfd80d6787adb7fc62ef667396da2f54449161f8f6d"
-sourceCommit: "2d0ffe6f38d01cfd850527c57987b27487b414d4"
+sourceSha: "1948c5e58323dba9fb5f36d8ed6fba94b4edc40513ef5329e433e42333b22c26"
+sourceCommit: "04668e5f0d6205fdd5c8f44662041add7ab33ca3"
+sourceDate: "2026-09-08T23:15:10+09:00"
 translationStatus: "translated"
 sidebar:
   order: 1000
@@ -56,7 +57,7 @@ Rubyプログラマー向けに書かれた、Rigorの型モデルの解説で�
 - [**TypeScriptから来た場合**](appendix-typescript/):
   構造的型付け（structural typing）vs.名前的型付け（nominal typing）+リファインメントの分割、`unknown`/`any`/`never` ↔ `Top`/`Dynamic[top]`/`Bot`、型ガード ↔ `predicate-if-true`ディレクティブ、条件型/マップ型にはRigorの対応物がない話。
 - [**PHPStanから来た場合**](appendix-phpstan/):
-  精神的に最も近いピアツール。同一のリファインメント語彙（`non-empty-string`、`int<min, max>`、`numeric-string`、`literal-string`）、`@phpstan-assert*` ↔ `RBS::Extended`、Type-Specifying Extensions ↔ プラグイン、ベースラインdiffワークフロー。
+  精神的に最も近いピアツール。同一のリファインメント語彙（`non-empty-string`、`Integer[min..max]`、`numeric-string`、`literal-string`）、`@phpstan-assert*` ↔ `RBS::Extended`、Type-Specifying Extensions ↔ プラグイン、ベースラインdiffワークフロー。
 - [**mypy / Pyrightから来た場合**](appendix-mypy/):
   <ruby>漸進的型付け<rp>（</rp><rt>gradual typing</rt><rp>）</rp></ruby>の類似点、`Literal` ↔ `Constant`、`TypeGuard`/`TypeIs` ↔ `predicate-if-true`/`predicate-if-false`、`Protocol` ↔ RBSの`interface`、`LiteralString` ↔ `literal-string`。
 - [**Steepから来た場合**](appendix-steep/):

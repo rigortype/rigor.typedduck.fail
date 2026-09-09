@@ -3,8 +3,9 @@ title: "付録: Goから来た場合"
 description: "rigortype/rigor docs/handbook/appendix-go.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/appendix-go.md"
 sourcePath: "docs/handbook/appendix-go.md"
-sourceSha: "a24eb14872f4d9cce9a462614f12b18aa86244778bb08acdcec8617e5cb02517"
-sourceCommit: "2d0ffe6f38d01cfd850527c57987b27487b414d4"
+sourceSha: "8996f80bbd46a788b91291cde72b57d3d59115a9f128e1a6228de632018e437e"
+sourceCommit: "04668e5f0d6205fdd5c8f44662041add7ab33ca3"
+sourceDate: "2026-09-08T23:15:10+09:00"
 translationStatus: "translated"
 sidebar:
   order: 1050
@@ -174,7 +175,7 @@ Goの`type Celsius float64`は`float64`とは*名前的に別の*型を作る。
 | --- | --- | --- |
 | `non-empty-string` | ランタイムの`if len(s) == 0`チェック | Rigorは`unless s.empty?`から生成する。 |
 | `positive-int` | ランタイムの`if n <= 0`チェック | Rigorは`n > 0`からナローイングする。 |
-| `int<1, 9>` | ランタイムの範囲チェック | Rigorの範囲キャリアは任意の境界を扱う。 |
+| `Integer[1..9]` | ランタイムの範囲チェック | Rigorの範囲キャリアは任意の境界を扱う。 |
 | `numeric-string` | `strconv.Atoi` + エラーチェック | Goには型レベルの対応物がない。 |
 | `non-empty-array[T]` | ランタイムの`len(xs) == 0`チェック | Rigorは`unless arr.empty?`から生成する。 |
 
@@ -222,7 +223,7 @@ Goの制約type setとRigorのRBSバウンドはどちらも設計上控えめ�
 - **ユニオン型 / 直和型**。大物: `T | U`はRigorではファーストクラスで、Goにはない。閉じたバリアント集合にマーカーインターフェースは要らない。
 - **リテラル型 / 定数型**。`Constant<42>`、`Constant<:ok>`、`Constant<"FOO">`。Goにはリテラル型がない。最も近いのは`iota`定数グループだ。
 - **メソッド呼び出しを通じた定数fold**。`"foo".upcase`は`Constant<"FOO">`であり、`string`ではない。
-- **リファインメント**。`non-empty-string`、`positive-int`、`int<1, 9>`は値の不変条件で、それを静的に知るためのランタイムチェックは要らない。
+- **リファインメント**。`non-empty-string`、`positive-int`、`Integer[1..9]`は値の不変条件で、それを静的に知るためのランタイムチェックは要らない。
 - **インターフェースを超える推論されたシェイプ**。Rigorは無名オブジェクトのシェイプとケイパビリティロールを推論する。宣言された`interface`の充足だけではない。
 - **偽陽性なしのスタンス**。`Dynamic[top]`レシーバーについては文句を言わず沈黙する。まだナローイングしていない`interface{}`は何のコストもかからない。
 - **`:=`を超えるアノテーション税なし**。Goは`:=`のローカルを推論する。Rigorはメソッドボディ全体を*そして*`def`境界を越えて推論する。`.rbs`がゼロのプロジェクトでも有用な診断が得られる。

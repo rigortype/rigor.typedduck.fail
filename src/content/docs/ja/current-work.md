@@ -3,9 +3,9 @@ title: "現在の作業 — セッション引き継ぎ"
 description: "rigortype/rigor docs/CURRENT_WORK.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/CURRENT_WORK.md"
 sourcePath: "docs/CURRENT_WORK.md"
-sourceSha: "e50292b0fedffc74bb8349b46fc0efc603469f82f12f285677b432a031e04d43"
-sourceCommit: "ffb456b0cc9e068a59d0ba03ba464b60ad83280a"
-sourceDate: "2026-09-08T06:33:19+09:00"
+sourceSha: "b2e8405ed9f0c0b37a228622c0c55cc678d991c5d7ea664b37e26ccb5c58d905"
+sourceCommit: "04668e5f0d6205fdd5c8f44662041add7ab33ca3"
+sourceDate: "2026-09-09T16:37:22+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9050
@@ -24,33 +24,44 @@ sidebar:
 -->
 
 
+
 一時的;まるごと置き換えられる。バックログはGitHub Issuesに、リリース計画はMilestonesに存在する。
 このファイルがADR、CHANGELOG、またはissueと矛盾する場合、間違っているのはこのファイルのほうだ。
 
 ## サイクルの現在地
 
-**v0.3.8は`master`上にあり未公開である**。リリースPR（`release/0.3.8`、`Bump up version to 0.3.8`）が2026-09-08にマージされた。`Rigor::VERSION`は`0.3.8`である;封印されたセクションは`CHANGELOG.md`にある; `changelog.d/`はそのREADMEのみを保持している。`v0.3.8`タグはなく、RubyGemsへのプッシュもなく、GitHub Releaseもない: リリースを準備した環境にはRubyGemsの認証情報がないため、公開はユーザーの手順である（ADR-50 § WD5;タグ付け、プッシュ、公開を行う）:
+**v0.3.8は公開済みである**（2026-09-09時点で`Rigor::VERSION`は`0.3.8`、`[Unreleased]`は空）。
+カット後のフラグメントは`changelog.d/`配下に置かれる。次のカットはユーザーが`/rigor-release-prep`を呼び出したときにのみ行われる。
 
-```sh
-git switch master && git pull
-nix --extra-experimental-features 'nix-command flakes' develop --command bundle exec rake release
-```
+## 2026-09-09バッチ ── 10個のPR、すべて着地
 
-## v0.3.8が修正したもの（2026-09-07トリアージバッチ）
+それぞれ自身の`bin/rigor-worktree`レーンで実行され、Draftを開き、masterの実行がgreenになった時点でユーザーの合図によりマージされた。このセッションでオープンなものは何もない。
 
-マージ前にそれぞれ監査され、`make verify`がグリーン、CIがグリーンとなって着地済み: #788（#784、#793）、#800（#795）、#803（#798）、#802（#791）、#801（#785）、#804（#799）、#808（#805 ── #785レーンのレビューで発見され同日午前に修正）。レーンのレビューから起票され、現在もオープン: [#806](https://github.com/rigortype/rigor/issues/806)（`Plugin::Registry#type_node_resolvers`が`Environment`構築時に保護されていない ── 潜在的であり、到達可能なトリガーはない）。今回のカットから意図的に除外されたもの: #790（ハーネス側）、#792 / #794 / #789（設計またはレイテンシの判断）、#796（その適合側の半分は#788ラウンド11で着地済み;ファイルごとの解析側の半分はスナップショット永続化の設計）。
+エンジンおよびCLIの挙動:
 
-## 次のエンジニアリング作業の優先順位
+- [#869](https://github.com/rigortype/rigor/pull/869)が#821をクローズ（Nicolas Rodriguezによる報告）:
+  `sig-gen`およびプローブは環境を`libraries:` + `signature_paths:`のみで構築していたため、rbs collection、バンドルのgemごとの`sig/`、およびプラグインのシグネチャが見えず、RBSのないスーパークラスのスキップガードがすべてのRailsモデルを拒絶していた。新しい`Rigor::ProjectEnvironment`（`lib/rigor/project_environment.rb`）が、すべての非`check`コマンドの唯一の構築パスとなり、`dependency_discovery_options(configuration)`が5つの探索軸の唯一の表記となる。注意: `sig-gen`は`source_files:`を渡すようになったため、ADR-93のインライン`#:`アノテーションは`check`と同様に`sig-gen`にとっても既存の宣言としてカウントされる。
+- [#888](https://github.com/rigortype/rigor/pull/888)が#882をクローズ: `rigor unused`の`foreign_predicate`にも同様の脱落があり、プロジェクトが再オープンするgemクラスが未使用候補として報告されていた ── 修正前にCLI経由で再現された。`signature_paths: []`は、それ自体の文書化された理由により維持される。
+- [#865](https://github.com/rigortype/rigor/pull/865)が#853をクローズ: ブロックレベルの`break <value>`は、あらゆるディスパッチ階層より上位の`ExpressionTyper#call_dispatch_type_for`において、yieldを行うCALLの型へとUnionされるため、フォールドはbreakのないパスをフォールドし続ける。残余: `JUMP_NODES`内の`break`エントリーは現在保守的であり、耐荷重ではない ── スレッディングが`5 | 42`に到達するところで`5 | Dynamic[top]`となる;これを持ち上げると`break`を持つすべてのブロックが動く。
+- [#866](https://github.com/rigortype/rigor/pull/866)が#862をクローズ（issue上の決定オプション1）: `T`がNominalまたはそれらのUnionである場合、`Range[A]`は`Nominal[Range, [T]]`キャリアからもバインドする。Range専用 ── Rangeはイミュータブルであり、その要素型は構築時に固定される。
+- [#868](https://github.com/rigortype/rigor/pull/868)が#861をクローズ: プレーンな`Integer` / `Float`レシーバーに対する`clamp`はブラケットへとフォールドする。排他的終端、混合クラスの境界、NaNおよび非リテラルの境界は拒絶される; `i.clamp(1..)`は既存のエイリアス`positive-int`としてレンダリングされる。
+- [#890](https://github.com/rigortype/rigor/pull/890)が#806をクローズ: `Registry#type_node_resolvers`はEnvironment構築中にガードなしで`plugin.manifest`を読み込んでいたため、例外を発生させるマニフェストがすべての`Environment.for_project`を中断させていた。マニフェストは、プラグインごとのrescueの背後でレジストリ構築時に1度だけ読み込まれ、`load_errors`に結合するようになった。issueの前提は1点の訂正とともに成立した: 例外は`Manifest#type_node_resolvers`（frozenな`attr_reader`）からではなく、`plugin.manifest`から発生する。IoBoundaryのバイパスはなく、#630形状の古いキャッシュの継ぎ目もない ── マニフェストはインメモリオブジェクトである。
+- [#891](https://github.com/rigortype/rigor/pull/891)が#807をクローズ: キャッシュスキーママーカーはrenameによって公開されるようになり、EMPTYマーカーは（「不一致、ルートをクリア」としてではなく）存在しないものとして扱われ、`read_entry`は存在確認とopenの間の`ENOENT`を許容する。1つのクリーンな`.rigor/cache`に対する2つの並行する`rigor check`プロセスがこれに遭遇していた。
 
-1. **[#775](https://github.com/rigortype/rigor/issues/775)** ── `rigor check lib`のアロケーション数をv0.3.6の18.8Mに向けて回復させる。前回の引き継ぎから変更なし;引き続き性能の最優先項目。
-2. `make check lib`が`lib/rigor/inference/expression_typer.rb:274`（`return_type_for`）で1件の`def.return-type-mismatch`警告を出力する。v0.3.7ラインで以前から存在していた（3つのレーンがそれぞれのベースコミットに対して独立して確認）;警告であるためゲートは終了コード0で通過するが、AGENTS.mdはセルフチェックがクリーンでなければならない（MUST）としている。根本原因を修正すること。
-3. **[#807](https://github.com/rigortype/rigor/issues/807)** ── `spec/rigor/cache/store_spec.rb:628`は真因のあるCIフレークである: 16スレッドがそれぞれ新しいルートで`Store`を構築し`repair_writable_marker!`を競合するため、あるスレッドが破損した（torn）`schema_version.txt`を読み取って兄弟スレッドの`binread`の最中に`clear_cache_root!`を実行してしまうことがある。#804のシャード1で一度発生;ローカルで25回繰り返してクリーン。
+構造的ゲート ── 「第2の構築エントリーが入力を暗黙的にドロップする」ファミリー、現在3つのエントリーすべてでクローズ:
 
-## パイプラインの注意点（それぞれインシデントによって得られたもの）
+- [#864](https://github.com/rigortype/rigor/pull/864)が#849をクローズ（`RbsLoader.build_env_for` vsキャッシュプロデューサー、さらにプローブは永続キャッシュを決して触らないというマニュアルの記述）、[#880](https://github.com/rigortype/rigor/pull/880)（`Environment.for_project` vs `dependency_discovery_options`、`ProjectEnvironment`自体の外部で`for_project`に到達するすべてのファイルを網羅）、[#886](https://github.com/rigortype/rigor/pull/886)が#876をクローズ（`RbsDescriptor`のダイジェストvs `build_env_for`の入力 ── ダイジェストされていない入力は見つからなかった）。
+- 3つすべてがメソッド自体からキーワードリストを読み取るため、新しいキーワードは出荷されるのではなくredとなる。#886はさらに各バリエーションが構築された環境を実際に変更することをチェックする: 変更しないバリエーションはダイジェストアサーションを空虚にし、あたかも合格したゲートのように読めてしまう。`libraries: ["set"]`はrbs 4.xでは空虚である（`Set`はコア）; `"pathname"`が識別する。
 
-- **拘束力を持つドキュメントの行を編集するすべてのレーンは、他のすべてのレーンと衝突する**。`docs/type-specification/diagnostic-policy.md`の`rbs.coverage.*`および`rbs_extended.*`の行は単一の非常に長い行である;ある日の午前中に6つのPRが`master`へのマージのたびにそれぞれ再衝突した。masterの行を取得して自前のフレーズを再適用することで解決し（トークンレベルの3方向マージスクリプトが機械的に実行した）、`git diff --word-diff origin/master HEAD -- docs`で自前のフレーズのみが異なることを検証し、マージされた文章を再読すること ── masterのある文（`a6af7f24`）は#803が着地した瞬間に偽となり、同じPR内で削除されなければならなかった。
-- **`Environment.default`はプロセス全体の`@default ||=`シングルトンである**。共有ビルドをスタブした上で`.default`に対して要求するspecは、ビンパッカーワーカー内で実行順序に依存し（#784のシームspecが一度レッドになった）、最初に実行されると以降のすべての`.default`利用者を汚染する。メモ化されたビルドをスタブまたは縮退させるspecでは、常に新しい`for_project`環境を構築すること。
-- **ワークツリーは`.git`を共有し、サブモジュールはワークツリー内では展開されない**。ワークツリーにチェックアウトを追加することは問題ないが、そこでの`git submodule deinit`はメインのクローンの登録を解除してしまう。
-- `mkdir /tmp/rigor-verify.lock`ミューテックスを使って**並列レーン間でフルゲートを直列化する** ── 並列な`make verify`の実行はこのホストをOOMキルさせたことがある。PRがマージされたら、そのレーンの冗長な再検証をkillすること;次のレーンが必要とするミューテックスを4分間保持してしまうためである。
-- **GitHubはカンマ区切りのリストで最初の`Fixes #N`のみをクローズする**。1行につき1つの`Fixes #N`とすること。
-- **バッチの後に統合されたmasterを検証すること**。単一のPRのCIがその組み合わせを見ることはない。
+## このバッチが残す未解決のスレッド
+
+- #891の背景にあるプロセス間プローブはブランチ`probe-807-marker-race`（`tmp/probe-807/`）にある。プロセス内の変種は決して再現しなかった ── MRIは実質的に`File.write`の途中でプリエンプトしない ── そのためアトミック書き込み側はスペックではなくそのforkハーネスによって正当化されている。
+- #891は1つの名前付きウィンドウを残している: 本当に古いルートでは2つのコンストラクタが依然として並行してクリアする可能性があり、クラッシュの影響は塞がれたものの、再計算のコストのみが発生する。
+- #890は、`Registry#find` / `#ids` / `#source_rbs_synthesizers`および`CLI::PluginsCommand#plugin_matches_entry?`がガードなしで`plugin.manifest`を読み込む状態を残している。Environment構築中に実行されるものはなく、それらをガードすること自体が問いを生む（idを読み取れないプラグインに対して`ids`は何を返すべきか？）。
+
+## 参入方法
+
+1. このセッションのものは何もオープンでもコミットされていない状態でもない;そのレーンのworktreeは削除されている。他のセッションが終始masterにマージしていたため、現在のHEADでfile:lineを再導出すること。
+2. `ready-for-agent`キューがバックログである: `gh issue list --label ready-for-agent`。#790、#732、#728、#722、#720、#710は独立しており、ブロックされていない。
+3. フルゲートはこのマシン上で1度に1つずつ実行する: 2つの並列`make verify`の実行はメモリを枯渇させる。レーン群は`mkdir /tmp/rigor-verify.lock`で直列化される; 5つのレーンにより最後のレーンは~55分待たされた。
+4. masterの実行がCANCELLEDとなったマージは、通常、障害ではなく兄弟セッションのpushによる追い越しである ── コミットがmasterに含まれていることを確認し、より新しい実行を監視すること。

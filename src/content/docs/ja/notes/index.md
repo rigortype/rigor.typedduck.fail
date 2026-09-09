@@ -3,9 +3,9 @@ title: "リサーチ・サーベイノート"
 description: "rigortype/rigor docs/notes/README.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/README.md"
 sourcePath: "docs/notes/README.md"
-sourceSha: "75a09e3ca4313d9467c0eada5b236062cf38a5aa4b33c727c52263fa1fdcab02"
-sourceCommit: "2a65ec8e52462c931fbfec94df68a18139259a43"
-sourceDate: "2026-09-05T00:25:38+09:00"
+sourceSha: "8927a27a0c5e771dd0c34f54c5acd12baab7af8077a00efbbda2f3f081d33dc5"
+sourceCommit: "04668e5f0d6205fdd5c8f44662041add7ab33ca3"
+sourceDate: "2026-09-09T17:07:51+09:00"
 translationStatus: "translated"
 sidebar:
   order: 6000
@@ -49,6 +49,8 @@ sidebar:
 | 2026-08-31 | [セルフチェックの型カバレッジ監査 — Rigor自身の`lib`のどこが型なしのままか](20260831-self-check-type-coverage-audit/) |
 | 2026-09-01 | [コーパス全体の不透明性の帰属 — 25個の対象で型がどこに付かないか](20260901-corpus-opacity-attribution/) |
 | 2026-09-01 | [キャンペーン後の不透明性の再帰属 — マージ済みmasterでのスイーププローブ再実行](20260901-post-campaign-opacity-recheck/) |
+| 2026-09-08 | [`sig/`内の全宣言の来歴 — ADR-107 G3に向けた初期シード監査](20260908-sig-provenance-audit/) |
+| 2026-09-09 | [`sig/`内の224件の`no_source`宣言の出処](20260909-sig-no-source-audit/) |
 
 ## リグレッションスイープ・実プロジェクトトリアージ
 
@@ -126,6 +128,7 @@ sidebar:
 | 2026-07-18 | [CIテスト時間の伸び — 要因分解（instance gacha vsテスト増加vs binpacker）、カテゴリー分割・有料runnerの否定、md-only PRスキップの落としどころ](20260718-ci-test-time-growth-attribution/) |
 | 2026-07-25 | [`rigor check lib`アロケーション帰属 — 55%は一度きりのRBS環境ビルド、#101ルールは0.24%](20260725-check-allocation-attribution/) |
 | 2026-07-30 | [参照型スタブのパス1 —— 静的検出はビルダーと一致し（コールドラン比−32.8%）、スタブ合成の実バグを2件検出](20260730-stub-pass1-static-detection-evaluation/) |
+| 2026-09-09 | [CIウォールタイム371秒 → 220秒 — シャードのばらつきは分割の問題ではなかった；1つのマトリクスアームに固定された作業、ワーカーごとの予算を超過した1ファイル、そしてspec分割が引き起こす3つの罠](20260909-ci-wall-time-shard-rebalance/) |
 
 ## プロセス・メタ
 
@@ -138,6 +141,7 @@ sidebar:
 | 2026-07-04 | [`examples/`プラグイン近代化調査 — 最初期プラグインと現行契約面のギャップ](20260704-examples-plugin-modernization-survey/) |
 | 2026-07-04 | [`plugins/`近代化スイープ — SKILL適用による本番プラグインのドリフト監査](20260704-plugins-modernization-sweep/) |
 | 2026-07-19 | [Webサイトショーケース — 「これに型が付くの？！」推論例集（コア + プラグイン）](20260719-website-showcase-inference-examples/) |
+| 2026-09-08 | [PR #788は停止指示のもとでマージされた — Draft規律のポストモーテム](20260908-pr-788-draft-discipline-postmortem/) |
 
 ## ノートの追加
 

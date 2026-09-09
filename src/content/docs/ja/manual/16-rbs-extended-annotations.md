@@ -3,8 +3,9 @@ title: "RBS::Extendedアノテーション"
 description: "rigortype/rigor docs/manual/16-rbs-extended-annotations.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/16-rbs-extended-annotations.md"
 sourcePath: "docs/manual/16-rbs-extended-annotations.md"
-sourceSha: "bc1d309cc9a05ddf00ab7096f215f6f369f5fd9a20f19a4d79b47d19da35203d"
-sourceCommit: "2d0ffe6f38d01cfd850527c57987b27487b414d4"
+sourceSha: "af69654f64b0096a5c79903e12e0861ffe455490f4a3928f3635ef48efd7055f"
+sourceCommit: "04668e5f0d6205fdd5c8f44662041add7ab33ca3"
+sourceDate: "2026-09-09T02:05:20+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9016
@@ -89,7 +90,7 @@ def valid_string?: (untyped value) -> bool
 - **RBSクラス名**: `String`、`::Foo::Bar`;または
 - **リファインメントペイロード**: インポート組み込みカタログ（[`imported-built-in-types.md`](../../type-specification/imported-built-in-types/)）からのケバブケース名。たとえば`non-empty-string`や`positive-int`。
 
-リファインメントペイロードは、パラメータ化された形`non-empty-array[Integer]`、`non-empty-hash[Symbol, Integer]`、および有界整数の形`int<min, max>`をサポートします。型引数の位置は、Symbol / Stringのリテラルトークンとそれらのユニオンも受け付けます（`pick_of[T, :name | :email]`、`Pick[T, "name" | "email"]`）。それぞれ`Constant<value>`へとリフトされます。
+リファインメントペイロードは、パラメータ化された形`non-empty-array[Integer]`、`non-empty-hash[Symbol, Integer]`、およびRubyのRangeリテラルで記述される有界数値の形`Integer[1..10]`と`Float[0.0...1.0]`（`1...10`、`1..`、`..10`; PHPStanスタイルの`int<1, 10>`も依然としてパースされますが非推奨であり、記述すべき表記とともに`dynamic.rbs-extended.deprecated-form`を報告します）、加えてFloat名`non-nan-float`と`finite-float`をサポートします。型引数の位置は、Symbol / Stringのリテラルトークンとそれらのユニオンも受け付けます（`pick_of[T, :name | :email]`、`Pick[T, "name" | "email"]`）。それぞれ`Constant<value>`へとリフトされます。
 
 `~T`による否定は**クラス名**ペイロードで許可されます（述語の偽分岐は通常こう書きます）;リファインメント形のペイロードではまだ受け付け**られません**。明示的にユーザーがオーサリングする差型には、`T - U`を推奨します（[type-operators.md](../../type-specification/type-operators/)を参照）。
 

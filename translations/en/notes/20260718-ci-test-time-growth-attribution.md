@@ -1,8 +1,8 @@
 ---
 title: "CI test-time growth — attribution (instance gacha vs test growth vs binpacker)"
 description: "Attributing the apparent growth in CI test wall-clock time across instance variance, test-suite growth, and the binpacker architecture."
-sourceSha: "08201db8f25ecb026a839cbf7ae3c1ee347b4231bf8887800be8412cffc7efe6"
-sourceCommit: "7a69f1427bb5d1985ccc87080ee90023ffb42665"
+sourceSha: "07cc5719b6e25a252b8e4d0788347dc1779907124829af3825e875e43632895e"
+sourceCommit: "04668e5f0d6205fdd5c8f44662041add7ab33ca3"
 translationStatus: "translated"
 ---
 
@@ -255,3 +255,11 @@ median/total-CPU tracking is more certain.
   (the prehistory of adopting binpacker).
 - [2026-06-23 binpacker parallel-suite trial](../20260623-binpacker-parallel-suite-trial/)
   — the binpacker adoption trial and initial observations of CI variance.
+- [2026-09-09 CI wall time 371s → 220s](../20260909-ci-wall-time-shard-rebalance/)
+  — follow-up measurement that **bounds** the negative conclusion in "Evaluating
+  job splitting by category (negative)" above. The conclusion of this note remains
+  valid for carving specs within the balanced pool. On the other hand, the case
+  where work **originally outside binpacker's scheduling** via `test_exclude` had
+  been placed on one matrix arm was unanticipated, and that was where 145s, or
+  127s of the critical path, had been hiding (since the number of test jobs is
+  unchanged, max-of-N does not increase either).

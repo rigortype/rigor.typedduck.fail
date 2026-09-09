@@ -3,9 +3,9 @@ title: "rigor-activerecord"
 description: "rigortype/rigor docs/manual/plugins/rigor-activerecord.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/plugins/rigor-activerecord.md"
 sourcePath: "docs/manual/plugins/rigor-activerecord.md"
-sourceSha: "461342c7d0fba5cda30b4cd31aed5bdb225a5a71b0adf63a58cf4a88ffc77561"
-sourceCommit: "2a65ec8e52462c931fbfec94df68a18139259a43"
-sourceDate: "2026-09-04T15:32:06+09:00"
+sourceSha: "d7946d4b824235327022588e266a3b799db4bfb94f64bbd4343223897c7c779f"
+sourceCommit: "04668e5f0d6205fdd5c8f44662041add7ab33ca3"
+sourceDate: "2026-09-09T01:20:05+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9050
@@ -64,6 +64,8 @@ plugins:
 このプラグインは診断に加えて、呼び出し箇所の型も提供します。クラス側: `User.find(1)` → `User`、`User.find_by(...)` → `User | nil`、`User.find_by!(...)` → 非nullableの`User`。インスタンス側: カラムの読み取り（`user.name`）はそのカラムの値型にナローイングされ、`user.admin?`は`bool`に、単数の関連（`post.user`）はターゲットモデルにナローイングされます。
 
 リレーションを返す呼び出し箇所 ── `User.where(...)`、`User.all`、`User.order(...)`、`has_many`／`has_and_belongs_to_many`のアクセサ（`user.posts`）、ユーザー宣言の`scope`（`Post.published`）── は`ActiveRecord::Relation[Model]`にナローイングされます。チェーンされたクエリメソッドは要素型を保持し、イテレーション（`user.posts.each { |p| ... }`）はモデルを生み出します。型付きリレーションに対して呼び出されたユーザー定義のスコープ（`User.where(...).published`）が、誤った`call.undefined-method`を表面化させることはありません。
+
+プロジェクトが`rbs collection install`を通じて`activerecord`もインストールしている場合、コレクションは型パラメータなしの`ActiveRecord::Relation`を宣言し、プラグインは`ActiveRecord::Relation[Elem]`を宣言するため、RBSは両方を保持できません。プラグインの宣言は身を引きます: リレーションの呼び出しサイトは依然として`ActiveRecord::Relation[Model]`として型付けされますが、リレーションへの呼び出しはコレクションの宣言に対して解決されるため、プラグインの要素型付け（たとえば`.first`が`Model?`になるなど）は利用できなくなり、実行は両方のファイル名を名指す`rbs.coverage.plugin-signature-stood-down` info行を1つ報告します。何も壊れていません;プラグインの型付けは、コレクションがそのクラスの宣言を停止したときにのみ復帰します。
 
 `User.table_name`は`String`と型付けされ、厳密な文字列になるのは、あなたのソースがその名前を述べているときだけです: クラス上またはSTIの祖先上のリテラルな`self.table_name = "people"`であって、その連鎖の中に実行時に名前を計算するものが何もない場合です（`def self.table_name`、その`class << self`版、補間を伴う代入は、いずれも計算しているとみなされます）。それ以外の名前——プラグインがクラス名を複数形化して導出したもの——はすべて素の`String`のままです。
 

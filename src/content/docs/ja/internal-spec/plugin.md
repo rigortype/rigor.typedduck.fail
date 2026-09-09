@@ -3,8 +3,8 @@ title: "プラグインの登録と読み込み"
 description: "rigortype/rigor docs/internal-spec/plugin.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/plugin.md"
 sourcePath: "docs/internal-spec/plugin.md"
-sourceSha: "0b30b402e37a429239a2f0d5adaef5bcc7982ff0e2ff8b85f615149e78751682"
-sourceCommit: "2a65ec8e52462c931fbfec94df68a18139259a43"
+sourceSha: "932161b27b2781e7a7272fad9cf782e80ab92224265432cf23d68df0710d719b"
+sourceCommit: "04668e5f0d6205fdd5c8f44662041add7ab33ca3"
 translationStatus: "translated"
 sidebar:
   order: 3050
@@ -229,7 +229,7 @@ end
 | `open_receivers` | `Array<String>` | メソッドのサーフェスが有界でないレシーバークラス名 ── たとえば`ActiveRecord::Relation`は、ユーザーが宣言したすべての`scope`をそのモデルへ委譲する（ADR-26）。そのようなクラスは`call.undefined-method`から丸ごと免除され、さらに、そのクラスが宣言したのではなく**継承した**メソッド名については、シグネチャを読む2つのルール（`call.wrong-arity`・`call.argument-type-mismatch`）からも免除される: 祖先の名前と衝突する委譲された名前（`relation.open` → `Kernel#open`）は、その呼び出しが実行しないシグネチャへ解決されるからだ。オープンクラス自身が宣言するメソッドは両方の検査を保つ;祖先を通じて本当に持っているメソッド（Relation上の`Enumerable`）も検査を失う ── 判定基準は委譲かどうかではなく定義サイトである。このフィールドは、プロジェクトが宣言元のプラグインをロードして初めて有効になる。他に2つのプラグイン非依存のソースが同じ`CheckRules#unbounded_receiver_surface?`ゲートに供給する: `RbsLoader#synthesized_type_names`スタブ型、および（issue #632、さらに#660で追跡）`CheckRules::GEM_OVERLAY_OPEN_RECEIVERS` ── マニフェストフィールドではなく単なる定数であり、Rigor自身のバンドルされたgemオーバーレイRBS（`data/gem_overlay/`、ADR-72）が、宣言が部分的であることを知って宣言しているクラス向けである。自動適用されるオーバーレイには`open_receivers:`エントリーが存在するためのプラグインマニフェストがないため、それがオープンと宣言するレシーバー（`ActiveSupport::Duration`、`method_missing`を介して未宣言のメンバーをラップされた数値に転送する）は、プラグインがロードされているかどうかとは無関係に保護を必要とする; `rigor-activesupport-core-ext`も同じクラスを自身の`open_receivers:`にリストしているため、設計上2つのソースはそこで重複している ── どちらか一方だけで十分であり、定数はマニフェストフィールドが構造的に到達できないオーバーレイ単独の場合をカバーするものである。ただし、その定数への所属それ自体は十分ではない: `CheckRules#gem_overlay_loaded?`はさらに、今実行でそのgemのRigor自身の部分的宣言の1つが実際にロードされたこと ── `RbsLoader#signature_paths`が`RbsLoader.under_gem_overlay_root?`下のディレクトリ（自動適用されるオーバーレイ）を含むか、または`RbsLoader.gem_overlay_twin_signatures_loaded?`に一致するもの（バンドルされたプラグインツイン自身の`sig/`、プロジェクトが`plugins:`ではなく`signature_paths:`経由で配線するときに到達する ── issue #672、オーバーレイは身を引きツインのマニフェストなしの宣言がロードされる唯一のものになる）を含むこと ── を要求する。そうでなければ、そのgemをロックしたことがなく、たまたま自身で同じ完全修飾名のクラスを所有しているプロジェクトが、そのクラスでの`call.undefined-method`のカバレッジを沈黙のうちに失ってしまうことになるからである。これは、宣言元のプラグインのロードを要求することによって`open_receivers:`が無料で得ていた「その保護はRBSがアクティブであるまさにそのときにアクティブになる」という特性（ADR-26 WD1）を復元する。 |
 | `type_node_resolvers` | `Array` | カスタムなRBS型名解決を貢献する`Plugin::TypeNodeResolver`エントリー（ADR-13）。 |
 | `protocol_contracts` | `Array<ProtocolContract>` | パススコープの振る舞い契約（`path_glob` + `method_name` + `singleton` + param/return型 + 重大度）;provide-and-check（ADR-28）。 |
-| `source_rbs_synthesizer` | `#call(path) -> String?` | env構築時にプロジェクトソースファイルからRBSを合成する呼び出し可能オブジェクト（例: rbs-inline取り込み）（ADR-32）。 |
+| `source_rbs_synthesizer` | `#call(path) -> String?` | env構築時にプロジェクトソースファイルからRBSを合成する呼び出し可能オブジェクト（例: rbs-inline取り込み）（ADR-32）。ソースが戻り値型を与えなかったメンバーを放出しなければならないシンセサイザーは、プレースホルダーの戻り値を宣言するのではなく、そのメンバーに`%a{rigor:v1:inferred-return}`注釈を付けなければならず（MUST）（[rbs-extended.md](../../type-specification/rbs-extended/)）、これによりメンバーが宣言されたまま保たれつつ呼び出し元は推論された型を保持します（[ADR-93](../../adr/93-default-rbs-inline-ingestion/) WD6）。 |
 | `block_as_methods`, `heredoc_templates`, `trait_registries` | `Array<Plugin::Macro::*>` | ADR-16のマクロ / DSL展開基板のティア（A / C / B;一度も配線されなかったティアD `external_files:`はADR-60 WD1で削除された）。値オブジェクトの形状は[`macro-substrate.md`](../macro-substrate/)で仕様化されています。 |
 | `nested_class_templates` | `Array<Plugin::Macro::NestedClassTemplate>` | enum形状のブロックDSL（`variant <Const>, <Type>`）からのネストされたサブクラス放出;メソッドだけでなくクラスを生み出すマクロ基板ティア（ADR-36）。[`macro-substrate.md`](../macro-substrate/)で仕様化されています。 |
 | `hkt_registrations`, `hkt_definitions` | `Array` | 軽量HKTの型関数登録（ADR-20）。 |
@@ -366,7 +366,7 @@ RBS::Extendedの`%a{rigor:v1:…}`ペイロードに現れるカスタムな**�
 - `scope`は、RBS::Extendedディレクティブパーサが下へ通す、付随する`Rigor::TypeNode::NameScope`（リゾルバチェーン・クラスコンテキスト・型エイリアステーブルを担う）です。
 - メソッドは、ノードがこのリゾルバがカバーする語彙に一致するとき`Rigor::Type::Base`を返さなければならず（MUST）、または次のリゾルバ（最終的には組み込み／RBSフォールバック）へ**フォールスルーするために`nil`**を返します。基底実装は`nil`を返すので、未実装のサブクラスは安全なno-opです。
 
-エンジンは、ロードされたすべてのプラグインのリゾルバを——**プラグイン登録順**（`Registry#type_node_resolvers`がプラグインにわたってflat-mapする）で——単一の`Rigor::TypeNode::ResolverChain`へ集約し、それは順番にそれらを参照して**最初の非`nil`**の答えを返します。チェーンは`Analysis::Runner.run`ごとに一度構成されます;どのプラグインもリゾルバを貢献しないとき、エンジンはショートサーキットする（`NameScope`は構築されません）ので、パーサはリゾルバなしのデフォルトとビット単位で同じように振る舞います。リゾルバはステートレスで再入可能であるべきです（SHOULD）——チェーンは同じノードに対してリゾルバを複数回参照してもよい（MAY）です。実装済みのコンシューマーは`rigor-typescript-utility-types`（`Pick` / `Omit`）です。
+エンジンは、ロードされたすべてのプラグインのリゾルバを——**プラグイン登録順**（`Registry#type_node_resolvers`。その兄弟である`compile_aggregates`が使用するのと同じ保護されたマニフェスト読み取りからレジストリ構築時にコンパイルされる）で——単一の`Rigor::TypeNode::ResolverChain`へ集約し、それは順番にそれらを参照して**最初の非`nil`**の答えを返します。チェーンは`Analysis::Runner.run`ごとに一度構成されます;どのプラグインもリゾルバを貢献しないとき、エンジンはショートサーキットする（`NameScope`は構築されません）ので、パーサはリゾルバなしのデフォルトとビット単位で同じように振る舞います。リゾルバはステートレスで再入可能であるべきです（SHOULD）——チェーンは同じノードに対してリゾルバを複数回参照してもよい（MAY）です。実装済みのコンシューマーは`rigor-typescript-utility-types`（`Pick` / `Omit`）です。
 
 ### `Rigor::Plugin::Services`
 
@@ -392,7 +392,7 @@ RBS::Extendedの`%a{rigor:v1:…}`ペイロードに現れるカスタムな**�
 | `#plugins` | 決定論的な順序でロードされた`Rigor::Plugin::Base`インスタンス。 |
 | `#ids` | `#plugins`と並行したマニフェストidの`Array<String>`。 |
 | `#find(id)` | idによるルックアップ；存在しない場合は`nil`。 |
-| `#load_errors` | ロード中に収集された`Array<Rigor::Plugin::LoadError>`。 |
+| `#load_errors` | ロード中に収集された`Array<Rigor::Plugin::LoadError>`、およびレジストリ構築時のプラグインマニフェスト読み取りによって発生したエラー。 |
 | `#empty?` / `#any_load_errors?` | 述語。 |
 
 `Registry::EMPTY`はプラグインがロードされる前にランナーが使用するシングルトンの凍結空レジストリです。
@@ -434,7 +434,9 @@ plugins:
 
 ## 障害の隔離（ADR-2 §「プラグイントラストとI/Oポリシー」に従う）
 
-ロードはすべてのプラグインエントリーを独立して処理します；1つのエントリーの失敗は他のエントリーを中断しません。各失敗は結果レジストリの`LoadError`として収集され、次に`Analysis::Runner#run`が以下を持つ`:error`の`Diagnostic`として表面化します：
+ロードはすべてのプラグインエントリーを独立して処理します；1つのエントリーの失敗は他のエントリーを中断しません。続いてレジストリ構築は、ロードされた各プラグインのマニフェストを、同じプラグインごとの隔離の背後で一度読み取ります: `#manifest`がraiseしたプラグインは構築時の集約（`type_node_resolvers`、`open_receivers`、`additional_initializers`）に何も寄与せず、そのraiseは追加の`LoadError`として収集されます ── ローダー自身のエラーの後に追加され、`manifest.id`こそが読み取れなかったものであるため、プラグインCLASSを参照します。オンデマンドではなくそこで集約することは重要（load-bearing）です: `Environment#build_name_scope`はEnvironment構築中に`Registry#type_node_resolvers`を要求し、これをrescueするものは何もないため、遅延読み取りは実行を縮退させるのではなく中断させてしまうからです。
+
+各失敗は結果レジストリの`LoadError`として収集され、次に`Analysis::Runner#run`が以下を持つ`:error`の`Diagnostic`として表面化します：
 
 - `path`: `".rigor.yml"`
 - `line`: `1`

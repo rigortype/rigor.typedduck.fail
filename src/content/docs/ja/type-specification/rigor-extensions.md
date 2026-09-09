@@ -3,8 +3,9 @@ title: "Rigor拡張"
 description: "rigortype/rigor docs/type-specification/rigor-extensions.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/type-specification/rigor-extensions.md"
 sourcePath: "docs/type-specification/rigor-extensions.md"
-sourceSha: "ec912f5361c46e4a09cf6a9f415c43b253f979f3776049bd352acae77fa4d3a7"
-sourceCommit: "db8d01bf94926a72e6a2aaf15639d1591b7e142e"
+sourceSha: "02efdccc1672d175e1595d530b54f39230c5f8c5a4833b6f3532ecdb800fc88d"
+sourceCommit: "04668e5f0d6205fdd5c8f44662041add7ab33ca3"
+sourceDate: "2026-09-09T00:33:11+09:00"
 translationStatus: "translated"
 sidebar:
   order: 2050
@@ -20,6 +21,7 @@ RigorはRBSが直接表現できない型を推論できます（MAY）。これ
 | --- | --- | --- |
 | 絞り込まれた名前的型（nominal type、公称型とも）（例: `String where non_empty`） | 名前的型の述語で証明された部分型（subtype） | 名前的ベース（例: `String`） |
 | 整数範囲（例: `Integer[1..]`） | 数値比較と境界 | `Integer` |
+| Float範囲（例: `Float[0.0...1.0]`） | アノテーションからの有界でNaNではないFloat（閉区間または半開区間）（ADR-109 WD4） | `Float` |
 | リテラルの有限集合 | 精密なブランチと列挙型の追跡 | 可能な場合はRBSリテラルユニオン、そうでなければ名前的ベース |
 | 真偽性リファインメント | ブランチ感度のあるnil/falseの除去 | 基礎となる型を消去 |
 | 関係的事実（例: `x == "foo"`） | Rubyの等価性がディスパッチであるため健全（soundness）に値型に還元できない可能性のあるガードをキャプチャ | マーカーを消去 |
@@ -49,7 +51,7 @@ Rigorの拡張は生成されたRBS構文にリークしてはなりません（
 ## 拡張が型システムの他の部分とどう相互作用するか
 
 - **絞り込まれた名前的型**はサブタイピング（subtyping）クエリでそのベースの部分型です。リファインメントはベースがまだ証明しないチェックを追加します。診断とナローイング（narrowing）は正規化、ミューテーション、またはバジェット枯渇が広げることを強制するまでリファインメントを保持します。
-- **整数範囲**は区間包含によってサブタイピングに参加します（`Integer`の範囲内で）。RBSが範囲を表現できないため`Integer`に消去されます。命名と整数のみに範囲を保つ根拠については[imported-built-in-types.md](../imported-built-in-types/)を参照してください。
+- **整数およびFloat範囲**は、閉じた正規境界において、自身のクラス内での区間包含によりサブタイピングに参加します。RBSは範囲を表現できないため、`Integer` / `Float`に消去されます。記法および`Range#cover?`の定義は[imported-built-in-types.md](../imported-built-in-types/)にあります（[ADR-109](../adr/109-ruby-native-range-notation/)）; Float比較ナローイングはそこで予約されています。
 - **有限リテラルユニオン**は通常のユニオン（union、合併型とも）としてサブタイピングに参加します。ユニオンサイズバジェットで制限されます（[inference-budgets.md](../inference-budgets/)参照）;バジェットが超過すると、Rigorは名前的ベースに広げます。
 - **真偽性リファインメント**はフローセンシティブ（flow-sensitive）です（`false | nil`対ドメインの残り）。それ自体で値型ではありません;他のリファインメントと組み合わさるスコープ事実です。[control-flow-analysis.md](../control-flow-analysis/)を参照してください。
 - **関係的事実**は値型の効果がまだ正当化されていない比較をキャプチャするスコープ事実です。比較の右辺から正のドメインを導入してはなりません（MUST NOT）。診断、矛盾検出、より強い証拠が現れたときの昇格のために保持されます。

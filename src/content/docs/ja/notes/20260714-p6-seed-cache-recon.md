@@ -227,7 +227,7 @@ full lib/rigorスイープからの2つのコンシューマクラス:
 | 新しいファイルごとの`Cache::Store`プロデューサファミリー（ファイルごとに1エントリー、ダイジェストでキー付け） | **~N reads**（11 k回のstat＋open＋inflate） | ADR-54の`evict!`＋256 MB上限がエントリーごとに適用 | `PAYLOAD_ABI_VERSION = Rigor::VERSION`＋`Descriptor`スキーマ | **不良** —— リビルドはすべての未変更バンドルをロードするので、実行ごとにN回のfs-ops。syscallオーバーヘッドは再ウォークに匹敵しかねない |
 | 実行構成ごとに1つのシャード化blob（専用アーティファクト） | 1 read + 1 write | 独自 | 独自 | 良いが、スナップショットのフィンガープリント＋ライフサイクル機構を重複させる |
 
-**推奨: `Cache::IncrementalSnapshot`を拡張する**。 `Payload`に`seed_bundles`フィールドを追加し
+**推奨: `Cache::IncrementalSnapshot`を拡張する**。`Payload`に`seed_bundles`フィールドを追加し
 （`{path => Marshal可能なファイルごとバンドル}`）、`SCHEMA`をバンプする。これはすでに（i）`--incremental`の
 ホストであり、（ii）フィンガープリントが一致するとき無条件でロードされ（1回のfsリード —— まさに
 すべてをマージするアクセスパターン）、（iii）すでにエンジンバージョン＋設定＋ルート＋gem＋プロジェクトRBSを

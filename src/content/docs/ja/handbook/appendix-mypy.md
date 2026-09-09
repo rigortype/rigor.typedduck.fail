@@ -3,8 +3,9 @@ title: "付録: mypy / Pyrightから来た場合"
 description: "rigortype/rigor docs/handbook/appendix-mypy.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/appendix-mypy.md"
 sourcePath: "docs/handbook/appendix-mypy.md"
-sourceSha: "2eab30b1320e1b3b50bdfc9d556768bc04fe7f9766d8a154500a10a12df00a37"
-sourceCommit: "2d0ffe6f38d01cfd850527c57987b27487b414d4"
+sourceSha: "7169c4592fbf5af5549a6cf010a8373817b75dbc55bc4df98a54599266301aef"
+sourceCommit: "04668e5f0d6205fdd5c8f44662041add7ab33ca3"
+sourceDate: "2026-09-08T23:15:10+09:00"
 translationStatus: "translated"
 sidebar:
   order: 1050
@@ -69,7 +70,7 @@ Pythonの型システムはリファインメント（refinement、篩型とも�
 | `non-empty-string` | （ビルトインなし。PEP 675の`LiteralString`は精神的に近いが意味論が異なる） |
 | `literal-string` | `LiteralString`（PEP 675）。ソースコードのリテラルから構築されたことが証明可能。**直接対応**。 |
 | `positive-int` | （ビルトインなし。サードパーティのバリデーターで`Annotated[int, Gt(0)]`という慣習） |
-| `int<min, max>` | （ビルトインなし。同じ`Annotated[int, Range(...)]`の慣習） |
+| `Integer[min..max]` | （ビルトインなし。同じ`Annotated[int, Range(...)]`の慣習） |
 | `numeric-string` | （ビルトインなし） |
 | `non-empty-array[T]` | （ビルトインなし。一部のライブラリは`tuple[T, *tuple[T, ...]]`を使う） |
 | `Constant<42>` | `Literal[42]` |
@@ -222,7 +223,7 @@ Pythonから持ち越した注意点をひとつ: Rigorにおいて「protocol�
 ## Rigorにあってmypy / Pyrightにないもの
 
 - **メソッド呼び出しを通じた定数folding**。mypyもPyrightもリテラルをfoldするが、どちらも任意のビルトインメソッドを通じたfoldはしない。Rigorは`Numeric`、`String`、`Symbol`、`Array`、`Hash`上のカタログ化された純粋メソッドのセットを通じてfoldする。
-- **自動ナローイングを持つファーストクラスのリファインメントキャリア**。`non-empty-string`、`positive-int`、`numeric-string`、`int<min, max>`等、述語で制限された値が対応するRubyの述語メソッドでナローイングされる。
+- **自動ナローイングを持つファーストクラスのリファインメントキャリア**。`non-empty-string`、`positive-int`、`numeric-string`、`Integer[min..max]`等、述語で制限された値が対応するRubyの述語メソッドでナローイングされる。
 - **false-positiveなしのスタンス**。mypyは`--no-warn-unused-ignores`や`--ignore-missing-imports`を設定しない限り動的コードについて警告する。Rigorは設定なしで`Dynamic[top]`には沈黙する。
 - **引数シェイプによる戻り値型変化のプラグインサイド**。Pyrightの「型エイリアスナローイング」とmypyのオーバーロードスタックがいくつかのケースをカバーする。Rigorのプラグイン契約（contract）はディスパッチポイントで完全なRubyコードを提供する。[`rigor-lisp-eval`](https://github.com/rigortype/rigor/tree/master/examples/rigor-lisp-eval/)の例が標準デモだ。`Lisp.eval([:+, 1, 2])`は`Integer`を返し、`Lisp.eval([:<, 1, 2])`は`bool`を返す。
 

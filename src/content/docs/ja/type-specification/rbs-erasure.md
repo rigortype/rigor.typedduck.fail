@@ -3,8 +3,9 @@ title: "RBS消去"
 description: "rigortype/rigor docs/type-specification/rbs-erasure.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/type-specification/rbs-erasure.md"
 sourcePath: "docs/type-specification/rbs-erasure.md"
-sourceSha: "8e7abbd712b0873cfd4b772f831e9bebc0eba94277f3571a1d29b4b6c3d70bf2"
-sourceCommit: "4c03f62d04f594030bd79aa00f3a5978e0457d4c"
+sourceSha: "0fc6aadf7f0430363e48bf85481e461ee835424adf1ae1cc40867da497ac6534"
+sourceCommit: "04668e5f0d6205fdd5c8f44662041add7ab33ca3"
+sourceDate: "2026-09-09T00:33:11+09:00"
 translationStatus: "translated"
 sidebar:
   order: 2050
@@ -19,7 +20,7 @@ RBS消去はRigorの内部型を有効なRBS型に変換します。Rigor→RBS�
 - 正確なRBS型はそれ自身に消去されます。
 - 絞り込まれた型は絞り込まれていないベースに消去されます。
 - サポートされていないリテラル種類はその名前的クラスに消去されます。
-- 整数範囲は`Integer`に消去されます。
+- 整数範囲は`Integer`に消去されます; Float範囲は`Float`に消去されます。
 - 補完と差分のリファインメントは現在のドメイン型に消去されます。
 - ハッシュシェイプの開放性、追加キー、読み取り専用マーカーは以下のハッシュシェイプ消去アルゴリズムによって消去されます。
 - オブジェクトシェイプは一致する名前付きインターフェースが存在する場合はそれに消去され、そうでなければ保守的な名前的または`top`に消去されます。

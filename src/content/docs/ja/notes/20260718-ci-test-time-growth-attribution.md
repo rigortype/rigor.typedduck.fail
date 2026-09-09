@@ -3,9 +3,9 @@ title: "CI テスト時間の伸び — 要因分解（instance gacha vs テス�
 description: "Imported from rigortype/rigor docs/notes/20260718-ci-test-time-growth-attribution.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260718-ci-test-time-growth-attribution.md"
 sourcePath: "docs/notes/20260718-ci-test-time-growth-attribution.md"
-sourceSha: "08201db8f25ecb026a839cbf7ae3c1ee347b4231bf8887800be8412cffc7efe6"
-sourceCommit: "ffb456b0cc9e068a59d0ba03ba464b60ad83280a"
-sourceDate: "2026-07-18T05:49:53+09:00"
+sourceSha: "07cc5719b6e25a252b8e4d0788347dc1779907124829af3825e875e43632895e"
+sourceCommit: "04668e5f0d6205fdd5c8f44662041add7ab33ca3"
+sourceDate: "2026-09-09T17:07:51+09:00"
 sourceLanguage: "ja"
 sidebar:
   order: 20266718
@@ -210,3 +210,8 @@ md-onlyなら`make test-binpacker` / `make test-ractor-pool`をスキップす�
   — `--group-by filesize`が「大きいが速い」ファイルで崩れる問題（binpacker採用の前史）。
 - [2026-06-23 binpacker parallel-suite trial](../20260623-binpacker-parallel-suite-trial/)
   — binpacker導入トライアルとCI変動の初期観測。
+- [2026-09-09 CI wall time 371s → 220s](../20260909-ci-wall-time-shard-rebalance/)
+  — 上の「カテゴリ別ジョブ分割の検討（否定的）」を**限定する**後続測定。均衡プール内のspecを割る
+  議論としては本ノートの結論は有効なまま。一方`test_exclude`で**もともとbinpackerの
+  スケジューリング外**にある仕事がマトリクスの片腕に置かれていたケースは想定外で、そこに145s、
+  クリティカルパスの127sが隠れていた（テストジョブ数は不変なのでmax-of-Nも増えない）。

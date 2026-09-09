@@ -3,9 +3,9 @@ title: "RBS::Extendedアノテーション"
 description: "rigortype/rigor docs/type-specification/rbs-extended.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/type-specification/rbs-extended.md"
 sourcePath: "docs/type-specification/rbs-extended.md"
-sourceSha: "ac5ce9bdf231c2aeec0a399f749c5edeec0d446bfcc9f97dcf8c148b0d130f47"
-sourceCommit: "ffb456b0cc9e068a59d0ba03ba464b60ad83280a"
-sourceDate: "2026-09-08T04:51:06+09:00"
+sourceSha: "a371c8ac0fe1152f6fe918c7534e0a2f74b4382402e91960d43c39a89dccb4a7"
+sourceCommit: "04668e5f0d6205fdd5c8f44662041add7ab33ca3"
+sourceDate: "2026-09-09T00:33:11+09:00"
 translationStatus: "translated"
 sidebar:
   order: 2050
@@ -34,7 +34,7 @@ def assert_present!: (String value) -> void
 def check: (untyped value) -> bool
 ```
 
-`return:`、`param:`、`assert*`、`predicate-if-*`の右辺は、RBSスタイルのクラス名（`String`、`::Foo::Bar`）またはインポート済み組み込みカタログ（[`imported-built-in-types.md`](../imported-built-in-types/)）のkebab-caseリファインメント（refinement、篩型とも）ペイロードのいずれかを受け付けます。リファインメントペイロードは`Builtins::ImportedRefinements::Parser`を通じてパラメータ化形式`non-empty-array[Integer]`、`non-empty-hash[Symbol, Integer]`、`int<min, max>`をサポートします。型引数位置はSymbolおよびStringリテラルトークン（`:name` / `"name"`）と、それらの`|`によるユニオン（union、合併型とも）（`:a | :b | "c"`）も受け付けます;パーサは各リテラルを`Constant<value>`に持ち上げ、ユニオンを`Type::Combinator.union`を介して畳み込むため、`pick_of[T, :a | :b]`やプラグイン提供の`Pick[T, "name" | "email"]`のようなシェイプ（shape）射影ヘッドが合成ASTのワークアラウンドなしに端から端まで通ります。クラス名ディレクティブは`~T`否定を使う場合があります（MAY）;リファインメント形式のディレクティブは現在使ってはなりません（MUST NOT）（差分対リファインメントの代数は将来のスライス（slice）のために予約されています）。
+`return:`、`param:`、`assert*`、`predicate-if-*`の右辺は、RBSスタイルのクラス名（`String`、`::Foo::Bar`）またはインポート済み組み込みカタログ（[`imported-built-in-types.md`](../imported-built-in-types/)）のkebab-caseリファインメント（refinement、篩型とも）ペイロードのいずれかを受け付けます。リファインメントペイロードは`Builtins::ImportedRefinements::Parser`を通じてパラメータ化形式`non-empty-array[Integer]`、`non-empty-hash[Symbol, Integer]`、および数値範囲形式`Integer[1..10]`と`Float[0.0...1.0]`（Rubyの範囲リテラル: `1...10`、`1..`、`..10`、`nil..nil`が受け入れられ、Floatの終端は符号付きの`Float::INFINITY` / `Float::MAX`でもよく、空の範囲は拒絶される）をサポートします; PHPStanスタイルの`int<min, max>`は1つの非推奨ウィンドウの間、非推奨のエイリアスとして受け入れられ（[ADR-109](../adr/109-ruby-native-range-notation/) WD3）、決して表示されません。型引数位置はSymbolおよびStringリテラルトークン（`:name` / `"name"`）と、それらの`|`によるユニオン（union、合併型とも）（`:a | :b | "c"`）も受け付けます;パーサは各リテラルを`Constant<value>`に持ち上げ、ユニオンを`Type::Combinator.union`を介して畳み込むため、`pick_of[T, :a | :b]`やプラグイン提供の`Pick[T, "name" | "email"]`のようなシェイプ（shape）射影ヘッドが合成ASTのワークアラウンドなしに端から端まで通ります。クラス名ディレクティブは`~T`否定を使う場合があります（MAY）;リファインメント形式のディレクティブは現在使ってはなりません（MUST NOT）（差分対リファインメントの代数は将来のスライス（slice）のために予約されています）。
 
 ## 著作ルール
 
@@ -90,6 +90,7 @@ def valid_string?: (untyped value) -> bool
 | `rigor:v1:assert-if-true target is T` | メソッドが真値を返したときに`target`を絞り込みます。 |
 | `rigor:v1:assert-if-false target is T` | メソッドが`false`または`nil`を返したときに`target`を絞り込みます。 |
 | `rigor:v1:effect <label-list>` | **エフェクトエンベロープ**——メソッドのコードが行ってよいエフェクトラベルの上界——を宣言します。`class` / `module`宣言上でも有効で、そこでは分配されます（§「エフェクトエンベロープ」）。 |
+| `rigor:v1:inferred-return` | 宣言はメンバーの存在とそのパラメータを述べるのみで、何を返すかについては**何も**述べません; Rigorは実装から戻り値型を推論します（§「戻り値型を述べない宣言」）。 |
 
 真ブランチのみの述語はPythonの`TypeGuard`的な挙動に十分です。両ブランチを記述する述語ペアはPythonの`TypeIs`的な挙動に十分です。偽ブランチはより明確な場合は明示的な負の型として書く場合があります（MAY）:
 
@@ -121,6 +122,21 @@ def string?: (untyped) -> bool
 ```
 
 将来のバージョンはターゲットをインスタンス変数、レコードキー、シェイプパス、ブロックパラメータに拡張する場合がありますが（MAY）、それらはアノテーションディレクティブ名をオーバーロードするのではなく明示的なパス構文を使うべきです（SHOULD）。
+
+## 戻り値型を述べない宣言
+
+宣言は通常、メソッドの両方の側面を契約します: 何を受け入れるかと何を返すかです。`rigor:v1:inferred-return`はそれらを分離します。メンバーが存在し、そのパラメータが宣言どおりであり、シグネチャ内の戻り値型は契約ではなくプレースホルダーであることを述べます ── そのためRigorは、シグネチャが宣言されていないメソッドとまったく同様に、メソッドの実装から呼び出しを型付けします。
+
+```rbs
+%a{rigor:v1:inferred-return}
+def sibling: () -> untyped
+```
+
+宣言が述べる他のすべては引き続き有効です。メンバーはクラスのメソッドサーフェスとしてカウントされるため、それへの呼び出しは`call.undefined-method`にはなりません;そのパラメータリストは引き続きアリティ（arity）と引数型のチェックを司ります;そしてクラスを参照する他のシグネチャに対してもその名前は解決されます。戻り値型のみが差し控えられます。
+
+このディレクティブが存在するのは、戻り値型を一切述べていないソースからシグネチャが生成されうるためです。Rigorのrbs-inline取り込みは、リーダーがアノテーションから読み取ったのではなくデフォルト値を設定したすべての型スロットにこれを書き込みます（[ADR-93](../adr/93-default-rbs-inline-ingestion/) WD6）: 1つのアノテーションを持つファイル内では、リーダーはその中の未アノテーションのすべての`def`に対しても完全なシグネチャを発行するため、これがなければ1つのメソッドへのアノテーションがそのすべての兄弟メソッドを`untyped`へと再型付けしてしまいます。著者は手書きの`.rbs`において同じ効果 ── 引数を制約し戻り値を後回しにする部分シグネチャ ── のためにこのディレクティブを書いてもかまいません（MAY）。
+
+このディレクティブはペイロードを取らず、メソッドメンバーおよび`attr_*`メンバー上で読み取られます。このディレクティブはシグネチャが持ついかなる戻り値型よりも勝つため、その隣に書く価値のある唯一の戻り値型は`untyped`です;そこに書かれた実際の型はRigorが報告する競合ではなく死んだテキストとなります。これは`class` / `module`宣言上では読み取られず、エフェクトエンベロープのように宣言のメンバーへと分配されることもありません。
 
 ## 明示的な適合ディレクティブ
 

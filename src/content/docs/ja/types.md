@@ -3,8 +3,9 @@ title: "Rigor型システム — クイックガイド"
 description: "rigortype/rigor docs/types.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/types.md"
 sourcePath: "docs/types.md"
-sourceSha: "eab52398ff58c48e8bda1a8563812b23c0be49433ff5631987705138e6f296fb"
-sourceCommit: "212f2c491920cc5c39a12d75aee385cb6c51fa0c"
+sourceSha: "017eb6c13352f5118321230435d69e415e286dc1dea6479b3ef198706ebf241f"
+sourceCommit: "04668e5f0d6205fdd5c8f44662041add7ab33ca3"
+sourceDate: "2026-09-08T23:15:10+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9050
@@ -28,7 +29,7 @@ Rigorは、Ruby向けの「推論ファースト」な静的解析器です。�
 
 ```ruby
 n   = 1 + 2        # Constant<3>            — a single proven value
-len = ARGV.size    # int<0, max>            — a bounded range (a.k.a. non-negative-int)
+len = ARGV.size    # Integer[0..]            — a bounded range (a.k.a. non-negative-int)
 s   = id.downcase  # lowercase-string       — a refinement: String restricted by a predicate
 row = [1, "a"]     # Tuple[Constant<1>, Constant<"a">]    — per-position array shape
 cfg = {port: 8080} # HashShape{port: Constant<8080>}      — per-key hash shape
@@ -36,7 +37,7 @@ tag = choose_color # Constant<:red> | Constant<:blue>     — a finite union
 x   = gets         # String | nil; Dynamic[top] when nothing can be proved
 ```
 
-山括弧は具体的な値や境界を保持し（`Constant<3>`、`int<0, max>`）、角括弧はRBSと同様に型パラメータを保持します（`Tuple[…]`、`Dynamic[top]`）。（これはハンドブックの表示規約です。エンジン自身の`#describe`は`Constant`を素の値——`3`、`"hi"`——として出力し、`docs/internal-spec/`配下の解析器内部の仕様はすべてのキャリアを角括弧でレンダリングします。たとえば`Constant[3]`です。）すべてのキャリアは境界において**ベースとなるRBSクラスに消去（erasure）されます**（`Constant<3>` → `Integer`）。そのためRigorの採用は厳密に加法的です。完全なウォークスルーは[ハンドブック第2章 — 日常的な型](../handbook/02-everyday-types/)にあります。
+山括弧は具体的な値を保持し（`Constant<3>`）、角括弧はRBSと同様に型パラメータを保持するか（`Tuple[…]`、`Dynamic[top]`）、あるいは数値クラスの後にその値を制限するRubyの範囲リテラルを保持します（`Integer[0..]`、[ADR-109](../adr/109-ruby-native-range-notation/)）。（これはハンドブックの表示規約です。エンジン自身の`#describe`は`Constant`を素の値 ── `3`、`"hi"` ── として出力し、`docs/internal-spec/`配下の解析器内部の仕様はすべてのキャリアを角括弧でレンダリングします。たとえば`Constant[3]`です。）すべてのキャリアは境界において**ベースとなるRBSクラスに消去（erasure）されます**（`Constant<3>` → `Integer`）。そのためRigorの採用は厳密に加法的です。完全なウォークスルーは[ハンドブック第2章 — 日常的に出会う型](../handbook/02-everyday-types/)にあります。
 
 ## 主な機能
 

@@ -3,8 +3,9 @@ title: "提供スキル"
 description: "rigortype/rigor docs/manual/08-skills.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/08-skills.md"
 sourcePath: "docs/manual/08-skills.md"
-sourceSha: "6666bad8328ba17718221fa739c94aa73e316d9377135fb45b78bd8fccecdd41"
-sourceCommit: "2d0ffe6f38d01cfd850527c57987b27487b414d4"
+sourceSha: "183583f64baa4b4b5f6dae9c63da13e8eeb625b12ca4d72a538eebd623e9ca00"
+sourceCommit: "04668e5f0d6205fdd5c8f44662041add7ab33ca3"
+sourceDate: "2026-09-08T18:33:48+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9008
@@ -14,12 +15,13 @@ Rigorは一連の**エージェントスキル**をバンドルしています�
 
 スキルはオプションです。スキルが行うことはすべて、このマニュアルのコマンドで手動で実行できます。スキルはワークフローをエンドツーエンドで進めるだけです。
 
-## ここから始める: 覚えるべき2つのスキル
+## ここから始める: 覚えるべき3つのスキル
 
-覚えておく必要があるのは2つのスキルだけで、残りはこの2つを通じて到達します。
+覚えておく必要があるのは3つのスキルだけで、残りはこの3つを通じて到達します。
 
 - **`rigor-next-steps`**: *「次に何をすべきか？」*唯一のエントリポイントです。エージェントに手渡せば、`rigor`コマンドを解決し（不足していればインストールし）、未設定のプロジェクトをオンボードし、次に何をすべきかを`rigor skill describe`に尋ねて、以下のカタログにある該当するスキルへルーティングします。これが進めるエンドツーエンドのワークフローが[`rigor-next-steps`によるプロジェクト改善の推進](../17-driving-improvement/)です。
 - **`rigor-ask`**: *「Rigorについてのこの問いに答える」*平易な言葉で何でも尋ねてください。診断がなぜ発火したのか・それが偽陽性なのか、ナローイング（narrowing）／リファインメント／シェイプはどう動くのか、フラグや設定キーが何をするのか、RigorがSorbet／Steep／mypy／PHPStanとどう比較されるか、特定のgemやフレームワークに対応しているか、メソッドをどう型付けするか。Rigorはニッチでバージョン依存が強いため、エージェントは記憶から答えるのではなく**調査**します。バンドルされたハンドブックとマニュアルを[`rigor docs`](../02-cli-reference/#rigor-docs)経由で**オフラインで**読み（診断idの場合は加えて`rigor explain`）、*かつ*あなたのコードについての質問では`rigor check` / `annotate` / `type-of`を実行して、ページまたは推論された型から回答します。コマンドを覚える必要はなく、問いだけでよいのです。いつでも利用できます。
+- **`rigor-type-oracle`**: *「型を書く前に、Rigorに尋ねる」*計画時ではなく**書いている最中**に覚えておくべきスキルです。型が書かれよう、あるいは主張されようとしているときはいつでも ── `sig/`下のRBS、インラインの`#:` / `# @rbs`アノテーション、Sorbetの`sig`、YARDの`@param` / `@return`、ドキュメントの文やレビューコメントで言及される型、「これは`X`であるべきだ」によって正当化されるnilチェック ── 型はコードを読むことからではなく、[`rigor type-of`](../02-cli-reference/#rigor-type-of) / [`annotate`](../02-cli-reference/#rigor-annotate) / [`sig-gen`](../02-cli-reference/#rigor-sig-gen)から取得します。誰もRigorから取得しなかった型は推測にすぎず、Rigorが答えを持たない箇所（`Dynamic[top]`、`untyped`、スキップされたメソッド）では、ギャップは埋められるのではなく報告されます。また、あなたの`AGENTS.md` / `CLAUDE.md`に保持しておくための段落も提供するため、スキルが発火したときだけでなくすべてのエージェントセッションでこのルールが有効になります。
 
 どのスキルが必要か分からない場合は、まず`rigor-next-steps`から始めてください。
 
@@ -38,6 +40,7 @@ Rigorは一連の**エージェントスキル**をバンドルしています�
 - **`rigor-protection-uplift`**: `rigor coverage --protection`が表面化させる型保護の穴を塞ぎます。まずsig-gen、次に最小限の手書きRBSの残余を、二重ゲート（サイトが保護される*かつ*`rigor check`が新たな診断を獲得しない）のもとで行います。[型保護カバレッジ](../15-type-protection-coverage/)を参照してください。
 - **`rigor-baseline-reduce`**: 既存の`.rigor-baseline.yml`をルールごとに削減します。`rigor triage`で優先順位を付け、各サイトを実際のバグ／安全なスタイル上の発見／偽陽性として分類し、ベースラインを再生成します。バックログを少しずつ減らすために使ってください。
 - **`rigor-monkeypatch-resolve`**: 実際にはプロジェクト自身のモンキーパッチである`undefined-method`のクラスタを、定義ファイルを`pre_eval:`に配線することで解決します。
+- **`rigor-type-oracle`**: エージェントが書くあらゆる型をコードを読むことからではなくRigor（`type-of` / `annotate` / `sig-gen`）から調達し、ギャップを埋めるのではなく報告します。型が書かれようとしている*イベント*によってトリガーされるため、`rigor skill describe`はこれをリストしますがルーティングすることは決してありません ── エージェントがあなたのコードを文書化またはアノテーションする際にはいつでもこれを活用してください（またはその`AGENTS.md`の段落を導入してください）。上記の「ここから始める」で導入されています。
 
 ### 統合と運用
 

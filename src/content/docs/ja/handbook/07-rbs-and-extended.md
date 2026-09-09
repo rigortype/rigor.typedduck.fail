@@ -3,8 +3,9 @@ title: "RBSと`RBS::Extended`"
 description: "rigortype/rigor docs/handbook/07-rbs-and-extended.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/07-rbs-and-extended.md"
 sourcePath: "docs/handbook/07-rbs-and-extended.md"
-sourceSha: "1f2328a38b06ca0a2a33248ab4355d7d2688d18ad7120aae974b0805d0fbd5a1"
-sourceCommit: "2d0ffe6f38d01cfd850527c57987b27487b414d4"
+sourceSha: "c057ff7f411014278051b65d65cafe545029aeb148d5ca211c1b6d5a2a7414ab"
+sourceCommit: "04668e5f0d6205fdd5c8f44662041add7ab33ca3"
+sourceDate: "2026-09-09T00:33:11+09:00"
 translationStatus: "translated"
 sidebar:
   order: 1007
@@ -104,7 +105,8 @@ s == "hello-world"  # bool（等値ナローイングが適用される）
 | ファミリー | 名前 |
 | --- | --- |
 | 空/非空 | `non-empty-string`、`non-empty-array[T]`、`non-empty-hash[K, V]` |
-| 整数範囲 | `positive-int`、`non-negative-int`、`negative-int`、`non-positive-int`、`non-zero-int`、`int<min, max>` |
+| 整数範囲 | `positive-int`、`non-negative-int`、`negative-int`、`non-positive-int`、`non-zero-int`、`Integer[min..max]` |
+| Float範囲 | `Float[0.0..1.0]`、`Float[0.0...1.0]`、`Float[0.0..]`、`non-nan-float`、`finite-float` |
 | 文字列述語 | `lowercase-string`、`uppercase-string`、`numeric-string`、`decimal-int-string`、`octal-int-string`、`hex-int-string`、`literal-string` |
 | ペアになった補完 | `non-lowercase-string`、`non-uppercase-string`、`non-numeric-string` |
 | 合成 | `non-empty-lowercase-string`、`non-empty-uppercase-string`、`non-empty-literal-string` |
@@ -326,6 +328,7 @@ plugins:
 - コアの`rigortype`アナライザーはゼロランタイム依存のまま（ADR-0）。`rbs-inline`上流ライブラリはコアのgemspecではなくプラグインgemの依存関係なので、オプトインしないプロジェクトは何も支払いません。
 - 裸のトップレベル`def`は上流rbs-inlineを通じてRBS出力を生成しません。アノテーションを有効にするには、メソッド定義をクラスまたはモジュールでラップしてください。
 - rbs-inlineのパース失敗は`source-rbs-synthesis-failed` `:info`診断として表面化し、そのファイルはインラインRBSの貢献なしにフォールバックして解析が続行されます。
+- メソッドが`sig/`とインラインアノテーションの**両方**で宣言されている場合、その1つのメソッドについては`.rbs`が勝ち、インラインシグネチャはドロップされます ── 両方のファイル名を指定する`source-rbs-annotation-not-honoured` `:info`として報告されます。重複するメンバーのみが身を引き、ファイル内の他のすべてのアノテーションは依然としてバインドされ、クラスはそのメソッドサーフェスを維持します。これはどちらの方向への移行時にも重要です: rbsとSteepは2つのソースを順位付けせずにマージするため、衝突したままにしておくとクラスの定義構築が失敗し、そのクラスに対するすべての呼び出し ── 実際のメソッドもタイポも同様に ── が`Dynamic[top]`と読まれてしまいます。インライン側の宣言を有効にするには、2つの宣言のうち1つを削除してください。
 
 完全なプラグインドキュメント、設定オプション（ブラウザプレイグラウンドが使用する`require_magic_comment: false`ホストコンテキストオーバーライドを含む）、キャッシュの契約については[`plugins/rigor-rbs-inline/README.md`](../../manual/plugins/rigor-rbs-inline/)を参照してください。
 

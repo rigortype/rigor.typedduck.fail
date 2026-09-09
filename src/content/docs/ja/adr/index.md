@@ -3,9 +3,9 @@ title: "アーキテクチャ決定記録"
 description: "rigortype/rigor docs/adr/README.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/README.md"
 sourcePath: "docs/adr/README.md"
-sourceSha: "189203514222eef2cbe3eac2f4b3138b49c5ee87c5161c86ba84ab16756d07a6"
-sourceCommit: "2a65ec8e52462c931fbfec94df68a18139259a43"
-sourceDate: "2026-09-03T22:06:38+09:00"
+sourceSha: "041eb34dfb4ffa26c06c82ef689e65653eace44ac02556fc89e9aee8e8d9d1c3"
+sourceCommit: "04668e5f0d6205fdd5c8f44662041add7ab33ca3"
+sourceDate: "2026-09-09T04:10:19+09:00"
 translationStatus: "translated"
 sidebar:
   order: 4000
@@ -56,7 +56,7 @@ sidebar:
 | ADR-29 | [ブラウザプレイグラウンド](29-browser-playground/) | Accepted（v0.1.10〜0.1.11でサーバーサイドプレイグラウンド；ブラウザ内`ruby.wasm`ビルドを2026-06-14/15に出荷） |
 | ADR-30 | [`rigor-ffi`プラグインの形状](30-rigor-ffi-plugin-shape/) | Accepted |
 | ADR-31 | [貢献およびサプライチェーンポリシー](31-contribution-and-supply-chain-policy/) | Accepted（発効中） |
-| ADR-32 | [オプトインプラグインとしてのインラインRBSコメント取り込み](32-rbs-inline-comment-ingestion/) | Accepted（WD11/WD12はrbs-inline gemをリーダーとして維持、2026-07-30） |
+| ADR-32 | [オプトインプラグインとしてのインラインRBSコメント取り込み](32-rbs-inline-comment-ingestion/) | Accepted（WD13によりメンバーごとに`sig/`宣言をインライン宣言より優先、2026-09-08） |
 | ADR-33 | [MCPサーバーパッケージング](33-mcp-server/) | Accepted（v0.1.10で実装） |
 | ADR-34 | [トップレベルのunresolved implicit-self呼び出しはデフォルトで警告する](34-toplevel-unresolved-self-call-default/) | Accepted（v0.1.13で実装；ADR-29のPlaygroundデフォルト重大度の配線も出荷——そのサンドボックス設定が`severity_profile: strict`を設定する） |
 | ADR-35 | [オーバーライドのシグネチャ互換性（リスコフのシグネチャ規則）](35-override-signature-compatibility/) | Accepted（スライス1〜4完了；スライス5は見送り） |
@@ -131,6 +131,10 @@ sidebar:
 | ADR-104 | [エフェクトサーフェスのためのブートスリムプローブ](104-effects-boot-slim-probe/) | Accepted（レポートとスナップショットの動詞について、#482のエントリー分割とともに実装済み） |
 | ADR-105 | [PRの着地フロー: 逐次マージとchangelogフラグメント](105-pr-landing-flow/) | Accepted（`changelog.d/`の機構＋ゲートがADRとともに着地;規範はAGENTS.mdに） |
 | ADR-106 | [スペックスイートのminitestへの移行](106-minitest-migration/) | Accepted（却下——スイートはRSpecのまま;再評価トリガーを記録） |
+| ADR-107 | [Rigor自身のツリーにおけるチェック対象の型と型記述のないコメント](107-checked-types-and-typeless-comments/) | Accepted（#822でコーパス書き換え＋契約＋G1ゲート；#827でG2 `--fail-on=warning`；#835でG3 `sig/`来歴） |
+| ADR-108 | [エージェントのための型の来歴: `rigor-type-oracle`スキルと導入プロジェクトの契約](108-type-provenance-for-agents/) | Accepted（#826でスキル、`rigor-project-init`契約段落、カタログ配線が着地；ADR-107はそのリポジトリ側の双子） |
+| ADR-109 | [数値範囲リファインメントの記法およびセマンティクスとしてのRuby範囲リテラル](109-ruby-native-range-notation/) | Accepted（実装済み: #830で`Integer[1..10]`、#844で`Float[R]`、#846でFloatの絞り込み、#854で`int<a, b>`の非推奨化行、Float畳み込み） |
+| ADR-110 | [継承された宣言はレシーバー自身の`def`より優先されない](110-inherited-declaration-precedence/) | Accepted（#856でWD1＋WD3を実装；コーパスの25ターゲット全体で新たな診断ゼロを測定） |
 
 ## 新しいADRの追加
 

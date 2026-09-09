@@ -3,8 +3,9 @@ title: "クラス"
 description: "rigortype/rigor docs/handbook/06-classes.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/06-classes.md"
 sourcePath: "docs/handbook/06-classes.md"
-sourceSha: "77288187011cc83c3c6c266b8e9350d189d4eba1e67887515de600face850319"
-sourceCommit: "e3eb424c3c88035e453246710c8df3dc5cc8e7e1"
+sourceSha: "9ed49fccbc8135039ce237a13b3e505967be01f8bf5468260412af205c33ae6a"
+sourceCommit: "04668e5f0d6205fdd5c8f44662041add7ab33ca3"
+sourceDate: "2026-09-08T23:15:10+09:00"
 translationStatus: "translated"
 sidebar:
   order: 1006
@@ -93,11 +94,11 @@ class Counter
   end
 
   def bump
-    @count += 1   # @countがint<1, max>に再バインドされる
+    @count += 1   # @countがInteger[1..]に再バインドされる
   end
 
   def value
-    @count        # int<0, max>  (見られた書き込みのユニオン)
+    @count        # Integer[0..]  (見られた書き込みのユニオン)
   end
 end
 ```

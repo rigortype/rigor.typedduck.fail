@@ -3,8 +3,9 @@ title: "日常的に出会う型"
 description: "rigortype/rigor docs/handbook/02-everyday-types.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/02-everyday-types.md"
 sourcePath: "docs/handbook/02-everyday-types.md"
-sourceSha: "6cbe83785e7a75140d3bc44eac686afbf2fa442947706bd12a6c37e88b2ba90c"
-sourceCommit: "2d0ffe6f38d01cfd850527c57987b27487b414d4"
+sourceSha: "baedae5617caf5a9ee87b38e6a0b01a3c943c7320f727321a591d4ced4e346aa"
+sourceCommit: "04668e5f0d6205fdd5c8f44662041add7ab33ca3"
+sourceDate: "2026-09-08T23:15:10+09:00"
 translationStatus: "translated"
 sidebar:
   order: 1002
@@ -26,13 +27,13 @@ n = 1 + 2
 n = ARGV.size
 ```
 
-通常のチェッカーは`n: Integer`と言います。Rigorは`n: int<0, max>`（非負の整数。`Array#size`は負の値を返せない）と言います。
+通常のチェッカーは`n: Integer`と言います。Rigorは`n: Integer[0..]`（非負の整数。`Array#size`は負の値を返せない）と言います。
 
 これが重要な理由: Rigorが出したい診断のほとんどは、より狭い事実を必要とします。「Integer」だけでは`n / 0`が常に例外を投げると証明できませんが、`Constant<0>`なら証明できます。「Array」だけでは`arr.first.upcase`が安全と証明できませんが、`non-empty-array[String]`なら証明できます。
 
 まとめると: プログラムのすべての地点にある各値は**キャリア**（carrier）で記述されます。キャリアは広い（`Integer`、`Dynamic[top]`）場合もあれば、狭い（`Constant<3>`、`non-empty-string`）場合もあります。この章の残りはキャリアの図鑑です。
 
-図鑑に入る前に記法を一つ: 山括弧は具体的な値または境界を保持し（`Constant<3>`、`int<0, max>`）、角括弧はRBSと全く同じく型パラメータを保持します（`Nominal[String]`、`Hash[K, V]`、`Dynamic[top]`）。型パラメータは*一部*の型に名前を付けます: `Hash[K, V]`はキーが型`K`、値が型`V`であるHashで、`Array[String]`が「文字列の配列」であるのと同じです。
+図鑑に入る前に記法を一つ: 山括弧は具体的な値または境界を保持し（`Constant<3>`、`Integer[0..]`）、角括弧はRBSと全く同じく型パラメータを保持します（`Nominal[String]`、`Hash[K, V]`、`Dynamic[top]`）。型パラメータは*一部*の型に名前を付けます: `Hash[K, V]`はキーが型`K`、値が型`V`であるHashで、`Array[String]`が「文字列の配列」であるのと同じです。
 
 ## キャリアを自分で見る: `rigor annotate`
 
@@ -83,24 +84,24 @@ sym = "foo".to_sym        #=> dump_type: Constant<:foo>
 
 ## 整数範囲: 有界な区間
 
-整数値を持つ式の中には、単一のリテラル値を生成せずに既知の範囲を生成するものがあります。Rigorはそれらを`Type::IntegerRange`で記述し、`int<min, max>`と表示します:
+整数値を持つ式の中には、単一のリテラル値を生成せずに既知の範囲を生成するものがあります。Rigorはそれらを`Type::IntegerRange`で記述し、値をカバーするRubyの範囲リテラルを囲む`Integer[…]`（例: `Integer[1..10]`）と表示します:
 
 ```ruby
-n = ARGV.size               #=> dump_type: int<0, max>
-m = n + 1                   #=> dump_type: int<1, max>
-double = n * 2              #=> dump_type: int<0, max>
+n = ARGV.size               #=> dump_type: Integer[0..]
+m = n + 1                   #=> dump_type: Integer[1..]
+double = n * 2              #=> dump_type: Integer[0..]
 ```
 
-ここでの`max`は「正の無限大」を意味します。上限は無制限です。下の表に出てくる`min`はその鏡像で、「負の無限大」です。乗算は下限を保持するため、`n * 2`は`int<0, max>`のままです。
+このリテラルはRubyにおける意味のままです: `Integer[0..]`は`(0..).cover?`が受け入れるすべての整数であり、終端のない範囲は上限が無制限で、開始点のない範囲（`Integer[..-1]`）は下限が無制限です。そして`Integer[1...10]`は`Integer[1..9]`と書き戻されます。整数においてこの2つは同じ集合だからです。乗算は下限を保持するため、`n * 2`は`Integer[0..]`のままです。
 
 よく使う範囲には短い名前があります:
 
 | 表記 | 意味 |
 | --- | --- |
-| `positive-int` | `int<1, max>` |
-| `non-negative-int` | `int<0, max>` |
-| `negative-int` | `int<min, -1>` |
-| `non-positive-int` | `int<min, 0>` |
+| `positive-int` | `Integer[1..]` |
+| `non-negative-int` | `Integer[0..]` |
+| `negative-int` | `Integer[..-1]` |
+| `non-positive-int` | `Integer[..0]` |
 
 `Array#size`、`Array#length`、`Hash#size`、`String#size`など、すべて`non-negative-int`を持ちます。`Array#count`も同様です。`non-negative-int`に`1`を加えると`positive-int`になります。`-1`を加えると制約のない`Integer`になります（ゼロ以下になる可能性があるため）。
 

@@ -3,8 +3,9 @@ title: "ナローイング"
 description: "rigortype/rigor docs/handbook/03-narrowing.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/03-narrowing.md"
 sourcePath: "docs/handbook/03-narrowing.md"
-sourceSha: "8047ec7e5cde10ecb6e7f020414152f11f334e9970652b37e090735a3901baa9"
-sourceCommit: "78b18cea6a576475c92bce020535269f2eebc20d"
+sourceSha: "9e2ac54abd235b77764be8450019d59550b38c8909ee1b90e6b06eb7bba30fe3"
+sourceCommit: "04668e5f0d6205fdd5c8f44662041add7ab33ca3"
+sourceDate: "2026-09-09T03:19:06+09:00"
 translationStatus: "translated"
 sidebar:
   order: 1003
@@ -96,7 +97,7 @@ end
 ```ruby
 case n
 when 0      then :zero        # Constant<0>
-when 1..9   then :small       # int<1, 9>
+when 1..9   then :small       # Integer[1..9]
 when 10     then :ten         # Constant<10>
 else             :large       # それ以外すべて
 end
@@ -129,7 +130,7 @@ if x.is_a?(Integer) && x > 0
 end
 ```
 
-`is_a?`が`x`を`Integer`にナローイングし、次に整数比較がさらに`int<1, max>`にナローイングしました。
+`is_a?`が`x`を`Integer`にナローイングし、次に整数比較がさらに`Integer[1..]`にナローイングしました。
 
 ## 整数比較
 
@@ -139,7 +140,7 @@ end
 def safe_index(arr, n)
   return :empty if arr.empty?
   return :out_of_range if n < 0 || n >= arr.size
-  # n: int<0, arr.size - 1>  (実際には: int<0, max>
+  # n: Integer[0..arr.size - 1]  (実際には: Integer[0..]
   # が `n >= arr.size` に対して締め付けられる)
   arr.fetch(n)
 end
@@ -150,9 +151,32 @@ end
 ```ruby
 n = some_input
 if n.between?(1, 9)
-  # n: int<1, 9>
+  # n: Integer[1..9]
 end
 ```
+
+## Float比較
+
+`Float`は**真値**エッジ上でのみナローイングします。`x > 0.0`は`NaN`に対して偽となるため、通過する値は範囲`Float[0.0..]`になりますが、失敗する値はそれ以外すべてに加えて`NaN`であり、これはどんな範囲でも表現できないため、elseブランチは`Float`のままになります:
+
+```ruby
+x = Float(input)
+if x > 0.0
+  # x: Float[0.0..]
+else
+  # x: Float
+end
+if x < 1.0
+  # x: Float[...1.0]   (Rubyの排他的終端)
+end
+if x.between?(0.0, 1.0)
+  # x: Float[0.0..1.0]
+end
+```
+
+`x.nan?`はその**偽値**エッジを`non-nan-float`へとナローイングし、`x.finite?`はその**真値**エッジを`finite-float`へとナローイングします。範囲はRubyの`Range#cover?`が受け入れるものと同じであるため、`Float[0.0..]`には`Float::INFINITY`が含まれ、`Float::NAN`は決して含まれません。
+
+いくつかの呼び出しは単独で有界なFloatを生成します: `rand(0.0...1.0)`および`Random.rand(1.0..2.0)`はそれらが指定する範囲となり、`non-negative-int`の`Math.sqrt(n)`は`Float[0.0..]`となり、有界な`x`に対する`x.clamp(0.0, 1.0)`または`x.clamp(0.0..1.0)`はブラケットとなります。有界なFloatは自身が`NaN`ではないことを知っているため、`u.nan?`は`false`へ、`u.round`は整数範囲へとフォールドします。
 
 ## リファインメントに対する述語メソッド
 

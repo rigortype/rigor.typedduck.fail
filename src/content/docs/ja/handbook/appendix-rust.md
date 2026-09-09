@@ -3,8 +3,9 @@ title: "付録: Rustから来た場合"
 description: "rigortype/rigor docs/handbook/appendix-rust.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/appendix-rust.md"
 sourcePath: "docs/handbook/appendix-rust.md"
-sourceSha: "b71d72baa1491a087f27ace7e8391674e046444441d4fc57a38fa925184ce118"
-sourceCommit: "2d0ffe6f38d01cfd850527c57987b27487b414d4"
+sourceSha: "6db8badf14310f13b663f210caea67ba717166c355431cc95255ce819a0a5e6e"
+sourceCommit: "04668e5f0d6205fdd5c8f44662041add7ab33ca3"
+sourceDate: "2026-09-08T23:15:10+09:00"
 translationStatus: "translated"
 sidebar:
   order: 1050
@@ -198,7 +199,7 @@ Rustの不変条件が型システムを超えるとき（「空でない文字�
 | --- | --- | --- |
 | `non-empty-string` | `struct NonEmptyString(String)` newtype | Rigorはラッパーなしで`unless s.empty?`から生み出す。 |
 | `positive-int` | `struct PositiveInt(u32)` newtype | Rigorは`n > 0`からナローイングする。 |
-| `int<1, 9>` | newtype + 範囲チェック、またはconst genericsの曲芸 | Rigorのレンジキャリアは任意の境界を直接扱う。 |
+| `Integer[1..9]` | newtype + 範囲チェック、またはconst genericsの曲芸 | Rigorのレンジキャリアは任意の境界を直接扱う。 |
 | `numeric-string` | 検証済みパースをラップするnewtype | 型レベルの対応物なし。 |
 | `non-empty-array[T]` | `Vec<T>`上のnewtype | Rigorは`unless arr.empty?`から生み出す。 |
 

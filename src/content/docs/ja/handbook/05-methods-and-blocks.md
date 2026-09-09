@@ -3,8 +3,9 @@ title: "メソッドとブロック"
 description: "rigortype/rigor docs/handbook/05-methods-and-blocks.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/05-methods-and-blocks.md"
 sourcePath: "docs/handbook/05-methods-and-blocks.md"
-sourceSha: "fb9e60c663cf986ae9888ffcbeeefbaa3f7b1a5ccb2c4c07c4a45124b22fddfd"
-sourceCommit: "212f2c491920cc5c39a12d75aee385cb6c51fa0c"
+sourceSha: "a1c83029fb22b68db1b2a99a14cd766497f0e9b17dd6f05b1ad4b3061d3d3c86"
+sourceCommit: "04668e5f0d6205fdd5c8f44662041add7ab33ca3"
+sourceDate: "2026-09-08T23:15:10+09:00"
 translationStatus: "translated"
 sidebar:
   order: 1005
@@ -17,7 +18,7 @@ sidebar:
 Rigorが`receiver.method(args, &block)`に遭遇したとき、結果を生成する最初のものを採用しながら、固定されたディスパッチ層のシーケンスを実行します:
 
 1. **定数たたみ込み**。 すべての引数が`Constant<...>`または定数のタプルで、レシーバーが既知の名前的クラスで、メソッドがクラスごとの「純粋な」カタログにある場合。Rigorは解析時にメソッドを実行して結果を返します。`1 + 2` → `Constant<3>`、`[1, 2, 3].first` → `Constant<1>`。
-2. **シェイプ（shape）ディスパッチ**。 レシーバーが`Tuple` / `HashShape` / `IntegerRange` / リファインメント（refinement、篩型とも）を持ち、メソッドにシェイプごとのルールがある場合。`Tuple[A, B, C].size` → `Constant<3>`; `int<0, max>.zero?` → `Constant<true> | Constant<false>`。
+2. **シェイプ（shape）ディスパッチ**。 レシーバーが`Tuple` / `HashShape` / `IntegerRange` / リファインメント（refinement、篩型とも）を持ち、メソッドにシェイプごとのルールがある場合。`Tuple[A, B, C].size` → `Constant<3>`; `Integer[0..].zero?` → `Constant<true> | Constant<false>`。
 3. **RBSディスパッチ**。 クラスにそのメソッドのRBSシグがある場合。引数型がパラメータ契約（contract）に対してチェックされます（後述）;戻り値型はシグから読まれ、`RBS::Extended`ディレクティブによって締め付けられることがあります。
 4. **インソースディスパッチ**。 クラスにRBSはないが、Rigorがプロジェクト内の`def`（または`define_method`、`attr_*`）を見つけた場合。パラメータ型はチェックされません（契約がない）;戻り値型はメソッド本体から推論されます。
 5. **フォールバック**。 上記のいずれも当てはまりません。呼び出しは`Dynamic[top]`を返し、沈黙を保ちます。

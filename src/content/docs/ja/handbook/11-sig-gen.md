@@ -3,9 +3,9 @@ title: "`rigor sig-gen`でRBSを生成する"
 description: "rigortype/rigor docs/handbook/11-sig-gen.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/11-sig-gen.md"
 sourcePath: "docs/handbook/11-sig-gen.md"
-sourceSha: "ff6f418fe4f9675d8f7fbdf3f13fad51e3992d22511c33a68a21719425cf7c2c"
-sourceCommit: "ffb456b0cc9e068a59d0ba03ba464b60ad83280a"
-sourceDate: "2026-09-08T03:53:03+09:00"
+sourceSha: "b0e014339714b8c4f43c9911c42da0e9252e261653834193fed47cbf621af0f0"
+sourceCommit: "04668e5f0d6205fdd5c8f44662041add7ab33ca3"
+sourceDate: "2026-09-09T02:18:33+09:00"
 translationStatus: "translated"
 sidebar:
   order: 1011
@@ -73,7 +73,7 @@ end
 | `new-file` | レシーバークラスを宣言するRBSファイルが一切ない。 |
 | `new-method` | RBSファイルがクラスを宣言しているが、このメソッドは宣言していない。 |
 | `tighter-return` | RBSファイルがメソッドを宣言しているが、推論された戻り値が宣言された戻り値の真の部分型（subtype）。 |
-| `equivalent` | 推論された戻り値が宣言された戻り値の真の部分型ではない（同一・より広い・無関係のいずれか）ので、締めるものがない。サイレントにスキップ。 |
+| `equivalent` | `sig-gen`が提案するものは何もない: 推論された戻り値が同一、より広い、または無関係であるか、ジェネレータが辞退するナローイング（より広い宣言の下でのリテラル、宣言された`void`の下でのすべて）。サイレントにスキップ。 |
 | `skipped` | 以下のいずれかの理由で対象外。 |
 
 `sig.skipped.*`理由は:
@@ -84,6 +84,31 @@ end
 - `sig.skipped.unrenderable-rbs`: このメソッドに対してRigorがレンダリングしたシグネチャがRBSとしてパースできない。これは**Rigor自身のバグ**であり、あなたのコードの性質ではない——生成された行はすべて出力される前にパースされ、`rbs`が拒否した行は書き出される代わりに破棄される。パースできない`.rbs`は`rigor check`によって*丸ごと*隔離されるため、1つの不正な行がファイル内の他のすべての型を道連れにしてしまうからだ。他のシグネチャには影響しない;スキップされたメソッドはstderrに報告され、私たちに報告する価値がある。
 
 3つの`sig.generated.*`識別子（`sig.generated.new-file` / `new-method` / `tighter-return`）は`--format=json`の下でJSONフィールドとして発行されるため、CIゲートの消費者がこれらをルーティングできます。すべての`skipped`行も同じペイロードの一部であり、`skip_reason`としてその`sig.skipped.*`識別子を運ぶため、あなたの`sig/`に欠けているメソッドは、出力された行の隣にその理由を持ちます。テキストモードでは代わりに1行のstderrサマリーが理由ごとのスキップされたメソッド数をカウントし、stdoutは貼り付けに適したクリーンさを保ちます。
+
+## ジェネレータが埋められないギャップの記録
+
+`sig-gen --diff`は、自身が型付けできるすべてのメソッドに対して「この宣言は実装が証明するものか？」に答えます。答えられないものこそが興味深い対象です: 適用しないと決定した`tighter-return`、スキップされたメソッド、背後に一切`def`が存在しない宣言。これらはいずれも手書きの型であり、誰も理由を書き留めなかった手書きの型は、それ以来誰も見ていない型と区別がつきません。
+
+Rigorが自身の`sig/`で採用している規約は、メンバーのRBSコメント内の1行です:
+
+```rbs
+class Registry
+  # sig-gen gap: #1234 — sig-gen types the body `untyped`
+  # (the ivar has no inferred field type yet), so this
+  # return is hand-written until it can prove one.
+  def resolve: (String name) -> Entry
+end
+```
+
+`void`の戻り値にはマーカーは不要です。`sig-gen`が`void`に対して値を提案することは決してありません: `void`は戻り値が契約の一部ではないことを意味し、いかなる推論もそれを合成しないため、`void`宣言はパラメータ型と同様に著者の意図そのものです（[ADR-14](../adr/14-rbs-sig-generation.md) §「推論vs RBS矛盾ルール」）。
+
+本体がリテラルとして証明する宣言にも不要です。本体が文字列`"bot"`である`def describe: () -> String`に対して、`sig-gen`が`"bot"`を提案することはありません: 宣言された型はその本体に対するあなたの抽象化であり、リテラルに固定してしまうとすべての兄弟クラスが共有する契約を書き換えてしまうことになります。いかなる`.rbs`も宣言していないメソッドは影響を受けません ── リテラルは依然として本体が証明する最も厳密なものであり、それが書き出されます。
+
+`%a{…}`アノテーションではなくコメントにするのには3つの理由があります: `rigor:v1:`ディレクティブ名前空間（[`docs/type-specification/rbs-extended.md`](../../type-specification/rbs-extended/)）の外側に留まること、どのエンジンパスもそれを読み込まないこと、そして`RBS::Parser`がそれをメンバーにバインドするため、チェック処理が行を走査する代わりにAST上でそれを見つけられることです。issue番号は耐荷重となる半分です ── ジェネレータが回答できるようになるエンジンの作業を指し示しており、手書きのRBSへと促すギャップこそがより価値の高いシグナルであるという[ADR-14](../adr/14-rbs-sig-generation.md)のルールに基づいています。
+
+CLIのいかなる機能もこれを強制しません。これは自身のスイート内でゲート化できる規約です: `sig/**/*.rbs`をパースし、ジェネレータを実行し、生成結果と同等でもマークされてもいない宣言に対して失敗させます。Rigor自身のゲートは`spec/rigor/sig_gen/provenance_spec.rb`（[ADR-107](../adr/107-checked-types-and-typeless-comments.md) G3）です。
+
+そのリストの中の1つのケースは、マーカーのケースではまったくありません。背後に`def`を持たない宣言は、単にRubyが生成するメソッド ── `attr_*`、`Data`メンバー、ロード時にクラスマクロが定義するもの ── を記述しているだけかもしれませんし、削除または名前変更された`def`の遺物である可能性もあります。`rigor check`とSteepの双方が実装が`sig/`と一致するかどうかを問い、その逆を決して問わないため、これは何も検知されません。Rigorのゲートは、自身のプロジェクトインデックスとロードされたツリーに問い合わせることでこの2つを分離します（[#839](https://github.com/rigortype/rigor/issues/839)）。このチェックには`sig/`配下のコードが必要であるため、リポジトリゲートのままとなっています: あなたのプロジェクトにおける`sig-gen`は変更されません。
 
 ## ジェネレータが対応するメソッド形状
 

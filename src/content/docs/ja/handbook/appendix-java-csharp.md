@@ -3,8 +3,9 @@ title: "付録: Java / C#から来た場合"
 description: "rigortype/rigor docs/handbook/appendix-java-csharp.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/appendix-java-csharp.md"
 sourcePath: "docs/handbook/appendix-java-csharp.md"
-sourceSha: "17471438f0653a720df17c668cdeae77465553c5ac7c005b3b8db89187a8562b"
-sourceCommit: "2d0ffe6f38d01cfd850527c57987b27487b414d4"
+sourceSha: "c32e5803878791e5db71b16e6102f7cc880f2bcdec3cc936827e8b0c2cbc9f44"
+sourceCommit: "04668e5f0d6205fdd5c8f44662041add7ab33ca3"
+sourceDate: "2026-09-08T23:15:10+09:00"
 translationStatus: "translated"
 sidebar:
   order: 1050
@@ -202,7 +203,7 @@ JavaもC#も「長さ≥1の文字列」や「1..9の整数」を型レベルで
 | --- | --- | --- |
 | `non-empty-string` | バリデーションをラップする`NonEmptyString`値クラス | Rigorは`unless s.empty?`から生成、ラッパー型なし。 |
 | `positive-int` | `PositiveInt`値オブジェクト、またはランタイムガード | Rigorは`n > 0`からナローイングする。 |
-| `int<1, 9>` | 9個の定数の`enum`、または範囲チェック | Rigorの範囲キャリアは列挙せずに任意のバウンドを扱う。 |
+| `Integer[1..9]` | 9個の定数の`enum`、または範囲チェック | Rigorの範囲キャリアは列挙せずに任意のバウンドを扱う。 |
 | `numeric-string` | `string` + `int.TryParse`の規律 | どちらの言語にも型レベルの類似物がない。 |
 | `non-empty-array[T]` | 非空コレクションの値クラス | Rigorは`unless arr.empty?`から生成する。 |
 
@@ -247,7 +248,7 @@ JavaもC#も「長さ≥1の文字列」や「1..9の整数」を型レベルで
 
 - **リテラル / 定数型**。`Constant<42>`、`Constant<:zero>`、`Constant<"FOO">`。JavaとC#はリテラル型を*持たない*。最も近いのは`enum`で、それも手で宣言した集合しかカバーしない。Rigorは通常の値からそれらを推論する。
 - **メソッド呼び出しを通じた定数folding**。`"foo".upcase`は`String`ではなく`Constant<"FOO">`だ。Rigorはどのビルトインメソッドが純粋かをカタログ化し、それを通じてfoldする。
-- **ファーストクラスのリファインメント**。`non-empty-string`、`positive-int`、`int<1, 9>`、`numeric-string`（通常の型に乗る不変条件で、値クラスのラッパーはない）。
+- **ファーストクラスのリファインメント**。`non-empty-string`、`positive-int`、`Integer[1..9]`、`numeric-string`（通常の型に乗る不変条件で、値クラスのラッパーはない）。
 - **宣言なしの構造的ファセット**。正しいメソッドを持つRubyオブジェクトはRBSの`interface`を満たす（*構造的*なインターフェース、すなわちGoの`interface`であって、Javaの名前的な`implements`ではない）。適合を宣言する必要はない。Rigorが形状を推論する。[構造的型付けの付録](../appendix-protocols-and-structural-typing/)を参照。
 - **偽陽性なしのスタンス**。Rigorは`Dynamic[top]`レシーバーについて文句を言うのではなく沈黙する。正直な答えが「まあ、技術的にはチェッカーには分からない」であるようなRigor診断を目にすることは決してない。
 - **アノテーション税なし**。`.rbs`ファイルがゼロのRubyプロジェクトに対する`rigor check`でも、推論から有用な診断が得られる。JavaとC#は`var`ローカルしか推論しない。それ以外はすべてあなたが書く。Rigorに`.rbs`を足すのはインクリメンタルだ。スキップしたファイルは境界で`Dynamic[top]`になるのであって、エラーにはならない。

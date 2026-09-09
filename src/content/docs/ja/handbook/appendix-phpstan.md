@@ -3,8 +3,9 @@ title: "付録: PHPStanから来た場合"
 description: "rigortype/rigor docs/handbook/appendix-phpstan.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/appendix-phpstan.md"
 sourcePath: "docs/handbook/appendix-phpstan.md"
-sourceSha: "789448b8388570c438f0afaec3393c64b7296539bad62a24848d35ef03f5fc02"
-sourceCommit: "2d0ffe6f38d01cfd850527c57987b27487b414d4"
+sourceSha: "c76cfcbce200a1752ab3c3ddb8479fb903841d6f115f5b2fe6f53f6a60eef847"
+sourceCommit: "04668e5f0d6205fdd5c8f44662041add7ab33ca3"
+sourceDate: "2026-09-08T23:15:10+09:00"
 translationStatus: "translated"
 sidebar:
   order: 1050
@@ -53,7 +54,7 @@ PHPStanとRigorには重複するリファインメント（refinement、篩型�
 | `numeric-string` | `numeric-string` | 同一。 |
 | `lowercase-string` | `lowercase-string` | 同一。 |
 | `class-string` | `Singleton[T]` | 等価なシェイプ。 |
-| `int<1, 9>` | `int<1, 9>` | **構文が同一**。 |
+| `int<1, 9>` | `Integer[1..9]` | 同じキャリア。Rigorは境界を`Range#cover?`が読み取るRubyの範囲リテラルとして綴る（`Integer[1..]`、`Integer[..9]`）。 |
 | `positive-int` | `positive-int` | 同一。 |
 | `negative-int` | `negative-int` | 同一。 |
 | `non-zero-int` | `non-zero-int` | 同一。 |

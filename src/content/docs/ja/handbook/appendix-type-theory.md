@@ -3,8 +3,9 @@ title: "付録: 型理論との接続"
 description: "rigortype/rigor docs/handbook/appendix-type-theory.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/appendix-type-theory.md"
 sourcePath: "docs/handbook/appendix-type-theory.md"
-sourceSha: "7fc8ff42217d52b2bcc55e76861ffaf93157794eef4345bcde4c1c651b593bd1"
-sourceCommit: "2d0ffe6f38d01cfd850527c57987b27487b414d4"
+sourceSha: "2625ee123a1e791d6fa78d4c7ce2fe952309d80110d208d9f233660f5ad80ba5"
+sourceCommit: "04668e5f0d6205fdd5c8f44662041add7ab33ca3"
+sourceDate: "2026-09-08T23:15:10+09:00"
 translationStatus: "translated"
 sidebar:
   order: 1050
@@ -23,7 +24,7 @@ Rigorの語彙と、プログラミング言語の教科書や別の型チェッ
 | マッチするかしないか分からない型はどうか？ | 漸進的一貫性（`~`） | `Dynamic[T]`キャリアと3値の確実性`yes / no / maybe` |
 | ユーザー型はどう識別されるか？ | 名前的vs構造的 | **名前的優先のハイブリッド**。クラスは名前で、加えて構造的ファセット（`interface`、`HashShape`、ケイパビリティ（capability）ロール） |
 | ジェネリクスはどう表現されるか？ | パラメトリック多相（System Fスタイル、ただし述語的） | RBSジェネリクス`class Array[Elem]`、メソッドジェネリクス`def map: [U] () { (Elem) -> U } -> Array[U]` |
-| 「xは空でない文字列」はどう表現されるか？ | リファインメント（refinement、篩型とも） / 述語サブタイピング | 第一級のリファインメントキャリア（`non-empty-string`、`int<min, max>`、……） |
+| 「xは空でない文字列」はどう表現されるか？ | リファインメント（refinement、篩型とも） / 述語サブタイピング | 第一級のリファインメントキャリア（`non-empty-string`、`Integer[min..max]`、……） |
 | `if x.is_a?(String)`は`x`の型をどう変えるか？ | occurrence typing / フローセンシティブ（flow-sensitive）なナローイング（narrowing） | 3値の確実性を持つエッジ感応ナローイング |
 | 副作用はどうか？ | エフェクトシステム | エンジンのエフェクトモデル（変異、例外、エスケープ）。内部、ユーザーから見えない |
 | 健全性（soundness）か完全性か？ | どちらか1つ（あるいは両方なし） | **どちらも完全には目指さない**。Rigorは偽陽性なしを最適化し、ロバストネス原則バイアスを持つ |
@@ -325,7 +326,7 @@ Rubyの可変コンテナ（`Array`、`Hash`、`Set`）は健全性のために�
 | `non-empty-string` | `s : String, s.size >= 1` | `String`のリファインメント |
 | `numeric-string` | `s : String, s =~ /\A[+-]?\d+(\.\d+)?\z/` | `String`のリファインメント |
 | `literal-string` | 「リテラルから組み立てられたと証明可能」 | `String`のリファインメント |
-| `int<min, max>` | `n : Integer, min <= n <= max` | 範囲キャリア |
+| `Integer[min..max]` | `n : Integer, min <= n <= max` | 範囲キャリア |
 | `non-zero-int` | `n : Integer, n != 0` | `Integer`のリファインメント |
 | `positive-int` | `n : Integer, n > 0` | `Integer`のリファインメント |
 | `non-empty-array[T]` | `arr : Array[T], arr.size >= 1` | `Array[T]`のリファインメント |
@@ -817,7 +818,7 @@ RBSは`Dynamic[T]`レシーバー上の不明なメソッドを**オープンワ
 - **高階型（HKT）**。`Functor[F[_]]`スタイルの抽象化。「将来の方向」として追跡されているが、出荷されたスライス（slice）には含まれていない。（一般的なHKT推論は決定不能;ADR-20は関数適用を外し、アノテーション駆動のアプローチでこれを回避する。）
 - **higher-rank多相（System F⊤）**。すべてのRBSジェネリクスは述語的;型変数は多相型を量化できない。（Rank-3推論はWells、1999により決定不能;述語的制限はRigorの表面を呼び出しごとのアノテーションなしで推論可能に保つ。）
 - **多相再帰**。ジェネリックメソッド本体が*異なる*インスタンス化で自分自身の中に再適用される。推論は決定不能（Henglein、1993）;RBSはその構文を提供せず、Rigorはそれを合成しない。
-- **完全な依存型**。`n : Integer`を持つ`Vec[n, T]`はない。型チェックは決定可能だが推論はそうではない;整数範囲リファインメント（`int<min, max>`）は最も一般的な実用的ニーズをラインを越えずにカバーする。
+- **完全な依存型**。`n : Integer`を持つ`Vec[n, T]`はない。型チェックは決定可能だが推論はそうではない;整数範囲リファインメント（`Integer[min..max]`）は最も一般的な実用的ニーズをラインを越えずにカバーする。
 - **ユーザー量化可能な軸としての行多相**。`HashShape`は内部でopen-vs-closed意味論を持ち回るが、行変数を露出しない。設計根拠については§「オブジェクト形状: 行多相、Hack、そして`HashShape`の系譜」を参照。
 - **存在型**。`pack` / `unpack`はない。最も近い類似は構造的`interface`。
 - **GADT**。コンストラクタによる型リファインメントはない;パターンマッチは型インデックス伝播ではなく標準的なoccurrence typingパス経由でナローイングする。
@@ -871,7 +872,7 @@ RBSは`Dynamic[T]`レシーバー上の不明なメソッドを**オープンワ
 - Maranget, L. "Warnings for Pattern Matching." *Journal of
   Functional Programming*、2007。OCamlがパターンマッチ網羅性に使うアルゴリズム。§「パターンマッチと網羅性」の背景である。
 - Rondon, Kawaguchi & Jhala. "Liquid Types." *PLDI 2008.*
-  `int<min, max>`キャリアに情報を与えるSMTを使ったリファインメント型フレームワーク（Rigorははるかに弱い決定可能なフラグメントを使う）。
+  `Integer[min..max]`キャリアに情報を与えるSMTを使ったリファインメント型フレームワーク（Rigorははるかに弱い決定可能なフラグメントを使う）。
 - Lucassen & Gifford. "Polymorphic Effect Systems."
   *POPL 1988.*エフェクトシステムの起源。
 - Plotkin & Pretnar. "Handlers of Algebraic Effects."

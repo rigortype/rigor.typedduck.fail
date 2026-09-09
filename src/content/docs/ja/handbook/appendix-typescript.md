@@ -3,8 +3,9 @@ title: "付録: TypeScriptから来た場合"
 description: "rigortype/rigor docs/handbook/appendix-typescript.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/appendix-typescript.md"
 sourcePath: "docs/handbook/appendix-typescript.md"
-sourceSha: "40aba4057768d386d096fad9714655ca7612666656dd9052a357a343a5d0f491"
-sourceCommit: "2d0ffe6f38d01cfd850527c57987b27487b414d4"
+sourceSha: "ddf5d25de65edf86066960142977ab4cf32c5d3a9ed8a6a1188bd18757d743b7"
+sourceCommit: "04668e5f0d6205fdd5c8f44662041add7ab33ca3"
+sourceDate: "2026-09-08T23:15:10+09:00"
 translationStatus: "translated"
 sidebar:
   order: 1050
@@ -89,7 +90,7 @@ TypeScriptは「長さ≥1の文字列」をテンプレートリテラル型か
 | --- | --- | --- |
 | `non-empty-string` | `` `${string}${string}` ``（テンプレートリテラルのトリック）またはブランドの`NonEmptyString` | TSでは不格好。Rigorは`unless s.empty?`から自動的に生成する。 |
 | `positive-int` | ブランドの`PositiveInt` | TSユーザーはブランドをスキップしがち。Rigorは`n > 0`からナローイングする。 |
-| `int<1, 9>` | リテラル型のunion `1 \| 2 \| 3 \| ... \| 9` | Rigorのレンジキャリアは爆発なしに任意のバウンドを扱う。 |
+| `Integer[1..9]` | リテラル型のunion `1 \| 2 \| 3 \| ... \| 9` | Rigorのレンジキャリアは爆発なしに任意のバウンドを扱う。 |
 | `numeric-string` | （実用的なものなし） | TSに対応なし。Rigorは数値パターンへの正規表現マッチからナローイングする。 |
 | `non-empty-array[T]` | `[T, ...T[]]`（タプル+残余） | TSにもエンコーディングはあるが使うAPIが少ない。Rigorは`unless arr.empty?`から生成する。 |
 

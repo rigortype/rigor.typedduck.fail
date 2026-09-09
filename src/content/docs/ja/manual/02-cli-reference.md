@@ -3,9 +3,9 @@ title: "CLIコマンドリファレンス"
 description: "rigortype/rigor docs/manual/02-cli-reference.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/02-cli-reference.md"
 sourcePath: "docs/manual/02-cli-reference.md"
-sourceSha: "d30d702cf615cc25fb1dfe9e1c5404bc421e38b745d8f92cf7febe1f4b30385b"
-sourceCommit: "ffb456b0cc9e068a59d0ba03ba464b60ad83280a"
-sourceDate: "2026-09-08T03:53:03+09:00"
+sourceSha: "9caf52a36bd00e852e1f2a05da3c19af1c6edc2bf794916cdcde14365522c7d3"
+sourceCommit: "04668e5f0d6205fdd5c8f44662041add7ab33ca3"
+sourceDate: "2026-09-09T04:59:35+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9002
@@ -49,13 +49,14 @@ rigor check [paths...]
 | `--baseline=PATH` | 設定を上書きしてベースライン（baseline）ファイルを読み込む。 |
 | `--no-baseline` | 設定されたベースラインを無視する。 |
 | `--baseline-strict` | ベースラインのドリフトで実行を失敗させる。CIゲートとして使用。 |
+| `--fail-on=SEVERITY` | ベースラインフィルタリングを通過して残った診断が`SEVERITY`（デフォルトは`error`、または`warning`、`info`）以上である場合に非ゼロで終了する ── `--format json`の`success` / `error_count`フィールドを変更することなく、それを必要とするCIゲートのために終了ステータスの基準をデフォルトの`:error`のみの読み取りから引き上げる。 |
 | `--treat-all-as-inline-rbs` | `rigor-rbs-inline`を`require_magic_comment: false`で強制ロードし、解析されるすべてのファイルを`# rbs_inline: enabled`コメントなしでインラインRBSとして扱う（ADR-32）。 |
 | `--bleeding-edge[=ids]` | この実行に対してbleeding-edgeオーバーレイを採用し、設定された[`bleeding_edge:`](03-configuration/)の選択を上書きする（ADR-50 § WD2）。引数なしではキューに積まれたすべてのfeatureを採用し、`--bleeding-edge=a,b`は名指ししたfeature idのみを採用する。[`rigor show-bleedingedge`](#rigor-show-bleedingedge)で検査する。 |
 | `--no-bleeding-edge` | この実行に対して設定された`bleeding_edge:`の選択を無視する（何も採用しない）。 |
 | `--no-tolerated-effects` | [`effects.tolerated:`](../03-configuration/)が空であるかのようにエフェクトエンベロープをチェックする —— あなたの解消ポリシーの監査スイッチ（ADR-103）。裁定のみ: ラン、収集内容、キャッシュエントリーはどちらでも同一なので、これが再解析のコストになることはない。 |
 | `--tmp-file=PATH --instead-of=PATH` | エディタモード: `--tmp-file`のバッファを使って`PATH`を解析する。両方必須。単独ではバッファ自身のファイルしか診断を出さない。プロジェクト全体を対象にするには`--incremental`を足す（下記参照）。 |
 
-エラー重要度の診断がない場合は`0`で終了、診断がある場合は`1`で終了、使用法エラーの場合は`64`で終了します。
+エラー重要度の診断がない場合は`0`で終了、診断がある場合は`1`で終了、使用法エラーの場合は`64`で終了します。`--fail-on`は、より厳密な読み取りを望む呼び出し元（CIゲート、`make check`）のために、その基準を`warning`または`info`に引き上げます。
 
 ### エディタモードの対象範囲
 
@@ -102,6 +103,8 @@ rigor type-of [options] FILE LINE COL
 コロン形式は繰り返し可能で、引数の順序を保ちながら各ファイルのパースとスコープのインデックス化を1回だけ行います。`COL`を省くと、その行から始まる最大40個の式の表を、1始まりの各列で外側のものから順に表示します;さらに式が省略された場合、表はその旨を示します。旧来の3引数形式は厳密な位置を1つだけ受け付けます。
 
 `--format=json`は結果が1つなら元のフラットなオブジェクトのまま保ち、複数の結果は`results`配列で包みます。行のクエリでは`line_enumerations`配列が加わり、その`shown`と`total`のカウントが切り詰めを明示します。`--trace`はフェイルソフトフォールバックを記録し、テキスト出力では行の表の各行の後に置かれます。`check`と同様にエディタモードの`--tmp-file` / `--instead-of`ペアも受け付けます。
+
+4つのプローブコマンド ── `type-of`、`type-scan`、`trace`、`annotate` ── は、呼び出しごとに環境をゼロから構築し、永続キャッシュの読み取りも書き込みも行いません。そのため、これらのいずれも`--no-cache`を受け付けません。スキップすべきキャッシュが存在しないからです。したがって、プローブは`rigor check --no-cache`が解析を行う環境に対して型付けを行います。キャッシュを使用する（デフォルトの）`rigor check`が構築する環境は同一であることが意図されており、Rigorは2つの構築を互いに照合してゲートしています ── ただし、プローブと`check`実行の間の不一致を追跡している場合、`rigor check --no-cache`と比較することでその変数を排除できます。
 
 ## `rigor trace`
 
@@ -631,8 +634,8 @@ rigor upgrade
 
 | コード | 意味 |
 | --- | --- |
-| `0` | 成功（エラー重要度の診断なし）。 |
-| `1` | 診断あり、またはコマンド固有のエラー（パースエラー、ファイル不在、`diff`での新規診断、`effects check`でのエフェクトドリフト）。 |
+| `0` | 成功（終了しきい値以上の診断なし。デフォルトは`error`; `rigor check --fail-on=SEVERITY`で`warning`または`info`に引き下げられる）。 |
+| `1` | しきい値以上の診断あり、またはコマンド固有のエラー（パースエラー、ファイル不在、`diff`での新規診断、`effects check`でのエフェクトドリフト）。 |
 | `64` | 使用法エラー（不明なコマンド、不正なフラグ、不正な引数、またはローダーが処理を進められない`.rigor.yml`内の値）。 |
 
 `rigor triage`は例外で、参考情報であり常に`0`で終了します。
