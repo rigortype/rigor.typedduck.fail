@@ -3,9 +3,9 @@ title: "ADR-12 — dry-rbプラグインパッケージング"
 description: "rigortype/rigor docs/adr/12-dry-rb-packaging.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/12-dry-rb-packaging.md"
 sourcePath: "docs/adr/12-dry-rb-packaging.md"
-sourceSha: "8ebbcee10dec6c220ac65307926e260a6b6976e28f4825181066f882c295d355"
-sourceCommit: "aec4ca7f5f87b1972dea8fecaaf5b62c8880a3af"
-sourceDate: "2026-05-19T21:19:58+09:00"
+sourceSha: "5eae160dc7df3ae3e3f2535da085bb97eda8466bf58e23e15303b7ffd80f500a"
+sourceCommit: "db7b23d42e9b47560438b67dfe16d53e03f70575"
+sourceDate: "2026-09-10T04:47:52+09:00"
 translationStatus: "translated"
 sidebar:
   order: 4012
@@ -14,6 +14,8 @@ sidebar:
 ステータス: **Accepted, 2026-05-16.**
 
 Rigorのdry-rbアダプタプラグインのパッケージング形態を決定し、個々の`rigor-dry-*`の作業を基本事項を再議論することなく開始できるようにします。
+
+> **[ADR-31](../31-contribution-and-supply-chain-policy/)（2026-06-02）により部分的に置き換え**。本ADRのパッケージングの前提——各`rigor-dry-*`プラグインが最終的に独自の公開gemへと`git subtree split`されること——は、プラグインごとのgemspecが削除され（`9769f5fa`）、ADR-31が単一のバンドルされた`rigortype` gemへの配布を確定したことで廃止された。subtreeの*merge*はまれな予約されたインポート（WD5）としてのみ保持され、本ADRが計画したような外部へのフローとしては使われない。本ADRのプラグインファミリーが参照する姉妹デザインノート[`docs/design/20260508-rails-plugins-roadmap.md`](../../design/20260508-rails-plugins-roadmap/)はすでに同等のマーカーを保持している。WD5の「次のスライスは`rigor-dry-types`」も古くなっている: シーケンス化された5つのdry-rbプラグイン（`rigor-dry-types`、`-struct`、`-validation`、`-monads`、`-schema`）はすべて出荷された。以下のgemごとの層テーブル、依存関係グラフ、レディネスチェックリストは設計の歴史として引き続き有用であるが、subtree-split配布モデルは現在のものではない。
 
 ## コンテキスト
 

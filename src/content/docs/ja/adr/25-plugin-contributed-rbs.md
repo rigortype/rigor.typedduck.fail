@@ -3,8 +3,9 @@ title: "ADR-25 — プラグインが提供するRBSシグネチャ"
 description: "rigortype/rigor docs/adr/25-plugin-contributed-rbs.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/25-plugin-contributed-rbs.md"
 sourcePath: "docs/adr/25-plugin-contributed-rbs.md"
-sourceSha: "600bf406681672443e71474abdc8867d6a49a864e75732897fbfdcad00fe071b"
-sourceCommit: "222d8e03ee0f4252795f6c7294672a76c20b7ae3"
+sourceSha: "94560bb969d267c5b06b0c75d34d73537834fd50ba13802a6aab1e24415055b3"
+sourceCommit: "db7b23d42e9b47560438b67dfe16d53e03f70575"
+sourceDate: "2026-09-10T04:39:46+09:00"
 translationStatus: "translated"
 sidebar:
   order: 4025
@@ -19,7 +20,7 @@ sidebar:
 今日のRigorは、3つのソースからRBS環境を構成しており、いずれも`RbsLoader`の`signature_paths`に解決される：
 
 1. **`signature_paths:`**（`.rigor.yml`内）— ディレクトリパスの明示的なリスト。`.rigor.yml`はプレーンな`YAML.safe_load_file`（ERBなし）でパースされるため、エントリーはリテラルなパスである — gem名は解決されず、「インストール済みgem内の`sig/`」を名指しするポータブルな手段がない。
-2. **`bundler:`ディスカバリー**（`Environment::BundleSigDiscovery`）— `<bundle_path>/ruby/*/gems/*/sig/`を走査する。自動検出するのは`vendor/bundle` / `.bundle/config`の`BUNDLE_PATH`レイアウトのみであり、*無差別*である：選ばれた集合ではなく、スキップされないすべてのgemの`sig/`を取り込む。プレーンな`bundle install`（gemがシステム / rbenvのgemディレクトリにある）を実行するプロジェクトは、明示的な`bundle_path:`なしでは何も得られない。
+2. **`bundler:`ディスカバリー**（`Environment::BundleSigDiscovery`）— `<bundle_path>/ruby/*/gems/*/sig/`を走査する。自動検出するのは`vendor/bundle` / `.bundle/config`の`BUNDLE_PATH`レイアウトのみであり、*無差別*である：選ばれた集合ではなく、スキップされないすべてのgemの`sig/`を取り込む。プレーンな`bundle install`（gemがシステム / rbenvのgemディレクトリにある）を実行するプロジェクトは、明示的な`bundle_path:`なしでは何も得られない。そのレイアウトは検出できない——gem homeは*プロジェクトの*Rubyに属しており、ADR-27によりRigorはそれを問い合わせないようになっているため——そのため代わりに`rigor doctor`がそれを指摘する（[#936](https://github.com/rigortype/rigor/issues/936)）: `Gemfile.lock`が存在し、かつbundle rootが解決されない場合に`bundle_layout`警告が発火するため、この状態が暗黙のうちに見過ごされることはなくなる。
 3. **`rbs_collection:`** — `rbs_collection.lock.yaml`をパースする。
 
 `Plugin::Base`プラグインは、診断（`diagnostics_for_file`）、呼び出しごとの戻り値型（`flow_contribution_for`）、マクロサブストレート宣言、型ノードリゾルバ、プラグインをまたぐファクト（fact）を提供できる — しかし**RBSは提供できない**。「このプラグインがロードされたときにシグネチャ環境を拡張する」というマニフェストフックが存在しない。

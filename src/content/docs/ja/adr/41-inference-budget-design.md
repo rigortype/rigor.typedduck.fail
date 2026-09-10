@@ -3,20 +3,15 @@ title: "ADR-41 — 推論バジェットの設計（配線、ヒット時ポリ�
 description: "rigortype/rigor docs/adr/41-inference-budget-design.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/41-inference-budget-design.md"
 sourcePath: "docs/adr/41-inference-budget-design.md"
-sourceSha: "79c7b432ef0afa06a282c37e5b489e5977df0f54579596fb8329e73b89ed0a7d"
-sourceCommit: "73d7a0a2d4628b0614948fe2fa043945b45d5de4"
+sourceSha: "786053602582c650d7a432ba7b8c32f4c6d0f6419fbcf0e90d6021e49fef518e"
+sourceCommit: "db7b23d42e9b47560438b67dfe16d53e03f70575"
+sourceDate: "2026-09-10T04:25:12+09:00"
 translationStatus: "translated"
 sidebar:
   order: 4041
 ---
 
-ステータス: **Proposed, 2026-06-03.** Rigorの推論バジェット（inference
-budget）の目標設計を記録する。これは、仕様の`budgets:`テーブルがv1にとって
-規範的（normative-for-v1）である一方で大部分が**未配線**（unwired）であり、
-大規模アプリで実コストを牽引するカテゴリーがまさにその未配線のものであること
-を、ある調査が突き止めたあとに書かれている。ここに記すものはまだ何一つ実装
-されていない。作業は以下のLayer 1（ドキュメント・仕様の整備）とLayer
-2（負荷を担うバジェットの配線）として順序付けられている。
+ステータス: **Proposed, 2026-06-03.** Rigorの推論バジェット（inference budget）の目標設計を記録する。これは、仕様の`budgets:`テーブルがv1にとって規範的（normative-for-v1）である一方で大部分が**未配線**（unwired）であり、大規模アプリで実コストを牽引するカテゴリーがまさにその未配線のものであることを、ある調査が突き止めたあとに書かれている。作業は以下のLayer 1（ドキュメント・仕様の整備）とLayer 2（負荷を担うバジェットの配線）として順序付けられている: Layer 1は着地し、Layer 2は需要駆動で延期された——その動機となった大規模アプリでのコスト急増はバジェットではなく保持された文字列のリークであることが判明した（「Layer 2への純効果」を参照）。
 
 根拠:
 [`docs/notes/20260603-inference-budget-reality-survey.md`](../../notes/20260603-inference-budget-reality-survey/)

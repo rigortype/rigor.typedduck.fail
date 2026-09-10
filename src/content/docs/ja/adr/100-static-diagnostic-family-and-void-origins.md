@@ -3,15 +3,15 @@ title: "ADR-100 — `static.*`診断ファミリーの形と`void_origins`サイ
 description: "rigortype/rigor docs/adr/100-static-diagnostic-family-and-void-origins.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/100-static-diagnostic-family-and-void-origins.md"
 sourcePath: "docs/adr/100-static-diagnostic-family-and-void-origins.md"
-sourceSha: "3a4959354e5ed40dda3d21f15901ea789e7b3870ff884842d1e3ecd4f1b9d2e1"
-sourceCommit: "d88effcae8b2998d1f4f40432e6d4f20ce17946e"
+sourceSha: "f44a87444a7d18cf7aa9ea84ebfbd243c51e4178542f9cb19ab4e6eefea674fe"
+sourceCommit: "db7b23d42e9b47560438b67dfe16d53e03f70575"
+sourceDate: "2026-09-10T04:25:19+09:00"
 translationStatus: "translated"
 sidebar:
   order: 4100
 ---
 
-ステータス: **Accepted、2026-07-18**。予約された`static.*`ファミリーの*形*を、その最初の識別子がそれを枠にはめ込まないように直し、仕様が義務づける「void値の使用」診断が必要とする`void_origins`サイドテーブルを規定する。まだ何も実装されていない。すなわち、直接に作者が宣言した`void`のスライス（slice）が最初の実装であり、これが着地すれば`ready-for-agent`である。推移的なケースと`static.incomplete-inference.*`予算識別子（[#158](https://github.com/rigortype/rigor/issues/158) / [ADR-41](../41-inference-budget-design/)）は先送りされる。
-**2026-07-19改訂** —— 直接スライスはその後出荷された（#187／#192）。下記のWD4補遺は推移的なケースのティアとメカニズムを名指し、その実装スライスのブロックを解除する。予算識別子は先送りのまま残る。
+ステータス: **Accepted、2026-07-18**。予約された`static.*`ファミリーの*形*を、その最初の識別子がそれを枠にはめ込まないように直し、仕様が義務づける「void値の使用」診断が必要とする`void_origins`サイドテーブルを規定する。直接に作者が宣言した`void`のスライス（slice）が出荷され（#187／#192）、WD4が設計した推移的／祖先フォールバックのケースは2026-07-19に`Inference::VoidTailSummary`として出荷された。`static.incomplete-inference.*`予算識別子（[#158](https://github.com/rigortype/rigor/issues/158) / [ADR-41](../41-inference-budget-design/)）は先送りのまま残る。
 
 根拠: [#162](https://github.com/rigortype/rigor/issues/162);[special-types.md](../../type-specification/special-types/) § `void`（「void値の使用」のMUST）;[diagnostic-policy.md](../../type-specification/diagnostic-policy/) § `static.*`予約;[ADR-92](../92-normative-status-fidelity/)（`void → top`を解決し、選択肢（a）を未完成の設計として持ち越した）;[ADR-75](../75-dynamic-provenance/)（本ADRが反映する、由来をサイドチャネルとする先例）。
 

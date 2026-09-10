@@ -3,14 +3,18 @@ title: "ADR-94 — インラインRBSリーダー: `RBS::InlineParser`とrbs 3.x
 description: "rigortype/rigor docs/adr/94-rbs-inline-reader-and-the-rbs-3x-floor.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/94-rbs-inline-reader-and-the-rbs-3x-floor.md"
 sourcePath: "docs/adr/94-rbs-inline-reader-and-the-rbs-3x-floor.md"
-sourceSha: "705fc42efa7246bbd316b5d585110cfa9c00f58779bb6937dfd9a554c0aabb51"
-sourceCommit: "78b18cea6a576475c92bce020535269f2eebc20d"
+sourceSha: "d413cc951e30d44fd76815e58a33c03880f38348a4047c2cd96d19979851aed7"
+sourceCommit: "db7b23d42e9b47560438b67dfe16d53e03f70575"
+sourceDate: "2026-09-10T04:47:52+09:00"
 translationStatus: "translated"
 sidebar:
   order: 4094
 ---
 
 Status: <strong>Accepted、2026-07-16。WD2は2026-07-17に訂正・クローズ。</strong>rbs 4.0がインライン実装を吸収し、それは[ADR-32](../32-rbs-inline-comment-ingestion/)がプラグイン境界を選んだ前提を溶かす。そこへ移行するのは正しい方向であり、**先送り**されている: それはrbs 3.x下限を犠牲にするが、その下限を落とすことはv0.3.0でもその近辺のバージョンでも計画されていない。`rigor-rbs-inline`プラグインがリーダーであり続ける。WD2の`UntypedFunction`欠陥は本物であり、記録どおり移行とは独立していた── だが、このADRはその発生箇所と症状を誤認しており、再裁定はそれが手書きの`.rbs`より広いことを発見した。それは修正済みである。実際に真であったことについてはWD2を参照。
+
+> **[ADR-32 WD11](../32-rbs-inline-comment-ingestion/#wd11--rbs-inline-gemがリーダーであり続ける-rbsinlineparserはまだ上位集合ではない)（2026-07-30）によって部分的に置換される**。
+> `RBS::InlineParser`への移行が「rbs 3.x下限を犠牲にする」というこのADRの先送り前提は成り立たない: WD11は、`rbs-inline`自体がすでに`rbs (~> 4.0)`を要求していることを計測した。したがって、ADR-93の自動配線が有効化し得るすべてのユーザーはすでに4.x上にいる。rbsの下限は決して障害ではなかった; WD11が`rbs-inline` gemを維持したのは、別の現在も有効な理由（`class << self`の誤帰属、および組み込みパーサにおける4つの失われた構文）によるものである。このADRの先送り論拠は、3.x下限に依拠し続けているのではなく、WD11によって修正されたものとして読み取ること。
 
 根拠: [`docs/notes/20260716-dspec-formal-spec-substrate-evaluation.md`](../../notes/20260716-dspec-formal-spec-substrate-evaluation/) § 「ADR-93 WD1の実装」および以下の測定。
 

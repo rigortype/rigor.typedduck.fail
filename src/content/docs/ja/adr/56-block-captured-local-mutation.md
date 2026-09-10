@@ -3,9 +3,9 @@ title: "ADR-56 — ブロックがキャプチャしたローカルのライト�
 description: "rigortype/rigor docs/adr/56-block-captured-local-mutation.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/56-block-captured-local-mutation.md"
 sourcePath: "docs/adr/56-block-captured-local-mutation.md"
-sourceSha: "3687df03e387e6d2ed9d9d823a6c5013322d67271c266bb72fa85f770502a9b1"
-sourceCommit: "2a65ec8e52462c931fbfec94df68a18139259a43"
-sourceDate: "2026-09-02T20:07:46+09:00"
+sourceSha: "d9a471f356d533a7b70591f0b73d370718b6baec9c45cbe6272ddbf80e2400ce"
+sourceCommit: "db7b23d42e9b47560438b67dfe16d53e03f70575"
+sourceDate: "2026-09-10T05:52:52+09:00"
 translationStatus: "translated"
 sidebar:
   order: 4056
@@ -149,7 +149,7 @@ WD2.5のB2の注記は、宣言された腕のバグの1つの綴りをそのま
 
 ゲート: `mutation_join_declared_sig`のフィクスチャが、素の宣言された腕をブロック・ループ・Hashの各形式で運び（発火してはならない）、依然として閉じ依然として発火する新鮮な種の兄弟（`call.undefined-method`の行の集合を厳密に——どこでも漸進的になった継ぎ目はそこでも黙ってしまうからだ）、そして`Difference`の種をブロックとループの形式で運ぶ;`block_path_stays_precise`と`loop_body_fixpoint`の`Array[Integer]`のスナップショットは不変であり、`block_captured_writeback`のフィクスチャが`[x]`のスロットを固定する。dropを復元する（あるいは種を再び`post_scope`から読む）と、発火してはならない例が赤になり、他は何も変わらない。
 
-これが**触れない**もの: 直線の継ぎ目の`Difference`の分岐であり、そこでは`widen_for_mutator`が変異子の引数をjoinせずに`non-empty-array[T]`をその基底へ広げる（`if xs.any?; xs << 1`は`Array[String]`と読まれる）。それは#560のファミリーに4つ目の扉から到達したものであり、別の変更である。
+これが**触れなかった**もの: 直線の継ぎ目の`Difference`の分岐であり、そこでは`widen_for_mutator`が変異子の引数をjoinせずに`non-empty-array[T]`をその基底へ広げていた（`if xs.any?; xs << 1`は`Array[String]`と読まれていた）。それは#560のファミリーに4つ目の扉から到達したものであり、独立した変更として着地した（issue #936）: この腕は現在、リファインメントの基底の上に追加されたコンテンツをjoinし、レシーバーを空にし得る変異子に対してのみempty witnessを撤回するようになった。そのため追加操作は`non-empty-array[String | Integer]`と読まれ、`xs.clear`は引き続き`Array[String]`と読まれる。
 
 ### WD2.10 — 要素ごとの畳み込みが再束縛されたキャプチャをその収束した束縛で見る（2026-09-02、issue #587）
 

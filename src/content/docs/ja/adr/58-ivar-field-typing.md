@@ -3,16 +3,15 @@ title: "ADR-58 — インスタンス変数のフィールド型付け: 宣言�
 description: "rigortype/rigor docs/adr/58-ivar-field-typing.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/58-ivar-field-typing.md"
 sourcePath: "docs/adr/58-ivar-field-typing.md"
-sourceSha: "db6d54cb9f1d027abf7fa5a9670db236a5102c9d16a556be1e2322eb8deea805"
-sourceCommit: "d88effcae8b2998d1f4f40432e6d4f20ce17946e"
+sourceSha: "1bf40dfac7bdf2bb26e3e2a3b1044ef52526458535827c7c508e465188488202"
+sourceCommit: "db7b23d42e9b47560438b67dfe16d53e03f70575"
 translationStatus: "translated"
 sidebar:
   order: 4058
 ---
 
 ステータス: **Accepted、2026-06-12**。WD1は部分実装（束縛出自サブセット、
-2026-06-12。メソッド戻り値経由の残余はWD1bとしてキュー入り ── WD1
-ステータス参照）。WD2は既に実現済み（already-realized）として解決
+2026-06-12；メソッド戻り値経由の残余であるWD1bは、需要にゲートされた獲得された保守主義へと再裁定された ── WD2下のWD1b裁定を参照）。WD2は既に実現済み（already-realized）として解決
 （2026-06-12 ── フローインセンシティブな書き込みユニオンが既に
 `join(writes) | nil`を生む。コーパス収量は～ゼロで、WD2ステータスの
 とおりuntypedパラメータ／再帰戻り値のDynamicソースに拘束される）。

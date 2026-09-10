@@ -3,8 +3,9 @@ title: "ADR-87 — NULLビルドのフロア：stat-then-digest検証、ゼロ�
 description: "rigortype/rigor docs/adr/87-null-build-floor.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/87-null-build-floor.md"
 sourcePath: "docs/adr/87-null-build-floor.md"
-sourceSha: "f68ed79a78737f907e56c26ee37f4ec8829ed2e80d2c202d42b9d9d4b9bca3a9"
-sourceCommit: "eb8e9996d113a1b5e1778d0988597c979814a219"
+sourceSha: "e4c58eb598b42f6ccd119a52c715d4d9b20516f9f243000904ec17477d8b3991"
+sourceCommit: "db7b23d42e9b47560438b67dfe16d53e03f70575"
+sourceDate: "2026-09-10T04:47:52+09:00"
 translationStatus: "translated"
 sidebar:
   order: 4087
@@ -78,4 +79,4 @@ Status: **Accepted — WD1〜WD5実装済み（[PR #85](https://github.com/rigor
 
 ## Relationship to other ADRs
 
-[ADR-45](../45-unchanged-project-fast-path/)がrecord-and-validateを所有する── そのダイジェストの権威は保たれ、その検証コストがWD1の取り除くものであり、そのヒット判定がWD4のエンジンフリーで提供するものである。[ADR-54](../54-cache-slimming/)の却下の行は置き換えられる（その前提は再計測され、設計はダイジェストの権威を保つ）。[ADR-60](../60-pre-freeze-plugin-contract-consolidation/)の`watch:`機構がWD2を宿す。[ADR-46](../46-incremental-dependency-graph/)／[ADR-85](../85-seed-bundles-and-lazy-def-node-handles/)がWD3の刈り込むincrementalパスを所有する。[ADR-86](../86-partial-native-extensions/)のWD4非ネイティブはしごが1段進む。[ADR-50](../50-release-engineering-and-stability-strategy/)が将来のincrementalデフォルト化の反転を所有し、新しい`cache.validation`configキー＋`:stat`比較器をv1.0で公開語彙として凍結する。
+[ADR-45](../45-unchanged-project-fast-path/)がrecord-and-validateを所有する── そのダイジェストの権威は保たれ、その検証コストがWD1の取り除くものであり、そのヒット判定がWD4のエンジンフリーで提供するものである。[ADR-54](../54-cache-slimming/)の却下の行は置き換えられる（その前提は再計測され、設計はダイジェストの権威を保つ）。[ADR-60](../60-pre-freeze-plugin-contract-consolidation/)の`watch:`機構がWD2を宿す。[ADR-46](../46-incremental-dependency-graph/)／[ADR-85](../85-seed-bundles-and-lazy-def-node-handles/)がWD3の刈り込むincrementalパスを所有する。[ADR-86](../86-partial-native-extensions/)のWD4非ネイティブはしごが1段進み、かつ本ADRはADR-86の却下が参照している残余プロファイルの帰属を**部分的に置換する**（上記の「gitlab Cに関する正直な注記」は同じキャンペーンを再計測し、それが本質的と呼んだものの一部が除去可能な非ネイティブのオーバーヘッドであったことを見出した）。[ADR-50](../50-release-engineering-and-stability-strategy/)が将来のincrementalデフォルト化の反転を所有し、新しい`cache.validation`configキー＋`:stat`比較器をv1.0で公開語彙として凍結する。

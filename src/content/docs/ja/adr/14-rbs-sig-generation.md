@@ -3,17 +3,17 @@ title: "ADR-14 — 推論からのRBSシグネチャ生成と拡張"
 description: "rigortype/rigor docs/adr/14-rbs-sig-generation.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/14-rbs-sig-generation.md"
 sourcePath: "docs/adr/14-rbs-sig-generation.md"
-sourceSha: "a51722a0ee8933627a151dbbdedc49b42d4948f86e99cecbe515e0a4ee062e6b"
-sourceCommit: "04668e5f0d6205fdd5c8f44662041add7ab33ca3"
-sourceDate: "2026-09-09T01:30:39+09:00"
+sourceSha: "91ed91bed1947a14e26295a8fea821cec8bbbbc190f720762ed09aaf2ba8abeb"
+sourceCommit: "db7b23d42e9b47560438b67dfe16d53e03f70575"
+sourceDate: "2026-09-10T04:24:59+09:00"
 translationStatus: "translated"
 sidebar:
   order: 4014
 ---
 
-ステータス: **Accepted, 2026-05-12; MVPであるスライス（slice）1はv0.1.4で実装済み**。
+ステータス: **Accepted, 2026-05-12;スライス1〜5は実装済み**（v0.1.4でのスライス1のMVPに続き、`--write`、`--params=observed`、追加のメソッド形態、ハンドブック章を伴うRSpec対応の観察）。
 
-`rigor sig-gen --print` / `--diff`（戻り値型のみ、`def`メソッド）は`lib/rigor/sig_gen/`に置かれる。スライス2〜5は需要駆動。
+`rigor sig-gen --print` / `--diff`（戻り値型のみ、`def`メソッド）は`lib/rigor/sig_gen/`に置かれる。スライス2〜5もその後ランディングした。
 
 ## コンテキスト
 
@@ -286,9 +286,9 @@ Rigor自身の`lib/`に対するドッグフード実行（2026-05-12）は7つ�
 
 したがって、宣言されたRBSに対して**ユニオンメンバーを失う**締め付けはすべて矛盾のシグナルとして扱う: それを適用せず、その食い違いをエンジンへのフォローアップとして表面化させる。既存のRBSを持たない新しいメソッドはレビュー後も自由に適用可能なまま;`equivalent`の分類はno-opだ。
 
-**2026-09-09 — 宣言された`void`は、勘案すべき矛盾が存在しないため、本ルールの対象外です**。 `void`は戻り値がメソッドの契約の一部ではないことを意味しており、合成側ではそれを生成できません: 本体から構築された型は常に本体の最後の式の型であるため、`void`は作者が宣言した戻り値に対する検査側（checking side）にのみ存在します（プロジェクト本の付録a1 § a1-2「`void` ── 値は返されるが見てはならない」は、合成対検査の分離を明示的に行っています;エンジン自身の拡幅についての記述は`docs/type-specification/special-types.md` § `void`であり、RBSの`void`が`top`に変換されることを記録しています）。これにより、`void`戻り値はADR-107がパラメータ型を置く場所 ── いかなる推論も導出しない作者の意図 ── に位置づけられるため、それに対して本体の値を提案することはカテゴリーエラーであり、調整すべき偽陽性ではありません。したがって、`compare_against_declared`は何も比較することなく`void`が宣言されたメソッドを`equivalent`に分類し、宣言された表記として`void`自身を運び、`--write`も`--overwrite`もそれを置き換えることはできません（[#836](https://github.com/rigortype/rigor/issues/836)）。修正前は、`top`があらゆる値を受け入れるため、本体が型付きの値を返すあらゆる`void`ミューテーターが引き締めとして読み取られていました ── Rigor自身の`sig/`における15件中7件がそうでした。
+**2026-09-09 — 宣言された`void`は、勘案すべき矛盾が存在しないため、本ルールの対象外です**。`void`は戻り値がメソッドの契約の一部ではないことを意味しており、合成側ではそれを生成できません: 本体から構築された型は常に本体の最後の式の型であるため、`void`は作者が宣言した戻り値に対する検査側（checking side）にのみ存在します（プロジェクト本の付録a1 § a1-2「`void` ── 値は返されるが見てはならない」は、合成対検査の分離を明示的に行っています;エンジン自身の拡幅についての記述は`docs/type-specification/special-types.md` § `void`であり、RBSの`void`が`top`に変換されることを記録しています）。これにより、`void`戻り値はADR-107がパラメータ型を置く場所 ── いかなる推論も導出しない作者の意図 ── に位置づけられるため、それに対して本体の値を提案することはカテゴリーエラーであり、調整すべき偽陽性ではありません。したがって、`compare_against_declared`は何も比較することなく`void`が宣言されたメソッドを`equivalent`に分類し、宣言された表記として`void`自身を運び、`--write`も`--overwrite`もそれを置き換えることはできません（[#836](https://github.com/rigortype/rigor/issues/836)）。修正前は、`top`があらゆる値を受け入れるため、本体が型付きの値を返すあらゆる`void`ミューテーターが引き締めとして読み取られていました ── Rigor自身の`sig/`における15件中7件がそうでした。
 
-**2026-09-09 — RBSリテラルへ消去される提案も同じ理由で対象外です**。 `Rigor::Type::Top#describe`は実際に`"top"`を返しますが、`describe`はすべての`Rigor::Type::*`クラスが実装するサーフェスであり、それらのすべてが`String`を宣言しています。宣言された名前的型（nominal）はその本体に対する作者の抽象化です;リテラルはその抽象化が隠蔽する実装の詳細であり、本体から構築された型は常に本体の最後の式の型であるため、合成側で抽象化を生成することはできません。したがって、本体よりも広くなるという選択は、誰かが書いた宣言の中にしか存在せず、それこそがADR-107 § 決定がすでに`void`やパラメータ型を置いている場所です。`compare_against_declared`はそのメソッドを`equivalent`に分類します（[#837](https://github.com/rigortype/rigor/issues/837)）。生成器は、宣言がたまたまユニオンであった場合 ── `Configuration.discover`が`".rigor.dist.yml" | ".rigor.yml" | nil`を証明する本体に対して`String?`を宣言し、`loses_declared_union_member?`がそれを拒否する場合 ── に常にこのように答えていました;作者が`String`と書いたか`String?`と書いたかは、リテラルに関する判断では決してありませんでした。
+**2026-09-09 — RBSリテラルへ消去される提案も同じ理由で対象外です**。`Rigor::Type::Top#describe`は実際に`"top"`を返しますが、`describe`はすべての`Rigor::Type::*`クラスが実装するサーフェスであり、それらのすべてが`String`を宣言しています。宣言された名前的型（nominal）はその本体に対する作者の抽象化です;リテラルはその抽象化が隠蔽する実装の詳細であり、本体から構築された型は常に本体の最後の式の型であるため、合成側で抽象化を生成することはできません。したがって、本体よりも広くなるという選択は、誰かが書いた宣言の中にしか存在せず、それこそがADR-107 § 決定がすでに`void`やパラメータ型を置いている場所です。`compare_against_declared`はそのメソッドを`equivalent`に分類します（[#837](https://github.com/rigortype/rigor/issues/837)）。生成器は、宣言がたまたまユニオンであった場合 ── `Configuration.discover`が`".rigor.dist.yml" | ".rigor.yml" | nil`を証明する本体に対して`String?`を宣言し、`loses_declared_union_member?`がそれを拒否する場合 ── に常にこのように答えていました;作者が`String`と書いたか`String?`と書いたかは、リテラルに関する判断では決してありませんでした。
 
 2つの境界。このルールは消去（ERASURE）に関するものであるため、RBSにリテラル表記を持たない`Type::Constant`は引き続きその名前的型を提案します: `3.14`の本体に対する`def pi: () -> Numeric`は`Float`を提案します。そして、それは既存の宣言に対してのみ束縛されます ── いかなる`.rbs`も宣言していないメソッドは、依然として本体が証明する最も厳格なキャリアを取得します。これは第1項であり、`sig-gen`が書き出すものの大部分です。その代償は、提案されなくなる正直なenum絞り込み（`:asc | :desc`を証明する本体に対して宣言された`Symbol`）です;作者は依然として手作業でユニオンを書くことができ、機能している契約の書き換えを拒否することは、より狭い契約を提案することよりも価値があります（AGENTS.md § 実装ガイドライン）。[#837](https://github.com/rigortype/rigor/issues/837)が提案した兄弟スキャンは最初に試みられましたが、これを担うことはできませんでした: `Type::Top`と`Type::Bot`は共通の祖先を持たないため、「兄弟」には導入プロジェクトが予測できない名前空間規約が必要となり、`Cache::RbsCacheProducer.generation_cap` ── `Integer`と宣言され、本体は`2`、どこにもオーバーライドなし ── には見つけられるより広い宣言が存在しないからです。
 

@@ -3,8 +3,9 @@ title: "ADR-110 — 継承された宣言はレシーバー自身のdefより優
 description: "rigortype/rigor docs/adr/110-inherited-declaration-precedence.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/110-inherited-declaration-precedence.md"
 sourcePath: "docs/adr/110-inherited-declaration-precedence.md"
-sourceSha: "1d6c4485a37e197dc3b4e4ce670e888db0ed79467ca10b5f64742a0376f8dbda"
-sourceCommit: "04668e5f0d6205fdd5c8f44662041add7ab33ca3"
+sourceSha: "9f70528ec7f5c4cef122ed6dd3609667936424fec3afac5636edd6d8aa57410c"
+sourceCommit: "db7b23d42e9b47560438b67dfe16d53e03f70575"
+sourceDate: "2026-09-10T04:25:12+09:00"
 translationStatus: "translated"
 sidebar:
   order: 4110
@@ -23,7 +24,7 @@ Status: **Accepted, 2026-09-09 — [#856](https://github.com/rigortype/rigor/iss
 
 前半（half 1）では、`sig-gen`がその特定の競合を作り出すのを止めました。`demote_overridden_base_methods`は、プロジェクトのサブクラスが基底メソッドをオーバーライドしており、そのオーバーライドが出力されない場合に、基底メソッドのシグネチャを差し控えます（[`sig_gen/generator.rb:103`](https://github.com/rigortype/rigor/blob/master/lib/rigor/sig_gen/generator.rb)）。これは明白でした — このツールが書き出すシグネチャは、それが生成されたソースとツールのチェッカーを矛盾させてはならないからです。しかし、これは手書きの`sig/`に対しては何もしません。そして問題が実際に存在するのはそこです。
 
-**なぜこれが自明ではないのか**。 RBSのセマンティクスにおいて、継承されたシグネチャは契約であり、オーバーライドはそれに違反しているため、不一致を報告することは首尾一貫しており、現在の回答も擁護可能です。しかし2つの要素がそれを突き崩します。第1に、優先順位は裁定されたことがなく、メソッド解決をモデル化している唯一のADRは逆のことを述べています。「デフォルトのマージポリシーはRubyのランタイム解決に従う: Rubyが実際にディスパッチする候補が勝つ」（[ADR-1](../1-types/) § `MethodEntry`、`1-types.md:314`）。第2に、[ADR-5](../5-robustness-principle/)はまさにこのケースに関して曖昧です。「RBSシグネチャが存在しない場合の推論されたユーザーメソッドの型」（`5-robustness-principle.md:97`）を切り分けていますが、*存在（present）*がレシーバーのクラス上に存在することを意味するのか、祖先解決後に存在することを意味するのかを述べていません。#744の後半はその曖昧さであり、型仕様もそれを閉じていません。[`robustness-principle.md:22`](../../type-specification/robustness-principle/)が拘束しているのはRigor自身の*著作権（authorship）* — 「すでに存在するRBSの著述を上書きしない」 — であり、呼び出しサイトで食い違う2つのソースのどちらが勝つかではありません。
+**なぜこれが自明ではないのか**。RBSのセマンティクスにおいて、継承されたシグネチャは契約であり、オーバーライドはそれに違反しているため、不一致を報告することは首尾一貫しており、現在の回答も擁護可能です。しかし2つの要素がそれを突き崩します。第1に、優先順位は裁定されたことがなく、メソッド解決をモデル化している唯一のADRは逆のことを述べています。「デフォルトのマージポリシーはRubyのランタイム解決に従う: Rubyが実際にディスパッチする候補が勝つ」（[ADR-1](../1-types/) § `MethodEntry`、`1-types.md:314`）。第2に、[ADR-5](../5-robustness-principle/)はまさにこのケースに関して曖昧です。「RBSシグネチャが存在しない場合の推論されたユーザーメソッドの型」（`5-robustness-principle.md:97`）を切り分けていますが、*存在（present）*がレシーバーのクラス上に存在することを意味するのか、祖先解決後に存在することを意味するのかを述べていません。#744の後半はその曖昧さであり、型仕様もそれを閉じていません。[`robustness-principle.md:22`](../../type-specification/robustness-principle/)が拘束しているのはRigor自身の*著作権（authorship）* — 「すでに存在するRBSの著述を上書きしない」 — であり、呼び出しサイトで食い違う2つのソースのどちらが勝つかではありません。
 
 **コーパスはすでに同じ質問に対して、同じ方向に、一度に1ケースずつ、5回答えています**。そのいずれもルールを一般化しませんでした:
 
@@ -44,7 +45,7 @@ Status: **Accepted, 2026-09-09 — [#856](https://github.com/rigortype/rigor/iss
 
 それが基準であり、再利用されることを意図しています。上記の5つのメカニズムがそれぞれ局所的に導出していた文そのものです。これは、継承された宣言が一般的に信頼できないというはるかに大きな主張にならないよう、2つの条項によって境界付けられています。
 
-**条項A — 競合が可視であり、失格となる宣言がプロジェクト自身のものでなければならない**。 3つの条件: レシーバー自身のクラスがその名前のソース`def`を持っていること、それに関する自身の宣言を持っていないこと、そしてそうでない場合に応答することになる祖先の宣言がプロジェクト宣言であること。オーバーライドがない場合、継承された宣言は実行されるメソッドに関するもの*であり*、現在とまったく同様に拘束力を持ちます。
+**条項A — 競合が可視であり、失格となる宣言がプロジェクト自身のものでなければならない**。3つの条件: レシーバー自身のクラスがその名前のソース`def`を持っていること、それに関する自身の宣言を持っていないこと、そしてそうでない場合に応答することになる祖先の宣言がプロジェクト宣言であること。オーバーライドがない場合、継承された宣言は実行されるメソッドに関するもの*であり*、現在とまったく同様に拘束力を持ちます。
 
 **3つ目の条件は実装からの修正点（#856）であり、最初の2つだけでは不十分です**。最初に書かれたとき、この条項はそれだけで決定を[ADR-43](../43-rbs-complete-ancestor-resolution/)の領域の外に保つと主張していましたが、そうではありません。`Enumerable#each`を継承する`class Foo; def each; end`は両方を満たしており、同梱の宣言をそのように失格にすることは、ADR-43が拒否した包括的な修正そのものです — 「一方なしに他方を得ることはできない」（`43:99`）。`ExpressionTyper#instance_self_answers?`がRBSアームを自クラスのみに保っているのも同じ理由です。権威の区別は、`Reflection.project_declared_class?`がすでに引いている区別です。プロジェクトのサイドカーは解析対象のソースを記述しますが、同梱のシグネチャはプロジェクトが所有していないクラスを記述し、そこでのプロジェクトの`def`はモンキーパッチであり、[ADR-17](../17-monkey-patch-pre-evaluation/)がその問題を所有します。これは安全にfalseにフォールバック（fail-soft）するため、宣言を帰属させることができない環境では何も変更されません。
 
@@ -56,11 +57,11 @@ Status: **Accepted, 2026-09-09 — [#856](https://github.com/rigortype/rigor/iss
 
 **WD2 — 失格判定は`(class, method name, kind)`ごとに行われ、一致ではなく所有権によって決定される**。ルールは宣言された型と推論された型を比較して狭い方を優先するわけではありません。その宣言が誰について書かれたかのみを問います。不一致によって発動するルールは、本体を型付ける宣言を信頼するかどうかを決定する前に本体を型付ける必要があり、推論が改善されるにつれて異なる回答をすることになります。
 
-**WD3 — `def.return-type-mismatch`は、すでに仕様化されている`defined_on?`ゲートを獲得する**。 [ADR-35](../35-override-signature-compatibility/)はルールを「メソッド**本体**の推論された戻り値vsメソッド**自身**の宣言された戻り値」（`35:250`）と述べており、その兄弟ルールは`defined_on?`を適用しています（[`check_rules.rb:3270`](https://github.com/rigortype/rigor/blob/master/lib/rigor/analysis/check_rules.rb)）。`declared_return_type`（[`check_rules.rb:2965`](https://github.com/rigortype/rigor/blob/master/lib/rigor/analysis/check_rules.rb)）はそうではなく、継承されたものも含めて`Reflection.instance_method_definition`が解決するものを何でも受け取ります。#744の再現コードの7行目の警告はそのギャップです。ゲートを設けることで、実装は自身の仕様に準拠するようになり、WD1とは無関係に正当化されます。継承ケースに対する「あなたのシグネチャとソースが食い違っている」というシグナルはADR-35のオーバーライド互換性ファミリーに属し、それはすでに両側が著述されていることを要求しています。
+**WD3 — `def.return-type-mismatch`は、すでに仕様化されている`defined_on?`ゲートを獲得する**。[ADR-35](../35-override-signature-compatibility/)はルールを「メソッド**本体**の推論された戻り値vsメソッド**自身**の宣言された戻り値」（`35:250`）と述べており、その兄弟ルールは`defined_on?`を適用しています（[`check_rules.rb:3270`](https://github.com/rigortype/rigor/blob/master/lib/rigor/analysis/check_rules.rb)）。`declared_return_type`（[`check_rules.rb:2965`](https://github.com/rigortype/rigor/blob/master/lib/rigor/analysis/check_rules.rb)）はそうではなく、継承されたものも含めて`Reflection.instance_method_definition`が解決するものを何でも受け取ります。#744の再現コードの7行目の警告はそのギャップです。ゲートを設けることで、実装は自身の仕様に準拠するようになり、WD1とは無関係に正当化されます。継承ケースに対する「あなたのシグネチャとソースが食い違っている」というシグナルはADR-35のオーバーライド互換性ファミリーに属し、それはすでに両側が著述されていることを要求しています。
 
-**WD4 — 何も改名されない**。 *Declaration-sourced（宣言由来）*は`nil`の来歴を表す拘束された用語であり（[ADR-58](../58-ivar-field-typing/)、`inference-engine.md:367`）、ここで再利用すると衝突します。本ADRは新しい用語を導入しません。この概念をすでに表現している3つのほぼ重複した述語 — `defined_on?`（[`check_rules.rb:3270`](https://github.com/rigortype/rigor/blob/master/lib/rigor/analysis/check_rules.rb)）、`rbs_declared_on_class?`（[`expression_typer.rb:1267`](https://github.com/rigortype/rigor/blob/master/lib/rigor/inference/expression_typer.rb)）、`declared_on_class_itself?`（[`sig_gen/generator.rb:1410`](https://github.com/rigortype/rigor/blob/master/lib/rigor/sig_gen/generator.rb)） — を挙げ、それらが1つの質問に答えていると述べます。それらを統合することはスコープ外であり、`CONTEXT.md`は何も得ません。
+**WD4 — 何も改名されない**。*Declaration-sourced（宣言由来）*は`nil`の来歴を表す拘束された用語であり（[ADR-58](../58-ivar-field-typing/)、`inference-engine.md:367`）、ここで再利用すると衝突します。本ADRは新しい用語を導入しません。この概念をすでに表現している3つのほぼ重複した述語 — `defined_on?`（[`check_rules.rb:3270`](https://github.com/rigortype/rigor/blob/master/lib/rigor/analysis/check_rules.rb)）、`rbs_declared_on_class?`（[`expression_typer.rb:1267`](https://github.com/rigortype/rigor/blob/master/lib/rigor/inference/expression_typer.rb)）、`declared_on_class_itself?`（[`sig_gen/generator.rb:1410`](https://github.com/rigortype/rigor/blob/master/lib/rigor/sig_gen/generator.rb)） — を挙げ、それらが1つの質問に答えていると述べます。それらを統合することはスコープ外であり、`CONTEXT.md`は何も得ません。
 
-**WD5 — 変更はコーパス計測の裏付けがある場合にのみ着地する**。 [ADR-57](../57-self-call-return-adoption/)の鏡像ゲートが基準を設定しました: セルフチェック、プラグインセルフチェック、およびMastodon / haml / kramdownのコーパスがバイト単位で一致し、`rgl`は13件すべての警告を失いました（`57:204`）。すべて同時に満たさなければならない受け入れ基準:
+**WD5 — 変更はコーパス計測の裏付けがある場合にのみ着地する**。[ADR-57](../57-self-call-return-adoption/)の鏡像ゲートが基準を設定しました: セルフチェック、プラグインセルフチェック、およびMastodon / haml / kramdownのコーパスがバイト単位で一致し、`rgl`は13件すべての警告を失いました（`57:204`）。すべて同時に満たさなければならない受け入れ基準:
 
 1. #744の4つのredmineサイトが、基底宣言を再現する手書きの`sig/`に対して解消すること。
 2. **いかなるコーパスも診断を増やさないこと**。条項Bにより、これは期待される結果ではなく厳格な基準となります。
@@ -69,7 +70,7 @@ Status: **Accepted, 2026-09-09 — [#856](https://github.com/rigortype/rigor/iss
 
 2の失敗は実装を反証するものであり、決定を反証するものではありません。レビュアーが許容するマージンを超えて4に失敗した場合は、WD1による`Dynamic[top]`の選択が再検討されます。
 
-**測定結果（2026-09-09、#856）**。 25の調査対象、2つの変更ファイルをその場で切り替えた1つのバンドルからの両アーム、`--no-cache --no-baseline`およびプロジェクト自身の設定:
+**測定結果（2026-09-09、#856）**。25の調査対象、2つの変更ファイルをその場で切り替えた1つのバンドルからの両アーム、`--no-cache --no-baseline`およびプロジェクト自身の設定:
 
 | | base | WD1 only | WD3 only | both |
 | --- | --- | --- | --- | --- |
@@ -95,7 +96,7 @@ Status: **Accepted, 2026-09-09 — [#856](https://github.com/rigortype/rigor/iss
 
 - **利点**。 #744の4つのredmineサイト、およびそれらが代表する障害クラス: `sig/`が基底クラスを忠実に記述し、そのサブクラスがメソッドをオーバーライドしているあらゆるプロジェクト。ティア順序は[ADR-1](../1-types/) § `MethodEntry`と矛盾しなくなります。§ 背景の5つのメカニズムは、それぞれが局所的に導出していた明文化されたルールを獲得するため、6つ目のケースがそれを再発見する必要がなくなります。WD3は、本ADRにかかわらず今日存在している仕様と実装の乖離を閉じます。
 - **欠点**。実際の精度低下。これは不可避であり、ここでは緩和されません: シグネチャ付きの祖先メソッドを*適合するように*オーバーライドし、推論が型付けできない本体を持つサブクラスは、祖先の精密な戻り値から`Dynamic[top]`に低下します。これらは間違った場所にあるために失格となる正しい宣言です。[ADR-43](../43-rbs-complete-ancestor-resolution/) § 「難所（the crux）」は、なぜこれを安価に得られないのかの理由であり、WD5基準4はそれを否定するのではなく、その大きさを可視化し続けるために存在します。
-- **持ち越し**。 WD4の3つの述語は未統合のままです。執筆時点ではWD5の測定は未実行だったため、上記のマイナス面の大きさは不明でした — 本ADRは方向性を決定し、測定していない数値を述べることを拒否します。
+- **持ち越し**。WD4の3つの述語は未統合のままです。WD5の測定はその後に実行され、上記のマイナス面の大きさはそこに記録されています（25個のコーパスターゲット全体で新規診断はゼロ）；以下の段落は決定時の記述のまま保持されています。執筆時点では上記のマイナス面の大きさは未知でした — 本ADRは方向性を決定し、測定していない数値を述べることを拒否します。
 
 ## 他のADRとの関係
 

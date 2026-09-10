@@ -3,8 +3,9 @@ title: "ADR-6: キャッシュ永続化バックエンド"
 description: "rigortype/rigor docs/adr/6-cache-persistence-backend.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/6-cache-persistence-backend.md"
 sourcePath: "docs/adr/6-cache-persistence-backend.md"
-sourceSha: "0ba70f0ff8920244be3b321f50f17b739aff997f29224c95d8e6ec52add86407"
-sourceCommit: "18ef11c9f393b495cd9a6ed7277846069c08c516"
+sourceSha: "9130d4396187c5248b6141d461ac5447b0ea49d69b8a4f7a65ca5a845e4d126f"
+sourceCommit: "db7b23d42e9b47560438b67dfe16d53e03f70575"
+sourceDate: "2026-09-10T04:47:52+09:00"
 translationStatus: "translated"
 sidebar:
   order: 4006
@@ -95,6 +96,8 @@ POSIXは同じファイルシステム上で`rename`がアトミックである�
 
 ### 5. エビクション
 
+> **[ADR-54 WD3](54-cache-slimming.md#wd3--default-eviction-cap)（2026-06-10）により部分的に置き換え**。本セクションが先送りにしていた「将来のADR修正」は出荷された: `cache.max_bytes`はデフォルトで256 MBのLRUエビクション上限となり、各`rigor check`の実行終了時に実行される。本セクションの残りの部分——v0.0.8スライスでのエビクションなし、手動フォールバックとしての`--clear-cache`——は歴史的な経緯であり、現在の仕様ではない。
+
 最初の実装はエビクションを**行わない**。キャッシュは際限なく増大する。`rigor check --clear-cache`は`.rigor/cache`ディレクトリ全体を削除する。将来のADR修正でプロジェクトサイズが際限のない増大を問題にするときに、設定可能なバイト上限付きのLRUポリシーを導入する。v0.0.8スライスを扱いやすくするためにポリシーを延期する。
 
 ### 6. 並行性モデル
@@ -173,7 +176,7 @@ v0.0.8でこのAPIを通じて最初に接続されるプロデューサーはRB
 
 - 単一ファイルバックエンドよりもinodeが多い。
 - ファイルごとのロックセマンティクスはFS依存。macOS/Linuxはサポート対象ターゲット。Windowsはフォローアップ評価が必要。
-- v0.0.8ではサイズ上限なし。小さなディスクのユーザーは手動でキャッシュをクリアする必要がある。
+- v0.0.8ではサイズ上限なし（上記の§ 5、ADR-54 WD3の256 MBデフォルトLRU上限により置き換え）。小さなディスクのユーザーは手動でキャッシュをクリアする必要があったが、もはや必須ではない。
 
 ## 復帰実装者の読み順
 

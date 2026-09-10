@@ -3,9 +3,9 @@ title: "アーキテクチャ決定記録"
 description: "rigortype/rigor docs/adr/README.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/README.md"
 sourcePath: "docs/adr/README.md"
-sourceSha: "041eb34dfb4ffa26c06c82ef689e65653eace44ac02556fc89e9aee8e8d9d1c3"
-sourceCommit: "04668e5f0d6205fdd5c8f44662041add7ab33ca3"
-sourceDate: "2026-09-09T04:10:19+09:00"
+sourceSha: "1ce660ca6afdebb6b9c7f94170fa09ce647d1816172fd5cb09b24714d3332d08"
+sourceCommit: "db7b23d42e9b47560438b67dfe16d53e03f70575"
+sourceDate: "2026-09-10T04:51:03+09:00"
 translationStatus: "translated"
 sidebar:
   order: 4000
@@ -110,26 +110,26 @@ sidebar:
 | ADR-83 | [Dynamic-origin代数: `Dynamic`へ吸収せずユニオンアームを保つ](83-dynamic-origin-algebra/) | Accepted（`value-lattice.md`のジョイン代数を置き換える;仕様をエンジンの振る舞いに合わせて改訂） |
 | ADR-84 | [クロスファイル戻り値メモのスコープ設定とtaint-preciseなストアゲート](84-cross-file-return-memo-scoping/) | Accepted（WD1をPR #79で着地；WD2〜WD3を実装；mailの本体評価3,355→557） |
 | ADR-85 | [ファイルごとのシードバンドルと遅延def-nodeハンドル（事前パスのインクリメンタル化）](85-seed-bundles-and-lazy-def-node-handles/) | Accepted（WD1をPR #81で；WD2〜WD3をPR #82で；WD5を#707で；gitlabのウォームインクリメンタルのアロケーション1670万→206万） |
-| ADR-86 | [残余のホットパスに対する部分的ネイティブ拡張（却下;rigor-rsがネイティブ速度を所有する）](86-partial-native-extensions/) | Accepted（ネイティブ拡張の恒久的な却下；rigor-rsがネイティブ速度を所有；WD4候補を段階化） |
-| ADR-87 | [ヌルビルドフロア: stat-then-digest検証、ゼロ変更のスナップショットスキップ、ヒットパスのブートスリム化](87-null-build-floor/) | Accepted（WD1〜WD5を実装、PR #85；ADR-54の却下されたmtime高速パスを優越） |
+| ADR-86 | [残余のホットパスに対する部分的ネイティブ拡張（却下;rigor-rsがネイティブ速度を所有する）](86-partial-native-extensions/) | Accepted（ネイティブ拡張の恒久的な却下；rigor-rsがネイティブ速度を所有；WD4候補を段階化；残余プロファイル帰属はADR-87によって部分的に置き換え） |
+| ADR-87 | [ヌルビルドフロア: stat-then-digest検証、ゼロ変更のスナップショットスキップ、ヒットパスのブートスリム化](87-null-build-floor/) | Accepted（WD1〜WD5を実装、PR #85；ADR-54の却下されたmtime高速パスを優越；ADR-86の残余プロファイル帰属を部分的に置き換え） |
 | ADR-88 | [インクリメンタルなプラグインファクトの健全性](88-incremental-plugin-fact-soundness/) | Accepted（WD1〜WD4を実装、PR #89；WD5は見送り） |
 | ADR-89 | [セマンティックな伝播ゲート: 宣言シェイプと観測キーの戻り値サマリー](89-semantic-propagation-gates/) | Accepted（WD1の宣言シェイプゲート＋WD2の戻り値サマリーゲートを実装、PR #90；gitlab 341→1） |
 | ADR-90 | [解析対象プロジェクトのバンドルからのターゲットライブラリ解決](90-target-library-resolution-from-project-bundle/) | Accepted（2026-07-16に実装；WD1〜WD3が着地） |
 | ADR-91 | [Kernel組み込み畳み込みの所有権ゲート＋綴りパリティ不変条件](91-kernel-intrinsic-fold-ownership-gate/) | Accepted（2026-07-16に実装、WD1〜WD4；コーパスゲートはバイト同一） |
 | ADR-92 | [規範的ステータスの忠実性: 創設期の地層とdeclare-or-markゲート](92-normative-status-fidelity/) | Accepted（2026-07-16にWD1〜WD5、2026-07-25にWD6を実装；void判定はオプションbで解決） |
-| ADR-93 | [デフォルトのrbs-inline取り込み: ADR-32のオプトインとalways-parse仕様の調停](93-default-rbs-inline-ingestion/) | Accepted（WD5のエンジンアンカーな同梱プラグイン解決を2026-07-19に追加、スライスはキュー入り） |
-| ADR-94 | [インラインRBSリーダー: `RBS::InlineParser`とrbs 3.xの下限](94-rbs-inline-reader-and-the-rbs-3x-floor/) | Accepted（移行は見送り；rigor-rbs-inlineがリーダーのまま） |
+| ADR-93 | [デフォルトのrbs-inline取り込み: ADR-32のオプトインとalways-parse仕様の調停](93-default-rbs-inline-ingestion/) | Accepted（WD1〜WD3を実装；WD5のエンジンアンカーな解決を2026-07-19に追加；WD6を2026-09-08に追加） |
+| ADR-94 | [インラインRBSリーダー: `RBS::InlineParser`とrbs 3.xの下限](94-rbs-inline-reader-and-the-rbs-3x-floor/) | Accepted（移行は見送り；rigor-rbs-inlineがリーダーのまま；先送りの前提はADR-32によって反駁 ── rbs-inlineはすでにrbs ~> 4.0を要求） |
 | ADR-95 | [Homebrew配布: シングルバイナリの後ろに先送り](95-homebrew-tap-deferral/) | Proposed（先送り、トリガーゲート付き；未実装） |
-| ADR-96 | [プラグインのターゲットgem宣言、プラグインギャップ勧告、存在ゲート付きアンブレラ拡張](96-plugin-target-gems/) | Accepted（WD1〜WD2をコミット；WD3のアンブレラ拡張はProposed） |
+| ADR-96 | [プラグインのターゲットgem宣言、プラグインギャップ勧告、存在ゲート付きアンブレラ拡張](96-plugin-target-gems/) | Accepted（WD1〜WD2を実装；アンブレラ拡張はProposed） |
 | ADR-97 | [索引エントリーはサマリーではない: ADR索引のバジェットとそのゲート](97-adr-index-budgets/) | Accepted（2026-07-17に実装；両方のADR索引を宣言された契約まで圧縮し、`spec/docs/agent_index_spec.rb`でゲート） |
 | ADR-98 | [開発フロー文書の役割: ハンドオフ、issue、changelog](98-development-flow-document-roles/) | Accepted（2026-07-17に実装；バックログをGitHub Issuesへ移行、`ROADMAP.md`を解消、ハンドオフに上限を設けてゲート） |
 | ADR-99 | [設定スキーマは信頼できる情報源である: `.rigor.yml`のティアと予約パイプライン](99-config-schema-authority/) | Accepted（2026-07-17に実装；スキーマを信頼できる情報源と定め、`rigor_rs:`を予約、ネスト＋予約＋URLのゲートを追加） |
-| ADR-100 | [`static.*`診断ファミリーの形状と`void_origins`サイドテーブル](100-static-diagnostic-family-and-void-origins/) | Accepted（directスライスを出荷；WD4の推移的な設計を2026-07-19に追加、スライスはキュー入り；バジェットidは見送り） |
+| ADR-100 | [`static.*`診断ファミリーの形状と`void_origins`サイドテーブル](100-static-diagnostic-family-and-void-origins/) | Accepted（directスライスを出荷；WD4の推移的なケースはVoidTailSummaryとして2026-07-19に出荷；バジェットidは見送り） |
 | ADR-101 | [分岐の削除は楽観的にnilフリーとされたキャリアに依拠してはならない](101-optimistic-carrier-branch-elision/) | Accepted（2026-08-06に実装；コーパス2,060判定のうち47件に影響、診断は両方向でバイト単位一致） |
-| ADR-102 | [未使用コードの到達可能性レポートは診断ではなくレポートである](102-unused-code-reachability-report/) | Proposed（`rigor unused`のスライス群のための決定;8つの作業上の決定はすべて確定） |
-| ADR-103 | [エフェクトラベル: オプトインの、スナップショット優先のエフェクトシステム](103-effect-labels/) | Proposed（設計ノートは2026-08-16に着地;何も実装されていない;Proposedの時点で4項目が未決） |
+| ADR-102 | [未使用コードの到達可能性レポートは診断ではなくレポートである](102-unused-code-reachability-report/) | Accepted（`rigor unused`はv0.3.4で出荷；8つの作業上の決定はすべて確定；ADR-21 Track 3を部分的に置き換え） |
+| ADR-103 | [エフェクトラベル: オプトインの、スナップショット優先のエフェクトシステム](103-effect-labels/) | Accepted（エフェクトシステムはv0.3.4のヘッドラインとして出荷；#376の下で18件中13件の実装issueをクローズ） |
 | ADR-104 | [エフェクトサーフェスのためのブートスリムプローブ](104-effects-boot-slim-probe/) | Accepted（レポートとスナップショットの動詞について、#482のエントリー分割とともに実装済み） |
-| ADR-105 | [PRの着地フロー: 逐次マージとchangelogフラグメント](105-pr-landing-flow/) | Accepted（`changelog.d/`の機構＋ゲートがADRとともに着地;規範はAGENTS.mdに） |
+| ADR-105 | [PRの着地フロー: 逐次マージとchangelogフラグメント](105-pr-landing-flow/) | Accepted（`changelog.d/`の機構＋ゲートがADRとともに着地；逐次着地の規範はAGENTS.mdのDraft規律によって部分的に置き換え、#814） |
 | ADR-106 | [スペックスイートのminitestへの移行](106-minitest-migration/) | Accepted（却下——スイートはRSpecのまま;再評価トリガーを記録） |
 | ADR-107 | [Rigor自身のツリーにおけるチェック対象の型と型記述のないコメント](107-checked-types-and-typeless-comments/) | Accepted（#822でコーパス書き換え＋契約＋G1ゲート；#827でG2 `--fail-on=warning`；#835でG3 `sig/`来歴） |
 | ADR-108 | [エージェントのための型の来歴: `rigor-type-oracle`スキルと導入プロジェクトの契約](108-type-provenance-for-agents/) | Accepted（#826でスキル、`rigor-project-init`契約段落、カタログ配線が着地；ADR-107はそのリポジトリ側の双子） |
@@ -147,8 +147,8 @@ sidebar:
 
 ## 他のドキュメントとの関係
 
-- **`docs/types.md`** — 型仕様のクイックガイド。ADR-1と`docs/types.md`が同じ領域を論じているとき、*アナライザーが何をするか*については`docs/types.md`が権威を持ち、*なぜそうするか*についてはADR-1が権威を持ちます。
-- **`docs/type-specification/`** — 規範的な型仕様。トピックごとのドキュメントに分割されています。
+- **`docs/type-specification/`** — 規範的な型仕様。トピックごとのドキュメントに分割されています（索引: `docs/type-specification/README.md`）。ADRと仕様ドキュメントが同じ領域を論じているとき、*アナライザーが何をするか*については仕様が権威を持ち、*なぜそうするか*についてはADRが権威を持ちます。
+- **`docs/types.md`** — 型モデルの参考用クイックガイド。何も束縛しません。
 - **`docs/internal-spec/`** — アナライザー内部の契約（contract）（エンジンサーフェス（surface）、型オブジェクトの公開API）。
 - **`docs/handbook/`** — エンドユーザー向けハンドブック。静的型付けの予備知識を持たないRubyプログラマー向けに書かれています。
 - **`AGENTS.md`** — このリポジトリで作業するエージェント向けの開発契約。

@@ -3,14 +3,14 @@ title: "ADR-51 — CIネイティブな診断出力フォーマット"
 description: "rigortype/rigor docs/adr/51-ci-diagnostic-output-formats.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/51-ci-diagnostic-output-formats.md"
 sourcePath: "docs/adr/51-ci-diagnostic-output-formats.md"
-sourceSha: "913bc760194ab10d484a0a224652707189b382a42b40108497c20cbb28baf8e7"
-sourceCommit: "d88effcae8b2998d1f4f40432e6d4f20ce17946e"
+sourceSha: "edbb739cdc20c169875e7206675b3b972f26e331a7a2cb98d4c9cbf4481b6244"
+sourceCommit: "db7b23d42e9b47560438b67dfe16d53e03f70575"
 translationStatus: "translated"
 sidebar:
   order: 4051
 ---
 
-ステータス: **Accepted、2026-06-06；部分的に実装済み（v0.1.18）**。 既存の診断ストリームの6つのCIネイティブなレンダリングが`rigor check --format`の背後で実装される。**`sarif`**（SARIF 2.1.0、クロスプラットフォームのアンカー）、**`github`**（GitHub Actionsのワークフローコマンド）、**`gitlab`**（GitLab Code QualityレポートJSON）、**`checkstyle`**（Checkstyle XML——reviewdog／Jenkinsのリント相互交換フォーマット）、**`junit`**（JUnit XML——広く使われるテストレポートフォーマット）、**`teamcity`**（TeamCityのインスペクションサービスメッセージ）の6つだ。それぞれは`--format json`がすでに公開している同じ`Analysis::Diagnostic`フィールドの上に乗るプレゼンテーション層であり、新しい解析も新しい診断情報もない。フォーマットに加えて、**ランタイムCI自動検出**（WD7）が、ファーストクラスのCIを検出したときにデフォルト出力へプラットフォームネイティブな形を自動的に出力する。フォーマッタとディテクターは[`lib/rigor/cli/diagnostic_formats.rb`](https://github.com/rigortype/rigor/blob/master/lib/rigor/cli/diagnostic_formats.rb)＋[`lib/rigor/ci_detector.rb`](https://github.com/rigortype/rigor/blob/master/lib/rigor/ci_detector.rb)に置かれる。コピー&ペースト用のCIセットアップテンプレート（ADR-27 § WD3）、同梱の[`rigor-ci-setup`](https://github.com/rigortype/rigor/blob/master/skills/rigor-ci-setup/SKILL.md)スキル、そしてマニュアルの更新が同じカットで出荷される。
+ステータス: **Accepted、2026-06-06；v0.1.18で実装済み**——`teamcity`と`junit`を含め、以下のすべてのフォーマットが`CLI::DiagnosticFormats::FORMATS`で出荷されている。既存の診断ストリームの6つのCIネイティブなレンダリングが`rigor check --format`の背後で実装される。**`sarif`**（SARIF 2.1.0、クロスプラットフォームのアンカー）、**`github`**（GitHub Actionsのワークフローコマンド）、**`gitlab`**（GitLab Code QualityレポートJSON）、**`checkstyle`**（Checkstyle XML——reviewdog／Jenkinsのリント相互交換フォーマット）、**`junit`**（JUnit XML——広く使われるテストレポートフォーマット）、**`teamcity`**（TeamCityのインスペクションサービスメッセージ）の6つだ。それぞれは`--format json`がすでに公開している同じ`Analysis::Diagnostic`フィールドの上に乗るプレゼンテーション層であり、新しい解析も新しい診断情報もない。フォーマットに加えて、**ランタイムCI自動検出**（WD7）が、ファーストクラスのCIを検出したときにデフォルト出力へプラットフォームネイティブな形を自動的に出力する。フォーマッタとディテクターは[`lib/rigor/cli/diagnostic_formats.rb`](https://github.com/rigortype/rigor/blob/master/lib/rigor/cli/diagnostic_formats.rb)＋[`lib/rigor/ci_detector.rb`](https://github.com/rigortype/rigor/blob/master/lib/rigor/ci_detector.rb)に置かれる。コピー&ペースト用のCIセットアップテンプレート（ADR-27 § WD3）、同梱の[`rigor-ci-setup`](https://github.com/rigortype/rigor/blob/master/skills/rigor-ci-setup/SKILL.md)スキル、そしてマニュアルの更新が同じカットで出荷される。
 
 根拠: [ADR-27](../27-tool-distribution-model/)（配布／CIチャネル——このADRはその診断出力の兄弟だ）と[ADR-50](../50-release-engineering-and-stability-strategy/) WD1（新しい出力フォーマットは公開契約サーフェスである）。
 
@@ -93,7 +93,7 @@ PHPStanの`CiDetectedErrorFormatter`（`OndraM/ci-detector`を使う）をモデ
 | SARIFのみ（GitHub/GitLabを先送り） | 却下 | SARIFはゼロフリクションの両経路（アップロードなしのGitHubアノテーション；GitLab唯一のMRサーフェス）をテーブルに残してしまう——WD1。 |
 | `--output FILE`フラグ | 先送り | `>`リダイレクトがファイル出力をカバーする。このフラグは契約への影響がない加算的なエルゴノミクスであり、需要に応じて追加できる。 |
 | reviewdogネイティブの`rdjson`／`rdjsonl` | 先送り | reviewdogは出荷済みの`sarif`*と*`checkstyle`をすでに消費するので、それなしでもレポーターマトリクス全体に到達できる。`rdjson`の追加ペイロードはコードサジェスチョン＋複数行レンジだが——Rigorは今日どちらも生成しない。Rigorがfix-itを獲得したら再検討する。 |
-| TeamCityサービスメッセージ | 先送り | PHPStanは`teamcity`を出荷する；Rigorでは需要にゲートされる（TeamCityユーザーが観測されていない）。 |
+| TeamCityサービスメッセージ | 同じカットで出荷 | もともとは需要にゲートされていた（TeamCityユーザーが観測されていない）；他の5つのフォーマットと並んで実装された。 |
 | リッチなSARIFルールメタデータ（`shortDescription`、`helpUri`） | 先送り | IDのみの`tool.driver.rules`は妥当なSARIFであり、フォーマッタを`CheckRule`レジストリに結合させずに済む；GitHub SecurityタブのUXが要求したら拡充する。 |
 | 終了コードモード（例: レポートモードでは常に0） | 却下 | ゲートをグリーンにしたいコンシューマーは`continue-on-error`／`if: always()`を使う；それをフォーマットに焼き込むと、プレゼンテーションをゲーティングポリシーに結合させてしまう。 |
 

@@ -1,11 +1,11 @@
 ---
-title: "ADR-30 — `rigor-ffi`プラグインの形状"
+title: "ADR-30 — `rigor-ffi`プラグイン形状"
 description: "rigortype/rigor docs/adr/30-rigor-ffi-plugin-shape.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/30-rigor-ffi-plugin-shape.md"
 sourcePath: "docs/adr/30-rigor-ffi-plugin-shape.md"
-sourceSha: "a95d3aac31300db20d7b28665b1bf34a3eeec1bfc8d0a84e9889f30024af36a6"
-sourceCommit: "2a65ec8e52462c931fbfec94df68a18139259a43"
-sourceDate: "2026-09-03T22:06:38+09:00"
+sourceSha: "cea7871e912593b8992db79d34012fa4836338a5e6e0bf1623196329fa589900"
+sourceCommit: "db7b23d42e9b47560438b67dfe16d53e03f70575"
+sourceDate: "2026-09-10T04:08:30+09:00"
 translationStatus: "translated"
 sidebar:
   order: 4030
@@ -93,7 +93,7 @@ nominalキャリアは[ロバストネス原則](../../type-specification/robust
 - **入力** — nominalエイリアスとして宣言されたパラメータは`Nominal[<alias>] | FFI::Pointer | Integer | nil`を受け付ける（後2つはより広いFFIキャリア;`Integer`はWD7に従いffxケースをカバー）。
 - **戻り値** — nominalエイリアスとして宣言された戻り値型は厳密な`Nominal[<alias>]`のまま。
 
-プロジェクトごとの`.rigor.yml`例外リスト（`rigor_ffi: { nominal_typedef_exceptions: ["log_target_ptr"] }`）でプロジェクトがヒューリスティックが誤発火した場合にtypedefを透明に戻せる。
+プロジェクトごとの`.rigor.yml`例外リスト（プラグイン独自の`config_schema`で宣言された`exceptions:`キー、例: `plugins: [{gem: rigor-ffi, config: {exceptions: ["log_target_ptr"]}}]`）により、ヒューリスティックが誤発火した場合にプロジェクトがtypedefを透過的に戻すことができる。
 
 **却下された代替案**。常にnominal: 精度最大だがドキュメントのみの目的でtypedefを使うgemでFP発生リスク。`typedef`呼び出し自体へのオプトインキーワード: `ffi` gemの呼び出し形状を変更する必要があり、それはrigorが越えられないAPI境界を越えることになる。
 
@@ -118,7 +118,7 @@ ffx検出は3つのソースをトップダウンでカスケードする:
 
 1. **プロジェクト`extconf.rb`スキャン**。いずれかの`ext/**/extconf.rb`にリテラルの`FFX.create_makefile`呼び出しが含まれれば、プロジェクトをffxターゲットとみなす。バンドラー依存なしの単一ファイルチェックで、標準的なsqliteffxパターンを処理する。
 2. **`Gemfile.lock`依存スキャン**。`ffx`が解決済み依存として現れれば、プロジェクトをffxターゲットとみなす。`BundleSigDiscovery`（v0.1.5）にすでに存在するバンドラー解析パスを再利用する。
-3. **明示的設定**。`.rigor.yml`で`rigor_ffi: { target: ffx }`を設定して検出を強制できる。最終手段、`extconf.rb`も`Gemfile.lock`も信頼できない環境のために存在する。
+3. **明示的設定**。`.rigor.yml`で`config_schema`宣言された`target:`キー（`plugins: [{gem: rigor-ffi, config: {target: ffx}}]`）を設定して検出を強制できる。最終手段、`extconf.rb`も`Gemfile.lock`も信頼できない環境のために存在する。
 
 検出結果はプロジェクトコンテキストレベルでキャッシュされる（ADR-6のキャッシュ無効化ルールに従い、関連入力ファイルが変更されたときにクリアされる）。
 

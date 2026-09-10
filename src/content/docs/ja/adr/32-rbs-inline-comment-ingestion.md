@@ -3,9 +3,9 @@ title: "ADR-32 — オプトインプラグインとしてのインラインRBS�
 description: "rigortype/rigor docs/adr/32-rbs-inline-comment-ingestion.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/32-rbs-inline-comment-ingestion.md"
 sourcePath: "docs/adr/32-rbs-inline-comment-ingestion.md"
-sourceSha: "fcacb28a5cd9713a24878f911f57e0bacc46e64e7864e54ede45cd1ecfc8ff2b"
-sourceCommit: "04668e5f0d6205fdd5c8f44662041add7ab33ca3"
-sourceDate: "2026-09-08T23:14:37+09:00"
+sourceSha: "0e9b60128a63cd11038c7e57a0289f9cac5add69e60085c36f5dd60704261e45"
+sourceCommit: "db7b23d42e9b47560438b67dfe16d53e03f70575"
+sourceDate: "2026-09-10T04:47:52+09:00"
 translationStatus: "translated"
 sidebar:
   order: 4032
@@ -85,6 +85,8 @@ end
 
 ### WD2 — 上流の`# rbs_inline: enabled`マジックコメントを尊重する
 
+> **[ADR-93](../93-default-rbs-inline-ingestion/#relationship-to-other-adrs)（2026-07-18）により部分的に置き換え**。ADR-93 WD1はプラグインのデフォルト配線を反転させ——`rbs-inline`が解決可能であればどこでも自動ロードされ、存在チェック付きの`enabled: false`でオプトアウトできる——その「他のADRとの関係」セクションで「WD2のデフォルトとオプトイン有効化は採択時に置き換えられる」と明示している。その反転によってもWD2のファイルごとのマジックコメントゲート自体は変更されず、アクティブなプラグイン内でどのファイルが合成されるかを引き続き制御する。
+
 プラグインは最初の非空白行に`# rbs_inline: enabled`を含むファイルに対してのみRBSを合成する。マジックコメントのないファイルは手つかずに通過する。
 
 - 上流rbs-inlineとのスペック整合性: 同じファイルをソース変更なしでどちらのツールへの入力としても有効。
@@ -125,6 +127,8 @@ rbs-inlineがプロジェクトファイルでパースエラーを発生させ�
 
 ### WD10 — ホストコンテキストオーバーライド: `require_magic_comment:`プラグイン設定
 
+> **[ADR-93 WD1](../93-default-rbs-inline-ingestion/#wd1--the-magic-comment-free-mode-gates-on-annotation-presence-then-becomes-the-default)（2026-07-18、[#186](https://github.com/rigortype/rigor/pull/186)）により部分的に置き換え**。以下に記録された`require_magic_comment: true`のデフォルトは反転された: プラグインのデフォルトは現在アノテーション存在ゲートモードであり、`require_magic_comment: true`は設定1行でこのWDの元の挙動へと戻すエスケープハッチである。キーとそのホストコンテキストオーバーライドメカニズムはそれ以外は変更されていない。
+
 プラグインは単一のboolean設定キー**`require_magic_comment:`**（デフォルト`true`、これはWD2をそのまま通常の`.rigor.yml`駆動プロジェクトに対して保持する）を公開する。分析スコープ全体を所有するホストコンテキストは`false`に設定でき、その場合シンセサイザーが見るすべてのファイルはマジックコメントを持つかのように扱われ、先頭のファイルチェックはない。
 
 **ADR-29プレイグラウンドはこれを`false`に設定する**ことで、`# @rbs`形コメントを持つ貼り付けスニペットがユーザーが`# rbs_inline: enabled`を入力することなく解析される。プレイグラウンドは単一バッファの単一リクエストの探索サーフェスであり、WD2が緩和しようとしている複数ファイルプロジェクトの摩擦（他のファイルが誤ってオプトインされる）が存在しない。
@@ -143,7 +147,7 @@ rbs 4.0は`rbs` gemに組み込まれた`RBS::InlineParser`を出荷し、rbs 4.
 - **`class << self`がサイレントに誤帰属される**。組み込みパーサは内側の`def`を診断ゼロで**インスタンス**メソッドとして宣言する。これは機能の欠落ではなく、環境へ注入される誤ったファクトだ: 実在するシングルトンメソッドへの呼び出しが`call.undefined-method`の偽陽性になり、捏造されたインスタンスメソッドが本物の診断を抑制する。[ADR-5](../5-robustness-principle/)は偽陽性を最悪ケースの静的な読みより上位に置いており、ADR-93のデフォルト配線は`rbs-inline`が解決するすべてのユーザーがこれを抱え込むことを意味する。
 - **4つの構文が失われる**: `@rbs generic T`（型パラメータが落ちる）・`@rbs!`の埋め込みRBS・`@rbs inherits`・メソッド可視性。いずれも組み込みパーサに端的に拒否される。
 - **この問いのきっかけになった機能は差ではない**。`def self.`のシングルトン定義と`class`/`module`下の`# @rbs @ivar: T`は両者で同一に扱われる。`module-self`は両者がサポートするが、**非互換な綴り**で —— WD12を参照。
-- **rbsのフロアは障害ではない**。[ADR-94](../94-rbs-inline-reader-and-the-rbs-3x-floor/)の隣接する問いとは違い、`rbs-inline`自身が`rbs (~> 4.0)`を要求するので、ADR-93の自動配線が有効化しうるユーザーはすでに全員4.x上にいる。
+- **rbsのフロアは障害ではない**。[ADR-94](../94-rbs-inline-reader-and-the-rbs-3x-floor/)の隣接する問いとは違い、`rbs-inline`自身が`rbs (~> 4.0)`を要求するので、ADR-93の自動配線が有効化しうるユーザーはすでに全員4.x上にいる。**ADR-94を部分的に置き換え**: その「移行にはrbs 3.xフロアのコストがかかる」という延期の前提は成り立たない——そもそもフロアはこのgemを維持していた理由ではない。
 - **移行は差し替えではなく書き直しになる**。組み込みパーサには`opt_in:`のマジックコメントモードがなく（WD2 / WD10に対応物がない）、アノテーション存在プローブもなく（ADR-93のゲーティングを作り直すことになる —— そしてそのゲーティングは効いている: ゲートなしのモードはmailで26 → 42診断と実測された）、テキストライターもない。RBSソースではなく`Environment#add_source`向けの宣言を返すからだ。最後の点はこのADRのレンダリングして再パースする経路より恐らく優れているが、それはまったく別の統合である。
 
 **再検討のための同等性の基準**: `RBS::InlineParser`におけるgenerics・`@rbs!`・正しい`class << self`の扱い。3つ目は機能ではなく前提条件だ —— それが成り立つまで、組み込みパーサの採用は偽陰性を偽陽性と交換することになる。

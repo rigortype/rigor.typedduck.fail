@@ -3,8 +3,9 @@ title: "ADR-105 — PRの着地フロー: 逐次マージとchangelogフラグ�
 description: "rigortype/rigor docs/adr/105-pr-landing-flow.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/105-pr-landing-flow.md"
 sourcePath: "docs/adr/105-pr-landing-flow.md"
-sourceSha: "e01d5a2abaa71c9e7c1f2031001481bdd4f1058637ad519e07fc82bebbea2dda"
-sourceCommit: "8e1432f5ada5240b33f140cb2024e6025450b2f9"
+sourceSha: "49ee642afa5e78e7d5167c38066ec7be57bdca687cbaba11eb21725fed57b710"
+sourceCommit: "db7b23d42e9b47560438b67dfe16d53e03f70575"
+sourceDate: "2026-09-10T04:47:52+09:00"
 translationStatus: "translated"
 sidebar:
   order: 4105
@@ -24,6 +25,9 @@ sidebar:
 原因ごとに1つずつ、2つの規則。
 
 **1. 逐次着地（直列のケース）**。逐次に監査される変更を生むセッションは、各PRをそのゲートが通った時点で（`make verify`、該当する場合はコーパスのゲート、CIがグリーン）ただちに着地させる——マージを試み、拒否されたらキューに積むのではなくただちに表面化させる。次のブランチはマージ後の`master`から分岐する;そのマージのCIは次の項目の開発と重なる。*判定基準: バッチ化とスタックは、ユーザーが1つの集合として裁定しなければならない変更のために取っておく;先送りはスタックと兄弟どうしの衝突を製造する。*
+
+> **`AGENTS.md` §「Commit and PR Etiquette」（[PR #788のポストモーテム](../../notes/20260908-pr-788-draft-discipline-postmortem/)を受けて、2026-09-08に[#814](https://github.com/rigortype/rigor/pull/814)により改訂）によって部分的に置換される**。
+> 「ゲートを通過したら即座に」は、もはや無条件に「マージを試みる」ことを意味しない: すべてのPRは現在Draftとして作成され、ユーザーの明示的なチャット指示による`gh pr ready`までDraftのままとどまる。また、別のセッションが開いたPRはそのゲート状態にかかわらずマージ禁止である。上記のゲートグリーン基準およびアンチスタッキングの論拠は影響を受けない; #788が停止指示の下でマージされた後、#814が追加したDraft + 所有権ゲートを獲得したのは「マージを試みる」ステップのみである。
 
 **2. changelogのフラグメント（並行のケース）**。`[Unreleased]`のエントリーは、新しいファイル`changelog.d/<section>/<slug>.md`として着地する——既存のエントリーの文法（サブシステムのラベル、完全なPRのリンク）による1行の箇条書きであり、セクションはサブディレクトリによって符号化される（Keep a Changelogの6つの型を小文字化したもの）。リリース準備がフラグメントを`[Unreleased]`へ統合し、カットの時点でそれらを削除する;`CHANGELOG.md`そのものはリリース準備によってのみ書かれる。*判定基準: すべてのPRが追記しなければならないファイルは、ローカルのマージドライバに関係なくGitHub上の直列化点である——PRごとの追記を、衝突しえないPRごとのファイル追加へ変換する。*
 

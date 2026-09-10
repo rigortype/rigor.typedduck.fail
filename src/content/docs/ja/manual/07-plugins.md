@@ -3,8 +3,8 @@ title: "プラグインの使用"
 description: "rigortype/rigor docs/manual/07-plugins.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/07-plugins.md"
 sourcePath: "docs/manual/07-plugins.md"
-sourceSha: "02c0a3c520ecbcb4cf58b754e8f0e13180e9010f83a2516d0a9f293a5778cfc1"
-sourceCommit: "2a65ec8e52462c931fbfec94df68a18139259a43"
+sourceSha: "d6bf1563a4bee37408f259fa67e2f3354da78ce5ef5bfbb6f0ff15c59c30be37"
+sourceCommit: "db7b23d42e9b47560438b67dfe16d53e03f70575"
 sourceDate: "2026-09-04T16:47:48+09:00"
 translationStatus: "translated"
 sidebar:
@@ -54,12 +54,12 @@ Rigorは[`plugins/`](https://github.com/rigortype/rigor/blob/master/plugins/READ
 
 ### 隔離戦略
 
-いくつかのプラグインは、ターゲットライブラリを直接呼び出します（たとえば、ActiveSupportの実際のinflectorにクラス名の複数形化を尋ねるなど）。その呼び出しは**隔離戦略（isolation strategy）**のもとで実行され、`RIGOR_PLUGIN_ISOLATION`環境変数で設定します:
+いくつかのプラグインは、ターゲットライブラリを直接呼び出します（たとえば、ActiveSupportの実際のinflectorにクラス名の複数形化を尋ねるなど）。その呼び出しは**隔離戦略（isolation strategy）**のもとで実行され、`plugins_isolation:`設定キーまたは`RIGOR_PLUGIN_ISOLATION`環境変数で設定します:
 
 | 値 | 振る舞い |
 | --- | --- |
 | `process`（デフォルト） | 呼び出しをフォークされたクラッシュ隔離ワーカーで実行し、ターゲットライブラリのモンキーパッチやあらゆるクラッシュがRigorを汚染しないようにします。`fork`が利用できない環境（Windows / JRuby）では`none`にフォールバックします。 |
 | `none` | ライブラリをRigor自身のプロセスに読み込み、直接呼び出します。 |
-| `ruby_box` | 実験的な`Ruby::Box`サンドボックス内で実行します。これには`RUBY_BOX=1`起動フラグが必要なので、この戦略を選ぶと`rigor`ランチャーはそのフラグを設定して自身を再実行（re-exec）します。 |
+| `ruby_box` | 実験的な`Ruby::Box`サンドボックス内で実行します。これには`RUBY_BOX=1`起動フラグが必要なので、この戦略を選ぶと`rigor`ランチャーはそのフラグを設定して自身を再実行（re-exec）します。**環境変数限定** —— 設定ファイルはRubyが起動したずっと後に読み取られるため、`plugins_isolation: ruby_box`は代わりに設定エラーとして報告されます。 |
 
-レガシーの`RIGOR_BOX`環境変数は、`RIGOR_PLUGIN_ISOLATION=ruby_box`への後方互換エイリアスです。デフォルト（`process`）はほぼすべての人にとって正しい選択です。この変数は、フォークが利用できない稀なプラットフォームや、より強い封じ込めが欲しい場合のために存在します。
+環境変数は`plugins_isolation:`よりも優先されるため、コミットされたプロジェクトの選択を1回の呼び出しに対してオーバーライドできます。レガシーの`RIGOR_BOX`環境変数は、`RIGOR_PLUGIN_ISOLATION=ruby_box`への後方互換エイリアスです。デフォルト（`process`）はほぼすべての人にとって正しい選択です。この変数は、フォークが利用できない稀なプラットフォームや、より強い封じ込めが欲しい場合のために存在します。

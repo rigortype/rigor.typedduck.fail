@@ -20,9 +20,9 @@ Status: **Accepted, 2026-09-08 — スライス1はこのADRとともに[#830](h
 
 インポートされた綴りは、それ自体の観点からも破綻していました:
 
-- **ラウンドトリップしない**。 `describe`は`int<0, max>`を出力しますが、文法は境界として整数リテラルしか受け入れないため、診断結果をシグネチャにコピーすると`dynamic.rbs-extended.unresolved`が発生します。ハンドブックとマニュアルでは入力形式として`int<min, max>`が文書化されていました。
+- **ラウンドトリップしない**。`describe`は`int<0, max>`を出力しますが、文法は境界として整数リテラルしか受け入れないため、診断結果をシグネチャにコピーすると`dynamic.rbs-extended.unresolved`が発生します。ハンドブックとマニュアルでは入力形式として`int<min, max>`が文書化されていました。
 - **`Float`に拡張できない**。境界キーワードとしての`min` / `max`は、Rubyistには`Float::MIN` / `Float::MAX`と読めますが、`Float::MIN`は最小の正の*正規化*倍精度浮動小数点数であり、何かの下限ではありません。また、Floatの区間には`..`と`...`がすでに表している閉区間／半開区間の区別が必要ですが、`int<a, b>`にはそのためのスロットがありません。仕様にある「将来の`finite-float`または非NaNの証明」を着地させる記法がありませんでした。
-- **Rubyがすでにセマンティクスを保有している**。 `Range#cover?`は、Float区間が引き起こすあらゆる困難なケース（NaN、±∞、`-0.0`、終端排他、非有界範囲）を判定します。そして`rand(0.0...1.0)`、`x.clamp(0.0..1.0)`、`case x in 1..9`は、Rubyプログラマーがまさにこれらの集合に対して使うイディオムです。エンジンはすでに`when 1...10`を`int<1, 9>`として読み取っています。
+- **Rubyがすでにセマンティクスを保有している**。`Range#cover?`は、Float区間が引き起こすあらゆる困難なケース（NaN、±∞、`-0.0`、終端排他、非有界範囲）を判定します。そして`rand(0.0...1.0)`、`x.clamp(0.0..1.0)`、`case x in 1..9`は、Rubyプログラマーがまさにこれらの集合に対して使うイディオムです。エンジンはすでに`when 1...10`を`int<1, 9>`として読み取っています。
 
 ## 決定
 
@@ -40,11 +40,11 @@ C[R]  =  { x | x.is_a?(C) && R.cover?(x) }
 
 **WD1 — Integerの正準形**。キャリアは閉じた境界を持つ`Type::IntegerRange`のままです。`Integer[a...b]`は`Integer[a..b-1]`に正規化されるため（Ruby: `(1...10).to_a == (1..9).to_a`）、表示は常に閉区間になります。欠落または`nil`の終端は記号的な無限大です。普遍的な範囲は`int`ではなく`Integer`と表示されます。ADR-1の4つのエイリアス`positive-int`、`non-negative-int`、`negative-int`、`non-positive-int`は入力名として残り、それらの範囲において優先される表示であり続けます。空の範囲（`Integer[5..1]`、`Integer[1...1]`）は、`bot`に解決されるのではなく、解決不能なペイロードとして**拒否（decline）**されます。すべての呼び出し元を暗黙にデッドコードにしてしまうタイポは、このリポジトリが最も警戒する偽陽性だからです。
 
-**WD2 — 文法の配置場所**。 `Builtins::ImportedRefinements::Parser`に`TypeNode::RangeLiteral`リーフが追加されます（値は`Range`オブジェクトそのものであるため、`begin` / `end` / `exclude_end?`の表現は1つになります）。`parse_single_type_arg_ast`は裸の整数の前に範囲の形状を試行します。リゾルバは、RBSの`Nominal`フォールバックの前に、単一の`RangeLiteral`引数を持つ`Integer`ヘッドを処理します（`Resolver#try_range_head_builder`）。他のヘッドの下では、リテラルは他のリーフリテラルと同様に`Constant<Range>`にリフトされるため、プラグインリゾルバ（[ADR-13](../13-typenode-resolver-plugin/)）がそれを消費できます。
+**WD2 — 文法の配置場所**。`Builtins::ImportedRefinements::Parser`に`TypeNode::RangeLiteral`リーフが追加されます（値は`Range`オブジェクトそのものであるため、`begin` / `end` / `exclude_end?`の表現は1つになります）。`parse_single_type_arg_ast`は裸の整数の前に範囲の形状を試行します。リゾルバは、RBSの`Nominal`フォールバックの前に、単一の`RangeLiteral`引数を持つ`Integer`ヘッドを処理します（`Resolver#try_range_head_builder`）。他のヘッドの下では、リテラルは他のリーフリテラルと同様に`Constant<Range>`にリフトされるため、プラグインリゾルバ（[ADR-13](../13-typenode-resolver-plugin/)）がそれを消費できます。
 
-**WD3 — 非推奨のエイリアス**。 `int<a, b>`は1つの非推奨期間にわたって文法に受け入れられ続けますが、二度と出力されることはありません。ADR-50 WD7の警告期間ステップは`dynamic.rbs-extended.deprecated-form`情報診断であり、書くべき`Integer[a..b]`の綴りを指名するアノテーション1行につき1件発行されます。削除は次の後方互換性破壊のタイミングで行われます。診断テキストは非契約であるため（ADR-50 § 決定3）、表示の変更はマイナーリリースで出荷されます。`int<`とマッチしていたメッセージモードのベースラインは再生成されます。
+**WD3 — 非推奨のエイリアス**。`int<a, b>`は1つの非推奨期間にわたって文法に受け入れられ続けますが、二度と出力されることはありません。ADR-50 WD7の警告期間ステップは`dynamic.rbs-extended.deprecated-form`情報診断であり、書くべき`Integer[a..b]`の綴りを指名するアノテーション1行につき1件発行されます。削除は次の後方互換性破壊のタイミングで行われます。診断テキストは非契約であるため（ADR-50 § 決定3）、表示の変更はマイナーリリースで出荷されます。`int<`とマッチしていたメッセージモードのベースラインは再生成されます。
 
-**WD4 — `Float[R]`（スライス2、設計）**。 `Type::FloatRange`キャリアは2つの倍精度浮動小数点数（±`Float::INFINITY`は通常の値であり、決して`nil`ではありません）と`exclude_end`を保持します。Rubyには排他的な開始点がないため、排他的なbeginはありません。終端はIntegerまたはFloatリテラル（`(0..1).cover?(0.5)`のようにIntegerは強制型変換されます）、`Float::INFINITY`、`-Float::INFINITY`、`Float::MAX`、`-Float::MAX`、または省略です。`(nil..nil).cover?(Float::NAN)`はtrueであるため、`Float[nil..nil]`は`Float`に正規化されます。他のすべての範囲は、`cover?`が比較を行うためNaNを除外します。人々が最も意図する範囲のために、2つの名前が予約されています:
+**WD4 — `Float[R]`（スライス2、設計）**。`Type::FloatRange`キャリアは2つの倍精度浮動小数点数（±`Float::INFINITY`は通常の値であり、決して`nil`ではありません）と`exclude_end`を保持します。Rubyには排他的な開始点がないため、排他的なbeginはありません。終端はIntegerまたはFloatリテラル（`(0..1).cover?(0.5)`のようにIntegerは強制型変換されます）、`Float::INFINITY`、`-Float::INFINITY`、`Float::MAX`、`-Float::MAX`、または省略です。`(nil..nil).cover?(Float::NAN)`はtrueであるため、`Float[nil..nil]`は`Float`に正規化されます。他のすべての範囲は、`cover?`が比較を行うためNaNを除外します。人々が最も意図する範囲のために、2つの名前が予約されています:
 
 | 名前 | 範囲 | 集合 |
 | --- | --- | --- |

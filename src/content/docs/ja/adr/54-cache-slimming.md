@@ -3,8 +3,8 @@ title: "ADR-54 — キャッシュのスリム化: definitions-blobの廃止、�
 description: "rigortype/rigor docs/adr/54-cache-slimming.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/54-cache-slimming.md"
 sourcePath: "docs/adr/54-cache-slimming.md"
-sourceSha: "5b00ba9d866f540245ffcb32b2999e77f5a6c28adb6dfafe8736d790a0fc2057"
-sourceCommit: "e3eb424c3c88035e453246710c8df3dc5cc8e7e1"
+sourceSha: "d94d375dedcdc13bfd6c739afd7417c96b86b92cd968c04cac4bce59350cbc05"
+sourceCommit: "db7b23d42e9b47560438b67dfe16d53e03f70575"
 translationStatus: "translated"
 sidebar:
   order: 4054
@@ -137,12 +137,15 @@ no-opにしていた。今日エントリー数がプロデューサーあたり
   あり、COWがそれを稀にする）。
 - **ステータスの波及:** ADR-7の§ Slice 6-Dは**部分的に置き換えられる** — 定義blobの
   半分が廃止される。env blobとクラスごとのディスクエントリーの棄却は立つ。ADR-6の
-  フォーマットバージョンポリシーがWD2のヘッダーbumpをカバーする。
+  フォーマットバージョンポリシーがWD2のヘッダーbumpをカバーする。ADR-6 § 5も**部分的に置換される**:
+  以下のWD3は、そのセクションが先送りしていた「将来のADR修正」を出荷する——256 MBの
+  デフォルトLRUエビクション上限であり、ADR-6が記録していたv0.0.8の無制限・エビクションなしの振る舞いを置き換える。
 
 ## 他のADRとの関係
 
 - **ADR-6** — ストレージバックエンド。WD2がbumpするバージョンバイトを持つオンディスク
-  フォーマットを所有する。その延期された「マシン横断の共有」の行は影響を受けない。
+  フォーマットを所有する。その延期された「マシン横断の共有」の行は影響を受けない。WD3は
+  その§ 5（v0.0.8でのエビクションなし）を256 MBのデフォルトLRU上限によって部分的に置換する。
 - **ADR-7** — slice 6-DはWD1によって部分的に置き換えられる（上記を参照）。
 - **ADR-15** — prewarm / Reflectionのeagerテーブル契約（フェーズ2b / 4b.x）がWD1の
   遅延 / eager分割における拘束的な制約である。

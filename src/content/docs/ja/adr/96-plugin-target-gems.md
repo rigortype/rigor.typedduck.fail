@@ -3,14 +3,15 @@ title: "ADR-96 — プラグインのtarget-gem宣言、プラグインギャッ
 description: "rigortype/rigor docs/adr/96-plugin-target-gems.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/96-plugin-target-gems.md"
 sourcePath: "docs/adr/96-plugin-target-gems.md"
-sourceSha: "f7085678e750ccc626d55c68fbf69704901c3eef10988278f9d1124877a9a444"
-sourceCommit: "78b18cea6a576475c92bce020535269f2eebc20d"
+sourceSha: "1e9a9f2c0e4e582fb3f2db0bab6072b6df4b051439792e5f794fbc7b7473986f"
+sourceCommit: "db7b23d42e9b47560438b67dfe16d53e03f70575"
+sourceDate: "2026-09-10T04:44:09+09:00"
 translationStatus: "translated"
 sidebar:
   order: 4096
 ---
 
-ステータス: **Accepted、2026-07-17**。WD1（`target_gems:`マニフェストフィールド）とWD2（プラグインギャップアドバイザリー）はコミット済みのスライス（slice）であり、**WD3（存在ゲート付きアンブレラ展開）は提案段階でWD2にゲートされている**——「なぜWD2がWD3に先立たねばならないか」を参照。WD5は`plugins/rigor-rails/`のステータスをその将来を決めずに確定させる。すなわち、死んだGemfileの枠組みは今すぐドキュメントから外すが、メタgem自体は残す。
+ステータス: **Accepted、2026-07-17。WD1およびWD2は2026-09-10に実装済み（#925）**。`target_gems:`はgemをモデル化する34個の同梱プラグインによって宣言された検証済みマニフェストフィールドであり、`Plugin::BundledCatalog`を通じて読み取られる; `rigor doctor`と`rigor skill describe`はギャップアドバイザリーを`Rigor::PluginGapAdvisory`経由でルーティングし、2つのRails専用定数テーブルは削除された。アドバイザリーは維持された`:fail`もそれらとともに一般化した: プロジェクトがRigorのモデル化するgemをロックし、かつそれらをモデル化するプラグインを**1つも**有効化していない場合に発火する——単一ではなくあらゆるフレームワークに対して記述された、従来のRailsの条件だ。**WD3（存在ゲート付きアンブレラ展開）は提案段階のまま**であり、その理由は後述の順序付けの論拠による。WD5は`plugins/rigor-rails/`のステータスをその将来を決めずに確定させる。すなわち、死んだGemfileの枠組みは今すぐドキュメントから外すが、メタgem自体は残す。
 
 コーパスに答えのない問いに促されたものである。すなわち、*次のRailsメジャーが`ActionFoobar`をコア機能として出荷し、Rigorが`rigor-actionfoobar`を追加したとき、既存のRailsプロジェクトはそれに気づく機会があるのか？* 今日それは気づけない——そして調査により、このギャップは仮想でもRails固有でもないことが判明した。
 
@@ -60,9 +61,11 @@ sidebar:
 
 これは公開プラグイン契約への追加であり、[ADR-50](../50-release-engineering-and-stability-strategy/) WD1のもとv1.0で凍結される。ADR-60自身の変更と同じ理由で、ADR-60のプレフリーズウィンドウ内に着地する。
 
-### WD2 — プラグインギャップアドバイザリー（コミット済みスライス）
+### WD2 — プラグインギャップアドバイザリー（実装済み）
 
-`rigor doctor`と`rigor skill describe`は、コピペ定数の代わりに`target_gems:`を読み、**プラグインごとに**報告する。すなわち、このgemはlockされている、このプラグインはそれのために存在する、それは`plugins:`に入っていない、と。Railsを超えて一般化するのは追加作業ではない——Rails固有のテーブルを削除した後に残るものそのものである。
+`rigor doctor`と`rigor skill describe`は、コピペ定数の代わりに`target_gems:`を読み、**プラグインごとに**報告する: このgemは依存関係である、このプラグインはそれのために存在する、それは`plugins:`に入っていない、と。Railsを超えて一般化するのは追加作業ではない——Rails固有のテーブルを削除した後に残るものそのものである。
+
+マッチングはロックファイルの`DEPENDENCIES`セクション——プロジェクトが選択したgem——に対して行われ、解決されたグラフに対して行われることは決してない。`minitest`、`i18n`、`activesupport`、`ffi`はほぼすべてのRailsロックで推移的であり、それらにアドバイスすると正しい設定に対して発火してしまうためだ。アンブレラgemへの直接の依存関係も、そのメンバーがモデル化する構成要素の代わりとなる（Railsアプリは`rails`を宣言し、決して`activerecord`を宣言しない）。これはアンブレラがたまたま何に解決されるかからではなく、アドバイザリー内の小さな明示的なテーブルから導かれる。
 
 深刻度は**`:fail`ではなく`:warn`**である。プラグインを採用しないことは正当な選択であり、選択がコマンドを永久に失敗させてはならない。`doctor`は`:fail`のときだけ非ゼロで終了する。*「フレームワークがlockされていて、そのプラグインのどれも有効化されていない」*ための既存の`:fail`は保たれる——それは真に未設定であり、今日の挙動である。
 

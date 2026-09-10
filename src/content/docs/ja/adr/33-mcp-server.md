@@ -1,10 +1,11 @@
 ---
-title: "ADR-33 — MCPサーバーパッケージング"
+title: "ADR-33 — MCPサーバーのパッケージング"
 description: "rigortype/rigor docs/adr/33-mcp-server.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/33-mcp-server.md"
 sourcePath: "docs/adr/33-mcp-server.md"
-sourceSha: "4805cbaf4e350630189dd416738855b85e8f2f05c7e61412cceb48f67cc75f32"
-sourceCommit: "a5d648b126d5ed7b1e04a16a87927bca7883e069"
+sourceSha: "38f55eaeebc810a63f44ac8ab5873f76940a5c5a50d5a45da864e0e238ec6f85"
+sourceCommit: "db7b23d42e9b47560438b67dfe16d53e03f70575"
+sourceDate: "2026-09-10T04:47:52+09:00"
 translationStatus: "translated"
 sidebar:
   order: 4033
@@ -60,6 +61,9 @@ ADR-0のゼロランタイム依存スタンスが拘束力を持つ。MCP stdio
 
 - `init`、`baseline`、`diff` — 書き込み側または副作用を持つコマンド。MCPツールは助言的であり、AIエージェントが開始するツール呼び出しでプロジェクトファイルツリーを変更することは適切ではない。
 - `lsp` — 別のプロトコルであり、ツールではない。
+
+> **ステータス（2026-09-10）: この分類は2026-05-27時点のCLIに基づき閉じられている**。
+> その後、`lib/rigor/cli.rb`の`HANDLERS`にはいくつかの読み取り専用動詞——`type-scan`、`effects`、`unused`（[ADR-102](../102-unused-code-reachability-report/)）、`describe`、`docs`、`doctor`——が追加されたが、いずれもMCPツールを持たず、上記の「除外」リスト（このWDが把握していた4つの書き込み側コマンドのみを依然として挙げている）にも記載されていない。これを完全なものとして扱う前に、現在のCLI動詞サーフェスに照らして7つのツールセットを再判定する必要がある。
 
 ### WD6 — `isError`はEXIT_USAGE（64）にマッピング、「解析が問題を見つけた」ではない
 

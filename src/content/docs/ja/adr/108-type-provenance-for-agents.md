@@ -3,8 +3,9 @@ title: "ADR-108 — エージェントのための型の来歴: `rigor-type-orac
 description: "rigortype/rigor docs/adr/108-type-provenance-for-agents.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/108-type-provenance-for-agents.md"
 sourcePath: "docs/adr/108-type-provenance-for-agents.md"
-sourceSha: "2fa6ff34d25de37a0c4b3be6cb22219adec144dd14307779386c8fdb2af0e324"
-sourceCommit: "04668e5f0d6205fdd5c8f44662041add7ab33ca3"
+sourceSha: "f6f354243015566e7ea9d6a4545e9bf2fa50c03d19178dc21e6c7a4e5f9370e7"
+sourceCommit: "db7b23d42e9b47560438b67dfe16d53e03f70575"
+sourceDate: "2026-09-10T04:39:46+09:00"
 translationStatus: "translated"
 sidebar:
   order: 4108
@@ -46,7 +47,7 @@ Rigorには昔からオラクルが存在していました。`rigor type-of FIL
 | アーム | 結果（n=5） |
 | --- | --- |
 | `AGENTS.md`に契約段落が存在する | **角括弧付きの`@param` / `@return`を書いたのは0/5**。逸脱は2件、いずれも`@raise`に関するもの: Opusは例外クラスを省略し、Qwenは`@raise [ArgumentError]`を書いた — これはソースが証明しているため（`raise ArgumentError`）、推測というよりは形式の逸脱 |
-| ルールが一切ない | **4/5が推測された型を書いた**。 Haiku、DeepSeek、Qwen: 型付きYARD（`currency [String]`、`currency [Object]`、`pattern [Regexp, String, nil]`、`at [Time]`）。Sonnet: rbs-inlineの`#:`シグネチャ（`(Regexp?) -> Array[[Numeric, String?, Time]]`）。Opus: 散文のみ |
+| ルールが一切ない | **4/5が推測された型を書いた**。Haiku、DeepSeek、Qwen: 型付きYARD（`currency [String]`、`currency [Object]`、`pattern [Regexp, String, nil]`、`at [Time]`）。Sonnet: rbs-inlineの`#:`シグネチャ（`(Regexp?) -> Array[[Numeric, String?, Time]]`）。Opus: 散文のみ |
 
 Sonnetの結果は極めて鋭利です。ADR-93の下では、これらの`#:`行は生きた契約として取り込まれ、`String`パターンも受け入れるAPIを暗黙のうちに狭めてしまいます — 次の読者が信頼するファイルの中で、推測が偽陽性ジェネレータになってしまうのです。
 
@@ -87,7 +88,7 @@ Rigor自身のリポジトリが最初の採用者です。そうでなければ
 
 ### WD2 — 3つの層と、なぜ契約段落が不可欠なのか
 
-調査がこれを浮き彫りにしました。**ラウンド2のどちらのアームでもスキルは読み込まれていませんでした**。 4/5の推測と0/5の推測の唯一の違いは、`AGENTS.md`内の1段落でした。
+調査がこれを浮き彫りにしました。**ラウンド2のどちらのアームでもスキルは読み込まれていませんでした**。4/5の推測と0/5の推測の唯一の違いは、`AGENTS.md`内の1段落でした。
 
 これは構造的なポイントであり、測定上のアーティファクトではありません: 契約ファイルは*タスクが知られる前に*、無条件にコンテキスト内に存在します — これは[ADR-97](../97-adr-index-budgets/) WD1が、`AGENTS.md`にインデックスではなく前提セットを担持させることを正当化するために使用したのと同じ特性です。スキルは構造上、条件付きです。あるタスクの内部の瞬間に発火することが任務であるルールにとって、機能するのは無条件のサーフェスであり、スキルは手順が必要だと分かった後にセッションが手を伸ばすものです。
 
@@ -107,7 +108,7 @@ Rigor自身のリポジトリが最初の採用者です。そうでなければ
 
 これは[ADR-14](../14-rbs-sig-generation/)の「ギャップこそがより価値のあるシグナルである」を一般化したものです: このリポジトリ内の`.rbs`ファイルから、あらゆるプロジェクトで型が書かれ得るすべてのサーフェスへと。決して抑制しないという半分は、[ADR-57](../57-self-call-return-adoption/)の裁定姿勢です — 発火を分類し、根本で修正し、迂回しない。
 
-**持ち越し**。 `rigor explain`は診断*ルール*のみを文書化します；`rigor explain sig.skipped.untyped-return`は`Unknown rule`と答えます。そのため、スキップ理由のテーブルは`references/03-gap-protocol.md`に存在しており、CLIが所有すべき識別子の2つ目の居場所となっています。小さなフォローアップ: `rigor explain`を`sig.skipped.*`識別子へと拡張するか、マニュアルに文書化すること。
+**持ち越し**。`rigor explain`は診断*ルール*のみを文書化します；`rigor explain sig.skipped.untyped-return`は`Unknown rule`と答えます。そのため、スキップ理由のテーブルは`references/03-gap-protocol.md`に存在しており、CLIが所有すべき識別子の2つ目の居場所となっています。小さなフォローアップ: `rigor explain`を`sig.skipped.*`識別子へと拡張するか、マニュアルに文書化すること。**クローズ（[#936](https://github.com/rigortype/rigor/issues/936)）:** `rigor explain`はスキップ理由のための第2のカタログを保持し、分類器が生成し得るすべてのidに応答できるようにゲートされている。
 
 ### WD5 — 来歴は回答とともに移動する
 

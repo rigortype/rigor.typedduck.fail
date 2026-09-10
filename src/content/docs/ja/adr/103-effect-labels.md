@@ -3,14 +3,15 @@ title: "ADR-103 — エフェクトラベル: オプトインの、スナップ�
 description: "rigortype/rigor docs/adr/103-effect-labels.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/103-effect-labels.md"
 sourcePath: "docs/adr/103-effect-labels.md"
-sourceSha: "513a466cf4568b6d4a404a373d01fbf27a6dd6d31f71746c9bf921eecc4dad04"
-sourceCommit: "bed65a462b04db02312f208b9dda2dda3a26ef13"
+sourceSha: "28b0924ea5f5e6cefc753333b53db85d728dc7655cd49ce404ab7667689cd50b"
+sourceCommit: "db7b23d42e9b47560438b67dfe16d53e03f70575"
+sourceDate: "2026-09-10T04:39:46+09:00"
 translationStatus: "translated"
 sidebar:
   order: 4103
 ---
 
-ステータス: **Proposed、2026-08-16**。[`docs/design/20260816-effect-labels.md`](../../design/20260816-effect-labels/)（設計ノート;その§13が選択肢を列挙し、このADRがそれらを作業上の決定として固定する。`rigor check`との共存であるWD13は同日に追加;実装前の決定であるWD14と、v0.4.0の既定オン化の裁定とその前提条件であるWD15はどちらも2026-08-17に追加;その6つの前提条件のうち5つを解決するWD16は2026-08-22に追加——6つ目はリリース時に書かれるリリースノートの移行注記なので、v0.4.0より前に既定について何も変わらない;宣言レーンは決して判定されないと裁定し、それを強制するものとしてスナップショットゲートを名指すWD17は2026-08-24に追加）でエフェクトシステムを設計する際に到達した決定を記録する。2件が未決のまま残っており、どちらもビューのスライスまで先送りできる。実装はアンブレラ[#376](https://github.com/rigortype/rigor/issues/376)配下のGitHub issueとしてスライスされている（18本のトレーサーバレットスライス、#377〜#394;トラッカーの慣習: [ADR-98](../98-development-flow-document-roles/)）。
+ステータス: **Accepted、2026-08-16 — 実装済み;エフェクトシステムはv0.3.4の目玉（`rigor effects`、`rigor effects update`、`rigor effects check`）として出荷され、[#376](https://github.com/rigortype/rigor/issues/376)配下の18件の実装issueのうち13件がクローズされた**。[`docs/design/20260816-effect-labels.md`](../../design/20260816-effect-labels/)（設計ノート;その§13が選択肢を列挙し、このADRがそれらを作業上の決定として固定する。`rigor check`との共存であるWD13は同日に追加;実装前の決定であるWD14と、v0.4.0の既定オン化の裁定とその前提条件であるWD15はどちらも2026-08-17に追加;その6つの前提条件のうち5つを解決するWD16は2026-08-22に追加——6つ目はリリース時に書かれるリリースノートの移行注記なので、v0.4.0より前に既定について何も変わらない;宣言レーンは決して判定されないと裁定し、それを強制するものとしてスナップショットゲートを名指すWD17は2026-08-24に追加）でエフェクトシステムを設計する際に到達した決定を記録する。2件が未決のまま残っており、どちらもビューのスライスまで先送りできる。実装はアンブレラ[#376](https://github.com/rigortype/rigor/issues/376)配下のGitHub issueとしてスライスされている（18本のトレーサーバレットスライス、#377〜#394;トラッカーの慣習: [ADR-98](../98-development-flow-document-roles/)）。
 
 根拠: Steinsの実装済みモデル（[why-effects](https://github.com/rigortype/steins/blob/master/docs/why-effects.md)・[effects.md](https://github.com/rigortype/steins/blob/master/docs/type-specification/effects.md)・[phpdoc-effects-interop.md](https://github.com/rigortype/steins/blob/master/docs/type-specification/phpdoc-effects-interop.md)）、PHPStanのRFCドラフト（[20260812-issue-draft-effect-labels-spec.md](https://github.com/zonuexe/phpstan-notes/blob/master/generated-report/20260812-issue-draft-effect-labels-spec.md)）、そして2026-08-16に集めたリポジトリのファクト（設計ノート§14）——主なものは、Rigorがメソッドレベルの呼び出しグラフを持たないこと、`rigor:v1:pure`が仕様化されているが未実装であること、そして2026-07-15のPHPStanルール再調査が推論による純粋性ルールを高FPとして却下したこと（[`docs/notes/20260715-phpstan-rules-survey-rigor-reevaluation.md`](../../notes/20260715-phpstan-rules-survey-rigor-reevaluation/)）。
 
@@ -57,6 +58,8 @@ Steinsのモデルを変更なしに採用し、Ruby固有のコミットメン�
 ### WD7 — エフェクトスナップショットが主たる検証
 
 `rigor effects --update`は`.rigor-effects.yml`を書く;`--check`は再計算し、説明付きの差分を出力し、ドリフトがあれば非ゼロで終了する;`--diff`はゲートせずに出力する;`--explain`はリーチの変化の背後にある最短のエッジ経路を出力する。このファイルは`methods:`を**直接**サマリーとして保持し（差分がPR自身の行に帰属できるように;網羅的∅のエントリーは省略）、`reach:`をエントリーポイントでの推移的フットプリントとして保持する;ヘッダーはRigorと語彙のバージョン、および`effects:`設定のダイジェストを運ぶ。ゲートは既定で対称（削除もニュースである）で、`gate: additions`がラチェットの選択肢;記録は未解消であり、`tolerated:`は判定時に適用される。これは診断を出さず、`rigor check`のストリームに決して入らない。安定した観測はエンベロープへ昇格させてよい（`--promote`）。これはいかなるエンベロープ構文よりも先に、最初のスライスで出荷される。（§9.4。）
+
+**`--promote`は当面の間見送り、2026-09-10（[#936](https://github.com/rigortype/rigor/issues/936)）**。これはスナップショットの動詞ではなく設定を書き換える動詞である: どの観測が固定するのに十分安定しているかを決定し、ユーザーの`effects.envelopes`スタンザをその場で編集し、昇格されたエンベロープが後に観測と食い違った場合にどうなるかを引き受けなければならない。それは独自の偽陽性サーフェスを伴う設計上の問いであり——誤って昇格されたエンベロープは何者も再導出しない契約となる——残余バッチではなく、それが書き込むエンベロープ構文を伴うスライスに属する。
 
 ### WD8 — 診断: ファミリーの形が先、オプトイン、キャッシュ認識
 

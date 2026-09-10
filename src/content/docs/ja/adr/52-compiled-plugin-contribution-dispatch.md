@@ -3,8 +3,8 @@ title: "ADR-52 — コンパイル済みプラグイン貢献ディスパッチ"
 description: "rigortype/rigor docs/adr/52-compiled-plugin-contribution-dispatch.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/52-compiled-plugin-contribution-dispatch.md"
 sourcePath: "docs/adr/52-compiled-plugin-contribution-dispatch.md"
-sourceSha: "b315f34910ecc328c2c3fcd8cac72b4ee608c3cebbded5dbd496987dab7b463c"
-sourceCommit: "a3ab53dd2b8aa0a84fd7ddbd64339f316d8d12ec"
+sourceSha: "4e8da622e43b67c43eebca5db659a52e6e7271b14208f4c2edf7cd2fa506c3b2"
+sourceCommit: "db7b23d42e9b47560438b67dfe16d53e03f70575"
 translationStatus: "translated"
 sidebar:
   order: 4052
@@ -70,6 +70,7 @@ Singleton型付けする）とオプションB（ASTをキーとするゲート�
 （静かに一度も呼ばれないというのはサードパーティ作者にとって最悪の失敗モードである）
 — 各レガシーイディオムをそのWD2の後継へ対応づけるCHANGELOGの移行ノートを指し示す。
 ADR-2/ADR-37のステータス行、プラグイン作者スキル、internal-spec、各READMEを一掃した。
+**[ADR-34](34-toplevel-unresolved-self-call-default.md)の未解決の問いを部分的に置換する**: ADR-34はRake/`bin/*`の修正が使用するトップレベルDSL登録メカニズムとして、依然として`flow_contribution_for`を挙げていた。
 **スライス6（単一のノードルールウォーク）を2026-06-11に実装**: エンジン所有の
 `Plugin::NodeRuleWalk`がファイルごとに1回の`each_with_ancestors`パスを行い、一致
 するすべての`(plugin, rule)`へディスパッチする — プラグインごとの`node_file_context`

@@ -3,8 +3,8 @@ title: "ADR-62 — アナライザーのミューテーションテスト（偽�
 description: "rigortype/rigor docs/adr/62-mutation-testing-teeth-measurement.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/62-mutation-testing-teeth-measurement.md"
 sourcePath: "docs/adr/62-mutation-testing-teeth-measurement.md"
-sourceSha: "8d40d7388dad8273e90750f4453128fa0a80395c2ff76001b1b1a30651fef46f"
-sourceCommit: "bf29cd008ab5b1ae540757fe571fe9c92f816d9a"
+sourceSha: "5105621c55d4f27f857a697ba14b56bae6298205473b7eab46a3d27deebafcdf"
+sourceCommit: "db7b23d42e9b47560438b67dfe16d53e03f70575"
 translationStatus: "translated"
 sidebar:
   order: 4062
@@ -40,7 +40,7 @@ Rigorの開発規律全体は**反偽陽性**である。「プログラムは�
 | 代替案 | 裁定 |
 | --- | --- |
 | エンジンとしての`mbj/mutant` | **却下** — 型認識のサイト選択にはインプロセスの`type_of`が必要。パーサの不一致＋プロセスモデル＋振る舞いスイート向け演算子（WD1）。 |
-| デフォルト演算子セットに`arity_extra`を含める | **オプトインに降格** — ほとんどのRubyメソッドは追加の引数を受け取る（スプラット／オプショナル）ため、等価ミュータントのノイズ工場である。シグネチャアリティ（arity）ガードがあればデフォルトに値するようになる（フォローアップ）。 |
+| デフォルト演算子セットに`arity_extra`を含める | **オプトインに降格、その後に復元** — ほとんどのRubyメソッドは追加の引数を受け取る（スプラット／オプショナル）ため、等価ミュータントのノイズ工場であった。この行が求めていたシグネチャアリティ（arity）ガードは2026-09-03に出荷され（`Protection::Mutator::ArityGuard`）、`arity_extra`はデフォルトセットに戻った。 |
 | **nilable**なユニオン（`String?`）で発火する | **検討＋却下 — N3の沈黙を維持**。N3の決定（`safe_navigation_undefined_method_spec.rb`）は意図的に`T \| nil`を沈黙させたままにする。バンドルされたアームでナローイングした候補を13プロジェクト（ActiveSupport中心＋素のもの）で走らせた結果: **真のnilableユニオン発火はゼロ**（歯の増分は約0）である一方、セルフチェックは本物の特異性喪失の偽陽性を表面化させた（`plugin_class : Class`が`.manifest`を持つ`Plugin`サブクラスを保持する）。増分ほぼ0＋偽陽性のしやすさ＋意図的な決定を覆すコスト ⇒ 割に合わない。それでもこの調査は、収穫した2つの偽陽性ガードで*出荷済みの*スライス1を堅牢化した: 汎用`Class`／`Module`アームガードと、**異クラスガード（distinct-class guard）**（真にマルチクラスのユニオンに限って発火し、`Hash[K1] \| Hash[K2]`のシェイプ結合には発火しない — これがmailの`compose_codepoints`での本物の外部スライス1偽陽性を修正した）である。 |
 | `argument-type-mismatch`の低歯クラスタ | **先送り** — 混在している: `h[nil]`は正しい（任意のキー）が`Integer#>=(nil)`は本物の取りこぼしである。一律修正ではなくサイトごとの裁定が必要。 |
 | `Type::*`キャリアの欠落メソッドRBS（セルフドッグフード） | **先送り** — シグネチャカバレッジの作業。セルフチェックの歯を改善するが、ユーザー向けの緊急性はない。 |

@@ -3,8 +3,9 @@ title: "ADR-86 — 残余のホットパスに対する部分的ネイティブ�
 description: "rigortype/rigor docs/adr/86-partial-native-extensions.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/86-partial-native-extensions.md"
 sourcePath: "docs/adr/86-partial-native-extensions.md"
-sourceSha: "12ddee73fe04fef93c6ef379aa9aedb2e0b19b05705068689acc6c8808f3fe0c"
-sourceCommit: "92a275c30b379c62ee3593f6c727a195565c146f"
+sourceSha: "f8862949dbfa3c7f286a7ca0b12b3698b918f4b7bed33df43fc0493759bcd69b"
+sourceCommit: "db7b23d42e9b47560438b67dfe16d53e03f70575"
+sourceDate: "2026-09-10T04:47:52+09:00"
 translationStatus: "translated"
 sidebar:
   order: 4086
@@ -58,3 +59,6 @@ v0.3.0のパフォーマンス改善の弧（PR #74–#82: 遅延YJIT、アロ�
 ## 他のADRとの関係
 
 [ADR-79](../79-rbs-version-range-over-pinned-determinism/)はこのADRが依拠するrigor-rsの分岐を記録している。[ADR-27](../27-tool-distribution-model/) / [ADR-31](../31-contribution-and-supply-chain-policy/) / [ADR-29](../29-browser-playground/) / [ADR-15](../15-ractor-concurrency/)は基準3のプラットフォーム税を所有している。[ADR-83](../83-dynamic-origin-algebra/)は実測された却下をADRとして記録する先例である。[キャンペーンノート](../../notes/20260713-corpus-perf-campaign/)はこの決定が読む残余プロファイルの表を携えている。
+
+> **[ADR-87](87-null-build-floor.md)（2026-07-16）によって部分的に置換される**。
+> ADR-87は、このADRの残余バケット化が参照しているのと**同じ**`20260713-corpus-perf-campaign.md`のプロファイルを再計測し、そのキャンペーンが本質的（すでにネイティブ）なエンジン作業に帰属させていたものの一部が、実際には非本質的なブート/検証のオーバーヘッドであったことを見出した——ADR-87自身の「正直な注記」はそのような帰属の1つを測定の誤りとして記録し修正している。その後WD1〜WD5は、ネイティブ拡張なしの純Rubyで実際のウォールクロックの成果（モノレポのnullビルド ≈1.68s → ~0.34s）を回収した。これはネイティブ抽出の問いを再開するものではない——WD1〜WD5はブート/検証であり、このADRが名指す2つの残余純Rubyコストではないためだ——が、却下の根拠となっている残余プロファイルは、現状の全体像として引用される前にADR-87の修正されたフロアに照らして読み直されるべきであることを意味する。

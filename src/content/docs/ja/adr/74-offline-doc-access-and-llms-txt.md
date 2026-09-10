@@ -3,8 +3,9 @@ title: "ADR-74 — オフラインドキュメントアクセス（`rigor docs`�
 description: "rigortype/rigor docs/adr/74-offline-doc-access-and-llms-txt.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/74-offline-doc-access-and-llms-txt.md"
 sourcePath: "docs/adr/74-offline-doc-access-and-llms-txt.md"
-sourceSha: "e6bebe5301d67a5a399e0829faf351b43514b2dd88746f917d775230bfe8d26b"
-sourceCommit: "78b18cea6a576475c92bce020535269f2eebc20d"
+sourceSha: "bd0512dab925c78afb25d416f840254c76f2af032e3ed4ca8e59dfb36f046f79"
+sourceCommit: "db7b23d42e9b47560438b67dfe16d53e03f70575"
+sourceDate: "2026-09-10T04:27:35+09:00"
 translationStatus: "translated"
 sidebar:
   order: 4074
@@ -71,7 +72,7 @@ gemルート配下のバンドルされた`docs/`から読み取ります（`SKI
 
 ネガティブ／持ち越し:
 - gemはマニュアルのぶん（markdown——わずか）大きくなります。完全なコーパスは意図的に外したままです（WD1）。
-- **2つの`llms.txt`コピー**（サイト＋gem）は同期の規律を必要とします——両者がインデックスする単一ソースとしてマニュアルを扱うことで緩和しています。両者を整合させるジェネレータ（あるいはドキュメントチェックのspec）はフォローアップです。
+- **2つの`llms.txt`コピー**（サイト＋gem）は同期の規律を必要とします——両者がインデックスする単一ソースとしてマニュアルを扱うことで緩和しています。両者を整合させるジェネレータ（あるいはドキュメントチェックのspec）はフォローアップです。**gemコピーのマニュアル章の半分については2026-09-10に着地**（#938）: この注記が予測した乖離は実際に発生しており（第18〜19章が出荷されたにもかかわらず、gemの`docs/llms.txt`は依然として17章で終わっていた）、`spec/docs/llms_txt_drift_spec.rb`は現在、`docs/manual/*.md`がパッケージ化している章を`docs/llms.txt`の`## Manual`セクションが省略している場合、あるいはもはや存在しない章を記載している場合に失敗するようになりました。自動再生成ジェネレータが第1の選択肢でしたが、ここでは却下されました。`llms.txt`のマニュアル各行は手書きの1行説明（サイト側コピー自身のエディトリアルな文体）を伴っており、機械的な再生成ではそれをテンプレート化して失わせるか逆方向に陳腐化させる必要があるためです——ドリフトゲートはそのトレードオフなしに受入基準（どの章も静かに欠落しないこと）を満たします。サイト側のコピーおよびハンドブックセクションはこのゲートの対象外です: ハンドブックは手で章を列挙するのではなく`rigor docs --list handbook`からライブで読み取るため同じようにドリフトすることはあり得ず、サイト側コピーはこのリポジトリのビルドの一部ではないからです。
 - `rigor docs`＋`llms.txt`の語彙は、**[ADR-50](../50-release-engineering-and-stability-strategy/) WD1のもとv1.0で凍結される公開サーフェス**になります。
 
 ## 他のADRとの関係

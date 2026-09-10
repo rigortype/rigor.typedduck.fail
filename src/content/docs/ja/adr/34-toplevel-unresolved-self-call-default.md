@@ -1,11 +1,11 @@
 ---
-title: "ADR-34 — トップレベルのunresolved implicit-self呼び出しはデフォルトで警告する"
+title: "ADR-34 — トップレベルの未解決implicit-self呼び出しはデフォルトで警告する"
 description: "rigortype/rigor docs/adr/34-toplevel-unresolved-self-call-default.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/34-toplevel-unresolved-self-call-default.md"
 sourcePath: "docs/adr/34-toplevel-unresolved-self-call-default.md"
-sourceSha: "596624776c74d722083e795673008ea697313d15dd86b029c43175855e905990"
-sourceCommit: "ca611a0fa195c049e8e56b0aa4a78145864c4d54"
-sourceDate: "2026-05-29T00:21:31+09:00"
+sourceSha: "cacbc73f7135aa4f54bb6275c0391c2d1cd1f04df0bd72ecfd025522cbe22ae3"
+sourceCommit: "db7b23d42e9b47560438b67dfe16d53e03f70575"
+sourceDate: "2026-09-10T04:47:52+09:00"
 translationStatus: "translated"
 sidebar:
   order: 4034
@@ -165,6 +165,8 @@ WD1のステップ1ルックアップ（「同じファイルまたは解析さ�
 - **`pre_eval:`より発見しやすいメカニズムを使う（例: 専用の`toplevel_methods:`配列）**。却下: ADR-17はすでに存在し、より広いmonkey-patchケースをカバーする。専用配列は機能を追加せずに発見パイプラインを複製する。
 
 ## 未解決の問題
+
+> **ステータス（2026-09-10）:**以下の未解決の問題はいずれも、Rakeまたは`bin/*`のトップレベルDSL登録が使用するメカニズムとして`ProjectPatchedMethods` / ADR-9の`flow_contribution_for`を挙げている。そのフックは**[ADR-52 WD3](../52-compiled-plugin-contribution-dispatch/)（2026-06-11）により1.0前に削除された**——それを定義するプラグインは登録時に例外を発生させる（`lib/rigor/plugin/registry.rb`）。いずれの問題も後継サーフェス（`dynamic_return` / `narrowing_facts`）に対して再回答されていない; `pre_eval:`スニペットが、（a）ですでに挙げられている引き続き有効な代替パスである。
 
 - **Rakeタスクファイル（`Rakefile`、`lib/tasks/*.rake`）**。これらはトップレベルだがDSLだ: `task :foo => :bar do ... end`はunresolved-toplevel呼び出し（`task`、`desc`、`namespace`、…）として読まれる（プロジェクトがRakeスタブを事前評価しない限り）。2つのパス: (a) `paths:`にRakeタスクを持つプロジェクトに推奨の`pre_eval:`スニペットをドキュメント化する、（b）`ProjectPatchedMethods`にADR-9の`flow_contribution_for`を通じてトップレベルRake DSLを登録する`rigor-rake`プラグインを提供する。スライス1のドッグフードに先送り。
 - **`bin/*`のシバンスクリプト**。通常は短く、`require_relative`が多く、`paths:`にリストされるより実行可能ファイルであることが多い。このルールでそれらをトップレベルとして扱うかどうかは、`bin/`ヒューリスティックまたはファイルごとのスコーピングが必要かもしれない。スライス1のドッグフードに先送り。

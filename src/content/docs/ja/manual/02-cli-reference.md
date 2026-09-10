@@ -3,8 +3,8 @@ title: "CLIコマンドリファレンス"
 description: "rigortype/rigor docs/manual/02-cli-reference.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/02-cli-reference.md"
 sourcePath: "docs/manual/02-cli-reference.md"
-sourceSha: "9caf52a36bd00e852e1f2a05da3c19af1c6edc2bf794916cdcde14365522c7d3"
-sourceCommit: "04668e5f0d6205fdd5c8f44662041add7ab33ca3"
+sourceSha: "f687925c9038e79bbf3888109c508a789eda38153b81532ba8860fb622f32d5c"
+sourceCommit: "db7b23d42e9b47560438b67dfe16d53e03f70575"
 sourceDate: "2026-09-09T04:59:35+09:00"
 translationStatus: "translated"
 sidebar:
@@ -250,6 +250,8 @@ rigor explain [rule]
 
 `rule`はルールID（`call.undefined-method`）、レガシーエイリアス、またはファミリーワイルドカード（`call`、`flow`、`def`、`assert`、`dump`）です。`--format=json`が利用可能です。不明なルールの場合は`64`で終了します。
 
+シグネチャの記述を控えた際に`rigor sig-gen`が出力する`sig.skipped.*`識別子にも対応しています —— `rigor explain sig.skipped.untyped-return`はそのスキップが何を意味し、代わりに何をすべきかを説明します。これらは診断ルールではないため、深刻度や抑制行なしでレンダリングされます。
+
 ## `rigor diff`
 
 現在の診断を保存済みベースラインJSONと比較し、新しいものだけを報告します。
@@ -282,7 +284,7 @@ rigor sig-gen [paths]
 
 各シグネチャは出力される前にパースされます。生成されたRBSがパースできないメソッドは**スキップ**され（`sig.skipped.unrenderable-rbs`）、書き出される代わりにstderrへ報告されます——パースできない`.rbs`は`rigor check`によって*丸ごと*隔離されるため、1つの不正な行がファイル内の他のすべての型を道連れにしてしまうからです。`--write`では、組み立てたコンテンツがパースできないファイルは**拒否され**（既存のファイルは変更されないまま残ります）、コマンドは`1`で終了します。書き込みを求めたのに得られなかった、というわけです。このようなスキップはあなたのコードではなくRigorのRBSレンダリングのバグです——報告してください。
 
-他のいかなる理由であれジェネレータが拒絶（decline）したメソッド（`untyped`しか証明できないボディ、上書きしないユーザー作成の宣言など）は、決して黙って欠落することはありません: `--format=json`では`candidates`配列の`skipped`行となり`skip_reason`にその`sig.skipped.*`識別子が入り、テキストモードでは1行のstderrサマリーが理由ごとのスキップされたメソッド数をカウントします。
+他のいかなる理由であれジェネレータが拒絶（decline）したメソッド（`untyped`しか証明できないボディ、上書きしないユーザー作成の宣言など）は、決して黙って欠落することはありません: `--format=json`では`candidates`配列の`skipped`行となり`skip_reason`にその`sig.skipped.*`識別子が入り、テキストモードでは1行のstderrサマリーが理由ごとのスキップされたメソッド数をカウントします。`rigor explain sig.skipped.untyped-return`（またはその他のスキップ識別子）を実行すると、その理由が何を意味し、それに対して何をすべきかが説明されます。
 
 ## `rigor lsp`
 
@@ -344,6 +346,8 @@ rigor unused [paths] --entry-point='lib/cli.rb'
 ```
 
 **出力は欠陥リストではなくレビューキューとして読んでください**。手で裁定したコーパスターゲットでは、**本当に未使用だった行はわずか7%**で、残りは静的解析には見えない手段で到達可能でした。だからこれは別コマンドであり、決して`rigor check`の診断ではありません —— [ADR-102](../../adr/102-unused-code-reachability-report/)を参照。
+
+`rigor unused`は黙ってフルパスを実行するのではなく、`--incremental`を拒否して0以外のステータスで終了します。到達可能性はプロジェクト全体の実行においてのみ健全です: 増分キャッシュからファイルが提供されると、それを参照するファイルが再スキャンされなかったというだけで定数が未使用として報告されてしまいます。フラグを外して再実行してください。
 
 到達可能性は参照を数えるのではなく**ルート**から計算されるので、互いにしか参照し合わないクラスのクラスタも依然として報告されます。ルートは、`--entry-point=GLOB`（繰り返し可）にマッチするファイル内の宣言、非テストコードがファイルレベルで参照する何か、そしてプロジェクトの**プラグイン**が貢献する何かです。
 
@@ -623,7 +627,7 @@ rigor upgrade
 | `RIGOR_RACTOR_WORKERS=N` | 並列解析のワーカー数。優先順位ではCLIフラグと設定キーの間に位置する: `--workers=N` > `RIGOR_RACTOR_WORKERS` > `parallel.workers:` > `0`（逐次）。 |
 | `RIGOR_POOL_BACKEND=ractor` | アクティブなforkベースのプールの代わりに、（デフォルトでオフの）Ractorワーカープールに戻す（[ADR-15](../../adr/15-ractor-concurrency/)）。非ゼロのワーカー数のときのみ関係する;サポートされるバックエンドはforkプールである。 |
 | `RIGOR_LSP_POOL_MIN_BATCH=N` | [`rigor lsp`](#rigor-lsp)のバッチが、インプロセスで実行されるのではなくワーカープールへ解析をディスパッチされるために運ばなければならない最小のバッファ数（デフォルト`16`）。プロジェクトのファイルごとの解析が十分に高価で、プーリングがより早く見合うなら下げる。 |
-| `RIGOR_PLUGIN_ISOLATION=none\|process\|ruby_box` | プラグインがターゲットライブラリへ行う直接呼び出しをどう隔離するか。デフォルトは`process`。[プラグインの使用 § 隔離戦略](07-plugins/)を参照。`RIGOR_BOX`は`ruby_box`のレガシーエイリアス。 |
+| `RIGOR_PLUGIN_ISOLATION=none\|process\|ruby_box` | プラグインがターゲットライブラリへ行う直接呼び出しをどう隔離するか。`plugins_isolation:`設定キーをオーバーライドします。デフォルトは`process`。[プラグインの使用 § 隔離戦略](07-plugins/)を参照。`RIGOR_BOX`は`ruby_box`のレガシーエイリアス。 |
 | `RIGOR_STRICT_VALIDATION=1` | 1回の実行に対してフルコンテンツのキャッシュ検証を強制する（`cache.validation: digest`と同じで、それより優先する）——各ファイルのstatメタデータを信用する代わりに、その内容を毎回再ハッシュする。ファイルシステムのタイムスタンプやinode番号が信用できない場合に使用する。[キャッシュ § ファイルの変更確認方法](12-caching/)を参照。 |
 | `RIGOR_DISABLE_YJIT=1` | Rigorの遅延YJIT有効化をオプトアウトする。Rigorはあらゆる長時間の実行の途中でYJITを有効化するので、短い実行はJITのウォームアップコストを一切払わない;この変数はYJITを完全にオフのままにする。診断結果とアロケーションはどちらの場合も同一で、影響は実行時間のみ。 |
 | `RIGOR_YJIT_DEADLINE=<seconds>` | 上級者向け: 遅延YJITが有効化されるまでに実行がどれだけ続く必要があるかを調整する（デフォルト`5.0`）。実行が長くYJITをもっと早く欲しいなら下げ、短い実行を保護したいなら上げる。`RIGOR_DISABLE_YJIT=1`が設定されているか、YJITが利用できない場合は無視される。 |

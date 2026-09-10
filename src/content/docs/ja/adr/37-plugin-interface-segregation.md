@@ -1,10 +1,11 @@
 ---
-title: "ADR-37 — プラグインのインターフェース分離（狭い拡張プロトコル）"
+title: "ADR-37 — プラグインインターフェース分離（狭い拡張プロトコル）"
 description: "rigortype/rigor docs/adr/37-plugin-interface-segregation.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/37-plugin-interface-segregation.md"
 sourcePath: "docs/adr/37-plugin-interface-segregation.md"
-sourceSha: "90cf0af7b2f2a46489eb3025a04f38d90a10422c8828028f237bfba3033be9c7"
-sourceCommit: "18ef11c9f393b495cd9a6ed7277846069c08c516"
+sourceSha: "3b266cbfd1c3fcaa1c94e83f33cc5e7420788e391f26227dd882886722f4e52c"
+sourceCommit: "db7b23d42e9b47560438b67dfe16d53e03f70575"
+sourceDate: "2026-09-10T04:27:46+09:00"
 translationStatus: "translated"
 sidebar:
   order: 4037
@@ -68,6 +69,8 @@ end
 マニフェストフィールド: `dynamic_returns:`。エンジンの箇所: `MethodDispatcher#dispatch`（精密なティアと`RbsDispatch`の間にある既存のプラグインティア）。ただし全プラグインへファンアウトする代わりにレシーバークラスでインデックスされます。
 
 ### 2. `TypeSpecifyingExtension`（`flow_contribution_for`のファクトスロットから）
+
+*注: 本設計の`type_specifier` DSLはADR-80によって`narrowing_facts`に改名された。古い名前は0.3.0で削除された。以下の記録は当初書かれたまま残されている。*
 
 述語／アサーションによるナローイング — `truthy_facts`／`falsey_facts`／`post_return_facts`スロット — であり、メソッドでゲートされエッジを意識します。
 
@@ -182,7 +185,7 @@ end
 
 エンジンは、呼び出しのレシーバー型のクラスが宣言された`receivers:`エントリーと等しいか、それを継承する場合にのみブロックを呼びます（`Environment#class_ordering`——今や標準のメカニズム——経由でマッチ）。メソッド名と型形状の精緻化（例: Mangroveキャリアの`type_args`）はブロック内に留まります。`Type`を返します（辞退する場合は`nil`）。`receivers:`はgrep可能でインデックス可能なゲートです——エンジンはすべての呼び出しについてすべてのプラグインに尋ねる代わりに、拡張をクラスごとにグループ化できます。
 
-**`type_specifier`（→ `post_return_facts`、メソッドゲート）**。
+**`type_specifier`（→ `post_return_facts`、メソッドゲート）**。*ADR-80により`narrowing_facts`に改名された。以下の`type_specifier`という名称は実装時の記録であり、0.3.0で削除された。*
 
 ```ruby
 type_specifier methods: [:assert_kind_of, :assert_instance_of] do |call_node, scope|

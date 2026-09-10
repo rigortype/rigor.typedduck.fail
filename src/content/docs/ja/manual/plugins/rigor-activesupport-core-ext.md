@@ -3,8 +3,8 @@ title: "rigor-activesupport-core-ext"
 description: "rigortype/rigor docs/manual/plugins/rigor-activesupport-core-ext.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/plugins/rigor-activesupport-core-ext.md"
 sourcePath: "docs/manual/plugins/rigor-activesupport-core-ext.md"
-sourceSha: "e79f4c76c8c211f9107dd9dbfe0db3baa87dbf7ef79e6a3fa05636a1e2d9687a"
-sourceCommit: "2a65ec8e52462c931fbfec94df68a18139259a43"
+sourceSha: "0f3a82401b2d1604ef2d5653f528720723e2e93bdcff3c11a991f72c5569c58e"
+sourceCommit: "db7b23d42e9b47560438b67dfe16d53e03f70575"
 sourceDate: "2026-09-03T05:18:44+09:00"
 translationStatus: "translated"
 sidebar:
@@ -76,11 +76,28 @@ Time.current.definitely_not_here    # 依然として call.undefined-method
 
 これには述語（`#past?`、`#future?`、`#today?`、`#on_weekend?`、…）、`#days_ago` / `#months_since` / `#next_occurring`ファミリー全体、四半期および`at_`接頭辞の表記、`#all_week` / `#all_month` / `#all_quarter` / `#all_year`の範囲、`#to_fs` / `#to_formatted_s` / `#formatted_offset` / `#rfc3339`、`#in_time_zone`、そして`Time.`シングルトンである`.days_in_month`、`.days_in_year`、`.rfc3339`、`.use_zone`、`.find_zone` / `.find_zone!`、`.zone_default`が含まれます。
 
-正直に名前を付けられない戻り値については、推測するのではなく拡大されます: `#in_time_zone`は`ActiveSupport::TimeWithZone`を返しますが、本バンドルはこれをモデル化していないため、`untyped`と読まれます。
+正直に名指しできない戻り値は、当て推量するのではなく拡大されます: `#in_time_zone`はタイムゾーン下では`ActiveSupport::TimeWithZone`を返し、設定されていない場合はレシーバー自身のクラスを返すため、2つのうちいずれかを選ぶのではなく`untyped`と読まれます。
+
+`ActiveSupport::TimeWithZone`自体は`Time`のサブクラスとしてモデル化されて**います** —— これは`Time.current`や`1.hour.ago`ファミリー全体が返すものです:
+
+```ruby
+Time.current.time_zone       # タイムゾーン（untyped）
+Time.current.comparable_time # Time
+Time.current.to_fs(:db)      # String — 継承されたTime自身のサーフェス
+1.hour.ago.time_zone         # Durationファミリーからの同じクラス
+Time.now.time_zone           # 依然としてcall.undefined-method — 素の
+                             # Timeには本当に存在しない
+```
+
+Railsは`TimeWithZone#is_a?`をオーバーライドして`::Time`に対してtrueを返し、自身が定義していないすべてのものをラップされた`Time`へ転送するため、このサブクラスは`Time`の戻り値が述べていたことを述べた上で、TWZ自身が持つ4つのリーダーを追加します。代わりに`Time | TimeWithZone`ユニオンも計測されましたが却下されました: 何も発火しないものの、下流のチェーン全体を`Dynamic[top]`として型付けしてしまうためです。
 
 実際の`require "active_support/all"`と比較して除外されているのは12の名前です: インスタンス10個とシングルトン2個で、いずれもActiveSupport自身の`+` / `-` / `<=>` / `eql?` / `Time.at`オーバーライドの`alias_method`アーティファクトです——`plus_with{,out}_duration`、`minus_with{,out}_duration`、`minus_with{,out}_coercion`、`compare_with{,out}_coercion`、`eql_with{,out}_coercion`、および`Time.at_with{,out}_coercion`のペアです。これらは実行時にpublicであり、ソース上では`:nodoc:`であり、ActiveSupportの外部のコードがそれらを呼び出すことはありません;呼び出すコードに対しては報告されます。
 
 `Date`および`DateTime`は同じActiveSupportモジュールによって拡張されていますが、これらはまだこれを担って**いません**——`Date.current.past?`は依然として報告されます。
+
+## `ActiveSupport::Concern`の解決
+
+`extend ActiveSupport::Concern`はRailsアプリのすべてのconcernの1行目であり、この定数はかつて何にも解決しませんでした。このバンドルはモジュールを名指しするようになり、`extend`がextend元に配置する3つのメンバー —— `included`、`prepended`、`class_methods` —— も併せて名指しするため、新たに名指しされたモジュールに対する指摘になることなく`included do … end`が解決され続けます。`Concern`が応答するその他のすべては寛容なまま保たれます。
 
 ## diagnosticなし、設定なし
 

@@ -3,8 +3,8 @@ title: "設定"
 description: "rigortype/rigor docs/manual/03-configuration.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/03-configuration.md"
 sourcePath: "docs/manual/03-configuration.md"
-sourceSha: "fa14b9782083a7a2acbbc9714b7df061094c44af7cec1f4fcf695057d31cb1b7"
-sourceCommit: "2d0ffe6f38d01cfd850527c57987b27487b414d4"
+sourceSha: "6621df106a5c2ea764d49f685fdf8776650ac372c5886228abef87bf19ff3f70"
+sourceCommit: "db7b23d42e9b47560438b67dfe16d53e03f70575"
 sourceDate: "2026-06-15T14:21:04+09:00"
 translationStatus: "translated"
 sidebar:
@@ -83,6 +83,12 @@ rigor: severity_overrides: "flow.bogus" is not a recognized rule id; the overrid
 rigor: bundler.lockfile: "./missing/Gemfile.lock" does not exist
 ```
 
+1つの警告は、その鏡像となるミス —— ロードはされるものの、求めていたものの半分しか得られないパス —— をカバーします。バンドル済みプラグインはRBS*および*それらのクラスのうちどれが部分的にのみ宣言されているかを記録するマニフェストを出荷します; `plugins:`は両方をロードしますが、`signature_paths:`でプラグインの`sig/`を指すとRBSのみがロードされるため、自身のコードが定義する呼び出しが未定義として報告されてしまいます:
+
+```
+rigor: signature_paths: "…/plugins/rigor-activerecord/sig" loads the signatures of the bundled plugin "rigor-activerecord", which `plugins:` does not name — … Add "rigor-activerecord" to `plugins:` instead of naming its `sig/` in `signature_paths:`.
+```
+
 未認識キーのチェックは**トップレベル**のキーを対象とし、他の実装のために予約された名前空間（下記参照）はスキップします。グループの*内側*でのタイポ（`cache: { pth: … }`）は、check時ではなく入力しながらJSONスキーマによって捕捉されます。
 
 これらはエラーではなく警告です。部分的またはオプションのバンドルや、先を見越した設定は妥当なセットアップです。この監査は、明示的で、正常なセットアップに対して安全なシグナルでのみ発火します。未設定のデフォルト（自動検出される`<root>/sig`、自動検出されるバンドル）が警告されることは決してなく、*プラグイン*ファミリー（`rspec.…`、`rbs_extended.…`）配下の`disable:` / `severity_overrides:`トークンは放置されます。そのルールIDは静的に列挙できず、実行時に解決される可能性があるためです。同じ所見は`--format=json`のペイロードでも`config_warnings`の下に（それぞれ`kind`タグ付きで）現れるので、CIはそれらに対してアサートできます。
@@ -129,6 +135,7 @@ rigor: bundler.lockfile: "./missing/Gemfile.lock" does not exist
 | `cache.max_bytes` | Integerまたは`null` | `268435456`（256 MB） | キャッシュディレクトリのLRU退避の上限。`null`で退避を無効化する。[キャッシュ § サイズと退避](../12-caching/#サイズと退避)を参照。 |
 | `cache.validation` | String | `"auto"` | キャッシュがファイルの未変更をどう確認するか: `auto`はCI環境が検出されたときは`digest`として、それ以外では`stat`として振る舞う;`stat`はサイズ＋ナノ秒単位のタイムスタンプ＋inodeを比較し、statが動いたファイルだけを再ハッシュする;`digest`は実行のたびに全ファイルの内容を再ハッシュする。どちらも内容ハッシュを変更判定の唯一の権威として保つ——`stat`はstatがファイルの未変更を証明できるときにハッシュ計算を省くだけである。[キャッシュ § ファイルの変更確認方法](../12-caching/#ファイルの変更確認方法)を参照。環境変数`RIGOR_STRICT_VALIDATION=1`は1回の実行に対して`digest`を強制し、このキーより優先する;`RIGOR_CI_DETECT=0`はCI検出を無効化する。 |
 | `parallel.workers` | Integer | `0` | ファイルごとの解析用の並列ワーカープロセス（現在はfork方式のプール、ADR-15）。`0`は逐次処理。CLI `--workers`と`RIGOR_RACTOR_WORKERS`が優先される。フル実行と同様に`--incremental`の再チェックにも適用される。 |
+| `plugins_isolation` | String | `null` | プラグインがターゲットライブラリを呼び出す際の隔離方法 —— `process`（デフォルト）または`none`。`RIGOR_PLUGIN_ISOLATION`が1回の呼び出しに対してオーバーライドします; `ruby_box`はその環境変数限定です。[プラグインの使用](07-plugins/)を参照。 |
 | `plugins_io.network` | String | `"disabled"` | プラグインネットワークポリシー。`disabled`または`allowlist`。 |
 | `plugins_io.allowed_paths` | Array | `[]` | プラグインが読み取り可能なファイルシステムパス。 |
 | `plugins_io.allowed_url_hosts` | Array | `[]` | `network: allowlist`のときプラグインがフェッチ可能なURLホスト。 |

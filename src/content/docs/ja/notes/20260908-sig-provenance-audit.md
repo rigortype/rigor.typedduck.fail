@@ -96,7 +96,7 @@ nix --extra-experimental-features 'nix-command flakes' develop --command \
 
 ## 15件の`tighter_return`と、それらが`sig-gen`について語ること
 
-すべてのケースと、そのためにシードされたマーカー。ADR-14のドッグフードパターンは維持されましたが、issueが予測した方向ではありませんでした。**15件中、推論の不完全さによるものは1件もありませんでした**。 12件はその逆でした: 推論が宣言の意図よりも*精密*であり、厳格化を適用すると意図的に広く取られている契約を狭めてしまうことになります。
+すべてのケースと、そのためにシードされたマーカー。ADR-14のドッグフードパターンは維持されましたが、issueが予測した方向ではありませんでした。**15件中、推論の不完全さによるものは1件もありませんでした**。12件はその逆でした: 推論が宣言の意図よりも*精密*であり、厳格化を適用すると意図的に広く取られている契約を狭めてしまうことになります。
 
 7件の`void`行は**もはや提案されません** — #836が2026-09-09に着地し、そのマーカーは`sig/`から削除されました；その解釈こそが修正の基礎となっているため、ここに保持されています。その修正の後に8件が残りました。2026-09-09に適用可能な3件が適用され（#838）、#837が残りの6件を連れて行きました — 自身の5件と、この表で適用可能と呼んでおり他と同様に宣言された公称型に対するリテラルユニオンである`Reflection.class_ordering`です。現在はマーカーを保持しているものはありません。
 
@@ -118,9 +118,9 @@ nix --extra-experimental-features 'nix-command flakes' develop --command \
 | `Rigor::Scope#user_def_through_ancestors` | `[untyped?, String?]` | `[untyped, String] \| [nil, nil]` | 適用可能（適用済み、#838） |
 | `Rigor::Scope#singleton_def_through_ancestors` | `[untyped?, String?]` | `[untyped, String] \| [nil, nil]` | 適用可能（適用済み、#838） |
 
-**7件は`void`である**。 `Inference::RbsTypeTranslator`はRBSの`void`を`Type::Top`にマップし、`Top`はすべてを受け入れるため、`Generator#tighter?`は本体がたまたま型付きの値を返すあらゆる`void`宣言メソッドを厳格化として報告してしまいます。`void`は著者が狭めたいと望む広い型ではありません — 戻り値が契約の一部ではないという言明であり、だからこそ`sig-gen`はすでに`initialize`を無条件に`-> void`と表記しています。**P1**として起票され（[#836](https://github.com/rigortype/rigor/issues/836)）、**2026-09-09に修正されました**: `Generator#compare_against_declared`は宣言された`void`を比較せずに`equivalent`を返し、`void`自体を宣言表記として保持し、ゲートはそれを新しい獲得された`return_intent`として読み取ります — `void`宣言にマーカーは不要です。
+**7件は`void`である**。`Inference::RbsTypeTranslator`はRBSの`void`を`Type::Top`にマップし、`Top`はすべてを受け入れるため、`Generator#tighter?`は本体がたまたま型付きの値を返すあらゆる`void`宣言メソッドを厳格化として報告してしまいます。`void`は著者が狭めたいと望む広い型ではありません — 戻り値が契約の一部ではないという言明であり、だからこそ`sig-gen`はすでに`initialize`を無条件に`-> void`と表記しています。**P1**として起票され（[#836](https://github.com/rigortype/rigor/issues/836)）、**2026-09-09に修正されました**: `Generator#compare_against_declared`は宣言された`void`を比較せずに`equivalent`を返し、`void`自体を宣言表記として保持し、ゲートはそれを新しい獲得された`return_intent`として読み取ります — `void`宣言にマーカーは不要です。
 
-**5件は兄弟と共有する契約にリテラルを固定している**。 `Top#describe`は確かに`"top"`を返しますが、`describe`はすべての型クラスが実装する多相サーフェスであり、すべての兄弟が`String`を宣言しています；`Trinary#to_s`や`BoundMethod#erase_to_rbs`も同様です。`Generator#computed_literal_tightening?`はまさにこの危険性のために存在しますが、本体の最後の式が直接のリテラルで*ない*場合にのみ発火します — ここでは直接のリテラルであるためガードを通過してしまいました。**P2**として起票され（[#837](https://github.com/rigortype/rigor/issues/837)）、issueが提案した兄弟スキャンよりも広い基準によって**2026-09-09に修正されました**: RBSリテラルへと消去（erase）される提案は、既存の宣言を決して厳格化しません。なぜ兄弟スキャンが担えなかったのかについては、下記のP2エントリーを参照してください。
+**5件は兄弟と共有する契約にリテラルを固定している**。`Top#describe`は確かに`"top"`を返しますが、`describe`はすべての型クラスが実装する多相サーフェスであり、すべての兄弟が`String`を宣言しています；`Trinary#to_s`や`BoundMethod#erase_to_rbs`も同様です。`Generator#computed_literal_tightening?`はまさにこの危険性のために存在しますが、本体の最後の式が直接のリテラルで*ない*場合にのみ発火します — ここでは直接のリテラルであるためガードを通過してしまいました。**P2**として起票され（[#837](https://github.com/rigortype/rigor/issues/837)）、issueが提案した兄弟スキャンよりも広い基準によって**2026-09-09に修正されました**: RBSリテラルへと消去（erase）される提案は、既存の宣言を決して厳格化しません。なぜ兄弟スキャンが担えなかったのかについては、下記のP2エントリーを参照してください。
 
 **3件は真に適用可能であった**。来歴ゲートが着地した時点では適用されずにマーカー付きで宣言のまま残されました — 宣言の変更は精度ゲートとSteepを単独で通過しなければならない`sig/`の編集であり、その着地はそれを行うべきコミットではなかったからです。**P3**として起票され（[#838](https://github.com/rigortype/rigor/issues/838)）、**2026-09-09に適用されました**: 各宣言は現在`sig-gen --diff --tighter-returns lib`が提案するものと完全に一致しており、3つの`# sig-gen gap: #838`マーカーは消去され、`spec/rigor/sig_gen/provenance_spec.rb`内の残滓ピン留めは変更されていません — `tighter_return`は残滓ピン留めの外側に位置しているため（#845）、厳格化の適用は獲得／マーカーの会計処理内の行を移動させるだけであり、ピン留めされた残滓カウントは動かしません。
 
@@ -142,7 +142,7 @@ nix --extra-experimental-features 'nix-command flakes' develop --command \
 | **`lib/`のどこにもそのようなメソッドが存在しない** | 8 | 下記参照 |
 | **`lib/`のどこにもそのような定数が存在しない** | 1 | `Rigor::Inference::Builtins::NumericCatalog` |
 
-最後の2行は本監査における唯一の明白なバグです: **存在しないコードを記述している9件の宣言**。 `make check`、`make steep-check`、`spec/rigor/public_api_drift_spec.rb`のいずれも気づきませんでした。それぞれが実装が`sig/`と一致しているかを問い、その逆を問うものはなかったからです。
+最後の2行は本監査における唯一の明白なバグです: **存在しないコードを記述している9件の宣言**。`make check`、`make steep-check`、`spec/rigor/public_api_drift_spec.rb`のいずれも気づきませんでした。それぞれが実装が`sig/`と一致しているかを問い、その逆を問うものはなかったからです。
 
 - `Rigor::Inference::StatementEvaluator#qualified_name_for`、`#render_constant_path`、`#captured_local_writes`、`#block_introduced_locals`
 - `Rigor::Inference::ScopeIndexer#build_declaration_overrides`、`#qualified_name_for`、`#render_constant_path`
@@ -181,23 +181,23 @@ def resolve: (String name) -> Type::t
 
 本セクションから起票され、`sig/`内の各マーカーはそのカテゴリーのissueを指名します。初期シード時15件: 7件が#836、5件が#837、3件が#838を指していました。現在は5件が残っています — その修正が着地したときに7件の#836マーカーが外され、それらの厳格化が適用されたときに3件の#838マーカーが外されました。
 
-**P1 — [#836](https://github.com/rigortype/rigor/issues/836) — `void`と宣言されたメソッドに対して`sig-gen`が値の厳格化を提案する**。 `RbsTypeTranslator`は`void`を`Type::Top`にマップし、`Top.accepts`は完全であるため、本体が何らかの型付きの値を返すあらゆる`void`メソッドに対して`Generator#tighter?`が真になります。Rigor自身の`sig/`内の15件の`tighter_return`のうち7件がこれであり、手書きの`sig/`に対して`sig-gen --diff`を実行する導入プロジェクトは、すべてのミューテーターでこれを目にすることになります。証拠: 上記のテーブルの7行。領域: `area:sig-gen`。
+**P1 — [#836](https://github.com/rigortype/rigor/issues/836) — `void`と宣言されたメソッドに対して`sig-gen`が値の厳格化を提案する**。`RbsTypeTranslator`は`void`を`Type::Top`にマップし、`Top.accepts`は完全であるため、本体が何らかの型付きの値を返すあらゆる`void`メソッドに対して`Generator#tighter?`が真になります。Rigor自身の`sig/`内の15件の`tighter_return`のうち7件がこれであり、手書きの`sig/`に対して`sig-gen --diff`を実行する導入プロジェクトは、すべてのミューテーターでこれを目にすることになります。証拠: 上記のテーブルの7行。領域: `area:sig-gen`。
 
-**2026-09-09修正**。 `compare_against_declared`は宣言された`void`を比較せずに`equivalent`に分類し、`void`自体を宣言された表記として保持するため、`--diff`は変更を示さず、`--write`も`--overwrite`もそれを置き換えることはできません；ゲートのクラシファイアはそれを獲得された`return_intent`として読み取り、`void`宣言にマーカーは不要になります。この論拠は現在ADR-14 §「推論vs RBSの矛盾ルール」に記載されています: `void`は戻り値の意図であり、合成可能な型では決してありません。
+**2026-09-09修正**。`compare_against_declared`は宣言された`void`を比較せずに`equivalent`に分類し、`void`自体を宣言された表記として保持するため、`--diff`は変更を示さず、`--write`も`--overwrite`もそれを置き換えることはできません；ゲートのクラシファイアはそれを獲得された`return_intent`として読み取り、`void`宣言にマーカーは不要になります。この論拠は現在ADR-14 §「推論vs RBSの矛盾ルール」に記載されています: `void`は戻り値の意図であり、合成可能な型では決してありません。
 
-**P2 — [#837](https://github.com/rigortype/rigor/issues/837) — 兄弟が広い型を宣言しているメソッドに対して`sig-gen`がリテラルの戻り値を提案する**。 `computed_literal_tightening?`は本体の最後の式が直接のリテラルでない場合に`Constant`の厳格化を拒絶します；直接のリテラルである場合（`def describe(_v = :short) = "top"`）、ガードを通過し、すべての兄弟型クラスが`String`と宣言しているメソッドに対して`"top"`が提案されてしまいます。これを固定すると多相サーフェスが壊れます。修正: 同じメソッドの祖先または兄弟の実装がより広い宣言を保持している場合、厳格化を拒絶する — すでに逆方向のオーバーライドについて推論している[#744](https://github.com/rigortype/rigor/issues/744)ガードの逆です。証拠: 上記の5行。領域: `area:sig-gen`。
+**P2 — [#837](https://github.com/rigortype/rigor/issues/837) — 兄弟が広い型を宣言しているメソッドに対して`sig-gen`がリテラルの戻り値を提案する**。`computed_literal_tightening?`は本体の最後の式が直接のリテラルでない場合に`Constant`の厳格化を拒絶します；直接のリテラルである場合（`def describe(_v = :short) = "top"`）、ガードを通過し、すべての兄弟型クラスが`String`と宣言しているメソッドに対して`"top"`が提案されてしまいます。これを固定すると多相サーフェスが壊れます。修正: 同じメソッドの祖先または兄弟の実装がより広い宣言を保持している場合、厳格化を拒絶する — すでに逆方向のオーバーライドについて推論している[#744](https://github.com/rigortype/rigor/issues/744)ガードの逆です。証拠: 上記の5行。領域: `area:sig-gen`。
 
-**2026-09-09、起票されたものより広い基準で修正**。 RBSリテラルへと消去される提案は、既存の宣言を決して厳格化しません: 宣言された型は本体に対する著者の抽象化であり、リテラルはその抽象化が隠す実装の詳細であって、ADR-107が`void`やパラメータ型を位置づける場所です。`compare_against_declared`はそれらを`equivalent`に分類し、マーカーは修正とともに`sig/`から外されました；5行は現在`declared_divergent`となり、それらが表記バリエーションである`String?`の寛容さと同様にラチェットによってカウントされます。
+**2026-09-09、起票されたものより広い基準で修正**。RBSリテラルへと消去される提案は、既存の宣言を決して厳格化しません: 宣言された型は本体に対する著者の抽象化であり、リテラルはその抽象化が隠す実装の詳細であって、ADR-107が`void`やパラメータ型を位置づける場所です。`compare_against_declared`はそれらを`equivalent`に分類し、マーカーは修正とともに`sig/`から外されました；5行は現在`declared_divergent`となり、それらが表記バリエーションである`String?`の寛容さと同様にラチェットによってカウントされます。
 
 本issueが提案した兄弟スキャンは最初5行に対して試みられましたが、それらを担うことができませんでした。`Type::Top`と`Type::Bot`は祖先を共有しておらず（`Rigor::Type`は空の名前空間モジュール）、したがって「兄弟」とは「同じ名前空間内でこのメソッド名を宣言している別のクラス」のようなものを意味せざるを得ず、これは導入プロジェクトが自身のコードから予測できないルールです。また、`RbsCacheProducer.generation_cap`に対して間違った答えを出します: いかなるサブクラスも`generation_cap`をオーバーライドしておらず、それについての他の宣言も存在しないため、いかなるスキャンもより広い宣言を見つけることができませんが、サブクラスが変更し得る上限値に対して`2`は同様に間違った契約です。消去基準は祖先の走査も名前空間の規約も必要とせず、ジェネレータがすでに手に持っているペアに対してチェックされます。
 
 代償として、誠実なenumの絞り込み（`:asc | :desc`を証明する本体に対する宣言された`Symbol`）も提案されなくなります。それが`class_ordering`であり、この修正によって沈黙した唯一の#838の行です。これはトレードオフの許容可能な半分です: 共有サーフェス上に`"top"`を固定することは動作している契約を書き換えてしまいますが、絞り込みの見逃しは動作している広い契約を残すだけであり、AGENTS.md § Implementation Guidelinesは偽陽性をより重く見ます。著者は手作業でユニオンを書くことができ、ゲートはそれを`generated`として読み取ります — 推論が証明するものと一致する宣言は、どのようにそこに到達したかにかかわらず獲得されたものだからです。
 
-**P3 — [#838](https://github.com/rigortype/rigor/issues/838) — `sig-gen`が正しい3つの厳格化を適用する**。 `Reflection.class_ordering` → `:disjoint | :equal | :subclass | :superclass | :unknown`、および両方の`Scope#*_through_ancestors` → `[untyped, String] | [nil, nil]`。各々は`rigor coverage --threshold 0.58 lib`と`make steep-check`をクリアしなければならない`sig/`の編集であるため、独立した変更です。領域: `area:sig-gen`。
+**P3 — [#838](https://github.com/rigortype/rigor/issues/838) — `sig-gen`が正しい3つの厳格化を適用する**。`Reflection.class_ordering` → `:disjoint | :equal | :subclass | :superclass | :unknown`、および両方の`Scope#*_through_ancestors` → `[untyped, String] | [nil, nil]`。各々は`rigor coverage --threshold 0.58 lib`と`make steep-check`をクリアしなければならない`sig/`の編集であるため、独立した変更です。領域: `area:sig-gen`。
 
-**2026-09-09適用**。 3つの宣言すべてが`rigor sig-gen --diff --tighter-returns lib`と完全に一致するようになり、それらの`# sig-gen gap: #838`マーカーは消去されました。`make check --fail-on=warning`、精度ゲート、`make lint`、および`make steep-check`はすべてクリーンなままでした；`tighter_return`はその外側に位置するため（#845）、`spec/rigor/sig_gen/provenance_spec.rb`内の残滓ピン留めは動きませんでした。
+**2026-09-09適用**。3つの宣言すべてが`rigor sig-gen --diff --tighter-returns lib`と完全に一致するようになり、それらの`# sig-gen gap: #838`マーカーは消去されました。`make check --fail-on=warning`、精度ゲート、`make lint`、および`make steep-check`はすべてクリーンなままでした；`tighter_return`はその外側に位置するため（#845）、`spec/rigor/sig_gen/provenance_spec.rb`内の残滓ピン留めは動きませんでした。
 
-**P4 — [#839](https://github.com/rigortype/rigor/issues/839) — `sig/`内の宣言が実在するメソッドを記述しているかをチェックするものがない**。 9件が存在していませんでした（上記）。`make check`と`make steep-check`は実装を`sig/`と比較します；逆方向（`def`が削除または改名された宣言）はチェックされておらず、RBSはそれを通じて呼び出しを解決するため、古い宣言は欠落した宣言よりも有害です。来歴ゲートは現在これらを218件の正当なものと混ざった`no_source`として報告しています；それらを区別する専用のチェックがあればより鋭利になります。領域: `area:self-testing`。
+**P4 — [#839](https://github.com/rigortype/rigor/issues/839) — `sig/`内の宣言が実在するメソッドを記述しているかをチェックするものがない**。9件が存在していませんでした（上記）。`make check`と`make steep-check`は実装を`sig/`と比較します；逆方向（`def`が削除または改名された宣言）はチェックされておらず、RBSはそれを通じて呼び出しを解決するため、古い宣言は欠落した宣言よりも有害です。来歴ゲートは現在これらを218件の正当なものと混ざった`no_source`として報告しています；それらを区別する専用のチェックがあればより鋭利になります。領域: `area:self-testing`。
 
 **2026-09-09修正**。クラシファイアは宣言を未帰属として報告する前にさらに2つの信頼できる情報源に照会します — Rigor自身のファイル間認識（`ScopeIndexer.discovered_project_index_for_paths`＋`Scope`の祖先走査）、次にロードされたツリーに対するリフレクション — これにより正当な行は`synthetic_source` / `inherited_source` / `runtime_defined`に着地し、`no_source`はゼロの厳格なルールになります。全224行の再分類、および2つのティアにかかる約1.8秒のコストは、[フォローアップ監査](../20260909-sig-no-source-audit/)に記載されています。
 

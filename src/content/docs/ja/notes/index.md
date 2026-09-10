@@ -3,8 +3,8 @@ title: "リサーチ・サーベイノート"
 description: "rigortype/rigor docs/notes/README.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/README.md"
 sourcePath: "docs/notes/README.md"
-sourceSha: "8927a27a0c5e771dd0c34f54c5acd12baab7af8077a00efbbda2f3f081d33dc5"
-sourceCommit: "04668e5f0d6205fdd5c8f44662041add7ab33ca3"
+sourceSha: "97d926041204566d6177d03fd293e95c778e7c4f3514651511171120b2412bbe"
+sourceCommit: "db7b23d42e9b47560438b67dfe16d53e03f70575"
 sourceDate: "2026-09-09T17:07:51+09:00"
 translationStatus: "translated"
 sidebar:
@@ -80,6 +80,7 @@ sidebar:
 | 2026-08-23 | [`super`エフェクトエッジ —— コーパス計測（issue #446）](20260823-effect-super-edge-corpus/) |
 | 2026-08-23 | [エフェクトラベル —— 10のユーザーストーリー、コーパスに照らして裁定（redmine + mastodon）](20260823-effect-user-stories-corpus/) |
 | 2026-09-05 | [トップレベル`def`のcref —— リトラクト前のピールの規模測定（issue #716）](20260905-toplevel-def-cref-movable-sites/) |
+| 2026-09-09 | [センサス走査のギャップ —— 修正前に3つの形状の規模を測定する（issue #693）](20260909-census-walk-gap-movable-sites/) |
 
 ## アナライザーの自己テスト（teeth・偽陰性）
 
@@ -142,6 +143,7 @@ sidebar:
 | 2026-07-04 | [`plugins/`近代化スイープ — SKILL適用による本番プラグインのドリフト監査](20260704-plugins-modernization-sweep/) |
 | 2026-07-19 | [Webサイトショーケース — 「これに型が付くの？！」推論例集（コア + プラグイン）](20260719-website-showcase-inference-examples/) |
 | 2026-09-08 | [PR #788は停止指示のもとでマージされた — Draft規律のポストモーテム](20260908-pr-788-draft-discipline-postmortem/) |
+| 2026-09-09 | [ADRコーパス監査 —— 埋もれた作業、実装の乖離、および陳腐化](20260909-adr-corpus-audit/) |
 
 ## ノートの追加
 

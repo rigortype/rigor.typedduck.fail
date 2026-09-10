@@ -3,14 +3,15 @@ title: "ADR-20: 軽量高階多相性（Lightweight HKT）"
 description: "rigortype/rigor docs/adr/20-lightweight-hkt.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/20-lightweight-hkt.md"
 sourcePath: "docs/adr/20-lightweight-hkt.md"
-sourceSha: "c46fde069d9bedf4dc8f024209d85718f7b1c96f1ce192856713b56f60463533"
-sourceCommit: "78b18cea6a576475c92bce020535269f2eebc20d"
+sourceSha: "a43bffaf1020f63a7fcae09aad367b1cf7c3eef2f44e2fa69ed37bf5756464be"
+sourceCommit: "db7b23d42e9b47560438b67dfe16d53e03f70575"
+sourceDate: "2026-09-10T04:24:59+09:00"
 translationStatus: "translated"
 sidebar:
   order: 4020
 ---
 
-ステータス: **Accepted（部分実装、2026-05-18）**。
+ステータス: **Accepted — スライス1〜6は実装済み**（スライス1〜3および6は2026-05-18;スライス4および5はv0.3.7、`rigor-dry-monads`の`Result` / `Maybe`キャリアと再帰的`type`エイリアスの暗黙的HKT登録）。
 
 当初2026-05-18にproposedとして提出されたが、同日中にスライス（slice）1、2a、2c、2d、3がエンドツーエンドで着地し、`JSON.parse`が`untyped`の代わりに再帰的な`json::value`ユニオン（union、合併型とも）を返すようになった（`rigor type-of`で検証済み）ため、acceptedに昇格した。残りのオープンスライス（§ 実装スライス分けのスライス2b、4、5、6）はスケジュールコミットメントを持たず、需要駆動で出荷される。
 
@@ -31,8 +32,8 @@ sidebar:
 ### 残るオープン項目
 
 - （元はリストされていた: スライス2e — `Environment.for_project` HKTアノテーションスキャン。**2026-05-18着地** — 上記「着地したもの」参照。）
-- **スライス4** — `rigor-dry-monads`の`Result[T, E]` / `Maybe[T]`キャリア経由の複数引数HKT検証。基底の値オブジェクト表現のためのADR-3修正の背後にキュー。
-- **スライス5** — 再帰的`type`エイリアス経由の糖衣構文。明示的`%a{...}`形が冗長すぎるというユーザーフィードバックにゲート。
+- （元はリストされていた: スライス4 — `rigor-dry-monads`の`Result[T, E]` / `Maybe[T]`キャリア経由の複数引数HKT検証。**v0.3.7で着地**、#712。）
+- （元はリストされていた: スライス5 — 再帰的`type`エイリアス経由の糖衣構文。**v0.3.7で着地** — 再帰的`type`エイリアスは暗黙的にHKTとして登録される。）
 - （元はリストされていた: スライス6 — プラグイン側のリゾルバフックアップ。**2026-05-18着地** — 上記「着地したもの」参照。）
 
 ## コンテキスト

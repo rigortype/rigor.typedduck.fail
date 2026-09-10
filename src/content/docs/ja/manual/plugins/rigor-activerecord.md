@@ -3,8 +3,8 @@ title: "rigor-activerecord"
 description: "rigortype/rigor docs/manual/plugins/rigor-activerecord.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/plugins/rigor-activerecord.md"
 sourcePath: "docs/manual/plugins/rigor-activerecord.md"
-sourceSha: "d7946d4b824235327022588e266a3b799db4bfb94f64bbd4343223897c7c779f"
-sourceCommit: "04668e5f0d6205fdd5c8f44662041add7ab33ca3"
+sourceSha: "9ff627bebe270030802945c08489871894c695ed18f55693c9ce2d966068ba83"
+sourceCommit: "db7b23d42e9b47560438b67dfe16d53e03f70575"
 sourceDate: "2026-09-09T01:20:05+09:00"
 translationStatus: "translated"
 sidebar:
@@ -74,6 +74,12 @@ plugins:
 Rubyのモジュールまたはクラスの内部で宣言されたモデル（`Blog::Post`）は、以下の場合においてRailsと同じ方法でそのテーブルを解決します: ネームスペースはドロップされ、名前にフラット化されないため、`Blog::Post`は`blog_posts`ではなく`posts`を読みます。囲むネームスペースがリテラルとして宣言した`table_name_prefix` / `table_name_suffix`（`def self.table_name_prefix = "blog_"`、同様の`class << self`、または`mattr_accessor :table_name_prefix, default: "blog_"`）はその上に適用されるため、`Blog`がそれを設定すると同じモデルは`blog_posts`を読みます。`mattr_writer`はカウントされません——リーダーを定義しないため、Railsは実際に値を読み戻すことはなく、プラグインも同様です。
 
 `Blog`のprefix/suffixがプラグインがリテラルとして読み取れない形状（計算された値、2つの矛盾する宣言）で宣言されている場合、`Blog::Post.table_name`は依然として素のdemodulizeされた名前（`posts`）として読まれます——ただしこの場合、その文字列は情報提供のみを目的とします。プラグインはそれに対してカラムをルックアップするほどには信頼しません: 素の名前を推測することは、ネームスペース付きアプリにおいて無関係な実際のテーブルにヒットする可能性が最も高い推測であり、誤った裏付けは裏付けがないことよりも悪いため、`Blog::Post`のカラム、エイリアス、および関連のチェックは、実際のテーブルではないかもしれないテーブルに対して実行されるのではなく、完全に役目を降ります。
+
+## フレームワーク定数の解決
+
+バンドルされたシグネチャは、Active Recordの例外階層（`ActiveRecordError`およびアプリケーションがrescueするクラス群: `RecordNotFound`、`RecordInvalid`、`RecordNotSaved`、`StatementInvalid`、`RecordNotUnique`、`StaleObjectError`、…）、`ActiveModel`名前空間、および`Arel`も名指しします。`rescue ActiveRecord::RecordNotFound => e`は、`e`を不透明なままにする代わりに型付けします。
+
+それらのいずれもメソッドサーフェスを宣言しません —— この宣言は定数解決をもたらすだけであり、それ以外の主張は何もしないため、`e.record`やその他の省略されたすべてのメンバーは、指摘されるのではなく寛容なまま保たれます。`ActiveRecord::Base`は意図的に宣言されて**いません**: これを閉じてしまうと、プロジェクト内のすべてのモデルを閉じてしまうことになるためです。
 
 ## 制限事項
 

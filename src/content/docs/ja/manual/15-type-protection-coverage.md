@@ -3,8 +3,8 @@ title: "型保護カバレッジ"
 description: "rigortype/rigor docs/manual/15-type-protection-coverage.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/15-type-protection-coverage.md"
 sourcePath: "docs/manual/15-type-protection-coverage.md"
-sourceSha: "f928a2ff5412c5a16994c005fdfd750525c2aadb1078c9b46e2e0caf2e8660df"
-sourceCommit: "2d0ffe6f38d01cfd850527c57987b27487b414d4"
+sourceSha: "9107b513baa6990c199dfda1d3e63596042275e1c243a7002d0d75e5de8c3745"
+sourceCommit: "db7b23d42e9b47560438b67dfe16d53e03f70575"
 translationStatus: "translated"
 sidebar:
   order: 9015
@@ -167,6 +167,8 @@ rigor coverage --protection --mutation --with-tests --include-dynamic \
 テキストレポートは「Add a type here」の見出しの下に1行の`by tractability:`内訳を出力し、JSONも同じ集計を`tractability_summary`として運びます。`add_rbs`の穴から着手してください。それらは型が実際に捕まえてくれる穴です。
 
 > **`external_gem_without_rbs`は、Rigorが読める場所にgemがインストールされている必要があります**。未解決の定数がgemに属するかどうかを判断するために、Rigorはそのgemのソースを読みます —— なのでディスク上にgemを見つけられなければなりません。プロジェクトのBundlerインストールツリー（`vendor/bundle`、または`bundler.bundle_path:`で設定したパス;[設定](../03-configuration/)を参照）を探します。gemがアクティブなRubyのデフォルトgemホームに存在するプロジェクト——`--path`を設定していない一般的な`rbenv` / `mise`のケース——は、設計上、隔離されたアナライザーには見えません（[ADR-27](https://github.com/rigortype/rigor/blob/master/docs/adr/27-tool-distribution-model.md)）: `bundler.bundle_path:`でRigorをそこへ向けてください。そうするまで、これらの穴は`add_rbs`ではなく汎用的な`engine_gap`原因を保ちます —— ラベルが欠けているのであって、決して誤っているのではありません。
+>
+> **`Gemfile.lock`のない**プロジェクトも取り残されることはありません: Rigorはインストールされているのが確認できるgem —— 解決されるならプロジェクトのBundlerインストールツリー、そうでなければ実行中のRubyのgem —— にフォールバックし、それらに対して定数を帰属させます。所有権は依然としてgem自身のエントリファイルを読み取ることで確立されるため、このフォールバックは対象となり得るgemを広げるだけであり、所有者のない定数が帰属されるかどうかを変えることは決してありません。
 
 Provenance（由来）は精度に加算されるだけです: 型を変えることも、診断を発火させることも、深刻度や保護比率に影響することも決してありません。
 

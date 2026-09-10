@@ -3,8 +3,9 @@ title: "ADR-97 — インデックスエントリーは要約ではない: ADR�
 description: "rigortype/rigor docs/adr/97-adr-index-budgets.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/97-adr-index-budgets.md"
 sourcePath: "docs/adr/97-adr-index-budgets.md"
-sourceSha: "9d4c5368f636204e34c875ffbb82ce83e4a368bf7a0ae8ec41c2cf4dcbf29d0d"
-sourceCommit: "78b18cea6a576475c92bce020535269f2eebc20d"
+sourceSha: "030b194152d6f4feb467dd193b56f201bf46ccbd177fd2a417a048e33494ac8d"
+sourceCommit: "db7b23d42e9b47560438b67dfe16d53e03f70575"
+sourceDate: "2026-09-10T04:47:52+09:00"
 translationStatus: "translated"
 sidebar:
   order: 4097
@@ -69,7 +70,7 @@ READMEのテーブルはまた、行と行の間に**5つの空行**を蓄積し
 
 ### WD2 — `docs/adr/README.md`: ステータスのみ、≤ 200文字のステータス
 
-自身の「How to Read」がすでに指定している列を復元する。すなわち`Accepted` / `Proposed` / `Superseded`に加えて、進行中の実装のための括弧書き（どのWD／スライスが着地したか、何が残っているか、バージョンまたはPR）。200文字は最も長い正当なケースを余裕をもって収める。ADR-40以前の行の中央値は19である。基準、根拠、却下された代替案、コードアンカー、計測値はADR本文に留まる。本文は正典であり、すでにそのすべてを運んでいた。セルは**本文のStatusブロックから導出される**ので、READMEはステータスが腐りうる2つ目の場所であることをやめる。
+自身の「How to Read」がすでに指定している列を復元する。すなわち`Accepted` / `Proposed` / `Superseded`に加えて、進行中の実装のための括弧書き（どのWD／スライスが着地したか、何が残っているか、バージョンまたはPR）——あるいはREADMEの部分置換注記に従い、単一セクションのみが修正され文書全体のステータス語が変わらない場合の`partially superseded by ADR-N (§ X / WDn)`。200文字は最も長い正当なケースを余裕をもって収める。ADR-40以前の行の中央値は19である。基準、根拠、却下された代替案、コードアンカー、計測値はADR本文に留まる。本文は正典であり、すでにそのすべてを運んでいた。セルは**本文のStatusブロックから導出される**ので、READMEはステータスが腐りうる2つ目の場所であることをやめる。
 
 このインデックスがより緩い予算を得るのは、その読者が異なるからである。すなわち、それはすでにADRを探している誰かによってオンデマンドで読まれ、追加の約100文字は、フェッチを不要にする*ショートリスト化*の力を買う。
 

@@ -3,14 +3,15 @@ title: "ADR-102 — 未使用コードの到達可能性レポートは診断で
 description: "rigortype/rigor docs/adr/102-unused-code-reachability-report.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/102-unused-code-reachability-report.md"
 sourcePath: "docs/adr/102-unused-code-reachability-report.md"
-sourceSha: "aa0107f10e08ae7078e599d557c777363d62d1e80f2b1d8d80bb94448dd77610"
-sourceCommit: "0cf313582cfbe2fa7da8148dc498d0b2a0893438"
+sourceSha: "aa52373b4ea113dffac41e683f48e50b157b2b6b2c1387a76fd206e62dfb8591"
+sourceCommit: "db7b23d42e9b47560438b67dfe16d53e03f70575"
+sourceDate: "2026-09-10T04:47:52+09:00"
 translationStatus: "translated"
 sidebar:
   order: 4102
 ---
 
-ステータス: **Proposed、2026-08-15**。何も実装されていない。`rigor unused`のスライス群が依拠する決定を固定する（[#344](https://github.com/rigortype/rigor/issues/344)がアンブレラ;[#347](https://github.com/rigortype/rigor/issues/347)がトレーサーバレット）。8つの作業上の決定はすべて確定済み——WD5とWD8は1回の改訂のあいだ未決のまま持ち越され、2026-08-15にクローズした。
+ステータス: **Accepted、2026-08-15 — 実装済み; `rigor unused`はv0.3.4で出荷**。`rigor unused`のスライス群が依拠する決定を固定する（[#344](https://github.com/rigortype/rigor/issues/344)がアンブレラ;[#347](https://github.com/rigortype/rigor/issues/347)がトレーサーバレット）。8つの作業上の決定はすべて確定済み——WD5とWD8は1回の改訂のあいだ未決のまま持ち越され、2026-08-15にクローズした。
 
 根拠: [`docs/notes/20260813-unused-constant-fp-baseline.md`](../../notes/20260813-unused-constant-fp-baseline/)（3プロジェクトのコーパス計測、redmineは全件裁定済み）と、RigorがShopifyのrubydexから何を消費し、何にはならないかをすでに確定した[ADR-21](../21-rubydex-evaluation/)。
 
@@ -85,7 +86,7 @@ WD1は、コーパスターゲットでの裁定済み精度が約80%——診�
 | 参照カウント（「参照ゼロ ⇒ unused」） | 素朴な形はRigor自身の`lib`で99.7%のFPを計測した;元記事のあらゆる訂正は欠けていた参照ではなく欠けていたルートだった。 |
 | 緩和策として`paths:`を広げる | 計測済み: +1 / −3 / +2。宣言は参照とともに広がる。 |
 | Railsの知識をコアにハードコードする | ADR-2のプラグイン境界に矛盾する;収量最大の2つのルールはフレームワークの規約であり、それこそプラグインの存在理由だ。 |
-| rubydexのクロスリファレンスインデックスを消費する | ADR-21のTrack 3がすでにこれをLSPロードマップに条件づけている;Rigorが必要とする宣言の基板はすでに存在する。 |
+| rubydexのクロスリファレンスインデックスを消費する | ADR-21のTrack 3がすでにこれをLSPロードマップに条件づけている;Rigorが必要とする宣言の基板はすでに存在する——これはRigorにクロスファイル宣言インデックスが欠けているという**ADR-21 Track 3の前提を部分的に置換する**。 |
 | 立ち上げ時に値定数を含める | #352が着地するまでは構成上偽である。 |
 | 未使用*メソッド* | [#351](https://github.com/rigortype/rigor/issues/351)へ先送り。型を持たないインデクサーには届かないところへRigorは届きうるが、その層はこの層の問題を10倍の量で継承し、まずAPI境界の定義を必要とする。 |
 

@@ -3,8 +3,8 @@ title: "制御フロー解析"
 description: "rigortype/rigor docs/type-specification/control-flow-analysis.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/type-specification/control-flow-analysis.md"
 sourcePath: "docs/type-specification/control-flow-analysis.md"
-sourceSha: "bd45fa63a7bf44046c81d7314b005aa1868409b358a49e33ddc9a02e63d6f297"
-sourceCommit: "04668e5f0d6205fdd5c8f44662041add7ab33ca3"
+sourceSha: "651c30132fe6fa811088139936d083eaeef593c5d40ff2e8598d79016b2fe05d"
+sourceCommit: "db7b23d42e9b47560438b67dfe16d53e03f70575"
 sourceDate: "2026-09-09T14:40:24+09:00"
 translationStatus: "translated"
 sidebar:
@@ -77,6 +77,16 @@ end
 - `break value`はyieldを行っている**呼び出し（call）**を終了し、ブロックの値ではなくその呼び出しの値となります。ブロックの値型に結合してはなりません（MUST NOT）。呼び出しの推論される型は、calleeが生成する結果と到達可能なすべての`break`アームのunionでなければなりません（MUST）。単体の`break`は`nil`を寄与します。ネストしたブロック、lambda、`def`、またはループは、その配下に書かれた`break`の対象を変更します —— そのような`break`はその内側の構文に属し、外側の呼び出しに到達してはなりません（MUST NOT）。unionは精度フォールド（precision fold）の内部ではなくその上に位置するため、フォールドはブロックが決してbreakしないパスについて正確に応答する自由を保ちます。
 
 解析が到達不能と証明した分岐上のアームは決して取られず、何も寄与しません。*到達可能*なアームを落とすと、あたかもフォールスルーが完全な回答であるかのように報告され、プログラムが持たない精度として読まれてしまいます: `ops.all? { |o| next false unless o; true }`は`true`として型付けされ、述語が定数に畳み込まれ、正しいコードに対して警告が発せられてしまいます（[#841](https://github.com/rigortype/rigor/issues/841)）——そして`break`で書かれた同じ形状も、アームが決して呼び出しに到達しない場合に同様に警告を発してしまいます（[#853](https://github.com/rigortype/rigor/issues/853)）。
+
+## yieldの値
+
+`yield`は呼び出し元（CALLER）が提供したブロックを実行するため、その値はそのブロックの値となります。上記の3つの脱出構文は値を構文の*外部*へと運び出しますが、これは値を再び*内部*へと運び戻すものです。
+
+- 既知の呼び出し元に代わってメソッド本体が再型付けされる場合（手続き間戻り値推論）、その本体内の`yield`は、その呼び出し元のスコープで計算された、当該呼び出し箇所で書かれたブロックの値型として型付けされなければなりません（MUST）。呼び出し元が不明な場合（`def`自体の単体解析）、`yield`は`untyped`として型付けされなければなりません（MUST）。
+- ブロックの値が呼び出し元の戻り値に到達するのは、callee本体の通常の評価を通じてのみであり、メソッドがyieldを行うことを認識することによるものではありません: `def wrap; yield; end`はそれを返し、`def announce; yield; "done"; end`は`"done"`を返し、`rescue`アームや条件付き`yield`は他のいかなる本体と同様にunionされます。`yield`の存在からラッパーの戻り値を推論してしまうと、ラッパーが自身の値で代用している箇所で架空の型を捏造することになります。
+- ブロック、lambda、またはループの内部に書かれた`yield`も、依然としてそれを囲む**メソッド**のブロックを指すため、それらの構文はここでは境界とはなりません（`next` / `break`に対して行う対象変更とは異なります）。ネストした`def`、`class`、`module`、または`class << self`の本体は新しいメソッドブロック束縛を開始するため、その内部の`yield`は外側の呼び出しのブロックを読み取ってはなりません（MUST NOT）。
+
+これがなければ、全体の値をyieldするヘルパーから受け取るメソッドはすべての位置で`untyped`となり、`sig-gen`はそれを拒絶し、すべての呼び出し元がその不透明性を引き継ぐことになります —— 一方で、インラインで書かれた同一のロジックには型が付きます。スコープ付きの関心事（`with_run`、保存/復元、計装）は通常ラッパーとして書かれるため、この損失はより良い構造に従うものでした（[#720](https://github.com/rigortype/rigor/issues/720)）。
 
 ## サポートされているナローイングソース
 

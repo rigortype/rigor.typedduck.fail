@@ -1,10 +1,11 @@
 ---
-title: "ADR-36 — マクロ基板のネストクラス生成ティア（Mangrove `Enum`）"
+title: "ADR-36 — マクロ基層のネストしたクラスemitティア（Mangroveの`Enum`）"
 description: "rigortype/rigor docs/adr/36-mangrove-enum-nested-class-emission.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/36-mangrove-enum-nested-class-emission.md"
 sourcePath: "docs/adr/36-mangrove-enum-nested-class-emission.md"
-sourceSha: "f47b0021bafa8797d4bf2f5d792ab608bc0223265e6f6a5231a417c95275beb7"
-sourceCommit: "222d8e03ee0f4252795f6c7294672a76c20b7ae3"
+sourceSha: "9328130386b791528fb19edc5bbe4112b0aefb81079cfd5cae389e40eac259be"
+sourceCommit: "db7b23d42e9b47560438b67dfe16d53e03f70575"
+sourceDate: "2026-09-10T04:39:46+09:00"
 translationStatus: "translated"
 sidebar:
   order: 4036
@@ -88,7 +89,7 @@ nested_class_templates: [
 
 - **WD1 — emitプリミティブ**。プリパスは、各`variant Const, Type`行について、囲むクラスを親とする名前的型（nominal type、公称型とも）`<<Enclosing>>::<<Const>>`を合成し、ディスパッチャーがすでに参照する同じ`SyntheticMethodIndex`基層に登録する — ただし定数リゾルバと`.new`ディスパッチの両方が見られる**クラス**エントリーとしてキー付けする。これが新しい基層のケイパビリティ（capability）である。
 - **WD2 — `#inner`の戻り値精度**。`inner_arg_position`はADR-18の`returns_from_arg:`機構を再利用する。リテラルな第2引数（`Float`、シェイプハッシュ、`NilClass`）は`Environment#nominal_for_name`（またはシェイプリテラル）を通じてバリアントの`#inner`戻り値へ解決する。ADR-16のWD13に従う下限: リゾルバチェーンが配線されるまでは`Dynamic[T]`。
-- **WD3 — sealed性**。`sealed: true`は親 → バリアント集合を公開し、エンジンの制御フローナローイング（保留中の`is_a?`サーフェス）が後でバリアント集合を網羅的として扱えるようにする。ファクトをemitすることはスコープ内で、ナローイングのためにそれを消費することはスコープ外である。
+- **WD3 — sealed性**。`sealed: true`は親 → バリアント集合を公開し、エンジンの制御フローナローイング（保留中の`is_a?`サーフェス）が後でバリアント集合を網羅的として扱えるようにする。ファクトをemitすることはスコープ内で、ナローイングのためにそれを消費することはスコープ外である。**引き続き延期、2026-09-10に再見送り（[#936](https://github.com/rigortype/rigor/issues/936)）:** emitされる構造はフラットであり（`synthetic_method_index.rb`は親リンクなしで`class_names`を記録する）、ファクトをemitできるようにするためだけでも、基盤、ファクトストア、および`Environment#class_ordering`を通じてスレッド化された新しい親→バリアントキャリアが必要となる——これはissueのスコープであった小さな残余予算を大きく超えており、ADR-47の消費側を見据えた独自のスライスが必要とされる。
 - **WD4 — 需要ゲーティング**。今日のティアDと同様に、まず値クラス + バリデーションを出荷し、バンドルされたコンシューマー（`rigor-mangrove`のEnumスライス（slice））がそれに対して構築されるときにプリパス + ディスパッチャー統合を配線する。
 
 ## 帰結

@@ -3,14 +3,14 @@ title: "ADR-57 — implicit-self呼び出しの戻り値採用ゲートを開く
 description: "rigortype/rigor docs/adr/57-self-call-return-adoption.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/57-self-call-return-adoption.md"
 sourcePath: "docs/adr/57-self-call-return-adoption.md"
-sourceSha: "72f7492538544e86e8cba0fe9ecd9805daa789c0426f9199f282789e57f747e1"
-sourceCommit: "a8b1d0b5be985ab476a08e5c8a48400f61e476cc"
+sourceSha: "2b96a0e4e69edaf26e0dbb0e76d185135cbf157cc63def5bb698d5a5bcc8cb56"
+sourceCommit: "db7b23d42e9b47560438b67dfe16d53e03f70575"
 translationStatus: "translated"
 sidebar:
   order: 4057
 ---
 
-ステータス: **Accepted — ゲートは2026-06-12にオープン（スライス1〜3）；オーバーライド可能メソッドの採用ゲートを2026-06-13に追加（追補を参照）**。
+ステータス: **Accepted — ゲートは2026-06-12にオープン（スライス1〜3）；オーバーライド可能メソッドの採用ゲートを2026-06-13に追加（追補を参照）；WD3（クロスファイルディスカバリーシードにおけるモジュール定数）を2026-07-10に実装；シングルトン継承チェーン（`extend` / `extend self` / `module_function`）がv0.3.7で出荷（[#554](https://github.com/rigortype/rigor/pull/554)）**。
 裁定のアークは完了した。ゲートオープンで発火するすべてのクラスを分類し、
 アーティファクトを根本で修正し（スライス1〜3）、残余をgenuine-or-winまで
 減らし、WD2に従ってゲートを恒久的にオープンした。

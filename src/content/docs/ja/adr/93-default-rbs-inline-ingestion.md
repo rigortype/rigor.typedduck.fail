@@ -3,17 +3,17 @@ title: "ADR-93 — rbs-inlineのデフォルト取り込み: ADR-32のオプト�
 description: "rigortype/rigor docs/adr/93-default-rbs-inline-ingestion.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/93-default-rbs-inline-ingestion.md"
 sourcePath: "docs/adr/93-default-rbs-inline-ingestion.md"
-sourceSha: "1a41140616b493a83c5c22246056e58a8fe65c9900871f757a860eb53f870c1c"
-sourceCommit: "04668e5f0d6205fdd5c8f44662041add7ab33ca3"
-sourceDate: "2026-09-08T23:27:49+09:00"
+sourceSha: "3ce7e03071068f811c5e6de80ba75077d9f381de63f7fccdb1eee019f06a9471"
+sourceCommit: "db7b23d42e9b47560438b67dfe16d53e03f70575"
+sourceDate: "2026-09-10T04:25:12+09:00"
 translationStatus: "translated"
 sidebar:
   order: 4093
 ---
 
 Status: **Accepted、2026-07-18**。2026-07-16にProposed。WD4の初回測定は同日に実施され（§「WD4 — first measurement」）、3つの作業上の決定すべてがその後着地した: WD1のデフォルト切り替え（[#186](https://github.com/rigortype/rigor/pull/186)）、`enabled: false`オプトアウト付きのWD2の`Configuration.load`自動配線、そしてWD3の`rbs.coverage.inline-annotations-unsynthesized`ルーティングヒント。`overview.md` § 「Compatibility hierarchy」マーカーは今や、[ADR-92](../92-normative-status-fidelity/)に従い、解決された状態（`rbs-inline`が存在するところではどこでも適合。WD3が運ぶスタンドアロンの残余）を記録する。
-**2026-07-19改訂** ── WD5（下記）は、WD2のgem名requireで表面化したエンジン↔プラグインのバージョンスキューの危険（[#194](https://github.com/rigortype/rigor/issues/194)）を閉じる: バンドルされたプラグインの解決がエンジンにアンカーする。
-**2026-09-08改訂** ── WD6（下記）は[#823](https://github.com/rigortype/rigor/issues/823)を閉じる: WD1のファイルゲートは`untyped`スケルトンをファイル境界で阻止したが、アノテーション付きファイル内部では阻止できず、そこでは依然としてアノテーションのないすべての兄弟メソッドの推論型を置き換えていた。デフォルト設定された型スロットは今や`%a{rigor:v1:inferred-return}`を運び、ディスパッチャーはそれを辞退する。
+**2026-07-19改訂** ── WD5（下記）は実装済みであり、WD2のgem名requireで表面化したエンジン↔プラグインのバージョンスキューの危険（[#194](https://github.com/rigortype/rigor/issues/194)）を閉じる: バンドルされたプラグインの解決がエンジンにアンカーする。
+**2026-09-08改訂** ── WD6（下記）は実装済みであり、[#823](https://github.com/rigortype/rigor/issues/823)を閉じる: WD1のファイルゲートは`untyped`スケルトンをファイル境界で阻止したが、アノテーション付きファイル内部では阻止できず、そこでは依然としてアノテーションのないすべての兄弟メソッドの推論型を置き換えていた。デフォルト設定された型スロットは今や`%a{rigor:v1:inferred-return}`を運び、ディスパッチャーはそれを辞退する。
 
 根拠: [`docs/notes/20260716-dspec-formal-spec-substrate-evaluation.md`](../../notes/20260716-dspec-formal-spec-substrate-evaluation/) § 「第四の事例」── 裁定、タイムライン、およびupstreamの`disabled`処理の検証。
 
@@ -103,7 +103,7 @@ Status: **Accepted、2026-07-18**。2026-07-16にProposed。WD4の初回測定�
 
 形状に関する3つの注意点（それぞれが代替案でした）:
 
-- **メンバーレベルのドロップではない**。 [PR #779](https://github.com/rigortype/rigor/pull/779)は代わりにアノテーションのないメンバーを削除しましたが、部分的に宣言されたクラスはRBSに対して完全に宣言されたクラスとして読み取られます: 本リポジトリ自身の`lib/`（234ファイルにわたる775行の`# @rbs`行）で測定したところ、`new`に対して32個の`call.undefined-method`と12個の`call.wrong-arity`が発生し、さらにアノテーションのないクラスがいかなる宣言も生成せずクロスファイルの名前解決が停止した箇所で、1つの`rbs.coverage.definition-build-failed`の背後で44個のクラスが`Dynamic[top]`へ縮退しました。宣言を維持することがこの修正の前提条件です。
+- **メンバーレベルのドロップではない**。[PR #779](https://github.com/rigortype/rigor/pull/779)は代わりにアノテーションのないメンバーを削除しましたが、部分的に宣言されたクラスはRBSに対して完全に宣言されたクラスとして読み取られます: 本リポジトリ自身の`lib/`（234ファイルにわたる775行の`# @rbs`行）で測定したところ、`new`に対して32個の`call.undefined-method`と12個の`call.wrong-arity`が発生し、さらにアノテーションのないクラスがいかなる宣言も生成せずクロスファイルの名前解決が停止した箇所で、1つの`rbs.coverage.definition-build-failed`の背後で44個のクラスが`Dynamic[top]`へ縮退しました。宣言を維持することがこの修正の前提条件です。
 - **形状から推論するのではなく、合成時にマークする**。エンジンはプラグインの変更なしに、来歴 ── `virtual:rbs-inline:`バッファ＋すべて`untyped`のメソッド型 ── にキー付けすることもできました。その答えは著作についての推測であり、意図的に`#: () -> untyped`を明記した1人の作者にとっては誤りとなります;また、上流がそのデフォルトを変更した日にサイレントに腐敗することになります。上流がどのスロットをデフォルト設定したかはシンセサイザーのみが持つ事実であり、上流は自前のパブリックな`Writer#default_type`アクセサを通じてそれを引き渡します: 特徴的な代役を用いてレンダリングすることで、「作者はここに何も書かなかった」が出力において観測可能になります。代役はRBSが寄与される前に`untyped`に書き戻されます ── 未宣言の型エイリアスはクラス全体に対して`NoTypeFoundError`を発生させ、これはWD4の発見5の完全な再来となるからです。
 - **単位は型スロットであり、メンバーではない**。戻り値アノテーションのない`# @rbs times: Integer`はパラメータを宣言し戻り値をデフォルト設定します;パラメータは束縛され、戻り値は推論されます。これは同じルールであり、作者が実際に書くのをやめた場所に適用されます。
 

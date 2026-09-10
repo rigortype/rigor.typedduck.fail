@@ -1,10 +1,11 @@
 ---
-title: "ADR-39 — プラグインは対象ライブラリの安全なメソッドを直接呼び出せる"
+title: "ADR-39 — プラグインはターゲットライブラリの安全なメソッドを直接呼び出してよい"
 description: "rigortype/rigor docs/adr/39-plugin-target-library-invocation.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/39-plugin-target-library-invocation.md"
 sourcePath: "docs/adr/39-plugin-target-library-invocation.md"
-sourceSha: "508441516d07f2c0c82f529b93a187a6efa3e196f186665f80719e1f5168c0ba"
-sourceCommit: "bed65a462b04db02312f208b9dda2dda3a26ef13"
+sourceSha: "8ccf8a127fe2ec11337dbc77ade8480f31c755b61c230add070474dc32ee0643"
+sourceCommit: "db7b23d42e9b47560438b67dfe16d53e03f70575"
+sourceDate: "2026-09-10T10:20:33+09:00"
 translationStatus: "translated"
 sidebar:
   order: 4039
@@ -85,7 +86,7 @@ PHPStan拡張は解析対象アプリケーションと同じプロセスにロ�
 
 ### ターゲットライブラリ呼び出しの分離 — 選択可能な戦略（`none` / `ruby_box` / `process`）
 
-ターゲットライブラリをRigorのプロセスにロードすることは、Rigor自身を汚染するリスクを負います——主に**コアクラスへのモンキーパッチ**（`String` / `Hash`を再オープンするgemは、Rigor自身のコードが動作するRubyを変える）と**gemバージョンの衝突**（Rubyはプロセスごとに1つのgemバージョンしか許さないので、ターゲットのバージョンがRigor自身のものと衝突しうる）を通じて。どれだけの分離がそのコストに見合うかはデプロイに依存するので、分離は**設定可能な戦略**（`.rigor.yml`の`plugins_isolation:` / `RIGOR_PLUGIN_ISOLATION`環境変数）であり、1つのインターフェースの背後に3つのバックエンドを持ちます:
+ターゲットライブラリをRigorのプロセスにロードすることは、Rigor自身を汚染するリスクを負います——主に**コアクラスへのモンキーパッチ**（`String` / `Hash`を再オープンするgemは、Rigor自身のコードが動作するRubyを変える）と**gemバージョンの衝突**（Rubyはプロセスごとに1つのgemバージョンしか許さないので、ターゲットのバージョンがRigor自身のものと衝突しうる）を通じて。どれだけの分離がそのコストに見合うかはデプロイに依存するので、分離は**設定可能な戦略**（`.rigor.yml`の`plugins_isolation:`、またはそれに優先する`RIGOR_PLUGIN_ISOLATION`環境変数）であり、1つのインターフェースの背後に3つのバックエンドを持ちます:
 
 | 戦略 | 分離 | クラッシュ封じ込め | コスト | メモ |
 | --- | --- | --- | --- | --- |
@@ -129,7 +130,7 @@ Flake Ruby（4.0.5）で検証済み: `Ruby::Box.new` + `box.require` + `box.eva
 
 スライス2〜4は、ボイラープレート計画 §0eの具体的な着地であり、今や「近似を統一する」から「実際のライブラリを使う」へと再定義されています。
 
-5. **選択可能な分離戦略**（§「ターゲットライブラリ呼び出しの分離」を参照）。`Plugin::Isolation`は、`RIGOR_PLUGIN_ISOLATION`環境変数（`exe/rigor`が`.rigor.yml`の`plugins_isolation:`からマップする）によって、共通の`call(feature:, receiver:, method:, args:)`インターフェースの背後で3つのバックエンドの1つを選びます。デフォルトは`process`（`fork`が利用できない場所では`none`にフォールバック）。**3つすべて着地:**
+5. **選択可能な分離戦略**（§「ターゲットライブラリ呼び出しの分離」を参照）。`Plugin::Isolation`は、`.rigor.yml`の`plugins_isolation:`キーまたは`RIGOR_PLUGIN_ISOLATION`環境変数（環境変数が優先——1回の呼び出し限りのオペレーターオーバーライド）によって、共通の`call(feature:, receiver:, method:, args:)`インターフェースの背後で3つのバックエンドの1つを選びます。デフォルトは`process`（`fork`が利用できない場所では`none`にフォールバック）。**3つすべて着地:**
    - `none` — メイン空間での`require` + `public_send`（デフォルトパス）。
    - `ruby_box` — `Plugin::Box`の内部で呼び出す（選択されると`exe/rigor`が`RUBY_BOX=1`のもとで再execする）。モンキーパッチ + バージョンを分離する;最大忠実度の「正確なgemバージョン」パスも解放する。実験的で、フル解析でsegfaultしうる（下記）——そのため使用可能だがゲートされている。
    - `process` — ライブラリをロード + 呼び出し、データをMarshalパイプ経由で返す**永続ワーカー**をforkする;ワーカーのクラッシュ（`SIGSEGV`さえも）は封じ込められる（親はEOF / `EPIPE`を受け取り、辞退し、次の呼び出しで再生成する）。Rigorのforkモデル（ADR-15）を再利用する。**検証済み:** `RIGOR_PLUGIN_ISOLATION=process`のもとでのRedmine `app`に対するフルの`rigor check`は、非分離実行と**バイト単位同一**のrails-routes診断で、**segfaultなし**に完了まで実行される——ボックスパスのクラッシュへの堅牢な答え。

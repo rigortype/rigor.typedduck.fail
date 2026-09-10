@@ -1,10 +1,11 @@
 ---
-title: "ADR-31 — 貢献およびサプライチェーンポリシー"
+title: "ADR-31 — コントリビューションとサプライチェーンポリシー"
 description: "rigortype/rigor docs/adr/31-contribution-and-supply-chain-policy.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/31-contribution-and-supply-chain-policy.md"
 sourcePath: "docs/adr/31-contribution-and-supply-chain-policy.md"
-sourceSha: "20364c39cb549ca7a80dc914d4781b2608e05ebba4a066628264db00d9c1635a"
-sourceCommit: "78b18cea6a576475c92bce020535269f2eebc20d"
+sourceSha: "6ba05af50fac3177c458bbb2b9f6ed97b3f22383c453fba1a77d91cc350552a9"
+sourceCommit: "db7b23d42e9b47560438b67dfe16d53e03f70575"
+sourceDate: "2026-09-10T04:47:52+09:00"
 translationStatus: "translated"
 sidebar:
   order: 4031
@@ -190,6 +191,8 @@ Co-authored-by: Jane Doe <jane@example.com>
 2. **メンテナンス移管** — 元の著者がマージ後に進行中のメンテナンスがRigorチームに移ることに同意する（彼らはマージ後も他の誰とも同様にWD2経由で貢献できる）。
 3. **スタイルと契約の準拠** — プラグインはバンドル済みプラグインの形（`Plugin::Base`、`signature_paths:`、specレイアウト、demoフィクスチャ、CHANGELOG規律）に従う。
 4. **ライセンス互換性** — プラグインがMPL-2.0であるか、著者がマージ前にMPL-2.0に再ライセンスすることに同意する。この条件は重要だ: 一度subtreeマージされると、importされたファイルはCovered Softwareへの**Modifications**になり（§1.10）、`rigortype`の残りと並んでMPL下で出荷されなければならない。MIT / BSD / Apache 2.0 / ISC下のプラグインは標準方向で再ライセンス可能（元の著者がマージ前に自分のファイルをMPL-2.0で再公開する）;GPLファミリーのSecondary Licenses（§1.12）下のプラグインは、MPLがファイル結合レベルでそれらと明示的に互換性があるため適格だが、著者はその変更に同意しなければならない。
+
+これにより、単一のバンドルされた`rigortype` gemへの配布が確定し、**[ADR-12](../12-dry-rb-packaging/)を部分的に置き換える**。ADR-12のパッケージングの前提は逆のフロー——各`rigor-dry-*`プラグインが最終的に独自の公開gemへと`git subtree split`されること——であった。ここでのsubtreeの*merge*は、このWD5が記述する稀な予約されたサードパーティからモノレポへのインポートであり、ADR-12が計画したような外部へのスプリットでは決してない。依存していたプラグインごとのgemspecは削除された（`9769f5fa`）。
 
 Subtreeマージは**サードパーティ著者が前提とすべきパスではない**。デフォルトの期待は「あなたのプラグインはあなたのリポジトリに無期限に留まる」だ。Subtreeマージは、よく形作られた既存実装と再実装が厳密に冗長になる場合のWD2昇格の時として適切な形だ。
 

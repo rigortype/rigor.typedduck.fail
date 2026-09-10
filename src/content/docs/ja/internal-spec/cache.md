@@ -3,8 +3,8 @@ title: "キャッシュレイヤー — `Rigor::Cache`"
 description: "rigortype/rigor docs/internal-spec/cache.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/cache.md"
 sourcePath: "docs/internal-spec/cache.md"
-sourceSha: "a9fed717167755ee77213e99be23336485c3e82e58f81aaccc702fb068f9e965"
-sourceCommit: "04668e5f0d6205fdd5c8f44662041add7ab33ca3"
+sourceSha: "7d2292d5ffc2df3ee7b657fa64dfcc1a91c788ac2accdda5bb2fa68111a8ab74"
+sourceCommit: "db7b23d42e9b47560438b67dfe16d53e03f70575"
 sourceDate: "2026-09-09T16:24:33+09:00"
 translationStatus: "translated"
 sidebar:
@@ -249,6 +249,15 @@ sha256               32バイト — 直前のすべてのバイトの整合性�
 1. **グローバルフィンガープリント（ロードをゲートする）**。`IncrementalSnapshot.fingerprint(configuration:, roots:)`は、エンジンバージョン + `SCHEMA`、設定ハッシュ、解析**ルート**（展開されたファイルリストではない —— なのでルート以下のファイルの追加/削除ではスナップショットは破棄されない）、`Gemfile.lock`、`rbs_collection.lock.yaml`、およびプロジェクトの`signature_paths` RBSに対するSHA-256です —— ただし解析対象ソースの内容は**含みません**。不一致はスナップショットを破棄します。
 2. **ファイルごとのダイジェスト（判断を駆動する）**。フィンガープリントが一致すると、`Payload`が無条件にロードされ、そのファイルごとの内容ダイジェストが変更セット`ΔF`を決定します;影響を受ける閉包`ΔF ∪ dependents[ΔF]`が再解析され、残りは`Payload#cache`から提供されます。
 
+### エディタモード（`--tmp-file` / `--instead-of`）
+
+増分実行は`Analysis::BufferBinding`を運ぶことができます: ディスクからではなくエディタの一時ファイルからバイトが読み取られる1つのプロジェクトパスです。2つのルールがその実行を拘束し、いずれも上記のティアからは導かれません。
+
+- **バインディングは文字列等価ではなく、解析対象セットに対して解決される**。`--instead-of`はエディタがCLIに渡すどのような綴り（絶対パス、`./`プレフィックス付き、相対パス）でも運びます;解析対象セットは実行のパス引数が生成する綴りを運びます。論理パスがそのセットのメンバーでないバインディングは、同一の実際のパス（real path）を持つメンバーへと綴りを直されなければなりません（MUST）。これがなければ置換は暗黙のうちにどこにも適用されず、実行はディスク上のファイルを読み、空のクロージャを報告し、バッファ前の回答を提供してしまいます（[#960](https://github.com/rigortype/rigor/issues/960)）。
+- **記録されたstatタプルではなく、バッファ自身のコンテンツダイジェストが変更を決定する**。置換されたパスが変更されたとされるのは、まさにエディタのバイト列のハッシュがスナップショットに記録されたダイジェストと異なるときです —— エディタ内での編集はディスク上のstatタプルを決して動かさないため、ユーザーが何を入力しようとstatティアはファイルを最新として読み取ってしまいます。クロージャはその場合`{path} ∪ dependents[path]`となります;バイト列が記録されたダイジェストと等しいバッファはクロージャを空のままにします。キャッシュされたすべての回答がまさにそのバイト列のもとで計算されたものだからです。
+
+バッファを伴うセッションはそのスナップショットを書き戻してはなりません（MUST NOT）。そのファイルごとのダイジェストや診断はエディタ内にのみ存在するバイト列を記述しているため、それらを永続化すると、次の`rigor check --incremental`が、ディスク上のファイルが決して存在しなかった状態ですでに解析されたと信じ込んでしまうことになります。したがって、既存のスナップショットを再利用できないセッションはベースラインを実行するのではなく辞退します —— どうせ計算したものは次のキーストロークをウォームアップできないためです。
+
 ### `Payload`（現在の`SCHEMA = 13`）
 
 ```
@@ -264,6 +273,8 @@ Payload :: Data[
   effect_collections, effects_identity        # ADR-103 the effects sidecar and its own identity (see below)
 ]
 ```
+
+`missing`内の`class:<last segment>`キーはミス時だけでなくHIT時にも記録されます（[#639](https://github.com/rigortype/rigor/issues/639)）: プロジェクトクラスを単に参照しているコンシューマー —— メソッド呼び出しのない`Post` —— はそのクラスが存在することに依存しており、宣言ファイルを削除すると、フル実行が正直な未解決の回答を返す一方で、ウォームな`--incremental`実行では削除前の型を提供し続けてしまいます。したがって、そのプロデューサーは対称でなければならず（MUST）、変更されたファイルだけでなく削除されたファイルも差分しなければなりません（MUST）: 消失した宣言は出現した宣言とまったく同様にキーを満たし、削除されたファイル以前のセット全体が消失します。このエッジは宣言ファイルへの肯定的なエッジではなく意図的に名前キーとされているため、宣言内部の本体編集が参照側を再チェックすることはありません。`class_decls`はすでにファイルごとの宣言セットを保持しているため、行は動かず`SCHEMA`は変更されません。
 
 留め置く価値のあるスキーマの履歴: `6`はシードバンドルを`(node_id, name, fingerprint)`のdefノードハンドルとして格納した（ADR-85）;`8`はB1のコメントのみゲートのために各バンドルのコメントを剥いだ`code_fingerprint`を追加した;`9`は`plugin_fact_digest`を追加した（ADR-88）;`10`は`return_summaries`を追加した（ADR-89）;`11`は`param_table`を追加した（ADR-67 WD6c）;`12`はエフェクトサイドカーを追加した（ADR-103 WD13）;`13`は`constant_decls`（ファイルごとの定数PUBLICATION CENSUS —— `{name => [literal] | :unpublishable}`であり、その差分が`constant:`エッジのプロデューサーを駆動する）を追加し、各シードバンドルにそれ自身の`constant_writes`センサスを与えた（[#644](https://github.com/rigortype/rigor/issues/644)）。古いスキーマのblobは`SCHEMA`ゲートに不一致となり`nil`としてロードされます —— マイグレーションではなく、クリーンなコールドリビルドです。
 
@@ -365,7 +376,7 @@ end
 
 **アノテーションは例外であり、その位置を保持しなければなりません（MUST）**。`RBS::AST::Annotation`は自前の`marshal_dump` / `marshal_load`（issue #799）を定義し、`[string, [name, start_line, start_column, end_line, end_column]]`を運びます。これは`Rigor::Cache::AnnotationLocation`を通じて再構築され、そのネストされた`Buffer`は、運ばれたペア群から`pos_to_loc`に応答するコンテンツのない`RBS::Buffer`サブクラスです ── これは`RBS::Location`のCレベルの`start_line`やその兄弟たちが参照するすべてのものです。2つの`conforms-to`行（`rbs_extended.unsatisfied-conformance`と`dynamic.rbs-extended.unresolved`）は、Rubyの`def`ではなく作者が書いた`%a{…}`に位置づけられるため、アノテーションの位置はキャッシュされた環境内で診断が読み取る唯一の位置です（`effect.unknown-label`もアノテーションに位置づけられますが、`EnvelopeScanner`は構築された環境ではなくプロジェクト自身の`.rbs`をパースして到達します ── この損失を拒否することがそうしている2つの理由の1つです）。保持がない場合、それは`1:1`に潰れていました: `rigor check --verify-incremental`は満たされない`conforms-to`を持つすべてのプロジェクトで失敗し（レプリカは行を位置で正規化しますが、比較の片側のみがキャッシュされた環境に対して実行されます）、ウォームな`--incremental`実行は変更されていないツリー上で行を移動させてしまっていました。位置の保持を`RBS::Location#_dump`で行うのではなくアノテーションに限定したことが、それをコストゼロに保っています: LocationはあらゆるASTノードにぶら下がっており、その位置を保持すると環境ブロブで+2.9%が測定されましたが、アノテーションのみに限定した同じ保持は ── その環境で18個 ── 約10 MBに対して+1.4 KBでした。
 
-この保持の導入前に書き込まれたブロブも引き続きロードされます ── Marshalはivarダンプと`marshal_dump`ペイロードを異なってエンコードし、後者のみが`marshal_load`に到達するためです ── したがって古いブロブが移動した位置を無期限に報告し続けるのを防ぐのは`Store::FORMAT_VERSION`です（ADR-6のストアは決してエビクトしないため）。
+この保持の導入前に書き込まれたブロブも引き続きロードされます ── Marshalはivarダンプと`marshal_dump`ペイロードを異なってエンコードし、後者のみが`marshal_load`に到達するためです ── したがって古いブロブが移動した位置を無期限に報告し続けるのを防ぐのは`Store::FORMAT_VERSION`です —— LRUサイズ上限（ADR-54 WD3）は鮮度ではなくサイズで退避を行うため、上限未満のブロブは自律的に期限切れになることはありません。
 
 このパッチは`lib/rigor/cache/rbs_environment_marshal_patch.rb`にあり、プロデューサーによってrequireされます。プロデューサーが最初に参照されたときに1プロセスにつき一度だけロードされます。
 

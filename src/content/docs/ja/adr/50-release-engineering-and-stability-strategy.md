@@ -3,9 +3,9 @@ title: "ADR-50 — リリースエンジニアリングと安定化戦略（v0.2
 description: "rigortype/rigor docs/adr/50-release-engineering-and-stability-strategy.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/50-release-engineering-and-stability-strategy.md"
 sourcePath: "docs/adr/50-release-engineering-and-stability-strategy.md"
-sourceSha: "1f6ba0e0c07dcfc2cb347d104a268b88685887135ea976bbda67ce5696b298bb"
-sourceCommit: "17f7d081a694f9cfdfaebd7fc71ebfc7171e2a6d"
-sourceDate: "2026-07-15T12:42:34+09:00"
+sourceSha: "81a616dcb258d27506e1c790abfe30edeaec4bca1ff4a68c0fa6b4f09d34ce3f"
+sourceCommit: "db7b23d42e9b47560438b67dfe16d53e03f70575"
+sourceDate: "2026-09-10T04:27:35+09:00"
 translationStatus: "translated"
 sidebar:
   order: 4050
@@ -70,7 +70,7 @@ v1.0.0の契約（列挙済み、v0.2.0で草案作成）は以下をカバー�
 | --- | --- |
 | CLIコマンド＋フラグ（`check`、`triage`、`baseline`、`sig-gen`、`lsp`、`mcp`、…） | あり |
 | `.rigor.yml`のキー＋値の文法 | あり |
-| プラグイン契約——`Plugin::Base`フック＋マニフェストフィールド（ADR-37の`node_rule` / `dynamic_return` / `type_specifier`＋宣言的フィールド） | あり（ADR-37のナロープロトコル、WD3による非推奨のfatフック） |
+| プラグイン契約——`Plugin::Base`フック＋マニフェストフィールド（ADR-37の`node_rule` / `dynamic_return` / `narrowing_facts`——ADR-80により`type_specifier`から改名、0.3.0で旧名を削除——＋宣言的フィールド） | あり（ADR-37のナロープロトコル、WD3による非推奨のfatフック） |
 | 診断**識別子**＋抑制マーカー＋`severity_overrides:`キー | あり（語彙であり、発火セットではない——§ Decision 3） |
 | ベースラインファイル形式＋キャッシュスキーマバージョン | あり（形式はあり、スキーマバンプは無効化するのみで誤読しない） |
 | `RBS::Extended`アノテーション文法（`%a{rigor:v1:…}`） | あり |
@@ -159,6 +159,8 @@ Rigorはどちらも丸ごとは採らない。**単一トランク**のまま�
 **メカニズム（着地済み、advisory）**。ゲートは`release/x.y.z`ブランチ＋`release-gate.yml`ワークフローとして運用化される。ブランチをpushすると、ベースのCIゲート（`ci.yml`、現在は`release/**`でもトリガー）＋包括的な追加——`make bench-perf` perfゲート（WD4）、gem-buildバリデーション、OSSコーパススウィープ（現在はMastodon、データドリブンなのでRedmine / GitLabはしきい値ファイルの追加で対応）が実行される。試行後フリーズの基本方針に従い、包括的ゲートは**advisory**として出荷される（レポートするのみ、ブロックしない——required-check配線なし、perf/sweepステージは`continue-on-error`で実行）。ベースライン（`bench/baseline.json`、スウィープしきい値）がCI数値に対してキャリブレーションされた後、requiredに昇格する。
 
 ### WD7 — 非推奨＋卒業のケイデンス
+
+**ステータスノート（2026-09-10、#938）**。以下の「専用の独立したCHANGELOGセクション」は**ADR-105のフラグメントメカニズムによって置換された**: すべてのエントリーは現在`changelog.d/<section>/<slug>.md`フラグメントとして着地し、`spec/docs/changelog_fragments_spec.rb`の固定された6セクション文法（Keep a Changelogの`added changed deprecated removed fixed security`）によってゲートされ、`rigor-release-prep`スキルがそれらを逐語的に`CHANGELOG.md`へと統合する——意図的に`Performance` / `Internal` / 第7のセクションは**持たない**。かつてそのルールが書かれる前にドリフトが発生した（浮いた`### Performance`セクションが6つ存在した）ためだ。`bleeding_edge`をセクションとして追加することは、単一のWD2 feature id相当のエントリーのためにその固定セット、フラグメント仕様の文法、およびスキルの統合ステップを拡張することを意味する——既存のセクション内のキー付き箇条書きですでに役目を果たせる（フラグメントは今日でも自身のテキスト内でWD2 feature idを言及できる）ような専用セクションの要望に対する、実際の横断的なサーフェスだ。この方向性はドキュメントの決定として維持される;具体的な設計は`bleeding_edge:`フィーチャーが実際にそれを必要とするまで先送りされる。
 
 bleeding-edgeフィーチャー（WD2）は、オーバーレイから削除されることによって、**semver**のメジャーリリースでデフォルトオンに卒業する。このとき、ガイドラインの最低基準として**約4週間のソーク**期間が必要だ。ソークは下限であり、スケジュールではない。すぐにデフォルトにすべきフィーチャーは早いメジャーをトリガーできるが、緊急性のないものは次のメジャーがカットされるまで待つだけだ。卒業は**バンドル化される、フィーチャーごとにソロではない**——メジャーはソークをクリアした*すべての*オーバーレイフィーチャーをオンにし、メジャーは重要な規律を卒業させるため*か*、何らかの他のBC要因（フリーズされたサーフェスの変更、WD1）がすでに強制しているためにカットされる。メジャーは**BC-readiness駆動であり、カレンダー駆動ではない**。そのケイデンスは、ソーク済み規律＋サーフェスブレークのキューが必要とするものだ。
 

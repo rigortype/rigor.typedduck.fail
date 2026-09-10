@@ -4,7 +4,7 @@ description: "Imported from rigortype/rigor docs/notes/deep-research/20260712/ra
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/deep-research/20260712/rails-steep-adoption-guide.md"
 sourcePath: "docs/notes/deep-research/20260712/rails-steep-adoption-guide.md"
 sourceSha: "f5d511998e592be16abb4f1af7728d09db0db1f86875027e8144eb5a9a67d218"
-sourceCommit: "04668e5f0d6205fdd5c8f44662041add7ab33ca3"
+sourceCommit: "db7b23d42e9b47560438b67dfe16d53e03f70575"
 sourceDate: "2026-07-12T23:33:17+09:00"
 sourceLanguage: "ja"
 sidebar:

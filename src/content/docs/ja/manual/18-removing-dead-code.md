@@ -3,8 +3,8 @@ title: "`rigor unused`でデッドコードを取り除く"
 description: "rigortype/rigor docs/manual/18-removing-dead-code.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/18-removing-dead-code.md"
 sourcePath: "docs/manual/18-removing-dead-code.md"
-sourceSha: "2ae4bd5cd56f3cc606b930c4dd1e1c50c6e0ae83d6385e563b36664053b067a7"
-sourceCommit: "2d0ffe6f38d01cfd850527c57987b27487b414d4"
+sourceSha: "21d12b2fc7dc57b15cdfd2f4dc71e8a8641441438eddea0e2097b94f42a6e9d8"
+sourceCommit: "db7b23d42e9b47560438b67dfe16d53e03f70575"
 translationStatus: "translated"
 sidebar:
   order: 9018
@@ -53,7 +53,7 @@ Reachability
 
 `reachable`・`candidates`・`cannot decide`・`namespace-only`は`declared`を分割します——合計で1497になります。**`reachable only from tests`は`reachable`の部分集合**であって5番目のバケットではないので、足し込まないでください。
 
-まず`roots`を読んでください。ルートとは、あなたのコードの外側にある何かが到達する宣言です——エントリーポイント、ルート（route）、フレームワークの規約。到達可能性はルート*から*計算されるので、薄いルートの集合はその下のすべてを膨らませます。病的なケースは`0 from plugins`のRailsアプリケーションです: Rubyのソースの中でコントローラーを名指しするものは何もないので、あなたが所有するすべてのコントローラーが死んでいるように見えます。比較すべき公表された健全な比率はありません;あなたが確認しているのは、その数がフレームワークにとってもっともらしいかどうかであり、フレームワークアプリでの`0 from plugins`は決してもっともらしくありません。
+まず`roots`を読んでください。ルートとは、あなたのコードの外側にある何かが到達する宣言です——エントリーポイント、ルート（route）、フレームワークの規約。プラグインがルートを寄与しなかった場合、`(... from plugins, ...)`の括弧書きは丸ごと省略されるため、そのような注記のない素の`roots: N`それ自体がシグナルとなります。到達可能性はルート*から*計算されるため、乏しいルートセットはその下のすべてを過大に膨らませます。病的なケースは、`from plugins`注記がまったくないRailsアプリケーションです: Rubyのソースではコントローラーを名指しするものが何もないため、所有するすべてのコントローラーが死んでいるように見えてしまいます。比較できる公表された健全な比率はありません;確認すべきは、その数値がフレームワークにとって妥当かどうかであり、フレームワークアプリにおいて`from plugins`注記が欠落しているのは決して妥当ではありません。
 
 ## 数を減らす
 

@@ -3,8 +3,9 @@ title: "ADR-2: 拡張API戦略"
 description: "rigortype/rigor docs/adr/2-extension-api.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/2-extension-api.md"
 sourcePath: "docs/adr/2-extension-api.md"
-sourceSha: "c41901e1785d4495eed48aedbd7bbb4c64ae132739d4fc2c66022c5d7832fbc8"
-sourceCommit: "18ef11c9f393b495cd9a6ed7277846069c08c516"
+sourceSha: "c357e4f490b441879046c9e1d3ae958b33d4d7830339ede79b91c48e8c5e8ce2"
+sourceCommit: "db7b23d42e9b47560438b67dfe16d53e03f70575"
+sourceDate: "2026-09-10T04:27:46+09:00"
 translationStatus: "translated"
 sidebar:
   order: 4002
@@ -253,7 +254,7 @@ Rigorは同じ2つのテストスタイルを提供すべきです:
 
 ## 結果の型仕様からのフィードバック
 
-`docs/types.md`を理想的な型モデルとして再構築することで、いくつかの拡張API要件が明らかになりました:
+型仕様（`docs/type-specification/structural-interfaces-and-object-shapes.md`および`docs/type-specification/rbs-extended.md`）を再構築することで、理想的な型モデルにとってオプションではないいくつかの拡張API要件が明らかになりました:
 
 - 拡張は型だけでなくフロー貢献を返す必要があります。
 - `Scope`はエッジ認識でなければなりません（MUST）。
@@ -293,7 +294,7 @@ Rigorは同じ2つのテストスタイルを提供すべきです:
 
 ### ADR-1はフローエフェクトセマンティクスを所有する
 
-**作業回答:** ADR-1はセマンティックスキーマを所有します。ADR-2はプラグインパッケージング、登録、サービスライフタイム、provenanceを所有します。`docs/types.md`は両方のADRが参照する詳細な規範的製品仕様を持ちます。
+**作業回答:** ADR-1はセマンティックスキーマを所有します。ADR-2はプラグインパッケージング、登録、サービスライフタイム、provenanceを所有します。`docs/type-specification/rbs-extended.md`は両方のADRが参照する詳細な規範的ディレクティブ仕様を持ちます。
 
 ### リフレクション再ビルドはスライスベース
 
@@ -325,7 +326,7 @@ Rigorは同じ2つのテストスタイルを提供すべきです:
 
 ## オープンクエスチョン
 
-- **Ractor分離下のプラグイン契約（[ADR-15](../15-ractor-concurrency/)フェーズ3）**。`Analysis::Runner` Ractorワーカープールが着地するとき（フェーズ4）、プラグインインスタンスはRactorごとである必要があります: 各ワーカーは共有レジストリの凍結されたファクトリー + マニフェストメタデータから自身のプラグインを実体化します。`diagnostics_for_file`フック（`flow_contribution_for`は**ADR-52 WD3、2026-06-11で削除**されました——`dynamic_return` / `type_specifier`へ移行してください；CHANGELOGの`### Removed`を参照）で実行ごとの可変状態を蓄積するプラグイン（`rigor-sorbet`の`@reachable_absurd_nodes` / `@reveal_type_calls` / `@assert_type_mismatches` `compare_by_identity` Hashesが正典の例）は、その状態を`Plugin::FactStore`（すでにクロスRactor調整済み）経由でルーティングするか、Ractorごとの分離を受け入れる必要があります（MUST）。フェーズ3のADR-2修正案が選ばれた形状を固定します;現在テーブル上の3つの候補はADR-15 § OQ2に記録されています。
+- **Ractor分離下のプラグイン契約（[ADR-15](../15-ractor-concurrency/)フェーズ3）**。`Analysis::Runner` Ractorワーカープールが着地するとき（フェーズ4）、プラグインインスタンスはRactorごとである必要があります: 各ワーカーは共有レジストリの凍結されたファクトリー + マニフェストメタデータから自身のプラグインを実体化します。`diagnostics_for_file`フック（`flow_contribution_for`は**ADR-52 WD3、2026-06-11で削除**されました——`dynamic_return` / `narrowing_facts`（ADR-37はこれを`type_specifier`と命名し、ADR-80が改名し、古い名前は0.3.0で削除されました）へ移行してください；CHANGELOGの`### Removed`を参照）で実行ごとの可変状態を蓄積するプラグイン（`rigor-sorbet`の`@reachable_absurd_nodes` / `@reveal_type_calls` / `@assert_type_mismatches` `compare_by_identity` Hashesが正典の例）は、その状態を`Plugin::FactStore`（すでにクロスRactor調整済み）経由でルーティングするか、Ractorごとの分離を受け入れる必要があります（MUST）。フェーズ3のADR-2修正案が選ばれた形状を固定します;現在テーブル上の3つの候補はADR-15 § OQ2に記録されています。
 - 動的戻り値拡張は最初に名前的レシーバー型のみで一致すべきか、それとも構造的インターフェースとオブジェクトシェイプでも一致すべきか？
 - 最初のプラグインマニフェスト形式と設定スキーマ言語は何か？
 - Rigorは最初のカスタムルールマイルストーンでルールに合成または仮想ASTノードを公開すべきか？

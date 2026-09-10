@@ -1,10 +1,11 @@
 ---
-title: "ADR-21 — Rubydex評価（基礎、バックエンド、ツール？）"
+title: "ADR-21 — Rubydex評価（基盤、バックエンド、それともツール？）"
 description: "rigortype/rigor docs/adr/21-rubydex-evaluation.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/21-rubydex-evaluation.md"
 sourcePath: "docs/adr/21-rubydex-evaluation.md"
-sourceSha: "b5c63cdb01227043ca1ce5ac205d0c7830e4e0d29dc6d6b367b4a6853af6822d"
-sourceCommit: "aec4ca7f5f87b1972dea8fecaaf5b62c8880a3af"
+sourceSha: "c6ad5658f8a8779f0162dfabbe77dd07914208b71249303403a7fa02d4d856a9"
+sourceCommit: "db7b23d42e9b47560438b67dfe16d53e03f70575"
+sourceDate: "2026-09-10T04:47:52+09:00"
 translationStatus: "translated"
 sidebar:
   order: 4021
@@ -132,6 +133,8 @@ Rigorの`lib/rigor/inference/`サブツリーに対してマップすると、�
 3つ以上のトリガーが一緒に発火した場合、このADRは`backend:`設定軸（`backend: rigor`（デフォルト）対`backend: rubydex`）の背後にある入れ替え設計を肉付けして再開される。
 
 ### トラック3 — 補助ツールとして条件付き承認
+
+> **[ADR-102](../102-unused-code-reachability-report/)および[#143](https://github.com/rigortype/rigor/issues/143)により部分的に置き換え**。本トラックの前提——Rigorにはクロスファイル宣言インデックスがないため`textDocument/definition`にはオプションのrubydexバックエンドのプロバイダが必要であるという前提——はもはや成り立たない: ADR-102は「Rigorが必要とする宣言基盤はすでに存在している」と記録しており、これは`rigor unused`の定数到達可能性のために構築された。後述のトリガーは発火したが（RigorのLSPロードマップが`textDocument/definition`にコミットした）、選択されたルートはネイティブなものであり——#143は本トラックのオプションのrubydexプロバイダではなく、`Rigor::Reflection`側の`FILE:LINE`シンボルインデックスを仕様化している。`textDocument/references`と`workspace/symbol`は影響を受けない;#143がカバーするのは`definition`のみである。
 
 Rigorが現在実装していない2つのLSPサーフェスは、rubydexが構築されたまさにその形である:
 

@@ -3,8 +3,8 @@ title: "rigor-actionpack"
 description: "rigortype/rigor docs/manual/plugins/rigor-actionpack.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/plugins/rigor-actionpack.md"
 sourcePath: "docs/manual/plugins/rigor-actionpack.md"
-sourceSha: "9fc6a1a98cb3f67082bcc1eb79e7c52474293412c803a99c906a1fef84863fe8"
-sourceCommit: "8e1432f5ada5240b33f140cb2024e6025450b2f9"
+sourceSha: "175184efef49898373a62203df26500201f06d9a9322a044d3e8db9efcd65d8c"
+sourceCommit: "db7b23d42e9b47560438b67dfe16d53e03f70575"
 translationStatus: "translated"
 sidebar:
   order: 9050
@@ -72,6 +72,12 @@ RigorはこれらのAction Packのクラスについて意図的に**シグネ�
 これらの述語は`bool`——`true`と`false`のユニオン——として型付けされます。これは本物の契約でもあり（そのどれもがRailsまたはRackの中の`==`・`match?`・`include?`です）、そもそもこれらを型付けしても安全である理由でもあります: 畳み込まれる条件は*1つの*定数を証明する必要があり、両方のユニオンは決してそれを証明しないからです。`return unless request.post?`や`mode = request.get? ? :a : :b`は以前とまったく同じに読めます。
 
 `request.format`は型付けされ**ません**。この不活性の議論は見た目より狭いのです——それが成り立つのは2つの真偽値の定数のユニオンについてであって、通常のクラスのユニオンについてではありません。後者はnilを含まないので条件を畳み込むことが*できます*——そして`format`がフォーマットのないときに返す値`Mime::NullType`は、実在するオブジェクトでありながら`nil?`に`true`と答えます。これを型付けするにはnilを意識した答えが必要です。
+
+## フレームワーク定数の解決
+
+このプラグインは、`ActionController`名前空間およびコントローラーがrescueするエラー —— `ParameterMissing`、`UnpermittedParameters`、`RoutingError`、`BadRequest`、`UnknownFormat`、`InvalidAuthenticityToken`およびそれらの兄弟 —— を名指しする小さなバンドル済みシグネチャを出荷します。`rescue ActionController::ParameterMissing => e`は、`e`を不透明なままにする代わりにそのクラスとして型付けするようになりました。
+
+このシグネチャはそれら**のみ**を名指しします。`ActionController::Base`および`ActionController::API`は意図的に未宣言のまま残されています: アプリケーション内のすべてのコントローラーがそれらのいずれかを継承しており、スーパークラスの不完全な宣言は、それが省略したすべてのメンバー —— `render`、`before_action`、`head` —— を正常に動作するコードに対する指摘に変えてしまうためです。同じ理由で、`ActionController::Parameters`および上記の`ActionDispatch`リーダーも未宣言のまま保たれています;それらの寛容さこそが`params`の型付けを安全にしているものです。
 
 ## 制限事項
 
