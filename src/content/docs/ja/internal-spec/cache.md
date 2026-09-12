@@ -3,9 +3,9 @@ title: "キャッシュレイヤー — `Rigor::Cache`"
 description: "rigortype/rigor docs/internal-spec/cache.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/cache.md"
 sourcePath: "docs/internal-spec/cache.md"
-sourceSha: "7d2292d5ffc2df3ee7b657fa64dfcc1a91c788ac2accdda5bb2fa68111a8ab74"
-sourceCommit: "db7b23d42e9b47560438b67dfe16d53e03f70575"
-sourceDate: "2026-09-09T16:24:33+09:00"
+sourceSha: "7684b41161aae61adcf5bf9c87a6e456e5c3bda9060577fd6819f7e99683bb22"
+sourceCommit: "568138c239ec5b7b39833ed6a2a21fd027e3d319"
+sourceDate: "2026-09-11T21:23:52+09:00"
 translationStatus: "translated"
 sidebar:
   order: 3050
@@ -30,10 +30,12 @@ GemEntry        :: { name: String, requirement: String, locked: String? }
 PluginEntry     :: { id: String, version: String, config_hash: String? }
 ConfigEntry     :: { key: String, value_hash: String }
 DependencyEntry :: { gem_name: String, gem_version: String, mode: :disabled|:when_missing|:full }
-GlobEntry       :: { root: String, pattern: String, value: String }
+GlobEntry       :: { root: String, pattern: String, value: String, mode: :stat|:names }
 ```
 
-各エントリーはキーワード引数で構築され、即座にフリーズされます。`FileEntry#new`はcomparatorのenumを検証し、`DependencyEntry#new`は`mode`のenumを検証し、それぞれ未知の値に対して`ArgumentError`を発生させます。他のエントリーは任意の文字列コンテンツを受け入れます（その値は慣例上すでに正規化されたハッシュです）。`DependencyEntry`はADR-10のgemバージョンごとのスロットです: その`(gem_name, gem_version, mode)`のトリプルがオプトインの依存関係ソース推論キャッシュスライス（slice）をキー付けるので、`Gemfile.lock`のバンプや`source_inference:`モード変更（[`dependency-source-inference.md`](dependency-source-inference.md)）がちょうど影響を受けるgemだけを無効化します。`GlobEntry`はADR-60 WD3のレコードアンドバリデートスロットです: その`value`は`root`/`pattern`に一致するすべてのファイルのダイジェスト（`GlobEntry.compute`で構築される）であり、再globによって再検証されるため、プラグインプロデューサーの`watch:` globのカバレッジが編集をまたいで鮮度を保ちます。[ADR-87](../adr/87-null-build-floor.md) WD2以降、このglobごとのダイジェストはファイルの内容ではなく、ソートされた**statタプル**（`"<path>\0<size>\0<mtime_ns>\0<ctime_ns>\0<inode>\n"`の各行）に対するSHA-256です —— 再検証は再globして再statし、変更のないツリーでは内容を1バイトも読まない一方、任意の編集（mtime + ctimeを動かす）は依然としてシグネチャを動かします。
+各エントリーはキーワード引数で構築され、即座にフリーズされます。`FileEntry#new`はcomparatorのenumを検証し、`DependencyEntry#new`は`mode`のenumを検証し、それぞれ未知の値に対して`ArgumentError`を発生させます。他のエントリーは任意の文字列コンテンツを受け入れます（その値は慣例上すでに正規化されたハッシュです）。`DependencyEntry`はADR-10のgemバージョンごとのスロットです: その`(gem_name, gem_version, mode)`のトリプルがオプトインの依存関係ソース推論キャッシュスライス（slice）をキー付けるので、`Gemfile.lock`のバンプや`source_inference:`モード変更（[`dependency-source-inference.md`](dependency-source-inference.md)）がちょうど影響を受けるgemだけを無効化します。`GlobEntry`はADR-60 WD3のレコードアンドバリデートスロットです: その`value`は`root`/`pattern`に一致するすべてのファイルのダイジェスト（`GlobEntry.compute`で構築される）であり、再globによって再検証されるため、プラグインプロデューサーの`watch:` globのカバレッジが編集をまたいで鮮度を保ちます。[ADR-87](../adr/87-null-build-floor.md) WD2以降、このglobごとのダイジェストはファイルの内容ではなく、ソートされた**statタプル**（`"<path>\0<size>\0<mtime_ns>\0<ctime_ns>\0<inode>\n"`の各行）に対するSHA-256です —— 再検証は再globして再statし、変更のないツリーでは内容を1バイトも読まない一方、任意の編集（mtime + ctimeを動かす）は依然としてシグネチャを動かします。`GlobEntry#new`は`mode` enumを検証し、未知の値に対して`ArgumentError`を発生させます。
+
+`mode`（[#979](https://github.com/rigortype/rigor/issues/979)）は、シグネチャがどの問いに答えるかを選択します。`:stat`は前述のデフォルトであり、出現・消失・編集のいずれにも応答します。`:names`はソートされたマッチする**パスのみ**をハッシュ化し、statもコンテンツも一切読み取らないため、マッチするファイルの「集合（SET）」の変化によってのみ動きます。`:names`行はメンバーがすでに個別にカバーされている依存関係向けです: 実行記述子のシグネチャルートごとの行が`:names`なのは、それらがリストするすべての`.rbs`が自身の`:stat` `FileEntry`行も運んでおり、編集はその行のADR-87 WD1ダイジェストフォールバックを通じて無効化されるべきだからです（シグネチャツリー全体に対するstatモードのglobは、`git checkout`、`bundle install`、そしてクリーンなチェックアウト上に復元されたCIキャッシュのすべてを完全な再解析として読み取ってしまいますが、これらはRBSのバイトを何一つ変更しません）。modeは合成の`slot_key`の一部であり、`:stat`のときは`to_h`（および正規バイト列）から省略されるため、#979より前の記述子とバイト単位で同一のまま保たれます——フィールド自体はいかなるプロデューサーのキーも動かしません。すべてのキーはストレージ層が各キーに混合する`SCHEMA_VERSION` 9によって一度だけ動きました;その1回限りのミスが#979のマイグレーションであり、#577に対するv8と同じ形態です。
 
 `:stat` comparatorは、個々の`FileEntry`スロット向けのADR-87 WD1のstatしてからダイジェストの階層です。その`value`は`"<digest> <size> <mtime_ns> <ctime_ns> <inode> <recording_instant_ns>"`をパックします: 検証（`FileDigest.stat_fresh?`）はまずファイルをstatし、タプルが動いたとき、またはレーシーウィンドウガードが発火したとき（ファイルのmtimeがエントリーの記録時刻より厳密に古くない）にのみ、完全な内容ハッシュ（`FileDigest.hexdigest`）へフォールバックします。valueにパックされたSHA-256ダイジェストは依然として唯一の変更**authority（権威）**のままです —— 動かなかったstatは検証がその再計算をスキップできるようにするだけです;statは動いたが内容は同一（素の`touch`）である`:stat`エントリーは再ハッシュされ、正しく鮮度ありと判定されます。`:stat`階層は検証専用ディスクリプタ（ADR-45の依存関係ディスクリプタ、プラグインの`watch:` glob）に乗ります;キャッシュ*キー*ディスクリプタは決定的な`:digest` comparatorを保ちます。`cache.validation: digest`（または、それが優先される`RIGOR_STRICT_VALIDATION=1` env）は、statを信頼できないファイルシステムのために、すべてのエントリーを`:digest`へ強制的に戻します。このキーのデフォルトは`auto`（#190）です: `CiDetector`がCIプロバイダを認識したときは`digest`へ解決され——新鮮なチェックアウトはすべてのstatタプルを再生成するため、stat階層は決してショートサーキットできず、statシグネチャのglobスロットは毎回のランで陳腐と読まれてしまう——、それ以外のあらゆる場所では`stat`へ解決されます。解決はランごとに行われ（`Configuration#cache_validation_strict?`）、`RIGOR_CI_DETECT=0`のキルスイッチを尊重し、明示的な`stat` / `digest`は常に優先されます（永続ワークスペースのCIランナーは`stat`でstatフロアへオプトインし直します）。
 
@@ -60,7 +62,7 @@ GlobEntry       :: { root: String, pattern: String, value: String }
 
 プロデューサー・入力・ディスクリプタの組み合わせに対して標準的なhex SHA-256キャッシュキーを返します。キーは以下を組み込みます。
 
-1. `Descriptor::SCHEMA_VERSION`（現在は`8` — v2はADR-10のgemバージョンごとのキャッシュスライスのために`dependencies`スロットを追加した;v3は`build_env_for`が欠落した`signature_paths:`名前空間を合成し始める前にmarshalされたRBS環境を無効化する;v4はADR-60 WD3のレコードアンドバリデートのプラグインプロデューサーキャッシュのために`globs`スロットを追加した;v5はADR-87 WD1のstatしてからダイジェストの検証のために`:stat` `FileEntry` comparatorを追加した;v6は`append_stub_declarations`が参照型スタブそれぞれに必要な宣言の種別を出力し各宣言を個別に検証するようになる前にmarshalされたRBS環境を無効化する。これによりぶら下がった`interface`や型エイリアスの参照がスタブのバッチ全体を捨てることはなくなった（#237）;v7は`:extends`テーブルを運ぶようになる前に書かれたdefインデックスのシードバンドルを無効化する（#526）;v8は、探索したが見つからなかったパスについて`IoBoundary#read_file`が不在の行を記録するようになる前に書かれた実行結果とプラグインプロデューサーのエントリーを無効化する（ADR-45 WD1、#577）——8より前のエントリーは、まさにそれらの行が捕まえるために存在するファイル出現の編集をまたいで新鮮だと検証してしまうからだ）。この定数をバンプするとすべてのキャッシュ済み値が無効化されます。
+1. `Descriptor::SCHEMA_VERSION`（現在は`9` — v2はADR-10のgemバージョンごとのキャッシュスライスのために`dependencies`スロットを追加した;v3は`build_env_for`が欠落した`signature_paths:`名前空間を合成し始める前にmarshalされたRBS環境を無効化する;v4はADR-60 WD3のレコードアンドバリデートのプラグインプロデューサーキャッシュのために`globs`スロットを追加した;v5はADR-87 WD1のstatしてからダイジェストの検証のために`:stat` `FileEntry` comparatorを追加した;v6は`append_stub_declarations`が参照型スタブそれぞれに必要な宣言の種別を出力し各宣言を個別に検証するようになる前にmarshalされたRBS環境を無効化する。これによりぶら下がった`interface`や型エイリアスの参照がスタブのバッチ全体を捨てることはなくなった（#237）;v7は`:extends`テーブルを運ぶようになる前に書かれたdefインデックスのシードバンドルを無効化する（#526）;v8は、探索したが見つからなかったパスについて`IoBoundary#read_file`が不在の行を記録するようになる前に書かれた実行結果とプラグインプロデューサーのエントリーを無効化する（ADR-45 WD1、#577）——8より前のエントリーは、まさにそれらの行が捕まえるために存在するファイル出現の編集をまたいで新鮮だと検証してしまうからだ; v9は実行記述子のシグネチャルートごとのnamesモード`GlobEntry`リスティング行を追加した（#979）。これは1スロットずれた同じマイグレーション理由によるものである——9より前のエントリーはそれらを一切運ばないため、`sig/`配下に現れた`.rbs`をまたいで新鮮だと検証してしまう）。この定数をバンプするとすべてのキャッシュ済み値が無効化されます。
 2. `producer_id`（キャッシュスライスの名前空間となる安定した文字列）。
 3. `params`（プロデューサーの入力ハッシュ）。再帰的に正規化されます。ハッシュキーは文字列化してソートし、シンボルは文字列化し、配列は順序を保持します。
 4. ディスクリプタの正規ハッシュ形式。
@@ -258,7 +260,7 @@ sha256               32バイト — 直前のすべてのバイトの整合性�
 
 バッファを伴うセッションはそのスナップショットを書き戻してはなりません（MUST NOT）。そのファイルごとのダイジェストや診断はエディタ内にのみ存在するバイト列を記述しているため、それらを永続化すると、次の`rigor check --incremental`が、ディスク上のファイルが決して存在しなかった状態ですでに解析されたと信じ込んでしまうことになります。したがって、既存のスナップショットを再利用できないセッションはベースラインを実行するのではなく辞退します —— どうせ計算したものは次のキーストロークをウォームアップできないためです。
 
-### `Payload`（現在の`SCHEMA = 13`）
+### `Payload`（現在の`SCHEMA = 22`）
 
 ```
 Payload :: Data[
@@ -270,13 +272,14 @@ Payload :: Data[
   plugin_fact_digest,                         # ADR-88 plugin-fact surface fingerprint (see below)
   return_summaries,                           # ADR-89 observed-key return summaries (see below)
   param_table,                                # ADR-67 WD6c the inferred-param seed table the run analysed under
-  effect_collections, effects_identity        # ADR-103 the effects sidecar and its own identity (see below)
+  effect_collections, effects_identity,       # ADR-103 the effects sidecar and its own identity (see below)
+  run_level_rows                              # the two run-level rows a narrowed run replays (see below)
 ]
 ```
 
 `missing`内の`class:<last segment>`キーはミス時だけでなくHIT時にも記録されます（[#639](https://github.com/rigortype/rigor/issues/639)）: プロジェクトクラスを単に参照しているコンシューマー —— メソッド呼び出しのない`Post` —— はそのクラスが存在することに依存しており、宣言ファイルを削除すると、フル実行が正直な未解決の回答を返す一方で、ウォームな`--incremental`実行では削除前の型を提供し続けてしまいます。したがって、そのプロデューサーは対称でなければならず（MUST）、変更されたファイルだけでなく削除されたファイルも差分しなければなりません（MUST）: 消失した宣言は出現した宣言とまったく同様にキーを満たし、削除されたファイル以前のセット全体が消失します。このエッジは宣言ファイルへの肯定的なエッジではなく意図的に名前キーとされているため、宣言内部の本体編集が参照側を再チェックすることはありません。`class_decls`はすでにファイルごとの宣言セットを保持しているため、行は動かず`SCHEMA`は変更されません。
 
-留め置く価値のあるスキーマの履歴: `6`はシードバンドルを`(node_id, name, fingerprint)`のdefノードハンドルとして格納した（ADR-85）;`8`はB1のコメントのみゲートのために各バンドルのコメントを剥いだ`code_fingerprint`を追加した;`9`は`plugin_fact_digest`を追加した（ADR-88）;`10`は`return_summaries`を追加した（ADR-89）;`11`は`param_table`を追加した（ADR-67 WD6c）;`12`はエフェクトサイドカーを追加した（ADR-103 WD13）;`13`は`constant_decls`（ファイルごとの定数PUBLICATION CENSUS —— `{name => [literal] | :unpublishable}`であり、その差分が`constant:`エッジのプロデューサーを駆動する）を追加し、各シードバンドルにそれ自身の`constant_writes`センサスを与えた（[#644](https://github.com/rigortype/rigor/issues/644)）。古いスキーマのblobは`SCHEMA`ゲートに不一致となり`nil`としてロードされます —— マイグレーションではなく、クリーンなコールドリビルドです。
+留め置く価値のあるスキーマの履歴: `6`はシードバンドルを`(node_id, name, fingerprint)`のdefノードハンドルとして格納した（ADR-85）;`8`はB1のコメントのみゲートのために各バンドルのコメントを剥いだ`code_fingerprint`を追加した;`9`は`plugin_fact_digest`を追加した（ADR-88）;`10`は`return_summaries`を追加した（ADR-89）;`11`は`param_table`を追加した（ADR-67 WD6c）;`12`はエフェクトサイドカーを追加した（ADR-103 WD13）;`13`は`constant_decls`（ファイルごとの定数PUBLICATION CENSUS —— `{name => [literal] | :unpublishable}`であり、その差分が`constant:`エッジのプロデューサーを駆動する）を追加し、各シードバンドルにそれ自身の`constant_writes`センサスを与えた（[#644](https://github.com/rigortype/rigor/issues/644)）;`14`〜`21`はシードバンドル文法のバンプであり、それぞれ`IncrementalSnapshot::SCHEMA`の番号付きコメントでissueに対して記録されている;`22`は`run_level_rows`（[#796](https://github.com/rigortype/rigor/issues/796)、[#794](https://github.com/rigortype/rigor/issues/794)）を追加した。古いスキーマのblobは`SCHEMA`ゲートに不一致となり`nil`としてロードされます —— マイグレーションではなく、クリーンなコールドリビルドです。
 
 ### `plugin_fact_digest` — プラグインファクトの健全性（[ADR-88](../adr/88-incremental-plugin-fact-soundness.md)）
 
@@ -298,6 +301,33 @@ B1のコメントのみゲートを本体の編集へ一般化します: 変更�
 `effects_identity`は、上記のグローバルフィンガープリントとは独立した**第2のゲート**です。これが存在するのは、`effects:`ブロックが`configuration.to_h`から意図的に外されているためです: 収集を有効にしても診断は一切無効化されてはならないので、永続化されたサマリーが自分のボキャブラリーとカタログの言うとおりの意味を持つかどうかをランに教えるのは、グローバルフィンガープリントではありえません。このスロットは`Rigor::Effects::Identity.digest` —— ボキャブラリーのバージョン、カタログのアイデンティティ（`Catalog#identity`: スキーマ＋`data/effects/core.yml`の内容ダイジェスト）、そして`effects:`ブロックのダイジェスト —— を、それを書いたランの時点の値で格納し、収集がオフだったときは`nil`を格納します。不一致は収集**のみ**を破棄します。ペイロードの診断側は手つかずで、セッションはその後フルベースラインを取ります。再チェックは閉包だけを再収集するので、部分的な収集をプロジェクト全体の不動点へ閉じることはできないためです。収集オフのランはコレクションを保持せず、`{}` / `nil`を書き、スロットが存在する前とまったく同じに振る舞います。
 
 契約の全容 —— 両スロット、2つのアイデンティティ、それぞれが何を無効化するか —— は[`effect-summaries.md` § キャッシュ](effect-summaries/)にあります。
+
+### スナップショットが運ぶ実行レベルの行
+
+実行レベルの行とは、いずれのファイルの解析によってでもなく、環境とそのレポーターから実行ごとに一度生成される行です。**ファイルごとのキャッシュから提供される実行レベルの行はありません** —— `IncrementalSession`は`Runner#per_file_diagnostics`のみをキャッシュするため、すべての実行があらゆる実行レベル行を再生成します（[#788](https://github.com/rigortype/rigor/pull/788)）。`run_level_rows`はその約束を弱めるものではありません: これは診断のキャッシュではなく、絞り込まれた実行が観測できない2つの入力（INPUT）の記録であり、その実行自身が行を生成できるようにリプレイされるものです。
+
+ここには厳密に2つが存在し、そのリストは閉じています:
+
+- **`definition_build_failures`** —— 報告された`rbs.coverage.definition-build-failed`の詳細。そのプロデューサーはクラスのメソッドサーフェスに対する解析自体の要求であり、[#696](https://github.com/rigortype/rigor/issues/696)は報告セットをその要求に拘束し、Rigor所有の要求が寄与することを禁じています —— したがってクロージャが空の実行は何の要求もせず何も報告せず、`--verify-incremental`のパーティションはフル実行のサブセットを報告します。障害それ自体はシグネチャセットの関数であり、それらの障害のうちどれが要求されたか（DEMANDED）のみが変動します —— 前回のフル実行の要求セットをリプレイすることが、この行を呼び出し非依存にするものであり、これこそが#696が存在して保護する特性です。しかしシグネチャセットには3つのソースがあり、フィンガープリントはそのうち2つにしか届きません:
+
+  | ソース | フィンガープリントスロット | カバーされているか？ |
+  | --- | --- | --- |
+  | `signature_paths:`下のすべての`.rbs` | `sig:`（ファイルごとのコンテンツダイジェスト） | はい |
+  | gem / コレクションRBS | `gems:`、`rbs_collection:`（ロックファイルのダイジェスト） | はい |
+  | 仮想RBS —— プラグインのソースRBSシンセサイザーが`.rb`ファイルから導出するもの。[ADR-93](../../adr/93-default-rbs-inline-ingestion/)の自動配線される`rigor-rbs-inline`のもとでは、すべての`#:` / `# @rbs`アノテーション | なし | **いいえ** |
+
+  3つ目をダイジェストすることは、すべてのソースファイルに対してすべてのシンセサイザーを実行することを意味し、これは事実上の環境ビルドです —— そしてフィンガープリントは環境ビルドの前にスナップショットのロードをゲートするために存在します。そのため、フィンガープリントを動かすことなく`.rb`ファイルから重複宣言を削除でき、リプレイされた行はその原因よりも長く生き残ってしまいます。したがってリプレイは、競合するバッファが今回の実行のクロージャ内のファイルの`virtual:`バッファを指しているエントリーを破棄します（DROP）（`PoolCoordinator#stale_replayed_failure?`）: 編集されたファイルはまさにその寄与がもはや衝突しないかもしれないファイルであり、今回の実行はその行を再導出できず（#696が要求を禁じる）、過少報告の方が今や正しいかもしれないプログラムに対して診断を主張するより優れています。
+- **`hkt_scan_failure`** —— `rbs.coverage.hkt-scan-failed`の結果タプル（[#784](https://github.com/rigortype/rigor/issues/784)）。スキャンは環境ごとに1つの結果を持つため、リプレイされた結果はスキャン元の環境とまったく同じ鮮度を持ちます —— 言い換えれば: フィンガープリントと同じ鮮度であり、スキャンが読み取るローダーは合成されたバッファも運ぶため、上の行と同じ仮想RBSの死角を持ちます。定義ビルドの失敗とは異なり、バッファを指定しない単一のタプルであるため、クロージャに帰属させるものはなく破棄するものもありません;陳腐化は残り、以下にリストされています。これをリプレイすることにより、何も変更されていない再チェックで環境の解決を完全にスキップできるようになります（[#794](https://github.com/rigortype/rigor/issues/794)）: それは他の何も必要としないパス上の最後の要求でした。
+
+他のすべての`.rigor.yml`レベルの行はキャッシュされず、実行ごとに再生成されます: `synthesized-namespace`、`quarantined-signature`、`environment-build-failed`、`signature-standdown`、`conforms-to`の結果、プラグインの`prepare` / プール劣化行。それぞれは実行自身の環境がビルドされたときにすでに保持している状態から読み取られ、どのファイルが解析されたかには依存しません —— したがってリプレイが追加するものはなく、それをキャッシュすることは観測不能な入力ではなく診断をキャッシュすることになります。新しい行はこのテストに不合格となった場合にのみこのセクションに加わります。
+
+リプレイは絞り込まれた実行にのみ提供されます（再チェックのクロージャ、空のクロージャ、`--verify-incremental`のパーティション）;フル実行は自身で両方を導出しセクションを上書きするため、以下のすべての陳腐化は次のコールド実行またはフル実行によって制限されます。3つの残余が存在し、率直に述べます:
+
+1. **消失した要求**。壊れたクラスを参照する最後の`.rb`ファイルが削除された場合;新鮮なフル実行は何も要求せず何も報告しませんが、リプレイは依然として報告します。フィンガープリント内の何も動きませんでした。これは#796のオプション1の代償です —— 代替案（直前の要求セットを新しく解決された環境に対してリプレイすること）は、このセクションが存在して回避しようとしているコストそのものを払って同じ回答を買うことになります。
+2. **クロージャ破棄の外側での仮想RBS変更**。上記の破棄は重要な形状（今回の実行が解析するファイルで衝突が修正された）をカバーし、フィンガープリントは`sig:`をカバーします;どちらもカバーしないのは、名前付きの競合バッファに触れることなく行を変更する仮想RBSの編集、またはバッファをまったく指さない`hkt_scan_failure`タプルです。いずれもフル実行まで残存します。
+3. **破棄自体が過少報告し、その損失が持続する**。2つの仮想バッファ間の衝突（そのうちの1つを今回の実行のクロージャが含む）は、誤検知を冒すよりも行を失います —— そして`absorb`が削減されたセットを永続化するため、フィンガープリントが次に動くか（`sig:`、ロックファイル、設定、エンジン）、あるいはキャッシュが消去されるまで、その後のすべてのウォーム実行はそれを失い続けます; `--no-cache`実行はその行を報告しますがスナップショットを書き直さず、`--verify-incremental`はスナップショットを決して読まないためOKと判定します。これに達する形状は、背後に要求するRubyを持たない仮想バッファです（埋め込まれた`# @rbs!`ブロック、またはrbs-inline以外のシンセサイザー）: `#:`でアノテーションされたクラス本体は実行ごとに自身の定義を再要求し、行を決して失いません。偽陽性ではなく偽陰性であり、#796以前にmasterが編集実行時に返していた回答です;永続化する側はオプション1の代償です。
+
+`--verify-incremental`はこれらを一切拘束しません: `IncrementalSession#reanalyze_subset`は同じプロセスの新しく計算されたベースラインから行をリプレイするため、結合ロジックを検証するのであって永続化されたスナップショットを検証するわけではありません。これを拘束するプロセス間のオラクルは`spec/rigor/analysis/incremental_session_spec.rb`です —— 単一のスナップショットディレクトリ上の2つの`Cache::Store`、その間での`.rb`の編集を、`--no-cache`のフル実行と比較します。
 
 ## バンドルされたRBSプロデューサー契約
 
@@ -386,17 +416,50 @@ end
 
 ## `Rigor::Cache::RbsDescriptor`（共有）
 
-`RbsConstantTable`と`RbsKnownClassNames`はどちらも同じRBS環境状態に依存するため、ディスクリプタビルダーを共有します。
+すべてのRBS由来のプロデューサー（`RbsConstantTable`、`RbsKnownClassNames`、`RbsClassAncestorTable`、`RbsClassTypeParamNames`、`RbsEnvironment`）は同じRBS環境状態に依存するため、1つのディスクリプタビルダーを共有します —— ローダーごとに`RbsLoader#rbs_cache_descriptor`としてメモ化され（[ADR-54](../../adr/54-cache-slimming/) WD4）、プロデューサーごとではなくプロセスごとに一度だけ`.rbs`ツリーがダイジェストされます:
 
 ```ruby
 Rigor::Cache::RbsDescriptor.build(loader)
 # => Descriptor with:
 #    gems    = [{ name: "rbs", requirement: ">= 0", locked: ::RBS::VERSION }]
 #    files   = [...]   # :digest entries for every .rbs under signature_paths
-#    configs = [{ key: "rbs.libraries", value_hash: SHA256(sorted-libraries) }]
+#                      # + the vendored gem sigs + the core overlay
+#    configs = [{ key: "rbs.libraries",   value_hash: SHA256(sorted-libraries) },
+#               { key: "rbs.virtual_rbs", value_hash: SHA256(sorted-pairs) }]
 ```
 
+`rbs.virtual_rbs`の行はADR-32 WD5のスロットです: ローダーのプラグイン提供の合成RBS文字列をハッシュ化し、いずれかが変更されたり最初に出現したりしたときに環境キャッシュが無効化されるようにします。ローダーに`virtual_rbs`エントリーがない場合は完全に省略されるため、シンセサイザーを出力するプラグインを持たないプロジェクトでは、そのためのディスクリプタコストを支払うことはありません。
+
 ビルダーを共有することにより、シグネチャの変更またはrbs gemのバンプで、すべてのRBS由来のキャッシュ済みプロデューサーが同時に無効化されます。
+
+### `RbsDescriptor.build_run(loader) -> RunDescriptor`
+
+ADR-45のrun-diagnostics記録・検証キャッシュの背後にあるlazy-`files`バリアントです。`RunDescriptor`は`Descriptor`では**ありません** —— 合成もハッシュ化も`==`もされず、その4つのリーダー（`gems`、`configs`、`files`、`globs`）のみが参照されます —— したがって健全性を損なうことなく`files`を遅延させることができます。`gems`と`configs`は先行して提供され、`.build`のものとバイト単位で同一です（キャッシュキーは変更されません）; `files`は初回アクセス時に計算されてメモ化されるため、ウォームなHITでは巨大なベンダードRBSツリーをまったくダイジェストしません。読み取られるとき —— MISS時のみ、実行の依存関係ディスクリプタによって —— は、検証済みディスクリプタがマシンローカルなstatデータを保持できるため、`:digest`ではなく`:stat`比較器を使用します（`.build`のキャッシュKEYの`files`は`:digest`のままです）。`RbsDescriptor.rbs_gem_entry`がpublicであるのも同じ理由です: ADR-87 WD4のプローブがローダーを保持せずに同一の`gems` + `rbs.libraries`キースロットを再構築するためです。
+
+`globs`（[#979](https://github.com/rigortype/rigor/issues/979)）はディレクトリLISTING側であり、`**/*.rbs`に対するシグネチャルートごとに1つの`GlobEntry`です（`RbsDescriptor.glob_entries`）。`files`は「読み取ったシグネチャファイルが変更されたか」にのみ回答し、これは実行がそれらを読み取っている間に存在していたファイルについての問いです —— したがって実行後に書き込まれた`sig/roles.rbs`はいずれの行にも存在せず、`analysis.run-diagnostics`の依存関係ディスクリプタは最新として検証され、ウォーム実行はそれがなしで計算された診断をリプレイしてしまいました（満たされない`conforms-to`は、それが指定するインターフェースが宣言された後も`unresolved`を報告し続けました）。glob行は次の実行で再globしてその出現を検知します。プラグインが一覧表示したディレクトリに対する`IoBoundary#list_directory`行とまったく同様です。これはファイルごとではなくシグネチャROOTごとに一度記録されます: 検証はツリーのサイズに関係なくルートごとに単一の`Dir.glob`です。
+
+これらの行は`:names`モードです。これらが追加するのはどのシグネチャファイルが存在するかです;それらのうちいずれかへの編集はすべて、すでにそのファイル自身の`:stat` `FileEntry`行によって運ばれており、移動したstatタプルから記録されたコンテンツダイジェストへフォールバックすることで切り抜けます。`:stat` globはそうではないため、`.rbs`に触れる`git checkout`、`bundle install`、`rbs collection install`、または新しいチェックアウト上にリストアされたキャッシュを持つCI実行は、RBSをまったく変更していないにもかかわらずフル再解析を要してしまいます。またnamesモードはstatを読み取らないため、これらの行は収集実行が2つの検証パス間で共有する実行ごとの`FileDigest.validation_stat`メモに支払うこともそれを乱すこともありません。
+
+ルートはローダー自身の`signature_paths`です —— プロジェクトの設定されたパス（自動検出された`sig/`を含む）、バンドルされたプラグインの`sig/`ツリー（[ADR-25](../../adr/25-plugin-contributed-rbs/)）、バンドル走査、`rbs collection`、およびADR-72オーバーレイ。Rigor自身の`data/`シグネチャツリー（`vendored_gem_sigs/`、`core_overlay/`、`capability_roles/`）は`files`行を取得し、意図的にglob行を持ちません: それらはエンジン所有であるため、ファイルがその下に出現するのはエンジンツリー自体が編集されたときだけであり、インストールされたgemにとっては異なる`Rigor::VERSION`を意味し、チェックアウトにとっては通常それを読み取る`lib/`の変更とともに到着します —— そしてそれは`EngineSource`を通じてすべての計算値スロットを再キーイングします。残余（チェックアウトで`data/`の下に`.rbs`を追加し、`EngineSource`は`.rb`のみをダイジェストするため`.rb`に触れない）はプロジェクトの編集ではなくエンジン開発の編集であり、それを手に入れることはすべてのウォーム実行でベンダードgemシグネチャツリーのstat走査をすべてのプロジェクトに強いることになります。
+
+### 実行記述子の行インベントリ
+
+`Analysis::Runner#build_run_dependency_descriptor`は、ADR-45の`analysis.run-diagnostics`スロットのために以下を構成します:
+
+| 行 | ソース | 検知対象 |
+| --- | --- | --- |
+| `:stat`ファイル、解析対象ファイルごと | `analyzed_file_entries` | 実行が解析したいずれかのファイルへの編集 |
+| `:stat`ファイル、発見されたが解析されていないファイルごと | `discovery_file_entries`（[#684](https://github.com/rigortype/rigor/issues/684)） | 拡張された実行が発見のみを行ったファイルへの編集 |
+| `:stat`ファイル、`pre_eval:`ファイルごと | `pre_eval_file_entries`（[#352](https://github.com/rigortype/rigor/issues/352)） | ADR-17事前評価済みファイルへの編集 |
+| `:stat`ファイル、すべてのシグネチャルートおよびRigor自身の`data/`ツリー（`vendored_gem_sigs/`、`core_overlay/`、`capability_roles/`）下の`.rbs`ごと | `RunDescriptor#files` → `RbsDescriptor.file_entries` | 実行が読み取ったシグネチャファイルへの編集 |
+| names glob、シグネチャルートごと（`**/*.rbs`） | `RunDescriptor#globs`（#979） | シグネチャルート下での`.rbs`の出現または消失 |
+| `:stat` / `:exists`ファイル、プラグインの`IoBoundary`読み取りごと | `IoBoundary#cache_descriptor`（[#577](https://github.com/rigortype/rigor/issues/577)） | プラグインが読み取りまたはプローブしたファイルへの編集 —— または出現 |
+| glob、プラグインが一覧表示したディレクトリごと | `IoBoundary#cache_descriptor`（[#954](https://github.com/rigortype/rigor/issues/954)） | プラグインが一覧表示したディレクトリでのファイルの出現 |
+| glob、プロデューサーの`watch:`パターンごと | `Plugin::Base#watch_glob_entries`（ADR-60 WD3） | プロデューサーの宣言されたwatch下での編集 |
+
+ファイル以外の入力（エンジンソース、ロックファイル、解決された設定、RBSライブラリリスト）はキャッシュKEY（`Analysis::RunCacheKey`）に属し、ここには決して入りません: `Descriptor#fresh?`は`gems` / `plugins` / `configs` / `dependencies`スロットを運ぶいかなる記述子も拒絶します。
+
+永続化されるSHAPEはほとんど変わりませんでした —— `globs`は既存のスロット（v4）であり、行はデフォルトモードでは何にもシリアライズされない`mode`フィールドを追加するだけです —— しかしそれでも`SCHEMA_VERSION`は8 → 9になりました。v8が1つ向こうのスロットで記録している移行理由によるものです: #979以前に書き込まれたエントリーはシグネチャルート行を保持しないため、その行が存在して検知するはずのファイル出現編集をまたいでも最新（FRESH）として検証されてしまい、無関係な理由でミスするまで修正前の診断をリプレイし続けてしまいます。このバンプにより、修正前のすべてのエントリーが一度ミスとして読み取られ、行を保持して再構築されます。
 
 ## `cache_store`下での定数ルックアップパス
 

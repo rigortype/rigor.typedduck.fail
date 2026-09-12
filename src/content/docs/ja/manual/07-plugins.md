@@ -3,9 +3,9 @@ title: "プラグインの使用"
 description: "rigortype/rigor docs/manual/07-plugins.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/07-plugins.md"
 sourcePath: "docs/manual/07-plugins.md"
-sourceSha: "d6bf1563a4bee37408f259fa67e2f3354da78ce5ef5bfbb6f0ff15c59c30be37"
-sourceCommit: "db7b23d42e9b47560438b67dfe16d53e03f70575"
-sourceDate: "2026-09-04T16:47:48+09:00"
+sourceSha: "99fb85648f491f054fcb3ca2bbcfc594f71e1cc4011b77fc55d528cf50c6e9d9"
+sourceCommit: "568138c239ec5b7b39833ed6a2a21fd027e3d319"
+sourceDate: "2026-09-11T02:06:27+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9007
@@ -50,7 +50,7 @@ Rigorは[`plugins/`](https://github.com/rigortype/rigor/blob/master/plugins/READ
 
 ## サンドボックス
 
-プラグインはファイル（スキーマダンプ）を読み込んだりネットワークに接続したりしたい場合があります。それらは`plugins_io:`設定キーでゲートされています。ネットワークはデフォルトで`disabled`で、プラグインはリストしたパスのみ読み込めます。[設定](../03-configuration/)を参照してください。
+プラグインはファイル（スキーマダンプ）を読み込んだりネットワークに接続したりしたい場合があります。それらは`plugins_io:`設定キーでゲートされています——ネットワークはデフォルトで`disabled`で、プラグインはリストしたパスのみ読み込めます。[設定](../03-configuration/)を参照してください。プラグインの読み取りが設定されたすべてのパスから外れた場合——読み取りルートが実パスを保持しているのに対してシンボリックリンクのエイリアス経由で指定されたパス（macOSの`/tmp`がその一例です）や、真にツリー外のファイルなど——Rigorはサイレントに失敗するのではなく、プラグイン名、拒否されたパス、および最も近い読み取りルートを名指しする`plugin_trust.read-refused` `:info`診断を表出します。診断の読み取りルートが表記している方法でパスを記述するか、`plugins_io.allowed_paths:`の下にそれを追加してください。
 
 ### 隔離戦略
 

@@ -3,9 +3,9 @@ title: "ADR-1: 型モデルとRBSスーパーセット戦略"
 description: "rigortype/rigor docs/adr/1-types.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/1-types.md"
 sourcePath: "docs/adr/1-types.md"
-sourceSha: "4e48295cf7d6978f687a310431427716628bb880d5ef8263055f349a140ea866"
-sourceCommit: "db7b23d42e9b47560438b67dfe16d53e03f70575"
-sourceDate: "2026-09-10T04:47:52+09:00"
+sourceSha: "9ea02c7ce707bdac52e194c178e70dd45ec22fbbdd1b00152f52f25d2f792f76"
+sourceCommit: "568138c239ec5b7b39833ed6a2a21fd027e3d319"
+sourceDate: "2026-09-11T01:56:26+09:00"
 translationStatus: "translated"
 sidebar:
   order: 4001
@@ -352,7 +352,9 @@ Rigorは、最初のプラグインマイルストーンに独自の名前を発
 | `_RewindableStream` | 最初から再生できるストリーム的オブジェクト | `read`・`rewind` |
 | `_ClosableStream` | ライフタイムを閉じることができるストリーム的オブジェクト | `close`・`closed?` |
 | `_FileDescriptorBacked` | 実際の`IO`を要求する診断を正当化する実OSバックのストリーム | `fileno` |
-| `_Callable[**A, R]` | `call`に応答する任意のもの。`_ToProc`とは異なる | `call(*A) -> R` |
+| `_Callable` | `call`に応答する任意のもの。`_ToProc`とは異なる | `call` |
+
+`_Callable`はジェネリックでは**ありません**。最初は`_Callable[**A, R]`として草案が作成されましたが、これはRBSの文法ではありません（型パラメータリストにおいて`**A`は何の意味も持たないためです）。そのため、出荷された役割はパラメータを取りません。ジェネリック形式はRBSがその構文を獲得した後にゲートされる将来の拡張です。
 
 プラグインは役割・追加の適合ファクト・役割固有の除外・不確実な適合性を追加してかまいませんが、このカタログ内の再利用されたRBSインターフェイスまたはRigor固有の役割を黙って置き換えることはできません。
 

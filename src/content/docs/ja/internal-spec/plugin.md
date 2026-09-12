@@ -3,9 +3,9 @@ title: "プラグインの登録と読み込み"
 description: "rigortype/rigor docs/internal-spec/plugin.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/plugin.md"
 sourcePath: "docs/internal-spec/plugin.md"
-sourceSha: "5fb768cdbb3a61e76f4a931d36aff5704a5fe7b9ef4512c57fb228a7378bfd75"
-sourceCommit: "db7b23d42e9b47560438b67dfe16d53e03f70575"
-sourceDate: "2026-09-10T10:20:33+09:00"
+sourceSha: "e3322c49c6413ab5aa2955667fb4253344d8c78b09ff930b7479751df3db47e8"
+sourceCommit: "568138c239ec5b7b39833ed6a2a21fd027e3d319"
+sourceDate: "2026-09-11T23:07:21+09:00"
 translationStatus: "translated"
 sidebar:
   order: 3050
@@ -224,7 +224,7 @@ end
 
 | フィールド | 型 | 目的 |
 | --- | --- | --- |
-| `target_gems` | `Array<String>` | このプラグインがモデル化するgem、`Gemfile.lock`が綴るとおりの表記（ADR-96 WD1）。プラグイン名から導出可能ではない ── `rigor-factorybot`は`factory_bot`をモデル化し、`rigor-rspec`は`rspec-core`をモデル化し、`rigor-rails-routes`は`actionpack` / `railties`をモデル化する ── ため、推論されるのではなく宣言されます。gemをモデル化しないプラグイン（`rigor-typescript-utility-types`）に対しては空のリストが意味のある回答であり、そのようなプラグインについて助言されることはありません。`Plugin::BundledCatalog`によって、そしてそれを通じて`rigor doctor` / `rigor skill describe`のプラグインギャップ助言（ADR-96 WD2）によって読まれ、これらの名前をロックファイルの`DEPENDENCIES`セクション（`rails`のアンブレラテーブルを通じて展開されたプロジェクト自身の依存関係）と照合し、解決されたグラフとは決して照合しません。プラグインを名指すことは決してそれをロードしません: gemの存在は助言のための証拠であり、実行のためのものではありません。 |
+| `target_gems` | `Array<String>` | このプラグインがモデル化するgem、`Gemfile.lock`が綴るとおりの表記（ADR-96 WD1）。プラグイン名から導出可能ではない ── `rigor-factorybot`は`factory_bot`をモデル化し、`rigor-rspec`は`rspec-core`をモデル化し、`rigor-rails-routes`は`actionpack` / `railties`をモデル化する ── ため、推論されるのではなく宣言されます。gemをモデル化しないプラグイン（`rigor-typescript-utility-types`）に対しては空のリストが意味のある回答であり、そのようなプラグインについて助言されることはありません。`Plugin::BundledCatalog`によって、そしてそれを通じて`rigor doctor` / `rigor skill describe`のプラグインギャップ助言（ADR-96 WD2）によって読まれ、これらの名前をロックファイルの`DEPENDENCIES`セクション（`rails`のアンブレラテーブルを通じて展開されたプロジェクト自身の依存関係）と照合し、解決されたグラフとは決して照合しません。プラグインを名指すことは決してそれをロードしません: gemの存在は助言のための証拠であり、実行のためのものではありません。カタログはidごとに1つのエントリーを保持します: エンジンの`plugins/`ツリーの下で定義されたクラスがそのidを勝ち取り、匿名またはサードパーティのクラスはバンドルされたクラスが要求しないidに対してのみ参照されます（#982）;カタログは助言するだけであり、レジストリは依然としてidごとに2つ目のクラスを拒否します。 |
 | `produces` | `Array<Symbol>` | このプラグインが公開するクロスプラグインファクト（ADR-9）。 |
 | `consumes` | `Array<Consumption>` | このプラグインが読むクロスプラグインファクト（`{ plugin_id:, name:, optional: }`）;ローダーのトポロジカル順序付けを駆動する（ADR-9）。 |
 | `signature_paths` | `Array<String>` | プラグインが貢献するRBSシグネチャディレクトリ、プラグインgemルートからの相対;`Loader`が解決し環境にマージする（ADR-25）。 |

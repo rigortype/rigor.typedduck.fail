@@ -3,9 +3,9 @@ title: "RBS::Extendedアノテーション"
 description: "rigortype/rigor docs/type-specification/rbs-extended.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/type-specification/rbs-extended.md"
 sourcePath: "docs/type-specification/rbs-extended.md"
-sourceSha: "a371c8ac0fe1152f6fe918c7534e0a2f74b4382402e91960d43c39a89dccb4a7"
-sourceCommit: "04668e5f0d6205fdd5c8f44662041add7ab33ca3"
-sourceDate: "2026-09-09T00:33:11+09:00"
+sourceSha: "d483e58fd1d351435e27fcb779d581ecfa2e3e5c5144af5d211a58aed07f9a10"
+sourceCommit: "568138c239ec5b7b39833ed6a2a21fd027e3d319"
+sourceDate: "2026-09-11T01:56:26+09:00"
 translationStatus: "translated"
 sidebar:
   order: 2050
@@ -150,7 +150,7 @@ class MyBuffer
 end
 ```
 
-ディレクティブはRigorに対して、現在の呼び出しサイトがその要件を実行するかどうかに関係なく適合を検証するよう指示します。これは構造的契約を使用から生まれるプロパティではなくチェックされた設計アサーションにしたいライブラリに有用です。同じクラス上の複数の`conforms-to`ディレクティブは許可され、インターフェースの積集合のように結合します。宣言された`conforms-to`インターフェースが満たされない場合、Rigorは診断を報告しなければなりません（MUST）;満たされたディレクティブはサイレントです。
+ディレクティブはRigorに対して、現在の呼び出しサイトがその要件を実行するかどうかに関係なく適合を検証するよう指示します。これは構造的契約を使用から生まれるプロパティではなくチェックされた設計アサーションにしたいライブラリに有用です。同じクラス上の複数の`conforms-to`ディレクティブは許可され、インターフェースの積集合のように結合します。宣言された`conforms-to`インターフェースが満たされない場合、Rigorは診断を報告しなければなりません（MUST）;満たされたディレクティブはサイレントです。また、名指しされたインターフェースが環境内にまったく存在しない場合も、Rigorは診断を報告しなければなりません（MUST）——何にも解決されないディレクティブは何のアサーションも行わないため、`:warning`レベルでの`dynamic.rbs-extended.unresolved`（[diagnostic-policy.md](../diagnostic-policy/)）です。このディレクティブが最もよく書かれる相手となるケイパビリティロールはRigorと共に出荷されており、設定は不要です（[structural-interfaces-and-object-shapes.md](../structural-interfaces-and-object-shapes/)）。
 
 ディレクティブは純粋に追加的です。暗黙の構造的互換性は引き続き適用され、すでにインターフェースを満たすクラスはアノテーションなしで型チェックを続けます。
 

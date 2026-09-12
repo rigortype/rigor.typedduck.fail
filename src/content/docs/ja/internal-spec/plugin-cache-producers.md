@@ -3,9 +3,9 @@ title: "プラグイン側キャッシュプロデューサー（スライス6�
 description: "rigortype/rigor docs/internal-spec/plugin-cache-producers.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/plugin-cache-producers.md"
 sourcePath: "docs/internal-spec/plugin-cache-producers.md"
-sourceSha: "0ab771673e47dd9aeb5fb0c89e843047ec0ea69fa716a5c4efcb552fe127dac1"
-sourceCommit: "db7b23d42e9b47560438b67dfe16d53e03f70575"
-sourceDate: "2026-09-10T04:26:27+09:00"
+sourceSha: "3e8447bedc517414225881341f27723e035d09656b35ebe43fb0c9a1a6d7900c"
+sourceCommit: "568138c239ec5b7b39833ed6a2a21fd027e3d319"
+sourceDate: "2026-09-11T21:15:54+09:00"
 translationStatus: "translated"
 sidebar:
   order: 3050
@@ -29,7 +29,7 @@ ADR-7 §「スライス6」は3つの実装上の選択を固定します：
 
 プロデューサーを登録するクラスレベルDSL。ブロックはプロデューサー本体です；`instance_exec`を通じて実行されるため、ブロック内の`self`はプラグインインスタンス——`io_boundary`・`services`・`manifest`・`config`がすべてスコープ内にあります。ブロックは呼び出しサイトの`params`ハッシュを唯一の引数として受け取ります；`params`は`Cache::Descriptor#cache_key_for`（v0.0.8）に従ってキャッシュキーに混合されます。
 
-`watch:`（ADR-60 WD3）は発見スタイルのプロデューサーのグロブカバレッジ——プロデューサーブロックが入力をグロブで読み込んだ場合でも、ファイルの*追加*／*削除*がキャッシュ値を無効化しなければならないディレクトリ——を宣言します（ブロック内の読み込みは、そこに存在しなかったファイルを見ることができないため）。これは`[roots, pattern, …]`タプルの静的な`Array`（`roots`は`String`または`Array<String>`；1タプルにつき1つ以上のグロブパターンサフィックス）か、または`cache_for`時にプラグインインスタンス上で`instance_exec`を通じて実行され（クラス定義時ではなく——検索ルートは通常`#init`でconfigから計算されます）そのArrayを返す`Proc`のいずれかです。評価された各`(root, pattern)`はプロデューサーの依存ディスクリプタ内の`Cache::Descriptor::GlobEntry`行になります——1つのエントリーがグロブ全体をダイジェストするので、コンテンツ変更・追加・削除のいずれもが無効化を引き起こします。
+`watch:`（ADR-60 WD3）は発見スタイルのプロデューサーのグロブカバレッジ——プロデューサーブロックが入力をグロブで読み込んだ場合でも、ファイルの*追加*／*削除*がキャッシュ値を無効化しなければならないディレクトリ——を宣言します（ブロック内の読み込みは、そこに存在しなかったファイルを見ることができないため）。これは`[roots, pattern, …]`タプルの静的な`Array`（`roots`は`String`または`Array<String>`；1タプルにつき1つ以上のグロブパターンサフィックス）か、または`cache_for`時にプラグインインスタンス上で`instance_exec`を通じて実行され（クラス定義時ではなく——検索ルートは通常`#init`でconfigから計算されます）そのArrayを返す`Proc`のいずれかです。評価された各`(root, pattern)`はプロデューサーの依存ディスクリプタ内の`Cache::Descriptor::GlobEntry`行になります——1つのエントリーがグロブ全体をダイジェストするので、コンテンツ変更・追加・削除のいずれもが無効化を引き起こします。プラグイン行は常にデフォルトの`:stat`モードです: `watch:`はプロデューサーが読み取る入力を宣言するため、その行はコンテンツを保持しなければなりません。より狭い`:names`モード（[`cache.md`](cache.md) § 「スロットエントリー」、#979）はファイルが個別にカバーされているリスティング向けであり、プラグイン行に該当するものはありません。
 
 `generation_cap:`は、このプロデューサーのエントリーの何世代が`Cache::Store#evict!`のコンパクションパスを生き延びるかを宣言します（[`cache.md`](../cache/) § 「コンパクション」を参照）。デフォルトの`Cache::Store::UNBOUNDED_GENERATIONS`は、通常のプラグインプロデューサー——ファイルごと・発見単位ごとにキー付けされ、多くのエントリーが同時にライブ——に適し、サイズベースのLRUパスだけに委ねます。エントリーがプロジェクト全体かつ内容キーである（各実行が前のエントリーを孤立させる）プロデューサーは、代わりに小さな正の`Integer`を宣言します。他の任意の値はクラス定義時に`ArgumentError`を発生させるので、プロジェクト全体のプラグインプロデューサーが黙って上限なしになることはありえません。
 

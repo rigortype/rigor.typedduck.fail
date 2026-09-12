@@ -4,7 +4,7 @@ description: "Imported from rigortype/rigor docs/notes/20260715-phpstan-rules-su
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260715-phpstan-rules-survey-rigor-reevaluation.md"
 sourcePath: "docs/notes/20260715-phpstan-rules-survey-rigor-reevaluation.md"
 sourceSha: "92fe5d8662d60eb1f2e4b9aadb34bab9197dcdbaea5330db4cc64b94032e2366"
-sourceCommit: "db7b23d42e9b47560438b67dfe16d53e03f70575"
+sourceCommit: "568138c239ec5b7b39833ed6a2a21fd027e3d319"
 sourceDate: "2026-07-15T14:23:05+09:00"
 sourceLanguage: "ja"
 sidebar:

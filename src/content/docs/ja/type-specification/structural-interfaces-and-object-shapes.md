@@ -3,8 +3,9 @@ title: "構造的インターフェースとオブジェクトシェイプ"
 description: "rigortype/rigor docs/type-specification/structural-interfaces-and-object-shapes.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/type-specification/structural-interfaces-and-object-shapes.md"
 sourcePath: "docs/type-specification/structural-interfaces-and-object-shapes.md"
-sourceSha: "8536d688c6d0bcfc93ad781cfe5209d656ea9c97d1966425afc618fd1c5b2a37"
-sourceCommit: "9f40e22193647dc06e3ab70c5ba82768b0bfe738"
+sourceSha: "59f3e1779392796ea0e8e1bd73c14868343a4d07959d49017c8487d174fec92e"
+sourceCommit: "568138c239ec5b7b39833ed6a2a21fd027e3d319"
+sourceDate: "2026-09-11T01:56:26+09:00"
 translationStatus: "translated"
 sidebar:
   order: 2050
@@ -177,22 +178,41 @@ Rigorは一般的なスタンダードライブラリのケイパビリティロ
 | `_RewindableStream` | 先頭から再生できるストリーム的オブジェクト | `read`、`rewind` |
 | `_ClosableStream` | ライフタイムをクローズできるストリーム的オブジェクト | `close`、`closed?` |
 | `_FileDescriptorBacked` | 実際の`IO`を必要とする診断を正当化する実OSバックドストリーム | `fileno` |
-| `_Callable[**A, R]` | `call`に応答するもの（`_ToProc`とは別） | `call(*A) -> R` |
+| `_Callable` | `call`に応答するもの（`_ToProc`とは別） | `call` |
+
+`_Callable`はジェネリックでは**ありません**。最初は`_Callable[**A, R]`として草案が作成されましたが、これはRBSの文法ではありません（型パラメータリストにおいて`**A`は何の意味も持たないためです）。そのため、出荷された役割はパラメータを取りません。ジェネリック形式はRBSがその構文を獲得した後にゲートされる将来の拡張です。
 
 プラグインはフレームワークロール、追加の適合ファクト、ロール固有の除外、`maybe`適合を追加する場合がありますが（MAY）、このカタログの再使用されたRBSインターフェースまたはRigor固有のロールのいずれかをサイレントに置換してはなりません（MUST NOT）。
 
-以下のロール名とメソッドシグネチャは説明的なものであり、最終的なスタンダードライブラリシグネチャではありません:
+これらは出荷されている**実際の**シグネチャです。Rigorはこれらを`data/capability_roles/`からロードするため、デフォルトの実行では設定なしで上記のすべてのロールが解決され、`%a{rigor:v1:conforms-to _ClosableStream}`が実際にチェックされます。パラメータと戻り値の型は意図的に最も緩やかな正直な解釈となっています——ロールは値がどのメンバーに応答するかを述べるものであり、ここでそれらを絞り込むと適合クラスを記述するのではなく拒絶してしまうためです:
 
-```ruby
-interface _Reader
-  def read: (*untyped) -> String?
+```rbs
+interface _Closable
+  def close: () -> untyped
 end
 
 interface _RewindableStream
   def read: (*untyped) -> String?
   def rewind: () -> untyped
 end
+
+interface _ClosableStream
+  def close: () -> untyped
+  def closed?: () -> bool
+end
+
+interface _FileDescriptorBacked
+  def fileno: () -> Integer
+end
+
+interface _Callable
+  def call: (*untyped) -> untyped
+end
 ```
+
+上記の`_Reader`はRigorのものではなく上流RBSのものであり、変更されずに再利用されます。
+
+このカタログはプロジェクト自身の`signature_paths:`の**後に**、1宣言ずつ環境へ追加されます: 独自の`interface _Closable`を宣言しているプロジェクトは自分自身のものを保持し、かつ宣言しなかった他の4つのロールを引き続き取得します。環境が保持していないインターフェースを名指しする`conforms-to`は報告されます——[diagnostic-policy.md](../diagnostic-policy/)を参照してください。
 
 ```ruby
 def slurp(stream)

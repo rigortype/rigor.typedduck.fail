@@ -3,9 +3,9 @@ title: "リサーチ・サーベイノート"
 description: "rigortype/rigor docs/notes/README.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/README.md"
 sourcePath: "docs/notes/README.md"
-sourceSha: "97d926041204566d6177d03fd293e95c778e7c4f3514651511171120b2412bbe"
-sourceCommit: "db7b23d42e9b47560438b67dfe16d53e03f70575"
-sourceDate: "2026-09-09T17:07:51+09:00"
+sourceSha: "42879d1dac91e4fa39d7fc1d014e01b8f838554e68e74235b876be41a43a5e14"
+sourceCommit: "568138c239ec5b7b39833ed6a2a21fd027e3d319"
+sourceDate: "2026-09-12T08:22:41+09:00"
 translationStatus: "translated"
 sidebar:
   order: 6000
@@ -81,6 +81,7 @@ sidebar:
 | 2026-08-23 | [エフェクトラベル —— 10のユーザーストーリー、コーパスに照らして裁定（redmine + mastodon）](20260823-effect-user-stories-corpus/) |
 | 2026-09-05 | [トップレベル`def`のcref —— リトラクト前のピールの規模測定（issue #716）](20260905-toplevel-def-cref-movable-sites/) |
 | 2026-09-09 | [センサス走査のギャップ —— 修正前に3つの形状の規模を測定する（issue #693）](20260909-census-walk-gap-movable-sites/) |
+| 2026-09-12 | [rigor-survey OSSコーパス —— v0.3.9カット前クラッシュチェック](20260912-v039-oss-corpus-crash-check/) |
 
 ## アナライザーの自己テスト（teeth・偽陰性）
 

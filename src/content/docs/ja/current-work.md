@@ -3,8 +3,9 @@ title: "現在の作業 — セッションハンドオフ"
 description: "rigortype/rigor の docs/CURRENT_WORK.md からインポート。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/CURRENT_WORK.md"
 sourcePath: "docs/CURRENT_WORK.md"
-sourceSha: "4826ccb1713bb1047feded93a15369cfad2f76ba79f6f85fc6ff0c11a727f1c4"
-sourceCommit: "db7b23d42e9b47560438b67dfe16d53e03f70575"
+sourceSha: "6ac628b9a7bb6ebe6d9d51507d6a7e6fb95002660cdafac67f3dc53820b1a09c"
+sourceCommit: "568138c239ec5b7b39833ed6a2a21fd027e3d319"
+sourceDate: "2026-09-12T08:28:07+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9050
@@ -25,37 +26,37 @@ sidebar:
 一時的な文書であり、全体が置き換えられます。バックログはGitHub Issuesで、リリース計画はMilestonesで管理されます。
 このファイルがADR、CHANGELOG、またはissueと食い違う場合、間違っているのはこのファイル側です。
 
-## サイクルの現在地
+## v0.3.9はカット済みで公開途中 —— 何よりも前にこれを読むこと
 
-**v0.3.8は公開済みです**。`[Unreleased]`は空であり、`changelog.d/`がサイクル全体を保持しています（2026-09-09の約30件のPR、および以下の2026-09-10の2バッチ）。次のリリース作業は、ユーザーが`/rigor-release-prep`を呼び出したときにのみ行われます。
+`master`は`Bump up version to 0.3.9`（`0c6c6ae0`、PR #989がrebase-merge）を保持しています: `Rigor::VERSION`は`0.3.9`であり、`CHANGELOG.md`は封印された`## [0.3.9] - 2026-09-12`セクションを保持し、`changelog.d/`は再び空となり、`README.md`のステータス行は0.3.9を名指ししています。v0.3.9マイルストーンはクローズ済みです（34件のissue）。
 
-## 2026-09-10 — v0.3.9マイルストーンスイープ、15の並行レーン
+**gemはまだ公開されていません**。残りの手順は、順に以下のとおりです:
 
-1つのセッションで、ワークツリー内のSonnet/Opusレーンを用い、ローカルでのフルgateなし、リモートCIをgateとし、各マージ前の敵対的レビューを経て`gh issue list --milestone v0.3.9`を推進しました。着工・マージ完了（すべてマージ済み、最後の統合実行時点でmasterはgreen）:
+1. `gem push` —— `~/repo/ruby/rigor-wt/publish-0.3.9/rigortype-0.3.9.gem`（`0c6c6ae0`でのクリーンなworktree）にビルド済みで待機しています。RubyGemsはMFA OTPを要求するため、これはユーザーのコマンドです;エージェントがコードを扱ってはなりません。
+2. `git tag v0.3.9 0c6c6ae0`（注釈付き、v0.3.8に一致）および`git push origin refs/tags/v0.3.9`。RubyGemsがgemを受け付けた後にのみ行います。
+3. `master`から`bundle exec rake release:github` —— ローカルにタグが必要であり、`## [0.3.9]`セクションをそのままリリース本文として抽出します。
 
-- エンジンFP: #946（#917未宣言コンストラクタにおける`.new`のarity）、#945（#909 `class << self`のivarファセット）、#955（#633自身のメソッドvetoが継承元/`Object`以前/シングルトンのソースに到達）、#951（#645 unionミューテータの拡大）、#964（#643要素読み取りのミューテーション）、#965（#617ブロック戻り値の残差: 複合書き込み末尾、`String#<<`、findファミリーのフロア、capフロア）、#961（#722コンパクトヘッダーの先頭セグメント。`IncrementalSnapshot::SCHEMA` 20）。
-- キャッシュ: #954（#629/#630プラグインの`IoBoundary`読み取り + `list_directory`行）、#958（#639クラス存在エッジ。#640は修正済みでgate追加）、#966（#960エディタモードの`--instead-of`の綴り + バッファダイジェスト）。
-- CLI/プラグイン: #949（#925 `target_gems:` + プラグインギャップアドバイザリー、DIRECT依存のみ + `rails` umbrella）、#968（#936項目3、`Difference`ミューテータアーム。#936はクローズ）、#944（#918 rigor-ffiの`config_schema`）、#947（#920 `ALL_RULES`からの`rigor init`ルール一覧）、#950（#921 `:factory_index`事実 + プローブコマンドの`#prepare`実行）、#957（#609 sig-genの`::`アンカー付きスーパークラス、致命的エラー時のexit 70、`sig/`の自動検出）、#952（#530 lockfileのないgemの出所）、#962（#936項目1/4/5/7）、#967（ロード済みクラスからのdoctorカタログ — masterを一度redにした順序依存のシャードflake）。
-- ドキュメント（masterへ直接マージ）: #919、#940（コード証拠を伴う17件のADRステータス再設定）、#941、#942、#943（ADR-49の部分的代替マーカー、10件のADR）、#948（#939ヘッダー対インデックスのステータスgate）、#956（#938残差）。
-- コード変更なしでの判定: #533クローズ（8件中6件は修正済み。項目5は #953に分割）。
+`/rigor-release-prep`を再実行したり、再カットしたり、`changelog.d/`フラグメント以外として`[Unreleased]`エントリーを開いたりしないでください。プッシュがすでに発生している場合は、このファイルを信用する前に`gem list -r rigortype`および`git ls-remote --tags origin v0.3.9`で確認してください。
 
-## 2026-09-10、第2バッチ — 5つの`ready-for-agent`レーン、すべて着工・マージ完了
+## カットにかかったコストと、その背後にある2つのゲート検知
 
-- #975（#580）: ミューテーションで拡大された`Nominal`が後のstoreと再合流（re-join）する。すでに`Dynamic[top]`アームを保持しているパラメータに対してインバンドでgateされる（`Type::Nominal`には出所スロットが存在しないため、漸進的アームがその印となる）。`a = []; a.push(1); a.push("s")`は`Array[Dynamic[top] | Integer | String]`と読まれる。
-- #972（#599）: ファクトリメソッドの鮮度 — 呼び出し先が安価に解決可能で、その戻り値位置（RETURN POSITION）が実体化（materialisation）であるようなチェーンレシーバーをgateが受け入れる（self-aliasスキャンではない。理由は文書化済み）。
-- #971（#911）: `.rigor.yml`の`plugins_isolation:`（`none` | `process`）。ENVが優先。`ruby_box`は変数を名指しする設定エラー。
-- #974（#534項目7のみ — 項目1〜4はすでにマージ済み。5と6はオープンのまま）: Railsプラグインが例外階層/名前空間を寛容に宣言し、`open_receivers:`内のすべてのクラスを対象とする。
-- #973（#915）: `class << self; include M; end`をextendとして記録する。RBSで宣言された`extend`は`Environment#singleton_extended_modules`を通じて絞り込みに到達する。`IncrementalSnapshot::SCHEMA` 21。
+最初のリリースPR（#983）は両方のアドバイザリーゲートでredとなり、両方とも本物でした:
+
+- **OSSスイープが、`make verify`では検知できなかったリリースブロッキングなクラッシュを捉えた**。#961のコンパクトヘッダーの再アンカー化が、各`header_nestings`バケットをあたかもチェーンであるかのように書き換えてしまったため、すべてのMastodonファイルが`internal analyzer error`（閾値468件に対して1,073行）を報告しました。#984を起票し、#985で修正されました;その後スイープは一行一行v0.3.8と一致しました。Rigor自身の`lib`にはコンパクトヘッダーがないため、`make check`下ではリネームパスが決して実行されず、PRの単一ファイルフィクスチャは例外を発生させたクロスファイルマージに到達しませんでした。**ディスカバリーフォールドへのエンジンの変更には、カット時ではなくカット前に、複数ファイルフィクスチャとOSSスイープが必要です**。またレビューでは、衝突するバケットのマージが依然として最後のものが勝ち（last-wins）、フォールド順序に依存していることも判明しました: #986（v0.4.0）。
+- **perfゲートのRSS帯域はノイズ幅が広い**。アロケーションが35%減少した一方で、`peak_rss_kb`はv0.3.8に対して+10.5%を示しました。`docs/notes/20260912-v039-rss-attribution.md`で帰属特定済み: ステップのない約95件のマージに拡散しており、GC後の生存スロットはわずか+3.5%であるため、保持ではなくマイナーGC減少による一時的なピークです。`bench/baseline.json`はゲート実行から再調整され、両方の半分が一緒に記録されています。この帯域は、ホストのばらつきが±7%ある単一サンプルに対して+10%です: #987（v0.4.0）。
+
+サーベイコーパスに対する34プロジェクト、306実行のクラッシュチェック（`docs/notes/20260912-v039-oss-corpus-crash-check.md`）では、スイープされたサーフェス上にクラッシュは見つかりませんでした。また、何をスイープしなかったかを記録しています。
 
 ## オープンスレッド
 
-- #424はWD16ターゲット（gitlab規模での`Propagator.propagate`）でオープンのまま。プロジェクトごとの半分は測定されてクローズ済み: `docs/notes/20260910-effect-collection-profile.md` — プラグインのないredmineでwall time +11.3 %、2回目の走査が差分の約36 %、共有可能な降下が約12 %であるため、収集が証明するものを変更しない限り ≤ 5 % の上限は達成不可能（#409に対するNo-Go入力）。
-- 今セッションで起票、`ready-for-human`: #959（シンボリックリンクされたプロジェクトルート配下でTrustPolicyがすべてのプラグイン読み取りを無言で拒否する）、#953（リテラルlambdaの呼び出し形式）、#963（#633残差: block-self形状、プラグイン提供メソッド）。
-- v0.3.9で依然オープンかつhuman-gated: #928、#796、#794、#476、#378。#697は #660待ち。
+- **#424**はWD16の半分（gitlab規模での`Propagator.propagate`）のみを保持しています。プロジェクトごとの上限は測定されクローズ済みです: `docs/notes/20260910-effect-collection-profile.md`は、収集が証明するものを変更しない限り ≤ 5%の予算が達成不可能であることを示しており、これは#409に対するNo-Go入力です。
+- **#697**は**#660**待ちです（オープンレシーバーのメンバーシップが存在する場所）。4つ目の保護ルートを追加しないでください; #902は無音ではなく大声（loud-not-silent）の半分のみを出荷し、スペックはFPが依然として発火することをピン留めしています。
+- 今サイクルのレビューによって起票されたもの、すべて`v0.4.0`: #980（ドロップされた`definition-build-failed`行はウォーム実行をまたいでドロップされたままとなる）、#986、#987。
+- `gh issue list --label ready-for-agent`は13項目です; `v0.4.0`は20項目を保持し、1.0前の破壊的変更です（ADR-50 WD5/WD7: `int<a,b>`の削除、エフェクトのデフォルト有効化、コーパスFP差分を必要とするプラグイン契約の変更）。`v0.4.x`は行レベルのバックログを保持しています。
 
 ## 参加手順
 
-1. このセッションの作業でオープンまたは未コミットのものはありません。レーンのワークツリーは削除済みです。他のセッションが随時masterにマージしていたため、現在のHEADでファイルと行番号を再導出してください。
-2. 機能したレーン契約: レーンごとにワークツリーを作成、対象スペック + rubocopのみ実行、`git push`したら終了（CIのポーリングはしない — `gh run watch`ループを回す15レーンにより、5000回/時のGitHub API上限を2度使い果たしました。PRごとに`statusCheckRollup`経由で1分に1回ポーリングすること）。レーンのブランチにコミットを追加するには、リモートのtipにリセットしてcherry-pickすること。rebaseしてからpushするとnon-fast-forwardとなり、force pushはブロックされています。
-3. すべてのエンジンレーンがつまずいた3つの事項: 手書きの行が追加されるか推論がsig-genの出力内容を変更するたびに`sig/`の出所残差ピン（`spec/rigor/sig_gen/provenance_spec.rb`）が移動する — #965の`@x ||= new`の読み取りにより、未束縛ケースがrvalueを保持するようになるまで3つの`.default`リーダーが`sig.skipped.untyped-return`に移動した。新しい適合性フィクスチャにはgoldenが必要（`UPDATE_SNAPSHOTS=<fixture>`）。gem名でバンドルプラグインを有効にするスペックは、自身でクラスを登録しない限り順序依存となる（`Rigor::Plugin.unregister!` + no-op `require`）。
-4. `gh issue list --label ready-for-agent`がバックログです。v0.4.0マイルストーンが1.0前の区切りとなります。
+1. ワーキングツリーはクリーン、オープンなPRなし。ワークツリー: `publish-0.3.9`（gemがプッシュされるまで保持）および`perfbench-harness-775`（既存のもの、今サイクルのものではない）。
+2. 今サイクルで約110件のPRを運んだレーン契約: レーンごとに1つのワークツリー、対象スペック + rubocopのみ、リモートCIをゲートとし、`git push`して終了。レーンからのCIポーリングは禁止 —— `gh run watch`ループを回す15レーンが5,000/時間のGitHub API予算を2度使い果たしました; PRごとに`statusCheckRollup`経由で1分に1回ポーリングすること。レーンのブランチにコミットを追加するには、リモートのtipにリセットしてcherry-pickすること: rebaseしてからpushするとnon-fast-forwardとなり、forceはブロックされています。
+3. **マージ前のレビューは元が取れた**。PRごとのFable敵対的レビューサブエージェント（セッションスクラッチパッドの`REVIEW.md`に指示書: 偽陽性が最初、次に不健全な精度、契約ドリフト、空虚なゲート、影響半径）が、自身のゲートが見逃していた指摘事項を伴って3件のPRを差し戻しました。
+4. すべてのエンジンレーンがつまずいた3つの落とし穴: 手書きの行が追加されるか推論がsig-genの出力内容を変更するたびに`sig/`の出所残差ピンが移動する;新しい精度フィクスチャにはそのゴールデンが必要（`UPDATE_SNAPSHOTS=<fixture>`）; gem名でバンドルプラグインを有効にするスペックは、自身でクラスを登録しない限り順序依存となる（`Plugin.unregister!` + no-op `require`）。

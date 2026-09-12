@@ -3,9 +3,9 @@ title: "ADR-2: 拡張API戦略"
 description: "rigortype/rigor docs/adr/2-extension-api.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/2-extension-api.md"
 sourcePath: "docs/adr/2-extension-api.md"
-sourceSha: "c357e4f490b441879046c9e1d3ae958b33d4d7830339ede79b91c48e8c5e8ce2"
-sourceCommit: "db7b23d42e9b47560438b67dfe16d53e03f70575"
-sourceDate: "2026-09-10T04:27:46+09:00"
+sourceSha: "a26be1236cc9358efb2ffeb95b0503445cb8012680a7b3edacd2a724d48b00d6"
+sourceCommit: "568138c239ec5b7b39833ed6a2a21fd027e3d319"
+sourceDate: "2026-09-11T01:57:22+09:00"
 translationStatus: "translated"
 sidebar:
   order: 4002
@@ -282,7 +282,7 @@ Rigorは同じ2つのテストスタイルを提供すべきです:
 
 ### プラグインサンドボックスとI/Oは信頼されたgemモデルから始まる
 
-**作業回答:**最初の実装はプラグインを信頼されたRuby gemsとして扱います。解析中はデフォルトでネットワークアクセスを無効にし、通常の読み取りはプロジェクトと依存関係の入力にスコープされ、それらの外の読み取りには明示的な設定とキャッシュ依存関係記述子が必要です。
+**作業回答:**最初の実装はプラグインを信頼されたRuby gemsとして扱います。解析中はデフォルトでネットワークアクセスを無効にし、通常の読み取りはプロジェクトと依存関係の入力にスコープされ、それらの外の読み取りには明示的な設定とキャッシュ依存関係記述子が必要です。プラグインの例外は解析器の境界で診断となります。Ruby::Boxやプロセス隔離などのより強力な隔離は、将来の選択肢として残されます。`TrustPolicy#allow_read?`は`File.expand_path`のみでパスを解決します（`realpath`やシンボリックリンクの解決は行わず、見落としではなく意図的な制約です——issue #959）。プラグイン自身の信頼スコープが拒否した読み取りは、拒否がサイレントになるのを防ぐため、プラグイン名、拒否されたパス、およびそれが逸脱した読み取りルートを名指しする実行レベルの`plugin_trust.read-refused` `:info`診断としても表出するようになりました。
 
 ### 3値の`maybe`はポリシー認識の不確実性
 
