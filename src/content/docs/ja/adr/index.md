@@ -3,9 +3,9 @@ title: "アーキテクチャ決定記録"
 description: "rigortype/rigor docs/adr/README.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/README.md"
 sourcePath: "docs/adr/README.md"
-sourceSha: "1ce660ca6afdebb6b9c7f94170fa09ce647d1816172fd5cb09b24714d3332d08"
-sourceCommit: "db7b23d42e9b47560438b67dfe16d53e03f70575"
-sourceDate: "2026-09-10T04:51:03+09:00"
+sourceSha: "551236a6c99eb126cda7ff0119bd9f070cb3baccaaf6102a65874de5e0793915"
+sourceCommit: "d01a937b5d3d66d5ec4e6ba82036919d1bc91d10"
+sourceDate: "2026-09-12T21:11:14+09:00"
 translationStatus: "translated"
 sidebar:
   order: 4000
@@ -135,6 +135,7 @@ sidebar:
 | ADR-108 | [エージェントのための型の来歴: `rigor-type-oracle`スキルと導入プロジェクトの契約](108-type-provenance-for-agents/) | Accepted（#826でスキル、`rigor-project-init`契約段落、カタログ配線が着地；ADR-107はそのリポジトリ側の双子） |
 | ADR-109 | [数値範囲リファインメントの記法およびセマンティクスとしてのRuby範囲リテラル](109-ruby-native-range-notation/) | Accepted（実装済み: #830で`Integer[1..10]`、#844で`Float[R]`、#846でFloatの絞り込み、#854で`int<a, b>`の非推奨化行、Float畳み込み） |
 | ADR-110 | [継承された宣言はレシーバー自身の`def`より優先されない](110-inherited-declaration-precedence/) | Accepted（#856でWD1＋WD3を実装；コーパスの25ターゲット全体で新たな診断ゼロを測定） |
+| ADR-111 | [リファインメントを`.rb`ファイル内のどこに書くか: 1つのキャリア、Rigor独自のコメント方言なし](111-inline-refinement-carrier/) | Proposed（#996に向けて同一行の`%a{}`キャリアを推奨；Steepで測定済み —— そのインラインモードでは自前行形式がエラーとなるため、#998が前提条件；実装されたものはない） |
 
 ## 新しいADRの追加
 

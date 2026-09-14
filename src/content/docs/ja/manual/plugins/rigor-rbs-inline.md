@@ -3,9 +3,9 @@ title: "rigor-rbs-inline"
 description: "rigortype/rigor docs/manual/plugins/rigor-rbs-inline.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/plugins/rigor-rbs-inline.md"
 sourcePath: "docs/manual/plugins/rigor-rbs-inline.md"
-sourceSha: "5bbbffb99ce3fb98a3c56548d4be8e5d78697457835d4e331e2806f76ffa38f8"
-sourceCommit: "04668e5f0d6205fdd5c8f44662041add7ab33ca3"
-sourceDate: "2026-09-08T23:14:37+09:00"
+sourceSha: "91578daaf35c6a8e7d1104d300c4f95728de5c58157ebe350c780fc013ae2665"
+sourceCommit: "d01a937b5d3d66d5ec4e6ba82036919d1bc91d10"
+sourceDate: "2026-09-14T18:55:47+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9050
@@ -42,7 +42,7 @@ AscDesc.new.ascdesc(:bad)   # エラー: 引数の型の不一致（:asc | :desc
 | ルール | 重大度 | 発火条件 |
 | --- | --- | --- |
 | `plugin.rbs-inline.source-rbs-synthesis-failed` | info | rbs-inlineがファイルをパースできなかった。解析はインラインRBSの寄与なしにフォールバックし、diagnosticはupstreamのエラーを伴う |
-| `plugin.rbs-inline.source-rbs-annotation-not-honoured` | info | アノテーションのパースは成功したが何も寄与しなかった ── そのファイルの他のアノテーションは引き続き適用される。2つの原因がある: `sig/`も宣言しているメンバー（[優先順位](#優先順位)を参照）、および`# @rbs module-self: Foo`の綴り（下記参照） |
+| `plugin.rbs-inline.source-rbs-annotation-not-honoured` | info | アノテーションのパースは成功したが何も寄与しなかった ── そのファイルの他のアノテーションは引き続き適用される。6つの原因がある: `sig/`も宣言しているメンバー（[優先順位](#優先順位)を参照）、`# @rbs module-self: Foo`の綴り（下記参照）、型がパースできない`#:`行（[パースできない`#:`の型](#パースできないの型)を参照）、メソッド型がパースできない同一行の`# @rbs %a{…}`（[同一行アノテーション](#同一行アノテーション)を参照）、パースできない`# @rbs name: T`パラメータ型（[パースできない`# @rbs name:`の型](#パースできない-rbs-nameの型)を参照）、およびgemが認識しない`@rbs`接頭辞のタグ（[`@rbs`後の認識されないタグ](#rbs後の認識されないタグ)を参照） |
 
 ## 優先順位
 
@@ -75,6 +75,85 @@ end
 | `# @rbs module-self: Comparable` | **しない** —— rbs自身の`docs/inline.md`にある綴りはこちら |
 
 Rigorは2番目の形式を黙って捨てるのではなく、`plugin.rbs-inline.source-rbs-annotation-not-honoured`として報告します。gemがサポートし組み込みパーサがサポートしない構文 —— `@rbs generic T`、`@rbs!`の埋め込みRBSブロック、`@rbs inherits`、メソッド可視性 —— はすべてここで動作します。
+
+## 同一行アノテーション
+
+`%a{…}`アノテーションは、メソッド型と同じ行に置くことができます:
+
+```ruby
+class Reader
+  # @rbs %a{rigor:v1:return: non-empty-string} () -> String
+  def title = "x"
+
+  #: %a{pure} () -> String
+  def label = "x"
+end
+```
+
+これは組み込みパーサとSteepのインラインモードが受け付ける綴りです。gem自体はこれを受け付けず、`@rbs`形式ではアノテーションを保持してメソッド型をドロップし、`#:`行は行全体をドロップします。Rigorはgemのライターが走る前にその行をアノテーションとメソッド型へ分割し直すため、アノテーションが単独行を持つ場合と同様に両方が適用されます（[ADR-32](../../../adr/32-rbs-inline-comment-ingestion/) WD11）。gem自身の`rbs-inline --output`は変更されず、依然としてそれらをドロップします。
+
+アノテーションの後のメソッド型がパースできない場合、何も分割されません: メソッドはシグネチャが書かれなかったかのように型付けされ、Rigorはそれを報告します —— `#:`行は[パースできない`#:`の型](#パースできないの型)の下で、`@rbs`行は読み取れなかった行とテキストを名指して`plugin.rbs-inline.source-rbs-annotation-not-honoured`として報告します。
+
+## パースできない`#:`の型
+
+型がRBSとしてパースできない`#:`行はドロップされます —— シグネチャが決して適用されることはなく、メソッドはその型が間違っていたかのようにではなく、その行がそもそも書かれなかったかのように型付けされます:
+
+```ruby
+class BadRefProbe
+  #: (finite-float) -> String
+  def show(f)
+    f.to_s
+  end
+end
+```
+
+`finite-float`は[Rigorリファインメント](../16-rbs-extended-annotations/)の名前であってRBSの型ではなく、通常の型位置には属しません。Rigorはそのドロップを、どこにも診断がないまま`show`を暗黙に`untyped`にしておくのではなく、パースに失敗した行とテキストを名指して`plugin.rbs-inline.source-rbs-annotation-not-honoured`として報告します。同じ誤りの`# @rbs name: TYPE`タグ形式は異なる失敗の形状となります —— 次のセクションを参照してください。
+
+## `# @rbs`内の未解決の型名
+
+`# @rbs name: TYPE`タグ形式において、RBSの型が属する場所にRigorリファインメント（または他の未解決の名前）を指定しても、`#:`のように静かにドロップされることはありません —— クラス全体を巻き込みます:
+
+```ruby
+class ProbeZZ
+  # @rbs g: finite-float
+  def probe(g)
+    g.to_s
+  end
+end
+```
+
+upstream自身の型パーサが、これがRigorに届く前に`finite-float`を`finite`に切り詰めるため（ハイフンはRBSの型名を継続できない）、`RBS::DefinitionBuilder`に届く唯一のトークンは`finite`となります —— そしてそれはロードされたどの型も指さないため、クラス**全体**のビルドが失敗します（`RBS::NoTypeFoundError`）。`probe`、および`ProbeZZ`上の他のすべての実在するメソッドは`Dynamic[top]`を読むことになります。これは`rbs.coverage.definition-build-failed`として表面化し、そのトークンと、（それが登録されたリファインメント名の切り詰められた先頭部分である場合）今日有効な`%a{rigor:v1:…}`の表記を名指します（[RBS::Extendedアノテーション](../16-rbs-extended-annotations/)を参照）。
+
+## パースできない`# @rbs name:`の型
+
+有界またはパラメータ化されたリファインメント —— `Integer[1..10]`、`non-empty-array[Integer]` —— は、`finite-float`のようにハイフンで切り詰められないため、クラス全体を巻き込むことはありません。その代わり、`# @rbs name: TYPE`の位置において、パラメータを暗黙に型なしのまま残します:
+
+```ruby
+class BoundedProbe
+  # @rbs n: Integer[1..10]
+  def probe(n)
+    n
+  end
+end
+```
+
+gemの文法はこのアノテーションでコロンと型を任意としているため、パースできない`TYPE`は、例外をraiseするのではなくパラメータの名前を記録してその型を未設定のままにします —— 下流では誰もアノテーションしなかったパラメータと区別がつきません。Rigorはそのドロップを`plugin.rbs-inline.source-rbs-annotation-not-honoured`として報告し、パースに失敗した行とテキストを名指し、`Integer[1..10]`のようなリファインメントを正しく運ぶ`%a{rigor:v1:param:}`の表記を案内します（[RBS::Extendedアノテーション](../16-rbs-extended-annotations/)を参照）—— これは上のタグ形式に対して`%a{rigor:v1:…}`のポインタが与えるのと同じ助言です。
+
+## `@rbs`後の認識されないタグ
+
+gemは、`@rbs`の直後に単語境界を見た時点で、そのコメントを`@rbs`アノテーションの試みとして認識します —— これは空白や行末だけでなく、ハイフンにもマッチします:
+
+```ruby
+class TagProbe
+  # @rbs-ext return: non-empty-string
+  # @rbs return: String
+  def name
+    "x"
+  end
+end
+```
+
+`# @rbs-ext …`はその網の中にありますが、gemの文法には`-ext`を認識するものが何もないため、gemはその段落全体を諦めて通常のコメントへと畳み戻します —— 隣接する`# @rbs return: String`行は引き続き束縛されますが、`@rbs-ext`行は何も寄与せず、これ以前は何の言及もありませんでした。Rigorはそのドロップを`plugin.rbs-inline.source-rbs-annotation-not-honoured`として報告し、行とコメントテキストを名指します —— `@rbs-ext`がいかなる種類の認識されたタグであるかも示唆しません。散文の中で単に`@rbs`に言及しているコメントや、`@rbs`で始まらないタグで始まるコメント（`# @extrbs …`）は、gemの検出器の外にあり沈黙を保ちます。
 
 ## 設定
 

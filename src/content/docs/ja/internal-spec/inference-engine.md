@@ -3,9 +3,9 @@ title: "推論エンジン"
 description: "rigortype/rigor docs/internal-spec/inference-engine.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/inference-engine.md"
 sourcePath: "docs/internal-spec/inference-engine.md"
-sourceSha: "102c8c1df5497d107758276a96b9e15b463453b8d0f63f3df9ee2bc0fce18468"
-sourceCommit: "db7b23d42e9b47560438b67dfe16d53e03f70575"
-sourceDate: "2026-09-10T10:37:36+09:00"
+sourceSha: "a7b8922a7344482d0dfe8d77460d9d464899fbebf5dac0cad3f02303f656f777"
+sourceCommit: "d01a937b5d3d66d5ec4e6ba82036919d1bc91d10"
+sourceDate: "2026-09-14T19:14:36+09:00"
 translationStatus: "translated"
 sidebar:
   order: 3050
@@ -50,13 +50,39 @@ sidebar:
 
 - `Rigor::Scope.empty(environment:)` — ローカル束縛なし・空の`Rigor::Analysis::FactStore`を持つスコープを構築し、`Rigor::Environment`に紐づけます。
 - `Rigor::Scope#with_local(name, type)` — `name`が`type`に束縛されている点を除いてレシーバーと同じ新しいスコープを返します。ローカルを再束縛するとMUSTそのローカルを対象とするファクトを無効化します。
-- `Rigor::Scope#local(name)` — 束縛された`Rigor::Type`を返すか、`name`が束縛されていなければ`nil`を返します。
-- `Rigor::Scope#fact_store` — スナップショットに紐づく不変な`Rigor::Analysis::FactStore`を返します。
-- `Rigor::Scope#local_facts(name, bucket: nil)` / `Rigor::Scope#facts_for(target:, bucket: nil)` — バケットストレージを直接公開せずに、スコープの`Rigor::Analysis::FactStore`からファクト（fact）を返します。
-- `Rigor::Scope#with_fact(fact)` — `fact`がファクトストアに追加された新しいスコープを返します。
-- `Rigor::Scope#join(other)` — 制御フロー合流点で新しいスコープを返します。実装は、2つのスコープが同じ`Environment`を共有することをMUST要求します。結合されたスコープは、**両方の**レシーバーが束縛するすべての名前にMUST束縛されます。そのような各名前について、結合された型はMUST`Type::Combinator.union(self.local(name), other.local(name))`です。一方のレシーバーにのみ束縛されている名前は、結合されたスコープからMUST落とされます。半束縛の名前のnil注入は文レベル評価器（[`docs/adr/4-type-inference-engine.md`](../../adr/4-type-inference-engine/)のSlice 3を参照）の責任であり、`#join`の責任ではありません。結合されたファクトストアは、両方の入力エッジに存在するファクトのみをMUST保持します。
+- 環境ロード境界: どのサーフェスがMUST利用可能でなければならず、どのサーフェスがスライス間でMAY変化してよいか。
 
-`Rigor::Scope`は、有用な箇所で基底データを構造的にMUST共有します。親を共有し1つの束縛で異なる2つのスコープは、他のすべての束縛のストレージをMAY共有します。これは実装の詳細であり、契約の一部ではありません。
+本書が束縛しないもの:
+
+- プライベートなヘルパーメソッド・内部AST表現・未公開の`Rigor::Type`サブクラス。
+- `Dynamic[top]`に縮退する（フェイルソフト）ノードの正確なエラーメッセージ。
+- 将来のスライスのための仮の内部API。
+
+## クエリサーフェス
+
+型推論の基本操作は単一の純粋なクエリです。
+
+```ruby
+# @rbs (Prism::Node node) -> Rigor::Type
+def type_of: (Prism::Node node) -> Rigor::Type
+```
+
+このメソッドはMUST不変Scopeインスタンス上で呼び出され、ノードを型付けした結果を返します。クエリはMUST以下の不変条件を満たします。
+
+- **参照透過性**。同一のScopeインスタンス上で同一のASTノードについて`type_of`を2度呼び出すと、MUST構造的に等しい（`==`）`Rigor::Type`インスタンスを返します。
+- **副作用なし**。クエリはMUSTレシーバーのScopeインスタンスを変更せず、環境の登録済み状態を変更せず、キャッシュされていない外部I/Oを実行しません。
+- **例外なし**。クエリは整形式のPrism ASTノードについてMUST NOT標準エラークラスをraiseしません。型付け器がまだサポートしていないノード種別については、MUSTフェイルソフト型を返します（後述のフェイルソフトポリシーを参照）。
+
+### 不変Scope規律
+
+`Rigor::Scope`のすべてのインスタンスはMUSTフローズン（`frozen? == true`）かつ不変です。
+
+- スコープを変更するすべての操作（ローカル変数の束縛、制御フローの分岐、新ファクトの記録）は、新しいフローズンな`Scope`インスタンスをMUST返します。
+- 既存のスコープインスタンスを変更しようとする試みはMUST例外を発生させます。
+- スコープは内部状態として以下をMUST運びます。
+  - `locals`: `{Symbol => Rigor::Type}`のフローズンハッシュ。ローカル変数の現在束縛されている型。
+  - `environment`: クエリをサポートする`Rigor::Environment`への参照。
+  - `facts`: 各種フロー事実を保持する`Rigor::Analysis::FactStore`。
 
 `Rigor::Scope#environment`は、スコープを構築したのと同じ`Rigor::Environment`インスタンスをMUST返します。環境は、スコープの観点からはクエリの期間中は不変として扱われます。
 
@@ -75,13 +101,21 @@ sidebar:
 
 ### ディスカバリインデックス（ADR-53トラックA）
 
-フロー状態と並んで、すべての`Rigor::Scope`スナップショットは単一の不変な**ディスカバリインデックス**（`Rigor::Scope::DiscoveryIndex`）を保持します。これはシード時のディスカバリテーブル群 ── `declared_types`・`class_ivars`・`class_cvars`・`program_globals`・`discovered_classes`・`in_source_constants`・`discovered_methods`・`discovered_def_nodes`・`discovered_singleton_def_nodes`・`discovered_def_sources`・`discovered_singleton_def_sources`・`discovered_method_visibilities`・`discovered_superclasses`・`discovered_includes`・`discovered_class_sources`・`constant_sources`（[#644](https://github.com/rigortype/rigor/issues/644)の定数書き込みの帰属、ADR-46の記録実行でのみシードされる）・`published_constant_names`および`local_constant_names`（#644、`Scope#published_constant?`の2つの半分）・`data_member_layouts`・`struct_member_layouts`・`param_inferred_types`（ADR-67の呼び出しサイトパラメータ推論テーブル）・`run_generation`（ユーザーメソッド戻り値メモがバケット化する、ADR-84の実行ごとの恒等トークン） ── を保持します。メンバーシップは[ADR-53](../adr/53-scope-discovery-index-separation.md)の基準で固定されます。あるフィールドがインデックスに属するのは、**いかなるフロー遷移も、そのフィールドの値がシードと異なるスコープを生成しないとき、かつそのときに限り**です。
+フロー状態と並んで、すべての`Rigor::Scope`スナップショットは単一の不変な**ディスカバリインデックス**（`Rigor::Scope::DiscoveryIndex`）を保持します。これはシード時のディスカバリテーブル群 ── `declared_types`・`class_ivars`・`class_cvars`・`program_globals`・`discovered_classes`・`in_source_constants`・`discovered_methods`・`discovered_def_nodes`・`discovered_singleton_def_nodes`・`discovered_def_sources`・`discovered_singleton_def_sources`・`discovered_method_visibilities`・`discovered_parameter_envelopes`（[#992](https://github.com/rigortype/rigor/issues/992)の位置エンベロープテーブル、下記参照）・`discovered_superclasses`・`discovered_includes`・`discovered_extends`（シングルトン側のmixinテーブル、[#898](https://github.com/rigortype/rigor/issues/898); `extend M`、`extend self`、素の`module_function`、および ── [#915](https://github.com/rigortype/rigor/issues/915)以降 ── Rubyが同じシングルトン祖先とする`class << self`本体内に書かれた`include` / `prepend`を記録する）・`discovered_class_sources`・`constant_sources`（[#644](https://github.com/rigortype/rigor/issues/644)の定数書き込みの帰属、ADR-46の記録実行でのみシードされる）・`published_constant_names`および`local_constant_names`（#644、`Scope#published_constant?`の2つの半分）・`data_member_layouts`・`struct_member_layouts`・`param_inferred_types`（ADR-67の呼び出しサイトパラメータ推論テーブル）・`run_generation`（ユーザーメソッド戻り値メモがバケット化する、ADR-84の実行ごとの恒等トークン） ── を保持します。メンバーシップは[ADR-53](../adr/53-scope-discovery-index-separation.md)の基準で固定されます。あるフィールドがインデックスに属するのは、**いかなるフロー遷移も、そのフィールドの値がシードと異なるスコープを生成しないとき、かつそのときに限り**です。
 
 - インデックスはMUST不変です。これはフローズンな`Data`であり、シードされたインデックスは`DiscoveryIndex#with`を通じて導出されます。
 - すべてのフロー遷移（`with_local`・`with_fact`・`join`・…）は、レシーバーのインデックスを参照で、検査せずに結果へMUST引き継がねばなりません。`Scope#==`はインデックスをMUST NOT比較しません（これはフロー状態ではなく環境コンテキストです）。
 - `Scope`はテーブルごとのリーダー（`user_def_for`・`superclass_of`・`includes_of`・`discovered_method?`・`data_member_layout`・`class_ivars_for`・…）をデリゲートとしてMUST公開し続けます。これにより、エンジンの呼び出し位置やプラグインがストレージの分割から独立します。ADR-46の依存記録インストルメンテーションはこれらのデリゲートに存在し、それらがMUST唯一の読み取り経路であり続けねばなりません。
 - `Scope#with_discovery(index)`は唯一のシード遷移です。テーブルごとの`with_discovered_*`ライターはADR-53スライスA2で除去されました。
 - ネストされた本体（メソッドエントリー、クラス本体、または再型付けされたユーザーメソッド本体）のために構築されたスコープは、親スコープのインデックスを丸ごとMUST継承せねばなりません ── 決してテーブルごとのコピーではなく。テーブルごとのコピーは、抽出前に`data_member_layouts`が2度静かに脱落した原因です。
+
+**`discovered_parameter_envelopes`（[#992](https://github.com/rigortype/rigor/issues/992)）**。 `{qualified class name => {[kind, method_name] => envelope}}`。ここでエンベロープは`Source::ParameterEnvelope`プレーンデータ`[min, max, required_keywords]`（restまたは`...`パラメータが無制限のままにする場合は`max`がnil）または`Source::ParameterEnvelope::OPAQUE`です。信頼できるシグネチャがメソッドを宣言していない場合に、`call.wrong-arity`のための`def`の位置エンベロープの唯一のソースとなります; `rigor-rbs-inline`によって合成された`inferred-signature`メンバーは、自身のアリティを読み取るのではなくここへルーティングされます。
+
+- 宣言ウォークは`discovered_methods`と同じレコーダー（`ScopeIndexer#record_method`）を通じてこれを書き込まなければならず（MUST）、したがって存在テーブルが`alias`、`attr_*`、`define_method`、または`Struct` / `Data`メンバーから学習するすべての名前は`OPAQUE`として存在します; `def`のみが本物のエンベロープを記録します。
+- 1つのキーへのすべての寄与は、1つのファイル内の再オープンを越えて、プロジェクト全体のパスおよびそのADR-85シードバンドル畳み込みにおいてファイルを越えて、コンパクトヘッダーの再キー付けを越えて、そしてファイルの独自のウォークがプロジェクトシードに結合するときに、`Source::ParameterEnvelope.merge`で畳み込まれなければなりません（MUST） —— 等しいエンベロープは残り、それ以外のすべては`OPAQUE`となり、`OPAQUE`は吸収します。どのようなマージも複数の形状の1つを保持してはなりません（後勝ちや先勝ち）。
+- ウォークはまた、存在テーブルが運ばない証拠を`OPAQUE`エントリーとして記録します: レシーバーなしのクラス本体呼び出しがリテラルとして渡すかインラインでラップする名前の両方の種別（`memoize :f`、`memoize def f`、可視性 / `module_function` / `require`マクロを除く）; `alias`の両方の名前; `undef`; `module` / `Const = Module.new do … end`に対するクラス全体の`DiscoveryIndex::ENVELOPE_MODULE_MARK`;そしてクラス本体の`class_eval`ファミリー呼び出し、計算された`define_method` / `define_singleton_method` / `alias_method` / `remove_method` / `undef_method`、`send`ファミリー呼び出し、または非定数の`include` / `prepend` / `extend`（または`*_include_*`スタイルのプロジェクトヘルパー）に対する`DiscoveryIndex::ENVELOPE_DYNAMIC_MARK` —— さらに、呼び出しサイトから定数レシーバーが指し示しうるすべての名前について、`Const.class_eval { … }` / `Const.include(M)`または`refine Const do … end`として書かれたそれらの呼び出しに対しても記録されます。メソッド本体もスキャンされます（宣言ウォークはそれ以外ではメソッド本体に入りませんが）: `def`内の`class_eval`ファミリーまたは`define_method`ファミリー呼び出しはその定数レシーバーの候補、またはレキシカルクラスを動的としてマークします;そこで`extend`に渡されたモジュールは`DiscoveryIndex::ENVELOPE_OBJECT_EXTENDED_MARK`を運びます。任意のクラスのオブジェクトがその後そのメソッドで応答しうるからです。
+- プロジェクト全体のパス（`ScopeIndexer#finalize_def_index`）はクラスキー`DiscoveryIndex::ENVELOPE_PROJECT_WIDE`を空のバケットと共に追加しなければならず（MUST）、コンシューマーはそれを欠くインデックスからエンベロープを読み取ってはなりません（MUST NOT）: 単一ファイルのウォークは別のファイル内の再オープン、サブクラス、または`class_eval`を見ることができないからです。
+- `Scope#parameter_envelopes_of(class_name)`が読み取りパスであり、ADR-46のクラス依存関係を記録します;このテーブルはADR-85シードバンドルおよびADR-89 WD1宣言シグネチャの一部であるため、唯一の編集がラッピングマクロを追加することであるファイルは宣言不安定となります。
 
 ## フェイルソフトポリシー
 
@@ -216,7 +250,8 @@ RBSバックのティアは、レシーバー型を`kind`が`:instance`または
 - 残ったオーバーロードのうち、すべての（仮引数、実引数）位置ペアについてMUST`param_type.accepts(arg_type, mode: :gradual)`を参照します（rest位置引数は1つの宣言を繰り返し消費します）。すべてのペアが`yes`または`maybe`を返すとき、オーバーロードはマッチします。
 - `Type::StructClass`または`Type::DataClass`の実引数は、素のクラスオブジェクト公称型`Class`、`Module`、`Object`、および`BasicObject`によってMUST受理されなければなりません。適用された`Class[T]`は代わりに`T`をファクトリーのインスタンスクラス（`Struct` / `Data`、またはその既知の割り当てられた名前）に対してテストしなければなりません;無関係な`T`はMUST拒否されなければなりません。シングルトンの受理は、キャリアに割り当てられたプロジェクトクラス名がある場合でも、既知のファクトリー祖先関係をMUST使用しなければならないため、未解決の名前が証明可能に無関係なシングルトンを`maybe`に変えることはできません。
 - マッチングの前に、セレクタはレシーバー親和性（`ReceiverAffinity.reorder`）でオーバーロードリストをMAY並べ替え、パラメータクラスがレシーバークラスの互いに素な兄弟であるアームを降格します。これにより、別のgemのRBSがそのクラスに再オープンしたアーム（`Integer#+(BigDecimal)`）が宣言位置だけで勝つことはできません。以下のすべての規則はその並べ替え済みリストを読みます。
-- マッチングは次いで3つの順序付きパスとして走り、候補を生成した最初のパスが勝ちます: （1）**strict** ── すべての位置パラメータが具体的なキャリアに翻訳される（`Alias` / `Interface` / `Intersection`のいずれもなく、これらはすべて翻訳器が`Dynamic[top]`へ劣化させ、したがって何でも受理する）オーバーロードで、その実引数を受理するもの;いずれかの実引数が素の`Dynamic[top]`のときこのパスは丸ごとスキップされます。漸進的な受理が任意のstrictアームを固定してしまうからです。（2）**alias-strict-arm** ── パラメータがすべてstrictまたは既知のコアエイリアスであるオーバーロードについて、実引数をエイリアスのstrictアームに照合します。これにより、両パラメータが`Dynamic[top]`へ翻訳されても、Integer実引数に対して`Array#*(::int)`が`Array#*(::string)`に勝ちます。（3）**gradual** ── 素の`accepts(…, mode: :gradual)`マッチで、実引数が素の`Dynamic[top]`のときは値を固定するパラメータ（`nil`またはリテラル）を持つオーバーロードを除外し、引数の不精密さだけで値精密なアームが偽の定数を注入できないようにします。したがって「宣言順で最初のマッチ」はパス*内*で束縛するのであって、パスをまたいでは決して束縛しません。
+- マッチングは次いで3つの順序付きパスとして走り、候補を生成した最初のパスが勝ちます: （1）**strict** ── すべての位置パラメータが具体的なキャリアに翻訳される（`Alias` / `Interface` / `Intersection`のいずれもなく、これらはすべて翻訳器が`Dynamic[top]`へ劣化させ、したがって何でも受理する）オーバーロードで、その実引数を受理するもの;いずれかの実引数が*不精密*（imprecise）のときこのパスは丸ごとスキップされます。漸進的な受理が任意のstrictアームを固定してしまうからです。（2）**alias-strict-arm** ── パラメータがすべてstrictまたは既知のコアエイリアスであるオーバーロードについて、実引数をエイリアスのstrictアームに照合します。これにより、両パラメータが`Dynamic[top]`へ翻訳されても、Integer実引数に対して`Array#*(::int)`が`Array#*(::string)`に勝ちます;このパスも同様にいずれかの実引数が不精密なときはスキップされます;（3）**gradual** ── 素の`accepts(…, mode: :gradual)`マッチで、実引数が素の`Dynamic[top]`のときは値を固定するパラメータ（`nil`またはリテラル）を持つオーバーロードを除外し、引数の不精密さだけで値精密なアームが偽の定数を注入できないようにします。したがって「宣言順で最初のマッチ」はパス*内*で束縛するのであって、パスをまたいでは決して束縛しません。
+- 実引数が**不精密**（imprecise）であるとは、それが素の`Dynamic[top]`であるか、または`Dynamic[top]`メンバーを持つ`Union`（`Dynamic[top] | nil`、`Dynamic[top] | Integer`）であることを指します。型なしメンバーは実行時に任意のオーバーロードに到達する可能性があるため、ユニオンの他のメンバーにキー付けされたstrictまたはalias-strictマッチは、それらのメンバー単独で決定されてしまいます: 精密として扱われると、`Dynamic[top] | nil`は`Regexp#match?: (nil) -> false`を固定し、生きた述語をリテラル`false`として型付けしてしまいました（#1021）。静的ファセットが`top`ではない`Dynamic`（`Dynamic[String]`）は不精密ではありません;そのファセットが識別します。不精密な実引数がgradualパスに到達したとき、セレクタは最初のものではなく段階的にマッチする*すべての*オーバーロードを返し、ディスパッチ層は戻り値が異なるときにそれらを`Dynamic`でラップした戻り値のユニオンを返します（#521）;精密な実引数のみの場合、gradualパスは単一の最初のマッチを保持します。値ピン留め除外は素の`Dynamic[top]`にキー付けされたままです: 段階的受理は依然としてユニオン全体を読み取るため、それを受理する値ピン留めパラメータ（`Dynamic[top] | nil`に対する`nil`）はそのオーバーロードを候補の中に保持し、その戻り値がユニオンに合流します。一方、精密なメンバーを拒絶するもの（`Dynamic[top] | Integer`に対する`nil`）は合流しません。
 - どのパスもマッチしないとき、並べ替え済みリストの中でブロックを*要求しない*最初のオーバーロードにフォールバックし、それからようやくそのリストの最初の要素にフォールバックします。このパス構造とこのフォールバックが「最初のマッチが勝つ」からの規範的な逸脱です。どちらも、（`untyped`に劣化したインターフェイス・ジェネリクス・まだ配線していない呼び出し元のため）実際の引数型がどのオーバーロードにもマッチしない呼び出し位置について、Slice 4 phase 1 / 2bのフェイルソフト契約を保ちます。そしてブロック優先は、呼び出しが実際には`Enumerator`をyieldするとき、ブロックなしの`[1, 2].filter`がブロックを持つアームの`Array[Elem]`を採用してしまうのを防ぎます。
 
 実装はパフォーマンスのためにオーバーロードごとに引数型を事前翻訳してMAYかまいませんが、`self_type`と`instance_type`の置換はディスパッチ位置に依存するため、`(class_name, method_name)`キーにまたがって結果をMUST NOTキャッシュしません。
@@ -277,7 +312,7 @@ Slice 5 phase 2のシェイプ対応ディスパッチティア（`Rigor::Infere
 
 確実性の判断はそれをそのように扱わMUST。[ADR-78](../../adr/78-reflexive-overfold-always-truthy/) WD1により、証明可能な真値性は本物の定数にのみ依拠でき、実際の式より狭い形に健全性が条件付けられる畳み込みには決して依拠できません。動的キーから生成されたnilフリーの値ユニオンはまさにその形状です。すなわちシェイプが宣言するキーに対しては健全ですが、それらのいずれにもマッチしないかもしれない読み取りに適用されます。
 
-**この除外はこの判断のあらゆる読み手を拘束し、読み手は3つあります**。`flow.always-truthy-condition`とそれが共有する`&&`/`||`の`constant_value_polarity`ゲートは、そのような値から真値性をMUST NOT結論しなければならず、キャリアを制限するのではなくマークを参照することでそれをMUST強制しなければなりません。`Constant`専用のゲートでは**不十分**です。値が1つの型を共有するリテラルハッシュは単独の`Constant`として読まれるので、`UNIFORM[key] || key`は作者のフォールバックを捨ててしまいますし、`if UNIFORM[key]`は拡張が一切関与せずにこのルールを発火させます（issue #313）。`Constant`を越えたゲートのいかなる拡張（issue #152、評価のうえ見送り）も同様にこの除外をMUST保持しなければなりません。3番目の読み手は`if`/`unless`の分岐の削除 —— `StatementEvaluator#live_branch_for_if`/`#live_branch_for_unless`と`ExpressionTyper#elide_or_union`が消費する`Narrowing.predicate_certainty` —— であり、[ADR-101](../../adr/101-optimistic-carrier-branch-elision/)により、キャリアが楽観的とマークされている判定はMUST辞退しなければなりません。理由は同じですが影響はより広くなります: 上のゲートは診断を出さないだけなのに対し、削除はルックアップが外れたときにプログラムが実際に通る分岐を消してしまうからです。
+**この除外はこの判断のあらゆる読み手を拘束し、読み手は3つあります**。`flow.always-truthy-condition`とそれが共有する`&&`/`||`の`constant_value_polarity`ゲート（両方の位置が読み取る`StatementEvaluator#right_operand_dead?`）は、そのような値から真値性をMUST NOT結論しなければならず、キャリアを制限するのではなくマークを参照することでそれをMUST強制しなければなりません。`Constant`専用のゲートでは**不十分**です。値が1つの型を共有するリテラルハッシュは単独の`Constant`として読まれるので、`UNIFORM[key] || key`は作者のフォールバックを捨ててしまいますし、`if UNIFORM[key]`は拡張が一切関与せずにこのルールを発火させます（issue #313）。`Constant`を越えたゲートのいかなる拡張（issue #152、評価のうえ見送り）も同様にこの除外をMUST保持しなければなりません。3番目の読み手は`if`/`unless`の分岐の削除 —— 同じ評価器を通じて値位置の条件節が到達する`StatementEvaluator#live_branch_for_if`/`#live_branch_for_unless`が消費する`Narrowing.predicate_certainty` —— であり、[ADR-101](../../adr/101-optimistic-carrier-branch-elision/)により、キャリアが楽観的とマークされている判定はMUST辞退しなければなりません。理由は同じですが影響はより広くなります: 上のゲートは診断を出さないだけなのに対し、削除はルックアップが外れたときにプログラムが実際に通る分岐を消してしまうからです。
 
 そのマークは`Rigor::Inference::OptimisticOrigin`で、ディスパッチャーがアノテーションを読み飛ばす箇所で記録され、[ADR-75](../../adr/75-dynamic-provenance/) / [ADR-82](../../adr/82-dynamic-provenance-wiring/)の意味でのサイドチャネルとして伝播されます: サブタイピング・一貫性・正規化・消去にMUST NOT参加し、そこからいかなる診断もMUST NOT発火しません。3つの性質が規範的です。これは**選択されたオーバーロードごとに**決定されるので、`Array#first`はマークされますが`Array#first(3)`はされませんし、すでに`?`でミスを綴っているシグネチャ（`String#[]`・`Enumerable#find`）が決してマークされることはありません。シェイプティアが解決した読み取りにはMUST NOT適用されません。`ShapeDispatch`は、その読み取りがミスしえないことを証明するレシーバーから答えているからです（宣言済みシェイプ上の静的キー、非空の`Tuple`に対する`first`）。そして辞退はMUST消費側で実装され、`Narrowing.falsey_nominal?` / `.narrow_falsey`を広げることによってはMUST NOT実装されません。これらは`&&=`/`||=`とand/orの生き残る左辺のエッジも読んでおり、そこでfalsey側の断片を広げると束縛されたローカルに`nil`を再び入れてしまい、possible nil receiverの偽陽性を招くからです。
 
@@ -319,7 +354,7 @@ Slice 3 phase 2で評価器がMUST認識するノードのカタログは以下�
 - `Prism::WhenNode`と`Prism::InNode` — レシーバースコープ下で文を評価します。空本体はMUST`[Constant[nil], scope]`です。
 - `Prism::BeginNode` — 主経路（本体、それからオプショナルなelse節。else節はMUST本体の値を置き換えますが、elseの前に本体が実行されたため本体のスコープ効果は依然として適用されます）を評価します。チェーン内の各`Prism::RescueNode`はエントリースコープ下で評価される代替の出口経路です。出口型はMUST主経路とrescue出口のunionです。出口スコープはMUST主経路とrescueスコープのnil注入付き結合です。`ensure_clause`が存在するとき、そのスコープ効果はMUST結合された出口スコープの上に重ねられ、これによりensure内のみで束縛されたローカルが観測可能なまま残ります。ensureの値はMUST NOT出口型に寄与しません。
 - `Prism::WhileNode`と`Prism::UntilNode` — 述語を評価し（その後置スコープは本体で観測可能です）、それから本体を評価します。結果型はMUST`Constant[nil]`です。ベース後置スコープはMUST後置述語スコープと単一パス後置本体スコープのnil注入付き結合で、「本体は0回以上実行されたかもしれない」をモデル化します。[ADR-56](../adr/56-block-captured-local-mutation.md)スライスBは、本体が再束縛しうる各ローカルについて、上限付きの本体不動点結果をそのベースにオーバーレイします（`loop_rebind_fixpoint`。`Inference::BodyFixpoint`ヘルパーを共有し、上限3、最終的な`Constant→Nominal`への拡大、非収束時は`Dynamic[top]`の下限）。既存のローカルはその後置述語束縛でシードされ、本体内で初めて代入されるローカルは0回反復経路のために`Constant[nil]`でシードされ、述語のループ入口エッジは反復ごとに再ナローイングされます。どのローカルも再束縛しないループ本体は単一パスのベースとバイト単位で同一です。
-- `Prism::AndNode`と`Prism::OrNode` — LHSを評価し、それからLHSの*ナローイングされた*入口エッジ（`&&`では真値エッジ、`||`では偽値エッジ;Slice 6の規則で、後述の §「StatementEvaluatorとの統合」で規範的）下でRHSを評価します。結果型はMUST`&&`では`union(narrow_falsey(left_type), right_type)`、`||`では`union(narrow_truthy(left_type), right_type)`です ── オペランドの短絡フラグメントだけがノードの値になりうるので、`s : String?`の`s || full`は、剥がされた`nil`を再び受け入れるのではなく`String | <full>`と型付けされます。後置スコープはMUSTLHSとRHSの後置スコープのnil注入付き結合（「LHSは常に実行された。RHSはときどきしか実行されなかった」をモデル化）ですが、RHSが証明可能に終了する（`a or raise`）ときは例外で、そこでは制御がRHSエッジを通じて後続に決して到達せず、型もスコープもMUST生き残ったLHSエッジのみです。
+- `Prism::AndNode`と`Prism::OrNode` — LHSを評価し、それからLHSの*ナローイングされた*入口エッジ（`&&`では真値エッジ、`||`では偽値エッジ;Slice 6の規則で、後述の §「StatementEvaluatorとの統合」で規範的）下でRHSを評価します。結果型はMUST`&&`では`union(narrow_falsey(left_type), right_type)`、`||`では`union(narrow_truthy(left_type), right_type)`です ── オペランドの短絡フラグメントだけがノードの値になりうるので、`s : String?`の`s || full`は、剥がされた`nil`を再び受け入れるのではなく`String | <full>`と型付けされます。左オペランドが、その極性によってRHSがデッドとなる`Type::Constant`である場合（`false && b`、`1 || b`）、結果型はMUST左オペランド単独となります;この`constant_value_polarity`短絡は`Constant`専用のままでなければならず（MUST）、その`OptimisticOrigin`がLHS後置スコープに対して解決される左オペランドを辞退しなければなりません（MUST）（後述のIssue #313）。デッドなRHSも依然として評価され、その後置スコープは依然として結合されるため、その値のみが破棄されます。後置スコープはMUSTLHSとRHSの後置スコープのnil注入付き結合（「LHSは常に実行された。RHSはときどきしか実行されなかった」をモデル化）ですが、RHSが証明可能に終了する（`a or raise`）ときは例外で、そこでは制御がRHSエッジを通じて後続に決して到達せず、型もスコープもMUST生き残ったLHSエッジのみです。
 - `Prism::ParenthesesNode` — 内側の式を通じてスコープをスレッドし、これにより`(x = 1; x + 2)`が`x`を束縛して`Constant[3]`を生成します。
 - `Prism::ClassNode`と`Prism::ModuleNode` — 本体を*新鮮な*スコープで評価します（Rubyのクラス／モジュールスコープは外側のローカルを見**ません**。Environmentのみを共有します）。本体の値は本体の最後の文（空本体については`Constant[nil]`）です。クラス／モジュール定義は囲みスコープ内のいかなるローカルも束縛しないため、後置スコープはMUSTレシーバースコープを変更せずに残します。評価器は本体の評価のためにMUST新しいレキシカルクラスフレームを`class_context`にプッシュします。ネストされた`def`は、RBSルックアップを解決するためにそのフレームを参照します。フレームの修飾名はMUSTレンダリングされた`constant_path`です（例えば`class Foo::Bar`に対して`"Foo::Bar"`、`class A; class B`に対しては全ネスト名のジョイン）。
 - `Prism::SingletonClassNode` — 同じ新鮮スコープ契約です。シングルトン式が`self`のとき、最内のレキシカルクラスフレームは本体の評価のためにMUST`singleton: true`にフリップされ、これにより`class << self`内の`def foo`が`RbsLoader#singleton_method`を通じて解決されます。`self`でない式についてはレシーバークラスは静的に解決可能ではありません。評価器は既存のクラスコンテキストをMUST変更せずに保ち、ネストされたdefが`Dynamic[top]`の引数デフォルトに劣化することを受け入れます。
@@ -682,6 +717,7 @@ Slice 6 phase 1はエンジンに最初のエッジ対応精緻化サーフェ�
   それ以外（動的レシーバー・カスタム`===`メソッド・非ローカルLHS）はMUSTナローイングなし分岐へフォールスルーします（両エッジでエントリースコープを保ちます）。
 - `Prism::AndNode` — `a && b`は真値エッジを`a`の真値スコープ下の`b`の真値スコープで絞り込みます。偽値エッジは`Scope#join`を介して`a`の偽値スコープ（bがスキップ）と`b`の偽値スコープ（bが実行されたが偽値を返した）をunionします。
 - `Prism::OrNode` — `a || b`は真値エッジを`a`の真値スコープと（`a`の偽値スコープ下の）`b`の真値スコープの`Scope#join`で絞り込みます。偽値エッジは`a`の偽値スコープ下の`b`の偽値スコープです。
+- 条件位置にある`Prism::IfNode` / `Prism::UnlessNode`（Issue [#1017](https://github.com/rigortype/rigor/issues/1017)） — `p ? q : r`（`unless`はそのアームを入れ替え、`elsif`はネストされた条件節そのものであり、不在または空のアームは`nil`）は独自のコンビネータを持ってはなりません（MUST NOT）。各アームのエッジは述語のエッジの下で取られなければならず（MUST）、これは`&&`ステップです: `p`の真値スコープ下の`q`、`p`の偽値スコープ下の`r`。真値エッジは2つのアームの真値スコープの`Scope#join`でなければならず（MUST）、偽値エッジはそれらの偽値スコープのjoinであり（MUST）、これは`||`マージです。そのエッジ下で`Narrowing.predicate_certainty`が確定する型を持つアームは、その生きているエッジのみを寄与しなければならないため（MUST）、リテラルの`false` / `nil` / `true`アームや不在のアームは独自のルールを必要とせず、`p ? false : q`は`!p && q`として絞り込まれます。`OptimisticOrigin.resolve`がアームを楽観的とマークするとき、確定は見送られなければなりません（MUST）（ADR-101、Issue #313）。述語自体の確信度はエッジを落としてはなりません（MUST NOT）: 述語後置スコープはすでに内側の条件節のアームを結合しており、すべてのアームが絞り込んだキャリアはそこで楽観的マークを失っているためです。ガード内にスタックされた条件節が、括弧、本体の最後の文、`&&` / `||`、`!`、述語およびアームを通じてカウントして`Narrowing::CONDITIONAL_GUARD_DEPTH`（2）を超過したとき、ガードはナローイングなしのブランチへフォールスルーしなければなりません（MUST）;各レベルが述語と両アームを解析し、この上限が無制限に乗算することを防ぎます。
 
 解析器は認識されない述語形状でMUST NOTraiseせず、いかなるトレーサーをもMUST NOTスレッドせず（述語解析はすでに型付けされたスコープ情報を参照する純粋なクエリです）、レシーバースコープをMUST NOT変更しません。
 
@@ -691,8 +727,10 @@ Slice 6 phase 1はエンジンに最初のエッジ対応精緻化サーフェ�
 
 - `Prism::IfNode` — 述語を評価して`post_pred`を得たのち、`Narrowing.predicate_scopes(node.predicate, post_pred)`を呼び出して`(truthy_scope, falsey_scope)`を導出します。`then`分岐はMUST`truthy_scope`下で評価されます。`else`分岐（または不在のelse、これは`Constant[nil]`と述語の後置スコープを寄与します）はMUST`falsey_scope`下で評価されます。分岐型はunionされ、後置スコープは既存のnil注入規則を通じてマージされます。
 - `Prism::UnlessNode` — `IfNode`と同じ形状ですが、`then`分岐（述語が偽値のときに実行される）はMUST`falsey_scope`下、`else`分岐はMUST`truthy_scope`下で評価されます。
-- **バージョンガードの優先度（両ノード）**。キャリア確信度の判定の前に、`live_branch_for_if`/`#live_branch_for_unless`はMUST`Rigor::Inference::VersionGuard.verdict(predicate)`を参照しなければなりません ── アナライザーが読み取れるリテラルからバージョンガードを決定する、ASTの純粋でスコープフリーな関数です（規範的サーフェス: [control-flow-analysis.md § バージョンガード条件の畳み込み](../../type-specification/control-flow-analysis/#バージョンガード条件の畳み込み)）。`:truthy`/`:falsey`の判定は`Constant[true]`/`Constant[false]`述語とまったく同じようにデッドアームをMUST除去しなければならず、RBS由来の判断をガードしておりリテラルの判断とは関係がない[ADR-101](../../adr/101-optimistic-carrier-branch-elision/)の楽観的キャリア辞退よりもMUST優先されなければなりません。`nil`の判定は変更なしに`Narrowing.predicate_certainty`へMUSTフォールスルーしなければなりません。`ExpressionTyper#constant_predicate_polarity`も同じ優先度をMUST適用しなければならず、これにより式形式（`RUBY_VERSION >= "3.1" ? a : b`）と文形式がどのアームが生き残るかについて食い違うことができなくなります。ガード自身の式型は`bool`のままであるため、`flow.always-truthy-condition`はそれを決して見ません ── それがメカニズムであり、個別の抑制ではありません。アームの除去それ自体は診断を沈黙させません（`CheckRules`ウォークは型付けされていないノードも訪問します）; `CheckRules::DeadVersionGuardArms`は診断時に同じ`VersionGuard.verdict`を再照会し、デッドアーム内の診断を落とすので、2つのリーダーがどのアームがデッドであるかについて食い違うことはありません。
-- `Prism::AndNode`/`Prism::OrNode` — LHSを評価して`left_scope`を得たのち、`Narrowing.predicate_scopes(node.left, left_scope)`を呼び出します。RHSはMUST`&&`ではLHSの真値スコープ下、`||`ではLHSの偽値スコープ下で評価されます。後置スコープはMUST依然として`left_scope`とRHSの後置スコープのnil注入付き結合（「RHSはときどき実行された」をモデル化）であり、これによりRHSからの半束縛の名前が引き続きnil注入します。結果型はMUST`&&`では`union(narrow_falsey(left_type), right_type)`、`||`では`union(narrow_truthy(left_type), right_type)`です。
+- **値位置（両ノード）**。`ExpressionTyper`は`IfNode` / `UnlessNode` ── 三項演算子`c ? a : b`、修飾子`a unless c`、または引数、レシーバー、リテラル要素、書き込みの値として`Scope#type_of`を通じて到達する任意の条件節 ── を、アーム自体を型付けすることによってではなく、`StatementEvaluator#evaluate`へ委譲して結果の値を読み取ることによって型付けしなければなりません（MUST）。これにより、ナローイングの適用、後述の分岐の削除、および終了アーム規則の実装が正確に1つとなるため、条件節の値が文位置にあるか値位置にあるかに依存してはなりません（MUST NOT）。Issue [#1003](https://github.com/rigortype/rigor/issues/1003): エントリースコープ下で両アームをunionした2番目のタイパーは、文形式が`0.0 | finite-float`を束縛したのに対し、`f.finite? ? f : 0.0`を`0.0 | Float`として読み取ってしまいました。
+- **バージョンガードの優先度（両ノード）**。キャリア確信度の判定の前に、`live_branch_for_if`/`#live_branch_for_unless`はMUST`Rigor::Inference::VersionGuard.verdict(predicate)`を参照しなければなりません ── アナライザーが読み取れるリテラルからバージョンガードを決定する、ASTの純粋でスコープフリーな関数です（規範的サーフェス: [control-flow-analysis.md § バージョンガード条件の畳み込み](../../type-specification/control-flow-analysis/#バージョンガード条件の畳み込み)）。`:truthy`/`:falsey`の判定は`Constant[true]`/`Constant[false]`述語とまったく同じようにデッドアームをMUST除去しなければならず、RBS由来の判断をガードしておりリテラルの判断とは関係がない[ADR-101](../../adr/101-optimistic-carrier-branch-elision/)の楽観的キャリア辞退よりもMUST優先されなければなりません。`nil`の判定は変更なしに`Narrowing.predicate_certainty`へMUSTフォールスルーしなければなりません。式形式（`RUBY_VERSION >= "3.1" ? a : b`）は下記の値位置規則を通じて同じメソッドに到達するため、式形式と文形式がどのアームが生き残るかについて食い違うことができなくなります。ガード自身の式型は`bool`のままであるため、`flow.always-truthy-condition`はそれを決して見ません ── それがメカニズムであり、個別の抑制ではありません。アームの除去それ自体は診断を沈黙させません（`CheckRules`ウォークは型付けされていないノードも訪問します）; `CheckRules::DeadVersionGuardArms`は診断時に同じ`VersionGuard.verdict`を再照会し、デッドアーム内の診断を落とすので、2つのリーダーがどのアームがデッドであるかについて食い違うことはありません。
+- `Prism::AndNode`/`Prism::OrNode` — LHSを評価して`left_scope`を得たのち、`Narrowing.predicate_scopes(node.left, left_scope)`を呼び出します。RHSはMUST`&&`ではLHSの真値スコープ下、`||`ではLHSの偽値スコープ下で評価されます。後置スコープはMUST依然として`left_scope`とRHSの後置スコープのnil注入付き結合（「LHSは常に実行された。RHSはときどき実行された」をモデル化）であり、これによりRHSからの半束縛の名前が引き続きnil注入します。結果型はMUST`&&`では`union(narrow_falsey(left_type), right_type)`、`||`では`union(narrow_truthy(left_type), right_type)`です（§「文レベルの評価」における定数短絡を除く）。
+- **値位置（`AndNode` / `OrNode`）**。`ExpressionTyper`は、引数、レシーバー、リテラル要素、または書き込みの値として`Scope#type_of`を通じて到達する`&&` / `||`を、上記の条件節規則とまったく同様に、`StatementEvaluator#evaluate`へ委譲して値を読み取ることによって型付けしなければなりません（MUST）。これにより、RHSナローイング、定数短絡、およびそのIssue #313の楽観的キャリア辞退の実装が1つとなるため、`x.finite? && x`の値がその位置に依存してはなりません（MUST NOT）。Issue [#1016](https://github.com/rigortype/rigor/issues/1016): 2番目のタイパーがエントリースコープでRHSを型付けし（文が`false | finite-float`を束縛したところで`Float | false`）、文が欠いていた短絡を運び、エントリースコープに対して#313マークを解決したため、`(v = MAP[key]) || key`が値位置で依然としてフォールバックを破棄してしまいました。
 
 ### 境界
 

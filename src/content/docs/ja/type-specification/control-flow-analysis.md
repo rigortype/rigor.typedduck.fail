@@ -3,9 +3,9 @@ title: "制御フロー解析"
 description: "rigortype/rigor docs/type-specification/control-flow-analysis.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/type-specification/control-flow-analysis.md"
 sourcePath: "docs/type-specification/control-flow-analysis.md"
-sourceSha: "651c30132fe6fa811088139936d083eaeef593c5d40ff2e8598d79016b2fe05d"
-sourceCommit: "db7b23d42e9b47560438b67dfe16d53e03f70575"
-sourceDate: "2026-09-09T14:40:24+09:00"
+sourceSha: "ac6c761073afd9784cd207fe489f5471983321b0e9470a8ec7ca924c6dfeab02"
+sourceCommit: "d01a937b5d3d66d5ec4e6ba82036919d1bc91d10"
+sourceDate: "2026-09-14T19:14:36+09:00"
 translationStatus: "translated"
 sidebar:
   order: 2050
@@ -41,8 +41,11 @@ RigorはPHPStan、TypeScript、Pythonの型チェッカーのスタイルでフ�
 - `a && b`は`a`が生成した真値スコープで`b`を解析します。
 - `a || b`は`a`が生成した偽値スコープで`b`を解析します。
 - `!a`は真値スコープと偽値スコープを入れ替えます。
+- どのような綴りであれ、条件として使用される条件式`(p ? q : r) ? … : …`は、その`&&` / `||`相当の事実を運びます: それは`p && q`または`!p && r`を通じてtruthyであり、`p && !q`または`!p && !r`を通じてfalseyであるため、`(s.nil? ? false : x.finite?) ? x : 0.0`は`(!s.nil? && x.finite?) ? x : 0.0`と同様に`x`を絞り込みます。リテラル`false`などの値が確定しているアームは、その真偽性が楽観的ルックアップに依存していない限り、その有効なエッジのみを寄与します。事実は最大2つのネストされた条件式まで導出されます;それ以上のスタックは絞り込みを寄与しません。
 - `unless a`は`if a`と同じ条件ファクトを使い、ブランチの宛先を入れ替えます。
 - `case`、パターンマッチ、連鎖した`elsif`式は、後のアームに前のアームからの負のファクトを渡します。
+- 三項演算子`a ? b : c`、修飾子`b if a` / `b unless a`、およびブロック形式は同一の構文要素です: それぞれが同一の条件の事実からそのアームを絞り込まなければならず（MUST）、条件式の値はそれが文であるか値であるか —— 引数、レシーバー、コレクション要素、または書き込みの右辺 —— にかかわらず同一でなければなりません（MUST）。Float比較のfalseyアームはあらゆる綴りでエントリー型を保持します。`!(x > c)`は`NaN`に対しても成り立つためです。
+- `a && b`と`a || b`はあらゆる位置において同一の構文要素です: `x.finite? && x`の値は、それが文であるか値であるかにかかわらず同一でなければならず（MUST）、定数の左オペランドに対する短絡評価（`false && b`は`false`、`1 || b`は`1`）も同様でなければなりません（MUST）。動的キーを持つリテラルハッシュルックアップのように左オペランドのnilフリー性が楽観的である場合、その短絡評価は右オペランドを破棄してはなりません（MUST NOT）。ルックアップがミスしうるためです。Float比較のfalseyエッジはここでもエントリー型を保持します。
 
 ```ruby
 def contradictory(foo)

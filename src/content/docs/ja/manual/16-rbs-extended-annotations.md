@@ -3,9 +3,9 @@ title: "RBS::Extendedアノテーション"
 description: "rigortype/rigor docs/manual/16-rbs-extended-annotations.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/16-rbs-extended-annotations.md"
 sourcePath: "docs/manual/16-rbs-extended-annotations.md"
-sourceSha: "af69654f64b0096a5c79903e12e0861ffe455490f4a3928f3635ef48efd7055f"
-sourceCommit: "04668e5f0d6205fdd5c8f44662041add7ab33ca3"
-sourceDate: "2026-09-09T02:05:20+09:00"
+sourceSha: "3ddef0ae49566d54aa50ff0dda4893538e2636345b8aa74849541f7afa4b6532"
+sourceCommit: "d01a937b5d3d66d5ec4e6ba82036919d1bc91d10"
+sourceDate: "2026-09-14T17:15:38+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9016
@@ -22,17 +22,35 @@ def read_name: () -> String
 
 素の`() -> String`は互換性のための契約のままです;アノテーションは、戻り値が空でない文字列だとRigorに伝えます。
 
-これらはどれも、rbs-inlineの`# @rbs %a{…}`コメントとして**`.rb`ファイル内に**書くこともできます —— `%a{}`はrbs-inline自身のupstream文法であり、アノテーションは生成されるシグネチャと同じ経路でRigorに届きます:
+これらはどれも、インラインRBSコメントとして**`.rb`ファイル内に**書くこともできます —— `%a{}`はRBS自身の注釈文法であり、アノテーションは生成されるシグネチャと同じ経路でRigorに届きます。Rigorは3つの表記を読み取ります:
 
 ```rb
 # rbs_inline: enabled
 
 class Reader
+  # 単独行: アノテーション、続いて専用タグ上の型。
   # @rbs %a{rigor:v1:return: non-empty-string}
   # @rbs return: String
   def read_name = "x"
+
+  # 同一行、`@rbs`メソッド型。
+  # @rbs %a{rigor:v1:return: non-empty-string} () -> String
+  def title = "x"
+
+  # 同一行、`#:`メソッド型。
+  #: %a{rigor:v1:return: non-empty-string} () -> String
+  def label = "x"
 end
 ```
+
+メソッド型の前に複数のアノテーションを置くこともできます（`#: %a{pure} %a{rigor:v1:return: non-empty-string} () -> String`）。他のインラインRBSリーダーは、これら3つすべてを受け付けるわけではありません:
+
+| 表記 | RBS組み込みのインラインパーサ、`inline: true`のSteep | `rbs-inline` gem自身の`--output` |
+| --- | --- | --- |
+| 単独行 | 構文エラー（`expected a token pARROW`）、アノテーション喪失 | アノテーション保持 |
+| 同一行 | アノテーションおよびメソッド型を保持 | アノテーション保持、メソッド型は**脱落** |
+
+Rigorはすべての行の両方の半分を保持します。`.rb`ファイルに対してどの表記を推奨すべきかは、測定結果を運ぶ[ADR-111](../../adr/111-inline-refinement-carrier/)で現在もオープンです。同一行アノテーションの後のメソッド型がパースできない場合、メソッドは型付けされないままとなり、Rigorはそれを[`plugin.rbs-inline.source-rbs-annotation-not-honoured`](plugins/rigor-rbs-inline/#同一行アノテーション)として報告します。
 
 これには`rbs-inline`ライブラリのインストールが必要です;インストールされていれば、Rigorはインラインアノテーションをデフォルトで取り込みます（[ADR-93](../../adr/93-default-rbs-inline-ingestion/)）。Rigor専用のコメント方言はありません: `# rigor:`コメントは引き続き抑制専用です。
 
@@ -120,7 +138,7 @@ class UserRepository
 end
 ```
 
-同じ2つは、`.rb`ファイル内のrbs-inlineコメントとしても機能します:
+同じ2つは、`.rb`ファイル内のrbs-inlineコメントとしても、上に示した3つの表記のいずれでも機能します —— ここでは単独行のものです:
 
 ```rb
 # rbs_inline: enabled

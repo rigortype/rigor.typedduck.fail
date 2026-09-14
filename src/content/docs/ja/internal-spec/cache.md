@@ -3,9 +3,9 @@ title: "キャッシュレイヤー — `Rigor::Cache`"
 description: "rigortype/rigor docs/internal-spec/cache.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/cache.md"
 sourcePath: "docs/internal-spec/cache.md"
-sourceSha: "7684b41161aae61adcf5bf9c87a6e456e5c3bda9060577fd6819f7e99683bb22"
-sourceCommit: "568138c239ec5b7b39833ed6a2a21fd027e3d319"
-sourceDate: "2026-09-11T21:23:52+09:00"
+sourceSha: "ea242e50a122a17ac0573257b57787ce0d97875bf15537ea8e29e4f3face0f3f"
+sourceCommit: "d01a937b5d3d66d5ec4e6ba82036919d1bc91d10"
+sourceDate: "2026-09-14T16:01:17+09:00"
 translationStatus: "translated"
 sidebar:
   order: 3050
@@ -117,7 +117,13 @@ GlobEntry       :: { root: String, pattern: String, value: String, mode: :stat|:
 
 ### 計算値のキーにおけるエンジンの同一性
 
-値がアナライザーの*計算*の関数であるキャッシュ —— `analysis.run-diagnostics`・`analysis.run-effects`・`protection.mutation-file-result`・`IncrementalSnapshot` —— は、`Rigor::VERSION`だけでなくエンジンのソースをMUSTキーにしなければなりません。バージョンがバイト列を固定するのはRubyGemsからインストールされたgemの場合だけであり、それ以外では固定しません。そのため編集された作業ツリーではウォームな実行が編集前の診断を再生してしまい、エンジン変更の前後比較は、稼いでいないゼロを報告してしまいます（[#285](https://github.com/rigortype/rigor/issues/285)）。
+値がアナライザーの*計算*の関数であるキャッシュ —— `analysis.run-diagnostics`・`analysis.run-effects`・`protection.mutation-file-result`・ファイルごとの`plugin.source_rbs_synthesizer`スロット・すべてのプラグインプロデューサー（`plugin.<id>.<producer>`）・`IncrementalSnapshot` —— は、`Rigor::VERSION`だけでなくエンジンのソースをMUSTキーにしなければなりません。バージョンがバイト列を固定するのはRubyGemsからインストールされたgemの場合だけであり、それ以外では固定しません。そのため編集された作業ツリーではウォームな実行が編集前の診断を再生してしまい、エンジン変更の前後比較は、稼いでいないゼロを報告してしまいます（[#285](https://github.com/rigortype/rigor/issues/285)）。
+
+これらのうち`Descriptor`でキー付けされる各スロット（アイデンティティを文字列部分として付加するフィンガープリントを持つ`IncrementalSnapshot`を除くすべて）は、`EngineSource.key_config_entries`からの行 —— アイデンティティのSHA-256を`value_hash`とする`engine-source`の`ConfigEntry`、またはバージョン固定ツリーの場合は行なし —— を受け取るため、各スロットがそれをどのように運ぶかにおいて乖離することはありません。
+
+**別の計算に供給されるスロットにもそれが必要な理由（[#1009](https://github.com/rigortype/rigor/issues/1009)）**。それが強制する再解析が、エンジンが計算した*他の*キャッシュ値を読み取るとき、実行結果のキーを動かすだけでは不十分です。#1009以前は、`plugin.source_rbs_synthesizer`スロットはソースファイルのダイジェストとプラグインの`PluginEntry`（ID、マニフェストバージョン、設定ハッシュ）でキー付けされ、プラグインプロデューサーのキーは`PluginEntry`単独でキー付けされていました。バンドルされたプラグインのシンセサイザーを編集するチェックアウトはそのマニフェストバージョンを維持するため、そのような編集の後は実行結果キーが動き、実行は再解析されました —— しかしシンセサイザースロットは前回のビルドのRBS文字列を提供してしまいました。環境キーの`rbs.virtual_rbs`行（後述の`RbsDescriptor`参照）は渡された文字列をハッシュ化するため、古い文字列が`rbs.environment`もウォームに保ち、新しいビルドのルールが古いビルドのシグネチャを読み取ってしまいました: どちらのビルドもコールドと報告しないウォームな結果です。シンセサイザー出力を変更しない`lib/`のみの編集ではこれが現れなかったため、実行結果キー独自のカバー範囲で十分に見えていました。シンセサイザーキーに行を含めることで、エンジンの編集はアノテーションされたすべてのファイルを再シンセサイズします;出力が変わらないときは`rbs.virtual_rbs`行も変わらないため、`rbs.environment`は依然としてヒットします。
+
+エンジンを同定できない呼び出し元（`EngineSource::Unavailable`）は、その行なしでキー付けするのではなく、その実行の間シンセサイザーまたはプロデューサーを非キャッシュで実行します。
 
 `Cache::EngineSource.identity`がこのスロットを供給します。2つのレジームがあります:
 
@@ -260,7 +266,7 @@ sha256               32バイト — 直前のすべてのバイトの整合性�
 
 バッファを伴うセッションはそのスナップショットを書き戻してはなりません（MUST NOT）。そのファイルごとのダイジェストや診断はエディタ内にのみ存在するバイト列を記述しているため、それらを永続化すると、次の`rigor check --incremental`が、ディスク上のファイルが決して存在しなかった状態ですでに解析されたと信じ込んでしまうことになります。したがって、既存のスナップショットを再利用できないセッションはベースラインを実行するのではなく辞退します —— どうせ計算したものは次のキーストロークをウォームアップできないためです。
 
-### `Payload`（現在の`SCHEMA = 22`）
+### `Payload`（現在の`SCHEMA = 23`）
 
 ```
 Payload :: Data[
@@ -279,7 +285,7 @@ Payload :: Data[
 
 `missing`内の`class:<last segment>`キーはミス時だけでなくHIT時にも記録されます（[#639](https://github.com/rigortype/rigor/issues/639)）: プロジェクトクラスを単に参照しているコンシューマー —— メソッド呼び出しのない`Post` —— はそのクラスが存在することに依存しており、宣言ファイルを削除すると、フル実行が正直な未解決の回答を返す一方で、ウォームな`--incremental`実行では削除前の型を提供し続けてしまいます。したがって、そのプロデューサーは対称でなければならず（MUST）、変更されたファイルだけでなく削除されたファイルも差分しなければなりません（MUST）: 消失した宣言は出現した宣言とまったく同様にキーを満たし、削除されたファイル以前のセット全体が消失します。このエッジは宣言ファイルへの肯定的なエッジではなく意図的に名前キーとされているため、宣言内部の本体編集が参照側を再チェックすることはありません。`class_decls`はすでにファイルごとの宣言セットを保持しているため、行は動かず`SCHEMA`は変更されません。
 
-留め置く価値のあるスキーマの履歴: `6`はシードバンドルを`(node_id, name, fingerprint)`のdefノードハンドルとして格納した（ADR-85）;`8`はB1のコメントのみゲートのために各バンドルのコメントを剥いだ`code_fingerprint`を追加した;`9`は`plugin_fact_digest`を追加した（ADR-88）;`10`は`return_summaries`を追加した（ADR-89）;`11`は`param_table`を追加した（ADR-67 WD6c）;`12`はエフェクトサイドカーを追加した（ADR-103 WD13）;`13`は`constant_decls`（ファイルごとの定数PUBLICATION CENSUS —— `{name => [literal] | :unpublishable}`であり、その差分が`constant:`エッジのプロデューサーを駆動する）を追加し、各シードバンドルにそれ自身の`constant_writes`センサスを与えた（[#644](https://github.com/rigortype/rigor/issues/644)）;`14`〜`21`はシードバンドル文法のバンプであり、それぞれ`IncrementalSnapshot::SCHEMA`の番号付きコメントでissueに対して記録されている;`22`は`run_level_rows`（[#796](https://github.com/rigortype/rigor/issues/796)、[#794](https://github.com/rigortype/rigor/issues/794)）を追加した。古いスキーマのblobは`SCHEMA`ゲートに不一致となり`nil`としてロードされます —— マイグレーションではなく、クリーンなコールドリビルドです。
+留め置く価値のあるスキーマの履歴: `6`はシードバンドルを`(node_id, name, fingerprint)`のdefノードハンドルとして格納した（ADR-85）;`8`はB1のコメントのみゲートのために各バンドルのコメントを剥いだ`code_fingerprint`を追加した;`9`は`plugin_fact_digest`を追加した（ADR-88）;`10`は`return_summaries`を追加した（ADR-89）;`11`は`param_table`を追加した（ADR-67 WD6c）;`12`はエフェクトサイドカーを追加した（ADR-103 WD13）;`13`は`constant_decls`（ファイルごとの定数PUBLICATION CENSUS —— `{name => [literal] | :unpublishable}`であり、その差分が`constant:`エッジのプロデューサーを駆動する）を追加し、各シードバンドルにそれ自身の`constant_writes`センサスを与えた（[#644](https://github.com/rigortype/rigor/issues/644)）;`14`〜`21`はシードバンドル文法のバンプであり、それぞれ`IncrementalSnapshot::SCHEMA`の番号付きコメントでissueに対して記録されている;`22`は`run_level_rows`（[#796](https://github.com/rigortype/rigor/issues/796)、[#794](https://github.com/rigortype/rigor/issues/794)）を追加した;`23`は各シードバンドルに`parameter_envelopes`テーブルを与えた（[#992](https://github.com/rigortype/rigor/issues/992)）。古いスキーマのblobは`SCHEMA`ゲートに不一致となり`nil`としてロードされます —— マイグレーションではなく、クリーンなコールドリビルドです。
 
 ### `plugin_fact_digest` — プラグインファクトの健全性（[ADR-88](../adr/88-incremental-plugin-fact-soundness.md)）
 
@@ -289,7 +295,7 @@ Payload :: Data[
 
 B1のコメントのみゲートを本体の編集へ一般化します: 変更されたファイルの依存側は、それが消費しうる何かが実際に変わったときにのみ再解析されます。「何も変わっていない」ことを証明する2つの永続化済みサマリー:
 
-- **宣言の形状**（祖先／ファイルレベルの依存側が消費する） —— ADR-85のシードバンドルが、defごとのシグネチャ形状（名前、種別、パラメータ構造、可視性）に加えてスーパークラス／include／レイアウトを保持します。本体の編集はそれを等しく保ちます;アリティ、可視性、またはメソッド追加/削除の編集はそうしません。宣言が安定している変更済みファイルは、その祖先／ファイルレベルの依存側を閉包から外します。
+- **宣言の形状**（祖先／ファイルレベルの依存側が消費する） —— ADR-85のシードバンドルが、defごとのシグネチャ形状（名前、種別、パラメータ構造、可視性）に加えてスーパークラス／include／レイアウト、および結合された[#992](https://github.com/rigortype/rigor/issues/992)パラメータエンベロープテーブル（これは`memoize :f`のようなdefごとの形状が記録しないラッピングマクロでも動く）を保持します。本体の編集はそれを等しく保ちます;アリティ、可視性、またはメソッド追加/削除の編集はそうしません。宣言が安定している変更済みファイルは、その祖先／ファイルレベルの依存側を閉包から外します。
 - **観測キーの戻り値サマリー** —— ADR-84のメモから収穫したdefごとの`(receiver, args) → return`ディスクリプタに、ADR-56の内容変異エフェクトセット（戻り値を超えて呼び出し先から見えるサーフェス）を加えたもの。再チェック時、宣言が安定している変更済みdefは、格納された各キーでメモを通じて再評価されます;すべての戻り値が等しく**かつ**エフェクトが等しければ、そのdefのシンボル依存側が外されます。いずれかの不一致、シグネチャの変更、defの欠落、不適格なdef（ivar/cvar書き込みや`yield`値も露出するもの）、または上限オーバーフローは、依存側を保ちます —— 保守的な方向です。
 
 両ゲートは、そのランについて`plugin_fact_digest`が一致していることを前提とします（仮定ではなくコード内でアサートされます）;`--verify-incremental`は機構全体に対する常設のバイト同一性のバックストップです。
@@ -317,6 +323,8 @@ B1のコメントのみゲートを本体の編集へ一般化します: 変更�
   | 仮想RBS —— プラグインのソースRBSシンセサイザーが`.rb`ファイルから導出するもの。[ADR-93](../../adr/93-default-rbs-inline-ingestion/)の自動配線される`rigor-rbs-inline`のもとでは、すべての`#:` / `# @rbs`アノテーション | なし | **いいえ** |
 
   3つ目をダイジェストすることは、すべてのソースファイルに対してすべてのシンセサイザーを実行することを意味し、これは事実上の環境ビルドです —— そしてフィンガープリントは環境ビルドの前にスナップショットのロードをゲートするために存在します。そのため、フィンガープリントを動かすことなく`.rb`ファイルから重複宣言を削除でき、リプレイされた行はその原因よりも長く生き残ってしまいます。したがってリプレイは、競合するバッファが今回の実行のクロージャ内のファイルの`virtual:`バッファを指しているエントリーを破棄します（DROP）（`PoolCoordinator#stale_replayed_failure?`）: 編集されたファイルはまさにその寄与がもはや衝突しないかもしれないファイルであり、今回の実行はその行を再導出できず（#696が要求を禁じる）、過少報告の方が今や正しいかもしれないプログラムに対して診断を主張するより優れています。
+
+  [#997](https://github.com/rigortype/rigor/issues/997)はクラスごとの各タプルに5番目の要素 —— `RBS::NoTypeFoundError`以外のすべての失敗種別で`nil`となる`unresolved_type_name_detail` —— を追加しました。これは未解決のトークン、`RBS::Location#to_s`がそれを描画する位置、および（該当する場合）そのトークンが切り詰められた先頭部分である完全なRigorリファインメント名を運びます。これはライブのエラーから、`Environment::RbsLoader#store_definition_build_detail`がタプルの残りを記録するまさにその瞬間に**一度だけ**計算され、その傍らにフリーズされます —— リプレイされたタプルから再導出されることは決してありません。このスナップショットに到達する頃には、再検査すべき背後のライブな`RBS::NoTypeFoundError`を持たないプレーンな文字列になっているからです。これこそが、メンバーおよびバッファ名フィールドがすでにナビゲートしているのと同じ危険（ADR-54環境キャッシュの`RBS::Location`マーシャルパッチはノードごとの位置情報を破棄し、キャッシュヒット時にゼロ範囲の番兵を再構築する）の下で安全を保つ理由です: 5番目の要素は`Location`オブジェクトではなく導出されたデータであるため、ウォームな実行は、キャッシュロードされた宣言の番兵位置から劣化されたものを再導出するのではなく、コールド実行が計算した正確な文字列をリプレイします。
 - **`hkt_scan_failure`** —— `rbs.coverage.hkt-scan-failed`の結果タプル（[#784](https://github.com/rigortype/rigor/issues/784)）。スキャンは環境ごとに1つの結果を持つため、リプレイされた結果はスキャン元の環境とまったく同じ鮮度を持ちます —— 言い換えれば: フィンガープリントと同じ鮮度であり、スキャンが読み取るローダーは合成されたバッファも運ぶため、上の行と同じ仮想RBSの死角を持ちます。定義ビルドの失敗とは異なり、バッファを指定しない単一のタプルであるため、クロージャに帰属させるものはなく破棄するものもありません;陳腐化は残り、以下にリストされています。これをリプレイすることにより、何も変更されていない再チェックで環境の解決を完全にスキップできるようになります（[#794](https://github.com/rigortype/rigor/issues/794)）: それは他の何も必要としないパス上の最後の要求でした。
 
 他のすべての`.rigor.yml`レベルの行はキャッシュされず、実行ごとに再生成されます: `synthesized-namespace`、`quarantined-signature`、`environment-build-failed`、`signature-standdown`、`conforms-to`の結果、プラグインの`prepare` / プール劣化行。それぞれは実行自身の環境がビルドされたときにすでに保持している状態から読み取られ、どのファイルが解析されたかには依存しません —— したがってリプレイが追加するものはなく、それをキャッシュすることは観測不能な入力ではなく診断をキャッシュすることになります。新しい行はこのテストに不合格となった場合にのみこのセクションに加わります。

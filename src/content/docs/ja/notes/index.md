@@ -3,9 +3,9 @@ title: "リサーチ・サーベイノート"
 description: "rigortype/rigor docs/notes/README.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/README.md"
 sourcePath: "docs/notes/README.md"
-sourceSha: "42879d1dac91e4fa39d7fc1d014e01b8f838554e68e74235b876be41a43a5e14"
-sourceCommit: "568138c239ec5b7b39833ed6a2a21fd027e3d319"
-sourceDate: "2026-09-12T08:22:41+09:00"
+sourceSha: "ba4b44c5249bf78acec0e3d400d9cc39c28f0297645e2c586db1a5b665e8ac37"
+sourceCommit: "d01a937b5d3d66d5ec4e6ba82036919d1bc91d10"
+sourceDate: "2026-09-12T21:11:14+09:00"
 translationStatus: "translated"
 sidebar:
   order: 6000
@@ -115,6 +115,7 @@ sidebar:
 | 2026-06-03 | [セッションレポート — プラグイン契約を型付けする（6コミットの着地）](20260603-plugin-contract-typing-session-report/) |
 | 2026-07-30 | [sig-genライターの更新パスに`RBS::Rewriter`を使う —— 評価](20260730-rbs-rewriter-sig-gen-writer-evaluation/) |
 | 2026-07-30 | [インラインRBS: `rbs-inline` gem vs `RBS::InlineParser` —— 文法差分](20260730-inline-rbs-parser-grammar-diff/) |
+| 2026-09-12 | [インラインリファインメントキャリア —— 3つのインラインRBSリーダーが見るもの（ADR-111調査）](20260912-inline-refinement-carrier-probe/) |
 
 ## パフォーマンス・プロファイリング
 

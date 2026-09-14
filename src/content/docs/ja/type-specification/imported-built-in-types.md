@@ -3,32 +3,32 @@ title: "インポートされた組み込み型"
 description: "rigortype/rigor docs/type-specification/imported-built-in-types.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/type-specification/imported-built-in-types.md"
 sourcePath: "docs/type-specification/imported-built-in-types.md"
-sourceSha: "e0c751564676adaa34e97081b5f319e9b30edbd864b2b590cfa21f5e9696a97b"
-sourceCommit: "04668e5f0d6205fdd5c8f44662041add7ab33ca3"
-sourceDate: "2026-09-09T00:56:50+09:00"
+sourceSha: "d99569479062c74c098750474100c205e8b87c25ed61012554ede916fcededd8"
+sourceCommit: "d01a937b5d3d66d5ec4e6ba82036919d1bc91d10"
+sourceDate: "2026-09-14T16:13:22+09:00"
 translationStatus: "translated"
 sidebar:
   order: 2050
 ---
 
-Rigorは明確なRubyの意味を持つ場合にのみ、PHPStan、TypeScript、Pythonの型付けからアイデアをインポートします。デフォルトでは互換性のために外来構文は保持されません。
+RigorはPHPStan、TypeScript、Pythonタイピングから、明確なRubyの意味を持つ場合にのみ型の概念をインポートします。外部の構文はデフォルトで互換性のために保存されることはありません。
 
-この文書はRigorがリファインメントと型関数に使う予約済み組み込み**名前**を定義します。これらの名前を裏打ちする内部形式は[rigor-extensions.md](../rigor-extensions/)にカタログ化されています。演算子形式（`~T`、`T - U`、`key_of[T]`など）は[type-operators.md](../type-operators/)にあります。
+この文書はリファインメント（refinement、篩型とも）と型関数のためにRigorが使用する予約済み組み込み**名前**を定義します。これらの名前を裏付ける内部形式は[rigor-extensions.md](../rigor-extensions/)にカタログ化されています。演算子形式（`~T`、`T - U`、`key_of[T]`など）は[type-operators.md](../type-operators/)にあります。
 
-これらの名前は`.rbs`内にコメント拡張（`%a{rigor:v1:…}`）として記述され、[`lib/rigor/builtins/imported_refinements.rb`](https://github.com/rigortype/rigor/blob/master/lib/rigor/builtins/imported_refinements.rb)によって解析されます。文法を拡張するには、そのパーサと本ページの行を同じコミットで編集する必要があります。
+これらの名前はコメント拡張（`%a{rigor:v1:...}`）として`.rbs`に記述され、[`lib/rigor/builtins/imported_refinements.rb`](https://github.com/rigortype/rigor/blob/master/lib/rigor/builtins/imported_refinements.rb)によって解析されます。文法を拡張することは、そのパーサとここにある行を同じコミットで編集することを意味します。
 
 ## 命名規則
 
-- 予約済み組み込み**リファインメント**名は`non-empty-string`、`positive-int`、`non-empty-array[T]`のように`kebab-case`を使います。
-- リファインメント名は絞り込まれたRuby値ドメインを記述し、RubyのconstantやRBSエイリアス名ではなく、Rigor予約型名として解析されます。
-- `-`文字は意図的なものです: Rubyのconstantやアメスラ名では有効ではないため、`non-empty-string`のような名前は視覚的かつ構文的にRigor組み込みとしてマークされます。
-- Rigorは`non_empty_string`のようなリファインメント名の`lower_snake`エイリアスを追加してはなりません（MUST NOT）。それらの名前は通常のRBS型エイリアスとして利用可能なままです。
-- パラメータ化された**型関数**と型レベル操作は`key_of[T]`のように`lower_snake`名と角括弧引数を使います。
-- 型関数は別の型またはリテラルセットを計算、投影、または変換するものであり、絞り込まれた値ドメインに直接名前をつけるものではありません。
-- 型関数が`-`を避けるのは、`-`がRigorの型構文では差分演算子でもあるためです; `int_mask[1, 2, 4]`は`int-mask[1, 2, 4]`より曖昧さが少ないです。
-- 具体的な移行や可読性の問題を解決しない限り、互換性エイリアスを受け付けてはなりません（MUST NOT）。
-- RBS名はすでにその概念を表現している場合は正規のままです。`bot`はボトム型です; `never`、`noreturn`、`never-return`、`never-returns`、`no-return`、`Never`、`NoReturn`は初期エイリアスとして追加してはなりません（MUST NOT）。
-- 境界付き数値範囲は、クラスの後に角括弧で囲まれたRubyの範囲リテラルとして綴られ（`Integer[1..10]`）、そのリテラルがカバーする正確な値を表します: `Integer[R]`は`{ x | x.is_a?(Integer) && R.cover?(x) }`です（[ADR-109](../adr/109-ruby-native-range-notation/)）。リテラルのあらゆるRubyの表記が受け入れられます（`1..10`、`1...10`、`1..`、`..10`、`nil..nil`）;排他的終端は閉じた形式に正規化され（`Integer[1...10]`は`Integer[1..9]`と表示される）、無制限の範囲は`Integer`と表示され、空の範囲（`Integer[5..1]`、`Integer[1...1]`）は`bot`に解決されるのではなく解決不能なペイロードとして拒絶されなければなりません（MUST decline）。この形式は`Builtins::ImportedRefinements`を通じてパースされ、`IntegerRange`キャリア（carrier）によって表示されます;これは数値クラスの範囲リファインメントであり、任意の型に適用されるジェネリック角括弧構文ではありません（`Integer[Foo]`はそのRBSの意味を保ちます）。PHPStanスタイルの`int<min, max>`は、1つの非推奨ウィンドウの間、非推奨の入力エイリアスとして受け入れられますが、表示されてはなりません（MUST NOT）。
+- 予約済み組み込み**リファインメント**名は、`non-empty-string`、`positive-int`、`non-empty-array[T]`のように`kebab-case`を使用します。
+- リファインメント名は絞り込まれたRubyの値ドメインを記述し、Ruby定数やRBSエイリアスとしてではなくRigor予約型名として解析されます。
+- `-`文字は意図的です: Ruby定数やRBSエイリアス名では無効であるため、`non-empty-string`のような名前は視覚的かつ構文的にRigor組み込みとしてマークされます。
+- Rigorは`non_empty_string`のようにリファインメント名に`lower_snake`エイリアスを追加してはなりません（MUST NOT）。それらの名前は通常のRBS型エイリアスのために利用可能なまま残されます。
+- パラメータ化された**型関数**と型レベルの操作は、`key_of[T]`のように角括弧引数を持つ`lower_snake`名を使用します。
+- 型関数は絞り込まれた値ドメインを直接命名するのではなく、別の型やリテラル集合を計算、投影、または変換します。
+- 型関数は`-`を避けます。`-`はRigorの型構文における差分演算子でもあるためです; `int_mask[1, 2, 4]`は`int-mask[1, 2, 4]`よりも曖昧さが少なくなります。
+- 互換性エイリアスは、具体的な移行または可読性の問題を解決しない限り受け入れてはなりません（MUST NOT）。
+- RBS名は、それがすでに概念を表現している場合は正規のまま残ります。`bot`はボトム型です; `never`、`noreturn`、`never-return`、`never-returns`、`no-return`、`Never`、`NoReturn`を初期エイリアスとして追加してはなりません（MUST NOT）。
+- 有界な数値範囲は、クラスに続いて角括弧内にRubyの範囲リテラルとして記述され（`Integer[1..10]`）、そのリテラルがカバーする正確な値を示します: `Integer[R]`は`{ x | x.is_a?(Integer) && R.cover?(x) }`です（[ADR-109](../../adr/109-ruby-native-range-notation/)）。リテラルのすべてのRuby表記が受け入れられます（`1..10`、`1...10`、`1..`、`..10`、`nil..nil`）;排他的な終端は閉じた形式に正規化され（`Integer[1...10]`は`Integer[1..9]`として表示される）、非有界な範囲は`Integer`として表示され、空の範囲（`Integer[5..1]`、`Integer[1...1]`）は`bot`に解決されるのではなく解決不能なペイロードとして拒絶されなければなりません（MUST decline）。この形式は`Builtins::ImportedRefinements`を通じて解析され、`IntegerRange`キャリアによって表示されます;これは数値クラスの範囲リファインメントであり、任意の型に適用されたジェネリクス角括弧構文ではありません（`Integer[Foo]`はそのRBSの意味を保持します）。PHPStanスタイルの`int<min, max>`は1つの非推奨ウィンドウの間、非推奨の入力エイリアスとして受け入れられ、決して表示してはなりません（MUST NOT）。
 
 ## 初期スカラーリファインメント
 
@@ -37,9 +37,9 @@ Rigorは明確なRubyの意味を持つ場合にのみ、PHPStan、TypeScript、
 | `non-empty-string` | `""`を除く`String` | `String` |
 | `literal-string` | ソースリテラルとリテラルのみの合成から来ることが既知の文字列。v0.0.9はすべてのオペランド自体がリテラルを持つ`String#+` / `String#*`による文字列補間`"#{...}"`を通じて、また`String#<<` / `String#concat`（その戻り値はレシーバーであるため、リテラルを持つレシーバーとリテラルを持つ引数はliteral-stringのままです）を通じてキャリア（carrier）を追跡します。 | `String` |
 | `numeric-string` | 単一の完全なRuby数値リテラルであるString —— まさに、Rubyソースに書くと`Numeric`へ評価される構文。10進 / `0x` / `0o`（または先頭ゼロ） / `0b` / `0d`の整数、アンダースコアの桁区切り（`1_000`）、10進および科学的記数法のfloat（`1.5`、`1E-5`）、そして`r`の有理数 / `i`の虚数サフィックス（`1r`、`2i`）にわたり、先頭の符号は最大1つです。二重の符号（`--1`）、複数ドットのゴミ（`1.2.3`）、空白のパディング、または非ASCIIの「数字」（全角`１`、上付き`²`）は拒否されます —— Rubyのレキサーは数値リテラル内で`[0-9]`のみを受け付けます。この述語は本物のRubyパーサに委譲します。下記の基数Nの整数文字列リファインメントは、その真部分集合です。 | `String` |
-| `decimal-int-string` | RigorのRuby10進整数文字列述語が受け付けるString | `String` |
-| `octal-int-string` | RigorのRuby8進整数文字列述語が受け付けるString | `String` |
-| `hex-int-string` | RigorのRuby16進整数文字列述語が受け付けるString | `String` |
+| `decimal-int-string` | RigorのRuby 10進整数文字列述語が受け付けるString: オプションの先頭符号と1つ以上の10進数字、プレフィックスなし | `String` |
+| `octal-int-string` | RigorのRuby 8進整数文字列述語が受け付けるString。慣習的なプレフィックス —— `0o` / `0O`または裸の先頭`0` —— を要求するため（REQUIRES）、`decimal-int-string`とは互いに素です; `"17"`のようなプレフィックスのない数字の連続はこれではなく`decimal-int-string`です | `String` |
+| `hex-int-string` | RigorのRuby 16進整数文字列述語が受け付けるString。慣習的な`0x` / `0X`プレフィックスを要求します（REQUIRES）; `"ff"`のようなプレフィックスのない16進数字の連続はいかなる整数文字列リファインメントも満たしません（せいぜい`non-empty-string`です） | `String` |
 | `lowercase-string` | 小文字正規化と等しいString | `String` |
 | `non-lowercase-string` | 小文字正規化と等しくないString（つまり少なくとも1つの非小文字文字を含む）。`~T`の下での`lowercase-string`のペア補完 | `String` |
 | `uppercase-string` | 大文字正規化と等しいString | `String` |
@@ -64,11 +64,16 @@ Rigorは明確なRubyの意味を持つ場合にのみ、PHPStan、TypeScript、
 
 整数リファインメントは意図的に`Integer`のリファインメントであり、すべての`Numeric`値の符号リファインメントでは**ありません**。Rubyの数値クラスは異なる等価、順序付け、昇格の挙動を持つため、Rigorは名前的数値境界を越えて`positive-int`、`negative-int`、または`non-zero-int`を一般化してはなりません（MUST NOT）。
 
+引数なし、またはリテラル引数`10`を持つ`Integer#to_s`（および同一の値を印字する`#inspect`）は、符号に関係なくすべての`Integer`に対して`decimal-int-string`となります —— 述語の先頭の`-?`はすでに符号付き文法に及んでいるため、非有界な`Integer`レシーバーは、有界な`IntegerRange`レシーバーが依然として必要とするような符号の証明を必要としません。他のいかなる基数も、それが異なるリテラルであれ静的に不明な値であれ、`non-empty-string`にのみなります: `to_s(base)`が`""`を返すことは決してありませんが、非10進基数の数字はRigorが名指しするいかなるリファインメントも帯びていません（`255.to_s(16)`は`"ff"`であり、`hex-int-string`が期待する`0xff`リテラルではありません）。これは有界で証明可能に非負な`IntegerRange`レシーバーに対しても同様に成り立ちます: 基数10は依然として`decimal-int-string`に達しますが（符号の証明は不要 —— すべてのメンバーが`>= 0`）、基数8または16は`non-empty-string`に達し、決して`octal-int-string` / `hex-int-string`には達しません —— `to_s(base)`はそれらの述語が要求するプレフィックスを出力しないためです（[#1004](https://github.com/rigortype/rigor/issues/1004)）。
+
+正規表現ソース認識器（[`lib/rigor/builtins/regex_refinement.rb`](https://github.com/rigortype/rigor/blob/master/lib/rigor/builtins/regex_refinement.rb)）は、マッチしたキャプチャを同じように絞り込みます: 16進数字クラス本体（`\h+`、`[0-9a-fA-F]+`、`[0-9a-f]+`、`[0-9A-F]+`）または8進数字クラス本体（`[0-7]+`）はプレフィックスのない文字列（`"ff"`、`"17"`）にマッチするため、`non-empty-string`にマップされます —— `+` / 有界な`{n,}`（n >= 1）量化子が、そのマッチが構造的に保証する唯一の性質です。まったく同じ理由から、`hex-int-string` / `octal-int-string`にマップしてはなりません（MUST NOT）。
+
 非整数数値リファインメントには別のルールがあります:
 
 - `Float`リテラル等価と網羅性ナローイング（narrowing）はデフォルトで拒否されます。`NaN`、無限大、符号付きゼロ、強制変換に敏感な比較はリテラルパーティションを誤って述べやすくします。Rigorはfloat比較から関係的ファクト（fact）を保持する場合があります（MAY）。
 - `Float`範囲は同じ`cover?`定義に従います（[ADR-109](../adr/109-ruby-native-range-notation/) WD4）: `Float[R]`は`{ x | x.is_a?(Float) && R.cover?(x) }`であり、`FloatRange`キャリアによって表示され、`Float`へと消去されます。`Float[0.0...1.0]`は半開区間、`Float[0.0..]`は`+Infinity`で閉じており、`Float[0.0...Float::INFINITY]`は有限かつ非負であり、いかなる有界な範囲も`NaN`を含みません。終端はFloatまたはIntegerリテラル（`(0..1).cover?(0.5)`と同様にIntegerは強制変換される）、明記された定数`Float::INFINITY`、`-Float::INFINITY`、`Float::MAX`、`-Float::MAX`、またはその側の無限大を表す省略 / `nil`です; `(nil..nil).cover?(Float::NAN)`は真であるため`Float[nil..nil]`は`Float`自体に正規化され、空の範囲（`Float[2.0..1.0]`、`Float[1.0...1.0]`）は解決不能なペイロードとして拒絶されなければなりません（MUST decline）。同じ倍精度浮動小数点数をカバーする2つの表記は同一の型です（`Float[0.0...1.0]`は`Float[0.0..0.9999999999999999]`と等しい）;表示は書かれた終端を保持します。2つの名前は範囲のエイリアスであり、独立したNaN性リファインメントではありません: `non-nan-float`は`Float[-Float::INFINITY..]`、`finite-float`は`Float[-Float::MAX..Float::MAX]`です;表示は名前を優先します。`FloatRange`は`Float`および`Float`のis-a関係にあるものによって受け入れられます;カバーされるFloatリテラルと含まれる`FloatRange`を受け入れ、`Float`自体は決して受け入れません（`Float`は`NaN`の可能性があるため）。`Float::NAN`は`Constant`キャリアになってはなりません（MUST NOT）。
-- `Float`比較ナローイング（ADR-109 WD5）は真値エッジのみをナローイングします: `x > c`および`x >= c`は閉じた`Float[c..]`へ（厳密な`(c, ∞]`よりも倍精度1つ分広い;厳密な`Float[c.next_float..]`はルールが除外された点を要求するまで延期される）、`x < c`は`Float[...c]`へ、`x <= c`は`Float[..c]`へ、`x.between?(a, b)`は`Float[a..b]`へナローイングし、それぞれより厳密な側で既存の範囲と交差します。偽値エッジは進入時の型を維持しなければなりません（MUST）。`!(x > c)`が`NaN`を許容するためです。`x.nan?`はその偽値エッジのみを`non-nan-float`へナローイングし、`x.finite?`はその真値エッジのみを`finite-float`へナローイングします。ユニオンでは、`Float`メンバーは任意の`FloatRange`メンバーを吸収し、`FloatRange`メンバーはそれが含むものを吸収するため、ガードの後の結合は1つの集合を指名します。規範的な述語カタログは[control-flow-analysis.md](control-flow-analysis.md)です。
+- `Float`比較ナローイング（ADR-109 WD5）は真値エッジのみをナローイングします: `x > c`および`x >= c`は閉じた`Float[c..]`へ（厳密な`(c, ∞]`よりも倍精度1つ分広い;厳密な`Float[c.next_float..]`はルールが除外された点を要求するまで延期される）、`x < c`は`Float[...c]`へ、`x <= c`は`Float[..c]`へ、`x.between?(a, b)`は`Float[a..b]`へナローイングし、それぞれより厳密な側で既存の範囲と交差します。偽値エッジは進入時の型を維持しなければなりません（MUST）。`!(x > c)`が`NaN`を許容するためです。`x.nan?`はその偽値エッジのみを`non-nan-float`へナローイングし、`x.finite?`はその真値エッジのみを`finite-float`へナローイングします。ユニオンでは、`Float`メンバーは任意の`FloatRange`メンバーを吸収し、`FloatRange`メンバーはそれが含むものを吸収するため、ガードの後の結合は1つの集合を指名します —— そして同じ吸収は同アリティのタプルまたは同一形状のハッシュシェイプの`Float`要素にも及びます（[normalization.md](../normalization/) §「メンバーの吸収」）。規範的な述語カタログは[control-flow-analysis.md](../control-flow-analysis/)です。
+- `Float#to_s`（および同一の値である`#inspect`）は、レシーバーに関する有限性の証明がある場合にのみ`numeric-string`に達します: `finite-float`、両方の境界が有限な倍精度浮動小数点数である任意の`FloatRange`、または有限な`Float`リテラル（このルールではなく定数畳み込みによって直接畳み込まれる）です。`Float[0.0..]`は意図的にそのような証明では**ありません** —— その終わりのない上界は`Float::INFINITY`です —— 一方で`Float[0.0...Float::INFINITY]`は証明となります。排他的な終端によって正規境界が`Float::MAX`に落ちるためです。有限性の証明がない場合、結果は`non-empty-string`にのみなります: `Float::INFINITY`、`-Float::INFINITY`、および`Float::NAN`はすべて、Rubyの数値リテラルではない非空の文字列（`"Infinity"`、`"-Infinity"`、`"NaN"`）として印字されます。
 - `Rational`は正確で順序付けられていますが`Integer`ではありません。`Rational`の将来の符号または範囲ファクトはRational固有でなければならず（MUST）、`*-int`名を再使用してはなりません（MUST NOT）。
 - `Complex`はRubyでは全順序を持たないため、正、負、区間リファインメントは`Complex`に適用してはなりません（MUST NOT）。ゼロ性、実部、虚部、または大きさに関するファクトには明示的な述語またはプラグイン/RBS効果が必要です。
 - 混合数値演算と比較は部分型（subtype）昇格ではなく、Rubyのメソッドディスパッチと`coerce`に従います。リファインメントは`Integer`から`Float`、`Rational`、または別の`Numeric`クラスに自動的に越境してはなりません（MUST NOT）。混合演算が既知の場合、結果型はRuby/RBS演算子シグネチャまたは信頼されたプラグインファクトに従います;そうでなければRigorは関係的または動的由来ファクトを保持し、保守的に拡幅します。
