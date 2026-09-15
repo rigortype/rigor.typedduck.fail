@@ -109,7 +109,7 @@ def type_of: (Prism::Node node) -> Rigor::Type
 - `Scope#with_discovery(index)`は唯一のシード遷移です。テーブルごとの`with_discovered_*`ライターはADR-53スライスA2で除去されました。
 - ネストされた本体（メソッドエントリー、クラス本体、または再型付けされたユーザーメソッド本体）のために構築されたスコープは、親スコープのインデックスを丸ごとMUST継承せねばなりません ── 決してテーブルごとのコピーではなく。テーブルごとのコピーは、抽出前に`data_member_layouts`が2度静かに脱落した原因です。
 
-**`discovered_parameter_envelopes`（[#992](https://github.com/rigortype/rigor/issues/992)）**。 `{qualified class name => {[kind, method_name] => envelope}}`。ここでエンベロープは`Source::ParameterEnvelope`プレーンデータ`[min, max, required_keywords]`（restまたは`...`パラメータが無制限のままにする場合は`max`がnil）または`Source::ParameterEnvelope::OPAQUE`です。信頼できるシグネチャがメソッドを宣言していない場合に、`call.wrong-arity`のための`def`の位置エンベロープの唯一のソースとなります; `rigor-rbs-inline`によって合成された`inferred-signature`メンバーは、自身のアリティを読み取るのではなくここへルーティングされます。
+**`discovered_parameter_envelopes`（[#992](https://github.com/rigortype/rigor/issues/992)）**。`{qualified class name => {[kind, method_name] => envelope}}`。ここでエンベロープは`Source::ParameterEnvelope`プレーンデータ`[min, max, required_keywords]`（restまたは`...`パラメータが無制限のままにする場合は`max`がnil）または`Source::ParameterEnvelope::OPAQUE`です。信頼できるシグネチャがメソッドを宣言していない場合に、`call.wrong-arity`のための`def`の位置エンベロープの唯一のソースとなります; `rigor-rbs-inline`によって合成された`inferred-signature`メンバーは、自身のアリティを読み取るのではなくここへルーティングされます。
 
 - 宣言ウォークは`discovered_methods`と同じレコーダー（`ScopeIndexer#record_method`）を通じてこれを書き込まなければならず（MUST）、したがって存在テーブルが`alias`、`attr_*`、`define_method`、または`Struct` / `Data`メンバーから学習するすべての名前は`OPAQUE`として存在します; `def`のみが本物のエンベロープを記録します。
 - 1つのキーへのすべての寄与は、1つのファイル内の再オープンを越えて、プロジェクト全体のパスおよびそのADR-85シードバンドル畳み込みにおいてファイルを越えて、コンパクトヘッダーの再キー付けを越えて、そしてファイルの独自のウォークがプロジェクトシードに結合するときに、`Source::ParameterEnvelope.merge`で畳み込まれなければなりません（MUST） —— 等しいエンベロープは残り、それ以外のすべては`OPAQUE`となり、`OPAQUE`は吸収します。どのようなマージも複数の形状の1つを保持してはなりません（後勝ちや先勝ち）。
