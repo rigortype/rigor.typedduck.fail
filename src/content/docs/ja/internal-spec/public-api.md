@@ -3,9 +3,9 @@ title: "公開APIの安定性境界"
 description: "rigortype/rigor docs/internal-spec/public-api.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/public-api.md"
 sourcePath: "docs/internal-spec/public-api.md"
-sourceSha: "376750573dca00d36bb827ccedf5215877a0d84a33d74cc09e90e0e8946d6eff"
-sourceCommit: "2a65ec8e52462c931fbfec94df68a18139259a43"
-sourceDate: "2026-09-04T16:47:48+09:00"
+sourceSha: "f618c204bdd3bf757fe7b2c478e6d96ac58eedc140cef2562049d3d01e916bec"
+sourceCommit: "5fab9b52937efba652b9f6ecde1bb0a9954a9f77"
+sourceDate: "2026-09-18T02:50:11+09:00"
 translationStatus: "translated"
 sidebar:
   order: 3050
@@ -37,8 +37,9 @@ ADR-2はRigorをプラグインアーキテクチャにコミットさせてお�
 - `Rigor::Type::Combinator` — 推論エンジンが使用するすべてのファクトリー（`top`・`bot`・`untyped`・`nominal_of`・`singleton_of`・`constant_of`・`integer_range`・`positive_int`・`non_empty_string`・`lowercase_string`・`literal_string`・`union`・`intersection`・`difference`・`refined`・`key_of`・`value_of`・`indexed_access`など）。
 - `Rigor::Reflection` — すべての`class_known?`・`class_ordering`・`class_type_param_names`・`constant_type_for`・`discovered_class?`・`discovered_method?`・`instance_definition`・`instance_method_definition`・`nominal_for_name`・`rbs_class_known?`・`singleton_definition`・`singleton_for_name`・`singleton_method_definition`。
 - `Rigor::Plugin` — `register`・`registered`・`registered_for`・`unregister!`（テストヘルパー）。v0.1.0スライス（slice）1。
-- `Rigor::Plugin::Base` — クラスレベルの`manifest(**fields)`・`producer`・`node_rule`・`node_file_context`、およびFFI認識（`ffi_binding_recognizer`、`ffi_binding_recognizers`）の各DSL・インスタンスレベルの`services` / `config` / `manifest`・オーバーライドフック`#init` / `#prepare` / `#diagnostics_for_file`・エンジン所有ウォークのディスパッチャー`#node_rule_diagnostics`・`#diagnostic(node, …)`ビルダー。v0.1.0スライス1 + ADR-37 + ADR-30（#727）。
-- `Rigor::Plugin::Manifest` — `id`・`version`・`description`・`protocol_contracts`・`config_schema`・`validate_config(config)`。
+- `Rigor::Plugin::Base` — クラスレベルの`manifest(**fields)`・`producer`・`node_rule`・`node_file_context`、およびFFI認識（`ffi_binding_recognizer`、`ffi_binding_recognizers`）の各DSL・インスタンスレベルの`services` / `config` / `manifest`・オーバーライドフック`#init` / `#prepare` / `#diagnostics_for_file` / `#template_units_for_file` / `#template_units_pass_started`（#1047）・エンジン所有ウォークのディスパッチャー`#node_rule_diagnostics`・`#diagnostic(node, …)`ビルダー、および実行スコープの開示チャネル`#disclose_once(key, message:, severity:, rule:)` / `#run_disclosure_records`（#1051）、そして位置付きの兄弟`#emit_once(key, diagnostics)`（#1060）。v0.1.0スライス1 + ADR-37 + ADR-30（#727） + #392 + #1051 + #1060。
+- `Rigor::Plugin::Manifest` — `id`・`version`・`description`・`protocol_contracts`・`config_schema`・`validate_config(config)`・`template_globs`。
+- `Rigor::Plugin::TemplateUnit` — #392のテンプレートユニットキャリア: `logical_name`・`path`・`ruby_source`・`line_map`・`self_type`・`locals`・`ivar_seeds`・`transform_id`・`suppressed_rules`（#393）、加えて`unit_key`・`digest(fallback_transform_id = nil)`・`template_line(ruby_line)`および値オブジェクトカルテット（`==` / `eql?` / `hash` / `to_h`）。[`macro-substrate.md`](macro-substrate.md) § テンプレートユニットにおいて仕様化。
 - `Rigor::Plugin::Services` — `reflection`・`type`・`configuration`・`cache_store`・`trust_policy`・`io_boundary_for(plugin_id)`。
 - `Rigor::Plugin::Registry` — `plugins`・`ids`・`find(id)`・`load_errors`・`empty?`・`any_load_errors?`。
 - `Rigor::Plugin::TrustPolicy` — `trusted_gems`・`allowed_read_roots`・`network_policy`・`allow_read?(path)`・`network_allowed?`・`gem_trusted?(name)`・`to_h`。v0.1.0スライス2。

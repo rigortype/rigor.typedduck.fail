@@ -3,8 +3,9 @@ title: "ADR-16 — マクロ / DSL展開基板"
 description: "rigortype/rigor docs/adr/16-macro-expansion.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/16-macro-expansion.md"
 sourcePath: "docs/adr/16-macro-expansion.md"
-sourceSha: "bb110c1ea227af36c35f2bae8d3bea3b1a47dbaf78e7ae4c243a2fa908e6ced8"
-sourceCommit: "e3eb424c3c88035e453246710c8df3dc5cc8e7e1"
+sourceSha: "01daf9b4223e9b6879c5dbf7ab097ac91782d58b5a741b8861a8678c17602c65"
+sourceCommit: "5fab9b52937efba652b9f6ecde1bb0a9954a9f77"
+sourceDate: "2026-09-17T11:51:25+09:00"
 translationStatus: "translated"
 sidebar:
   order: 4016
@@ -212,6 +213,8 @@ end
 ### Tier D — 宣言された`self`下の外部Rubyファイルインクルージョン
 
 > **ステータス（2026-06-13）:** `external_files:`マニフェストフィールドは[ADR-60 WD1](../60-pre-freeze-plugin-contract-consolidation/)によって削除されました（エンジン消費者に一度も配線されなかった）;このティアはスキャナと一緒に1つの変更で需要に応じて復帰します。
+>
+> **ステータス（2026-09-17）:**需要が到来し、このティアは[#392](https://github.com/rigortype/rigor/issues/392)において**テンプレートユニット**として復帰しました。フィールドは`template_globs:`と`#template_units_for_file(path:, source:)`変換（本節の設計に欠けていた唯一のもの: クレームされたファイルはRubyである必要がないため、パースの前に**行マップを伴うソース変換**が走る）であり、返される`Rigor::Plugin::TemplateUnit`上では`bound_ivars:`は`ivar_seeds:`と表記されます。このシームは[`internal-spec/macro-substrate.md`](../../internal-spec/macro-substrate/) § テンプレートユニットにおいて仕様化されています;直接の動機となった消費者は以下のRedmine／tDiaryのケースではなくビュー（`docs/design/20260816-effect-labels.md` § 11.3）ですが、同一のシームがそれらを変更なしにサポートします。
 
 プラグインの宣言: globにマッチするファイルが、宣言された呼び出しサイトに本体が貼り付けられたかのように評価され、`self`は宣言されたクラスとして型付けされる。基板はファイルのASTをバインドされたレシーバー型と一緒に解析に追加する。
 

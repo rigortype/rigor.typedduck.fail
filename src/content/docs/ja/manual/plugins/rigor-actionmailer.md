@@ -3,8 +3,8 @@ title: "rigor-actionmailer"
 description: "rigortype/rigor docs/manual/plugins/rigor-actionmailer.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/plugins/rigor-actionmailer.md"
 sourcePath: "docs/manual/plugins/rigor-actionmailer.md"
-sourceSha: "803700ca2ef9df815abdd5dbfa6a21285a6ffc850516b9d8cbc71d1cb2ab48a2"
-sourceCommit: "18d6992f544e6222fd7ed015ba6bbee6f0bd7f14"
+sourceSha: "5f9b8a5e7c0dc3066d56927809f967b8eb3d65fac326e87cf50c850c5ab01fad"
+sourceCommit: "5fab9b52937efba652b9f6ecde1bb0a9954a9f77"
 translationStatus: "translated"
 sidebar:
   order: 9050

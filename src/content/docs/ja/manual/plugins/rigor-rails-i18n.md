@@ -3,8 +3,8 @@ title: "rigor-rails-i18n"
 description: "rigortype/rigor docs/manual/plugins/rigor-rails-i18n.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/plugins/rigor-rails-i18n.md"
 sourcePath: "docs/manual/plugins/rigor-rails-i18n.md"
-sourceSha: "c0178b1697cd5b147367b583de2d6b9f2d8a91254d7583623f3f514d499f6ed7"
-sourceCommit: "18d6992f544e6222fd7ed015ba6bbee6f0bd7f14"
+sourceSha: "791369878d10cede03f6f2b24849a85a9d6ffde4dcac44a5c325a639f4f8314c"
+sourceCommit: "5fab9b52937efba652b9f6ecde1bb0a9954a9f77"
 translationStatus: "translated"
 sidebar:
   order: 9050

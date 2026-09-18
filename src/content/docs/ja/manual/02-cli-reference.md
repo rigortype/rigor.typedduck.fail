@@ -3,8 +3,8 @@ title: "CLIコマンドリファレンス"
 description: "rigortype/rigor docs/manual/02-cli-reference.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/02-cli-reference.md"
 sourcePath: "docs/manual/02-cli-reference.md"
-sourceSha: "f687925c9038e79bbf3888109c508a789eda38153b81532ba8860fb622f32d5c"
-sourceCommit: "db7b23d42e9b47560438b67dfe16d53e03f70575"
+sourceSha: "408926b0f0c59fc699a0e5f3b4e6009e39b1999373e51e62ec3090250a8ec5f8"
+sourceCommit: "5fab9b52937efba652b9f6ecde1bb0a9954a9f77"
 sourceDate: "2026-09-09T04:59:35+09:00"
 translationStatus: "translated"
 sidebar:
@@ -103,6 +103,8 @@ rigor type-of [options] FILE LINE COL
 コロン形式は繰り返し可能で、引数の順序を保ちながら各ファイルのパースとスコープのインデックス化を1回だけ行います。`COL`を省くと、その行から始まる最大40個の式の表を、1始まりの各列で外側のものから順に表示します;さらに式が省略された場合、表はその旨を示します。旧来の3引数形式は厳密な位置を1つだけ受け付けます。
 
 `--format=json`は結果が1つなら元のフラットなオブジェクトのまま保ち、複数の結果は`results`配列で包みます。行のクエリでは`line_enumerations`配列が加わり、その`shown`と`total`のカウントが切り詰めを明示します。`--trace`はフェイルソフトフォールバックを記録し、テキスト出力では行の表の各行の後に置かれます。`check`と同様にエディタモードの`--tmp-file` / `--instead-of`ペアも受け付けます。
+
+プラグインがRubyへコンパイルするテンプレート（`rigor-actionpack`配下のERBビュー）は、`rigor check`がそれを解析するのと同じ方法でプローブされます: コンパイルされたRubyは、ビューの宣言された`self`、ローカル変数、インスタンス変数の下で型付けされ、`LINE:COL`はテンプレート自身のものになります。列位置は、コンパイラが逐語的にコピーしたRuby（`<%= @user.name %>`における`@user.name`）の中にあり、かつコンパイルされた式をちょうど1つ指す場合にのみ応答します。HTMLテキスト内の列、プラグインが書き換えたコード（レイアウトの`<%= yield %>`）、あるいは複数の場所にコピーされたバイト列の中の列は、その理由とともに`no expression found at …`を出力して`1`で終了します;コマンドが代わりに近傍のノードについて応答することは決してありません。同じものを指す2つのタグ（`<% if "a" <= v %>`の横の`<%= v %>`、または`<%= v %> <%= v.to_s %>`）も同様の理由で拒否されます;単一のタグ内で繰り返される名前は引き続き応答します。素の`FILE:LINE`はテンプレートの列へ逆マッピングされる式のみを一覧表示します。`--trace`のフォールバックはテンプレート行で報告され、JSONのフォールバックは位置がテンプレート列へ逆マッピングされる場合にのみ`column`を持ちます。プラグインがコンパイルを拒否したテンプレートは`plugin declined the template; probing its bytes as Ruby`と出力し、パースエラーを含めて素のRubyとしてプローブされます。
 
 4つのプローブコマンド ── `type-of`、`type-scan`、`trace`、`annotate` ── は、呼び出しごとに環境をゼロから構築し、永続キャッシュの読み取りも書き込みも行いません。そのため、これらのいずれも`--no-cache`を受け付けません。スキップすべきキャッシュが存在しないからです。したがって、プローブは`rigor check --no-cache`が解析を行う環境に対して型付けを行います。キャッシュを使用する（デフォルトの）`rigor check`が構築する環境は同一であることが意図されており、Rigorは2つの構築を互いに照合してゲートしています ── ただし、プローブと`check`実行の間の不一致を追跡している場合、`rigor check --no-cache`と比較することでその変数を排除できます。
 
@@ -280,7 +282,11 @@ rigor sig-gen [paths]
 | `--params=untyped\|observed\|observed-strict` | パラメータ型付けポリシー。デフォルトは`untyped`。 |
 | `--observe=PATH` | コールサイト観察のために`PATH`をスキャンする。繰り返し可能。 |
 | `--new-files` / `--new-methods` / `--tighter-returns` | その分類のみ出力する。 |
+| `--effect-envelopes` | エフェクトを持つメソッドに対しても`%a{rigor:v1:effect …}`を出力する。`effects:`オプトインが必要。 |
+| `--no-cache` | 解析キャッシュを読み書きしない。エフェクト収集のみがこれを使用する。 |
 | `--format=text\|json` | 出力形式。 |
+
+`.rigor.yml`に`effects:`ブロックがある場合、sig-genはエフェクトサマリーが**網羅的（exhaustive）**（到達するすべての呼び出しが解決されている）、**未免責（undischarged）**（そのフットプリント内のいかなるものも`effects.tolerated:`の指定のみによって不可視化されていない）、**宣言済み（claimed）**（すべての呼び出し先がカタログ行、プラグイン、エンベロープ、またはプロジェクト定義によって記述されている）であり、自身の手書きの境界を持たず、`≤`レーンに残存ラベルがないメソッドの上に`%a{pure}`も書き込みます。それ以外のメソッドにはアノテーションが付与されず、`--effect-envelopes`はフットプリントを持つメソッドに対してRigor自身のラベル付き表記を追加します。`effects:`ブロックがない場合、出力は以前とバイト単位で同一です。[ハンドブック第11章](../../handbook/11-sig-gen/#emitting-effect-annotations)を参照してください。
 
 各シグネチャは出力される前にパースされます。生成されたRBSがパースできないメソッドは**スキップ**され（`sig.skipped.unrenderable-rbs`）、書き出される代わりにstderrへ報告されます——パースできない`.rbs`は`rigor check`によって*丸ごと*隔離されるため、1つの不正な行がファイル内の他のすべての型を道連れにしてしまうからです。`--write`では、組み立てたコンテンツがパースできないファイルは**拒否され**（既存のファイルは変更されないまま残ります）、コマンドは`1`で終了します。書き込みを求めたのに得られなかった、というわけです。このようなスキップはあなたのコードではなくRigorのRBSレンダリングのバグです——報告してください。
 

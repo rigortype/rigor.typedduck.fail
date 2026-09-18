@@ -3,8 +3,8 @@ title: "rigor-actionpack"
 description: "rigortype/rigor docs/manual/plugins/rigor-actionpack.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/plugins/rigor-actionpack.md"
 sourcePath: "docs/manual/plugins/rigor-actionpack.md"
-sourceSha: "175184efef49898373a62203df26500201f06d9a9322a044d3e8db9efcd65d8c"
-sourceCommit: "db7b23d42e9b47560438b67dfe16d53e03f70575"
+sourceSha: "d9e0191d76b06201c23f0956a884dbf451504e9c3d0f6a1ee1fab33398e7d336"
+sourceCommit: "5fab9b52937efba652b9f6ecde1bb0a9954a9f77"
 translationStatus: "translated"
 sidebar:
   order: 9050
@@ -52,6 +52,7 @@ plugins:
     config:
       controller_search_paths: ["app/controllers"]  # default
       view_search_paths: ["app/views"]               # default
+      view_type_checks: false                        # default
 ```
 
 ## 何を型付けするか
@@ -79,8 +80,108 @@ RigorはこれらのAction Packのクラスについて意図的に**シグネ�
 
 このシグネチャはそれら**のみ**を名指しします。`ActionController::Base`および`ActionController::API`は意図的に未宣言のまま残されています: アプリケーション内のすべてのコントローラーがそれらのいずれかを継承しており、スーパークラスの不完全な宣言は、それが省略したすべてのメンバー —— `render`、`before_action`、`head` —— を正常に動作するコードに対する指摘に変えてしまうためです。同じ理由で、`ActionController::Parameters`および上記の`ActionDispatch`リーダーも未宣言のまま保たれています;それらの寛容さこそが`params`の型付けを安全にしているものです。
 
+## エフェクト単位としてのERBテンプレート
+
+すべての`app/views/**/*.erb`はRubyへとコンパイルされ、1つの**エフェクト単位**として解析されます。キーは`view:users/show.html` ── ハンドラが除かれたRails自身の論理名であり、ERB → Hamlの書き換えがリネームになりません。何も有効化する必要はありません：プラグインのアクティブ化こそがテンプレートをクレームするトリガーです。
+
+これによって得られるのは、`render`行を超えた「**このリクエストは実際には何を行うか**」への答えです。`@user.update`を呼び出すパーシャルは`app/views/users/_card.html.erb`で`io.db.write`を報告し、レイアウトの断片内の`Time.now`は`nondet.time`を報告し、残された`binding.pry`は`io.input`を報告します ── そのすべてが`rigor effects`およびスナップショットに現れるため、書き込みを始めたテンプレートはdiffに浮上します。
+
+```
+$ rigor effects
+view:users/_card.html: [mutate.local, nondet.time] ≤ [io.db.write] …?
+view:users/show.html:  [mutate.local]              ≤ [io.db.read]  …?
+```
+
+**コンパイラ**は、プロジェクトのバンドルで解決できる場合はErubi（Rails自身が使用するもの）であり、そうでない場合は標準ライブラリの`ERB`です。ErubiがGemfileに追加されることは決してなく、Rigorの依存関係でもありません（[ADR-90](../../adr/90-target-library-resolution-from-project-bundle/)）。いずれの場合も行マップは仮定されるのではなく実測されるため、所見はテンプレート自身の行を指名します。列は常に1です。コンパイラが各行のテキストを書き換えるため、コンパイルされたRubyの列はユーザーが書いた何ものも指名しないからです。
+
+**`self`は何であるか**。 `ActionView::Base`です。名前が解決されるよう宣言されており、そのメソッドサーフェスが寛容であり続けるよう**オープン**になっています。これにより、`link_to`、`form_with`、`t`、`content_for`、ユーザー自身の`ApplicationHelper`メソッド、およびすべてのルートヘルパーが1行ごとに所見を引き起こすのを防ぎます。
+
+**何がスコープ内にあるか**。 `@ivars`は、そのテンプレートをレンダリングするコントローラーアクション ── 暗黙のrender（`UsersController#show` → `users/show`）および明示的な`render :edit` / `render "admin/form"` ── からシードされます。2つの制限により、シードがテンプレートで見つからない型をクレームすることを防ぎます：右辺が`nil`になり得ない代入（`User.find`、`Model.new`。決して`find_by`ではない）のみが寄与し、アクションが**すべての**パスで到達する代入のみ ── `if`、`case`、`rescue`、ループ、ブロックの内部にあるものは除外され、`if:` / `unless:`を運ぶ`before_action`からのものも除外されます ── が寄与します。それ以外のすべてはivarを未シードのまま残し、これは`Dynamic`として読み取られて沈黙します。パーシャルは自身のディレクトリのassignを継承します。ivarはlocalではないためです。localsはRails 7.1のstrict-localsコメントから取得されます：
+
+```erb
+<%# locals: (user:, admin: false) %>
+```
+
+**テンプレート内ではデフォルトで`call.*`所見はオフです**。合成されたレシーバーがまだ粗い間、redmineとmastodonでの実測において、この機能はどちらに対しても新しい所見を**ゼロ件**追加しました（[測定ノート](../../notes/20260917-erb-template-units/)）。オプトインして`show.html.erb`内の`@user.nmae`を他の呼び出しと同様に報告させるには、`view_type_checks: true`を設定します。
+
+`flow.*`は**他の場所と同様にテンプレート内でも報告されます**。以前は1つの実測された理由 ── パーシャルのオプショナルlocalプリアンブル（`<% path = nil unless defined? path %>`）において、レンダー箇所が`path`を束縛したことがユニットに伝わっていなかったため、実際にnilを代入していた ── により`call.*`とともに抑制されていました。現在ではレンダー箇所の`locals:`が追跡されるようになり、このファミリーを報告させた状態で再測定された同じ2つのプロジェクトは、抑制した状態での実行とバイト単位で同一でした（[#1047のノート](../../notes/20260917-render-locals-and-layouts/)）。
+
+### レンダー箇所から来るlocals
+
+パーシャルのパラメータはそれをレンダリングする側によって束縛され、そのあらゆる綴りが読み取られます ── レンダーの両側において：
+
+```erb
+<%= render partial: "card", locals: { user: @user } %>
+<%= render "card", user: @user %>          <%# ビューの末尾のハッシュはlocalsである %>
+<%= render partial: "card", collection: @users, as: :row %>
+<%= render partial: "card", object: @user %>
+```
+
+`collection:`は`row`、`row_counter`、`row_iteration`を束縛します。`object:`と`as:`はパーシャルまたは`as:`にちなんで命名された1つのlocalを束縛します。コントローラーの`render partial: …, locals: …`も同様に読み取られます ── ただし、コントローラーの*末尾のハッシュ*はオプションであるため、`render :show, status: :ok`は何も束縛しません。
+
+複数の箇所からレンダリングされるパーシャルは、名前の**結合（union）**を取得します。一部の箇所からしか渡されない名前であっても依然として束縛され、`Dynamic`として型付けされます ── 不在こそが上記の偽陽性を引き起こしていたものです。**型**がクレームされるのは、すべての箇所が呼び出し自体から確定できた型（`User.find(1)`、またはレンダリングアクション自身のシードが型付けしたivar）に同意している場合のみです。それ以外のすべては`Dynamic`になります。テンプレートがstrict-localsコメントを保持している場合は、引き続きそれが勝ちます。
+
+パーシャル**自身**のオプショナルlocalテストもカウントされます：
+`<% size = nil unless defined?(size) %>`、`local_assigns[:size]`、および`local_assigns.key?(:size)`は、プラグインが読み取れるレンダー箇所のいずれもそれを渡していない場合であっても ── `locals: opts`ハッシュ、ヘルパーからの`render`、誰も渡さないデフォルトを持つlocal ── `size`を束縛します。`app/helpers`配下のヘルパーが定義する名前はそのまま残されるため、`<% if defined?(current_user) %>`はヘルパー呼び出しのままとなります。gemやconcernが定義するヘルパーはそのスキャンからは見えず、その名前は代わりに`Dynamic`のlocalとして束縛されます。
+
+### コントローラー → テンプレートのエッジ
+
+コントローラーアクションのサマリーには、**そのテンプレートが行うことが含まれます**。
+`render :show`、`render "show"`、`render "admin/form"`、`render template:`、`render action:`、`render partial:`（`collection:`の有無に関わらず）、および`<controller>/<action>`の暗黙のrenderはすべてテンプレート自身のユニットに到達し、テンプレートは*自身が*レンダリングするパーシャルに到達します ── したがって、`app/views/users/_card.html.erb`内の`io.db.write`は3ホップ離れた`UsersController#show`に現れ、`rigor effects explain`はそのパスを出力します。
+
+パーシャルはレンダリングするテンプレート自身のフォーマットで探索され、Action View自身がハードコードしている1つのフォールバックを伴います：`.js.erb`テンプレートは、それが存在する場所では`_list.js.erb`に到達し、そうでない場合は`_list.html.erb`に到達します。これこそが「レンダリングされたHTMLを注入するJSレスポンス」がそもそも機能する仕組みです。2つのうち1つのみが結合され、両方が結合されることは決してありません。`.json`、`.xml`、または`.turbo_stream`テンプレートにはフォールバックはありません ── それらが何にフォールバックするかはリクエストの`Accept`ヘッダーに依存し、ソースはそれを語らないためです。自身のフォーマットを明示するレンダー箇所（`formats: [:js]`、`render "list.js"`）やコントローラー側の`render`も同様です。
+
+フォールバックは、**存在し、かつユニットを生成しなかった**テンプレートで停止します：`_list.js.haml`、またはコンパイルされたRubyがパースできない`_list.js.erb`です。Railsはそのファイルを実行するため、`.html`ファイルのエフェクトはレンダーが生成するものではなく、汚染が残ります。このプラグインが`app/views/**/*.{haml,slim,jbuilder,builder,rabl,ruby}`をクレームし、それらを一切コンパイルしないのはそのためです：クレームこそが、エンジンがテンプレートの存在を知る方法です。そのリスト以外のハンドラは不可視であり、そのレンダーは依然としてフォールバックします。
+
+2つの近似が伴い、それぞれは汚染ではなくラベルを犠牲にします。フォールバックを*通じて*到達したパーシャルは、Action Viewのコンテキストが依然として`[:js, :html]`であるにも関わらず、自身のパーシャルを`html`でレンダリングします。ネストされたパーシャルが両方のフォーマットで存在する場合、`.js`テンプレートは`.html`テンプレートのラベルを取得します。また、名前にフォーマットをまったく持たないテンプレート（`_row.jbuilder`）は何もブロックしません。そのキーにはブロックすべきフォーマットがないためです ── これはフォーマット付きテンプレートをそれよりも上位にランク付けするRailsの挙動とたまたま一致します。どちらも実測コーパスでの発生件数はゼロです。
+
+`render`上の`template-not-analysed`汚染は、エッジが実際のユニットに着地したときに正確に解消されます。着地しないときは**残り続け**、どちらのケースも挙げるのに十分なほど一般的です：
+
+- ターゲットが計算されている ── `render params[:view]`、または`render formats: some_format`。レンダー箇所はリテラルからのみ読み取られるため、計算されたものはすべて「さらに存在する可能性がある」という誠実さを保ちます。
+- ターゲットがこのプラグインがコンパイルしたテンプレートを指名していない ── `render partial: @thing`、または要求されたフォーマットにもそのフォールバックにも存在しないパーシャル。
+- テンプレートが`app/views/**/*.erb`の外部にある ── このプラグインがクレームしないHaml、Slim、またはJbuilderのビュー。
+
+`render json:`、`render plain:`、およびその他のテンプレート以外のファミリーはそのまま残されます：それらはテンプレートをレンダリングせず、ルールは辞退し、行は以前とまったく同じように読み取られます。
+
+自身で応答したアクションは、慣例のテンプレートにエッジで**結ばれません**。`redirect_to`、`head`、`send_data`、`send_file`はそれぞれ暗黙のrenderが発生しなかったことを意味し、リダイレクトするアクションに`users/away`を帰属させることは、それが決して実行しないビューになってしまいます。
+
+### ビューをエフェクト予算に収める
+
+ビューユニットは他のクラスと同様に`effects.envelopes:`の対象であり、所見はテンプレート内に位置付けられます。設計ノートに記載されている2つのプリセットは以下のように記述されます ── いずれか一方を選択するか、どちらも選択しません：
+
+```yaml
+# views: lenient — 読み取りは許可（遅延読み込みはRailsのデフォルト）
+effects:
+  envelopes:
+    - match: "app/views/**/*"
+      effect: [mutate.local, io.db.read, cache.read, cache.write,
+               rails.config.read, rails.i18n.translate,
+               rails.session.read, telemetry]
+```
+
+```yaml
+# views: strict — `strict_loading`の静的な双子：すべてのデータは
+# コントローラーでロードされる
+effects:
+  envelopes:
+    - match: "app/views/**/*"
+      effect: [mutate.local, cache.read, cache.write,
+               rails.config.read, rails.i18n.translate,
+               rails.session.read, telemetry]
+```
+
+いずれの下でも、ビュー内の`io.db.write`、`job.enqueue`、`io.output.stdout`（`puts`）、`io.input`（`binding.pry`）、または`nondet.time`は所見となります。
+
+**2つのプリセットは、振る舞いにおいてまだ異なっていません**。フレームワークメソッドに関するプラグインの言明（`User.find`は`io.db.read`）は宣言（`≤`）レーンに乗り、エンベロープチェックは証明レーンを読み取るため、紙の上で両者を隔てる遅延した`<%= user.posts.count %>`をどちらのプリセットも報告できません。これはビューというよりRailsエフェクト層全体の特性です（[ADR-103](../../adr/103-effect-labels/) WD17はレーンを裁定し、プラグイン由来のラベルに対する強制サーフェスとして`rigor effects check`を名指ししました）。未解決の問題は[#1059](https://github.com/rigortype/rigor/issues/1059)です。
+
+`plugins:`リスト内のプラグインが登録するラベルのみが認識され、上記のどちらのスタンザもrigor-actionpackが所有していない2つのラベルを名指しています：`rails.config.read`は`rigor-railties`から、`rails.i18n.translate`は[`rigor-rails-i18n`](../rigor-rails-i18n/)から来ます。これらをrigor-actionpackと並べてアクティブにするか、ラベルを削除してください ── それらがない場合、それぞれが`effect.unknown-label`として報告され、エントリーは何の境界も定めません。これはサイレントなno-opではなく意図的に声高です。
+
 ## 制限事項
 
+- **コントローラー自身のレイアウトはエッジで結ばれない**。レイアウトはいまやユニットであり、**ビューの内部での**`render layout:`はそれに到達します ── しかし、Railsがアクションのテンプレートをラップするレイアウト（`layouts/application`、または`layout "base"`が名指した任意のもの）はそのアクションに帰属しません。calleeルールは呼び出しのリテラル、ユニットのオーナー、およびユニットのキーを読み取ることができ、レイアウトの名前はそのいずれでもありません：それはクラス本文の宣言＋ビューツリーに対する慣例によるルックアップです。そのため、レイアウト自身のエフェクトはそれを明示的にレンダリングするビューに到達し、それ以上には到達しません。
+- **レイアウト内の`yield`は`String`でありそれ以上ではない**。本文がパースできるよう、キーワードはビューコンテキスト上の宣言された呼び出しへと書き換えられます。内側のテンプレートが何を生成したかがモデル化されることはありません。
+- **未保存のレンダー箇所はエディタ内で読み取られない**。レンダー箇所のインデックスはディスクからテンプレートとコントローラーを読み取るため、入力したものの保存していない`locals:`は保存するまでパーシャルに到達しません。キーストロークはバッファのみを再コンパイルし、保存は従来どおりプロジェクトの解析を再構築します。エディタに見えない保存**なしで**ディスク上で変更されたビュー（`git checkout`、他所で実行されたフォーマッタ）は、次の公開時にすべてのビューを再コンパイルします。パーシャルのlocalsはそれらのいずれからでも来る可能性があるためです。完全な`rigor check`は以前と同じコンパイル作業を行います ── インデックスは2回コンパイルするのではなく、コンパイルされたソースをユニット変換に引き渡します。
+- **`app/views`配下のERBのみ**。 `template_globs:`はプラグインコードを実行せずに読み取られるマニフェスト行であるため、`view_search_paths:`を参照できません。Haml、Slim、およびJbuilderは異なるコンパイラの背後にある同じ継ぎ目であり、クレームされません。
 - **暗黙のselfヘルパーのみ**。明示的なレシーバーを持つ`*_path`／`*_url`呼び出し（`Rails.application.routes.url_helpers.x_path`）は素通りします。
 - **パスベースのファイルフィルタ**。`controller_search_paths`下のファイルはクラス階層にかかわらずチェックされます。そこに置かれた非コントローラーファイル（まれ）もスキャンされてしまいます。
 - **カバレッジはアップストリームのファクトに従う**。ヘルパーの検証は`rigor-rails-routes`が公開したものだけを把握し、`permit`の検証は`rigor-activerecord`が公開したものだけを把握します ── これらのプロデューサーを有効化すると、このプラグインがチェックできる範囲が広がります。

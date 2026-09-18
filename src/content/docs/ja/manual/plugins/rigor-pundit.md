@@ -3,8 +3,8 @@ title: "rigor-pundit"
 description: "rigortype/rigor docs/manual/plugins/rigor-pundit.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/plugins/rigor-pundit.md"
 sourcePath: "docs/manual/plugins/rigor-pundit.md"
-sourceSha: "f9dceb260621c5d1ccfe7d86bbbd4870adffe0ca8015cac7be7406dc18d882b8"
-sourceCommit: "0cf313582cfbe2fa7da8148dc498d0b2a0893438"
+sourceSha: "849f47de28b6ef6f07dd88cc13297c1f71b21386a3d9eb478c006c5b1b5eb388"
+sourceCommit: "5fab9b52937efba652b9f6ecde1bb0a9954a9f77"
 translationStatus: "translated"
 sidebar:
   order: 9050

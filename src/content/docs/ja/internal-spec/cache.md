@@ -3,8 +3,8 @@ title: "キャッシュレイヤー — `Rigor::Cache`"
 description: "rigortype/rigor docs/internal-spec/cache.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/cache.md"
 sourcePath: "docs/internal-spec/cache.md"
-sourceSha: "ea242e50a122a17ac0573257b57787ce0d97875bf15537ea8e29e4f3face0f3f"
-sourceCommit: "d01a937b5d3d66d5ec4e6ba82036919d1bc91d10"
+sourceSha: "66a863182fcc5c700781e9d144b8f5d8eff0fe7755038f8ef2d416fc63554cfe"
+sourceCommit: "5fab9b52937efba652b9f6ecde1bb0a9954a9f77"
 sourceDate: "2026-09-14T16:01:17+09:00"
 translationStatus: "translated"
 sidebar:
@@ -117,13 +117,19 @@ GlobEntry       :: { root: String, pattern: String, value: String, mode: :stat|:
 
 ### 計算値のキーにおけるエンジンの同一性
 
-値がアナライザーの*計算*の関数であるキャッシュ —— `analysis.run-diagnostics`・`analysis.run-effects`・`protection.mutation-file-result`・ファイルごとの`plugin.source_rbs_synthesizer`スロット・すべてのプラグインプロデューサー（`plugin.<id>.<producer>`）・`IncrementalSnapshot` —— は、`Rigor::VERSION`だけでなくエンジンのソースをMUSTキーにしなければなりません。バージョンがバイト列を固定するのはRubyGemsからインストールされたgemの場合だけであり、それ以外では固定しません。そのため編集された作業ツリーではウォームな実行が編集前の診断を再生してしまい、エンジン変更の前後比較は、稼いでいないゼロを報告してしまいます（[#285](https://github.com/rigortype/rigor/issues/285)）。
+値がアナライザーの*計算*の関数であるキャッシュ —— `analysis.run-diagnostics`・`analysis.run-effects`・`protection.mutation-file-result`・ファイルごとの`plugin.source_rbs_synthesizer`スロット・すべてのプラグインプロデューサー（`plugin.<id>.<producer>`）・5つの`rbs.*`プロデューサー（`rbs.environment`、`rbs.constant_type_table`、`rbs.class_ancestor_table`、`rbs.known_class_names`、`rbs.class_type_param_names`）・`IncrementalSnapshot` —— は、`Rigor::VERSION`だけでなくエンジンのソースをMUSTキーにしなければなりません。バージョンがバイト列を固定するのはRubyGemsからインストールされたgemの場合だけであり、それ以外では固定しません。そのため編集された作業ツリーではウォームな実行が編集前の診断を再生してしまい、エンジン変更の前後比較は、稼いでいないゼロを報告してしまいます（[#285](https://github.com/rigortype/rigor/issues/285)）。
 
 これらのうち`Descriptor`でキー付けされる各スロット（アイデンティティを文字列部分として付加するフィンガープリントを持つ`IncrementalSnapshot`を除くすべて）は、`EngineSource.key_config_entries`からの行 —— アイデンティティのSHA-256を`value_hash`とする`engine-source`の`ConfigEntry`、またはバージョン固定ツリーの場合は行なし —— を受け取るため、各スロットがそれをどのように運ぶかにおいて乖離することはありません。
 
 **別の計算に供給されるスロットにもそれが必要な理由（[#1009](https://github.com/rigortype/rigor/issues/1009)）**。それが強制する再解析が、エンジンが計算した*他の*キャッシュ値を読み取るとき、実行結果のキーを動かすだけでは不十分です。#1009以前は、`plugin.source_rbs_synthesizer`スロットはソースファイルのダイジェストとプラグインの`PluginEntry`（ID、マニフェストバージョン、設定ハッシュ）でキー付けされ、プラグインプロデューサーのキーは`PluginEntry`単独でキー付けされていました。バンドルされたプラグインのシンセサイザーを編集するチェックアウトはそのマニフェストバージョンを維持するため、そのような編集の後は実行結果キーが動き、実行は再解析されました —— しかしシンセサイザースロットは前回のビルドのRBS文字列を提供してしまいました。環境キーの`rbs.virtual_rbs`行（後述の`RbsDescriptor`参照）は渡された文字列をハッシュ化するため、古い文字列が`rbs.environment`もウォームに保ち、新しいビルドのルールが古いビルドのシグネチャを読み取ってしまいました: どちらのビルドもコールドと報告しないウォームな結果です。シンセサイザー出力を変更しない`lib/`のみの編集ではこれが現れなかったため、実行結果キー独自のカバー範囲で十分に見えていました。シンセサイザーキーに行を含めることで、エンジンの編集はアノテーションされたすべてのファイルを再シンセサイズします;出力が変わらないときは`rbs.virtual_rbs`行も変わらないため、`rbs.environment`は依然としてヒットします。
 
-エンジンを同定できない呼び出し元（`EngineSource::Unavailable`）は、その行なしでキー付けするのではなく、その実行の間シンセサイザーまたはプロデューサーを非キャッシュで実行します。
+**`rbs.*`プロデューサーにおける同様の形状（[#1014](https://github.com/rigortype/rigor/issues/1014)）**。5つすべての`rbs.*`プロデューサーは、`RbsDescriptor.build`が構成する1つのディスクリプタ上で`RbsCacheProducer#fetch`を経由してキー付けされます。このディスクリプタはRBS入力（`rbs` gemバージョン、すべてのシグネチャファイルのダイジェスト、ライブラリリスト、合成された仮想RBS、遅延パスパーティション）を運んでいましたが、エンジンに関するものは何も運んでいませんでした。それらが保持するのはそれらの入力ではなく、Rigor自身のコードがそれらから作成したものであるため、キーが静止している間にエンジンの編集が値を動かしてしまっていました。フィクスチャプロジェクトにおいて、`analysis.run-diagnostics`キーが正しく*ミス*していた実行において、ビルド境界をまたいで古い値を提供していた2つが再現されました: `Inference::RbsTypeTranslator.translate`への編集は`rbs.constant_type_table: 1 hit`を残し、同じツリーがコールドで報告する真陽性を落とし、祖先走査への編集は`rbs.class_ancestor_table: 1 hit`を残し、同じツリーがコールドで報告しない`flow.unreachable-clause`偽陽性を提供してしまいました。この行は現在、`RbsDescriptor.build`内に ── 5つすべてに対して一度だけ ── 配置され、意図的に`RbsDescriptor.config_entries`には配置**されません**: その半分は実行キャッシュキーが`.build_run`を通じて読み取るものであり、`RunCacheKey`は同一の行を自身で提供するため、そこに置くと実行キー内で重複し、ローダーなしで`config_entries`をビルドするブートスリミングプローブによって再構築可能でなければならなくなるからです。
+
+コストは意図されたものであり、エンジンビルドごとに一度支払われます: チェックアウトでのエンジンの編集は、その後の最初のウォーム実行で、約1.9 MBの`rbs.environment`ブロブを含む`rbs.*`ファミリー全体を無効化します ── 実行結果キーが同じ理由で動いたため、この実行はすでに完全な再解析です。変更されていないエンジンは影響を受けず、リリースされたgemは行をまったく追加しません。
+
+エンジンを同定できない呼び出し元（`EngineSource::Unavailable`）は、その行なしでキー付けするのではなく、その実行の間シンセサイザー、プラグインプロデューサー、または`rbs.*`プロデューサーを非キャッシュで実行します。`rbs.*`ファミリーにとっては、これは`RbsLoader#rbs_cache_descriptor`が`nil`を返すことであり、`RbsCacheProducer.fetch`はこれを「計算し、格納しない」と読み取ります。
+
+意図的にアイデンティティを省略する`Descriptor`キー付きキャッシュスロットはありません。自前の行を運ばないスロットは、エンジンが値を計算しなかったスロットです: `Descriptor`のファイル、gem、glob、および設定行はプロジェクトの入力に関する記述であり、`RbsDescriptor.config_entries`は上記で説明した共有の半分であり、その1つのコンシューマーが自身のために行を提供します。
 
 `Cache::EngineSource.identity`がこのスロットを供給します。2つのレジームがあります:
 
@@ -341,7 +347,7 @@ B1のコメントのみゲートを本体の編集へ一般化します: 変更�
 
 以下に記述されるバンドルされたRBS由来のプロデューサー（`RbsConstantTable`・`RbsKnownClassNames`・`RbsClassAncestorTable`・`RbsClassTypeParamNames`・`RbsEnvironment`）はいずれも一つのシェイプを満たします ── すなわち`fetch(loader:, store:)`に応答し、キャッシュ済みまたは新たに計算された値を返すクラスオブジェクトです。これは[`sig/rigor/cache.rbs`](https://github.com/rigortype/rigor/blob/master/sig/rigor/cache.rbs)において構造的インターフェース`_CacheProducer`として成文化されています。これは構造的インターフェース（RBS／Goの意味での）であり、ADR-28のプロトコル契約ではなく、また[`plugin-cache-producers.md`](plugin-cache-producers/)のプラグイン側プロデューサーサーフェスとも区別されます。
 
-`fetch`本体はプロデューサー間で同一です。すなわち共有RBSディスクリプタ（`loader.rbs_cache_descriptor`、`RbsDescriptor.build`まわりのローダーごとのメモ）を読み、それから`store.fetch_or_compute(producer_id:, params: {}, descriptor:, generation_cap:)`を呼び出してプロデューサーの`compute(loader)`へyieldします。異なるのは`PRODUCER_ID`定数と`compute`本体だけです。その共有された配線は`Rigor::Cache::RbsCacheProducer`基底クラスに置かれます。プロデューサーはそれをサブクラス化し、自身の`PRODUCER_ID`と（privateな）`self.compute(loader)`をMUST宣言します。基底クラスは`self.generation_cap`（2 —— § 「コンパクション」を参照）も宣言し、サブクラスはそれを継承しオーバーライドできます;したがってコンパクション予算なしに`rbs.*`プロデューサーを追加することはできません。基底クラスは`self::PRODUCER_ID`を読むため、定数は具象サブクラス上で解決されます。以下のプロデューサーごとのセクションは、各プロデューサーの`PRODUCER_ID`、`compute`の出力型、およびそれを読む`cache_store`コンシューマーを規定します。
+`fetch`本体はプロデューサー間で同一です。すなわち共有RBSディスクリプタ（`loader.rbs_cache_descriptor`、`RbsDescriptor.build`まわりのローダーごとのメモ）を読み、それから`store.fetch_or_compute(producer_id:, params: {}, descriptor:, generation_cap:)`を呼び出してプロデューサーの`compute(loader)`へyieldします ── あるいはそのディスクリプタが`nil`である場合（ソースをダイジェストできなかったエンジン、#1014）、直接`compute(loader)`を呼び出し何も格納しません。異なるのは`PRODUCER_ID`定数と`compute`本体だけです。その共有された配線は`Rigor::Cache::RbsCacheProducer`基底クラスに置かれます。プロデューサーはそれをサブクラス化し、自身の`PRODUCER_ID`と（privateな）`self.compute(loader)`をMUST宣言します。基底クラスは`self.generation_cap`（2 —— § 「コンパクション」を参照）も宣言し、サブクラスはそれを継承しオーバーライドできます;したがってコンパクション予算なしに`rbs.*`プロデューサーを追加することはできません。基底クラスは`self::PRODUCER_ID`を読むため、定数は具象サブクラス上で解決されます。以下のプロデューサーごとのセクションは、各プロデューサーの`PRODUCER_ID`、`compute`の出力型、およびそれを読む`cache_store`コンシューマーを規定します。
 
 ## `Rigor::Cache::RbsConstantTable`（v0.0.8スライス3）
 
@@ -433,8 +439,11 @@ Rigor::Cache::RbsDescriptor.build(loader)
 #    files   = [...]   # :digest entries for every .rbs under signature_paths
 #                      # + the vendored gem sigs + the core overlay
 #    configs = [{ key: "rbs.libraries",   value_hash: SHA256(sorted-libraries) },
-#               { key: "rbs.virtual_rbs", value_hash: SHA256(sorted-pairs) }]
+#               { key: "rbs.virtual_rbs", value_hash: SHA256(sorted-pairs) },
+#               { key: "engine-source",   value_hash: SHA256(engine identity) }]
 ```
+
+`engine-source`行は#1014のスロットです ── § 「計算値のキーにおけるエンジンの同一性」を参照してください。これは`EngineSource.key_config_entries`から取得され、バージョン固定ツリーの場合は存在せず、ダイジェストできないエンジンに対しては`.build`から`EngineSource::Unavailable`を送出し、これを`RbsLoader#rbs_cache_descriptor`が`nil`に、`RbsCacheProducer.fetch`が非キャッシュ計算に変換します。これは`.build`にのみ乗り、`.config_entries`には決して乗りません。
 
 `rbs.virtual_rbs`の行はADR-32 WD5のスロットです: ローダーのプラグイン提供の合成RBS文字列をハッシュ化し、いずれかが変更されたり最初に出現したりしたときに環境キャッシュが無効化されるようにします。ローダーに`virtual_rbs`エントリーがない場合は完全に省略されるため、シンセサイザーを出力するプラグインを持たないプロジェクトでは、そのためのディスクリプタコストを支払うことはありません。
 
@@ -442,7 +451,7 @@ Rigor::Cache::RbsDescriptor.build(loader)
 
 ### `RbsDescriptor.build_run(loader) -> RunDescriptor`
 
-ADR-45のrun-diagnostics記録・検証キャッシュの背後にあるlazy-`files`バリアントです。`RunDescriptor`は`Descriptor`では**ありません** —— 合成もハッシュ化も`==`もされず、その4つのリーダー（`gems`、`configs`、`files`、`globs`）のみが参照されます —— したがって健全性を損なうことなく`files`を遅延させることができます。`gems`と`configs`は先行して提供され、`.build`のものとバイト単位で同一です（キャッシュキーは変更されません）; `files`は初回アクセス時に計算されてメモ化されるため、ウォームなHITでは巨大なベンダードRBSツリーをまったくダイジェストしません。読み取られるとき —— MISS時のみ、実行の依存関係ディスクリプタによって —— は、検証済みディスクリプタがマシンローカルなstatデータを保持できるため、`:digest`ではなく`:stat`比較器を使用します（`.build`のキャッシュKEYの`files`は`:digest`のままです）。`RbsDescriptor.rbs_gem_entry`がpublicであるのも同じ理由です: ADR-87 WD4のプローブがローダーを保持せずに同一の`gems` + `rbs.libraries`キースロットを再構築するためです。
+ADR-45のrun-diagnostics記録・検証キャッシュの背後にあるlazy-`files`バリアントです。`RunDescriptor`は`Descriptor`では**ありません** —— 合成もハッシュ化も`==`もされず、その4つのリーダー（`gems`、`configs`、`files`、`globs`）のみが参照されます —— したがって健全性を損なうことなく`files`を遅延させることができます。`gems`と`configs`は先行して提供され、`.build`の共有の半分 ── `RbsDescriptor.config_entries`（環境専用行および`engine-source`行を除いたもの。後者は`RunCacheKey`が自身のために提供します） ── とバイト単位で同一です（実行キャッシュキーは変更されません）; `files`は初回アクセス時に計算されてメモ化されるため、ウォームなHITでは巨大なベンダードRBSツリーをまったくダイジェストしません。読み取られるとき —— MISS時のみ、実行の依存関係ディスクリプタによって —— は、検証済みディスクリプタがマシンローカルなstatデータを保持できるため、`:digest`ではなく`:stat`比較器を使用します（`.build`のキャッシュKEYの`files`は`:digest`のままです）。`RbsDescriptor.rbs_gem_entry`がpublicであるのも同じ理由です: ADR-87 WD4のプローブがローダーを保持せずに同一の`gems` + `rbs.libraries`キースロットを再構築するためです。
 
 `globs`（[#979](https://github.com/rigortype/rigor/issues/979)）はディレクトリLISTING側であり、`**/*.rbs`に対するシグネチャルートごとに1つの`GlobEntry`です（`RbsDescriptor.glob_entries`）。`files`は「読み取ったシグネチャファイルが変更されたか」にのみ回答し、これは実行がそれらを読み取っている間に存在していたファイルについての問いです —— したがって実行後に書き込まれた`sig/roles.rbs`はいずれの行にも存在せず、`analysis.run-diagnostics`の依存関係ディスクリプタは最新として検証され、ウォーム実行はそれがなしで計算された診断をリプレイしてしまいました（満たされない`conforms-to`は、それが指定するインターフェースが宣言された後も`unresolved`を報告し続けました）。glob行は次の実行で再globしてその出現を検知します。プラグインが一覧表示したディレクトリに対する`IoBoundary#list_directory`行とまったく同様です。これはファイルごとではなくシグネチャROOTごとに一度記録されます: 検証はツリーのサイズに関係なくルートごとに単一の`Dir.glob`です。
 
@@ -459,11 +468,21 @@ ADR-45のrun-diagnostics記録・検証キャッシュの背後にあるlazy-`fi
 | `:stat`ファイル、解析対象ファイルごと | `analyzed_file_entries` | 実行が解析したいずれかのファイルへの編集 |
 | `:stat`ファイル、発見されたが解析されていないファイルごと | `discovery_file_entries`（[#684](https://github.com/rigortype/rigor/issues/684)） | 拡張された実行が発見のみを行ったファイルへの編集 |
 | `:stat`ファイル、`pre_eval:`ファイルごと | `pre_eval_file_entries`（[#352](https://github.com/rigortype/rigor/issues/352)） | ADR-17事前評価済みファイルへの編集 |
+| `:stat`ファイル、実行が読み取った**テンプレート**ファイルごと ── ユニットを生成したものと失敗したものの両方 | `template_unit_file_entries`（[#392](https://github.com/rigortype/rigor/issues/392)） | プラグインが要求した`.erb` / `.rbx` / …への編集（その変換がraiseしたものやバイト列を読めなかったものを含む） |
+| names glob、要求された`template_globs:`パターンごと | `template_unit_glob_entries`（#392） | 要求されたglob下でのテンプレートの出現または消失 |
 | `:stat`ファイル、すべてのシグネチャルートおよびRigor自身の`data/`ツリー（`vendored_gem_sigs/`、`core_overlay/`、`capability_roles/`）下の`.rbs`ごと | `RunDescriptor#files` → `RbsDescriptor.file_entries` | 実行が読み取ったシグネチャファイルへの編集 |
 | names glob、シグネチャルートごと（`**/*.rbs`） | `RunDescriptor#globs`（#979） | シグネチャルート下での`.rbs`の出現または消失 |
 | `:stat` / `:exists`ファイル、プラグインの`IoBoundary`読み取りごと | `IoBoundary#cache_descriptor`（[#577](https://github.com/rigortype/rigor/issues/577)） | プラグインが読み取りまたはプローブしたファイルへの編集 —— または出現 |
 | glob、プラグインが一覧表示したディレクトリごと | `IoBoundary#cache_descriptor`（[#954](https://github.com/rigortype/rigor/issues/954)） | プラグインが一覧表示したディレクトリでのファイルの出現 |
 | glob、プロデューサーの`watch:`パターンごと | `Plugin::Base#watch_glob_entries`（ADR-60 WD3） | プロデューサーの宣言されたwatch下での編集 |
+
+2つのテンプレート行はペアの検証半分です。KEYは**要求されたglob、各ユニットのコンパイル済みダイジェスト**（`ruby_source`バイト列＋変換ID＋合成バージョン）**およびすべての失敗**をパスでキー付けしてハッシュ化する`template-units`の`configs:`スロットを運びます ── これがキャッシュされた回答がこの世界を記述しているかどうかを決定するものです;上記の行はディスク上のテンプレートが移動、出現、または消失したことに気付くためのものです。失敗がスロットに含まれているのは、失敗のみを生成した実行であっても依然として回答（ファイルごとに1つの`plugin_loader`行）を生成したためです: それがないと、そのような実行のキーはテンプレートなしのキーと等しくなり、回答はそれを引き起こしたテンプレートの修復と削除の両方よりも長く生き残ってしまいました。このスロットは、プラグインがglobをまったく要求しなかった場合にのみnil（したがって不在）となるため、テンプレートユニットプラグインを持たないプロジェクトは、以前とまったく同じキーと記述子を保持します。
+
+したがって、プラグインが自身の`template_globs:`を編集するとキーが動きます。ソートされた要求パターンがスロットにハッシュ化されるためです。
+
+両半分は[#1038](https://github.com/rigortype/rigor/issues/1038)によって変更されません。これは長寿命のオーナー（`LanguageServer::ProjectContext`）が`Analysis::ProjectScan`上で実行をまたいでコンパイル済みインデックスを運ぶことを可能にします。運ばれたユニットは、テンプレート自身のADR-87のstat後ダイジェストパックがディスク上のファイルに対して引き続き有効である場合にのみ再利用され ── そして[#1047](https://github.com/rigortype/rigor/issues/1047)以降は、そのプラグインが要求する他のいかなるテンプレートも移動していない場合にのみ再利用されます ── したがって再利用されたユニットは、構造上、新しくコンパイルされたユニットが持っていたであろうダイジェストと完全に一致します: キースロットと両方の記述子行はどちらの方法でもバイト単位で同一であり、キャリーはこのキャッシュには不可視です。
+
+ADR-87のブートスリミングプローブはプラグインをロードしないため、`template-units`スロットを再構築しません: プラグインがいずれかのglobを要求するプロジェクトでは、プローブは単にミスし、フルパスが引き継ぎます。`rbs.virtual_rbs`がすでに行っているのと同じ高速レーンの放棄のトレードオフであり、誤ったヒットになることは決してありません。
 
 ファイル以外の入力（エンジンソース、ロックファイル、解決された設定、RBSライブラリリスト）はキャッシュKEY（`Analysis::RunCacheKey`）に属し、ここには決して入りません: `Descriptor#fresh?`は`gems` / `plugins` / `configs` / `dependencies`スロットを運ぶいかなる記述子も拒絶します。
 

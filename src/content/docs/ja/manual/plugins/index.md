@@ -3,8 +3,8 @@ title: "プラグインリファレンス"
 description: "rigortype/rigor docs/manual/plugins/README.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/plugins/README.md"
 sourcePath: "docs/manual/plugins/README.md"
-sourceSha: "0cca1a12a0650b0371237b570fadbe424713dfbdc12155d9db9473823be21208"
-sourceCommit: "2d0ffe6f38d01cfd850527c57987b27487b414d4"
+sourceSha: "f78dfaea78b1d4728b67dbbc349ee7603645d7bfd89aa955166d2be70d9fa6d1"
+sourceCommit: "5fab9b52937efba652b9f6ecde1bb0a9954a9f77"
 translationStatus: "translated"
 sidebar:
   order: 9000
@@ -36,6 +36,7 @@ sidebar:
 - [rigor-statesman](rigor-statesman/): `state_machine`ブロックで宣言された状態に対して`transition_to(:state)`を検証する。
 - [rigor-mangrove](rigor-mangrove/): Mangroveの`Result`／`Option`のアンラップ型を鋭利化し、`Enum`バリアントを合成する。
 - [rigor-pundit](rigor-pundit/): ポリシークラスの存在と`authorize(record, :action)`の述語の検証。
+- [rigor-active-model-serializers](rigor-active-model-serializers/): シリアライザ内の`object`リーダーをシリアライザのモデルとして型付けする（診断なし）。
 - [rigor-sidekiq](rigor-sidekiq/): 発見した`#perform`に対するSidekiqの`Worker.perform_*`の引数のアリティ。
 - [rigor-actioncable](rigor-actioncable/): `broadcast_to`のチャネルの存在と、`ActionCable.server.broadcast`のストリーム名の検証。
 - [rigor-minitest](rigor-minitest/): Minitest／Test::Unitのアサーションおよびspecマッチャーを通したローカル変数のナローイング。

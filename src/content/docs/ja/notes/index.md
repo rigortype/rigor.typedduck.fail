@@ -3,9 +3,9 @@ title: "リサーチ・サーベイノート"
 description: "rigortype/rigor docs/notes/README.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/README.md"
 sourcePath: "docs/notes/README.md"
-sourceSha: "ba4b44c5249bf78acec0e3d400d9cc39c28f0297645e2c586db1a5b665e8ac37"
-sourceCommit: "d01a937b5d3d66d5ec4e6ba82036919d1bc91d10"
-sourceDate: "2026-09-12T21:11:14+09:00"
+sourceSha: "9e9da3c19f85f8485341e9e130babb2665003d4d2164d0123788e7ce19cc249d"
+sourceCommit: "5fab9b52937efba652b9f6ecde1bb0a9954a9f77"
+sourceDate: "2026-09-18T00:59:43+09:00"
 translationStatus: "translated"
 sidebar:
   order: 6000
@@ -82,6 +82,10 @@ sidebar:
 | 2026-09-05 | [トップレベル`def`のcref —— リトラクト前のピールの規模測定（issue #716）](20260905-toplevel-def-cref-movable-sites/) |
 | 2026-09-09 | [センサス走査のギャップ —— 修正前に3つの形状の規模を測定する（issue #693）](20260909-census-walk-gap-movable-sites/) |
 | 2026-09-12 | [rigor-survey OSSコーパス —— v0.3.9カット前クラッシュチェック](20260912-v039-oss-corpus-crash-check/) |
+| 2026-09-17 | [ERBテンプレートをエフェクトユニットとして扱う —— 偽陽性の計測](20260917-erb-template-units/) |
+| 2026-09-17 | [コントローラー → テンプレートのエフェクトエッジ —— コーパス計測](20260917-controller-template-edge/) |
+| 2026-09-17 | [プラグイン提供メンバーをown-method拒否元として扱う —— まずコーパスの規模を測定する（issue #963）](20260917-plugin-member-veto/) |
+| 2026-09-17 | [レンダリング箇所のlocalsとレイアウト —— コーパス計測](20260917-render-locals-and-layouts/) |
 
 ## アナライザーの自己テスト（teeth・偽陰性）
 
@@ -132,6 +136,7 @@ sidebar:
 | 2026-07-25 | [`rigor check lib`アロケーション帰属 — 55%は一度きりのRBS環境ビルド、#101ルールは0.24%](20260725-check-allocation-attribution/) |
 | 2026-07-30 | [参照型スタブのパス1 —— 静的検出はビルダーと一致し（コールドラン比−32.8%）、スタブ合成の実バグを2件検出](20260730-stub-pass1-static-detection-evaluation/) |
 | 2026-09-09 | [CIウォールタイム371秒 → 220秒 — シャードのばらつきは分割の問題ではなかった；1つのマトリクスアームに固定された作業、ワーカーごとの予算を超過した1ファイル、そしてspec分割が引き起こす3つの罠](20260909-ci-wall-time-shard-rebalance/) |
+| 2026-09-12 | [v0.3.9リリースゲートの`lib peak_rss_kb`帰属 —— +10.5%は保持ではなく一時的なピークであり、約95件のマージに分散している](20260912-v039-rss-attribution/) |
 
 ## プロセス・メタ
 

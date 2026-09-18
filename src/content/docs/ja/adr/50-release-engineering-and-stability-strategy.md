@@ -3,9 +3,9 @@ title: "ADR-50 — リリースエンジニアリングと安定化戦略（v0.2
 description: "rigortype/rigor docs/adr/50-release-engineering-and-stability-strategy.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/50-release-engineering-and-stability-strategy.md"
 sourcePath: "docs/adr/50-release-engineering-and-stability-strategy.md"
-sourceSha: "81a616dcb258d27506e1c790abfe30edeaec4bca1ff4a68c0fa6b4f09d34ce3f"
-sourceCommit: "db7b23d42e9b47560438b67dfe16d53e03f70575"
-sourceDate: "2026-09-10T04:27:35+09:00"
+sourceSha: "0817f44e75fd5a849a9374a423b9ec5afe73350b9dac5b5dcf796eb054e2feaf"
+sourceCommit: "5fab9b52937efba652b9f6ecde1bb0a9954a9f77"
+sourceDate: "2026-09-17T13:23:08+09:00"
 translationStatus: "translated"
 sidebar:
   order: 4050
@@ -113,6 +113,7 @@ bleeding-edgeは**Rigorがメンテナンスするデフォルトオーバーラ
 
 - **ハーネス:**確立されたコーパスの固定サブセット（Mastodon `app/models`、Redmine `app`、GitLab `app/{controllers,services,…}`サブセット——ADR-44/45/46がすでにプロファイルするツリー）に対してアナライザーを実行する`make bench-perf`ターゲット、`--no-cache`、固定ワーカー数。
 - **メトリクス:**ウォールタイム、総アロケーション（`ObjectSpace`）、ピークRSS、診断カウント（*カウント*変化は意図しない挙動のシフトをフラグする——ADR-44/45/46がすでに使用しているバイト同一診断チェック）。
+- **サンプリング（#987で追加）:**ノイズの大きいメトリクスは複数回サンプリングされ、試行の**最小値（lower）**へとリデュースされる —— `wall_s`と`peak_rss_kb`の測定されたホストのばらつき（±7%）は許容帯域とほぼ同じ幅であるため、単一サンプルでは判定がどちらにも転び得る。ランナーの干渉は片側性（時間を増やし常駐ページを増やす方向にしか働かない）であり、これが中央値ではなく`min`が適切なリデューサーである理由である。`allocations`と診断カウントは単一サンプルのままとする: これらは決定論的であり、リデュースすると本物の非決定論を隠蔽してしまう。**各試行は独立した新しいプロセスである** —— ピークRSSはプロセスごとの最高到達点であるため、同一プロセスでの2回目の実行は同一またはそれ以上の値しか報告できず、ウォームな試行のウォールタイムはコミットされたコールドベースラインと比較できない。`make bench-perf`は1つのコマンドのままである（`tool/bench.rb --reps N`、デフォルト2、独自の試行プロセスを生成する）;再キャリブレーション時に同一の方法で測定されるよう、このルールは`bench/baseline.json`のノートに記録されている。
 - **ベースライン＋しきい値はコミットされた、チューナブルな成果物**。コミットされた`bench/baseline.json`（コーパスごと、メトリクスごと）と、コミットされた許容帯域（`bench/thresholds.yml`または同じ場所）——**どちらも意図的にリフレッシュ可能であり、サイレントに変更されない**。帯域はエンジンコードにハードコードされていない。まさにランナー/コーパスの現実が変化するにつれてチューニングできるよう。変更はスナップショットリフレッシュと同様、レビューされるコミットとなる。
 - **ゲート:**コミットされた許容帯域を超えてメトリクスがリグレッションした場合、CIジョブが失敗する。**初期**帯域（上記のとおりチューナブル）: ウォール+10%、アロケーション+5%、RSS+10%——ランナーノイズに対してウォールは広く、決定論的シグナルとしてアロケーションは狭い。帯域を超えた*改善*はベースラインのリフレッシュを促すが、失敗にはならない。
 - ローカルの`make verify`高速パスには含まない（遅すぎる）。`check-incremental`（ADR-46）のような専用CIジョブ。

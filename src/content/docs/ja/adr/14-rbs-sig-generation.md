@@ -3,9 +3,9 @@ title: "ADR-14 — 推論からのRBSシグネチャ生成と拡張"
 description: "rigortype/rigor docs/adr/14-rbs-sig-generation.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/14-rbs-sig-generation.md"
 sourcePath: "docs/adr/14-rbs-sig-generation.md"
-sourceSha: "0dc9f243709f0997be14b2c08664ea368cc8b089065857ca92ce26a2ab919112"
-sourceCommit: "d01a937b5d3d66d5ec4e6ba82036919d1bc91d10"
-sourceDate: "2026-09-12T20:18:00+09:00"
+sourceSha: "2eb4ca6830dcfe31afad6d100d8e017d7a8c9634fb446d25a12069de712a358d"
+sourceCommit: "5fab9b52937efba652b9f6ecde1bb0a9954a9f77"
+sourceDate: "2026-09-17T11:39:23+09:00"
 translationStatus: "translated"
 sidebar:
   order: 4014
@@ -302,3 +302,4 @@ Rigor自身の`lib/`に対するドッグフード実行（2026-05-12）は7つ�
 - 2026-09-09 ── #836が宣言された`void`戻り値を矛盾ルールの対象外とした: それはいかなる合成も生成しない作者の意図であるため、生成器は何も比較せず`equivalent`に分類する。§「推論対RBSの矛盾ルール」の日付付き段落を参照。
 - 2026-09-09 ── #837が同じ解釈に基づいて、RBSリテラルへ消去される提案を対象外とした: 宣言された型はその本体に対する作者の抽象化である。§「tighter-returnモードで『より精密』が意味するもの』の第3項、および§「推論対RBSの矛盾ルール」の2つ目の日付付き段落を参照。
 - 2026-09-12 ── #995が宣言された`untyped`戻り値を、`void`／RBSリテラルのケースとは逆の解釈に基づいて対象外とした: `untyped`は何も述べていないため、宣言が全くないものとして扱われ、推論された戻り値が提案される。§「推論対RBSの矛盾ルール」の3つ目の日付付き段落を参照。
+- 2026-09-17 ── #391が本ADRが予約していたアノテーション出力スロットを充填した。`effects:`オプトインが有効な場合、sig-genは網羅的かつ未ディスチャージのエフェクトサマリーから`%a{pure}`を —— そして`--effect-envelopes`のもとでは`%a{rigor:v1:effect …}`を —— 書き出し、それ以外からは書き出さない; `sig.effect.*`テレメトリが見送られたケースを名指しする。規則は[`effect-labels.md`](../../type-specification/effect-labels/) § 出力において規範的であり; [ADR-103](103-effect-labels.md) WD9が作業決定である。

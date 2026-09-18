@@ -3,8 +3,8 @@ title: "rigor-sidekiq"
 description: "rigortype/rigor docs/manual/plugins/rigor-sidekiq.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/plugins/rigor-sidekiq.md"
 sourcePath: "docs/manual/plugins/rigor-sidekiq.md"
-sourceSha: "16114011e03431d6a7889b299d1af0fc1655b407524a3443705e4843c1b07320"
-sourceCommit: "8e1432f5ada5240b33f140cb2024e6025450b2f9"
+sourceSha: "84a4a3dea45791262c94642af73727bc5d1f0e7a52a9d900f03e9ac424530d44"
+sourceCommit: "5fab9b52937efba652b9f6ecde1bb0a9954a9f77"
 translationStatus: "translated"
 sidebar:
   order: 9050

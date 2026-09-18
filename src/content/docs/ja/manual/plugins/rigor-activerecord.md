@@ -3,8 +3,8 @@ title: "rigor-activerecord"
 description: "rigortype/rigor docs/manual/plugins/rigor-activerecord.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/plugins/rigor-activerecord.md"
 sourcePath: "docs/manual/plugins/rigor-activerecord.md"
-sourceSha: "9ff627bebe270030802945c08489871894c695ed18f55693c9ce2d966068ba83"
-sourceCommit: "db7b23d42e9b47560438b67dfe16d53e03f70575"
+sourceSha: "b81f728bd866d9ad4d42ae10535f7ef45ef3f7b1fce7da4d0b5e873a3cb18570"
+sourceCommit: "5fab9b52937efba652b9f6ecde1bb0a9954a9f77"
 sourceDate: "2026-09-09T01:20:05+09:00"
 translationStatus: "translated"
 sidebar:
@@ -65,6 +65,24 @@ plugins:
 
 リレーションを返す呼び出し箇所 ── `User.where(...)`、`User.all`、`User.order(...)`、`has_many`／`has_and_belongs_to_many`のアクセサ（`user.posts`）、ユーザー宣言の`scope`（`Post.published`）── は`ActiveRecord::Relation[Model]`にナローイングされます。チェーンされたクエリメソッドは要素型を保持し、イテレーション（`user.posts.each { |p| ... }`）はモデルを生み出します。型付きリレーションに対して呼び出されたユーザー定義のスコープ（`User.where(...).published`）が、誤った`call.undefined-method`を表面化させることはありません。
 
+concernの`included do ... end`ブロックの内部で宣言された`scope`は、それをincludeするモデル自身のものとしてカウントされます。`Account`がそのスコープを宣言するconcernをincludeしている場合 ── 直接、あるいはそのconcernがincludeする別のconcern経由 ──、`Account.without_suspended`は`ActiveRecord::Relation[Account]`として型付けされます。ベースクラス（`ApplicationRecord`）で1回includeされたconcernは、その配下のすべてのモデルに到達します。帰属は名前ではなくあなたが書いた`include`を辿るため、何もincludeしていないモデルは、プロジェクト内の他のconcernが何を宣言していようとも何も得ません。
+
+ゲートとなるのは`included do ... end`ブロック自体です。他の方法で宣言されたスコープ ── `class_methods do`ブロック内、`base.class_eval`を伴う手書きの`def self.included(base)`、あるいはconcern内ではなくベースクラスの本文内に直接宣言されたもの ── は折りたたまれず、呼び出しは以前と同様に型なしのままとなります。
+
+同じ`included do ... end`ブロック内で宣言された`belongs_to` / `has_one` / `has_many` / `has_and_belongs_to_many`も、同じ`include`エッジの帰属を伴って、includeするモデル自身のものとしてカウントされます：`Account`が`has_one :user`を宣言するconcernをincludeしている場合、`account.user`は`User | nil`にナローイングされ、`where(user: ...)`は誤った`unknown-column`の報告を停止します。関連自体を宣言しているモデルは、自身のバージョンを保持します。
+
+### マクロが定義する名前
+
+3つのマクロファミリーが、カラムでも関連でもない通常のインスタンスメソッドを定義し、モデルの記録されたサーフェスはいまやそれらの名前を保持します：
+
+- `delegate :followers_count, to: :account_stat` ── `prefix:`の綴り（`delegate :can?, to: :user, prefix: true`は`user_can?`を定義する）を含む、すべての委譲された名前。`delegate`はモデル本文、concernの`included do ... end`、およびconcern自身のトップレベル（includeするモデルが継承するインスタンスメソッドを定義する場所）から読み取られます。
+- アタッチメントマクロ ── Paperclipの`has_attached_file :avatar`（`avatar`、`avatar=`、`avatar?`）、およびActive Storageの`has_one_attached` / `has_many_attached`（`banner`、`banner_attachment`、`banner_blob`；`docs`、`docs_attachments`、`docs_blobs`）。Paperclipの`avatar_file_name` / `avatar_content_type` / `avatar_file_size` / `avatar_updated_at`は実際のカラムであるため、マクロからではなくスキーマから取得されます。
+- `enum`値の述語 ── `enum :visibility, { limited: 4 }, suffix: :visibility`は`limited_visibility?`を定義し、`prefix:` / `_prefix:` / `_suffix:`も同様に読み取られます。`instance_methods: false`と宣言された`enum`はそれらのいずれも定義せず、何も記録されません。
+
+これらは**名前**として記録されます。委譲されたメソッドが何を返すかをここで述べるものは何もなく、プラグインはそれに対する型を貢献しません ── その価値は、「このモデルは`followers_count`に応答するか？」と問い合わせるコンシューマーが正しい答えを得られる点にあります。これが構築された対象のコンシューマーは[`rigor-active-model-serializers`](../rigor-active-model-serializers/)であり、これはシリアライザが読み取るすべての名前に候補モデルが応答する場合にのみ、シリアライザの`object`を型付けします。
+
+このプラグインがソースから読み取ることができない宣言は、推測するのではなく何も貢献しません：`to:`がメソッド呼び出しである`prefix: true`、リテラルでない`prefix:`、計算されたenum値リストなどです。
+
 プロジェクトが`rbs collection install`を通じて`activerecord`もインストールしている場合、コレクションは型パラメータなしの`ActiveRecord::Relation`を宣言し、プラグインは`ActiveRecord::Relation[Elem]`を宣言するため、RBSは両方を保持できません。プラグインの宣言は身を引きます: リレーションの呼び出しサイトは依然として`ActiveRecord::Relation[Model]`として型付けされますが、リレーションへの呼び出しはコレクションの宣言に対して解決されるため、プラグインの要素型付け（たとえば`.first`が`Model?`になるなど）は利用できなくなり、実行は両方のファイル名を名指す`rbs.coverage.plugin-signature-stood-down` info行を1つ報告します。何も壊れていません;プラグインの型付けは、コレクションがそのクラスの宣言を停止したときにのみ復帰します。
 
 `User.table_name`は`String`と型付けされ、厳密な文字列になるのは、あなたのソースがその名前を述べているときだけです: クラス上またはSTIの祖先上のリテラルな`self.table_name = "people"`であって、その連鎖の中に実行時に名前を計算するものが何もない場合です（`def self.table_name`、その`class << self`版、補間を伴う代入は、いずれも計算しているとみなされます）。それ以外の名前——プラグインがクラス名を複数形化して導出したもの——はすべて素の`String`のままです。
@@ -87,7 +105,7 @@ Rubyのモジュールまたはクラスの内部で宣言されたモデル（`
 - **別の非抽象モデルクラスの内部にネストされたモデルは、推測するのではなく役目を降ります**。`Post < ApplicationRecord`であり`Post`が抽象でない`Post::Comment`は、まったく異なるRailsの名前付けルールに当たります——親自身のテーブル名がprefix/suffixではなく子の真ん中に結合されるため、プラグインはその形状を認識し、実際の名前を計算（または推測）する代わりに`Comment`のカラム / エイリアス / 関連のチェックの役目を降ろします。（`Base`が`self.abstract_class = true`または`primary_abstract_class`を宣言している`Base::Comment`のように、*抽象*親クラスの内部にネストされたモデルは、完全なカラムチェックを伴って素のdemodulizeされたテーブル名を正しく解決します。）
 - **外部の`table_name_prefix` / `table_name_suffix`宣言とエンジン**。`model_search_paths`外の宣言（例: `lib/`やエンジンの`isolate_namespace`内）はプロジェクト全体で検出され、誤ったテーブル名を推測するのではなく、空のカラムセットで影響を受けるモデルを安全に役目から降ろします。`model_search_paths`内では、モデルレベルおよびベースクラスの`table_name_prefix`宣言（リテラルまたは計算済み）が直接解決されます。
 - **PostgreSQLの`db/structure.sql`フォールバック**。`db/schema.rb`がないとき、プラグインは同じカラム／型テーブルのために`db/structure.sql`（`schema_format = :sql`のダンプ）をパースします。PostgreSQL DDLのみを読みます;SQL型にRubyのマッピングがないカラム（カスタムenum、`tsvector`、`ltree`）は`Object`へ降格し（決して落とさない）、`public`以外のスキーマのパーティションテーブルはスキップされます。
-- **コミットされたスキーマがない——縮退モード**。生のマイグレーションを出荷し`db/schema.rb`をgitignoreするプロジェクト（DBに依存しないRailsのパターン）でも、テーブル名・ファインダー・スコープ・関連は得られます: それらはスキーマではなくあなたのモデルのソースから読まれるからです。役目を降りるのはカラムに依存する半分だけです——カラムのリーダーは型なしのままになり、`where(col:)`のキーは検証されません。スキーマが記述していないテーブルに対するのとまったく同じです。プラグインは実行ごとに1回`:info`でそう述べます。スキーマのダンプをコミットする（または`schema_file` / `structure_sql_file`をそれへ向ける）と、次のコールドの実行からカラム側の半分が再びオンになります——ウォームなキャッシュは無効化されるまで縮退したインデックスを提供し続けるので、すぐに変化を見たいときは`rigor check --no-cache`（または`make cache-clean`）を使ってください。
+- **コミットされたスキーマがない——縮退モード**。生のマイグレーションを出荷し`db/schema.rb`をgitignoreするプロジェクト（DBに依存しないRailsのパターン）でも、テーブル名・ファインダー・スコープ・関連は得られます: それらはスキーマではなくあなたのモデルのソースから読まれるからです。役目を降りるのはカラムに依存する半分だけです——カラムのリーダーは型なしのままになり、`where(col:)`のキーは検証されません。スキーマが記述していないテーブルに対するのとまったく同じです。プラグインは`.rigor.yml`に位置付けられた`:info`で実行ごとに1回そう述べます ── これは任意の一つのソースファイルについてではなく、あなたの設定に関する事実であり、`--workers`の有無に関わらず同じ単一の行が得られます。この行を以前の位置（コントローラーまたはモデル）でベースライン化していた場合、そのベースラインエントリーは一致しなくなります ── `rigor baseline regenerate`を実行してください。スキーマのダンプをコミットする（または`schema_file` / `structure_sql_file`をそれへ向ける）と、次のコールドの実行からカラム側の半分が再びオンになります——ウォームなキャッシュは無効化されるまで縮退したインデックスを提供し続けるので、すぐに変化を見たいときは`rigor check --no-cache`（または`make cache-clean`）を使ってください。
 - **カラムの読み取りであり、セッターではない**。このプラグインはインスタンス側のカラムの*読み取り*（`user.name`、`user.admin?`）と単数の関連を型付けしますが、`name=`セッターやダーティトラッキング系（`name_changed?`、`name_was`、…）は型付けしません。
 - **プロジェクト独自のインフレクションはまだ読み取られない**。モデル↔テーブルの複数形化は本物のActiveSupportインフレクターを通ります（そのため`Person → people`、`Mouse → mice`は解決されます）が、`config/initializers/inflections.rb`で宣言したルールはまだ取り込まれません ── それに依存するモデルには`self.table_name`が必要です（ADR-39スライス3）。
 

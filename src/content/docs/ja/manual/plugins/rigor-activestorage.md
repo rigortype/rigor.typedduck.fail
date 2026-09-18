@@ -3,8 +3,8 @@ title: "rigor-activestorage"
 description: "rigortype/rigor docs/manual/plugins/rigor-activestorage.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/plugins/rigor-activestorage.md"
 sourcePath: "docs/manual/plugins/rigor-activestorage.md"
-sourceSha: "6c9cd3555bda478ccfe111eb16d6ea75b8a557a4156d08d294a1047da45ba1cf"
-sourceCommit: "5c304b2c680eccdbfaffc114c0f31ce89f740ad4"
+sourceSha: "f5129e1a7b09a1e0027980044f53056a2f445894b47b122eb6d85f9b7a5dbaeb"
+sourceCommit: "5fab9b52937efba652b9f6ecde1bb0a9954a9f77"
 translationStatus: "translated"
 sidebar:
   order: 9050
@@ -48,6 +48,8 @@ user.photos           # Nominal[ActiveStorage::Attached::Many]
 | `plugin.activestorage.load-error` | warning | 発見に失敗したとき（例: IoBoundaryの信頼ポリシーの下でモデルディレクトリにアクセスできない） |
 
 このスライスには`:error`診断はありません ── 価値は戻り値型の提供にあります。「未知のアタッチメント名」ルールは将来のスライスです。
+
+`load-error`警告は実行スコープです: これは任意の一つのソースファイルについてではなく設定に関するファクトであるため、解析されるすべてのファイルで繰り返されるのではなく、実行ごとに1回`.rigor.yml`上で報告されます。これは`:warning`であるため、旧位置でベースライン化していた場合、そのエントリーはマッチしなくなり、`--fail-on=warning`の実行で失敗します —— `rigor baseline regenerate`で再生成してください。
 
 ## 設定
 

@@ -3,8 +3,8 @@ title: "プラグインの登録と読み込み"
 description: "rigortype/rigor docs/internal-spec/plugin.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/plugin.md"
 sourcePath: "docs/internal-spec/plugin.md"
-sourceSha: "e3322c49c6413ab5aa2955667fb4253344d8c78b09ff930b7479751df3db47e8"
-sourceCommit: "568138c239ec5b7b39833ed6a2a21fd027e3d319"
+sourceSha: "dbc70fb05e7368f68028ff31e3bc8c648571aaad9dff412dd60eb2f3a5628936"
+sourceCommit: "5fab9b52937efba652b9f6ecde1bb0a9954a9f77"
 sourceDate: "2026-09-11T23:07:21+09:00"
 translationStatus: "translated"
 sidebar:
@@ -58,6 +58,63 @@ end
 `Base`の完全なサーフェスはRBS（[`sig/rigor/plugin/base.rbs`](https://github.com/rigortype/rigor/blob/master/sig/rigor/plugin/base.rbs)）で宣言され、**自己チェック**されます。すなわちバンドルされたプラグイン／サンプルlibツリーが`rigor check`（`make verify`とCIにチェーンされた`make check-plugins`ゲート）を通ります。プラグインの部分型が継承する契約呼び出し（`manifest.…`・`io_boundary.…`）を`Base`のRBSに対して解決する[ADR-43](../../adr/43-rbs-complete-ancestor-resolution/)のRBS完全祖先解決と組み合わせることで、契約サーフェスを誤用するプラグイン（契約が宣言しないメソッドや、名前変更されたヘルパーを呼ぶプラグイン）は`call.undefined-method`でビルドを失敗させます。補完的な構造スペック（[`spec/integration/plugin_contract_conformance_spec.rb`](https://github.com/rigortype/rigor/blob/master/spec/integration/plugin_contract_conformance_spec.rb)）がもう半分をカバーします。すなわち各フックのオーバーライド（`init` / `prepare` / `diagnostics_for_file`）はエンジンの呼び出しでMUST呼び出し可能であり続けます ── エンジンが供給するパラメータを落とすナローイングオーバーライドは失敗します（パラメータ／アリティのリスコフ互換性、ADR-5）。
 
 `#diagnostics_for_file(path:, scope:, root:)`（スライス5）は**ファイル全体**の診断フックです。デフォルトは空の配列を返します。プラグイン作成者はこれをオーバーライドして`root`（解析された`Prism::Node`）を自分で走査し、`Rigor::Analysis::Diagnostic`行の配列を返してもよい（MAY）ですが、ノードスコープのチェックに推奨されるサーフェスは`node_rule`（下記）であり、これはエンジンに走査を所有させます。`#diagnostics_for_file`は真にファイルスコープな診断——単一のロードエラー行、または解析済みファイル全体を一度に必要とするチェック——のために予約されています。ランナーはADR-7 §「スライス5-B」に従って返されたすべての診断を`source_family: "plugin.<manifest.id>"`で再スタンプするため、プラグイン作成者が誤って別のプラグインのidで公開することはありません。フック内のプラグイン例外は`rigor check`をクラッシュさせるのではなく、`:plugin_loader`の`runtime-error`診断として隔離されます。
+
+#### プロジェクトグローバルな開示 — `#disclose_once`（[#1051](https://github.com/rigortype/rigor/issues/1051)）
+
+`#disclose_once(key, message:, severity: :info, rule: "load-error")`は、**実行スコープ（run-scoped）**の放出チャネルです：ファイルの行についてではなく、実行の**入力**に関する通知です。正準的なケースはデグレードの開示（「`db/schema.rb`が存在しないため、カラムチェックはオフです」）です。
+
+このメソッドは登録を行うものであり、行を返すわけではありません。プラグイン作者は任意のフックから呼び出してよい（MAY）（ファイルが読み取られる前にプロジェクトについて判明している事実を開示するのが通例であるため、通常は`#prepare`から呼び出します。`#diagnostics_for_file`や`node_rule`ブロックからの呼び出しも許可されています）。どの場合も`nil`を返します。エンジンは解析後に登録を収集し、**`(plugin id, key)`によって重複を排除し**、残ったペアごとに1行を放出します。`key`は安定した`#to_s`を持つ任意のオブジェクトです。ユーザーに表示されることはないため、プラグインインスタンス間で変動するものを補間してはなりません（MUST NOT）。行には、他のすべてのプラグイン放出行と同様に`source_family: "plugin.<manifest.id>"`がスタンプされます。
+
+**2つの特性が拘束力を持ちます**。
+
+*実行ごとに正確に1回。*重複排除は親プロセスにおいて、コーディネーター側のレジストリとすべてのプールワーカーのテーブルの結合に対して行われます：pre-forkの`WorkerSession`の登録（したがって`#prepare`中に登録された任意のもの）、各フォーク子プロセスの`disclosures:`ペイロードスロット、および各Ractorワーカーの`:done`メッセージです。したがって、実行は`--workers 0`と`--workers N`の下で同じ開示の多重集合を放出します。
+
+1つの例外がRactorバックエンドのみに存在します（デフォルトではオフであり、現在実行を完了することすらできません ── [#1055](https://github.com/rigortype/rigor/issues/1055)を参照）：ワーカーが死亡すると、`PoolCoordinator#reanalyze_degraded_in_process`は`WorkerSession`のないベアな環境上でそのスライスを再実行し、プールモードではコーディネーター側のレジストリ上で`#prepare`が実行されないため、そのワーカーが`#prepare`から登録した開示はワーカーとともに失われます。`#diagnostics_for_file`から登録されたものは存続します。再解析によって収集側が読み取るコーディネーター側のプラグインインスタンスが実行されるためです。フォークバックエンドにはそのようなギャップはありません：そのデグレードは親セッション上で再解析され、それを排出します。
+
+*`.rigor.yml:1:1`に位置付けられる。*最初に解析されたファイルではありません。開示には正しくなり得るソース位置が存在せず、設定ファイルこそが通知の対象である入力をユーザーが宣言した場所だからです ── プラグインのロードエラー、`#prepare`の例外、および`plugin_trust.read-refused`がすでに使用しているのと同じ位置です。そこにピン留めすることは、#1051が提起した問題も解決します：プロジェクトグローバルな開示が合成されたテンプレートユニットのパス（`.erb`、[#393](https://github.com/rigortype/rigor/issues/393)）に着地することは決してなく、そのビューに関する主張として読まれてしまうのを防ぎます。
+
+したがって、既存の開示をこのチャネルに移行することは**ベースラインから可視（baseline-visible）**な変更です：`Analysis::Baseline`は`(file, qualified_rule[, message])`によってバケット化するため、行の古いファイル位置で記録されたエントリーは一致しなくなり、行は新規として浮上します。修飾されたルール名は変わらないため、`rigor baseline regenerate`が移行のすべてとなります ── ただし、この移行を行うプラグインは変更履歴とマニュアルノートでその旨をユーザーに伝える義務があります。さもないと、`:warning`グレードの開示によってアップグレード時に`--fail-on=warning`のCIが破壊されるためです。
+
+放出順序は`(registry position, key)` ── プラグインのロード順序（`consumes:`によるトポロジカル順）に続くキー文字列 ── であり、プールがファイルリストをどのようにスライスしたかの関数である登録順序では**ありません**。
+
+廃止されたイディオムは、`#diagnostics_for_file`から参照されるインスタンスごとの`@emitted`フラグです。これはプラグイン**インスタンス**ごとのものであり、フォークプールのワーカーはそれぞれ自身のインスタンスを持つため、`--workers N`はそのワーカーがたまたま最初に解析したファイルごとに最大N個のコピーを放出してしまっていました。依然としてこれを保持しているプラグインがサイレントに修正されることはありません：フラグはプラグインのものであり、エンジンは実行レベルの行とたまたま繰り返されたファイルレベルの行を区別できないためです。`#disclose_once`の採用がその移行となります。
+
+チャネルを選択する問いは、その行に**正しく**なり得る位置があるかどうかです。「インデックスがロードされなかった」には存在せず、ここに向かいます。行のそれぞれが実際のファイルと行を指名するプロジェクト全体のスキャンには存在し、それを保持しなければなりません ── それは後述の`#emit_once`に向かいます。
+
+#### プロジェクト全体の有位置バッチ — `#emit_once`（[#1060](https://github.com/rigortype/rigor/issues/1060)）
+
+`#emit_once(key, diagnostics)`は`#disclose_once`の有位置版（positioned sibling）です：`key`の下に完全に構築された`Rigor::Analysis::Diagnostic`の**バッチ**を登録し、プラグインが与えた`path` / `line` / `column`を行ごとに保持したまま、実行ごとに1回放出します。これは、単一の解析対象ファイルが所有していないファイルを各行が指名するプロジェクト全体のスキャンのために存在します ── `rigor-rails-i18n`のビューテンプレートスキャンがバンドルされたケースです：ビューは通常解析対象ターゲットではなく（`.erb`がエンジンに届くのは、`template_globs:`プラグインが貢献するテンプレートユニットとしてのみです）、行をアンカーするためのファイルごとの戻り値が存在せず、あるインスタンスが最初に解析したファイルからそれらを返すと、フォークプールのワーカーごとにバッチが繰り返されてしまっていました。
+
+これは`#disclose_once`の登録テーブルに乗るため、呼び出し箇所、`nil`の戻り値、重複排除ソース、Ractorデグレードの例外、および放出順序に関する上記の説明はすべて変更なく適用されます。`key`は`#disclose_once`とプラグインごとに1つの名前空間を共有しますが、キーは最初に登録された種類を保持します：同じチャネルで繰り返すことはno-opであり、どちらの順序であってももう一方のチャネルで再利用すると、2つの登録のいずれかをサイレントに破棄するのではなく、（`runtime-error`エンベロープを通じて報告される）`ArgumentError`を送出します。以下の相違点が拘束力を持ちます：
+
+- *行はその位置を保持する。*エンジンは`source_family: "plugin.<manifest.id>"`（`#diagnostics_for_file`の行が受け取るスタンプ）のみをスタンプするため、修飾されたルールおよびベースラインエントリーがキーとするファイルは変更されません。したがって、バッチを`@emitted`フラグから`#emit_once`へと移行することは、`#disclose_once`への行の移行とは異なり、**ベースライン中立（baseline-neutral）**です。
+- *重複排除はキーのみで行われ、最初の登録が丸ごと勝つ。*同じキーの下での後のバッチ（このインスタンスからのものであれ、他のワーカーのものであれ）は完全に破棄され、行ごとにマージされることは決してありません：すべてのワーカーが同じプロジェクトをスキャンするため、行単位の結合は部分的または乖離したビューを追加するだけだからです。
+- *バッチはファイル位置付きストリームにスタンプされる。*ファイルごとの行の直後、開示が位置する実行レベルブロックの前に配置されます。順序は`(registry position, key)`であり、次にバッチ自身の行順序となり、`--workers 0`と`--workers N`の下で同一となります。これはインクリメンタルキャッシュが任意の1つのファイルに対して保存するファイルごとのストリームの一部ではありません。
+- *行はソース位置を保持し、エンジンはそれらを再配置しない。*バッチはテンプレートユニットの行再マップをバイパスするため、各行はユーザーが編集するファイル内の位置（テンプレート自身の行、または`1:1`）を指名しなければなりません（MUST）。ユニットのコンパイル済みRubyの行から構築された行は、再配置されることなくそのコンパイル済み行で放出されます。
+
+バッチは、登録フックに到達する実行によってのみ再登録されます。ファイルを解析しない絞り込まれた`--incremental`再チェックはプラグインを呼び出さないため、開示と同様に、`#diagnostics_for_file`から登録されたバッチを再生することはありません。
+
+各行は登録時にコピーされfreezeされます（MarshalおよびRactorクリーン）。`Diagnostic`以外の要素は`ArgumentError`を送出し、通常の`runtime-error`隔離エンベロープを通じて報告されます。
+
+#### テンプレート単位 — `template_globs:` / `#template_units_for_file`（[#392](https://github.com/rigortype/rigor/issues/392)）
+
+`#template_units_for_file(path:, source:)`は、復活したADR-16ティアDの継ぎ目の**ソース変換**の半分です：`template_globs:`を宣言したプラグインにはマッチした各ファイルのバイト列が提示され、`Array<Rigor::Plugin::TemplateUnit>` ── コンパイルされたRubyに行マップ、宣言された`self`、レンダー箇所のlocals、およびレンダリングアクションのivar seedsを加えたもの ── を返します。デフォルトは`[]`を返すため、globを宣言しないプラグインは呼び出されることがなく、宣言するプラグインであっても読み取れないファイルを辞退できます。
+
+返されるユニットは、提供されたファイルを指名しなければなりません（`unit.path == path`）（MUST）。それ以外のものを指名するユニットは拒否されます：このチェックがないと、別のプロジェクトファイルを指名する`path:`はそのファイルのソースを暗黙のうちに**置き換えてしまい**（エンジンはユニット自身のpathに対してそのバイト列を提供する）、プロジェクトルート外のものを指名する`path:`は依存記述子の行なしで解析されてしまいます ── いずれも1つの誤った文字列に起因します。
+
+**例外を送出した**変換、**読み込めなかった**テンプレート、および**誤ったpathを指名した**ユニットは、それぞれテンプレートファイルに位置付けられた1つの`:plugin_loader` `runtime-error`診断として報告されます ── `#diagnostics_for_file`からの例外生成と同じ隔離エンベロープです（ADR-2 § 「プラグインの信頼とI/Oポリシー」）。ファイルはユニットに寄与せず、実行は継続し、プラグイン作者には読める情報が残ります。
+
+3つの特性により、フリーズのこの時点において契約への追加が安全となっています：
+
+- **解析前に親プロセス上で1回だけ実行される**。下流のすべてはfreezeされた`Marshal`クリーンの値オブジェクトであるため、フォークプールのワーカー内、エフェクトスキャン内（ADR-103 WD13がそこでの実行を禁じている）、あるいはいかなるファイルごとのホットパス上でもプラグインコードは実行されません。
+- **`#diagnostics_for_file`と同様に隔離される**。例外はそのファイルのユニットを喪失させ、上記の行として浮上します。実行は継続します。テンプレートコンパイラが読み取れないファイルに遭遇しても、実行全体を犠牲にしてはなりません。
+- **未使用時はゼロコスト**。ロードされたプラグインが`template_globs:`を宣言しない実行は、globを実行せず、プラグインを呼び出さず、キャッシュキースロットを追加せず、以前とまったく同じファイルを解析します。そのようなプロジェクトにおける`rigor check`はバイト単位で同一です。
+
+ユニットは`suppressed_rules:` ── そのユニットの診断に対してエンジンが破棄するルールIDプレフィックス ── を宣言することもできます（[#393](https://github.com/rigortype/rigor/issues/393)）。これはユニットごとのルール姿勢です：自身のコンパイラの出力がどの所見ファミリーをサポートできるかを知っているのはプラグインだけであり、代替案であるプロジェクト全体の`disable:`エントリーは、プロジェクトの`.rb`ファイルでもそのルールを抑制してしまうことになります。rigor-actionpackは、その`view_type_checks:`がオフの間、ERBユニットに対して`["call."]`を宣言します（レンダー箇所のlocalsが追跡されるようになった時点で、[#1047](https://github.com/rigortype/rigor/issues/1047)において`flow.`はこの集合から外れました）。
+
+`#template_units_pass_started`（[#1047](https://github.com/rigortype/rigor/issues/1047)）は、プラグインのクレームに対するすべての収集パスの開始時に1回呼び出されます ── その最初の`#template_units_for_file`の前であり、すべてのユニットが引き継がれたためにパスが何もコンパイルしない場合であっても呼び出されます。これは、クレームされたファイル全体で収集された状態を読み取り、それをプラグインインスタンス上にメモ化する変換のために存在します：長時間稼働するオーナー（`LanguageServer::ProjectContext`）はそのインスタンスをパス間で保持し、ウォームパスはエディタのバッファのみを提供するため、`#template_units_for_file`呼び出しの順序からはパスの区別がつかないためです。デフォルトは何もしないno-opであり、例外は吸収されます ── パスは進行し、プラグイン自身の再検証のみがスキップされます。同じファイル間依存関係こそが、コレクタがプラグインのクレームを全体として引き継ぐ理由です：引き継がれたインデックスが構築されて以降にそのテンプレートのいずれかが編集、追加、または削除された場合、そのユニットは1つも再利用されません（ユニットを生成しなかった削除されたテンプレートは、このルールが見逃す唯一の変更です）。
+
+値オブジェクトのフィールド、位置マッピング、`view:<logical_name>`エフェクトキー、ルール姿勢、キャッシュ同一性、および`--incremental`の境界は、[`macro-substrate.md`](../macro-substrate/#テンプレート単位--templateunit-template_globs--template_units_for_file392)において規範的です。
 
 #### ノードスコープのルール — `node_rule` / `#node_rule_diagnostics`（ADR-37）
 
@@ -233,7 +290,8 @@ end
 | `type_node_resolvers` | `Array` | カスタムなRBS型名解決を貢献する`Plugin::TypeNodeResolver`エントリー（ADR-13）。 |
 | `protocol_contracts` | `Array<ProtocolContract>` | パススコープの振る舞い契約（`path_glob` + `method_name` + `singleton` + param/return型 + 重大度）;provide-and-check（ADR-28）。 |
 | `source_rbs_synthesizer` | `#call(path) -> String?` | env構築時にプロジェクトソースファイルからRBSを合成する呼び出し可能オブジェクト（例: rbs-inline取り込み）（ADR-32）。ソースが戻り値型を与えなかったメンバーを放出しなければならないシンセサイザーは、プレースホルダーの戻り値を宣言するのではなく、そのメンバーに`%a{rigor:v1:inferred-return}`注釈を付けなければならず（MUST）（[rbs-extended.md](../../type-specification/rbs-extended/)）、これによりメンバーが宣言されたまま保たれつつ呼び出し元は推論された型を保持します（[ADR-93](../../adr/93-default-rbs-inline-ingestion/) WD6）。 |
-| `block_as_methods`, `heredoc_templates`, `trait_registries` | `Array<Plugin::Macro::*>` | ADR-16のマクロ / DSL展開基板のティア（A / C / B;一度も配線されなかったティアD `external_files:`はADR-60 WD1で削除された）。値オブジェクトの形状は[`macro-substrate.md`](../macro-substrate/)で仕様化されています。 |
+| `block_as_methods`, `heredoc_templates`, `trait_registries` | `Array<Plugin::Macro::*>` | ADR-16のマクロ / DSL展開基板のティア（A / C / B）。値オブジェクトの形状は[`macro-substrate.md`](../macro-substrate/)で仕様化されています。 |
+| `template_globs` | `Array<String>` | このプラグインがテンプレートユニットへとコンパイルするファイルのプロジェクト相対glob ── 復活したADR-16ティアD（ADR-60 WD1で削除された`external_files:`が、[#392](https://github.com/rigortype/rigor/issues/392)で需要駆動のテンプレートユニットとして復活）。純粋なクレームであり、変換自体は後述の`#template_units_for_file`。マニフェスト構築時に絶対globと`..`セグメントは例外を送出する。[`macro-substrate.md`](../macro-substrate/#テンプレート単位--templateunit-template_globs--template_units_for_file392) § テンプレート単位 で仕様化。 |
 | `nested_class_templates` | `Array<Plugin::Macro::NestedClassTemplate>` | enum形状のブロックDSL（`variant <Const>, <Type>`）からのネストされたサブクラス放出;メソッドだけでなくクラスを生み出すマクロ基板ティア（ADR-36）。[`macro-substrate.md`](../macro-substrate/)で仕様化されています。 |
 | `hkt_registrations`, `hkt_definitions` | `Array` | 軽量HKTの型関数登録（ADR-20）。 |
 | `additional_initializers` | `Array<AdditionalInitializer>` | クラス（およびそのサブクラス）上のどの`initialize`以外のメソッドがivar状態も確立するかを宣言する`{ receiver_constraint:, methods:, block_methods: }`エントリー——`methods:`は`def`形式（`def setup`）向け、`block_methods:`はブロック付き呼び出し形式（`before { … }`・`let(:x) { … }`）向け;少なくとも1つは空でないことが必要。`ScopeIndexer`の書き込み前読み込みnil健全性ゲートに供給する（ADR-38）。 |
@@ -270,7 +328,8 @@ end
 ##### `EffectAttribution`
 
 `Rigor::Plugin::EffectAttribution.new(receiver:, method:, labels:, why:, singleton: false, narrow: nil,
-discharge: false, within: nil, on_result: false, taint: nil)`。
+discharge: false, within: nil, on_result: false, taint: nil, callee: nil, callee_fallbacks: nil,
+responds: false)`。
 
 `why:`は**必須かつ空でない**こと。`data/effects/core.yml`のすべての行が1つ要求するのとまったく同じです: 理由の述べられていないラベルは、誰もレビューできない主張です。
 
@@ -288,7 +347,49 @@ discharge: false, within: nil, on_result: false, taint: nil)`。
 
 `narrow:`は`Rigor::Effects::Narrowing`ハンドラを名指しし、行では決められない問いを呼び出し自身の引数リテラルで決着させます: `connection.execute("UPDATE …")`は書き込みで、`execute(sql)`は`io.db`のままです。
 
-`taint:`は、行が境界を述べつつ、その境界が話の全部ではないと言うことを可能にします。`template-not-analysed`と`opaque-callable`に限定されます —— フレームワークモデルが正直に見えないと言える、たった2つのものです。`render`がその事例です: コントローラーがすることは完全に述べられており、テンプレートがすることはビューがエフェクト単位になるまで未知です。
+`taint:`は、行が境界を述べつつ、その境界が話の全部ではないと言うことを可能にします。`template-not-analysed`と`opaque-callable`に限定されます —— フレームワークモデルが正直に見えないと言える、たった2つのものです。`render`がその事例です: コントローラーがすることは完全に述べられており、テンプレートがすることはレンダー箇所がテンプレート自身のユニットにエッジで結ばれるまで未知です。
+
+##### `callee:` ── エッジでもあるフレームワークメソッド（[#1048](https://github.com/rigortype/rigor/issues/1048)）
+
+`callee:`は`Rigor::Effects::CalleeRule`ルールを名指しし、まったく同じ理由から`narrow:`とまったく同じ形状をしています：プラグインは**名前**を供給し、エンジンが戦略を所有します。ブロックはファイルごとのエフェクトスキャン ── [ADR-103](../adr/103-effect-labels.md) WD13が解決、探索、型付けを行うあらゆるものを禁じている唯一の場所 ── の内部で実行されなければならず、フォークプール / Ractorの境界を越えて存続できません。ルールは呼び出し自身の引数リテラル、ユニットのオーナークラス、およびユニット自身のキーを読み、**それ以外は何も読みません**：データフローなし、型検査への問い合わせなし、ファイルシステムなし。
+
+`UsersController`内の`render :show`は同期的にインプロセスで`app/views/users/show.html.erb`を実行し、[#393](https://github.com/rigortype/rigor/issues/393)以降、そのテンプレートは同じサマリーテーブルに配置される`view:users/show.html`をキーとするエフェクトユニットです。`effect_edges:`ではこれを綴ることができませんでした ── そのペイロードはレシーバーの*クラス名*であり、クラス本文上にユニットを鋳造するためです。そのため、エッジは呼び出し箇所において、作者が書いたリテラルからここで生成されます。
+
+| ルール | 適用対象 | 読み取るもの |
+| --- | --- | --- |
+| `rails_render` | コントローラー内の1つの呼び出しノード | `render :show`、`render "show"`、`render "users/show"`、`render template:`、`render action:`、`render partial:`（`collection:`の有無に関わらず） |
+| `rails_render_partial` | テンプレートユニット内の1つの呼び出しノード | 同上、ただし**裸の引数はパーシャルとして読み取られ**、`layout:`もパーシャルとして読み取られる（ビューにおいてそれらが意味するもの） |
+| `rails_implicit_render` | ユニットごとに1回、そのオーナーとその自身のキーから | なし。生成するファクトは本文が呼び出しをまったく行わなかったこと |
+
+リテラルのみからターゲットを確定できないルールは**nil**を返し、nilは`taint:`を含めてその箇所を元の状態のまま残します。実行のテーブルにユニットが存在しないキーを返すルールは何にも解決されないエッジを生成し、行の`taint:`は`FileCollection::Edge#taint_if_unresolved`から**伝播器（propagator）によって**シードされます ── 成功時に差し引くのではなく失敗時に追加されるため、不動点の各ステップは単調性を保ちます。これら2つのルールの組み合わせこそが、`render foo`、`render json:`、およびプラグインがコンパイルしなかったテンプレートの`render`（Hamlビュー、あるいは要求されたフォーマットにもそのフォールバックにも存在しないパーシャル）がすべて`template-not-analysed`汚染を保持し続ける一方で、実際のユニットに到達したrenderのみがそれを解消する理由です。
+
+##### `callee_fallbacks:` ── データとしてのフレームワークのルックアップ順序（[#1065](https://github.com/rigortype/rigor/issues/1065)）
+
+`callee_fallbacks:`は、calleeの**セレクタ**から、どのユニットもそれに応答しない場合に再試行する順序付きセレクタへのHashです ── rigor-actionpackのビュー行は`{ "js" => ["html"] }`を保持します。なぜなら`.js.erb`テンプレートがレンダリングされる間、Action Viewのルックアップコンテキストは`[:js, :html]`だからです。すべてのキーと値は1つの小文字セグメント（`/\A[a-z0-9_]+\z/`）です。自身のフォールバックとしてリストされたセレクタは破棄されます。`callee:`なしでこれを名指す行は構築時に拒否されます。
+
+このテーブルがエンジンの定数ではなくプラグインデータである理由は、ルックアップ順序がフレームワークに関する事実であり、エンジンのルールは宣言的であり続けるためです。それを参照するか**どうか**は行ではなくルールの判断です。セレクタがどこから来たかを知っているのはルールだけだからです：
+
+| ルール | テーブルを参照するか | 理由 |
+| --- | --- | --- |
+| `rails_render_partial` | 囲んでいるテンプレートユニットから**継承された**フォーマットに対してのみ | `formats:` / `format:`キーワード、または名前に綴られたフォーマット（`render "list.js"`）は作者自身の言葉であり、ルールは呼び出しがオーバーライドしたルックアップを推測するのではなく汚染を保持する |
+| `rails_render` | 決して参照しない | そのフォーマットは作者のリテラルであるか、ルールが見ることのできないリクエストフォーマットの代役となる`html`デフォルトのいずれかである |
+| `rails_implicit_render` | 決して参照しない | ユニットルールのエッジは保持すべき汚染を運ばず、その`html`も同じ代役である |
+
+ルールはそのリストをエッジ上にコピーし（`FileCollection::Edge#fallback_selectors`）、**伝播器**が決定します。なぜなら`view:watchers/_list.js`が存在するかどうかはマージされたテーブルに関する問いであり、ファイルごとのスキャンでは問えないからです。解決される最初のセレクタ（要求されたもの、次に各フォールバックの順）がエッジの唯一のターゲットとなります。行の`taint:`はそれらすべてが失敗した場合にのみシードされます。候補ごとに1つのエッジではなく1つの順序付きリストにする理由は、2つのエッジにすると両方が存在する場所で**両方の**ユニットを結合してしまい、実際にはそのうちの1つしか実行されないためです。
+
+フォールバックは、実行が辞退した要求されたキーを超えて試行されることは**ありません** ── プラグインがクレームしたもののユニットを生成しなかったテンプレートであり、`Analysis::TemplateUnits#declined_unit_keys`として保持されて`Propagator.propagate`に渡されます（[#1065](https://github.com/rigortype/rigor/issues/1065)）。「どのユニットも応答しない」と「そのようなテンプレートが存在しない」は異なる事実であり、2番目のものだけがフレームワークの次の候補を許可します：`_row.html.erb`の隣にある`_row.js.haml`はHamlとして実行されるため、ERBユニットを結合することはどの実行も生成しないラベルになってしまいます。自身がコンパイルしないハンドラに対してその保護を望むプラグインは、`template_globs:`でハンドラをクレームし、`template_units_for_file`でそれを辞退しなければなりません（MUST）。これはrigor-actionpackが`{haml,slim,jbuilder,builder,rabl,ruby}`に対して行っていることです。クレームされていないハンドラはエンジンから不可視であり、そのフォールバックはテンプレートが存在しなかったかのように発火します。
+
+1つの過剰近似が残り、許容されています：フォールバックを*通じて*到達したパーシャルは、フレームワークのルックアップコンテキストが依然として元のリストであるにも関わらず、自身のユニットキーが運ぶフォーマットで自身のパーシャルをレンダリングします。ネストされたパーシャルが両方のフォーマットで存在する場合、最初のテンプレートは誤ったフォーマットのラベルを結合します ── 汚染ではなくラベルであり、実測コーパスでの発生件数はゼロです。
+
+**ユニットルール**は、`effect_attributions:`も`effect_edges:`も従来運ぶことができなかった唯一の形状です。Railsの暗黙のrenderは*呼び出しをまったく行わなかった*メソッドに関する事実であるため、色付けすべき箇所はなく、どのメソッドが応答したかを見ることができるクラス本文も存在しません ── 完了したユニットスキャンだけが見ることができます。そのような行は**エッジのみを貢献し、他には何も貢献しません**：ラベルなし、汚染なし。したがって、何にも解決されないエッジはまったく何もコストをかけません。これは`labels:`が空であってもよい（MAY）唯一のケースでもあります。他のすべての行は依然として少なくとも1つを宣言しなければなりません。
+
+`responds: true`は、その呼び出しがユニットの応答を供給する行をマークし、同じレシーバー上のユニットルールは身を引きます。`render`、`redirect_to`, `head`、`send_data`、`send_file`はそれぞれこれを運びます：これらのいずれかを呼び出したアクションはRailsの暗黙のrenderを行わなかったため、それを慣例のテンプレートにエッジで結ぶと、アクションが決して実行しないビューを帰属させてしまいます。`render_to_string`は意図的にこれを運び**ません** ── 文字列を構築し、応答を未回答のまま残すためです。
+
+エンジンは祖先のマッチングを超えてユニットルールを3つの方法で絞り込みます。それぞれが、そうしなければ生じていた偽陽性です：
+
+- `responds:`の呼び出しは、ユニットの**トップレベル**でのみカウントされます。`redirect_to root_path if @user.nil?`はもう一方のパスに暗黙のrenderを取らせるため、そこで身を引いてしまうとテンプレートエッジが脱落し、*かつ*ユニットの読み取りが網羅的であるかのようになってしまいます。分岐する祖先は、`If` / `Unless` / `Case` / ループ / `And` / `Or`（修飾子形式を含む）、`Rescue` ── それが保護する本文ではなくrescue**節**であるため、`begin … rescue … end`の`begin`側での`render`は深さゼロであり、正しくルールを身を引かせます（その側が実行されるため） ── および**ブロックやlambda**（呼び出しが決して行われない可能性のある本文、`User.transaction { redirect_to "/" }`、`[1].each { … }`、`@after = -> { redirect_to "/" }`）です。例外は`respond_to` / `respond_with`自身のブロックであり、これは分岐ではなくフォーマットディスパッチャーです。そのアームは通常のブロックであるため、`format.json { render json: @user }`はHTMLアームの暗黙のrenderを身を引かせなくなりました。3つの過剰近似が残っています ── すべてのブランチが応答する`if`/`else`、フォーマットアーム内の応答、および`redirect_to … and return` ── そしてそれぞれは、必要なエッジを脱落させるのではなく、不要なエッジを保持します。
+- **`private`または`protected`**のメンバーはスキップされます。Railsの`action_methods`はコントローラーのpublicインスタンスメソッドであるため、`private def card`が`users/card`としてレンダリングされることは決してありません ── 一方で、たまたま`app/views/users/card.html.erb`を出荷しているプロジェクトでは、そうでなければそのテンプレートのエフェクトをヘルパーに渡してしまっていたでしょう。`Effects::Visibility`は`private` / `protected`をリージョンとして、またその引数形式（`private def foo`、`private :foo`、`private %i[foo bar]`）として読み取り、`public`はそれらすべてにおいて**差し引かれます**。リージョン内の`def self.x`は何にもマークしません。リージョンはシングルトンメソッドを隠さないためです。**splat**（`private(*names)`）は構文ではなく値であり読み取られないため、そのようなメンバーはpublicのまま残ります。クラス本文自身のトップレベルをソース順に読み取り、それより深いもの（`send(:private, :card)`、`class_eval`、include時にprivate化するconcern）はpublicとして読み取られます。これは推測するのではなく現状の動作をそのまま保ちます。
+- **ネストされた`def`**と**シングルトンメソッド**は完全にスキップされます。いずれもアクションになることは決してありません。
 
 ##### 解消とファーストパーティの資格
 
@@ -305,6 +406,7 @@ ADR-103 WD6は、**ファーストパーティのバンドル**プラグイン�
 サードパーティプラグインの越権は**部分的に受理され、決して致命的ではありません**: その`effect_root:`は無視され、そのラベルはプラグインidにちなむルートを開きます;その`discharge: true`は無視され、その行はプロジェクト自身の`effects.attribution:`テーブルのように振る舞います —— 宣言されたもので、`plugin-attribution`汚染を運びます。両方の降格は`PluginFacts#warnings`に記録され、`rigor effects`で表面化されます。これらは診断では**ありません**: ユーザーが選んだプラグインは、プロジェクトの誤りとしてフラグされるべきものではないからです。ルートが存在もせず拡張者に属してもいないラベルは即座に拒否され（`Registry::OwnershipError`）、そのプラグインのラベルだけが落ちます —— 越権する1つのプラグインが別のプラグインのボキャブラリーの名を奪ってはなりません。
 
 いずれにせよ、ラベルは**宣言**レーンに着地し、証明レーンには決して着地しません。解消する行は信頼された主張であって証明ではありません: 「これがそれのすることだ」であって、「アナライザーが本体を読んでこれを見た」ではありません。
+[ADR-103](../../adr/103-effect-labels/) WD17はファーストパーティの行を`proven`に昇格させることを検討し、それを却下しました ── それは拡張ではなく`proven`の再定義になってしまい、`rigor check`の赤をRigorが読んだコードではなくプラグイン作者の正しさに賭けることになるからです。ポリシー作者が感じる結果として、`EnvelopeCheck`はプラグイン由来のラベルをまったく判断できません。それに対する強制サーフェスは`rigor effects check`です。
 
 ##### `EffectEdge`
 

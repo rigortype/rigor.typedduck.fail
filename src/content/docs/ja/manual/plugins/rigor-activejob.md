@@ -3,8 +3,8 @@ title: "rigor-activejob"
 description: "rigortype/rigor docs/manual/plugins/rigor-activejob.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/plugins/rigor-activejob.md"
 sourcePath: "docs/manual/plugins/rigor-activejob.md"
-sourceSha: "6243d0c034e7d5a10e7b8037e427edd75d4436a45add3236c143252de1b24f88"
-sourceCommit: "18d6992f544e6222fd7ed015ba6bbee6f0bd7f14"
+sourceSha: "cacbf48f3178056fcb3d9be09194a1dea18653ac3867e241724ca405c39d63d7"
+sourceCommit: "5fab9b52937efba652b9f6ecde1bb0a9954a9f77"
 translationStatus: "translated"
 sidebar:
   order: 9050

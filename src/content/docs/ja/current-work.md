@@ -3,9 +3,9 @@ title: "現在の作業 — セッションハンドオフ"
 description: "rigortype/rigor の docs/CURRENT_WORK.md からインポート。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/CURRENT_WORK.md"
 sourcePath: "docs/CURRENT_WORK.md"
-sourceSha: "6ae8fc768b5c437bce9792af15d6c621363568a7d9382c7da37e82cba6b31998"
-sourceCommit: "d01a937b5d3d66d5ec4e6ba82036919d1bc91d10"
-sourceDate: "2026-09-14T19:31:01+09:00"
+sourceSha: "67253d100825c6c44bfc820379ec764ff0545824e7bbf8d7bc54e434822621bb"
+sourceCommit: "5fab9b52937efba652b9f6ecde1bb0a9954a9f77"
+sourceDate: "2026-09-18T04:21:19+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9050
@@ -27,48 +27,40 @@ sidebar:
 一時的な文書であり、全体が置き換えられます。バックログはGitHub Issuesで、リリース計画はMilestonesで管理されます。
 このファイルがADR、CHANGELOG、またはissueと食い違う場合、間違っているのはこのファイル側です。
 
-## v0.3.9は完全にリリース完了 —— 前回のハンドオフの「公開途中」セクションは完了
+## メンテナー待ち
 
-推測ではなく検証済み: `gem list -r rigortype`は`0.3.9`を返し、`git ls-remote --tags origin v0.3.9`は解決され、`gh release view v0.3.9`は`[0.3.9] - 2026-09-12`の本文とともに存在します。リリースに関して未完了のものは何もありません。`changelog.d/`は再び次のサイクルのフラグメントを収集しています。
+**[PR #1027](https://github.com/rigortype/rigor/pull/1027)はDraftとしてオープンされており、裁定なしではマージできません**。エージェントの指示セットを再編成します: 条件付きルールをポインタ（`docs/agents/contribution-flow.md`、`docs/agents/type-authoring.md`、および新規の`docs/agents/measurement.md`）の背後に移動することでAGENTS.mdが231行から127行へ削減され、スキルの説明が実装の詳細ではなくタスクの境界に基づいてルーティングされるようになります。ベースは`master`で、`make docs-check`はgreenです。
 
-## 2026-09-12の推論ギャップバッチが2026-09-14に着地（LANDED）
+触れる前にその形状について知っておくべきことが2点あります。ブランチ`codex/optimize-agent-instructions`がリモートに存在し、**独自のPRを持ちません** ── そのコミットは#1027の5つのうち最初のものであるため、#1027をマージすればそれもマージされます;そのブランチに対して2つ目のPRを開かないでください。そしてブランチ名にはツールのプレフィックスが含まれており、PR自体は現在これを禁止しています: オープンなPRの配下でブランチ名を変更するとPRがクローズされるため（GitHubの改名APIが古いrefを削除する）、#1027がマージされるまで名前はそのまま維持されます。
 
-ユーザーの指示により全5件のPRがマージされました: #999、#1005、#1000、#1001、続いて#1006; `4d6ac321`でmaster CIがgreenとなり、#991、#993、#994、#995、#997がクローズされました。その発端となったプレイグラウンドのスニペット —— `# @rbs num: Float`のあとの`p Foo.new.f` —— は今や`call.wrong-arity`を報告します。
+**[ADR-111](../adr/111-inline-refinement-carrier/)はProposed状態でメンテナーの裁定待ちです**（[#996](https://github.com/rigortype/rigor/issues/996)）。不可視性ではなく有界性の基準に基づいて、Rigorが独自のコメント方言を持たないことを再確認することを推奨し、同一行の`%a{}`表記のみを推奨しています ── Steepはマニュアルに記載されている単独行形式をユーザー可視のエラーとして報告しますが、同一行形式は3つのリーダーすべてでクリーンです。[`docs/notes/20260912-inline-refinement-carrier-probe.md`](../notes/20260912-inline-refinement-carrier-probe/)に基づきます。何も実装されていません;メンテナーが決定します。
 
-PRごとのCIはバッチの相互作用を見ることができませんでしたが、ローカルの5者間マージはそれを見ることができました。#1001の`Float#to_s` → `non-empty-string`が#1006のタプルフィクスチャを先鋭化させ、#995のエイリアス展開と#994の吸収によって`StatementEvaluator#eval_branch_or_nil` / `#eval_class_body`が生成等価となり、`sig/rigor/inference.rbs`の残差ピンが88 → 86へドロップしました。双方がマージ前の#1006で修正され、4者間ツリーはmasterとなったものと同一であることが検証されました。
+## 2026-09-17および2026-09-18に着地した内容
 
-PR [#990](https://github.com/rigortype/rigor/pull/990)（プレイグラウンドエディタ）は別セッションの管轄です。手を触れないこと。
+6つのバッチ。各PRは独自のworktree内のOpusレーンによって実装され、マージ前に1〜4回の敵対的レビュー（adversarial review）ラウンドを経ています。masterはc22278b7までgreenです。
 
-## 2026-09-14に着地した第2波: #1009、#1004、#1003
+- バッチ1: #1029（#986）、#1030（#963項目1）、#1031（#1014）、#1032（#1002）。
+- バッチ2: #1034（#534項目5）、#1035（#963項目3）、#1036（#391）、#1037（#392）、#1041（#987）、#1042（#1039）、#1044（#534項目6、#534をクローズ）、#1050（#393スライス）。
+- バッチ3: #1052（#1049）、#1053（#1038）、#1054（#1051）、#1057（#1048エッジのみ; `Refs`）。
+- バッチ4: #1061（#1055）、#1062（#1056）、#1063（#963項目2）。
+- バッチ5: #1066（#1047）、#1067（#1060）、#1068（#1064項目1および4; `Refs`）。
+- バッチ6: #1069（#1040）、#1070（#1065）。
 
-- [#1012](https://github.com/rigortype/rigor/pull/1012)が#1009をクローズ。古いスロットは`plugin.source_rbs_synthesizer`であり、ソースのダイジェスト＋プラグインマニフェストのみでキー付けされていたため、rbs-inlineシンセサイザーを編集したチェックアウトが直前のビルドのRBSを提供し続けていました;プラグインプロデューサーのキーも同じギャップを抱えていました。双方が今や`Cache::EngineSource.key_config_entries`を運びます。この種別は`rigor check --cache-stats`で診断してください。**依然として未検証:** `RbsDescriptor`でキー付けされる`rbs.*`変換値プロデューサー（[#1014](https://github.com/rigortype/rigor/issues/1014)）—— これがクローズするまでは、「これが発火するか？」をコールドで判定してください。
-- [#1013](https://github.com/rigortype/rigor/pull/1013)が#1004をクローズ: `to_s(8)` / `to_s(16)`および素の16進／8進数字クラス正規表現の行が、その値が不合格となるプレフィックス要求リファインメントではなく、`non-empty-string`を生成するようになりました。
-- [#1015](https://github.com/rigortype/rigor/pull/1015)が#1003をクローズ。ギャップは三項演算子対`if`ではなく文位置対値位置にありました: `ExpressionTyper#type_of_if`は2つ目の型付け器であり削除されました;値位置の条件式は`scope.evaluate`を経由するようになりました。コーパスは21ターゲットで変化なし; `rigor check lib`のウォールタイムはノイズの範囲内で不変です。
+レビューラウンドにこそ価値がありました: #1057、#1063、#1069、#1070はいずれも最初のドラフトで「自信を持って間違った回答（CONFIDENTLY AND WRONGLY）」を出していました ── オーナーの裁定に反するレーン移動、プラグインによって置き換えられたRBS型、異なる識別子を型付けした列ルール、Railsが実行しない実行にラベルを付けたフォーマットフォールバックなどです。これらのドラフトのすべてにおいてCIはgreenでした。
 
-## ADR-111はProposed状態でメンテナー待ち
+## メンテナー待ち
 
-[`docs/adr/111-inline-refinement-carrier.md`](../adr/111-inline-refinement-carrier/)、[`docs/notes/20260912-inline-refinement-carrier-probe.md`](../notes/20260912-inline-refinement-carrier-probe/)に基づく —— 3つのリーダー（`rbs-inline` gem、rbs 4.2.0の`RBS::InlineParser`、`check "lib", inline: true`のSteep 2.0.0）を通じて14の表記を測定。
+- [#1059](https://github.com/rigortype/rigor/issues/1059) ── ファーストパーティの`discharge: true`プラグイン行が証明可能かどうか。ADR-103 WD17（オーナーの裁定、2026-08-24）は不可としています;#1048のstrict/lenient受け入れラインはこれを必要としています。裁定が出るまで、`views: strict`と`views: lenient`に違いはなく、#1048と#393はそのラインでオープンのままです。
+- [#1011](https://github.com/rigortype/rigor/issues/1011) ── `sig-gen gap:`マーカーの規約。`sig/rigor/scope.rbs`内の2つの`Scope`行がこれを引用しています;別の方針が下された場合、それぞれ1行の向け直しとなります。
 
-不可視性ではなく有界性の基準に基づいて、Rigorが独自のコメント方言を持たないことを**再確認**することを推奨しています。2つの測定が表記を決定づけました: Steepは単独行の`%a{rigor:v1:…}`形式 —— `docs/manual/16-rbs-extended-annotations.md`が記載する形式 —— をユーザー可視のエラーとして報告し（`%a{pure}`も同様）、一方で同一行形式はクリーンで真に束縛されること;そして`# @rbs-ext`は名前として除外された（`@rbs\b`がハイフンの前でマッチする）のに対し、`# @extrbs`は3つのリーダーすべてでクリーンだったこと。したがって、同一行形式がADRが推奨する唯一の表記であり、[#998](https://github.com/rigortype/rigor/issues/998) —— Rigor自身のリーダーがそれを静かにドロップすること —— はマニュアルが何かを推奨するための前提条件であり、フォローアップではありません。再評価トリガー（i）は半分引かれています。メンテナーが決定します;何も実装されていません。
+## 次に着手する価値があるもの
 
-## 2026-09-14に着地した第3波: #998、#1016、#1017、#1019、#1021
+- [#1046](https://github.com/rigortype/rigor/issues/1046)および[#1043](https://github.com/rigortype/rigor/issues/1043) ── リリースゲートのアロケーション帯域。計測作業です;他のレーンがアクティブでない状態で実行し、まず`docs/agents/measurement.md`を読んでください。
+- [#1064](https://github.com/rigortype/rigor/issues/1064) ── Ractorの末尾。項目1と4は#1068で着地しました;項目6（ワーカーが事前ウォームされたRBS環境キャッシュを見逃す）はRigor側の課題でオープン、項目2と3はupstreamです。
+- [#1071](https://github.com/rigortype/rigor/issues/1071) ── `respond_to { format.js }`アームはそのアクションの`.js`テンプレートへエッジを張るべきです;#1070がコントローラアクションのラベルを獲得できなかった理由がこれです。
+- [#1072](https://github.com/rigortype/rigor/issues/1072) ── redmineにおいて、`rigor check`が解決する定数に対して`rigor type-of`がDynamicと答えてしまう。
+- [#394](https://github.com/rigortype/rigor/issues/394)（views V2/V3、ブロック解除済み）、[#963](https://github.com/rigortype/rigor/issues/963)の非メタ定数書き込みの非対称性。
 
-- [#1018](https://github.com/rigortype/rigor/pull/1018)が#998をクローズ: 同一行の`%a{}`形式の双方（`# @rbs %a{…} () -> T`、`#: %a{…} () -> T`）がRigorで束縛されるようになり、正当な`#:`表記に対して#1005が出し始めていた誤った「パースできなかった」通知は解消されました。[#1023](https://github.com/rigortype/rigor/pull/1023)が#1019をクローズ: `# @rbs-ext …`および`# @rbs n: Integer[1..10]`がドロップされる代わりに報告されるようになりました。`docs/notes/20260912-inline-refinement-carrier-probe.md`のどの行も、今やRigorによって静かにドロップされることはありません。
-- [#1022](https://github.com/rigortype/rigor/pull/1022)が#1021をクローズ: `Dynamic[top] | nil`と型付けされた引数がその`nil`アームによってオーバーロードを固定することがなくなったため、`Regexp#match?(maybe_untyped)`が`false`と型付けされなくなりました。コーパス: 8件の「常に偽」の偽陽性を除去（mail 4、redmine 3、tdiary-core 1）、追加はゼロ。
-- [#1020](https://github.com/rigortype/rigor/pull/1020)が#1016をクローズ: 文位置と値位置のための単一のand/or実装で、#313ゲートを運びます。#1022が着地するまで**保留（held）**されていました —— 単独ではオーバーロード原因による3つ目の`mail`偽陽性を追加していましたが、#1022上にリベースしたことで何も動かなくなりました。
-- [#1024](https://github.com/rigortype/rigor/pull/1024)が#1017をクローズ: 条件として使われる条件式が、その`&&` / `||`等価物と同様にナローイングします（深さ上限2）。コーパスは21ターゲットで変化なし。
+## worktreeの所在
 
-## オープンなフォローアップと、次に着手する価値のあるもの
-
-これらの波からオープンなもの: #996（ADR-111、メンテナーの裁定）、#1002、#1007、#1008、#1011、#1014。
-
-- [#1014](https://github.com/rigortype/rigor/issues/1014) —— `rbs.*`キャッシュプロデューサーの再現先行チェック;クローズにより上記の「コールドで判定」の注意書きが引退します。
-- [#1002](https://github.com/rigortype/rigor/issues/1002) —— `Rigor::Type::t`がすでにそれを命名している箇所でsig-genが22分岐のユニオンをレンダリングする;エージェント向けに準備完了。
-- [#1011](https://github.com/rigortype/rigor/issues/1011)はまず裁定が必要（`sig-gen gap:`マーカーが間違っているのか、ゲートの文言か？）; #1007 / #1008はマークされた2つの`sig/`行の背後にあるエンジンギャップ。
-
-[#992](https://github.com/rigortype/rigor/issues/992)は2026-09-14にPR [#1010](https://github.com/rigortype/rigor/pull/1010)として着地（LANDED）、デフォルト有効: `call.wrong-arity`が、誰も宣言しなかった`def`に対して位置アリティをチェックするようになり、不一致の形状を不透明（opaque）に結合するクラスごとのパラメータエンベロープテーブルを1つ読み取ります。34の調査ターゲット全体で新規発火はゼロ —— 約8,400の呼び出しサイトがエンベロープに到達し、わずか4件の外れ値は辞退（decline）となりました（2件はロード順序に依存する本物のバグでした）。間違ったアリティを持つリテラルの`Base.new.x`は、サブクラスオーバーライドの辞退が`Nominal[Base]`に適用されるため沈黙を保ちます;これは意図的な偽陰性です。キーワード引数は対象外です。それが名指す残余リスク: `--incremental`実行は、フル実行まで新しく追加されたサブクラスオーバーライドを見落とします。
-
-## ワークツリーの所在
-
-`rigor-wt/{arity-declared-source-methods,sig-gen-untyped-declared-return,numeric-to-s-refinements,inline-annotation-parse-diagnostics,tuple-union-absorption,arity-undeclared-source-methods,cross-build-synthesis-cache,hex-octal-int-string-soundness,ternary-predicate-narrowing,inline-sameline-annotation-forms,and-or-value-position-narrowing,overload-optional-untyped-args,nested-conditional-guard-narrowing,inline-silent-drop-remainder,adr-inline-refinement-dialect}`、
-PRごとに1つ（14件すべてマージ済み;削除して安全）＋ADR用のもの。`adr-inline-refinement-dialect`は、別のSteep測定を望む場合のためにインストール済みの`tool/steep/`バンドル（無視対象）も保持しています —— CoWコピーされたバンドルはネイティブ拡張が異なるRubyストアパスに対してビルドされているため、実行前に`bundle pristine`が必要です。
+残りは1つです: `rigor-wt/perfbench-harness-775`（意図的に保持されています ── 残留したスクラッチではなく、#775のアロケーション作業の背後にある計測ツールです）。前回のハンドオフに記載されていた15個のworktreeは削除され、それらが担っていたすべてのPRはマージされました。

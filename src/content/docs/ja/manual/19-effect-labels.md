@@ -3,8 +3,9 @@ title: "エフェクトラベル — コードが何を「する」か"
 description: "rigortype/rigor docs/manual/19-effect-labels.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/19-effect-labels.md"
 sourcePath: "docs/manual/19-effect-labels.md"
-sourceSha: "122f15e2853d6764658dfc38ac5a634b752e19cadf62a7b75e31546b509f52aa"
-sourceCommit: "2d0ffe6f38d01cfd850527c57987b27487b414d4"
+sourceSha: "de5ccfac0a5c3b3e2e6a6f11ab06074b83e50b70e7120af7e49ecc316338b9ff"
+sourceCommit: "5fab9b52937efba652b9f6ecde1bb0a9954a9f77"
+sourceDate: "2026-09-17T12:28:13+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9019
@@ -151,6 +152,8 @@ rigor effects --pure
 ```
 
 Redmineで436メソッド。それらがあなたの`%a{pure}`候補——この章の最後の節への入り口です。
+
+これらをすべて手作業で書き出す必要はありません。`effects:`ブロックが設定されていれば、`rigor sig-gen`はシグネチャを提案している本集合のメソッドに対して自動で注釈を付けます: 網羅的で、未ディスチャージであり、残存する`≤`ラベルがなく、ユーザーが書いた独自の境界をまだ持たず、アナライザーが記述を持たないものを何も呼び出していないすべてのメソッドの上に`%a{pure}`を付与します;そして`--effect-envelopes`のもとでは、フットプリントを持つメソッドに対してラベル付きの表記を付与します。`effects.tolerated:`がそう述べているからという理由だけでクリーンであるメソッドは、意図的に素のまま残されます —— アノテーションは、あなたのtoleratedリストを共有していない読者へ届いてしまうからです。[ハンドブック第11章](../../handbook/11-sig-gen/#エフェクトアノテーションの出力)を参照してください。
 
 ### 問いを投げる
 

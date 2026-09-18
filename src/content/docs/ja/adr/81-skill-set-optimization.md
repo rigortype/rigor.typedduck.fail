@@ -3,14 +3,17 @@ title: "ADR-81 — スキルセット最適化: スキルごとの鮮度 + `waza
 description: "rigortype/rigor docs/adr/81-skill-set-optimization.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/81-skill-set-optimization.md"
 sourcePath: "docs/adr/81-skill-set-optimization.md"
-sourceSha: "2221abba11e1dbff9545044eae5492559e56eb15c2dea0a40c362f650ab15a64"
-sourceCommit: "47c1c7d35efbce222a6a888268b263808b49796c"
+sourceSha: "32813108a303fd65f867141f7f6abfa97c1ca031b2f5b7469d1a2acf47f2c419"
+sourceCommit: "5fab9b52937efba652b9f6ecde1bb0a9954a9f77"
+sourceDate: "2026-09-16T12:20:16+09:00"
 translationStatus: "translated"
 sidebar:
   order: 4081
 ---
 
-ステータス: **Accepted — 2026-07-05実装**。ユーザー向けの`skills/`セットをどう最適化・維持するかについての2つの恒久的な決定: (1) ADR-73 WD1の鮮度基準を、エントリポイントから*すべての*スキル本体へ一般化する。これは「まず: バージョン最新のコピーを読み込む」ディレクティブ + 新設の`rigor skill --full <name>`で実現される;(2) `waza`（バンドルされたスキル評価器）のどの助言に基づいて行動するかについてのポリシー。（1）のメカニズムの詳細は同日付の[ADR-73](../73-skill-driven-user-experience/)の改訂にある;本ADRは再利用可能な*基準*と評価スタンスを記録する。
+ステータス: **Accepted — 2026-07-05実装; 2026-09-16ルーティングdescription監査**。ユーザー向けの`skills/`セットをどう最適化・維持するかについての2つの恒久的な決定: (1) ADR-73 WD1の鮮度基準を、エントリポイントから*すべての*スキル本体へ一般化する。これは「まず: バージョン最新のコピーを読み込む」ディレクティブ + 新設の`rigor skill --full <name>`で実現される;(2) `waza`（バンドルされたスキル評価器）のどの助言に基づいて行動するかについてのポリシー。（1）のメカニズムの詳細は同日付の[ADR-73](../73-skill-driven-user-experience/)の改訂にある;本ADRは再利用可能な*基準*と評価スタンスを記録する。
+
+**改訂（2026-09-16）—— 簡潔なルーティングdescription**。OpenAIのGPT-6 Astraガイダンスに促されたレビューにより、バンドルされた貢献者向けおよびユーザー向けの全30個のスキルdescriptionが監査された。各descriptionは、所有するアクション、具体的なトリガー、および自明でないルーティング境界のみを述べるようになった;実装の詳細と具体例のリストは本体またはreferencesに残される。これは、WD4が拒否する一律の60語以下ルールを導入することなく、現行のセット全体にWD4のスキルごとの判断を適用するものである。
 
 根拠: [ADR-73](../73-skill-driven-user-experience/)の2026-07-05改訂;`CLAUDE.md` § "Evaluating skills with `waza`";[ADR-74](../74-offline-doc-access-and-llms-txt/)（`rigor docs`）;[ADR-50](../50-release-engineering-and-stability-strategy/) WD1（v1.0の語彙フリーズ）。
 
@@ -31,7 +34,7 @@ sidebar:
 - **WD1 —— ディレクティブ + `rigor skill --full`**。エントリー以外のすべてのスキルは、`rigor skill --full <name>`を指す「まず: バージョン最新のコピーを読み込む」セクションを備える——SKILL.md本体に続けてすべての`references/*.md`をインライン展開し、完全で現行の手順を1回の呼び出しで返す新設モードだ（`SkillCommand#run_full`、[`lib/rigor/cli/skill_command.rb`](https://github.com/rigortype/rigor/blob/master/lib/rigor/cli/skill_command.rb)）。1回の呼び出し、パス計算不要、ファイル読み取りツール不要、そして凍結された同居の`references/`を読むリスクもない。
 - **WD2 —— ハイブリッドな調整**。**本体がドリフトする正確なコマンド / フラグ / 設定キー / ルールIDを抱える箇所でだけ**、揮発性の詳細を`references/`へ切り出す;それ以外はディレクティブだけで十分だ（ほとんどのスキルはすでに詳細を`references/`へ外部化しているか、`rigor docs`へ委譲している）。`rigor-doctor`は実演的でアグレッシブな分割だ;`rigor-next-steps`は純粋なインストール前ブートストラップのままとする。
 - **WD3 —— `waza`の使い方**。採用: **リンクの健全性**（`waza check`が`rigor-ci-setup`内で、デフォルトブランチが`master`なのに`blob/main`のHTTP-404ドキュメントリンクを4件検出した）と**ハードコードされたドキュメントURLの過剰な具体性**（オフラインの`rigor docs <chapter>`を優先、基準1と収束する）。却下: **500トークンのバジェット** / 「complexity: comprehensive」（我々のスキルは意図的に包括的だ）と**ラベル付きdescription形式**（我々の散文の`Triggers: "…"` + `NOT for … (use X)`が同じことを伝えつつ読みやすい——その欠如を`waza`が減点するのは公開バイアスであって、本物のギャップではない）。`waza dev --auto`は`CLAUDE.md`に従い禁止のまま（頻繁に偽である`USE FOR:` / `INVOKES:`のボイラープレートを注入するため）。
-- **WD4 —— description長はスキルごとの判断だ**。`waza`のクロスモデル密度助言（60語以下のdescription、アクション動詞で始める）は、過度に広いカタログエントリーにのみ適用し、トリガー再現率を犠牲にする一律ルールにはしない——skill-creatorの「押しの強いdescription」ガイダンスが引き続き統制する。切り詰めの候補は`rigor-ask`（169語）だけだ。
+- **WD4 —— description長はスキルごとの判断だ**。`waza`のクロスモデル密度助言（60語以下のdescription、アクション動詞で始める）は、過度に広いカタログエントリーにのみ適用し、トリガー再現率を犠牲にする一律ルールにはしない——skill-creatorの「押しの強いdescription」ガイダンスが引き続き統制する。2026-07-05の決定時点では`rigor-ask`（169語）だけが切り詰めの候補であった;2026-09-16の監査では、具体例の多いトリガーリストがルーティングノイズとなっていたため、すべての現行descriptionに対して同じ判断が適用された。
 - **WD5 —— 凍結された語彙**。`rigor skill --full`とディレクティブの存在は、既存の`rigor skill`文法と並んで、ADR-50 WD1のもとv1.0で凍結される公開サーフェスになる。
 
 ## 却下 / 見送りされた選択肢

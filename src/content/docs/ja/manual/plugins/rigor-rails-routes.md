@@ -3,8 +3,8 @@ title: "rigor-rails-routes"
 description: "rigortype/rigor docs/manual/plugins/rigor-rails-routes.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/plugins/rigor-rails-routes.md"
 sourcePath: "docs/manual/plugins/rigor-rails-routes.md"
-sourceSha: "08c93813229e342655fd360672a1169e22852a4452fdfc6f55025b103fdbc474"
-sourceCommit: "0cf313582cfbe2fa7da8148dc498d0b2a0893438"
+sourceSha: "a4592c78c36baa7bbdfd26357f08a75131106774da25ed44c1bbd2500918226b"
+sourceCommit: "5fab9b52937efba652b9f6ecde1bb0a9954a9f77"
 translationStatus: "translated"
 sidebar:
   order: 9050

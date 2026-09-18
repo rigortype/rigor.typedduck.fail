@@ -3,8 +3,9 @@ title: "ADR-60: フリーズ前のプラグイン契約統合"
 description: "rigortype/rigor docs/adr/60-pre-freeze-plugin-contract-consolidation.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/60-pre-freeze-plugin-contract-consolidation.md"
 sourcePath: "docs/adr/60-pre-freeze-plugin-contract-consolidation.md"
-sourceSha: "a10dbddc992115e08910461896569f8f090061e7f38b140579183905e9581319"
-sourceCommit: "222d8e03ee0f4252795f6c7294672a76c20b7ae3"
+sourceSha: "7cd33371d1ddd05036ac9f28a432b3f9545b0632f962408cc1de7e64967495d0"
+sourceCommit: "5fab9b52937efba652b9f6ecde1bb0a9954a9f77"
+sourceDate: "2026-09-17T11:51:25+09:00"
 translationStatus: "translated"
 sidebar:
   order: 4060
@@ -68,6 +69,8 @@ ADR-37/52/53適用後の契約（contract）を、本番プラグイン31個＋�
 気づかぬうちにではなく、声高に。ADR-16のTier Dは記録された設計として残る。具体的な
 ターゲット（Redmineのwebhookペイロード、tDiaryのプラグインローダー）がそれを要求した
 ときに、フィールドはそのスキャナと**ともに**1つの変更で戻ってくる。
+
+> **ステータス（2026-09-17）:**削除は維持され、この段落が規定したとおりの復帰が実現した —— 宣言とそのエンジン消費者の双方を運ぶ1つの変更として。[#392](https://github.com/rigortype/rigor/issues/392)はこのティアを**テンプレートユニット**として復活させた: `template_globs:`に加え、行マップを伴う`#template_units_for_file`ソース変換である。`external_files:`および`Macro::ExternalFile`は削除されたままである;需要（ビュー）が必要としたのはglobではなくコンパイラであったため、復帰したサーフェスは異なる表記となっている。
 
 ## WD2 — マクロ値オブジェクトの命名の正規化
 
