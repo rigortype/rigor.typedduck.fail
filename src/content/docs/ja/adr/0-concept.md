@@ -3,9 +3,9 @@ title: "ADR-0: Rigorの基盤とコアアーキテクチャ"
 description: "rigortype/rigor docs/adr/0-concept.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/0-concept.md"
 sourcePath: "docs/adr/0-concept.md"
-sourceSha: "fd34f0958027c08e96942325331f823d814ca86b789904446601d16e521b80ec"
-sourceCommit: "db7b23d42e9b47560438b67dfe16d53e03f70575"
-sourceDate: "2026-09-10T04:47:52+09:00"
+sourceSha: "5901d2d33f6e72e948cfa72f45e31eac8e05879fadffcccd2fbf3189bd5a11e6"
+sourceCommit: "0f252e3218936e8dc7004b574c709a434b996d2a"
+sourceDate: "2026-09-19T03:42:27+09:00"
 translationStatus: "translated"
 sidebar:
   order: 4000
@@ -33,7 +33,7 @@ SorbetやSteep、RBSといったツールの登場によってRubyエコシス�
 * **推論ファースト：**コアエンジンは深い制御フロー解析（CFA）とデータフロー解析に基づいて型を推定します。
 * **高度な型：** Rigorはユニオン型（union type、合併型とも）、リテラル型（例：`1`、`"str"`）、仮想/精細化型（例：`non-empty-string`、`positive-int`）をサポートします。
 * **外部依存はRBS経由：**標準的なgemの型は既存のRBSエコシステムを使って解決します。
-* **`RBS::Extended`：**標準のRBSではまだサポートされていない高度な型を表現するため、Rigor固有のメタデータはRBSアノテーションや外部/生成済みシグネチャを通じてRBS宣言に添付します。新しいRubyコメントDSLは使いません。
+* **`RBS::Extended`：**標準のRBSではまだサポートされていない高度な型を表現するため、Rigor固有のメタデータはRBSアノテーションや外部/生成済みシグネチャを通じてRBS宣言に添付します。新しいRubyコメントDSLは使いません。Rigorは依然としてRubyコード全体に型を散りばめることを誰にも要求しません。唯一のRigorが読み取るコメントチャンネルである`# @extrbs`はオプトインであり、RBSで表現できないもののみを担い、生成されるシグネチャにはRBSアノテーションとして書き出されます（[ADR-112](112-extrbs-comment-channel.md)）。
 
 ### 3. PHPStanライクなプラグインアーキテクチャ
 

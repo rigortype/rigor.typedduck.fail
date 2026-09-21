@@ -3,9 +3,9 @@ title: "現在の作業 — セッションハンドオフ"
 description: "rigortype/rigor の docs/CURRENT_WORK.md からインポート。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/CURRENT_WORK.md"
 sourcePath: "docs/CURRENT_WORK.md"
-sourceSha: "67253d100825c6c44bfc820379ec764ff0545824e7bbf8d7bc54e434822621bb"
-sourceCommit: "5fab9b52937efba652b9f6ecde1bb0a9954a9f77"
-sourceDate: "2026-09-18T04:21:19+09:00"
+sourceSha: "6cb08ecb45b6f2fdff732f2dd067896a8d7909cee96274a72be4ef1e368d2c9c"
+sourceCommit: "0f252e3218936e8dc7004b574c709a434b996d2a"
+sourceDate: "2026-09-19T04:46:09+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9050
@@ -27,40 +27,25 @@ sidebar:
 一時的な文書であり、全体が置き換えられます。バックログはGitHub Issuesで、リリース計画はMilestonesで管理されます。
 このファイルがADR、CHANGELOG、またはissueと食い違う場合、間違っているのはこのファイル側です。
 
-## メンテナー待ち
+## 2026-09-19のセッションで決着した内容
 
-**[PR #1027](https://github.com/rigortype/rigor/pull/1027)はDraftとしてオープンされており、裁定なしではマージできません**。エージェントの指示セットを再編成します: 条件付きルールをポインタ（`docs/agents/contribution-flow.md`、`docs/agents/type-authoring.md`、および新規の`docs/agents/measurement.md`）の背後に移動することでAGENTS.mdが231行から127行へ削減され、スキルの説明が実装の詳細ではなくタスクの境界に基づいてルーティングされるようになります。ベースは`master`で、`make docs-check`はgreenです。
+徹底的な検討セッション（grilling session）により、前回のハンドオフで未解決だったメンテナーへの質問すべてに裁定が下されました。その後、裁定は敵対的レビュー（adversarial review）を経て、2つの初稿が覆されました: 1つは#1046の裁定と矛盾しており、もう1つはRailsの`default_render`を読み違えていました。裁定はそれが拘束力を持つ場所に記録されています:
 
-触れる前にその形状について知っておくべきことが2点あります。ブランチ`codex/optimize-agent-instructions`がリモートに存在し、**独自のPRを持ちません** ── そのコミットは#1027の5つのうち最初のものであるため、#1027をマージすればそれもマージされます;そのブランチに対して2つ目のPRを開かないでください。そしてブランチ名にはツールのプレフィックスが含まれており、PR自体は現在これを禁止しています: オープンなPRの配下でブランチ名を変更するとPRがクローズされるため（GitHubの改名APIが古いrefを削除する）、#1027がマージされるまで名前はそのまま維持されます。
-
-**[ADR-111](../adr/111-inline-refinement-carrier/)はProposed状態でメンテナーの裁定待ちです**（[#996](https://github.com/rigortype/rigor/issues/996)）。不可視性ではなく有界性の基準に基づいて、Rigorが独自のコメント方言を持たないことを再確認することを推奨し、同一行の`%a{}`表記のみを推奨しています ── Steepはマニュアルに記載されている単独行形式をユーザー可視のエラーとして報告しますが、同一行形式は3つのリーダーすべてでクリーンです。[`docs/notes/20260912-inline-refinement-carrier-probe.md`](../notes/20260912-inline-refinement-carrier-probe/)に基づきます。何も実装されていません;メンテナーが決定します。
-
-## 2026-09-17および2026-09-18に着地した内容
-
-6つのバッチ。各PRは独自のworktree内のOpusレーンによって実装され、マージ前に1〜4回の敵対的レビュー（adversarial review）ラウンドを経ています。masterはc22278b7までgreenです。
-
-- バッチ1: #1029（#986）、#1030（#963項目1）、#1031（#1014）、#1032（#1002）。
-- バッチ2: #1034（#534項目5）、#1035（#963項目3）、#1036（#391）、#1037（#392）、#1041（#987）、#1042（#1039）、#1044（#534項目6、#534をクローズ）、#1050（#393スライス）。
-- バッチ3: #1052（#1049）、#1053（#1038）、#1054（#1051）、#1057（#1048エッジのみ; `Refs`）。
-- バッチ4: #1061（#1055）、#1062（#1056）、#1063（#963項目2）。
-- バッチ5: #1066（#1047）、#1067（#1060）、#1068（#1064項目1および4; `Refs`）。
-- バッチ6: #1069（#1040）、#1070（#1065）。
-
-レビューラウンドにこそ価値がありました: #1057、#1063、#1069、#1070はいずれも最初のドラフトで「自信を持って間違った回答（CONFIDENTLY AND WRONGLY）」を出していました ── オーナーの裁定に反するレーン移動、プラグインによって置き換えられたRBS型、異なる識別子を型付けした列ルール、Railsが実行しない実行にラベルを付けたフォーマットフォールバックなどです。これらのドラフトのすべてにおいてCIはgreenでした。
+- **#996 → [ADR-112](../adr/112-extrbs-comment-channel/)**（Accepted; ADR-111は失効）。RigorはRBSで表現できないもののために`# @extrbs`チャンネルを読み取り、プレーンなRBSは`@rbs` / `#: `に残ります。sig-genはリファインメントを`%a{rigor:v1:…}`として`sig/`に書き出します。整合性ルールがADR-32 WD13の「`sig/`が勝つ」を置き換えます。実装: #1073（リーダー）、#1074（ペイロード文法とエスケープ）、#1075（整合性ルール）、#1076（sig-gen;#1073と#1074によってブロック）。
+- **#1059**: ADR-103 WD17を維持。マニュアルの`views: strict` / `lenient`のペアは1つの例に統合されました。#1048と#393はクローズされ、#394はブロック解除されました。
+- **#1011、#1071**: 裁定を投稿済み;いずれも`ready-for-agent`。#1072は#512の重複としてクローズ。
+- **`rigor lens` → [ADR-113](../adr/113-rigor-lens/)**（Accepted;敵対的レビューも実施済み）。型の来歴（provenance）とlisplens互換のアンカーを持つ宣言マップであり、1ファイルの`check`として計算されます。`type-of`も同じ計算を採用し、これは#512の「シードなし」の裁定を置き換えます;#512は#1083とともにクローズされます。Issue: #1080（`def_sites`）、#1081（xxh3）、#1082（`declared_members`）、#1083（フェーズ1）、#1084（MCP / スキル）、#1085（フェーズ2 `--annotate`、`ready-for-human`）。
+- **#1046**: 2026-09-17の裁定を維持（受け入れ、リリース準備時に再調整）。#1043はクローズ。ゲートではないフォローアップ: #1077（#1010のアリティの無駄を削減）および#1078（`release-gate.yml`をスケジュールで実行）。
+- ZARD初稿へのフィードバック: [`docs/notes/20260919-zard-first-draft-feedback.md`](../notes/20260919-zard-first-draft-feedback/)。
 
 ## メンテナー待ち
 
-- [#1059](https://github.com/rigortype/rigor/issues/1059) ── ファーストパーティの`discharge: true`プラグイン行が証明可能かどうか。ADR-103 WD17（オーナーの裁定、2026-08-24）は不可としています;#1048のstrict/lenient受け入れラインはこれを必要としています。裁定が出るまで、`views: strict`と`views: lenient`に違いはなく、#1048と#393はそのラインでオープンのままです。
-- [#1011](https://github.com/rigortype/rigor/issues/1011) ── `sig-gen gap:`マーカーの規約。`sig/rigor/scope.rbs`内の2つの`Scope`行がこれを引用しています;別の方針が下された場合、それぞれ1行の向け直しとなります。
+このリストからは何もありません。残っている裁定タイプのissueは、長らく保留されている`ready-for-human`バックログ（`gh issue list --label ready-for-human`）のみです。
 
 ## 次に着手する価値があるもの
 
-- [#1046](https://github.com/rigortype/rigor/issues/1046)および[#1043](https://github.com/rigortype/rigor/issues/1043) ── リリースゲートのアロケーション帯域。計測作業です;他のレーンがアクティブでない状態で実行し、まず`docs/agents/measurement.md`を読んでください。
-- [#1064](https://github.com/rigortype/rigor/issues/1064) ── Ractorの末尾。項目1と4は#1068で着地しました;項目6（ワーカーが事前ウォームされたRBS環境キャッシュを見逃す）はRigor側の課題でオープン、項目2と3はupstreamです。
-- [#1071](https://github.com/rigortype/rigor/issues/1071) ── `respond_to { format.js }`アームはそのアクションの`.js`テンプレートへエッジを張るべきです;#1070がコントローラアクションのラベルを獲得できなかった理由がこれです。
-- [#1072](https://github.com/rigortype/rigor/issues/1072) ── redmineにおいて、`rigor check`が解決する定数に対して`rigor type-of`がDynamicと答えてしまう。
-- [#394](https://github.com/rigortype/rigor/issues/394)（views V2/V3、ブロック解除済み）、[#963](https://github.com/rigortype/rigor/issues/963)の非メタ定数書き込みの非対称性。
+委任可能・独立: #1071、#1011、#1077、#1078、#1081、#1082、および#394のV3スライス（Jbuilder、ViewComponent、Haml/Slim）。コア: #1073 → #1074 → #1075 / #1076（この順序で、1つのレーン）; #1080 → #1083 → #1084（lensレーン）; #394 V2、#963の非メタ定数書き込みの残余、および#1064項目6（ADR-15がオープンの間は低価値）。他の測定レーンがアクティブでない状態で#1077を測定すること;まず`docs/agents/measurement.md`を読んでください。
 
 ## worktreeの所在
 
-残りは1つです: `rigor-wt/perfbench-harness-775`（意図的に保持されています ── 残留したスクラッチではなく、#775のアロケーション作業の背後にある計測ツールです）。前回のハンドオフに記載されていた15個のworktreeは削除され、それらが担っていたすべてのPRはマージされました。
+`rigor-wt/perfbench-harness-775`は意図的に保持されています: #775のアロケーション作業の背後にある計測ツールです。

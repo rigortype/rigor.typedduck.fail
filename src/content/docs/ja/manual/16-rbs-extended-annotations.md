@@ -3,9 +3,9 @@ title: "RBS::Extendedアノテーション"
 description: "rigortype/rigor docs/manual/16-rbs-extended-annotations.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/16-rbs-extended-annotations.md"
 sourcePath: "docs/manual/16-rbs-extended-annotations.md"
-sourceSha: "3ddef0ae49566d54aa50ff0dda4893538e2636345b8aa74849541f7afa4b6532"
-sourceCommit: "d01a937b5d3d66d5ec4e6ba82036919d1bc91d10"
-sourceDate: "2026-09-14T17:15:38+09:00"
+sourceSha: "c66d5525a902d7c91b7c07d0c452b8696920151b7c25cb415f62cee1be5dec41"
+sourceCommit: "0f252e3218936e8dc7004b574c709a434b996d2a"
+sourceDate: "2026-09-19T03:42:27+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9016
@@ -50,9 +50,11 @@ end
 | 単独行 | 構文エラー（`expected a token pARROW`）、アノテーション喪失 | アノテーション保持 |
 | 同一行 | アノテーションおよびメソッド型を保持 | アノテーション保持、メソッド型は**脱落** |
 
-Rigorはすべての行の両方の半分を保持します。`.rb`ファイルに対してどの表記を推奨すべきかは、測定結果を運ぶ[ADR-111](../../adr/111-inline-refinement-carrier/)で現在もオープンです。同一行アノテーションの後のメソッド型がパースできない場合、メソッドは型付けされないままとなり、Rigorはそれを[`plugin.rbs-inline.source-rbs-annotation-not-honoured`](plugins/rigor-rbs-inline/#同一行アノテーション)として報告します。
+Rigorはすべての行の両方の半分を保持します。Steepもインラインモードで実行する場合は、同一行の表記を使用してください。測定結果は[ADR-111](../../adr/111-inline-refinement-carrier/)にあります。同一行アノテーションの後のメソッド型がパースできない場合、メソッドは型付けされないままとなり、Rigorはそれを[`plugin.rbs-inline.source-rbs-annotation-not-honoured`](plugins/rigor-rbs-inline/#同一行アノテーション)として報告します。
 
-これには`rbs-inline`ライブラリのインストールが必要です;インストールされていれば、Rigorはインラインアノテーションをデフォルトで取り込みます（[ADR-93](../../adr/93-default-rbs-inline-ingestion/)）。Rigor専用のコメント方言はありません: `# rigor:`コメントは引き続き抑制専用です。
+これには`rbs-inline`ライブラリのインストールが必要です;インストールされていれば、Rigorはインラインアノテーションをデフォルトで取り込みます（[ADR-93](../../adr/93-default-rbs-inline-ingestion/)）。`# rigor:`コメントは引き続き抑制専用です。
+
+RBSで表現できないもののための専用の`# @extrbs`コメントが[ADR-112](../../adr/112-extrbs-comment-channel/)で採択されましたが、まだ実装されていません（[#1073](https://github.com/rigortype/rigor/issues/1073)）。それが出荷されるまでは、上記の`%a{}`形式がインラインのルートとなります。`:asc | :desc`のようにプレーンなRBSで表現できる型は、いずれにせよ`# @rbs`または`#:`に属します。
 
 このページは*運用上*のリファレンス（書けるディレクティブとその構文）です。規範的なルール（衝突の扱い、マージ、由来）については[`docs/type-specification/rbs-extended.md`](../../type-specification/rbs-extended/)を、型モデルのウォークスルーについては[ハンドブック第7章](../../handbook/07-rbs-and-extended/)を参照してください。
 

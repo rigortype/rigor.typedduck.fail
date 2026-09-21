@@ -3,15 +3,17 @@ title: "ADR-111 — .rbファイルにおけるリファインメントの記述
 description: "rigortype/rigor docs/adr/111-inline-refinement-carrier.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/111-inline-refinement-carrier.md"
 sourcePath: "docs/adr/111-inline-refinement-carrier.md"
-sourceSha: "2e3a479266617756fa006ac2530bc827ad800adb623916899c9cbcd66654cf93"
-sourceCommit: "d01a937b5d3d66d5ec4e6ba82036919d1bc91d10"
-sourceDate: "2026-09-14T17:16:38+09:00"
+sourceSha: "72d0da6e5c401d2bec2c8cd66c5c8ba3d40573edb2aba61e23d75d6aaaa22888"
+sourceCommit: "0f252e3218936e8dc7004b574c709a434b996d2a"
+sourceDate: "2026-09-19T03:42:27+09:00"
 translationStatus: "translated"
 sidebar:
   order: 4111
 ---
 
-ステータス: **Proposed、2026-09-12; Steep測定を反映して同日改訂**。[#996](https://github.com/rigortype/rigor/issues/996)について裁定する。Rigorが独自のコメント方言を持たないことを**再確認**することを推奨する: `.rb`ファイル内のリファインメントは、RBS文法がすでに定義している`%a{rigor:v1:…}`アノテーションに乗り、その消去型（erasure）を述べる素の型位置の傍らに置かれ、型位置の内部には決して置かれない。何も実装されていない。初版が開いたまま残していた前提条件 —— Steep —— は今や測定され、1つのことを動かした: マニュアルが記載する単独行の`%a{}`形式はSteepのインラインモード下でハードエラーとなるため、**同一行**形式が本ADRが推奨する唯一の表記であり、[#998](https://github.com/rigortype/rigor/issues/998) —— Rigor自身のリーダーが[PR #1018](https://github.com/rigortype/rigor/pull/1018)までその形式をドロップしていた —— はそれを推奨するための前提条件であってフォローアップではない。再評価トリガー（i）は半分引かれている; WD5がもう半分が今や何を意味するかを述べる。メンテナーが決定する。
+ステータス: **[ADR-112](112-extrbs-comment-channel.md)により置き換え（Superseded）、2026-09-19**。メンテナーは#996に対して逆の裁定を下しました: Rigorは`# @extrbs`チャンネルを読み取り、Rigor自身が生成されたシグネチャに`%a{}`を書き込みます。以下の測定結果はそのADRの根拠であり、引き続き有効です。勧告およびWD1〜WD4は失効しました。以下の本文は、Proposedドラフト当時のままのテキストです。
+
+当初のステータス: **Proposed、2026-09-12; Steep測定を反映して同日改訂**。[#996](https://github.com/rigortype/rigor/issues/996)について裁定する。Rigorが独自のコメント方言を持たないことを**再確認**することを推奨する: `.rb`ファイル内のリファインメントは、RBS文法がすでに定義している`%a{rigor:v1:…}`アノテーションに乗り、その消去型（erasure）を述べる素の型位置の傍らに置かれ、型位置の内部には決して置かれない。何も実装されていない。初版が開いたまま残していた前提条件 —— Steep —— は今や測定され、1つのことを動かした: マニュアルが記載する単独行の`%a{}`形式はSteepのインラインモード下でハードエラーとなるため、**同一行**形式が本ADRが推奨する唯一の表記であり、[#998](https://github.com/rigortype/rigor/issues/998) —— Rigor自身のリーダーが[PR #1018](https://github.com/rigortype/rigor/pull/1018)までその形式をドロップしていた —— はそれを推奨するための前提条件であってフォローアップではない。再評価トリガー（i）は半分引かれている; WD5がもう半分が今や何を意味するかを述べる。メンテナーが決定する。
 
 根拠:
 [`docs/notes/20260912-inline-refinement-carrier-probe.md`](../../notes/20260912-inline-refinement-carrier-probe/)

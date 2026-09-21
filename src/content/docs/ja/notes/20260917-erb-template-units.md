@@ -105,6 +105,6 @@ Railsでは自身のERBハンドラがルール（`ActionView::Template::Handler
 
 ## 意図的に計測しなかったもの
 
-- **Haml / Slim**。 mastodonのユーザー向けビューはHamlである。`template_globs:`は`*.erb`のみを対象とするため、ここでは見えない。設計ノート（§ 11.3）では、それらは異なるコンパイラの背後にある同一の継ぎ目として扱われている。
+- **Haml / Slim**。mastodonのユーザー向けビューはHamlである。`template_globs:`は`*.erb`のみを対象とするため、ここでは見えない。設計ノート（§ 11.3）では、それらは異なるコンパイラの背後にある同一の継ぎ目として扱われている。
 - **診断に関するプール実行とシーケンシャル実行の比較**。エフェクトテーブルは、両プロジェクトにおいて`RIGOR_RACTOR_WORKERS=2`とシーケンシャル実行の間で完全に同一である（redmine: 同一の502個の`view:`行、`io.db.*`を持つ35行）。診断ストリームは1行だけ異なり、その行はrigor-activerecordのスキーマ欠落通知である — その1実行あたり1回のフラグはプラグインインスタンスごと、したがってワーカーごとである。その重複は`master`にも存在する（viewsを退避させた状態で434対433）。テンプレートユニットが追加する差異は、チャンクがビューから始まるワーカーがそのコピーを`.erb`パスに配置することである。[#1051](https://github.com/rigortype/rigor/issues/1051)として起票。
 - **`views: lenient`対`views: strict`**。この2つのスタンザは[`docs/manual/plugins/rigor-actionpack.md`](../../manual/plugins/rigor-actionpack/)に記載されており、その背後にある仕組みは機能している — ビューユニットは現在`effects.envelopes:`の対象であり、指摘箇所はテンプレート内に位置付けられる。しかし、プラグインの帰属から到着する`io.db.read`が**declared**レーンに乗る一方で`Effects::EnvelopeCheck`がprovenレーンを読み取るため、2つのプリセットの動作にはまだ*差異*が生じない。これはRailsエフェクトレイヤー全体の性質であり（通常の`User.find`に対しても`UsersController#index`は`[mutate.self] ≤ [io.db.read]`を報告する）、テンプレートの性質ではないため、ここで回避策を講じるのではなく[#1048](https://github.com/rigortype/rigor/issues/1048)として個別に起票された。

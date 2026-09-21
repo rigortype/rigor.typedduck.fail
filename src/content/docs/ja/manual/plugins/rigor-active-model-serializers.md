@@ -47,7 +47,7 @@ app/serializers/errors_serializer.rb:11:23: error: undefined method `nickname' f
 
 シリアライザのソース内の何ものも、どのクラスをシリアライズするかを明示していません ── AMSはシリアライザ構築時にリソースを束縛します。したがって型は常に**導出（derived）**され、プラグインが型を貢献する前に2つの独立した事項が一致しなければなりません：
 
-1. **名前が解決される**。 `<Model>Serializer`がプロジェクトにある正確に1つのモデルを指名している ── `REST::AccountSerializer` → `Account`。
+1. **名前が解決される**。`<Model>Serializer`がプロジェクトにある正確に1つのモデルを指名している ── `REST::AccountSerializer` → `Account`。
 2. **モデルがシリアライザに応答する**。シリアライザがそのリソースから読み取るすべての名前 ── 自身で定義していない`attributes` / `attribute` / `has_many` / `has_one` / `belongs_to`宣言、および本文内のすべての`object.<name>` ── が、そのモデルのカラム、カラムごとの述語、関連、enum、エイリアス、スコープ、マクロ定義メソッド、あるいはプロジェクトがそのモデルや祖先に定義したメソッドである。
 
 応答しない名前が1つでもあるとシリアライザ全体が辞退されます。なぜなら、その場合リソースは別の何か（多くの場合、モデルのサーフェスの大部分を共有し、異なる1〜2個の名前によって正体が明かされるプレゼンターやデコレーター）だからです。Mastodonでは、このチェックこそが、リソースが`AccountConversation`であるときに`REST::ConversationSerializer`が`Conversation`として型付けされるのを防いでいます。
@@ -90,11 +90,11 @@ plugins:
 
 ## 制限事項
 
-- **SimpleFormのinputs**。 `SimpleForm::Inputs::Base#object`は名前のみを共有し、それ以外は何も共有しません ── そのリソースはinputクラスからではなく、`simple_form_for`の呼び出し箇所から来ます。
+- **SimpleFormのinputs**。`SimpleForm::Inputs::Base#object`は名前のみを共有し、それ以外は何も共有しません ── そのリソースはinputクラスからではなく、`simple_form_for`の呼び出し箇所から来ます。
 - **`serializer:` / `each_serializer:`オプション**。これらは関連に対するシリアライザを名指すものであり、シリアライザに対するモデルを名指すことは決してありません。
-- **スキーマとソースが述べていないモデルサーフェス**。 `method_missing`からモデルが取得するメソッド、`rigor-activerecord`が認識しないgemのマクロからのメソッド、あるいは実行時にincludeされたモジュールからのメソッドはモデルインデックスから不可視であるため、それらを読み取るシリアライザは辞退されます。`rigor-activerecord`は`delegate`、concernがその`included do`内で宣言する関連、Paperclip / Active Storageのアタッチメントマクロ、および`enum`値の述語を読み取ります（[#1049](https://github.com/rigortype/rigor/issues/1049)）。マクロが定義するそれ以外のものはまだ折りたたまれません。
-- **リソースの読み取り方の一部**。 `object[:key]`、`object.title =`、`object.try(:name)`、`object.present?`、および`attribute(:x) { ... }`ブロックは証拠として読み取られないため、それらを使用するシリアライザは、モデルが正しい場合であっても辞退することがあります。これは常に安全な方向（誤った型ではなく、辞退）です。
-- **プレーンなオブジェクトに対するシリアライザ**。 `ActiveModelSerializers::Model`サブクラス、Struct、プレゼンターなど。対象としたいクラスが検査しても問題のない実際の定数である場合は、`model_overrides`を使用してください。
+- **スキーマとソースが述べていないモデルサーフェス**。`method_missing`からモデルが取得するメソッド、`rigor-activerecord`が認識しないgemのマクロからのメソッド、あるいは実行時にincludeされたモジュールからのメソッドはモデルインデックスから不可視であるため、それらを読み取るシリアライザは辞退されます。`rigor-activerecord`は`delegate`、concernがその`included do`内で宣言する関連、Paperclip / Active Storageのアタッチメントマクロ、および`enum`値の述語を読み取ります（[#1049](https://github.com/rigortype/rigor/issues/1049)）。マクロが定義するそれ以外のものはまだ折りたたまれません。
+- **リソースの読み取り方の一部**。`object[:key]`、`object.title =`、`object.try(:name)`、`object.present?`、および`attribute(:x) { ... }`ブロックは証拠として読み取られないため、それらを使用するシリアライザは、モデルが正しい場合であっても辞退することがあります。これは常に安全な方向（誤った型ではなく、辞退）です。
+- **プレーンなオブジェクトに対するシリアライザ**。`ActiveModelSerializers::Model`サブクラス、Struct、プレゼンターなど。対象としたいクラスが検査しても問題のない実際の定数である場合は、`model_overrides`を使用してください。
 
 ## プラグインの内部
 

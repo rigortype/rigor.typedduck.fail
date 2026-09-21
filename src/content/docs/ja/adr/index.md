@@ -3,9 +3,9 @@ title: "アーキテクチャ決定記録"
 description: "rigortype/rigor docs/adr/README.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/README.md"
 sourcePath: "docs/adr/README.md"
-sourceSha: "551236a6c99eb126cda7ff0119bd9f070cb3baccaaf6102a65874de5e0793915"
-sourceCommit: "d01a937b5d3d66d5ec4e6ba82036919d1bc91d10"
-sourceDate: "2026-09-12T21:11:14+09:00"
+sourceSha: "0d84bd3c29a16f51f64097b3b5c4de5ae603a0e0b509e79eda01cdb33f5d4877"
+sourceCommit: "0f252e3218936e8dc7004b574c709a434b996d2a"
+sourceDate: "2026-09-20T18:55:08+09:00"
 translationStatus: "translated"
 sidebar:
   order: 4000
@@ -19,6 +19,7 @@ sidebar:
 - **ADR-1**から**ADR-3**は型モデル、拡張API、型表現を定義します — アナライザーの概念的な中核です。
 - 番号の大きいADRは基礎の上に構築されており、必要に応じて読むことができます。
 - 各ADRには**Status**フィールドがあります：`Accepted`、`Proposed`、`Superseded`のいずれかです。実装がまだ進行中のAcceptedなADRは、括弧書きの注記（例: *partially implemented*、*slice N deferred*）を持ちます。
+- ADR-111のみが文書全体の`Superseded`ステータスを持ちます: これはProposedの勧告であり、ADR-112が逆の裁定を下したためです。コーパス内の他のすべての置き換えは**部分的**です: 残りのADRが維持される一方で、1つの作業上の決定、スライス、または却下された代替案の行が追い越されます。部分的な置き換えによってステータスの語が変わることはありません。これは双方の該当箇所に`> **[ADR-N](49-adr-authoring-guidelines/) (§ X / WDn)により部分的に置き換えられました。** <何が変更されたか>`とマークされます ── [ADR-49](49-adr-authoring-guidelines/)の軸6の注記を参照してください。
 
 ## 索引
 
@@ -135,7 +136,10 @@ sidebar:
 | ADR-108 | [エージェントのための型の来歴: `rigor-type-oracle`スキルと導入プロジェクトの契約](108-type-provenance-for-agents/) | Accepted（#826でスキル、`rigor-project-init`契約段落、カタログ配線が着地；ADR-107はそのリポジトリ側の双子） |
 | ADR-109 | [数値範囲リファインメントの記法およびセマンティクスとしてのRuby範囲リテラル](109-ruby-native-range-notation/) | Accepted（実装済み: #830で`Integer[1..10]`、#844で`Float[R]`、#846でFloatの絞り込み、#854で`int<a, b>`の非推奨化行、Float畳み込み） |
 | ADR-110 | [継承された宣言はレシーバー自身の`def`より優先されない](110-inherited-declaration-precedence/) | Accepted（#856でWD1＋WD3を実装；コーパスの25ターゲット全体で新たな診断ゼロを測定） |
-| ADR-111 | [リファインメントを`.rb`ファイル内のどこに書くか: 1つのキャリア、Rigor独自のコメント方言なし](111-inline-refinement-carrier/) | Proposed（#996に向けて同一行の`%a{}`キャリアを推奨；Steepで測定済み —— そのインラインモードでは自前行形式がエラーとなるため、#998が前提条件；実装されたものはない） |
+| ADR-111 | [リファインメントを`.rb`ファイル内のどこに書くか: 1つのキャリア、Rigor独自のコメント方言なし](111-inline-refinement-carrier/) | Superseded（ADR-112により置き換え；プローブの測定結果は有効） |
+| ADR-112 | [`@extrbs`: RBSで表現できないもののためのRigorが読み取るコメントチャンネル](112-extrbs-comment-channel/) | Accepted（未実装） |
+| ADR-113 | [`rigor lens`: エージェントおよびツールのための、型の由来を持つ宣言マップ](113-rigor-lens/) | Accepted（未実装） |
+| ADR-114 | [コアおよびstdlib RBSへの継承ディスパッチ](114-core-stdlib-ancestor-dispatch/) | Accepted（#527スライス1が着地: インスタンス側のスーパークラス巡回；スライス2/3/5/6はスコープ外、ADR-43の却下された代替案Aを部分的に置き換え） |
 
 ## 新しいADRの追加
 

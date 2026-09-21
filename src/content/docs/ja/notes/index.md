@@ -3,9 +3,9 @@ title: "リサーチ・サーベイノート"
 description: "rigortype/rigor docs/notes/README.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/README.md"
 sourcePath: "docs/notes/README.md"
-sourceSha: "9e9da3c19f85f8485341e9e130babb2665003d4d2164d0123788e7ce19cc249d"
-sourceCommit: "5fab9b52937efba652b9f6ecde1bb0a9954a9f77"
-sourceDate: "2026-09-18T00:59:43+09:00"
+sourceSha: "000f8bf188875b4fcdb040a6de745a04123fdc46828018d970287eda5bac85f0"
+sourceCommit: "0f252e3218936e8dc7004b574c709a434b996d2a"
+sourceDate: "2026-09-19T23:05:07+09:00"
 translationStatus: "translated"
 sidebar:
   order: 6000
@@ -51,6 +51,7 @@ sidebar:
 | 2026-09-01 | [キャンペーン後の不透明性の再帰属 — マージ済みmasterでのスイーププローブ再実行](20260901-post-campaign-opacity-recheck/) |
 | 2026-09-08 | [`sig/`内の全宣言の来歴 — ADR-107 G3に向けた初期シード監査](20260908-sig-provenance-audit/) |
 | 2026-09-09 | [`sig/`内の224件の`no_source`宣言の出処](20260909-sig-no-source-audit/) |
+| 2026-09-19 | [調査コーパスの型付けホール調査 — 32ターゲットに対するノードごとの`Dynamic[top]`位置](20260919-survey-typing-holes/) |
 
 ## リグレッションスイープ・実プロジェクトトリアージ
 

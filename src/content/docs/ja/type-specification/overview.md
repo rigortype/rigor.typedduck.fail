@@ -3,9 +3,9 @@ title: "概要"
 description: "rigortype/rigor docs/type-specification/overview.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/type-specification/overview.md"
 sourcePath: "docs/type-specification/overview.md"
-sourceSha: "2ea6e22b20bcd244815e4ee7b56e69345671acab843c607a7dc0dbb8a4bad9bc"
-sourceCommit: "04668e5f0d6205fdd5c8f44662041add7ab33ca3"
-sourceDate: "2026-09-09T00:28:07+09:00"
+sourceSha: "1ba710972db6cfd6ffa080cc010c8d663165b2a13a0426a9f4dc5f5619a6e956"
+sourceCommit: "0f252e3218936e8dc7004b574c709a434b996d2a"
+sourceDate: "2026-09-19T03:42:27+09:00"
 translationStatus: "translated"
 sidebar:
   order: 2050
@@ -81,6 +81,8 @@ RigorはPHPStan、TypeScript、Pythonのtyping仕様からアイデアを借り�
 インライン注釈の取り扱い: RigorはRBSとrbs-inlineの構文に対して100% 互換でなければならず、インライン注釈の解釈と優先順位についてはSteep 2.0の挙動に従うべきです。既存のrbs-inlineおよびSteep互換の注釈は型のソースとして公式に扱います。Rigorはそれらを書き換えてはならず、複雑であることだけを理由に警告してはならず、解析を始めるために`# rbs_inline: enabled`を要求してはなりません。`# rbs_inline: enabled`や`# rbs_inline: disabled`のようなrbs-inline設定ディレクティブのみが解釈されます。rbs-inlineの注釈コメント自体（`#: String`、`# @rbs`、パラメータ注釈など）は、存在すれば常にパースされ利用されます。
 
 インラインアノテーションとスタンドアロンの`.rbs`が同じクラスの**同じメンバー**を宣言している場合、Steep 2.xおよびrbs 4.xは優先順位を定義していません ── 両方のソースが1つのクラスエントリーにマージされ、重複がシグネチャエラーとして報告され、クラスからメソッドサーフェスが失われてしまいます ── そのため上記の「従うべき（SHOULD）」は何にも解決されず、Rigorが決定します。`.rbs`宣言が**メンバーごとに**勝ちます: そのメンバーのインライン宣言はドロップされ、ファイル内の他のすべてのアノテーションは引き続き適用され、クラスは引き続き構築されます。ドロップは報告されなければなりません（MUST。参照: [ADR-32](../../adr/32-rbs-inline-comment-ingestion/) WD12: Rigorがパースしたものの尊重しなかったアノテーションが決して揉み消されることはありません）。
+
+> **採択済み、未実装 ── [ADR-112](../../adr/112-extrbs-comment-channel/) WD5（[#1075](https://github.com/rigortype/rigor/issues/1075)）**。上記のメンバーごとの優先順位は整合性ルールに置き換えられます。整合的な宣言はより精密な側へとマージされ、矛盾はエラーとなります。この段落はそれが着地した際に書き直されます。
 
 アノテーションはそれが書かれたメンバーのみをバインドし、そのメンバーのみを拘束します。アノテーション付きファイルの未アノテーションメンバーは、アノテーションが一切ないファイルとまったく同じように型付けされなければなりません（MUST）: 1つのメソッドに対するアノテーションが、どちらの方向にも兄弟メソッドの型付けを変更してはなりません（MUST NOT）。著者が書かなかった型スロットは契約ではないため、rbs-inlineリーダーがそのプレースホルダーを提供する場合 ── 未アノテーションの`def`に対する戻り値型、素の`attr_reader`に対する属性型 ── Rigorはプレースホルダーを採用するのではなく実装からその型を推論します。メンバーは宣言されたままになります: クラスはその完全なメソッドサーフェスを維持し、`new`は未アノテーションの`initialize`のアリティ（arity）を維持し、クラスへの参照は解決され続けます。これは意図的に上流のrbs-inline自身のオプトアウト動作とは異なっています（上流は未アノテーションのコードに対してシグネチャを生成します）;上記の条項は、アノテーションを存在するときは常に型のソースとするものであり、周囲のコードの型なしシャドウにするものではありません。[rbs-extended.md](rbs-extended.md)の`%a{rigor:v1:inferred-return}`は宣言がそう述べるための手段です。
 

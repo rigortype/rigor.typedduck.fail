@@ -3,14 +3,15 @@ title: "ADR-43 — RBS完全な祖先解決（許可リストによる継承メ�
 description: "rigortype/rigor docs/adr/43-rbs-complete-ancestor-resolution.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/43-rbs-complete-ancestor-resolution.md"
 sourcePath: "docs/adr/43-rbs-complete-ancestor-resolution.md"
-sourceSha: "8dbfae53abfc891afd7cd1bef8f389f9bee2f97aa7399460a7c793508149e319"
-sourceCommit: "aec4ca7f5f87b1972dea8fecaaf5b62c8880a3af"
+sourceSha: "46402121065d6487cb31e6e8944d4172d37ccf922d66237880b6987f8eba9ee4"
+sourceCommit: "0f252e3218936e8dc7004b574c709a434b996d2a"
+sourceDate: "2026-09-20T18:55:08+09:00"
 translationStatus: "translated"
 sidebar:
   order: 4043
 ---
 
-ステータス: **Accepted — 全面的に着地（WD1–WD6）、2026-06-03**。
+ステータス: **Accepted — 全面的に着地（WD1–WD6）、2026-06-03**。却下された代替案Aは[ADR-114](114-core-stdlib-ancestor-dispatch.md)（2026-09-20）によって部分的に置き換えられ、gemのケースへと絞り込まれ、本ADRのアローリストはその拒否のバイパスとして保持される。
 `rigor check`が、Rubyソースのサブクラスの*継承された*メソッド呼び出しを、
 **アローリスト化された**RBSのみの祖先に対して解決できるようにする。これにより
 エンジンはその祖先の契約（contract）サーフェス（surface）の誤用を警告できる。
@@ -149,13 +150,7 @@ Steepなしで）警告できるか？」
   は契約をミックスインしない。ユースケースが現れたら再検討する）。ウォークはADR-24の
   既存の`discovered_superclasses`マップを再利用する──新たな簿記は不要である。
 
-- **WD4 — アローリストのソーシング：いまは定数、のちにプラグインマニフェスト**。v1は
-  定数をハードコードする。将来のイテレーションでは、プラグインがマニフェストを通じて
-  「私の契約baseはRBS-completeである」と宣言できるようにしてもよい（MAY）（ADR-37／
-  ADR-40の宣言的ルート）。これにより、ツリー外のプラグインgemがエンジンを編集せずに
-  自身の`Base`的クラスをオプトインできる。シードにそれが不要であり、マニフェスト
-  サーフェスが実際の設計コストを伴うため延期する。定数が終着点ではなくプレースホルダー
-  として理解されるよう記録しておく。
+- **WD4 — アローリストのソーシング：定数のシード＋プラグインマニフェスト宣言（マニフェスト側は完了、#1100）**。v1は定数をハードコードしていた。その後マニフェストルートが着地した：プラグインは同梱する`signature_paths:`が完全にカバーするクラス名を指定して`rbs_complete_ancestors:`を宣言し、`RbsDispatch`は定数と並んで集約セット（`Plugin::Registry#rbs_complete_ancestor?`）を参照する。rigor-graphqlが最初の消費者である──graphql-rubyはRBSを出荷しないため、プラグインの同梱シグネチャが`GraphQL::Schema::Object`およびその仲間の権威であり、ソース側の`class PostType < GraphQL::Schema::Object`はブリッジを通じて継承された`field`/`argument`/…呼び出しを解決する。定数は引き続きエンジン自身の`Plugin::Base`契約のためのシードとして残る。クラスをリストすることは完全性の主張である：それを（rigor-graphqlのように）`open_receivers:`と組み合わせることで、宣言されたシグネチャを型チェックさせつつ、真に存在しないメソッドに対して診断を出さない状態を保てる。
 
 - **WD5 — フラグオン前の計測ゲート**。精度と`undefined-method`発火が結合している
   （Context）ため、この変更は断言ではなく計測でクリーンなバーの背後で出荷される：
@@ -185,10 +180,11 @@ Steepなしで）警告できるか？」
 
 ## 却下／先送りした代替案
 
-- **（却下）一律な継承RBS祖先解決**。アローリストではなく*すべて*のRBS祖先について
+- **（却下；[ADR-114](114-core-stdlib-ancestor-dispatch.md)により部分的に置き換え、#527）一律な継承RBS祖先解決**。アローリストではなく*すべて*のRBS祖先について
   継承メソッドを解決する。却下：Railsコントローラーの偽陽性の壁（Context）を再導入する
   ──部分的なgem RBSは、省かれた継承メソッドのすべてを、動作しているコード上の
   `call.undefined-method` FPに変える。プロジェクトの最上位の偽陽性の規律に違反する。
+  **ADR-114はこの却下をGEMのケースに絞り込む**：COREまたはSTDLIBの祖先（`class SubHash < Hash`、`< StandardError`、`< ::StringScanner`）は解決されるようになった。その根拠は、そのRBSは否定ルールがその直接のレシーバーに対してすでに信頼しているメソッドセットであり、それらのルールはレシーバーの`Reflection.rbs_class_known?`をゲートとしているため、Rubyソースのサブクラスレシーバーにはまったく到達しないことにある。この却下は、gemのRBS（これこそがRailsコントローラーの壁の実体である）およびアローリスト自身の役割に対しては変更なく維持される：ADR-114 WD5はその拒否のバイパスとして`ALLOWED_RBS_COMPLETE_ANCESTORS`を保持する。
 
 - **（却下）`plugins/*`上でのstrictなSteepターゲット**（ノートの§「Option A」）。
   Steepは`self`を素のRBS `Base`として型付けるため、プラグイン自身のRBS未記述ヘルパー
@@ -204,7 +200,7 @@ Steepなしで）警告できるか？」
   おらず、アローリストはより少ないサーフェスでいま目標に到達する。sig-genのカバレッジが
   着地したら再検討する。
 
-- **（延期）プラグインマニフェストで宣言されるアローリスト**──WD4に畳み込まれた。
+- **（完了、#1100）プラグインマニフェストで宣言されるアローリスト**──`rbs_complete_ancestors:`マニフェストフィールドとして着地；WD4を参照。
 
 ## 他のADRとの関係
 
@@ -221,6 +217,7 @@ Steepなしで）警告できるか？」
   第2のサーフェス、すなわちRBS祖先対Rubyオーバーライドを得る（フォローアップになり
   うる。v1のスコープではない）。
 - **ADR-37／ADR-40**──WD4が委ねる宣言的マニフェストルート。
+- **[ADR-114](114-core-stdlib-ancestor-dispatch.md)**（コア／stdlib祖先ディスパッチ）──上記の却下された代替案Aを部分的に置き換え、`ALLOWED_RBS_COMPLETE_ANCESTORS`を「唯一の侵入口」から「拒否のバイパス」へと降格させる。定数、マニフェストフィールド、およびそれらの契約は不変である。
 
 [プラグイン契約RBS]: ../../sig/rigor/plugin/base.rbs
 [`spec/integration/plugin_contract_conformance_spec.rb`]: ../../spec/integration/plugin_contract_conformance_spec.rb

@@ -3,9 +3,9 @@ title: "プラグインの登録と読み込み"
 description: "rigortype/rigor docs/internal-spec/plugin.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/plugin.md"
 sourcePath: "docs/internal-spec/plugin.md"
-sourceSha: "dbc70fb05e7368f68028ff31e3bc8c648571aaad9dff412dd60eb2f3a5628936"
-sourceCommit: "5fab9b52937efba652b9f6ecde1bb0a9954a9f77"
-sourceDate: "2026-09-11T23:07:21+09:00"
+sourceSha: "3e8ed91424d3ad9754073916e15ff53a9092bf80e2152e08813f6db19dc0e3a9"
+sourceCommit: "0f252e3218936e8dc7004b574c709a434b996d2a"
+sourceDate: "2026-09-20T04:07:28+09:00"
 translationStatus: "translated"
 sidebar:
   order: 3050
@@ -229,6 +229,18 @@ end
 
 **`#flow_contribution_for`はADR-52 WD3（2026-06-11）で除去されました**。このフックを依然として定義するプラグインはロード時に`ArgumentError`をraiseします。本番の5つのユーザーはすべて`dynamic_return` / `narrowing_facts`へ移行しました（移行表の全体はCHANGELOGの`### Removed`を参照）。それが果たしていた歴史的役割 ── 呼び出しごとにゲートされない太いフックで`FlowContribution`バンドルを返すもの ── は、いまや上記で記述した狭くコンパイルディスパッチされるDSL形式で表現されます。
 
+#### 合成メンバーの列挙 ── `#declared_members`（ADR-113 WD4、[#1082](https://github.com/rigortype/rigor/issues/1082)）
+
+`dynamic_return`ルールは一度に1つの呼び出しサイトに対して*型*を回答します；「クラス`User`は`email`、`name`、…を持つ」と言うことはできません。`#declared_members(class_name)`は、`rigor lens`宣言マップ（[ADR-113](../../adr/113-rigor-lens/)）がプラグイン合成メンバー ── DSL生成メンバー上ではgrepが決して見つけられないサーフェス ── に対して呼び出すクラスごとの列挙フックです。
+
+このフックは`{name:, kind:, type:}`のHashの`Array`を返します：
+
+- `name` ── 呼び出し側が綴るとおりのメンバー名（`String`）。
+- `kind` ── 同じ形状のメンバーをグループ化する`Symbol`（`:column_reader`）；lensは1つのグループを1行の名前にまとめます。
+- `type` ── プラグインがメンバー自体に対してコミットする`Rigor::Type`、またはコミットしない場合はnil。これはメンバーレベルの回答であり、型付けされた呼び出しサイトが行える最善のものではありません：書かれたレシーバー上で`user.name`を`String`に絞り込むものの、素の`name`の読み出しを型付けすることを辞退するプラグインは、ここでは`Dynamic[top]` ── nilの「回答なし」とは異なる、明示的な動的回答である`Rigor::Type::Combinator.untyped` ── を報告します。rigor-activerecordのカラムリーダーは意図的に`untyped`を報告します：メンバーレベルでの正確なカラム型はmastodonにおいて57件の偽陽性を測定したためです（#963）。
+
+デフォルトは`[]`を返します。このフックは`check`のホットパスの外にあります（ADR-52）：lensがそれを呼び出し、`check`は決して呼び出さないため、そのコストはlensの実行だけのものです；`#prepare`が構築した状態を読み取ることができます。rigor-activerecordが最初の実装者です ── 準備された`ModelIndex`から直接、カラムリーダーとその`column?`述語、関連付けアクセサ、宣言されたスコープ、enum属性（カラム行がまだその名前を持っていない場合に限る）、および`macro_methods`（delegate / attachment / enum述語名）を列挙します。`alias_attribute`のエイリアスや、プラグインがテーブル名を導出できないモデルのカラムはリストされ**ません** ── それらに対しても何も回答しない`check`と一致しています。
+
 #### 機械可読なケイパビリティカタログ — `rigor plugins --capabilities`（ADR-37スライス3）
 
 `rigor plugins --capabilities`は、各プラグインが何をするのかをエージェントが学ぶために列挙する、プラグインごとの拡張プロトコルゲートを出力します。**ロードされた**プラグインのみが現れます（ロードに失敗したプラグインはケイパビリティ（capability）を一切貢献しません）。`--format json`では出力は次のとおりです:
@@ -286,6 +298,7 @@ end
 | `consumes` | `Array<Consumption>` | このプラグインが読むクロスプラグインファクト（`{ plugin_id:, name:, optional: }`）;ローダーのトポロジカル順序付けを駆動する（ADR-9）。 |
 | `signature_paths` | `Array<String>` | プラグインが貢献するRBSシグネチャディレクトリ、プラグインgemルートからの相対;`Loader`が解決し環境にマージする（ADR-25）。 |
 | `owns_receivers` | `Array<String>` | ディスパッチルーティングのためにこのプラグインが所有するレシーバークラス名。 |
+| `rbs_complete_ancestors` | `Array<String>` | このプラグインの`signature_paths:`が、サポート対象のDSLサーフェスに対して完全に宣言しているRBSサーフェスのクラス名（ADR-43 WD4）。リストされたクラスのRubyソースサブクラスは、継承された呼び出しを祖先のRBSへとブリッジし ── `RbsDispatch`許可リストのマニフェスト宣言側の半分 ── 、宣言されたメソッドの戻り値型とブロックパラメータがすべてのサブクラス上で解決されるようにする。このブリッジはシグネチャルックアップ**のみ**である: サブクラス自体はRBSの外側に留まるため、未宣言の名前に対してサブクラスが行う呼び出しでは`call.undefined-method` / `call.wrong-arity` / `call.argument-type-mismatch`は発火しない（したがって、サーフェスが実行時に生成されるDSLに対しては`open_receivers:`と組み合わせることが誠実な組み合わせとなる）。サブクラスまたはより近いソース祖先上の同じ名前のプロジェクト`def`はブリッジをシャドウする。宣言されたサーフェスが正確であるクラスのみがここに属する ── 実行時に存在しないシグネチャメンバーは、真に失敗する呼び出しを沈黙のうちに解決させてしまう。 |
 | `open_receivers` | `Array<String>` | メソッドのサーフェスが有界でないレシーバークラス名 ── たとえば`ActiveRecord::Relation`は、ユーザーが宣言したすべての`scope`をそのモデルへ委譲する（ADR-26）。そのようなクラスは`call.undefined-method`から丸ごと免除され、さらに、そのクラスが宣言したのではなく**継承した**メソッド名については、シグネチャを読む2つのルール（`call.wrong-arity`・`call.argument-type-mismatch`）からも免除される: 祖先の名前と衝突する委譲された名前（`relation.open` → `Kernel#open`）は、その呼び出しが実行しないシグネチャへ解決されるからだ。オープンクラス自身が宣言するメソッドは両方の検査を保つ;祖先を通じて本当に持っているメソッド（Relation上の`Enumerable`）も検査を失う ── 判定基準は委譲かどうかではなく定義サイトである。このフィールドは、プロジェクトが宣言元のプラグインをロードして初めて有効になる。他に2つのプラグイン非依存のソースが同じ`CheckRules#unbounded_receiver_surface?`ゲートに供給する: `RbsLoader#synthesized_type_names`スタブ型、および（issue #632、さらに#660で追跡）`CheckRules::GEM_OVERLAY_OPEN_RECEIVERS` ── マニフェストフィールドではなく単なる定数であり、Rigor自身のバンドルされたgemオーバーレイRBS（`data/gem_overlay/`、ADR-72）が、宣言が部分的であることを知って宣言しているクラス向けである。自動適用されるオーバーレイには`open_receivers:`エントリーが存在するためのプラグインマニフェストがないため、それがオープンと宣言するレシーバー（`ActiveSupport::Duration`、`method_missing`を介して未宣言のメンバーをラップされた数値に転送する）は、プラグインがロードされているかどうかとは無関係に保護を必要とする; `rigor-activesupport-core-ext`も同じクラスを自身の`open_receivers:`にリストしているため、設計上2つのソースはそこで重複している ── どちらか一方だけで十分であり、定数はマニフェストフィールドが構造的に到達できないオーバーレイ単独の場合をカバーするものである。ただし、その定数への所属それ自体は十分ではない: `CheckRules#gem_overlay_loaded?`はさらに、今実行でそのgemのRigor自身の部分的宣言の1つが実際にロードされたこと ── `RbsLoader#signature_paths`が`RbsLoader.under_gem_overlay_root?`下のディレクトリ（自動適用されるオーバーレイ）を含むか、または`RbsLoader.gem_overlay_twin_signatures_loaded?`に一致するもの（バンドルされたプラグインツイン自身の`sig/`、プロジェクトが`plugins:`ではなく`signature_paths:`経由で配線するときに到達する ── issue #672、オーバーレイは身を引きツインのマニフェストなしの宣言がロードされる唯一のものになる）を含むこと ── を要求する。そうでなければ、そのgemをロックしたことがなく、たまたま自身で同じ完全修飾名のクラスを所有しているプロジェクトが、そのクラスでの`call.undefined-method`のカバレッジを沈黙のうちに失ってしまうことになるからである。これは、宣言元のプラグインのロードを要求することによって`open_receivers:`が無料で得ていた「その保護はRBSがアクティブであるまさにそのときにアクティブになる」という特性（ADR-26 WD1）を復元する。 |
 | `type_node_resolvers` | `Array` | カスタムなRBS型名解決を貢献する`Plugin::TypeNodeResolver`エントリー（ADR-13）。 |
 | `protocol_contracts` | `Array<ProtocolContract>` | パススコープの振る舞い契約（`path_glob` + `method_name` + `singleton` + param/return型 + 重大度）;provide-and-check（ADR-28）。 |

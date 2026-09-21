@@ -3,9 +3,9 @@ title: "RBS::Extendedアノテーション"
 description: "rigortype/rigor docs/type-specification/rbs-extended.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/type-specification/rbs-extended.md"
 sourcePath: "docs/type-specification/rbs-extended.md"
-sourceSha: "95bf0466a709efcb1adcc724009a35d906c45b9a06a63b2b8b6977870c77e282"
-sourceCommit: "d01a937b5d3d66d5ec4e6ba82036919d1bc91d10"
-sourceDate: "2026-09-12T21:11:34+09:00"
+sourceSha: "f283887ef3cb328a7625ee738754bdded1bc51b9f67409b13ffdb6fb140a1e79"
+sourceCommit: "0f252e3218936e8dc7004b574c709a434b996d2a"
+sourceDate: "2026-09-19T03:42:27+09:00"
 translationStatus: "translated"
 sidebar:
   order: 2050
@@ -52,6 +52,8 @@ def check: (untyped value) -> bool
 - アノテーションがRBSシグネチャと競合する場合、Rigorは診断を報告しなければなりません（MUST）。
 - エクスポートされたプレーンRBSは、ユーザーが保存を要求しない限りRigorのみのアノテーションを削除または消去しなければなりません（MUST）。
 - アノテーション文法はバージョン管理されており、実装経験がそれを証明するまで小さくあるべきです（SHOULD）。非互換な文法変更は`rigor:v1:`のセマンティクスを変更するのではなく新しいバージョンプレフィックスを必要とします。
+
+> **採択済み、未実装 ── [ADR-112](../../adr/112-extrbs-comment-channel/)**。上記のペイロード文法は、`%a`閉じ記号のための`\u{…}`エスケープを伴うRBS型文法のスーパーセットとなります（[#1074](https://github.com/rigortype/rigor/issues/1074)）。`.rb`ファイル内の`# @extrbs`コメントも同じ文法を担います（[#1073](https://github.com/rigortype/rigor/issues/1073)）。「エクスポートされたプレーンRBS」ルールはプレーンRBSのエクスポートへと絞り込まれます: `rigor sig-gen`は宣言されたリファインメントをアノテーションとして保持します（[#1076](https://github.com/rigortype/rigor/issues/1076)）。各変更はそれが着地した際にこのドキュメントを更新します。
 
 ## 型述語とアサーション
 

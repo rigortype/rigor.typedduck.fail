@@ -3,9 +3,9 @@ title: "ADR-16 — マクロ / DSL展開基板"
 description: "rigortype/rigor docs/adr/16-macro-expansion.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/16-macro-expansion.md"
 sourcePath: "docs/adr/16-macro-expansion.md"
-sourceSha: "01daf9b4223e9b6879c5dbf7ab097ac91782d58b5a741b8861a8678c17602c65"
-sourceCommit: "5fab9b52937efba652b9f6ecde1bb0a9954a9f77"
-sourceDate: "2026-09-17T11:51:25+09:00"
+sourceSha: "f90b2745c5c3c817ff01b455159b3a960c032a4b9ed0006a0f8b55ba34394ead"
+sourceCommit: "0f252e3218936e8dc7004b574c709a434b996d2a"
+sourceDate: "2026-09-20T02:22:32+09:00"
 translationStatus: "translated"
 sidebar:
   order: 4016
@@ -14,6 +14,8 @@ sidebar:
 ステータス: **Accepted — フロア + 精度プロモーション着地（スライス（slice）1〜7 + 6a/6b）、スライス5b + ユーティリティ型戻り値のためのADR-13リゾルバチェイン配線は需要に先送り**、2026-05-15。
 
 > **命名注記（2026-06-13）:** [ADR-60 WD2](../60-pre-freeze-plugin-contract-consolidation/)は、このADRの例がまだ元の綴りで示している2つのマニフェスト値オブジェクトキーワードをリネームしました——`Macro::BlockAsMethod`の`verbs:`→`method_names:`、`Macro::NestedClassTemplate`の`name_arg_position:`→`symbol_arg_position:`。現在のバインディング形状は[`macro-substrate.md`](../../internal-spec/macro-substrate/)にあり、古いキーワードは`ArgumentError`を上げるようになりました。
+
+> **拡張注記（2026-09-20、#1099）:** `Macro::BlockAsMethod`の`self_type:`は、DSLがブロックを`instance_eval`する対象のクラス名を指定するStringも受け付けるようになりました——`"Grape::Validations::ParamsScope"`は公称型（nominal）の`self`を束縛し、`"singleton(Grape::API::Instance)"`はクラスオブジェクト自身を束縛します。Tier Aの元の規約（`:receiver_instance`、Sinatraの形状）は変更されていません。String形式は、サーベイのGrapeの形状で要求されたように、レシーバーとは*異なる*オブジェクト上でブロックが実行されるDSLをカバーします。文法は[`macro-substrate.md`](../../internal-spec/macro-substrate/)で固定されています。
 
 Rails（`ActiveSupport::Concern`、ActiveStorage attachedマクロ）、AASM、Devise、GraphQL-Ruby、factory_bot、Sinatra、Sequel、Redmineをカバーするライブラリごとのサーベイ[`docs/notes/20260515-macro-expansion-library-survey.md`](../../notes/20260515-macro-expansion-library-survey/)が発端。基板フロアは14のコミット（584ae85…d7b1943）にわたって配信;ADR-12（dry-rbパッケージング）は引き続き予約;このADRは並行して座り、それに依存しません。スライスごとのステータス詳細は § 実装のスライス分けに記載。
 

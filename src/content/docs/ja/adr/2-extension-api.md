@@ -3,9 +3,9 @@ title: "ADR-2: 拡張API戦略"
 description: "rigortype/rigor docs/adr/2-extension-api.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/2-extension-api.md"
 sourcePath: "docs/adr/2-extension-api.md"
-sourceSha: "a26be1236cc9358efb2ffeb95b0503445cb8012680a7b3edacd2a724d48b00d6"
-sourceCommit: "568138c239ec5b7b39833ed6a2a21fd027e3d319"
-sourceDate: "2026-09-11T01:57:22+09:00"
+sourceSha: "92ab01f0ef0839cf4bfdfabd4d45ecbd3682b981304c27c1537dea3b80151eb7"
+sourceCommit: "0f252e3218936e8dc7004b574c709a434b996d2a"
+sourceDate: "2026-09-19T17:01:08+09:00"
 translationStatus: "translated"
 sidebar:
   order: 4002
@@ -154,6 +154,8 @@ RigorはRubyの`method_missing`、`respond_to_missing?`、`define_method`、Rail
 動的リフレクションは構造的インターフェースチェックをサポートしなければなりません（MUST）。プラグイン提供のメンバーは、Rigorが名前的型（nominal type、公称型とも）またはオブジェクトシェイプがRBSインターフェースを満たすかどうか決定するのに十分なシグネチャと確実性情報を公開すべきです。
 
 Rigorは一般的な標準ライブラリのケイパビリティロール（読み取り可能ストリーム、書き込み可能ストリーム、巻き戻し可能ストリーム、シーク可能ストリーム、クローズ可能、列挙可能、呼び出し可能、ファイル記述子バック）の意見を持つコアカタログを出荷すべきです。
+
+出荷されたメンバー列挙フックは`Plugin::Base#declared_members(class_name)`です（[ADR-113](113-rigor-lens.md) WD4、#1082）：プラグインはあるクラス上で合成するメンバーの`{name:, kind:, type:}`行を返し、`rigor lens`宣言マップがそれらをレンダリングします。これは呼び出し部位の規約に追加的なものです——`dynamic_return`は引き続き呼び出しごとに型を返し、`declared_members`はそのサーフェスを一覧表示します——また、`check`のホットパスの外に留まるため（ADR-52）、`check`がこれを呼び出すことは決してありません。
 
 ## リフレクション層の再ビルド
 

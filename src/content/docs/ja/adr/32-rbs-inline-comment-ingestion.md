@@ -3,9 +3,9 @@ title: "ADR-32 — オプトインプラグインとしてのインラインRBS�
 description: "rigortype/rigor docs/adr/32-rbs-inline-comment-ingestion.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/32-rbs-inline-comment-ingestion.md"
 sourcePath: "docs/adr/32-rbs-inline-comment-ingestion.md"
-sourceSha: "ae1ebcf17ddee8f1612f97525acbdd0ee955fc807d607ee98e713f91b073f2f7"
-sourceCommit: "d01a937b5d3d66d5ec4e6ba82036919d1bc91d10"
-sourceDate: "2026-09-14T18:55:47+09:00"
+sourceSha: "eeeff00647a72779518711ea3333a77a60e25e724d253d023a0686056ae6b1ed"
+sourceCommit: "0f252e3218936e8dc7004b574c709a434b996d2a"
+sourceDate: "2026-09-19T03:42:27+09:00"
 translationStatus: "translated"
 sidebar:
   order: 4032
@@ -184,6 +184,8 @@ rbs 4.0は`rbs` gemに組み込まれた`RBS::InlineParser`を出荷し、rbs 4.
 - gemの既知のアノテーション形状のいずれでもない、`@rbs`接頭辞のコメント段落。gem自身の`annotation_comment?`検出器は`@rbs`の直後の`\b`単語境界にマッチするため、`# @rbs-ext return: non-empty-string`はその網の中にあります —— gemはそれを`@rbs`として読み取ろうとします —— しかしその`parse_annotation`の`case`には`-ext`に続くものに対する分岐がなく`nil`を返し、これは段落全体を、そもそも`@rbs`を主張しなかったコメントがパースされるのと同じクラスである通常の`CommentLines`へと畳み戻します。通知はgem自身のマーカーがマッチしたときにのみ発火するため、散文の中で単に`@rbs`に言及しているコメントや、メンテナーの対案である`@extrbs`（`@rbs`で始まらない）は沈黙を保ちます。
 
 ### WD13 — メンバーごとに`sig/`宣言がインライン宣言に勝つ
+
+> **[ADR-112](112-extrbs-comment-channel.md)（WD5）により部分的に置き換えられました**。同一メンバーのケースでは、もはや`sig/`が静かに勝つことはありません。整合的な宣言はより精密な側へとマージされ、矛盾はエラーとなります。以下のSteepの分析は引き続き有効です。
 
 *2026-09-08、[#824](https://github.com/rigortype/rigor/issues/824)をクローズ。*
 

@@ -3,9 +3,9 @@ title: "rigor-activerecord"
 description: "rigortype/rigor docs/manual/plugins/rigor-activerecord.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/plugins/rigor-activerecord.md"
 sourcePath: "docs/manual/plugins/rigor-activerecord.md"
-sourceSha: "b81f728bd866d9ad4d42ae10535f7ef45ef3f7b1fce7da4d0b5e873a3cb18570"
-sourceCommit: "5fab9b52937efba652b9f6ecde1bb0a9954a9f77"
-sourceDate: "2026-09-09T01:20:05+09:00"
+sourceSha: "cc0da11e5b0253eb8f399f3942feac3e01eb252d34b6c9e293af9b00f830bbdc"
+sourceCommit: "0f252e3218936e8dc7004b574c709a434b996d2a"
+sourceDate: "2026-09-19T17:32:26+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9050
@@ -110,5 +110,7 @@ Rubyのモジュールまたはクラスの内部で宣言されたモデル（`
 - **プロジェクト独自のインフレクションはまだ読み取られない**。モデル↔テーブルの複数形化は本物のActiveSupportインフレクターを通ります（そのため`Person → people`、`Mouse → mice`は解決されます）が、`config/initializers/inflections.rb`で宣言したルールはまだ取り込まれません ── それに依存するモデルには`self.table_name`が必要です（ADR-39スライス3）。
 
 ## プラグインの内部
+
+本プラグインは`Plugin::Base#declared_members`にも応答します（[ADR-113](../../adr/113-rigor-lens/) WD4）：準備されたモデルインデックスから各モデルの合成メンバー ── カラムリーダーおよび`column?`述語、関連アクセサ、宣言されたスコープ、enum属性、マクロ定義名 ── を列挙するため、`rigor lens`はgrep可能な宣言なしに`User`のメンバーを一覧表示できます。行はプラグインがコミットするメンバーレベルの型を担います：カラムリーダーに対しては意図的に`Dynamic[top]`（裸のレシーバーなしの読み取りの回答 ── 書かれた`user.name`は引き続きカラムの型へと絞り込まれます）とし、プラグインが`check`時にすでに型を返している箇所でのみ型を返します。
 
 アーキテクチャ（キャッシュされたスキーマパーサ → モデルインデックス → アナライザーのチェーン）、ソースのレイアウト、デモの実行方法、そしてこのプラグインが行使するプラグインの契約（contract）サーフェスは、[プラグインのREADME](https://github.com/rigortype/rigor/blob/master/plugins/rigor-activerecord/README.md)に記載されています。自分自身のプラグインを書くには、[`examples/`](https://github.com/rigortype/rigor/blob/master/examples/README.md)のウォークスルーと[`rigor-plugin-author`](../../08-skills/)スキルを参照してください。
