@@ -3,9 +3,9 @@ title: "現在の作業 — セッションハンドオフ"
 description: "rigortype/rigor の docs/CURRENT_WORK.md からインポート。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/CURRENT_WORK.md"
 sourcePath: "docs/CURRENT_WORK.md"
-sourceSha: "6cb08ecb45b6f2fdff732f2dd067896a8d7909cee96274a72be4ef1e368d2c9c"
-sourceCommit: "0f252e3218936e8dc7004b574c709a434b996d2a"
-sourceDate: "2026-09-19T04:46:09+09:00"
+sourceSha: "4b07ffe85aa5fbfbb42a371c70ce0300843c90482a8cfc8fa6fe2868c953f133"
+sourceCommit: "b5af5cf72f6b666f74479df959b1ee467feda5c6"
+sourceDate: "2026-09-22T02:49:55+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9050
@@ -27,25 +27,33 @@ sidebar:
 一時的な文書であり、全体が置き換えられます。バックログはGitHub Issuesで、リリース計画はMilestonesで管理されます。
 このファイルがADR、CHANGELOG、またはissueと食い違う場合、間違っているのはこのファイル側です。
 
-## 2026-09-19のセッションで決着した内容
+## 2026-09-21の`/queue-release`セッションで着地した内容
 
-徹底的な検討セッション（grilling session）により、前回のハンドオフで未解決だったメンテナーへの質問すべてに裁定が下されました。その後、裁定は敵対的レビュー（adversarial review）を経て、2つの初稿が覆されました: 1つは#1046の裁定と矛盾しており、もう1つはRailsの`default_render`を読み違えていました。裁定はそれが拘束力を持つ場所に記録されています:
+Grok-maxレビューが承認（Approved）され、その後マージされました（マージコミット、着地指示が出るまではDraft対応可能な状態）：
 
-- **#996 → [ADR-112](../adr/112-extrbs-comment-channel/)**（Accepted; ADR-111は失効）。RigorはRBSで表現できないもののために`# @extrbs`チャンネルを読み取り、プレーンなRBSは`@rbs` / `#: `に残ります。sig-genはリファインメントを`%a{rigor:v1:…}`として`sig/`に書き出します。整合性ルールがADR-32 WD13の「`sig/`が勝つ」を置き換えます。実装: #1073（リーダー）、#1074（ペイロード文法とエスケープ）、#1075（整合性ルール）、#1076（sig-gen;#1073と#1074によってブロック）。
-- **#1059**: ADR-103 WD17を維持。マニュアルの`views: strict` / `lenient`のペアは1つの例に統合されました。#1048と#393はクローズされ、#394はブロック解除されました。
-- **#1011、#1071**: 裁定を投稿済み;いずれも`ready-for-agent`。#1072は#512の重複としてクローズ。
-- **`rigor lens` → [ADR-113](../adr/113-rigor-lens/)**（Accepted;敵対的レビューも実施済み）。型の来歴（provenance）とlisplens互換のアンカーを持つ宣言マップであり、1ファイルの`check`として計算されます。`type-of`も同じ計算を採用し、これは#512の「シードなし」の裁定を置き換えます;#512は#1083とともにクローズされます。Issue: #1080（`def_sites`）、#1081（xxh3）、#1082（`declared_members`）、#1083（フェーズ1）、#1084（MCP / スキル）、#1085（フェーズ2 `--annotate`、`ready-for-human`）。
-- **#1046**: 2026-09-17の裁定を維持（受け入れ、リリース準備時に再調整）。#1043はクローズ。ゲートではないフォローアップ: #1077（#1010のアリティの無駄を削減）および#1078（`release-gate.yml`をスケジュールで実行）。
-- ZARD初稿へのフィードバック: [`docs/notes/20260919-zard-first-draft-feedback.md`](../notes/20260919-zard-first-draft-feedback/)。
+- [#1159](https://github.com/rigortype/rigor/pull/1159) → `79fa99cf` ── #1130ブロックパラメータの`SelfSubstitute`判定（候補B：保持対縮退のみ；リターンパスの拡幅なし）。
+- [#1160](https://github.com/rigortype/rigor/pull/1160) → `9fd4b6d4` ── #1071アームごとの`respond_to`エッジ。
+- [#1161](https://github.com/rigortype/rigor/pull/1161) → `19c2af59` ── #1089 enumカラムの読み取りをキーのユニオンとする。
+
+そのバッチから依然としてオープンなもの：
+
+- [#1158](https://github.com/rigortype/rigor/pull/1158)（#1011）── Approved。最初のCIはshard-1のアーティファクトアップロード403で終了；失敗したジョブは再実行された。その実行がグリーンになったらマージすること。403をテスト失敗として扱ってはならない。
+- [#1162](https://github.com/rigortype/rigor/pull/1162) ── プロセスノート`docs/notes/20260921-queue-release-lane-experience.md`。Draft；敵対的レビューのセットには含まれない。裁量で着地させるかクローズすること。
+
+レーンの経験（バンドルパス、`--body-file`、30分のコーパスタイムアウト、Flashモデルid）はそのノートにあり、ここにはありません。
+
+`v0.4.0`は依然としてコンテキストのままです。Changelogの封印なし、VERSIONバンプなし、`release/x.y.z`なし。
 
 ## メンテナー待ち
 
-このリストからは何もありません。残っている裁定タイプのissueは、長らく保留されている`ready-for-human`バックログ（`gh issue list --label ready-for-human`）のみです。
+新しいものはありません。長らく保留されている`ready-for-human`バックログは変更ありません（`gh issue list --label ready-for-human`）。
 
 ## 次に着手する価値があるもの
 
-委任可能・独立: #1071、#1011、#1077、#1078、#1081、#1082、および#394のV3スライス（Jbuilder、ViewComponent、Haml/Slim）。コア: #1073 → #1074 → #1075 / #1076（この順序で、1つのレーン）; #1080 → #1083 → #1084（lensレーン）; #394 V2、#963の非メタ定数書き込みの残余、および#1064項目6（ADR-15がオープンの間は低価値）。他の測定レーンがアクティブでない状態で#1077を測定すること;まず`docs/agents/measurement.md`を読んでください。
+`/queue-release`を**#1123**（検出された祖先の順序付けにおいて`Module#prepend`が無視される）から再開し、次に #1122、#1125、#1121と進めること。
+
+前回のハンドオフから引き続き委任可能なもの：#1073 → #1074 → #1075 / #1076（ADR-112、順序固定）；#1080 → #1083 → #1084（lens）；#963の残余；#1077 / #1078（ゲート外）。#1046はリリース準備の再調整にとどまる。
 
 ## worktreeの所在
 
-`rigor-wt/perfbench-harness-775`は意図的に保持されています: #775のアロケーション作業の背後にある計測ツールです。
+`rigor-wt/perfbench-harness-775`は意図的に保持されています。本セッションでは`/Users/megurine/repo/ruby/worktrees/rigor/`下に管理対象のpi-subagents worktreeも残されました；#1158が着地した後にアイドル状態であれば剪定（prune）してください。

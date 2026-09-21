@@ -107,7 +107,7 @@ sidebar:
    - Railsフレームワーク自身の内部（`rails`ターゲット）：`class_attribute` 170、`initializer` 151、`delegate` 159、`ActiveSupport.on_load` 109 ── フレームワーク自身のDSL層自体が大部分不透明です。
    - GitLab固有：`strong_memoize` 805、`feature_category` 1.3k、`not_found!` 390 ── プロジェクトDSLの領域（エスカレーションパスA：プロジェクトプラグイン）。
 
-3. **Sorbetのsig DSLは、Sorbet型付けされたプロジェクトにおけるホールとなっている**。 `sig`、`params`、`returns`、`void`、`abstract`、`override`、`type_member`、`T.*`の呼び出しは`Dynamic[top]`として型付けされます。sorbet-runtimeはRBSではなくRBIを出荷しており、`rigor-sorbet`はsig*式*を型付けすることなくカタログへとsigを消費するためです。各ターゲットの不透明サイトに占める割合：**mangrove 47%**（その*全*式の29%）、**dependabot-core 33%**（約56kサイト）、**strap 21%**。選択肢：rigor-sorbet内に最小限の`T`/`T::Sig`/`DeclBuilder` RBSバンドルを出荷するか、精度lensにアノテーションサーフェスを割り引くように教えるかです。
+3. **Sorbetのsig DSLは、Sorbet型付けされたプロジェクトにおけるホールとなっている**。`sig`、`params`、`returns`、`void`、`abstract`、`override`、`type_member`、`T.*`の呼び出しは`Dynamic[top]`として型付けされます。sorbet-runtimeはRBSではなくRBIを出荷しており、`rigor-sorbet`はsig*式*を型付けすることなくカタログへとsigを消費するためです。各ターゲットの不透明サイトに占める割合：**mangrove 47%**（その*全*式の29%）、**dependabot-core 33%**（約56kサイト）、**strap 21%**。選択肢：rigor-sorbet内に最小限の`T`/`T::Sig`/`DeclBuilder` RBSバンドルを出荷するか、精度lensにアノテーションサーフェスを割り引くように教えるかです。
 
 4. **名前付きレシーバーだが不透明なペア ── アクション可能なレーン**（コーパス全体で56kサイト、ターゲットごとの上位80ペアは`*.attrib.json`に保持）：
    - **GitLabユーティリティシングルトン**：`Feature.enabled?` 549、`Gitlab.config` 542、`Ability.allowed?` 393、`ServiceResponse#success?/message/payload/error?/[]`合計約900、`Gitlab::ErrorTracking.track_exception` 257、`CurrentSettings` 162、`Metrics.counter` 143、`Json.dump` 132、`Redis::SharedState.with` 126。

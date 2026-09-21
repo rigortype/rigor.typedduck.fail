@@ -3,9 +3,9 @@ title: "マクロ／DSL展開基板"
 description: "rigortype/rigor docs/internal-spec/macro-substrate.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/macro-substrate.md"
 sourcePath: "docs/internal-spec/macro-substrate.md"
-sourceSha: "f0766eac3b3a1eaee7df2dc0f38e6673faa896b9dea778194e57e61abb8ffeef"
-sourceCommit: "0f252e3218936e8dc7004b574c709a434b996d2a"
-sourceDate: "2026-09-20T02:22:32+09:00"
+sourceSha: "da0d482bb74a979aa0cfea3886c38f68df37a8c1952f6d3c35ace4743a6caebb"
+sourceCommit: "b5af5cf72f6b666f74479df959b1ee467feda5c6"
+sourceDate: "2026-09-21T15:56:52+09:00"
 translationStatus: "translated"
 sidebar:
   order: 3050
@@ -63,7 +63,103 @@ floor/ceiling配信ポリシーとティアごとの根拠はADRにある。
 - **`receiver_constraint`のマッチング**。すべてのティアが
   `receiver_constraint`を運ぶ。呼び出しの字句的レシーバー
   クラスがその完全修飾名と**等しいか、それを継承している**ときにエントリーが
-  発火し、`Environment#class_ordering`を通じてマッチされる。
+  発火し、`Environment#class_ordering`を通じてマッチされる。`Singleton[X]`
+  レシーバー（クラスレベルDSL呼び出し）については、マッチは
+  `extend`エッジも参照する: `X`のシングルトン上の呼び出しに応答する
+  モジュール ── シングルトン祖先探索順（`scope.discovered_extends`は
+  最近接を先頭に格納）で`extend`エッジを辿り、次いで発見されたスーパークラス
+  チェーンを上り、`Environment#singleton_extended_modules`によって表面化
+  されるRBS宣言の`extend`を含む ── が制約に解決され、かつ実際に`method_name`を
+  定義しているときにエントリーが発火する。クラス自身のシングルトンdefは
+  あらゆる`extend`エッジに先行する ── ただし、それらが実行された（RUN）後に
+  限られる: 呼び出し時点では`def`が実行されていないため、
+  `sig { ... }; def self.sig`は依然として`T::Sig`を束縛する。
+  `Scope#singleton_def_shadows_call?`は、ファイルごとのdef / block / lambda
+  本体範囲テーブルである`discovered_deferred_ranges`からこれを判定する: 
+  そのような範囲に含まれる呼び出しは呼び出し時まで遅延され、同じオーナーの
+  同名defが既知である場合（すでに発見されているか、サイトテーブルが
+  見逃した行によって記録されているかのいずれか）にのみシャドウされる。
+  一方、先行評価されるクラス本体の呼び出しは、開始オフセットがそれに先行する
+  同名・同オーナーのdefによってのみシャドウされる（バイトオフセットであるため、
+  同一行のdefも正しく順序付けられる;最先の一致defが決定するため、後の再定義が
+  ブリッジを復活させることはできない;行は修飾されたオーナーを運ぶため、別の
+  クラスの`def self.sig`が`F`の呼び出しを順序付けることはできない）。遅延範囲の
+  内側にネストされたdef ── メソッド本体やブロック内部の`def` ── は呼び出し時に
+  インストールされ、順序付けから除外される一方、`module_function`行は
+  呼び出し箇所でのモードトグルおよび`module_function :x`の遡及的インストールを
+  モデル化する。先行評価される本体は範囲ではない: `Const = Class.new do … end`や
+  `class_eval`ファミリーのブロックは囲む本体の実行中に実行される ── evalブロックの
+  defはレシーバーのサーフェスに属するため、命名可能なレシーバーがそれらの
+  オーナーを提供する（defサイト、メソッド、可視性、およびextendsテーブルは
+  evalブロック本体を同じレシーバーに帰属させる）。ただし、この分割は2つの
+  コンテキストである ── evalブロック内で`Module.nesting`は変化しないため、
+  その内部の`class` / `module` / 定数書き込みは依然として字句的名前空間の下に
+  登録される一方、`def`はレシーバーに束縛される。eval本体内部では`self`も
+  レシーバーであるため、ネストされた`self.class_eval`、素の`class_eval`、または
+  `self::X.class_eval`は囲むレシーバーに対して解決される ── 字句的な`module M`の
+  下で`M::X#h`となることは決してなく、`Y.class_eval { self::X.class_eval { def h; end } }`は
+  `Y::X#h`をインストールする ── 一方でCONSTANTレシーバーは読み取りがまさにそうするように
+  `Module.nesting`を通じて解決される ── トップレベルの`M::Y.class_eval`内部の
+  `Y.class_eval`は再び`M::Y`を開くのではなく、トップレベルの`Y`を開く ── したがって
+  ファイルの自身の宣言が含む最初の`<rung>::X`が最内を優先して勝つ（`class S`内部の
+  `X.class_eval`は、呼び出しが`class <<`の下にあるかどうかにかかわらず、ファイルが
+  `S::X`を宣言しているときに`S::X`を命名する）。そして、どのラングも宣言していない
+  シャドウ ── 通常は別のファイルで定義されているもの ── のみが書かれたとおりに登録される。
+  `class <<`本体の内部では`self`はシングルトンである ── `self::X`読み取りおよび
+  `self::X` / 素の定数書き込みはその定数テーブルに着地するが、テーブルはそれを
+  命名できないため、両方とも辞退される。同じ命名不能なcrefが宣言を支配する: 
+  `class <<`内部の`class D`は`#<singleton>::D`を開くため、すべての発見ウォーク ── 
+  メソッド、シングルトンdef、可視性、includes/extends、スーパークラス、defネスト、
+  ivar、メンバーレイアウト ── は、捏造された`C::D`ではなくクラスなしの下にそのファクトを
+  登録し、宣言／発見プロデューサー（`discovered_classes`、`class_sources`、
+  `declared_types`、`local_constant_names`）も`C::D`/`C::K`を登録しない ── さもなければ
+  `known_namespace?`があらゆる`D`ファミリーの解決を相互汚染してしまう。そこでは
+  素のヘッダーまたは書き込み（および`self::`基底）のみが命名不能である: 明示的な
+  基底を持つすべてのパス ── `::T`、`C::D`、`Foo::Bar`、`::K =`、`C::K =` ── はその
+  基底を字句的に解決し、非シングルトンウォークが用いるのと同じコンパクトヘッダー
+  近似の下で再アンカーされる。`class <<` EXPRESSIONはこの境界を証明する例外である: 
+  シングルトンが開く前に囲むコンテキストで評価されるため、
+  `class << (class D; self; end)`は依然として`C::D`を宣言し、シングルトン本体の
+  内側の`class << self`はシングルトン自身のシングルトン（`#<Class:#<Class:C>>`）を開くが、
+  何ものもこれを命名しない。evalおよびメタブロックは`self`を再束縛しながらそのcrefを
+  保持するため（`class <<`の下の`Foo.class_eval { X = 1 }`は依然としてシングルトンの
+  テーブルに書き込む）、`self::`にアンカーされたevalレシーバーはすべてのコンシューマー
+  ウォーク ── メソッド、シングルトンdef、可視性、遅延範囲、includes、およびextendsの
+  すべて ── で辞退し、`class << <non-self>`の下の素または`self`レシーバーは何ものも
+  命名しない。`instance_eval`/`instance_exec`はさらに分割される: これらのテーブルが
+  読み取る`self`アンカーのファクトについて`class_eval`とまったく同様に`self`を
+  レシーバーに再束縛するが（`X.instance_eval { extend M }`は`X`をextendし、
+  `X.instance_eval { include M }`はレシーバーをモジュールとする呼び出しが実際に送信する
+  includeエッジを記録する）、内部のデフォルトの被定義者はレシーバーのシングルトンである ── 
+  `X.instance_eval { def m }`は`X.m`をインストールし、キーワード`alias`/`undef`は同様に
+  シングルトン側で束縛される ── 一方で`define_method`、`attr_*`、`alias_method`、および
+  可視性呼び出しはインスタンスサーフェス上でレシーバーをモジュールとする呼び出しのまま
+  留まる。defを所有するウォークはそれを個別の`defs_singleton`フラグとして運ぶため、
+  キーワード形式のみが移動する; `define_method`本体または名前のない
+  `Class.new { … }`ファミリーのブロックはオーナーなしで歩く。すでにシングルトンである
+  本体の内部では分割が反転する: 素または`self`の`instance_eval`は同じシングルトンselfを
+  再評価するため、呼び出しはそこでの`class_eval`のものとまったく同様にシングルトンの
+  インスタンスサーフェスに着地する（`class << S; instance_eval { define_method(:m) }`は
+  `S.m`をインストールし、`include`/`extend`は同じシングルトン祖先エッジを生成する）。
+  一方で`def`/`alias`はシングルトン自身のシングルトン ── `#<Class:#<Class:S>>` ── 上で
+  束縛されるが、何ものもこれを命名しない;ウォークはその被定義者を`:unnameable`とマークし、
+  それらを`S`の下に登録するのではなくリーフを辞退する。メタnewブロックはその逆を行う: 
+  `K = Class.new { extend M }`は`K`をextendするため、mixinテーブルはブロックを命名可能な
+  `K`に帰属させ、`K`自体が命名不能であるときにのみ辞退し、ファクトリー呼び出しの
+  レシーバーと引数は依然として囲むコンテキストで評価される（`K = Class.new(X.class_eval { extend M })`は
+  `X`をextendする）。ただしメタnewブロックは依然として`self`の再束縛にすぎない ── その内部で
+  `Module.nesting`は字句的なままである ── したがって`def`、`alias`、mixin、および`self::`
+  アンカーのファクトは書き込みが命名するクラスに帰属する一方、ネストされた`class` / `module`
+  宣言は囲むcrefを保持する（`C`の`K = Class.new { … }`内部の`class Inner`は`C::Inner`を開き、
+  決して`K::Inner`とはならない; `class <<`の下ではシングルトンのテーブルに着地し、
+  そこにある他の任意の宣言と同様に辞退する）。ファイル間defおよびインデックスが見たことのない
+  ファイルは両方ともシャドウされたものとしてカウントされる ── プロジェクトメソッドが
+  呼び出しを所有している場所で`DeclBuilder`を束縛すると診断を捏造してしまうため、保守的な
+  方向である。これが、`class F; extend T::Sig; sig { ... }; end`と
+  `class Doc < T::ImmutableStruct; sig { ... }; end`の両方が`sig`エントリーに到達する
+  方法である（#1097）── 一方で、同じ名前を定義するモジュールのより近い`extend`（`extend T::Sig; extend CustomSig`）、
+  またはクラス自身のすでに実行された`def self.sig`が呼び出しを所有し、束縛は辞退される。
+  そのカスタムメソッドが実行時にブロックのselfを選択するからである。
 
 ## ティアA ── `BlockAsMethod`（`block_as_methods:`）
 

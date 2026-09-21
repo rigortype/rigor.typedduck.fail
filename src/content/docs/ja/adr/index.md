@@ -3,9 +3,9 @@ title: "アーキテクチャ決定記録"
 description: "rigortype/rigor docs/adr/README.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/README.md"
 sourcePath: "docs/adr/README.md"
-sourceSha: "0d84bd3c29a16f51f64097b3b5c4de5ae603a0e0b509e79eda01cdb33f5d4877"
-sourceCommit: "0f252e3218936e8dc7004b574c709a434b996d2a"
-sourceDate: "2026-09-20T18:55:08+09:00"
+sourceSha: "d866aacaf5077e879e0a3396e12eddbfc52262789f0d400eb9179747cf7db549"
+sourceCommit: "b5af5cf72f6b666f74479df959b1ee467feda5c6"
+sourceDate: "2026-09-22T04:35:15+09:00"
 translationStatus: "translated"
 sidebar:
   order: 4000
@@ -68,7 +68,7 @@ sidebar:
 | ADR-40 | [`config_schema`で宣言するデフォルト値（`{kind:, default:}`）](40-config-schema-defaults/) | Accepted（メカニズム＋13個のプラグインを`DEFAULT_*`イディオムから移行） |
 | ADR-41 | [推論バジェットの設計（配線、ヒット時ポリシー、計測ゲート付きデフォルト）](41-inference-budget-design/) | Proposed（仕様テーブルは未配線；Layer 1のドキュメント衛生＋Layer 2の計測ゲート付き配線がキュー待ち） |
 | ADR-42 | [プラグインが提供する二項演算子の戻り値型（coerce方向）](42-plugin-binary-operator-return-types/) | Proposed（低優先度、需要ゲート付き；self／左辺オペランドのケースは`dynamic_return`経由ですでに動作） |
-| ADR-43 | [RBS完全な祖先解決（許可リストによる継承メソッドのディスパッチ）](43-rbs-complete-ancestor-resolution/) | Accepted（全面的に着地、WD1〜WD6；`make check-plugins`ゲートを`verify`＋CIに配線） |
+| ADR-43 | [RBS完全な祖先解決（許可リストによる継承メソッドのディスパッチ）](43-rbs-complete-ancestor-resolution/) | Accepted（全面的に着地、WD1〜WD7；#1097で`rbs_complete_extends:` + 遅延範囲シャドウイング） |
 | ADR-44 | [ディスパッチごと／ナローイングごとのアロケーションチャーン（Scope、CallContext）](44-dispatch-allocation-churn/) | Accepted（ボディスコープの折り畳み＋アロケーション衛生が着地；ミュータブルなプール化は却下；フィールド再グループ化は優先度引き下げ） |
 | ADR-45 | [変更なしプロジェクトの高速パス（実行結果キャッシュ）](45-unchanged-project-fast-path/) | Accepted（record-and-validateな実行キャッシュが着地；素朴な解析前フィンガープリントは不健全として却下） |
 | ADR-46 | [ファイル間依存グラフによるインクリメンタル解析](46-incremental-dependency-graph/) | Accepted（スライス1〜4が着地、ファイルの追加・削除を含む；`--incremental`はCIで`--verify-incremental`にゲートされる） |
@@ -140,6 +140,7 @@ sidebar:
 | ADR-112 | [`@extrbs`: RBSで表現できないもののためのRigorが読み取るコメントチャンネル](112-extrbs-comment-channel/) | Accepted（未実装） |
 | ADR-113 | [`rigor lens`: エージェントおよびツールのための、型の由来を持つ宣言マップ](113-rigor-lens/) | Accepted（未実装） |
 | ADR-114 | [コアおよびstdlib RBSへの継承ディスパッチ](114-core-stdlib-ancestor-dispatch/) | Accepted（#527スライス1が着地: インスタンス側のスーパークラス巡回；スライス2/3/5/6はスコープ外、ADR-43の却下された代替案Aを部分的に置き換え） |
+| ADR-115 | [piによるマルチモデルエージェントハーネス（自社ソフトウェア第一）](115-pi-multi-model-harness/) | Proposed（薄い`agents/pi-harness/`スタブ；WD6の並行パスは未実証） |
 
 ## 新しいADRの追加
 

@@ -3,9 +3,9 @@ title: "リサーチ・サーベイノート"
 description: "rigortype/rigor docs/notes/README.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/README.md"
 sourcePath: "docs/notes/README.md"
-sourceSha: "000f8bf188875b4fcdb040a6de745a04123fdc46828018d970287eda5bac85f0"
-sourceCommit: "0f252e3218936e8dc7004b574c709a434b996d2a"
-sourceDate: "2026-09-19T23:05:07+09:00"
+sourceSha: "b6dd98f096b4670a7d04913678a2b7600125c63af349606caae6a23a1a7745ba"
+sourceCommit: "b5af5cf72f6b666f74479df959b1ee467feda5c6"
+sourceDate: "2026-09-22T02:18:38+09:00"
 translationStatus: "translated"
 sidebar:
   order: 6000
@@ -152,6 +152,7 @@ sidebar:
 | 2026-07-19 | [Webサイトショーケース — 「これに型が付くの？！」推論例集（コア + プラグイン）](20260719-website-showcase-inference-examples/) |
 | 2026-09-08 | [PR #788は停止指示のもとでマージされた — Draft規律のポストモーテム](20260908-pr-788-draft-discipline-postmortem/) |
 | 2026-09-09 | [ADRコーパス監査 —— 埋もれた作業、実装の乖離、および陳腐化](20260909-adr-corpus-audit/) |
+| 2026-09-21 | [v0.4.0 pre-clearバッチ ── 4つのレーン実装ノート（#1011、#1130、#1071、#1089）](20260921-queue-release-lane-experience/) |
 
 ## ノートの追加
 

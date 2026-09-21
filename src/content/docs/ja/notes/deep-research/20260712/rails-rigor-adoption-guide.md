@@ -4,7 +4,7 @@ description: "Imported from rigortype/rigor docs/notes/deep-research/20260712/ra
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/deep-research/20260712/rails-rigor-adoption-guide.md"
 sourcePath: "docs/notes/deep-research/20260712/rails-rigor-adoption-guide.md"
 sourceSha: "6c16af9d4cb8e945758ca265c2a09518b4f479ca790404506e18afcb4c426147"
-sourceCommit: "0f252e3218936e8dc7004b574c709a434b996d2a"
+sourceCommit: "b5af5cf72f6b666f74479df959b1ee467feda5c6"
 sourceDate: "2026-07-12T23:33:17+09:00"
 sourceLanguage: "ja"
 sidebar:

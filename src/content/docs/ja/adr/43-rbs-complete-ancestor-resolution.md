@@ -3,15 +3,15 @@ title: "ADR-43 — RBS完全な祖先解決（許可リストによる継承メ�
 description: "rigortype/rigor docs/adr/43-rbs-complete-ancestor-resolution.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/43-rbs-complete-ancestor-resolution.md"
 sourcePath: "docs/adr/43-rbs-complete-ancestor-resolution.md"
-sourceSha: "46402121065d6487cb31e6e8944d4172d37ccf922d66237880b6987f8eba9ee4"
-sourceCommit: "0f252e3218936e8dc7004b574c709a434b996d2a"
-sourceDate: "2026-09-20T18:55:08+09:00"
+sourceSha: "dc68c27030690c86c4a7c619fde0997920d1bfd927b6ea6a3b362668d81923f8"
+sourceCommit: "b5af5cf72f6b666f74479df959b1ee467feda5c6"
+sourceDate: "2026-09-22T04:35:15+09:00"
 translationStatus: "translated"
 sidebar:
   order: 4043
 ---
 
-ステータス: **Accepted — 全面的に着地（WD1–WD6）、2026-06-03**。却下された代替案Aは[ADR-114](114-core-stdlib-ancestor-dispatch.md)（2026-09-20）によって部分的に置き換えられ、gemのケースへと絞り込まれ、本ADRのアローリストはその拒否のバイパスとして保持される。
+ステータス: **Accepted — 全面的に着地（WD1–WD7）、2026-06-03**。WD7およびWD4の`rbs_complete_extends:`側は#1097で着地した。却下された代替案Aは[ADR-114](114-core-stdlib-ancestor-dispatch.md)（2026-09-20）によって部分的に置き換えられ、gemのケースへと絞り込まれ、本ADRのアローリストはその拒否のバイパスとして保持される。
 `rigor check`が、Rubyソースのサブクラスの*継承された*メソッド呼び出しを、
 **アローリスト化された**RBSのみの祖先に対して解決できるようにする。これにより
 エンジンはその祖先の契約（contract）サーフェス（surface）の誤用を警告できる。
@@ -150,7 +150,7 @@ Steepなしで）警告できるか？」
   は契約をミックスインしない。ユースケースが現れたら再検討する）。ウォークはADR-24の
   既存の`discovered_superclasses`マップを再利用する──新たな簿記は不要である。
 
-- **WD4 — アローリストのソーシング：定数のシード＋プラグインマニフェスト宣言（マニフェスト側は完了、#1100）**。v1は定数をハードコードしていた。その後マニフェストルートが着地した：プラグインは同梱する`signature_paths:`が完全にカバーするクラス名を指定して`rbs_complete_ancestors:`を宣言し、`RbsDispatch`は定数と並んで集約セット（`Plugin::Registry#rbs_complete_ancestor?`）を参照する。rigor-graphqlが最初の消費者である──graphql-rubyはRBSを出荷しないため、プラグインの同梱シグネチャが`GraphQL::Schema::Object`およびその仲間の権威であり、ソース側の`class PostType < GraphQL::Schema::Object`はブリッジを通じて継承された`field`/`argument`/…呼び出しを解決する。定数は引き続きエンジン自身の`Plugin::Base`契約のためのシードとして残る。クラスをリストすることは完全性の主張である：それを（rigor-graphqlのように）`open_receivers:`と組み合わせることで、宣言されたシグネチャを型チェックさせつつ、真に存在しないメソッドに対して診断を出さない状態を保てる。
+- **WD4 — アローリストのソーシング：定数のシード＋プラグインマニフェスト宣言（マニフェスト側は完了、#1100）**。v1は定数をハードコードしていた。その後マニフェストルートが着地した：プラグインは同梱する`signature_paths:`が完全にカバーするクラス名を指定して`rbs_complete_ancestors:`を宣言し、`RbsDispatch`は定数と並んで集約セット（`Plugin::Registry#rbs_complete_ancestor?`）を参照する。rigor-graphqlが最初の消費者である──graphql-rubyはRBSを出荷しないため、プラグインの同梱シグネチャが`GraphQL::Schema::Object`およびその仲間の権威であり、ソース側の`class PostType < GraphQL::Schema::Object`はブリッジを通じて継承された`field`/`argument`/…呼び出しを解決する。定数は引き続きエンジン自身の`Plugin::Base`契約のためのシードとして残る。クラスをリストすることは完全性の主張である：それを（rigor-graphqlのように）`open_receivers:`と組み合わせることで、宣言されたシグネチャを型チェックさせつつ、真に存在しないメソッドに対して診断を出さない状態を保てる。**#1097**はextendエッジの双子である`rbs_complete_extends:`を追加する: `extend M`はMの*インスタンス*サーフェスをクラスオブジェクトのシングルトン上へと持ち上げるため、シングルトン探索の失敗時に発見された`extend`エッジ（およびスーパークラス上のRBS `singleton_extended_modules`）を辿る。rigor-sorbetが最初の消費者である（`T::Sig`、`T::Helpers`、`T::Generic`）。同じ完全性の主張が適用される。そのメソッドを実際に定義しているモジュールのより近い`extend` ── `Outer::CustomSig`などのネストされたプロジェクトモジュールを含む ── が呼び出しを所有し、ウォーク全体を停止させる;その後のextendおよびRBSスーパークラスは探索されない。これは`MacroBlockSelfType`のオーナーウォークと一致するため、DeclBuilder束縛とRBSディスパッチが食い違うことはない。
 
 - **WD5 — フラグオン前の計測ゲート**。精度と`undefined-method`発火が結合している
   （Context）ため、この変更は断言ではなく計測でクリーンなバーの背後で出荷される：
@@ -177,6 +177,8 @@ Steepなしで）警告できるか？」
   `is_a?(Prism::CallNode)`の再記述で修正したので、ナローイングは本物である）。効力を
   検証済み：プラグインに注入された`manifest.bogus`は`make check-plugins`を
   `call.undefined-method`で非ゼロ終了させる。
+
+- **WD7 — extendブリッジの実行順序によるシャドウイング（#1097）**。より安直な常にシャドウするルール（クラス上のどこかにある`def self.sig`が`T::Sig#sig`を隠す）は両方向で誤りである: 同じ本体内で`def self.sig`の*前*に書かれた`sig { }`は依然として`extend T::Sig`を通じて実行され、後の`def`の内側にネストされた`sig`はすべてのクラス本体defが有効になった後に実行される。`discovered_deferred_ranges`（インクリメンタルスナップショットスキーマ24、その後行がowner列を獲得したことで25）はdef / block / lambdaスパンを記録し、`Scope#*_def_shadows_call?`が最先の同オーナーdefに対して呼び出しを順序付けられるようにする。順序が証明できない場合 ── ファイル間、nil呼び出しノード、未インデックスファイル、条件付きdef ── 保守性は常にシャドウ（不透明）を指し示し、プロジェクトメソッド上で診断を捏造してしまうDeclBuilder束縛を指し示すことは決してない。このテーブルこそが、extendブリッジがプラグイン専用の認識器ではない理由である: 同じ順序付けが、将来の任意の`rbs_complete_extends:`消費者にとって耐荷重性を持つ。
 
 ## 却下／先送りした代替案
 
@@ -217,6 +219,7 @@ Steepなしで）警告できるか？」
   第2のサーフェス、すなわちRBS祖先対Rubyオーバーライドを得る（フォローアップになり
   うる。v1のスコープではない）。
 - **ADR-37／ADR-40**──WD4が委ねる宣言的マニフェストルート。
+- **#1097／`rbs_complete_extends:`**──WD4のextendエッジの双子およびWD7の遅延範囲シャドウイング；[`docs/internal-spec/plugin.md`](../../internal-spec/plugin/)で規定。
 - **[ADR-114](114-core-stdlib-ancestor-dispatch.md)**（コア／stdlib祖先ディスパッチ）──上記の却下された代替案Aを部分的に置き換え、`ALLOWED_RBS_COMPLETE_ANCESTORS`を「唯一の侵入口」から「拒否のバイパス」へと降格させる。定数、マニフェストフィールド、およびそれらの契約は不変である。
 
 [プラグイン契約RBS]: ../../sig/rigor/plugin/base.rbs
