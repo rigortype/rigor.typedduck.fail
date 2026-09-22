@@ -109,7 +109,7 @@ Candidates — nothing reachable references these (45)
 
 裁定した実行の53件の偽陽性は、いくつかの繰り返し現れる形に分かれ、そのうち28件が最初の形でした。これらを認識できれば、リストの大半をすばやくスキップできます:
 
-- **フレームワークの命名規約**——名前でコントローラーと対になるヘルパーモジュール、Railsのジェネレータ、`ActiveSupport::Concern`によって自動的にextendされる`ClassMethods`モジュール、gemが名前でモデルに適用するデコレータ、`has_many :speakers_talks`を通じて到達される結合モデル、あるいはオプションキーから導出されるカスタムバリデータ（`validates :start_date, date: true`は`DateValidator`という名前を解決します）。名前を書くものは何もありません;フレームワークがそれを導出します。このうち2つはクラスタ全体を一度に片づけるので、行を1つずつ処理する前に確認してください: **`include_all_helpers`はデフォルトでtrue**なので、アプリがそれを無効にしていない限り、すべての`app/helpers/*Helper`は生きています;そしてデコレータgemの規約は`app/decorators`を丸ごとカバーします。
+- **フレームワークの命名規約**——名前でコントローラーと対になるヘルパーモジュール、Railsのジェネレータ、`ActiveSupport::Concern`によって自動的にextendされる`ClassMethods`モジュール、gemが名前でモデルに適用するデコレータ、`has_many :speakers_talks`を通じて到達される結合モデル、あるいはオプションキーから導出されるカスタムバリデーター（`validates :start_date, date: true`は`DateValidator`という名前を解決します）。名前を書くものは何もありません;フレームワークがそれを導出します。このうち2つはクラスタ全体を一度に片づけるので、行を1つずつ処理する前に確認してください: **`include_all_helpers`はデフォルトでtrue**なので、アプリがそれを無効にしていない限り、すべての`app/helpers/*Helper`は生きています;そしてデコレータgemの規約は`app/decorators`を丸ごとカバーします。
 - **設定内で文字列として名指しされている**——定期ジョブのスケジュール（`config/recurring.yml`・`config/schedule.yml`・`sidekiq.yml`のスケジューラブロック）、キュー定義、設定ファイル内のクラス名。スケジューラは名前でそれを解決するので、Rubyコードがそうする必要はなく、スケジュールされたジョブはリポジトリのどこにも`perform_later`呼び出しを持たないのが普通です。そのファイルが実際にロードされているか確認してください——`--recurring_schedule_file`を渡す`Procfile`やデプロイ設定が確証となる証拠です。
 - **ビューから呼ばれている**——`app/views/**/*.erb`はRubyではなく解析されないので、テンプレートからのみ使われるヘルパーには、レポートが見られる呼び出し元がありません。ヘルパーの行を信じる前にビューツリーをgrepしてください。
 - **自己登録するクラス**——その本体が登録DSL（`add "link"`・`register :thing`）を呼ぶクラス。使用の証拠はクラスの外ではなく中にあります。

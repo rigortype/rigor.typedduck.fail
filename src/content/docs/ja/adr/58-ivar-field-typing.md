@@ -188,7 +188,7 @@ WD1が有効な状態では、精密化はもはやFPを製造しない: クラ�
 （`build_class_ivar_index`） ── であり、エンジンは*既に*そこからWD2が約束した
 読み取り型を提供している。クラスivarインデックスはすべての書き込みrvalueを
 `Type::Combinator.union`でユニオンし、そのユニオンをそのままシードする
-（`class_ivars_for` → `seed_instance_ivars`、経路上にワイドニングなし）。
+（`class_ivars_for` → `seed_instance_ivars`、経路上に拡大なし）。
 したがって:
 
 - 同質な具象書き込みのフィールドは今日すでに精密な型を読む ── `type-of`で

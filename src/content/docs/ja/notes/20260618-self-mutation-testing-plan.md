@@ -254,7 +254,7 @@ fused classify per mutation: type-killed | test-killed | unprotected(+crash buck
 
 **セルフミューテーションセッションの累計（2026-06-21）:**バッチ1〜7は約28の`lib/rigor`ファイルの本物の穴を等価ミュータントのフロアまでクローズした（config_audit、lockfile_resolver、class_registry、reflection、method_catalog、conflict、diagnostic、options、mutation_protection_report、prism_colorizer、return_type_heuristic、builder、walker、coverage_command、hkt_reducer、hkt_registry、kernel_dispatch、overload_selector、precision_scanner、protection_scanner、project_patched_scanner、debouncer、document_symbol_provider、signature_help_provider、mcp/server、…）。残るフロンティア: `cli/*_command`のintegration-blindnessの末尾（バッチ4）、overload_selectorの全ブロックオーバーロードの2つの残余、約50の未計測の60〜300 LOCファイル、そして300 LOC超のエンジン層。
 
-## 8回目のバッチ —— def-returnタイパー + 2つのplugin表層（2026-06-30）
+## 8回目のバッチ —— def-returnタイパー + 2つのプラグインサーフェス（2026-06-30）
 
 まだ未計測だった60〜300 LOC層に対する2つの融合バッチ;ほとんどのファイルはフロアで計測された（`type/{union,constant,nominal}`、`source/{constant_path,node_walker}`、`macro_block_self_type`、`method_dispatcher/method_folding`、`sig_gen/{type_elaborator,layout_index,path_mapper}`、`plugin/trust_policy`はすべてすでに100 %だった）。3つの本物のクラスタをクローズした。すべてspecのみ、rspec + rubocopグリーン:
 
@@ -264,7 +264,7 @@ fused classify per mutation: type-killed | test-killed | unprotected(+crash buck
 
 ## 9回目のバッチ —— plugin isolation + macroバリデーター（2026-07-01）
 
-10のplugin表層への融合バッチ;ほとんどはフロア（`fact_store`、`services`、`box`、`blueprint`、`additional_initializer`、`macro/block_as_method`）。3つの本物のクラスタをクローズし、1つの等価ミュータントのフロアを文書化した;すべてspecのみ、rspec + rubocopグリーン。（最初に`bundle install`を再実行した —— このセッションが開いている間にPR #33のrbs 4.0.2 → 4.0.3のバンプが着地しており、融合テスト軸が生成する`bundle exec rspec`は新しいネイティブ拡張がビルドされるまで起動できない;症状はサブプロセスからの`Could not find rbs-4.0.3 in locally installed gems`だった。）
+10のプラグインサーフェスへの融合バッチ;ほとんどはフロア（`fact_store`、`services`、`box`、`blueprint`、`additional_initializer`、`macro/block_as_method`）。3つの本物のクラスタをクローズし、1つの等価ミュータントのフロアを文書化した;すべてspecのみ、rspec + rubocopグリーン。（最初に`bundle install`を再実行した —— このセッションが開いている間にPR #33のrbs 4.0.2 → 4.0.3のバンプが着地しており、融合テスト軸が生成する`bundle exec rspec`は新しいネイティブ拡張がビルドされるまで起動できない;症状はサブプロセスからの`Could not find rbs-4.0.3 in locally installed gems`だった。）
 
 - `plugin/macro/nested_class_template`（6 → 0）: `block_method` / `inner_arg_position` / `inner_reader`（行79/82/83）に対する`validate_method!` / `validate_position!`の呼び出しが未保護だった —— 既存の検証テストは*他の3つの*パラメータ（`receiver_constraint` / `variant_method` / `symbol_arg_position`）しかカバーしておらず、呼び出しごとの`label`引数（メッセージに埋め込まれた`#block_method`等）が`nil_inject` / `type_swap`を生き残っていた。3つのテストがそれぞれ1つのパラメータに不正な値を渡し、メッセージがそれを名指すことをアサートする。
 - `plugin/macro/trait_registry`（2 → 0）: `validate_modules_by_symbol!`の不正な**キー**分岐（Symbolでも非空StringでもないHashキー、行166/168）—— 既存のspecは値の分岐と非Hashガードをカバーしていたが、不正なキーは一度もなかった。`{ 42 => "Mod::A" }`を使う1つのテストが`modules_by_symbol key`のメッセージをアサートする。
@@ -317,7 +317,7 @@ fused classify per mutation: type-killed | test-killed | unprotected(+crash buck
 300 LOC超のエンジン層。巨大なコアファイル（statement_evaluator 3388、expression_typer 3059、scope_indexer 2716、narrowing 2640）は先送りされている —— ミューテートするのが重く、すでに厚くspec化されている;中大規模（350〜600 LOC）のファイルが手頃な前線だ。2つをSonnetサブエージェントに委譲し、1つはインラインで行った。3つとも今や生存者0。
 
 - `inference/mutation_widening`（52 → 0、Sonnet）: ADR-56のslice-Cコレクションのコンテンツ要素抽出ヘルパー（`collection_element_types`、`hash_shape_key_values`、`drop_dynamic`、`array_added_elements`、`join_*_content`、`widen_hash_shape`）はユニットレベルで未テストだった —— ブロック / ループのコンテンツ書き戻しのために、Tuple / Array-Nominal / HashShape / Unionレシーバーから要素 / キー / 値の型を抽出する。各レシーバー形状で各ヘルパーを行使する32テスト（`Combinator.nominal_of`結果のラップと、`Dynamic`メンバーの`drop_dynamic` / `grep_v`フィルタを含む）;`Combinator.union`がメンバーを並べ替える`contain_exactly`。
-- `plugin/registry`（27 → 0、Sonnet）: Registryを通じて到達するADR-52のコンパイル済み寄与インデックス表層 —— プラグインごとの`dynamic_returns` / `type_specifiers`ゲート、`block_as_methods`インデックス、グローバルゲートの`Set#merge`、`class_ordering`の祖先関係、`hkt_registrations` / `hkt_definitions`のHKT集約、そして削除済みの`flow_contribution_for`の重複登録raise。マージ / flat-map / 順序付けが観察可能になるよう、それぞれ2つ以上のpluginを持つ8テスト。
+- `plugin/registry`（27 → 0、Sonnet）: Registryを通じて到達するADR-52のコンパイル済み寄与インデックスサーフェス —— プラグインごとの`dynamic_returns` / `type_specifiers`ゲート、`block_as_methods`インデックス、グローバルゲートの`Set#merge`、`class_ordering`の祖先関係、`hkt_registrations` / `hkt_definitions`のHKT集約、そして削除済みの`flow_contribution_for`の重複登録raise。マージ / flat-map / 順序付けが観察可能になるよう、それぞれ2つ以上のpluginを持つ8テスト。
 - `inference/method_dispatcher/overload_selector`（1 → 0、インライン）: 行157の`overloads.first`フォールバック —— *すべての*選択パスが失敗し*かつ*すべてのオーバーロードがブロックを要求するときにのみ到達し、`find { !requires_block? }`はnilを生む。コアのRBSブロックメソッドはほぼすべて列挙子（enumerator）フォールバックのオーバーロードを出荷しているので（`find`が成功し、`.first`はそれらにとってはデッドコードだ —— 既存の`each_with_object`テストは一度もそこに到達しなかった）。`Object#tap`が判別的な形状だ: 列挙子の双子を持たない**単一**の`() { (self) -> void } -> self`オーバーロード;偽の引数でそれを呼ぶとarityですべてのパスが失敗する → `.first`フォールバックがそれを返す。
 
 ## 16回目のバッチ —— 中大規模エンジン層、その2（フェーズ3、2026-07-01）

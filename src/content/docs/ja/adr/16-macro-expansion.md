@@ -15,7 +15,7 @@ sidebar:
 
 > **命名注記（2026-06-13）:** [ADR-60 WD2](../60-pre-freeze-plugin-contract-consolidation/)は、このADRの例がまだ元の綴りで示している2つのマニフェスト値オブジェクトキーワードをリネームしました——`Macro::BlockAsMethod`の`verbs:`→`method_names:`、`Macro::NestedClassTemplate`の`name_arg_position:`→`symbol_arg_position:`。現在のバインディング形状は[`macro-substrate.md`](../../internal-spec/macro-substrate/)にあり、古いキーワードは`ArgumentError`を上げるようになりました。
 
-> **拡張注記（2026-09-20、#1099）:** `Macro::BlockAsMethod`の`self_type:`は、DSLがブロックを`instance_eval`する対象のクラス名を指定するStringも受け付けるようになりました——`"Grape::Validations::ParamsScope"`は公称型（nominal）の`self`を束縛し、`"singleton(Grape::API::Instance)"`はクラスオブジェクト自身を束縛します。Tier Aの元の規約（`:receiver_instance`、Sinatraの形状）は変更されていません。String形式は、サーベイのGrapeの形状で要求されたように、レシーバーとは*異なる*オブジェクト上でブロックが実行されるDSLをカバーします。文法は[`macro-substrate.md`](../../internal-spec/macro-substrate/)で固定されています。
+> **拡張注記（2026-09-20、#1099）:** `Macro::BlockAsMethod`の`self_type:`は、DSLがブロックを`instance_eval`する対象のクラス名を指定するStringも受け付けるようになりました——`"Grape::Validations::ParamsScope"`は名前的型（nominal type）の`self`を束縛し、`"singleton(Grape::API::Instance)"`はクラスオブジェクト自身を束縛します。Tier Aの元の規約（`:receiver_instance`、Sinatraの形状）は変更されていません。String形式は、サーベイのGrapeの形状で要求されたように、レシーバーとは*異なる*オブジェクト上でブロックが実行されるDSLをカバーします。文法は[`macro-substrate.md`](../../internal-spec/macro-substrate/)で固定されています。
 
 Rails（`ActiveSupport::Concern`、ActiveStorage attachedマクロ）、AASM、Devise、GraphQL-Ruby、factory_bot、Sinatra、Sequel、Redmineをカバーするライブラリごとのサーベイ[`docs/notes/20260515-macro-expansion-library-survey.md`](../../notes/20260515-macro-expansion-library-survey/)が発端。基板フロアは14のコミット（584ae85…d7b1943）にわたって配信;ADR-12（dry-rbパッケージング）は引き続き予約;このADRは並行して座り、それに依存しません。スライスごとのステータス詳細は § 実装のスライス分けに記載。
 

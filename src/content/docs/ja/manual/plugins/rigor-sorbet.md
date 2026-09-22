@@ -37,9 +37,9 @@ plugins:
 
 ## スコープと制限
 
-このプラグインは**入力側専用**です。Sorbetの構文をRigorの型モデルへ翻訳します。Sorbetのチェッカーを実行することも、`sorbet-runtime`を同梱することも、Sorbetのランタイム保証を強制することも**しません**。RBSのsigとSorbetのsigが食い違う場合は、RBSが優先されます（Sorbetのsigは絞り込めますが、矛盾することはできません）。翻訳テーブルの外にある形式（`T.proc`、`T.self_type`、…）は`Dynamic[top]`に劣化します。第10章が完全な語彙とこれらのエッジケースを記述しています。
+このプラグインは**入力側専用**です。Sorbetの構文をRigorの型モデルへ翻訳します。Sorbetのチェッカーを実行することも、`sorbet-runtime`を同梱することも、Sorbetのランタイム保証を強制することも**しません**。RBSのsigとSorbetのsigが食い違う場合は、RBSが優先されます（Sorbetのsigはリファインできますが、矛盾することはできません）。翻訳テーブルの外にある形式（`T.proc`、`T.self_type`、…）は`Dynamic[top]`に劣化します。第10章が完全な語彙とこれらのエッジケースを記述しています。
 
-また本プラグインは、同梱された`sorbet-runtime`のRBSサーフェスを通じて、アノテーションDSL自体の式（`sig`、`params`、`returns`、`void`、`abstract`、`override`、`type_member`、`T::Array[...]`、`T::Helpers`/`T::Generic`マクロ、`T::Struct`/`T::Enum`のクラス本体 ── プレーンな`T::Struct`サブクラス上の`sig`には、ランタイムの挙動に合わせて依然としてサブクラス自身の`extend T::Sig`が必要）も型付けします ── したがって、Sorbetコードベースにおいてsig DSLが`Dynamic[top]`と読まれることはなくなりました。モデル化していない点：`T::Struct`は`prop`宣言されたリーダーを合成しません（`Doc#name`アクセサは依然として不透明と読まれます）、`include T::Props`は`ClassMethods`サーフェスを付与しません（`< T::Struct`サブクラスパスのみが付与します）、そしてより深いtype-memberの仕組み（`T.attached_class`の変位性（variance）、`type_member`の境界）は呼び出しサイトへ伝播されません。
+また本プラグインは、同梱された`sorbet-runtime`のRBSサーフェスを通じて、アノテーションDSL自体の式（`sig`、`params`、`returns`、`void`、`abstract`、`override`、`type_member`、`T::Array[...]`、`T::Helpers`/`T::Generic`マクロ、`T::Struct`/`T::Enum`のクラス本体 ── プレーンな`T::Struct`サブクラス上の`sig`には、ランタイムの挙動に合わせて依然としてサブクラス自身の`extend T::Sig`が必要）も型付けします ── したがって、Sorbetコードベースにおいてsig DSLが`Dynamic[top]`と読まれることはなくなりました。モデル化していない点：`T::Struct`は`prop`宣言されたリーダーを合成しません（`Doc#name`アクセサは依然として不透明と読まれます）、`include T::Props`は`ClassMethods`サーフェスを付与しません（`< T::Struct`サブクラスパスのみが付与します）、そしてより深いtype-memberの仕組み（`T.attached_class`の分散（variance）、`type_member`の境界）は呼び出しサイトへ伝播されません。
 
 ## プラグイン内部
 

@@ -125,7 +125,7 @@ redmineに`config/`を加えると18ファイル、18の新しいプロジェク
 | 1 | 継承スコープの定数ルックアップ | `Redmine::Scm::Adapters::AbstractAdapter::ScmCommandAborted` | `class BazaarAdapter < AbstractAdapter`内の`rescue ScmCommandAborted`は*スーパークラス*のスコープ連鎖を通じて解決される。リゾルバのレキシカル走査はそれをモデル化しないので、本物の、解析集合内の参照が記録されない。これはエンジンの隙間であって、ルート集合の隙間ではない。 |
 | 1 | `ActiveSupport::Concern`規約 | `Redmine::SudoMode::Controller::ClassMethods` | `extend ActiveSupport::Concern`はネストした`ClassMethods`を名前で自動的にextendする。 |
 | 1 | 公開された拡張ポイント | `Redmine::Hook::ViewListener` | ツリー外のRedmineプラグイン（と`test/`）からのみサブクラス化される。エクスポートされたAPIで、リポジトリの内側からのみ死んでいる。 |
-| 1 | Railsのバリデータ規約 | `DateValidator` | `validates :start_date, :date => true`は`"DateValidator".constantize`になる。段階4のトップレベル動的規則は`*Controller`に制限されていた;同じ規約はバリデータ、ジョブ、シリアライザなどにも存在する。 |
+| 1 | Railsのバリデーター規約 | `DateValidator` | `validates :start_date, :date => true`は`"DateValidator".constantize`になる。段階4のトップレベル動的規則は`*Controller`に制限されていた;同じ規約はバリデーター、ジョブ、シリアライザなどにも存在する。 |
 
 ### これが算術的に意味すること
 

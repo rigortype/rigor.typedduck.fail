@@ -105,7 +105,7 @@ T.assert_type!("hello", Integer)  # error: 証明可能に非互換
 T.assert_type!(some_obj, String)  # silent: ユーザーを信頼
 ```
 
-`T.bind(self, T)`は現在のスコープ（通常はブロック本体）の残り部分に対して`self`を`T`に絞り込みます:
+`T.bind(self, T)`は現在のスコープ（通常はブロック本体）の残り部分に対して`self`を`T`にナローイングします:
 
 ```ruby
 arr.each do |x|
@@ -114,7 +114,7 @@ arr.each do |x|
 end
 ```
 
-絞り込みはエンジンのプラグイン側`post_return_facts`配線で実装されます。将来のPHPStanスタイルのType-Specifying Extensionプラグインがカスタムアサーションコール後に引数変数を絞り込むために使うのと同じ基板です。
+ナローイングはエンジンのプラグイン側`post_return_facts`配線で実装されます。将来のPHPStanスタイルのType-Specifying Extensionプラグインがカスタムアサーションコール後に引数変数をナローイングするために使うのと同じ基板です。
 
 `T.bind`は非`self`の第1引数をサイレントで拒否します（Sorbetの契約（contract）に一致。bindはself専用）。
 
@@ -142,7 +142,7 @@ plugins:
 | シジルなし / `false` | パースエラー診断のために辿られるが、sigsは記録されない。 | Sigsが記録される。 |
 | `# typed: true`以上 | Sigsが記録される。 | Sigsが記録される。 |
 
-デフォルトはSorbet自身の契約を反映します: `# typed: false`では型が強制されないので、Rigorもそれらのファイルからの絞り込みを表面化しません。`enforce_sigil: false`をプラグイン設定で設定することで、ゲート前の挙動にオプトイン（シジルに関係なく、解析可能なすべてのファイルのsigsがカタログに着地する）できます。
+デフォルトはSorbet自身の契約を反映します: `# typed: false`では型が強制されないので、Rigorもそれらのファイルからのナローイングを表面化しません。`enforce_sigil: false`をプラグイン設定で設定することで、ゲート前の挙動にオプトイン（シジルに関係なく、解析可能なすべてのファイルのsigsがカタログに着地する）できます。
 
 **アサーション認識器**（`T.let`、`T.cast`、`T.must`、`T.must_because`、`T.unsafe`、`T.reveal_type`、`T.assert_type!`、`T.bind`）は`enforce_sigil`でゲートされません。ユーザーはそれらのコールを意図的に書いており、ファイルのシジルに関係なく発火します。
 
@@ -212,7 +212,7 @@ demo.rb:42:5: warning: `T.absurd` is reachable: the discriminant did not
 4. **依存関係ソース推論**（ADR-10のオプトインウォーカー）。
 5. **ユーザークラスフォールバック**（`Object` / `Class`の祖先）。
 
-貢献マージャー（[`docs/internal-spec/flow-contribution-merger.md`](../../internal-spec/flow-contribution-merger/)に文書化されたv0.1.0の基板）は競合時にRBSを権威として保持します。Sorbet sigは絞り込みを許可されますが矛盾は許可されません。Sorbet sigを優先させたいユーザーは競合するRBSを削除すべきで、その逆ではありません。逆方向（Sorbetが勝つ）は、サードパーティDSLアノテーションが作成されたRBSを上書きすることを許可し、信頼モデルを逆転させます。
+貢献マージャー（[`docs/internal-spec/flow-contribution-merger.md`](../../internal-spec/flow-contribution-merger/)に文書化されたv0.1.0の基板）は競合時にRBSを権威として保持します。Sorbet sigはリファインを許可されますが矛盾は許可されません。Sorbet sigを優先させたいユーザーは競合するRBSを削除すべきで、その逆ではありません。逆方向（Sorbetが勝つ）は、サードパーティDSLアノテーションが作成されたRBSを上書きすることを許可し、信頼モデルを逆転させます。
 
 ## 移行パターン
 

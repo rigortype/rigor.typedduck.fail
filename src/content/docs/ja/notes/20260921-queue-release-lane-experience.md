@@ -72,7 +72,7 @@ issue起票の際は、bash経由で渡される`gh issue create`タイトルに
 
 バグは2つのパス間の1単語の違いだった。`dispatch_one`の`Bases::Self`の戻り値パス型付けは`SelfSubstitute.for`（issue #1092、PR #1096）を通っていたため、`ints.tap {}`は`Array[Integer]`を返した。`extract_block_param_types`は型引数なしで`self_type = Type::Combinator.nominal_of(class_name)`を構築していたため、`Object#tap`の`(self)`ブロックパラメータは生の`Array`として到着した。`ints.tap { |a| }`は`a`を`Array`に束縛し、`[1, 2].tap { |a, b| }`はissue #1128の`Dynamic[top]`床に着地した。
 
-`probe_block_param_types_one`から`extract_block_param_types`へ`receiver`、`receiver_args`、`method_name`をスレッドし、`SelfSubstitute.for`を保持対劣化の判定のみとして呼び出し、nilでない判定ではブロックの`self_type`を値固定定数を保持したまま`nominal_of(class_name, type_args: receiver_args)`に設定した。nil判定（要素を変更するミューテーター）は生の公称型を保持した。`dispatch_one`と戻り値パスはバイト単位で変更されなかった。
+`probe_block_param_types_one`から`extract_block_param_types`へ`receiver`、`receiver_args`、`method_name`をスレッドし、`SelfSubstitute.for`を保持対劣化の判定のみとして呼び出し、nilでない判定ではブロックの`self_type`を値固定定数を保持したまま`nominal_of(class_name, type_args: receiver_args)`に設定した。nil判定（要素を変更するミューテーター）は生の名前的型を保持した。`dispatch_one`と戻り値パスはバイト単位で変更されなかった。
 
 その分割は私のものではなかった。受け入れ基準は`[1, 2].tap { |a, b| }`がADR-101の楽観的マークを付けてスロットごとに`1 | 2`を束縛することを要求しており、素の`SelfSubstitute`の再利用ではそれを生成できなかった（後述）。具体的な分岐を挙げてエスカレーションし、スーパーバイザーは候補B（1つの判定、戻り値のみの拡大）を選択した。`docs/internal-spec/inference-engine.md`はまさにそれを記録している。
 
@@ -132,11 +132,11 @@ SelfSubstituteは深く拡大する。`projected_self`はすべての型引数�
 
 修正は1つのファイルに着地した: `plugins/rigor-activerecord/lib/rigor/plugin/activerecord.rb`。バグは完全に、レシーバーが書かれたパスである`column_return_type`の内部にあった。`column.ruby_type`をRigor型に写像し、`entry.enums`を決して参照していなかったため、`enum status: { active: 0, archived: 1 }`（`t.integer`カラム）上の`post.status`は、Railsがキー`"active"`を返すのに対し、`Integer`と型付けされていた。分岐を追加した: `entry.enum?(column_name)`のとき、キーのString定数のunion（`Constant["active"] | Constant["archived"]`）を構築し、空のキーリストに対しては`Nominal[String]`にフォールバックする`enum_key_type`を返す。`parse_enum_call`がパース可能な宣言として`enum :status, []`を受け入れるため、空キーガードは重要である。`ModelIndex`はすべてのキーが静的Symbolリテラルであるときにのみenumを記録するため、unionは構造によって完全であり、より広い`String`ではなく正確である。
 
-暗黙のselfリーダーは変更されていない。精密なバリアントが#963でmastodon上で57件の偽陽性と計測されたため、`implicit_self_instance_member_type`は`Dynamic[top]`を答え続ける。私の新しいスペックは両方の綴りを並べて固定している: 書かれたレシーバーは絞り込まれ、モデルの`def`内部の素の読み取りは`untyped`のままである。
+暗黙のselfリーダーは変更されていない。精密なバリアントが#963でmastodon上で57件の偽陽性と計測されたため、`implicit_self_instance_member_type`は`Dynamic[top]`を答え続ける。私の新しいスペックは両方の綴りを並べて固定している: 書かれたレシーバーはナローイングされ、モデルの`def`内部の素の読み取りは`untyped`のままである。
 
-またマニフェストを0.11.0から0.12.0にバンプした。プロデューサーのペイロードの形状は何も変わっていないが、0.11.0のコメントはバージョンがプロジェクトが挙動の主張のために参照するキャッシュキーであるという前例を確立しており、これはプラグインが主張する書かれたレシーバーの呼び出しを変更する。
+また、マニフェストを0.11.0から0.12.0へ引き上げた。プロデューサーのペイロードの形状は変更されていないが、0.11.0のコメントは、振る舞いの主張に対してプロジェクトが見るキャッシュキーがバージョンであるという前例を作っており、本修正はプラグインが主張する書かれたレシーバーの呼び出しを変更する。
 
-スペック作業は、整数を基盤とするenum（`status`）と文字列を基盤とするenum（`visibility`）の両方を運ぶフィクスチャを備えた、新しいネストされたdescribeの下の`spec/integration/plugins/activerecord_plugin_spec.rb`に存在する。5つのexample: 両方のバックエンドに対するunion絞り込み、`upcase`の沈黙、`status + 1`は`Integer`ではなく`String`を出力、`status?`は`bool`のまま、暗黙のselfは`Dynamic[top]`のまま。
+スペック作業は、整数を基盤とするenum（`status`）と文字列を基盤とするenum（`visibility`）の両方を運ぶフィクスチャを備えた、新しいネストされたdescribeの下の`spec/integration/plugins/activerecord_plugin_spec.rb`に存在する。5つのexample: 両方のバックエンドに対するunionナローイング、`upcase`の沈黙、`status + 1`は`Integer`ではなく`String`を出力、`status?`は`bool`のまま、暗黙のselfは`Dynamic[top]`のまま。
 
 ### 誤った判断
 

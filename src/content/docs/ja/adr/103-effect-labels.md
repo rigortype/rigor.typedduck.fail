@@ -41,7 +41,7 @@ Steinsのモデルを変更なしに採用し、Ruby固有のコミットメン�
 
 ### WD3 — 起点はカタログの行と少数の構文である;畳み込みカタログは起点ではない
 
-エフェクトは手で監査されたエフェクトカタログ（`data/effects/core.yml`）と、Rubyが持つ少数の構文（バッククォート、`$gvar`の読み書き、`@@cvar`、`@ivar`書き込み、`alias`/`undef`、リテラル名の`define_method`）から生じる。カタログにないメソッドはクラスごとの既定姿勢に従う——値クラスは∅、世界に向いたクラスは`io`——ので、網羅ビットは意味を保つ。生成された`data/builtins/ruby_core/*.yml`の`purity:`ファセットはエフェクトソース**ではない**: それはCディスパッチの意味での畳み込み安全性に答える（`Random#rand`は`leaf`、`Array#push`は`leaf`）;その`c_effects: mutate` / `block`マーカー、クラスごとの`mutating_selectors:`ブロックリスト、`NON_REPRODUCIBLE_SELECTORS`、`MutationWidening`のミューテータ集合、`ClosureEscapeAnalyzer`のテーブルは新しいカタログのシードと証拠であり、引用されるがラベルとして読まれることは決してない。（§5.1。）
+エフェクトは手で監査されたエフェクトカタログ（`data/effects/core.yml`）と、Rubyが持つ少数の構文（バッククォート、`$gvar`の読み書き、`@@cvar`、`@ivar`書き込み、`alias`/`undef`、リテラル名の`define_method`）から生じる。カタログにないメソッドはクラスごとの既定姿勢に従う——値クラスは∅、世界に向いたクラスは`io`——ので、網羅ビットは意味を保つ。生成された`data/builtins/ruby_core/*.yml`の`purity:`ファセットはエフェクトソース**ではない**: それはCディスパッチの意味での畳み込み安全性に答える（`Random#rand`は`leaf`、`Array#push`は`leaf`）;その`c_effects: mutate` / `block`マーカー、クラスごとの`mutating_selectors:`ブロックリスト、`NON_REPRODUCIBLE_SELECTORS`、`MutationWidening`のミューテーター集合、`ClosureEscapeAnalyzer`のテーブルは新しいカタログのシードと証拠であり、引用されるがラベルとして読まれることは決してない。（§5.1。）
 
 ### WD4 — Rubyのデルタ: 所有権、閉世界、封じ込め、時計ではなくコード
 
@@ -71,7 +71,7 @@ Steinsのモデルを変更なしに採用し、Ruby固有のコミットメン�
 
 ### WD10 — Rails: トランスポートがアダプタ依存であるところにフレームワークラベル、プラグインからエッジ、ビルダーは純粋
 
-rigor-railsは§11.2の表に従ってトランスポートと`rails.*`の意味に色を付ける;Relationの**ビルダー**は∅、**実体化子**は`io.db.read`;`Rails.env`とその仲間は`global.read`（ポリシーで許容）;プラグインは構文が欠く**エッジ**（コールバック、バリデータ、`perform_now`、メーラー本体）を寄与し、寄与してはならないものは寄与しない（`perform_later` → `perform`）;ActiveSupportのcore_extは一括で`%a{pure}`を受け取る;サマリーは**起点ごとのラベルバンドル**を保つので、意味ラベルを許容することはそれに付随して来たトランスポートだけを解消する。`views: lenient | strict`プリセットと例示的なレイヤー規約スタンザはドキュメントとして出荷され、既定で強制されることは決してない。
+rigor-railsは§11.2の表に従ってトランスポートと`rails.*`の意味に色を付ける;Relationの**ビルダー**は∅、**実体化子**は`io.db.read`;`Rails.env`とその仲間は`global.read`（ポリシーで許容）;プラグインは構文が欠く**エッジ**（コールバック、バリデーター、`perform_now`、メーラー本体）を寄与し、寄与してはならないものは寄与しない（`perform_later` → `perform`）;ActiveSupportのcore_extは一括で`%a{pure}`を受け取る;サマリーは**起点ごとのラベルバンドル**を保つので、意味ラベルを許容することはそれに付随して来たトランスポートだけを解消する。`views: lenient | strict`プリセットと例示的なレイヤー規約スタンザはドキュメントとして出荷され、既定で強制されることは決してない。
 
 ### WD11 — ビューはエフェクト単位である
 

@@ -100,7 +100,7 @@ rigor lsp [--transport=stdio] [--log=PATH] [--config=PATH]
 | `textDocument/didChange` | C→S | 仮想テーブルを変異 | デバウンスされた診断発行をトリガーする。 |
 | `textDocument/didSave` | C→S | v1ではno-op | 診断は`didChange`によりすでに新鮮。 |
 | `textDocument/didClose` | C→S | 仮想テーブルからエントリー削除 | URIに対し空の診断を発行してインラインマーカーをクリアする。 |
-| `textDocument/publishDiagnostics` | S→C | `Runner.run(buffer:)` → `Result#diagnostics` → LSP `Diagnostic[]` | ファイルごとの出力。ダーティなファイル1つにつき通知1つ。 |
+| `textDocument/publishDiagnostics` | S→C | `Runner.run(buffer:)` → `Result#diagnostics` → LSP `Diagnostic[]` | ファイルごとの出力。ダーティーなファイル1つにつき通知1つ。 |
 | `textDocument/hover` | C↔S | 位置における`Scope#type_of`（`Source::NodeLocator`＋`ScopeIndexer`）— 既存の`rigor type-of`のコア | Markdownボディを返す。 |
 | `textDocument/definition` | C↔S | （先送り）`Reflection`シンボルインデックス | スライス7以降。 |
 | `textDocument/documentSymbol` | C↔S | Prism ASTを走査して`ClassNode`／`ModuleNode`／`DefNode`を収集 → LSP `DocumentSymbol[]` | |
@@ -127,7 +127,7 @@ end
   まで`dirty: true`。
 - `didClose`はエントリーを削除する。URIの診断は空の発行でクリアされる。
 
-診断実行が発火すると、サーバーはダーティなエントリーごとに`BufferBinding`
+診断実行が発火すると、サーバーはダーティーなエントリーごとに`BufferBinding`
 を1つ実体化する。
 
 ```ruby
@@ -178,7 +178,7 @@ BufferBinding.new(
 着地した機構:
 
 - `Rigor::Analysis::Runner::BufferPoolDispatcher`（`PoolCoordinator`の
-  兄弟であり、Ractorプールのオブジェクトではない）が、ダーティな
+  兄弟であり、Ractorプールのオブジェクトではない）が、ダーティーな
   バッファごとに独立した`Runner#run`を1つ走らせ、N個の子プロセスを
   `fork`する。子はコピーオンライトで**親**プロセスのすでにウォームな
   `Environment`＋`ProjectScan`を継承するので、バッチは今日の逐次パスに
@@ -214,7 +214,7 @@ BufferBinding.new(
   リクエスト単位より細かいキャンセルをキューに積んでいる）、上にあった
   リクエストごとのキャンセルフラグの記述は、この着地が満たす必要のなかった
   願望を述べたものだったので、そう示唆したままにせず削除した。
-- バッファの差し替えはセッション単位ではなく**ジョブ単位**である: ダーティな
+- バッファの差し替えはセッション単位ではなく**ジョブ単位**である: ダーティーな
   バッファはそれぞれ自分の`BufferBinding`（論理パス → そのバッファ自身の
   エディタ一時ファイル）をfork子まで持ち込むので、複数が一緒に
   ディスパッチされてもワーカーがディスクにあるままのファイルを読むことも、
@@ -296,11 +296,11 @@ LSPはサーバープッシュの`textDocument/publishDiagnostics`を要求す�
    1回の再チェックはすでにプロジェクト全体の診断を生むので、それを開いているURIで
    分割するのは無償である —— そして古いマーカーは「前回何を発行したか」の台帳では
    なく、構成上ありえなくなる。#204のテーブル差分と同じ理屈だ。
-3. **ダーティなバッファは、自分自身としてを除いて発行集合から除外される**。
-   バイト列がバインドされるバッファは常に1つだけなので、別のダーティな
+3. **ダーティーなバッファは、自分自身としてを除いて発行集合から除外される**。
+   バイト列がバインドされるバッファは常に1つだけなので、別のダーティーな
    バッファの診断を発行すれば、そのディスク上の古いバイト列について報告する
    ことになる —— 沈黙より悪い。不変条件: *各URIのマーカーは、そのURIの現在の
-   バイト列を見た最後の解析から来る* —— ダーティなバッファ自身の`didChange`発行、
+   バイト列を見た最後の解析から来る* —— ダーティーなバッファ自身の`didChange`発行、
    クリーンなバッファなら最新の保存ラウンド。
 4. **トリガーは`didChange`ではなく`didSave`**。CLIのオプションB起動1回の
    フェーズ帰属（mastodon `app/models`、248ファイル、ウォーム、4ファイルの

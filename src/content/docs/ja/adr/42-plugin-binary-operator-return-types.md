@@ -63,7 +63,7 @@ PHPStanはこの非対称性を持たない。`isOperatorSupported($left, $right
 
 - **WD-D（最も安価な偽陽性緩和、フックなし）── `builtin <op> non-Numeric`を左バイアスではなく`Dynamic`として型付けする**。前述の狭い偽陽性は、`1 + money`が引数のどの`Integer#+`オーバーロードにも一致しないとき現状`Integer`に解決されることだけが原因で存在する。そのケースを`Dynamic`へフェイルソフトさせれば、*精度*（結果が被強制型ではなく`Dynamic`になる）を犠牲にする代わりに、プラグインサーフェスを一切伴わずに偽陽性が完全に除去される。これは実コードで偽陽性が観測された場合の推奨される最初のステップである。WD-0／WD-Aはその後、利用者が必要とする箇所にのみ精度を上乗せする。
 
-- **WD-A（フックが必要な場合の先行案）── 双方向の絞り込み拡張`operator_return`**。新しいADR-37スタイルの分離プロトコル:
+- **WD-A（フックが必要な場合の先行案）── 双方向のナローイング拡張`operator_return`**。新しいADR-37スタイルの分離プロトコル:
 
   ```ruby
   operator_return operators: %i[+ - * /], operands: ["BigDecimal"] do |op, left, right, scope|
