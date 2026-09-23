@@ -3,9 +3,9 @@ title: "アーキテクチャ決定記録"
 description: "rigortype/rigor docs/adr/README.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/README.md"
 sourcePath: "docs/adr/README.md"
-sourceSha: "d866aacaf5077e879e0a3396e12eddbfc52262789f0d400eb9179747cf7db549"
-sourceCommit: "b5af5cf72f6b666f74479df959b1ee467feda5c6"
-sourceDate: "2026-09-22T04:35:15+09:00"
+sourceSha: "87aeb7c61f71e55d9a247e35999a337ef24812269558b54a239860e9cfcd15cf"
+sourceCommit: "74970d1ece5a858d82c9b2c8f1a5deb57831f984"
+sourceDate: "2026-09-23T11:35:27+09:00"
 translationStatus: "translated"
 sidebar:
   order: 4000
@@ -141,6 +141,7 @@ sidebar:
 | ADR-113 | [`rigor lens`: エージェントおよびツールのための、型の由来を持つ宣言マップ](113-rigor-lens/) | Accepted（未実装） |
 | ADR-114 | [コアおよびstdlib RBSへの継承ディスパッチ](114-core-stdlib-ancestor-dispatch/) | Accepted（#527スライス1が着地: インスタンス側のスーパークラス巡回；スライス2/3/5/6はスコープ外、ADR-43の却下された代替案Aを部分的に置き換え） |
 | ADR-115 | [piによるマルチモデルエージェントハーネス（自社ソフトウェア第一）](115-pi-multi-model-harness/) | Proposed（薄い`agents/pi-harness/`スタブ；WD6の並行パスは未実証） |
+| ADR-116 | [エンジンのホットファイルの再構築: 増加する種類は1回宣言し、各走査は1回巡回する](116-hot-file-restructuring/) | Accepted（v0.4.0カット後を予定；WD0〜WD7は未着手） |
 
 ## 新しいADRの追加
 

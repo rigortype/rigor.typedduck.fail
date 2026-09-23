@@ -3,9 +3,9 @@ title: "リサーチ・サーベイノート"
 description: "rigortype/rigor docs/notes/README.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/README.md"
 sourcePath: "docs/notes/README.md"
-sourceSha: "b6dd98f096b4670a7d04913678a2b7600125c63af349606caae6a23a1a7745ba"
-sourceCommit: "b5af5cf72f6b666f74479df959b1ee467feda5c6"
-sourceDate: "2026-09-22T02:18:38+09:00"
+sourceSha: "c265dd5fbb5e0e16f81612ec6bb7a1039b7afce4a39685a3440fbe02ff9efd2a"
+sourceCommit: "74970d1ece5a858d82c9b2c8f1a5deb57831f984"
+sourceDate: "2026-09-23T11:35:27+09:00"
 translationStatus: "translated"
 sidebar:
   order: 6000
@@ -52,6 +52,7 @@ sidebar:
 | 2026-09-08 | [`sig/`内の全宣言の来歴 — ADR-107 G3に向けた初期シード監査](20260908-sig-provenance-audit/) |
 | 2026-09-09 | [`sig/`内の224件の`no_source`宣言の出処](20260909-sig-no-source-audit/) |
 | 2026-09-19 | [調査コーパスの型付けホール調査 — 32ターゲットに対するノードごとの`Dynamic[top]`位置](20260919-survey-typing-holes/) |
+| 2026-09-22 | [戻り値契約としてのuntyped、void、top — sig/監査が教えたこと](20260922-untyped-void-top-return-contracts/) |
 
 ## リグレッションスイープ・実プロジェクトトリアージ
 
@@ -153,6 +154,13 @@ sidebar:
 | 2026-09-08 | [PR #788は停止指示のもとでマージされた — Draft規律のポストモーテム](20260908-pr-788-draft-discipline-postmortem/) |
 | 2026-09-09 | [ADRコーパス監査 —— 埋もれた作業、実装の乖離、および陳腐化](20260909-adr-corpus-audit/) |
 | 2026-09-21 | [v0.4.0 pre-clearバッチ ── 4つのレーン実装ノート（#1011、#1130、#1071、#1089）](20260921-queue-release-lane-experience/) |
+
+## コード構造
+
+| Date | Note |
+| --- | --- |
+| 2026-06-04 | [構造的コード重複監査（非カタログ、非プラグイン）](20260604-structural-repetition-audit/) |
+| 2026-09-23 | [ホットファイルchurn監査 — エンジンの変更圧力がどこにかかっているか（ADR-116の根拠）](20260923-hot-file-churn-audit/) |
 
 ## ノートの追加
 

@@ -3,8 +3,9 @@ title: "ADR-107 — Rigor自身のツリーにおけるチェック対象の型�
 description: "rigortype/rigor docs/adr/107-checked-types-and-typeless-comments.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/107-checked-types-and-typeless-comments.md"
 sourcePath: "docs/adr/107-checked-types-and-typeless-comments.md"
-sourceSha: "12b7c46ce3a1de12dfac20a4d81e7467b84e7109cb2536c87a78cf81567d7267"
-sourceCommit: "04668e5f0d6205fdd5c8f44662041add7ab33ca3"
+sourceSha: "db622804d9a159a7f905a31bac3d89e3a52ea159e43dfe7bfddf7e2d78f0ca71"
+sourceCommit: "74970d1ece5a858d82c9b2c8f1a5deb57831f984"
+sourceDate: "2026-09-22T01:18:15+09:00"
 translationStatus: "translated"
 sidebar:
   order: 4107
@@ -110,7 +111,7 @@ rigor check --no-cache --no-ci-detect --format=json --treat-all-as-inline-rbs li
 
 - **戻り値型は生成される** — `rigor sig-gen`は本体が証明する最も厳格なキャリアを出力し（ADR-5条項1）、ジェネレータはアナライザー自体が拒絶するような厳格化を決して出力しません。唯一の例外は`void`です: これは値が契約の一部ではないと著者が述べているものであり、いかなるシンセサイザーもこれを生成しません — 本体から構築される型は常に最後の式の型であるため、`void`はチェック側でのみ機能します。したがって宣言された`void`は、パラメータ型と同様に意図であり、マーカーを必要としません（[#836](https://github.com/rigortype/rigor/issues/836)）。
 - **パラメータ型は著述された意図である** — 推論はそれらを導出せず、ADR-5条項2はそれらを意図的に寛容に保ちます。手書きされたパラメータ型は、そのメソッドが何のためのものかを著者が述べているのであり、これは実装には含まれていない情報です。
-- **それ以外のすべての手書きは、記録された推論ギャップである**（単なる好みではない）。[ADR-14](../14-rbs-sig-generation/)に従い、ギャップこそがより価値のあるシグナルです: 手作業で手早く埋めるのではなく、エンジンを拡張することがその対応です。[#825](https://github.com/rigortype/rigor/issues/825)のゲートは、3番目のカテゴリーを仮定ではなく記録されたものにします。そのシード監査（[`docs/notes/20260908-sig-provenance-audit.md`](../../notes/20260908-sig-provenance-audit/)）によると、このカテゴリーは対象となる1,052件の宣言中671件に上ったため、ゲートは671個のマーカーを要求するのではなく、ジェネレータが積極的に矛盾する15件にマーカーを付け、残りをファイル単位で固定しました — そして本ADR自身の予測を覆しました: 15件のうち1件も推論の不完全さによるものはなく、12件は宣言が意図したものよりも推論が*精密*であったことによるものでした。
+- **それ以外のすべての手書きは、記録された推論ギャップである**（単なる好みではない）。[ADR-14](../14-rbs-sig-generation/)に従い、ギャップこそがより価値のあるシグナルです: 手作業で手早く埋めるのではなく、エンジンを拡張することがその対応です。[#825](https://github.com/rigortype/rigor/issues/825)のゲートは、3番目のカテゴリーを仮定ではなく記録されたものにします。そのシード監査（[`docs/notes/20260908-sig-provenance-audit.md`](../../notes/20260908-sig-provenance-audit/)）によると、このカテゴリーは対象となる1,052件の宣言中671件に上ったため、ゲートは671個のマーカーを要求するのではなく、ジェネレータが積極的に矛盾する15件にマーカーを付け、残りをファイル単位で固定しました — そして本ADR自身の予測を覆しました: 15件のうち1件も推論の不完全さによるものはなく、12件は宣言が意図したものよりも推論が*精密*であったことによるものでした。2つのマーカーが存在します（[#1011](https://github.com/rigortype/rigor/issues/1011)に関する2026-09-19の裁定）: `# sig-gen gap: #NNN`はギャップを記録し、`#NNN`はジェネレータが回答できるようにするためのエンジン側の作業を追跡する許可リスト入りしたissueです。そして`# authored:`は契約上意図的に手書きされた行（`sig-gen`が決して見ることのないコードにわたるフックの拡大）であり、いかなるエンジン作業も回答し得ないものを記録します。どちらも記録済みとしてカウントされます；どちらもその行を追加した機能issueを引用してはなりません。
 
 ### コメントは散文を担持する
 
@@ -179,7 +180,7 @@ def resolve_receiver(node, scope)
 | --- | --- | --- |
 | **G1** `spec/docs/type_shaped_comments_spec.rb` | ドキュメントタグの後に`[Type]`がないこと；すべてのタグの名前トークンの後にエムダッシュがあること；すべての`@param`が後続の`def`の実際のパラメータを指名していること；古くなった`Slice N will`前方参照がないこと | #822とともに着地 |
 | **G2** [#812](https://github.com/rigortype/rigor/issues/812) — `make check`が警告で失敗する | `def.return-type-mismatch`は**警告**であるため、ツリー内に矛盾した戻り値型が存在しても`make check`は終了コード0を返す。G2がなければ、「宣言されチェックされる」という不変条件の半分は見せかけになる | 兄弟PRで`--fail-on=warning` |
-| **G3** `spec/rigor/sig_gen/provenance_spec.rb`（[#825](https://github.com/rigortype/rigor/issues/825)） | すべての宣言が生成同等、著述されたパラメータの意図、または記録されたギャップのいずれかであること: すべての`tighter-return`に対するマーカー、手書きされた残滓のファイル単位のピン留め、および（[#839](https://github.com/rigortype/rigor/issues/839)）実在するメソッドであること — `def`、Rigor自身の合成形状認識、またはロードされたツリーのリフレクションによって証明される | 発効中 |
+| **G3** `spec/rigor/sig_gen/provenance_spec.rb`（[#825](https://github.com/rigortype/rigor/issues/825)；マーカーは[#1011](https://github.com/rigortype/rigor/issues/1011)で再指定） | すべての宣言が生成同等、著述されたパラメータの意図、または記録されたギャップのいずれかであること: 番号がエンジンギャップを追跡するオープンで許可リスト入りのissueを名指す、すべての`tighter-return`上の`# sig-gen gap: #NNN`マーカー、または背後にエンジン作業のない意図的に手書きされた行に対する`# authored:`マーカー（`spec/rigor/sig_gen/gap_issues.yml`がレビュー済みの許可リスト）；手書きされた残滓のファイル単位のピン留め；および（[#839](https://github.com/rigortype/rigor/issues/839)）実在するメソッドであること — `def`、Rigor自身の合成形状認識、またはロードされたツリーのリフレクションによって証明される | 発効中 |
 
 すでに発効しており、不変条件に寄与しているもの: 精度ゲート（`rigor coverage --threshold 0.58 lib`）は推論をフォールバックではなく主要な情報源として維持します；`spec/rigor/public_api_drift_spec.rb`は`sig/`と公開サーフェスが乖離するのを防ぎます；`make steep-check`は第2のチェッカーで`sig/`を読み取ります。
 

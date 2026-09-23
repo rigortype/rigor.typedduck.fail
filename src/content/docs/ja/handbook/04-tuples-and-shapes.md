@@ -3,8 +3,9 @@ title: "タプルとハッシュシェイプ"
 description: "rigortype/rigor docs/handbook/04-tuples-and-shapes.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/04-tuples-and-shapes.md"
 sourcePath: "docs/handbook/04-tuples-and-shapes.md"
-sourceSha: "922f168d2c51de3d8f8d3d994f96082e8427f2a2ed0dbe44233fa804ef41aee1"
-sourceCommit: "2d0ffe6f38d01cfd850527c57987b27487b414d4"
+sourceSha: "d44a30cce658e012a6cfbfd98fbf586576c5188f6ed6c640e9ae6f0ea5e933c3"
+sourceCommit: "74970d1ece5a858d82c9b2c8f1a5deb57831f984"
+sourceDate: "2026-09-22T06:34:33+09:00"
 translationStatus: "translated"
 sidebar:
   order: 1004
@@ -162,23 +163,23 @@ final = { **defaults, **overrides }
 
 ## パターンマッチング分解
 
-`case x in [a, b, c]`は多重代入とまったく同じく`a` / `b` / `c`を位置ごとにナローイングします:
+`case x in [a, b, c]`は多重代入とまったく同じく`a` / `b` / `c`を位置ごとにナローイングします: パターンはサブジェクトの型に対して束縛されるため、タプルのサブジェクトは各スロットにその要素を渡し、`Array[T]`のサブジェクトは各スロットに`T`を渡します。
 
 ```ruby
 case [10, 20, 30]
 in [first, _, third]
-  assert_type("Dynamic[top]", first)   # パターン束縛は定数たたみ込みされない
-  assert_type("Dynamic[top]", third)
+  assert_type("10", first)
+  assert_type("30", third)
 end
 ```
 
-ハッシュパターンも同様:
+ハッシュパターンはサブジェクト自身の`deconstruct_keys`射影を読み取ります:
 
 ```ruby
 case { name: "Alice", age: 30 }
 in { name:, age: }
-  assert_type("Dynamic[top]", name)   # パターン束縛は定数たたみ込みされない
-  assert_type("Dynamic[top]", age)
+  assert_type("\"Alice\"", name)
+  assert_type("30", age)
 end
 ```
 

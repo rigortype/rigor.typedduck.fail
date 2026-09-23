@@ -3,8 +3,8 @@ title: "イシュートラッカー: GitHub"
 description: "rigortype/rigor docs/agents/issue-tracker.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/agents/issue-tracker.md"
 sourcePath: "docs/agents/issue-tracker.md"
-sourceSha: "86e023bdb67eb9314d8d05477284a11b9f2e142923a82cabf1d55af047454705"
-sourceCommit: "78b18cea6a576475c92bce020535269f2eebc20d"
+sourceSha: "1e0f9d09fbd39c986dd1faea6611173b294c6b19a9d0a6d53927c264f1a00803"
+sourceCommit: "74970d1ece5a858d82c9b2c8f1a5deb57831f984"
 translationStatus: "translated"
 sidebar:
   order: 9050
@@ -12,7 +12,7 @@ sidebar:
 
 このリポジトリのissueとPRDは、`rigortype/rigor`上のGitHub issueとして存在する。すべての操作には`gh` CLIを使うこと;cloneからリポジトリを推測してくれる。
 
-**GitHub Issuesがバックログだ**（[ADR-98](../../adr/98-development-flow-document-roles/)）: 中期・長期のあらゆる作業項目はここに存在し、追跡されるMarkdownファイルにはない。リリース計画は**Milestones**というサーフェス（`v0.3.0`、`v1.0.0`）だ ——「次のカットが何を運ぶか」はissueをマイルストーンに割り当てることで表現される。
+**GitHub Issuesがバックログだ**（[ADR-98](../../adr/98-development-flow-document-roles/)）: 中期・長期のあらゆる作業項目はここに存在し、追跡されるMarkdownファイルにはない。リリース計画は**Milestones**というサーフェス（例: `v1.0.0`）だ ——「次のカットが何を運ぶか」はissueをマイルストーンに割り当てることで表現される。
 
 ## 慣習
 

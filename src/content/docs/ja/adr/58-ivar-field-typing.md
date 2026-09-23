@@ -3,8 +3,9 @@ title: "ADR-58 — インスタンス変数のフィールド型付け: 宣言�
 description: "rigortype/rigor docs/adr/58-ivar-field-typing.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/58-ivar-field-typing.md"
 sourcePath: "docs/adr/58-ivar-field-typing.md"
-sourceSha: "1bf40dfac7bdf2bb26e3e2a3b1044ef52526458535827c7c508e465188488202"
-sourceCommit: "db7b23d42e9b47560438b67dfe16d53e03f70575"
+sourceSha: "083178a571695cf59ec5bc0addfd6f51925252cc3d7203b693574106ddbcac41"
+sourceCommit: "74970d1ece5a858d82c9b2c8f1a5deb57831f984"
+sourceDate: "2026-09-23T04:35:29+09:00"
 translationStatus: "translated"
 sidebar:
   order: 4058
@@ -367,6 +368,8 @@ undefined-methodを黙らせるので、ここでは新しい保護サイトを1
 足すことになるので、WD4の決定規則（証明可能にクリーン**かつ**裁定された価値を
 運ぶ場合にのみ出荷する）に従い見送る。`union(v, nil)`シードが新規発火なしに
 証明可能に改善するmemo読み取りの形をコーパスが表出させた場合にのみ再開する。
+
+**ステータス、2026-09-23 — 実装完了（#1175）。** 再開条項がRigor自身のツリーで発動しました: `lib/rigor/effects/unit_scan.rb`が`@dispatch_top_level ||= true`と書き込み、`unless @dispatch_top_level`と読み取っていました —— シードされていない`||=`が`Constant[false]`へと畳み込み、`flow.always-truthy-condition`を偽陽性発火させたメモ読み取り形状です。プリパスは現在、3つの複合形式すべてをシードします: `||=`は`union(v_type, nil)`を寄与し（`v`が偽値リテラルのときはスキップ、ガードされた`@x = nil unless @x`スキップが行うのと同じ「有用な精度なし」の判断）、`&&=`は`v_type`を寄与し（書き込みはすでに真値であるivar上でのみ実行されるため、それに値を与える最初のものではあり得ない）、`op=`は累積されたシードに対して拡大された演算子ディスパッチ結果を寄与します（`Constant[0] + Constant[1]`がivarを`Constant[1]`に固定してはならない）。`&&=`アームには1つの認知された境界があります: ivarに対する唯一の書き込みが`@x &&= <真値リテラル>`であるクラスは、実行時に永久に`nil`であるivarに対して純粋に真値のシードを得てしまいます —— 縮退したコードであり、コーパスゲートでは発火を示しませんでしたが、このアームはシードされていない`||=`と同じように単体では不健全です。このランディングのために同一のコーパスゲートが再実行されました; 数値についてはPRを参照してください。CIのセルフチェック呼び出しにも`make check`と一致する`--fail-on=warning`が追加されました —— ジョブは終了コードを読み取り警告はそれを動かさなかったため、この警告は#1071以降すべての実行でグリーンと表示されていました。
 
 ## 却下／先送りした代替案
 

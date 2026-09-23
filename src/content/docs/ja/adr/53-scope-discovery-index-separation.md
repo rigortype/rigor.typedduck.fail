@@ -3,8 +3,9 @@ title: "ADR-53 — Scopeの発見インデックス分離 + チェックルー�
 description: "rigortype/rigor docs/adr/53-scope-discovery-index-separation.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/53-scope-discovery-index-separation.md"
 sourcePath: "docs/adr/53-scope-discovery-index-separation.md"
-sourceSha: "6846c806acf4bf1f7d677422bda294cef00a79b4a5c45a6c9038ea19a44404f7"
-sourceCommit: "222d8e03ee0f4252795f6c7294672a76c20b7ae3"
+sourceSha: "18b5dd45806b4349e453a0239481a4aa6dd20753bd93a4116438d044005965cc"
+sourceCommit: "74970d1ece5a858d82c9b2c8f1a5deb57831f984"
+sourceDate: "2026-09-23T11:35:27+09:00"
 translationStatus: "translated"
 sidebar:
   order: 4053
@@ -181,6 +182,9 @@ self-checkツリー + Mastodon/GitLabコーパス上で並行して実行し、�
 | `Analysis::FactStore` → `Inference::`へのリネーム（再レビューが指摘した名前空間のひねり） | 延期 | 装飾的。振る舞いや境界の利得なし。v1.0の名前空間監査が強いる場合にのみ再訪する。 |
 | `scope_indexer.rb`の完全な汎用ビジター書き直し（テーマB） | 延期 | structural-repetition監査から変わらず: 最も高リスクの走査表面。トラックBのハーネスがその実現資産である。書き直し自体は需要ゲートのままに留まる。 |
 | `Scope#==`での発見インデックスの同一性アサート | 棄却 | 偽陽性に隣接する射程を持つ振る舞いの変更（スコープ等価性が短絡する）。WD3を参照。 |
+
+> **[ADR-116（WD5）](../116-hot-file-restructuring/#working-decisions--the-slices-in-order)によって部分的に置き換え。**
+> 上記のテーマBの延期は解除されました: #1135 は1つのcref/selfモデル変更を21個の`ScopeIndexer`ウォーカーに適用し（+2,817行）、これこそがこの行が待っていた需要です。ADR-116は、発見テーブルへ拡張された本ADRのシャドウハーネスの背後で、ウォーカーを1つずつ共有された宣言コンテキストウォークへと移植します。一括の汎用ビジター書き直しは試みません。ルールコレクターをインデックス化へ畳み込むことを棄却する上記の行は引き続き有効です。
 
 ## 帰結
 
