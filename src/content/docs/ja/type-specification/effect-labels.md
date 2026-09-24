@@ -3,9 +3,9 @@ title: "エフェクトラベル"
 description: "rigortype/rigor docs/type-specification/effect-labels.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/type-specification/effect-labels.md"
 sourcePath: "docs/type-specification/effect-labels.md"
-sourceSha: "a111c979daf2d82b89dc6e15253b9df65f95120a3c733a20a9f5b943186babb0"
-sourceCommit: "5fab9b52937efba652b9f6ecde1bb0a9954a9f77"
-sourceDate: "2026-09-18T03:32:42+09:00"
+sourceSha: "300b4654acca5469c06386fba7df8476e32fea361a45e23b6d67112100ae0421"
+sourceCommit: "32fcfb01032273679a99853a37f53a6e842b3330"
+sourceDate: "2026-09-24T14:17:34+09:00"
 translationStatus: "translated"
 sidebar:
   order: 2050
@@ -248,6 +248,8 @@ effects:
 **解消**。このように束縛された呼び出しサイトは**エンベロープによって網羅的**です: 汚染を寄与せず、閉世界が知るプロジェクト定義へのエッジを保ちます。それが[ADR-103](../../adr/103-effect-labels/) WD6の信頼の階梯です——プロジェクトが著したエンベロープは契約チェックとLiskovチェックを受け、受け入れられたシグネチャの型はすでに信頼されている——ので、アナライザーが`Dynamic`としか型付けできなかったレシーバーは、それが名指すクラスがその境界を宣言しているなら「呼び出し先未知」ではありません。2つの層は解消**せず**、ここでもインポートしません: `effects.attribution:`（§帰属）とサードパーティプラグインのマニフェスト表。どちらも何もチェックしていないコードについての主張であり、どちらも`plugin-attribution`の汚染を保ちます。
 
 ⊤と読まれるエンベロープは何もインポートせず、何も解消しません。束縛をやめたタグが黙って呼び出しサイトの網羅性を買い戻してはなりません。
+
+**誰の`self`か**。インポートされた境界は、calleeの証明されたラベルがエッジに沿ってcallerのラベルに結合するのと同様に、変更されずにcallerへとコピーされます。したがって、その`mutate.*`ラベルはそれらを宣言したメソッドのフレームを保持します。エンベロープの`mutate.self`はcalleeがそれ自身のレシーバーを変更することを意味するため、callerの行では、callerの`self`ではなくcallerが呼び出しを行った対象のオブジェクトを指します。`blog.posts.build`は関連のみが変更された場合でも`≤ [mutate.self]`と読まれます。帰属行（attribution row）はcalleeではなく呼び出しについて書かれます。callerの`self`ではないレシーバーへの変更は単なる`mutate`として、あるいはフレームに属さないクラスレベルまたはプロセスグローバルな状態が変更される場合は`mutate.static`として表されます。2つが同一オブジェクトである暗黙的self呼び出しに対しては`mutate.self`を維持します。
 
 ## 帰属
 

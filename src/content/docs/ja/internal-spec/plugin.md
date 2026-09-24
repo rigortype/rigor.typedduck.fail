@@ -3,9 +3,9 @@ title: "プラグインの登録と読み込み"
 description: "rigortype/rigor docs/internal-spec/plugin.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/plugin.md"
 sourcePath: "docs/internal-spec/plugin.md"
-sourceSha: "935fc470e1ec0e28183abd3e7df56abfb50c97b00df87717deba9129c6cb4d11"
-sourceCommit: "b5af5cf72f6b666f74479df959b1ee467feda5c6"
-sourceDate: "2026-09-22T04:35:15+09:00"
+sourceSha: "c116c12164f6541e64c64cf84ecd532d34da5c2d7f28a4ee88e96fa617f0697b"
+sourceCommit: "32fcfb01032273679a99853a37f53a6e842b3330"
+sourceDate: "2026-09-24T15:54:08+09:00"
 translationStatus: "translated"
 sidebar:
   order: 3050
@@ -334,10 +334,18 @@ end
 
 | プラグインが… | チャネル | 理由 |
 | --- | --- | --- |
-| そのメソッドのRBSシグネチャを既に出荷している | `signature_paths:`内の`%a{rigor:v1:effect …}` / `%a{pure}` | Tier 1。アノテーションは**受理済みシグネチャ**の層に乗ります。ADR-103 WD6が型について既に信頼している層で、境界は`Effects::EnvelopeIndex`によって呼び出し箇所にインポートされ、解消します。rigor-activerecordの`sig/active_record/relation.rbs`が実例です —— ビルダー／実体化子の分割はそこにあります。ファイルが既にその線を引いているからです。 |
+| そのメソッドのRBSシグネチャを既に出荷している | `signature_paths:`内の`%a{rigor:v1:effect …}` / `%a{pure}` | Tier 1。アノテーションは**受理済みシグネチャ**の層に乗ります。ADR-103 WD6が型について既に信頼している層で、境界は`Effects::EnvelopeIndex`によって呼び出し箇所にインポートされ、解消します。rigor-activerecordの`sig/active_record/relation.rbs`が実例です —— ビルダー／実体化子の分割はそこにあります。ファイルが既にその線を引いているからです。クラスが定義しているが出荷シグネチャが省略しており、既存の行がカバーしていないメソッドを束縛するために、それを宣言しても型が変わらない場合、プラグインはそれをシグネチャに追加します。`open_receivers:`クラスでは未宣言のメソッドはすでに`untyped`として型付けされるため、`-> untyped`宣言によって境界が追加され、宣言されたすべてのメソッドが受ける呼び出しチェック（`call.wrong-arity`、`call.possible-nil-receiver`）が追加されます。そのパラメータリストは、クラスおよびクラスとして型付けする各オーバーライドが受け入れるすべての呼び出しを受け入れなければなりません（MUST）。`Relation#insert` / `insert!` / `upsert`がその事例です。 |
 | 出荷していない、あるいはアプリごとにメソッドを名指しできない | `effect_attributions:` | アソシエーションのリーダー、`find_by_*`、スコープ、Relation上の`Enumerable`委譲は、プロジェクトごとに異なるか、宣言すればメソッドの**型付け**を変えてしまうものです。プラグインがシグネチャをまったく出荷していないクラスも同様です。 |
 
 1つの行が両方にあってはなりません: 1つのメソッドに2つのチャネルは1つのファクトに対して2つの起点を生み、`rigor effects explain`では重複として読めてしまいます。
+
+境界は、名指すクラスだけでなく、**プラグインが宣言クラスとして型付けするすべての実行時クラス**に対して記述されます。プラグインがサブクラスのインスタンスを基底クラスとして型付けする場合、サブクラスに対する呼び出しがインポートするのは基底の境界であるため、サブクラスのオーバーライドも受け入れなければなりません（MUST）。rigor-activerecordは、`has_many`リーダーおよびその上で呼び出されるすべてのクエリビルダーを`ActiveRecord::Relation[Model]`として型付けします。リーダーは実際には`CollectionProxy`を返し、ビルダーは`AssociationRelation`を返し、双方の`build`は新しいレコードを関連のターゲットにプッシュします。したがって、素のRelationの`build`は何も変更しないにもかかわらず、`Relation#build`は`mutate.self`を担います。サブクラスのみが定義するライター（プロキシの`<<`）は、基底クラスをキーとする`effect_attributions:`行となります。基底クラスにのみ適合する境界は、呼び出し元が依然として保持しているオブジェクトを変更するメソッドに`%a{pure}`を与えてしまうことになります。
+
+この規則は境界だけでなくパラメータリストにも適用されます（§ `Rigor::Plugin::Manifest`の`signature_paths`行）。プロキシの`delete_all(dependent = nil)`こそが、素のRelationや`AssociationRelation`が取らないオプショナル引数を`Relation#delete_all`が宣言する理由です。その結果、チェックはそれらのいずれかに対する`delete_all(:nullify)`（実行時に`ArgumentError`を発生させる）を見逃すことになります。これは`build`の`mutate.self`と同じトレードオフです: 基底クラスにのみ適合する宣言は、有効なRailsコードに対して`call.wrong-arity`を報告してしまいます。
+
+境界はまた、**フレームワーク自身の実装が任意のパスで実行するすべての読み取りと書き込み**も名指します。兄弟リーフ同士は互いを包摂しないため、書き込みの前や失敗した書き込みの後にクエリを実行するライターは、`io.db.read`と`io.db.write`の双方を担います。rigor-activerecordの`find_or_create_by`は`find_by`の後にcreateを行うものであり、`destroy_all`は破棄するレコードをロードします。フレームワークが別のレシーバーに委譲するクラスメソッドは、そのレシーバーの境界を担います: `Model.update_all`は`Model.all.update_all`です。2種類の処理はそこから除外されます。スキーマのリフレクションはその1つであり、これをカウントするとすべてのクエリビルダーが読み取りになってしまうためです。もう1つは、`dependent:`や`touch:`などのアソシエーションオプションが登録するものを含む、モデルのコールバックとバリデーターです。これらはモデルに属し、`effect_edges:`戦略がそれらを運ぶことができる唯一のチャネルです。今日の戦略はシンボル引数のコールバックマクロと一意性バリデーターを運ぶため、それらのアソシエーションオプションが登録する読み取りは何によっても運ばれません。プロキシがどのアソシエーションを表すかはコールバックではありません: `has_many :through`プロキシの`delete_all`は最初にそのターゲットをロードするため、境界はその読み取りをカウントします。
+
+`io.db.transaction`はまだこの規則に縛られていません。自身の周囲にトランザクションを開く書き込みにはラベル付けされません: `save`の暗黙のトランザクションや、`create_or_find_by`およびプロキシの`create`内の明示的なトランザクションにはラベル付けされません。rigor-activerecordのプロキシライター行と、その`transaction` / `with_lock`行はそれを担います。
 
 ##### `EffectAttribution`
 
@@ -346,6 +354,8 @@ discharge: false, within: nil, on_result: false, taint: nil, callee: nil, callee
 responds: false)`。
 
 `why:`は**必須かつ空でない**こと。`data/effects/core.yml`のすべての行が1つ要求するのとまったく同じです: 理由の述べられていないラベルは、誰もレビューできない主張です。
+
+`labels:`は呼び出し先（callee）の本体ではなく**呼び出し（call）**を記述します。行はスキャンがコアミューテーターに適用する所有権の判定を実行できないため、呼び出し元の`self`ではないレシーバーへの変更は単なる`mutate`として表記され、`mutate.self`は暗黙的selfの呼び出しに対して維持されます。その2つの例がrigor-actionpackの`session[:k] = v`と`render`です。クラスレベルまたはプロセスグローバルな状態への変更はどのフレームにも属さず、どちらの場合も`mutate.static`となります（rigor-railtiesの`Rails.application.reload_routes!`など）。RBSエンベロープは逆であり、呼び出し先自身の本体を束縛するためです（[`effect-labels.md`](../type-specification/effect-labels.md) § 呼び出し箇所における宣言レーン）。
 
 `receiver:`は3通りのいずれかで綴られ、その綴りがマッチング規則を選びます:
 

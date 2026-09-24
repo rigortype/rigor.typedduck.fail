@@ -3,9 +3,9 @@ title: "制御フロー解析"
 description: "rigortype/rigor docs/type-specification/control-flow-analysis.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/type-specification/control-flow-analysis.md"
 sourcePath: "docs/type-specification/control-flow-analysis.md"
-sourceSha: "286495d94db4df5b105cd66753b9c10399b57cc2c405d05b5dd32aae9a6def76"
-sourceCommit: "0f252e3218936e8dc7004b574c709a434b996d2a"
-sourceDate: "2026-09-20T02:59:26+09:00"
+sourceSha: "ace8f2383be195615c2b3c4d8c5a57e7c7c084019bbc153caccd7c680c90df77"
+sourceCommit: "32fcfb01032273679a99853a37f53a6e842b3330"
+sourceDate: "2026-09-24T05:00:03+09:00"
 translationStatus: "translated"
 sidebar:
   order: 2050
@@ -77,7 +77,7 @@ end
 
 - `return value`は囲むメソッドを脱出し、そのメソッドの推論される戻り値の型に結合します。ネストした`def`やlambdaは障壁となります —— それらのreturnは内側の定義に属します —— 一方でブロック内に書かれた`return`は依然として囲むメソッドを脱出し、そこに結合します。
 - `next value`は現在のブロック呼び出しを終了し、`value`をその呼び出しの結果とするため、**ブロックの**値型に結合します。単体の`next`は`nil`を寄与します。ネストしたブロック、lambda、`def`、またはループは、その配下に書かれた`next`の対象を変更し、そのような`next`は外側ブロックの値に結合してはなりません（MUST NOT）。
-- `break value`はyieldを行っている**呼び出し（call）**を終了し、ブロックの値ではなくその呼び出しの値となります。ブロックの値型に結合してはなりません（MUST NOT）。呼び出しの推論される型は、calleeが生成する結果と到達可能なすべての`break`アームのunionでなければなりません（MUST）。単体の`break`は`nil`を寄与します。ネストしたブロック、lambda、`def`、またはループは、その配下に書かれた`break`の対象を変更します —— そのような`break`はその内側の構文に属し、外側の呼び出しに到達してはなりません（MUST NOT）。unionは精度フォールド（precision fold）の内部ではなくその上に位置するため、フォールドはブロックが決してbreakしないパスについて正確に応答する自由を保ちます。任意のcalleeはブロックを実行せずに戻る可能性があるため、calleeの結果はunionに残ります。唯一の例外は、戻る前に厳密に1回yieldすることが知られているcalleeであり、その場合、ブロックの到達不能な通常完了はそれを除去します（§「ブロック呼び出しタイミング」）。
+- `break value`はyieldを行っている**呼び出し（call）**を終了し、ブロックの値ではなくその呼び出しの値となります。ブロックの値型に結合してはなりません（MUST NOT）。呼び出しの推論される型は、calleeが生成する結果と到達可能なすべての`break`アームのunionでなければなりません（MUST）。単体の`break`は`nil`を寄与します。ネストしたブロック、lambda、`def`、またはループは、その配下に書かれた`break`の対象を変更します —— そのような`break`はその内側の構文に属し、外側の呼び出しに到達してはなりません（MUST NOT）。unionは精度フォールド（precision fold）の内部ではなくその上に位置するため、フォールドはブロックが決してbreakしないパスについて正確に応答する自由を保ちます。任意のcalleeはブロックを実行せずに戻る可能性があるため、calleeの結果はunionに残ります。唯一の例外は、戻る前に厳密に1回yieldすることが知られているcalleeであり、その場合、ブロックの到達不能な通常完了はそれを除去します（§「ブロック呼び出しタイミング」）。実行せずにブロックを保存する呼び出し —— `Kernel`に到達する`lambda { … }`や`proc { … }`、`define_method` / `define_singleton_method`、および`Proc.new`、`Thread.new` / `start` / `fork`、`Fiber.new`、`Enumerator.new`、`Hash.new` —— は`break`アームを一切持ちません: ブロックはその呼び出し中に実行されないため、その中の`break`は、保存されたブロックが後で実行された際にlambdaや定義されたメソッドから戻るか、または`LocalJumpError`を発生させ、呼び出しの値に結合してはなりません（MUST NOT）。
 
 解析が到達不能と証明した分岐上のアームは決して取られず、何も寄与しません。*到達可能*なアームを落とすと、あたかもフォールスルーが完全な回答であるかのように報告され、プログラムが持たない精度として読まれてしまいます: `ops.all? { |o| next false unless o; true }`は`true`として型付けされ、述語が定数に畳み込まれ、正しいコードに対して警告が発せられてしまいます（[#841](https://github.com/rigortype/rigor/issues/841)）——そして`break`で書かれた同じ形状も、アームが決して呼び出しに到達しない場合に同様に警告を発してしまいます（[#853](https://github.com/rigortype/rigor/issues/853)）。
 

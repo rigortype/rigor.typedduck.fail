@@ -3,9 +3,9 @@ title: "rigor-activerecord"
 description: "rigortype/rigor docs/manual/plugins/rigor-activerecord.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/plugins/rigor-activerecord.md"
 sourcePath: "docs/manual/plugins/rigor-activerecord.md"
-sourceSha: "cc0da11e5b0253eb8f399f3942feac3e01eb252d34b6c9e293af9b00f830bbdc"
-sourceCommit: "0f252e3218936e8dc7004b574c709a434b996d2a"
-sourceDate: "2026-09-19T17:32:26+09:00"
+sourceSha: "669bec1956ac4cf51f2c590feed62d9bb8b0bea5260b3d7e9c308b2e01d06c88"
+sourceCommit: "32fcfb01032273679a99853a37f53a6e842b3330"
+sourceDate: "2026-09-24T18:31:14+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9050
@@ -34,11 +34,13 @@ errors_demo.rb:24:1: error: `User.find` expects at least 1 argument, got 0 [plug
 | --- | --- | --- |
 | 認識された`Model.find`／`Model.find_by`／`Model.where`の呼び出し | `:info` | `plugin.activerecord.model-call` |
 | `Model.find_by(unknown: ...)`／`Model.where(unknown: ...)` | `:error` | `plugin.activerecord.unknown-column` |
-| 引数0個の`Model.find` | `:error` | `plugin.activerecord.wrong-arity` |
+| 引数0個かつブロックなしの`Model.find`（モデルが`self.find`を定義している場合を除く） | `:error` | `plugin.activerecord.wrong-arity` |
 | スキーマソース（`db/schema.rb`または`db/structure.sql`）が存在しない——縮退モード | `:info` | `plugin.activerecord.load-error` |
 | 存在するが読み取れない、またはパースできないスキーマソース | `:warning` | `plugin.activerecord.load-error` |
 
 「もしかして」候補は、解決されたテーブルのカラム名に対する`DidYouMean`のファジーマッチングを用います。
+
+自身で`self.find`を定義するモデルはそのメソッドのアリティを所有します。プラグインはそれに対して`wrong-arity`を報告せず、呼び出しがRailsの`find`ではなくモデルのメソッドとして型付けされる複数idやブロックの形式に対してもノートを報告しません。単一のidは依然としてモデルとしてノートされ、そのように型付けされます。エディタ内では、同一ファイル内の`self.find`はここではまだ認識されないため、ノートとエラーが依然としてそこに表示されます（[#1329](https://github.com/rigortype/rigor/issues/1329)）。
 
 ## 設定
 
@@ -61,7 +63,7 @@ plugins:
 
 ## 何を推論するか
 
-このプラグインは診断に加えて、呼び出し箇所の型も提供します。クラス側: `User.find(1)` → `User`、`User.find_by(...)` → `User | nil`、`User.find_by!(...)` → 非nullableの`User`。インスタンス側: カラムの読み取り（`user.name`）はそのカラムの値型にナローイングされ、`user.admin?`は`bool`に、単数の関連（`post.user`）はターゲットモデルにナローイングされます。
+このプラグインは診断に加えて、呼び出し箇所の型も提供します。クラス側: `User.find(1)` → `User`、`User.find(1, 2)` → `Array[User]`、`User.find_by(...)` → `User | nil`、`User.find_by!(...)` → 非nullableの`User`。単一の引数は、それがArrayである場合（`User.find([1, 2])`）でも`User`のままであり、これにより`params[:id]`などの型なしの引数がモデル型を維持します。リレーションまたは関連（`user.posts.find(1, 2)`）も同様に応答します。ブロックを伴う場合、`find`はクラス上でもリレーション上でも同様にレコードに対する`Enumerable#find`となります: `User.find { |u| u.admin? }` → `User | nil`であり、idは取りません。ブロックのパラメータはリレーション上ではモデルとなり、クラス側では型なしのままとなります。インスタンス側: カラムの読み取り（`user.name`）はそのカラムの値型にナローイングされ、`user.admin?`は`bool`に、単数の関連（`post.user`）はターゲットモデルにナローイングされます。
 
 リレーションを返す呼び出し箇所 ── `User.where(...)`、`User.all`、`User.order(...)`、`has_many`／`has_and_belongs_to_many`のアクセサ（`user.posts`）、ユーザー宣言の`scope`（`Post.published`）── は`ActiveRecord::Relation[Model]`にナローイングされます。チェーンされたクエリメソッドは要素型を保持し、イテレーション（`user.posts.each { |p| ... }`）はモデルを生み出します。型付きリレーションに対して呼び出されたユーザー定義のスコープ（`User.where(...).published`）が、誤った`call.undefined-method`を表面化させることはありません。
 
@@ -106,6 +108,7 @@ Rubyのモジュールまたはクラスの内部で宣言されたモデル（`
 - **外部の`table_name_prefix` / `table_name_suffix`宣言とエンジン**。`model_search_paths`外の宣言（例: `lib/`やエンジンの`isolate_namespace`内）はプロジェクト全体で検出され、誤ったテーブル名を推測するのではなく、空のカラムセットで影響を受けるモデルを安全に役目から降ろします。`model_search_paths`内では、モデルレベルおよびベースクラスの`table_name_prefix`宣言（リテラルまたは計算済み）が直接解決されます。
 - **PostgreSQLの`db/structure.sql`フォールバック**。`db/schema.rb`がないとき、プラグインは同じカラム／型テーブルのために`db/structure.sql`（`schema_format = :sql`のダンプ）をパースします。PostgreSQL DDLのみを読みます;SQL型にRubyのマッピングがないカラム（カスタムenum、`tsvector`、`ltree`）は`Object`へ降格し（決して落とさない）、`public`以外のスキーマのパーティションテーブルはスキップされます。
 - **コミットされたスキーマがない——縮退モード**。生のマイグレーションを出荷し`db/schema.rb`をgitignoreするプロジェクト（DBに依存しないRailsのパターン）でも、テーブル名・ファインダー・スコープ・関連は得られます: それらはスキーマではなくあなたのモデルのソースから読まれるからです。役目を降りるのはカラムに依存する半分だけです——カラムのリーダーは型なしのままになり、`where(col:)`のキーは検証されません。スキーマが記述していないテーブルに対するのとまったく同じです。プラグインは`.rigor.yml`に位置付けられた`:info`で実行ごとに1回そう述べます ── これは任意の一つのソースファイルについてではなく、あなたの設定に関する事実であり、`--workers`の有無に関わらず同じ単一の行が得られます。この行を以前の位置（コントローラーまたはモデル）でベースライン化していた場合、そのベースラインエントリーは一致しなくなります ── `rigor baseline regenerate`を実行してください。スキーマのダンプをコミットする（または`schema_file` / `structure_sql_file`をそれへ向ける）と、次のコールドの実行からカラム側の半分が再びオンになります——ウォームなキャッシュは無効化されるまで縮退したインデックスを提供し続けるので、すぐに変化を見たいときは`rigor check --no-cache`（または`make cache-clean`）を使ってください。
+- **あらゆる種類のリレーションが1つのシグネチャを共有する**。`user.posts`、`user.posts.where(...)`、および`Post.where(...)`はすべて`ActiveRecord::Relation[Post]`として型付けされますが、関連の`CollectionProxy`であるのは最初のものだけであるため、それらが共有するシグネチャはそれらのいずれかが受け取る最も広い引数リストを受け入れます。`user.posts.delete_all(:nullify)`は有効であり報告されません。他の2つに対する同じ呼び出しは実行時に`ArgumentError`を発生させますが、同様に報告されません。
 - **カラムの読み取りであり、セッターではない**。このプラグインはインスタンス側のカラムの*読み取り*（`user.name`、`user.admin?`）と単数の関連を型付けしますが、`name=`セッターやダーティトラッキング系（`name_changed?`、`name_was`、…）は型付けしません。
 - **プロジェクト独自のインフレクションはまだ読み取られない**。モデル↔テーブルの複数形化は本物のActiveSupportインフレクターを通ります（そのため`Person → people`、`Mouse → mice`は解決されます）が、`config/initializers/inflections.rb`で宣言したルールはまだ取り込まれません ── それに依存するモデルには`self.table_name`が必要です（ADR-39スライス3）。
 

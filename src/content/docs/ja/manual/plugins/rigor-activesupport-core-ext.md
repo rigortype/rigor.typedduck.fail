@@ -3,9 +3,9 @@ title: "rigor-activesupport-core-ext"
 description: "rigortype/rigor docs/manual/plugins/rigor-activesupport-core-ext.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/plugins/rigor-activesupport-core-ext.md"
 sourcePath: "docs/manual/plugins/rigor-activesupport-core-ext.md"
-sourceSha: "0f3a82401b2d1604ef2d5653f528720723e2e93bdcff3c11a991f72c5569c58e"
-sourceCommit: "db7b23d42e9b47560438b67dfe16d53e03f70575"
-sourceDate: "2026-09-03T05:18:44+09:00"
+sourceSha: "c906f97c600ff7c21b83941a08dd5f01869b39e5d2316e02f95e0d504de74397"
+sourceCommit: "32fcfb01032273679a99853a37f53a6e842b3330"
+sourceDate: "2026-09-24T20:04:56+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9050
@@ -28,12 +28,13 @@ plugins:
 
 おおよそ上位40程度のセレクタとその近隣のものを、以下にわたってカバーします。
 
-- **Object（全クラス共通）** ── `#blank?`、`#present?`、`#presence`、`#try`、`#try!`、`#acts_like?`（および`NilClass` / `TrueClass` / `FalseClass`）。
+- **Object（全クラス共通）** ── `#blank?`、`#present?`、`#presence`、`#presence_in`、`#try`、`#try!`、`#acts_like?`、`#deep_dup`、`#with`、`#with_options`、`#html_safe?`、`Kernel#class_eval`（および`NilClass` / `TrueClass` / `FalseClass`）。
 - **Integer / Float** ── Duration乗数（`#days`、`#hours`、`#minutes`、…）とBytes乗数（`#megabytes`、`#gigabytes`、…）。
-- **String** ── 語形変化（`#underscore`、`#camelize`、`#classify`、`#constantize`、`#pluralize`、…）、フィルタ（`#squish`、`#truncate`）、`#html_safe`、`#starts_with?` / `#ends_with?`、変換。
+- **String** ── 語形変化（`#underscore`、`#camelize`、`#classify`、`#constantize`、`#pluralize`、…）、フィルタ（`#squish`、`#truncate`）、`#html_safe`、`#starts_with?` / `#ends_with?`（**Symbol**上でも）、変換、および`#in_time_zone`。
 - **Time / Date / DateTime** ── `.current`、`.zone`、`#yesterday`、`#tomorrow`、`#beginning_of_*` / `#end_of_*`、`#ago`、`#since`。`Time`はさらにRailsインスタンスサーフェス**全体**を担います（後述）；`Date`と`DateTime`は従来と同じサブセットを担います。
 - **Array** ── `.wrap`、`#to_sentence`、`#in_groups_of`、`#second` … `#fifth`、`#compact_blank`、`#exclude?`。
-- **Hash** ── `#symbolize_keys` / `#stringify_keys`（およびdeep / bang版）、`#deep_merge`、`#with_indifferent_access`、`#except!`。
+- **Hash** ── `#symbolize_keys` / `#stringify_keys`（およびdeep / bang版）とそのエイリアスである`#to_options`、`#deep_merge`、`#reverse_merge` / `#with_defaults`（およびbang版）、`#with_indifferent_access`、`#except!`、`#extract!`。
+- **Range** ── `#overlaps?`、`#to_fs` / `#to_formatted_s`。
 - **Enumerable** ── `#index_by`、`#index_with`、`#pluck`、`#exclude?`。
 
 ```ruby

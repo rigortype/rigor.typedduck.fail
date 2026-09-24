@@ -3,9 +3,9 @@ title: "rigor-actionpack"
 description: "rigortype/rigor docs/manual/plugins/rigor-actionpack.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/plugins/rigor-actionpack.md"
 sourcePath: "docs/manual/plugins/rigor-actionpack.md"
-sourceSha: "3bdb1dd736f8f90ddc50d82565a6839a861a92c94419bb51620ce4c8f3b94c0b"
-sourceCommit: "0f252e3218936e8dc7004b574c709a434b996d2a"
-sourceDate: "2026-09-19T03:42:27+09:00"
+sourceSha: "6f10443ac88b24c0d29f389a1787d39485a7c90da3dfa844eef64f5dd4dc6a6d"
+sourceCommit: "32fcfb01032273679a99853a37f53a6e842b3330"
+sourceDate: "2026-09-24T17:29:28+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9050
@@ -97,7 +97,7 @@ view:users/show.html:  [mutate.local]              ≤ [io.db.read]  …?
 
 **`self`は何であるか**。`ActionView::Base`です。名前が解決されるよう宣言されており、そのメソッドサーフェスが寛容であり続けるよう**オープン**になっています。これにより、`link_to`、`form_with`、`t`、`content_for`、ユーザー自身の`ApplicationHelper`メソッド、およびすべてのルートヘルパーが1行ごとに所見を引き起こすのを防ぎます。
 
-**何がスコープ内にあるか**。`@ivars`は、そのテンプレートをレンダリングするコントローラーアクション ── 暗黙のrender（`UsersController#show` → `users/show`）および明示的な`render :edit` / `render "admin/form"` ── からシードされます。2つの制限により、シードがテンプレートで見つからない型をクレームすることを防ぎます：右辺が`nil`になり得ない代入（`User.find`、`Model.new`。決して`find_by`ではない）のみが寄与し、アクションが**すべての**パスで到達する代入のみ ── `if`、`case`、`rescue`、ループ、ブロックの内部にあるものは除外され、`if:` / `unless:`を運ぶ`before_action`からのものも除外されます ── が寄与します。それ以外のすべてはivarを未シードのまま残し、これは`Dynamic`として読み取られて沈黙します。パーシャルは自身のディレクトリのassignを継承します。ivarはlocalではないためです。localsはRails 7.1のstrict-localsコメントから取得されます：
+**何がスコープ内にあるか**。`@ivars`は、そのテンプレートをレンダリングするコントローラーアクション ── 暗黙のrender（`UsersController#show` → `users/show`）および明示的な`render :edit` / `render "admin/form"` ── からシードされます。2つの制限により、シードがテンプレートで見つからない型をクレームすることを防ぎます。右辺が単一のレコードであり`nil`になり得ない代入のみが寄与します: `User.find(id)`や`Model.new`は寄与します。`find_by`は決して寄与せず、複数のレコードを返すように書かれた呼び出し ── `User.find(a, b)`、`User.find([1, 2])`、`User.find(*ids)`、`User.create([…])`、またはブロックを伴う`find` ── も寄与しません。実行時にのみArrayを保持する単一の引数（`User.find(ids)`）は、依然としてモデルをシードします。そして、アクションが**すべての**パスで到達する代入のみ ── `if`、`case`、`rescue`、ループ、ブロックの内部にあるものは除外され、`if:` / `unless:`を運ぶ`before_action`からのものも除外されます ── が寄与します。それ以外のすべてはivarを未シードのまま残し、これは`Dynamic`として読み取られて沈黙します。パーシャルは自身のディレクトリのassignを継承します。ivarはlocalではないためです。localsはRails 7.1のstrict-localsコメントから取得されます：
 
 ```erb
 <%# locals: (user:, admin: false) %>

@@ -3,14 +3,19 @@ title: "ADR-101 — 分岐の削除は楽観的にnilフリーとされたキャ
 description: "rigortype/rigor docs/adr/101-optimistic-carrier-branch-elision.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/101-optimistic-carrier-branch-elision.md"
 sourcePath: "docs/adr/101-optimistic-carrier-branch-elision.md"
-sourceSha: "544b11b75a0a4601d0fa186d07ccb2d3a8e05e14513ea2a38305d398d76e9a13"
-sourceCommit: "17f7d081a694f9cfdfaebd7fc71ebfc7171e2a6d"
+sourceSha: "044964f37526c4b749f6ea46d838d09f26f9fa122125d3faba501bfb0b288970"
+sourceCommit: "32fcfb01032273679a99853a37f53a6e842b3330"
+sourceDate: "2026-09-24T12:29:15+09:00"
 translationStatus: "translated"
 sidebar:
   order: 4101
 ---
 
 ステータス: **Accepted —— 2026-08-06に実装**。`Inference::OptimisticOrigin`は、そのnilフリー性が`RbsDispatch`の意図的に読み飛ばす`%a{implicitly-returns-nil}`に依拠している値をマークし、`if`/`unless`の分岐の削除は、そのような値が運ぶ確実性の判定を辞退する。11プロジェクトでの実測: 2,060件の判定のうち47件が影響を受け、診断はすべてのターゲットで両方向ともバイト単位で同一であり、正しいコードに対する再現可能な偽陽性が1件除去される。
+
+**フォローアップ（2026-09-24、[PR #1278](https://github.com/rigortype/rigor/pull/1278)）—— リテラルハッシュはもはや例ではありません**。コンテキストの`MAP = { a: "x", b: "y" }.freeze; MAP[key]`はもはや楽観的なキャリアを生成しません: クローズドで空でない`HashShape`は、計算されたキー自身に対して値`| nil`で応答するようになり（`docs/internal-spec/inference-engine.md`、シェイプティア）、読み取りは正直にnil許容（nilable）となります。決定自体は変更されておらず、楽観的なまま留まる読み取り —— `Hash[K, V]`の名前的型、オープンまたは空のシェイプ、`Array#first`、計算されたインデックスの`Array#[]` —— を依然として拘束し、ガードスペックは現在それらからキャリアを構築しています。
+
+**フォローアップ（2026-09-24、[PR #1295](https://github.com/rigortype/rigor/pull/1295)）—— マークは分解代入とぼっち演算子（safe-navigation）の呼び出しを追従します**。コーパスの需要ではなく再現可能な偽陽性に基づき、後述の先送りされた「さらに先のチェーン」の行の一部が採用されました: `k, v = pairs.first`はすべての固定スロットをマークし（ミス時はそれぞれに`nil`が束縛される）、リテラルの右辺は要素ごとにスロットをマークし、`recv&.m`は`recv`のマークへと解決されます（`recv`が`nil`であるときは常に`nil`となるため）。要素の読み取りは除外されたままです —— `pairs.first.last`や、`&.`が1つの呼び出ししかスキップしないことによる`pairs.first&.last.abs`。これらは値を生成するのではなくミス時に例外を発生させるからです。19の調査ターゲットにRigor自身のツリーを加えた実測: 新しいパスは49の異なる箇所をマークし、すべてのターゲットで診断（7,335件）および辞退された判定（285件）は変化しませんでした。束縛規則は`docs/internal-spec/inference-engine.md`（§「That deferred-to answer…」および§ Multi-Target Binder）にあります。
 
 根拠: 3番目の消費者を見つけた[形状の調査](../../notes/20260805-issue-286-if-unless-truthiness-elision-census/)と、それを計測してキャリア形状という選択肢を退けた[provenanceの調査](../../notes/20260806-issue-286-optimistic-carrier-provenance-census/)。いずれも[issue #286](https://github.com/rigortype/rigor/issues/286)のためのもの。
 
@@ -57,7 +62,7 @@ n.upcase                          # error: undefined method `upcase' for 1 —�
 | すべての非`Constant`キャリアで辞退する | 却下 | 過剰辞退と辞退不足を同時に起こす（WD3）;キャリアがたまたま持つ形状は、この判断が依拠する性質ではない。 |
 | `falsey_nominal?`を絞り、`Object` / `BasicObject` / `Kernel`を判定不能として読ませる（当初提出時の#286） | 却下 | 41,836件の述語で発火0件と実測 —— Rigorの未知のキャリアは`Nominal[Object]`ではなく`Dynamic`だ。空集合を守る未テストのガードであり、その受け入れ基準は空虚に満たされてしまう。 |
 | `%a{implicitly-returns-nil}`をソースで尊重し、読み取りを`V?`と型付けする | 却下 | 当初の25件の偽陽性の計測は有効なままだ;このADRは意図的に楽観的な*型*を保ち、確実性の判断がそこから何を結論してよいかだけを制約する。 |
-| マークをメソッドの戻り値やさらに先のチェーンへ伝播する | 先送り | 需要ゲート付き。コーパスの楽観的な述語はすべて直接の読み取りか束縛1ホップ分であり、より深いチャネルがその複雑さに見合うという根拠はまだない。 |
+| マークをメソッドの戻り値やさらに先のチェーンへ伝播する | 先送り（一部採用） | 需要ゲート付き。コーパスの楽観的な述語はすべて直接の読み取りか束縛1ホップ分であり、より深いチャネルがその複雑さに見合うという根拠はまだない。分解代入とぼっち演算子の呼び出しはPR #1295で採用された（上記のフォローアップを参照）;メソッドの戻り値はissue #1177である。 |
 
 ## 帰結
 
