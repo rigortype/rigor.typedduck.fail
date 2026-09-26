@@ -3,9 +3,9 @@ title: "アーキテクチャ決定記録"
 description: "rigortype/rigor docs/adr/README.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/README.md"
 sourcePath: "docs/adr/README.md"
-sourceSha: "87aeb7c61f71e55d9a247e35999a337ef24812269558b54a239860e9cfcd15cf"
-sourceCommit: "74970d1ece5a858d82c9b2c8f1a5deb57831f984"
-sourceDate: "2026-09-23T11:35:27+09:00"
+sourceSha: "3e1e8e92f31cf896d46d92d4d9dfe57886d5fba0dfd09368a0c3d9aee2f249b1"
+sourceCommit: "42d6e031257466de187cc9640b4896300473f9bb"
+sourceDate: "2026-09-26T08:54:31+09:00"
 translationStatus: "translated"
 sidebar:
   order: 4000
@@ -126,7 +126,7 @@ sidebar:
 | ADR-98 | [開発フロー文書の役割: ハンドオフ、issue、changelog](98-development-flow-document-roles/) | Accepted（2026-07-17に実装；バックログをGitHub Issuesへ移行、`ROADMAP.md`を解消、ハンドオフに上限を設けてゲート） |
 | ADR-99 | [設定スキーマは信頼できる情報源である: `.rigor.yml`のティアと予約パイプライン](99-config-schema-authority/) | Accepted（2026-07-17に実装；スキーマを信頼できる情報源と定め、`rigor_rs:`を予約、ネスト＋予約＋URLのゲートを追加） |
 | ADR-100 | [`static.*`診断ファミリーの形状と`void_origins`サイドテーブル](100-static-diagnostic-family-and-void-origins/) | Accepted（directスライスを出荷；WD4の推移的なケースはVoidTailSummaryとして2026-07-19に出荷；バジェットidは見送り） |
-| ADR-101 | [分岐の削除は楽観的にnilフリーとされたキャリアに依拠してはならない](101-optimistic-carrier-branch-elision/) | Accepted（2026-08-06に実装；コーパス2,060判定のうち47件に影響、診断は両方向でバイト単位一致） |
+| ADR-101 | [分岐の削除は楽観的にnilフリーとされたキャリアに依拠してはならない](101-optimistic-carrier-branch-elision/) | Accepted（2026-08-06に実装；コーパス2,060判定のうち47件に影響、診断は両方向でバイト単位一致；ADR-117により部分的に置き換え） |
 | ADR-102 | [未使用コードの到達可能性レポートは診断ではなくレポートである](102-unused-code-reachability-report/) | Accepted（`rigor unused`はv0.3.4で出荷；8つの作業上の決定はすべて確定；ADR-21 Track 3を部分的に置き換え） |
 | ADR-103 | [エフェクトラベル: オプトインの、スナップショット優先のエフェクトシステム](103-effect-labels/) | Accepted（エフェクトシステムはv0.3.4のヘッドラインとして出荷；#376の下で18件中13件の実装issueをクローズ） |
 | ADR-104 | [エフェクトサーフェスのためのブートスリムプローブ](104-effects-boot-slim-probe/) | Accepted（レポートとスナップショットの動詞について、#482のエントリー分割とともに実装済み） |
@@ -137,11 +137,12 @@ sidebar:
 | ADR-109 | [数値範囲リファインメントの記法およびセマンティクスとしてのRuby範囲リテラル](109-ruby-native-range-notation/) | Accepted（実装済み: #830で`Integer[1..10]`、#844で`Float[R]`、#846でFloatの絞り込み、#854で`int<a, b>`の非推奨化行、Float畳み込み） |
 | ADR-110 | [継承された宣言はレシーバー自身の`def`より優先されない](110-inherited-declaration-precedence/) | Accepted（#856でWD1＋WD3を実装；コーパスの25ターゲット全体で新たな診断ゼロを測定） |
 | ADR-111 | [リファインメントを`.rb`ファイル内のどこに書くか: 1つのキャリア、Rigor独自のコメント方言なし](111-inline-refinement-carrier/) | Superseded（ADR-112により置き換え；プローブの測定結果は有効） |
-| ADR-112 | [`@extrbs`: RBSで表現できないもののためのRigorが読み取るコメントチャンネル](112-extrbs-comment-channel/) | Accepted（未実装） |
+| ADR-112 | [`@extrbs`: RBSで表現できないもののためのRigorが読み取るコメントチャンネル](112-extrbs-comment-channel/) | Accepted（`sig/`とインラインの間でWD5を実装、2026-09-26；残りは未実装） |
 | ADR-113 | [`rigor lens`: エージェントおよびツールのための、型の由来を持つ宣言マップ](113-rigor-lens/) | Accepted（未実装） |
 | ADR-114 | [コアおよびstdlib RBSへの継承ディスパッチ](114-core-stdlib-ancestor-dispatch/) | Accepted（#527スライス1が着地: インスタンス側のスーパークラス巡回；スライス2/3/5/6はスコープ外、ADR-43の却下された代替案Aを部分的に置き換え） |
 | ADR-115 | [piによるマルチモデルエージェントハーネス（自社ソフトウェア第一）](115-pi-multi-model-harness/) | Proposed（薄い`agents/pi-harness/`スタブ；WD6の並行パスは未実証） |
 | ADR-116 | [エンジンのホットファイルの再構築: 増加する種類は1回宣言し、各走査は1回巡回する](116-hot-file-restructuring/) | Accepted（v0.4.0カット後を予定；WD0〜WD7は未着手） |
+| ADR-117 | [標準ストリーム: イディオムによって型付けされ、ランタイム契約によってチェックされる](117-standard-streams-typed-by-idiom/) | Accepted（#1405以降明示的な`$_`リーダー；オープン: #1362、#1366、#1367、#1415、#1423、#1426、#1427、#1429） |
 
 ## 新しいADRの追加
 

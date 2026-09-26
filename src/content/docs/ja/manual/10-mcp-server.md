@@ -3,9 +3,9 @@ title: "Rigor MCPサーバー: AIエージェント統合"
 description: "rigortype/rigor docs/manual/10-mcp-server.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/10-mcp-server.md"
 sourcePath: "docs/manual/10-mcp-server.md"
-sourceSha: "39717ff9be038feb08f8ede0388900671f18e3407f6fe512a060def2cb5f9edb"
-sourceCommit: "840db09d878cd50bf66f76b9b66fe7a16eeb15b4"
-sourceDate: "2026-06-13T17:48:47+09:00"
+sourceSha: "46ff808003591e52ff8b42f69eedfbad2ed4109df767e8d0824f1b831ef50fa5"
+sourceCommit: "42d6e031257466de187cc9640b4896300473f9bb"
+sourceDate: "2026-09-25T20:39:06+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9010
@@ -306,7 +306,7 @@ RubyソースファイルからRBSスケルトンシグネチャを推論して�
 | `params` | `"untyped"` \| `"observed"` | いいえ | `"untyped"` |
 | `config` | `string` | いいえ | セッションデフォルト |
 
-`params: "observed"`は`spec/`（または基盤CLIの`--observe=PATH`で指定されたディレクトリ）から呼び出しサイト引数型を収集します。
+`params: "observed"`はプロジェクトのテストルート（設定された`test_paths:`、または`spec/`と`test/`のうち存在する方）から呼び出し箇所の引数型を収集します。
 
 **返り値:** JSON（`rigor sig-gen --print --format json`と同じ）。
 

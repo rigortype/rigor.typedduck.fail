@@ -3,9 +3,9 @@ title: "CLIコマンドリファレンス"
 description: "rigortype/rigor docs/manual/02-cli-reference.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/02-cli-reference.md"
 sourcePath: "docs/manual/02-cli-reference.md"
-sourceSha: "408926b0f0c59fc699a0e5f3b4e6009e39b1999373e51e62ec3090250a8ec5f8"
-sourceCommit: "5fab9b52937efba652b9f6ecde1bb0a9954a9f77"
-sourceDate: "2026-09-09T04:59:35+09:00"
+sourceSha: "6e5e1e938da346981c1b6317d3ecf2782e53867114c202e98c85bef47e311543"
+sourceCommit: "42d6e031257466de187cc9640b4896300473f9bb"
+sourceDate: "2026-09-26T09:31:30+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9002
@@ -277,14 +277,19 @@ rigor sig-gen [paths]
 | `--print` | RBSをstdoutに書き出す。デフォルト。 |
 | `--diff` | 既存RBSに対するunified diffを書き出す。 |
 | `--write` | RBSを`sig/<path>.rbs`ファイルに書き出す。 |
-| `--overwrite` | より厳密な戻り値の更新でユーザー作成のRBSを置き換えることを許可する。 |
+| `--check` | 何も書き出さない。同じオプションの`--write`が何を変更するかを表示し、変更がある場合は`1`で終了する。CIでの鮮度ゲート。 |
+| `--overwrite` | より厳密な戻り値の更新、および`sig/`と不一致のインライン宣言でユーザー作成のRBSを置き換えることを許可する。 |
 | `--include-private` | privateおよびprotectedメソッドも出力する。 |
 | `--params=untyped\|observed\|observed-strict` | パラメータ型付けポリシー。デフォルトは`untyped`。 |
-| `--observe=PATH` | コールサイト観察のために`PATH`をスキャンする。繰り返し可能。 |
+| `--observe=PATH` | コールサイト観察のために`PATH`をスキャンする。繰り返し可能。デフォルト: 設定された`test_paths:`（未設定: `spec/`と`test/`のうち存在する方）。 |
 | `--new-files` / `--new-methods` / `--tighter-returns` | その分類のみ出力する。 |
 | `--effect-envelopes` | エフェクトを持つメソッドに対しても`%a{rigor:v1:effect …}`を出力する。`effects:`オプトインが必要。 |
 | `--no-cache` | 解析キャッシュを読み書きしない。エフェクト収集のみがこれを使用する。 |
 | `--format=text\|json` | 出力形式。 |
+
+`--print`、`--diff`、`--write`、`--check`は相互排他です。`--check`は`--write`がファイルを作成・変更・拒絶するまさにそのタイミングで失敗するため、`--overwrite`なしで`--write`が見送るより厳密な戻り値では失敗しません。`--check --overwrite`は1件としてカウントします。[ハンドブック第11章](../../handbook/11-sig-gen/#ciでsigを最新に保つ)を参照してください。
+
+`# @rbs` / `#:`でインライン宣言されたメソッドは、その本体が推論した内容ではなくその宣言として書き出されます。パラメータのみのアノテーションはパラメータを保持し戻り値を本体から取得し、`initialize`は常に`-> void`です。`sig/`がすでにそのメソッド（`def`または`attr_*`）を宣言しており、型として両者が不一致の場合（パラメータ名やユニオンの綴りは問わず、オーバーロードの順序は問う）、sig-genはどちらも変更しません: メソッドは拒絶され（`sig.skipped.inline-differs`、`--format=json`の`refused`にリスト）、両者を一致させるか`--overwrite`（`sig/`のメンバー全体をインライン宣言で置き換える）を渡すまで`--write` / `--check`は`1`で終了します。パラメータのみのアノテーションではパラメータのみが比較され、戻り値は通常の提案規則に従います。インラインでジェネリックにされたクラスは、`sig/`が同じ型パラメータで宣言していない限り書き出されません。Steepが同じアノテーションを読み込むプロジェクトでは、`.rigor.yml`で`sig_gen.inline_declared: skip`を設定してそれらのメソッドを`sig/`から除外します。[ハンドブック第11章](../../handbook/11-sig-gen/#インラインで宣言されたメソッド)を参照してください。
 
 `.rigor.yml`に`effects:`ブロックがある場合、sig-genはエフェクトサマリーが**網羅的（exhaustive）**（到達するすべての呼び出しが解決されている）、**未免責（undischarged）**（そのフットプリント内のいかなるものも`effects.tolerated:`の指定のみによって不可視化されていない）、**宣言済み（claimed）**（すべての呼び出し先がカタログ行、プラグイン、エンベロープ、またはプロジェクト定義によって記述されている）であり、自身の手書きの境界を持たず、`≤`レーンに残存ラベルがないメソッドの上に`%a{pure}`も書き込みます。それ以外のメソッドにはアノテーションが付与されず、`--effect-envelopes`はフットプリントを持つメソッドに対してRigor自身のラベル付き表記を追加します。`effects:`ブロックがない場合、出力は以前とバイト単位で同一です。[ハンドブック第11章](../../handbook/11-sig-gen/#emitting-effect-annotations)を参照してください。
 

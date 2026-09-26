@@ -3,9 +3,9 @@ title: "設定"
 description: "rigortype/rigor docs/manual/03-configuration.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/03-configuration.md"
 sourcePath: "docs/manual/03-configuration.md"
-sourceSha: "6621df106a5c2ea764d49f685fdf8776650ac372c5886228abef87bf19ff3f70"
-sourceCommit: "db7b23d42e9b47560438b67dfe16d53e03f70575"
-sourceDate: "2026-06-15T14:21:04+09:00"
+sourceSha: "5d4270f50029e2dc86728b4fc227cc530a6bd310866a5953c79a76d9d72f11bb"
+sourceCommit: "42d6e031257466de187cc9640b4896300473f9bb"
+sourceDate: "2026-09-26T08:38:13+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9003
@@ -56,6 +56,7 @@ cache:
 | `target_ruby` | String | `"4.0"` | **自分の**プロジェクトが実行するRubyバージョン。`"X.Y"`、`"X.Y.Z"`、または`"latest"`。Rigor自体が動作するRubyとは独立。 |
 | `paths` | Array | `["lib"]` | 解析するディレクトリまたはファイル。 |
 | `exclude` | Array | `[]` | スキップするGlobパターン。`vendor/bundle`、`.bundle`、`node_modules`は常に除外される。 |
+| `test_paths` | Array | `nil` | プロジェクトのテストルート: テストを保持するディレクトリ（またはファイル）。相対パスのエントリーは設定ファイルのディレクトリを基準に解決されます。未設定の場合は`spec/`と`test/`のうち存在する方を自動検出します。`[]`はなしを宣言します。`rigor sig-gen --params=observed`はパラメータを型付けするためにそこにある呼び出し箇所を読み取り、存在しない宣言されたルートがあればstderrに名前を出力します。テストルートは`paths:`にも記載されていない限り解析されず、変更してもキャッシュは無効化されません。 |
 | `includes` | Array | `[]` | このファイルの下に継承する他の設定ファイル。 |
 | `fold_platform_specific_paths` | Boolean | `false` | ソース探索時にRubyバージョン条件付きロードパスを解決する。 |
 | `parameter_inference` | Boolean | `false` | `check`ウォークでのオプトインのコールサイトパラメータ型推論（[ADR-67](../../adr/67-parameter-type-inference/) WD6）。`true`のとき、宣言されていない`def` / `initialize` / セッターのパラメータは、解決されたコールサイト引数型のユニオンに型付けされ、下流のivar読み取り・畳み込み・保護カバレッジを精密化する。精度加算的のみ —— 否定的ルールは推論されたパラメータに対して決して発火しない。`--incremental`とは併用できない。 |
@@ -68,6 +69,12 @@ cache:
 | `signature_paths` | Array | `nil` | `.rbs`ファイルの追加ディレクトリ。相対パスのエントリーは設定ファイルのディレクトリを基準に解決されます。 |
 | `pre_eval` | Array | `[]` | ファイルごとの解析前に走査するファイル（またはglob）。プロジェクトのモンキーパッチを登録し、そのトップレベル定数をプロジェクト全体に公開するために使用。 |
 | `plugins` | Array | `[]` | 有効化するプラグイン。[プラグインの使い方](../07-plugins/)を参照。 |
+
+### シグネチャ生成
+
+| キー | 型 | デフォルト | 意味 |
+| --- | --- | --- | --- |
+| `sig_gen.inline_declared` | String | `"write"` | `# @rbs` / `#: `によってすでにインラインで宣言されているメソッドを`rigor sig-gen`がどう扱うか。`write`はインライン宣言を`sig/`にコピーするため、生成されたシグネチャはgemが出荷する完全な契約となり、後から`sig/`の宣言がインライン宣言と不一致になった場合は両者が一致するか`--overwrite`で置換されるまで拒絶（exit 1）します。`skip`はインラインリーダーが宣言するすべてのメソッドを`sig/`から除外します（`sig.skipped.inline-declared`）: Steepが同じアノテーションを読み込む場合（`signature "sig"`の横に`inline: true`）に設定してください。コピーすると各メソッドが二重に宣言されてしまいます（`DuplicatedMethodDefinition`）。`skip`の代償: 出荷された`sig/`のみを読み込む利用者はそれらのメソッドを決して見ることができず、それらに対するアノテーション（Rigorのリファインメントを含む）はソース自体が解析される場所でのみ有効になります。その他の値、または`sig_gen:`配下のその他のキーはロードエラーです。このキーを読み取るのは`rigor sig-gen`のみであり、変更してもキャッシュは無効化されません。[ハンドブック第11章](../../handbook/11-sig-gen/#インラインで宣言されたメソッド)を参照してください。 |
 
 ### 設定検証の警告
 

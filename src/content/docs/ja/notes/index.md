@@ -3,9 +3,9 @@ title: "リサーチ・サーベイノート"
 description: "rigortype/rigor docs/notes/README.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/README.md"
 sourcePath: "docs/notes/README.md"
-sourceSha: "c265dd5fbb5e0e16f81612ec6bb7a1039b7afce4a39685a3440fbe02ff9efd2a"
-sourceCommit: "74970d1ece5a858d82c9b2c8f1a5deb57831f984"
-sourceDate: "2026-09-23T11:35:27+09:00"
+sourceSha: "9d60b72c5c18fbf960712e66d40f2efa193750d289e3b3bf3bf66cc9c8d07797"
+sourceCommit: "42d6e031257466de187cc9640b4896300473f9bb"
+sourceDate: "2026-09-26T07:15:26+09:00"
 translationStatus: "translated"
 sidebar:
   order: 6000
@@ -88,6 +88,7 @@ sidebar:
 | 2026-09-17 | [コントローラー → テンプレートのエフェクトエッジ —— コーパス計測](20260917-controller-template-edge/) |
 | 2026-09-17 | [プラグイン提供メンバーをown-method拒否元として扱う —— まずコーパスの規模を測定する（issue #963）](20260917-plugin-member-veto/) |
 | 2026-09-17 | [レンダリング箇所のlocalsとレイアウト —— コーパス計測](20260917-render-locals-and-layouts/) |
+| 2026-09-26 | [インラインに対する`sig/` —— 一貫性規則の偽陽性ゲート（issue #1075）](20260926-sig-inline-consistency-fp-gate/) |
 
 ## アナライザーの自己テスト（teeth・偽陰性）
 

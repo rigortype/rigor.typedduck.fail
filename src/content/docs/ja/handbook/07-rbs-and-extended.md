@@ -3,9 +3,9 @@ title: "RBSと`RBS::Extended`"
 description: "rigortype/rigor docs/handbook/07-rbs-and-extended.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/07-rbs-and-extended.md"
 sourcePath: "docs/handbook/07-rbs-and-extended.md"
-sourceSha: "c057ff7f411014278051b65d65cafe545029aeb148d5ca211c1b6d5a2a7414ab"
-sourceCommit: "04668e5f0d6205fdd5c8f44662041add7ab33ca3"
-sourceDate: "2026-09-09T00:33:11+09:00"
+sourceSha: "706e86c18fade38b416d233c24b42d19c8ffd66fc5004ae5c6063f94d5e42e6f"
+sourceCommit: "42d6e031257466de187cc9640b4896300473f9bb"
+sourceDate: "2026-09-26T07:15:26+09:00"
 translationStatus: "translated"
 sidebar:
   order: 1007
@@ -328,7 +328,7 @@ plugins:
 - コアの`rigortype`アナライザーはゼロランタイム依存のまま（ADR-0）。`rbs-inline`上流ライブラリはコアのgemspecではなくプラグインgemの依存関係なので、オプトインしないプロジェクトは何も支払いません。
 - 裸のトップレベル`def`は上流rbs-inlineを通じてRBS出力を生成しません。アノテーションを有効にするには、メソッド定義をクラスまたはモジュールでラップしてください。
 - rbs-inlineのパース失敗は`source-rbs-synthesis-failed` `:info`診断として表面化し、そのファイルはインラインRBSの貢献なしにフォールバックして解析が続行されます。
-- メソッドが`sig/`とインラインアノテーションの**両方**で宣言されている場合、その1つのメソッドについては`.rbs`が勝ち、インラインシグネチャはドロップされます ── 両方のファイル名を指定する`source-rbs-annotation-not-honoured` `:info`として報告されます。重複するメンバーのみが身を引き、ファイル内の他のすべてのアノテーションは依然としてバインドされ、クラスはそのメソッドサーフェスを維持します。これはどちらの方向への移行時にも重要です: rbsとSteepは2つのソースを順位付けせずにマージするため、衝突したままにしておくとクラスの定義構築が失敗し、そのクラスに対するすべての呼び出し ── 実際のメソッドもタイポも同様に ── が`Dynamic[top]`と読まれてしまいます。インライン側の宣言を有効にするには、2つの宣言のうち1つを削除してください。
+- メソッドが`sig/`とインラインアノテーションの**両方**で宣言されている場合、Rigorは2つを比較照合し、どちらか一方がバインドします。一方がもう一方をリファインしている場合 ── `sig/`では`Symbol`、インラインでは`:asc | :desc` ── より精密な方がバインドし、何も報告されません; `untyped`と`void`はあらゆるものと整合的です。それらが矛盾する場合 ── `String`パラメーターに対して`Integer`パラメーターなど ── `.rbs`がバインドし、実行は`sig/`の行でエラーである`rbs.contradicting-signature`を報告します（通常は古い生成済みシグネチャです）。Rigorが判別できない場合、`.rbs`がバインドし、ドロップされたインラインシグネチャは両方のファイル名を指定する`source-rbs-annotation-not-honoured` `:info`として報告されます。重複するメンバーのみが影響を受けます;ファイル内の他のすべてのアノテーションは依然としてバインドされ、クラスはそのメソッドサーフェスを維持します。rbsとSteepは2つのソースを順位付けせずにマージするため、衝突したままにしておくとクラスの定義構築が失敗し、そのクラスに対するすべての呼び出し ── 実際のメソッドもタイポも同様に ── が`Dynamic[top]`と読まれてしまいます。
 
 完全なプラグインドキュメント、設定オプション（ブラウザプレイグラウンドが使用する`require_magic_comment: false`ホストコンテキストオーバーライドを含む）、キャッシュの契約については[`plugins/rigor-rbs-inline/README.md`](../../manual/plugins/rigor-rbs-inline/)を参照してください。
 

@@ -3,9 +3,9 @@ title: "Rigorの測定"
 description: "rigortype/rigor docs/agents/measurement.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/agents/measurement.md"
 sourcePath: "docs/agents/measurement.md"
-sourceSha: "023be55ad5fcd233dd55577c503b272583b7ec2d7aedf53ed386c86adf208d3c"
-sourceCommit: "0f252e3218936e8dc7004b574c709a434b996d2a"
-sourceDate: "2026-09-21T00:57:18+09:00"
+sourceSha: "7181db385716b815508a37262039057d690d4828db53dd1aff2e681dca12a063"
+sourceCommit: "42d6e031257466de187cc9640b4896300473f9bb"
+sourceDate: "2026-09-25T01:27:19+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9050
@@ -22,7 +22,7 @@ sidebar:
 呼び出しを直感的でないものにしている要因が2つあります。エンジンとそのネイティブの`rbs`/`prism` gemはこのリポジトリのFlakeシェルとバンドルの内部でのみ解決されるため、呼び出しは常に`bundle exec`を経由する必要があります。また、ベースラインのパスと設定の検出はいずれもcwdベースであるため、cwdは**ターゲット**でなければなりません。代わりにRigorリポジトリから実行すると`.rigor-baseline.yml`に`../rigor-survey/...`が書き込まれ、それらのパスは診断ストリームと一致しないため、ベースラインは何も抑制しなくなります。
 
 ```sh
-nix --extra-experimental-features 'nix-command flakes' develop --command bash -c '
+nix develop --command bash -c '
   cd ~/repo/ruby/rigor-survey/<project> &&
   BUNDLE_GEMFILE=<rigor>/Gemfile bundle exec <rigor>/exe/rigor <subcommand>'
 ```

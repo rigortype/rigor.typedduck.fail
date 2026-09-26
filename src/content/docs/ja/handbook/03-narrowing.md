@@ -3,9 +3,9 @@ title: "ナローイング"
 description: "rigortype/rigor docs/handbook/03-narrowing.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/03-narrowing.md"
 sourcePath: "docs/handbook/03-narrowing.md"
-sourceSha: "9e2ac54abd235b77764be8450019d59550b38c8909ee1b90e6b06eb7bba30fe3"
-sourceCommit: "04668e5f0d6205fdd5c8f44662041add7ab33ca3"
-sourceDate: "2026-09-09T03:19:06+09:00"
+sourceSha: "f585a11b60e2b72a7a2baae1c264c251251db9d679e9d4277cd483930e8da8a7"
+sourceCommit: "42d6e031257466de187cc9640b4896300473f9bb"
+sourceDate: "2026-09-27T00:43:04+09:00"
 translationStatus: "translated"
 sidebar:
   order: 1003
@@ -73,6 +73,22 @@ unless x.is_a?(Integer)
 end
 ```
 
+ガードは変数の型がなり得ないと述べているクラスを指定することもできます。そのようなブランチ内では変数は`bot`として読み取られるため、その変数に対する呼び出しはチェックされません。これは、その型がRigorが推論したものやシグネチャから読み取ったものである場合に重要となります: `$stdout`は`IO`と型付けされており、テストは同じコードを`IO`のサブクラスではない`StringIO`で実行するため、以下のガードされた呼び出しは正しいコードであり沈黙を保ちます。`$stdout`、`STDOUT`、またはその他のグローバル変数や定数に対するガードも同様にナローイングします:
+
+```ruby
+require "stringio"
+
+def captured_output
+  out = STDOUT
+  if out.is_a?(StringIO)
+    assert_type("bot", out)
+    out.string
+  end
+end
+```
+
+ブランチの残りの部分は通常通りチェックされ、その`bot`変数は後続のコードには決して到達しません。`case`はそのようなブランチをその値から脱落させます（後述）;それを保持することは[#1465](https://github.com/rigortype/rigor/issues/1465)で追跡されています。
+
 ## リテラル値との等値比較
 
 Rigorは信頼できるリテラル値に対して`==`と`!=`をナローイングします:
@@ -105,9 +121,48 @@ end
 
 結果型はブランチごとの結果のユニオンです。入力が有限リテラルユニオンのとき、すべてのメンバーが一致する場合、Rigorは`else`ブランチが到達不能であることを証明します。
 
-同じナローイングは逆向きにも働きます: `when <Class>`節が対象の型と素であるとき、または先行する節がすでにその型をカバーしているとき、その節は死んでいます。Rigorは[`flow.unreachable-clause`](08-understanding-errors.md)を出力するので、削除できます。（既定プロファイルでは`:info`で出荷されます。）
+同じナローイングは逆向きにも働きます: 先行する節がすでに対象をカバーしているとき、または`when <Class>`節が対象の型と素であるとき、その節は死んでいます。Rigorは[`flow.unreachable-clause`](08-understanding-errors.md)を出力するので、削除できます。（既定プロファイルでは`:info`で出荷されます。）
 
-`case x; in pattern`（1行パターンマッチング）も、Rigorが理解するパターン（クラスチェック、リテラル等値、配列/ハッシュ構造パターン）に対して同じようにナローイングします。節の到達可能性チェックは素のクラスの`in`パターン（`in String` / `in MyClass => x`）にも拡張されます。
+素な`when <Class>`は、対象の型がコードが文字通り示しているものである場合にのみ報告されます: リテラル（`1`、`"s"`、`:a`）、配列またはハッシュのリテラル、クラスオブジェクト、または`nil` / `true` / `false`です。対象の型がRigorが推論したものやシグネチャから読み取ったものである場合、`when`は上記の`is_a?`の例のように他のものを保持し得るという証拠であるため、その節は報告されません。依然として`bot`として読み取られ、`case`の値はそれを脱落させます:
+
+```ruby
+require "stringio"
+
+io = STDOUT
+assert_type(":io", (case io when StringIO then :string_io else :io end))
+
+count = 3
+assert_type(":number", (case count when String then :text else :number end))
+
+case io
+when StringIO then puts io.string # 報告されない
+end
+
+case count
+when String then puts count # flow.unreachable-clause
+end
+```
+
+どちらの値も`when`ブランチを除外します。その後の2つの`case`文のうち、2番目のみが`flow.unreachable-clause`を報告します。チェックはコードが文として実行するか変数に代入する`case`を読み取ります; 2つの`assert_type`行のようにメソッドに直接渡されたものはチェックされません。
+
+`case x; in pattern`（1行パターンマッチング）も、Rigorが理解するパターン（クラスチェック、リテラル等値、配列/ハッシュ構造パターン）に対して同じようにナローイングします。節の到達可能性チェックは同じリテラルルールの下で素のクラスの`in`パターン（`in String` / `in MyClass => x`）にも拡張されます。
+
+## `respond_to?`
+
+リテラルシンボルを伴う真の`respond_to?(:name)`は、レシーバーから`nil`（`nil`自体が`name`に応答しない限り）と、Rigorが`name`を欠いていると把握しているクラスのメンバーを取り除きます。どのメンバーも応答し得ない場合、その型がRigorが推論したものやシグネチャから読み取ったものであればレシーバーは`Dynamic[top]`として読み取られるため、ガードされた呼び出しはエラーになりません。リテラル、配列またはハッシュのリテラル、クラスオブジェクト、または`nil` / `true` / `false`である場合は`bot`として読み取られるため、ブランチはチェックされません。リテラル値にとってそれは正確です: それがメソッドを獲得することは決してありません。クラスオブジェクトはRigorがシグネチャを持たないgemからメソッドを獲得する可能性があり（ActiveSupport配下の`Time.respond_to?(:zone)`）、そのブランチもチェックされません:
+
+```ruby
+require "stringio"
+
+value = [1, "one"].sample
+assert_type('"one"', value) if value.respond_to?(:upcase)
+
+io = STDOUT
+assert_type("Dynamic[top]", io) if io.respond_to?(:string)
+
+count = 3
+assert_type("bot", count) if count.respond_to?(:upcase)
+```
 
 ## 論理演算
 
@@ -281,7 +336,7 @@ end
 
 Rigorが今日**ナローイングしない**形式でよく期待されるもの:
 
-- `respond_to?(:method_name)`: 記録されるのは非nilのナローイングだけです。静的に既知のシンボルでの真偽チェックは（`nil`はほとんどのメソッドに応答しないため）レシーバーから`nil`を取り除きます。しかし、ディスパッチに使える「このオブジェクトはそのメソッドに応答する」という構造的なケイパビリティ（capability）ファクト（fact）は**まだ**公開しません。
+- `respond_to?(:method_name)`: メンバーを取り除くことでナローイングしますが（後述の[`respond_to?`](#respond_to)参照）、ディスパッチに使える「このオブジェクトはそのメソッドに応答する」という構造的なケイパビリティ（capability）ファクト（fact）は**まだ**公開しません。
 - `frozen?`などの変異ガード: Rigorはまだミュータビリティをナローイング事実として追跡しません。
 - 任意のユーザー定義`case_eq`に対する`===`によるオープンエンドのクラス比較: Class / Module / Range / Regexpのみが認識されます。
 - `self`ターゲットディレクティブ内のメソッドチェーンレシーバー（`get_user.admin?`）にはナローイングするスコープバインディングがありません。ローカル変数、インスタンス変数、明示的`self`、暗黙的selfのレシーバーはすべてサポートされています。

@@ -3,9 +3,9 @@ title: "rigor-rbs-inline"
 description: "rigortype/rigor docs/manual/plugins/rigor-rbs-inline.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/plugins/rigor-rbs-inline.md"
 sourcePath: "docs/manual/plugins/rigor-rbs-inline.md"
-sourceSha: "91578daaf35c6a8e7d1104d300c4f95728de5c58157ebe350c780fc013ae2665"
-sourceCommit: "d01a937b5d3d66d5ec4e6ba82036919d1bc91d10"
-sourceDate: "2026-09-14T18:55:47+09:00"
+sourceSha: "1b601d075e8885a7d33dbed180dcef8de8f374aea007dd28b0034d0570b4e1d0"
+sourceCommit: "42d6e031257466de187cc9640b4896300473f9bb"
+sourceDate: "2026-09-26T09:33:47+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9050
@@ -42,26 +42,36 @@ AscDesc.new.ascdesc(:bad)   # エラー: 引数の型の不一致（:asc | :desc
 | ルール | 重大度 | 発火条件 |
 | --- | --- | --- |
 | `plugin.rbs-inline.source-rbs-synthesis-failed` | info | rbs-inlineがファイルをパースできなかった。解析はインラインRBSの寄与なしにフォールバックし、diagnosticはupstreamのエラーを伴う |
-| `plugin.rbs-inline.source-rbs-annotation-not-honoured` | info | アノテーションのパースは成功したが何も寄与しなかった ── そのファイルの他のアノテーションは引き続き適用される。6つの原因がある: `sig/`も宣言しているメンバー（[優先順位](#優先順位)を参照）、`# @rbs module-self: Foo`の綴り（下記参照）、型がパースできない`#:`行（[パースできない`#:`の型](#パースできないの型)を参照）、メソッド型がパースできない同一行の`# @rbs %a{…}`（[同一行アノテーション](#同一行アノテーション)を参照）、パースできない`# @rbs name: T`パラメータ型（[パースできない`# @rbs name:`の型](#パースできない-rbs-nameの型)を参照）、およびgemが認識しない`@rbs`接頭辞のタグ（[`@rbs`後の認識されないタグ](#rbs後の認識されないタグ)を参照） |
+| `plugin.rbs-inline.source-rbs-annotation-not-honoured` | info | アノテーションのパースは成功したが何も寄与しなかった ── そのファイルの他のアノテーションは引き続き適用される。6つの原因がある: `sig/`も宣言しているメンバーでRigorがどちらがより精密か判断できない場合（[優先順位](#優先順位)を参照）、`# @rbs module-self: Foo`の綴り（下記参照）、型がパースできない`#:`行（[パースできない`#:`の型](#パースできないの型)を参照）、メソッド型がパースできない同一行の`# @rbs %a{…}`（[同一行アノテーション](#同一行アノテーション)を参照）、パースできない`# @rbs name: T`パラメータ型（[パースできない`# @rbs name:`の型](#パースできない-rbs-nameの型)を参照）、およびgemが認識しない`@rbs`接頭辞のタグ（[`@rbs`後の認識されないタグ](#rbs後の認識されないタグ)を参照） |
+| `rbs.contradicting-signature` | error | インライン宣言が同じメソッドの`sig/`宣言と矛盾しているか、インラインの`%a{rigor:v1:…}`リファインメントが自身の宣言された型の外にある（[優先順位](#優先順位)を参照）。プラグイン自身のものではなくコアのルールであるため、`plugin.rbs-inline.`接頭辞は付かない |
 
 ## 優先順位
 
-メソッドが`sig/`とインラインアノテーションの**両方**で宣言されている場合、**メンバーごとに`.rbs`が勝ちます**。その1つのメソッドに対するインラインシグネチャはドロップされます;ファイル内の他のすべてのアノテーションは引き続き束縛され、クラスはそのメソッドサーフェスを保持します。
+メソッドが`sig/`とインラインアノテーションの**両方**で宣言されている場合、Rigorは位置ごと（各パラメータ、戻り値型、ブロックのパラメータと戻り値）に**両者を比較し**、正確にそのうち一方がバインドします。どちらの場合でもファイル内の他のすべてのアノテーションは引き続きバインドされ、クラスはそのメソッドサーフェスを保持します。
 
 ```ruby
-# lib/demo.rb                  # sig/demo.rbs
-class Demo                     # class Demo
-  # @rbs (Integer) -> String   #   def shared: (String) -> Integer  ← こちらが勝つ
-  def shared(v) = v.to_s       #   def only_sig: () -> String
-                               # end
-  # @rbs (Integer) -> Integer
-  def only_inline(v) = v + 1   # ← インラインのみ: 引き続き束縛
+# lib/demo.rb                          # sig/demo.rbs
+class Demo                             # class Demo
+  # @rbs dir: :asc | :desc             #   def order: (Symbol dir) -> void
+  def order(dir) = nil                 #   def shared: (String) -> Integer
+                                       # end
+  # @rbs (Integer) -> String
+  def shared(v) = v.to_s
 end
 ```
 
-ドロップされた各メンバーは、そのメンバーと勝利した`.rbs`を名指して`plugin.rbs-inline.source-rbs-annotation-not-honoured`として一度報告されます。インラインアノテーションを有効にするには、2つの宣言のいずれかを削除してください。
+- **一方が他方をリファインする場合: より精密な方が黙ってバインドする**。
+  `:asc | :desc`は`Symbol`の部分型（subtype）であるため、`Demo#order`はインラインの契約を取り、`.rbs`単独なら通していた`order(:up)`は引数の型エラーになります。マージはパラメータを含めすべての位置で狭い方の型を意図的に取ります: どちらの宣言もあなたのものであり、狭い方があなたが述べた内容だからです。`sig/`の`String`の横にインラインの`non-empty-string`がある場合、`non-empty-string`として読まれます。`untyped`、`void`、`top`は何とでも一貫しており最も主張が少ないため、`sig/`の`-> untyped`の横にあるインラインの`-> void`は沈黙します。同一の宣言 ── `rigor sig-gen`がアノテーション付きメソッドに対して書き出すもの ── も同様に沈黙します。インライン側がバインドするのは、`.rbs`メンバーがそれによって何も失わない場合のみです: 同じ可視性を持ち、それが運ぶすべてのアノテーション（述語、アサーション、エフェクトエンベロープ）がインライン側にもある必要があります。
+- **両者が矛盾する場合: エラーとなり、`.rbs`がバインドする**。
+  もし`Demo#shared`が`sig/`で`::String`を取りインラインで`::Integer`を取るなら、両方であるような値は存在しないため、実行はアノテーション付きファイル名を名指して`sig/`の行で[`rbs.contradicting-signature`](../../04-diagnostics/#rule-rbs-contradicting-signature)を報告します。例のように`String`と`Integer`と綴られている場合、そのペアは代わりに未決定になります（下記）。一致し得ない位置引数の個数や、一方が要求し他方がいかなる形式でも受け取れないキーワードも同様に矛盾します。エラーには証明が必要であり、RBS階層から読み取られる、絶対パスで書かれたRubyコアまたはstdlibクラス（`::String`、`::Integer`）のみがそれを与えます。`Comparable`のようなモジュールはどのクラスでもインクルードできるため決して考慮されず、あなた自身のクラス（`sig/`がRubyの与えるスーパークラスを省略している可能性がある）、gemのクラス、素の`String`のような相対名（自身の`App::String`である可能性がある）、オプショナルまたはrestパラメータ（呼び出しが省略する可能性がある）、ブロックのパラメータ（本体が決してyieldしない可能性がある）も考慮されません。古い生成シグネチャが通常の原因です: 再生成するか、アノテーションを修正してください。
+- **Rigorが判断できない場合: `.rbs`がバインドし、`:info`を出す**。
+  位置が型エイリアス、インターフェース、`self`、型変数、またはプロジェクトが宣言する相対クラス名を名指している場合、Rigorが2つの型が素であることを証明できない場合（`Numeric`に対する`Integer`のようなサブクラス関係を含む）、パラメータリストの形状が異なるが重なり合っている場合、オーバーロードが1対1でペアリングされない場合（順序ではなく宣言内容でペアリングされる）、あるいは各側がどこかでより精密である場合、インラインシグネチャは破棄され、バインドしたメンバーと`.rbs`を名指して`plugin.rbs-inline.source-rbs-annotation-not-honoured`として報告されます。解決するには一方を他方のリファインメントにするか、一方を削除してください。
 
-`sig/`が勝つのは、それがレビュー対象の成果物 ── レビューでdiffを取り、`rigor sig-gen --diff`が推論の対象とするもの ── だからです。従うべき上流の規則はありません: rbsはインラインの`.rb`宣言と`.rbs`宣言を単一のクラスエントリーにマージし、どちらにも順位を付けないため、Steepは同じ重複をシグネチャエラーとして報告し、クラスのビルドは依然として失敗します。Rigorは報告を維持しつつ縮退を落とします（[ADR-32](../../../adr/32-rbs-inline-comment-ingestion/) WD13）── 衝突するままに放置されると、1つの重複したメソッドがクラスから他のすべてのメソッドを奪い、実在するメソッドもタイポも等しくその上の各呼び出しが`Dynamic[top]`を読むことになります。
+`rigor sig-gen --write`は意図的にこの重複を生成します: デフォルトで各インライン宣言を`sig/`にコピーするため、生成されたシグネチャはgemが出荷する完全な契約になります。同一のコピーは上記のとおり沈黙します。インラインアノテーションが後からそのコピーと不一致になった場合、`rigor sig-gen --write`および`--check`はメソッドを拒絶し、両者を一致させるか`--overwrite`（`sig/`メンバーをインライン宣言で置き換える）を渡すまで`1`で終了します。Steepが同じアノテーションを読み込むプロジェクトでは、代わりに`sig_gen.inline_declared: skip`を設定します（[ハンドブック第11章](../../../handbook/11-sig-gen/#インラインで宣言されたメソッド)）。
+
+インラインアノテーション上の`%a{rigor:v1:return: …}`または`%a{rigor:v1:param: …}`リファインメントも、自身の宣言された型と値を共有しなければなりません: `# @rbs %a{rigor:v1:return: positive-int} () -> ::String`はアノテーション付きファイルで`rbs.contradicting-signature`として報告されます（同じ証明規則が適用されるため、`::`のない`-> String`は放置されます）。
+
+従うべき上流の規則はありません: rbsはインラインの`.rb`宣言と`.rbs`宣言を単一のクラスエントリーにマージし、どちらにも順位を付けないため、Steepは同じ重複をシグネチャエラーとして報告し、クラスのビルドは失敗します。Rigorは報告を維持しつつ縮退を落とします（[ADR-112](../../../adr/112-extrbs-comment-channel/) WD5。これは[ADR-32](../../../adr/32-rbs-inline-comment-ingestion/) WD13の「`.rbs`が常に勝つ」を置き換えました）── 衝突するままに放置されると、1つの重複したメソッドがクラスから他のすべてのメソッドを奪い、実在するメソッドもタイポも等しくその上の各呼び出しが`Dynamic[top]`を読むことになります。
 
 これがカバー**しない**2つの重複: **バンドル済み**RBS（Rubyコア、stdlib、gemのシグネチャ）と衝突する`.rbs`は代わりにファイル単位で隔離され、`rbs.coverage.quarantined-signature`として報告されます;同じメンバーを宣言する2つの`.rbs`ファイルは依然としてクラスの定義ビルドを失敗させ、`rbs.coverage.definition-build-failed`として表面化します ── そのペアのどちらの側も他方よりレビューされているわけではないため、優先すべきものが何もないからです。
 

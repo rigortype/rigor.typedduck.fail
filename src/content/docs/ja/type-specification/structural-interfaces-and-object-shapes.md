@@ -3,9 +3,9 @@ title: "構造的インターフェースとオブジェクトシェイプ"
 description: "rigortype/rigor docs/type-specification/structural-interfaces-and-object-shapes.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/type-specification/structural-interfaces-and-object-shapes.md"
 sourcePath: "docs/type-specification/structural-interfaces-and-object-shapes.md"
-sourceSha: "59f3e1779392796ea0e8e1bd73c14868343a4d07959d49017c8487d174fec92e"
-sourceCommit: "568138c239ec5b7b39833ed6a2a21fd027e3d319"
-sourceDate: "2026-09-11T01:56:26+09:00"
+sourceSha: "f33c7b292e2c812f4a516f156e5285e7365bfa778bbfbb5091c6a676c3f80494"
+sourceCommit: "42d6e031257466de187cc9640b4896300473f9bb"
+sourceDate: "2026-09-26T23:07:03+09:00"
 translationStatus: "translated"
 sidebar:
   order: 2050
@@ -103,7 +103,7 @@ end
 
 オプションの`include_private`引数は可視性ファクトに影響しなければなりません（MUST）:
 
-- `obj.respond_to?(:foo)`は真ブランチで`foo`の公開存在ファクトを記録します。
+- `obj.respond_to?(:foo)`は真ブランチで`foo`の公開存在ファクトを記録します。真ブランチはまた、Rigorが`foo`を欠いていると把握しているクラスを持つ`obj`の型のメンバーを脱落させます。応答可能なメンバーが存在し得ない場合、あるメンバーが`Nominal`であれば`obj`は`Dynamic[top]`として読み取られるためガードされた`obj.foo`は報告されず、すべてのメンバーがリテラルキャリアである場合は`bot`となります（[control-flow-analysis.md](../control-flow-analysis/#class-guards)、[#1429](https://github.com/rigortype/rigor/issues/1429)）。
 - `obj.respond_to?(:foo, false)`は第2引数が静的にfalseの場合、デフォルトと同じです。
 - `obj.respond_to?(:foo, true)`は可視性がpublic、protected、またはprivateである存在ファクトを記録します。それ自体では`obj.foo`が外部の明示的レシーバー呼び出しとして合法であることを証明しません。
 - 第2引数が静的に既知でない場合、Rigorはより弱いmaybe-private可視性ファクトを記録しなければなりません（MUST）。

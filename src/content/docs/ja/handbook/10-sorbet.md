@@ -3,8 +3,9 @@ title: "Sorbetとの共存"
 description: "rigortype/rigor docs/handbook/10-sorbet.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/10-sorbet.md"
 sourcePath: "docs/handbook/10-sorbet.md"
-sourceSha: "6fba518f9b7a898ad7e3652100d058092d7690c2a9dddcc196d60610f3350bfa"
-sourceCommit: "2d0ffe6f38d01cfd850527c57987b27487b414d4"
+sourceSha: "045a252e55cc168f2a8ccd12e66c7df8667fe46aaea847a3364e5535b72451a1"
+sourceCommit: "42d6e031257466de187cc9640b4896300473f9bb"
+sourceDate: "2026-09-26T06:06:29+09:00"
 translationStatus: "translated"
 sidebar:
   order: 1010
@@ -204,7 +205,7 @@ demo.rb:42:5: warning: `T.absurd` is reachable: the discriminant did not
 
 ## ティア順序: 競合時に何が勝つか
 
-メソッドがSorbet `sig`とRBS sigの両方を持つ場合、RBSが勝ちます。Sorbet sigはRigorのプラグインティアに座ります:
+メソッドがSorbet `sig`とRBS sigの両方を持つ場合、Sorbet `sig`が呼び出しサイトを型付けします。Sorbet sigはRigorのプラグインティアに座り、RBSディスパッチより前に応答します:
 
 1. **精度ティア**: 定数フォールド、シェイプディスパッチ、ブロックフォールドなど。
 2. **プラグイン貢献**: `rigor-sorbet`のsigおよびアサーション翻訳を含む。
@@ -212,7 +213,7 @@ demo.rb:42:5: warning: `T.absurd` is reachable: the discriminant did not
 4. **依存関係ソース推論**（ADR-10のオプトインウォーカー）。
 5. **ユーザークラスフォールバック**（`Object` / `Class`の祖先）。
 
-貢献マージャー（[`docs/internal-spec/flow-contribution-merger.md`](../../internal-spec/flow-contribution-merger/)に文書化されたv0.1.0の基板）は競合時にRBSを権威として保持します。Sorbet sigはリファインを許可されますが矛盾は許可されません。Sorbet sigを優先させたいユーザーは競合するRBSを削除すべきで、その逆ではありません。逆方向（Sorbetが勝つ）は、サードパーティDSLアノテーションが作成されたRBSを上書きすることを許可し、信頼モデルを逆転させます。
+プラグインのリターン型は診断なしでRBSのリターンを置き換えるため（[ADR-2](../../adr/2-extension-api/) §「Amendment 2026-09-26」）、2つのsigが不一致の場合、呼び出し元にはSorbetのリターンが見えます。RBSは依然としてメソッド本体を拘束し、メソッド本体は宣言されたリターンに対してチェックされます。2つのシグネチャを一致させておき、もはや意図しない方を削除してください。
 
 ## 移行パターン
 

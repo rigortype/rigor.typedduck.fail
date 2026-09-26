@@ -3,9 +3,9 @@ title: "プラグインの使用"
 description: "rigortype/rigor docs/manual/07-plugins.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/07-plugins.md"
 sourcePath: "docs/manual/07-plugins.md"
-sourceSha: "99fb85648f491f054fcb3ca2bbcfc594f71e1cc4011b77fc55d528cf50c6e9d9"
-sourceCommit: "568138c239ec5b7b39833ed6a2a21fd027e3d319"
-sourceDate: "2026-09-11T02:06:27+09:00"
+sourceSha: "b599d133635c26cd19fe1b7286966ab1d461efe5d902797a608af1246e783427"
+sourceCommit: "42d6e031257466de187cc9640b4896300473f9bb"
+sourceDate: "2026-09-25T00:57:03+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9007
@@ -60,6 +60,6 @@ Rigorは[`plugins/`](https://github.com/rigortype/rigor/blob/master/plugins/READ
 | --- | --- |
 | `process`（デフォルト） | 呼び出しをフォークされたクラッシュ隔離ワーカーで実行し、ターゲットライブラリのモンキーパッチやあらゆるクラッシュがRigorを汚染しないようにします。`fork`が利用できない環境（Windows / JRuby）では`none`にフォールバックします。 |
 | `none` | ライブラリをRigor自身のプロセスに読み込み、直接呼び出します。 |
-| `ruby_box` | 実験的な`Ruby::Box`サンドボックス内で実行します。これには`RUBY_BOX=1`起動フラグが必要なので、この戦略を選ぶと`rigor`ランチャーはそのフラグを設定して自身を再実行（re-exec）します。**環境変数限定** —— 設定ファイルはRubyが起動したずっと後に読み取られるため、`plugins_isolation: ruby_box`は代わりに設定エラーとして報告されます。 |
+| `ruby_box` | 実験的な`Ruby::Box`サンドボックス内で実行します。これには`RUBY_BOX=1`起動フラグが必要なので、この戦略を選ぶと`rigor`ランチャーはそのフラグを設定して自身を再実行（re-exec）します。また、[Ruby Bug #22260](https://bugs.ruby-lang.org/issues/22260)を修正したRubyが必要ですが、4.0.7までのリリースには修正が含まれていません。ランチャーはまずこの修正の有無をチェックし、修正がない場合は警告を出力して設定済みのストラテジーを代わりに使用します。**環境変数限定** —— 設定ファイルはRubyが起動したずっと後に読み取られるため、`plugins_isolation: ruby_box`は代わりに設定エラーとして報告されます。 |
 
 環境変数は`plugins_isolation:`よりも優先されるため、コミットされたプロジェクトの選択を1回の呼び出しに対してオーバーライドできます。レガシーの`RIGOR_BOX`環境変数は、`RIGOR_PLUGIN_ISOLATION=ruby_box`への後方互換エイリアスです。デフォルト（`process`）はほぼすべての人にとって正しい選択です。この変数は、フォークが利用できない稀なプラットフォームや、より強い封じ込めが欲しい場合のために存在します。

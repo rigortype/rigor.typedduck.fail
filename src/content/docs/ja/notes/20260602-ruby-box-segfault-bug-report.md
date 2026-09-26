@@ -3,14 +3,17 @@ title: "バグ報告 — `Ruby::Box` SIGSEGV: 分離されたprocがボックス
 description: "rigortype/rigor docs/notes/20260602-ruby-box-segfault-bug-report.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260602-ruby-box-segfault-bug-report.md"
 sourcePath: "docs/notes/20260602-ruby-box-segfault-bug-report.md"
-sourceSha: "679bbbd0069269dec639fe6ef1e6563846fb2c9b633081678e4625970fa255bb"
-sourceCommit: "bed65a462b04db02312f208b9dda2dda3a26ef13"
+sourceSha: "20cfd387bfb25bf3edc8ad3f226e222e8602285c787809636f989df152e996be"
+sourceCommit: "42d6e031257466de187cc9640b4896300473f9bb"
+sourceDate: "2026-09-25T00:57:03+09:00"
 translationStatus: "translated"
 sidebar:
   order: 20266602
 ---
 
 [bugs.ruby-lang.org](https://bugs.ruby-lang.org)向けのドラフト（[How To Report](https://github.com/ruby/ruby/wiki/How-To-Report)に従う）。ADR-39スライス5（プラグインのターゲットライブラリ分離のためにRigorのアナライザーを`RUBY_BOX=1`のもとで実行する）のプロトタイピング中に表面化した。
+
+**2026-09状況 —— [Bug #22260](https://bugs.ruby-lang.org/issues/22260)として報告されupstreamで修正済み**（CRuby master `a4ad8e461a`、2026-09-10；`ruby_4_0`にはバックポートされていないため、4.0.7およびそれ以前の全リリースで依然としてクラッシュする）。Rigorのランチャーは、`RUBY_BOX=1`のもとで実行する前にこの修正の有無をプローブするようになった（`Rigor::Plugin::BoxProbe`）。
 
 **2026-08-24更新 —— 根本原因を特定し、最小リプロデューサーを発見し、パッチを書いて検証済み**。元のドラフト（履歴として下に残す）は自己完結したリプロデューサーを切り出せなかった;欠けていた材料は、クラス／モジュール本体で定義されたprocへの`Ractor.make_shareable`だった。このセクションのすべてが、元のドラフトの「メモ／最小化の状況」を置き換える。
 
