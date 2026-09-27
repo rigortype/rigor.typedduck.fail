@@ -3,8 +3,8 @@ title: "Rigor型仕様"
 description: "rigortype/rigor docs/type-specification/README.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/type-specification/README.md"
 sourcePath: "docs/type-specification/README.md"
-sourceSha: "cf5152c40d5368e5f37aafa3a79acee53de1a1fe9a76b3a5c518df90349ab33f"
-sourceCommit: "0cf313582cfbe2fa7da8148dc498d0b2a0893438"
+sourceSha: "aa657a08be73d70a3e2d23ec055ff6d67cbd86dd93423b766510cba23844ce91"
+sourceCommit: "07f49bdb90e563a2387d0df35bc4640e32dd8a0e"
 translationStatus: "translated"
 sidebar:
   order: 2000
@@ -59,6 +59,7 @@ Steepが上位の参照源と食い違う箇所では、Rigorは上位の参照�
 | [type-operators.md](type-operators/) | `~T`、`T - U`、`key_of[T]`、添字アクセス、診断表示の契約。 |
 | [structural-interfaces-and-object-shapes.md](structural-interfaces-and-object-shapes/) | RBSインターフェース、推論されたオブジェクトシェイプ（shape）、ケイパビリティ（capability）ロール、メソッドシェイプエントリー。 |
 | [control-flow-analysis.md](control-flow-analysis/) | エッジを意識したナローイング、等価性のセマンティクス、事実の安定性、ミューテーションの効果、プラグイン適用前の表面。 |
+| [global-variables.md](global-variables/) | グローバル変数の型の出所、特殊変数のスロット、慣用的な型を変更する証拠、およびチェックされる書き込み。 |
 | [rbs-extended.md](rbs-extended/) | `%a{rigor:v1:…}`注釈、述語/表明の文法、明示的適合宣言、フロー効果バンドル。 |
 | [normalization.md](normalization/) | 決定論的な正規化規則。 |
 | [rbs-erasure.md](rbs-erasure/) | 保守的なRBS消去（ハッシュシェイプ消去アルゴリズムを含む）。 |

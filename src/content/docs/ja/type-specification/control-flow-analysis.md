@@ -3,9 +3,9 @@ title: "制御フロー解析"
 description: "rigortype/rigor docs/type-specification/control-flow-analysis.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/type-specification/control-flow-analysis.md"
 sourcePath: "docs/type-specification/control-flow-analysis.md"
-sourceSha: "24353af39acea79334cd6c421d85b6a13c32c5e6e16e5c2bfbcbb140af932684"
-sourceCommit: "42d6e031257466de187cc9640b4896300473f9bb"
-sourceDate: "2026-09-27T01:16:21+09:00"
+sourceSha: "afdf9d5bce4c1f9088ca82dde3b121f49766cf7b7bcca8cc50faf47f630349e4"
+sourceCommit: "07f49bdb90e563a2387d0df35bc4640e32dd8a0e"
+sourceDate: "2026-09-27T09:55:19+09:00"
 translationStatus: "translated"
 sidebar:
   order: 2050
@@ -258,10 +258,12 @@ Rigorは等価ファクトを信頼レベルで分類すべきです（SHOULD）
 クラスガードは、`is_a?`、`kind_of?`、`instance_of?`、クラスまたはモジュール定数`C`に対する`C === x`、`case x when C`、および単独のクラスパターン`case x in C`（または`in C => y`）です。ガードの真値エッジでは、レシーバーはそれを満たすことができるその型のメンバーにナローイングされます。満たすことができるメンバーがない場合、メンバーが`C`と互いに素（disjoint）なクラスの`Nominal`である場合を含め、エッジは`bot`になります。
 
 そのような`Nominal`は、プログラムが厳密には保持しない慣用的な期待値である可能性があります（[ADR-117](../adr/117-standard-streams-typed-by-idiom.md)決定ポイント3、[#1429](https://github.com/rigortype/rigor/issues/1429)）。`$stdout`は`IO`と型付けされており、テストは`IO`のサブクラスではない`StringIO`で同じコードを実行するため、`$stdout.is_a?(StringIO) ? $stdout.string : nil`および`case io when StringIO then io.string end`は正しいコードです。そのようなガードに対して:
-- **アーム**。アーム内ではレシーバーは`bot`として読み取られるため、その上の呼び出しはチェックされず、アームがその後のコードと合流する場所にも何も追加しません。アームの残りの部分は通常どおりチェックされます。
+- **アーム**。アーム内ではレシーバーは`bot`として読み取られるため、その上の呼び出しはチェックされず、アームがその後のコードと合流する場所にも何も追加しません。アームの残りの部分は通常どおりチェックされます。これはすべての位置にある`if`、`unless`、三項演算子、およびエバリュエータが実行する`case`（文、文レベルの書き込みの値、あるいはそれ自体が文またはそのような書き込みの値である呼び出しのブロック）に当てはまります。配列要素や引数など、他の任意の値位置にある`case`のアームはナローイングされていないサブジェクトに対してチェックされるため、`[case io when StringIO then io.string end]`は正しいコードに対して`call.undefined-method`を報告します（[#1484](https://github.com/rigortype/rigor/issues/1484)）。
 - **評定なし（No verdict）**。`bot`はコード内の証拠に対するRigorのレシーバー型の読み取りに基づいているため、デッドコードとして報告してはなりません（MUST NOT）。節に入るときにサブジェクトが`C`と互いに素な`Nominal`メンバーを保持している`when C`または単独の`in C`節は、`flow.unreachable-clause`を報告しません（`Narrowing.disjoint_nominal_guard?`）。`is_a?`、`kind_of?`、`instance_of?`、`===`の形式は、それ自体の評定を報告しません。
-- **評定を維持するもの**。ファイルが文字どおり示しているものを記録するサブジェクトは、レポートを維持します: リテラル（`Constant`）、`Tuple`、`HashShape`、クラスオブジェクト（`Singleton`、[#657](https://github.com/rigortype/rigor/issues/657) / [#898](https://github.com/rigortype/rigor/issues/898)の辞退に基づく）、および`NilClass`、`TrueClass`、`FalseClass`の`Nominal`。先行する節が網羅した節や、デッドな`else`も同様です。
-- **値**。`class_pattern_certainty`が`:no`と応答するため、`case`の値側はそのアームをドロップします; `if`、`unless`、または三項演算子は以前と同様にそのアームの値を維持します。ガードされたクラスをその先にリークさせることなく`case`アームを維持することは[#1465](https://github.com/rigortype/rigor/issues/1465)です。
+- **評定を維持するもの**。ファイルが文字どおり示しているものを記録するサブジェクトは、レポートを維持します: リテラル（`Constant`）、`Tuple`、`HashShape`、クラスオブジェクト（`Singleton`、[#657](https://github.com/rigortype/rigor/issues/657) / [#898](https://github.com/rigortype/rigor/issues/898)の辞退に基づく）、および`NilClass`、`TrueClass`、`FalseClass`の`Nominal`。先行する節が網羅した節（先行する節がサブジェクトの慣用的な型のみを網羅した場合であっても、[#1485](https://github.com/rigortype/rigor/issues/1485)）や、デッドな`else`も同様です。
+- **値**。`if`、`unless`、または三項演算子はすべての位置でそのアームの値を維持し、`case … in`はそのアームを決してドロップしません。`case … when`は、エバリュエータがそのアームを結合する場所（書き込みがバインドする値として、またはメソッドの戻り値として）でアームを維持します。解析が`case … when`ノード自体を型付けする場所では、`class_pattern_certainty`が`:no`と応答するため、その値はアームをドロップします: 呼び出しの引数、配列要素またはハッシュ値、呼び出しレシーバー、メソッド演算子のオペランド（`(case …) + 0`）、`!`のオペランド、ブロック本体の最終式、および条件文です。`&&`および`||`のオペランドはすべての位置でアームを維持します。条件文においてそのドロップは、決定ポイント3に反して、正しいコードに対して`flow.always-truthy-condition`を報告します（`$stdout = File.open(path)`の後の`if (case $stdout when StringIO then true else false end)`）。[#1465](https://github.com/rigortype/rigor/issues/1465)はそれらの位置をリストし、ガードされたクラスをその先にリークさせることなくアームを維持することを追跡しています。
+
+[global-variables.md](../global-variables/#エビデンス境界)は、Rigorがイディオムによって読み取る型を変更できる証拠（そのようなガードもその一形態です）を規定しています。
 
 上記とは無関係に、`instance_of?(C)`は正確にクラス`C`を保持します: `C`がレシーバーのクラスの下位クラスである場合（`instance_of?(Integer)`における`Numeric`）、真値エッジは`C`にナローイングされます。モジュール、スーパークラス、無関係なクラス、または順序付けられていないクラスに対しては、エッジは`bot`になります。ガードを満たすメンバーを持つユニオンは、そのメンバーを保持して他のメンバーをドロップします: `Array[Integer] | Hash[Symbol, Integer]`に対する`x.is_a?(Array)`は`Array[Integer]`を読み取ります。偽値エッジは変更されません。
 
@@ -280,7 +282,7 @@ Rigorは等価ファクトを信頼レベルで分類すべきです（SHOULD）
 
 ### グローバル変数と定数のガード
 
-真偽値性、`nil?`、`!`、セーフナビゲーション（`$g&.m`、およびセーフナビゲーションチェーン）、クラスガード、`C === x`、`case … when`、および`respond_to?`は、ローカル変数の読み取りをナローイングするのと同様に、グローバル変数の読み取り（`$stdout`）および定数参照（`STDOUT`、`Foo::BAR`、`::Foo`）をナローイングします（[#1429](https://github.com/rigortype/rigor/issues/1429)）。真偽値性、`nil?`、セーフナビゲーション、および`respond_to?`はインスタンス変数もナローイングします;クラスガードはインスタンス変数をまだナローイングしません（[#1446](https://github.com/rigortype/rigor/issues/1446)）。
+真偽値性、`nil?`、`!`、セーフナビゲーション（`$g&.m`、およびセーフナビゲーションチェーン）、クラスガード、`C === x`、`case … when`、および`respond_to?`は、ローカル変数の読み取りをナローイングするのと同様に、グローバル変数の読み取り（`$stdout`）および定数参照（`STDOUT`、`Foo::BAR`、`::Foo`）をナローイングします（[#1429](https://github.com/rigortype/rigor/issues/1429)）。真偽値性、`nil?`、セーフナビゲーション、および`respond_to?`はインスタンス変数もナローイングします;クラスガードはインスタンス変数をまだナローイングしません（[#1446](https://github.com/rigortype/rigor/issues/1446)）。ガードのナローイングは、グローバル変数の型が持つどの出所の上にも適用されます（[global-variables.md](../global-variables/#グローバル変数の型の出所)）。
 - **非バインドのグローバル変数**は、その読み取りが持つ型からナローイングされます。何も学習しないエッジは、グローバル変数または定数をそのまま残します。
 - **定数**。定数のナローイングは参照の綴り方によってキー付けされるため、`::STDOUT`と`STDOUT`は別々にナローイングされます。定数への書き込みは、最後のセグメントが書き込まれた名前であるすべての綴りのナローイングを終了します。`module Foo`内の`Foo::BAR = nil`は`BAR`が読み取る定数に書き込むためです。
 - **`$stdout`と`$>`**は同一の変数です: いずれかへの書き込みは、もう一方のガードのナローイングを終了します。
