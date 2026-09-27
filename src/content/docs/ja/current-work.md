@@ -1,11 +1,11 @@
 ---
 title: "現在の作業 — セッションハンドオフ"
-description: "rigortype/rigor の docs/CURRENT_WORK.md からインポート。"
+description: "rigortype/rigor docs/CURRENT_WORK.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/CURRENT_WORK.md"
 sourcePath: "docs/CURRENT_WORK.md"
-sourceSha: "fa67a2ebf2c5cad29f39dd519e5201c7202f9c14526a2d14504d58b4f8aa2530"
-sourceCommit: "74970d1ece5a858d82c9b2c8f1a5deb57831f984"
-sourceDate: "2026-09-23T13:54:05+09:00"
+sourceSha: "dff887a6769fbc828b9a8d9237201042614e5c940d8541512f7086f8e4e430c0"
+sourceCommit: "f4ed8f5152c14035ac49c55ba261e29d73068656"
+sourceDate: "2026-09-27T11:21:17+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9050
@@ -23,42 +23,65 @@ sidebar:
   このファイル内の主張も含め。3セッション連続で、自身のポインタが間違っていたことがある。
 -->
 
-
 一時的な文書であり、全体が置き換えられます。バックログはGitHub Issuesで、リリース計画はMilestonesで管理されます。
 このファイルがADR、CHANGELOG、またはissueと食い違う場合、間違っているのはこのファイル側です。
 
-## 2026-09-22/23の`-> untyped`監査セッションで着地した内容
+## 特殊変数のセマンティクス、第2パス（2026-09-26/27）
 
-すべてマージ済み、CIグリーン、敵対的レビュー（Fable/Grok）承認（Approved）:
+これはdak2のトーク「特殊変数大全」に対する特殊変数の監査の継続であり、[ADR-117](../adr/117-standard-streams-typed-by-idiom/)によって管理されます。v0.4.0は2026-09-27に出荷されました;新たに見つかった不具合はマイルストーン`v0.4.x`に起票してください。
 
-- [#1169](https://github.com/rigortype/rigor/pull/1169) ── 付随的な戻り値API → `void`。
-- [#1170](https://github.com/rigortype/rigor/pull/1170) ── `untyped`/`void`/`top`理論ノート（`docs/notes/20260922-untyped-void-top-return-contracts.md`）+ 77箇所の初期分類。
-- [#1171](https://github.com/rigortype/rigor/pull/1171) ── `dump_type`/`assert_type`ジェネリクスのパススルー。
-- [#1174](https://github.com/rigortype/rigor/pull/1174) → `a2387d66` ── バッチ1: 22個の`-> untyped`戻り値を精密に命名; `sig/rigor/sig_gen/skip_reason_catalog.rbs`の隔離を解除する`Rigor::SigGen`シェル宣言も追加。
-- [#1176](https://github.com/rigortype/rigor/pull/1176) ── `instance_definition`の偽陽性。
-- [#1178](https://github.com/rigortype/rigor/pull/1178) → `0765b45b` ── #1173 RBS既知モジュールの祖先フォールバック; `includes_of`を実行時MRO順に修正（文をまたぐincludeは後勝ち）、SCHEMA 26→27、`ExternalAncestorResolution`内の`declared_before_object?` + 再配置ガード。
-- [#1179](https://github.com/rigortype/rigor/pull/1179) → `e890b0dc` ── #1175: 複合ivar書き込み（`||=`/`&&=`/`op=`）がクラスivarアキュムレータをシードするよう修正; ADR-58 WD5を実装; CIセルフチェックが`--fail-on=warning`を実行（`unit_scan.rb:560`警告は解消; master上で`make check`はグリーン）。
-- [#1180](https://github.com/rigortype/rigor/pull/1180) → `b0dd3cc3` ── バッチ2: Manifest/Runner/Loader/Narrowingなどを厳格化; `produces`は`Array[Symbol]`（`to_sym`後）、`source_rbs_synthesizer`は意図的に`untyped`を維持（複数形状WD6/WD12の結果）。
-- [#1184](https://github.com/rigortype/rigor/pull/1184) → `41b652e3` ── #1181スライス1: `Baseline::{Bucket,DriftRow}`宣言（初の`Struct.new`シグネチャ;メンバー行は#1183とマーク）。
-- [#1185](https://github.com/rigortype/rigor/pull/1185) → `25300e01` ── #1181スライス2: `Plugin::AdditionalInitializer` + `Manifest`/`Registry#additional_initializers`。
-- [#1186](https://github.com/rigortype/rigor/pull/1186) → `1b867b76` ── #1181スライス3: `Plugin::ProtocolContract`（+#1150とマークされた`ParamType` Dataメンバー）により`Manifest`/`Base#protocol_contracts`および新しい`Registry#protocol_contracts`/`contracts_for_path`のブロックを解除。
-- [#1187](https://github.com/rigortype/rigor/pull/1187) → `4d06efee` ── #1181スライス4: `Analysis::ProjectScan`（Data.define）により`Runner#prepare_project_scan` + `prebuilt:`キーワード引数のブロックを解除; 3つのメンバーは`untyped`のまま（未署名のSyntheticMethodIndex / ProjectPatchedMethods / TemplateUnits）。
-- [#1188](https://github.com/rigortype/rigor/pull/1188) → `99ea44e5` ── #1181スライス5: `Effects::*`束縛側（`Label`/`MethodKey`/`TaintCause`/`Origin`/`LabelSet`/`Envelope`/`ConfigEnvelopes`/`EnvelopeIndex`）、`Runner#effect_envelopes` + `RbsExtended.read_effect_envelope → Envelope?`。
-- [#1189](https://github.com/rigortype/rigor/pull/1189) → `9b2d943e` ── #1181スライス6: `Effects::*`収集側（`Summary`、`EffectTable`+`Entry`、`FileCollection`+`Edge`、`PluginFacts`+`Row`/`Edge`）により4つの`Runner#effect_*`リーダーすべてのブロックを解除;レビューで`forced_file_effects`を削除（プライベートAPIは`sig/`で宣言しない）し、`#1154`マーカーをinitializeパラメータのリーダーのみにスコープ。
-- [#1190](https://github.com/rigortype/rigor/pull/1190) → `c56c2ccf` ── #1181スライス7: `Effects::Registry`、`Plugin::{EffectAttribution,EffectEdge,EffectAncestry,EffectEntryPoints}`、`Registry::Contribution`; `Manifest`/`Base`/`Registry`の`effect_*`リーダー + `PluginFacts#extend_registry`/`contributions:`/`entry_points`を厳格化。Grok+Opusレビュー: `effect_owner`はローカル経由で絞り込み（抑制は不要）; `effects?`/祖先は#1200として起票。
+masterに着地した内容（それぞれマージコミットでCIグリーン）:
 
-以前の`queue-release`マージ（`#1158`〜`#1162`、`79fa99cf`/`9fd4b6d4`/`19c2af59`）はすべて着地済み;ハンドオフ時点でオープンなPRはありません。
+- #1449（#1415）: 暗黙的selfまたは`self.`の`gets`は`$_`をナローイングし、ファイル内の`self`に関する反証がある場合は辞退します。`ensure`節は`$_`を型なし（untyped）として読み取ります。暗黙的`readline`はまだナローイングしません（#1458）。
+- #1448（#1367）: 新しいルール`global.write-type-mismatch`（リテラル値のみ）および`global.readonly-write`。プログラム全体の調査（census）により、`write`、`to_str`、`to_int`、またはエスケープハッチの任意の定義で辞退します。
+- #1453（#1429）: 真偽値性、クラス、`respond_to?`、および`case`ガードはグローバル変数および定数のレシーバーをナローイングし、ナローイングは再バインドする可能性のある任意の呼び出しで復元されます。非リテラルの対象と素（disjoint）であるクラスガードは`flow.unreachable-clause`なしで`Bot`を読み取りますが、`case`の値は依然としてそのアームをドロップします（#1465）。値位置の`case`は各アームをナローイングします;コーパスで12件の偽陽性が解消されました。
 
-## メンテナー待ち
+issueに記録されたメンテナの決定:
 
-新しいものはありません。長らく保留されている`ready-for-human`バックログは変更ありません（`gh issue list --label ready-for-human`）。
+- #1426: スコープ付き`pre_eval:`の形状は混在配列です。文字列エントリはプロジェクト全体;マッピング`{path:, scope:}`はそのスコープルートにのみ適用されます。
+- #1367: ルールID、深刻度、およびTier `high`;リテラル限定の修正条項。
+- #1429: 3つの修正条項。最後の1つは上記の保守的な読み取りです。
 
-## 次に着手する価値があるもの
+## v0.4.0出荷完了（2026-09-27）
 
-- **#1181** ── クラスBシグネチャカバレッジバックログ（着地済み: Baseline #1184、AdditionalInitializer #1185、ProtocolContract #1186、ProjectScan #1187、Effects束縛側 #1188、Effects収集側 #1189、語彙/Contribution #1190 ── `Effects::*`およびプラグインエフェクト行クラスは完了）。残り: `Plugin::Macro::*`（Manifest `block_as_methods` / `heredoc_templates` / `nested_class_templates` / `trait_registries`）、`Inference::HktRegistry::*`（`#hkt_registrations` / `#hkt_definitions`）、`Environment::Reflection` + 3つの`*_reporter`ダックタイプ、`RuleWalk::CollectorDriver`、`Cache::*`エントリー/ディスクリプタ型、および`Rigor::FlowContribution`（`RbsExtended.read_flow_contribution`）。プロセス: `docs/agents/type-authoring.md`に従いまず`rigor sig-gen --print`の由来を確認; `#1154`マーカーは`initialize`パラメータから代入されたリーダーのみをカバー ── `absorb`/`compute`で構築されたリーダーはマークなしで固定; `Data`/`Struct`メンバーには`#1150`;レビュアーはGrok 4.6 + Opus（`run-role.sh reviewer`、`PRINT=1` + プロンプト）。
-- **#1177** ── メソッド境界を越えて`OptimisticOrigin`が失われる問題（要トリアージ;ディスク上に`rigor-wt/optimistic-origin-nil-predicate`ディレクトリが存在するが、登録されたworktreeではない ── 再利用前に確認すること）。
-- **sig-genスキップバッチ** ── #1148〜#1157（要素型 / Dataメンバー / エンドレスdefのギャップ）; `type-authoring.md`に基づく正直な修正はsig-genギャップのissueであり、すでにいくつか起票済み。
+#1490を通じてリリース: RubyGems `0.4.0`、タグ`v0.4.0`、GitHub Release。`v0.4.0`マイルストーンはクローズされました。カット前に修正されたブロッカー: #1470（#1381、#1385、#1471）、#1479（#1468）、#1483（#1436）。
 
-## worktreeの所在
+- **パフォーマンスベースライン**はメンテナの裁定（#1046）によりアロケーション+80.5%で再較正されました。フリーズされたv0.3.9 `lib`上のエンジンシェア+19.1%は原因未特定です: #1469がマージごとのスイープです。
+- **カット中に`v0.4.x`に起票された項目**（それぞれv0.3.9と照合され、非ブロッキングと判定済み）: #1474、#1475、#1476（正規表現グループのカウント）、#1480（`y&.concat`の結果が報告されない）、#1487（sig-genが観測された`initialize`を書き換える）、#1488（sig-genの重複挿入）、#1489（宣言された`-> untyped`に対するリテラル戻り値）。#1376はオープンのままです; #1381のスライスフォールドがそのギャップを文書化しています。
 
-本セッションのすべての`rigor-wt/*` worktreeはマージ後に剪定されました。古い`/Users/megurine/repo/ruby/worktrees/rigor/pi-worktree-*`セットは`queue-release`レーンに属します;そのPRは着地したため、アイドル状態であれば剪定可能です（`git worktree remove`は`references/`サブモジュールのチェックアウトで拒否されるため ── `rm -rf` + `git worktree prune`）。
+## 次のセッションで取り組むべきこと
+
+1. **ユーザー決定待ち:** `stdlib/uri/0/generic.rbs`に`alias to_str to_s`を追加する1行のruby/rbs PR。Rubyは2018年からこれを持っていますが（ruby/ruby `0164ce893f`）、rbs masterにはまだ欠けています。これは外部への公開であるため、承諾を待ってください。現時点でRigorのレポートは引き起こしません。
+2. **ADR-117の順序:** #1426、次に#1427、次に#1366のストリーム部分（`$>` → `$stdout`エイリアスも含む）。#1484（ナローイングされていない対象に対してチェックされる値位置の`case`アーム）は、そのストリーム部分の前に着地しなければなりません。WD1が`case $stdout when StringIO`を静かなままにすることを要求するためです。#1429と#1415は完了しているため、#1366の`$_`部分はブロック解除されています。WD6は依然として有効です: 辞退または忘却された`$_`は`Dynamic`のままです。#1366は依然として`ready-for-human`です。go/no-goの判断がコーパス結果にかかっているためです。
+3. **#1454:**フェーズ2が#1478で着地しました。`docs/type-specification/global-variables.md`、internal-specの「Special variables」マップ、および`CONTEXT.md`の用語を追加しました。このドキュメントにはADR-117決定ポイント3の既知の違反（#1465、#1484、#1485）がリストされています;それらが着地するにつれてそのリストを更新してください。フェーズ3のハンドブックの章は、#1366、#1426、#1427を待ちます。
+4. **`v0.4.x`の`ready-for-agent`（コストが低い順）:**
+   - #1467: `verify-changed`が`provenance_spec`を見逃す。今セッションで2つのレーンがこれに遭遇しました。
+   - #1447: ErrorInfo `$!`の辞退。
+   - #1446: ivarのクラスガード。
+   - #1437: 区切り文字。
+   - #1423: シングルトン`def gets`。
+   - #1379: `!~`。
+   - #1375: `$1`に対するループバックエッジ。
+   - #1372: 失敗する`when`または`in`。
+   - #1371: gsubファミリーのブロック。
+   - #1416: `then` / `tap`ブロック。
+   - #1373: ファイルをまたぐRegexp定数。
+   - #1443: `English`エイリアス。書き込み側は`SpecialGlobalSetters`を再利用すべきです。
+5. **トリアージキュー（`needs-triage`）** ── 今セッションでレーンが起票した項目:
+   - `ensure`とループのバグ: #1457（#1397がカバーする可能性あり）、#1458、#1464。
+   - リーダーのバグ: #1450、#1451、#1452、#1459。
+   - ガードの設計と精度: #1465、#1461、#1462、#1463。
+   - パフォーマンス: #1466。
+   - その他: #1455（`global.*`ルールの見逃し）および#1456（OpenStructフィールドが`call.undefined-method`を報告する、master上の本物の偽陽性）。
+   - #1478のレビューから、master上の偽陽性: #1477（`$1`ガード）、#1481（呼び出しを越えて存続する書き込みバインディング）、#1482（名前付きキャプチャ`=~`）、#1484、#1485。精度または健全性のギャップ: #1472、#1473、#1486。
+   - 以前から持ち越し: #1376、#1377、#1380、#1445。人間による対応準備完了（Ready for a human）: #1400、#1417。
+6. 兄弟ドラフト#1397（別のセッションのもの）が`eval_ensure`を再構成中。`$_`に対する#1449のensureルールを維持する必要があります; PRコメントに方法が説明されています。
+
+## レーンの実行方法（および何に遭遇したか）
+
+- 3つの並列レーン。それぞれが独自の`bin/rigor-worktree` worktree、実装者サブエージェント、独立した別worktree内のOpusレビュアーを持ち、プライベートなrsyncコピー上で一度に1つのレーンによってコールドコーパスA/Bが実行されました。ベースに対する不変条件: 正しいコードに診断を追加せず、Rubyが再バインドする場所で新たにナローイングを維持しないこと。差分ラウンドのために同じレビュアーを再開するのは高速でした。
+- **ラウンド3は依然として2回深刻でした**。 2回とも（#1448および#1453）ユーザーはレビュアーの辞退のみのフォールバックを適用し、第4ラウンドなしでマージすることを選択しました。一度、ラウンド2の後に、リークし続けた設計を撤回することを選択しました（#1453の段階的アーム、これは#1465へ移行）。これらの時点ではエスカレーションしてください;単独で決定しないでください。
+- **リークした設計:**ガードによってのみ導入された型が、合流を越えて型付きシンクに入り込みました（`Nominal[C]`、次に`Dynamic[C]`）。後のラウンドにおける最も深刻な指摘事項は、前のラウンドの修正が追加したコードにありました（#1448の新しい調査における無効なUTF-8リテラルでのクラッシュを含む）。
+- `make verify-changed`は`provenance_spec`を実行しません（#1467）。`sig/`を変更した後、または`sig-gen`推論を変更するエンジン変更の後は、自身で実行してください。
+- `describe`行によって`type_construction_spec`グループを選択すると、前のグループが実行される可能性があります。ミューテーションテスト時は`-e`または`it`行を使用してください。
+- コーパスコピーとベースエンジンのアームはセッションスクラッチパッド（`g1429/`）に存在していましたが、これは削除されました。`docs/agents/measurement.md`に従って再構築してください。
