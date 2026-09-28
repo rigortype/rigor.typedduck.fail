@@ -3,8 +3,9 @@ title: "キャッシング"
 description: "rigortype/rigor docs/manual/12-caching.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/12-caching.md"
 sourcePath: "docs/manual/12-caching.md"
-sourceSha: "dc14cf1dc930c6a410bd3f1557763a6cd67a8e7aebec3a477a6cce4ef43f7cfd"
-sourceCommit: "18d6992f544e6222fd7ed015ba6bbee6f0bd7f14"
+sourceSha: "88780a547cdde6127fe711130be2af135207c253ee7c8616e13ea5bac56ea567"
+sourceCommit: "e12ab45fa55707ed2acc0eae2e273b99a72dc077"
+sourceDate: "2026-09-28T01:53:10+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9012
@@ -86,7 +87,7 @@ cache:
 
 ## サイズと退避
 
-プロジェクトのアクティブなキャッシュセットは小さく（およそ2 MB）です。エントリーはコンテンツキー化されているため、gemのアップグレードや`.rbs`の編集といったイベントは新しいエントリーを書き込み、古いものを*孤立*させたまま残します。どこからも参照されず、それ以外のどの実行でも削除されません。これらを刈り取るため、Rigorはキャッシュディレクトリが`cache.max_bytes`（デフォルト**256 MB**。どのアクティブセットよりもはるかに大きいため、退避が触れるのは孤立エントリーだけ）を超えると、実行の終わりに最も長く使われていないエントリーを退避します。
+プロジェクトのアクティブなキャッシュセットは数メガバイト（Mastodonほどの規模のRailsアプリケーションで約10 MB）です。エントリーはコンテンツキー化されているため、gemのアップグレードや`.rbs`の編集といったイベントは新しいエントリーを書き込み、古いものを*孤立*させたまま残します。どこからも参照されず、それ以外のどの実行でも削除されません。これらを刈り取るため、Rigorはキャッシュディレクトリが`cache.max_bytes`（デフォルト**256 MB**。どのアクティブセットよりもはるかに大きいため、退避が触れるのは孤立エントリーだけ）を超えると、実行の終わりに最も長く使われていないエントリーを退避します。
 
 ```yaml
 cache:

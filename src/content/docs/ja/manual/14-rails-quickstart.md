@@ -3,8 +3,9 @@ title: "Rails向けRigor: miseを使ったステップバイステップセッ�
 description: "rigortype/rigor docs/manual/14-rails-quickstart.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/14-rails-quickstart.md"
 sourcePath: "docs/manual/14-rails-quickstart.md"
-sourceSha: "05602a56bc0cd4cded2b6cbd2d798895962f797a1e267ad2e23357065597590a"
-sourceCommit: "2d0ffe6f38d01cfd850527c57987b27487b414d4"
+sourceSha: "ab92a406b1e9075d185cffab452cae426d1ab87d8a8540f1311e875310ea05ef"
+sourceCommit: "e12ab45fa55707ed2acc0eae2e273b99a72dc077"
+sourceDate: "2026-09-28T02:19:37+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9014
@@ -72,7 +73,7 @@ rigor --version
 8つのフェーズを順に実行します。
 
 1. **検出**: `Gemfile` / `Gemfile.lock`を読み込んでフレームワークファミリー（Rails、dry-rb、Sinatraなど）と存在するgemを識別します。
-2. **導入モードの選択**: *acknowledge*（acknowledgeモード。今日の診断をベースライン（baseline）にスナップショット;以後のリグレッションを検出）か*strict*（strictモード。ゼロに抑える）かを提案します。最初の診断数が100件超のコードベースにはacknowledgeを推奨します。
+2. **導入モードの選択**: *acknowledge*（acknowledgeモード。今日の診断をベースライン（baseline）にスナップショット;以後のリグレッションを検出）か*strict*（strictモード。ゼロに抑える）かを提案します。新規プロジェクトを含めすべてのプロジェクトでacknowledgeを推奨します; strictは型理論とRBSに堪能なユーザー向けのオプトインです。
 3. **プラグインの選択**: 検出されたスタックに対応するプラグインセットを提案します。確認またはリストの削減ができます。
 4. **`.rigor.dist.yml`の書き込み**: コミット対象の共有設定。選択したモードに合わせた`severity_profile:`が含まれます。
 5. **Sig引き上げ**: `rigor sig-gen --write`を実行し、Rigor自身の推論からベースラインの`sig/`を生成します。
@@ -114,10 +115,12 @@ rigor skill rigor-project-init
 
 | モード | 適したケース | 動作 |
 | --- | --- | --- |
-| **Acknowledge** | 多くの診断を抱えた既存コードベース | 今日の診断をベースラインに記録し、PRごとに新しいものだけを表示する。 |
-| **Strict** | 新規または小規模なプロジェクト | 未解決診断ゼロ;ベースラインなし。 |
+| **Acknowledge** | 新規プロジェクトを含めすべてのプロジェクトで推奨 | 今日の診断をベースラインに記録し、PRごとに新しいものだけを表示する。 |
+| **Strict** | オプトイン（型理論とRBSに堪能なユーザー向け） | 未解決診断ゼロ;ベースラインなし。 |
 
-最初の`rigor check`で100件超の診断が報告される場合、acknowledgeモードが自然な出発点です。後から厳しくすることもできます。`.rigor.dist.yml`（ステップ3）では、モードは`severity_profile:`へマッピングされます —— acknowledge → `lenient`、strict → `strict`（デフォルトの`balanced`ではキーを省略）。
+まっさらな新規プロジェクトであってもacknowledgeモードから始めてください。Rigorの推論にはまだギャップがあるため、診断ゼロを必須条件（ゲート）にすると正しいコードに対しても診断が発生し、それを解消するには自作のコードではなくシグネチャやRBSを修正することになります。これらを自身で行うことに慣れている場合にのみstrictを選択してください。後から厳しくすることも可能です。
+
+`.rigor.dist.yml`（ステップ3）では、モードは`severity_profile:`へマッピングされます。Acknowledgeモードではデフォルトの`balanced`（キーを省略）を使用するか、最初の`rigor check`で約100件超の診断が報告される場合は`lenient`を使用します。strictモードでは`strict`を使用します。
 
 ### ステップ3: .rigor.dist.ymlの作成
 
@@ -154,7 +157,7 @@ plugins:
   - rigor-rspec
   - rigor-factorybot
 
-severity_profile: lenient   # strictモードの場合は "strict"; 省略すると "balanced"
+# severity_profile: lenient   # 最初の診断数が100件超の場合のみ; strictモードの場合は "strict"
 
 # baseline: .rigor-baseline.yml   # ステップ6の後にコメントアウトを外す（acknowledgeモードのみ）
 ```
@@ -213,7 +216,7 @@ rigor triage
 
 ### ステップ6: ベースラインの生成（acknowledgeモード）
 
-*strictモードを選んだ場合はこのステップをスキップしてください。*
+*strictモードを選んだ場合はこのステップをスキップしてください。*まず`severity_profile:`を確定させてください: 後から変更するとどのルールが発火するかが変わり、ベースラインとのズレが生じます。
 
 ```sh
 rigor baseline generate

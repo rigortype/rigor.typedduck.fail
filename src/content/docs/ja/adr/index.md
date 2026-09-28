@@ -3,9 +3,9 @@ title: "アーキテクチャ決定記録"
 description: "rigortype/rigor docs/adr/README.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/README.md"
 sourcePath: "docs/adr/README.md"
-sourceSha: "3e1e8e92f31cf896d46d92d4d9dfe57886d5fba0dfd09368a0c3d9aee2f249b1"
-sourceCommit: "42d6e031257466de187cc9640b4896300473f9bb"
-sourceDate: "2026-09-26T08:54:31+09:00"
+sourceSha: "1f3959792dbf9845b97748a0b5e18ae7365ef3522131b39aedf64c92cc245521"
+sourceCommit: "e12ab45fa55707ed2acc0eae2e273b99a72dc077"
+sourceDate: "2026-09-28T02:35:44+09:00"
 translationStatus: "translated"
 sidebar:
   order: 4000
@@ -114,7 +114,7 @@ sidebar:
 | ADR-86 | [残余のホットパスに対する部分的ネイティブ拡張（却下;rigor-rsがネイティブ速度を所有する）](86-partial-native-extensions/) | Accepted（ネイティブ拡張の恒久的な却下；rigor-rsがネイティブ速度を所有；WD4候補を段階化；残余プロファイル帰属はADR-87によって部分的に置き換え） |
 | ADR-87 | [ヌルビルドフロア: stat-then-digest検証、ゼロ変更のスナップショットスキップ、ヒットパスのブートスリム化](87-null-build-floor/) | Accepted（WD1〜WD5を実装、PR #85；ADR-54の却下されたmtime高速パスを優越；ADR-86の残余プロファイル帰属を部分的に置き換え） |
 | ADR-88 | [インクリメンタルなプラグインファクトの健全性](88-incremental-plugin-fact-soundness/) | Accepted（WD1〜WD4を実装、PR #89；WD5は見送り） |
-| ADR-89 | [セマンティックな伝播ゲート: 宣言シェイプと観測キーの戻り値サマリー](89-semantic-propagation-gates/) | Accepted（WD1の宣言シェイプゲート＋WD2の戻り値サマリーゲートを実装、PR #90；gitlab 341→1） |
+| ADR-89 | [セマンティックな伝播ゲート: 宣言シェイプと観測キーの戻り値サマリー](89-semantic-propagation-gates/) | Accepted（WD1の宣言シェイプゲート＋WD2の戻り値サマリーゲートを実装、PR #90；gitlab 341→1；WD1のコメント取り込みオフスイッチは2026-09-28にソースRBS出力ダイジェストに置き換え） |
 | ADR-90 | [解析対象プロジェクトのバンドルからのターゲットライブラリ解決](90-target-library-resolution-from-project-bundle/) | Accepted（2026-07-16に実装；WD1〜WD3が着地） |
 | ADR-91 | [Kernel組み込み畳み込みの所有権ゲート＋綴りパリティ不変条件](91-kernel-intrinsic-fold-ownership-gate/) | Accepted（2026-07-16に実装、WD1〜WD4；コーパスゲートはバイト同一） |
 | ADR-92 | [規範的ステータスの忠実性: 創設期の地層とdeclare-or-markゲート](92-normative-status-fidelity/) | Accepted（2026-07-16にWD1〜WD5、2026-07-25にWD6を実装；void判定はオプションbで解決） |
@@ -141,7 +141,7 @@ sidebar:
 | ADR-113 | [`rigor lens`: エージェントおよびツールのための、型の由来を持つ宣言マップ](113-rigor-lens/) | Accepted（未実装） |
 | ADR-114 | [コアおよびstdlib RBSへの継承ディスパッチ](114-core-stdlib-ancestor-dispatch/) | Accepted（#527スライス1が着地: インスタンス側のスーパークラス巡回；スライス2/3/5/6はスコープ外、ADR-43の却下された代替案Aを部分的に置き換え） |
 | ADR-115 | [piによるマルチモデルエージェントハーネス（自社ソフトウェア第一）](115-pi-multi-model-harness/) | Proposed（薄い`agents/pi-harness/`スタブ；WD6の並行パスは未実証） |
-| ADR-116 | [エンジンのホットファイルの再構築: 増加する種類は1回宣言し、各走査は1回巡回する](116-hot-file-restructuring/) | Accepted（v0.4.0カット後を予定；WD0〜WD7は未着手） |
+| ADR-116 | [エンジンのホットファイルの再構築: 増加する種類は1回宣言し、各走査は1回巡回する](116-hot-file-restructuring/) | Accepted（WD5進行中: 巡回時の`class_cvars`、スーパークラス、defネスト、メンバーレイアウトテーブル、後ろ3つは1回の実行を共有；WD5はコンテキストルール変種向けに修正） |
 | ADR-117 | [標準ストリーム: イディオムによって型付けされ、ランタイム契約によってチェックされる](117-standard-streams-typed-by-idiom/) | Accepted（#1405以降明示的な`$_`リーダー；オープン: #1362、#1366、#1367、#1415、#1423、#1426、#1427、#1429） |
 
 ## 新しいADRの追加

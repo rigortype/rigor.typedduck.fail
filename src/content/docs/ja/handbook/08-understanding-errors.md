@@ -3,8 +3,9 @@ title: "エラーの読み方"
 description: "rigortype/rigor docs/handbook/08-understanding-errors.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/08-understanding-errors.md"
 sourcePath: "docs/handbook/08-understanding-errors.md"
-sourceSha: "4c987f9f281eac9a69f39ca41470704cc6fdfbb0d123598e8851a09411889fe2"
-sourceCommit: "2d0ffe6f38d01cfd850527c57987b27487b414d4"
+sourceSha: "d80f55b4ba9129ae359725216481a508d437b28c654acd76157a196f2b980181"
+sourceCommit: "e12ab45fa55707ed2acc0eae2e273b99a72dc077"
+sourceDate: "2026-09-28T02:14:03+09:00"
 translationStatus: "translated"
 sidebar:
   order: 1008
@@ -57,7 +58,7 @@ lib/user.rb:42:7: error: undefined method `upcas' for "alice" [call.undefined-me
 
 Rigorは5つのレイヤーを与えます。正しいものを選ぶことは、ほとんどが*どれだけ*言いたいかの問題です:
 
-1. **`severity_profile:`**: プロジェクト全体の姿勢。Rigorをそっと導入していくレガシーコードベースには`lenient`、日常の作業には`balanced`、レガシーノイズのないプロジェクトには`strict`。
+1. **`severity_profile:`**: プロジェクト全体の姿勢。Rigorをそっと導入していくレガシーコードベースには`lenient`、新規プロジェクトを含む日常の作業には`balanced`、自身でシグネチャやRBSを通じて推論のギャップを解決する準備ができている場合にのみ`strict`。
 2. **`severity_overrides:`**: プロファイルの残りとは異なる深刻度にした1つのルール（または1つのファミリー）。あるルールがあなたにとって*有用だがブロックするほどではない*ときに適したレイヤーです。
 3. **`disable:`**: ルールをプロジェクト全体でオフにする。`off`へのオーバーライドより強力です;どちらも機能し、選択はほとんどスタイルの問題です。
 4. **`# rigor:disable` / `# rigor:disable-file`**: この行、またはこのファイル。解析器が*ここでは*間違っていて他のすべての場所では正しいときに適したレイヤーです。プロジェクト全体のスイッチよりこちらを選んでください: 例外を、それを必要としたコードのすぐ隣に見える形で保ち、後で`RBS::Extended`ディレクティブに格上げする対象になります。

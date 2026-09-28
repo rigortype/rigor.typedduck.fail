@@ -3,9 +3,9 @@ title: "リサーチ・サーベイノート"
 description: "rigortype/rigor docs/notes/README.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/README.md"
 sourcePath: "docs/notes/README.md"
-sourceSha: "9d60b72c5c18fbf960712e66d40f2efa193750d289e3b3bf3bf66cc9c8d07797"
-sourceCommit: "42d6e031257466de187cc9640b4896300473f9bb"
-sourceDate: "2026-09-26T07:15:26+09:00"
+sourceSha: "fc21e72e2f2c8b3371c2b39cbf9cd70245f09de5387ed30bee1a43020b509ae9"
+sourceCommit: "e12ab45fa55707ed2acc0eae2e273b99a72dc077"
+sourceDate: "2026-09-27T13:53:30+09:00"
 translationStatus: "translated"
 sidebar:
   order: 6000
@@ -140,6 +140,7 @@ sidebar:
 | 2026-07-30 | [参照型スタブのパス1 —— 静的検出はビルダーと一致し（コールドラン比−32.8%）、スタブ合成の実バグを2件検出](20260730-stub-pass1-static-detection-evaluation/) |
 | 2026-09-09 | [CIウォールタイム371秒 → 220秒 — シャードのばらつきは分割の問題ではなかった；1つのマトリクスアームに固定された作業、ワーカーごとの予算を超過した1ファイル、そしてspec分割が引き起こす3つの罠](20260909-ci-wall-time-shard-rebalance/) |
 | 2026-09-12 | [v0.3.9リリースゲートの`lib peak_rss_kb`帰属 —— +10.5%は保持ではなく一時的なピークであり、約95件のマージに分散している](20260912-v039-rss-attribution/) |
+| 2026-09-27 | [フリーズされたコーパス上のマージごとのv0.3.9 → v0.4.0エンジンアロケーション — +19.1%は主に機能ボリューム; 3分の1は4つの偶発的なホットパスコスト](20260927-v040-engine-allocation-attribution/) |
 
 ## プロセス・メタ
 

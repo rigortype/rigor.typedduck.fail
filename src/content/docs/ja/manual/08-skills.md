@@ -3,9 +3,9 @@ title: "提供スキル"
 description: "rigortype/rigor docs/manual/08-skills.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/08-skills.md"
 sourcePath: "docs/manual/08-skills.md"
-sourceSha: "183583f64baa4b4b5f6dae9c63da13e8eeb625b12ca4d72a538eebd623e9ca00"
-sourceCommit: "04668e5f0d6205fdd5c8f44662041add7ab33ca3"
-sourceDate: "2026-09-08T18:33:48+09:00"
+sourceSha: "9d01cefeaa2a2887beaef60807f49ba3901fe9c78a9d04fde62a97c75b8f9e7f"
+sourceCommit: "e12ab45fa55707ed2acc0eae2e273b99a72dc077"
+sourceDate: "2026-09-28T02:14:03+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9008
@@ -31,7 +31,7 @@ Rigorは一連の**エージェントスキル**をバンドルしています�
 
 ### オンボーディングと基盤
 
-- **`rigor-project-init`**: コールドスタートからプロジェクトをオンボードします。スタック（Rails、RSpec、dry-rb、…）を検出し、対応する[プラグイン](../07-plugins/)を提案し、採用モード（既存コードベース向けの[ベースライン](../06-baseline/)（baseline）スナップショットまたはクリーンなコードベース向けのゼロ診断ゲート）を選択し、`.rigor.dist.yml`を書き出して最初のベースラインを生成します。初めてRigorをセットアップするときに使ってください。
+- **`rigor-project-init`**: コールドスタートからプロジェクトをオンボードします。スタック（Rails、RSpec、dry-rb、…）を検出し、対応する[プラグイン](../07-plugins/)を提案し、採用モード（新規プロジェクトを含めデフォルトである[ベースライン](../06-baseline/)（baseline）スナップショット、または型理論とRBSに堪能なユーザー向けのオプトインであるゼロ診断ゲート）を選択し、`.rigor.dist.yml`を書き出して最初のベースラインを生成します。初めてRigorをセットアップするときに使ってください。
 - **`rigor-rbs-setup`**: gem向けのコミュニティRBSをインストール（`rbs collection install`）して、RBSのない依存関係が`Dynamic`として型付けされるのをやめさせます。Rigorは生成された`rbs_collection.lock.yaml`を自動検出します。
 - **`rigor-plugin-tune`**: `Gemfile.lock`をバンドルされたプラグインカタログに再マッチングし、現在のスタック向けにプラグインを有効化します（`rigor plugins --strict`で検証）。gemを追加した後や、Railsプラグインがまだ有効化されていないRailsアプリで使ってください。
 
