@@ -3,9 +3,9 @@ title: "ADR-39 — プラグインはターゲットライブラリの安全な�
 description: "rigortype/rigor docs/adr/39-plugin-target-library-invocation.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/39-plugin-target-library-invocation.md"
 sourcePath: "docs/adr/39-plugin-target-library-invocation.md"
-sourceSha: "8ccf8a127fe2ec11337dbc77ade8480f31c755b61c230add070474dc32ee0643"
-sourceCommit: "db7b23d42e9b47560438b67dfe16d53e03f70575"
-sourceDate: "2026-09-10T10:20:33+09:00"
+sourceSha: "1f39d4e1bcec97e49f74ff819385b2e8b830e4370022d24995106056d4dc886c"
+sourceCommit: "e12ab45fa55707ed2acc0eae2e273b99a72dc077"
+sourceDate: "2026-09-25T00:57:03+09:00"
 translationStatus: "translated"
 sidebar:
   order: 4039
@@ -92,7 +92,7 @@ PHPStan拡張は解析対象アプリケーションと同じプロセスにロ�
 | --- | --- | --- | --- | --- |
 | `process`（fork）——**デフォルト** | **完全**（別のOSプロセス） | **あり**（子のクラッシュは封じ込められる;親は辞退する） | 1 fork + IPC | **単一の永続ワーカー**をfork（呼び出しごとではない）し、それがライブラリをロード + 呼び出し、データ（Marshal）をパイプ経由で返す。Rigorのforkモデル（ADR-15）を再利用。`fork`が利用できない場所では`none`にフォールバック。 |
 | `none`（直接） | なし（メイン空間にロード） | なし | 最小 | 分離なし;信頼された純粋なライブラリがメイン空間にロードされる。forkのないプラットフォームのフォールバック、および明示的なオプトアウト。 |
-| `ruby_box` | モンキーパッチ + バージョン（ボックスごと） | **なし**（ネイティブクラッシュは依然としてプロセスを落とす） | 低（インプロセス） | Ruby 4.0の`Ruby::Box`、`RUBY_BOX=1`（再exec）。実験的;上流のVM segfault（下記）でブロック中。 |
+| `ruby_box` | モンキーパッチ + バージョン（ボックスごと） | **なし**（ネイティブクラッシュは依然としてプロセスを落とす） | 低（インプロセス） | Ruby 4.0の`Ruby::Box`、`RUBY_BOX=1`（再exec）。実験的;上流のVM修正（下記）を載せたRubyが必要 —— ランチャーがそれをプローブし、なければフォールバックする。 |
 
 重要な対比: `ruby_box`は*正しさ*の汚染を分離するが、ボックス化された処理内のネイティブクラッシュは依然としてプロセス全体を落とす（観測済み——下記参照）;`process`は**真のクラッシュ封じ込め**を与える。なぜなら処理は、親がその`SIGSEGV`を生き延びて辞退に変える子の中で実行されるからです。したがって`process`が**デフォルト**です: 今日機能する最も堅牢な分離であり、永続ワーカー上での1 fork + 呼び出しごとのIPCというコストを伴います（ワーカーは一度forkされて再利用される——決して呼び出しごとに1 forkではありません）。`fork`が利用できない場所（Windows / JRuby）では`process`は`none`にフォールバックするので、静かに劣化するのではなく語形変化が依然として機能します——ライブラリは信頼された純粋なものなので、forkベースの分離が得られないときはメイン空間のフォールバックが許容されます。
 
@@ -114,8 +114,10 @@ Flake Ruby（4.0.5）で検証済み: `Ruby::Box.new` + `box.require` + `box.eva
 - 些細な`rigor check`は`RUBY_BOX=1`のもとで問題なく動作する。
 - しかし**フルの実世界解析はsegfaultしうる**: `RUBY_BOX=1`のもとでのRedmine `app`に対する`rigor check`がクラッシュした（`SIGSEGV`）。一見、そのプロジェクト自身の不正な形式の`sig/`（`RBS::DuplicatedDeclarationError`）のエラーパスで——非ボックス実行はこれを適切に処理する。クラッシュはVMのメソッドルックアップパス（`prepare_callable_method_entry`）でのNULL参照であり、ユーザーのサブボックスなし（プロセス全体の`RUBY_BOX=1`のみ）で再現する——これはRigorの`Plugin::Box`によって**引き起こされるものではありません**。Rubyのバグ報告ドラフトが[`docs/notes/20260602-ruby-box-segfault-bug-report.md`](../../notes/20260602-ruby-box-segfault-bug-report/)にあります。
 - **2026-08-24: segfaultの根本原因が特定され、（ローカルで）パッチ済み**。原因はクラス／モジュール本体のprocに対する`Ractor.make_shareable`: `env_copy`がTOP/CLASS envのSPECVALスロットに格納されたボックスを上書きしてしまうため、分離されたprocの内部での最初のメソッド呼び出しがNULLボックスを参照する——Rigorは`Plugin::Box`経由ではなく、Ractor共有可能なモジュールスコープのラムダを通じてこれを踏んだ。1行のVM修正 + 回帰テストをCRuby masterに対して検証済み（上記の更新されたノートを参照;パッチはローカルのCRubyチェックアウトの`fix/box`ブランチにあり、上流へ提出中）。パッチ済みのRubyでは、フルのRedmine `app`実行が`RUBY_BOX=1`のもとで完了し、さらに——PR #469の2つのRigor側修正（`::ScriptError`に安全な辞退と、`Ruby::Box#require`が生の`$LOAD_PATH`しか参照しないことによるボックス内`Kernel#require`へのgem解決フォールバック）を併せると——`ruby_box`戦略はRedmine `app/models`上で`none` / `process`と同一の診断を、ボックスが語形変化に応答しながら生成する。
+- **2026-09: 上流で修正済み、未リリース**。パッチはCRuby masterに[Bug #22260](https://bugs.ruby-lang.org/issues/22260)（`a4ad8e461a`、2026-09-10）として着地した。4.0.7（2026-09-15）には含まれず、`ruby_4_0`ブランチにも存在しない —— チケットに4.0バックポート要求がないため —— したがってリリース済みのすべてのRubyは依然としてクラッシュし、4.0.xバックポートが先に来ない限り、これを載せる最初のリリースは4.1.0となる。
+- **ランチャーは再execを修正の有無でゲートするようになった**。`RUBY_BOX=1`のもとで再execする前に、`exe/rigor`は子Rubyでバグの最小再現コードを実行する（`Rigor::Plugin::BoxProbe`）。クラッシュするか`Ruby::Box`を持たないRubyは1行の警告を受け取り、実行はsegfaultする代わりに設定された戦略（デフォルトでは`process`）のもとで継続する。このチェックはバージョン境界ではなく振る舞いによるものであるため、修正済みの4.1.0devビルドや将来の任意の4.0.xバックポートはコード変更なしに受け入れられる。
 
-したがって**`process`（fork）がデフォルト**です——今日機能する本番対応の分離: フルのRedmine `app`実行（バイト単位同一の診断、segfaultなし）と環境変数を設定しない全スペックスイートで検証済みです。なぜならforkの境界が、`ruby_box`を壊すクラッシュをまさに封じ込めるからです。`fork`が利用できない場所では`none`にフォールバックします。`ruby_box`は**着地済みだが実験的としてゲート**されています（選択可能だが、上記の上流`Ruby::Box` VMバグでブロック中——2026-08-24にローカルで根本原因を特定しパッチ済みで、修正を載せた上流リリース待ち）;修正済みのRubyがリリースされれば魅力的になります（より軽量、インプロセス、+ 正確なバージョンの共存）。`none`は明示的なオプトアウト + forkのないフォールバックです。
+したがって**`process`（fork）がデフォルト**です——今日機能する本番対応の分離: フルのRedmine `app`実行（バイト単位同一の診断、segfaultなし）と環境変数を設定しない全スペックスイートで検証済みです。なぜならforkの境界が、`ruby_box`を壊すクラッシュをまさに封じ込めるからです。`fork`が利用できない場所では`none`にフォールバックします。`ruby_box`は**着地済みだが実験的としてゲート**されています（選択可能; Bug #22260修正を載せたRubyで使用可能であり、載せていない環境ではランチャーのプローブによって警告付きで拒否される —— CRuby masterで修正済み、リリース待ち）;修正済みのRubyがリリースされれば魅力的になります（より軽量、インプロセス、+ 正確なバージョンの共存）。`none`は明示的なオプトアウト + forkのないフォールバックです。
 
 ### エンジンサポート
 
@@ -132,7 +134,7 @@ Flake Ruby（4.0.5）で検証済み: `Ruby::Box.new` + `box.require` + `box.eva
 
 5. **選択可能な分離戦略**（§「ターゲットライブラリ呼び出しの分離」を参照）。`Plugin::Isolation`は、`.rigor.yml`の`plugins_isolation:`キーまたは`RIGOR_PLUGIN_ISOLATION`環境変数（環境変数が優先——1回の呼び出し限りのオペレーターオーバーライド）によって、共通の`call(feature:, receiver:, method:, args:)`インターフェースの背後で3つのバックエンドの1つを選びます。デフォルトは`process`（`fork`が利用できない場所では`none`にフォールバック）。**3つすべて着地:**
    - `none` — メイン空間での`require` + `public_send`（デフォルトパス）。
-   - `ruby_box` — `Plugin::Box`の内部で呼び出す（選択されると`exe/rigor`が`RUBY_BOX=1`のもとで再execする）。モンキーパッチ + バージョンを分離する;最大忠実度の「正確なgemバージョン」パスも解放する。実験的で、フル解析でsegfaultしうる（下記）——そのため使用可能だがゲートされている。
+   - `ruby_box` — `Plugin::Box`の内部で呼び出す（選択されると`exe/rigor`が`RUBY_BOX=1`のもとで再execする）。モンキーパッチ + バージョンを分離する;最大忠実度の「正確なgemバージョン」パスも解放する。実験的; Bug #22260修正のないRubyはフル解析でsegfaultする（下記）ため、ランチャーは修正をプローブし、なければフォールバックする。
    - `process` — ライブラリをロード + 呼び出し、データをMarshalパイプ経由で返す**永続ワーカー**をforkする;ワーカーのクラッシュ（`SIGSEGV`さえも）は封じ込められる（親はEOF / `EPIPE`を受け取り、辞退し、次の呼び出しで再生成する）。Rigorのforkモデル（ADR-15）を再利用する。**検証済み:** `RIGOR_PLUGIN_ISOLATION=process`のもとでのRedmine `app`に対するフルの`rigor check`は、非分離実行と**バイト単位同一**のrails-routes診断で、**segfaultなし**に完了まで実行される——ボックスパスのクラッシュへの堅牢な答え。
 
    `Plugin::Inflector`は`Isolation`を経由してルーティングします。デフォルト（`process`、`fork`なしでは`none`にフォールバック）はインプロセスパスと同一の診断を生成します;`none`は、最小コストのインプロセス呼び出しを好むプロジェクトのための明示的なオプトアウトです。
