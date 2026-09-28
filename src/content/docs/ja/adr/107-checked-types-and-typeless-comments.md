@@ -3,9 +3,9 @@ title: "ADR-107 — Rigor自身のツリーにおけるチェック対象の型�
 description: "rigortype/rigor docs/adr/107-checked-types-and-typeless-comments.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/107-checked-types-and-typeless-comments.md"
 sourcePath: "docs/adr/107-checked-types-and-typeless-comments.md"
-sourceSha: "db622804d9a159a7f905a31bac3d89e3a52ea159e43dfe7bfddf7e2d78f0ca71"
-sourceCommit: "74970d1ece5a858d82c9b2c8f1a5deb57831f984"
-sourceDate: "2026-09-22T01:18:15+09:00"
+sourceSha: "e5bb43d74d5f281d2ad539aa318c9594d2bf890645994a7590f18abfbbbba8a7"
+sourceCommit: "e12ab45fa55707ed2acc0eae2e273b99a72dc077"
+sourceDate: "2026-09-26T07:41:54+09:00"
 translationStatus: "translated"
 sidebar:
   order: 4107
@@ -104,7 +104,7 @@ rigor check --no-cache --no-ci-detect --format=json --treat-all-as-inline-rbs li
 | **実装** | 真実 | — |
 | **推論** | 第1の型情報源。何も書き留められず、オンデマンドで計算される | 上方にしか動かない精度ゲート`rigor coverage --threshold 0.58 lib` |
 | **`sig/`** | 契約: [ADR-2](../2-extension-api/)の公開API境界、および著述された意図 | `make check`、`spec/rigor/public_api_drift_spec.rb`、`make steep-check` |
-| **インラインアノテーション**（`#:`, `# @rbs`） | チェックされるドキュメント: `void` / `bot`の意図、名前から推測できない戻り値、名前的クラス以上のことを語る型、パラメータの契約 | 製品デフォルトがそれらを取り込み（[ADR-93](../93-default-rbs-inline-ingestion/)）、`make check`がそれらをチェックする；`sig/`が同じメンバーを宣言している場合、`sig/`が勝ち、`:info`がその旨を通知する（[ADR-32](../32-rbs-inline-comment-ingestion/) WD13） |
+| **インラインアノテーション**（`#:`, `# @rbs`） | チェックされるドキュメント: `void` / `bot`の意図、名前から推測できない戻り値、名前的クラス以上のことを語る型、パラメータの契約 | 製品デフォルトがそれらを取り込み（[ADR-93](../93-default-rbs-inline-ingestion/)）、`make check`がそれらをチェックする；`sig/`が同じメンバーを宣言している場合、`sig/`が勝ち、`:info`がその旨を通知する（[ADR-32](../32-rbs-inline-comment-ingestion/) WD13；[ADR-112](../112-extrbs-comment-channel/) WD5によって置き換え、後述のステータスノートを参照） |
 | **コメント** | 散文のみ — 決して型ではない | `spec/docs/type_shaped_comments_spec.rb` |
 
 `sig/`には[ADR-5](../5-robustness-principle/)の非対称性から導かれる内部的な来歴ルールが存在します:
@@ -153,7 +153,9 @@ def resolve_receiver(node, scope)
 
 ### インラインアノテーションはチェックされるドキュメントである
 
-インラインの`#:` / `# @rbs`アノテーションは型の情報源です: 製品デフォルトがそれを取り込み（[ADR-93](../93-default-rbs-inline-ingestion/)）、`make check`がチェックし、`sig/`が同じメンバーを宣言している場合は両方のファイル名を挙げる`:info`とともに`sig/`が勝ちます（[ADR-32](../32-rbs-inline-comment-ingestion/) WD13）。したがって、本ADRが禁止する第4の状態に入ることは決してありません。アノテーションを書くべきかどうかを決定する基準は、コメントルールが適用するものと同じテストです: 名前や周囲のコードが語っていない何かを語っているか？
+インラインの`#:` / `# @rbs`アノテーションは型の情報源です: 製品デフォルトがそれを取り込み（[ADR-93](../93-default-rbs-inline-ingestion/)）、`make check`がチェックし、`sig/`が同じメンバーを宣言している場合は両方のファイル名を挙げる`:info`とともに`sig/`が勝ちます（[ADR-32](../32-rbs-inline-comment-ingestion/) WD13）。したがって、本ADRが禁止する第4の状態に入ることは決してありません。
+
+> **ステータスノート（2026-09-26）**。ADR-32 WD13の優先順位は[ADR-112](../112-extrbs-comment-channel/) WD5（[#1075](https://github.com/rigortype/rigor/issues/1075)）によって置き換えられました: 2つの宣言が比較され、一貫性のある2つの宣言のうちより精密なほうがバインドし、証明された矛盾は`rbs.contradicting-signature`エラーとなります。アノテーションは依然としてチェックされるため、上記の結論は維持されます。アノテーションを書くべきかどうかを決定する基準は、コメントルールが適用するものと同じテストです: 名前や周囲のコードが語っていない何かを語っているか？
 
 - 書く価値があるもの: `void` / `bot`の意図（仕様自身のスタイルガイダンスは`#: void`を強く推奨しており、いかなるシンセサイザーも生成できない唯一の戻り値です）；メソッド名が示唆しない戻り値；名前的クラス以上のことを語る型 — `Symbol`ではなく`:asc | :desc`、`Hash`ではなくレコードの形状；パラメータの契約。
 - ノイズ: 推論がすでに示している名前的クラスをすべてのメソッドに列挙すること（`#: String`、`#: Array`）。これは名前を言い直すコメントの型レベルの双子であり、本ADRの初版が全面禁止に手を伸ばした理由です。禁止は間違った手段でした — 仕様が推奨する`#: void`までも削除してしまったからです — したがって基準は品質であり、コメントの品質が判断されるのと同じ方法で判断され、機械的なゲートは`make check`です。

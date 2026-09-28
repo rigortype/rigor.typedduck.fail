@@ -3,8 +3,9 @@ title: "ADR-54 — キャッシュのスリム化: definitions-blobの廃止、�
 description: "rigortype/rigor docs/adr/54-cache-slimming.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/54-cache-slimming.md"
 sourcePath: "docs/adr/54-cache-slimming.md"
-sourceSha: "d94d375dedcdc13bfd6c739afd7417c96b86b92cd968c04cac4bce59350cbc05"
-sourceCommit: "db7b23d42e9b47560438b67dfe16d53e03f70575"
+sourceSha: "269a5ef3e01c622229a4d9e20e01400d2b89faa8a2499ee2abef5372ec625b77"
+sourceCommit: "e12ab45fa55707ed2acc0eae2e273b99a72dc077"
+sourceDate: "2026-09-28T01:53:10+09:00"
 translationStatus: "translated"
 sidebar:
   order: 4054
@@ -95,6 +96,8 @@ inflateは、それが隣り合う約700 msの`Marshal.load`に対して合計�
 インクリメンタルスナップショット — `Store`を迂回する唯一のキャッシュ成果物 — は同じ
 deflate処理を受ける（その`SCHEMA`を4 → 5へbump。生の5未満のblobはinflateに失敗し
 nilとしてロードされる、いつものコールド実行パス）。
+
+*追記（2026-09-28、#1507）:*キャッシュルート配下のすべてが、zlibのデフォルトレベルではなく`Zlib::BEST_SPEED`（`Store::DEFLATE_LEVEL`）でdeflate圧縮されるようになった: エントリーペイロード、インクリメンタルスナップショット、および`rigor unused`のスキャンバンドルである。スナップショットは何かを解析するすべての`--incremental`実行で丸ごと書き直されるため、そのdeflate処理はエディットパス上に位置していた。Mastodon（スナップショットは生で9.5 MB、`rbs.environment`ペイロードは生で22.8 MB）において、deflateはスナップショットで122 ms → 38 ms、環境で131 ms → 49 msへと短縮される。代償は約4分の1大きなキャッシュ（7.8 → 9.8 MBのペイロード）とわずかに遅いinflate（環境で26 → 29 ms、スナップショットで15.5 → 16.2 ms）であるが、インクリメンタルなエディット実行は約70 ms有利なままとなる。inflateはいかなるレベルも読み取れるため、フォーマットバージョンは変更されない。
 
 **WD3 — デフォルトのエビクションキャップ**。`cache.max_bytes`はnilをデフォルトとし
 （`configuration.rb:78`）、`Store#evict!`（すでに`cli.rb:107`で配線済み）を恒久的な

@@ -3,9 +3,9 @@ title: "ADR-101 — 分岐の削除は楽観的にnilフリーとされたキャ
 description: "rigortype/rigor docs/adr/101-optimistic-carrier-branch-elision.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/101-optimistic-carrier-branch-elision.md"
 sourcePath: "docs/adr/101-optimistic-carrier-branch-elision.md"
-sourceSha: "044964f37526c4b749f6ea46d838d09f26f9fa122125d3faba501bfb0b288970"
-sourceCommit: "32fcfb01032273679a99853a37f53a6e842b3330"
-sourceDate: "2026-09-24T12:29:15+09:00"
+sourceSha: "6cdece5c03aa75704ea464c95967651a9ed2dcb6d17d887e5e8ff841da2618fe"
+sourceCommit: "e12ab45fa55707ed2acc0eae2e273b99a72dc077"
+sourceDate: "2026-09-26T07:27:46+09:00"
 translationStatus: "translated"
 sidebar:
   order: 4101
@@ -37,6 +37,8 @@ n.upcase                          # error: undefined method `upcase' for 1 —�
 ## 決定
 
 **確実性の判断が値のnilフリー性に依拠してよいのは、そのnilフリー性がその値の性質 —— そのクラス、その居住性、そのリテラル —— であるときだけであり、それが我々自身のモデリング上の選択の性質であるときは決して依拠してはならない**。エンジンが、結果が不在でありうるというシグネチャ自身の言明を意図的に読み飛ばしている場所では、そこで生まれる値がその選択を運んでおり、それを実行時の振る舞いについての主張へ変換しようとするあらゆる消費者は辞退しなければならない。
+
+> **[ADR-117](../117-standard-streams-typed-by-idiom/)（§ 関係、WD4）によって一部置き換え**。コアリーダーのtruthyエッジで絞り込まれた`$_`は、この削除を駆動してよい。その例外と再評価トリガーは同ADRに記録されている。
 
 これが基準であり、今日の単一のケースを越えて一般化する: Rigorが承知のうえで楽観的に型付けする将来のあらゆる箇所は、仕様が消費者をあらためて列挙しなくても同じ義務を継承する。またこれは逆方向の境界も述べている —— その値はディスパッチには完全に使えるままだ。「我々がそう選んだ」は*判断*についてのファクトであって、*型*の欠陥ではないからだ。
 

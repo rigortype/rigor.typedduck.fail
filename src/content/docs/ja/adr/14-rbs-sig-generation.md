@@ -3,9 +3,9 @@ title: "ADR-14 — 推論からのRBSシグネチャ生成と拡張"
 description: "rigortype/rigor docs/adr/14-rbs-sig-generation.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/14-rbs-sig-generation.md"
 sourcePath: "docs/adr/14-rbs-sig-generation.md"
-sourceSha: "2eb4ca6830dcfe31afad6d100d8e017d7a8c9634fb446d25a12069de712a358d"
-sourceCommit: "5fab9b52937efba652b9f6ecde1bb0a9954a9f77"
-sourceDate: "2026-09-17T11:39:23+09:00"
+sourceSha: "a50d6be5edb593000bbe56ebb76b45cad6d71d8799b5254d9934d27642f57b52"
+sourceCommit: "e12ab45fa55707ed2acc0eae2e273b99a72dc077"
+sourceDate: "2026-09-25T21:13:11+09:00"
 translationStatus: "translated"
 sidebar:
   order: 4014
@@ -55,7 +55,7 @@ ADR-14はその質問に答え、戻り値型の絞り込みAND欠落メソッ�
 新しいトップレベルCLIサブコマンド`rigor sig-gen`と、`lib/rigor/sig_gen/`下の小さな生成コアをランディング:
 
 1.  与えられた`PATH...`引数（設定からのデフォルト`lib/`）下のソースを、エンジンが`Inference::ScopeIndexer`を介してすでに発見する`def` / `define_method` / `attr_*`メソッド形状のために**検査する**。
-2.  パラメータ型*提案*が実際の呼び出しサイトから派生できるよう、2番目のパスセット（存在する場合のデフォルト`spec/`、それ以外は空）から**呼び出し元の観察をオプションで収集する**。
+2.  パラメータ型*提案*が実際の呼び出しサイトから派生できるよう、2番目のパスセット（デフォルト: `test_paths:`テストルート、#1388）から**呼び出し元の観察をオプションで収集する**。
 3.  プロジェクト環境（`Rigor::Environment.for_project`）を介してロードされた**既存のRBSと比較する**。各候補メソッドを4つの状態のいずれかに分類:
     - **`new-file`** — レシーバークラスを宣言するRBSファイルが一切ない。
     - **`new-method`** — RBSファイルがクラスを宣言しているが、このメソッドは宣言していない。
@@ -93,8 +93,9 @@ Robustness controls:
                     Default: untyped. See § "Robustness
                     principle compliance".
   --observe=PATH... Directories to scan for call-site
-                    observations. Defaults to spec/ when
-                    present. Multiple paths allowed.
+                    observations. Defaults to the configured
+                    test_paths: (unset: spec/ and test/ when
+                    present; #1388). Multiple paths allowed.
   --overwrite       Allow tighter-return updates to replace
                     user-authored RBS declarations. Off by
                     default; tighter-return mode emits to
@@ -144,7 +145,7 @@ ADR-5が制御する原則です。ADR-14は各ADR-5節を具体的な生成器�
 生成器はユーザーが明示的に許可した以上にパラメータ型を自動的に絞り込んではなりません（MUST NOT）。`--params`ポリシーがこれを制御します:
 
 - **`untyped`（デフォルト）** — 発行されるすべてのパラメータは`untyped`として綴られる。これは節2の最も厳格な解釈: 推論由来のパラメータ契約は将来の呼び出し元に課されない。ユーザーは完全な著作権を保持。
-- **`observed`** — 生成器は`--observe=PATH...`（デフォルト`spec/`）下のすべての呼び出しサイトから引数型を収集し、パラメータ位置ごとにユニオン（union、合併型とも）し、RBSに消去し、ユニオンを発行する。これはまだADR-5節2準拠: 観察された和集合は、既存の呼び出し元が十分性を証明する寛容な契約に*正確に*等しい。
+- **`observed`** — 生成器は`--observe=PATH...`（デフォルト: プロジェクトの`test_paths:`テストルート。#1388でハードコードされた`spec/`から置き換えられた）下のすべての呼び出しサイトから引数型を収集し、パラメータ位置ごとにユニオン（union、合併型とも）し、RBSに消去し、ユニオンを発行する。これはまだADR-5節2準拠: 観察された和集合は、既存の呼び出し元が十分性を証明する寛容な契約に*正確に*等しい。
 - **`observed-strict`** — `observed`と同じだが、その上に生成器は既知のケイパビリティ（capability）ロール（例えば、観察された`String`パラメータで、すべての呼び出し元が`.to_s`しか消費しない場合は`_ToStr`に広がる）にもさらに広げる。これは節2の最大限の設定;ケイパビリティロールカタログ（v0.1.xはまだ出荷していない — §「未解決の問題」を参照）を必要とする。フラグは予約されているがそのカタログが存在するまで不活性。
 
 3つのモードすべてで、*既存の*RBSがパラメータ契約を宣言するメソッドは拘束力があるものとして扱われます: 生成器はそれを広げてはならず（MUST NOT）、`--overwrite`なしに狭めてはなりません（MUST NOT）。これはADR-5の「すでに存在するRBSの著作権は尊重される」境界を保ちます。

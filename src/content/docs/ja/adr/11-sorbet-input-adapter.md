@@ -3,8 +3,9 @@ title: "ADR-11 — プラグインアダプタとしてのSorbet入力"
 description: "rigortype/rigor docs/adr/11-sorbet-input-adapter.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/11-sorbet-input-adapter.md"
 sourcePath: "docs/adr/11-sorbet-input-adapter.md"
-sourceSha: "c98d19cb89fba68a402d608eed0672e75f53b99874694b084104383fa3bf5360"
-sourceCommit: "a5d648b126d5ed7b1e04a16a87927bca7883e069"
+sourceSha: "1ae4aea692734e2d8c1993549ca517d383296ffa929d66f6b922789af53b2bec"
+sourceCommit: "e12ab45fa55707ed2acc0eae2e273b99a72dc077"
+sourceDate: "2026-09-26T06:06:29+09:00"
 translationStatus: "translated"
 sidebar:
   order: 4011
@@ -240,6 +241,8 @@ ADR-0は「RubyアプリケーションコードはRigor固有のアノテーシ
 ### WD3 — なぜRBS-vs-Sorbetのコンフリクト解決はRBS優先なのか？
 
 ADR-1がRBSを標準的な契約として確定している。同じメソッドをRBSのsigとSorbetのsigの両方が記述する場合、既存の階層順序に従ってRBSが優先される。SorbetのsigをオーバーライドしたいユーザーはRBSを削除すべきであり、その逆ではない。逆方向（Sorbet優先）ではサードパーティDSLアノテーションがオーサードRBSをオーバーライドできてしまい、信頼モデルが逆転する。
+
+> **[ADR-2](2-extension-api.md) §「2026-09-26修正 —— `dynamic_return`の回答はRBSの戻り値よりも優先される」（[#700](https://github.com/rigortype/rigor/issues/700)）により部分的に置き換え**。本WDが依拠していた階層順序によってRBSが勝つことは実際にはなかった: プラグインの`dynamic_return`階層はRBSディスパッチよりも先に実行されるため、プラグインが出荷されて以来、翻訳されたSorbetの`sig`は同一メソッドに対するRBSシグネチャよりも優先して呼び出し箇所を型付けしてきた。ADR-2は現在、決定としてプラグインの回答がRBSの戻り値を置き換えることを記録している。RBSは依然として`def`本体を拘束し、宣言された戻り値に対してチェックされる。`rigor-sorbet`がRBSの宣言するメソッドを辞退すべきかどうかはプラグイン側の選択であり、本修正はその選択を行わない。
 
 ### WD4 — なぜサポートされていない構造に独立した`dynamic.sorbet.*`ファミリーを設けるのか？
 

@@ -3,17 +3,19 @@ title: "ADR-81 — スキルセット最適化: スキルごとの鮮度 + `waza
 description: "rigortype/rigor docs/adr/81-skill-set-optimization.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/81-skill-set-optimization.md"
 sourcePath: "docs/adr/81-skill-set-optimization.md"
-sourceSha: "32813108a303fd65f867141f7f6abfa97c1ca031b2f5b7469d1a2acf47f2c419"
-sourceCommit: "5fab9b52937efba652b9f6ecde1bb0a9954a9f77"
-sourceDate: "2026-09-16T12:20:16+09:00"
+sourceSha: "3f0a56390ec15576ab2d6126c30f383778bd2f0322c11d48418cec1391360185"
+sourceCommit: "e12ab45fa55707ed2acc0eae2e273b99a72dc077"
+sourceDate: "2026-09-28T02:29:29+09:00"
 translationStatus: "translated"
 sidebar:
   order: 4081
 ---
 
-ステータス: **Accepted — 2026-07-05実装; 2026-09-16ルーティングdescription監査**。ユーザー向けの`skills/`セットをどう最適化・維持するかについての2つの恒久的な決定: (1) ADR-73 WD1の鮮度基準を、エントリポイントから*すべての*スキル本体へ一般化する。これは「まず: バージョン最新のコピーを読み込む」ディレクティブ + 新設の`rigor skill --full <name>`で実現される;(2) `waza`（バンドルされたスキル評価器）のどの助言に基づいて行動するかについてのポリシー。（1）のメカニズムの詳細は同日付の[ADR-73](../73-skill-driven-user-experience/)の改訂にある;本ADRは再利用可能な*基準*と評価スタンスを記録する。
+ステータス: **Accepted — 2026-07-05実装; 2026-09-16ルーティングdescription監査; 2026-09-28 `waza`レビューゲート**。ユーザー向けの`skills/`セットをどう最適化・維持するかについての2つの恒久的な決定: (1) ADR-73 WD1の鮮度基準を、エントリポイントから*すべての*スキル本体へ一般化する。これは「まず: バージョン最新のコピーを読み込む」ディレクティブ + 新設の`rigor skill --full <name>`で実現される;(2) `waza`（バンドルされたスキル評価器）のどの助言に基づいて行動するかについてのポリシー。（1）のメカニズムの詳細は同日付の[ADR-73](../73-skill-driven-user-experience/)の改訂にある;本ADRは再利用可能な*基準*と評価スタンスを記録する。
 
 **改訂（2026-09-16）—— 簡潔なルーティングdescription**。OpenAIのGPT-6 Astraガイダンスに促されたレビューにより、バンドルされた貢献者向けおよびユーザー向けの全30個のスキルdescriptionが監査された。各descriptionは、所有するアクション、具体的なトリガー、および自明でないルーティング境界のみを述べるようになった;実装の詳細と具体例のリストは本体またはreferencesに残される。これは、WD4が拒否する一律の60語以下ルールを導入することなく、現行のセット全体にWD4のスキルごとの判断を適用するものである。
+
+**改訂（2026-09-28）—— 出荷ゲートとしての`waza`レビュー**。スキルの変更は、敵対的エージェントレビューと並んで`waza`レビューを経て初めて出荷されるようになった（[`docs/agents/skill-authoring.md`](../../agents/skill-authoring/) §「`waza`レビュー」）。WD3のフィルターはLLMジャッジにも拡張される: `waza check`の「仕様準拠（Spec Compliance）」および「リンク（Links）」セクションのみが欠陥として拘束力を持つ（そのトークン予算と複雑さの行はWD3に従って却下されたままである）；`waza quality`の助言は公開プロファイルから独立している場合にのみ採用され、単独で重大（severe）となることはなく、`references/`に保持される詳細に対する低い網羅性スコアは本ADRが推奨する漸進的開示（progressive disclosure）であり、欠陥ではない。`rigor-project-init`のstrictモード推奨の修正時（#1539）にメンテナの要請により採用された。
 
 根拠: [ADR-73](../73-skill-driven-user-experience/)の2026-07-05改訂;`CLAUDE.md` § "Evaluating skills with `waza`";[ADR-74](../74-offline-doc-access-and-llms-txt/)（`rigor docs`）;[ADR-50](../50-release-engineering-and-stability-strategy/) WD1（v1.0の語彙フリーズ）。
 

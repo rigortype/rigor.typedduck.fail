@@ -3,15 +3,15 @@ title: "ADR-32 — オプトインプラグインとしてのインラインRBS�
 description: "rigortype/rigor docs/adr/32-rbs-inline-comment-ingestion.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/32-rbs-inline-comment-ingestion.md"
 sourcePath: "docs/adr/32-rbs-inline-comment-ingestion.md"
-sourceSha: "eeeff00647a72779518711ea3333a77a60e25e724d253d023a0686056ae6b1ed"
-sourceCommit: "0f252e3218936e8dc7004b574c709a434b996d2a"
-sourceDate: "2026-09-19T03:42:27+09:00"
+sourceSha: "e72404f7ffe0ed963ac4a1aae36966c39112b641e35902d69fc7f5f52b2d4eb2"
+sourceCommit: "e12ab45fa55707ed2acc0eae2e273b99a72dc077"
+sourceDate: "2026-09-26T07:15:26+09:00"
 translationStatus: "translated"
 sidebar:
   order: 4032
 ---
 
-ステータス: **Accepted、2026-05-25; v0.1.10で実装; 2026-09-08にWD13（インライン対`sig/`の優先順位）で修正**。
+ステータス: **Accepted、2026-05-25; v0.1.10で実装; 2026-09-08にWD13（インライン対`sig/`の優先順位）で修正; WD13のメンバーごとの優先順位は2026-09-26にADR-112 WD5により置き換え**。
 
 バンドルされた`rigor-rbs-inline`プラグイン、`source_rbs_synthesizer:`マニフェストフィールド、env構築時の合成フック、マジックコメントゲーティング、`require_magic_comment:`設定ノブ、ファイル単位のキャッシュ / フェイルソフト処理がすべて出荷された;`--treat-all-as-inline-rbs` CLIフラグも同じリリースでランディングした。上流の[rbs-inline](https://github.com/soutaro/rbs-inline)コメント語彙（`# @rbs name: T`、`#: () -> T`、`# @rbs return: T`、属性`#:`など）を消費するという決定を記録する。上流ライブラリをenv構築時に実行し合成RBSを解析環境に貢献する`rigor-rbs-inline`プラグインを出荷することで実現する。Rigorのコアはゼロランタイム依存のまま（ADR-0）;rbs-inline gemはコアの責任ではなくプラグインの責任になる。
 
@@ -185,7 +185,7 @@ rbs 4.0は`rbs` gemに組み込まれた`RBS::InlineParser`を出荷し、rbs 4.
 
 ### WD13 — メンバーごとに`sig/`宣言がインライン宣言に勝つ
 
-> **[ADR-112](112-extrbs-comment-channel.md)（WD5）により部分的に置き換えられました**。同一メンバーのケースでは、もはや`sig/`が静かに勝つことはありません。整合的な宣言はより精密な側へとマージされ、矛盾はエラーとなります。以下のSteepの分析は引き続き有効です。
+> **2026-09-26に実装された[ADR-112](112-extrbs-comment-channel.md) WD5（[#1075](https://github.com/rigortype/rigor/issues/1075)）により置き換え**。1つのメンバーの2つの宣言は、順位付けされるのではなく比較される: 整合的な宣言はより精密な側へとマージされ、矛盾は`.rbs`を保持したうえで`rbs.contradicting-signature`（エラー）として報告され、Rigorが順位付けできないペアのみが後述の`:info`行とともにインライン側をドロップする。以下のSteepの分析、メンバーごとのスコープ、および除外された2つの重複は引き続き有効である。
 
 *2026-09-08、[#824](https://github.com/rigortype/rigor/issues/824)をクローズ。*
 

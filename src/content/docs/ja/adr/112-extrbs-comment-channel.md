@@ -3,14 +3,15 @@ title: "ADR-112 — `@extrbs`: RBSが表現できないもののためのRigor�
 description: "rigortype/rigor docs/adr/112-extrbs-comment-channel.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/112-extrbs-comment-channel.md"
 sourcePath: "docs/adr/112-extrbs-comment-channel.md"
-sourceSha: "8de059f638878fe8c4cce7311a8fc445deec2516341f5f9224fa2c88b303ff97"
-sourceCommit: "0f252e3218936e8dc7004b574c709a434b996d2a"
+sourceSha: "426f7171bbb7b1feffc657340e1c1040899c24f495ce8964edfc4f32e473c420"
+sourceCommit: "e12ab45fa55707ed2acc0eae2e273b99a72dc077"
+sourceDate: "2026-09-26T09:33:47+09:00"
 translationStatus: "translated"
 sidebar:
   order: 4112
 ---
 
-ステータス：**Accepted、2026-09-19。まだ何も実装されていません**。[#996](https://github.com/rigortype/rigor/issues/996)について、[ADR-111](../111-inline-refinement-carrier/)の推奨とは逆の裁定を下します。ADR-111は全体として置き換えられ、そのプローブが本ADRの根拠（grounding）となります。本ADRは[ADR-32](../32-rbs-inline-comment-ingestion/) WD13を部分的に置き換え、「メンバーごとに`sig/`が勝つ」をWD5の整合性ルールで置き換えます。[ADR-0](../0-concept/)の`RBS::Extended`の箇条書きを修正します。実装は#1073〜#1076で追跡されます。
+ステータス：**Accepted、2026-09-19。WD5は`sig/`対インライン`@rbs` / `#:`について2026-09-26に実装（[#1075](https://github.com/rigortype/rigor/issues/1075)）；WD4のデフォルト書き込み、スキップ設定、および`sig-gen --check`は2026-09-26に実装（[#1422](https://github.com/rigortype/rigor/pull/1422)）；WD4とWD5の`@extrbs`側、およびWD1〜WD3はまだ未実装**。[#996](https://github.com/rigortype/rigor/issues/996)について、[ADR-111](../111-inline-refinement-carrier/)の推奨とは逆の裁定を下します。ADR-111は全体として置き換えられ、そのプローブが本ADRの根拠（grounding）となります。本ADRは[ADR-32](../32-rbs-inline-comment-ingestion/) WD13を部分的に置き換え、「メンバーごとに`sig/`が勝つ」をWD5の整合性ルールで置き換えます。[ADR-0](../0-concept/)の`RBS::Extended`の箇条書きを修正します。実装は#1073〜#1076で追跡されます。
 
 根拠（Grounding）：
 [`docs/notes/20260912-inline-refinement-carrier-probe.md`](../../notes/20260912-inline-refinement-carrier-probe/)。
@@ -60,12 +61,16 @@ Rigorが`.rb`ファイルに書き込むことは決してありません。以�
 
 ### WD4 ── 生成されたシグネチャは`sig/`であり、入力でもある
 
+> **ステータスノート、2026-09-26（[#1422](https://github.com/rigortype/rigor/pull/1422)、[#1076](https://github.com/rigortype/rigor/issues/1076)の項目2〜3）**。`sig-gen --check`は「`--diff`が空のとき」にパスするわけではない。同じフラグのもとで`--write`をミラーリングする: まさにその`--write`が何かを作成、変更、または拒絶する場合に失敗し、`--overwrite`のもとでは`tighter-return`提案もカウントする。`--diff`は、レビュー担当者が意図的に広く保った宣言に対するより厳格な戻り値を含め、すべての提案をリストするが、レビューされ広く保たれた型がゲートを永久に失敗させてはならないからである。同じ変更により、このWDが未解決のまま残していたケース、すなわちインライン宣言と一致しない`sig/`メンバーも決着した: sig-genはどちらも自動的には更新しない。両者が一致するか、または`--overwrite`によって`sig/`メンバー全体がインラインのもので置き換えられるまで、そのメソッドは拒絶される（`sig.skipped.inline-differs`、exit 1）。スロットごとにマージされることは決してない。
+
 - `rigor sig-gen --write`は`sig/<path>.rbs`への書き込みを継続します（[ADR-14](../14-rbs-sig-generation/)）。生成されたシグネチャは任意の`sig/`ファイルと同様に入力であり、gemが出荷し下流のRigorが読み取る契約です（`bundle_sig_discovery.rb`）。新しい`sig-gen --check`は`--diff`が空のときに成功します。これがCIの鮮度ゲートです。
 - `@extrbs`で宣言されたメンバーについて、ライターは型位置に消去を出力し、その横に`%a{rigor:v1:…}`を出力します。Rigorが単に**推論した**リファインメントは消去され、決して出力されません：一度書き込まれるとアノテーションは強制されるため、契約は誰かが意図して述べたものだけです。エフェクトアノテーションは既存のオプトインフラグを維持します。
 - **デフォルトですべてのメンバーが書き込まれます**。これにはインラインの`@rbs`によっても宣言されているメンバーが含まれ、`sig/`が完全で出荷可能な契約となります。Steepを`inline: true`かつ`signature "sig"`で実行しているプロジェクトは、そのようなメンバーごとに2回見ることになります（`DuplicatedMethodDefinition`）。設定により、それらのプロジェクトに対してインライン宣言されたメンバーをスキップします。その設定のもとでは、そのようなメンバー上の`@extrbs`リファインメントはソースが解析されたときにのみ有効になり、マニュアルにもそのように記載されます。
 - Rigor専用のアノテーションをドロップするという`rbs-extended.md`のルールは、消去が書き込まれるプレーンRBSのエクスポートに適用され、sig-genの出力には適用されません。
 
 ### WD5 ── ソース間の一貫性が「`sig/`が勝つ」を置き換える（ADR-32 WD13）
+
+> **ステータスノート（2026-09-26、[#1075](https://github.com/rigortype/rigor/issues/1075)）**。下記の「どちらの側も他方の部分型ではない」は、拘束仕様において**証明された素（proven disjoint）**へと明確化された: 矛盾が報告されるのは、いかなる値もいかなる呼び出しも両側を満たさない場合のみであり、それ以外の非部分型のペアはすべて未決定となる（ADR-32 WD12の`:info`とともに`.rbs`がバインドする）。メンテナの保守的な解釈のもとでは、絶対パスで書かれたRubyコアまたは標準添付ライブラリのクラスのみが2つの型が素であることを証明できる；プロジェクトのクラス、gemのクラス、または相対名は決して素を証明しない。その定義は[`overview.md`](../type-specification/overview.md) § インラインアノテーションの取り扱いに記載されている。
 
 1つのルールがインラインに対する`sig/`、および`@extrbs`に対する`@rbs` / `#:`をカバーします：
 
