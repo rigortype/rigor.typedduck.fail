@@ -3,8 +3,9 @@ title: "ADR-88 — インクリメンタルなプラグインファクトの健�
 description: "rigortype/rigor docs/adr/88-incremental-plugin-fact-soundness.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/88-incremental-plugin-fact-soundness.md"
 sourcePath: "docs/adr/88-incremental-plugin-fact-soundness.md"
-sourceSha: "e0f56c450dce1c62cb0197cc64c1cb4ec3a21e6b0f1b8f7ac8f8a6530c16e296"
-sourceCommit: "eb8e9996d113a1b5e1778d0988597c979814a219"
+sourceSha: "3152e90b9ee1552db02bba55c4d80182b85c16d7da37eeeec48e83662a1b6418"
+sourceCommit: "e12ab45fa55707ed2acc0eae2e273b99a72dc077"
+sourceDate: "2026-09-28T10:19:54+09:00"
 translationStatus: "translated"
 sidebar:
   order: 4088
@@ -45,6 +46,11 @@ ADR-46は`--incremental`の再チェックに、変更されたクロージャ`�
 
 **blobでなく値**。ダイジェストはプロデューサーの**値**のものであって、そのキャッシュエントリーblobのものではない。blobは依存記述子（入力ファイルのダイジェスト）も持ち運ぶので、**任意の**入力編集── 値を保存するものを含む ──で動き、過剰無効化する（計測されたgitlabのコントローラー編集 → フル再解析23s対incremental 9.5s）。値ダイジェストは寄与した値が動いたときにだけ動く。これは規準の精密性要件を具体化したものであり、WD2の決定性修正（下記）がload-bearingである理由でもある：非決定的なプロデューサー値は再計算のたびに偽の無効化をする。
 
+**オブジェクトグラフではなく値（[#1574](https://github.com/rigortype/rigor/issues/1574)）**。
+ダイジェストは最初、各値の`Marshal.dump`バイトをハッシュ化していました。それらのバイトは共有関係をエンコードします: 2回到達されたオブジェクトは1回書き込まれ、後方参照されます。Marshalのラウンドトリップは、Hashキーとして使用されるfrozen Stringについてその共有関係を維持しません（`Marshal.load`はそれをunfrozenとして再構築し、`Hash#[]=`はfrozenコピーを格納します）。そのため、行の名前がインデックスHashのキーにもなっているプロデューサーは、計算時とADR-45エントリがそれを提供したときとで異なるダイジェストになりました。この2つの間を切り替えるすべての実行 ── プライム後のnull実行、すべての編集実行、その後の実行 ── がスナップショットを破棄していました。Mastodonでは、rigor-sidekiqの`worker_index`、rigor-rails-i18nの`locale_index`、rigor-rails-routesの`helper_table`がすべてその形状を持っており、すべての`--incremental`編集が〜2秒の再チェックではなく〜21秒のフル実行になっていました。
+
+各チャンネルの値は現在、型タグ付き・長さプレフィックス付きの巡回である{Cache::ValueDigest}によってダイジェスト化されます。これは同一性（identity）やfrozennessを読み取らないため、どのように構築されていても同じ値は同じようにダイジェスト化されます。これはMarshalが保持しコンシューマーが観測可能なものを保持します: クラス（Integer対Float、String対Symbol、サブクラス、各オブジェクトのクラス）、HashおよびSetの挿入順序（コンシューマーはファクトを順序通りに反復処理する可能性があり、計算された形式と提供された形式はそれについて合意しているため、それをダイジェスト化することは過剰無効化にしかなり得ません）、Hashのデフォルトおよび`compare_by_identity`、ならびに非ASCII Stringのエンコーディングです。Data、Struct、Exception、またはプレーンオブジェクトは、そのクラスとオブジェクトごとに1回取得されるその内容のSHA-256として書き込まれるため、インデックスのリストとその名前付きHashの双方から到達される行は1回巡回されます。内容はDataまたはStructのメンバー、例外のメッセージ、バックトレース、原因（cause、Marshalはこれを隠しインスタンス変数に保持します）、およびオブジェクトのインスタンス変数であり、すべてコアクラス自身のメソッドを通じて読み取られるため、サブクラスの`to_h`や`message`がフィールドを隠すことはできません。巡回が見通せない値 ── Ruby外部の状態（Proc、IO、Mutex: `Marshal.dump`が拒絶するもの）、デフォルトproc、無名クラス、循環参照 ── は、その値がMarshalできないプロデューサーがすでに行っていたように、そのプラグインを不透明（opaque）にします。その種の公開ファクトも現在、その公開元を不透明にします;以前はダイジェストからすべてのプラグインのファクトを削除していたため、別のサーフェスを持つプラグインは再利用可能として生き残っていました。Marshalが保持するもののうち3つはダイジェストの外部に残ります: String、Array、Hash、またはSetに設定されたインスタンス変数（`==`もこれらを無視します）、オブジェクトが拡張されたモジュール、およびC実装クラスが上記にリストされたものの他に保持する隠しフィールド（`NameError#name`はメッセージを通じてのみダイジェストに到達します）です。ダイジェストの形式が変更されたため、`IncrementalSnapshot::SCHEMA`は30→31になりました。Mastodonの`locale_index`（150万ノード、3.2MBのMarshal）において、この巡回のコストはそれが置き換えたMarshal dumpとほぼ同等でした: YJIT下で125msに対し72ms、YJITなしで121msに対し152msです。
+
 **別プローブでなくpost-hoc**。フィンガープリントは、2度目の`#prepare`プローブからではなく、解析ランナーの既に準備済みのレジストリから**post-hoc**に読まれる（{PluginFactFingerprint.from_registry}）。再チェックは既に`#prepare`を走らせてプロデューサーを参照／検証済みなので、その値はメモ化されている── フィンガープリントは値ダイジェストだけを支払い、gitlabで〜0.24s（9.5sの再チェックの≈2.5%、パフォーマンスゲート内）である。**プールされた**ランのメインプロセスは`#prepare`をスキップするので、そこでは常に逐次のプローブ（{PluginFactFingerprint.compute}）がフォールバックとなる。両パスは与えられたサーフェスに対して同一のダイジェストを計算するので、再利用判断はプール非依存である（パリティspecが`from_registry` == `compute`を主張する）。
 
 **不透明（opaque）なプラグイン**。（a）/(b)/（c）の**いずれも**持たずに`dynamic_return`／`narrowing_facts`を登録するプラグインは、フィンガープリントが見られない陳腐化し得る状態を持つ。陳腐化した再利用のリスクを負うのではなく、それは毎回スナップショットを再利用不可にし、一行の注記で名指しされる（`--incremental`バナー＋`--cache-stats`）。同梱の寄与プラグインは監査され、すべて非不透明にされた：sorbetはWD2のプロデューサーからサーフェスを得る。actionpack／activerecord／activestorageは既にプロデューサーを宣言している。minitest／rspec／mangrove（および`examples/`のunits／pattern／lisp-eval）は、安定したセンチネルを返す`incremental_state_fingerprint`を得る── それらの寄与はファイルごと（各解析対象ファイル自身のAST）または静的であり、クロスファイルサーフェスを持たない。この主張は`--verify-incremental`ゲートが裏付ける。
@@ -74,6 +80,8 @@ incremental機構に対して精密性を加える（precision-additive）：診
 ## Rejected / deferred
 
 - **プロデューサー署名としてのblobダイジェスト（キャッシュエントリーのバイト）** — より安価（再Marshalなし）だが、blobは入力ファイル記述子を持ち運ぶので、値保存編集で過剰無効化する。値ダイジェストが正しいセマンティクスである。
+- **Marshalラウンドトリップのダイジェスト化、`Marshal.dump(Marshal.load(Marshal.dump(v)))`**（#1574） — Stringキーのケースに対してはさらなるラウンドトリップの下で安定しますが、依然としてオブジェクトグラフの関数であり（Array、Hash、オブジェクト間の共有関係はラウンドトリップを生き延び、RubyのStringインターン化はプロセスが以前何をインターン化したかに依存します）、3回のMarshalパスを支払うことになります。
+- **両方のパスでキャッシュエントリが格納する値バイトをダイジェスト化する**（#1574） — 計算されたダイジェストと提供されたダイジェストは一致しますが、異なる共有関係を持つ等価な値を構築する再計算では依然としてそれが移動してしまい、また公開ファクトにはエントリがありません。
 - **フィンガープリントの唯一のパスとしての別`#prepare`プローブ** — gitlabで〜1.0s（2度目の`#prepare`＋2度目のプロデューサー検証）、再チェックの〜10%と計測された。解析ランナーからのpost-hocは再チェックのprepareを再利用する（〜0.24s）。プローブはプールモードのフォールバックとしてのみ生き残る。
 - **gitlabの`:info` verify差分のダウンティア化／抑制** — その差分は壊れたオラクルであって、実際の強化ではなかった。ローダーで修正したのであり、`:info`を除外することで修正したのではない（ADR-72との近縁：源を直せ）。
 - **WD5のコンシューマーごとのプラグイン読み込み追跡** — 延期（上記）。

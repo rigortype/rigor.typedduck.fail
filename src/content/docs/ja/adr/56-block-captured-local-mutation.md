@@ -3,9 +3,9 @@ title: "ADR-56 — ブロックがキャプチャしたローカルのライト�
 description: "rigortype/rigor docs/adr/56-block-captured-local-mutation.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/56-block-captured-local-mutation.md"
 sourcePath: "docs/adr/56-block-captured-local-mutation.md"
-sourceSha: "ff2aff466874fae489dbdd5adf8d57999eefe6605682118ff06c8cd4c99a9f55"
-sourceCommit: "32fcfb01032273679a99853a37f53a6e842b3330"
-sourceDate: "2026-09-24T02:11:26+09:00"
+sourceSha: "57d4510f4a7340de2580923d1abc3e399f3e70cf08bb03c8dd719aa3207a07c5"
+sourceCommit: "e12ab45fa55707ed2acc0eae2e273b99a72dc077"
+sourceDate: "2026-09-26T17:15:32+09:00"
 translationStatus: "translated"
 sidebar:
   order: 4056
@@ -43,11 +43,12 @@ e       # typed Constant[1] — runtime value is 99. UNSOUND.
 
 期待される観測値: `upto`ブロックの後の`result` → `1 | Integer`（または`Integer`）であり、決して`Constant[1]`ではない。`[1].each { e = 99 }`の後の`e` → `1 | 99`。
 
-**2026-06-11に実装**。`StatementEvaluator#write_back_block_captures`が`eval_call`内で`record_closure_escape_if_any`の後に走り、`:non_escaping`分類でゲートされる。有界不動点は新しい共有の`Inference::BodyFixpoint`に置かれる（上限3、`evaluate_body`callableでパラメータ化されているのでスライスBがそのまま再利用する）。`captured_local_writes`は5つの書き込み形すべてを収集するようになった。`Type::Combinator.widen_value_pinned`（`ExpressionTyper`から昇格し、それは現在委譲する）は`Refined` / `IntegerRange` → 名前的基底への広げを得たので、有界intのアキュムレータが収束する。非収束の崩れは新しい`BudgetTrace::BLOCK_WRITEBACK_CAP`を計上する。ゲート: `make verify`がグリーン（新しいセルフチェック／プラグインチェックの発火なし）。コーパス（Mastodonの`app/models`、hamlの`lib`、kramdownの`lib`）＝**除去1、新しいdiagnosticゼロ**──その除去は本物の勝利だ（`form/account_batch.rb`の`each`内`error ||= e`に続く`raise error if error.present?`が、もはや誤った常に偽の定数へ畳み込まれない）。perfはニュートラル（libセルフチェックがおよそ17.8秒、ベースラインのおよそ17.5秒に対して）。*（WD2.13の第2の残余の解消により修正: 本体のその場変異を受けるキャプチャされたローカルは、呼び出し前の内容ではなく、すべてのパスにおいてその未知格納の広げ（unknown-store widening）で読み取られる。）*
+**2026-06-11に実装**。`StatementEvaluator#write_back_block_captures`が`eval_call`内で`record_closure_escape_if_any`の後に走り、`:non_escaping`分類でゲートされる。有界不動点は新しい共有の`Inference::BodyFixpoint`に置かれる（上限3、`evaluate_body`callableでパラメータ化されているのでスライスBがそのまま再利用する）。`captured_local_writes`は5つの書き込み形すべてを収集するようになった。`Type::Combinator.widen_value_pinned`（`ExpressionTyper`から昇格し、それは現在委譲する）は`Refined` / `IntegerRange` → 名前的基底への広げを得たので、有界intのアキュムレータが収束する。非収束の崩れは新しい`BudgetTrace::BLOCK_WRITEBACK_CAP`を計上する。ゲート: `make verify`がグリーン（新しいセルフチェック／プラグインチェックの発火なし）。コーパス（Mastodonの`app/models`、hamlの`lib`、kramdownの`lib`）＝**除去1、新しいdiagnosticゼロ**──その除去は本物の勝利だ（`form/account_batch.rb`の`each`内`error ||= e`に続く`raise error if error.present?`が、もはや誤った常に偽の定数へ畳み込まれない）。perfはニュートラル（libセルフチェックがおよそ17.8秒、ベースラインのおよそ17.5秒に対して）。*（WD2.13の第2の残余の解消により修正: 本体のその場変異を受けるキャプチャされたローカルは、呼び出し前の内容ではなく、すべてのパスにおいてその未知格納の広げ（unknown-store widening）で読み取られる。Issue #1412はこれをすべての反復ブロックにわたるステートメントパス、およびループの継ぎ目へと拡張する。）*
 
 ### WD2 — スライスB: ループ本体の不動点
 
 `eval_loop`（および同等の`until`パス）は、その単一パスのjoinを、本体が書き込むローカルに対する同じ有界不動点で置き換える: joinが安定するまで、joinされたスコープから本体評価を反復する（上限3、最終反復での値ピン留めの広げ、非収束時にローカルごとの`Dynamic[top]`）。`d = 1; while …; d *= 2; end` → `1 | Integer`（現在の不健全な`1 | 2`）。述語に対するループ持ち越しのナローイングは反復ごとにjoinされたスコープから再計算されるので、既存のbreak／出口エッジの挙動は保たれる。
+*（WD2.13のissue #1412の注記により修正: 単一パスを含め、すべてのパスは本体がその場で変異させる各ローカルについて、その未知格納の広げで進入する。）*
 
 **2026-06-11に実装**。`StatementEvaluator#eval_loop`は歴史的な単一パスのjoinをベースとして保ち（それはなお、再束縛されないローカルのレシーバー変異の広げ、本体が導入するnil注入、そしてループ値を担う）、本体が再束縛するローカルについては`BodyFixpoint.converge`の結果をオーバーレイする。`loop_body_local_writes`は本体が書き込むローカルを、既存（種＝述語後の束縛）と本体先（種＝0反復パス向けの`nil`）に分割する。`loop_body_exit_bindings`は述語のループ入りエッジ（`while`→真、`until`→偽）を反復ごとに再適用するので、ループ持ち越しのナローイングが健全に保たれる。本体がいかなるローカルも再束縛しないループは、単一パスのjoinとバイト単位で同一のまま留まる（高速パス）。非収束（`g = [g]`）はそのローカルを`Dynamic[top]`へフロアし、`BudgetTrace::BLOCK_WRITEBACK_CAP`ヒット（スライスAと共有）を計上する。**1つの盲点が表面化し、スライス内で修正された**: `nil`を種とする本体先ローカルは本体の再評価にオーバーレイしては**ならない**──本体が走るとき使用前にそのローカルを代入するので、`nil`をフィードし戻すと、エンジンが分岐へ通さない条件形の代入を越えて`nil`が漏れ（`while …; if x > (count = 3); (count + 1)…`）、`+`/nil-レシーバーを偽発火させる。`nil`は0反復の結果のためのjoin構成要素としてのみ保持される。ゲート: `make verify`がグリーン（新しいセルフチェック／プラグインチェックの発火なし──反復ごとの述語ナローイングがすでに解消する継承された`expression_typer.rb:461-462`のセルフチェック発火を含む）。プローブが`d = 1; while …; d *= 2; end` → `Integer`（不健全な`1 | 2`だった）、`until`の同等性、本体先 → `T?`、書き込みなしループのバイト同一、累積 → `Dynamic[top]`を確認する。コーパス（Mastodonの`app/models` 5/5、hamlの`lib` 13/13がバイト同一。kramdownの`lib`は**除去2**──`until stack.empty?`内の`converter/html.rb:455`の`item = stack.pop`が、もはや誤ってnilレシーバーへ畳み込まれない──と、同一箇所での5つのメッセージ言い換え（`undefined method 'value' for nil` → `possible nil receiver`、レシーバーが純粋な`nil`ではなく`T | nil`と型付けされるため）、本物の新発火ゼロ）。
 
@@ -291,6 +292,22 @@ WD2.5はブロックjoinをスライスAおよびBと同じ「`BodyFixpoint`の�
 オープンなまま留まるのは、スライスAが所有していない束縛を通じた同じ固定です。その場変異の前に読み取られるインスタンス変数（`last = @a.last; @a << x`）は収集されません（#1208）。ブロックローカルなエイリアス（`b = a; b << x`）はスキャンから変異を隠します。何も再束縛せず読み取りを返すブロック（名前的レシーバーに対する`xs.map { v = a.last; a << x; v }`）はブロック戻り値パスを通り、これはWD2.10の総称的な`Array[U]`の残余です。
 
 ゲート: `block_rebind_reads_mutated_capture`フィクスチャは、10個の発火してはならない（must-not-fire）形状を運びます: 末尾、Hashスロット、空性、Stringサイズ、追加子の手前の削除子、スロットの書き換え子、単独の削除子、再束縛かつ変異、およびガードなしとガード配下の呼び出し前に閉じられた種。最初の5つは`assert_type`によって固定されています。2つの対照群（本体が変異させないコレクション、および外側の名前を共有する内部ブロックパラメータ）は依然として発火しなければなりません。specは正確な`flow.*`の行セット、本体が格納した値に対していかなるエラーも発火しないこと、およびアキュムレータのパスカウントをアサートします。
+
+*（ステートメントパスとループの継ぎ目、issue #1412、2026-09-26。）* 上記の解消が届いたのは書き戻しのパスだけであり、書き戻しは本体がキャプチャを再束縛（REBIND）もする`:non_escaping`に分類された明示的レシーバーに対してのみ実行されます。他のすべての反復本体は呼び出しの進入スコープからの単一ステートメントパスを維持し、キャプチャを変異させるだけの本体はすべてのパスにおいて呼び出し前の内容を読み取っていました:
+
+    depth = []
+    lines.each { |tl| puts depth.last.length if depth.last; depth << tl }
+    # error: undefined method `length' for nil
+
+呼び出しがそのブロックを2回以上実行する可能性がある場合は常に、そのパスは現在、書き戻しパスの進入（`StatementEvaluator#repeating_block_entry` → `#block_pass_entry`）から進入します。ゲートは#587（b）のパス独自のもの（`Inference::BlockRepetition.may_repeat?`、両方のパスが共有できるよう`ExpressionTyper`の外に移動）であるため、`Dynamic`レシーバー上の#1234のイテレータ名はカウントされ、`then`、1要素のレシーバー、およびカタログ外の名前はカウントされません。書き戻しがそのパスを実行しない場合（`:unknown`クラス、または明示的レシーバーなし）、本体が番兵種（`nil`または`false`）から再束縛する名前は`Dynamic[top]`と結合されて進入します: それは行リーダーの状態機械のように、本体がそれが保護する読み取りの前に置き換えるプレースホルダーであり、何がそれを置き換えたかを型付けするパスは存在しないためです。それ以外の再束縛された種は、その呼び出しサイトの束縛を維持します。ループの継ぎ目も`CapturedLocals.loop_content_mutations`を通じて内容の広げを受け取ります（`#loop_pass_entry`、したがって単一パスとすべての不動点パス、および`for`本体の唯一のパス）。本体が再束縛しない広げられた名前は、書き戻しのパス上でもその#1287のマーク（`Scope#with_mutated_local`）を維持します。
+
+規則はこのセクションがすでに選択したものです: 本体の進入はそれが記録するすべてのパスを記述しなければならず、後続のパスが読み取るものをいかなるパスも型付けしない場合、格納された内容に対しても本体が置き換える番兵に対しても、漸進的な腕がその答えとなります。4つの代替案が却下されました。変異のみを行う本体に対して書き戻しを実行すること（その`names.empty?`高速パスを落とすこと）は、広げが何も必要としないのに対し、そのようなすべてのブロックに対して2回目の本体パスのコストがかかります。`:unknown`呼び出しに対してその不動点を実行することは、最も一般的な型なしレシーバーに対してパスのコストがかかり、また本体が格納するものの隣に`nil`種を維持するため、以下の行リーダーは依然としてnilの可能性を読み取ることになります。値ピン留めを超えて他のすべての再束縛された種を広げること（ここでの最初の試み）は、`n = 0 … n = i.to_s`を`Integer`として進入させ、正しいコード上で`puts n.upcase unless n == 0`をerrorレベルで報告してしまいました。ブロックの記録されない1回のパスが格納するものと種を結合すること（第2の試み）は、その形状を修正したものの、フラグ、状態、またはカウンターがゲートする再束縛（`if first then first = false else last = "#{line}" end`、最初のパスは決してこれに到達しない）を修正できず、余分なパスがネスティングに伴って増大しました（深さ16で0.3秒に対し11.8秒）。レビューが両方を捕捉しました。したがって非番兵の再束縛は、#1380項目3の固定された`pat = ","`を含め、そのようなすべての本体が以前持っていた読み取りを維持します。
+
+代償は最初のパスで支払われます。最初のパスのみが行う変異されたコレクションの読み取りは、書き戻しのパスですでに行われているのと同様に漸進的になり、番兵のガードなし読み取りも同様になります（型なしの`items`上の`x = nil; items.each { |i| x.length; x = i.to_s }`は、最初の反復がraiseするにもかかわらず、もはや報告されません）。呼び出し先を通じてコレクションを供給するループは、最初のパス以降その内容を漸進的に読み取ります: `enqueue_ancestors(current, queue, …)`後の`Scope#singleton_def_through_ancestors`の`queue.shift`は、その呼び出しの後の直線的なコードがすでに行っていたように、現在`untyped`と読まれます。実行時にキューはStringのみを保持するため、すべての反復が以前種から読み取っていた`String`は正しく、それに対するsig-genの行は残余へと移動しました: 呼び出し先のフロアが引き起こす精度の喪失です。
+
+キャプチャされた束縛の再束縛も変異も行えない本体はゲートをスキップし（`CapturedLocals.may_touch_capture?`、アロケーションフリーのスキャン）、ブロックのレシーバーは要求した4つのサイトのそれぞれではなく、呼び出しごとに1回型付けされます（`StatementEvaluator#explicit_receiver_type`）。textbringer（`--workers=0`）上では、これは6,371,964 → 6,056,782のアロケートされたオブジェクトです;メモ化前のゲート単体では+35k（+0.55%）のコストでした。
+
+ゲート: `repeating_body_content_mutation`フィクスチャの発火してはならない（must-not-fire）形状（再現コード、`each_with_index`、`push`、インデックス書き込み、Hashスロット、型付きレシーバー、`while`、`until`、`for`、行リーダーの状態機械、レコードごとに再束縛されるHash、およびクラスチェック、フラグ、状態、カウンターによってゲートされる再束縛、自己依存的なもの）および依然として報告するその対照群: 再束縛の前に読み取られる再束縛カウンター、String、および暗黙的selfの`Enumerable`ローカル、既知のレシーバーの初回パス`nil`、1回yieldするプロジェクト`each`、一度も追加しない本体、`5.then`、および`Mutex#synchronize`。コーパス（redmine、textbringer、mail、mastodon）: issueが名指しする3つのredmineエラーは消失し、同じ修正により`io.each_line`配下のさらに4つの状態機械読み取り（`cvs_adapter.rb:196`および`:214`、`git_adapter.rb:262`および`:308`）が除去され、何も追加されません。1つのエラーはその行を維持し型を変更します: `diff.rb:78`はRedmineが`Array`にパッチを当てるメソッドを呼び出し、レシーバーを`[]`ではなく`Array[Dynamic[top]]`として読み取るようになりました。オープンなまま留まるもの: `Kernel#loop`はカタログ化されたイテレータではないため、`loop do … end`本体はその進入を維持します;その場で変異されるインスタンス変数は依然として収集されません（#1208）。
 
 ### WD3 — 一つの機構、共有
 

@@ -3,9 +3,9 @@ title: "ADR-58 — インスタンス変数のフィールド型付け: 宣言�
 description: "rigortype/rigor docs/adr/58-ivar-field-typing.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/58-ivar-field-typing.md"
 sourcePath: "docs/adr/58-ivar-field-typing.md"
-sourceSha: "2e10ec9970928ad7255153245453051fe444ec0a9058bfe3f2c5be70d8926955"
+sourceSha: "2e10ec9950d61aae3543372569405522cd34b7ab701cd4c6135935173d51b02e"
 sourceCommit: "e12ab45fa55707ed2acc0eae2e273b99a72dc077"
-sourceDate: "2026-09-26T07:37:37+09:00"
+sourceDate: "2026-09-26T04:25:47+09:00"
 translationStatus: "translated"
 sidebar:
   order: 4058
