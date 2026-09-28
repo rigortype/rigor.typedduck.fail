@@ -1,0 +1,477 @@
+---
+title: "マージごとに帰属されたv0.3.9 → v0.4.0エンジンアロケーションコスト（2026-09-27）"
+description: "rigortype/rigor docs/notes/20260927-v040-engine-allocation-attribution.mdの翻訳です。"
+editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260927-v040-engine-allocation-attribution.md"
+sourcePath: "docs/notes/20260927-v040-engine-allocation-attribution.md"
+sourceSha: "1d6e04152fcab1590ac78b481a4569f0db271a75ff3ffeea5e035bacd990fac7"
+sourceCommit: "e12ab45fa55707ed2acc0eae2e273b99a72dc077"
+translationStatus: "translated"
+sidebar:
+  order: 20266927
+---
+
+ステータス: [#1469](https://github.com/rigortype/rigor/issues/1469)のための測定記録。測定のために`lib/`内は何一つ変更されていません。4件のフォローアップがマイルストーンv0.4.xに起票されました（[#1502](https://github.com/rigortype/rigor/issues/1502)〜[#1505](https://github.com/rigortype/rigor/issues/1505)）。ハーネスは未マージのブランチ`allocation-attribution-1469-harness`（`tool/perf1469/`）にあります。先行文書: [`20260908-v037-allocation-regression-attribution.md`](../20260908-v037-allocation-regression-attribution/)（v0.3.6..v0.3.7についての同趣旨の調査）および#1046（#1036までの本範囲の前半部分）。
+
+## 問い（The question）
+
+v0.4.0のコードカット時点で、リリースゲートのベースラインは`lib`上でアロケーション+80.5%に再較正されました。Rigor自身の`lib`が26%肥大化したため、その増加の大部分はコーパスの増大によるものです。コーパスをv0.3.9のツリーに固定した状態でも、v0.4.0エンジンはv0.3.9エンジンより+19.1%多くアロケーションを行い、#1469はどのマージがそのコストを支払っているかを問うています。#1046はこの範囲の前半を見ていましたが、異なる軸上でのものでした: 各マージをそれ自体の肥大化する`lib`に対して実行したため、その数値にはコーパスの増大が含まれており、その+6.8%は#1045着地後の数値です。本ノートのフリーズされた軸上では、同じ範囲は#1036までで+12.0%（`81133b8a`、26,555,627、#1035のバグが入ったまま）、#1045着地後は+2.66%（`22f5a1a7`、24,336,177）となります。
+
+## 手法（Method）
+
+- **フリーズされたコーパス**。 `git archive v0.3.9`をスクラッチディレクトリに展開し、メインクローンの`vendor/`をシンボリックリンクし、`.bundle/config`をコピーしました。すべてのアームはそのディレクトリをcwdとし、`lib`をターゲットとして実行されるため、設定（`plugins: []`）と`sig/`はすべてのエンジンでv0.3.9のものです。
+- **ファーストペアレントのコミットごとに1つのエンジン**。各アームは`git archive <sha> lib sig plugins data exe`です。`lib/rigor`は`ENGINE_ROOT`および`../../../data`パスを通じて、自身の隣から`data/`および`plugins/`を読み取ります。`v0.3.9..v0.4.0`における255個のファーストペアレントコミットのうち、183個が`lib/`、`plugins/`、または`data/`を変更しています: 182個のマージと1個の直接コミット（`c56c2ccf`）。183個すべてが測定されました。他の72個は直前のアームのエンジンをバイト単位でそのまま引き継いでいます。bundleはすべてのアームでmasterのものです。範囲内で`Gemfile.lock`はRuboCop 1.90.0 → 1.91.0（依存のjson 2.21.2 → 3.0.2、parallel 2.1.0 → 2.2.0を含む）へ移行し、バージョンバンプも行われています。すべてのアームはv0.4.0のセットで実行されるため、ここでのいかなるステップにもgemの変更は含まれません。
+- **アームごとに新しいプロセス**。プロセスはアームの`lib`を`$LOAD_PATH`の先頭に置き、`rigor/cli`をrequireし、`tool/bench.rb`と同じ方法で`Rigor::CLI.new(["check", "--no-cache", "--no-stats", "--format", "json", "lib"]).run`をプロセス内で呼び出します。`GC.stat(:total_allocated_objects)`の差分と診断数を読み取り、どのエンジンがロードされたかを証明するために`$LOADED_FEATURES`を出力します。別のルートからの唯一の機能はメインクローンの`rigor/version.rb`であり、これはbundlerのgemspecがアームの前にロードし、その後アームが再定義します。すべてのアームは順次、フォアグラウンドで実行され、終了コード0で終了しました。
+- **較正（Calibration）**。 v0.3.9アームは23,705,247個のオブジェクトをアロケーションし、既知のローカルアンカーである23,710,878と比較して−0.02%でした。v0.4.0アーム（`07f49bdb`）は28,238,280個をアロケーションし、28,235,304と比較して+0.01%でした。スイープ全体の合計ステップは+4,533,033（+19.12%）であり、#1469の+19.1%と一致します。
+- **ステップ内の要因帰属**。 2つ目のドライバー（`tp.rb`）は`TracePoint(:call, :return)`の下で同じチェックを実行します。すべてのRubyメソッドについて、そのメソッドが最も内側のRubyフレームであった間に行われたアロケーション（そのメソッドが行う`Array#map`などのC呼び出しを含む）を記録し、そのメソッドの呼び出し回数を記録します。ドライバー自身のアロケーションは差し引かれ、その合計はアームあたり5,000オブジェクト以内でスイープを再現します。2つのアームをメソッドごとにdiffすることで、ステップのオブジェクトがどこでアロケーションされたかが特定されます。これは最大の正のステップのうち10個の親アームとマージアーム、およびv0.3.9とv0.4.0で実行されました。このトレースにおけるイテレータとその呼び出し元の分割はYJITに依存するため（制限事項を参照）、#1166ペアは`RIGOR_DISABLE_YJIT=1`で再度トレースされました。
+- **レバー（Levers）**。疑われる偶発的コストのそれぞれは、v0.4.0アームのスクラッチコピーでプロトタイプ化され、単独で、そして組み合わせて測定され、`--format json`の出力が無パッチのアームとバイト単位で比較されました。着地したものは何もありません。
+
+診断はすべてのアームで1件を維持しました: コーパスの唯一の指摘は`rbs.coverage.missing-gem`のinfoです。したがって、この範囲のどのステップも診断の変化によって説明されるものではなく、プロトタイプに対するバイト単位の一致チェックは脆弱です（制限事項を参照）。チェックパス外でのみエンジンが異なるアームは互いに数十オブジェクト以内に収まり（`4c48106c`、`79ef2ae2`、`02bc9467`は28,316,964〜28,316,977）、これがノイズフロアを画定します。プロトタイプアームの再実行では43〜802オブジェクトの変動がありました。`call_arg_types`、ブロックエントリ、および`mutated_receiver`レバー（ハーネス内のpB、pC、pE）は405〜486変動し、そのフロアを上回りました。ユニオン順序レバーの802（pD）は`WeakMap`メモに由来し、そのヒット率はGCのタイミングに依存します。そのような変動はすべて0.003%未満であり、結論を変えるものはありません。wall（実時間）はアームあたり1サンプルの測定であり、ホスト上で他のレーンが実行されている最中に取得されたため、参考記録に留めます。
+
+## +4.53Mの行き先
+
+| バケット | ステップ数 | 純増減 Δ |
+| --- | ---: | ---: |
+| ステップ ≥ +100K | 19 | +6,170,085 |
+| ステップ ≤ −100K（[#1045], [#1441], [#1453]） | 3 | −2,611,875 |
+| 20K ≤ \|Δ\| < 100K | 21 | +741,346 |
+| \|Δ\| < 20K | 140 | +233,477 |
+| **合計** | **183** | **+4,533,033** |
+
+[#1035] / [#1045]のペアは純計で−253となります。#1045がまさに#1035が追加したものを修正したためです。このペアを除くと、+4.53Mは+100K以上の18個の正のステップ（+3.94M）、2個の回収（−0.38M）、および長いテールで構成されます。ステップサイズの大部分は、1つの機能が意図的により多くの推論を行ったことによるものですが、11個の最大の正のステップのうち4個は、その機能に不要なコストを抱えていました。
+
+### 最大のステップとトレースの分析
+
+| マージ | PR | Δ | オブジェクトの割り当て場所（排他的、トレース済み） | 判定 |
+| --- | --- | ---: | --- | --- |
+| `b5af5cf7` | [#1135] Sorbet注釈DSL | +720,553 | `ScopeIndexer.rebound_self_base`は972,530回の呼び出しで542,519アロケーションを消費する新メソッド。3つの巡回が訪問するすべてのASTノードでこれを呼び出し、`::`で文字列self ownerを分割しますが、結果はブロックを持つ`class_eval`形式の呼び出しの下でのみ読み取られます。呼び出し元ごとのプローブでは、アロケーションのうち523,300が`walk_mixin_call_children`（143,880回の呼び出し; `scope_indexer.rb`約:5755）、19,222が公開調査（562,796回の呼び出し）にあり、`walk_constant_write_children`の下にはゼロでした（このコーパスではownerが決して文字列にならないため）。`class_eval`本体内では文字列です。残りの約178Kは分散しています。最大の行は`RbsDispatch.allowed_rbs_complete_extended_module` +32,096、`record_deferred_def` +25,626、`meta_new_child_prefix` +18,080、`nesting_lexical_prefix` +16,029、`fold_per_file_extends` +13,728、`Prism::Node#location` +13,275、`Scope#def_shadows_call?` +12,502、`decl_body_context` +12,025、`record_collected_method_def` +11,626です。 | **542Kの偶発的コスト**（[#1502]）;残りは本質的 |
+| `b587a70e` | [#1096] `-> self`がレシーバーの型引数を維持 | +507,162 | レンダリング: `DataInstance#describe` +66.6K、`Constant#describe` +60.6K（+60.9K回の呼び出し）、`HashShape#render_entry` +60.2K、`Tuple#describe` +20.2K、`nominal_of` +39.2K、`sort_members` +36.1K、`unique_members` +26.1K。より精密なレシーバーが、より多く、より広いユニオンを生成します。`Combinator.sort_members`は各メンバーの`describe`文字列を再レンダリングすることで各ユニオンをソートしており、これがこれらのメソッドへの1つのパスです（ステップごとに個別に測定はされていません）。 | **システム的コスト**における本質的なボリューム（[#1505]） |
+| `66177b9c` | [#1166] 呼び出し箇所での`**h`シェイプと`...` | +402,739 | YJIT有効時、`ExpressionTyper#call_arg_types` +262K、`Array#each` +193K、`Array#map` −127K。`RIGOR_DISABLE_YJIT=1`では、呼び出し回数不変（292,850 → 293,796）で`call_arg_types`単独が+321,006となり、呼び出しごとのアロケーションがほぼ倍増。残りの約82Kは薄く分散。`map`は`...`のためだけに各引数の型を1要素配列でラップする`flat_map`になっていました。 | **偶発的コスト**（[#1503]） |
+| `11455d5c` | [#1103] `Array[T]`ブロック引数の分配（destructure） | +294,385 | バインドごとに2回実行される`BlockParameterBinder#reset_per_bind_state` +133K、`MultiTargetBinder::Result#apply_to` +132K、`bind_onto` +97K。古いエントリパスで−76K削減。 | **配管上の偶発的コスト**（[#1504]） |
+| `54f120d9` | [#1129] 射影されたメンバーごとの複合レシーバー | +249,066 | ディスパッチボリューム: +19.4K回の呼び出しで`CallContext.build` +58K、ユニオン代数 約+40K、177K回の呼び出しで`try_composite_receiver` 11.7K。 | 本質的;ディスパッチごとの`CallContext`コストは#150 / #820 |
+| `9b54f41e` | [#1441] | −239,994 | 回収（payback） | |
+| `b73747d6` | [#1020] 値位置の`and`/`or`ナローイング | +226,945 | 文評価器のボリューム: +24K回の呼び出しで`Scope#join_bindings` +51.5K、`join_with_nil_injection` +30.4K、`Scope#type_of` +13.9K。 | #1046が判明させた通り、本質的 |
+| `2b26e4f9` | [#1015] 三項演算子の述語ナローイング | +175,049 | #1020と同じシェイプ: `join_bindings` +32K、`join_with_nil_injection` +17K、`sub_eval` +11K。 | 本質的 |
+| `0765b45b` | [#1178] includeされたRBSモジュールを通じた呼び出し | +165,737 | 100,911回の呼び出しで`RbsDispatch.included_module_method` 50.8K; `each_source_ancestor_candidate` +39.6K（呼び出しあたり6.5回）; `ExternalAncestorResolution.compute`が問い合わせごとに2回実行されるように（4,893 → 9,786回の呼び出し、+19.6K）。 | 本質的;倍増した`compute`のメモは約35K相当で、起票基準を下回る |
+| `40a08499` | [#1114] インスタンス変数の分配ターゲット | +142,735 | 4つの`reduce`（うち3つは空のコレクションに対するもの）による`Result#apply_to` +101.5K、キーワード再スプラットによる`Result#initialize` +53K。 | **配管上の偶発的コスト**（[#1504]） |
+| `faae6273` | [#1111] rigor-grape | +140,463 | 分散: より多くのブロック本体がメソッドとして型付けされる（`CallContext.build` +14K、`Scope#type_of` +9.5K、…）。`plugins: []`のため、プラグイン自体はロードされていません。 | 本質的 |
+| `f7935458` | [#1453] | −136,961 | 回収（payback） | |
+| `6a0bb52c` | [#1250] | +135,013 | トレース未実施 | |
+| `7e42c48f` | [#1301] | +129,303 | ステップごとのトレース未実施。範囲全体のトレースでは、それが追加した`Scope#shadowing_constant_names`が81,005回の呼び出しで99,805アロケーション（修飾定数参照ごとの`split("::")`）を示しています。 | 小さなレバー、[#1502]に記録 |
+
++100K以上の残りのステップはトレースされていません: [#1006] +111,608（`tuple_absorbed_by?`、#1046で承認済み）、[#1010] +111,093（削減は#1077で追跡）、[#1310] +109,400、[#1243] +107,131、[#1159] +105,924、および[#1104] +101,112。テールでは、[#1112]が`BlockAutoSplat::ParameterShape.of`を追加し（v0.4.0で75.6K）、[#1203]が`CapturedLocals.mutated_receiver`を追加しています。その`when *INDEX_STORE_NODES`アームは呼び出しごとにArrayをコピーします: v0.4.0で125,609アロケーション（後続のマージによって呼び出し量が増加）。これは#1035と同じシェイプであり、[#1502]に統合されています。
+
+## 回復可能なもの
+
+v0.4.0エンジン上のプロトタイプレバー、フリーズされたv0.3.9 `lib`（パッチ適用前: 28,238,280）。数値は各レバーの初回実行時のものです。再実行結果の行はハーネスの`tool/perf1469/prototypes/results.jsonl`にあり、最大でも802オブジェクトの差しかありません（手法を参照）:
+
+| レバー | issue | アロケーション | Δ |
+| --- | --- | ---: | ---: |
+| `eval_receiver_self`が読み取る箇所でのみself ownerをsplitする | [#1502] | 27,695,758 | −542,522 |
+| `when *`スプラットなしの`mutated_receiver` | [#1502] | 28,112,239 | −126,041 |
+| リスト末尾が`...`でない限り`call_arg_types`はmapする | [#1503] | 27,922,890 | −315,390 |
+| ブロックエントリ配管: `each`ループ、遅延楽観的配列、`Result`ラウンドトリップの排除 | [#1504] | 27,772,456 | −465,824 |
+| インスタンスごとのメモ化キーによるユニオン順序、2メンバーの高速パス付き | [#1505] | 27,199,245 | −1,039,035 |
+| **5つすべて** | | **25,750,636** | **−2,487,644（−8.8%）** |
+
+リリースゲートが測定するコーパスであるv0.4.0ツリー自身の`lib`上では、5つすべてを組み合わせることでv0.4.0エンジンは42,940,599から39,120,227へと減少します（−3.82M、−8.9%）。出力は両コーパスでバイト単位で一致します。そのベースは#1469の42.77Mより+0.40%高いですが、これは2つが異なるツリーを測定しているためです。42.77Mはリリースブランチ上の最初のバージョンバンプコミットである`665440d8`（#1470、#1478、#1479、#1483が着地する前）でのローカル測定でした。コミットされたベースライン42,721,526は、同一コミットでのLinuxリリースゲート実行36278383180のものです。リリースヘッド`6503cd49`はLinux上で42,895,332を測定しました（リリースゲート実行36286123530）。ここでのアーム`07f49bdb`はそのヘッドをマージしたものであり、42,940,599はそれに対して+0.10%です。
+
+最初の4つはこの範囲の偶発的シェアです: 合わせると約−1.45Mとなり、+4.53Mの3分の1に相当します。これらを適用した後、フリーズされたコーパス上でのv0.3.9に対するエンジンのコストは+19.1%から約+13%に低下します。その残余は、v0.4.0系列が意図的に購入した推論（文評価器を通じたナローイング、メンバーごとのディスパッチ、祖先およびモジュールの解決、分配）と、それらの機能が増幅したユニオン順序付けコストです。5つ目のレバーは機械的な削除ではなく設計上の選択であり、この範囲よりも先行して存在していたものです。v0.4.0において、`sort_members`は包括（inclusive）で1,419,145アロケーションを要し（実行の5.0%、163,939回の呼び出しと617,243メンバー）、プロトタイプはそのうち−1,039,035を回復します。これは`ready-for-human`として起票されています。5つすべてを適用した場合、フリーズされたコーパスでのv0.3.9に対するコストは+8.6%になります。
+
+## ウォールクロック時間
+
+アームあたりのウォール時間はv0.3.9の14.5秒からv0.4.0の21.7秒へと増加しました（+49%、各1サンプル）。この増加はスイープ全体で単調ではなく、後半のアームは他のレーンの`make verify-changed`実行と重複したため、ここでは一切要因帰属を行っていません。プロトタイプのウォール時間（18.4〜24.0秒）も同じノイズの範囲内にあります。ウォール時間の問題を決定するには、静かなホスト上で交互に繰り返されるサンプルが必要です（`docs/agents/measurement.md`の「段階的A/Bはフェーズと処置を混同する」）。
+
+## 制限事項
+
+- **ここでの出力の一致は弱い証拠である**。フリーズされたコーパスとv0.4.0の`lib`はそれぞれ単一のinfo診断を生成するため、「バイト単位で一致」はクラッシュや新しい指摘の発生を排除する以上の意味をほとんど持ちません。起票された各issueのゲートは、調査コーパスのdiffを要求します。
+- **トレースは最も内側のRubyフレームに帰属し、そのフレームはYJITに依存する**。 Cイテレータを呼び出すメソッドは、イテレータのアロケーションを吸収します。`Array#map`および`Array#each`はYJITが有効な場合にのみRubyで実装され（`array.rb`の`with_jit`ブロック）、Rigorは5秒の期限後にYJITを有効にします（`CLI#arm_jit_deadline`、`lib/rigor/runtime/jit.rb`）。負荷の高いホストでは、YJITがオンになるポイントが実行ごとに変動します。オンのとき、`Array#map`および`Array#each`は独自のRubyフレームとして現れ、そうでなければ呼び出し元に請求されていたはずのアロケーションを引き受けます。したがって、イテレータ対呼び出し元の分割はステップの2つのアーム間で異なる場合があります。#1166ペアのみが`RIGOR_DISABLE_YJIT=1`で再トレースされました。他のステップについては、`Array#…`行とその呼び出し元の行を合わせて読んでください。同様に、Rubyレベルのイテレータ（例えば`rigor_each_child`）に渡されたブロックは、そのアロケーションをイテレータに請求します。メソッドの名前変更や移動を行うリファクタリングは、一致する±のペアとして現れます。v0.3.9とv0.4.0の間には3つあります: `with_local` → `bind_local`、`sub_eval` → `evaluator_at`、および`select_candidates` → `select_declared`。アームあたりの合計はこれらに一切依存しません: YJITのオンとオフは、両方の#1166アームで55オブジェクト以内で一致しています。
+- **+100K以上の8つのステップはステップごとにトレースされていない**（[#1250]、[#1301]、および表の後にリストされた6つ）。それぞれが+101K〜+135Kであり、8つすべてを合わせると0.91Mになります。ステップは構成上合計と一致するため、範囲内で未測定のものはなく、メソッドレベルで未説明であるに過ぎません。
+- **包括的な`sort_members`の数値はマージ前に修正された**。最初のプローブは測定ウィンドウ内で自身のメンバーごとの集計をカウントし、4,505,381と報告していました。集計は現在ウィンドウの外で実行され、数値は1,419,145となっています。
+- **ハーネス**は`tool/perf1469/`配下の`allocation-attribution-1469-harness`にあります。以下を保持しています:
+  - スイープドライバーと新しいプロセスの測定スクリプト;
+  - TracePointトレーサーとそのdiff;
+  - v0.3.9ベースアームとそのロードパス証明を含む、アームごとの生の結果;
+  - gzip圧縮されたメソッドごとのトレース;
+  - 包括プローブの出力;
+  - 5つのプロトタイプのdiffとそれらの測定結果行。
+
+  そのスクリプトは、実行されたスクラッチパスをハードコードしています。
+
+## 完全なシリーズ
+
+フリーズされたv0.3.9ツリーに対する`rigor check --no-cache lib`のアロケーション。`v0.3.9..v0.4.0`のエンジンを変更するファーストペアレントコミットごとに1行、ファーストペアレント順。Δは直前の行に対する差分。「diags」はJSON診断数、wallは単一サンプル。
+
+| # | マージ | PR | アロケーション | Δ | 診断数 | wall秒 | タイトル |
+| ---: | --- | --- | ---: | ---: | ---: | ---: | --- |
+| 0 | `d0c370f7` (v0.3.9) | | 23,705,247 | | 1 | 14.49 | the base engine |
+| 1 | `be73e08d` | [#999] | 23,717,840 | +12,593 | 1 | 15.28 | Check arity against a source-defined method's own signature |
+| 2 | `d32ad0d9` | [#1005] | 23,717,964 | +124 | 1 | 16.27 | Distinguish an unresolvable inline type name from a duplicate one |
+| 3 | `e747d0d5` | [#1000] | 23,717,935 | −29 | 1 | 15.72 | Propose the inferred return for a declared-untyped method |
+| 4 | `3be3d8f1` | [#1001] | 23,717,909 | −26 | 1 | 15.01 | Project Integer#to_s / Float#to_s to numeric-string refinements |
+| 5 | `4d6ac321` | [#1006] | 23,829,517 | +111,608 | 1 | 15.45 | Absorb a union arm that another arm contains element-wise |
+| 6 | `4922fb7f` | [#1010] | 23,940,610 | +111,093 | 1 | 16.48 | Arity-check a method the project defines in source and declares nowhere |
+| 7 | `bc9808fa` | [#1012] | 23,941,131 | +521 | 1 | 16.49 | Key the synthesizer and plugin-producer caches on the engine source |
+| 8 | `caa258dc` | [#1013] | 23,941,147 | +16 | 1 | 14.55 | Narrow to_s(base) and regex hex/octal producers to non-empty-string |
+| 9 | `2b26e4f9` | [#1015] | 24,116,196 | +175,049 | 1 | 16.32 | Narrow a value-position conditional through the statement evaluator |
+| 10 | `5922448f` | [#1018] | 24,116,423 | +227 | 1 | 17.73 | Read the same-line %a{} inline annotation forms |
+| 11 | `5b3a8196` | [#1022] | 24,092,922 | −23,501 | 1 | 16.59 | Treat a union with an untyped member as imprecise in overload selection |
+| 12 | `b73747d6` | [#1020] | 24,319,867 | +226,945 | 1 | 18.08 | Narrow a value-position and/or through the statement evaluator |
+| 13 | `826bef9f` | [#1023] | 24,319,933 | +66 | 1 | 15.81 | Report the two inline-RBS spellings the reader still drops silently |
+| 14 | `256a34ef` | [#1024] | 24,320,082 | +149 | 1 | 14.92 | Narrow through a conditional used as a condition |
+| 15 | `638959cb` | [#1031] | 24,320,167 | +85 | 1 | 15.27 | Key the rbs.* producer caches on the engine source |
+| 16 | `323e696d` | [#1032] | 24,320,147 | −20 | 1 | 22.98 | Render a project-declared RBS alias instead of its expansion |
+| 17 | `839bcbc2` | [#1029] | 24,320,554 | +407 | 1 | 20.8 | Decline a compact-header rename collision the two crefs disagree about |
+| 18 | `02d96189` | [#1030] | 24,320,862 | +308 | 1 | 16.0 | Model a define_method block's self as the class instance |
+| 19 | `aa98a7d9` | [#1034] | 24,320,877 | +15 | 1 | 16.18 | Fold a concern's included-block scopes into the including model |
+| 20 | `dd029e0e` | [#1035] | 26,555,544 | +2,234,667 | 1 | 14.82 | Route the .freeze and \|\|= constant spellings to the meta-constant handler |
+| 21 | `81133b8a` | [#1036] | 26,555,627 | +83 | 1 | 15.56 | Write %a{pure} and effect envelopes from sig-gen |
+| 22 | `6e4929d3` | [#1037] | 26,571,097 | +15,470 | 1 | 15.28 | Revive the ADR-16 Tier-D seam as template units |
+| 23 | `22f5a1a7` | [#1045] | 24,336,177 | −2,234,920 | 1 | 15.15 | Spell the meta-constant write arms out instead of splatting the list |
+| 24 | `7eb23692` | [#1044] | 24,336,647 | +470 | 1 | 14.54 | Add rigor-active-model-serializers plugin (object recognizer) |
+| 25 | `0bd70a45` | [#1042] | 24,336,384 | −263 | 1 | 15.78 | Resolve a Const.new effect edge to the class's #initialize |
+| 26 | `cd550f31` | [#1050] | 24,336,944 | +560 | 1 | 16.53 | Compile app/views ERB into template units in rigor-actionpack |
+| 27 | `36c0e248` | [#1052] | 24,336,940 | −4 | 1 | 15.59 | Fold delegate, concern associations and attachment macros into the model index |
+| 28 | `98ef7f63` | [#1054] | 24,336,533 | −407 | 1 | 14.17 | Emit a plugin's project-global disclosure once per run |
+| 29 | `cd30c74b` | [#1053] | 24,336,728 | +195 | 1 | 14.21 | Carry the compiled template-unit index on ProjectScan |
+| 30 | `0a586556` | [#1062] | 24,337,182 | +454 | 1 | 14.45 | Disclose the six discovery plugins' load errors once per run |
+| 31 | `02f48ea4` | [#1061] | 24,337,265 | +83 | 1 | 14.28 | Stop the pool's workers dying on a class-ivar memo |
+| 32 | `c03fd94d` | [#1063] | 24,337,261 | −4 | 1 | 14.17 | Let a plugin-supplied member veto the top-level def |
+| 33 | `63bbfa33` | [#1057] | 24,337,791 | +530 | 1 | 15.58 | Edge a controller action to the template it renders |
+| 34 | `121620ed` | [#1066] | 24,337,851 | +60 | 1 | 14.89 | Trace render-site locals, and compile layouts |
+| 35 | `53edd83f` | [#1067] | 24,338,029 | +178 | 1 | 15.37 | Emit a positioned plugin batch once per run |
+| 36 | `b8a6051a` | [#1068] | 24,338,112 | +83 | 1 | 14.69 | Make Ractor pool workers read only shareable constants and a parent-resolved lockfile |
+| 37 | `81707d3e` | [#1070] | 24,338,304 | +192 | 1 | 15.35 | Fall back to the HTML partial a .js template really renders |
+| 38 | `c22278b7` | [#1069] | 24,338,309 | +5 | 1 | 15.91 | Route rigor type-of on a template through its compiled unit |
+| 39 | `b50441d8` | [#1087] | 24,338,365 | +56 | 1 | 15.65 | Pure-Ruby xxh3-64 for lens anchors |
+| 40 | `f65429a0` | [#1088] | 24,338,311 | −54 | 1 | 15.62 | Add Plugin::Base#declared_members for lens member enumeration |
+| 41 | `7836b2e7` | [#1091] | 24,338,374 | +63 | 1 | 16.51 | Prune redundant comments across lib, plugins, and specs |
+| 42 | `b587a70e` | [#1096] | 24,845,536 | +507,162 | 1 | 16.93 | Keep the receiver's type arguments on an RBS `-> self` return |
+| 43 | `11455d5c` | [#1103] | 25,139,921 | +294,385 | 1 | 15.5 | Destructure a non-tuple Array[T] into per-slot T bindings |
+| 44 | `608be0a9` | [#1104] | 25,241,033 | +101,112 | 1 | 16.12 | Distribute destructuring over unions and wrap values without to_ary |
+| 45 | `0c9c618f` | [#1105] | 25,241,290 | +257 | 1 | 16.47 | Drop the callee's return when an exactly-once block never completes |
+| 46 | `a18e5407` | [#1112] | 25,334,725 | +93,435 | 1 | 14.91 | Auto-splat numbered block parameters as their explicit list |
+| 47 | `1b916f3b` | [#1115] | 25,355,251 | +20,526 | 1 | 16.96 | Unload the rbs gem's unsound Enumerable#each_slice shim |
+| 48 | `7bf685df` | [#1113] | 25,337,302 | −17,949 | 1 | 16.12 | Type Kernel#loop as completing when its body may raise StopIteration |
+| 49 | `40a08499` | [#1114] | 25,480,037 | +142,735 | 1 | 18.39 | Destructure instance-variable targets through MultiTargetBinder |
+| 50 | `ce48b4fa` | [#1106] | 25,466,796 | −13,241 | 1 | 18.99 | Type the graphql-ruby class-level DSL in rigor-graphql |
+| 51 | `faae6273` | [#1111] | 25,607,259 | +140,463 | 1 | 16.09 | Add rigor-grape: type the Grape endpoint and entity DSLs |
+| 52 | `9ec52001` | [#1118] | 25,607,195 | −64 | 1 | 15.42 | Bind rigor-grape `desc` blocks to the route-attribute config context |
+| 53 | `4f54815b` | [#1128] | 25,611,296 | +4,101 | 1 | 15.55 | Splat block parameters over an array carrier the binder cannot decompose |
+| 54 | `54f120d9` | [#1129] | 25,860,362 | +249,066 | 1 | 15.74 | Dispatch a composite receiver per projected member |
+| 55 | `51a190f7` | [#1127] | 25,860,490 | +128 | 1 | 16.11 | Give the external-ancestor walk one owner |
+| 56 | `e82cd076` | [#1131] | 25,953,151 | +92,661 | 1 | 17.4 | Resolve inherited calls into core and stdlib RBS |
+| 57 | `9cc94876` | [#1133] | 25,953,728 | +577 | 1 | 15.75 | Bound the class-graph memo to one slot |
+| 58 | `b04e538f` | [#1136] | 25,962,170 | +8,442 | 1 | 15.79 | Bound the two remaining per-file memos in ExpressionTyper |
+| 59 | `72903708` | [#1142] | 26,034,437 | +72,267 | 1 | 16.06 | Read []= splice stores through the value's element types |
+| 60 | `be733aab` | [#1144] | 26,034,453 | +16 | 1 | 15.7 | Tidy the XXH3 follow-ups from the #1087 review |
+| 61 | `79fa99cf` | [#1159] | 26,140,377 | +105,924 | 1 | 15.45 | Block parameters share the `-> self` substitution verdict |
+| 62 | `9fd4b6d4` | [#1160] | 26,140,465 | +88 | 1 | 14.95 | Edge a respond_to format arm to the template that arm renders |
+| 63 | `19c2af59` | [#1161] | 26,140,368 | −97 | 1 | 17.12 | Type enum-backed column readers as the enum key, not the storage type |
+| 64 | `b5af5cf7` | [#1135] | 26,860,921 | +720,553 | 1 | 16.22 | Type the Sorbet annotation DSL through bundled RBS and an extend bridge |
+| 65 | `e763cf3a` | [#1163] | 26,898,811 | +37,890 | 1 | 15.79 | Keep Enumerator::Lazy lazy through a chained call |
+| 66 | `66177b9c` | [#1166] | 27,301,550 | +402,739 | 1 | 16.33 | Read a double-splatted hash shape and `...` at the call site |
+| 67 | `c5487a37` | [#1164] | 27,302,277 | +727 | 1 | 15.78 | Bind `case/in` pattern names against the case subject |
+| 68 | `a8396ced` | [#1165] | 27,321,772 | +19,495 | 1 | 16.31 | Order a prepended module ahead of the class it is prepended into (#1123) |
+| 69 | `594e54f6` | [#1176] | 27,324,014 | +2,242 | 1 | 15.95 | Widen nil-collapsing predicate folds on optimistic carriers to bool (#1172) |
+| 70 | `0765b45b` | [#1178] | 27,489,751 | +165,737 | 1 | 16.9 | Resolve calls through a discovered class's included RBS modules |
+| 71 | `e890b0dc` | [#1179] | 27,534,768 | +45,017 | 1 | 16.2 | Seed compound ivar writes in the class-ivar accumulator |
+| 72 | `c56c2ccf` | [#1190] | 27,534,715 | −53 | 1 | 17.58 | sig: declare Effects::Registry and the plugin effect row classes (#1181) (#1190) |
+| 73 | `908a5c9a` | [#1201] | 27,534,785 | +70 | 1 | 16.39 | Snapshot the full signature state on the pool's sequential fallback |
+| 74 | `1e5695bc` | [#1206] | 27,534,944 | +159 | 1 | 16.68 | Bind captured rebinds at every pair of the HashShape transform fold |
+| 75 | `ebed1e53` | [#1202] | 27,554,545 | +19,601 | 1 | 16.67 | Type a value-position index compound write as what it stores |
+| 76 | `feaf058a` | [#1204] | 27,564,955 | +10,410 | 1 | 16.57 | Widen rebound instance variables under the per-element fold |
+| 77 | `bda0dfda` | [#1207] | 27,603,782 | +38,827 | 1 | 17.03 | Iterate a self-reading block store's evidence to a fixpoint |
+| 78 | `416e205d` | [#1203] | 27,605,834 | +2,052 | 1 | 18.7 | Widen captured locals the per-element fold mutates in place |
+| 79 | `362a6a49` | [#1205] | 27,609,736 | +3,902 | 1 | 16.57 | Thread block returns through index writes in the prefix |
+| 80 | `68ed39bb` | [#1209] | 27,617,323 | +7,587 | 1 | 16.71 | Widen a multi-assign index target's receiver |
+| 81 | `04457555` | [#1211] | 27,617,834 | +511 | 1 | 16.07 | Widen a for-index and rescue-reference index target's receiver |
+| 82 | `ed1dff20` | [#1210] | 27,617,767 | −67 | 1 | 16.41 | Carry a block's instance-variable rebinds into the continuation |
+| 83 | `74970d1e` | [#1213] | 27,617,629 | −138 | 1 | 16.21 | Floor nested per-element and per-pair folds on a stale tail |
+| 84 | `bf5edbb3` | [#1215] | 27,699,225 | +81,596 | 1 | 16.56 | Join a block's next and break paths into its captured rebinds |
+| 85 | `15a29720` | [#1224] | 27,704,052 | +4,827 | 1 | 16.96 | Widen captured locals a rebinding block mutates in place |
+| 86 | `ca80be0c` | [#1225] | 27,619,261 | −84,791 | 1 | 16.89 | Floor unthreaded rebinds in block folds and the generic block-return pass |
+| 87 | `06f540ff` | [#1212] | 27,619,589 | +328 | 1 | 16.78 | Decline the HashShape transform fold on a mapping hash or a bang self-read |
+| 88 | `a98bd9c8` | [#1221] | 27,652,472 | +32,883 | 1 | 17.14 | Read a block store's rebound local as Dynamic[top] |
+| 89 | `1149769d` | [#1236] | 27,655,452 | +2,980 | 1 | 20.87 | Give a compound index write's [] read the call-site context |
+| 90 | `52a8c086` | [#1242] | 27,655,384 | −68 | 1 | 17.77 | Decline the per-element Tuple fold on a find ifnone argument |
+| 91 | `2dec06df` | [#1243] | 27,762,515 | +107,131 | 1 | 17.15 | Type a constant compound write as the value it stores |
+| 92 | `bd503e93` | [#1244] | 27,766,816 | +4,301 | 1 | 17.74 | Re-answer stale tail names in the generic block-return pass |
+| 93 | `91c214bf` | [#1247] | 27,767,030 | +214 | 1 | 17.67 | Join the mapping's values into transform_keys(mapping)'s key type |
+| 94 | `0192519e` | [#1249] | 27,682,304 | −84,726 | 1 | 17.2 | Widen captured contents a block mutates through a slot or a callee |
+| 95 | `5f2a07d8` | [#1245] | 27,683,629 | +1,325 | 1 | 17.13 | Shadow outer locals inside an unentered block's body |
+| 96 | `ad70fe7d` | [#1248] | 27,698,506 | +14,877 | 1 | 16.76 | Join a loop body's next and break paths into its rebinds |
+| 97 | `d61d41d4` | [#1252] | 27,711,480 | +12,974 | 1 | 17.06 | Join splatted entries into a hash literal's Hash[K, V] |
+| 98 | `5e51f5e5` | [#1253] | 27,711,061 | −419 | 1 | 17.2 | List Hash#shift as a Hash mutator |
+| 99 | `0c4ad0f7` | [#1255] | 27,711,078 | +17 | 1 | 17.44 | Accept provably non-empty literals against empty-witness refinements |
+| 100 | `21d9fddc` | [#1254] | 27,711,093 | +15 | 1 | 19.66 | Count a Tuple or HashShape seed as pinned in the unmoved-pin floor |
+| 101 | `e41a43fb` | [#1266] | 27,710,984 | −109 | 1 | 19.38 | Load Hash#transform_keys replacements overloads on rbs 3.x |
+| 102 | `6a0bb52c` | [#1250] | 27,845,997 | +135,013 | 1 | 17.95 | Thread writes nested in call operands into the post-statement scope |
+| 103 | `0ea5ea6e` | [#1265] | 27,846,012 | +15 | 1 | 18.25 | Fold constant-block Hash filters to an empty Hash, not an empty Array |
+| 104 | `e54c4725` | [#1269] | 27,846,075 | +63 | 1 | 18.37 | Give a rewritten empty-witness refinement the gradual arm |
+| 105 | `e8bfe604` | [#1261] | 27,846,749 | +674 | 1 | 18.55 | Count global, class-variable and it receivers as in-place mutations |
+| 106 | `f1d1f964` | [#1274] | 27,850,133 | +3,384 | 1 | 18.88 | Give Enumerable#detect find's ifnone overloads |
+| 107 | `a433a96f` | [#1275] | 27,850,321 | +188 | 1 | 18.53 | Let a record answer maybe for a Hash whose entries went unread |
+| 108 | `29e634a8` | [#1273] | 27,853,782 | +3,461 | 1 | 19.78 | Leave a block-return variable untyped when a parameter names it |
+| 109 | `847ec9c2` | [#1279] | 27,865,512 | +11,730 | 1 | 21.64 | Stop counting a nested scope's own local as a captured rebind |
+| 110 | `47208a6f` | [#1259] | 27,864,672 | −840 | 1 | 18.12 | Carry the primary body's rebinds across the retry edge |
+| 111 | `441182fa` | [#1277] | 27,916,610 | +51,938 | 1 | 19.31 | Give a straight-line rewrite its gradual arm |
+| 112 | `b5942231` | [#1276] | 27,938,835 | +22,225 | 1 | 18.03 | Bind a constant compound write gradually when another file writes it |
+| 113 | `4b70a574` | [#1270] | 27,941,202 | +2,367 | 1 | 18.67 | Complete the String mutator table and make it the only one |
+| 114 | `be9a887f` | [#1284] | 27,941,645 | +443 | 1 | 17.97 | Pin the refinement arm's exact type under a rewrite and a reorder |
+| 115 | `997ddcd3` | [#1280] | 27,946,980 | +5,335 | 1 | 18.99 | Stop reading a missing key as nil after Hash#default= |
+| 116 | `8426cf99` | [#1278] | 27,961,990 | +15,010 | 1 | 20.75 | Read a computed key on a closed hash shape with its nil arm |
+| 117 | `eef0de8d` | [#1294] | 27,962,107 | +117 | 1 | 20.32 | Join each side of a mixed Array \| Hash seed with its own evidence |
+| 118 | `f8cce839` | [#1292] | 27,961,616 | −491 | 1 | 18.76 | Classify Hash#compare_by_identity as a receiver mutation |
+| 119 | `0d6867fa` | [#1295] | 28,015,612 | +53,996 | 1 | 19.15 | Carry the optimistic mark through destructuring and safe navigation |
+| 120 | `4f8d8756` | [#1296] | 28,072,549 | +56,937 | 1 | 19.06 | Widen a mutator's receiver when the mutator is an operand |
+| 121 | `8c1b8f4d` | [#1293] | 28,073,160 | +611 | 1 | 19.52 | Bind a shared block-return variable to the class both sides share |
+| 122 | `3f069e0e` | [#1291] | 28,073,605 | +445 | 1 | 18.42 | Stop a mutated constant's Hash or Array reading its literal contents |
+| 123 | `7e42c48f` | [#1301] | 28,202,908 | +129,303 | 1 | 18.95 | Stop the constant ladder at a candidate another file writes |
+| 124 | `91b83c66` | [#1303] | 28,202,991 | +83 | 1 | 21.99 | Read Enumerable#sum's return at class level |
+| 125 | `33dd2ef2` | [#1307] | 28,207,091 | +4,100 | 1 | 20.0 | Include Enumerable[String] in StringIO through the core overlay |
+| 126 | `efaf8675` | [#1306] | 28,207,576 | +485 | 1 | 19.1 | Count new as an allocation only on a class object |
+| 127 | `1d0f8dfe` | [#1308] | 28,207,598 | +22 | 1 | 18.32 | Classify Enumerable blocks on IO, File and StringIO as non-escaping |
+| 128 | `db80dfe3` | [#1309] | 28,207,608 | +10 | 1 | 17.46 | Bound Relation builders for the association proxy too |
+| 129 | `07bf9cb1` | [#1310] | 28,317,008 | +109,400 | 1 | 17.36 | Type and record a later operand from the scope earlier ones left |
+| 130 | `0ee3777c` | [#1312] | 28,316,986 | −22 | 1 | 18.06 | Accept the association proxy's delete_all argument |
+| 131 | `4c48106c` | [#1314] | 28,316,964 | −22 | 1 | 18.9 | Name the read a Relation writer issues before its write |
+| 132 | `79ef2ae2` | [#1315] | 28,316,964 | 0 | 1 | 17.97 | Declare insert, insert! and upsert on the bundled Relation |
+| 133 | `02bc9467` | [#1321] | 28,316,977 | +13 | 1 | 18.79 | Type Relation#find with several ids as an Array |
+| 134 | `6b008cb3` | [#1316] | 28,317,296 | +319 | 1 | 18.25 | Key an effect unit on the side Ruby defines it on |
+| 135 | `2cdc9745` | [#1320] | 28,317,290 | −6 | 1 | 17.97 | Leave a singleton-class include out of the instance ancestry |
+| 136 | `4240f48f` | [#1323] | 28,317,270 | −20 | 1 | 18.67 | Decline a view seed for a find that returns several records |
+| 137 | `11902cb7` | [#1326] | 28,318,863 | +1,593 | 1 | 17.61 | Declare Enumerable#many? and the other missing ActiveSupport core_ext rows |
+| 138 | `71c94cf9` | [#1327] | 28,318,823 | −40 | 1 | 21.14 | Type the block form of find as Enumerable#find |
+| 139 | `17ff493e` | [#1328] | 28,318,556 | −267 | 1 | 29.55 | Keep the find note off a model's own self.find |
+| 140 | `418089ef` | [#1330] | 28,322,013 | +3,457 | 1 | 20.87 | Declare deep_dup, the Hash aliases and core_ext/range in the ActiveSupport overlay |
+| 141 | `fa4b3cbe` | [#1334] | 28,344,633 | +22,620 | 1 | 19.91 | Declare the remaining ActiveSupport 8.1 Object, String and Symbol rows |
+| 142 | `f35fdd4d` | [#1331] | 28,349,170 | +4,537 | 1 | 24.9 | Keep a fold-stored slot out of the memoizing index \|\|= reading |
+| 143 | `94d4a2cf` | [#1338] | 28,349,354 | +184 | 1 | 22.68 | Read an unbound variable \|\|= guard as the binding it guards |
+| 144 | `028b4fd1` | [#1340] | 28,348,755 | −599 | 1 | 22.72 | Read an unbound variable &&= as the unseen binding beside its rvalue |
+| 145 | `b7213d23` | [#1343] | 28,350,437 | +1,682 | 1 | 20.99 | Make the op= ivar seed independent of source order |
+| 146 | `5149b656` | [#1345] | 28,350,508 | +71 | 1 | 21.5 | Probe for the Ruby::Box fix before re-exec'ing under RUBY_BOX=1 |
+| 147 | `e59b7b89` | [#1349] | 28,349,784 | −724 | 1 | 23.16 | Drop the inline experimental-features flag from nix commands |
+| 148 | `9a1b40ac` | [#1348] | 28,364,274 | +14,490 | 1 | 18.46 | Take a proven argument's arm in declared RBS order |
+| 149 | `cdd97157` | [#1353] | 28,364,864 | +590 | 1 | 19.59 | Never prove a module or stubbed parameter out in pass 0 |
+| 150 | `73bf3bfa` | [#1355] | 28,364,427 | −437 | 1 | 21.99 | Bind a bounded method type variable to the widened argument |
+| 151 | `4c6ae438` | [#1370] | 28,394,414 | +29,987 | 1 | 23.31 | Forget the $~ narrowing a block or closure in the frame may rebind |
+| 152 | `56ba5aad` | [#1354] | 28,410,302 | +15,888 | 1 | 19.86 | Select by a narrow Dynamic facet's members, not its wrapper |
+| 153 | `6cd8395a` | [#1374] | 28,410,777 | +475 | 1 | 18.55 | Keep the $~ narrowing across a call into a Ruby-defined method |
+| 154 | `acce26ba` | [#1378] | 28,411,363 | +586 | 1 | 19.17 | Read a call's match rebinding by what it calls and its operands' types |
+| 155 | `d7a65e91` | [#1391] | 28,411,377 | +14 | 1 | 21.17 | Drop nil from min_by / max_by on a non-empty receiver |
+| 156 | `0c8a7356` | [#1396] | 28,396,594 | −14,783 | 1 | 20.95 | Keep a local's declaration mark across an in-place mutation |
+| 157 | `f946c3b9` | [#1390] | 28,396,707 | +113 | 1 | 18.24 | Credit block returns in sig-gen and annotate return types |
+| 158 | `78dba449` | [#1395] | 28,396,743 | +36 | 1 | 18.15 | Declare test roots with a test_paths: key; sig-gen observes them instead of a hard-coded s… |
+| 159 | `79e66699` | [#1392] | 28,396,852 | +109 | 1 | 30.58 | Enter thread, fiber and define_method blocks with the match globals unbound |
+| 160 | `96e38343` | [#1401] | 28,397,243 | +391 | 1 | 20.11 | Record a marked binding's miss answer beside its mark |
+| 161 | `327accfd` | [#1404] | 28,397,101 | −142 | 1 | 22.8 | Let a closed record answer maybe for an open hash shape |
+| 162 | `d5439363` | [#1409] | 28,397,675 | +574 | 1 | 20.58 | Count an attr writer declaration as a write to its ivar |
+| 163 | `b08656ec` | [#1405] | 28,417,800 | +20,125 | 1 | 18.79 | Treat $_ as frame-local and narrow it on a reader condition |
+| 164 | `698604d1` | [#1414] | 28,417,593 | −207 | 1 | 22.23 | Amend ADR-2: a dynamic_return answer outranks the RBS return |
+| 165 | `4c9161a6` | [#1419] | 28,417,742 | +149 | 1 | 20.44 | Floor a mutated constant's literal shape to its gradual nominal |
+| 166 | `23216d66` | [#1420] | 28,515,772 | +98,030 | 1 | 19.32 | Treat a catalogued iterator on an unclassified receiver as repeating |
+| 167 | `577aacb3` | [#1428] | 28,516,630 | +858 | 1 | 20.21 | Compare sig/ and inline declarations of one member (ADR-112 WD5) |
+| 168 | `7d6da46a` | [#1425] | 28,580,034 | +63,404 | 1 | 18.75 | Bind $! and $@ in rescue clauses and $? after a subprocess |
+| 169 | `5c76d7e8` | [#1424] | 28,582,914 | +2,880 | 1 | 20.31 | Scope refinement methods to their lexical using |
+| 170 | `ed93188b` | [#1422] | 28,582,832 | −82 | 1 | 20.77 | Write inline-declared members to sig/ and add sig-gen --check |
+| 171 | `42871afd` | [#1434] | 28,582,863 | +31 | 1 | 22.21 | Bind a (?) method's parameters to Dynamic[top] instead of crashing |
+| 172 | `904d371f` | [#1438] | 28,583,783 | +920 | 1 | 18.8 | Declare Process.last_status and read $? through it |
+| 173 | `d155a706` | [#1433] | 28,595,092 | +11,309 | 1 | 17.13 | Join a builtin global's declared type into its program-global seed |
+| 174 | `0c89c2f8` | [#1442] | 28,595,609 | +517 | 1 | 17.06 | Stop labelling frame-local special-variable writes as global effects |
+| 175 | `7e48c870` | [#1444] | 28,595,488 | −121 | 1 | 20.5 | Require DeclarationSourcedGuard where the evaluator uses it |
+| 176 | `9b54f41e` | [#1441] | 28,355,494 | −239,994 | 1 | 18.28 | Lay the content-mutation widening on every repeating body's entry |
+| 177 | `a690a612` | [#1449] | 28,356,870 | +1,376 | 1 | 18.43 | Narrow $_ on an implicit-self gets unless the file shows another self |
+| 178 | `407bd3ec` | [#1448] | 28,366,677 | +9,807 | 1 | 23.02 | Report writes a special global's setter rejects |
+| 179 | `f7935458` | [#1453] | 28,229,716 | −136,961 | 1 | 20.73 | Narrow global and constant receivers under guards, and keep disjoint class guards off unre… |
+| 180 | `bbaed629` | [#1470] | 28,230,522 | +806 | 1 | 20.32 | Fold a constant slice of the proven $~ to a Tuple, and fix the match narrowing it reads |
+| 181 | `4e630c9e` | [#1479] | 28,237,825 | +7,303 | 1 | 19.65 | Read a safe-navigation call's arguments and block with the receiver non-nil |
+| 182 | `493c4269` | [#1483] | 28,237,843 | +18 | 1 | 19.45 | Keep the declared parameters in a sig-gen tighter-return proposal |
+| 183 | `07f49bdb` | [#1490] | 28,238,280 | +437 | 1 | 21.66 | Bump up version to 0.4.0 |
+
+[#999]: https://github.com/rigortype/rigor/pull/999
+[#1000]: https://github.com/rigortype/rigor/pull/1000
+[#1001]: https://github.com/rigortype/rigor/pull/1001
+[#1005]: https://github.com/rigortype/rigor/pull/1005
+[#1006]: https://github.com/rigortype/rigor/pull/1006
+[#1010]: https://github.com/rigortype/rigor/pull/1010
+[#1012]: https://github.com/rigortype/rigor/pull/1012
+[#1013]: https://github.com/rigortype/rigor/pull/1013
+[#1015]: https://github.com/rigortype/rigor/pull/1015
+[#1018]: https://github.com/rigortype/rigor/pull/1018
+[#1020]: https://github.com/rigortype/rigor/pull/1020
+[#1022]: https://github.com/rigortype/rigor/pull/1022
+[#1023]: https://github.com/rigortype/rigor/pull/1023
+[#1024]: https://github.com/rigortype/rigor/pull/1024
+[#1029]: https://github.com/rigortype/rigor/pull/1029
+[#1030]: https://github.com/rigortype/rigor/pull/1030
+[#1031]: https://github.com/rigortype/rigor/pull/1031
+[#1032]: https://github.com/rigortype/rigor/pull/1032
+[#1034]: https://github.com/rigortype/rigor/pull/1034
+[#1035]: https://github.com/rigortype/rigor/pull/1035
+[#1036]: https://github.com/rigortype/rigor/pull/1036
+[#1037]: https://github.com/rigortype/rigor/pull/1037
+[#1042]: https://github.com/rigortype/rigor/pull/1042
+[#1044]: https://github.com/rigortype/rigor/pull/1044
+[#1045]: https://github.com/rigortype/rigor/pull/1045
+[#1050]: https://github.com/rigortype/rigor/pull/1050
+[#1052]: https://github.com/rigortype/rigor/pull/1052
+[#1053]: https://github.com/rigortype/rigor/pull/1053
+[#1054]: https://github.com/rigortype/rigor/pull/1054
+[#1057]: https://github.com/rigortype/rigor/pull/1057
+[#1061]: https://github.com/rigortype/rigor/pull/1061
+[#1062]: https://github.com/rigortype/rigor/pull/1062
+[#1063]: https://github.com/rigortype/rigor/pull/1063
+[#1066]: https://github.com/rigortype/rigor/pull/1066
+[#1067]: https://github.com/rigortype/rigor/pull/1067
+[#1068]: https://github.com/rigortype/rigor/pull/1068
+[#1069]: https://github.com/rigortype/rigor/pull/1069
+[#1070]: https://github.com/rigortype/rigor/pull/1070
+[#1087]: https://github.com/rigortype/rigor/pull/1087
+[#1088]: https://github.com/rigortype/rigor/pull/1088
+[#1091]: https://github.com/rigortype/rigor/pull/1091
+[#1096]: https://github.com/rigortype/rigor/pull/1096
+[#1103]: https://github.com/rigortype/rigor/pull/1103
+[#1104]: https://github.com/rigortype/rigor/pull/1104
+[#1105]: https://github.com/rigortype/rigor/pull/1105
+[#1106]: https://github.com/rigortype/rigor/pull/1106
+[#1111]: https://github.com/rigortype/rigor/pull/1111
+[#1112]: https://github.com/rigortype/rigor/pull/1112
+[#1113]: https://github.com/rigortype/rigor/pull/1113
+[#1114]: https://github.com/rigortype/rigor/pull/1114
+[#1115]: https://github.com/rigortype/rigor/pull/1115
+[#1118]: https://github.com/rigortype/rigor/pull/1118
+[#1127]: https://github.com/rigortype/rigor/pull/1127
+[#1128]: https://github.com/rigortype/rigor/pull/1128
+[#1129]: https://github.com/rigortype/rigor/pull/1129
+[#1131]: https://github.com/rigortype/rigor/pull/1131
+[#1133]: https://github.com/rigortype/rigor/pull/1133
+[#1135]: https://github.com/rigortype/rigor/pull/1135
+[#1136]: https://github.com/rigortype/rigor/pull/1136
+[#1142]: https://github.com/rigortype/rigor/pull/1142
+[#1144]: https://github.com/rigortype/rigor/pull/1144
+[#1159]: https://github.com/rigortype/rigor/pull/1159
+[#1160]: https://github.com/rigortype/rigor/pull/1160
+[#1161]: https://github.com/rigortype/rigor/pull/1161
+[#1163]: https://github.com/rigortype/rigor/pull/1163
+[#1164]: https://github.com/rigortype/rigor/pull/1164
+[#1165]: https://github.com/rigortype/rigor/pull/1165
+[#1166]: https://github.com/rigortype/rigor/pull/1166
+[#1176]: https://github.com/rigortype/rigor/pull/1176
+[#1178]: https://github.com/rigortype/rigor/pull/1178
+[#1179]: https://github.com/rigortype/rigor/pull/1179
+[#1190]: https://github.com/rigortype/rigor/pull/1190
+[#1201]: https://github.com/rigortype/rigor/pull/1201
+[#1202]: https://github.com/rigortype/rigor/pull/1202
+[#1203]: https://github.com/rigortype/rigor/pull/1203
+[#1204]: https://github.com/rigortype/rigor/pull/1204
+[#1205]: https://github.com/rigortype/rigor/pull/1205
+[#1206]: https://github.com/rigortype/rigor/pull/1206
+[#1207]: https://github.com/rigortype/rigor/pull/1207
+[#1209]: https://github.com/rigortype/rigor/pull/1209
+[#1210]: https://github.com/rigortype/rigor/pull/1210
+[#1211]: https://github.com/rigortype/rigor/pull/1211
+[#1212]: https://github.com/rigortype/rigor/pull/1212
+[#1213]: https://github.com/rigortype/rigor/pull/1213
+[#1215]: https://github.com/rigortype/rigor/pull/1215
+[#1221]: https://github.com/rigortype/rigor/pull/1221
+[#1224]: https://github.com/rigortype/rigor/pull/1224
+[#1225]: https://github.com/rigortype/rigor/pull/1225
+[#1236]: https://github.com/rigortype/rigor/pull/1236
+[#1242]: https://github.com/rigortype/rigor/pull/1242
+[#1243]: https://github.com/rigortype/rigor/pull/1243
+[#1244]: https://github.com/rigortype/rigor/pull/1244
+[#1245]: https://github.com/rigortype/rigor/pull/1245
+[#1247]: https://github.com/rigortype/rigor/pull/1247
+[#1248]: https://github.com/rigortype/rigor/pull/1248
+[#1249]: https://github.com/rigortype/rigor/pull/1249
+[#1250]: https://github.com/rigortype/rigor/pull/1250
+[#1252]: https://github.com/rigortype/rigor/pull/1252
+[#1253]: https://github.com/rigortype/rigor/pull/1253
+[#1254]: https://github.com/rigortype/rigor/pull/1254
+[#1255]: https://github.com/rigortype/rigor/pull/1255
+[#1259]: https://github.com/rigortype/rigor/pull/1259
+[#1261]: https://github.com/rigortype/rigor/pull/1261
+[#1265]: https://github.com/rigortype/rigor/pull/1265
+[#1266]: https://github.com/rigortype/rigor/pull/1266
+[#1269]: https://github.com/rigortype/rigor/pull/1269
+[#1270]: https://github.com/rigortype/rigor/pull/1270
+[#1273]: https://github.com/rigortype/rigor/pull/1273
+[#1274]: https://github.com/rigortype/rigor/pull/1274
+[#1275]: https://github.com/rigortype/rigor/pull/1275
+[#1276]: https://github.com/rigortype/rigor/pull/1276
+[#1277]: https://github.com/rigortype/rigor/pull/1277
+[#1278]: https://github.com/rigortype/rigor/pull/1278
+[#1279]: https://github.com/rigortype/rigor/pull/1279
+[#1280]: https://github.com/rigortype/rigor/pull/1280
+[#1284]: https://github.com/rigortype/rigor/pull/1284
+[#1291]: https://github.com/rigortype/rigor/pull/1291
+[#1292]: https://github.com/rigortype/rigor/pull/1292
+[#1293]: https://github.com/rigortype/rigor/pull/1293
+[#1294]: https://github.com/rigortype/rigor/pull/1294
+[#1295]: https://github.com/rigortype/rigor/pull/1295
+[#1296]: https://github.com/rigortype/rigor/pull/1296
+[#1301]: https://github.com/rigortype/rigor/pull/1301
+[#1303]: https://github.com/rigortype/rigor/pull/1303
+[#1306]: https://github.com/rigortype/rigor/pull/1306
+[#1307]: https://github.com/rigortype/rigor/pull/1307
+[#1308]: https://github.com/rigortype/rigor/pull/1308
+[#1309]: https://github.com/rigortype/rigor/pull/1309
+[#1310]: https://github.com/rigortype/rigor/pull/1310
+[#1312]: https://github.com/rigortype/rigor/pull/1312
+[#1314]: https://github.com/rigortype/rigor/pull/1314
+[#1315]: https://github.com/rigortype/rigor/pull/1315
+[#1316]: https://github.com/rigortype/rigor/pull/1316
+[#1320]: https://github.com/rigortype/rigor/pull/1320
+[#1321]: https://github.com/rigortype/rigor/pull/1321
+[#1323]: https://github.com/rigortype/rigor/pull/1323
+[#1326]: https://github.com/rigortype/rigor/pull/1326
+[#1327]: https://github.com/rigortype/rigor/pull/1327
+[#1328]: https://github.com/rigortype/rigor/pull/1328
+[#1330]: https://github.com/rigortype/rigor/pull/1330
+[#1331]: https://github.com/rigortype/rigor/pull/1331
+[#1334]: https://github.com/rigortype/rigor/pull/1334
+[#1338]: https://github.com/rigortype/rigor/pull/1338
+[#1340]: https://github.com/rigortype/rigor/pull/1340
+[#1343]: https://github.com/rigortype/rigor/pull/1343
+[#1345]: https://github.com/rigortype/rigor/pull/1345
+[#1348]: https://github.com/rigortype/rigor/pull/1348
+[#1349]: https://github.com/rigortype/rigor/pull/1349
+[#1353]: https://github.com/rigortype/rigor/pull/1353
+[#1354]: https://github.com/rigortype/rigor/pull/1354
+[#1355]: https://github.com/rigortype/rigor/pull/1355
+[#1370]: https://github.com/rigortype/rigor/pull/1370
+[#1374]: https://github.com/rigortype/rigor/pull/1374
+[#1378]: https://github.com/rigortype/rigor/pull/1378
+[#1390]: https://github.com/rigortype/rigor/pull/1390
+[#1391]: https://github.com/rigortype/rigor/pull/1391
+[#1392]: https://github.com/rigortype/rigor/pull/1392
+[#1395]: https://github.com/rigortype/rigor/pull/1395
+[#1396]: https://github.com/rigortype/rigor/pull/1396
+[#1401]: https://github.com/rigortype/rigor/pull/1401
+[#1404]: https://github.com/rigortype/rigor/pull/1404
+[#1405]: https://github.com/rigortype/rigor/pull/1405
+[#1409]: https://github.com/rigortype/rigor/pull/1409
+[#1414]: https://github.com/rigortype/rigor/pull/1414
+[#1419]: https://github.com/rigortype/rigor/pull/1419
+[#1420]: https://github.com/rigortype/rigor/pull/1420
+[#1422]: https://github.com/rigortype/rigor/pull/1422
+[#1424]: https://github.com/rigortype/rigor/pull/1424
+[#1425]: https://github.com/rigortype/rigor/pull/1425
+[#1428]: https://github.com/rigortype/rigor/pull/1428
+[#1433]: https://github.com/rigortype/rigor/pull/1433
+[#1434]: https://github.com/rigortype/rigor/pull/1434
+[#1438]: https://github.com/rigortype/rigor/pull/1438
+[#1441]: https://github.com/rigortype/rigor/pull/1441
+[#1442]: https://github.com/rigortype/rigor/pull/1442
+[#1444]: https://github.com/rigortype/rigor/pull/1444
+[#1448]: https://github.com/rigortype/rigor/pull/1448
+[#1449]: https://github.com/rigortype/rigor/pull/1449
+[#1453]: https://github.com/rigortype/rigor/pull/1453
+[#1470]: https://github.com/rigortype/rigor/pull/1470
+[#1479]: https://github.com/rigortype/rigor/pull/1479
+[#1483]: https://github.com/rigortype/rigor/pull/1483
+[#1490]: https://github.com/rigortype/rigor/pull/1490
+[#1502]: https://github.com/rigortype/rigor/issues/1502
+[#1503]: https://github.com/rigortype/rigor/issues/1503
+[#1504]: https://github.com/rigortype/rigor/issues/1504
+[#1505]: https://github.com/rigortype/rigor/issues/1505
