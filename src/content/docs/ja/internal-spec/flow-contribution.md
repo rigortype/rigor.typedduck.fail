@@ -3,8 +3,9 @@ title: "フロー寄与バンドル — `Rigor::FlowContribution`"
 description: "rigortype/rigor docs/internal-spec/flow-contribution.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/flow-contribution.md"
 sourcePath: "docs/internal-spec/flow-contribution.md"
-sourceSha: "5f6142cc4a0749f0f5700e3ecfc1e5d7cfa6049b93a7eb9108ad5e01fe098f3a"
-sourceCommit: "0cf313582cfbe2fa7da8148dc498d0b2a0893438"
+sourceSha: "3b758aa0e30cb535f7c631ae7de020a812f9618b6fc65170652ebfc0959fcbc2"
+sourceCommit: "e12ab45fa55707ed2acc0eae2e273b99a72dc077"
+sourceDate: "2026-09-26T06:06:29+09:00"
 translationStatus: "translated"
 sidebar:
   order: 3050
@@ -44,7 +45,7 @@ contribution = Rigor::FlowContribution.new(
 
 | スロット | 型 | 意味 |
 | --- | --- | --- |
-| `return_type` | 型キャリアまたは`nil` | 通常エッジの戻り値型。プラグインは選択されたRBS契約（contract）の範囲内でMAYナローイングできます。非互換な戻り値型はマージポリシーに従いコンフリクト診断になります。 |
+| `return_type` | 型キャリアまたは`nil` | 通常エッジの戻り値型。プラグインの`dynamic_return`の回答は、ナローイングするか矛盾するかを問わず、診断なしでRBSの戻り値を置き換えます（[ADR-2](../../adr/2-extension-api/) §「2026-09-26修正条項」、[plugin.md](plugin.md)）; RBSの戻り値はマージ入力ではありません。同一の呼び出しに対する2つのプラグインの回答は、マージポリシーに従ってマージされます。 |
 | `truthy_facts` | `Array`または`nil` | truthyな制御フローエッジでのみ成立するファクト。エッジローカル：truthyエッジのファクトは、コントリビューションが明示的に提供しない限り、falseyエッジの補集合をMUST NOT意味しません。 |
 | `falsey_facts` | `Array`または`nil` | `truthy_facts`の双対。 |
 | `post_return_facts` | `Array`または`nil` | 呼び出しがすべてのエッジで正常に戻った後に成立するファクト。アサーションスタイルのコントリビューション（`%a{rigor:v1:assert ...}`）のキャリアです。 |

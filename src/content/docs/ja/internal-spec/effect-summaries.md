@@ -3,15 +3,16 @@ title: "エフェクトサマリー — 収集と伝播"
 description: "rigortype/rigor docs/internal-spec/effect-summaries.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/effect-summaries.md"
 sourcePath: "docs/internal-spec/effect-summaries.md"
-sourceSha: "334b72bd5b735c5fac1b597214f947deaed8d8ee9355a9f81ad4a0050a6c98d7"
-sourceCommit: "32fcfb01032273679a99853a37f53a6e842b3330"
-sourceDate: "2026-09-24T18:14:35+09:00"
+sourceSha: "442c0a4562f941c1b6bd8ec20f7ecf45ac098bddb87b46c21118034257e5e473"
+sourceCommit: "e12ab45fa55707ed2acc0eae2e273b99a72dc077"
+sourceDate: "2026-09-27T08:47:25+09:00"
 translationStatus: "translated"
 sidebar:
   order: 3050
 ---
 
 ステータス: **ドラフト**。この文書はRigorがエフェクトサマリーをどう*生成する*かを仕様化します: 収集がいつ走るか、コレクターが何を観測してよく何を観測してはならないか、ファイルの寄与がどう形作られマージされるか、プロジェクト全体のクロージャがどう計算されるか、そしてそのいずれかが失敗したとき何が起きるか。それが値を生成するラベル言語——文法、包摂、レジストリ、レーン、汚染原因のenum——は[`docs/type-specification/effect-labels.md`](../../type-specification/effect-labels/)で規範的であり、ここの記述がそれと矛盾する場合は常にそちらが拘束します。根拠は[ADR-103](../../adr/103-effect-labels/);研究は[`docs/design/20260816-effect-labels.md`](../../design/20260816-effect-labels/)です。
+
 
 「エフェクトラベル」「エフェクトサマリー」「エフェクトエンベロープ」は罠のある複合語です（[`CONTEXT.md`](https://github.com/rigortype/rigor/blob/master/CONTEXT.md)）。素の「エフェクト」は依然として`Rigor::FlowContribution`のフローエフェクトのバンドルを名指します。
 
@@ -85,8 +86,8 @@ sidebar:
 | 構文 | 起点 | ラベル |
 | --- | --- | --- |
 | `` `cmd` ``・`%x(cmd)` | `xstring` | `io.process` |
-| `$g`読み取り（フレームローカルの特殊変数`$~ $_ $& $` $' $+ $!`を除く） \| `gvar-read` \| `global.read` |
-| `$g = …`とその演算子形式 | `gvar-write` | `global.write` |
+| `$g`読み取り（フレームローカルの`$~`と`$_`、および`$!`と`$@`を除く、§ 特殊変数） | `gvar-read` | `global.read` |
+| `$g = …`、その演算子形式、および多重代入・`for`・`rescue =>`のターゲットとしての`$g`（`define_method`本体外のフレームローカルな`$~`と`$_`を除く、§ 特殊変数） | `gvar-write` | `global.write` |
 | `@@cv`読み取り | `cvar-read` | `global.read` |
 | `@@cv`書き込み | `cvar-write` | `mutate.static` |
 | インスタンスメソッド本体内の`@iv`書き込み | `ivar-write` | `mutate.self` |
@@ -97,6 +98,16 @@ sidebar:
 | `attr_writer`の合成された本体 | `attr-writer` | `mutate.self` |
 
 カタログ化された起点は、行がマッチした呼び出し先キーでキー付けされます（`catalogue:Kernel#puts`・`catalogue:Time.now`）。
+
+### 特殊変数
+
+すべての`$`名がグローバル状態であるわけではありません（[#1363](https://github.com/rigortype/rigor/issues/1363)）; 各変数がどこに配置されるかは[`global-variables.md`](../../type-specification/global-variables/#特殊変数スロット)で規定され、それぞれがどのようにバインドされるかは[`control-flow-analysis.md`](../../type-specification/control-flow-analysis/)で規定されています。
+
+- `$~`と`$_`は**フレームローカル**です（同文書の § Regexpマッチ述語ナローイング、§ 最終行（`$_`）のナローイング）。Rubyはこれらを、実行するメソッド、クラス、モジュール、またはファイル本体の特殊変数スロットに保持します。その本体が作成するブロックも同じスロットに到達しますが、`Thread.new`、`Fiber.new`、または`Ractor.new`のルートブロックは例外であり、独自のスロットを持ちます。`def`で定義されたメソッドへの呼び出しも独自のスロットを持ちます。いずれかの読み取りは`global.read`ではありません。あらゆる形式の書き込み（`$_ = line`、`$~ = nil`、`$_ ||= …`、`$_, rest = …`、`for $_ in …`、`rescue => $_`）はそのスロットのみをバインドするため、ローカル変数への書き込みと同様にラベルを獲得しません。例外は`define_method`本体です（後述）。`mutate.local`でもありません: そのラベルはフレームが割り当てたオブジェクトの変更であり、スロットへの書き込みはオブジェクトを変更しないためです。マッチファミリーの残りの要素（`$&`、`` $` ``、`$'`、`$+`、`$1`…）は、走査が色付けしない後方参照・番号指定参照ノードであり、いずれも代入できません。
+- `$!`と`$@`（レスキューされている例外とそのバックトレース）は**フレームローカルではありません**（同文書の § レスキューとサブプロセスのグローバル）。`$!`の読み取りは、どのフレームがそれを実行しているかに関係なく、動的に囲むレスキュー節に到達します。それは呼び出し元のフレームである場合もあれば、この本体で書かれたブロックへyieldする呼び出し先のフレームである場合もあります: `with_rescue { $! }`では、ブロックは`with_rescue`がレスキューした例外を読み取ります。したがって、`$!`はプログラム状態というよりも実行中呼び出しの暗黙の引数であり、その読み取りは`global.read`ではありません。`$@`の読み取りは`e.backtrace`と同様にその例外のバックトレースを読み取り、オブジェクトの状態の読み取りにラベルが付けられることはありません。書き込みはその非対称性のもう一方の側面です: `$@ = bt`は例外オブジェクトを変更し、レスキュー側のフレームはその変更を観測するため（そこでの`rescue => e`は新しいバックトレースを参照します）、その書き込みは`global.write`のままとなります。Rubyは`$!`への書き込みを拒否します（`NameError`）。
+- `$?`（スレッドが待機した最後の子プロセスのステータス）は**スレッドローカル**であり、呼び出し先が実行したサブプロセスが呼び出し元のためにそれを設定します。その読み取りは`global.read`のままとなります。
+
+`define_method`ブロックは、独自のスロット上ではなく、`define_method`を呼び出す本体のスロット上で実行されます。1つのクラス本体がその方法で定義する2つのメソッドは、1つの`$_`と1つの`$~`を共有します: `define_method(:set) { |v| $_ = v }`と`define_method(:get) { $_ }`の後、`set("shared")`を実行すると`get`は`"shared"`を返します。したがって、`define_method`単位の本体内での`$~`や`$_`への書き込みは、上記のすべての形式において`gvar-write` / `global.write`のままとなります。走査はこれを単位上のビット（`UnitScan`の`shared_slot:`）として保持し、クラス本体内のリテラル名を持つ`define_method`およびメソッド本体が実行するものに対して設定されます。いずれかにネストされた`def`は依然として独自のスロットを持ちます。そのような本体内での読み取りは依然として`global.read`ではありません: そのような読み取りのほとんどは同じ本体が直前に実行したマッチに対するものであり、走査はそれを同胞の書き込みと区別できないためです。
 
 ### 所有権
 

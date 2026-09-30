@@ -3,8 +3,9 @@ title: "フロー寄与マージャー（スライス3）"
 description: "rigortype/rigor docs/internal-spec/flow-contribution-merger.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/flow-contribution-merger.md"
 sourcePath: "docs/internal-spec/flow-contribution-merger.md"
-sourceSha: "58021988bdf29d162834e1250df05dbe97a1c4559f9caea9311484f66e04a078"
-sourceCommit: "450a3016ca812067f6baa96e415442ed936ad49a"
+sourceSha: "21bca06ccc352ccce7e6d64e83016af9fdf61393881e00d5e57ad560461faa9b"
+sourceCommit: "e12ab45fa55707ed2acc0eae2e273b99a72dc077"
+sourceDate: "2026-09-26T06:06:29+09:00"
 translationStatus: "translated"
 sidebar:
   order: 3050
@@ -97,6 +98,8 @@ sidebar:
 | 1    | `:generated`             | 生成されたシグネチャ/メタデータ。 |
 | 2    | `:plugin`、`plugin.<id>` | プラグインコントリビューション。 |
 | 3    | その他すべて              | 不明 — 報告されますが最低ティアとして扱われます。 |
+
+ティア0は受け入れられたRBSの権威を名指しますが、RBSの戻り値型はマージ入力ではありません: `MethodDispatcher#resolve`は`RbsDispatch`の前にプラグインティアを参照するため、プラグインの`dynamic_return`が応答した場合、マージされたプラグインの回答がその呼び出しの型となり、RBSの戻り値は決して参照されません（[ADR-2](../../adr/2-extension-api/) §「2026-09-26修正条項」、[plugin.md](plugin.md)）。ティアはマージャーが実際に認識する寄与を順序付けます。
 
 ティア内では、コントリビューションは決定論的な順序でマージされます。来歴が提供する`plugin_id`のアルファベット順（nil plugin idは先頭にソートされ、`:rbs_extended` / `:generated`のプレプラグインコントリビューションを安定させます）、その後は元の入力位置が最終的なタイブレークになります。
 

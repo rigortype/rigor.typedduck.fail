@@ -3,9 +3,9 @@ title: "プラグイン側キャッシュプロデューサー（スライス6�
 description: "rigortype/rigor docs/internal-spec/plugin-cache-producers.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/plugin-cache-producers.md"
 sourcePath: "docs/internal-spec/plugin-cache-producers.md"
-sourceSha: "3e8447bedc517414225881341f27723e035d09656b35ebe43fb0c9a1a6d7900c"
-sourceCommit: "568138c239ec5b7b39833ed6a2a21fd027e3d319"
-sourceDate: "2026-09-11T21:15:54+09:00"
+sourceSha: "aca962d920001e1a3af6f6bd44ac7228ed80266a6168696ed1e8a00a4c61b717"
+sourceCommit: "e12ab45fa55707ed2acc0eae2e273b99a72dc077"
+sourceDate: "2026-09-28T10:19:54+09:00"
 translationStatus: "translated"
 sidebar:
   order: 3050
@@ -47,6 +47,15 @@ ADR-60 WD3で`Plugin::Base#glob_descriptor(roots, *patterns)`は**プライベ�
 
 名前付きプロデューサーのキャッシュラウンドトリップを`Cache::Store#fetch_or_validate`（ADR-45のrecord-and-validateパス）を通じて実行する呼び出し可能オブジェクトを返します。その呼び出し可能オブジェクトは、呼び出されると、記録された依存関係がまだ新鮮（fresh）であればキャッシュされた値を返し、そうでなければプロデューサーブロックを実行して新鮮なエントリーを記録します。
 
+値がどちらの経路で到達したとしても、プラグインの`io_boundary`はそのプロデューサーの依存ディスクリプタのすべての行を保持するようになります（[#1558](https://github.com/rigortype/rigor/issues/1558)）。ヒット時はブロックが実行されないため、提供されたエントリーの保存済み行が境界へとリプレイされます（`IoBoundary#replay`、`fetch_or_validate`の`on_hit:`によって行が渡されます）。ミス時はそれ自身で入力を読み取っており、記録したばかりのディスクリプタをリプレイすることで、ブロックが記録しなかった唯一の行である評価済み`watch:`行が追加されます。境界はプラグインインスタンスごとであり、実行全体で累積されるため、これらの行は以下に到達します:
+
+- 実行後にすべてのプラグイン境界を畳み込むADR-45実行結果ディスクリプタ（[`cache.md`](cache.md) §「実行ディスクリプタ行のインベントリ」を参照）; および
+- 同じインスタンス上でその後に計算されるすべてのプロデューサーの依存ディスクリプタ: そのブロックがこのプロデューサーに問い合わせたもの、およびこのプロデューサーが実行の前の時点で返した値を合成するもの。
+
+リプレイがない場合、提供されたプロデューサーの入力は両方から抜け落ちてしまい、それらの入力が変更された後もそれぞれが新鮮（fresh）として検証されてしまっていました。`:schema_table`が提供されている間にモデル編集後に再計算されたrigor-activerecordの`:model_index`は、その後の`db/schema.rb`編集をまたいでも、実行スロット内・`--workers`下・`--incremental`下で`--no-cache`が指定されるまで古いカラムを保持し続けていました。
+
+リプレイされた行は、ヒットがファイルシステムに対して検証したばかりの行であり、境界自身の優先順位に従ってマージされます（[`plugin-trust.md`](plugin-trust.md) § `IoBoundary`を参照）: 行が重複することはなく、境界がすでに保持している行が弱められることもありません。境界ディスクリプタは検証専用であり、リプレイによってプロデューサーのキーが構築される元となる情報が変わることはないため、キャッシュキーが移動することはありません。#1558より前に書き込まれたエントリーにはリプレイ行が欠落しているため、`Descriptor::SCHEMA_VERSION`は11へ進められ、そのようなエントリーはすべて一度ミスします（エンジンアイデンティティ単独では保護されなかった1つのインストールレイアウトについては[`cache.md`](cache.md) §「実行ディスクリプタ行のインベントリ」を参照）。
+
 `services.cache_store`が`nil`（例：CLI `--no-cache`）の場合、呼び出し可能オブジェクトはキャッシュをバイパスしてプロデューサーブロックを毎回実行します——組み込みプロデューサーのv0.0.9キャッシュサーフェスと同じセマンティクスです。
 
 プロデューサーidには`plugin.<manifest.id>.`が自動的にプレフィックスとして追加されます；`manifest.id = "rails"`のプラグインに`:schema_table`として登録されたプロデューサーのキャッシュストアレイアウトは`<root>/plugin.rails.schema_table/<2-prefix>/<62-suffix>.entry`にあります。
@@ -58,7 +67,7 @@ ADR-60 WD3で`Plugin::Base#glob_descriptor(roots, *patterns)`は**プライベ�
 `Plugin::Base#cache_for`はエントリーを安定した識別子入力でキーし、読み込み依存関係を別々に記録します：
 
 - **キーディスクリプタ**——プラグインの**`PluginEntry`テンプレート**`(id, version, config_hash)`（`config_hash`は正規化されたプラグインconfig——キーソート済み・再帰的なSymbol→String変換——のSHA-256であるため、`config:`が異なる2つのインスタンスは異なるスライスに置かれます）に、オプションの`descriptor:`識別子の追加分を合成し、さらにユーザーの**`params:`**ハッシュ（`Descriptor#cache_key_for`を通じて混合される）を加えたもの。
-- **依存ディスクリプタ**（ブロック実行後に記録され、次回実行時に`Descriptor#fresh?`を介した再ダイジェストで再検証される）——`IoBoundary`の計算後の`FileEntry` / `ConfigEntry`読み込みに、評価された`watch:`の`GlobEntry`行を加えたもの。
+- **依存ディスクリプタ**（ブロック実行後に記録され、次回実行時に`Descriptor#fresh?`を介した再ダイジェストで再検証される）——`IoBoundary`の計算後の`FileEntry` / `ConfigEntry` / `GlobEntry`行に、評価された`watch:`の`GlobEntry`行を加えたもの。境界はその実行でプラグインインスタンスがこれまでに観測したすべてを保持するため、計算されたか提供されたかに関係なく、先に問い合わせられた任意のプロデューサーの行が含まれます（上記の#1558）。ADR-60 WD3はこの過剰近似を受け入れています: 不必要な再計算を招く可能性はあっても、陳腐化したヒットを生むことは決してありません。
 
 プラグイン作成者はディスクリプタを手動で構築しません：ブロック内の読み込みは自動的にキャプチャされ、`watch:`がグロブカバレッジを宣言します。
 
@@ -87,6 +96,21 @@ end
 
 より豊かな無効化（gemバージョン・外部設定ファイル・兄弟プラグインの状態）を求めるプラグイン作成者は現在それらをparamsハッシュに合成します；将来の拡張が`cache_for`に明示的なディスクリプタパラメータを追加するかもしれません。
 
+同じプラグインの別のプロデューサーを消費するプロデューサーは、特別な宣言を何も行う必要がありません。自身のブロック内で問い合わせられた場合でも、実行の前の時点で問い合わせられた場合でも、消費されたプロデューサーは計算されたか提供されたかに関係なくその行を境界に残すため（#1558）、消費されたプロデューサーの入力が変更されたときにコンシューマーのエントリーは古くなります。
+
+**別のプラグインのファクトを読み取るプロデューサーは、`descriptor:`を通じてそのファクトでキー付けしなければなりません（MUST）。** `services.fact_store`に公開されたファクトは依存関係行を保持しません: その入力はコンシューマーの境界ではなく公開側プラグインの境界を通じて読み取られたものであるため、コンシューマーのエントリーにはそれらが変更されたときに動くものが何も記録されません。したがって、ブロックが`read_fact(plugin_id: …, name: …)`を合成するプロデューサーは、公開側の入力が編集された後も、実行スロット内および`--incremental`下の双方において`--no-cache`が指定されるまで古いファクトを提供し続けてしまいます。ファクトの値をダイジェストした`value_hash`を持つ`ConfigEntry`を`descriptor:`に渡すことで、ファクトの変更が異なるキーとなりキャッシュミスとなります。`producer_value`は`descriptor:`を取らないため、そのようなコンシューマーは`cache_for`を自身で呼び出します:
+
+```ruby
+table = read_fact(plugin_id: "schema-source", name: :schema_table)
+fact_row = Rigor::Cache::Descriptor::ConfigEntry.new(
+  key: "fact:schema-source:schema_table",
+  value_hash: Digest::SHA256.hexdigest(Marshal.dump(table))
+)
+cache_for(:model_index, descriptor: Rigor::Cache::Descriptor.new(configs: [fact_row])).call
+```
+
+バンドルされたプロデューサーでブロック内でファクトを読み取るものはありません; バンドルされたプラグインは、任意のプロデューサーの外部で、`#prepare`内またはファイルごとにファクトを読み取ります。
+
 ### `Rigor::Plugin::Base#incremental_state_fingerprint` — `--incremental`のファクトサーフェス（[ADR-88](../../adr/88-incremental-plugin-fact-soundness/)）
 
 `--incremental`スナップショットの`plugin_fact_digest`（[`cache.md` § IncrementalSnapshot](../cache/#plugin_fact_digest--プラグインファクトの健全性adr-88)を参照）は、キャッシュ済み診断が依存しうるすべてのクロスファイル値をカバーしなければなりません。さもなければプラグインの編集がコンシューマーを陳腐化させたまま放置しかねません。2つのチャネルは自動です —— すべてのADR-9ファクトストア公開とすべての`producer`値は、プラグインの協力なしにダイジェストされます。この**オプションの**フックは3番目のチャネルであり、`dynamic_return` / `narrowing_facts`の貢献が、ファクトストア公開でも`producer`値でもない内部カタログから読み込むプラグインのためのものです。
@@ -107,6 +131,7 @@ end
 - フックは**オプション**です —— それを定義するプラグインは（`respond_to?`を通じて）参照され、定義しないプラグインは参照されません。`Plugin::Base`上にデフォルトはありません。
 - 貢献が各解析対象ファイル自身の内容**のみ**から導出される（そのファイルが変わったときに既に再解析される）プラグインは、それ*自身の*クロスファイルサーフェスを持ちません。それでもフックを定義して**安定したセンチネル文字列**（例: `"per-file-lets"`）を返すべきです —— これは「クロスファイルのファクトサーフェスなし」を積極的に宣言し、プラグインをインクリメンタル対応のまま保ちます。バンドルされた`rigor-rspec`・`rigor-minitest`・`rigor-mangrove`はまさにこれを行います。
 - `dynamic_return` / `narrowing_facts`の貢献を登録し、3つのチャネルの**いずれも**提供しないプラグインは、そのランでスナップショットを再利用不能にし、ランの出力で名指しされます —— インクリメンタルは、陳腐化した再利用のリスクを冒すのではなく、フル解析へ格下げされます。
+- 3つのチャネルはすべて値によってダイジェストされます（`Cache::ValueDigest`、[#1574](https://github.com/rigortype/rigor/issues/1574)）: オブジェクトをどのように共有しているかに関係なく等しい値は同様にダイジェストされるため、キャッシュから提供されたプロデューサー値は計算時と同じようにダイジェストされます。ダイジェストが読み取れない値 ── Proc、IO、デフォルトprocを持つHash、無名クラスのインスタンス、循環構造 ── は、あたかもサーフェスを持たないかのようにプラグインを不透明にします。貢献の状態はダイジェストが読み取る場所に保持してください: 単純な値、Data、Struct、例外（message、backtrace、cause）、およびインスタンス変数であり、String、Array、Hashに設定されたインスタンス変数や、オブジェクトに`extend`されたモジュールではありません。
 - `--verify-incremental`は常設のバックストップです: プラグインの実際の貢献が動いたのに動かなかったフックは、そこでバイト不一致として表面化します。
 
 ## キャッシュidサンドボックス（6-C）

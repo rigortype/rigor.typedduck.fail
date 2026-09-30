@@ -3,9 +3,9 @@ title: "プラグインの信頼とI/Oポリシー（スライス2）"
 description: "rigortype/rigor docs/internal-spec/plugin-trust.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/plugin-trust.md"
 sourcePath: "docs/internal-spec/plugin-trust.md"
-sourceSha: "80e58ba3d30a2ef04c277d407ab881b84239b6aaca9909bbf15dbfc3ac31d2bd"
-sourceCommit: "db7b23d42e9b47560438b67dfe16d53e03f70575"
-sourceDate: "2026-09-10T04:26:27+09:00"
+sourceSha: "5f922a28cac854e59d6753ede9b614e9c624016beba51910d8e1a70e19fb9050"
+sourceCommit: "e12ab45fa55707ed2acc0eae2e273b99a72dc077"
+sourceDate: "2026-09-28T05:23:41+09:00"
 translationStatus: "translated"
 sidebar:
   order: 3050
@@ -51,8 +51,11 @@ ADR-2は**強制的な隔離より文書化**を明示的に選択していま�
 | `#list_directory(path)` | **ディレクトリリスティングフィンガープリント**（ADR-45 WD1c / #629）。スコープ内か外かを問わず、決して例外を発生させず、`path`直下の絶対パスを返します（ディレクトリでない場合は`[]`）。そして`path/*`にわたる1つの{Cache::Descriptor::GlobEntry}を記録します ── リスティング全体であるため、ディレクトリに追加・削除された任意のファイル、およびその配下の任意のコンテンツ編集は、古く読み取られます。「これらN個の候補ファイルのうちどれがここに存在するか？」を問う呼び出し元のための行です: rigor-actionpackのテンプレートルックアップは`render`ごとにビュールートあたり9つの拡張子を試すため、パスごとの`#file?`行は（renders × extensions × roots）でスケールしますが、参照された`app/views/<controller>`ディレクトリごとに1つのリスティング行を置くことで、参照されたディレクトリの数に等しいウォームラン検証カウントで厳密により多くの名前をカバーします。`#file?`と同様に、ポリシーがゲートするのは回答ではなく記録（RECORDING）です。ディレクトリの再リスティングはその行を置き換えます（REPLACES）（そのディレクトリに対する最後の読み手のビューこそが、実行を形作ったビューだからです）。これはファイル行が用いる最初のエントリー優先の`\|\|=`とは異なります。 |
 | `#open_url(url)` | `:disabled`の下では{Rigor::Plugin::AccessDeniedError}（`reason: :network_disabled`）を発生させます。`:allowlist`（v0.1.2）の下では、パース済みホストが`allowed_url_hosts`にあるときHTTPS経由でGETを実行し、リクエストタイムアウト（10秒）とレスポンスボディサイズ上限（10 MB）を強制します;失敗時は`reason:`が`:invalid_url_scheme`・`:host_not_allowed`・`:http_error`・`:request_timeout`・`:body_too_large`のいずれかの`AccessDeniedError`を発生させます。 |
 | `#cache_descriptor` | 境界が蓄積した`FileEntry`、`GlobEntry`（`#list_directory`）および`ConfigEntry`（`#open_url`）行を持つ新しい凍結された{Cache::Descriptor}を返します。後続の読み込みは基底レコードテーブルを拡張します；各呼び出しはその時点での読み込み履歴を反映した新しいディスクリプタを返します。 |
+| `#replay(descriptor)` | ファイルを読み込まずポリシーを参照することもなく、境界がそれらを観測したかのように`descriptor`の`files`、`configs`、`globs`行を記録します（[#1558](https://github.com/rigortype/rigor/issues/1558)）。`Plugin::Base#cache_for`は、提供されたプロデューサーエントリーの格納された依存ディスクリプタ（新鮮なヒットが検証を終えたばかりのもの）を渡してこれを呼び出し、ブロックが実行されなかったにもかかわらずプロデューサーの入力が実行結果ディスクリプタおよびその周囲で計算された任意のプロデューサーのエントリーに到達するようにします（[`plugin-cache-producers.md`](../plugin-cache-producers/) § `cache_for`を参照）。以下の順序付けに従ってマージされ、再生された行は、存在行に対するコンテンツ行を除き、既に保持されている行を置き換えることはありません。 |
 
 パスごとの読み込みは絶対パスによって重複排除されます；内容が変更されたファイルの再読み込みはエントリーのダイジェストを上書きします。読み取りの成功は、同じパスに対する以前の不在の行を置き換えます（ファイルが現れ、そのバイトが消費された）;不在の行が以前の内容の行を置き換えることは決してありません（1回の実行で1つのパスに2つの結果が出るということは、解析の足下でファイルが動いたということであり、内容と存在の両方を検証がカバーするのは内容の行のほうだからです）。同じ順序付けがプローブ行にも適用されます: コンテンツ行は任意の存在行を置き換え、1つのパスに対する2つの存在行の間では最初に記録されたものが優先されます——それがどちらであれ、以前の決定が形作られた世界を記述しており、世界がそれに一致しなくなった瞬間に古くなるため、実行途中の変更は誤ったヒットではなく再計算のコストを伴うようになります。
+
+`#replay`も同じ順序付けに従いますが、1つの違いがあります: 再生されたコンテンツ行は存在行を置き換えますが、境界がすでに保持しているコンテンツ行を置き換えることは決してなく、再生されたglob行も同じ`(root, pattern, mode)`スロットに対して保持されている行を決して置き換えません。ヒットの行はその直前に現在のファイルシステムに対して検証されているため、両方の行はバイト列において一致しています；保持されている行はより新しいstatタプルを運ぶため、次回のウォームランをADR-87のstat高速パス上に維持します。すべてのテーブルはパス、globスロット、またはURLキーによってキー設定されているため、ディスクリプタを2回再生しても何も追加されません。
 
 ### `Rigor::Plugin::AccessDeniedError`
 
@@ -111,4 +114,4 @@ plugins_io:
 
 v0.1.2でネットワークゲートが解放されました: `network_policy`は`:allowlist`も受け付けるようになり、`IoBoundary#open_url`を通じて`allowed_url_hosts`内のホストへのHTTPS GETを、リクエストタイムアウトとレスポンスサイズ上限付きで許可します。デフォルトは`:disabled`のままです。
 
-境界が蓄積するディスクリプタはもはや未消費ではありません：`Analysis::Runner#run_dependency_descriptor`がすべてのプラグイン境界の`#cache_descriptor`ファイルを実行の依存ディスクリプタに畳み込むため、プラグインが境界を通じて読み込んだファイルは、解析対象ファイルや`sig`ファイルと同様に実行結果のキャッシュ無効化に関与します。
+境界が蓄積するディスクリプタはもはや未消費ではありません：`Analysis::Runner#run_dependency_descriptor`がすべてのプラグイン境界の`#cache_descriptor`ファイルを実行の依存ディスクリプタに畳み込むため、プラグインが境界を通じて読み込んだファイルは、解析対象ファイルや`sig`ファイルと同様に実行結果のキャッシュ無効化に関与します。#1558以降、これにはプラグインが自身のキャッシュから提供されたすべてのプロデューサー値の背後にあるファイルが含まれ、それらは`cache_for`によって境界へと再生されます。
