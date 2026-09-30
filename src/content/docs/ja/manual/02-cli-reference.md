@@ -3,9 +3,9 @@ title: "CLIコマンドリファレンス"
 description: "rigortype/rigor docs/manual/02-cli-reference.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/02-cli-reference.md"
 sourcePath: "docs/manual/02-cli-reference.md"
-sourceSha: "6e5e1e938da346981c1b6317d3ecf2782e53867114c202e98c85bef47e311543"
-sourceCommit: "42d6e031257466de187cc9640b4896300473f9bb"
-sourceDate: "2026-09-26T09:31:30+09:00"
+sourceSha: "dae9e5a0c3346d8955bf946d822f5a3852631b70b335273ee72e1c1249309b73"
+sourceCommit: "d19c9306f46b59d84bde8ac1a5a43f54be23c023"
+sourceDate: "2026-09-28T04:27:33+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9002
@@ -39,7 +39,7 @@ rigor check [paths...]
 | `--no-ci-detect` | CIの自動検出を無効化する。デフォルトでは`text`出力は実行中のCIのネイティブなアノテーション / ヒントも出力する（`RIGOR_CI_DETECT=0`も同じ効果）。[CIでのRigorの実行 § 自動検出](../11-ci/)を参照。 |
 | `--explain` | フェイルソフトフォールバックイベントを`info`診断として表示する。 |
 | `--no-cache` | この実行では永続キャッシュをスキップする。 |
-| `--incremental` | 前回の実行以降に変更されたファイルと、それに依存するファイルだけを再解析し、残りはクロスプロセスのディスクスナップショットから提供する（ADR-46）。診断結果はフル実行と同一;設定 / gem / バージョンの変更（またはファイルの追加・削除）があれば透過的にフル再解析へ切り替わる。[キャッシュ](12-caching/)を参照。 |
+| `--incremental` | 前回の実行以降に変更されたファイルと、それに依存するファイルだけを再解析し、残りはクロスプロセスのディスクスナップショットから提供する（ADR-46）。診断結果はフル実行と同一;設定 / gem / バージョンの変更（またはファイルの追加・削除）があれば透過的にフル再解析へ切り替わる。変更がない実行は、アナライザーを起動することなくキャッシュから応答される。[キャッシュ](12-caching/)を参照。 |
 | `--verify-incremental` | 受け入れゲート: インクリメンタルアナライザーをフルの`--no-cache`実行と突き合わせ、診断結果がバイト単位で同一であることを表明してから終了する（一致なら0、不一致なら差分の診断結果とともに1）。CIで`--incremental`が古い結果を決して提供しないことを保証するために使う。 |
 | `--clear-cache` | 実行前にキャッシュディレクトリを削除する。 |
 | `--cache-stats` | 終了時にオンディスクキャッシュのインベントリを表示する——`--format text`では標準出力へ、それ以外のすべてのフォーマットでは標準エラー出力へ出すので、機械可読な出力はパース可能なドキュメントのままである。`--clear-cache`と`--verify-incremental`の注記も同じ規則に従う。 |

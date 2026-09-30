@@ -3,9 +3,9 @@ title: "ADR-87 — NULLビルドのフロア：stat-then-digest検証、ゼロ�
 description: "rigortype/rigor docs/adr/87-null-build-floor.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/87-null-build-floor.md"
 sourcePath: "docs/adr/87-null-build-floor.md"
-sourceSha: "e4c58eb598b42f6ccd119a52c715d4d9b20516f9f243000904ec17477d8b3991"
-sourceCommit: "db7b23d42e9b47560438b67dfe16d53e03f70575"
-sourceDate: "2026-09-10T04:47:52+09:00"
+sourceSha: "01d90e420087e5a63d36ded71f6afd51994e94ec16e587f5745b1d9cd64c9c74"
+sourceCommit: "d19c9306f46b59d84bde8ac1a5a43f54be23c023"
+sourceDate: "2026-09-28T07:49:20+09:00"
 translationStatus: "translated"
 sidebar:
   order: 4087
@@ -51,6 +51,8 @@ Status: **Accepted — WD1〜WD5実装済み（[PR #85](https://github.com/rigor
   > **ドラフトからの乖離（明示）：**ドラフトは*ファイルごとのstat-or-digestテーブル*（ファイルごとに1行、値に保持）を提案し、statが動いたファイルだけが再ハッシュされるようにした。実装して計測したところ、gitlabのincremental nullが1.85s → **5.3s**に退行した：2万ファイルの監視ツリーは〜2.5 MBのグロブごとテーブルを作り、その`Marshal.dump`／`load`＋パースが、節約した内容ハッシュを圧倒した。監視された依存は全か無か（1ファイルの変更がプロデューサーのキャッシュを無条件に無効化する）なので、ファイルごとの部分再ハッシュは重いテーブル以外に何も得なかった。集約statシグネチャは旧形式と同じ単一ハッシュの形── 軽量 ──であり、なおnullで内容バイトを0読み込む。旧来の内容シグネチャに対する唯一のコストは、素の`touch`がグロブを無効化することである（稀であり、しかも旧形式が**毎回**支払っていた再計算を強制するに過ぎない）。
 - **WD3 — 変更ゼロのスナップショット保存スキップ**。`run_incremental`は、再チェックが何も変えなかったとき（`Recheck#no_change?`── ΔFが空、追加／削除なし）`snapshot.save`をスキップする── ディスク上のスナップショットは既にバイト等価である。コールドベースラインは常に保存し、実際の編集は常に再保存する。
 - **WD4 — ヒットパスのブート軽量化**。`CheckCommand#run`はエンジンなしでオプションをパースし＋configを解決し、`load_check_dependencies`より前に軽量な`Analysis::RunCacheProbe`を参照する。プローブは共有の`Analysis::RunCacheKey`（ランナーが使うのと同じビルダー── だから両者がキー合意から乖離することはあり得ない）を通してランキャッシュキーを組み立て、`RBS::VERSION`（`require "rbs/version"`経由）＋config由来のライブラリリスト（`Environment::DEFAULT_LIBRARIES + config.libraries`）をRBS環境を構築せずに読む。フレッシュな`Store#peek_validated`ヒット時にはキャッシュされた診断を提供し（重大度プロファイルは抽出された`Analysis::SeverityStamp`経由で適用される）、リターンする。エンジンクラスタがロードされるのはミス／キャッシュ不可のラン（`--no-cache`、エディタバッファ、プールモード、`--coverage`／`--cache-stats`／`--incremental`、`RIGOR_*_TRACE`の開発プローブ── それぞれがプローブを辞退する）のときだけである。ヒットをエンジンフリーにするには、CLIから2つのロード時エンジン参照を切り離す必要があった：ルールID定数を軽量な`check_rules/rule_ids.rb`へ移し（`RuleCatalog`／`config_audit`がエンジン重量級の`check_rules.rb`をrequireしなくなる）、`coverage_scan`／`check_runner_factory`を遅延requireにした。HITランの`$LOADED_FEATURES`が`rigor/inference`（および`rigor/analysis/runner`／`rigor/environment`）のエントリーを含まないことを主張する**サブプロセス**specで固定し、それらを**ロードする**MISSの対照を置く。プラグインが仮想RBSを合成するプロジェクトは、`rbs.virtual_rbs`スロットを省いたプローブキーを生成するので、単純にミスしてフルパスが引き継ぐ── 誤ったヒットには決してならない。
+
+  > `--incremental`は依然としてこのプローブを辞退するが、[ADR-45](../45-unchanged-project-fast-path/) WD2（#1507）以降、独自に対となる仕組みを持つ: インクリメンタルセッションは、このプローブがキー付けするものに解析ルートを加えたキーによって、別個のプロデューサーIDの下に実行結果スロットを書き込み、`rigor check --incremental`は同じエンジンフリーな方法でそこからnullランを提供する。
 - **WD5 — 陳腐化specバッテリー（WD1/WD2のゲート）**。作り込んだケース群で、それぞれ診断の結末を主張する：touchのみ（statが動き、ダイジェストが同じ → FRESH、偽の無効化なし）；通常の編集（陳腐化）；同サイズの編集（mtime/ctime経由で陳腐化）；同サイズ＋mtimeをバックデートした編集（ctime経由で陳腐化）；racyエントリー（タプルが一致しても再ハッシュされる）；`with_run(strict:)`／`RIGOR_STRICT_VALIDATION=1`が全体でダイジェストパスを強制する；加えてエンドツーエンドの偽無効化ガード── 2つのキャッシュ裏付けランの間のtouchのみの変更はHITのままである（ディスカバリーを再実行せずに提供され、診断はバイト一致）。
 
 ## Rejected / deferred alternatives
@@ -79,4 +81,4 @@ Status: **Accepted — WD1〜WD5実装済み（[PR #85](https://github.com/rigor
 
 ## Relationship to other ADRs
 
-[ADR-45](../45-unchanged-project-fast-path/)がrecord-and-validateを所有する── そのダイジェストの権威は保たれ、その検証コストがWD1の取り除くものであり、そのヒット判定がWD4のエンジンフリーで提供するものである。[ADR-54](../54-cache-slimming/)の却下の行は置き換えられる（その前提は再計測され、設計はダイジェストの権威を保つ）。[ADR-60](../60-pre-freeze-plugin-contract-consolidation/)の`watch:`機構がWD2を宿す。[ADR-46](../46-incremental-dependency-graph/)／[ADR-85](../85-seed-bundles-and-lazy-def-node-handles/)がWD3の刈り込むincrementalパスを所有する。[ADR-86](../86-partial-native-extensions/)のWD4非ネイティブはしごが1段進み、かつ本ADRはADR-86の却下が参照している残余プロファイルの帰属を**部分的に置換する**（上記の「gitlab Cに関する正直な注記」は同じキャンペーンを再計測し、それが本質的と呼んだものの一部が除去可能な非ネイティブのオーバーヘッドであったことを見出した）。[ADR-50](../50-release-engineering-and-stability-strategy/)が将来のincrementalデフォルト化の反転を所有し、新しい`cache.validation`configキー＋`:stat`比較器をv1.0で公開語彙として凍結する。
+[ADR-45](../45-unchanged-project-fast-path/)がrecord-and-validateを所有する── そのダイジェストの権威は保たれ、その検証コストがWD1の取り除くものであり、そのヒット判定がWD4のエンジンフリーで提供するものであり、そのWD2がインクリメンタルセッションの書き込むスロットから`--incremental`に同一のエンジンフリーなnullランを与える。[ADR-54](../54-cache-slimming/)の却下の行は置き換えられる（その前提は再計測され、設計はダイジェストの権威を保つ）。[ADR-60](../60-pre-freeze-plugin-contract-consolidation/)の`watch:`機構がWD2を宿す。[ADR-46](../46-incremental-dependency-graph/)／[ADR-85](../85-seed-bundles-and-lazy-def-node-handles/)がWD3の刈り込むincrementalパスを所有する。[ADR-86](../86-partial-native-extensions/)のWD4非ネイティブはしごが1段進み、かつ本ADRはADR-86の却下が参照している残余プロファイルの帰属を**部分的に置換する**（上記の「gitlab Cに関する正直な注記」は同じキャンペーンを再計測し、それが本質的と呼んだものの一部が除去可能な非ネイティブのオーバーヘッドであったことを見出した）。[ADR-50](../50-release-engineering-and-stability-strategy/)が将来のincrementalデフォルト化の反転を所有し、新しい`cache.validation`configキー＋`:stat`比較器をv1.0で公開語彙として凍結する。

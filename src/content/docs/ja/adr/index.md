@@ -3,9 +3,9 @@ title: "アーキテクチャ決定記録"
 description: "rigortype/rigor docs/adr/README.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/README.md"
 sourcePath: "docs/adr/README.md"
-sourceSha: "1f3959792dbf9845b97748a0b5e18ae7365ef3522131b39aedf64c92cc245521"
-sourceCommit: "e12ab45fa55707ed2acc0eae2e273b99a72dc077"
-sourceDate: "2026-09-28T02:35:44+09:00"
+sourceSha: "2c963684158f190ce09c3ea1858834a19e68a158ec5502fdb587d67281ffc651"
+sourceCommit: "d19c9306f46b59d84bde8ac1a5a43f54be23c023"
+sourceDate: "2026-10-01T01:59:12+09:00"
 translationStatus: "translated"
 sidebar:
   order: 4000
@@ -143,6 +143,7 @@ sidebar:
 | ADR-115 | [piによるマルチモデルエージェントハーネス（自社ソフトウェア第一）](115-pi-multi-model-harness/) | Proposed（薄い`agents/pi-harness/`スタブ；WD6の並行パスは未実証） |
 | ADR-116 | [エンジンのホットファイルの再構築: 増加する種類は1回宣言し、各走査は1回巡回する](116-hot-file-restructuring/) | Accepted（WD5進行中: 巡回時の`class_cvars`、スーパークラス、defネスト、メンバーレイアウトテーブル、後ろ3つは1回の実行を共有；WD5はコンテキストルール変種向けに修正） |
 | ADR-117 | [標準ストリーム: イディオムによって型付けされ、ランタイム契約によってチェックされる](117-standard-streams-typed-by-idiom/) | Accepted（#1405以降明示的な`$_`リーダー；オープン: #1362、#1366、#1367、#1415、#1423、#1426、#1427、#1429） |
+| ADR-120 | [デフォルトのローカル`check`ルートとしての`--incremental`](120-incremental-by-default/) | Proposed（メンテナ待ち；切り替えはWD7のゲート待ち） |
 
 ## 新しいADRの追加
 
