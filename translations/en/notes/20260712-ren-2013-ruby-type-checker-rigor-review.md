@@ -129,7 +129,7 @@ rooted in this paper's `typesig`).
    substrate ([ADR-16](../../adr/16-macro-expansion/)), implicit-self call resolution
    ([ADR-24](../../adr/24-self-method-call-resolution/)/[ADR-57](../../adr/57-self-call-return-adoption/)),
    and the whole arc of `Dynamic[T]` provenance
-   ([ADR-75](../../adr/75-dynamic-provenance/)/[ADR-82](../../adr/82-dynamic-origin-algebra/)).
+   ([ADR-75](../../adr/75-dynamic-provenance/)/[ADR-82](../../adr/82-dynamic-provenance-wiring/)).
    rtc **structurally eliminates** these by "paying at runtime." Rigor pays via "static approximation + a
    plugin escape hatch." **This is a fundamental trade and cannot be followed — record only**. But the flip
    side is that the "paths that did not run / metaprogrammed methods that were never invoked" that rtc cannot
@@ -198,7 +198,7 @@ rooted in this paper's `typesig`).
 3. **The standing of `%any` = Dynamic and its provenance**.
    rtc's `%any` is an explicit untyped that expresses "the block may return anything," common in non-strict
    mode and at native boundaries. Its role is the same as Rigor's `Dynamic[T]`, but Rigor tracks "why it is
-   Dynamic" via provenance ([ADR-75](../../adr/75-dynamic-provenance/)/[ADR-82](../../adr/82-dynamic-origin-algebra/)).
+   Dynamic" via provenance ([ADR-75](../../adr/75-dynamic-provenance/)/[ADR-82](../../adr/82-dynamic-provenance-wiring/)).
    rtc does not track it (being runtime, it does not need to). Put the other way, **Rigor's provenance arc is
    "metadata that became necessary precisely because it is static,"** and the contrast with rtc throws its
    reason for existence into sharp relief — a runtime checker has no need to know the origin of a Dynamic
