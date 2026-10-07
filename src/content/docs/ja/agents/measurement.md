@@ -3,8 +3,8 @@ title: "Rigorの測定"
 description: "rigortype/rigor docs/agents/measurement.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/agents/measurement.md"
 sourcePath: "docs/agents/measurement.md"
-sourceSha: "7a850b91bdc87c71d227477e758bb94b3ad276033d2d93f1990edb492d678fa8"
-sourceCommit: "e12ab45fa55707ed2acc0eae2e273b99a72dc077"
+sourceSha: "15ca755d379ad121ca8b40b1b55b0f1c7fcd6beea88bd51c6b0f4912de421704"
+sourceCommit: "fa100695fdad83b324fbb8d1f649cd432a91d887"
 sourceDate: "2026-09-28T02:22:50+09:00"
 translationStatus: "translated"
 sidebar:
@@ -38,6 +38,10 @@ worktreeから実行する場合は、その`vendor/bundle`が存在するよう
 **スイープが何を検証しないかを把握する**。`signature_paths`はデフォルトで`nil`であり、これは自動検出を意味します：ターゲットの`sig/`は設定がそれを名指しているかどうかに関わらずロードされるため、`signature_paths: [sig]`を追加しても何も変わりません。そもそも`sig/`を出荷しているサーベイターゲットはほんの一握りであるため、**プロジェクトが宣言した**祖先にゲートされた変更に対して「コーパス全体で新規診断ゼロ」は無意味に等しいと言えます。そのような変更には、その条件を強制する的を絞ったフィクスチャが必要です。
 
 コーパスのフォールドを再現できないスペックはピン留めであり、リグレッションキャッチャーではありません ── 一部のフォールドはターゲットの完全なクラスコンテキストを必要とします。その旨を明記し、失敗し得ないフィクスチャで識別性を偽装するのではなく、正確なコマンドと件数を伴うコーパスの実行をエビデンスとしてください。
+
+## コミット間の診断差分
+
+`tool/engine_diag_diff.rb --base REV --head REV [--corpus REV | --corpus-dir DIR] [--target PATH] [--rule RULE] [--require-rows-in PATH:N] [--adjudication FILE]`（`--target`は反復可能）は、各エンジン全体（`lib data plugins`）をアーカイブし、各々を1つのコーパスにわたって新規プロセスで実行し、headが削除および追加した診断行をpath、line、column、rule、およびmessageをキーとして出力します。`--rule`の削除または追加された行がadjudicationファイル（`{base, path, line, column, message, verdict, reason}`のYAMLリストであり、`base`は実行が出力するmerge-base sha：削除された行に対しては`fp-silenced`または`tp-lost`、追加された行に対しては`named-mechanism`、ADR-119 WD2が変更が名指す機構に対してのみ新たな発火を認めるため）に存在しない場合、現在のbaseに対するエントリーがいずれの行にも一致しない場合（別のbaseに対するエントリーは無視されるため、着地した変更のものは休眠状態になります）、エントリーがフロア付きパスの下にある場合、あるいはフロア（`--require-base-rows N`、`--require-rows-in PATH:N`、baseとheadで維持）が満たされない場合に、ゼロ以外の終了コードで終了します。両エンジンはこのチェックアウトの`Gemfile.lock`とコーパスの設定の下で実行されるため、headにおける依存関係や設定の変更により、比較するのではなくbaseの実行を派手に失敗させることができます。フラグや古いルールのツリー内コピーではなく本ツールを、「新たな発火なし、すべての削除を判定済み」とするあらゆる主張に対して使用してください：凍結されたコピーは依然として変更が移動するライブのスコープやテーブルを読み取るため、構造上変更と一致してしまいます。マージベースを`--base`として渡してください；サーベイチェックアウトは`--corpus-dir`として渡します。CIの`Arity differential`ジョブは、コードを変更するすべてのPRにおいて`call.wrong-arity`ルール（ADR-119 WD2、`SourceArity`の決定ポイント）に対して`spec/integration/fixtures/arity_differential/`および`spec/integration/fixtures/declaration_witness/`上でこれを実行し、フロアは`survivors/`の形状によって維持されます；lane-2のコーパス実行はサーベイチェックアウトを用いた同一のコマンドです。
 
 ## 嘘をつくプローブ
 

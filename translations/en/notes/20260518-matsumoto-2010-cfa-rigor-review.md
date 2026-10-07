@@ -1,8 +1,8 @@
 ---
 title: "Matsumoto & Minamide 2010 (Ruby CFA) — Rigor perspective review"
 description: "English translation of a Rigor-perspective review of Matsumoto & Minamide's 2010 control-flow-analysis paper."
-sourceSha: "39dcddde6821e3340a65cd98c79a8d811df13e02ad64baadffade603dff37ca9"
-sourceCommit: "a5d648b126d5ed7b1e04a16a87927bca7883e069"
+sourceSha: "8209b736797af758fcb8ce6d777685982098a0d997f7391cd3d5919a760a6f0a"
+sourceCommit: "fa100695fdad83b324fbb8d1f649cd432a91d887"
 translationStatus: "translated"
 ---
 
@@ -17,9 +17,7 @@ Kind: Rigor-perspective review of an external paper.
 - Soutaro Matsumoto, Yasuhiko Minamide,
   "Control flow analysis of Ruby programs and a soundness proof,"
   IPSJ Transactions on Programming Vol.3 No.2, pp.9–25 (Mar. 2010)
-- Source URL: <https://ipsj.ixsq.nii.ac.jp/records/37907>
-- Local copy: [IPSJ-TPRO0302003.md](https://github.com/rigortype/rigor/blob/master/IPSJ-TPRO0302003.md) /
-  [IPSJ-TPRO0302003.pdf](../../IPSJ-TPRO0302003.pdf)
+- Source URL: <https://ipsj.ixsq.nii.ac.jp/records/68444>
 
 ## 1. Paper summary (one paragraph)
 

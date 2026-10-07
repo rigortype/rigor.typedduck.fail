@@ -3,8 +3,8 @@ title: "チェンジログ — 0.1.xアーカイブ"
 description: "rigortype/rigor docs/CHANGELOG-0.1.x.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/CHANGELOG-0.1.x.md"
 sourcePath: "docs/CHANGELOG-0.1.x.md"
-sourceSha: "bbf4f05b96acf0be00512d4aae46743cc49d0fc05b05040e2e088a79ad7cfc1f"
-sourceCommit: "d19c9306f46b59d84bde8ac1a5a43f54be23c023"
+sourceSha: "a66ad5fcc55ccd78cbe9593b1fe3258e14c8be8c01ee5b20d36546c46e310b64"
+sourceCommit: "fa100695fdad83b324fbb8d1f649cd432a91d887"
 translationStatus: "translated"
 sidebar:
   order: 9050

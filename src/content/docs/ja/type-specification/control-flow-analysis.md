@@ -3,8 +3,8 @@ title: "制御フロー解析"
 description: "rigortype/rigor docs/type-specification/control-flow-analysis.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/type-specification/control-flow-analysis.md"
 sourcePath: "docs/type-specification/control-flow-analysis.md"
-sourceSha: "be2527057562cd275a1bc1c8686e528c5a98767f98a15f9dfcc345cdff336e1d"
-sourceCommit: "e12ab45fa55707ed2acc0eae2e273b99a72dc077"
+sourceSha: "2282015e687716dd128bc04e70df993a6741a291c84d2151869b71213545567e"
+sourceCommit: "fa100695fdad83b324fbb8d1f649cd432a91d887"
 sourceDate: "2026-09-27T12:04:39+09:00"
 translationStatus: "translated"
 sidebar:
@@ -291,7 +291,7 @@ Rigorは等価ファクトを信頼レベルで分類すべきです（SHOULD）
 
 ### グローバル変数と定数のガード
 
-真偽値性、`nil?`、`!`、セーフナビゲーション（`$g&.m`、およびセーフナビゲーションチェーン）、クラスガード、`C === x`、`case … when`、および`respond_to?`は、ローカル変数の読み取りをナローイングするのと同様に、グローバル変数の読み取り（`$stdout`）および定数参照（`STDOUT`、`Foo::BAR`、`::Foo`）をナローイングします（[#1429](https://github.com/rigortype/rigor/issues/1429)）。真偽値性、`nil?`、セーフナビゲーション、および`respond_to?`はインスタンス変数もナローイングします;クラスガードはインスタンス変数をまだナローイングしません（[#1446](https://github.com/rigortype/rigor/issues/1446)）。ガードのナローイングは、グローバル変数の型が持つどの出所の上にも適用されます（[global-variables.md](../global-variables/#グローバル変数の型の出所)）。
+真偽値性、`nil?`、`!`、セーフナビゲーション（`$g&.m`、およびセーフナビゲーションチェーン）、クラスガード、`C === x`、`case … when`、および`respond_to?`は、ローカル変数の読み取りをナローイングするのと同様に、グローバル変数の読み取り（`$stdout`）および定数参照（`STDOUT`、`Foo::BAR`、`::Foo`）をナローイングします（[#1429](https://github.com/rigortype/rigor/issues/1429)）。真偽値性、`nil?`、セーフナビゲーション、`respond_to?`、およびクラスガードはインスタンス変数もナローイングします;そのクラスガードはセクション[インスタンス変数のクラスガード](#インスタンス変数のクラスガード)に述べるように復元されます。ガードのナローイングは、グローバル変数の型が持つどの出所の上にも適用されます（[global-variables.md](../global-variables/#グローバル変数の型の出所)）。
 - **非バインドのグローバル変数**は、その読み取りが持つ型からナローイングされます。何も学習しないエッジは、グローバル変数または定数をそのまま残します。
 - **定数**。定数のナローイングは参照の綴り方によってキー付けされるため、`::STDOUT`と`STDOUT`は別々にナローイングされます。定数への書き込みは、最後のセグメントが書き込まれた名前であるすべての綴りのナローイングを終了します。`module Foo`内の`Foo::BAR = nil`は`BAR`が読み取る定数に書き込むためです。
 - **`$stdout`と`$>`**は同一の変数です: いずれかへの書き込みは、もう一方のガードのナローイングを終了します。
@@ -305,7 +305,7 @@ Rigorは等価ファクトを信頼レベルで分類すべきです（SHOULD）
   - プロジェクトまたはgemレシーバーに対するコアメソッド（コアモジュールのメソッドがコールバックする可能性があるため。`Enumerable#map`はクラスの`each`を実行する）;
   - `Kernel`、`Object`、または`BasicObject`が所有し、レシーバーでプロジェクトが定義するメソッドを呼び出すメソッド（`r != 1`は`r == 1`を実行する; `===`、`!~`、`respond_to?`も同様）;
   - 未解決の呼び出し先（`Dynamic`レシーバー、またはシグネチャが宣言していない名前）;
-  - `send`、`__send__`、`public_send`、`eval`、`require`、`require_relative`、`load`、`const_set`、`remove_const`、ならびにリテラルブロック以外を指定された`instance_eval`、`instance_exec`、`class_eval`、`class_exec`、`module_eval`、`module_exec`;
+  - `send`、`__send__`、`public_send`、`eval`、`require`、`require_relative`、`load`、`const_set`、`remove_const`、`instance_variable_set`、および`remove_instance_variable`、ならびにリテラルブロック以外を指定された`instance_eval`、`instance_exec`、`class_eval`、`class_exec`、`module_eval`、`module_exec`;
   - `Proc`、`Method`、`UnboundMethod`、`Binding`、`Enumerator`、`Fiber`、`Thread`、またはデリゲーターに対する任意の呼び出し;
   - `&expr`ブロック引数を渡す呼び出し;
 - 複合書き込みまたは`for`ループが明示的に綴らずに呼び出すメソッド: `r += 1`の演算子、`r.val ||= 1`および`r[0] += 1`のリーダーとライター（およびリーダーが返すものに対する演算子）、ならびに`for x in r`の`each`;
@@ -325,7 +325,7 @@ Rigorは等価ファクトを信頼レベルで分類すべきです（SHOULD）
 - それ自体がそのようなコードを実行する可能性のある呼び出しのブロック（`with_retry { $sep.length }`）;
 - 後の反復が前の反復で書き込まれたものを読み取るため、それ自体が再バインドする可能性のある本体。
 
-`Kernel`、`Object`、または`BasicObject`が所有するその他のメソッド（`puts`、`format`、`obj.frozen?`）、およびコアまたは標準ライブラリのレシーバーに対するコアまたは標準ライブラリのメソッド（`$sep.strip`、`$stdout.rewind`、`File.read(path)`）は、ナローイングを維持します。したがって`if $sep; $sep.strip; $sep.length; end`は`$sep`の非nilを維持します。クラスガードが`bot`にナローイングしたレシーバーに対する呼び出しは、任意のコードを実行する可能性があります。
+`Kernel`、`Object`、または`BasicObject`が所有するその他のメソッド（`puts`、`format`、`obj.frozen?`）、およびコアまたは標準ライブラリのレシーバーに対するコアまたは標準ライブラリのメソッド（`$sep.strip`、`$stdout.rewind`、`File.read(path)`）は、ナローイングを維持します。したがって`if $sep; $sep.strip; $sep.length; end`は`$sep`の非nilを維持します。レシーバーの`Nominal`と互いに素なクラスガードはレシーバーを`bot`のまま残しますが、ガードを通過した値はガードされたクラスのものであるため、レシーバーに対して呼び出されたメソッドは上記のルールによってそのクラスのメソッドとして読み取られ、そのような呼び出しがそのブロックにyieldするものに対して呼び出されたメソッドも同様です（[#1446](https://github.com/rigortype/rigor/issues/1446)）: `return unless STDOUT.is_a?(StringIO); STDOUT.rewind; STDOUT.string`は正しいコードである一方、`return unless CB.is_a?(Proc)`の後の`CB.call`は`Proc`に対する任意の呼び出しがそうであるように再バインドする可能性があり、ガードされたクラスのプロジェクトサブクラスのみが定義するメソッドも同様です。コアメソッドに対するプロジェクトサブクラスのオーバーライド（`StringIO`サブクラス内の`def rewind`）はカウントされず、これは値がサブクラスインスタンスである任意の`Nominal`レシーバーが持つギャップと同じです。クラスガードが残したのではない、`bot`として読み取られたレシーバーに対して呼び出されたメソッドは未解決の呼び出し先です。呼び出しの引数およびリテラルブロックは他の任意のものと同様に読み取られます。インデックスがグローバル変数である`for`、および参照がグローバル変数である`rescue`（`rescue => $out`）はそれに書き込み、これによりガードのナローイングが終了します。
 
 フレームローカルな`$_`と`$~`（[#1359](https://github.com/rigortype/rigor/issues/1359)）およびレスキュースコープの`$!`と`$@`は同様にナローイングされますが、このルールによって復元されることはありません。呼び出されたメソッドは前者の2つに到達できず、復帰した呼び出しは後者の2つを元の状態のまま残すためです;上記の独自のルールがこれらを忘却します。`$?`はこのルールによって復元されます。
 
@@ -333,6 +333,14 @@ Rigorは等価ファクトを信頼レベルで分類すべきです（SHOULD）
 - **暗黙的変換**。プログラムが明示的に綴っていないメソッドにコールバックするコアメソッドは、コアメソッド単独として読み取られます: `puts obj`は`obj.to_s`を実行し、`"#{obj}"`もそれを実行し、`hash[obj]`は`obj.hash`を実行し、`list.sort`は`<=>`を実行し、`1 + obj`は`obj.coerce`を実行し、`[*obj]`は`obj.to_a`を実行し、`case obj when 1`は`1 === obj`を実行します。グローバル変数を代入するプロジェクトの`to_s`は、ナローイングを終了させません。
 - **別のスレッド**が任意の2つの読み取りの間でグローバル変数を代入する可能性があります;ルールは現在のフローのコードのみを読み取ります。
 - **フローが合流しない書き込み**。グローバル変数への直接の書き込みは、ループのバックエッジやrescue節を越えて合流しません（[#1464](https://github.com/rigortype/rigor/issues/1464)）;ルールはそこでガードのナローイングを復元しますが、ループ本体が書き込むだけのグローバル変数は最初の反復の値を保持します。
+
+### インスタンス変数のクラスガード
+
+クラスガード、`C === @x`、`case @x when C`、および`case @x in C`は、ローカル変数の読み取りをナローイングするのと同様にインスタンス変数の読み取りをナローイングします（[#1446](https://github.com/rigortype/rigor/issues/1446)）: `IO`と型付けされた`@io`に対して、`@io.is_a?(StringIO) ? @io.string : nil`、`StringIO === @io`、および`case @io when StringIO then @io.string end`は正しいコードです。
+
+グローバル変数を再バインドする可能性のあるコードは`self`に到達してインスタンス変数も再バインドする可能性があるため、そのようなナローイングは、上記のグローバル変数および定数のルールが復元を行う場所で、同じギャップを伴い、ガードがナローイングしたバインディングとナローイングされた型のユニオンへと復元されなければなりません（MUST）。レシーバーが`self`である可能性があるため（`holder = self; holder.instance_variable_set(:@io, STDOUT)`）、そのルールは任意のレシーバーに対する`instance_variable_set`および`remove_instance_variable`をカウントします。ナローイングは、ルールが読み取るコード内でナローイングされた変数への書き込み時にも復元されなければなりません（MUST）: リテラルブロックの本体（呼び出し後、およびブロックのエントリ時。後の実行が前の実行で書き込まれたものを読み取るため）、ループのエントリ時におけるループの本体、およびrescue節のエントリ時における`begin`本体です。変数を書き込むリテラルブロックは、まずフロアが`Dynamic[top]`であるインスタンス変数のブロック書き戻しによって広げられるため、`[1].each { @io = nil }`の後、変数はこのユニオンが取られる前に`Dynamic[top] | …`を読み取ります。
+
+`for`ループのインデックス（`for @io in list`）および`rescue`参照（`rescue => @io`）を含む変数への書き込みはナローイングを終了させ、書き込まれた値をバインドします。暗黙的selfまたは`self.`の呼び出しは、どのガードがナローイングしたかに関わらず、すべてのナローイングされたインスタンス変数をクラスのシードとのユニオンへと広げるため、ガードと読み取りの間の`puts`は、互いに素なクラスへのクラスガードのナローイングを終了させます。真偽値性、`nil?`、セーフナビゲーション、および`respond_to?`はこの復元なしでインスタンス変数をナローイングします: 書き込みとその暗黙的selfルールのみがそれらのナローイングを終了させます。
 
 ## ファクトの安定性とミューテーション
 

@@ -3,8 +3,8 @@ title: "外部gemの由来: カバレッジのフロアはエンジンギャッ�
 description: "rigortype/rigor docs/notes/20260711-external-gem-install-boundary.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260711-external-gem-install-boundary.md"
 sourcePath: "docs/notes/20260711-external-gem-install-boundary.md"
-sourceSha: "4ffe77c32186fb80ce0b8ebd1c12e9627426e543809086b6d4262a17293d5df1"
-sourceCommit: "4c03f62d04f594030bd79aa00f3a5978e0457d4c"
+sourceSha: "1c7c0fdcd83e2712e4428094fc0897d2a80791a52299d77459aafc983fa64186"
+sourceCommit: "fa100695fdad83b324fbb8d1f649cd432a91d887"
 translationStatus: "translated"
 sidebar:
   order: 20266711

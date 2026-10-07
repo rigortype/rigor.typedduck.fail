@@ -3,8 +3,8 @@ title: "プラグインドキュメント移行プレイブック（「(ii)」�
 description: "rigortype/rigor docs/notes/20260603-plugin-doc-migration-playbook.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260603-plugin-doc-migration-playbook.md"
 sourcePath: "docs/notes/20260603-plugin-doc-migration-playbook.md"
-sourceSha: "0a5ef516c683a52363e1e144b3a7af07f3259c15a5de28ff1e12225879cb2150"
-sourceCommit: "6e5bd55274e20dfb59183559c4971d34f878c907"
+sourceSha: "cc9d1e5178fd5aecaef96b8d7afe873e1981c8299a6fdadc1776bc39b5a5e595"
+sourceCommit: "fa100695fdad83b324fbb8d1f649cd432a91d887"
 translationStatus: "translated"
 sidebar:
   order: 20266603

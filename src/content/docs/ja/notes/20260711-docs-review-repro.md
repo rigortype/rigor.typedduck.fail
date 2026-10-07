@@ -3,8 +3,8 @@ title: "L2の手順再現レビュー —— 01-installation.md + 14-rails-quick
 description: "rigortype/rigor docs/notes/20260711-docs-review-repro.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260711-docs-review-repro.md"
 sourcePath: "docs/notes/20260711-docs-review-repro.md"
-sourceSha: "ef6ae3e8995ffa8772f91aa11a44bcb8421fa2e5c49077689352607263cf8758"
-sourceCommit: "4c03f62d04f594030bd79aa00f3a5978e0457d4c"
+sourceSha: "730df45d37f77d63a230ee37b2760630ac89faf5f5743c864014a6e506cd9a9f"
+sourceCommit: "fa100695fdad83b324fbb8d1f649cd432a91d887"
 translationStatus: "translated"
 sidebar:
   order: 20266711

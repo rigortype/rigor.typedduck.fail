@@ -3,9 +3,9 @@ title: "現在の作業 — セッションハンドオフ"
 description: "rigortype/rigor docs/CURRENT_WORK.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/CURRENT_WORK.md"
 sourcePath: "docs/CURRENT_WORK.md"
-sourceSha: "71c5359895bc9873b4ef39f0da4b9c0f9745ead04b464dc510bdd2a4a324259c"
-sourceCommit: "d19c9306f46b59d84bde8ac1a5a43f54be23c023"
-sourceDate: "2026-10-01T01:44:02+09:00"
+sourceSha: "a0719417eceedc8e5243195c77e67a47b448deb51baf06bdbb38e4a880a109e3"
+sourceCommit: "fa100695fdad83b324fbb8d1f649cd432a91d887"
+sourceDate: "2026-10-02T02:19:24+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9050
@@ -34,7 +34,10 @@ sidebar:
 
 次に取り組むこと:
 
-1. **#1562、ADR-119（提案中、v15）**。着地したチェーンを記録し、名前ごとの関連性と`Unknown`の回答をPR C（C1発火サイト、#1570の修正; C2型付けサイト）に配置します。v14レビューの指摘事項はv15で解決されています; #1593が着地したことをテキストが記録していることを確認し、承認のためにメンテナに提示してください。承認されたら、#1531を置き換え済み（superseded）としてクローズしてください。
+1. **ADR-119、2026-10-01に承認；PR C進行中**。着地済み: #1601（正誤表: C1a–C1e分割、Q12）、#1602（C1a: `DefinerResolution`、マーク、関連性；インスタンス側のみ）、#1610（曖昧な綴りの免除）、#1605（C1b: `SourceArity`、#1570を修正）。メンテナ待ち:
+   - **#1606（C1c、Draft、CI green、レビュー済み）:**オーバーライドおよび可視性リント。実際の診断が失われる（Mastodon 10件、GitLabコントローラ61件、すべて`tp-lost`；消去されたコーパスFPは0件）。マージするか保留するかはメンテナの判断（ADR Q3）；回復策は#1608、#1609、#1611、#1612。
+   - **Q12**（WD1（ii）の受け入れセンサス解釈）がC1d0をゲート；C1dがそれに続く。
+   - シングルトン側は#1603の後のC2向けに設計済み（位置的な辞退）；#1607がシングルトンの#1570を追跡。C1c着地時にC1計画のWD3/C1c行の正誤表をADRに取り込む。
 2. **チェーンがmasterの順序にフォールバックすることでは修正できない未解決の偽陽性**（unsettledは辞退ではなくmasterの順序を意味する）: #1592のフック形状および#1594（concernの`included do`）。両方ともPR Cの`Unknown`または後続ADRのconcern/フックモデルを必要とします。
 3. **起票されたフォローアップ:** #1583、#1585（`pre_eval:`編集後の古い`--incremental`、深刻）、#1586、#1588、#1589、#1590（コンシューマーごとに各チェーンを1回記録;記録実行は+5%）、#1591（unsettledなチェーンがMastodonの読み取りの21%をmasterの順序に送る）、#1573。
 4. それらの後: #1537、#1532/#1533、#1575。

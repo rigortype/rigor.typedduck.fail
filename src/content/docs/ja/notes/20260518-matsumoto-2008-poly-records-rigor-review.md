@@ -3,9 +3,9 @@ title: "Matsumoto & Minamide 2008 (多相レコード型 Ruby 型推論) — Rig
 description: "Imported from rigortype/rigor docs/notes/20260518-matsumoto-2008-poly-records-rigor-review.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260518-matsumoto-2008-poly-records-rigor-review.md"
 sourcePath: "docs/notes/20260518-matsumoto-2008-poly-records-rigor-review.md"
-sourceSha: "3e43a147510bc06cb411af0ffae1c5ece17df6c76d8cd1749bb4d4718a242972"
-sourceCommit: "d19c9306f46b59d84bde8ac1a5a43f54be23c023"
-sourceDate: "2026-06-14T00:35:49+09:00"
+sourceSha: "3a4efd41f42a44bf26ced8fc8d02d0c36ea91d14b1dd4d3b38a9bcc513c6f2dc"
+sourceCommit: "fa100695fdad83b324fbb8d1f649cd432a91d887"
+sourceDate: "2026-10-07T20:08:52+09:00"
 sourceLanguage: "ja"
 sidebar:
   order: 20266518
@@ -24,8 +24,6 @@ Status: **research note, no design commitments.**
   情報処理学会論文誌: プログラミングVol.49 No.SIG 3 (PRO 36),
   pp.39–54 (Mar. 2008)
 - 出典URL: <https://ipsj.ixsq.nii.ac.jp/records/16465>
-- ローカル写し: [IPSJ-TPRO4903005.md](https://github.com/rigortype/rigor/blob/master/IPSJ-TPRO4903005.md) /
-  [IPSJ-TPRO4903005.pdf](../../IPSJ-TPRO4903005.pdf)
 
 ## 1. 論文要旨（一段落）
 

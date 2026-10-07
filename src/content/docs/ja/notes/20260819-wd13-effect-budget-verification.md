@@ -3,8 +3,8 @@ title: "WD13のエフェクト収集予算の再検証（#409）: 方法と、�
 description: "rigortype/rigor docs/notes/20260819-wd13-effect-budget-verification.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260819-wd13-effect-budget-verification.md"
 sourcePath: "docs/notes/20260819-wd13-effect-budget-verification.md"
-sourceSha: "c6960c142ebb553d382854b113d149a39192d35bb525f01e65287938c7839fe3"
-sourceCommit: "d19c9306f46b59d84bde8ac1a5a43f54be23c023"
+sourceSha: "d55a9ec3d7db28eeea09a93f39131e0ad5e8304aa63933b91d9e81baff7053fc"
+sourceCommit: "fa100695fdad83b324fbb8d1f649cd432a91d887"
 translationStatus: "translated"
 sidebar:
   order: 20266819

@@ -3,9 +3,9 @@ title: "Ren et al. 2013「The Ruby Type Checker (rtc)」— Rigor 観点考察"
 description: "Imported from rigortype/rigor docs/notes/20260712-ren-2013-ruby-type-checker-rigor-review.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260712-ren-2013-ruby-type-checker-rigor-review.md"
 sourcePath: "docs/notes/20260712-ren-2013-ruby-type-checker-rigor-review.md"
-sourceSha: "c10f053788eccdb0bd9b11519f2cd6f7ca2fcfd8222c5269d01edc5d6bff2247"
-sourceCommit: "d19c9306f46b59d84bde8ac1a5a43f54be23c023"
-sourceDate: "2026-07-12T23:14:14+09:00"
+sourceSha: "b3c2de5d13474a42d158d4756ddbe79d11512197e1dea71b186afa35762db200"
+sourceCommit: "fa100695fdad83b324fbb8d1f649cd432a91d887"
+sourceDate: "2026-10-08T00:26:44+09:00"
 sourceLanguage: "ja"
 sidebar:
   order: 20266712
@@ -119,7 +119,7 @@ rtcは「実行時・注釈をルートとする検査・pay-for-what-you-use」
    eval・reflective method invocation・`method_missing`を伴う動的機能の存在下でも容易に動く」と明言する。
    これはまさにRigorが静的に苦闘してきた領域そのもの — `pre_eval`（[ADR-17](../../adr/17-monkey-patch-pre-evaluation/)）、
    マクロ展開基盤（[ADR-16](../../adr/16-macro-expansion/)）、implicit-self呼び出し解決（[ADR-24](../../adr/24-self-method-call-resolution/)/[ADR-57](../../adr/57-self-call-return-adoption/)）、
-   そして`Dynamic[T]` provenanceの全アーク（[ADR-75](../../adr/75-dynamic-provenance/)/[ADR-82](../../adr/82-dynamic-origin-algebra/)）。
+   そして`Dynamic[T]` provenanceの全アーク（[ADR-75](../../adr/75-dynamic-provenance/)/[ADR-82](../../adr/82-dynamic-provenance-wiring/)）。
    rtcはこれらを「実行時に払う」ことで**構造的に消している**。Rigorは「静的近似＋プラグイン脱出口」で払う。
    **これは根本トレードで追従不可 — 記録のみ**。ただし裏を返せば、rtcが守れない
    「走らなかったパス／未起動のメタプロメソッド」こそRigorが静的に守れる領域であり、優位も対称に存在する。
@@ -175,7 +175,7 @@ rtcは「実行時・注釈をルートとする検査・pay-for-what-you-use」
 
 3. **`%any`=Dynamicの位置づけとprovenance**。
    rtcの`%any`は「ブロックが何を返してもよい」を表す明示的untypedで、非厳格モードやnative境界で頻出する。
-   Rigorの`Dynamic[T]`と役割は同じだが、Rigorはprovenance（[ADR-75](../../adr/75-dynamic-provenance/)/[ADR-82](../../adr/82-dynamic-origin-algebra/)）で
+   Rigorの`Dynamic[T]`と役割は同じだが、Rigorはprovenance（[ADR-75](../../adr/75-dynamic-provenance/)/[ADR-82](../../adr/82-dynamic-provenance-wiring/)）で
    「なぜDynamicか」を追う。rtcは追わない（実行時なので不要）。逆に言えば**Rigorのprovenanceアークは
    「静的だからこそ必要になったメタデータ」**であり、rtcとの対比はその存在理由を鮮明にする
    — 実行時チェッカはDynamicの由来を知る必要がない（値が来た時点で実物を見る）。
