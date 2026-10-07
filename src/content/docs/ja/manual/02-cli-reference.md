@@ -3,7 +3,7 @@ title: "CLIコマンドリファレンス"
 description: "rigortype/rigor docs/manual/02-cli-reference.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/02-cli-reference.md"
 sourcePath: "docs/manual/02-cli-reference.md"
-sourceSha: "dae9e5a0c3346d8955bf946d822f5a3852631b70b335273ee72e1c1249309b73"
+sourceSha: "332961d46ffe6df304bc29e1605c759863cec8562198b5c0bf62410a43c6a993"
 sourceCommit: "d19c9306f46b59d84bde8ac1a5a43f54be23c023"
 sourceDate: "2026-09-28T04:27:33+09:00"
 translationStatus: "translated"
@@ -39,7 +39,7 @@ rigor check [paths...]
 | `--no-ci-detect` | CIの自動検出を無効化する。デフォルトでは`text`出力は実行中のCIのネイティブなアノテーション / ヒントも出力する（`RIGOR_CI_DETECT=0`も同じ効果）。[CIでのRigorの実行 § 自動検出](../11-ci/)を参照。 |
 | `--explain` | フェイルソフトフォールバックイベントを`info`診断として表示する。 |
 | `--no-cache` | この実行では永続キャッシュをスキップする。 |
-| `--incremental` | 前回の実行以降に変更されたファイルと、それに依存するファイルだけを再解析し、残りはクロスプロセスのディスクスナップショットから提供する（ADR-46）。診断結果はフル実行と同一;設定 / gem / バージョンの変更（またはファイルの追加・削除）があれば透過的にフル再解析へ切り替わる。変更がない実行は、アナライザーを起動することなくキャッシュから応答される。[キャッシュ](12-caching/)を参照。 |
+| `--incremental` | 前回の実行以降に変更されたファイルと、それに依存するファイルだけを再解析し、残りはクロスプロセスのディスクスナップショットから提供する（ADR-46）。診断結果はフル実行と同一;設定 / gem / バージョンの変更（またはファイルの追加・削除）があれば透過的にフル再解析へ切り替わる。変更がない実行は、アナライザーを起動することなくキャッシュから応答される。[キャッシュ](../12-caching/)を参照。 |
 | `--verify-incremental` | 受け入れゲート: インクリメンタルアナライザーをフルの`--no-cache`実行と突き合わせ、診断結果がバイト単位で同一であることを表明してから終了する（一致なら0、不一致なら差分の診断結果とともに1）。CIで`--incremental`が古い結果を決して提供しないことを保証するために使う。 |
 | `--clear-cache` | 実行前にキャッシュディレクトリを削除する。 |
 | `--cache-stats` | 終了時にオンディスクキャッシュのインベントリを表示する——`--format text`では標準出力へ、それ以外のすべてのフォーマットでは標準エラー出力へ出すので、機械可読な出力はパース可能なドキュメントのままである。`--clear-cache`と`--verify-incremental`の注記も同じ規則に従う。 |
@@ -51,7 +51,7 @@ rigor check [paths...]
 | `--baseline-strict` | ベースラインのドリフトで実行を失敗させる。CIゲートとして使用。 |
 | `--fail-on=SEVERITY` | ベースラインフィルタリングを通過して残った診断が`SEVERITY`（デフォルトは`error`、または`warning`、`info`）以上である場合に非ゼロで終了する ── `--format json`の`success` / `error_count`フィールドを変更することなく、それを必要とするCIゲートのために終了ステータスの基準をデフォルトの`:error`のみの読み取りから引き上げる。 |
 | `--treat-all-as-inline-rbs` | `rigor-rbs-inline`を`require_magic_comment: false`で強制ロードし、解析されるすべてのファイルを`# rbs_inline: enabled`コメントなしでインラインRBSとして扱う（ADR-32）。 |
-| `--bleeding-edge[=ids]` | この実行に対してbleeding-edgeオーバーレイを採用し、設定された[`bleeding_edge:`](03-configuration/)の選択を上書きする（ADR-50 § WD2）。引数なしではキューに積まれたすべてのfeatureを採用し、`--bleeding-edge=a,b`は名指ししたfeature idのみを採用する。[`rigor show-bleedingedge`](#rigor-show-bleedingedge)で検査する。 |
+| `--bleeding-edge[=ids]` | この実行に対してbleeding-edgeオーバーレイを採用し、設定された[`bleeding_edge:`](../03-configuration/)の選択を上書きする（ADR-50 § WD2）。引数なしではキューに積まれたすべてのfeatureを採用し、`--bleeding-edge=a,b`は名指ししたfeature idのみを採用する。[`rigor show-bleedingedge`](#rigor-show-bleedingedge)で検査する。 |
 | `--no-bleeding-edge` | この実行に対して設定された`bleeding_edge:`の選択を無視する（何も採用しない）。 |
 | `--no-tolerated-effects` | [`effects.tolerated:`](../03-configuration/)が空であるかのようにエフェクトエンベロープをチェックする —— あなたの解消ポリシーの監査スイッチ（ADR-103）。裁定のみ: ラン、収集内容、キャッシュエントリーはどちらでも同一なので、これが再解析のコストになることはない。 |
 | `--tmp-file=PATH --instead-of=PATH` | エディタモード: `--tmp-file`のバッファを使って`PATH`を解析する。両方必須。単独ではバッファ自身のファイルしか診断を出さない。プロジェクト全体を対象にするには`--incremental`を足す（下記参照）。 |
@@ -455,7 +455,7 @@ rigor plugins [--format=text|json] [--strict] [--capabilities] [--config=PATH]
 
 `--strict`なしでは常に`0`で終了し、`--strict`では1つでもプラグインのロードに失敗すると`1`で終了します（CIゲート）。
 
-`--capabilities`は**拡張プロトコルカタログ**（[ADR-37](../adr/37-plugin-interface-segregation/)）に切り替えます。これは、ロードされた各プラグインが何を提供するか（その`node_rule`がマッチするASTノード型、その`dynamic_return`がゲートするレシーバークラス、その`narrowing_facts`がナローイングするメソッド、そしてそれが`produces`／`consumes`するファクト）を集約した、焦点を絞った機械可読なマップです。ツール連携のために`--format=json`と組み合わせます（AIエージェントはプラグインのソースを1行も読まずに、すべてのプラグインの振る舞いを列挙できます）。同じ狭いサーフェスはデフォルトのフルレポートにも現れます。単数形の`rigor plugin`と混同しないこと。
+`--capabilities`は**拡張プロトコルカタログ**（[ADR-37](../../adr/37-plugin-interface-segregation/)）に切り替えます。これは、ロードされた各プラグインが何を提供するか（その`node_rule`がマッチするASTノード型、その`dynamic_return`がゲートするレシーバークラス、その`narrowing_facts`がナローイングするメソッド、そしてそれが`produces`／`consumes`するファクト）を集約した、焦点を絞った機械可読なマップです。ツール連携のために`--format=json`と組み合わせます（AIエージェントはプラグインのソースを1行も読まずに、すべてのプラグインの振る舞いを列挙できます）。同じ狭いサーフェスはデフォルトのフルレポートにも現れます。単数形の`rigor plugin`と混同しないこと。
 
 ## `rigor plugin`
 
@@ -634,16 +634,16 @@ rigor upgrade
 | 変数 | 効果 |
 | --- | --- |
 | `NO_COLOR` | 色付き出力を無効化する（`rigor annotate`が尊重する;`--no-color`も同じ）。 |
-| `RIGOR_CI_DETECT=0` | CI自動検出をオフにする。`--no-ci-detect`と同じ。[CIでのRigor実行 § 自動検出](11-ci/)を参照。 |
+| `RIGOR_CI_DETECT=0` | CI自動検出をオフにする。`--no-ci-detect`と同じ。[CIでのRigor実行 § 自動検出](../11-ci/)を参照。 |
 | `RIGOR_RACTOR_WORKERS=N` | 並列解析のワーカー数。優先順位ではCLIフラグと設定キーの間に位置する: `--workers=N` > `RIGOR_RACTOR_WORKERS` > `parallel.workers:` > `0`（逐次）。 |
 | `RIGOR_POOL_BACKEND=ractor` | アクティブなforkベースのプールの代わりに、（デフォルトでオフの）Ractorワーカープールに戻す（[ADR-15](../../adr/15-ractor-concurrency/)）。非ゼロのワーカー数のときのみ関係する;サポートされるバックエンドはforkプールである。 |
 | `RIGOR_LSP_POOL_MIN_BATCH=N` | [`rigor lsp`](#rigor-lsp)のバッチが、インプロセスで実行されるのではなくワーカープールへ解析をディスパッチされるために運ばなければならない最小のバッファ数（デフォルト`16`）。プロジェクトのファイルごとの解析が十分に高価で、プーリングがより早く見合うなら下げる。 |
-| `RIGOR_PLUGIN_ISOLATION=none\|process\|ruby_box` | プラグインがターゲットライブラリへ行う直接呼び出しをどう隔離するか。`plugins_isolation:`設定キーをオーバーライドします。デフォルトは`process`。[プラグインの使用 § 隔離戦略](07-plugins/)を参照。`RIGOR_BOX`は`ruby_box`のレガシーエイリアス。 |
-| `RIGOR_STRICT_VALIDATION=1` | 1回の実行に対してフルコンテンツのキャッシュ検証を強制する（`cache.validation: digest`と同じで、それより優先する）——各ファイルのstatメタデータを信用する代わりに、その内容を毎回再ハッシュする。ファイルシステムのタイムスタンプやinode番号が信用できない場合に使用する。[キャッシュ § ファイルの変更確認方法](12-caching/)を参照。 |
+| `RIGOR_PLUGIN_ISOLATION=none\|process\|ruby_box` | プラグインがターゲットライブラリへ行う直接呼び出しをどう隔離するか。`plugins_isolation:`設定キーをオーバーライドします。デフォルトは`process`。[プラグインの使用 § 隔離戦略](../07-plugins/)を参照。`RIGOR_BOX`は`ruby_box`のレガシーエイリアス。 |
+| `RIGOR_STRICT_VALIDATION=1` | 1回の実行に対してフルコンテンツのキャッシュ検証を強制する（`cache.validation: digest`と同じで、それより優先する）——各ファイルのstatメタデータを信用する代わりに、その内容を毎回再ハッシュする。ファイルシステムのタイムスタンプやinode番号が信用できない場合に使用する。[キャッシュ § ファイルの変更確認方法](../12-caching/)を参照。 |
 | `RIGOR_DISABLE_YJIT=1` | Rigorの遅延YJIT有効化をオプトアウトする。Rigorはあらゆる長時間の実行の途中でYJITを有効化するので、短い実行はJITのウォームアップコストを一切払わない;この変数はYJITを完全にオフのままにする。診断結果とアロケーションはどちらの場合も同一で、影響は実行時間のみ。 |
 | `RIGOR_YJIT_DEADLINE=<seconds>` | 上級者向け: 遅延YJITが有効化されるまでに実行がどれだけ続く必要があるかを調整する（デフォルト`5.0`）。実行が長くYJITをもっと早く欲しいなら下げ、短い実行を保護したいなら上げる。`RIGOR_DISABLE_YJIT=1`が設定されているか、YJITが利用できない場合は無視される。 |
 
-さらに3つの変数（`RIGOR_BUDGET_TRACE`、`RIGOR_HEAP_PROFILE`、`RIGOR_HEAP_TRACE`）は、Rigor自身の推論カットオフとメモリに関する開発者向けの診断を有効にします。[トラブルシューティング § 高度な診断](13-troubleshooting/#高度な診断)を参照してください。
+さらに3つの変数（`RIGOR_BUDGET_TRACE`、`RIGOR_HEAP_PROFILE`、`RIGOR_HEAP_TRACE`）は、Rigor自身の推論カットオフとメモリに関する開発者向けの診断を有効にします。[トラブルシューティング § 高度な診断](../13-troubleshooting/#高度な診断)を参照してください。
 
 ## 終了コード
 

@@ -3,8 +3,8 @@ title: "チェンジログ — 0.0.xアーカイブ"
 description: "rigortype/rigor docs/CHANGELOG-0.0.x.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/CHANGELOG-0.0.x.md"
 sourcePath: "docs/CHANGELOG-0.0.x.md"
-sourceSha: "49f83421c535e3c054a0d0e4fe147158e0c82b9447c0cf28c7d47e8f8624bed9"
-sourceCommit: "17f7d081a694f9cfdfaebd7fc71ebfc7171e2a6d"
+sourceSha: "633b898f238676392d07658ece2d72369bc5c2f57ee8f3deabde8fab84070524"
+sourceCommit: "d19c9306f46b59d84bde8ac1a5a43f54be23c023"
 translationStatus: "translated"
 sidebar:
   order: 9050
@@ -20,7 +20,7 @@ sidebar:
 
 ## [0.0.9] - 2026-05-05
 
-第9プレビュー。テーマ: **キャッシュサーフェス（surface）の完成、型語彙の拡張、v0.1.0プラグイン契約（contract）に向けたパブリックAPIのロック**。v0.0.9はすべての残存するpre-`0.1.0`サブストレートスライス（slice）を完了します: 永続キャッシュが`rigor check`にエンドツーエンドで配線され（ウォーム実行はディスクバックのテーブルにヒットし; `--cache-stats`は実際のヒット / ミス / 書き込みカウントを報告し; `--no-cache`でオフにできます）、型語彙は対補完`~T`ナローイング（narrowing）と補間 / `+` / `*` / `<<`を通じた`literal-string`フロー追跡を取り込み、[`RBS::Extended`](../docs/type-specification/rbs-extended/)ディレクティブサーフェスはメソッド上のすべての認識済みディレクティブを1つの`Rigor::FlowContribution`バンドルにまとめ、6つの新しい組み込みカタログが`Random`、`Struct`（+ `Data`）、`Encoding`、`Regexp` / `MatchData`、`Proc` / `Method` / `UnboundMethod`、`Exception`をカバーします。
+第9プレビュー。テーマ: **キャッシュサーフェス（surface）の完成、型語彙の拡張、v0.1.0プラグイン契約（contract）に向けたパブリックAPIのロック**。v0.0.9はすべての残存するpre-`0.1.0`サブストレートスライス（slice）を完了します: 永続キャッシュが`rigor check`にエンドツーエンドで配線され（ウォーム実行はディスクバックのテーブルにヒットし; `--cache-stats`は実際のヒット / ミス / 書き込みカウントを報告し; `--no-cache`でオフにできます）、型語彙は対補完`~T`ナローイング（narrowing）と補間 / `+` / `*` / `<<`を通じた`literal-string`フロー追跡を取り込み、[`RBS::Extended`](../type-specification/rbs-extended/)ディレクティブサーフェスはメソッド上のすべての認識済みディレクティブを1つの`Rigor::FlowContribution`バンドルにまとめ、6つの新しい組み込みカタログが`Random`、`Struct`（+ `Data`）、`Encoding`、`Regexp` / `MatchData`、`Proc` / `Method` / `UnboundMethod`、`Exception`をカバーします。
 
 `0.0.9`の次のリリースは`0.1.0`です——一桁バージョンコンポーネントポリシー、`0.0.10`なし。v0.1.0がプラグイン契約を本格的に開始します; v0.0.9はその契約が設計される基板をリリースします。
 
@@ -51,23 +51,23 @@ sidebar:
 
 ### 変更
 
-- キャッシュレイヤーのパブリック読み取り形状が[`docs/internal-spec/cache.md`](../docs/internal-spec/cache/)の全6プロデューサーをカバーするよう拡大: `Descriptor`、`Store`（新しい`serialize:` / `deserialize:` kwargsと`Store#stats`を含む）、`RbsConstantTable`、`RbsKnownClassNames`、`RbsClassAncestorTable`、`RbsClassTypeParamNames`、`RbsEnvironment`、共有`RbsDescriptor`ビルダー、`RBS::Location` Marshalパッチ。
-- `Rigor::FlowContribution`が[`docs/internal-spec/flow-contribution.md`](../docs/internal-spec/flow-contribution/)に文書化されました（スロットテーブル、等値性 / `to_h` / `empty?`セマンティクス、`RbsExtended.read_flow_contribution`マッピング（predicate-if-* → `truthy_facts` / `falsey_facts`、`assert*` → `post_return_facts`、`return:` → `return_type`）、延期された要素リストフラット化のノートを含む）。
+- キャッシュレイヤーのパブリック読み取り形状が[`docs/internal-spec/cache.md`](../internal-spec/cache/)の全6プロデューサーをカバーするよう拡大: `Descriptor`、`Store`（新しい`serialize:` / `deserialize:` kwargsと`Store#stats`を含む）、`RbsConstantTable`、`RbsKnownClassNames`、`RbsClassAncestorTable`、`RbsClassTypeParamNames`、`RbsEnvironment`、共有`RbsDescriptor`ビルダー、`RBS::Location` Marshalパッチ。
+- `Rigor::FlowContribution`が[`docs/internal-spec/flow-contribution.md`](../internal-spec/flow-contribution/)に文書化されました（スロットテーブル、等値性 / `to_h` / `empty?`セマンティクス、`RbsExtended.read_flow_contribution`マッピング（predicate-if-* → `truthy_facts` / `falsey_facts`、`assert*` → `post_return_facts`、`return:` → `return_type`）、延期された要素リストフラット化のノートを含む）。
 
 ## [0.0.8] - 2026-05-04
 
-第8プレビュー。テーマ: **最初のキャッシュ関連コードスライス** — v0.0.7のキャッシュスライス分類体系設計ドキュメントがスキーマを固定した永続化レイヤーを着地させ、Marshalクリーンなプロデューサーをエンドツーエンドで配線します。バックエンドの選択は[ADR-6](../docs/adr/6-cache-persistence-backend/)によって固定: カスタム正規フォーマットを通じて書き込まれるバイナリエントリーのシャードディレクトリ、**新しいgem依存関係ゼロ**。
+第8プレビュー。テーマ: **最初のキャッシュ関連コードスライス** — v0.0.7のキャッシュスライス分類体系設計ドキュメントがスキーマを固定した永続化レイヤーを着地させ、Marshalクリーンなプロデューサーをエンドツーエンドで配線します。バックエンドの選択は[ADR-6](../adr/6-cache-persistence-backend/)によって固定: カスタム正規フォーマットを通じて書き込まれるバイナリエントリーのシャードディレクトリ、**新しいgem依存関係ゼロ**。
 
 ### 追加
 
-- **`Rigor::Cache::Descriptor`値オブジェクト**。[`docs/design/20260505-cache-slice-taxonomy.md`](../docs/design/20260505-cache-slice-taxonomy/)に従う純粋値の4スロットスキーマ（`files`、`gems`、`plugins`、`configs`）。各スロットは型付きの凍結エントリーを保持します; `FileEntry`は比較器enum（`:digest > :mtime > :exists`）を検証します;その他はすでに正規化されたハッシュを受け入れます。`Descriptor.compose(*descriptors)`はキーでスロットを統合し、ファイル競合ではより厳格な比較器を優先し、値が一致しない場合は`Descriptor::Conflict`を発生させます。`descriptor.cache_key_for(producer_id:, params:)`は合成された入力に対して正規16進SHA-256を導出します; `to_canonical_bytes`はソート済みで決定的なJSONを生成し、等価なディスクリプタが同一バイトにラウンドトリップします。
+- **`Rigor::Cache::Descriptor`値オブジェクト**。[`docs/design/20260505-cache-slice-taxonomy.md`](../design/20260505-cache-slice-taxonomy/)に従う純粋値の4スロットスキーマ（`files`、`gems`、`plugins`、`configs`）。各スロットは型付きの凍結エントリーを保持します; `FileEntry`は比較器enum（`:digest > :mtime > :exists`）を検証します;その他はすでに正規化されたハッシュを受け入れます。`Descriptor.compose(*descriptors)`はキーでスロットを統合し、ファイル競合ではより厳格な比較器を優先し、値が一致しない場合は`Descriptor::Conflict`を発生させます。`descriptor.cache_key_for(producer_id:, params:)`は合成された入力に対して正規16進SHA-256を導出します; `to_canonical_bytes`はソート済みで決定的なJSONを生成し、等価なディスクリプタが同一バイトにラウンドトリップします。
 - **`Rigor::Cache::Store`ファイルシステムバックエンド**。シャードレイアウト`<root>/<producer-id>/<2-prefix>/<62-suffix>.entry`、`<root>/schema_version.txt`のスキーマバージョンマーカー。カスタムバイナリエントリーフォーマット（`"RIGOR\x00\x01"`マジック、varint接頭辞付きディスクリプタと値、末尾SHA-256整合性）。書き込みはデスティネーションの`flock(LOCK_EX)`と一時ファイルの`fsync`を使ったリネームインプレースに従います。読み取りはあらゆる失敗（ファイルなし、不正マジック、不正SHA-256、不正varint、unmarshal不可なペイロード）をキャッシュミスに落とします。`Store#fetch_or_compute(producer_id:, params:, descriptor:) { ... }`が唯一のプロデューサー向けAPIです;プロデューサーIDはファイルシステム安全のために`[a-z][a-z0-9._-]*`に制約されます。
-- **最初のキャッシュプロデューサー——`Rigor::Cache::RbsConstantTable`**。すべてのRBS宣言定数（例: `"::Math::PI"`）をその翻訳済み`Rigor::Type`にマッピングする`Hash<String, Rigor::Type>`をキャッシュします。ディスクリプタ: ロックバージョンを持つ`rbs` gem、`signature_paths`下のすべての`.rbs`ファイルの`:digest`エントリー、ライブラリリストの設定エントリー。スライス計画は最初のプロデューサーとして元々RBS環境ローダー（`build_env`）を指名していましたが、実装により`RBS::Environment`はMarshalクリーンでない（`RBS::Location`は`_dump_data`を持たないC拡張クラス）ことが発見されました。[ADR-6 § 8](../docs/adr/6-cache-persistence-backend/)がその発見を文書化しています;スライスは代わりに翻訳後のアーティファクトをキャッシュします。`RbsLoader#constant_names`が追加され、プロデューサーがローダーのプライベート状態に触れることなく定数を列挙できます。
+- **最初のキャッシュプロデューサー——`Rigor::Cache::RbsConstantTable`**。すべてのRBS宣言定数（例: `"::Math::PI"`）をその翻訳済み`Rigor::Type`にマッピングする`Hash<String, Rigor::Type>`をキャッシュします。ディスクリプタ: ロックバージョンを持つ`rbs` gem、`signature_paths`下のすべての`.rbs`ファイルの`:digest`エントリー、ライブラリリストの設定エントリー。スライス計画は最初のプロデューサーとして元々RBS環境ローダー（`build_env`）を指名していましたが、実装により`RBS::Environment`はMarshalクリーンでない（`RBS::Location`は`_dump_data`を持たないC拡張クラス）ことが発見されました。[ADR-6 § 8](../adr/6-cache-persistence-backend/)がその発見を文書化しています;スライスは代わりに翻訳後のアーティファクトをキャッシュします。`RbsLoader#constant_names`が追加され、プロデューサーがローダーのプライベート状態に触れることなく定数を列挙できます。
 - **`rigor check --cache-stats`**。ランの最終にオンディスクインベントリを出力します（プロデューサーごとのエントリーカウント、合計バイト、スキーマバージョンマーカー）。新しい`Rigor::Cache::Store.disk_inventory(root:)`クラスメソッドから取得。ランごとのヒット / ミスカウンタはプロダクションコードがキャッシュを配線するまで延期。
 - **`rigor check --clear-cache`**。解析ランの前に`.rigor/cache`ディレクトリ（CWD相対）を削除します。`Cleared cache: .rigor/cache`または`Cache already empty: .rigor/cache`を出力します。チェック自体は完了まで実行されます。
 - **診断ソースファミリー由来**。`Rigor::Analysis::Diagnostic`に`source_family:` kwarg（デフォルト`:builtin`）と非デフォルトファミリーには`"#{source_family}.#{rule}"`を、組み込み診断には`rule`を返す`qualified_rule`アクセサが追加されました。JSON出力（`to_h`）は`source_family`と生の`rule`の両方を並べて持ちます。プラグインAPI自体にコミットすることなくADR-2のプラグイン可観測性ストーリーを準備します; v0.0.8でデフォルト以外のソースファミリーを設定するプロダクション呼び出し元はありません。
 
-- 新しい規範的仕様[`docs/internal-spec/cache.md`](../docs/internal-spec/cache/)がキャッシュレイヤーのパブリック読み取り形状を追跡します（Descriptor API、Store API、ファイルフォーマット、アトミシティとロック、スキーマバージョン不一致動作、ディスクインベントリ、診断由来）。
+- 新しい規範的仕様[`docs/internal-spec/cache.md`](../internal-spec/cache/)がキャッシュレイヤーのパブリック読み取り形状を追跡します（Descriptor API、Store API、ファイルフォーマット、アトミシティとロック、スキーマバージョン不一致動作、ディスクインベントリ、診断由来）。
 
 ## [0.0.7] - 2026-05-05
 
@@ -124,10 +124,10 @@ sidebar:
 
 #### pre-v0.1.0サブストレート
 
-- **`Rigor::Reflection`読み取り側ファサード** — Rigorの3つのリフレクションソース（`ClassRegistry` + `RbsLoader` + `Scope`発見ファクト（fact））を1つの読み取りAPIの下に結合します。9つのクエリ: `class_known?`、`class_ordering`、`nominal_for_name`、`singleton_for_name`、`constant_type_for`（インソースがRBSとの衝突に勝つ）、`instance_method_definition`、`singleton_method_definition`、`discovered_class?`、`discovered_method?`。v0.1.0プラグインAPI準備のためのパブリック読み取り形状;仕様は[`docs/internal-spec/reflection.md`](../docs/internal-spec/reflection/)。
+- **`Rigor::Reflection`読み取り側ファサード** — Rigorの3つのリフレクションソース（`ClassRegistry` + `RbsLoader` + `Scope`発見ファクト（fact））を1つの読み取りAPIの下に結合します。9つのクエリ: `class_known?`、`class_ordering`、`nominal_for_name`、`singleton_for_name`、`constant_type_for`（インソースがRBSとの衝突に勝つ）、`instance_method_definition`、`singleton_method_definition`、`discovered_class?`、`discovered_method?`。v0.1.0プラグインAPI準備のためのパブリック読み取り形状;仕様は[`docs/internal-spec/reflection.md`](../internal-spec/reflection/)。
 - **リフレクションコンシューマー移行**。5つのエンジン内部コーラー（`Analysis::CheckRules`、`Inference::Narrowing`、`Inference::StatementEvaluator`、`Inference::MethodDispatcher`、`Inference::MethodParameterBinder`、`Inference::MethodDispatcher::RbsDispatch`）が生の`scope.environment.rbs_loader`アクセスからファサードに移行します。ファサードは`rbs_class_known?`、`instance_definition` / `singleton_definition`、`class_type_param_names`、ディスパッチャーコールパスのために`Scope`を持たない場合に`environment:` kwargバリアントを獲得します。機械的なリファクタ;動作変更なし。
-- **v0.1.0準備設計ドキュメント** — [`docs/design/20260505-v0.1.0-readiness.md`](../docs/design/20260505-v0.1.0-readiness/)。すべてのADR-2サーフェスを今日の実装にマッピングし、7つの主要なpre-v0.1.0作業項目のシーケンスを定め、ADR-2の未解決の問題を調和させ、v0.0.xドットリリースとして着地できる項目を列挙します。
-- **キャッシュスライス分類体系設計ドキュメント** — [`docs/design/20260505-cache-slice-taxonomy.md`](../docs/design/20260505-cache-slice-taxonomy/)。スロットごとのエントリー形状（`:digest` / `:mtime` / `:exists`比較器を持つ`FileEntry`、`GemEntry`、`PluginEntry`、`ConfigEntry`）、コンポジションルール、正規キャッシュキー導出、粒度ガイダンス、スキーマバージョニングを固定します。v0.1.0でリリースされる永続化レイヤーの前提条件契約。
+- **v0.1.0準備設計ドキュメント** — [`docs/design/20260505-v0.1.0-readiness.md`](../design/20260505-v010-readiness/)。すべてのADR-2サーフェスを今日の実装にマッピングし、7つの主要なpre-v0.1.0作業項目のシーケンスを定め、ADR-2の未解決の問題を調和させ、v0.0.xドットリリースとして着地できる項目を列挙します。
+- **キャッシュスライス分類体系設計ドキュメント** — [`docs/design/20260505-cache-slice-taxonomy.md`](../design/20260505-cache-slice-taxonomy/)。スロットごとのエントリー形状（`:digest` / `:mtime` / `:exists`比較器を持つ`FileEntry`、`GemEntry`、`PluginEntry`、`ConfigEntry`）、コンポジションルール、正規キャッシュキー導出、粒度ガイダンス、スキーマバージョニングを固定します。v0.1.0でリリースされる永続化レイヤーの前提条件契約。
 
 ## [0.0.6] - 2026-05-05
 
@@ -197,7 +197,7 @@ sidebar:
 
 第4プレビュー。テーマ: **OQ3精製キャリア戦略の完成と`RBS::Extended`ディレクティブサーフェスの拡張**。
 
-OQ3キャリアトリプル（v0.0.3からの`Type::Difference`に加えて新しい`Type::Refined`と`Type::Intersection`）はインポートされた組み込みカタログ（[`docs/type-specification/imported-built-in-types.md`](../docs/type-specification/imported-built-in-types/)）に対して機能完成しています。作者は`%a{rigor:v1:…}`アノテーションから精製名のフルセットを表現でき、解析器はメソッドディスパッチ、受け入れ、`argument-type-mismatch`チェックルールを通じてそれらを対称的に射影します。
+OQ3キャリアトリプル（v0.0.3からの`Type::Difference`に加えて新しい`Type::Refined`と`Type::Intersection`）はインポートされた組み込みカタログ（[`docs/type-specification/imported-built-in-types.md`](../type-specification/imported-built-in-types/)）に対して機能完成しています。作者は`%a{rigor:v1:…}`アノテーションから精製名のフルセットを表現でき、解析器はメソッドディスパッチ、受け入れ、`argument-type-mismatch`チェックルールを通じてそれらを対称的に射影します。
 
 `RBS::Extended`ディレクティブサーフェスは`rigor:v1:param:`（コール境界とメソッドボディ内での`MethodParameterBinder`を通じた両方）を取り込み、既存の`assert*` / `predicate-if-*`ファミリーは右辺で精製ペイロードを受け入れるようになりました。
 
@@ -287,7 +287,7 @@ OQ3キャリアトリプル（v0.0.3からの`Type::Difference`に加えて新�
 
 - **`always-raises`診断ルール**。`5 / 0`、`5 % 0`、`5.div(0)`、`5.modulo(0)`、`5.divmod(0)`、`rand(100) / 0`はすべてルール`always-raises`（「常にZeroDivisionErrorを発生させる」）下で`:error`診断として表面化します。Float算術（`5.0 / 0`は`Infinity`を返す）と`Integer#fdiv(0)`はサイレントのままです。`# rigor:disable always-raises`で行ごとに抑制可能。
 
-- **ロバストネス原則（PostelのTypeのための法則）**。新しいADR（[`docs/adr/5-robustness-principle.md`](../docs/adr/5-robustness-principle/)）と規範的仕様セクション（[`docs/type-specification/robustness-principle.md`](../docs/type-specification/robustness-principle/)）が非対称な作成ルールを文書化します: Rigorが作成した戻り値型は証明できる限り厳格であるべき; Rigorが作成したパラメータ型はボディの正しい動作が許す限り寛容であるべき。手書きのRBS作成が拘束し;この原則はRigorのデフォルトのみを指示します。
+- **ロバストネス原則（PostelのTypeのための法則）**。新しいADR（[`docs/adr/5-robustness-principle.md`](../adr/5-robustness-principle/)）と規範的仕様セクション（[`docs/type-specification/robustness-principle.md`](../type-specification/robustness-principle/)）が非対称な作成ルールを文書化します: Rigorが作成した戻り値型は証明できる限り厳格であるべき; Rigorが作成したパラメータ型はボディの正しい動作が許す限り寛容であるべき。手書きのRBS作成が拘束し;この原則はRigorのデフォルトのみを指示します。
 
 ### 修正
 

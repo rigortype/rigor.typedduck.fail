@@ -3,8 +3,8 @@ title: "このリポジトリでスキルを執筆する"
 description: "rigortype/rigor docs/agents/skill-authoring.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/agents/skill-authoring.md"
 sourcePath: "docs/agents/skill-authoring.md"
-sourceSha: "dfcbd8ad435dd46e03a549522720cff7fce9fe1bdb2d3692037a6b18bb8045f1"
-sourceCommit: "e12ab45fa55707ed2acc0eae2e273b99a72dc077"
+sourceSha: "91af6b8b98df0f49cc15207ef8cfde09e207d5605c1611e12c3c0e2f243fa850"
+sourceCommit: "d19c9306f46b59d84bde8ac1a5a43f54be23c023"
 sourceDate: "2026-09-28T02:29:29+09:00"
 translationStatus: "translated"
 sidebar:
@@ -26,7 +26,7 @@ sidebar:
 
 ## `waza`レビュー
 
-スキルに対する変更は、[`contribution-flow.md`](contribution-flow.md) §「プルリクエストのマージ」にある敵対的レビュー（adversarial review）に加えて、`waza`レビューを経た後にのみ出荷されます。エージェントレビュアーはリポジトリに対して変更を読み込み、`waza`はエージェントが従うルーティングおよび指示サーフェスとしてスキルを読み込みます。したがってスキルに対するいかなる変更もPRが必要です。ローカルでの`waza check`を経た後、タイポ級の修正（スペルミス、壊れたリンク先）のみが`master`に直接進むことができます。スキルの削除には`waza`の実行は不要です。
+スキルに対する変更は、[`contribution-flow.md`](../contribution-flow/) §「プルリクエストのマージ」にある敵対的レビュー（adversarial review）に加えて、`waza`レビューを経た後にのみ出荷されます。エージェントレビュアーはリポジトリに対して変更を読み込み、`waza`はエージェントが従うルーティングおよび指示サーフェスとしてスキルを読み込みます。したがってスキルに対するいかなる変更もPRが必要です。ローカルでの`waza check`を経た後、タイポ級の修正（スペルミス、壊れたリンク先）のみが`master`に直接進むことができます。スキルの削除には`waza`の実行は不要です。
 
 どちらのスキルツリーであっても、何が変更されたかに応じて実行するコマンドが異なります:
 

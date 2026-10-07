@@ -3,8 +3,8 @@ title: "ADR-4: 型推論エンジンと`Scope#type_of`クエリ"
 description: "rigortype/rigor docs/adr/4-type-inference-engine.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/4-type-inference-engine.md"
 sourcePath: "docs/adr/4-type-inference-engine.md"
-sourceSha: "de249c52cf36a4ae69c35cfadef38e4f9aa70cd210455d4b603b52bd4e331360"
-sourceCommit: "a5d648b126d5ed7b1e04a16a87927bca7883e069"
+sourceSha: "1cd35a94b7f0a6627dfb750416799064df4d8044618a7f01717737f3ee4c9bd8"
+sourceCommit: "d19c9306f46b59d84bde8ac1a5a43f54be23c023"
 translationStatus: "translated"
 sidebar:
   order: 4004
@@ -16,7 +16,7 @@ sidebar:
 
 ADR-4は、静的型モデル（ADR-1・ADR-3）を動作する推論エンジンに変える設計決定を記録します。中心となる具体的な成果物は、Prism ASTノードと不変な`Rigor::Scope`を取り、その式がそのプログラム位置で生成すると証明された`Rigor::Type`を返す解析器クエリです。これはPHPStanの`$scope->getType($node)`に対するRuby/Rigorの対応物であり、すべてのCLI規則・プラグイン・リファクタツールが最終的に呼び出すクエリです。
 
-ADR-4はセマンティクスを再定義**しません** — それらは[`docs/type-specification/`](../type-specification/)にあります — また型オブジェクト公開契約（contract）も再定義**しません** — それは[`docs/internal-spec/internal-type-api.md`](../../internal-spec/internal-type-api/)にあります。ADR-4は、どのRubyモジュールが推論を実装するか、それらがどの順序で着地するか、そしてコードを書き始めるために必要なADR-3の未決事項に対する暫定回答を固定します。
+ADR-4はセマンティクスを再定義**しません** — それらは[`docs/type-specification/`](../../type-specification/)にあります — また型オブジェクト公開契約（contract）も再定義**しません** — それは[`docs/internal-spec/internal-type-api.md`](../../internal-spec/internal-type-api/)にあります。ADR-4は、どのRubyモジュールが推論を実装するか、それらがどの順序で着地するか、そしてコードを書き始めるために必要なADR-3の未決事項に対する暫定回答を固定します。
 
 このADRの規範的な側面 — `Scope#type_of`の公開契約・フェイルソフトポリシー・不変性規律・エンジンロード境界 — は[`docs/internal-spec/inference-engine.md`](../../internal-spec/inference-engine/)にあります。このADRとそのドキュメントが観測可能なRubyの挙動について食い違うとき、仕様が束縛し、このADRが一致するよう更新されます。
 

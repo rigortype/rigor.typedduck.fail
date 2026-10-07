@@ -3,8 +3,8 @@ title: "プラグインの登録と読み込み"
 description: "rigortype/rigor docs/internal-spec/plugin.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/plugin.md"
 sourcePath: "docs/internal-spec/plugin.md"
-sourceSha: "c6a2e2caf2ebd5ca21c212d96804ba19ef8cb4e2e541afe3cf67fb6b6657af23"
-sourceCommit: "e12ab45fa55707ed2acc0eae2e273b99a72dc077"
+sourceSha: "571b1753feef039fd0782da4761225addaf1de967795ff54b7db606054e89483"
+sourceCommit: "d19c9306f46b59d84bde8ac1a5a43f54be23c023"
 sourceDate: "2026-09-28T05:07:06+09:00"
 translationStatus: "translated"
 sidebar:
@@ -130,11 +130,11 @@ end
 
 `Rigor::Plugin::Base.suggest(name, candidates)`（ボイラープレート削減計画 §0c）は、共有の「もしかして…?」ヘルパーです: `DidYouMean::SpellChecker`（エンジンのRuby自身の`NoMethodError`ヒントが使うもの）経由で`candidates`のうち`name`に最も近いものを返すか、`nil`を返します。これは**クラス**メソッドなので、プラグインインスタンスからも`Analyzer`モジュール関数からも呼び出せ、プラグインがかつて持っていた手書きのLevenshteinのコピーを置き換えます。これは既に発行された診断の提案*テキスト*にのみ影響し、診断が発火するかどうかには決して影響しません。
 
-`Rigor::Plugin::Base.ffi_binding_recognizer(name, &block)` / `.ffi_binding_recognizers`（[ADR-30](../../adr/30-ffi-c-extension-analysis/) / #727）は、`rigor-ffi`が提供するクラスレベルのDSLです。FFIバインディング認識器を作成するプラグイン（`rigor-rbnacl`、`rigor-sassc`など）はこのDSLを使ってカスタムバインディング認識器を登録し、FFIカタログがそれらのバインディング宣言を認識できるようにします。
+`Rigor::Plugin::Base.ffi_binding_recognizer(name, &block)` / `.ffi_binding_recognizers`（[ADR-30](../../adr/30-rigor-ffi-plugin-shape/) / #727）は、`rigor-ffi`が提供するクラスレベルのDSLです。FFIバインディング認識器を作成するプラグイン（`rigor-rbnacl`、`rigor-sassc`など）はこのDSLを使ってカスタムバインディング認識器を登録し、FFIカタログがそれらのバインディング宣言を認識できるようにします。
 
 `#diagnostics_for(violations, path:, node: nil)`（ADR-60 WD4）は、プラグイン自身の違反オブジェクトを`#diagnostic`を通して`Diagnostic`へマッピングし、node-ruleプラグインがさもなくば繰り返す`violations.map { |v| diagnostic(node, …) }`ブロックを吸収します。各違反は`#message`（必須）に加えて、任意の`#node`（位置を合わせるPrismノード——`node:`引数にフォールバックする）、`#location`、`#severity`（デフォルト`:error`）、`#rule`をダックタイピングします。`#diagnostics_for_file` / `node_rule`ブロックからの直接returnに適したArrayを返します。
 
-`#read_fact(plugin_id:, name:)`（ADR-60 WD4）は、別のプラグインの`#prepare`が公開したクロスプラグインファクト（ADR-9）を読み、インスタンス上で`(plugin_id, name)`ごとに**nil結果も含めて**メモ化します。nilを含むメモは、「ファクトが未公開」と「まだ読んでいない」を区別するために発見プラグインが抱えていた手書きの`@x_resolved`フラグを退役させます;ロードされたどのプロデューサーも公開していないファクトは`nil`として読まれます。（`#producer_value` / `#producer_error`——これらのヘルパーのキャッシュプロデューサー版の双子——は[`plugin-cache-producers.md`](plugin-cache-producers/)で仕様化されています。）
+`#read_fact(plugin_id:, name:)`（ADR-60 WD4）は、別のプラグインの`#prepare`が公開したクロスプラグインファクト（ADR-9）を読み、インスタンス上で`(plugin_id, name)`ごとに**nil結果も含めて**メモ化します。nilを含むメモは、「ファクトが未公開」と「まだ読んでいない」を区別するために発見プラグインが抱えていた手書きの`@x_resolved`フラグを退役させます;ロードされたどのプロデューサーも公開していないファクトは`nil`として読まれます。（`#producer_value` / `#producer_error`——これらのヘルパーのキャッシュプロデューサー版の双子——は[`plugin-cache-producers.md`](../plugin-cache-producers/)で仕様化されています。）
 
 `#prepare(services)`（ADR-9）はプロジェクト全体の事前パスフックで、プラグインインスタンスごとに、そのインスタンスのファイルごとの解析が始まる前に一度呼ばれます（§_並行性と値オブジェクトの共有可能性_を参照）。クロスプラグインファクト（`manifest(produces:)`）を公開するプラグインはこれをオーバーライドしてプロジェクトを走査し、`services.fact_store.publish(...)`を呼びます;ローダーのトポロジカル順序付けが、プロデューサーの`prepare`がいずれのコンシューマーのものよりも先に実行されることを保証します。デフォルトはno-opです。
 
@@ -218,7 +218,7 @@ end
 - `dynamic_return(receivers:, methods:, file_methods:) { |call_node, scope| Type | nil }` — レシーバーのクラス、メソッド名、またはその両方でゲートされた、呼び出しサイトごとの**戻り値型**（少なくとも1つのゲートがREQUIRED ── どちらでもゲートしない規則はすべてのディスパッチで発火してしまうため、`dynamic_return`はロード時にそれを拒否します）。`receivers:`（クラス名の空でない`Array`、または`#prepare`の後に実行ごとに一度解決される`-> { … }`のcallable、ADR-52スライス3）を指定すると、エンジンは呼び出しのレシーバー型のクラスが宣言されたエントリーと等しいか、それを継承する場合にのみ（`Environment#class_ordering`経由でマッチ）**かつ**レシーバーがそのエントリーが名指す種別（kind）である場合にのみブロックを呼びます。`methods:`（Symbol／String名の`Array`、または実行時callable、ADR-52スライス4）は`call_node.name`でゲートします。`file_methods:`（パスを受け取り`(rule, path)`ごとにメモ化されるcallable、ADR-52スライス5a）は、解析対象ファイルによって変わる名前集合（rigor-rspecの`let`名）向けのファイルごとの特殊化であり、`methods:`を置き換えます。最初の非`nil`が勝ちます。エンジンはそれを`#dynamic_return_type(call_node:, scope:, receiver_type:)`を通して呼び出します。`rigor-mangrove`（アンラップ → 担われた`type_args[0]`）が実装済みのコンシューマーです。
   - **`receivers:`エントリーは単なるクラスだけでなく、レシーバーの種別（KIND）を名指す**（issue #701）。素のクラス名 ── `"Widget"` ── はインスタンス（INSTANCE）レシーバーにマッチします: `Type::Nominal[Widget]`、およびそのクラスのインスタンスである`Type::Result` / `Type::Maybe`キャリアです。クラスオブジェクト自体はRBS自身の綴りである`"singleton(Widget)"`で書かれ、`Type::Singleton[Widget]`にマッチします。意図的に両方を求める規則は両方のエントリーを宣言します（`["Widget", "singleton(Widget)"]`）; `rigor-ffi`がバンドルされたコンシューマーです。`attach_function`はライブラリモジュールがどちらの種別の下でも応答する束縛をインストールするためです。継承は両方の種別においてクラス名上でマッチするため、`"singleton(ActiveRecord::Base)"`は素のエントリーが`User`をカバーするのとまったく同様に`singleton(User)`をカバーします。名目的クラスを持たないレシーバーキャリア（リファインメント次元、推論されたシェイプ）はどのエントリーにもマッチしません。閉じられていないエントリーを開く`singleton(`はロード時に拒否されるため、誤って入力された種別ラッパーは沈黙のうちに決してマッチしなくなるのではなく、大声で失敗します。**これこそがインスタンス規則とクラスレベルの回答の違いです**: #701以前はエントリーが両方の種別にマッチしていたため、`Widget#price`向けに書かれた規則が`Widget.price`にも答えてしまい ── そして下記の#653の抑制以降、プラグインが生成を求められてすらいない型の力によって、その呼び出しの真正な`call.undefined-method`を沈黙させていました。
   - **二項演算子はここでは通常の呼び出しです**。Rubyの`a + b`は`:+`という名前の`Prism::CallNode`に解析されるため、他のあらゆる呼び出しと同様にこのフックへ到達します。すなわち`dynamic_return(receivers: ["Money"])`規則は`call_node.name ∈ {:+, :-, :*, :/, :<=>, …}`で分岐して演算子の結果型を返すことができ ── これはself／左オペランドのケースに対するPHPStanの`OperatorTypeSpecifyingExtension`のRigor版であり、演算子固有の拡張ポイントを持ちません。`spec/integration/plugin_operator_dynamic_return_spec.rb`によって確認済みです。**注意（coerce方向）：**ゲートは*レシーバー*のクラスにかかり、Rubyは`1 + money`を`Integer`でディスパッチするため、`["Money"]`規則はそこでは発火しません。その結果は`Integer`として左バイアスで型付けされます（ADR-42を参照）。
-  - **`dynamic_return`の回答は、沈黙のうちにRBSの戻り値型より優先される**（[ADR-2](../../adr/2-extension-api/) §「2026-09-26修正条項 ── `dynamic_return`の回答はRBSの戻り値型より優位に立つ」、issue #700）。`MethodDispatcher#resolve`は、精度ティア（`MethodFolding.try_backward`、`dispatch_precise_tiers`）の後、`RbsDispatch.try_dispatch`で終わるすべてのRBS支援ティアの前に、プラグインティアを参照します。`try_plugin_contribution`はその呼び出しについてゲートされたすべてのプラグインの寄与を収集し、回答のインターセクションである`FlowContribution::Merger.merge(contributions).return_type`を返します（[flow-contribution.md](flow-contribution.md)を参照）。それが非`nil`である場合、宣言された戻り値をナローイングするか矛盾するかを問わず、RBSの戻り値を置き換え、エンジンはその差分を報告しません: RBSの戻り値はマージに決して入らないため、ティアの比較は存在しないからです。バンドルされたプラグインはこれに依存しています: `rigor-activesupport-core-ext`の`%i[+ - *]`ルールは、完全に宣言されたコアの`Time#-` / `Integer#*`に対して回答します。オペランドが`Duration`になるとRBSの射影が誤るためです（`Time.now - 30.minutes`は`Float`を射影します; `2 * 1.day`が`ActiveSupport::Duration`と型付けされることは`spec/integration/plugins/activesupport_core_ext_plugin_spec.rb` §「the arithmetic correction」で固定されています）。また、`rigor-dry-validation`は自身の`sig/`が契約に従って宣言する`Result#to_h`をナローイングします。
+  - **`dynamic_return`の回答は、沈黙のうちにRBSの戻り値型より優先される**（[ADR-2](../../adr/2-extension-api/) §「2026-09-26修正条項 ── `dynamic_return`の回答はRBSの戻り値型より優位に立つ」、issue #700）。`MethodDispatcher#resolve`は、精度ティア（`MethodFolding.try_backward`、`dispatch_precise_tiers`）の後、`RbsDispatch.try_dispatch`で終わるすべてのRBS支援ティアの前に、プラグインティアを参照します。`try_plugin_contribution`はその呼び出しについてゲートされたすべてのプラグインの寄与を収集し、回答のインターセクションである`FlowContribution::Merger.merge(contributions).return_type`を返します（[flow-contribution.md](../flow-contribution/)を参照）。それが非`nil`である場合、宣言された戻り値をナローイングするか矛盾するかを問わず、RBSの戻り値を置き換え、エンジンはその差分を報告しません: RBSの戻り値はマージに決して入らないため、ティアの比較は存在しないからです。バンドルされたプラグインはこれに依存しています: `rigor-activesupport-core-ext`の`%i[+ - *]`ルールは、完全に宣言されたコアの`Time#-` / `Integer#*`に対して回答します。オペランドが`Duration`になるとRBSの射影が誤るためです（`Time.now - 30.minutes`は`Float`を射影します; `2 * 1.day`が`ActiveSupport::Duration`と型付けされることは`spec/integration/plugins/activesupport_core_ext_plugin_spec.rb` §「the arithmetic correction」で固定されています）。また、`rigor-dry-validation`は自身の`sig/`が契約に従って宣言する`Result#to_h`をナローイングします。
     - **このルールは戻り値型のみをカバーします**。 `def`本体は依然としてその宣言されたRBS戻り値に対してチェックされ、`call.wrong-arity` / `call.argument-type-mismatch`は今日依然としてプラグインが回答した呼び出しをRBSシグネチャに対して検証します ── そうすべきかどうかは下記でオープンのまま残されています。
     - **セーフガードは診断ではなくテスト時のチェックです**（[#1413](https://github.com/rigortype/rigor/issues/1413)、未実装）。スイートは統合フィクスチャにおける各バンドルプラグインの回答をRBS戻り値と比較し、意図的にその外部で回答するルールはその`dynamic_return`上で`overrides_rbs: "<reason>"`を宣言します。#1413が着地するまでは、オーバーライドをチェックするものは何もありません。
   - **`dynamic_return`の回答はその呼び出しサイトでの`call.undefined-method`を抑制する**（issue #653）。呼び出しはプラグインを通じて解決されるため、存在チェックはその欠落を報告してはなりません。レシーバークラスごとではなく、呼び出しサイトごとに記録されます: RBSもプラグインも回答しない名前は同じレシーバー上で引き続き報告されます。
@@ -357,7 +357,7 @@ responds: false)`。
 
 `why:`は**必須かつ空でない**こと。`data/effects/core.yml`のすべての行が1つ要求するのとまったく同じです: 理由の述べられていないラベルは、誰もレビューできない主張です。
 
-`labels:`は呼び出し先（callee）の本体ではなく**呼び出し（call）**を記述します。行はスキャンがコアミューテーターに適用する所有権の判定を実行できないため、呼び出し元の`self`ではないレシーバーへの変更は単なる`mutate`として表記され、`mutate.self`は暗黙的selfの呼び出しに対して維持されます。その2つの例がrigor-actionpackの`session[:k] = v`と`render`です。クラスレベルまたはプロセスグローバルな状態への変更はどのフレームにも属さず、どちらの場合も`mutate.static`となります（rigor-railtiesの`Rails.application.reload_routes!`など）。RBSエンベロープは逆であり、呼び出し先自身の本体を束縛するためです（[`effect-labels.md`](../type-specification/effect-labels.md) § 呼び出し箇所における宣言レーン）。
+`labels:`は呼び出し先（callee）の本体ではなく**呼び出し（call）**を記述します。行はスキャンがコアミューテーターに適用する所有権の判定を実行できないため、呼び出し元の`self`ではないレシーバーへの変更は単なる`mutate`として表記され、`mutate.self`は暗黙的selfの呼び出しに対して維持されます。その2つの例がrigor-actionpackの`session[:k] = v`と`render`です。クラスレベルまたはプロセスグローバルな状態への変更はどのフレームにも属さず、どちらの場合も`mutate.static`となります（rigor-railtiesの`Rails.application.reload_routes!`など）。RBSエンベロープは逆であり、呼び出し先自身の本体を束縛するためです（[`effect-labels.md`](../../type-specification/effect-labels/) § 呼び出し箇所における宣言レーン）。
 
 `receiver:`は3通りのいずれかで綴られ、その綴りがマッチング規則を選びます:
 
@@ -377,7 +377,7 @@ responds: false)`。
 
 ##### `callee:` ── エッジでもあるフレームワークメソッド（[#1048](https://github.com/rigortype/rigor/issues/1048)）
 
-`callee:`は`Rigor::Effects::CalleeRule`ルールを名指しし、まったく同じ理由から`narrow:`とまったく同じ形状をしています：プラグインは**名前**を供給し、エンジンが戦略を所有します。ブロックはファイルごとのエフェクトスキャン ── [ADR-103](../adr/103-effect-labels.md) WD13が解決、探索、型付けを行うあらゆるものを禁じている唯一の場所 ── の内部で実行されなければならず、フォークプール / Ractorの境界を越えて存続できません。ルールは呼び出し自身の引数リテラル、ユニットのオーナークラス、およびユニット自身のキーを読み、**それ以外は何も読みません**：データフローなし、型検査への問い合わせなし、ファイルシステムなし。
+`callee:`は`Rigor::Effects::CalleeRule`ルールを名指しし、まったく同じ理由から`narrow:`とまったく同じ形状をしています：プラグインは**名前**を供給し、エンジンが戦略を所有します。ブロックはファイルごとのエフェクトスキャン ── [ADR-103](../../adr/103-effect-labels/) WD13が解決、探索、型付けを行うあらゆるものを禁じている唯一の場所 ── の内部で実行されなければならず、フォークプール / Ractorの境界を越えて存続できません。ルールは呼び出し自身の引数リテラル、ユニットのオーナークラス、およびユニット自身のキーを読み、**それ以外は何も読みません**：データフローなし、型検査への問い合わせなし、ファイルシステムなし。
 
 `UsersController`内の`render :show`は同期的にインプロセスで`app/views/users/show.html.erb`を実行し、[#393](https://github.com/rigortype/rigor/issues/393)以降、そのテンプレートは同じサマリーテーブルに配置される`view:users/show.html`をキーとするエフェクトユニットです。`effect_edges:`ではこれを綴ることができませんでした ── そのペイロードはレシーバーの*クラス名*であり、クラス本文上にユニットを鋳造するためです。そのため、エッジは呼び出し箇所において、作者が書いたリテラルからここで生成されます。
 
@@ -446,7 +446,7 @@ ADR-103 WD6は、**ファーストパーティのバンドル**プラグイン�
 
 エッジは、呼び出し箇所のエッジとしてではなく、**フレームワーククラス自身の上の合成エフェクト単位**（`Rigor::Effects::FrameworkUnits`）として実体化します: 呼び出し箇所は別のファイルにあり、コールバックはモデルのファイルにあるからです。伝播器はその後、通常の`(User, :instance, "save")`エッジを、他のあらゆるエッジを解決するのとまったく同じに —— 祖先と閉世界のオーバーライドjoinも含めて —— 合成単位へ解決します。
 
-合成された単位はセレクタ全体を代表するので、その`(class, singleton, selector)`についてプラグイン自身の`effect_attributions:`が言うことも併せて運びます —— `ActiveRecord::Base#save`を`io.db.write`として行に載せるプラグインは、その書き込みを`user.save`の呼び出し箇所だけでなく`User#save`の上にも得ます。規範的なルール（`super`に到達せずにセレクタを置き換えるクラス本体という唯一の免除を含む）は[エフェクトサマリー仕様](effect-summaries/)を参照してください。
+合成された単位はセレクタ全体を代表するので、その`(class, singleton, selector)`についてプラグイン自身の`effect_attributions:`が言うことも併せて運びます —— `ActiveRecord::Base#save`を`io.db.write`として行に載せるプラグインは、その書き込みを`user.save`の呼び出し箇所だけでなく`User#save`の上にも得ます。規範的なルール（`super`に到達せずにセレクタを置き換えるクラス本体という唯一の免除を含む）は[エフェクトサマリー仕様](../effect-summaries/)を参照してください。
 
 このenumには**`perform_later` → `perform`の綴りがなく**、その不在がADR-103 WD4の強制です: 遅延実行される本体は別のプロセスの別のスタックで走るので、呼び出し元のコードはそれを含みません。唯一の例外はプラグインではなくプロジェクトによって許可されます —— 宣言された`queue_adapter = :inline`の下ではRailsは本当に呼び出し元のスタックでジョブを走らせるので、rigor-activejobはその宣言を読んだ後にのみ`target: :perform_now, method: :perform_later`を発行します。
 
@@ -460,7 +460,7 @@ ADR-103 WD6は、**ファーストパーティのバンドル**プラグイン�
 
 `PluginFacts#digest` —— コンパイル済みのすべてのラベル・帰属・エッジ・プリセットを、それぞれ貢献したプラグインとともに含む内容ダイジェスト —— は`Effects::Identity`に加わります。したがって行を動かすプラグインのアップグレードは、再監査された`data/effects/core.yml`の行とまったく同じにエフェクトキャッシュスロットを無効化します。このダイジェストは意図的にプロジェクトのスーパークラステーブルから独立しています。それは診断のアイデンティティが既にカバーしているプロジェクト入力だからです。
 
-`--incremental`スナップショット自身のエフェクトアイデンティティは意図的にプラグインに**盲目**です: その2つの側はランの反対側に位置し（復元はプラグインがロードされる前に問い、保存はその後）、プラグインファクトを折り込めば盲目のダイジェストと目の見えるダイジェストを比べることになって毎回外れます。それが残す境界 —— プラグインのアップグレードは`--incremental`スナップショットのエフェクトコレクションを無効化しない —— は[`effect-summaries.md`](effect-summaries/)に記録されています;主要なフルラン経路にはそのような穴はありません。
+`--incremental`スナップショット自身のエフェクトアイデンティティは意図的にプラグインに**盲目**です: その2つの側はランの反対側に位置し（復元はプラグインがロードされる前に問い、保存はその後）、プラグインファクトを折り込めば盲目のダイジェストと目の見えるダイジェストを比べることになって毎回外れます。それが残す境界 —— プラグインのアップグレードは`--incremental`スナップショットのエフェクトコレクションを無効化しない —— は[`effect-summaries.md`](../effect-summaries/)に記録されています;主要なフルラン経路にはそのような穴はありません。
 
 #### 宣言されたconfigデフォルト — `config_schema`の`{ kind:, default: }`（ADR-40）
 
@@ -509,7 +509,7 @@ RBS::Extendedの`%a{rigor:v1:…}`ペイロードに現れるカスタムな**�
 | `type` | `Rigor::Type::Combinator`（モジュール）。 |
 | `configuration` | `Rigor::Configuration`（読み取り専用のプロジェクトconfig）。 |
 | `cache_store` | `Rigor::Cache::Store`または`nil`（スライス6がこれを通じてプラグイン側キャッシュプロデューサーを接続する）。 |
-| `trust_policy` | `Rigor::Plugin::TrustPolicy`（スライス2;[`plugin-trust.md`](plugin-trust/)を参照）。 |
+| `trust_policy` | `Rigor::Plugin::TrustPolicy`（スライス2;[`plugin-trust.md`](../plugin-trust/)を参照）。 |
 | `fact_store` | `Rigor::Plugin::FactStore`（ADR-9 / v0.1.1）— 実行ごとのクロスプラグインファクトストア;`#prepare`が公開し、`#diagnostics_for_file` / `dynamic_return`ブロックが読む。 |
 
 診断フォーマッタがプログレスチャンネルを持つようになったとき、ロガーサービスがこのリストに追加されます。

@@ -3,8 +3,8 @@ title: "キャッシュスライス分類体系 — v0.1.0前の設計ノート"
 description: "rigortype/rigor docs/design/20260505-cache-slice-taxonomy.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/design/20260505-cache-slice-taxonomy.md"
 sourcePath: "docs/design/20260505-cache-slice-taxonomy.md"
-sourceSha: "4671ba14d5044867274782d77ab9ecf4f41d8b31fdcef28eeab17841c295ed27"
-sourceCommit: "78b18cea6a576475c92bce020535269f2eebc20d"
+sourceSha: "7ac4f94462a667d96642803312e72a2f642be375a27f8009b46ffed31cf9e454"
+sourceCommit: "d19c9306f46b59d84bde8ac1a5a43f54be23c023"
 translationStatus: "translated"
 sidebar:
   order: 20265505

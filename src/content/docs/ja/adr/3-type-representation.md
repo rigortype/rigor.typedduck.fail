@@ -3,8 +3,8 @@ title: "ADR-3: 内部型表現"
 description: "rigortype/rigor docs/adr/3-type-representation.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/3-type-representation.md"
 sourcePath: "docs/adr/3-type-representation.md"
-sourceSha: "5f1d42e0a91902d76caa416d7984aac02a594c5017944468eaa6197c934815d5"
-sourceCommit: "2a65ec8e52462c931fbfec94df68a18139259a43"
+sourceSha: "09749261c5df1151ccf83d777eb644b91917f6cc938a6ddeb4f0f7f1583e12b9"
+sourceCommit: "d19c9306f46b59d84bde8ac1a5a43f54be23c023"
 sourceDate: "2026-09-03T19:00:16+09:00"
 translationStatus: "translated"
 sidebar:
@@ -17,7 +17,7 @@ sidebar:
 
 ADR-3は、Rigorの内部型オブジェクトレイアウト（型モデルを実装するRubyのクラス、モジュール、メソッド、値オブジェクト）の設計空間を記録します。ADR-3はセマンティクスを再定義**しません**——それはADR-1と型仕様が所有します——そしてプラグイン契約（contract）も定義**しません**——それはADR-2が所有します。ADR-3は、ADR-1とADR-2が付着する解析器側のデータ形状を取り巻く根拠とオープンクエスチョンを捉えます。
 
-安定した決定は[`docs/internal-spec/internal-type-api.md`](../../internal-spec/internal-type-api/)において規範的です。そのドキュメントとこのADRが一致しない場合、仕様が拘束力を持ち、このADRはそれに合わせて更新されます。型仕様についても同様です。[`docs/type-specification/`](../type-specification/)がこのADRと観察可能な動作について一致しない場合、型仕様が拘束力を持ちます。
+安定した決定は[`docs/internal-spec/internal-type-api.md`](../../internal-spec/internal-type-api/)において規範的です。そのドキュメントとこのADRが一致しない場合、仕様が拘束力を持ち、このADRはそれに合わせて更新されます。型仕様についても同様です。[`docs/type-specification/`](../../type-specification/)がこのADRと観察可能な動作について一致しない場合、型仕様が拘束力を持ちます。
 
 ## コンテキスト
 

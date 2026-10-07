@@ -3,7 +3,7 @@ title: "アーキテクチャ決定記録"
 description: "rigortype/rigor docs/adr/README.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/README.md"
 sourcePath: "docs/adr/README.md"
-sourceSha: "2c963684158f190ce09c3ea1858834a19e68a158ec5502fdb587d67281ffc651"
+sourceSha: "b013a75a88d0cdb585e6f9a6ae95733a86741b46f38243c37d5850137e40f6ce"
 sourceCommit: "d19c9306f46b59d84bde8ac1a5a43f54be23c023"
 sourceDate: "2026-10-01T01:59:12+09:00"
 translationStatus: "translated"
@@ -32,7 +32,7 @@ sidebar:
 | ADR-4 | [型推論エンジンと`Scope#type_of`クエリ](4-type-inference-engine/) | Accepted |
 | ADR-5 | [Rigor型のロバストネス原則](5-robustness-principle/) | Accepted |
 | ADR-6 | [キャッシュ永続化バックエンド](6-cache-persistence-backend/) | Accepted |
-| ADR-7 | [v0.1.0スライス4〜6作業上の決定](7-v0.1.0-slice-decisions/) | Accepted |
+| ADR-7 | [v0.1.0スライス4〜6作業上の決定](7-v010-slice-decisions/) | Accepted |
 | ADR-8 | [Steepに着想を得た改善](8-steep-inspired-improvements/) | Accepted |
 | ADR-9 | [クロスプラグインAPI](9-cross-plugin-api/) | Accepted（v0.1.1で実装） |
 | ADR-10 | [オプトイン依存関係ソース推論](10-dependency-source-inference/) | Accepted |

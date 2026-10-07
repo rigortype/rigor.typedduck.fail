@@ -3,8 +3,8 @@ title: "プラグインボイラープレート削減 — 段階的計画"
 description: "rigortype/rigor docs/design/20260602-plugin-boilerplate-reduction-plan.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/design/20260602-plugin-boilerplate-reduction-plan.md"
 sourcePath: "docs/design/20260602-plugin-boilerplate-reduction-plan.md"
-sourceSha: "9357a4675e3faadaae02e3a2c381226dfbc499e50e568abf03f0bd3b2b1aa074"
-sourceCommit: "d5d6614800bfc53f00e23b51f4c914d0e42f237f"
+sourceSha: "e69c78cdf178424a9e38d922db1f85e4aba7ffb6834c462cea3634305f8fb973"
+sourceCommit: "d19c9306f46b59d84bde8ac1a5a43f54be23c023"
 translationStatus: "translated"
 sidebar:
   order: 20265602
@@ -47,7 +47,7 @@ Status: **Plan, 2026-06-02.** [`20260601-plugin-mechanism-pre-1.0-review.md`](..
 - **0c `Plugin::Base#suggest(name, candidates)`** — `DidYouMean::SpellChecker`のラッパー。手作りの`levenshtein`コピーを退役させます。
 - **0d `config_schema` `default:`スロット** — `Manifest`スキーマの変更。`Base#config`が宣言されたデフォルトをマージするので、`DEFAULT_*`定数イディオムが退役します。
 - **0e `Rigor::Plugin::Inflector`** — 1つの語形変化モジュール。routes（×2）、activerecord、actionmailer／actionpackの`underscore`コピーを退役させます。
-  **[ADR-39](../adr/39-plugin-target-library-invocation/)による再構成:** `singularize`／`pluralize`のコピーは偽陽性に敏感（FP-sensitive）です（ルートヘルパー／モデル名解決に供給されるため）。そのため近似を統一するのではなく、このモジュールは許可リスト（allow-list）＋rescueハーネスを通して**実際の`ActiveSupport::Inflector`**を呼び出し、`config/initializers/inflections.rb`を静的に解析してプロジェクト独自のルールを取り込みます。純粋な`underscore`のケース変換は、ADR-39の作業から独立して着地できる安全な部分集合です。
+  **[ADR-39](../../adr/39-plugin-target-library-invocation/)による再構成:** `singularize`／`pluralize`のコピーは偽陽性に敏感（FP-sensitive）です（ルートヘルパー／モデル名解決に供給されるため）。そのため近似を統一するのではなく、このモジュールは許可リスト（allow-list）＋rescueハーネスを通して**実際の`ActiveSupport::Inflector`**を呼び出し、`config/initializers/inflections.rb`を静的に解析してプロジェクト独自のルールを取り込みます。純粋な`underscore`のケース変換は、ADR-39の作業から独立して着地できる安全な部分集合です。
 
 ### Phase 1 — ブリッジ（最小投資）
 

@@ -3,8 +3,8 @@ title: "エフェクトシステム —— Redmineでの初採用者ユーザー
 description: "rigortype/rigor docs/notes/20260822-effect-user-story-redmine.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260822-effect-user-story-redmine.md"
 sourcePath: "docs/notes/20260822-effect-user-story-redmine.md"
-sourceSha: "2f03231b0c80e74e450289953a15307b7aca5877bd63d82c6dc7d138eb7693be"
-sourceCommit: "bed65a462b04db02312f208b9dda2dda3a26ef13"
+sourceSha: "6ac23e9aff662a14408e85e4d62b069cd80e10642d22820c26800ccd792c8159"
+sourceCommit: "d19c9306f46b59d84bde8ac1a5a43f54be23c023"
 translationStatus: "translated"
 sidebar:
   order: 20266822

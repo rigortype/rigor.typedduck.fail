@@ -1,8 +1,8 @@
 ---
 title: "CI test-time growth — attribution (instance gacha vs test growth vs binpacker)"
 description: "Attributing the apparent growth in CI test wall-clock time across instance variance, test-suite growth, and the binpacker architecture."
-sourceSha: "07cc5719b6e25a252b8e4d0788347dc1779907124829af3825e875e43632895e"
-sourceCommit: "04668e5f0d6205fdd5c8f44662041add7ab33ca3"
+sourceSha: "2476cf79b993be1693aad4f33412d8c8865f2f5106aa53a04aeec642043a9e7d"
+sourceCommit: "d19c9306f46b59d84bde8ac1a5a43f54be23c023"
 translationStatus: "translated"
 ---
 
@@ -194,7 +194,7 @@ remaining cost) — the application is low cost, so it is worth a probe.
 ### Implementation caveats for `*.md`-only PR skipping (important)
 
 **A naive `paths-ignore` is not acceptable**.
-[ci.yml:6-13](../../.github/workflows/ci.yml) applies `paths-ignore: "**/*.md"`
+[ci.yml:6-13](https://github.com/rigortype/rigor/blob/master/.github/workflows/ci.yml) applies `paths-ignore: "**/*.md"`
 only to `push`, and **intentionally leaves `pull_request` unfiltered**. As the
 comment (ci.yml:9-11) explains, **a path-filtered required check stays stuck at
 pending and blocks merge**. Adding `paths-ignore` to `pull_request` would make

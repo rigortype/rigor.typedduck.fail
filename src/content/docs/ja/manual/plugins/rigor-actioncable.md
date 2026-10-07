@@ -47,7 +47,7 @@ ActionCable.server.broadcast("chat_room_42", body: "hi")    # warning: no such s
 
 ## `#receive(data)`のパラメータ型付け
 
-このプラグインは[ADR-28](../../adr/28-path-scoped-protocol-contracts.md)のパススコープのプロトコル契約も備えています。`channel_search_paths`配下に定義された任意の`#receive(data)`の内部では、`data`は`Dynamic[Top]`ではなく`Hash`として型付けされます。`#receive`はActionCableのフレームワークがディスパッチするキャッチオールアクション ── 受信メッセージが`"action"`キーを持たないときにデコード済みのJSONペイロードとともに呼び出される ── なので、パラメータの形状はあらゆるチャネルにわたって一様です。
+このプラグインは[ADR-28](../../../adr/28-path-scoped-protocol-contracts/)のパススコープのプロトコル契約も備えています。`channel_search_paths`配下に定義された任意の`#receive(data)`の内部では、`data`は`Dynamic[Top]`ではなく`Hash`として型付けされます。`#receive`はActionCableのフレームワークがディスパッチするキャッチオールアクション ── 受信メッセージが`"action"`キーを持たないときにデコード済みのJSONペイロードとともに呼び出される ── なので、パラメータの形状はあらゆるチャネルにわたって一様です。
 
 ```ruby
 # app/channels/chat_channel.rb

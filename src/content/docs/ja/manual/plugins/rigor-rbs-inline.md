@@ -117,7 +117,7 @@ class BadRefProbe
 end
 ```
 
-`finite-float`は[Rigorリファインメント](../16-rbs-extended-annotations/)の名前であってRBSの型ではなく、通常の型位置には属しません。Rigorはそのドロップを、どこにも診断がないまま`show`を暗黙に`untyped`にしておくのではなく、パースに失敗した行とテキストを名指して`plugin.rbs-inline.source-rbs-annotation-not-honoured`として報告します。同じ誤りの`# @rbs name: TYPE`タグ形式は異なる失敗の形状となります —— 次のセクションを参照してください。
+`finite-float`は[Rigorリファインメント](../../16-rbs-extended-annotations/)の名前であってRBSの型ではなく、通常の型位置には属しません。Rigorはそのドロップを、どこにも診断がないまま`show`を暗黙に`untyped`にしておくのではなく、パースに失敗した行とテキストを名指して`plugin.rbs-inline.source-rbs-annotation-not-honoured`として報告します。同じ誤りの`# @rbs name: TYPE`タグ形式は異なる失敗の形状となります —— 次のセクションを参照してください。
 
 ## `# @rbs`内の未解決の型名
 
@@ -132,7 +132,7 @@ class ProbeZZ
 end
 ```
 
-upstream自身の型パーサが、これがRigorに届く前に`finite-float`を`finite`に切り詰めるため（ハイフンはRBSの型名を継続できない）、`RBS::DefinitionBuilder`に届く唯一のトークンは`finite`となります —— そしてそれはロードされたどの型も指さないため、クラス**全体**のビルドが失敗します（`RBS::NoTypeFoundError`）。`probe`、および`ProbeZZ`上の他のすべての実在するメソッドは`Dynamic[top]`を読むことになります。これは`rbs.coverage.definition-build-failed`として表面化し、そのトークンと、（それが登録されたリファインメント名の切り詰められた先頭部分である場合）今日有効な`%a{rigor:v1:…}`の表記を名指します（[RBS::Extendedアノテーション](../16-rbs-extended-annotations/)を参照）。
+upstream自身の型パーサが、これがRigorに届く前に`finite-float`を`finite`に切り詰めるため（ハイフンはRBSの型名を継続できない）、`RBS::DefinitionBuilder`に届く唯一のトークンは`finite`となります —— そしてそれはロードされたどの型も指さないため、クラス**全体**のビルドが失敗します（`RBS::NoTypeFoundError`）。`probe`、および`ProbeZZ`上の他のすべての実在するメソッドは`Dynamic[top]`を読むことになります。これは`rbs.coverage.definition-build-failed`として表面化し、そのトークンと、（それが登録されたリファインメント名の切り詰められた先頭部分である場合）今日有効な`%a{rigor:v1:…}`の表記を名指します（[RBS::Extendedアノテーション](../../16-rbs-extended-annotations/)を参照）。
 
 ## パースできない`# @rbs name:`の型
 
@@ -147,7 +147,7 @@ class BoundedProbe
 end
 ```
 
-gemの文法はこのアノテーションでコロンと型を任意としているため、パースできない`TYPE`は、例外をraiseするのではなくパラメータの名前を記録してその型を未設定のままにします —— 下流では誰もアノテーションしなかったパラメータと区別がつきません。Rigorはそのドロップを`plugin.rbs-inline.source-rbs-annotation-not-honoured`として報告し、パースに失敗した行とテキストを名指し、`Integer[1..10]`のようなリファインメントを正しく運ぶ`%a{rigor:v1:param:}`の表記を案内します（[RBS::Extendedアノテーション](../16-rbs-extended-annotations/)を参照）—— これは上のタグ形式に対して`%a{rigor:v1:…}`のポインタが与えるのと同じ助言です。
+gemの文法はこのアノテーションでコロンと型を任意としているため、パースできない`TYPE`は、例外をraiseするのではなくパラメータの名前を記録してその型を未設定のままにします —— 下流では誰もアノテーションしなかったパラメータと区別がつきません。Rigorはそのドロップを`plugin.rbs-inline.source-rbs-annotation-not-honoured`として報告し、パースに失敗した行とテキストを名指し、`Integer[1..10]`のようなリファインメントを正しく運ぶ`%a{rigor:v1:param:}`の表記を案内します（[RBS::Extendedアノテーション](../../16-rbs-extended-annotations/)を参照）—— これは上のタグ形式に対して`%a{rigor:v1:…}`のポインタが与えるのと同じ助言です。
 
 ## `@rbs`後の認識されないタグ
 

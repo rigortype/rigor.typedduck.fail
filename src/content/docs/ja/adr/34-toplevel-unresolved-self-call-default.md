@@ -130,7 +130,7 @@ ADR-17スライス3（キャッシュディスクリプタ）は独立してお�
 
 **Why:**このADRを動機づける3つのコンテキストはリスク許容度が異なる。プレイグラウンドのデモは`:error`（大声）が欲しい;`lenient`で新規オンボードされたRailsアプリはチームが移行する間はルールを邪魔にならないようにしたい;`balanced`の成熟したスクリプト多用`lib/`は`:warning`でノイズが監査可能な状態に保ちたい。
 
-**How to apply:**ルールを[`docs/adr/8-steep-inspired-improvements.md`](../08-steep-inspired-improvements/)の重大度プロファイル表に接続する;新しいメカニズムは不要。
+**How to apply:**ルールを[`docs/adr/8-steep-inspired-improvements.md`](../8-steep-inspired-improvements/)の重大度プロファイル表に接続する;新しいメカニズムは不要。
 
 ### WD7 — プレイグラウンド（ADR-29）はこのルールでstrictをデフォルトにする
 

@@ -1,8 +1,8 @@
 ---
 title: "\"Type System Poem\" (myuon) — Rigor perspective review"
 description: "English translation of a Rigor-perspective review of myuon's essay \"Type System Poem.\""
-sourceSha: "1c1801eec239e486b3697192f6e9965a4a2bbb7de0dfdf227a9e306dc39fd4cc"
-sourceCommit: "a5d648b126d5ed7b1e04a16a87927bca7883e069"
+sourceSha: "0bc050e81f91c95b1fdb1e9a2649d05c69f890c80a0100fb8423795e133c48f2"
+sourceCommit: "d19c9306f46b59d84bde8ac1a5a43f54be23c023"
 translationStatus: "translated"
 ---
 

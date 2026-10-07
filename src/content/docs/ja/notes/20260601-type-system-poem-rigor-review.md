@@ -3,7 +3,7 @@ title: "「型システムポエム」(myuon) — Rigor 観点考察"
 description: "Imported from rigortype/rigor docs/notes/20260601-type-system-poem-rigor-review.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260601-type-system-poem-rigor-review.md"
 sourcePath: "docs/notes/20260601-type-system-poem-rigor-review.md"
-sourceSha: "1c1801eec239e486b3697192f6e9965a4a2bbb7de0dfdf227a9e306dc39fd4cc"
+sourceSha: "0bc050e81f91c95b1fdb1e9a2649d05c69f890c80a0100fb8423795e133c48f2"
 sourceCommit: "d19c9306f46b59d84bde8ac1a5a43f54be23c023"
 sourceDate: "2026-06-01T22:49:16+09:00"
 sourceLanguage: "ja"
@@ -114,8 +114,8 @@ gradual fallbackを並べている。
 される。現時点の証拠:
 
 - Mastodon v4.5系16リリースタグで`surfaced = 0`(正常な保守で新規偽陽性
-  ゼロ): [20260521-mastodon-v4.5-regression-sweep.md](../20260521-mastodon-v4.5-regression-sweep/)、
-  v0.1.9再走[20260523-mastodon-v4.5-regression-sweep-v0.1.9.md](../20260523-mastodon-v4.5-regression-sweep-v0.1.9/)、
+  ゼロ): [20260521-mastodon-v4.5-regression-sweep.md](../20260521-mastodon-v45-regression-sweep/)、
+  v0.1.9再走[20260523-mastodon-v4.5-regression-sweep-v0.1.9.md](../20260523-mastodon-v45-regression-sweep-v019/)、
   ADR-35 FP検証[20260529-adr35-mastodon-fp-verification.md](../20260529-adr35-mastodon-fp-verification/)。
 - 偽陽性規律はこの「既存コードを脅かさない」賭けの中核であり、regression
   sweep群がその経験的裏付けを積み上げる構造。

@@ -3,8 +3,8 @@ title: "リサーチ・サーベイノート"
 description: "rigortype/rigor docs/notes/README.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/README.md"
 sourcePath: "docs/notes/README.md"
-sourceSha: "fc21e72e2f2c8b3371c2b39cbf9cd70245f09de5387ed30bee1a43020b509ae9"
-sourceCommit: "e12ab45fa55707ed2acc0eae2e273b99a72dc077"
+sourceSha: "997118eae5cc82726fdb8dae9d5a4572f043f2b72c4a18785d4b570947f5b3f6"
+sourceCommit: "d19c9306f46b59d84bde8ac1a5a43f54be23c023"
 sourceDate: "2026-09-27T13:53:30+09:00"
 translationStatus: "translated"
 sidebar:
@@ -17,7 +17,7 @@ sidebar:
 
 ファイル名は`YYYYMMDD-<slug>.md`で、執筆日を日付とします。
 
-先行事例を探して掃くとき見落としやすい、隣接する2つのエビデンスストアがある: [`deep-research/`](deep-research/)は**取り込まれた外部の**リサーチレポート（LLMのdeep-research出力 —— ファーストパーティとして決して引用可能ではない;規則はそのREADMEに登録する）を保持し、CHANGELOG（[`CHANGELOG.md`](https://github.com/rigortype/rigor/blob/master/CHANGELOG.md)、アーカイブ済みの[`docs/CHANGELOG-0.1.x.md`](../changelog-0.1.x/)）は機能ごとの着地の物語を保持し、その比較エビデンス（例: `rbs_rails`のカバレッジ比較）はこの索引の他のどこにも現れない。
+先行事例を探して掃くとき見落としやすい、隣接する2つのエビデンスストアがある: [`deep-research/`](deep-research/)は**取り込まれた外部の**リサーチレポート（LLMのdeep-research出力 —— ファーストパーティとして決して引用可能ではない;規則はそのREADMEに登録する）を保持し、CHANGELOG（[`CHANGELOG.md`](https://github.com/rigortype/rigor/blob/master/CHANGELOG.md)、アーカイブ済みの[`docs/CHANGELOG-0.1.x.md`](../changelog-01x/)）は機能ごとの着地の物語を保持し、その比較エビデンス（例: `rbs_rails`のカバレッジ比較）はこの索引の他のどこにも現れない。
 
 ## ライブラリ・エコシステム調査
 
@@ -60,10 +60,10 @@ sidebar:
 | --- | --- |
 | 2026-05-03 | [Steep 2.0 cross-check triage](20260503-steep-cross-check-triage/) |
 | 2026-05-21 | [Mastodon survey — Cluster 4 (flow-folding warnings) triage](20260521-mastodon-cluster4-flow-folding-triage/) |
-| 2026-05-21 | [Mastodon v4.5.x regression sweep — baseline-drift over a release line](20260521-mastodon-v4.5-regression-sweep/) |
-| 2026-05-21 | [Redmine 6.x regression sweep — baseline-drift over a release line](20260521-redmine-6.x-regression-sweep/) |
+| 2026-05-21 | [Mastodon v4.5.x regression sweep — baseline-drift over a release line](20260521-mastodon-v45-regression-sweep/) |
+| 2026-05-21 | [Redmine 6.x regression sweep — baseline-drift over a release line](20260521-redmine-6x-regression-sweep/) |
 | 2026-05-21 | [Redmine per-commit detection probe — does Rigor catch real bugs?](20260521-redmine-per-commit-detection-probe/) |
-| 2026-05-23 | [Mastodon regression sweeps — re-run on Rigor v0.1.9](20260523-mastodon-v4.5-regression-sweep-v0.1.9/) |
+| 2026-05-23 | [Mastodon regression sweeps — re-run on Rigor v0.1.9](20260523-mastodon-v45-regression-sweep-v019/) |
 | 2026-05-29 | [ADR-35 override-rules — Mastodon false-positive verification](20260529-adr35-mastodon-fp-verification/) |
 | 2026-05-29 | [rigor-survey project-init baseline sweep](20260529-rigor-survey-project-init-baseline/) |
 | 2026-06-05 | [ADR-47 `flow.unreachable-clause` — corpus FP sweep (WD4)](20260605-adr47-unreachable-clause-corpus-sweep/) |
@@ -109,7 +109,7 @@ sidebar:
 | 2026-06-01 | [「漸進的型付け言語の時代に必要なもの」（mizchi） — Rigor / TypeScript観点考察](20260601-gradual-typing-era-mizchi-rigor-ts-review/) |
 | 2026-06-01 | [「Revenge of the Types」（Armin Ronacher） — ランタイム × 型チェッカー横断考察](20260601-revenge-of-the-types-runtime-checker-survey/) |
 | 2026-06-01 | [「型システムポエム」（myuon） — Rigor観点考察](20260601-type-system-poem-rigor-review/) |
-| 2026-06-04 | [Elixir v1.20の漸進的集合論型システム — Rigor観点考察](20260604-elixir-v1.20-type-system-rigor-review/) |
+| 2026-06-04 | [Elixir v1.20の漸進的集合論型システム — Rigor観点考察](20260604-elixir-v120-type-system-rigor-review/) |
 | 2026-07-12 | [Ren et al. 2013「The Ruby Type Checker（rtc）」— Rigor観点考察](20260712-ren-2013-ruby-type-checker-rigor-review/) |
 
 ## インフラストラクチャ・upstream
@@ -148,8 +148,8 @@ sidebar:
 | --- | --- |
 | 2026-06-05 | [ADR corpus rubric audit — scoring ADR-0…49 against ADR-49](20260605-adr-corpus-rubric-audit/) |
 | 2026-06-10 | [ユーザー向けドキュメント レビュー・バッテリー設計 — chibirigor-reviewの移植検討](20260610-user-docs-review-battery-design/) |
-| 2026-06-22 | [Rigor 0.2.x problem survey — 型理論とRubyランタイムの型モデル](20260622-rigor-0.2.x-problem-survey/) |
-| 2026-06-22 | [Rigor 0.2.x compatibility-safe strengthening survey](20260622-rigor-0.2.x-compatibility-safe-strengthening-survey/) |
+| 2026-06-22 | [Rigor 0.2.x problem survey — 型理論とRubyランタイムの型モデル](20260622-rigor-02x-problem-survey/) |
+| 2026-06-22 | [Rigor 0.2.x compatibility-safe strengthening survey](20260622-rigor-02x-compatibility-safe-strengthening-survey/) |
 | 2026-07-04 | [`examples/`プラグイン近代化調査 — 最初期プラグインと現行契約面のギャップ](20260704-examples-plugin-modernization-survey/) |
 | 2026-07-04 | [`plugins/`近代化スイープ — SKILL適用による本番プラグインのドリフト監査](20260704-plugins-modernization-sweep/) |
 | 2026-07-19 | [Webサイトショーケース — 「これに型が付くの？！」推論例集（コア + プラグイン）](20260719-website-showcase-inference-examples/) |

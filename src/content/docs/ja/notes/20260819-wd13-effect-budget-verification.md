@@ -3,14 +3,14 @@ title: "WD13のエフェクト収集予算の再検証（#409）: 方法と、�
 description: "rigortype/rigor docs/notes/20260819-wd13-effect-budget-verification.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260819-wd13-effect-budget-verification.md"
 sourcePath: "docs/notes/20260819-wd13-effect-budget-verification.md"
-sourceSha: "794ad5ae295066c8295dfc7406ca0e0a646cf8f0378fb509e6fc7113c9e973a6"
-sourceCommit: "bed65a462b04db02312f208b9dda2dda3a26ef13"
+sourceSha: "c6960c142ebb553d382854b113d149a39192d35bb525f01e65287938c7839fe3"
+sourceCommit: "d19c9306f46b59d84bde8ac1a5a43f54be23c023"
 translationStatus: "translated"
 sidebar:
   order: 20266819
 ---
 
-ステータス: 計測ノートと、それが生んだハーネス。設計上のコミットメントはなし。**以下のローカルの数字は、より良い来歴（provenance）を持つ2026-08-17の計測と矛盾しており、これに基づいて行動してはならない**——その旨を記した節を参照。権威ある数字は[`oss-sweep.yml`](../../.github/workflows/oss-sweep.yml)の`effect-budget`ジョブから来ることになる。
+ステータス: 計測ノートと、それが生んだハーネス。設計上のコミットメントはなし。**以下のローカルの数字は、より良い来歴（provenance）を持つ2026-08-17の計測と矛盾しており、これに基づいて行動してはならない**——その旨を記した節を参照。権威ある数字は[`oss-sweep.yml`](https://github.com/rigortype/rigor/blob/master/.github/workflows/oss-sweep.yml)の`effect-budget`ジョブから来ることになる。
 
 [ADR-103](../../adr/103-effect-labels/) §WD13は予算をそのまま述べている:
 
@@ -22,11 +22,11 @@ sidebar:
 
 ## ハーネス
 
-[`tool/effect_budget.rb`](../../tool/effect_budget.rb)、`make effect-budget`でも走る。4つの性質があり、そのそれぞれを学ぶのに何かを支払った:
+[`tool/effect_budget.rb`](https://github.com/rigortype/rigor/blob/master/tool/effect_budget.rb)、`make effect-budget`でも走る。4つの性質があり、そのそれぞれを学ぶのに何かを支払った:
 
 - **インターリーブされたA/B**（オフ、オン、オフ、オン、…）であり、ブロック化（blocked）ではない。計測ホストはドリフトし、ブロック化された実行はそのドリフトのすべてを、その間に走っていた側のアームに付け回す。下を参照——これは仮定の話ではない。
 - **中央値を全範囲とともに報告し、明示的な`separated`ビットを持つ**。アームの範囲が重なるなら、反復は両者を分離できておらず、その差分は背後に発見のない数字だ。それを中央値の背後に隠すことこそ、ノイジーな計測が自信満々の誤答になる道である。
-- **`--no-cache`、実行間でキャッシュディレクトリを削除する**。ウォームなスロットは未解析の結果をミリ秒で返し（[ADR-45](../../adr/45-run-result-cache/)）、それは目を見張る改善として読めてしまう。
+- **`--no-cache`、実行間でキャッシュディレクトリを削除する**。ウォームなスロットは未解析の結果をミリ秒で返し（[ADR-45](../../adr/45-unchanged-project-fast-path/)）、それは目を見張る改善として読めてしまう。
 - **ゼロファイルガード**。両アームは正の、かつ*同一の*ファイル数を解析しなければならず、さもなければスクリプトは中止する。スクリプトの最初の版はバリアント設定をtmpdirに書いた;設定の相対`paths:`は設定ファイル自身のディレクトリに対して解決されるため、何も解析せず、0.18秒で完了し、33%の*改善*を報告した。ガードが存在するのは、それが実際に起きたことだからだ。
 
 ## なぜ権威ある実行はラップトップではなくCIなのか

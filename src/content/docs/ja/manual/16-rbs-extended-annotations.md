@@ -3,8 +3,8 @@ title: "RBS::Extendedアノテーション"
 description: "rigortype/rigor docs/manual/16-rbs-extended-annotations.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/16-rbs-extended-annotations.md"
 sourcePath: "docs/manual/16-rbs-extended-annotations.md"
-sourceSha: "c66d5525a902d7c91b7c07d0c452b8696920151b7c25cb415f62cee1be5dec41"
-sourceCommit: "0f252e3218936e8dc7004b574c709a434b996d2a"
+sourceSha: "8f861d3cc1ac565673412f93812cae2edc4746beb20e06ee44007d48e84f8f95"
+sourceCommit: "d19c9306f46b59d84bde8ac1a5a43f54be23c023"
 sourceDate: "2026-09-19T03:42:27+09:00"
 translationStatus: "translated"
 sidebar:
@@ -50,7 +50,7 @@ end
 | 単独行 | 構文エラー（`expected a token pARROW`）、アノテーション喪失 | アノテーション保持 |
 | 同一行 | アノテーションおよびメソッド型を保持 | アノテーション保持、メソッド型は**脱落** |
 
-Rigorはすべての行の両方の半分を保持します。Steepもインラインモードで実行する場合は、同一行の表記を使用してください。測定結果は[ADR-111](../../adr/111-inline-refinement-carrier/)にあります。同一行アノテーションの後のメソッド型がパースできない場合、メソッドは型付けされないままとなり、Rigorはそれを[`plugin.rbs-inline.source-rbs-annotation-not-honoured`](plugins/rigor-rbs-inline/#同一行アノテーション)として報告します。
+Rigorはすべての行の両方の半分を保持します。Steepもインラインモードで実行する場合は、同一行の表記を使用してください。測定結果は[ADR-111](../../adr/111-inline-refinement-carrier/)にあります。同一行アノテーションの後のメソッド型がパースできない場合、メソッドは型付けされないままとなり、Rigorはそれを[`plugin.rbs-inline.source-rbs-annotation-not-honoured`](../plugins/rigor-rbs-inline/#同一行アノテーション)として報告します。
 
 これには`rbs-inline`ライブラリのインストールが必要です;インストールされていれば、Rigorはインラインアノテーションをデフォルトで取り込みます（[ADR-93](../../adr/93-default-rbs-inline-ingestion/)）。`# rigor:`コメントは引き続き抑制専用です。
 

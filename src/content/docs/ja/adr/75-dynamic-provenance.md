@@ -3,8 +3,8 @@ title: "ADR-75 — `Dynamic[T]`のprovenanceと説明"
 description: "rigortype/rigor docs/adr/75-dynamic-provenance.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/75-dynamic-provenance.md"
 sourcePath: "docs/adr/75-dynamic-provenance.md"
-sourceSha: "4acb9702678de0b6c6295ac43ac67752debdf12904902af8f2d853f6b13fe14b"
-sourceCommit: "450a3016ca812067f6baa96e415442ed936ad49a"
+sourceSha: "c26eec8ba3f0b0f50a1ae88e5bf154b9fe3e42d275192a9cfb8bebbb8bc90755"
+sourceCommit: "d19c9306f46b59d84bde8ac1a5a43f54be23c023"
 translationStatus: "translated"
 sidebar:
   order: 4075

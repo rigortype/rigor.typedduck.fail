@@ -3,8 +3,8 @@ title: "設定"
 description: "rigortype/rigor docs/manual/03-configuration.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/03-configuration.md"
 sourcePath: "docs/manual/03-configuration.md"
-sourceSha: "5d4270f50029e2dc86728b4fc227cc530a6bd310866a5953c79a76d9d72f11bb"
-sourceCommit: "42d6e031257466de187cc9640b4896300473f9bb"
+sourceSha: "f5a77a377e978f8d6237e5e57874a0caa44f15b261db94abbf292b0c41a51a68"
+sourceCommit: "d19c9306f46b59d84bde8ac1a5a43f54be23c023"
 sourceDate: "2026-09-26T08:38:13+09:00"
 translationStatus: "translated"
 sidebar:
@@ -142,7 +142,7 @@ rigor: signature_paths: "…/plugins/rigor-activerecord/sig" loads the signature
 | `cache.max_bytes` | Integerまたは`null` | `268435456`（256 MB） | キャッシュディレクトリのLRU退避の上限。`null`で退避を無効化する。[キャッシュ § サイズと退避](../12-caching/#サイズと退避)を参照。 |
 | `cache.validation` | String | `"auto"` | キャッシュがファイルの未変更をどう確認するか: `auto`はCI環境が検出されたときは`digest`として、それ以外では`stat`として振る舞う;`stat`はサイズ＋ナノ秒単位のタイムスタンプ＋inodeを比較し、statが動いたファイルだけを再ハッシュする;`digest`は実行のたびに全ファイルの内容を再ハッシュする。どちらも内容ハッシュを変更判定の唯一の権威として保つ——`stat`はstatがファイルの未変更を証明できるときにハッシュ計算を省くだけである。[キャッシュ § ファイルの変更確認方法](../12-caching/#ファイルの変更確認方法)を参照。環境変数`RIGOR_STRICT_VALIDATION=1`は1回の実行に対して`digest`を強制し、このキーより優先する;`RIGOR_CI_DETECT=0`はCI検出を無効化する。 |
 | `parallel.workers` | Integer | `0` | ファイルごとの解析用の並列ワーカープロセス（現在はfork方式のプール、ADR-15）。`0`は逐次処理。CLI `--workers`と`RIGOR_RACTOR_WORKERS`が優先される。フル実行と同様に`--incremental`の再チェックにも適用される。 |
-| `plugins_isolation` | String | `null` | プラグインがターゲットライブラリを呼び出す際の隔離方法 —— `process`（デフォルト）または`none`。`RIGOR_PLUGIN_ISOLATION`が1回の呼び出しに対してオーバーライドします; `ruby_box`はその環境変数限定です。[プラグインの使用](07-plugins/)を参照。 |
+| `plugins_isolation` | String | `null` | プラグインがターゲットライブラリを呼び出す際の隔離方法 —— `process`（デフォルト）または`none`。`RIGOR_PLUGIN_ISOLATION`が1回の呼び出しに対してオーバーライドします; `ruby_box`はその環境変数限定です。[プラグインの使用](../07-plugins/)を参照。 |
 | `plugins_io.network` | String | `"disabled"` | プラグインネットワークポリシー。`disabled`または`allowlist`。 |
 | `plugins_io.allowed_paths` | Array | `[]` | プラグインが読み取り可能なファイルシステムパス。 |
 | `plugins_io.allowed_url_hosts` | Array | `[]` | `network: allowlist`のときプラグインがフェッチ可能なURLホスト。 |

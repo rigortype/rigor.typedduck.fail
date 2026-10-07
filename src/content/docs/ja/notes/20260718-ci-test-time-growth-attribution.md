@@ -3,7 +3,7 @@ title: "CI テスト時間の伸び — 要因分解（instance gacha vs テス�
 description: "Imported from rigortype/rigor docs/notes/20260718-ci-test-time-growth-attribution.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260718-ci-test-time-growth-attribution.md"
 sourcePath: "docs/notes/20260718-ci-test-time-growth-attribution.md"
-sourceSha: "07cc5719b6e25a252b8e4d0788347dc1779907124829af3825e875e43632895e"
+sourceSha: "2476cf79b993be1693aad4f33412d8c8865f2f5106aa53a04aeec642043a9e7d"
 sourceCommit: "d19c9306f46b59d84bde8ac1a5a43f54be23c023"
 sourceDate: "2026-09-09T17:07:51+09:00"
 sourceLanguage: "ja"
@@ -164,7 +164,7 @@ variance（instance gacha）を金で緩和できるか。GitHub公式larger run
 
 ### `*.md`-only PRスキップの実装上の注意（重要）
 
-**naiveな`paths-ignore`は不可**。 [ci.yml:6-13](../../.github/workflows/ci.yml)は`push`にのみ
+**naiveな`paths-ignore`は不可**。 [ci.yml:6-13](https://github.com/rigortype/rigor/blob/master/.github/workflows/ci.yml)は`push`にのみ
 `paths-ignore: "**/*.md"`を掛け、**`pull_request`は意図的に無フィルタ**にしている。コメント
 （ci.yml:9-11）の通り、**paths-filterされたrequired checkはpendingのまま固着してマージを
 ブロックする**ため。`pull_request`に`paths-ignore`を足すとmd限定PRがマージ不能になる。

@@ -131,7 +131,7 @@ sidebar:
 6. **Plugin internals** ── ポインタ: 「…are in the
    [plugin's README](https://github.com/rigortype/rigor/blob/master/../plugins/rigor-<id>/README.md). To
    write a plugin, see [`examples/`](https://github.com/rigortype/rigor/blob/master/../examples/README.md)
-   and the [`rigor-plugin-author`](../../08-skills/) skill.」
+   and the [`rigor-plugin-author`](../../manual/08-skills/) skill.」
 
 **ハンドブックポインタのケース:**ハンドブックの章がすでにプラグインを深く
 扱っている場合（Sorbet＝ハンドブック第10章）、マニュアルページは薄く保ち、

@@ -3,8 +3,8 @@ title: "ADR-2: 拡張API戦略"
 description: "rigortype/rigor docs/adr/2-extension-api.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/2-extension-api.md"
 sourcePath: "docs/adr/2-extension-api.md"
-sourceSha: "92b5f601573583739b9aee5d9f37d9e766a198460b72e882af79b88f4dc57987"
-sourceCommit: "e12ab45fa55707ed2acc0eae2e273b99a72dc077"
+sourceSha: "50efbb0cc1bc11b0039190f597e3252d6cd4359313c9d566f71bc2bdf1d7bff9"
+sourceCommit: "d19c9306f46b59d84bde8ac1a5a43f54be23c023"
 sourceDate: "2026-09-26T06:13:45+09:00"
 translationStatus: "translated"
 sidebar:
@@ -155,7 +155,7 @@ RigorはRubyの`method_missing`、`respond_to_missing?`、`define_method`、Rail
 
 Rigorは一般的な標準ライブラリのケイパビリティロール（読み取り可能ストリーム、書き込み可能ストリーム、巻き戻し可能ストリーム、シーク可能ストリーム、クローズ可能、列挙可能、呼び出し可能、ファイル記述子バック）の意見を持つコアカタログを出荷すべきです。
 
-出荷されたメンバー列挙フックは`Plugin::Base#declared_members(class_name)`です（[ADR-113](113-rigor-lens.md) WD4、#1082）：プラグインはあるクラス上で合成するメンバーの`{name:, kind:, type:}`行を返し、`rigor lens`宣言マップがそれらをレンダリングします。これは呼び出し部位の規約に追加的なものです——`dynamic_return`は引き続き呼び出しごとに型を返し、`declared_members`はそのサーフェスを一覧表示します——また、`check`のホットパスの外に留まるため（ADR-52）、`check`がこれを呼び出すことは決してありません。
+出荷されたメンバー列挙フックは`Plugin::Base#declared_members(class_name)`です（[ADR-113](../113-rigor-lens/) WD4、#1082）：プラグインはあるクラス上で合成するメンバーの`{name:, kind:, type:}`行を返し、`rigor lens`宣言マップがそれらをレンダリングします。これは呼び出し部位の規約に追加的なものです——`dynamic_return`は引き続き呼び出しごとに型を返し、`declared_members`はそのサーフェスを一覧表示します——また、`check`のホットパスの外に留まるため（ADR-52）、`check`がこれを呼び出すことは決してありません。
 
 ## リフレクション層の再ビルド
 
@@ -221,7 +221,7 @@ truthyエッジとfalseyエッジのファクトはエッジローカルにと�
 アーキタイプ: 機械的 / ポリシー —— エンジンがすでに行っていることを記録し、セーフガードを選択する。
 ステークス: 中。可逆的であり、RBSが宣言しているメソッドに応答するすべてのプラグインに届き、両方向の偽陽性の境界に位置する: ランタイム診断は正しいユーザーコードに対して発火してしまい、誤ったオーバーライドは呼び出し箇所を誤って型付けしてしまう。
 
-**コンテキスト**。`MethodDispatcher#resolve`（`lib/rigor/inference/method_dispatcher.rb`）は、v0.1.1 Track 2 slice 7以来、`RbsDispatch.try_dispatch`（約L179）の前に`try_plugin_contribution`（約L126）を参照してきた。これはゲートされたすべてのプラグインの貢献を収集し、それらを`FlowContribution::Merger`を通じてマージし、マージされた戻り値型が非`nil`になると直ちに戻り値型を返す。高精度ティアのみが先に実行される: `MethodFolding.try_backward`および`dispatch_precise_tiers`（例: DataおよびStructフォールディング、メタイントロスペクション、定数・リテラル文字列およびシェイプのフォールディング、標準添付ライブラリのシングルトンフォルダー、Kernel組込み、および`PRECISE_TIERS_TAIL`ブロックフォールド）。RBSの戻り値は決してマージに入らないため、ティアの比較は発生せず、非互換なプラグインの戻り値は診断なしに宣言された戻り値を置き換える。上の箇条書きは逆のことを述べており、[`docs/internal-spec/plugin.md`](../internal-spec/plugin.md)はこの不一致を未解決として記録していた。バンドルされたプラグインは出荷された順序に依存している。`rigor-activesupport-core-ext`の`%i[+ - *]`ルールは、完全に宣言されたコアの`Time#-`および`Integer#*`よりも優先して応答する。`Duration`がオペランドになるとRBSの射影が間違っているためである（`Time.now - 30.minutes`は`Float`を射影する）。`rigor-dry-validation`は、自身の`sig/`が契約ごとに宣言する`Result#to_h`をナローイングする。`rigor-sorbet`は、同一メソッドのRBSシグネチャよりも優先して、翻訳されたSorbetの`sig`からメソッドに応答する。
+**コンテキスト**。`MethodDispatcher#resolve`（`lib/rigor/inference/method_dispatcher.rb`）は、v0.1.1 Track 2 slice 7以来、`RbsDispatch.try_dispatch`（約L179）の前に`try_plugin_contribution`（約L126）を参照してきた。これはゲートされたすべてのプラグインの貢献を収集し、それらを`FlowContribution::Merger`を通じてマージし、マージされた戻り値型が非`nil`になると直ちに戻り値型を返す。高精度ティアのみが先に実行される: `MethodFolding.try_backward`および`dispatch_precise_tiers`（例: DataおよびStructフォールディング、メタイントロスペクション、定数・リテラル文字列およびシェイプのフォールディング、標準添付ライブラリのシングルトンフォルダー、Kernel組込み、および`PRECISE_TIERS_TAIL`ブロックフォールド）。RBSの戻り値は決してマージに入らないため、ティアの比較は発生せず、非互換なプラグインの戻り値は診断なしに宣言された戻り値を置き換える。上の箇条書きは逆のことを述べており、[`docs/internal-spec/plugin.md`](../../internal-spec/plugin/)はこの不一致を未解決として記録していた。バンドルされたプラグインは出荷された順序に依存している。`rigor-activesupport-core-ext`の`%i[+ - *]`ルールは、完全に宣言されたコアの`Time#-`および`Integer#*`よりも優先して応答する。`Duration`がオペランドになるとRBSの射影が間違っているためである（`Time.now - 30.minutes`は`Float`を射影する）。`rigor-dry-validation`は、自身の`sig/`が契約ごとに宣言する`Result#to_h`をナローイングする。`rigor-sorbet`は、同一メソッドのRBSシグネチャよりも優先して、翻訳されたSorbetの`sig`からメソッドに応答する。
 
 **決定**。プラグインの`dynamic_return`の回答は、それが宣言された戻り値をナローイングするか矛盾するかに関わらず、RBSの戻り値を置き換え、エンジンは何も報告しない。その基準:
 RBSはライブラリの宣言されたサーフェスを記述し、プラグインルールはプロジェクトが実際にロードするランタイム —— モンキーパッチ、契約ごとのシェイプ、DSL生成された戻り値 —— を記述する。両者が一致しない場合、通常はプラグインのほうがプロジェクトについて正しく、ユーザーはどちらのソースも修正できない。オーバーライドが意図的であるかどうかはプラグインの性質であり、解析対象コードの性質ではないため、それはプラグインが構築される場所、すなわちそのテストスイート（#1413、計画中）に属し、ユーザーの実行には属さない。

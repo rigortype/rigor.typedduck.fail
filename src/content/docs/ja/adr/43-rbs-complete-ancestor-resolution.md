@@ -11,7 +11,7 @@ sidebar:
   order: 4043
 ---
 
-ステータス: **Accepted — 全面的に着地（WD1–WD7）、2026-06-03**。WD7およびWD4の`rbs_complete_extends:`側は#1097で着地した。却下された代替案Aは[ADR-114](114-core-stdlib-ancestor-dispatch.md)（2026-09-20）によって部分的に置き換えられ、gemのケースへと絞り込まれ、本ADRのアローリストはその拒否のバイパスとして保持される。
+ステータス: **Accepted — 全面的に着地（WD1–WD7）、2026-06-03**。WD7およびWD4の`rbs_complete_extends:`側は#1097で着地した。却下された代替案Aは[ADR-114](../114-core-stdlib-ancestor-dispatch/)（2026-09-20）によって部分的に置き換えられ、gemのケースへと絞り込まれ、本ADRのアローリストはその拒否のバイパスとして保持される。
 `rigor check`が、Rubyソースのサブクラスの*継承された*メソッド呼び出しを、
 **アローリスト化された**RBSのみの祖先に対して解決できるようにする。これにより
 エンジンはその祖先の契約（contract）サーフェス（surface）の誤用を警告できる。
@@ -182,7 +182,7 @@ Steepなしで）警告できるか？」
 
 ## 却下／先送りした代替案
 
-- **（却下；[ADR-114](114-core-stdlib-ancestor-dispatch.md)により部分的に置き換え、#527）一律な継承RBS祖先解決**。アローリストではなく*すべて*のRBS祖先について
+- **（却下；[ADR-114](../114-core-stdlib-ancestor-dispatch/)により部分的に置き換え、#527）一律な継承RBS祖先解決**。アローリストではなく*すべて*のRBS祖先について
   継承メソッドを解決する。却下：Railsコントローラーの偽陽性の壁（Context）を再導入する
   ──部分的なgem RBSは、省かれた継承メソッドのすべてを、動作しているコード上の
   `call.undefined-method` FPに変える。プロジェクトの最上位の偽陽性の規律に違反する。
@@ -220,7 +220,7 @@ Steepなしで）警告できるか？」
   うる。v1のスコープではない）。
 - **ADR-37／ADR-40**──WD4が委ねる宣言的マニフェストルート。
 - **#1097／`rbs_complete_extends:`**──WD4のextendエッジの双子およびWD7の遅延範囲シャドウイング；[`docs/internal-spec/plugin.md`](../../internal-spec/plugin/)で規定。
-- **[ADR-114](114-core-stdlib-ancestor-dispatch.md)**（コア／stdlib祖先ディスパッチ）──上記の却下された代替案Aを部分的に置き換え、`ALLOWED_RBS_COMPLETE_ANCESTORS`を「唯一の侵入口」から「拒否のバイパス」へと降格させる。定数、マニフェストフィールド、およびそれらの契約は不変である。
+- **[ADR-114](../114-core-stdlib-ancestor-dispatch/)**（コア／stdlib祖先ディスパッチ）──上記の却下された代替案Aを部分的に置き換え、`ALLOWED_RBS_COMPLETE_ANCESTORS`を「唯一の侵入口」から「拒否のバイパス」へと降格させる。定数、マニフェストフィールド、およびそれらの契約は不変である。
 
 [プラグイン契約RBS]: ../../sig/rigor/plugin/base.rbs
 [`spec/integration/plugin_contract_conformance_spec.rb`]: ../../spec/integration/plugin_contract_conformance_spec.rb

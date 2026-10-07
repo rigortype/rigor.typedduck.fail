@@ -11,7 +11,7 @@ sidebar:
   order: 3050
 ---
 
-ステータス: **公開リード形（v0.0.9グループB）**。このドキュメントは、内部のフローコントリビューションプロデューサー（組み込みナローイング（narrowing）ルールおよび`RBS::Extended`アノテーション）が単一の呼び出しエッジで運ぶバンドル形を固定します。これらのバンドルを消費するマージポリシーは[ADR-2 § "Plugin Contribution Merging"](../../adr/2-extension-api/)が所有します。v0.0.9ではバンドル構造体のみを出荷しました;マージャーはv0.1.0でプラグインAPIとともに着地し、[flow-contribution-merger.md](flow-contribution-merger/)で規定されています。
+ステータス: **公開リード形（v0.0.9グループB）**。このドキュメントは、内部のフローコントリビューションプロデューサー（組み込みナローイング（narrowing）ルールおよび`RBS::Extended`アノテーション）が単一の呼び出しエッジで運ぶバンドル形を固定します。これらのバンドルを消費するマージポリシーは[ADR-2 § "Plugin Contribution Merging"](../../adr/2-extension-api/)が所有します。v0.0.9ではバンドル構造体のみを出荷しました;マージャーはv0.1.0でプラグインAPIとともに着地し、[flow-contribution-merger.md](../flow-contribution-merger/)で規定されています。
 
 **プラグインはこのバンドルをもう構築しません**。ADR-37はプラグイン作者向けのバンドルフックを、狭い`dynamic_return`（素の`Type`を返す）と`narrowing_facts`（ファクト（fact）を返す）のDSLに置き換え、ADR-52 WD3は基底の`flow_contribution_for`フックを完全に削除しました。プラグインの`dynamic_return`の結果は、マージャーに到達する前に**エンジン**（`MethodDispatcher#collect_gated_contributions`）が`FlowContribution`にラップします。したがってこのバンドルは、プラグイン作者向けのサーフェス（surface）ではなく、マージティア用のアナライザー内部キャリア（carrier）です。
 
@@ -45,7 +45,7 @@ contribution = Rigor::FlowContribution.new(
 
 | スロット | 型 | 意味 |
 | --- | --- | --- |
-| `return_type` | 型キャリアまたは`nil` | 通常エッジの戻り値型。プラグインの`dynamic_return`の回答は、ナローイングするか矛盾するかを問わず、診断なしでRBSの戻り値を置き換えます（[ADR-2](../../adr/2-extension-api/) §「2026-09-26修正条項」、[plugin.md](plugin.md)）; RBSの戻り値はマージ入力ではありません。同一の呼び出しに対する2つのプラグインの回答は、マージポリシーに従ってマージされます。 |
+| `return_type` | 型キャリアまたは`nil` | 通常エッジの戻り値型。プラグインの`dynamic_return`の回答は、ナローイングするか矛盾するかを問わず、診断なしでRBSの戻り値を置き換えます（[ADR-2](../../adr/2-extension-api/) §「2026-09-26修正条項」、[plugin.md](../plugin/)）; RBSの戻り値はマージ入力ではありません。同一の呼び出しに対する2つのプラグインの回答は、マージポリシーに従ってマージされます。 |
 | `truthy_facts` | `Array`または`nil` | truthyな制御フローエッジでのみ成立するファクト。エッジローカル：truthyエッジのファクトは、コントリビューションが明示的に提供しない限り、falseyエッジの補集合をMUST NOT意味しません。 |
 | `falsey_facts` | `Array`または`nil` | `truthy_facts`の双対。 |
 | `post_return_facts` | `Array`または`nil` | 呼び出しがすべてのエッジで正常に戻った後に成立するファクト。アサーションスタイルのコントリビューション（`%a{rigor:v1:assert ...}`）のキャリアです。 |
@@ -115,7 +115,7 @@ Rigor::FlowContribution::Provenance.new(
 
 ## 要素リストへの展開
 
-ADR-2では、各バンドルを`(target, flow edge, effect kind)`をキーとするタグ付き要素リストに展開するアナライザー内部処理について言及しています。その表現はマージポリシーが消費する実装サーフェスです。それは`FlowContribution#to_element_list`として**v0.1.0で出荷されました**（マージャーとともに。[flow-contribution-merger.md](flow-contribution-merger/)を参照）。要素リストフォームはアナライザー内部のサーフェスです — プラグイン作者は依然として`FlowContribution`バンドルを構築すべきであり、要素リストの形状に直接依存すべきではありません。
+ADR-2では、各バンドルを`(target, flow edge, effect kind)`をキーとするタグ付き要素リストに展開するアナライザー内部処理について言及しています。その表現はマージポリシーが消費する実装サーフェスです。それは`FlowContribution#to_element_list`として**v0.1.0で出荷されました**（マージャーとともに。[flow-contribution-merger.md](../flow-contribution-merger/)を参照）。要素リストフォームはアナライザー内部のサーフェスです — プラグイン作者は依然として`FlowContribution`バンドルを構築すべきであり、要素リストの形状に直接依存すべきではありません。
 
 ## 安定性
 

@@ -3,8 +3,8 @@ title: "設計ノート"
 description: "rigortype/rigor docs/design/README.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/design/README.md"
 sourcePath: "docs/design/README.md"
-sourceSha: "1132cfbec3185927bd69e81f814f5f4532484c9b30baa985cc57fd928d765f20"
-sourceCommit: "0cf313582cfbe2fa7da8148dc498d0b2a0893438"
+sourceSha: "ef245f08c7eb3657699f11e70d55bc9bf5c3602f6db6c4e95f948c031cc893e7"
+sourceCommit: "d19c9306f46b59d84bde8ac1a5a43f54be23c023"
 translationStatus: "translated"
 sidebar:
   order: 5000
@@ -21,7 +21,7 @@ sidebar:
 | Date | Document | Status |
 | --- | --- | --- |
 | 2026-05-05 | [Cache slice taxonomy — pre-v0.1.0 design notes](20260505-cache-slice-taxonomy/) | Draft (informs [ADR-6](../adr/6-cache-persistence-backend/)) |
-| 2026-05-05 | [v0.1.0 readiness — pre-plugin design notes](20260505-v0.1.0-readiness/) | Draft (historical) |
+| 2026-05-05 | [v0.1.0 readiness — pre-plugin design notes](20260505-v010-readiness/) | Draft (historical) |
 | 2026-05-08 | [Rails Ecosystem Plugins — Roadmap](20260508-rails-plugins-roadmap/) | Planning (live; linked from CLAUDE.md) |
 | 2026-05-09 | [dry-rb Ecosystem Plugins — Survey](20260509-dry-plugins-roadmap/) | Research (informs [ADR-12](../adr/12-dry-rb-packaging/)) |
 | 2026-05-09 | [Rigor and Tapioca — Comparison and Strategy](20260509-rigor-tapioca-comparison/) | Notes |
@@ -33,7 +33,7 @@ sidebar:
 | 2026-05-17 | [LSP v2 — type-aware hover + completion](20260517-lsp-hover-completion/) | Draft |
 | 2026-05-18 | [CLI editor mode — disk-backed `ProjectScan` snapshot cache](20260518-cli-disk-snapshot-cache/) | Design note |
 | 2026-05-22 | [VSCode extension — first-party marketplace client for `rigor lsp`](20260522-vscode-extension/) | Draft |
-| 2026-06-01 | [Plugin mechanism — pre-1.0 review（過不足 / ペインポイント / ボイラープレート）](20260601-plugin-mechanism-pre-1.0-review/) | Research (pre-1.0 optimization; would inform an [ADR-2](../adr/2-extension-api/) revision) |
+| 2026-06-01 | [Plugin mechanism — pre-1.0 review（過不足 / ペインポイント / ボイラープレート）](20260601-plugin-mechanism-pre-10-review/) | Research (pre-1.0 optimization; would inform an [ADR-2](../adr/2-extension-api/) revision) |
 | 2026-06-02 | [Plugin boilerplate reduction — phased plan](20260602-plugin-boilerplate-reduction-plan/) | Plan (implements review §1; tied to [ADR-37](../adr/37-plugin-interface-segregation/)) |
 | 2026-08-16 | [エフェクトラベル — Rigorのためのオプトインのエフェクトシステム](20260816-effect-labels/) | Draft（決定は[ADR-103](../adr/103-effect-labels/)で固定;`docs/type-specification/effect-labels.md`へ卒業する予定） |
 

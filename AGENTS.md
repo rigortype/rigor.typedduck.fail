@@ -252,11 +252,10 @@ rewrites links into the repo-root **source/asset** trees — the allow-list in
 - **Anything else under those trees** (plugin/example/`lib`/`sig`/… sources, dirs
   without a reference page, the bare `plugins/`/`examples/` listing) → the
   upstream GitHub repo (`tree` for directories, `blob` for files).
-- Escapes **outside** the allow-list keep the historical behavior — `.md` →
-  GitHub, anything else passes through untouched. This is deliberate: a deny-list
-  would also mis-route malformed on-site cross-refs (a stray `../docs/…` the
-  author meant as an on-site page, a bare `../../08-skills/`) into broken GitHub
-  URLs. Those are upstream content bugs; leave them.
+- Escapes **outside** the allow-list whose target resolves to a real upstream
+  path (`.github/…`, `tool/…`, repo-root files like `LICENSE` / `Makefile`) go
+  to GitHub too — existence-gated, so a malformed ref that names nothing
+  upstream still passes through untouched.
 - A **docs-root file** (e.g. the archived `CHANGELOG-<minor>.md`, split out of the
   repo-root `CHANGELOG.md`) keeps repo-root links written **without** the `../` —
   `[…](examples/<x>/README.md)`, `[…](plugins/<slug>/README.md)`. These *look* like
@@ -266,22 +265,42 @@ rewrites links into the repo-root **source/asset** trees — the allow-list in
   real `REPO_SOURCE_DIRS` first segment **and** a missing docs file, so a genuine
   in-docs page is never touched. (A rewriter-only fix: this never changes upstream
   prose, so it shifts the EN `sourceSha` — restamp the affected JA mirror.)
+- **Docs-rooted re-entry** — `[…](../docs/type-specification/rbs-extended/)` or a
+  bare `[…](docs/design/x.md)`: the `docs/` segment is the upstream docs root,
+  which maps to this site's root, so the rest is replayed as an on-site route
+  (page → route; a real non-page file → GitHub blob; a malformed path that names
+  a repo-root tree → that escape). Bare **repo-root paths** behind an existence
+  gate (`[…](lib/rigor/x.rb)`, `[…](.github/workflows/ci.yml)`) and bare
+  **directory-style page links** (`[…](20260604-elixir-v1.20-…/)`) are handled
+  the same way.
+- **Dot-bearing route segments**: Astro github-slugs every URL segment derived
+  from the file path (`scripts/site-slug.mjs` mirrors the normalization exactly),
+  so `v1.20` serves at `v120` and `changelog-0.1.x` at `changelog-01x`.
+  `relativeRouteLink` slugs both sides of every computed link, and
+  `public/_redirects` aliases the dotted forms already in the wild.
 
-The generated EN tree gets this for free on every sync. The hand-owned JA
-mirrors (`src/content/docs/ja/**`) and EN overrides (`translations/en/**`) are
-**not** rewritten by the sync script, so they must match the convention by hand;
-`scripts/scan-source-links.mjs` is the guard (route-aware, sharing
-`REPO_SOURCE_DIRS` with the sync rewriter):
+The generated EN tree gets all of the above for free on every sync. The
+hand-owned JA mirrors (`src/content/docs/ja/**`) and EN overrides
+(`translations/en/**`) are **not** rewritten by the sync script, so
+`scripts/scan-source-links.mjs` is their guard **and fixer** (route- and
+upstream-aware, sharing the same rules; upstream-JA pages — frontmatter
+`sourceLanguage: ja` — are skipped because the sync regenerates them):
 
-- `node scripts/scan-source-links.mjs` scans the whole content tree and reports
-  any relative link that resolves to a repo-root source dir with no on-site route
-  (locale-aware; `manual/`, `adr/`, … cross-links are never flagged). Expected
-  baseline is **zero**.
-- `node scripts/scan-source-links.mjs --fix <glob> …` rewrites those in place
-  (and, fix-only, retargets bare plugin-source **GitHub** URLs that have a manual
-  page back to the on-site page, so JA readers land on the JA reference page).
-  Run it over the owned trees, e.g. `'src/content/docs/ja/**/*.md'
-  'translations/en/**/*.md'`.
+- `node scripts/scan-source-links.mjs` scans the content tree and reports every
+  rendered relative link that would 404 — repo-root escapes, docs-rooted
+  re-entry, wrong-depth/sibling refs, dotted segments (code fences and inline
+  code spans are ignored). Expected baseline is **zero**.
+- `node scripts/scan-source-links.mjs --fix <glob> …` rewrites the owned trees
+  in place (and, fix-only, retargets bare plugin-source **GitHub** URLs that have
+  a manual page back to the on-site page, so JA readers land on the JA reference
+  page). Run it over `'src/content/docs/ja/**/*.md' 'translations/en/**/*.md'`.
+
+URL shapes that have already been crawled are additionally aliased in
+`public/_redirects` — the 2026-09/10 Search Console cleanup adds the `docs/`
+re-entry family, the CLI-reference sibling chapters, old nested-path ADR refs,
+repo-file paths (to GitHub), and every dotted-slug page. References whose target
+no longer exists upstream (`roadmap/`, `milestones/`, the IPSJ PDF copies)
+intentionally have no rule — they 404 until upstream fixes the prose.
 
 When a rewriter change shifts link rendering without changing upstream prose,
 the EN `sourceSha` moves and `check-translations` will flag the affected pages

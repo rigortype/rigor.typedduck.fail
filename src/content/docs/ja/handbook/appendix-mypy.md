@@ -210,7 +210,7 @@ end
 
 Rigorは`sig/`からRBSインターフェースを読む。RBS宣言されたパラメータが`_SupportsClose`の場合、Rigorはmypy/Pyrightが`Protocol`に対してチェックするのと同じように、call-siteの引数を構造的にチェックする。
 
-Pythonから持ち越した注意点をひとつ: Rigorにおいて「protocol」はこれを**意味しない**。構造的型付け（structural typing）の概念はRBSの`interface`であり、「protocol」は別の、プラグインが宣言する機能（パススコープの振る舞い契約）のために予約されている。[プロトコルと構造的型付けの付録](appendix-protocols-and-structural-typing.md)がこの区別を詳しく解説する。
+Pythonから持ち越した注意点をひとつ: Rigorにおいて「protocol」はこれを**意味しない**。構造的型付け（structural typing）の概念はRBSの`interface`であり、「protocol」は別の、プラグインが宣言する機能（パススコープの振る舞い契約）のために予約されている。[プロトコルと構造的型付けの付録](../appendix-protocols-and-structural-typing/)がこの区別を詳しく解説する。
 
 ## mypy / PyrightにあってRigorにないもの
 

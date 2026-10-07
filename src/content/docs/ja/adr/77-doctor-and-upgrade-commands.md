@@ -3,8 +3,8 @@ title: "ADR-77 — `rigor doctor`と`rigor upgrade`のエビデンスルーテ�
 description: "rigortype/rigor docs/adr/77-doctor-and-upgrade-commands.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/77-doctor-and-upgrade-commands.md"
 sourcePath: "docs/adr/77-doctor-and-upgrade-commands.md"
-sourceSha: "93fb43180902770513c7afed6224cbcde17f533faca16f8af27d366ea0f607cc"
-sourceCommit: "450a3016ca812067f6baa96e415442ed936ad49a"
+sourceSha: "05a976b3987209669a02fa2099b59ce0ce90f75bb7f06f68010de16ddeb244e2"
+sourceCommit: "d19c9306f46b59d84bde8ac1a5a43f54be23c023"
 translationStatus: "translated"
 sidebar:
   order: 4077

@@ -11,11 +11,11 @@ sidebar:
   order: 4072
 ---
 
-**ステータス:** Accepted — 2026-06-17実装。プロジェクトの`Gemfile.lock`にgemがロックされているが、どの解決経路（デフォルトライブラリ、vendoredスタブ、バンドルの`sig/`、`rbs collection`）を通じてもRBSを同梱していないとき、Rigorはそのgem向けの小さなRBSオーバーレイを自動ロードします（[ADR-58](58-authoritative-rbs-provenance.md) §「自動オーバーレイ」）。これにより、最も一般的なActiveSupportの拡張（`Time.current`、`3.days`、`Array.wrap`、`"x".squish`、`obj.blank?`）がゼロコンフィグで解決されます。
+**ステータス:** Accepted — 2026-06-17実装。プロジェクトの`Gemfile.lock`にgemがロックされているが、どの解決経路（デフォルトライブラリ、vendoredスタブ、バンドルの`sig/`、`rbs collection`）を通じてもRBSを同梱していないとき、Rigorはそのgem向けの小さなRBSオーバーレイを自動ロードします（ADR-58 §「自動オーバーレイ」）。これにより、最も一般的なActiveSupportの拡張（`Time.current`、`3.days`、`Array.wrap`、`"x".squish`、`obj.blank?`）がゼロコンフィグで解決されます。
 
 ## 文脈
 
-147個のgemと4つの実Railsアプリを対象にしたv0.1.0プレビュー調査（[`docs/notes/20260613-rbs-coverage-inventory.md`](../../notes/20260613-rbs-coverage-inventory/)）で、ActiveSupportのcore-ext拡張がRailsコードベースにおける`call.undefined-method`の最大の発生源であることが判明しました（GitLabで64%、内部Railsアプリで90%の未解決呼び出し）。原因はActiveSupportが`rbs collection`内に型定義を持たないこと（gemは型定義を出荷せず、コミュニティリポジトリにもgemレベルのエントリーがない）です。
+147個のgemと4つの実Railsアプリを対象にしたv0.1.0プレビュー調査（`docs/notes/20260613-rbs-coverage-inventory.md`）で、ActiveSupportのcore-ext拡張がRailsコードベースにおける`call.undefined-method`の最大の発生源であることが判明しました（GitLabで64%、内部Railsアプリで90%の未解決呼び出し）。原因はActiveSupportが`rbs collection`内に型定義を持たないこと（gemは型定義を出荷せず、コミュニティリポジトリにもgemレベルのエントリーがない）です。
 
 フィードバックは2つの修正を提案しました。（a）ActiveSupportのcore-ext RBSオーバーレイを同梱すること、そして（b）既知の未シグネチャ化モンキーパッチャがロックファイルにあるとき、コア型のundefined-methodを格下げする発火単位のティアゲート。フィードバックは（b）をより永続的だと推奨しました。私たちは（a）を選びました。プロジェクトの一次的な価値は偽陽性の規律（「動作するコードを決して怖がらせない」）であり、（b）はそれに寄与しないからです:
 

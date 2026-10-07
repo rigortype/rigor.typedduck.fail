@@ -3,8 +3,8 @@ title: "CIウォールタイム 371秒 → 220秒: シャードのばらつき�
 description: "rigortype/rigor docs/notes/20260909-ci-wall-time-shard-rebalance.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260909-ci-wall-time-shard-rebalance.md"
 sourcePath: "docs/notes/20260909-ci-wall-time-shard-rebalance.md"
-sourceSha: "d477ae1a0d113520f62375076ec520484ff430c30a7cbd8d16d4a777e046a1af"
-sourceCommit: "04668e5f0d6205fdd5c8f44662041add7ab33ca3"
+sourceSha: "02821645a950468842214fc8f198f41ff61dbdde103af35222659f75770e7c6a"
+sourceCommit: "d19c9306f46b59d84bde8ac1a5a43f54be23c023"
 translationStatus: "translated"
 sidebar:
   order: 20266909
@@ -96,7 +96,7 @@ binpackerの`--shard K/N`は、ワーカーに使用するのと同じ重み平�
 ## 永続的な知識の行き先
 
 - **binpacker**（[binpacker#20](https://github.com/rigortype/binpacker/pull/20)、マージ済み） — 不均衡なマトリクスを診断するためのREADMEセクション（最初に予測メイクスパンを比較する；下限の計算；example単位の帰属レシピ）およびファイル移動後のタイミングデータに関するセクション；同梱のスキルを両方とも更新；罠1と2は`.scratch/rigor-shard-rebalance/`配下にgemのissueとして起票。
-- **本リポジトリ** — 罠が牙を剥く場所、すなわち[`.github/workflows/ci.yml`](../../.github/workflows/ci.yml)および[`Makefile`](../../Makefile)の`test-binpacker`ターゲットにコメントを記載。
+- **本リポジトリ** — 罠が牙を剥く場所、すなわち[`.github/workflows/ci.yml`](https://github.com/rigortype/rigor/blob/master/.github/workflows/ci.yml)および[`Makefile`](https://github.com/rigortype/rigor/blob/master/Makefile)の`test-binpacker`ターゲットにコメントを記載。
 
 言及しておく価値のあるギャップが1つあります: `docs/CURRENT_WORK.md`のヘッダーは運用の落とし穴を*「そのワークフローのスキル」*にルーティングしていますが、それらを受け取るCIや検証のスキルは`.claude/skills/`の下に存在しません。一度きりの作業では作成を正当化できませんでした；2回目のCIキャンペーンであれば正当化されるでしょう。
 

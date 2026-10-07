@@ -114,6 +114,6 @@ Rubyのモジュールまたはクラスの内部で宣言されたモデル（`
 
 ## プラグインの内部
 
-本プラグインは`Plugin::Base#declared_members`にも応答します（[ADR-113](../../adr/113-rigor-lens/) WD4）：準備されたモデルインデックスから各モデルの合成メンバー ── カラムリーダーおよび`column?`述語、関連アクセサ、宣言されたスコープ、enum属性、マクロ定義名 ── を列挙するため、`rigor lens`はgrep可能な宣言なしに`User`のメンバーを一覧表示できます。行はプラグインがコミットするメンバーレベルの型を担います：カラムリーダーに対しては意図的に`Dynamic[top]`（裸のレシーバーなしの読み取りの回答 ── 書かれた`user.name`は引き続きカラムの型へと絞り込まれます）とし、プラグインが`check`時にすでに型を返している箇所でのみ型を返します。
+本プラグインは`Plugin::Base#declared_members`にも応答します（[ADR-113](../../../adr/113-rigor-lens/) WD4）：準備されたモデルインデックスから各モデルの合成メンバー ── カラムリーダーおよび`column?`述語、関連アクセサ、宣言されたスコープ、enum属性、マクロ定義名 ── を列挙するため、`rigor lens`はgrep可能な宣言なしに`User`のメンバーを一覧表示できます。行はプラグインがコミットするメンバーレベルの型を担います：カラムリーダーに対しては意図的に`Dynamic[top]`（裸のレシーバーなしの読み取りの回答 ── 書かれた`user.name`は引き続きカラムの型へと絞り込まれます）とし、プラグインが`check`時にすでに型を返している箇所でのみ型を返します。
 
 アーキテクチャ（キャッシュされたスキーマパーサ → モデルインデックス → アナライザーのチェーン）、ソースのレイアウト、デモの実行方法、そしてこのプラグインが行使するプラグインの契約（contract）サーフェスは、[プラグインのREADME](https://github.com/rigortype/rigor/blob/master/plugins/rigor-activerecord/README.md)に記載されています。自分自身のプラグインを書くには、[`examples/`](https://github.com/rigortype/rigor/blob/master/examples/README.md)のウォークスルーと[`rigor-plugin-author`](../../08-skills/)スキルを参照してください。

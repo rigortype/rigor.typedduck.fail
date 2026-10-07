@@ -3,8 +3,8 @@ title: "ADR-79 — チェッカー固定の決定性より、RBSバージョン�
 description: "rigortype/rigor docs/adr/79-rbs-version-range-over-pinned-determinism.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/79-rbs-version-range-over-pinned-determinism.md"
 sourcePath: "docs/adr/79-rbs-version-range-over-pinned-determinism.md"
-sourceSha: "75ef5cba8f57eec5beec00d5030b02c8d64795deaa09e0662f65da421d0bd79a"
-sourceCommit: "450a3016ca812067f6baa96e415442ed936ad49a"
+sourceSha: "58aeb5e6235f09539a9a04d77b6955fb5b14ea738b234a14f36da057e7d6c9dd"
+sourceCommit: "d19c9306f46b59d84bde8ac1a5a43f54be23c023"
 translationStatus: "translated"
 sidebar:
   order: 4079

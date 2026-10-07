@@ -3,8 +3,8 @@ title: "`effect.discarded-pure-result`（#390）はコーパスで14回発火し
 description: "rigortype/rigor docs/notes/20260819-discarded-pure-result-corpus-gate.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260819-discarded-pure-result-corpus-gate.md"
 sourcePath: "docs/notes/20260819-discarded-pure-result-corpus-gate.md"
-sourceSha: "f399c5e6a6df5cf4e75ef8f8f639d96da1ed5cc6796e93347bb7e98f291be913"
-sourceCommit: "bed65a462b04db02312f208b9dda2dda3a26ef13"
+sourceSha: "51790fb6125391209ce94860de5676a37b1c3b60079aa4dead750e244c5e7828"
+sourceCommit: "d19c9306f46b59d84bde8ac1a5a43f54be23c023"
 translationStatus: "translated"
 sidebar:
   order: 20266819
@@ -35,7 +35,7 @@ Issue #390は`effect.discarded-pure-result`を提案する: 結果が使われ�
 
 各セルには、別々に記録しておく価値のある機械的な原因がある:
 
-- `Hash#fetch`が`raises: false`と読めるのは、抽出器の`RAISE_RE`（[`tool/extract_builtin_catalog.rb:835`](../../tool/extract_builtin_catalog.rb)）が`rb_raise\w*`とキュレーション済みの4つのヘルパーにマッチする一方、`rb_hash_fetch_m`は**`rb_key_err_raise`**（`references/ruby/hash.c:2156`）を通してraiseするからだ。`\brb_raise`は`rb_key_err_raise`の内側にはマッチできないので、このトークンは不可視になる。同じ穴が`rb_exc_raise`（103呼び出しサイト）・`rb_sys_fail`（184）・`rb_name_err_raise`（30——キュレーション済みリストには惜しい兄弟`rb_name_error`があることに注意）・`rb_syserr_fail`・`rb_eof_error`・`rb_enc_raise`・`rb_memerror`を呑み込む。
+- `Hash#fetch`が`raises: false`と読めるのは、抽出器の`RAISE_RE`（[`tool/extract_builtin_catalog.rb:835`](https://github.com/rigortype/rigor/blob/master/tool/extract_builtin_catalog.rb)）が`rb_raise\w*`とキュレーション済みの4つのヘルパーにマッチする一方、`rb_hash_fetch_m`は**`rb_key_err_raise`**（`references/ruby/hash.c:2156`）を通してraiseするからだ。`\brb_raise`は`rb_key_err_raise`の内側にはマッチできないので、このトークンは不可視になる。同じ穴が`rb_exc_raise`（103呼び出しサイト）・`rb_sys_fail`（184）・`rb_name_err_raise`（30——キュレーション済みリストには惜しい兄弟`rb_name_error`があることに注意）・`rb_syserr_fail`・`rb_eof_error`・`rb_enc_raise`・`rb_memerror`を呑み込む。
 - `Array#sort`が`mutates_self`と読めるのは、`rb_ary_sort`が`ary = rb_ary_dup(ary); rb_ary_sort_bang(ary);`であり、`mutates?`が所有権解析の走る*前に*キュレーション済みの生ミューテーターリストで短絡したからだ——`rb_ary_sort_bang`が本体に現れ、dupに適用されている。（再束縛ガードはこの再代入をすでに検出していた;それは短絡がスキップした分岐の上に座っていた。本ノートの以前の版は、原因をそのガードの誤発火に誤って帰していた。）`raises`の穴の#417とともに#418で修正済み;`Hash#fetch`はいまや`raises`を運び、`Array#sort`は非変更である。どちらも推論される型は変えない——これらの形の上でファセットには振る舞い上の消費者がいなかった。
 - `Kernel#Integer`はどちらのファセットも持たない: `Kernel`は`data/builtins/ruby_core/`配下の21のトピックファイルに含まれていない。
 

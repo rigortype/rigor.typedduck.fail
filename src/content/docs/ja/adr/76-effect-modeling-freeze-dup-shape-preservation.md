@@ -3,8 +3,8 @@ title: "ADR-76 — `freeze` / `dup` / `clone`のエフェクトモデリング�
 description: "rigortype/rigor docs/adr/76-effect-modeling-freeze-dup-shape-preservation.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/76-effect-modeling-freeze-dup-shape-preservation.md"
 sourcePath: "docs/adr/76-effect-modeling-freeze-dup-shape-preservation.md"
-sourceSha: "61a6ce0120bc57703f1ff24c25a0e24ebd543df93e4f58375dca5cba4bc9b547"
-sourceCommit: "450a3016ca812067f6baa96e415442ed936ad49a"
+sourceSha: "b27c2bfbc4e58246b56723b486deb17fd121fd2434d4551156cc8baefbef6f10"
+sourceCommit: "d19c9306f46b59d84bde8ac1a5a43f54be23c023"
 translationStatus: "translated"
 sidebar:
   order: 4076

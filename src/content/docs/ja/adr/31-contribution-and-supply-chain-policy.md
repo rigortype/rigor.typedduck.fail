@@ -3,8 +3,8 @@ title: "ADR-31 — コントリビューションとサプライチェーンポ�
 description: "rigortype/rigor docs/adr/31-contribution-and-supply-chain-policy.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/31-contribution-and-supply-chain-policy.md"
 sourcePath: "docs/adr/31-contribution-and-supply-chain-policy.md"
-sourceSha: "6ba05af50fac3177c458bbb2b9f6ed97b3f22383c453fba1a77d91cc350552a9"
-sourceCommit: "db7b23d42e9b47560438b67dfe16d53e03f70575"
+sourceSha: "04f17ba27b3a4b9aabf58f9bbafed0616f461f8f5aee648711497d8dd54de287"
+sourceCommit: "d19c9306f46b59d84bde8ac1a5a43f54be23c023"
 sourceDate: "2026-09-10T04:47:52+09:00"
 translationStatus: "translated"
 sidebar:
@@ -54,7 +54,7 @@ RigorはすべてのユーザーのCI / dev環境で実行される静的アナ�
 
 ### ライセンスフレームワーク
 
-Rigorは[Mozilla Public License Version 2.0](../../LICENSE)（MPL-2.0）の下でライセンスされている。MPLの語彙（[§1](../../LICENSE)、Definitions）は、このADRが著作権、コード由来、そしてバンドル`rigortype` gemとサードパーティ拡張の境界をどう語るかを形作る:
+Rigorは[Mozilla Public License Version 2.0](https://github.com/rigortype/rigor/blob/master/LICENSE)（MPL-2.0）の下でライセンスされている。MPLの語彙（[§1](https://github.com/rigortype/rigor/blob/master/LICENSE)、Definitions）は、このADRが著作権、コード由来、そしてバンドル`rigortype` gemとサードパーティ拡張の境界をどう語るかを形作る:
 
 - **Covered Software**（§1.4）は`rigortype` gemである — 上表で「スコープ内」として列挙されたすべてのパス（`lib/rigor/`、`plugins/`、`examples/`、`ext/`、`exe/`、`sig/`、gemspec）に加え、それらに対する**Modifications**（§1.10）。
 - **Contributor**（§1.1）はCovered Softwareを作成、貢献、または所有する者。各Contributorは§2.1の権利を付与し、§2.5の表明を行う（その貢献は彼ら自身のオリジナル作品である、または付与されるライセンスを認める十分な権利を持つ）。

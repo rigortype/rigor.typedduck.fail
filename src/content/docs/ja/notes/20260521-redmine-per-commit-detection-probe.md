@@ -3,8 +3,8 @@ title: "Redmineコミット単位の検出プローブ — Rigorは本物のバ�
 description: "rigortype/rigor docs/notes/20260521-redmine-per-commit-detection-probe.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260521-redmine-per-commit-detection-probe.md"
 sourcePath: "docs/notes/20260521-redmine-per-commit-detection-probe.md"
-sourceSha: "e09b5a8ceb1dc4a6459f006d9df18d743c2adfae6c36461f0214d2be1ab3db5c"
-sourceCommit: "203008e9741e8ffd61448e32cf9b89c19f1339da"
+sourceSha: "281f9a09a96b9aa090fb7c03142059922d6de3dc4be3273a338e4991530530b2"
+sourceCommit: "d19c9306f46b59d84bde8ac1a5a43f54be23c023"
 translationStatus: "translated"
 sidebar:
   order: 20266521

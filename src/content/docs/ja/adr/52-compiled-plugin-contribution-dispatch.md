@@ -70,7 +70,7 @@ Singleton型付けする）とオプションB（ASTをキーとするゲート�
 （静かに一度も呼ばれないというのはサードパーティ作者にとって最悪の失敗モードである）
 — 各レガシーイディオムをそのWD2の後継へ対応づけるCHANGELOGの移行ノートを指し示す。
 ADR-2/ADR-37のステータス行、プラグイン作者スキル、internal-spec、各READMEを一掃した。
-**[ADR-34](34-toplevel-unresolved-self-call-default.md)の未解決の問いを部分的に置換する**: ADR-34はRake/`bin/*`の修正が使用するトップレベルDSL登録メカニズムとして、依然として`flow_contribution_for`を挙げていた。
+**[ADR-34](../34-toplevel-unresolved-self-call-default/)の未解決の問いを部分的に置換する**: ADR-34はRake/`bin/*`の修正が使用するトップレベルDSL登録メカニズムとして、依然として`flow_contribution_for`を挙げていた。
 **スライス6（単一のノードルールウォーク）を2026-06-11に実装**: エンジン所有の
 `Plugin::NodeRuleWalk`がファイルごとに1回の`each_with_ancestors`パスを行い、一致
 するすべての`(plugin, rule)`へディスパッチする — プラグインごとの`node_file_context`

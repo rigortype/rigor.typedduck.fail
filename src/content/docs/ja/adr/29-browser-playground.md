@@ -3,8 +3,8 @@ title: "ADR-29 — ブラウザプレイグラウンド"
 description: "rigortype/rigor docs/adr/29-browser-playground.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/29-browser-playground.md"
 sourcePath: "docs/adr/29-browser-playground.md"
-sourceSha: "b7bb88ba4bc9a041774fa07edcb22e5020fd7b5f783ee4acaf365a787f1e2a25"
-sourceCommit: "ca611a0fa195c049e8e56b0aa4a78145864c4d54"
+sourceSha: "849ecc5ee765c508a82744e6e4d93524dfeed45b794d0fc8f173b91536c31b5b"
+sourceCommit: "d19c9306f46b59d84bde8ac1a5a43f54be23c023"
 translationStatus: "translated"
 sidebar:
   order: 4029

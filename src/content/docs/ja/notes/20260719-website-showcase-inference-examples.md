@@ -3,8 +3,8 @@ title: "Webサイトショーケース — 「これに型が付くの？！」�
 description: "rigortype/rigor docs/notes/20260719-website-showcase-inference-examples.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260719-website-showcase-inference-examples.md"
 sourcePath: "docs/notes/20260719-website-showcase-inference-examples.md"
-sourceSha: "27b72eb60bc73df4c03f3c9dcf1af6baeec46e0d2c737e1704e395f560e8e872"
-sourceCommit: "d88effcae8b2998d1f4f40432e6d4f20ce17946e"
+sourceSha: "c4f422f12b5931dbdce82bad7f71a7c74e4faad75809f3dcd7200522d5ecc381"
+sourceCommit: "d19c9306f46b59d84bde8ac1a5a43f54be23c023"
 translationStatus: "translated"
 sidebar:
   order: 20266719
@@ -359,7 +359,7 @@ Railsのクラスタ（routes + i18n + pundit + AR + factorybotをまとめて�
 
 ## すぐに使えるサイト素材
 
-- **Playground** —— [apps/rigor-playground/frontend/index.html:609](../../apps/rigor-playground/frontend/index.html)は、nilレシーバー、インラインRBSのユニオン不一致、挨拶の畳み込みをカバーする15行のサンプルで起動する;rigor.typedduck.fail/playground/でライブ。埋め込もう;`rigor trace`のターミナルアニメーション（[manual/05](../../manual/05-inspecting-types/)）は良いasciinema/GIFの相棒になる。
+- **Playground** —— [apps/rigor-playground/frontend/index.html:609](https://github.com/rigortype/rigor/blob/master/apps/rigor-playground/frontend/index.html)は、nilレシーバー、インラインRBSのユニオン不一致、挨拶の畳み込みをカバーする15行のサンプルで起動する;rigor.typedduck.fail/playground/でライブ。埋め込もう;`rigor trace`のターミナルアニメーション（[manual/05](../../manual/05-inspecting-types/)）は良いasciinema/GIFの相棒になる。
 - **[docs/types.md:19](../../types/)** —— 7行の「carriers at a glance」ブロックは、「Rigorの何が違うのか」を示す単一の表として最良だ。
 - **[docs/handbook/12-lightweight-hkt.md](../../handbook/12-lightweight-hkt/)** —— `JSON.parse`が精密な再帰的直和型（sum type）として型付けされる;技術力を誇示する例。
 - **信頼性の数字**（[docs/CHANGELOG-0.1.x.md:325](../../changelog-0.1.x/)）—— Mastodon 789 → 6診断（−99.2%）、Redmine 163 → 79、GitLab FOSS ~670 → ~140。公開前にv0.3.0に対して再検証すること（リグレッションスイープのノートに手法がある）。

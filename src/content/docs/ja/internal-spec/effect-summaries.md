@@ -66,7 +66,7 @@ sidebar:
 
 `view:`キーは意図的に`MethodKey`の形状を**持ちません** ── テンプレートにはオーナーとなるクラスもセレクタもなく、それを表記するといかなる呼び出しサイトも名指せないメソッドをスナップショットに配置してしまうからです。スキャナは`def`ごとに作成するのではなくファイル本体全体をその1つの単位として受け取り（`Scanner#scan_template_unit`）、単位の暗黙的なself呼び出しをプラグインが宣言した`self_type:`に対して解決します; `Runner#effect_sources`はキーをユーザーが書いたテンプレートファイルへ逆追跡します。
 
-`MethodKey.split`を使ってそれを判定することはできません（#393で痛感されました）: フォーマットセグメントがキーにドットを与えるため、`MethodKey.owner("view:users/show.html")`は`"view:users/show"` ── いかなる実行も生成したことのないクラス名 ── と答えてしまいます。キーを**エンベロープを保持するオーナー**ごとにグループ化する処理は、代わりに`MethodKey.envelope_owner`に問い合わせます。これはテンプレート単位に対して単位キー自身を返すため、`view:`キーはそれ自体が`effects.envelopes:`の対象となります。`match:`エントリーは`Runner#effect_sources`がすでに記録したファイルを通じてそれを選択し、`EffectEnvelopePass`は所見を`.rigor.yml`ではなくそのテンプレートに配置します（ビューには`EnvelopeCheck::Positions`が見つけるための`def`がありません）。`namespace:`エントリーがそれを選択することは決してなく、これは正しい動作です ── ビューは定数名前空間内にないからです。この継ぎ目は[`macro-substrate.md`](macro-substrate/) § テンプレート単位で規定されており、キャッシュの同一性や、テンプレート単位が`--incremental`の依存対象に参加するのではなく毎回の実行で再解析されるという境界を含みます。
+`MethodKey.split`を使ってそれを判定することはできません（#393で痛感されました）: フォーマットセグメントがキーにドットを与えるため、`MethodKey.owner("view:users/show.html")`は`"view:users/show"` ── いかなる実行も生成したことのないクラス名 ── と答えてしまいます。キーを**エンベロープを保持するオーナー**ごとにグループ化する処理は、代わりに`MethodKey.envelope_owner`に問い合わせます。これはテンプレート単位に対して単位キー自身を返すため、`view:`キーはそれ自体が`effects.envelopes:`の対象となります。`match:`エントリーは`Runner#effect_sources`がすでに記録したファイルを通じてそれを選択し、`EffectEnvelopePass`は所見を`.rigor.yml`ではなくそのテンプレートに配置します（ビューには`EnvelopeCheck::Positions`が見つけるための`def`がありません）。`namespace:`エントリーがそれを選択することは決してなく、これは正しい動作です ── ビューは定数名前空間内にないからです。この継ぎ目は[`macro-substrate.md`](../macro-substrate/) § テンプレート単位で規定されており、キャッシュの同一性や、テンプレート単位が`--incremental`の依存対象に参加するのではなく毎回の実行で再解析されるという境界を含みます。
 
 ## 単位のスキャンが記録するもの
 

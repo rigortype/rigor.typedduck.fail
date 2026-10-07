@@ -3,8 +3,8 @@ title: "CIセットアップテンプレート"
 description: "rigortype/rigor docs/manual/ci-templates/README.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/ci-templates/README.md"
 sourcePath: "docs/manual/ci-templates/README.md"
-sourceSha: "bf2eea8fdf7b06d962e586f5f24b5ec5ec4bde8e0bbe2c564ad9a2ea197675fb"
-sourceCommit: "2d0ffe6f38d01cfd850527c57987b27487b414d4"
+sourceSha: "423e8c10f67dfc3e86674a2a254d3f7e5bdcb2278b926ae604a2c9d508d8958e"
+sourceCommit: "d19c9306f46b59d84bde8ac1a5a43f54be23c023"
 translationStatus: "translated"
 sidebar:
   order: 9000
@@ -17,10 +17,10 @@ sidebar:
 
 | ファイル | コピー先 | 役割 |
 | --- | --- | --- |
-| [`github-actions-annotations.yml`](github-actions-annotations.yml) | `.github/workflows/rigor.yml` | **デフォルト**。ワークフローコマンド → インラインのPRアノテーション。アップロード手順も権限も不要で、あらゆるリポジトリで動く。 |
-| [`github-actions-sarif.yml`](github-actions-sarif.yml) | `.github/workflows/rigor.yml` | SARIF 2.1.0 → GitHub code scanning（セキュリティタブ + PRアラート）。code scanningが必要（公開リポジトリ、またはGitHub Advanced Securityを備えた非公開リポジトリ）。 |
-| [`github-actions-reviewdog.yml`](github-actions-reviewdog.yml) | `.github/workflows/rigor.yml` | reviewdog → インラインのPR**レビューコメント**。`pull-requests: write`が必要。 |
-| [`gitlab-ci.yml`](gitlab-ci.yml) | `.gitlab-ci.yml`（または`include:`する） | GitLab Code Qualityレポート → マージリクエストウィジェット。 |
+| [`github-actions-annotations.yml`](https://github.com/rigortype/rigor/blob/master/docs/manual/ci-templates/github-actions-annotations.yml) | `.github/workflows/rigor.yml` | **デフォルト**。ワークフローコマンド → インラインのPRアノテーション。アップロード手順も権限も不要で、あらゆるリポジトリで動く。 |
+| [`github-actions-sarif.yml`](https://github.com/rigortype/rigor/blob/master/docs/manual/ci-templates/github-actions-sarif.yml) | `.github/workflows/rigor.yml` | SARIF 2.1.0 → GitHub code scanning（セキュリティタブ + PRアラート）。code scanningが必要（公開リポジトリ、またはGitHub Advanced Securityを備えた非公開リポジトリ）。 |
+| [`github-actions-reviewdog.yml`](https://github.com/rigortype/rigor/blob/master/docs/manual/ci-templates/github-actions-reviewdog.yml) | `.github/workflows/rigor.yml` | reviewdog → インラインのPR**レビューコメント**。`pull-requests: write`が必要。 |
+| [`gitlab-ci.yml`](https://github.com/rigortype/rigor/blob/master/docs/manual/ci-templates/gitlab-ci.yml) | `.gitlab-ci.yml`（または`include:`する） | GitLab Code Qualityレポート → マージリクエストウィジェット。 |
 
 GitHubテンプレートは**1つ**だけ選ぶ。**デフォルトはアノテーション**。セットアップ不要であらゆるリポジトリで動く唯一の選択肢だ。code scanningが利用でき（公開リポジトリ、またはGitHub Advanced Securityを備えた非公開リポジトリ）セキュリティタブが欲しい場合はSARIFを、スレッド化されたレビューコメントが欲しい場合はreviewdogを使う（reviewdogはGitLab、Gerrit、Bitbucket、Giteaに対しても同じように動く。[`rigor-ci-setup`](https://github.com/rigortype/rigor/blob/master/skills/rigor-ci-setup/SKILL.md)スキルを参照）。いずれもRigorの実行方法は同じで、出力フォーマットと公開手順だけが異なる。
 

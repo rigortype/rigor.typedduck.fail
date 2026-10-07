@@ -3,8 +3,8 @@ title: "概要"
 description: "rigortype/rigor docs/type-specification/overview.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/type-specification/overview.md"
 sourcePath: "docs/type-specification/overview.md"
-sourceSha: "401b167198f691d3ec38f9aeaa91437555647d4c1594e07ad5f70b8267eebeb3"
-sourceCommit: "42d6e031257466de187cc9640b4896300473f9bb"
+sourceSha: "5be24afc6fcfac9d86064f959aac44bae316d6cd1af6d7c59aba50cc9f2fc3f5"
+sourceCommit: "d19c9306f46b59d84bde8ac1a5a43f54be23c023"
 sourceDate: "2026-09-26T08:41:18+09:00"
 translationStatus: "translated"
 sidebar:
@@ -92,7 +92,7 @@ RigorはPHPStan、TypeScript、Pythonのtyping仕様からアイデアを借り�
 
 > **執筆時点で部分的に実装済み（[ADR-112](../../adr/112-extrbs-comment-channel/) WD5）**。上記の比較は`sig/`宣言とインラインの`@rbs` / `#:`宣言をカバーします（[#1075](https://github.com/rigortype/rigor/issues/1075)）。`@rbs` / `#:`と`@extrbs`の間の同じルールは`@extrbs`リーダーを待ちます（[#1073](https://github.com/rigortype/rigor/issues/1073)）。`sig/`のみが宣言するメンバー上のリファインメントは、まだ自身の宣言された型と比較されません（[rbs-extended.md](../rbs-extended/)）。
 
-アノテーションはそれが書かれたメンバーのみをバインドし、そのメンバーのみを拘束します。アノテーション付きファイルの未アノテーションメンバーは、アノテーションが一切ないファイルとまったく同じように型付けされなければなりません（MUST）: 1つのメソッドに対するアノテーションが、どちらの方向にも兄弟メソッドの型付けを変更してはなりません（MUST NOT）。著者が書かなかった型スロットは契約ではないため、rbs-inlineリーダーがそのプレースホルダーを提供する場合 ── 未アノテーションの`def`に対する戻り値型、素の`attr_reader`に対する属性型 ── Rigorはプレースホルダーを採用するのではなく実装からその型を推論します。メンバーは宣言されたままになります: クラスはその完全なメソッドサーフェスを維持し、`new`は未アノテーションの`initialize`のアリティ（arity）を維持し、クラスへの参照は解決され続けます。これは意図的に上流のrbs-inline自身のオプトアウト動作とは異なっています（上流は未アノテーションのコードに対してシグネチャを生成します）;上記の条項は、アノテーションを存在するときは常に型のソースとするものであり、周囲のコードの型なしシャドウにするものではありません。[rbs-extended.md](rbs-extended.md)の`%a{rigor:v1:inferred-return}`は宣言がそう述べるための手段です。
+アノテーションはそれが書かれたメンバーのみをバインドし、そのメンバーのみを拘束します。アノテーション付きファイルの未アノテーションメンバーは、アノテーションが一切ないファイルとまったく同じように型付けされなければなりません（MUST）: 1つのメソッドに対するアノテーションが、どちらの方向にも兄弟メソッドの型付けを変更してはなりません（MUST NOT）。著者が書かなかった型スロットは契約ではないため、rbs-inlineリーダーがそのプレースホルダーを提供する場合 ── 未アノテーションの`def`に対する戻り値型、素の`attr_reader`に対する属性型 ── Rigorはプレースホルダーを採用するのではなく実装からその型を推論します。メンバーは宣言されたままになります: クラスはその完全なメソッドサーフェスを維持し、`new`は未アノテーションの`initialize`のアリティ（arity）を維持し、クラスへの参照は解決され続けます。これは意図的に上流のrbs-inline自身のオプトアウト動作とは異なっています（上流は未アノテーションのコードに対してシグネチャを生成します）;上記の条項は、アノテーションを存在するときは常に型のソースとするものであり、周囲のコードの型なしシャドウにするものではありません。[rbs-extended.md](../rbs-extended/)の`%a{rigor:v1:inferred-return}`は宣言がそう述べるための手段です。
 
 完全な型定義の置き場としては、独立した`.rbs`ファイルや生成されたスタブが引き続き推奨されます。それでもインライン注釈は存在すれば実在の契約（contract）であり、単なるヒントではありません。実装側のチェックは契約の出所に依存しません。`#: void`で書かれた戻り値型、`# @rbs`で書かれたメソッド型、rbs-inlineスタイルで書かれたパラメータ型、生成されたスタブ、外部`.rbs`宣言は、いずれも同じように実装を制約します。
 

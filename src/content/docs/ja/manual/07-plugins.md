@@ -38,7 +38,7 @@ plugins:
 
 Rigorは[`plugins/`](https://github.com/rigortype/rigor/blob/master/plugins/README.md)配下にプロダクションプラグインのカタログを同梱しています。リリース間でセットは増えます（現在のリストと各プラグインのオプションはそのディレクトリを参照してください）。現在のファミリーは以下のとおりです:
 
-- **Rails**: `rigor-activerecord`、`rigor-actionpack`、`rigor-rails-routes`、`rigor-rails-i18n`、`rigor-actionmailer`、`rigor-activejob`、`rigor-activestorage`、`rigor-actioncable`。使いたいものを`plugins:`の下に列挙してください。Railsセットをグループとしてまとめて有効化する包括的なエントリーはありません（[ADR-96](../adr/96-plugin-target-gems/) WD3が1つ提案しています）。
+- **Rails**: `rigor-activerecord`、`rigor-actionpack`、`rigor-rails-routes`、`rigor-rails-i18n`、`rigor-actionmailer`、`rigor-activejob`、`rigor-activestorage`、`rigor-actioncable`。使いたいものを`plugins:`の下に列挙してください。Railsセットをグループとしてまとめて有効化する包括的なエントリーはありません（[ADR-96](../../adr/96-plugin-target-gems/) WD3が1つ提案しています）。
 - **Testing**: `rigor-rspec`、`rigor-rspec-rails`、`rigor-minitest`、`rigor-shoulda-matchers`、`rigor-factorybot`。
 - **dry-rb**: `rigor-dry-types`、`rigor-dry-schema`、`rigor-dry-struct`、`rigor-dry-validation`。
 - **FFI**: `rigor-ffi`およびサブプラグイン（`rigor-ffi-rzmq`、`rigor-rbnacl`、`rigor-sassc`、`rigor-ethon`）。プラグイン作者向けには、`rigor-ffi`はカスタムバインディング定義を認識するための`ffi_binding_recognizer`クラスDSLを`Rigor::Plugin::Base`上に提供します。

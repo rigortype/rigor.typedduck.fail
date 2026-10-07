@@ -3,8 +3,8 @@ title: "ADR-37 — プラグインインターフェース分離（狭い拡張�
 description: "rigortype/rigor docs/adr/37-plugin-interface-segregation.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/37-plugin-interface-segregation.md"
 sourcePath: "docs/adr/37-plugin-interface-segregation.md"
-sourceSha: "3b266cbfd1c3fcaa1c94e83f33cc5e7420788e391f26227dd882886722f4e52c"
-sourceCommit: "db7b23d42e9b47560438b67dfe16d53e03f70575"
+sourceSha: "bffeab0ee16f9c6eb4ccf3b7c657f9e0c89878d380c7f96398c93ed996ffb9d4"
+sourceCommit: "d19c9306f46b59d84bde8ac1a5a43f54be23c023"
 sourceDate: "2026-09-10T04:27:46+09:00"
 translationStatus: "translated"
 sidebar:

@@ -3,8 +3,8 @@ title: "ADR-9 — クロスプラグインAPI"
 description: "rigortype/rigor docs/adr/9-cross-plugin-api.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/9-cross-plugin-api.md"
 sourcePath: "docs/adr/9-cross-plugin-api.md"
-sourceSha: "4c54d9d0e3aa5c07f713a98eb1b70fc6ac3a527663b2de47839dd3a0d800d2e4"
-sourceCommit: "a5d648b126d5ed7b1e04a16a87927bca7883e069"
+sourceSha: "34d783aa5d49c1443432b2be4a91d4e645c650d3cc42cb800df72f6cf830ebf0"
+sourceCommit: "d19c9306f46b59d84bde8ac1a5a43f54be23c023"
 translationStatus: "translated"
 sidebar:
   order: 4009

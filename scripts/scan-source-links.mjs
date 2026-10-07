@@ -1,38 +1,48 @@
 #!/usr/bin/env node
-// Guard against repo-root link breakage: a Markdown link that walks up out of
-// the docs tree into the upstream monorepo's repo-root directories — plugin and
-// example *sources* (`../../plugins/rigor-sorbet/`, `../../examples/rigor-web/`),
-// or `lib/`, `sig/`, `spec/`, `references/`, `data/`, … Those paths have NO
-// on-site route, so every such link 404s. The published plugin *reference* pages
-// live at `/manual/plugins/<slug>/`; everything else belongs to the upstream
-// GitHub repo.
+// Guard + fixer for the content trees this repo OWNS: the JA translations under
+// `src/content/docs/ja/**` and the English overrides under `translations/en/**`
+// (the sync never rewrites either; upstream `sourceLanguage: ja` pages are
+// regenerated, so they are skipped — the sync rewriter owns those).
 //
-// The sync rewriter (scripts/sync-rigor-docs.mjs) already produces correct links
-// for the generated EN tree and the ja-native pages it regenerates. This script
-// guards the hand-authored content the repo OWNS and the sync never rewrites:
-// the JA translations under `src/content/docs/ja/**` and the English overrides
-// under `translations/en/**`.
+// It checks that every rendered relative Markdown link resolves to a live
+// on-site route, and that repo-root references point into the upstream GitHub
+// repo — the same families the sync rewriter (`scripts/sync-rigor-docs.mjs`)
+// handles for the generated EN tree. Broken-link families this fixes (each
+// surfaced through Search Console 404 reports):
 //
-// Detection is ROUTE-aware (unlike the docs-relative sync rewriter, which must
-// only ever run on upstream source — see the note in rewriteMarkdownLinks). We
-// resolve each relative link against the page's route, strip the locale prefix,
-// and flag it only when its first segment is a repo-root source dir
-// (REPO_SOURCE_DIRS) — so `manual/…`, `adr/…`, `handbook/…` cross-links, and
-// malformed `../docs/…` refs, are never touched, but `plugins/`, `lib/`, `sig/`,
-// `spec/`, … are.
+//   - repo-root source/asset escapes: `../../lib/…`, `../../sig/…`, a bare
+//     `lib/…` that lost its `../`, `../../.github/…`, `../../tool/…`, repo-root
+//     files (`LICENSE`, `Makefile`) → the on-site manual page for a published
+//     plugin, else the upstream GitHub blob/tree.
+//   - docs-rooted re-entry: `../docs/…` / a bare `docs/…` re-enters the
+//     upstream docs root through its `docs/` name — collapsed to the equivalent
+//     on-site route.
+//   - upstream-style relative links whose on-site depth differs (a page's URL
+//     is one directory deeper than its file path): sibling links written
+//     without `../`, `../section/…` that needs `../../section/…`, bare
+//     directory links. The link is resolved the way it resolves in the
+//     upstream checkout and re-emitted as a site-relative route.
+//   - dot-bearing targets: the build github-slugs URL segments (see
+//     scripts/site-slug.mjs), so `20260604-elixir-v1.20-…` is re-emitted at its
+//     served route `20260604-elixir-v120-…`.
+//
+// Fenced code and inline code spans are ignored (they render as code, not
+// links). Links that resolve to nothing upstream either (a renamed ADR, the
+// `roadmap/` references, the IPSJ local copies) are left for the redirect map
+// in `public/_redirects` / an upstream fix.
 //
 //   node scripts/scan-source-links.mjs                       # scan whole tree
 //   node scripts/scan-source-links.mjs --fix <glob> [glob…]  # rewrite in place
 //
-// With no globs it scans `src/content/docs/**/*.md`. `--fix` retargets a bare
-// `plugins/<slug>` with a published reference page to that on-site page and
-// sends every other escape to the upstream GitHub repo (mirroring githubSourceUrl
-// in sync-rigor-docs.mjs). Run scan-only after a build; baseline is zero.
+// With no globs it scans `src/content/docs/**/*.md`. `--fix` rewrites only the
+// owned trees (ja/**, translations/en/**); generated EN files are reported but
+// left to the sync. Expected baseline after a fix run: zero.
 
-import { readFileSync, writeFileSync } from 'node:fs';
+import { readFileSync, writeFileSync, existsSync, statSync } from 'node:fs';
 import { glob, readdir } from 'node:fs/promises';
 import path from 'node:path';
 import { REPO_SOURCE_DIRS } from './repo-source-dirs.mjs';
+import { siteSlugRoute } from './site-slug.mjs';
 
 const GH = 'https://github.com/rigortype/rigor';
 const LINK_RE = /\]\((?![a-z][a-z+.-]*:|\/|#)([^)\s]+?)(#[^)]+)?\)/gi;
@@ -49,11 +59,25 @@ const fix = argv.includes('--fix');
 const globs = argv.filter((a) => a !== '--fix');
 const patterns = globs.length ? globs : ['src/content/docs/**/*.md'];
 
+const projectRoot = '.';
 const contentRoot = 'src/content/docs';
+const upstreamRoot = 'upstream/rigor';
+const upstreamDocs = path.join(upstreamRoot, 'docs');
+
 const manualPluginSlugs = {
   '': await readManualPluginSlugs(path.join(contentRoot, 'manual', 'plugins')),
   ja: await readManualPluginSlugs(path.join(contentRoot, 'ja', 'manual', 'plugins')),
 };
+
+// URL-route → file index per locale, built with the build's own slugging, so
+// "does this link resolve?" can be answered in URL space (`v120` links to the
+// dotted file resolve; dotted links do not).
+const urlRoutes = { '': new Set(), ja: new Set() };
+for (const locale of ['', 'ja']) {
+  const base = locale ? path.join(contentRoot, locale) : contentRoot;
+  await indexRoutes(base, locale);
+}
+
 const files = [];
 for (const g of patterns) {
   for await (const f of glob(g)) files.push(f);
@@ -62,94 +86,236 @@ files.sort();
 
 let offending = 0;
 let fixed = 0;
+let skipped = 0;
 for (const file of files) {
   const before = readFileSync(file, 'utf8');
-  const route = routeForFile(file);
-  if (!route) continue;
+  const ctx = contextForFile(file);
+  if (!ctx) continue;
+  // Upstream-JA pages are regenerated by the sync; their links are the sync
+  // rewriter's job, and hand edits would be overwritten.
+  if (/^sourceLanguage:\s*["']?ja/m.test(before.slice(0, 2000))) {
+    skipped += 1;
+    continue;
+  }
+  const owned = file.startsWith('src/content/docs/ja/') || file.startsWith('translations/en/');
 
+  let lineNo = 0;
+  let fence = null;
+  let inFrontmatter = before.startsWith('---\n');
   let changed = false;
-  let after = before.replace(LINK_RE, (match, target, hash = '') => {
-    const verdict = classify(route, target);
-    if (!verdict) return match;
-    offending += 1;
-    const lineNo = before.slice(0, before.indexOf(match)).split('\n').length;
-    console.log(`${file}:${lineNo}  ${target}${fix ? `  ->  ${verdict.replacement}` : ''}`);
-    if (!fix) return match;
-    changed = true;
-    fixed += 1;
-    return `](${verdict.replacement}${hash})`;
+  const lines = before.split('\n').map((line) => {
+    lineNo += 1;
+    if (inFrontmatter) {
+      if (lineNo > 1 && /^---\s*$/.test(line)) inFrontmatter = false;
+      return line;
+    }
+    const fenceMatch = /^ {0,3}(`{3,}|~{3,})/.exec(line);
+    if (fenceMatch) {
+      if (fence === null) fence = fenceMatch[1];
+      else if (fenceMatch[1][0] === fence[0] && fenceMatch[1].length >= fence.length) fence = null;
+      return line;
+    }
+    if (fence !== null) return line;
+    const next = transformOutsideCode(line, (segment) => {
+      let out = segment.replace(LINK_RE, (match, target, hash = '') => {
+        const verdict = classify(ctx, target);
+        if (!verdict) return match;
+        offending += 1;
+        console.log(`${file}:${lineNo}  ${target}${fix ? `  ->  ${verdict.replacement}` : ''}`);
+        if (!fix || !owned) return match;
+        if (verdict.replacement === target) return match;
+        changed = true;
+        fixed += 1;
+        return `](${verdict.replacement}${hash})`;
+      });
+      if (fix && owned) {
+        out = out.replace(ABS_PLUGIN_RE, (match, slug, hash = '') => {
+          const replacement = manualLinkFor(ctx, slug);
+          if (!replacement) return match;
+          changed = true;
+          fixed += 1;
+          console.log(`${file}:${lineNo}  plugins/${slug} (GitHub) -> ${replacement}`);
+          return `](${replacement}${hash})`;
+        });
+      }
+      return out;
+    });
+    return next;
   });
 
-  // Parity cleanup (fix-only): retarget bare plugin-source GitHub URLs that have
-  // an on-site manual reference page. Not a 404, so it is never reported as a
-  // scan failure — only rewritten under --fix.
-  if (fix) {
-    after = after.replace(ABS_PLUGIN_RE, (match, slug, hash = '') => {
-      const replacement = manualLinkFor(route, slug);
-      if (!replacement) return match;
-      changed = true;
-      fixed += 1;
-      console.log(`${file}  plugins/${slug} (GitHub) -> ${replacement}`);
-      return `](${replacement}${hash})`;
-    });
-  }
-
-  if (fix && changed) writeFileSync(file, after);
+  if (fix && changed) writeFileSync(file, lines.join('\n'));
 }
 
 if (fix) {
-  console.log(`\n${fixed} link(s) rewritten across ${files.length} file(s).`);
+  console.log(`\n${fixed} link(s) rewritten across ${files.length} file(s)${skipped ? `; ${skipped} upstream-JA page(s) skipped` : ''}.`);
   process.exit(0);
 }
 console.log(
   offending === 0
-    ? `\nOK: no repo-root source escapes in ${files.length} file(s).`
-    : `\n${offending} broken repo-root link(s) (run with --fix or correct by hand).`,
+    ? `\nOK: no broken relative links in ${files.length} file(s)${skipped ? ` (${skipped} upstream-JA page(s) skipped)` : ''}.`
+    : `\n${offending} broken relative link(s) (run with --fix or correct by hand).`,
 );
 process.exit(offending === 0 ? 0 : 1);
 
-// Resolve `target` against the page route; return null when the link is fine, or
-// { replacement } when it escapes to a repo-root path with no on-site route.
-function classify({ routeStr, locale }, rawTarget) {
+// ---------------------------------------------------------------------------
+// Classification
+
+// Resolve `target` against the page's upstream position — the way it resolves
+// in the upstream checkout (file at `docs/<dirname>/page.md`), clamped at the
+// repo root like a URL. Returns a repo-root-relative path (`docs/…` when the
+// link stays in docs, another tree when it escapes).
+function resolveUpstream(ctx, target) {
+  const stack = ['docs', ...ctx.upstreamDir.split('/').filter((segment) => segment && segment !== '.')];
+  for (const segment of target.replace(/\\/g, '/').split('/')) {
+    if (segment === '' || segment === '.') continue;
+    if (segment === '..') {
+      if (stack.length > 0) stack.pop();
+      continue;
+    }
+    stack.push(segment);
+  }
+  return stack.join('/');
+}
+
+// Does this URL route serve a page in `locale`'s tree? (URL-space, slugged.)
+function routeServes(ctx, route) {
+  return urlRoutes[ctx.locale].has(route);
+}
+
+// On-site relative link from the page's URL route to a locale-relative route.
+function onSiteLink(ctx, targetLocaleRelative) {
+  const targetRoute = siteSlugRoute(ctx.locale ? `${ctx.locale}/${targetLocaleRelative}` : targetLocaleRelative);
+  const relative = path.posix.relative(ctx.urlRoute, targetRoute);
+  return `${relative || '.'}/`;
+}
+
+function manualLinkFor(ctx, slug) {
+  const targetRoute = siteSlugRoute(ctx.locale ? `${ctx.locale}/manual/plugins/${slug}` : `manual/plugins/${slug}`);
+  const relative = path.posix.relative(ctx.urlRoute, targetRoute);
+  return `${relative}/`;
+}
+
+// A repo-root path with no on-site route → the published manual page when the
+// bare `plugins/<slug>` has one, else the upstream GitHub blob/tree.
+function repoEscapeLink(ctx, repoRelative, authoredDir = false) {
+  const trimmed = repoRelative.replace(/\/$/, '');
+  const barePlugin = /^plugins\/([^/.]+)$/.exec(trimmed);
+  if (barePlugin && manualPluginSlugs[ctx.locale]?.has(barePlugin[1])) {
+    return manualLinkFor(ctx, barePlugin[1]);
+  }
+  const dirRelative = trimmed.replace(/\/README\.md$/i, '');
+  const dirPlugin = /^plugins\/([^/.]+)$/.exec(dirRelative);
+  if (dirPlugin && manualPluginSlugs[ctx.locale]?.has(dirPlugin[1])) {
+    return manualLinkFor(ctx, dirPlugin[1]);
+  }
+  const abs = path.join(upstreamRoot, dirRelative);
+  const isDir = authoredDir || (existsSync(abs) && statSync(abs).isDirectory());
+  return `${GH}/${isDir ? 'tree' : 'blob'}/master/${dirRelative}${isDir ? '/' : ''}`;
+}
+
+// Does a bare (no-leading-dot) target name a repo-root tree or file? Used for
+// links that dropped their `../`s (`lib/rigor/x.rb`, `.github/workflows/ci.yml`,
+// `Makefile` from a notes page). `docs/…` is handled by the docs-rooted path.
+function bareRepoRootTarget(target) {
+  const first = target.split('/')[0];
+  if (!first || first === 'docs') return false;
+  if (REPO_SOURCE_DIRS.has(first)) return true;
+  if (first.startsWith('.') && first !== '.' && first !== '..') return true;
+  return existsSync(path.join(upstreamRoot, first)) && !existsSync(path.join(upstreamDocs, first));
+}
+
+// Map a docs-root-relative path onto the site: the page route when it names a
+// page, the upstream GitHub blob for a real non-page file, a repo escape when
+// the malformed path names one, else null.
+function classifyDocsRelative(ctx, docsRelativeRaw, resolvedStem, authoredDir) {
+  const docsRelative = docsRelativeRaw.replace(/\.md$/i, '').replace(/\/$/, '');
+  if (!docsRelative) return null;
+
+  // (a) a page → its on-site route.
+  if (routeServes(ctx, siteSlugRoute(ctx.locale ? `${ctx.locale}/${docsRelative}` : docsRelative))) {
+    const replacement = onSiteLink(ctx, docsRelative);
+    return replacement === `${resolvedStem}/` ? null : { replacement };
+  }
+  // (b) a real non-page file in the upstream docs tree (the CI templates) →
+  // GitHub. `.md` files missing from the tree are translation gaps: skip.
+  const absDocsFile = path.join(upstreamDocs, docsRelativeRaw.replace(/\/$/, ''));
+  if (existsSync(absDocsFile) && statSync(absDocsFile).isFile()) {
+    return { replacement: `${GH}/blob/master/docs/${docsRelativeRaw.replace(/\/$/, '')}` };
+  }
+  // (c) malformed upstream link (`../plugins/…` resolving to `docs/plugins/…`)
+  // that actually names a repo-root path → treat as a repo escape.
+  const absRepo = path.join(upstreamRoot, docsRelativeRaw.replace(/\/$/, ''));
+  if (existsSync(absRepo)) {
+    return { replacement: repoEscapeLink(ctx, docsRelativeRaw.replace(/\/$/, '') + (authoredDir ? '/' : ''), authoredDir) };
+  }
+  return null;
+}
+
+// A rendered link → its replacement, or null when it already resolves (or
+// nothing maps it).
+function classify(ctx, rawTarget) {
   const target = rawTarget.replace(/\\/g, '/');
-  const resolved = path.posix.normalize(path.posix.join(routeStr, target));
-  if (resolved.startsWith('../')) return null; // over-escapes above the content root; leave as-is
-  // Strip the locale prefix so `ja/lib/x` and `lib/x` are treated alike.
-  const inLocaleRaw = locale && resolved.startsWith(`${locale}/`)
-    ? resolved.slice(locale.length + 1)
-    : resolved;
-  // `normalize` preserves a trailing slash; drop it for segment matching.
-  const inLocale = inLocaleRaw.replace(/\/$/, '');
-  if (!inLocale) return null;
+  if (target === '' || target === '.' || target === './') return null;
 
-  const firstSeg = inLocale.split('/')[0];
-  if (!REPO_SOURCE_DIRS.has(firstSeg)) return null; // a real on-site route, or a malformed ref we leave alone
-
-  const isDir = target.endsWith('/');
-  const rest = inLocale.length > firstSeg.length ? inLocale.slice(firstSeg.length + 1) : '';
-
-  // A bare `plugins/<slug>` directory with a published manual reference page →
-  // on-site page.
-  if (firstSeg === 'plugins' && /^[^/.]+$/.test(rest)) {
-    const replacement = manualLinkFor({ routeStr, locale }, rest);
-    if (replacement) return { replacement };
+  // 1. Already a live route? (Compare in URL space: a dotted link to a file the
+  // build serves dot-less is NOT fine.)
+  const resolved = path.posix.normalize(path.posix.join(ctx.urlRoute, target));
+  const resolvedStem = resolved.replace(/\.md$/i, '').replace(/\/$/, '');
+  if (
+    resolvedStem &&
+    !resolvedStem.startsWith('..') &&
+    siteSlugRoute(resolvedStem) === resolvedStem &&
+    routeServes(ctx, resolvedStem)
+  ) {
+    return null;
   }
 
-  // Everything else → upstream GitHub. Preserve the authored trailing slash to
-  // pick tree (directory) vs blob (file).
-  return { replacement: `${GH}/${isDir ? 'tree' : 'blob'}/master/${inLocale}${isDir ? '/' : ''}` };
+  const authoredDir = target.endsWith('/');
+
+  // Bare docs-rooted target (`docs/…`): the author wrote the repo path as-is;
+  // treat the rest as docs-root-relative.
+  const bareDocs = /^docs\/(.+)$/.exec(target);
+  if (bareDocs) {
+    const verdict = classifyDocsRelative(ctx, bareDocs[1], resolvedStem, authoredDir);
+    if (verdict) return verdict;
+  }
+
+  // Bare repo-root target (`lib/…`, `sig/…`, `.github/…`, `Makefile`, a bare
+  // `plugins/<slug>`): a repo path that lost its `../`s.
+  if (!target.startsWith('..') && bareRepoRootTarget(target)) {
+    return { replacement: repoEscapeLink(ctx, target + (authoredDir ? '/' : ''), authoredDir) };
+  }
+
+  // 2. Resolve upstream — the same way the file's own link resolves in the
+  // upstream checkout — and map the target onto the site.
+  const repoRelative = resolveUpstream(ctx, target);
+  if (!repoRelative) return null;
+
+  if (repoRelative === 'docs' || repoRelative.startsWith('docs/')) {
+    const docsRelativeRaw = repoRelative === 'docs' ? '' : repoRelative.slice('docs/'.length);
+    const verdict = classifyDocsRelative(ctx, docsRelativeRaw, resolvedStem, authoredDir);
+    if (verdict) return verdict;
+    return null;
+  }
+
+  // 3. Escapes docs/: repo-root source trees and files.
+  if (repoRelative.startsWith('..')) return null; // over-escapes the repo root; leave alone
+  const firstSegment = repoRelative.split('/')[0];
+  const trimmed = repoRelative.replace(/\/$/, '');
+  const existsAtRepo = existsSync(path.join(upstreamRoot, trimmed));
+  if (REPO_SOURCE_DIRS.has(firstSegment) || existsAtRepo) {
+    // Reconstruct the trailing-slash intent (normalize drops it).
+    const authored = `${trimmed}${authoredDir ? '/' : ''}`;
+    const replacement = repoEscapeLink(ctx, authored, authoredDir);
+    return { replacement };
+  }
+  return null;
 }
 
-// Relative on-site link from `routeStr` to the localized manual reference page
-// for `slug`, or null when that slug has no published reference page.
-function manualLinkFor({ routeStr, locale }, slug) {
-  const slugs = manualPluginSlugs[locale] ?? new Set();
-  if (!slugs.has(slug)) return null;
-  const targetRoute = locale ? `${locale}/manual/plugins/${slug}` : `manual/plugins/${slug}`;
-  return `${path.posix.relative(routeStr, targetRoute)}/`;
-}
+// ---------------------------------------------------------------------------
+// Helpers
 
-function routeForFile(file) {
+function contextForFile(file) {
   const posixPath = file.split(path.sep).join('/');
   let rel;
   if (posixPath.includes('src/content/docs/')) {
@@ -163,9 +329,60 @@ function routeForFile(file) {
   const segments = rel.replace(/\.md$/i, '').split('/');
   const last = segments.at(-1)?.toLowerCase();
   if (last === 'index' || last === 'readme') segments.pop();
-  const routeStr = segments.join('/');
   const locale = segments[0] === 'ja' ? 'ja' : '';
-  return { routeStr, locale };
+  const routeStr = segments.join('/');
+  const urlRoute = siteSlugRoute(routeStr);
+  // The upstream position: the file path minus the locale prefix.
+  const upstreamRel = rel.startsWith('ja/') ? rel.slice(3) : rel;
+  const upstreamDir = path.posix.dirname(upstreamRel.split(path.sep).join('/'));
+  return { locale, urlRoute, routeStr, upstreamDir };
+}
+
+async function indexRoutes(base, locale) {
+  let entries;
+  try {
+    entries = await readdir(base, { withFileTypes: true });
+  } catch {
+    return;
+  }
+  for (const entry of entries) {
+    if (entry.name.startsWith('.')) continue;
+    if (entry.name === 'chibirigor') continue;
+    const next = path.join(base, entry.name);
+    if (entry.isDirectory()) {
+      await indexRoutes(next, locale);
+    } else if (entry.name.endsWith('.md') || entry.name.endsWith('.mdx')) {
+      const rel = path.relative(locale ? path.join(contentRoot, locale) : contentRoot, next).split(path.sep).join('/');
+      const segments = rel.replace(/\.mdx?$/i, '').split('/');
+      if (/^(index|readme)$/i.test(segments.at(-1))) segments.pop();
+      urlRoutes[locale].add(siteSlugRoute(`${locale ? `${locale}/` : ''}${segments.join('/')}`));
+    }
+  }
+}
+
+// Apply `fn` to the parts of `line` that are not inside an inline code span.
+function transformOutsideCode(line, fn) {
+  let out = '';
+  let i = 0;
+  while (i < line.length) {
+    const backtick = line.indexOf('`', i);
+    if (backtick === -1) {
+      out += fn(line.slice(i));
+      break;
+    }
+    out += fn(line.slice(i, backtick));
+    let run = 0;
+    while (line[backtick + run] === '`') run += 1;
+    const closer = '`'.repeat(run);
+    const end = line.indexOf(closer, backtick + run);
+    if (end === -1) {
+      out += line.slice(backtick);
+      break;
+    }
+    out += line.slice(backtick, end + run);
+    i = end + run;
+  }
+  return out;
 }
 
 async function readManualPluginSlugs(dir) {

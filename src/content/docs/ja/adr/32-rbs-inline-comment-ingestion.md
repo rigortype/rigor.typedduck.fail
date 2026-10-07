@@ -185,7 +185,7 @@ rbs 4.0は`rbs` gemに組み込まれた`RBS::InlineParser`を出荷し、rbs 4.
 
 ### WD13 — メンバーごとに`sig/`宣言がインライン宣言に勝つ
 
-> **2026-09-26に実装された[ADR-112](112-extrbs-comment-channel.md) WD5（[#1075](https://github.com/rigortype/rigor/issues/1075)）により置き換え**。1つのメンバーの2つの宣言は、順位付けされるのではなく比較される: 整合的な宣言はより精密な側へとマージされ、矛盾は`.rbs`を保持したうえで`rbs.contradicting-signature`（エラー）として報告され、Rigorが順位付けできないペアのみが後述の`:info`行とともにインライン側をドロップする。以下のSteepの分析、メンバーごとのスコープ、および除外された2つの重複は引き続き有効である。
+> **2026-09-26に実装された[ADR-112](../112-extrbs-comment-channel/) WD5（[#1075](https://github.com/rigortype/rigor/issues/1075)）により置き換え**。1つのメンバーの2つの宣言は、順位付けされるのではなく比較される: 整合的な宣言はより精密な側へとマージされ、矛盾は`.rbs`を保持したうえで`rbs.contradicting-signature`（エラー）として報告され、Rigorが順位付けできないペアのみが後述の`:info`行とともにインライン側をドロップする。以下のSteepの分析、メンバーごとのスコープ、および除外された2つの重複は引き続き有効である。
 
 *2026-09-08、[#824](https://github.com/rigortype/rigor/issues/824)をクローズ。*
 
@@ -201,11 +201,11 @@ rbs 4.0は`rbs` gemに組み込まれた`RBS::InlineParser`を出荷し、rbs 4.
 - `MethodBuilder#build_instance`は両方のブランチを1つの`Methods`オブジェクトへと巡回し、1つの名前に2つの`originals`が存在すると直ちに`validate!`がraiseします（`rbs/lib/rbs/definition_builder/method_builder.rb:99-160`、`:35-42`）。`build_singleton`も対称的です（`:164-192`）。
 - Steepは順序付けなしに`sig/*.rbs`とインライン`.rb`を単一の`SignatureService`および単一の`RBS::Environment`に投入し（`steep/lib/steep/services/type_check_service.rb:301-309`、`services/signature_service.rb:302-325`）、raiseを`Diagnostic::Signature::DuplicatedMethodDefinition`として表面化させます（`steep/lib/steep/diagnostic/signature.rb:566-571`）。steep 2.1.0.devおよびrbs 4.1.0と照合して確認済みです;両ツリーにわたっていかなる優先順位ロジックを検索しても何も返らず、1つのクラスに対するインライン対`.rbs`のケースを固定する上流テストも存在しません。
 
-したがって、従うべきものは存在せず、SHOULDは選択をRigorに委ねています。Steepが行っていること ── それを報告してクラスのビルドを失敗させること ── は半分だけ採用可能です。報告する半分は維持します。縮退させる半分は採用しません: Rigorにおける等価物は、すべてに対してサイレントに`Dynamic[top]`と答えるクラスに対する単一の実行レベルの`:warning`であり、これは[ADR-5](5-robustness-principle.md)が最悪ケースの静的読み取りの下にランク付けする偽陰性のコストです（#824は17ファイルから44クラスと測定しました）。
+したがって、従うべきものは存在せず、SHOULDは選択をRigorに委ねています。Steepが行っていること ── それを報告してクラスのビルドを失敗させること ── は半分だけ採用可能です。報告する半分は維持します。縮退させる半分は採用しません: Rigorにおける等価物は、すべてに対してサイレントに`Dynamic[top]`と答えるクラスに対する単一の実行レベルの`:warning`であり、これは[ADR-5](../5-robustness-principle/)が最悪ケースの静的読み取りの下にランク付けする偽陰性のコストです（#824は17ファイルから44クラスと測定しました）。
 
 #### なぜ`sig/`が勝者なのか
 
-- それは**レビュー対象の成果物**です: レビュアーがdiffを取り、`rigor sig-gen --diff`が推論の対象とするファイルです（[ADR-14](14-rbs-sig-generation.md)）。インラインアノテーションは、それが位置するコードと同じコミットで編集されます; `.rbs`は契約の意図的な表明です。
+- それは**レビュー対象の成果物**です: レビュアーがdiffを取り、`rigor sig-gen --diff`が推論の対象とするファイルです（[ADR-14](../14-rbs-sig-generation/)）。インラインアノテーションは、それが位置するコードと同じコミットで編集されます; `.rbs`は契約の意図的な表明です。
 - 仕様はすでにスタンドアロンの`.rbs`ファイルを「完全な型定義のための推奨される場所」（`overview.md`）と呼んでおり、ファイルレベルの衝突隔離もすでに同じ方法で解決しています（WD6のトランザクション的なドロップ、およびissue #777のプロジェクト対バンドルルール）。
 - rbs自身がインライン側に譲歩する形式を与えています: `def x: ... | ...`というインラインメンバーは`originals`ではなく`overloads`の下に整理され、衝突する代わりに既存の宣言と合成されます（`method_builder.rb:256-264`）。その形状は意図的にそのままにされます ── 両方を持つための公認された方法であるため、身を引いてはなりません。
 

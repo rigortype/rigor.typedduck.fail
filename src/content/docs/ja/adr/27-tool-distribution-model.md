@@ -12,7 +12,7 @@ sidebar:
 
 ステータス: **Accepted、2026-05-22;部分実装**。
 
-エンドユーザーへのRigorの配布・インストール方法を記録する。中心的な原則 — **RigorをターゲットプロジェクトのGemfileに追加しない** — は批准済みであり、それが依拠する最新Ruby専用の立場（WD7）も同様。チャンネル推奨事項は以下のとおり：ランタイムバージョンマネージャー（`mise` / `asdf`）が最前線のパス、コピー＆ペーストできるスタンドアロンCIワークフローテンプレートがCIパス（Nixは代替であってヘッドラインではない）、コンテナイメージと自己完結型シングルバイナリが二次的・将来的なオプション。**ここまでに出荷:** Nix flakeの`packages` / `apps`出力、公開されたコンテナイメージ（`Dockerfile` + `.github/workflows/container.yml`）、`Gemfile`エントリーを非推奨にする機械可読インストールガイド（`docs/install.md`、v0.1.14）、そしてコピー＆ペーストできるスタンドアロンCIワークフローテンプレート——これは[ADR-51](51-ci-diagnostic-output-formats.md) WD6（`docs/manual/ci-templates/`＋ 同梱の`rigor-ci-setup`スキル）で着地した。**なお保留:**自己完結型シングルバイナリ。
+エンドユーザーへのRigorの配布・インストール方法を記録する。中心的な原則 — **RigorをターゲットプロジェクトのGemfileに追加しない** — は批准済みであり、それが依拠する最新Ruby専用の立場（WD7）も同様。チャンネル推奨事項は以下のとおり：ランタイムバージョンマネージャー（`mise` / `asdf`）が最前線のパス、コピー＆ペーストできるスタンドアロンCIワークフローテンプレートがCIパス（Nixは代替であってヘッドラインではない）、コンテナイメージと自己完結型シングルバイナリが二次的・将来的なオプション。**ここまでに出荷:** Nix flakeの`packages` / `apps`出力、公開されたコンテナイメージ（`Dockerfile` + `.github/workflows/container.yml`）、`Gemfile`エントリーを非推奨にする機械可読インストールガイド（`docs/install.md`、v0.1.14）、そしてコピー＆ペーストできるスタンドアロンCIワークフローテンプレート——これは[ADR-51](../51-ci-diagnostic-output-formats/) WD6（`docs/manual/ci-templates/`＋ 同梱の`rigor-ci-setup`スキル）で着地した。**なお保留:**自己完結型シングルバイナリ。
 
 ## コンテキスト
 

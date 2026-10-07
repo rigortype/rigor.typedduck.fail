@@ -2,13 +2,14 @@
 import { createHash } from 'node:crypto';
 import { execFile } from 'node:child_process';
 import { mkdir, readdir, readFile, rm, stat, writeFile } from 'node:fs/promises';
-import { existsSync } from 'node:fs';
+import { existsSync, statSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
 import { transform as normalizeJaTypography } from './normalize-ja-typography.mjs';
 import { escapeTablePipes } from './escape-table-pipes.mjs';
 import { REPO_SOURCE_DIRS } from './repo-source-dirs.mjs';
+import { siteSlugRoute } from './site-slug.mjs';
 
 const execFileAsync = promisify(execFile);
 
@@ -52,6 +53,9 @@ const sectionOrder = new Map([
 
 const docsRoot = await findDocsRoot();
 const docsRootName = path.basename(docsRoot);
+// Upstream repo root (`upstream/rigor`), used to recognize repo-root escapes
+// whose target is a real path (`.github/…`, `tool/…`, `Makefile`, `LICENSE`).
+const repoRoot = path.dirname(docsRoot);
 // Slugs of the published plugin reference pages (`docs/manual/plugins/<slug>.md`
 // → route `/manual/plugins/<slug>/`). Upstream prose links to a plugin's source
 // directory with `../../plugins/<slug>/`, which escapes the docs tree and has no
@@ -448,46 +452,113 @@ function removeFirstHeading(body, index) {
 
 function rewriteMarkdownLinks(body, relativePath) {
   // Match every relative Markdown link target (scheme, absolute, and pure-anchor
-  // links are excluded by the lookahead). Targets that stay inside docs/ keep
-  // their on-site routing; targets that escape docs/ into a repo-root source
-  // tree (REPO_SOURCE_DIRS) are redirected. NOTE: this resolves against the docs
-  // SOURCE path, so it must run only on upstream bodies. The owned-tree guard
+  // links are excluded by the lookahead). This resolves against the docs SOURCE
+  // path, so it must run only on upstream bodies. The owned-tree guard
   // (scripts/scan-source-links.mjs) does the equivalent ROUTE-aware resolution
   // for hand-authored translations; both share REPO_SOURCE_DIRS — keep in sync.
+  //
+  // Target classes handled here:
+  //   1. Docs-rooted re-entry — an upstream-style `../docs/<path>` (or a bare
+  //      `docs/<path>`, or the doubled `docs/docs/…` those two produce) names a
+  //      path under the upstream docs root; `docs/` maps to this site's root.
+  //   2. In-docs `.md` targets become on-site routes; bare directory-style
+  //      targets naming a real page (`…/20260604-elixir-v1.20-…/`, an
+  //      mdBook-style extensionless link) are treated the same way.
+  //   3. In-docs targets that are real files with no on-site route (the
+  //      `manual/ci-templates/*.yml` templates) go to the upstream GitHub blob.
+  //   4. Escapes out of docs/ into a repo-root source/asset tree go to GitHub —
+  //      REPO_SOURCE_DIRS, plus any other escape that resolves to a real
+  //      upstream path (`.github/…`, `tool/…`, repo-root files like `LICENSE`).
+  //      Remaining escapes keep the historical behavior: `.md` → GitHub,
+  //      anything else untouched, so a malformed ref that resolves to nothing
+  //      upstream is left for upstream to fix rather than mis-routed.
   return body.replace(/\]\((?![a-z][a-z+.-]*:|\/|#)([^)\s]+?)(#[^)]+)?\)/gi, (match, target, hash = '') => {
     const sourceDirectory = path.posix.dirname(relativePath.split(path.sep).join('/'));
     const normalizedTarget = target.replace(/\\/g, '/');
+    // A `./`-style self/current-directory link: nothing to reroute.
+    if (normalizedTarget === './' || normalizedTarget === '.') return match;
+
+    // Bare docs-rooted target (`docs/design/x.md`): the author wrote the repo
+    // path as-is. Treat the rest as docs-root-relative.
+    const targetDocsRooted = /^docs\//.test(normalizedTarget) ? normalizedTarget.slice(5) : null;
+
+    // Bare repo-root target (`lib/…`, `sig/…`, `plugins/<slug>`, `.github/…`,
+    // `Makefile`): the same omission without the `docs/` marker — a repo-root
+    // path that lost its `../`s.
+    if (
+      targetDocsRooted === null &&
+      !normalizedTarget.startsWith('..') &&
+      bareRepoRootTarget(normalizedTarget)
+    ) {
+      return `](${repoEscapeRedirect(normalizedTarget, normalizedTarget.endsWith('/'), relativePath)}${hash})`;
+    }
+
     const resolvedDocsPath = path.posix.normalize(path.posix.join(sourceDirectory, normalizedTarget));
 
-    // Stays inside docs/: only `.md` targets become on-site routes. Non-`.md`
-    // in-docs links (images, ci-template `.yml`, bare dir links) are untouched.
+    // Docs-rooted re-entry collapses to the docs-root-relative path it names.
+    const docsRooted = targetDocsRooted ?? collapseDocsRooted(resolvedDocsPath);
+    if (docsRooted !== null && docsRooted !== '') {
+      const link = docsRootedLink(docsRooted, relativePath);
+      if (link !== null) return `](${link}${hash})`;
+      // Nothing on-site or upstream to point at — fall through to the
+      // historical handling below (the target may not exist upstream at all).
+    }
+
+    // Stays inside docs/: `.md` targets become on-site routes…
     if (!resolvedDocsPath.startsWith('../')) {
-      if (!/\.md$/i.test(resolvedDocsPath)) return match;
-      // …but a docs-ROOT file (sourceDirectory `.`) linking `examples/<x>/README.md`
-      // is NOT an in-docs page: it is a repo-root reference that omitted the `../`.
-      // This happens when a file moves into docs/ without its links being rewound —
-      // notably the archived `CHANGELOG-<minor>.md`, split out of the repo-root
-      // `CHANGELOG.md`, keeps `examples/` / `plugins/` links. Resolving them as
-      // on-site routes yields a broken `../examples/`. Redirect them like an escape
-      // (on-site manual page for a published plugin, else GitHub). Gated on a real
-      // REPO_SOURCE_DIR first segment AND a non-existent docs file, so a genuine
-      // in-docs page is never mis-routed even if a docs dir ever shares the name.
-      const firstSegment = resolvedDocsPath.split('/')[0];
-      if (REPO_SOURCE_DIRS.has(firstSegment) && !existsSync(path.join(docsRoot, resolvedDocsPath))) {
-        return `](${repoSourceRedirect(resolvedDocsPath, relativePath)}${hash})`;
+      if (/\.md$/i.test(resolvedDocsPath)) {
+        // …but a docs-ROOT file (sourceDirectory `.`) linking `examples/<x>/README.md`
+        // is NOT an in-docs page: it is a repo-root reference that omitted the `../`.
+        // This happens when a file moves into docs/ without its links being rewound —
+        // notably the archived `CHANGELOG-<minor>.md`, split out of the repo-root
+        // `CHANGELOG.md`, keeps `examples/` / `plugins/` links. Resolving them as
+        // on-site routes yields a broken `../examples/`. Redirect them like an escape
+        // (on-site manual page for a published plugin, else GitHub). Gated on a real
+        // REPO_SOURCE_DIR first segment AND a non-existent docs file, so a genuine
+        // in-docs page is never mis-routed even if a docs dir ever shares the name.
+        const firstSegment = resolvedDocsPath.split('/')[0];
+        if (REPO_SOURCE_DIRS.has(firstSegment) && !existsSync(path.join(docsRoot, resolvedDocsPath))) {
+          return `](${repoSourceRedirect(resolvedDocsPath, relativePath)}${hash})`;
+        }
+        // Same shape without a REPO_SOURCE_DIR first segment: a link that is
+        // dangling in docs/ but names a real repo-root path (`README.md`,
+        // `CHANGELOG.md`, …) is a repo-root reference too — send it to GitHub.
+        if (!existsSync(path.join(docsRoot, resolvedDocsPath)) && existsSync(path.join(repoRoot, resolvedDocsPath))) {
+          return `](${githubSourceUrl(resolvedDocsPath)}${hash})`;
+        }
+        const currentOutputPath = toOutputPath(relativePath);
+        const targetOutputPath = toOutputPath(resolvedDocsPath);
+        return `](${relativeRouteLink(currentOutputPath, targetOutputPath)}${hash})`;
       }
-      const currentOutputPath = toOutputPath(relativePath);
-      const targetOutputPath = toOutputPath(resolvedDocsPath);
-      return `](${relativeRouteLink(currentOutputPath, targetOutputPath)}${hash})`;
+      // Bare directory-style page links (`notes/20260604-elixir-v1.20-…/`,
+      // `manual/ci-templates/`) name a page upstream serves as a directory.
+      const pageLink = pageRouteLink(resolvedDocsPath, relativePath);
+      if (pageLink !== null) return `](${pageLink}${hash})`;
+      // In-docs non-`.md` files with no route (the ci-template `.yml`s) live
+      // in the upstream repo.
+      const docsFilePath = path.join(docsRoot, resolvedDocsPath);
+      if (existsSync(docsFilePath) && statSync(docsFilePath).isFile()) {
+        return `](${githubSourceUrl(`docs/${resolvedDocsPath}`, false)}${hash})`;
+      }
+      // Dangling in docs/ but real at the repo root: a repo-root reference that
+      // lost its `../` (`lib/rigor/…rb`, `sig/…rbs` from a changelog,
+      // `plugins/<slug>/` from a note). Route it like any repo source — the
+      // on-site plugin page when one is published, else GitHub.
+      const bare = resolvedDocsPath.replace(/\/$/, '');
+      if (existsSync(path.join(repoRoot, bare))) {
+        const suffix = normalizedTarget.endsWith('/') ? '/' : '';
+        return `](${repoSourceRedirect(`${bare}${suffix}`, relativePath)}${hash})`;
+      }
+      return match;
     }
 
     // Escapes docs/: a repo-root path with no on-site route. Links into the
     // upstream source/asset trees (REPO_SOURCE_DIRS) are redirected — a bare
     // `plugins/<slug>` with a published reference page to that on-site page,
-    // everything else to GitHub. Every OTHER escape keeps the historical
-    // behavior: `.md` → GitHub, anything else passes through untouched (so a
-    // malformed on-site cross-ref like a stray `../docs/…` is left for upstream
-    // to fix rather than mis-routed, and unrelated body hashes stay stable).
+    // everything else to GitHub. Any OTHER escape that resolves to a real
+    // upstream path (`.github/…`, `tool/…`, `Makefile`, `LICENSE`, …) is the
+    // same kind of repo-root reference and also goes to GitHub; the historical
+    // fallback (`.md` → GitHub, else pass through) covers the rest.
     const repoRelative = path.posix.normalize(path.posix.join(docsRootName, sourceDirectory, normalizedTarget));
     if (REPO_SOURCE_DIRS.has(repoRelative.split('/')[0])) {
       // `normalize` keeps a trailing slash, so allow it: `plugins/<slug>` and
@@ -500,11 +571,87 @@ function rewriteMarkdownLinks(body, relativePath) {
       }
       return `](${githubSourceUrl(repoRelative, normalizedTarget.endsWith('/'))}${hash})`;
     }
+    const repoPath = path.join(repoRoot, repoRelative.replace(/\/$/, ''));
+    if (existsSync(repoPath)) {
+      const isDir = statSync(repoPath).isDirectory();
+      return `](${githubSourceUrl(repoRelative.replace(/\/$/, ''), isDir)}${hash})`;
+    }
     if (/\.md$/i.test(normalizedTarget)) {
       return `](${githubSourceUrl(repoRelative)}${hash})`;
     }
     return match;
   });
+}
+
+// Docs-rooted re-entry → the docs-root-relative path it names.
+// `../docs/x` → `x`, `docs/x` → `x`, `../../docs/x` → `x`, `docs/docs/x` → `x`.
+// Returns null when the path is not docs-rooted at all, or `''` when it names
+// the docs root itself. A bare `docs/<path>` from a pages/ subdirectory
+// (`notes/docs/…`) does not collapse: that is a different (upstream-broken)
+// shape we leave untouched.
+function collapseDocsRooted(docsPath) {
+  const parts = docsPath.split('/');
+  let i = 0;
+  while (i < parts.length && parts[i] === '..') i++;
+  if (parts[i] !== 'docs') return null;
+  while (parts[i] === 'docs') i++;
+  return parts.slice(i).join('/');
+}
+
+// On-site link for a docs-root-relative path: the page route when it names a
+// page, the upstream GitHub blob when it names a non-page file, else null.
+function docsRootedLink(docsRooted, relativePath) {
+  const pageLink = pageRouteLink(docsRooted, relativePath);
+  if (pageLink !== null) return pageLink;
+  const docsFilePath = path.join(docsRoot, docsRooted);
+  if (existsSync(docsFilePath) && statSync(docsFilePath).isFile()) {
+    return githubSourceUrl(`docs/${docsRooted}`, false);
+  }
+  return null;
+}
+
+// Route link when `targetDocsPath` (docs-root-relative, with or without the
+// `.md` extension, with or without a trailing slash) names an existing page —
+// a file, or a directory carrying `index.md` / `README.md` (mdBook-style
+// directory links). Null otherwise.
+function pageRouteLink(targetDocsPath, relativePath) {
+  const stem = targetDocsPath.replace(/\.md$/i, '').replace(/\/$/, '');
+  for (const candidate of [`${stem}.md`, `${stem}/index.md`, `${stem}/README.md`]) {
+    if (candidate.startsWith('/') || candidate.includes('//')) continue;
+    if (existsSync(path.join(docsRoot, candidate))) {
+      return relativeRouteLink(toOutputPath(relativePath), toOutputPath(candidate));
+    }
+  }
+  return null;
+}
+
+// Does a bare (no-leading-dot) target name a repo-root tree or file? Used for
+// links that dropped their `../`s (`lib/rigor/x.rb`, `.github/workflows/ci.yml`,
+// `Makefile` from a notes page). `docs/…` is handled by the docs-rooted path.
+function bareRepoRootTarget(target) {
+  const first = target.split('/')[0];
+  if (!first || first === 'docs') return false;
+  if (REPO_SOURCE_DIRS.has(first)) return true;
+  if (first.startsWith('.') && first !== '.' && first !== '..') return true;
+  return existsSync(path.join(repoRoot, first)) && !existsSync(path.join(docsRoot, first));
+}
+
+// Redirect a bare repo-root path to its on-site target (the published manual
+// page for a bare `plugins/<slug>`) or the upstream GitHub blob/tree.
+function repoEscapeRedirect(repoRelative, authoredDir, relativePath) {
+  const trimmed = repoRelative.replace(/\/$/, '');
+  for (const candidate of [trimmed, trimmed.replace(/\/README\.md$/i, '')]) {
+    const slug = /^plugins\/([^/.]+)$/.exec(candidate)?.[1];
+    if (!slug) continue;
+    const normalized = normalizePathSegment(slug);
+    if (pluginReferenceSlugs.has(normalized)) {
+      return relativeRouteLink(toOutputPath(relativePath), `manual/plugins/${normalized}.md`);
+    }
+  }
+  const dirRelative = trimmed.replace(/\/README\.md$/i, '');
+  const abs = path.join(repoRoot, dirRelative);
+  const isDir = authoredDir || (existsSync(abs) && statSync(abs).isDirectory());
+  return githubSourceUrl(dirRelative, isDir);
 }
 
 // Redirect a repo-root path into a REPO_SOURCE_DIRS tree to its on-site target.
@@ -665,8 +812,12 @@ function routeForOutputPath(outputPath) {
 }
 
 function relativeRouteLink(currentOutputPath, targetOutputPath) {
-  const currentRoute = routeForOutputPath(currentOutputPath);
-  const targetRoute = routeForOutputPath(targetOutputPath);
+  // Both sides render as URLs, so both go through the same github-slugger
+  // normalization the build applies to route segments (`v1.20` → `v120`,
+  // `changelog-0.1.x` → `changelog-01x`). Computing the relative path in URL
+  // space keeps dot-ful pages linking to dot-less siblings correct either way.
+  const currentRoute = siteSlugRoute(routeForOutputPath(currentOutputPath));
+  const targetRoute = siteSlugRoute(routeForOutputPath(targetOutputPath));
   const relativeRoute = path.posix.relative(currentRoute, targetRoute);
 
   if (!relativeRoute) return './';

@@ -3,8 +3,8 @@ title: "プラグイン"
 description: "rigortype/rigor docs/handbook/09-plugins.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/09-plugins.md"
 sourcePath: "docs/handbook/09-plugins.md"
-sourceSha: "e2eac0e03c909da81a5323cfa00ea64c9d6fe4f298bed49cdfd6ba2135793ded"
-sourceCommit: "2d0ffe6f38d01cfd850527c57987b27487b414d4"
+sourceSha: "9a9728a099f7c8d5b36c19462ce6a7377dac71a167b0ff6f383d8f978bf300e9"
+sourceCommit: "d19c9306f46b59d84bde8ac1a5a43f54be23c023"
 translationStatus: "translated"
 sidebar:
   order: 1009
@@ -69,7 +69,7 @@ Lisp.eval([:if, true, "a", 0])  # ランタイムでString | Integer
 ここからは:
 
 - 通読しなおすことはほとんど有用ではありません。ほとんどの読者は疑問が生じたときに特定の章に戻ります。
-- [ハンドブック索引](../)には[`docs/type-specification/`](../../type-specification/)、[`docs/internal-spec/`](../../internal-spec/)、[`docs/adr/`](../adr/)のより深い素材への相互参照があります。
+- [ハンドブック索引](../)には[`docs/type-specification/`](../../type-specification/)、[`docs/internal-spec/`](../../internal-spec/)、[`docs/adr/`](../../adr/)のより深い素材への相互参照があります。
 - [`CHANGELOG.md`](https://github.com/rigortype/rigor/blob/master/CHANGELOG.md)はいつ何が出荷されたかのリリースごとの真実です。
 
 静的Rubyを信じる小さな、成長中のコミュニティへようこそ。

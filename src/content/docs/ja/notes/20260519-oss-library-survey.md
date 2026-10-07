@@ -3,8 +3,8 @@ title: "22ライブラリOSSサーベイ — 繰り返される偽陽性クラ�
 description: "rigortype/rigor docs/notes/20260519-oss-library-survey.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260519-oss-library-survey.md"
 sourcePath: "docs/notes/20260519-oss-library-survey.md"
-sourceSha: "6f046e567c80bb13928c5632c995a18795cedabcdad31aba4c1da04e5fd578f5"
-sourceCommit: "fe4e9a80df3829ee4f113e763e4bb9920c33da21"
+sourceSha: "54f00d87c05f57218faa54b0624f6a23140d5d602bb284c8f2e12f5db3a380c8"
+sourceCommit: "d19c9306f46b59d84bde8ac1a5a43f54be23c023"
 translationStatus: "translated"
 sidebar:
   order: 20266519
@@ -48,7 +48,7 @@ sidebar:
 1. ユーザーはリファクタ後の最初のアナライザー呼び出しでこれに当たる。
 2. メッセージ自体がプログラミングエラー（タイプミス / 定義漏れ） — `MethodDispatcher.try_static_refinement`ルックアップが何らかのコードパスから到達可能;メソッドが未定義か、定義されるべきか。
 
-**アクション**: コードベースを`try_static_refinement`の呼び出し元でgrepする。トリガー条件は: キャッシュミス + プラグイン駆動のディスパッチャーエントリー。[`内部仕様の推論エンジンドキュメント`](../internal-spec/inference-engine/)契約もこれを列挙すべき。
+**アクション**: コードベースを`try_static_refinement`の呼び出し元でgrepする。トリガー条件は: キャッシュミス + プラグイン駆動のディスパッチャーエントリー。[`内部仕様の推論エンジンドキュメント`](../../internal-spec/inference-engine/)契約もこれを列挙すべき。
 
 ## 3. 繰り返される偽陽性 / 改善クラスタ
 
@@ -146,7 +146,7 @@ sidebar:
 2. **`ScopeIndexer`を通じたmixin/`include`ルックアップを解決（§3b）** — 中程度の労力、最も「バグとして誤解されるカテゴリー」を修正。「Rigorは私のコードを理解しない」という認識を減らす。
 3. **`try_static_refinement`コールドキャッシュクラッシュを追跡し、修正するか文書化する（§2）** — 小さな修正、新ユーザーが当たれば高い当惑コスト。
 
-§3cのnilナローイング改善はより価値が高いが、より大きなスコープ — 次のリリースに急ぐのではなく、独自の設計パス（おそらく[`control-flow-analysis`](../type-specification/control-flow-analysis/)仕様に結びつく）の価値がある。
+§3cのnilナローイング改善はより価値が高いが、より大きなスコープ — 次のリリースに急ぐのではなく、独自の設計パス（おそらく[`control-flow-analysis`](../../type-specification/control-flow-analysis/)仕様に結びつく）の価値がある。
 
 ## 6. 再現
 
@@ -204,7 +204,7 @@ nix --extra-experimental-features 'nix-command flakes' develop --command \
 
 ### 8b. `String#html_safe`が認識されない（新規、Railsエコシステム）
 
-`hamlit` + `haml`: 6回の`undefined method 'html_safe' for String`の出現。これはActiveSupportのcore_extメソッド。ユーザーは[`rigor-activesupport-core-ext`](../plugins/rigor-activesupport-core-ext)プラグインを利用可能だが、デフォルトでは適用されない。3つのオプション:
+`hamlit` + `haml`: 6回の`undefined method 'html_safe' for String`の出現。これはActiveSupportのcore_extメソッド。ユーザーは[`rigor-activesupport-core-ext`](../../manual/plugins/rigor-activesupport-core-ext/)プラグインを利用可能だが、デフォルトでは適用されない。3つのオプション:
 
 1. 診断でプラグインをより大きく文書化（「ヒント: プラグインXを有効化」）
 2. `gem activesupport`が`Gemfile.lock`にあるときのビルド時ヒント

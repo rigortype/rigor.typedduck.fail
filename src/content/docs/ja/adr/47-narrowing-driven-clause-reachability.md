@@ -3,8 +3,8 @@ title: "ADR-47 — ナローイング駆動の節到達可能性（`flow.unreach
 description: "rigortype/rigor docs/adr/47-narrowing-driven-clause-reachability.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/47-narrowing-driven-clause-reachability.md"
 sourcePath: "docs/adr/47-narrowing-driven-clause-reachability.md"
-sourceSha: "17e0070a171a1934915f69aebaac08f916381e6b67dd6cced8c336480526a297"
-sourceCommit: "2a65ec8e52462c931fbfec94df68a18139259a43"
+sourceSha: "27cf232d0fe7290c4551bb2e8cda707ffd31c911c1c8723444bc8b7a990d37e9"
+sourceCommit: "d19c9306f46b59d84bde8ac1a5a43f54be23c023"
 sourceDate: "2026-09-02T15:16:47+09:00"
 translationStatus: "translated"
 sidebar:
@@ -19,7 +19,7 @@ sidebar:
 
 **WD3a landed（v0.1.17）**。**裸のクラスパターンのみ**の`case`/`in`（`CaseMatchNode`）—— `in C` / `in C => x`はマッチが正確に`C === subject`（純粋な`is_a?`、分解なし）のため、`when C`と同様に健全に絞り込まれる。`eval_case_when_branches`は裸クラスの`in`を`Narrowing.case_when_scopes`にルーティングし（`bare_class_pattern_node`が`ConstantReadNode` / `ConstantPathNode`と、それをラップする`CapturePatternNode`を認識）;コレクターは同じ`body_scope == bot`シグナルで`CaseMatchNode` + `InNode`を処理する。これはその場限りの網羅性ではない —— 真偽両方のナローイングが健全な、唯一のパターン形状に限定して、既存の健全な`when`クラスナローイングを再利用する。Rigor自身のコーパスでクリーン。**WD4 run（v0.1.17）**。16のOSSコーパスをスイープ（[`docs/notes/20260605-adr47-unreachable-clause-corpus-sweep.md`](../../notes/20260605-adr47-unreachable-clause-corpus-sweep/)を参照）—— ゼロ発火、偽陽性ゼロ。ヒットなしの空虚なパス（vacuous pass）はデフォルトをより大きくする積極的根拠にはならないため、**balancedは`:info`のまま**（strictは`:warning`を維持）;昇格は実際の発火を待つ。**残り:** WD3b（分解 / 値 / 変数キャッチオールパターンの網羅性 —— ADR-36の`is_a?`網羅性隣接プロジェクトである真に大規模な作業;その場限りで推論して出荷**しない**こと;ゼロ発火スイープで優先度を下げ）。
 
-**WD5 landed**。バージョンガードのブランチ到達可能性（[#627](https://github.com/rigortype/rigor/issues/627)）。実行中のRuby（またはデフォルトgemのバージョン）をリテラルと比較するガードは決定可能であり、それが非選択としたブランチはユーザーがチェックに使用しているRuby上ではデッドである——したがってそこでの診断は最悪ケースの解釈ではなく偽陽性である。`Inference::VersionGuard.verdict`は、`RUBY_VERSION <cmp> "x.y.z"`（実行されるものに合わせるためStringセマンティクス）、`Gem::Version.new(a) <cmp> Gem::Version.new(b)`（両辺ともラップ）、`RUBY_ENGINE ==`/`!=`、および実行中のRubyのデフォルトgemに対する`X::VERSION`を決定する;それ以外のものはすべて両方のブランチを生存させたままにする。`StatementEvaluator`は`if false`に対して行うのとまったく同様にデッドなブランチを省略し（評価されないため、その書き込みが`if`を越えて結合することはない）、`CheckRules::DeadVersionGuardArms`は診断時に同じ純粋関数を再度参照して、そのブランチの内部にある診断をドロップする。`flow.always-truthy-condition`は意図的にガード上で発火**しない**——バージョンガードは意図的なものだからである。規範的サーフェス: [control-flow-analysis.md § バージョンガードの条件畳み込み](../type-specification/control-flow-analysis/#バージョンガードの条件畳み込み)。
+**WD5 landed**。バージョンガードのブランチ到達可能性（[#627](https://github.com/rigortype/rigor/issues/627)）。実行中のRuby（またはデフォルトgemのバージョン）をリテラルと比較するガードは決定可能であり、それが非選択としたブランチはユーザーがチェックに使用しているRuby上ではデッドである——したがってそこでの診断は最悪ケースの解釈ではなく偽陽性である。`Inference::VersionGuard.verdict`は、`RUBY_VERSION <cmp> "x.y.z"`（実行されるものに合わせるためStringセマンティクス）、`Gem::Version.new(a) <cmp> Gem::Version.new(b)`（両辺ともラップ）、`RUBY_ENGINE ==`/`!=`、および実行中のRubyのデフォルトgemに対する`X::VERSION`を決定する;それ以外のものはすべて両方のブランチを生存させたままにする。`StatementEvaluator`は`if false`に対して行うのとまったく同様にデッドなブランチを省略し（評価されないため、その書き込みが`if`を越えて結合することはない）、`CheckRules::DeadVersionGuardArms`は診断時に同じ純粋関数を再度参照して、そのブランチの内部にある診断をドロップする。`flow.always-truthy-condition`は意図的にガード上で発火**しない**——バージョンガードは意図的なものだからである。規範的サーフェス: [control-flow-analysis.md § バージョンガードの条件畳み込み](../../type-specification/control-flow-analysis/#バージョンガードの条件畳み込み)。
 
 ## 動機
 

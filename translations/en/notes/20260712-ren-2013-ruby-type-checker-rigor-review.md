@@ -1,8 +1,8 @@
 ---
 title: "Ren et al. 2013 \"The Ruby Type Checker (rtc)\" — a Rigor-perspective review"
 description: "A Rigor-perspective review of Ren et al. 2013 rtc: same goal (type safety for Ruby without breaking running code), opposite mechanism (runtime, annotation-rooted checking)."
-sourceSha: "c92df76aca26d26d0f17439ab1b2b3e70d16b4c5f86f6054d4f48a16adc64dc7"
-sourceCommit: "ca611a0fa195c049e8e56b0aa4a78145864c4d54"
+sourceSha: "c10f053788eccdb0bd9b11519f2cd6f7ca2fcfd8222c5269d01edc5d6bff2247"
+sourceCommit: "d19c9306f46b59d84bde8ac1a5a43f54be23c023"
 translationStatus: "translated"
 ---
 

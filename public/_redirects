@@ -8,3 +8,125 @@
 /ja/reference    /ja/        301
 /reference/*     /:splat     301
 /reference       /           301
+
+# ---------------------------------------------------------------------------
+# 2026-09/10 Search Console 404 cleanup.
+#
+# Old/phantom paths that upstream-style relative links (or older crawls) still
+# point at, mapped onto the current on-site routes. References whose target
+# genuinely no longer exists upstream (the `roadmap/` / `milestones/` refs and
+# the IPSJ local PDF copies) intentionally have no rule — they 404 by design
+# until upstream fixes the prose.
+
+# `../docs/<path>`-style refs resolve under `/…/docs/` on the site; the `docs/`
+# segment is the upstream docs root, i.e. the site root.
+/ja/docs/*       /ja/:splat  301
+/docs/*          /:splat     301
+
+# Sibling chapter links written from the CLI reference (02-cli-reference/NN-…).
+/ja/manual/02-cli-reference/03-configuration/    /ja/manual/03-configuration/    301
+/ja/manual/02-cli-reference/07-plugins/          /ja/manual/07-plugins/          301
+/ja/manual/02-cli-reference/11-ci/               /ja/manual/11-ci/               301
+/ja/manual/02-cli-reference/12-caching/          /ja/manual/12-caching/          301
+/ja/manual/02-cli-reference/13-troubleshooting/  /ja/manual/13-troubleshooting/  301
+/manual/02-cli-reference/03-configuration/       /manual/03-configuration/       301
+/manual/02-cli-reference/07-plugins/             /manual/07-plugins/             301
+/manual/02-cli-reference/11-ci/                  /manual/11-ci/                  301
+/manual/02-cli-reference/12-caching/             /manual/12-caching/             301
+/manual/02-cli-reference/13-troubleshooting/     /manual/13-troubleshooting/     301
+
+# Section-relative cross-refs that resolved under the wrong section prefix.
+/ja/type-specification/adr/*                                        /ja/adr/:splat                        301
+/ja/type-specification/notes/*                                      /ja/notes/:splat                      301
+/ja/type-specification/internal-spec/*                              /ja/internal-spec/:splat              301
+/ja/internal-spec/adr/43-rbs-complete-ancestor-resolution.md        /ja/adr/43-rbs-complete-ancestor-resolution/  301
+/ja/internal-spec/plugin/plugin-cache-producers/                    /ja/internal-spec/plugin-cache-producers/     301
+/internal-spec/plugin/plugin-cache-producers/                       /internal-spec/plugin-cache-producers/        301
+/ja/handbook/adr/*                                                  /ja/adr/:splat                        301
+/ja/handbook/adr                                                    /ja/adr/                              301
+/handbook/adr/*                                                     /adr/:splat                           301
+/handbook/adr                                                       /adr/                                 301
+/ja/manual/adr/*                                                    /ja/adr/:splat                        301
+/ja/adr/design/20260508-rails-plugins-roadmap.md                    /ja/design/20260508-rails-plugins-roadmap/  301
+/adr/design/20260508-rails-plugins-roadmap.md                       /design/20260508-rails-plugins-roadmap/     301
+/ja/adr/design/*                                                    /ja/design/:splat                     301
+/adr/design/*                                                       /design/:splat                        301
+/ja/handbook/appendix-mypy/appendix-protocols-and-structural-typing.md  /ja/handbook/appendix-protocols-and-structural-typing/  301
+
+# Cross-refs written against an older ADR layout (a nested path relative to
+# the referencing ADR) or an older ADR name/number.
+/ja/adr/1-types/103-effect-labels/                                          /ja/adr/103-effect-labels/               301
+/adr/1-types/103-effect-labels/                                             /adr/103-effect-labels/                  301
+/ja/adr/6-cache-persistence-backend/54-cache-slimming.md                    /ja/adr/54-cache-slimming/               301
+/ja/adr/11-sorbet-input-adapter/9-cross-plugin-api.md                       /ja/adr/9-cross-plugin-api/              301
+/ja/adr/11-sorbet-input-adapter/10-dependency-source-inference.md           /ja/adr/10-dependency-source-inference/  301
+/adr/11-sorbet-input-adapter/10-dependency-source-inference.md              /adr/10-dependency-source-inference/     301
+/ja/adr/24-self-method-call-resolution/57-self-call-return-adoption.md      /ja/adr/57-self-call-return-adoption/    301
+/ja/adr/27-tool-distribution-model/51-ci-diagnostic-output-formats.md       /ja/adr/51-ci-diagnostic-output-formats/ 301
+/ja/adr/08-steep-inspired-improvements/                                     /ja/adr/8-steep-inspired-improvements/   301
+/adr/08-steep-inspired-improvements/                                        /adr/8-steep-inspired-improvements/      301
+/adr/45-run-result-cache/                                                   /adr/45-unchanged-project-fast-path/     301
+/ja/adr/82-dynamic-origin-algebra/                                          /ja/adr/82-dynamic-provenance-wiring/    301
+/adr/82-dynamic-origin-algebra/                                             /adr/82-dynamic-provenance-wiring/       301
+/adr/type-specification/                                                    /type-specification/                     301
+/ja/notes/01-installation/                                                  /ja/manual/01-installation/              301
+/notes/01-installation/                                                     /manual/01-installation/                 301
+/ja/notes/27-tool-distribution-model/                                       /ja/adr/27-tool-distribution-model/      301
+/notes/27-tool-distribution-model/                                          /adr/27-tool-distribution-model/         301
+/ja/08-skills/                                                              /ja/manual/08-skills/                    301
+/08-skills/                                                                 /manual/08-skills/                       301
+
+# Repo files reached as site paths → the upstream GitHub repo.
+/.github/workflows/ci.yml            https://github.com/rigortype/rigor/blob/master/.github/workflows/ci.yml            301
+/ja/.github/workflows/ci.yml         https://github.com/rigortype/rigor/blob/master/.github/workflows/ci.yml            301
+/.github/workflows/oss-sweep.yml     https://github.com/rigortype/rigor/blob/master/.github/workflows/oss-sweep.yml        301
+/ja/.github/workflows/oss-sweep.yml  https://github.com/rigortype/rigor/blob/master/.github/workflows/oss-sweep.yml        301
+/tool/effect_budget.rb               https://github.com/rigortype/rigor/blob/master/tool/effect_budget.rb                 301
+/ja/tool/effect_budget.rb            https://github.com/rigortype/rigor/blob/master/tool/effect_budget.rb                 301
+/ja/LICENSE                          https://github.com/rigortype/rigor/blob/master/LICENSE                               301
+/.claude/skills/                     https://github.com/rigortype/rigor/tree/master/.claude/skills/                       301
+/ja/.claude/skills/                  https://github.com/rigortype/rigor/tree/master/.claude/skills/                       301
+/ja/changelog-01x/sig/rigor/plugin/loader.rbs  https://github.com/rigortype/rigor/blob/master/sig/rigor/plugin/loader.rbs   301
+
+# CI template files (the published page is /manual/ci-templates/; the raw
+# files live in the upstream repo).
+/manual/ci-templates/github-actions-annotations.yml      https://github.com/rigortype/rigor/blob/master/docs/manual/ci-templates/github-actions-annotations.yml     301
+/manual/ci-templates/github-actions-sarif.yml            https://github.com/rigortype/rigor/blob/master/docs/manual/ci-templates/github-actions-sarif.yml           301
+/manual/ci-templates/github-actions-reviewdog.yml        https://github.com/rigortype/rigor/blob/master/docs/manual/ci-templates/github-actions-reviewdog.yml       301
+/manual/ci-templates/gitlab-ci.yml                       https://github.com/rigortype/rigor/blob/master/docs/manual/ci-templates/gitlab-ci.yml                      301
+/ja/manual/ci-templates/github-actions-annotations.yml   https://github.com/rigortype/rigor/blob/master/docs/manual/ci-templates/github-actions-annotations.yml     301
+/ja/manual/ci-templates/github-actions-sarif.yml         https://github.com/rigortype/rigor/blob/master/docs/manual/ci-templates/github-actions-sarif.yml           301
+/ja/manual/ci-templates/github-actions-reviewdog.yml     https://github.com/rigortype/rigor/blob/master/docs/manual/ci-templates/github-actions-reviewdog.yml       301
+/ja/manual/ci-templates/gitlab-ci.yml                    https://github.com/rigortype/rigor/blob/master/docs/manual/ci-templates/gitlab-ci.yml                      301
+
+# Dotted slugs: the build github-slugs each URL segment (scripts/site-slug.mjs),
+# so dots are dropped from the served route (`v1.20` → `v120`). These are the
+# upstream-style dotted forms that older links and crawls still use.
+/adr/7-v0.1.0-slice-decisions/                                        /adr/7-v010-slice-decisions/                                       301
+/changelog-0.0.x/                                                     /changelog-00x/                                                    301
+/changelog-0.1.x/                                                     /changelog-01x/                                                    301
+/changelog-0.2.x/                                                     /changelog-02x/                                                    301
+/design/20260505-v0.1.0-readiness/                                    /design/20260505-v010-readiness/                                   301
+/design/20260601-plugin-mechanism-pre-1.0-review/                     /design/20260601-plugin-mechanism-pre-10-review/                   301
+/notes/20260521-mastodon-v4.5-regression-sweep/                       /notes/20260521-mastodon-v45-regression-sweep/                      301
+/notes/20260521-redmine-6.x-regression-sweep/                         /notes/20260521-redmine-6x-regression-sweep/                       301
+/notes/20260523-mastodon-v4.5-regression-sweep-v0.1.9/                /notes/20260523-mastodon-v45-regression-sweep-v019/                301
+/notes/20260604-elixir-v1.20-type-system-rigor-review/                /notes/20260604-elixir-v120-type-system-rigor-review/              301
+/notes/20260616-liquid-v5.x-regression-sweep/                         /notes/20260616-liquid-v5x-regression-sweep/                       301
+/notes/20260622-rigor-0.2.x-compatibility-safe-strengthening-survey/  /notes/20260622-rigor-02x-compatibility-safe-strengthening-survey/ 301
+/notes/20260622-rigor-0.2.x-problem-survey/                           /notes/20260622-rigor-02x-problem-survey/                          301
+/notes/20260706-v0.2.x-to-v1.0-readiness-assessment/                  /notes/20260706-v02x-to-v10-readiness-assessment/                  301
+/ja/adr/7-v0.1.0-slice-decisions/                                     /ja/adr/7-v010-slice-decisions/                                    301
+/ja/changelog-0.0.x/                                                  /ja/changelog-00x/                                                 301
+/ja/changelog-0.1.x/                                                  /ja/changelog-01x/                                                 301
+/ja/changelog-0.2.x/                                                  /ja/changelog-02x/                                                 301
+/ja/design/20260505-v0.1.0-readiness/                                 /ja/design/20260505-v010-readiness/                                301
+/ja/design/20260601-plugin-mechanism-pre-1.0-review/                  /ja/design/20260601-plugin-mechanism-pre-10-review/                301
+/ja/notes/20260521-mastodon-v4.5-regression-sweep/                    /ja/notes/20260521-mastodon-v45-regression-sweep/                   301
+/ja/notes/20260521-redmine-6.x-regression-sweep/                      /ja/notes/20260521-redmine-6x-regression-sweep/                    301
+/ja/notes/20260523-mastodon-v4.5-regression-sweep-v0.1.9/             /ja/notes/20260523-mastodon-v45-regression-sweep-v019/             301
+/ja/notes/20260604-elixir-v1.20-type-system-rigor-review/             /ja/notes/20260604-elixir-v120-type-system-rigor-review/           301
+/ja/notes/20260616-liquid-v5.x-regression-sweep/                      /ja/notes/20260616-liquid-v5x-regression-sweep/                    301
+/ja/notes/20260622-rigor-0.2.x-compatibility-safe-strengthening-survey/  /ja/notes/20260622-rigor-02x-compatibility-safe-strengthening-survey/  301
+/ja/notes/20260622-rigor-0.2.x-problem-survey/                        /ja/notes/20260622-rigor-02x-problem-survey/                       301
+/ja/notes/20260706-v0.2.x-to-v1.0-readiness-assessment/               /ja/notes/20260706-v02x-to-v10-readiness-assessment/               301

@@ -3,7 +3,7 @@ title: "Ren et al. 2013「The Ruby Type Checker (rtc)」— Rigor 観点考察"
 description: "Imported from rigortype/rigor docs/notes/20260712-ren-2013-ruby-type-checker-rigor-review.md."
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260712-ren-2013-ruby-type-checker-rigor-review.md"
 sourcePath: "docs/notes/20260712-ren-2013-ruby-type-checker-rigor-review.md"
-sourceSha: "c92df76aca26d26d0f17439ab1b2b3e70d16b4c5f86f6054d4f48a16adc64dc7"
+sourceSha: "c10f053788eccdb0bd9b11519f2cd6f7ca2fcfd8222c5269d01edc5d6bff2247"
 sourceCommit: "d19c9306f46b59d84bde8ac1a5a43f54be23c023"
 sourceDate: "2026-07-12T23:14:14+09:00"
 sourceLanguage: "ja"
@@ -111,7 +111,7 @@ rtcは「実行時・注釈をルートとする検査・pay-for-what-you-use」
    （走らなかった分岐・メタプロされたメソッドは無検査）、（b）プロキシ横取りの**実行時オーバーヘッド**、
    （c）反面eval/reflection/`method_missing`を**自然に**扱える。
    Rigorは静的・注釈不要・実行時コストゼロで**全パス**を守るが、動的機能を静的近似する代償を払う。
-   **ゴール（低FPのRuby型安全）は同一、機構は正反対** — [Elixirレビュー](../20260604-elixir-v1.20-type-system-rigor-review/)で見た
+   **ゴール（低FPのRuby型安全）は同一、機構は正反対** — [Elixirレビュー](../20260604-elixir-v120-type-system-rigor-review/)で見た
    「同ゴール・逆機構」構図の、実行時側の実例。
 
 2. **動的機能の扱いが交換されている（Rigorの最大の難所をrtcは実行時で回避）**。
@@ -247,5 +247,5 @@ ADR-70のattribution説明とハンドブックのdiagnostic例集に「rtcも�
 
 - [Matsumoto & Minamide 2010 (Ruby CFA) — Rigor観点考察](../20260518-matsumoto-2010-cfa-rigor-review/)
   — 日本側のSteep前史。本ノート（米国Foster研系譜）と対をなす。
-- [Elixir v1.20の漸進的集合論型システム — Rigor観点考察](../20260604-elixir-v1.20-type-system-rigor-review/)
+- [Elixir v1.20の漸進的集合論型システム — Rigor観点考察](../20260604-elixir-v120-type-system-rigor-review/)
   — 「同ゴール・逆機構（健全vs非健全）」構図の別実例。

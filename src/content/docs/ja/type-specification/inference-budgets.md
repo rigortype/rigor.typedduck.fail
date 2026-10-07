@@ -55,7 +55,7 @@ CLIの挙動には2つのモードが必要です（MUST）:
 
 境界が提供されない場合、呼び出し元は作られた精密な型を受け取ってはなりません（MUST NOT）。Rigorは内部的に`Dynamic[top]`、`top`、または別の保守的な不完全推論マーカーを使える場合があります（MAY）が、診断とエクスポートは推論が停止したという事実を保持しなければなりません（MUST）。
 
-ユーザーが`dependencies.source_inference:`を通じてオプトインしたGemにレシーバーが属する場合（[ADR-10](../adr/10-dependency-source-inference/)に従い、解析器契約: [`docs/internal-spec/dependency-source-inference.md`](../internal-spec/dependency-source-inference/)）、依存関係ソース推論ティアがRBSティアより下位で`Dynamic[T]`の回答を提供してもよく（MAY）、コールサイトを生の`Dynamic[top]`のままにしません。このラッピングは動的由来のprovenanceを保持するため、消費者は静的ファセット`T`をグラウンドトゥルースの契約として頼ってはなりません（MUST NOT）——RBS / RBS::Inline / 生成されたスタブ / プラグイン契約はコンフリクト時に常に優先され、推論された形状は作成されたRBSとしてラウンドトリップされることはありません。
+ユーザーが`dependencies.source_inference:`を通じてオプトインしたGemにレシーバーが属する場合（[ADR-10](../../adr/10-dependency-source-inference/)に従い、解析器契約: [`docs/internal-spec/dependency-source-inference.md`](../../internal-spec/dependency-source-inference/)）、依存関係ソース推論ティアがRBSティアより下位で`Dynamic[T]`の回答を提供してもよく（MAY）、コールサイトを生の`Dynamic[top]`のままにしません。このラッピングは動的由来のprovenanceを保持するため、消費者は静的ファセット`T`をグラウンドトゥルースの契約として頼ってはなりません（MUST NOT）——RBS / RBS::Inline / 生成されたスタブ / プラグイン契約はコンフリクト時に常に優先され、推論された形状は作成されたRBSとしてラウンドトリップされることはありません。
 
 インタラクティブなプロンプトサーフェス（surface）はターゲット挙動であり、現在のスキャフォールド機能ではありません。非インタラクティブなカットオフパスはv1から規範的です。
 
@@ -86,12 +86,12 @@ CLIの挙動には2つのモードが必要です（MUST）:
 
 | ガード | 値 | 場所 | 設定可能？ |
 |---|---|---|---|
-| 再帰の再入 | 実効的な深さ1 → `Dynamic[top]`の代わりにfixpoint戻りサマリー（`bot`からのKleene、キャップ3）;値ピンされた引数は燃料32までアンロール → foldされた定数（[ADR-55](../adr/55-recursive-return-precision/)スライス1+2） | `ExpressionTyper#infer_user_method_return`（`BudgetTrace::RECURSION_GUARD`、`BudgetTrace::RECURSION_UNROLL_FUEL`、`BudgetTrace::RECURSION_FIXPOINT_CAP`） | いいえ —— `(receiver, method)`の再入ガード。サイクル内の再入は想定された**fixpointサマリー**を返す（スライス2: `bot`でシードされたKleene反復で、最大3回joinして再評価し、最終ラウンドで`Constant→Nominal`を拡大する;非収束は`RECURSION_FIXPOINT_CAP`を介して今日の`untyped`に崩れる）ため、再帰的な`String`ビルダーは`Dynamic`の貢献なしに`String`を返す。すべての引数が`Constant` / `Tuple`-of-`Constant`のとき、キーはさらに引数*値*で拡張され、異なる定数フレームがハードな32フレーム燃料 + 64ノード値サイズキャップ（スライス1）のもとで再帰し、素のガードへ枯渇していく。いずれもハードで設定不能な終了キャップのまま —— 表が想定する設定可能な`recursion_depth`の精度アンロールとは別物 |
+| 再帰の再入 | 実効的な深さ1 → `Dynamic[top]`の代わりにfixpoint戻りサマリー（`bot`からのKleene、キャップ3）;値ピンされた引数は燃料32までアンロール → foldされた定数（[ADR-55](../../adr/55-recursive-return-precision/)スライス1+2） | `ExpressionTyper#infer_user_method_return`（`BudgetTrace::RECURSION_GUARD`、`BudgetTrace::RECURSION_UNROLL_FUEL`、`BudgetTrace::RECURSION_FIXPOINT_CAP`） | いいえ —— `(receiver, method)`の再入ガード。サイクル内の再入は想定された**fixpointサマリー**を返す（スライス2: `bot`でシードされたKleene反復で、最大3回joinして再評価し、最終ラウンドで`Constant→Nominal`を拡大する;非収束は`RECURSION_FIXPOINT_CAP`を介して今日の`untyped`に崩れる）ため、再帰的な`String`ビルダーは`Dynamic`の貢献なしに`String`を返す。すべての引数が`Constant` / `Tuple`-of-`Constant`のとき、キーはさらに引数*値*で拡張され、異なる定数フレームがハードな32フレーム燃料 + 64ノード値サイズキャップ（スライス1）のもとで再帰し、素のガードへ枯渇していく。いずれもハードで設定不能な終了キャップのまま —— 表が想定する設定可能な`recursion_depth`の精度アンロールとは別物 |
 | 祖先ウォーク上限 | 100ノード | `ExpressionTyper::ANCESTOR_WALK_LIMIT`（暗黙的selfのメソッド解決） | いいえ |
-| HKTリデューサーのfuel | 64ステップ | `Inference::HktReducer::DEFAULT_FUEL`（[ADR-20](../adr/20-lightweight-hkt/)） | いいえ（呼び出しごとの`fuel:`引数で、`.rigor.yml`ではない） |
-| `dependencies.budget_per_gem` | 5000メソッド定義（範囲1250〜20000） | [ADR-10](../adr/10-dependency-source-inference/)のソースウォーク上限 | **はい** —— `.rigor.yml`の`dependencies.budget_per_gem:`、`dependencies.source_inference:`によるオプトイン |
+| HKTリデューサーのfuel | 64ステップ | `Inference::HktReducer::DEFAULT_FUEL`（[ADR-20](../../adr/20-lightweight-hkt/)） | いいえ（呼び出しごとの`fuel:`引数で、`.rigor.yml`ではない） |
+| `dependencies.budget_per_gem` | 5000メソッド定義（範囲1250〜20000） | [ADR-10](../../adr/10-dependency-source-inference/)のソースウォーク上限 | **はい** —— `.rigor.yml`の`dependencies.budget_per_gem:`、`dependencies.source_inference:`によるオプトイン |
 
-残りの表の行 — コストを担う`union_size`と`structural_growth`を含む — はまだ強制されていません。ターゲットとなる設計、配線計画（Layer 1のドキュメント/仕様の衛生、Layer 2の計測ゲート付き配線）、およびヒット時の`static.*`診断ポリシーは[ADR-41](../adr/41-inference-budget-design/)に記録されています。裏付けとなる調査は[`docs/notes/20260603-inference-budget-reality-survey.md`](../notes/20260603-inference-budget-reality-survey/)です。`RIGOR_BUDGET_TRACE`は配線済みのガードについて実行ごとのカウントを公開します。これにはADR-55スライス1の`recursion-unroll-fuel`枯渇カウンタとスライス2の`recursion-fixpoint-cap`非収束カウンタを含みます。
+残りの表の行 — コストを担う`union_size`と`structural_growth`を含む — はまだ強制されていません。ターゲットとなる設計、配線計画（Layer 1のドキュメント/仕様の衛生、Layer 2の計測ゲート付き配線）、およびヒット時の`static.*`診断ポリシーは[ADR-41](../../adr/41-inference-budget-design/)に記録されています。裏付けとなる調査は[`docs/notes/20260603-inference-budget-reality-survey.md`](../../notes/20260603-inference-budget-reality-survey/)です。`RIGOR_BUDGET_TRACE`は配線済みのガードについて実行ごとのカウントを公開します。これにはADR-55スライス1の`recursion-unroll-fuel`枯渇カウンタとスライス2の`recursion-fixpoint-cap`非収束カウンタを含みます。
 
 ## カットオフカテゴリー
 

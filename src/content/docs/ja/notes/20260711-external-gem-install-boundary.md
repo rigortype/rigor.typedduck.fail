@@ -25,7 +25,7 @@ GitLabの800を超えるロック済みgemは、その`Gemfile.lock`の中にし
 
 ## なぜ「ターゲットGEM_PATH認識」が誤った修正なのか
 
-`BundleSigDiscovery.auto_detect`はすでにこの境界を明言しており、それは意図的なものだ（[ADR-27](../27-tool-distribution-model/) ── Rigorはプロジェクトを*データ*として読み、そのツールチェーンを決して実行しない）:
+`BundleSigDiscovery.auto_detect`はすでにこの境界を明言しており、それは意図的なものだ（[ADR-27](../../adr/27-tool-distribution-model/) ── Rigorはプロジェクトを*データ*として読み、そのツールチェーンを決して実行しない）:
 
 > 純粋なデフォルトのインストール場所── `path`を設定せずアクティブなRubyのGEM_HOMEにあるgem── は*プロジェクト*のRubyのgem homeであり、隔離されたアナライザーはプロジェクトのツールチェーンを実行しない限りそれを知り得ない。`bundler.bundle_path:`でrigorをそこに向けよ … rigor自身の環境からの`BUNDLE_PATH`は意図的に参照しない── それはrigorのバンドルを記述するものであり、解析対象プロジェクトのものではない。
 

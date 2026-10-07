@@ -3,8 +3,8 @@ title: "ADR-22 — ベースラインメカニズム + プロジェクトオン�
 description: "rigortype/rigor docs/adr/22-baseline-and-project-onboarding.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/22-baseline-and-project-onboarding.md"
 sourcePath: "docs/adr/22-baseline-and-project-onboarding.md"
-sourceSha: "77530ac77f6a1cfe2f8bd4c488679aec2a2a2610a43e4fa9855a3da97c94153a"
-sourceCommit: "78b18cea6a576475c92bce020535269f2eebc20d"
+sourceSha: "59050a310244e4ec8c8de853bc625f1bfdbf1e527a4ed03d74ea47e4a3945b5e"
+sourceCommit: "d19c9306f46b59d84bde8ac1a5a43f54be23c023"
 sourceDate: "2026-05-21T21:49:08+09:00"
 translationStatus: "translated"
 sidebar:
