@@ -13,10 +13,10 @@
 # 2026-09/10 Search Console 404 cleanup.
 #
 # Old/phantom paths that upstream-style relative links (or older crawls) still
-# point at, mapped onto the current on-site routes. References whose target
-# genuinely no longer exists upstream (the `roadmap/` / `milestones/` refs and
-# the IPSJ local PDF copies) intentionally have no rule — they 404 by design
-# until upstream fixes the prose.
+# point at, mapped onto the current on-site routes. The citations of the
+# dissolved `roadmap/` / `milestones/` docs redirect to the last upstream
+# revision that carried the file (ADR-98 WD4 keeps the upstream prose as a
+# historical citation; the redirect fulfils its "resolves via git history").
 
 # `../docs/<path>`-style refs resolve under `/…/docs/` on the site; the `docs/`
 # segment is the upstream docs root, i.e. the site root.
@@ -130,3 +130,18 @@
 /ja/notes/20260622-rigor-0.2.x-compatibility-safe-strengthening-survey/  /ja/notes/20260622-rigor-02x-compatibility-safe-strengthening-survey/  301
 /ja/notes/20260622-rigor-0.2.x-problem-survey/                        /ja/notes/20260622-rigor-02x-problem-survey/                       301
 /ja/notes/20260706-v0.2.x-to-v1.0-readiness-assessment/               /ja/notes/20260706-v02x-to-v10-readiness-assessment/               301
+
+# Frozen citations of the dissolved docs/ROADMAP.md and docs/MILESTONES.md.
+# Upstream keeps the prose as a historical citation (ADR-98 WD4) and the file
+# is gone from master, so resolve the path to the last commit that still held
+# it. The `/docs/*` → `/:splat` rule above funnels `/docs/roadmap/` (and the JA
+# equivalent) here; both trailing-slash and bare forms are listed because the
+# matcher is literal.
+/roadmap/       https://github.com/rigortype/rigor/blob/d4b28c467b5d11be055a707a0d3595faf5e70cfb~1/docs/ROADMAP.md       301
+/roadmap        https://github.com/rigortype/rigor/blob/d4b28c467b5d11be055a707a0d3595faf5e70cfb~1/docs/ROADMAP.md       301
+/ja/roadmap/    https://github.com/rigortype/rigor/blob/d4b28c467b5d11be055a707a0d3595faf5e70cfb~1/docs/ROADMAP.md       301
+/ja/roadmap     https://github.com/rigortype/rigor/blob/d4b28c467b5d11be055a707a0d3595faf5e70cfb~1/docs/ROADMAP.md       301
+/milestones/    https://github.com/rigortype/rigor/blob/191f3c3b05add5bf9f122c7d0e742e7d9b00e952~1/docs/MILESTONES.md   301
+/milestones     https://github.com/rigortype/rigor/blob/191f3c3b05add5bf9f122c7d0e742e7d9b00e952~1/docs/MILESTONES.md   301
+/ja/milestones/ https://github.com/rigortype/rigor/blob/191f3c3b05add5bf9f122c7d0e742e7d9b00e952~1/docs/MILESTONES.md   301
+/ja/milestones  https://github.com/rigortype/rigor/blob/191f3c3b05add5bf9f122c7d0e742e7d9b00e952~1/docs/MILESTONES.md   301

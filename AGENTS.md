@@ -298,9 +298,10 @@ upstream-aware, sharing the same rules; upstream-JA pages — frontmatter
 URL shapes that have already been crawled are additionally aliased in
 `public/_redirects` — the 2026-09/10 Search Console cleanup adds the `docs/`
 re-entry family, the CLI-reference sibling chapters, old nested-path ADR refs,
-repo-file paths (to GitHub), and every dotted-slug page. References whose target
-no longer exists upstream (`roadmap/`, `milestones/`, the IPSJ PDF copies)
-intentionally have no rule — they 404 until upstream fixes the prose.
+repo-file paths (to GitHub), and every dotted-slug page. The citations of the
+dissolved `roadmap/` / `milestones/` docs have a rule too: they redirect to the
+last upstream revision that still carried the file, since the prose stays a
+historical citation upstream (ADR-98 WD4) and the path would otherwise 404.
 
 When a rewriter change shifts link rendering without changing upstream prose,
 the EN `sourceSha` moves and `check-translations` will flag the affected pages
