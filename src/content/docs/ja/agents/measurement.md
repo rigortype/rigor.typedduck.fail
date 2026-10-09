@@ -3,9 +3,9 @@ title: "Rigorの測定"
 description: "rigortype/rigor docs/agents/measurement.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/agents/measurement.md"
 sourcePath: "docs/agents/measurement.md"
-sourceSha: "15ca755d379ad121ca8b40b1b55b0f1c7fcd6beea88bd51c6b0f4912de421704"
-sourceCommit: "fa100695fdad83b324fbb8d1f649cd432a91d887"
-sourceDate: "2026-09-28T02:22:50+09:00"
+sourceSha: "1b5779f3f7c558700decf093a2d1ca8dfd6ab4c294fc2a77f2c48869e72201e7"
+sourceCommit: "8a5d6e2c6001d80084cf95132e306eb6a6d71b9a"
+sourceDate: "2026-10-08T16:56:43+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9050
@@ -43,6 +43,10 @@ worktreeから実行する場合は、その`vendor/bundle`が存在するよう
 
 `tool/engine_diag_diff.rb --base REV --head REV [--corpus REV | --corpus-dir DIR] [--target PATH] [--rule RULE] [--require-rows-in PATH:N] [--adjudication FILE]`（`--target`は反復可能）は、各エンジン全体（`lib data plugins`）をアーカイブし、各々を1つのコーパスにわたって新規プロセスで実行し、headが削除および追加した診断行をpath、line、column、rule、およびmessageをキーとして出力します。`--rule`の削除または追加された行がadjudicationファイル（`{base, path, line, column, message, verdict, reason}`のYAMLリストであり、`base`は実行が出力するmerge-base sha：削除された行に対しては`fp-silenced`または`tp-lost`、追加された行に対しては`named-mechanism`、ADR-119 WD2が変更が名指す機構に対してのみ新たな発火を認めるため）に存在しない場合、現在のbaseに対するエントリーがいずれの行にも一致しない場合（別のbaseに対するエントリーは無視されるため、着地した変更のものは休眠状態になります）、エントリーがフロア付きパスの下にある場合、あるいはフロア（`--require-base-rows N`、`--require-rows-in PATH:N`、baseとheadで維持）が満たされない場合に、ゼロ以外の終了コードで終了します。両エンジンはこのチェックアウトの`Gemfile.lock`とコーパスの設定の下で実行されるため、headにおける依存関係や設定の変更により、比較するのではなくbaseの実行を派手に失敗させることができます。フラグや古いルールのツリー内コピーではなく本ツールを、「新たな発火なし、すべての削除を判定済み」とするあらゆる主張に対して使用してください：凍結されたコピーは依然として変更が移動するライブのスコープやテーブルを読み取るため、構造上変更と一致してしまいます。マージベースを`--base`として渡してください；サーベイチェックアウトは`--corpus-dir`として渡します。CIの`Arity differential`ジョブは、コードを変更するすべてのPRにおいて`call.wrong-arity`ルール（ADR-119 WD2、`SourceArity`の決定ポイント）に対して`spec/integration/fixtures/arity_differential/`および`spec/integration/fixtures/declaration_witness/`上でこれを実行し、フロアは`survivors/`の形状によって維持されます；lane-2のコーパス実行はサーベイチェックアウトを用いた同一のコマンドです。
 
+## コミット間の型付けセンサス
+
+`tool/typing_census.rb --base REV --head REV --corpus-dir DIR [--target PATH]... [--classes REGEX] [--json FILE]`は各エンジンを丸ごとアーカイブし、`ExpressionTyper#try_user_method_inference`にモジュールをprependした新規プロセス（`rigor check --no-cache --workers 0`）でそれぞれを実行して、baseが少なくとも1回型付けしheadが一度も型付けしなかった（class, method）ペアを、両側の型付けされた呼び出しと型付けされなかった呼び出しの合計とともに出力します。これはエンジンの独自のスコープから取得された、インスタンス型付けサイトに対するADR-119 WD7（f）の「`Dynamic`と答える読み取りのセンサス」です。重いジョブであるため、`bundle exec`で1回に1つずつ実行してください。
+
 ## 嘘をつくプローブ
 
 - **実行結果キャッシュ（ADR-45）が未解析の結果を提供する**。プローブは0.2秒で「No diagnostics」と読み取り、バグが修正されたように見えます。判定を行う際は`--no-cache`を使用してください。疑わしいほど高速な実時間はその兆候です。`coverage --protection`にはキャッシュフラグはありませんが、依然としてターゲットの`.rigor/cache`を読み取るため、A/Bプロテクション実行の間でそれをクリアしてください。
@@ -64,7 +68,7 @@ worktreeから実行する場合は、その`vendor/bundle`が存在するよう
 - **アロケーションは保持（retention）を捉えられず、報告される`Memory peak`はシーケンシャルな実行でしかそれを捉えられない**。キャッシュしたものを決して解放しないメモ化はアロケーション軸上では不可視です：`ExpressionTyper#class_graph_buckets`を1スロットに制限したところ、保持ヒープが28.7 MB削減されましたが、`lib`のアロケーションは−368オブジェクトしか動かず、実質ゼロでした。手元にある2つのRSS測定値は単にノイズが多いどころの話ではありません。`RunStats.peak_rss_bytes`はmacOS上に`/proc`がないため`ps -o rss=`（統計生成時の*この*プロセスの現在のRSS）にフォールバックしますが、`Runner::PoolCoordinator`はフォークした子プロセスですべてのスライスを解析するため、`--workers=N`のもとではワーカーの保持をまったく見ることができません：デフォルトの`parallel.workers: 0`では明確に分離した同一のA/Bが、`--workers=4`では両アームで約257 MBを報告しました。`tool/bench.rb`の`peak_rss_kb`はLinux以外では`nil`であるため、ローカルの`make bench-perf`は実時間とアロケーションをゲートし、LinuxのCI実行はRSSもゲートします（`bench/thresholds.yml`の`rss_pct`）。保持の仮説は、実行が依然として何を「保持しているか」に基づいて判定してください：`--workers=0`でインプロセス解析を行い、`GC.start(full_mark: true, immediate_sweep: true)`を数回実行してから`GC.stat(:heap_live_slots)`および`ObjectSpace.memsize_of_all`（`require "objspace"`）を読み取ります。報告される`Memory peak`がアームあたり約7%変動し、5%を分離するのに十数回の交互反復を要するのに対し、これら2つは反復を通じて数百スロットおよび0.2 MB以内に収まり、効果の内側2桁の精度があります。保持の変更は独自のspecも必要とします：回答は正しいままであり残余のみが異なるため、いかなる診断アサーションも失敗し得ません。ストレージの形状を固定し（`spec/rigor/inference/class_graph_memo_slot_spec.rb`）、信頼する前に無制限アームに対してspecが失敗することを確認してください。
 - **エンジンA/Bはすでに存在する**。`tool/engine_alloc_ab.rb --base REV --head REV|WORKTREE`は、1つのフリーズされたコーパス（デフォルトではbaseのツリー）に対して2つのエンジンを、それぞれロードパス証明を伴う新規プロセスで実行し、アロケーション差分を出力します。CIはすべてのアドバイザリな「Engine allocations」ジョブとしてすべてのエンジンPRでこれを実行します。手作業でアームを構築する前にこれを使い、マージベースを`--base`として渡してください: `origin/master`を指定すると、ブランチが切られて以降にマージされたすべてのエンジン変更がそのブランチに請求されてしまいます。これが答えられない問い（別のコーパス、CPUプロファイル）については、これと同様にアームを構築してください: 各エンジンの`lib data plugins`を`git archive`し、bundleが解決するようにリポジトリルートから実行します。
 - **ウォール時間はここではなく、CI Linux上で決定される**。「Engine wall A/B」ワークフロー（`engine-wall.yml`、`tool/engine_wall_ab.rb`）は、このホストから離れた場所で2つのエンジンをABBA順で交互に実行し、それらの範囲が偶然を超えて分離しているかどうかを報告します: アームあたり2回の実行では差がまったくなくても3分の1の確率で分離するため、判定にはアームあたり5回が必要です。`bench/README.md`にディスパッチ行があります。ローカルのウォール時間A/Bはスモークテストに過ぎません。
-- **ウォームおよびインクリメンタルのレイテンシには独自のハーネスがある**。`tool/engine_warm_ab.rb`（Mastodon上で`engine-warm.yml`によってディスパッチされる）は、デフォルトキャッシュおよび`--incremental`に対するnull実行、リーフ編集、およびハブ編集の実行時間を計測します。各編集実行がミスであり各インクリメンタル実行がウォームであることを確認し、各ウォームの回答を素の`--no-cache`実行と比較します。これが回避するように構築された2つの罠: `--incremental --no-cache`はコールド実行ではありません。依然としてインクリメンタルスナップショットを再生するためです（#1525）。そして`--verify-incremental`の「N/M files re-analyzed」はツリーの固定された半分であり、編集のクロージャではありません（#1526）。コールドツール（`bench-perf`、各種A/B）はすべて`--no-cache`を渡し、ウォーム実行については何も語りません。
+- **ウォームおよびインクリメンタルのレイテンシには独自のハーネスがある**。`tool/engine_warm_ab.rb`（Mastodon上で`engine-warm.yml`によってディスパッチされる）は、デフォルトキャッシュおよび`--incremental`に対するnull実行、リーフ編集、およびハブ編集の実行時間を計測します。各編集実行がミスであり各インクリメンタル実行がウォームであることを確認し、各ウォームの回答を素の`--no-cache`実行と比較します。これが回避するように構築された2つの罠: `--incremental --no-cache`はインクリメンタルスナップショットや実行結果スロットの読み書きを行わないコールドなフル解析であり（#1525）、ウォーム実行に対する有効なオラクル（神託）ではあるもののウォームのレイテンシについては何も語りません。そして`--verify-incremental`の「N/M files re-analyzed」はツリーの固定された半分であり、編集のクロージャではありません（#1526）。コールドツール（`bench-perf`、各種A/B）はすべて`--no-cache`を渡し、ウォーム実行については何も語りません。
 - **CPUプロファイルでは、stackprofよりもvernierを推奨する**。stackprofの`:cpu`モードは、長いC呼び出し（Prismのパース）内で行われたサンプルを次の割り込みチェックに請求します。#1507の最中、これにより`IO.read`が実行の約460 ms、`File.realpath`が約200 msとして読み取られました。直接計測したところ、すべてのファイルの読み取りには11 ms、922回のrealpath呼び出しには22 msしかかかっていませんでした。
 - **レバーをレバーと呼ぶ前に、実行全体に対してサイズを見極める**。30%高速化するフェーズは、そのフェーズが実行全体に占めるシェアの30%の価値があります。#1507の最中、宣言巡回のマージ（#1197）はスライスごとにテーブル構築を26〜46%削減し、ウォール時間のレバーとして優先されました。測定された次の4つのwalkerはコールドな`rigor check lib`の約0.2%に過ぎず、ウォームなnull実行はそれらに決して到達しません。順位を付ける前に、ユーザーが実行するジャーニーのプロファイルから、コマンドのエンドツーエンドのウォール時間に対する削減効果を当てはめてください。
 - **測定器具を保持する**。`docs/notes/`のノートには数値が記録されますが、それを生成したハーネス ── ポジティブコントロール、トラップクリアフラグ、クラシファイア ── は記録されません。測定器具を組み込んだビルドを独自のブランチとしてプッシュし、ノートの制限事項セクションにそのブランチ名を記載してください。同じサブシステムに対するフォローアップの問いは例外ではなく通常のことです。

@@ -3,9 +3,9 @@ title: "キャッシング"
 description: "rigortype/rigor docs/manual/12-caching.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/12-caching.md"
 sourcePath: "docs/manual/12-caching.md"
-sourceSha: "8eafabb3914fc65322582395c1d96e68572f5678ed844e37b06d53b0a9a58b01"
-sourceCommit: "d19c9306f46b59d84bde8ac1a5a43f54be23c023"
-sourceDate: "2026-09-28T07:49:20+09:00"
+sourceSha: "aa88f00920e11217085d57d0f8a90b12ab8659aaade5cf5ed80130d762b71245"
+sourceCommit: "8a5d6e2c6001d80084cf95132e306eb6a6d71b9a"
+sourceDate: "2026-10-08T16:47:36+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9012
@@ -78,12 +78,14 @@ cache:
 
 | フラグ | 説明 |
 | --- | --- |
-| `rigor check --no-cache` | 永続キャッシュを読み書きせずに実行する。 |
+| `rigor check --no-cache` | 永続キャッシュを読み書きせずに実行する。`--incremental`と併用した場合はスナップショットもこれに含まれる: すべてのファイルが解析され、ディスク上のスナップショットは触られないまま維持される。 |
 | `rigor check --clear-cache` | キャッシュディレクトリを削除してから実行する。 |
 | `rigor check --cache-stats` | 実行終了時にオンディスクキャッシュのインベントリを表示する（`text`以外のすべての`--format`では標準エラー出力へ出すので、標準出力のドキュメントはパース可能なままである）。 |
 | `rigor check --incremental` | 変更箇所のみ再解析し、残りはインクリメンタルスナップショットから返す（後述）。 |
 
 キャッシュを恒久的に無効化する設定キーはありません。フラグは実行ごとのトグルです。習慣的に永続キャッシュなしで実行するには、`cache.path`を使い捨てのディレクトリに向けてください。
+
+`--incremental --no-cache`とエディタバッファ（`--tmp-file`と`--instead-of`）を指定した場合、バッファはスナップショットが存在しないときと同様に単独で解析され、`rigor check --incremental`を提案する代わりに`--no-cache`によってスナップショットがスキップされた旨の注記が表示されます。
 
 ## サイズと退避
 
@@ -118,7 +120,7 @@ Rigorは編集が*何を*変えたかについても精密です。多数のフ�
 このショートカットは、`--workers=N`（または`parallel.workers:`）、`--explain`、`--cache-stats`、`--coverage`、エディタバッファ、および`effects:`ブロックの下で、またキャッシュディレクトリがプロジェクトとは異なるファイルシステム上にある場合に退避します。これらの実行は従来どおり再チェックを行います。また、以下の場合には警告なく自動的に無効化されます:
 
 - 通常の再チェック自体が監視しない入力が変更された場合: 自動検出された`sig/`ディレクトリ（`signature_paths:`にリストしていないもの）、より狭い対象を指定した`rigor check --incremental DIR`が設定された残りの`paths:`からのみ発見するファイル、または解析対象パスの外部にある`pre_eval:`ファイル。再チェックはその変更前の回答を出力し続ける可能性がありますが、ショートカットはそれを繰り返しません。
-- `--incremental`実行がその回答を安全に記録できない場合: ファイルを再解析した`--workers=N`または`--no-cache`での実行後、実行が読み取りを行っている最中にファイルまたはディレクトリが変更された場合、クリーンなチェックアウト上にCIキャッシュが復元された後、または2つの実行が競合した場合。
+- `--incremental`実行がその回答を安全に記録できない場合: ファイルを再解析した`--workers=N`での実行後、実行が読み取りを行っている最中にファイルまたはディレクトリが変更された場合、クリーンなチェックアウト上にCIキャッシュが復元された後、または2つの実行が競合した場合。
 
 いずれの場合も、次回のフル解析まで無効化されたままとなり、すべての実行は通常の再チェックとなります。通常の再チェックが自発的にフル解析を開始することは決してありません: 設定、`Gemfile.lock`、またはRigorバージョンの変更、あるいは`--clear-cache`のみが開始します。したがって、ショートカットは無期限に無効化されたままになる可能性があります。再び有効にするには`rigor check --incremental --clear-cache`を1回実行してください。
 

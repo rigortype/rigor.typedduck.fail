@@ -3,9 +3,9 @@ title: "CLIコマンドリファレンス"
 description: "rigortype/rigor docs/manual/02-cli-reference.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/02-cli-reference.md"
 sourcePath: "docs/manual/02-cli-reference.md"
-sourceSha: "332961d46ffe6df304bc29e1605c759863cec8562198b5c0bf62410a43c6a993"
-sourceCommit: "d19c9306f46b59d84bde8ac1a5a43f54be23c023"
-sourceDate: "2026-09-28T04:27:33+09:00"
+sourceSha: "b7747f1dd146e41a898d9cefef0c0aff117332af68d894dc67093efa637f0265"
+sourceCommit: "8a5d6e2c6001d80084cf95132e306eb6a6d71b9a"
+sourceDate: "2026-10-08T16:17:41+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9002
@@ -38,7 +38,7 @@ rigor check [paths...]
 | `--format=FORMAT` | 出力形式。デフォルトは`text`。`json`（構造化ストリーム）のほか、CIネイティブな描画形式`sarif`、`github`、`gitlab`、`checkstyle`、`junit`、`teamcity`もある。[CIでのRigorの実行](../11-ci/)を参照。 |
 | `--no-ci-detect` | CIの自動検出を無効化する。デフォルトでは`text`出力は実行中のCIのネイティブなアノテーション / ヒントも出力する（`RIGOR_CI_DETECT=0`も同じ効果）。[CIでのRigorの実行 § 自動検出](../11-ci/)を参照。 |
 | `--explain` | フェイルソフトフォールバックイベントを`info`診断として表示する。 |
-| `--no-cache` | この実行では永続キャッシュをスキップする。 |
+| `--no-cache` | この実行では永続キャッシュをスキップする。`--incremental`と併用した場合はコールドなフル解析となる: インクリメンタルスナップショットと実行結果キャッシュは読み込みも書き込みもされないため、次回のプレーンな`--incremental`実行でも以前持っていたスナップショットがそのまま使用される。 |
 | `--incremental` | 前回の実行以降に変更されたファイルと、それに依存するファイルだけを再解析し、残りはクロスプロセスのディスクスナップショットから提供する（ADR-46）。診断結果はフル実行と同一;設定 / gem / バージョンの変更（またはファイルの追加・削除）があれば透過的にフル再解析へ切り替わる。変更がない実行は、アナライザーを起動することなくキャッシュから応答される。[キャッシュ](../12-caching/)を参照。 |
 | `--verify-incremental` | 受け入れゲート: インクリメンタルアナライザーをフルの`--no-cache`実行と突き合わせ、診断結果がバイト単位で同一であることを表明してから終了する（一致なら0、不一致なら差分の診断結果とともに1）。CIで`--incremental`が古い結果を決して提供しないことを保証するために使う。 |
 | `--clear-cache` | 実行前にキャッシュディレクトリを削除する。 |

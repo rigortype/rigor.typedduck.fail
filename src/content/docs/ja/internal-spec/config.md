@@ -3,9 +3,9 @@ title: "設定 — `.rigor.yml`のセマンティクス"
 description: "rigortype/rigor docs/internal-spec/config.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/config.md"
 sourcePath: "docs/internal-spec/config.md"
-sourceSha: "16c03cb030fd73d35b705ed3ca1747a658250de5060d87b0512417ef8ba81533"
-sourceCommit: "e12ab45fa55707ed2acc0eae2e273b99a72dc077"
-sourceDate: "2026-09-25T21:41:30+09:00"
+sourceSha: "2f554df0742fac0b16d5dfc672beab8fb1085399e656191293d8cae7c48259be"
+sourceCommit: "8a5d6e2c6001d80084cf95132e306eb6a6d71b9a"
+sourceDate: "2026-10-08T17:31:00+09:00"
 translationStatus: "translated"
 sidebar:
   order: 3050
@@ -53,6 +53,23 @@ sidebar:
 ティア1と3は認識されない**トップレベル**キーで重なり合い、両方が必要です。すなわちティア1は入力された時点で誤りを捕捉しますが、エディタがスキーマを読み込むユーザーに限られます。一方ティア3は常に実行されます。`Configuration::KNOWN_KEYS`は、適合するファイルが運びうる完全な集合です（`DEFAULTS`のキー + `includes:` + 予約名前空間）。それ以外はすべて`Configuration#unknown_keys`に記録されます ── ローダーは自身が所有する各キーを取得し、残りを決して列挙しないため、その記録がなければキーは監査がConfigurationを見る前に失われてしまいます。
 
 **ティア3はトップレベルキーのみを対象とします**。ネストしたチェックには各グループの既知キー集合が必要ですが、`DEFAULTS`はそれを供給できません。すなわち`DEFAULTS["dependencies"]`は`budget_overrun_strategy`を省いており、これは実在し、文書化され、スキーマで宣言されています ── `DEFAULTS`をキーとするネストしたチェックは動作している設定にフラグを立ててしまうでしょう。加えて`severity_overrides:`はルールIDのオープンなマップです。ネストした未知のキーはティア1の仕事です。すなわちスキーマ内のすべてのネストしたオブジェクトは`additionalProperties: false`であり、下記のゲートがそれを完全に保ちます。
+
+## パス値のキー
+
+パス値の設定は`.rigor.yml`（または`BUNDLE_PATH`についてはBundler自身の設定）内のファイルまたはディレクトリを指名します。これは`Rigor::ConfigPath.absolute`によって解決され、相対値はそれを指名したファイルのディレクトリ（ロード後に解決されるキーについてはプロジェクトルート）に固定され、`File.absolute_path`のセマンティクスで正規化されます: `.`と`..`のみが解決され、それ以外は解決されません。
+
+ホームディレクトリの表記は、厳密に2つの形式について`File.expand_path`に従います:
+
+- `~/x`は`<home>/x`へ展開され、単体の`~`は`<home>`へ展開されます。ここで`<home>`は`Dir.home`です。これはBundlerが`BUNDLE_PATH: "~/gems"`で行う動作であり、`.rigor.yml`の作成者が`~/projects/app`と記述した場合の意図でもあります。
+- `~name`はリテラルのディレクトリ名です。`~name/x`は`<config dir>/~name/x`へ解決されます。ローダーはここでは`File.expand_path`を使用しません。`~name`を`name`という名前のユーザーのホームとして読み取り、そのユーザーが存在しない場合に`ArgumentError`を発生させてしまい、`~drafts`という名前のプロジェクトディレクトリで`rigor check`がクラッシュしたためです（#1510）。解決処理が`~`で例外を発生させることは決してありません。
+
+このルールは`paths:`、`signature_paths:`、`test_paths:`、`pre_eval:`、ネストされた`plugins_io.allowed_paths:`、各`includes:`エントリー、`bundler.bundle_path:`、`bundler.lockfile:`、`rbs_collection.lockfile:`、および`.bundle/config`（プロジェクトまたはユーザーグローバル）から読み取られた`BUNDLE_PATH`値をカバーします。`cache.path:`、`baseline:`、`effects.snapshot.path:`はカバーせず、これらはリテラルのまま作業ディレクトリに対する相対パスとして維持されます。
+
+Bundler自身は`BUNDLE_PATH`において`~user/`を展開しますが、Rigorは`~name`をリテラルとして維持するため、`BUNDLE_PATH: "~deploy/gems"`は追跡されません。
+
+実行およびインクリメンタル書き込みガードは、リゾルバーごとの同じヘルパー（`LockfileResolver.configured_lockfile_path`、`RbsCollectionDiscovery.configured_lockfile_path`）を通じてロックファイル設定を展開するため、ガードは実行が読み取るロックファイルを監視します。`ConfigAudit`は`ConfigPath.absolute`を直接呼び出し、同一の結果を得ます。
+
+実行時にRigorが*解析*を求められるパス（CLIのパス引数、テンプレートユニットのパス、またはランナーのファイルセット）はカバーしません。シェルはRigorが引数を確認する時点ですでに引数内の`~`を展開しているため、残っている`~`はディレクトリ名であり、それらの箇所では`File.absolute_path`を直接使用します。テンプレートユニットのパス演算（`Analysis::TemplateUnitPaths.relative`）はそのルールに従います。
 
 ## 予約名前空間
 

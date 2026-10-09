@@ -4,7 +4,7 @@ description: "Imported from rigortype/rigor docs/notes/20260706-adr67-wd2-in-bod
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260706-adr67-wd2-in-body-inference-design-spike.md"
 sourcePath: "docs/notes/20260706-adr67-wd2-in-body-inference-design-spike.md"
 sourceSha: "e89c0ec9f5a30051f62d5b62d0beac01ec63a4e733233c8f97b37f1150e7cccc"
-sourceCommit: "fa100695fdad83b324fbb8d1f649cd432a91d887"
+sourceCommit: "8a5d6e2c6001d80084cf95132e306eb6a6d71b9a"
 sourceDate: "2026-07-06T20:10:24+09:00"
 sourceLanguage: "ja"
 sidebar:

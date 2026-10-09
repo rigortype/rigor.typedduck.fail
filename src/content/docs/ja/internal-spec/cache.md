@@ -3,9 +3,9 @@ title: "キャッシュレイヤー — `Rigor::Cache`"
 description: "rigortype/rigor docs/internal-spec/cache.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/cache.md"
 sourcePath: "docs/internal-spec/cache.md"
-sourceSha: "dd0df9d3ee021152a75082be360a7305ab2b5d82f8421cdfbac1998231bc5dbb"
-sourceCommit: "fa100695fdad83b324fbb8d1f649cd432a91d887"
-sourceDate: "2026-09-30T20:07:28+09:00"
+sourceSha: "7f10f52b189e48f4e3357c007cbf65721c66a2d8494861d763ad22c2eea4e86d"
+sourceCommit: "8a5d6e2c6001d80084cf95132e306eb6a6d71b9a"
+sourceDate: "2026-10-08T17:40:13+09:00"
 translationStatus: "translated"
 sidebar:
   order: 3050
@@ -266,7 +266,9 @@ sha256               32バイト — 直前のすべてのバイトの整合性�
 
 ### 2レベルのゲーティング
 
-1. **グローバルフィンガープリント（ロードをゲートする）**。`IncrementalSnapshot.fingerprint(configuration:, roots:)`は、エンジンバージョン + `SCHEMA`、設定ハッシュ（`configuration.to_h`、診断を変更しないキー ── 後述の`effects:`、および`sig-gen`のみが読み取る`test_paths:` ── は省略されます）、解析**ルート**（展開されたファイルリストではない —— なのでルート以下のファイルの追加/削除ではスナップショットは破棄されない）、`Gemfile.lock`、`rbs_collection.lock.yaml`、およびプロジェクトの`signature_paths` RBSに対するSHA-256です —— ただし解析対象ソースの内容は**含みません**。不一致はスナップショットを破棄します。
+1. **グローバルフィンガープリント（ロードをゲートする）**。`IncrementalSnapshot.fingerprint(configuration:, roots:)`は、エンジンバージョン + `SCHEMA`、設定ハッシュ（`configuration.to_h`、診断を変更しないキー ── 後述の`effects:`、および`sig-gen`のみが読み取る`test_paths:` ── は省略されます）、解析**ルート**（展開されたファイルリストではない —— なのでルート以下のファイルの追加/削除ではスナップショットは破棄されない）、**解決された**依存関係ロックファイル（`bundler.lockfile:` / `rbs_collection.lockfile:`、それ以外は自動検出された`./Gemfile.lock` / `./rbs_collection.lock.yaml`）、プロジェクトのRBS（`signature_paths`ルート、または`signature_paths`がnilのときは自動検出された`<root>/sig` ── その`.rbs`ファイルの内容）、および各`pre_eval:`ファイルの**内容**（そのパスは設定内にあり、さもなければ解析対象パスの外部にあるファイルがスナップショットを陳腐化させたまま放置してしまうため）に対するSHA-256です —— ただし解析対象ソースの内容は**含みません**。存在しない`pre_eval:`ファイルは不在（absent）としてダイジェストされるため、作成された場合もスナップショットを破棄します。不一致はスナップショットを破棄します。
+
+   ロックファイルのパスは`Analysis::RunCacheKey.resolved_lockfile_paths`によって解決されます ── これはADR-45の実行結果キーの`bundler.lockfile` / `rbs_collection.lockfile`スロットを構築する呼び出しと同じものであり、2つのキャッシュは同じファイルによってgemセットを特定します（[#1532](https://github.com/rigortype/rigor/issues/1532)）。`./Gemfile.lock`を使用しているプロジェクトはそのファイルを以前とまったく同様にダイジェストするため、`SCHEMA`は動きませんでした。解決されたロックファイルが`./Gemfile.lock`と異なるプロジェクトは、フィンガープリントの相違を1回確認します（安全なコールド実行）: `bundler.lockfile:`が別のファイルを名指すもの、`auto_detect: false`かつ`./Gemfile.lock`が存在するもの（現在は読み取られないため、その部分は`absent`）、および`bundler.lockfile:`が存在しないファイルを名指すもの（自動検出へのフォールバックなし）── 最後は`./Gemfile.lock`も存在する場合に限られます。どちらのファイルも存在しない場合、masterと現在は両方ともその部分を`absent`としてダイジェストするため、フィンガープリントは動きません。`rigor-ffi`が`:ffx` / `:ffi`ターゲットのために`./Gemfile.lock`を読み取るように、依存関係ファイルを独自に読み取るプラグインは、代わりに`incremental_state_fingerprint`フックを通じてそれをカバーします。これはスナップショットゲートのみをカバーします: ソース編集のないそのような入力への変更は、依然として実行結果スロットから提供されます（[#1652](https://github.com/rigortype/rigor/issues/1652)）。
 2. **ファイルごとのダイジェスト（判断を駆動する）**。フィンガープリントが一致すると、`Payload`が無条件にロードされ、そのファイルごとの内容ダイジェストが変更セット`ΔF`を決定します;影響を受ける閉包`ΔF ∪ dependents[ΔF]`が再解析され、残りは`Payload#cache`から提供されます。
 
 ### 出力順序

@@ -3,9 +3,9 @@ title: "設定"
 description: "rigortype/rigor docs/manual/03-configuration.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/03-configuration.md"
 sourcePath: "docs/manual/03-configuration.md"
-sourceSha: "f5a77a377e978f8d6237e5e57874a0caa44f15b261db94abbf292b0c41a51a68"
-sourceCommit: "d19c9306f46b59d84bde8ac1a5a43f54be23c023"
-sourceDate: "2026-09-26T08:38:13+09:00"
+sourceSha: "a0a4c7f2b515369d373200128cd362b87f01f05602ff07b3e7cb8acea9397417"
+sourceCommit: "8a5d6e2c6001d80084cf95132e306eb6a6d71b9a"
+sourceDate: "2026-10-08T17:26:56+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9003
@@ -24,7 +24,7 @@ Rigorはプロジェクトルートから単一のYAML設定ファイルを読�
 
 設定を置き換えではなく*継承*するには、設定ファイルで`includes:`（再帰的）を使ってベースを指定できます。`--config=PATH`は探索を完全にバイパスします。
 
-設定ファイル内のすべての相対パスは、そのファイル自身のディレクトリを基準に解決されます。
+設定ファイル内のすべての相対パスは、そのファイル自身のディレクトリを基準に解決されます。パス設定における先頭の`~/`（または単体の`~`）はホームディレクトリに展開されます; `~name`は他のユーザーのホームではなく、`~name`という名前の通常のディレクトリです。これは`paths:`、`signature_paths:`、`test_paths:`、`pre_eval:`、`plugins_io.allowed_paths:`、`includes:`、`bundler.bundle_path:`、`bundler.lockfile:`、`rbs_collection.lockfile:`を対象とします。`cache.path:`、`baseline:`、`effects.snapshot.path:`には適用されず、リテラルのまま作業ディレクトリに対する相対パスとして維持されます。
 
 ## エディタ検証
 
