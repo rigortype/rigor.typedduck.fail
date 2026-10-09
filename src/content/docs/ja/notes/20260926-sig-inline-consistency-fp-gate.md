@@ -32,7 +32,7 @@ cd <copy> && BUNDLE_GEMFILE=<worktree>/Gemfile bundle exec ruby -I<arm>/lib <arm
 | redmine（`app`, `lib`） | 0 | なし | 1,716 → 1,716、完全一致 | 0 | 0 | — |
 | Rigor（`lib`） | 0 | あり | 1 → 1、完全一致 | 0 | 0 | — |
 
-**4つのターゲットすべてで`rbs.contradicting-signature`の行はゼロであり、他のルールも一切変動しませんでした**。 herbの差分のすべては、ADR-32 WD13が出力していた2,482件の`source-rbs-annotation-not-honoured` `:info`行であり、herbが両方の場所で宣言しているメンバーごとに1件ずつ出力されていたものです。それらはすべて整合性のあるペアとなり、沈黙するようになりました。herbに残るすべての診断（37件）は、アーム間でバイト単位で一致しています。herbになお残る9件の`source-rbs-annotation-not-honoured`行は無関係なWD12の原因によるものです: パースできない`#:`行（`#: type serialized_node = {`、`#: … as String`）。
+**4つのターゲットすべてで`rbs.contradicting-signature`の行はゼロであり、他のルールも一切変動しませんでした**。herbの差分のすべては、ADR-32 WD13が出力していた2,482件の`source-rbs-annotation-not-honoured` `:info`行であり、herbが両方の場所で宣言しているメンバーごとに1件ずつ出力されていたものです。それらはすべて整合性のあるペアとなり、沈黙するようになりました。herbに残るすべての診断（37件）は、アーム間でバイト単位で一致しています。herbになお残る9件の`source-rbs-annotation-not-honoured`行は無関係なWD12の原因によるものです: パースできない`#:`行（`#: type serialized_node = {`、`#: … as String`）。
 
 herbの`sig/`は同じ注釈に対するrbs-inline自身の出力であるため、ほとんどのペアで一致（equality）が期待される結果です。`sig/`の方がより精密な側である538ペアはすべて、注釈付きファイル内の未注釈の`def`に対するrbs-inlineのスケルトンであり、それぞれが`%a{rigor:v1:inferred-signature}`を保持しています（ADR-93 WD6）: 作者がそのインライン側を書いたわけではないため、`sig/`は以前とまったく同様に行なしでバインドし続けます。インラインの`-> void`の隣にあるADR-93の`sig/ -> untyped`は、RBSが`untyped`、`void`、`top`を同じトップ型として定義しているため、一致として読み取られます。
 

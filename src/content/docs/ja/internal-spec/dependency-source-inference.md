@@ -3,8 +3,9 @@ title: "オプトイン依存関係ソース推論"
 description: "rigortype/rigor docs/internal-spec/dependency-source-inference.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/dependency-source-inference.md"
 sourcePath: "docs/internal-spec/dependency-source-inference.md"
-sourceSha: "fd65a9cef92e5ecd6d99324fb39101fc6f052ba8296c961cadf6b069278ddc45"
-sourceCommit: "78b18cea6a576475c92bce020535269f2eebc20d"
+sourceSha: "35109718355596abcb2faa9be742ee0af178b9fc3efa53fa87c0857833addd2e"
+sourceCommit: "1c6f6ea59bac83a5227c3a879523151aeada9b3c"
+sourceDate: "2026-10-10T01:43:28+09:00"
 translationStatus: "translated"
 sidebar:
   order: 3050
@@ -84,7 +85,8 @@ v0.1.3のディスパッチャーティアは`when_missing`と`full`を同じよ
 | `Rigor::Analysis::DependencySourceInference::Index#budget_exceeded` | Analysis | スライス4 |
 | `Rigor::Analysis::DependencySourceInference::Builder.build` | Analysis | スライス2a |
 | `Rigor::Analysis::DependencySourceInference::Walker.walk(budget:)` | Analysis | スライス2b-i / 4 |
-| `Rigor::Analysis::DependencySourceInference::Walker::Outcome` Data形状 | Analysis | スライス4 |
+| `Rigor::Analysis::DependencySourceInference::Walker::Outcome` Data形状 | Analysis | スライス4 / #1672（`refinements`） |
+| `Rigor::Analysis::DependencySourceInference::Index#refinements` | Analysis | #1672 |
 | `Rigor::Environment#dependency_source_index` | Environment | スライス2b-ii |
 | `Rigor::Cache::Descriptor::DependencyEntry` | Cache | スライス3 |
 | `Rigor::Cache::Descriptor#dependencies`スロット | Cache | スライス3 |
@@ -118,6 +120,7 @@ Builder.build(dependencies)        ▼
 - `#unresolvable` — `Unresolvable`の配列。
 - `#method_catalog` — ウォーカーによって設定されたフラットな`Hash{[class_name, method_name] => :instance | :singleton}`（スライス2b-i）。
 - `#contribution_for(class_name:, method_name:)` — 記録された種類または`nil`を返す。
+- `#refinements` — gemの`refine`本体（issue #1672;下の「refine本体」を参照）、フリーズされた`Hash{refined_class => Hash{method_name => Array<refining_module>}}`。
 - `#empty?` — 解決されたgemが登録されていない場合にtrue。
 - `#cache_descriptor` — 解決されたgemごとに1つの`DependencyEntry`を持つフリーズされた[`Cache::Descriptor`](../cache/)（スライス3;以下の「キャッシュスライス」参照）。
 
@@ -134,6 +137,13 @@ Builder.build(dependencies)        ▼
 - `def foo`は`(Class, :foo, :instance)`（またはシングルトンスコープフラグ下では`:singleton`）を記録。
 - `def self.foo`は周囲のフラグに関係なく`(Class, :foo, :singleton)`を記録。
 - クラスごとの先着書き込みが勝つ。異なる種類の同じクラスの同名メソッド（稀;主にプライベートAPI）は、クラスごとの最初のウォークで勝った種類を持つ。
+- `refine X do … end`はrefine本体であり、囲むモジュールの一部ではない（下の「refine本体」を参照）。
+
+### refine本体（issue #1672）
+
+ウォーカーはプロジェクトのウォークが行うrefine呼び出し形状（`Inference::ScopeIndexer.refine_target`）を認識する: 1つの定数引数とリテラルブロックを持つ暗黙的レシーバーまたは`self`レシーバーの`refine`。その本体のインスタンス`def`はカタログに入ってはならない（MUST NOT）: それらはリファインするモジュールのメソッドではなく、`using`の後にのみリファインされるクラスのメソッドとなるからである。ウォーカーは代わりに各々を、囲むモジュールによるターゲットのリファインメントとして`Walker::Outcome#refinements`に記録し、ターゲットはプロジェクトのウォークが解決するのと同じ方法（それが指し示しうるすべての名前）で字句的に解決される。`def self.x`および`def`や宣言内にネストされた`def`はターゲット上で何も定義しないためドロップされる;本体内で宣言された`class` / `module`は引き続き字句プレフィックスのもとでウォークされる。囲むモジュールのない`refine`、または`class << self`内の`refine`はRubyが受け付けるものを何もリファインしないため何も記録しない。計算されたターゲット（`refine(klass) { … }`）はキーとなるクラスを名指ししないため、その本体は他のブロックと同様にウォークされる。
+
+`Builder`はすべてのgemのテーブルを`Index#refinements`へとユニオンし、ランナーはそれをプロジェクトの`discovered_refinements`シード（issue #1120の`call.undefined-method`リファインメントチェックが読み取るテーブル）へとユニオンする。したがって、gemのリファインするモジュールを`using`するプロジェクトファイルは、その字句領域においてgemのリファインされた呼び出しを解決し、他の場所では引き続きそれを報告する。インデックスは毎回の実行が行う事前パスによって再構築されるため、ウォーム実行で再解析されたファイルにはコールド実行がシードするのと同じテーブルがシードされる。変更されていないファイルのキャッシュ結果は、カタログの貢献と同様にgemの名前、バージョン、およびモードでキー付けされるため（「キャッシュスライス」参照）、バージョンバンプなしにgemのrefine本体を編集しても、そのファイルが再解析されるまでは反映されない。gemごとのバジェットを使い果たした後にウォーカーが到達したrefine本体は記録されない。ADR-121 WD3により、gemのrefine本体は推論されない: その中へのリファインされた呼び出しは`Dynamic[top]`として型付けされる（現在は未解決メソッドフォールバックを通じて;リファインされたディスパッチアーム#1664はその答えを維持する）。
 
 ファイルごとのエラーはサイレントに「このファイルからの貢献なし」に降格します:
 

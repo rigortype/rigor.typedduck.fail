@@ -3,9 +3,9 @@ title: "診断"
 description: "rigortype/rigor docs/manual/04-diagnostics.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/04-diagnostics.md"
 sourcePath: "docs/manual/04-diagnostics.md"
-sourceSha: "a5e504afb10708cfc2542e4a54fd915885ef82382010f4d87379c84fef0f4751"
-sourceCommit: "d19c9306f46b59d84bde8ac1a5a43f54be23c023"
-sourceDate: "2026-09-26T20:52:07+09:00"
+sourceSha: "1b5d49cc2f0d47bcc72ad31cf7b353382d6241797a40a9e6771c1d0e29bf7ac2"
+sourceCommit: "1c6f6ea59bac83a5227c3a879523151aeada9b3c"
+sourceDate: "2026-10-09T22:00:36+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9004
@@ -57,7 +57,7 @@ app/user.rb:11:3: error: undefined method `lenght' for "hello" [call.undefined-m
 | <a id="rule-flow-return-in-ensure"></a>`flow.return-in-ensure` | `ensure`節内の明示的な`return`。メソッドの実行中の戻り値を上書きし、実行中の例外を静かに握りつぶす。`ensure`内のネストした`def`、ラムダ、`define_method`ブロック内の`return`は発火しない（それは内側のフレームを抜けるだけ）。 | high |
 | <a id="rule-flow-shadowed-rescue-clause"></a>`flow.shadowed-rescue-clause` | 同じチェーンの先行する節が、この節の挙げるすべての例外クラスのスーパークラス（または同一クラス）をすでに捕捉するため、この`rescue`節が決して実行されない。 | high |
 | <a id="rule-def-return-type-mismatch"></a>`def.return-type-mismatch` | メソッドボディの結果が宣言されたRBSの戻り値型に違反する。 | medium |
-| <a id="rule-def-ivar-write-mismatch"></a>`def.ivar-write-mismatch` | インスタンス変数が最初の書き込みと異なる型で書かれる。 | high |
+| <a id="rule-def-ivar-write-mismatch"></a>`def.ivar-write-mismatch` | そのRBS宣言（`@x: T`または`attr_*`メンバー）が両方の書き込みを許容している場合を除き、インスタンス変数が最初の書き込みと異なる型で書かれる。 | high |
 | <a id="rule-def-method-visibility-mismatch"></a>`def.method-visibility-mismatch` | 明示的レシーバーの呼び出しがprivateメソッドに到達する。 | high |
 | <a id="rule-def-override-visibility-reduced"></a>`def.override-visibility-reduced` | オーバーライドが、プロジェクト定義の祖先から継承した可視性を下げる。 | high |
 | <a id="rule-def-override-return-widened"></a>`def.override-return-widened` | オーバーライドの宣言された戻り値型が、継承した戻り値型を広げる（共変性）。 | high |

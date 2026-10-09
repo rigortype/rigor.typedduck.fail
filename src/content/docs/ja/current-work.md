@@ -3,9 +3,9 @@ title: "現在の作業 — セッションハンドオフ"
 description: "rigortype/rigor docs/CURRENT_WORK.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/CURRENT_WORK.md"
 sourcePath: "docs/CURRENT_WORK.md"
-sourceSha: "5bb069dc86e2e815ee3690f68fb41acfd8693507fcccd60dbf75976bff1a2c7c"
-sourceCommit: "8a5d6e2c6001d80084cf95132e306eb6a6d71b9a"
-sourceDate: "2026-10-08T18:24:08+09:00"
+sourceSha: "17478badee0ab5977afb447617e92258caa00aefb7b690eb285e4e3fef377ae0"
+sourceCommit: "1c6f6ea59bac83a5227c3a879523151aeada9b3c"
+sourceDate: "2026-10-09T18:12:43+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9050
@@ -26,9 +26,9 @@ sidebar:
 一時的な文書であり、全体が置き換えられます。バックログはGitHub Issuesで、リリース計画はMilestonesで管理されます。
 このファイルがADR、CHANGELOG、またはissueと食い違う場合、間違っているのはこのファイル側です。
 
-## 2026-10-08時点の状態（master `5a8ca1512`）
+## 2026-10-09時点の状態（#1659後のmaster）
 
-**`v0.4.1`マイルストーンは完了しました**: 7つのissueすべてがクローズされました（#1510 #1639、#1518 #1642、#1525 #1643、#1532 #1644、#1590 #1640;それ以前に#1585/#1554）。リリースを切るかどうかは`/rigor-release-prep`を通じたメンテナの判断のみによります。注記: masterはADR-119 C1d0以降、そして現在はC2-b1（#1629）も運んでおり、これらは`v0.4.1`のスコープでは除外するよう指定されていました ── リリース準備では、ADR-119-C1d0以前の履歴からブランチを切って`v0.4.1`をリリースするか、masterをそのまま出荷するかを決定しなければなりません;切る前にメンテナに提起してください。
+**`v0.4.1`がリリースされました**（2026-10-08、タグ`v0.4.1` = `8a5d6e2c6`、RubyGemsおよびGitHub Release）。masterからリリースされ、ADR-119 C1d0以降およびC2-b1が含まれます; `0.3.x`のノートは`docs/CHANGELOG-0.3.x.md`に移動しました。Mastodonスイープの精度下限はC2-b1の許容損失により0.523から0.520になり、perf-gateコーパスは`v0.4.1`になりました（#1659）。
 
 **ADR-119 C2-b1が着地しました（#1629）**。`bot`例外付きです（C2行の正誤表）。メンテナはmasterにおけるその型付け損失を受け入れました（Q9、2026-10-08）: GitLabコントローラの型付けされた呼び出し −74%、Mastodon −21%（プラグイン配布設定）。**#1651がv0.5.0をゲートします**: そのカットの前に回復するか、明示的に受け入れてください。A1（#1635）はクローズされました: あらゆる健全な緩和のもとで測定されたゲインは0でした;そのフォローアップは#1647〜#1650です。
 

@@ -3,9 +3,9 @@ title: "アーキテクチャ決定記録"
 description: "rigortype/rigor docs/adr/README.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/README.md"
 sourcePath: "docs/adr/README.md"
-sourceSha: "f5d29b3f298baced4fd0e96960e60a7ec11ad4c19bc325248a3e9941173710fa"
-sourceCommit: "fa100695fdad83b324fbb8d1f649cd432a91d887"
-sourceDate: "2026-10-01T01:59:12+09:00"
+sourceSha: "a008f0eda12c722818a1ea1502acd34f354e093f5159a0f72e20f172264c142b"
+sourceCommit: "1c6f6ea59bac83a5227c3a879523151aeada9b3c"
+sourceDate: "2026-10-09T23:24:52+09:00"
 translationStatus: "translated"
 sidebar:
   order: 4000
@@ -145,6 +145,7 @@ sidebar:
 | ADR-117 | [標準ストリーム: イディオムによって型付けされ、ランタイム契約によってチェックされる](117-standard-streams-typed-by-idiom/) | Accepted（#1405以降明示的な`$_`リーダー；オープン: #1362、#1366、#1367、#1415、#1423、#1426、#1427、#1429） |
 | ADR-119 | [発見ファクトの確実性、解決チェーン上の候補セット読み取り](119-discovery-fact-certainty/) | Accepted（2026-10-01；ゲート、`unpositioned_mixins`、チェーン、#1593、#1597、#1598、#1599、およびWD1の兄弟テーブルが先行着地；WD2–WD3およびPR Cがオープン） |
 | ADR-120 | [デフォルトのローカル`check`ルートとしての`--incremental`](120-incremental-by-default/) | Proposed（メンテナ待ち；切り替えはWD7のゲート待ち） |
+| ADR-121 | [Rubyのrefinementを通じた呼び出しの型付け、および`Proc#refined`](121-ruby-refinement-typing/) | Accepted（2026-10-09；未実装、#1670により追跡） |
 
 ## 新しいADRの追加
 

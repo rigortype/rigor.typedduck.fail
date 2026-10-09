@@ -3,9 +3,9 @@ title: "プラグインの使用"
 description: "rigortype/rigor docs/manual/07-plugins.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/07-plugins.md"
 sourcePath: "docs/manual/07-plugins.md"
-sourceSha: "b599d133635c26cd19fe1b7286966ab1d461efe5d902797a608af1246e783427"
-sourceCommit: "42d6e031257466de187cc9640b4896300473f9bb"
-sourceDate: "2026-09-25T00:57:03+09:00"
+sourceSha: "3261a60454fe2255ad8f3d0995d8ad136b167ff294750b86d9e262ce0cf92695"
+sourceCommit: "1c6f6ea59bac83a5227c3a879523151aeada9b3c"
+sourceDate: "2026-10-10T04:06:26+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9007
@@ -42,7 +42,7 @@ Rigorは[`plugins/`](https://github.com/rigortype/rigor/blob/master/plugins/READ
 - **Testing**: `rigor-rspec`、`rigor-rspec-rails`、`rigor-minitest`、`rigor-shoulda-matchers`、`rigor-factorybot`。
 - **dry-rb**: `rigor-dry-types`、`rigor-dry-schema`、`rigor-dry-struct`、`rigor-dry-validation`。
 - **FFI**: `rigor-ffi`およびサブプラグイン（`rigor-ffi-rzmq`、`rigor-rbnacl`、`rigor-sassc`、`rigor-ethon`）。プラグイン作者向けには、`rigor-ffi`はカスタムバインディング定義を認識するための`ffi_binding_recognizer`クラスDSLを`Rigor::Plugin::Base`上に提供します。
-- **その他のエコシステム**: `rigor-sinatra`、`rigor-hanami`、`rigor-devise`、`rigor-pundit`、`rigor-sidekiq`、`rigor-graphql`、`rigor-statesman`、`rigor-sorbet`、`rigor-typescript-utility-types`、`rigor-activesupport-core-ext`。
+- **その他のエコシステム**: `rigor-sinatra`、`rigor-hanami`、`rigor-devise`、`rigor-pundit`、`rigor-alba`、`rigor-typelizer`、`rigor-sidekiq`、`rigor-graphql`、`rigor-statesman`、`rigor-sorbet`、`rigor-typescript-utility-types`、`rigor-activesupport-core-ext`。
 
 ## `plugins/` vs `examples/`
 

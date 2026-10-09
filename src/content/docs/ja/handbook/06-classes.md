@@ -3,9 +3,9 @@ title: "クラス"
 description: "rigortype/rigor docs/handbook/06-classes.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/06-classes.md"
 sourcePath: "docs/handbook/06-classes.md"
-sourceSha: "9ed49fccbc8135039ce237a13b3e505967be01f8bf5468260412af205c33ae6a"
-sourceCommit: "04668e5f0d6205fdd5c8f44662041add7ab33ca3"
-sourceDate: "2026-09-08T23:15:10+09:00"
+sourceSha: "463e6b531b89308c880739f5d71b3c9941194a28027c52516533416f692eb65a"
+sourceCommit: "1c6f6ea59bac83a5227c3a879523151aeada9b3c"
+sourceDate: "2026-10-09T22:00:36+09:00"
 translationStatus: "translated"
 sidebar:
   order: 1006
@@ -81,7 +81,7 @@ u.name    # Constant<"Alice">  （インソースディスパッチ +
           # インスタンス変数追跡を通じて）
 ```
 
-`attr_writer`はセッターを公開します; `attr_accessor`は両方を公開します。セッターの引数型は呼び出し元が提供するものです。`def.ivar-write-mismatch`ルール（v0.1.2）は、同じクラスボディ内の同じインスタンス変数への2つの書き込みが具体クラスで一致しているかチェックします。正確な契約（contract）については[マニュアル: 診断](../../manual/04-diagnostics/)を参照してください。明示的なインスタンス変数型を作成せずに、同じクラス内での`String`から`Array`への誤ったリバインドをキャッチできます。
+`attr_writer`はセッターを公開します; `attr_accessor`は両方を公開します。セッターの引数型は呼び出し元が提供するものです。`def.ivar-write-mismatch`ルール（v0.1.2）は、そのクラスのRBSインスタンス変数宣言（`@name: String | Integer`や`attr_reader name: String | Integer`）が両方を許容している場合を除き、同じクラスボディ内の同じインスタンス変数への2つの書き込みが具体クラスで一致しているかをチェックします。正確な契約（contract）については[マニュアル: 診断](../../manual/04-diagnostics/)を参照してください。明示的なインスタンス変数型を作成せずに、同じクラス内での`String`から`Array`への誤ったリバインドをキャッチできます。
 
 ## メソッドをまたいだインスタンス変数
 

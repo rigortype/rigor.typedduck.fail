@@ -59,7 +59,7 @@ sidebar:
 - **WD3 — テストスコープのビュー**。ストリームを差し替えるテストヘルパー（`config.before { $stdout = StringIO.new }`）は、[ADR-17](../17-monkey-patch-pre-evaluation/)の意味でのモンキーパッチです。したがってエンジンはそれを設定から取得します: それが提供するパスにスコープされた`pre_eval:`エントリであり、そのグローバル書き込みはそのスコープに対して、宣言された`IO`を含めず、スコープの事前評価されたファイルが書き込む値のユニオンとしてグローバルを再型付けします（#1426）。
   - オンボーディングスキルの`rigor-project-init`はそのエントリを書き込みます。ファイル名単体からではなく、プロジェクト自身の配線（`.rspec`の`--require`、テストファイルの`require`）を読み取ります（#1427）。
   - プロジェクトにそのエントリが存在するまで、テストファイル内の`$stdout.string`は、リストされていないモンキーパッチと同様に`call.undefined-method`を報告します。報告は`pre_eval:`を指し示すべきです。
-- **WD4 — `$_`はコアリーダーを信頼する**。 `$stdin`、`STDIN`、`ARGF`、`Kernel`、および`IO`またはその同類（`StringIO`を含む: そのリーダーはC言語製）として型付けされたレシーバーは、呼び出し元の`$_`を設定すると仮定されます。リーダーの後に`$_`を読み取るコードは、それが設定された場合にのみ機能します。可視の反証は依然として辞退します（特記のない限りすべて`lib/rigor/inference/last_line.rb`内）:
+- **WD4 — `$_`はコアリーダーを信頼する**。`$stdin`、`STDIN`、`ARGF`、`Kernel`、および`IO`またはその同類（`StringIO`を含む: そのリーダーはC言語製）として型付けされたレシーバーは、呼び出し元の`$_`を設定すると仮定されます。リーダーの後に`$_`を読み取るコードは、それが設定された場合にのみ機能します。可視の反証は依然として辞退します（特記のない限りすべて`lib/rigor/inference/last_line.rb`内）:
   - プログラム内の任意の場所のトップレベル、またはクラス、モジュール、シングルトン本体内の`def gets` / `def readline`（`BlockCallTiming.project_defines_anywhere?`、`block_call_timing.rb`約L168）;
   - ファイル内の`define_method`ファミリーのパッチ、またはどちらかの名前の`alias`（計算された名前を含む）（`ScopeIndexer#build_program_global_index`経由の`LastLine.patched_readers`）;
   - ファイル内で非リーダーにバインドされた`$stdin`（`LastLine.reader_global?`）;

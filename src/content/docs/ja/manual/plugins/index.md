@@ -3,9 +3,9 @@ title: "プラグインリファレンス"
 description: "rigortype/rigor docs/manual/plugins/README.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/plugins/README.md"
 sourcePath: "docs/manual/plugins/README.md"
-sourceSha: "008f2442024b622b4c6ddffe38bbd0d8487b161b3e3135a91f11a6b40dbff284"
-sourceCommit: "0f252e3218936e8dc7004b574c709a434b996d2a"
-sourceDate: "2026-09-20T02:22:40+09:00"
+sourceSha: "dd872f434fd574b1f9b284057001c4cb258d593d379da7b3c3235a5aff52bc43"
+sourceCommit: "1c6f6ea59bac83a5227c3a879523151aeada9b3c"
+sourceDate: "2026-10-10T04:06:26+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9000
@@ -43,6 +43,8 @@ sidebar:
 - [rigor-minitest](rigor-minitest/): Minitest／Test::Unitのアサーションおよびspecマッチャーを通したローカル変数のナローイング。
 - [rigor-graphql](rigor-graphql/): GraphQL-Rubyの型／enum／input／mutationのテーブルの公開（プラグイン横断のファクト、診断なし）。
 - [rigor-grape](rigor-grape/): `Grape::API`エンドポイントDSL（`params`、`namespace`、HTTP動詞マクロ、`desc`、`route_setting`）および`Grape::Entity`の`expose`宣言（`instance_eval`されたブロックの`self`バインディングを含む）を型付けする。
+- [rigor-alba](rigor-alba/): インラインの`Alba.serialize { }`ブロックの`self`を型付けし、`many :articles`からalbaが推論するリソースを`rigor unused`向けにルート化する。
+- [rigor-typelizer](rigor-typelizer/): typelizerがTypeScriptインターフェースを生成するシリアライザークラスを、`rigor unused`向けにルート化する。
 - [rigor-rspec-rails](rigor-rspec-rails/): `have_http_status`の引数検証（範囲外のコード、未知のステータスシンボル）。
 - [rigor-shoulda-matchers](rigor-shoulda-matchers/): ARモデル索引に対するshouldaマッチャーのカラム／関連の検証。
 - [rigor-hanami](rigor-hanami/): Hanami::Actionの`#handle`プロトコル強制 + リクエスト／レスポンスパラメータの型付け（ADR-28）。

@@ -3,9 +3,9 @@ title: "マクロ／DSL展開基板"
 description: "rigortype/rigor docs/internal-spec/macro-substrate.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/macro-substrate.md"
 sourcePath: "docs/internal-spec/macro-substrate.md"
-sourceSha: "da0d482bb74a979aa0cfea3886c38f68df37a8c1952f6d3c35ace4743a6caebb"
-sourceCommit: "b5af5cf72f6b666f74479df959b1ee467feda5c6"
-sourceDate: "2026-09-21T15:56:52+09:00"
+sourceSha: "1c5e08e241402407edb7338b145e2aba7107cfe60b4034c267f6f357e134ac87"
+sourceCommit: "1c6f6ea59bac83a5227c3a879523151aeada9b3c"
+sourceDate: "2026-10-10T01:51:44+09:00"
 translationStatus: "translated"
 sidebar:
   order: 3050
@@ -168,6 +168,8 @@ floor/ceiling配信ポリシーとティアごとの根拠はADRにある。
 実行され、`self`はそれに応じて型付けされる。」正準的なターゲット：
 Sinatraの`get '/path' { ... }`（ブロックは文字どおりルートメソッド本体に
 なる）。
+
+このナローイングは、ブロックを保持する呼び出しが位置するあらゆる場所に適用される: 文、代入の値、または評価器が進入しない値の位置（呼び出し引数、キーワード引数、レシーバーチェーン）。そこではスコープインデクサーの未進入ブロックの走査が同じマッチを適用する（[`inference-engine.md`](../inference-engine/)）。
 
 | フィールド | 型 | 注記 |
 | --- | --- | --- |
