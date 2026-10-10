@@ -3,9 +3,9 @@ title: "診断"
 description: "rigortype/rigor docs/manual/04-diagnostics.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/04-diagnostics.md"
 sourcePath: "docs/manual/04-diagnostics.md"
-sourceSha: "1b5d49cc2f0d47bcc72ad31cf7b353382d6241797a40a9e6771c1d0e29bf7ac2"
-sourceCommit: "1c6f6ea59bac83a5227c3a879523151aeada9b3c"
-sourceDate: "2026-10-09T22:00:36+09:00"
+sourceSha: "3db9aa0df961ee5351c2fbaa2ef07e21bedad4789e975e523cc8280bd0939c95"
+sourceCommit: "e4685d12ad7454982fdfed674e1cd0cd6f168fd8"
+sourceDate: "2026-10-10T23:24:05+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9004
@@ -47,6 +47,7 @@ app/user.rb:11:3: error: undefined method `lenght' for "hello" [call.undefined-m
 | <a id="rule-call-argument-type-mismatch"></a>`call.argument-type-mismatch` | 引数の型がパラメータ契約（contract）に違反することが証明できる。 | high |
 | <a id="rule-call-possible-nil-receiver"></a>`call.possible-nil-receiver` | 受信側が`T \| nil`で、メソッドが`NilClass`で定義されていない。 | high |
 | <a id="rule-call-raise-non-exception"></a>`call.raise-non-exception` | `raise` / `fail`の引数の具体型が、Exceptionクラス、Exceptionインスタンス、String、`#exception`を定義するオブジェクトのいずれでもないと証明される。実行時の`TypeError`。 | high |
+| <a id="rule-call-deprecated-ruby2-keywords"></a>`call.deprecated-ruby2-keywords` | Ruby 4.1で非推奨となった`ruby2_keywords`ファミリーの呼び出し: `Module#ruby2_keywords`、トップレベルの`ruby2_keywords`、および`Proc#ruby2_keywords`（Ruby 4.4で削除）、または`Hash.ruby2_keywords_hash?`および`Hash.ruby2_keywords_hash`（Ruby 4.5で削除）への直接の呼び出し、またはリテラルSymbolを伴う`send`経由の呼び出し。`.rigor.yml`が`target_ruby`を明示的に`"4.1"`以降に設定している場合にのみ実行される: デフォルト、古いバージョン、および`"latest"`は何も報告しない（Ruby 4.0ではその呼び出しは正しいため）。プロジェクトまたは`pre_eval:`ファイルが同名のメソッドを定義している場合、トップレベルのブロック内、`instance_eval` / `instance_exec`ブロック内、クラスやモジュールのインスタンスメソッド内、あるいは`RUBY_VERSION`ガードが指定されたRubyで呼び出しを除外しているか判定不能な場合は報告されない。`lenient`では`info`、`balanced`では`warning`、`strict`では`error`。 | high |
 | <a id="rule-call-unresolved-toplevel"></a>`call.unresolved-toplevel` | トップレベルの暗黙的self呼び出しが、同一ファイルの`def`、`pre_eval:`パッチ、`Kernel` / `Object`メソッドのいずれにも解決されない。 | low |
 | <a id="rule-flow-always-raises"></a>`flow.always-raises` | 式が到達可能なすべてのパスで例外を投げることが証明できる。 | high |
 | <a id="rule-flow-unreachable-branch"></a>`flow.unreachable-branch` | `if` / `unless` / 三項演算子のブランチが静的に到達不能。 | high |

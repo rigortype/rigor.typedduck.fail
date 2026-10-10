@@ -3,9 +3,9 @@ title: "設定"
 description: "rigortype/rigor docs/manual/03-configuration.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/03-configuration.md"
 sourcePath: "docs/manual/03-configuration.md"
-sourceSha: "a0a4c7f2b515369d373200128cd362b87f01f05602ff07b3e7cb8acea9397417"
-sourceCommit: "8a5d6e2c6001d80084cf95132e306eb6a6d71b9a"
-sourceDate: "2026-10-08T17:26:56+09:00"
+sourceSha: "eba16bc371b6b1d64567afebc6c19aeedaa874edd2471162e6d0cbc63c2f6c60"
+sourceCommit: "e4685d12ad7454982fdfed674e1cd0cd6f168fd8"
+sourceDate: "2026-10-10T23:24:05+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9003
@@ -53,7 +53,7 @@ cache:
 
 | キー | 型 | デフォルト | 意味 |
 | --- | --- | --- | --- |
-| `target_ruby` | String | `"4.0"` | **自分の**プロジェクトが実行するRubyバージョン。`"X.Y"`、`"X.Y.Z"`、または`"latest"`。Rigor自体が動作するRubyとは独立。 |
+| `target_ruby` | String | `"4.0"` | **自分の**プロジェクトが動作する最低のRubyバージョン ── `"X.Y"`、`"X.Y.Z"`、または`"latest"`。Rigor自体が動作するRubyとは独立。すべての値がRigorのパースする構文を選択します。明示的に設定したバージョンは、そのバージョンのRuby非推奨ルールもオンにします（`"4.1"`以降の[`call.deprecated-ruby2-keywords`](../04-diagnostics/#rule-call-deprecated-ruby2-keywords)）; デフォルトおよび`"latest"`は決してオンにしないため、`rigor init`はこのキーをコメントアウトして出力します。 |
 | `paths` | Array | `["lib"]` | 解析するディレクトリまたはファイル。 |
 | `exclude` | Array | `[]` | スキップするGlobパターン。`vendor/bundle`、`.bundle`、`node_modules`は常に除外される。 |
 | `test_paths` | Array | `nil` | プロジェクトのテストルート: テストを保持するディレクトリ（またはファイル）。相対パスのエントリーは設定ファイルのディレクトリを基準に解決されます。未設定の場合は`spec/`と`test/`のうち存在する方を自動検出します。`[]`はなしを宣言します。`rigor sig-gen --params=observed`はパラメータを型付けするためにそこにある呼び出し箇所を読み取り、存在しない宣言されたルートがあればstderrに名前を出力します。テストルートは`paths:`にも記載されていない限り解析されず、変更してもキャッシュは無効化されません。 |

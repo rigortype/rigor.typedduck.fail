@@ -3,15 +3,15 @@ title: "ADR-47 — ナローイング駆動の節到達可能性（`flow.unreach
 description: "rigortype/rigor docs/adr/47-narrowing-driven-clause-reachability.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/47-narrowing-driven-clause-reachability.md"
 sourcePath: "docs/adr/47-narrowing-driven-clause-reachability.md"
-sourceSha: "27cf232d0fe7290c4551bb2e8cda707ffd31c911c1c8723444bc8b7a990d37e9"
-sourceCommit: "d19c9306f46b59d84bde8ac1a5a43f54be23c023"
-sourceDate: "2026-09-02T15:16:47+09:00"
+sourceSha: "250d8bdd6301c0752b591a75525bf74de8a55adf289d359b7a59bb2d5532f437"
+sourceCommit: "e4685d12ad7454982fdfed674e1cd0cd6f168fd8"
+sourceDate: "2026-10-10T23:24:05+09:00"
 translationStatus: "translated"
 sidebar:
   order: 4047
 ---
 
-ステータス: **Accepted —— WD1 + WD2 + WD3a + WD5実装済み。Rigorの既存の2つの`if`/`unless`到達可能性ルールを、フロー（flow）エンジンが既に計算しているナローイング（narrowing）を用いて`case`/`when`および`case`/`in`節に拡張する。WD5は鏡像の方向を実行する——決定可能なバージョンガードが非選択とした`if`/`unless`ブランチは到達不能であり、何も報告しない。Elixir v1.20の冗長な`case`節報告に触発されたもの;Rigorの偽陽性エンベロープ内に収まるようスコープを限定する**。
+ステータス: **Accepted —— WD1 + WD2 + WD3a + WD5実装済み。Rigorの既存の2つの`if`/`unless`到達可能性ルールを、フロー（flow）エンジンが既に計算しているナローイング（narrowing）を用いて`case`/`when`および`case`/`in`節に拡張する。WD5は鏡像の方向を実行する——決定可能なバージョンガードが非選択とした`if`/`unless`ブランチは到達不能であり、何も報告しない。Elixir v1.20の冗長な`case`節報告に触発されたもの;Rigorの偽陽性エンベロープ内に収まるようスコープを限定する**。**WD5は2026-10-10に修正（#1692）: 明示的な`target_ruby`は指定されたランタイムでもあり、Rubyの非推奨化ルールによってのみ読み取られる。**
 
 **WD1 landed（v0.1.17）**。`flow.unreachable-clause`は、`case <local>`節のクラス/モジュール定数条件（`when String` / `when MyClass`）が対象を`Type::Bot`に絞り込むときに発火する —— `scope_index`（評価器自身の節ごとの`body_scope`）から読み返すため、ルールとボディ型付けは乖離しえない。単一の`body_scope == bot`シグナルが設計で挙げる両方の形をカバーする（節ごとのdisjointnessと先行網羅の両方。網羅済みの入口スコープも`bot`に絞り込まれるため）。偽陽性エンベロープを強制: 対象は絞り込み済みのローカルでなければならず、`Dynamic`（<ruby>漸進的保証<rp>（</rp><rt>gradual guarantee</rt><rp>）</rp></ruby>）でも既に`Bot`（デッドコード）でもいけない。クラス/モジュール定数条件のみ（`when nil` / 範囲 / 正規表現 / 式は除外）、ループ/ブロック内の節はスキップ。**WD4**に従い、lenient + balanced（デフォルト）では`:info`、strictのみ`:warning`で出荷。balanced→`:warning`昇格は回帰コーパスFPゲートを待つ;Rigor自身の`lib` + `plugins` + `examples`でクリーン（ゼロ発火）。
 
@@ -99,7 +99,31 @@ Rigorはこの作業の難しい半分を既に行っている。欠けている
 
   **`flow.always-truthy-condition`は意図的にガード上で沈黙を保つ**。バージョンガードは意図的なものであり、冗長な条件ではない。そこで発火させることは、この修正が取り除くのと同クラスの偽陽性になってしまう。これは特例による除外ではなく構造によって沈黙を保つ: ガード自体の式型は依然として`bool`であるため、ルールが畳み込まれた定数を見ることはない。
 
-  **スコープ外、記録用:** `defined?(Ractor)` / `respond_to?`の機能プローブ（「このビルドに機能があるか」であって「どのバージョンか」ではない異なる問い）、`!` / `&&` / `||`の合成、`case`の対象、およびアナライザー自身のRubyと一致しない`target_ruby`の尊重（この設定は現在Prismの*パース*バージョンであり、推論レイヤーには伝播されていない）。
+  **スコープ外、記録用:** `defined?(Ractor)` / `respond_to?`の機能プローブ（「このビルドに機能があるか」であって「どのバージョンか」ではない異なる問い）、`!` / `&&` / `||`の合成、`case`の対象、およびアナライザー自身のRubyと一致しない`target_ruby`の尊重（この設定は現在Prismの*パース*バージョンであり、推論レイヤーには伝播されていない）。[2026-10-10の修正](#2026-10-10の修正--明示的なtarget_rubyは指定されたランタイムである)は、明示的な`target_ruby`を非推奨化ルールにのみ伝播し、それ以外には伝播しない。
+
+## 2026-10-10の修正 ── 明示的な`target_ruby`は指定されたランタイムである
+
+アーキタイプ: 熟議型（deliberative）。ステークス: 中。可逆的であり、`target_ruby`を自身で設定したプロジェクトにのみ届くが、あるRubyで正しいコードが別のRubyで発見事項としてカウントされる時期を決定する。
+
+**コンテキスト**。Ruby 4.1は4.0で正しかった呼び出しを非推奨化する: `ruby2_keywords`ファミリー（Feature #22205）および2つの`alias`ルックアップ（Bug #22273、Bug #22276）。それらを報告するにはプロジェクトが動作するRubyが必要だが、WD5はRigorがそれを持たないと述べている: `target_ruby`はPrismのパースバージョンであり、そのデフォルト`"4.0"`はユーザーの言明ではない（[#1692](https://github.com/rigortype/rigor/issues/1692)）。
+
+**決定**。`target_ruby`は2つの意味を持ち、その基準は誰がその値を書いたかである。
+
+- **パースバージョン** ── デフォルトを含むすべての値。変更なし。
+- **指定されたランタイム** ── ユーザーが`.rigor.yml`またはインクルードされたファイルで設定した`"latest"`以外の値（`Configuration#stated_runtime_ruby`）。これはプロジェクトが動作する最低のRubyである。Rubyの非推奨化ルールのみがこれを読み取り、指定された4.1以降のもとでの`call.deprecated-ruby2-keywords`から始まる。
+
+`VersionGuard`、ナローイング、および`DeadVersionGuardArms`はアナライザー自身の`RUBY_VERSION`を保持するため、WD5の前提はこれらのルールを除くすべてのルールで成立する。非推奨化ルールは、呼び出しを囲むバージョンガードを代わりに指定されたランタイムに対して読み取り（`VersionGuard.verdict(stated_ruby:)`）、アナライザーのRubyによるデッドアームフィルターをスキップし、決定できない`RUBY_VERSION`ガードのもとでは沈黙を保つ。規範的なルールは[control-flow-analysis.md § 指定されたランタイムに対して読み取られるガード](../../type-specification/control-flow-analysis/#指定されたランタイムに対して読み取られるガード)にある。
+
+`"latest"`はいかなるランタイムも指定しない。これは同梱のPrismがパースする最新の構文を指名するため、Rigorのアップグレードによって変更されていない設定に対して新しい非推奨化がオンになってしまい、それを書いた誰もどのRubyがコードを実行するかを述べていない。
+
+**却下 / 先送り**。
+
+- *ターゲットに関係なく報告する* ── 却下: 正しい4.0コードに対する診断となる。
+- *デフォルトを言明として扱う* ── 却下: デフォルトが`"4.1"`に移行した日に、それを選択したことのないプロジェクトで4.1の非推奨化を報告し始めてしまう。
+- *すべてのルールに対して指定されたランタイムを`VersionGuard`に伝播する* ── 却下: Rigorが読み取るcoreおよびstdlibのRBSは依然としてアナライザーのRubyに属するため、別のRubyに対してガードを畳み込むと、あるRubyのアームと別のRubyのシグネチャをペアにしてしまう。
+- *`required_ruby_version`、`.ruby-version`、またはGemfileの`ruby`行を読み取る* ── 別のissueに先送り: ランタイムを指定する者を拡大することになり、この修正はそれに依存しない。
+
+**結果**。`Configuration`は`target_ruby`が書かれたかどうかを記録し（`#target_ruby_explicit?`）、`#to_h`はそれを運ぶため、キャッシュは指定された`"4.0"`とデフォルトを区別する。したがって`rigor init`はそのキーをコメントアウトして書き出す: デフォルトを書き出すスターターはそれを誰も行っていない言明に変えてしまい、デフォルトが`"4.1"`に達した日にすべての新しいプロジェクトが非推奨化を報告してしまう。`spec/rigor/analysis/check_rules/deprecated_ruby2_keywords_spec.rb`が保持するゲート: キーなし、`"4.0"`、`"latest"`、および書かれていない`"4.1"`では沈黙; 書かれた`"4.1"`では報告する。2つの`alias`ルールは[#1776](https://github.com/rigortype/rigor/issues/1776)である: #1692が求めたプローブにより、Rigorがまだ「`Object`フォールバックを通じてのみ見つかった」または「prependされたモジュールで定義された」を確実に区別できないことが判明した。
 
 ## 却下 / 先送りした代替案
 

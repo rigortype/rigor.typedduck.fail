@@ -3,9 +3,9 @@ title: "アーキテクチャ決定記録"
 description: "rigortype/rigor docs/adr/README.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/README.md"
 sourcePath: "docs/adr/README.md"
-sourceSha: "a008f0eda12c722818a1ea1502acd34f354e093f5159a0f72e20f172264c142b"
-sourceCommit: "1c6f6ea59bac83a5227c3a879523151aeada9b3c"
-sourceDate: "2026-10-09T23:24:52+09:00"
+sourceSha: "c2fbadbb80986503137ce4676839d9d8b0e2574efdc1283ec8c1b97dc6342080"
+sourceCommit: "e4685d12ad7454982fdfed674e1cd0cd6f168fd8"
+sourceDate: "2026-10-10T22:46:40+09:00"
 translationStatus: "translated"
 sidebar:
   order: 4000
@@ -72,7 +72,7 @@ sidebar:
 | ADR-44 | [ディスパッチごと／ナローイングごとのアロケーションチャーン（Scope、CallContext）](44-dispatch-allocation-churn/) | Accepted（ボディスコープの折り畳み＋アロケーション衛生が着地；ミュータブルなプール化は却下；フィールド再グループ化は優先度引き下げ） |
 | ADR-45 | [変更なしプロジェクトの高速パス（実行結果キャッシュ）](45-unchanged-project-fast-path/) | Accepted（record-and-validateな実行キャッシュが着地；素朴な解析前フィンガープリントは不健全として却下） |
 | ADR-46 | [ファイル間依存グラフによるインクリメンタル解析](46-incremental-dependency-graph/) | Accepted（スライス1〜4が着地、ファイルの追加・削除を含む；`--incremental`はCIで`--verify-incremental`にゲートされる） |
-| ADR-47 | [ナローイング駆動の節到達可能性（`flow.unreachable-clause`）](47-narrowing-driven-clause-reachability/) | Accepted（WD1〜WD3aが着地、v0.1.17；WD4の16コーパススイープは発火ゼロ；WD5バージョンガードアームが着地；WD3bは見送り） |
+| ADR-47 | [ナローイング駆動の節到達可能性（`flow.unreachable-clause`）](47-narrowing-driven-clause-reachability/) | Accepted（WD1〜WD3aが着地、v0.1.17；WD4の16コーパススイープは発火ゼロ；WD5バージョンガードアームが着地；WD3bは見送り；WD5は2026-10-10に修正: 明示的な`target_ruby`を指定されたランタイムとする） |
 | ADR-48 | [Struct / Data値畳み込み（メンバーシェイプキャリア）](48-data-struct-value-folding/) | Accepted（`Data.define`スライス1〜4が着地、v0.1.17；Structスライス1〜3が着地、スライス4は見送り） |
 | ADR-49 | [ADR執筆ガイドライン（必要十分なADRのためのルーブリック）](49-adr-authoring-guidelines/) | Accepted（発効中；生きているルーブリック） |
 | ADR-50 | [リリースエンジニアリングと安定化戦略（v0.2.0 → v1.0.0）](50-release-engineering-and-stability-strategy/) | Proposed（v0.2.0はリリースエンジニアリングの試行；v1.0.0はハードな契約フリーズ） |
@@ -145,7 +145,7 @@ sidebar:
 | ADR-117 | [標準ストリーム: イディオムによって型付けされ、ランタイム契約によってチェックされる](117-standard-streams-typed-by-idiom/) | Accepted（#1405以降明示的な`$_`リーダー；オープン: #1362、#1366、#1367、#1415、#1423、#1426、#1427、#1429） |
 | ADR-119 | [発見ファクトの確実性、解決チェーン上の候補セット読み取り](119-discovery-fact-certainty/) | Accepted（2026-10-01；ゲート、`unpositioned_mixins`、チェーン、#1593、#1597、#1598、#1599、およびWD1の兄弟テーブルが先行着地；WD2–WD3およびPR Cがオープン） |
 | ADR-120 | [デフォルトのローカル`check`ルートとしての`--incremental`](120-incremental-by-default/) | Proposed（メンテナ待ち；切り替えはWD7のゲート待ち） |
-| ADR-121 | [Rubyのrefinementを通じた呼び出しの型付け、および`Proc#refined`](121-ruby-refinement-typing/) | Accepted（2026-10-09；未実装、#1670により追跡） |
+| ADR-121 | [Rubyのrefinementを通じた呼び出しの型付け、および`Proc#refined`](121-ruby-refinement-typing/) | Accepted（#1670のもとで2026-10-10に実装済み；オープン: #1669および繰り越し事項） |
 
 ## 新しいADRの追加
 

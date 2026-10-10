@@ -3,9 +3,9 @@ title: "rigor-activerecord"
 description: "rigortype/rigor docs/manual/plugins/rigor-activerecord.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/plugins/rigor-activerecord.md"
 sourcePath: "docs/manual/plugins/rigor-activerecord.md"
-sourceSha: "669bec1956ac4cf51f2c590feed62d9bb8b0bea5260b3d7e9c308b2e01d06c88"
-sourceCommit: "32fcfb01032273679a99853a37f53a6e842b3330"
-sourceDate: "2026-09-24T18:31:14+09:00"
+sourceSha: "b072284727924a0a4cae8d9e34ed941ce393cbacc5fa18240e2f8210ddb2b617"
+sourceCommit: "e4685d12ad7454982fdfed674e1cd0cd6f168fd8"
+sourceDate: "2026-10-10T06:50:22+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9050
@@ -100,6 +100,27 @@ Rubyのモジュールまたはクラスの内部で宣言されたモデル（`
 バンドルされたシグネチャは、Active Recordの例外階層（`ActiveRecordError`およびアプリケーションがrescueするクラス群: `RecordNotFound`、`RecordInvalid`、`RecordNotSaved`、`StatementInvalid`、`RecordNotUnique`、`StaleObjectError`、…）、`ActiveModel`名前空間、および`Arel`も名指しします。`rescue ActiveRecord::RecordNotFound => e`は、`e`を不透明なままにする代わりに型付けします。
 
 それらのいずれもメソッドサーフェスを宣言しません —— この宣言は定数解決をもたらすだけであり、それ以外の主張は何もしないため、`e.record`やその他の省略されたすべてのメンバーは、指摘されるのではなく寛容なまま保たれます。`ActiveRecord::Base`は意図的に宣言されて**いません**: これを閉じてしまうと、プロジェクト内のすべてのモデルを閉じてしまうことになるためです。
+
+## `rigor unused`のルート
+
+```ruby
+class Recipe < ApplicationRecord
+  belongs_to :user                              # ActiveRecord loads User
+  has_many :comments, as: :commentable          # ... and Comment
+  has_many :tags, through: :taggings            # no root of its own, see below
+  belongs_to :owner, polymorphic: true          # no single target: no root
+end
+```
+
+`User`と`Comment`はソース内のどこにも名前が挙げられていないため、[`rigor unused`](../../02-cli-reference/#rigor-unused)はこの方法でのみ到達されるモデルを一覧表示してしまいます。プラグインはActiveRecord自身のルックアップを反映して、各関連が解決されるクラスを`:reachability_roots`ファクトとして公開します:
+
+- リテラルな`class_name:`（StringまたはSymbol、あるいはルート化された`"::Foo"`）が優先されます;
+- それ以外の場合、`has_many` / `has_and_belongs_to_many`は単数形化・キャメルケース化された名前を使用し、`belongs_to` / `has_one`はキャメルケース化された名前を使用します;
+- 名前はオーナー自身にネストされたものとして試行され（`Post`は`Post::Comment`を探す）、次にオーナーの囲む名前空間で最も内側から順に試行され（`Admin::Recipe`は`Admin::User`を探す）、その後にトップレベルで試行されます。候補がモデルではなくモデルの名前空間である場合、何もルート化されません。ActiveRecordがそのモジュールを選択するためです。
+
+ルートはプロジェクトがその名前のモデルを宣言している場合にのみ公開されます。`polymorphic: true`の関連、非リテラルな`class_name:`または`**options`、あるいはリテラルな`class_name:` / `source_type:`を持たない`through:`関連（リテラルな`source_type:`はクラスを指名します; そうでなければそのターゲットはソース関連のものであり、その関連がそれをルート化します）に対しては何も公開されません。`class << self`、`def`、または`with_options`以外のブロック内部に書かれた関連は見えず、ブロックパラメータ形式`with_options(...) do |o| o.belongs_to :x end`も同様に見えません。`with_options`グループのリテラルオプションはその内部の関連にマージされ、Railsと同様に最も内側のグループが優先されます; 非リテラルオプションを持つグループ（`with_options opts do`）はスキップされ、`anonymous_class:`、自身のオプションがクラスを隠す関連（`**splat`、オプション変数、非リテラルな`class_name:`）、およびオーナー自身の名前と等しい計算名（Rails 7.2以降はトップレベルクラスを最初に試行）も同様にスキップされます。マージされたオプションは関連リーダーの型も決定します: `with_options optional: true`は`belongs_to`リーダーをnilableにし、`class_name:`と`polymorphic:`はターゲットを設定するか、それを`Dynamic`にします。名前は本物の`ActiveSupport::Inflector`で活用されます; それがロードできない場合、プラグインは何も公開しません。
+
+ルートはフラットです: `rigor unused`自体がデッドとして報告するモデル上の関連も依然としてそのターゲットをルート化するため、デッドモデルのチェーンは最後のモデルを未一覧のままにする可能性があります。プロジェクト固有のインフレクションは読み取られないため、それに依存する名前を持つモデルは、誤ってルート化されるのではなく、過小にルート化されます。ルートはスキーマに依存しないため、縮退モードでも公開されます。
 
 ## 制限事項
 

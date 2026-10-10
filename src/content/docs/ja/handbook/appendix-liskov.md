@@ -3,8 +3,9 @@ title: "付録: リスコフの置換原則"
 description: "rigortype/rigor docs/handbook/appendix-liskov.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/appendix-liskov.md"
 sourcePath: "docs/handbook/appendix-liskov.md"
-sourceSha: "7284988a17b61be84f8bf4c9230d683745cfc115dfd380050088f7beb8ffaaac"
-sourceCommit: "2d0ffe6f38d01cfd850527c57987b27487b414d4"
+sourceSha: "3246ca71e578f30938cb9bfd2629539de06450935b297481da07ac197330e143"
+sourceCommit: "e4685d12ad7454982fdfed674e1cd0cd6f168fd8"
+sourceDate: "2026-10-10T06:01:32+09:00"
 translationStatus: "translated"
 sidebar:
   order: 1050
@@ -237,7 +238,7 @@ v0.1.15以降（[ADR-35](../../adr/35-override-signature-compatibility/)）、Ri
 - **`def.override-return-widened`**: 戻り値の共変性。オーバーライドは戻り値型を広げて事後条件を弱化してはならない。
 - **`def.override-visibility-reduced`**: オーバーライドは継承した可視性を縮小してはならない（public → protected/private）。
 
-このファミリーは、ロバストネス原則に対する荷重を担う規律の対応物である: 原則が*推論された*シグネチャを置換可能性へ偏らせるのに対し、これらのルールは*著作された*ものを検証する。これらは偽陽性の規律のためにゲートされている。オーバーライドと影にされた祖先の両方が著作されたシグネチャ（手書き / rbs-inline / バンドルされたRBS。どちらかの側が推論のみなら沈黙を保つ）を持たねばならず、証明可能（`:no`）な違反でのみ発火し、重大度は`severity_profile:`を通じてマップされる（`lenient` → off、`balanced` → warning、`strict` → error）。祖先のスコープは上位クラスチェーンに加えてinclude/prependされたモジュールであり、クロスファイルで解決される。
+このファミリーは、ロバストネス原則に対する荷重を担う規律の対応物である: 原則が*推論された*シグネチャを置換可能性へ偏らせるのに対し、これらのルールは*著作された*ものを検証する。これらは偽陽性の規律のためにゲートされている。オーバーライドと影にされた祖先の両方が著作されたシグネチャ（手書き / rbs-inline / バンドルされたRBS。どちらかの側が推論のみなら沈黙を保つ）を持たねばならず、証明可能（`:no`）な違反でのみ発火し、重大度は`severity_profile:`を通じてマップされる（`lenient` → off、`balanced` → warning、`strict` → error）。祖先のスコープは上位クラスチェーンに加えてinclude/prependされたモジュールであり、クロスファイルで解決される。コンストラクタとコピーフック（`initialize`、`initialize_copy`、`initialize_dup`、`initialize_clone`）はこのファミリーの対象外です: `Class#new`、`dup`、`clone`は親型の参照を通じてではなく、レシーバ自身のクラス上でそれらを呼び出すため、異なる引数を取るサブクラスのコンストラクタは違反になりません。
 
 狭めに見える*正当な*特殊化のための逃げ道は、**抑制ではなくジェネリクスが第一**である: 親を有界の型パラメータ（`interface _Consumer[T < Message]`）で宣言し、部分型にそれをバインドさせる（`include _Consumer[SendMailMessage]`）ことで、オーバーライドが*インスタンス化された*契約に一致するようにする。PHPStanが[*Generics in PHP using PHPDocs*](https://medium.com/@ondrejmirtes/generics-in-php-using-phpdocs-14e7301953)で手を伸ばすのと同じ解決である（「Barbara Liskovでさえこれに満足している」）。第二は、宣言されたパラメータを広く保ち、狭い型を本体内でoccurrence typingを通じて回復することである。`# rigor:disable def.override-*`は最後の手段だ。
 

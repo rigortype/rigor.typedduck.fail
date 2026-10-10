@@ -3,9 +3,9 @@ title: "マクロ／DSL展開基板"
 description: "rigortype/rigor docs/internal-spec/macro-substrate.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/macro-substrate.md"
 sourcePath: "docs/internal-spec/macro-substrate.md"
-sourceSha: "1c5e08e241402407edb7338b145e2aba7107cfe60b4034c267f6f357e134ac87"
-sourceCommit: "1c6f6ea59bac83a5227c3a879523151aeada9b3c"
-sourceDate: "2026-10-10T01:51:44+09:00"
+sourceSha: "c3678ae70739ababbd856f52e4bcf4e6c5745c068715cd82c06a9455b43c8c65"
+sourceCommit: "e4685d12ad7454982fdfed674e1cd0cd6f168fd8"
+sourceDate: "2026-10-10T12:04:15+09:00"
 translationStatus: "translated"
 sidebar:
   order: 3050
@@ -175,7 +175,10 @@ Sinatraの`get '/path' { ... }`（ブロックは文字どおりルートメソ�
 | --- | --- | --- |
 | `receiver_constraint` | 空でない`String` | 呼び出しの字句的レシーバーがそれであるか、それを継承していなければならないFQクラス名。 |
 | `method_names` | 空でない`Array<Symbol>` | ブロックがインスタンスメソッドとして実行されるDSLメソッド名（`Symbol`／空でない`String`から強制変換）。 |
-| `self_type` | `Symbol`または`String` | ブロック内の`self`バインディング。`:receiver_instance`（デフォルト）は`Nominal[レシーバークラス]`を束縛する ── Sinatraの規約。StringはDSLがブロックを`instance_eval`する対象のクラス名を指定する：`"Foo::Bar"`は`Nominal[Foo::Bar]`を束縛し（`Grape::Validations::ParamsScope`上のGrape `params`本体、`Grape::Endpoint`上のHTTP動詞本体）、さらに`Nominal[Y ≤ receiver_constraint]`レシーバーにもマッチする。これにより、`params`本体内のネストした`requires do … end`が同じコンテキストに再突入できる。`"singleton(Foo::Bar)"`は`Singleton[Foo::Bar]`を束縛し（`Grape::API::Instance`クラスオブジェクト上のGrape `namespace`本体）、`Singleton`レシーバーにのみマッチする。`:receiver_singleton` / `:dsl_recorder`は引き続き予約名であり、まだ受理されない。 |
+| `self_type` | `Symbol`または`String` | ブロック内の`self`バインディング。`:receiver_instance`（デフォルト）は`Nominal[レシーバークラス]`を束縛する ── Sinatraの規約。StringはDSLがブロックを`instance_eval`する対象のクラス名を指定する：`"Foo::Bar"`は`Nominal[Foo::Bar]`を束縛し（`Grape::Validations::ParamsScope`上のGrape `params`本体、`Grape::Endpoint`上のHTTP動詞本体）、さらに`Nominal[Y ≤ receiver_constraint]`レシーバーにもマッチする。これにより、`params`本体内のネストした`requires do … end`が同じコンテキストに再突入できる。`"singleton(Foo::Bar)"`は`Singleton[Foo::Bar]`を束縛し（`Grape::API::Instance`クラスオブジェクト上のGrape `namespace`本体）、`Singleton`レシーバーにのみマッチする。`:lexical`（[#1667](https://github.com/rigortype/rigor/issues/1667)）は`self`を呼び出し元のまま残し（メソッドはブロックが書かれた場所でそれを呼び出す、`block.refined(M).call`）、`Singleton`と`Nominal[Y ≤ receiver_constraint]`レシーバーの双方にマッチする。そのようなメソッドはクラスレベルのものと同様にインスタンスメソッド（`ActiveRecord::Relation#where`）であることも多いためである。呼び出し元の`self`自体が未知である場合（未知の`self`のブロック、#1717）、ブロックの`self`も未知のままである。`:receiver_singleton` / `:dsl_recorder`は引き続き予約名であり、まだ受理されない。 |
+| `refinements` | `Array<String>` | デフォルト`[]`（[#1667](https://github.com/rigortype/rigor/issues/1667)、ADR-121 WD5）。メソッドが`Proc#refined`（`instance_exec(&block.refined(M))`）を通じてブロックを実行する環境となる完全修飾モジュール名。宣言された順序で、その字句リストの後にブロック本体の有効なrefinementに追加されるため、最後のものが優先され、ネストされたブロックはそれらを継承する（[`inference-engine.md`](../inference-engine/) § Ruby refinements）。Rigorに見えるものを何もrefineしないモジュールは何の貢献もしない。呼び出しにマッチする最初のエントリーのみが適用されるため、同一の呼び出しに対する2つ目のプラグインのエントリーはrefinementを追加しない。`to_h`、`==`、および`hash`の一部であるため、変更はプラグインキャッシュを再キー化する。 |
+
+ファイルのトップレベルでの暗黙的self呼び出し（字句的な`self`なし）は、値パスが型付けするように`Object`上でマッチされ、`"Object"`の`receiver_constraint`はすべてのレシーバーにマッチする: プロジェクトがスーパークラスなしで宣言するクラスは、記録されたエッジなしに`Object`に到達する。
 
 ## ティアC ── `HeredocTemplate`（`heredoc_templates:`）
 

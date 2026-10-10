@@ -3,9 +3,9 @@ title: "現在の作業 — セッションハンドオフ"
 description: "rigortype/rigor docs/CURRENT_WORK.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/CURRENT_WORK.md"
 sourcePath: "docs/CURRENT_WORK.md"
-sourceSha: "17478badee0ab5977afb447617e92258caa00aefb7b690eb285e4e3fef377ae0"
-sourceCommit: "1c6f6ea59bac83a5227c3a879523151aeada9b3c"
-sourceDate: "2026-10-09T18:12:43+09:00"
+sourceSha: "8e2a698662c407ebbc744f19a2308e9e2180a27974f9c10c0e248db29a270dfb"
+sourceCommit: "e4685d12ad7454982fdfed674e1cd0cd6f168fd8"
+sourceDate: "2026-10-11T03:51:06+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9050
@@ -40,6 +40,24 @@ sidebar:
 2. **古い`--incremental`の回答（深刻なクラス）、すべてmasterに既存:** #1647（非宣言ファイルからのレシーバー形式の書き込み）、#1641（新しいファイルが外部チェーンエントリーにフックを与える）、#1652（実行結果スロットがプラグイン状態を無視する）、#1654（実行全体の戻り値メモが不完全なキャプチャを再生する）。パッチにスコープする前に、それぞれが`v0.4.0`に存在するか確認してください。
 3. **今セッションで起票された偽陽性 / ギャップ:** #1656（予算カットされたチェーンのFP、固定済み）、#1657（`def`の横にある`define_method`、固定済みのFN）、#1636、#1645、#1646、#1648、#1653。
 4. 以前からオープンのままのもの: #1622、#1608、#1611、#1612、#1592、#1594（型付けサイトでC2-b1により修正済み; issueを確認してください）、#1591、#1583、#1586、#1588、#1589、#1573、#1537、#1533、#1575; #120はADRとしてメンテナに提出されます。
+
+## シリアライザー / `rigor unused`ライン（2026-10-10、上記のADR-119ラインとは別）
+
+着地済み: #1662、#1668、#1688（rigor-alba）、#1690、#1707（rigor-typelizer）、#1709、#1723、#1724、#1725、#1726、#1748、#1756、#1757、#1758、#1762、#1766、#1769。外部: okuramasafumi/alba#575が2026-10-10にマージ（`external.rbs`/`railtie.rbs`を除く`sig/`を出荷; v4.0.0時点で未リリース）── リリースが出荷されたら#1788がrigor-albaのスタブ`sig/alba.rbs` + `open_receivers`を削除予定。
+
+ハンドオフ時の進行中: **#1767**（#1761を修正、Draft、ブランチ`unused-literal-const-get`）。ラウンド2で生きたトップレベルクラスを候補としてリストする5つの形状が見つかった（PRコメント参照）: `extend`がconst_getの祖先と見なされる、シングルトンメソッド内の`self.class`、`class << Other`、コンパクトクラスの祖先解決、DSLブロック。次: ラウンド3の修正（レシーバースコープが不確実な場合はトップレベルで読み取る）、その後にラウンド3レビュー ── 最後のラウンド; なお深刻であればユーザーに相談。#1769からの教訓: Ruby 4.0では`Set#reject`がArrayを返す ── スコープ保持体を`dup.delete_if`でフィルタして各々が自身のクラスを維持するようにする。
+
+次: #1760（`rigor unused`向けにrealpathされた単一のプロジェクトルート; #1767着地後に開始）、次に#1768（ADR-58センサスが`define_method`の書き込みを見落とす）、#1772（#1695の残り）、#1406。`rigor unused`のサーベイ実行はスクラッチの`cache.path`を設定しなければならない: 以前の実行がredmine/mastodon/gitlabに既存の`.rigor/cache`を上書きした。
+
+## AtCoder / ac-library-rbライン（2026-10-10、上記のラインとは別）
+
+着地済み: #1677、#1680（バンドルされた`rigor-ac-library-rb`、gemの`AcLibraryRb`名前空間向けRBS）、#1681、#1701（vendoredな`prime` RBS、リテラルの`require "prime"`でのみロード）、#1705（`pre_eval:`が`alias`/`alias_method`を読み取る）、#1706（トップレベルの`include M`が`call.unresolved-toplevel` / `call.undefined-method`を沈黙させる; 型付けなし）、#1719（`0 | Integer`がIntegerと判定される）、#1755（RBSのみのincludeを通じた定数、インスタンスメソッドのみ）、#1765（sig-genがトップレベルdefを`sig.skipped.top-level-def`としてリスト）、#1770（vendoredな`prime`がメンバーごとに身を引き、`:info`通知を伴う）。
+
+保留中: **#1715**（トップレベルの`include AcLibraryRb`の後に`crt(...)`を型付け）。Draft **#1771**は参照用としてのみ残す: 5回のレビューパスそれぞれで偽陽性が見つかり、すべて「プロジェクトファイルがその名前を定義していない」ことを証明として読み取ったことに起因する; 最後の一つは空の`paths:`展開（典型的なコンテストディレクトリ）。#1715がすべての形状と2つの非不在設計を記録している。#1771をそのまま再開してはならない。
+
+オープン中、このラインで見つかったもの: #1676（トップレベルdefのデフォルト出力、依然として決定事項）、#1678（rigor-minitestの`assert_equal`がリテラルへと狭める）、#1708（祖先に対する`pre_eval:`パッチ）、#1710（ADR-17における最初vs最後のpre_evalファイルの優先）、#1722（コアレシーバーの`undefined-method` FP: `method_missing`、`C.include(M)`、ローカル上の`extend`）、#1773（ObjectのmixinがKernelをシャドウしない）。維持されたメンテナの決定: `call.possible-nil-receiver`は仕様通り維持; プラグインのREADMEはコンテストコード向けに`severity_overrides`を示す。
+
+何に遭遇したか（What bit）: #1706、#1755、#1771はそれぞれ3回のレビューラウンドを必要とした; 新たな穴は元の変更ではなく各修正の中にあった。自身のアイドルモニターで待機していたサブエージェントが最終レポートを10数回再送した; PRがプッシュされたらTaskStopで停止すること。`../rigor-wt/`配下のこのラインのworktree（constant-through-rbs-include、sig-gen-toplevel-skip、vendored-partial-standdown）は削除可能; #1771がオープンな間は`toplevel-include-typing`を保持する。
 
 ## 特殊変数のセマンティクス（ADR-117）、未検証のまま持ち越し
 

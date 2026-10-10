@@ -3,9 +3,9 @@ title: "オプトイン依存関係ソース推論"
 description: "rigortype/rigor docs/internal-spec/dependency-source-inference.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/dependency-source-inference.md"
 sourcePath: "docs/internal-spec/dependency-source-inference.md"
-sourceSha: "35109718355596abcb2faa9be742ee0af178b9fc3efa53fa87c0857833addd2e"
-sourceCommit: "1c6f6ea59bac83a5227c3a879523151aeada9b3c"
-sourceDate: "2026-10-10T01:43:28+09:00"
+sourceSha: "6d4c3588f9be22dd92e84f95639ad37da8de4aa730aec116340406ad137e1c62"
+sourceCommit: "e4685d12ad7454982fdfed674e1cd0cd6f168fd8"
+sourceDate: "2026-10-10T13:22:56+09:00"
 translationStatus: "translated"
 sidebar:
   order: 3050
@@ -141,7 +141,7 @@ Builder.build(dependencies)        ▼
 
 ### refine本体（issue #1672）
 
-ウォーカーはプロジェクトのウォークが行うrefine呼び出し形状（`Inference::ScopeIndexer.refine_target`）を認識する: 1つの定数引数とリテラルブロックを持つ暗黙的レシーバーまたは`self`レシーバーの`refine`。その本体のインスタンス`def`はカタログに入ってはならない（MUST NOT）: それらはリファインするモジュールのメソッドではなく、`using`の後にのみリファインされるクラスのメソッドとなるからである。ウォーカーは代わりに各々を、囲むモジュールによるターゲットのリファインメントとして`Walker::Outcome#refinements`に記録し、ターゲットはプロジェクトのウォークが解決するのと同じ方法（それが指し示しうるすべての名前）で字句的に解決される。`def self.x`および`def`や宣言内にネストされた`def`はターゲット上で何も定義しないためドロップされる;本体内で宣言された`class` / `module`は引き続き字句プレフィックスのもとでウォークされる。囲むモジュールのない`refine`、または`class << self`内の`refine`はRubyが受け付けるものを何もリファインしないため何も記録しない。計算されたターゲット（`refine(klass) { … }`）はキーとなるクラスを名指ししないため、その本体は他のブロックと同様にウォークされる。
+ウォーカーはプロジェクトのウォークが行うrefine呼び出し形状（`Inference::ScopeIndexer.module_refine_target`）を認識する: 1つの定数引数とリテラルブロックを持つ暗黙的レシーバーまたは`self`レシーバーの`refine`であり、`self`がクラスであることが既知でない場合である。`Class`は`Module#refine`を未定義化するため、`class`や`class << …`本体の直下、あるいは`Class.new` / `Struct.new` / `Data.define`ブロック内の`refine`はそのクラス自身のメソッドであり、他の任意の呼び出しと同様にウォークされる（issue #1689）。refine本体のインスタンス`def`はカタログに入ってはならない（MUST NOT）: それらはリファインするモジュールのメソッドではなく、`using`の後にのみリファインされるクラスのメソッドとなるからである。ウォーカーは代わりに各々を、囲むモジュールによるターゲットのリファインメントとして`Walker::Outcome#refinements`に記録し、ターゲットはプロジェクトのウォークが解決するのと同じ方法（それが指し示しうるすべての名前）で字句的に解決される。`def self.x`および`def`や宣言内にネストされた`def`はターゲット上で何も定義しないためドロップされる; 本体内で宣言された`class` / `module`は引き続き字句プレフィックスのもとでウォークされる。囲むモジュールのない`refine`、または`class << self`下のブロック内の`refine`は、リファインするモジュールを名指さないため何も記録しない。計算されたターゲット（`refine(klass) { … }`）はキーとなるクラスを名指ししないため、その本体は他のブロックと同様にウォークされる。
 
 `Builder`はすべてのgemのテーブルを`Index#refinements`へとユニオンし、ランナーはそれをプロジェクトの`discovered_refinements`シード（issue #1120の`call.undefined-method`リファインメントチェックが読み取るテーブル）へとユニオンする。したがって、gemのリファインするモジュールを`using`するプロジェクトファイルは、その字句領域においてgemのリファインされた呼び出しを解決し、他の場所では引き続きそれを報告する。インデックスは毎回の実行が行う事前パスによって再構築されるため、ウォーム実行で再解析されたファイルにはコールド実行がシードするのと同じテーブルがシードされる。変更されていないファイルのキャッシュ結果は、カタログの貢献と同様にgemの名前、バージョン、およびモードでキー付けされるため（「キャッシュスライス」参照）、バージョンバンプなしにgemのrefine本体を編集しても、そのファイルが再解析されるまでは反映されない。gemごとのバジェットを使い果たした後にウォーカーが到達したrefine本体は記録されない。ADR-121 WD3により、gemのrefine本体は推論されない: その中へのリファインされた呼び出しは`Dynamic[top]`として型付けされる（現在は未解決メソッドフォールバックを通じて;リファインされたディスパッチアーム#1664はその答えを維持する）。
 

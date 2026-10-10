@@ -3,8 +3,9 @@ title: "はじめに"
 description: "rigortype/rigor docs/handbook/01-getting-started.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/01-getting-started.md"
 sourcePath: "docs/handbook/01-getting-started.md"
-sourceSha: "2ee8ade52af9ac8df8ef7215ec1d4eecedac64cc43be3c0ad6165e2fbc8de14b"
-sourceCommit: "d19c9306f46b59d84bde8ac1a5a43f54be23c023"
+sourceSha: "6186dc907dca7f55f10db6119d6813236ef9c3779c9a0c42705306343364b381"
+sourceCommit: "e4685d12ad7454982fdfed674e1cd0cd6f168fd8"
+sourceDate: "2026-10-10T23:24:05+09:00"
 translationStatus: "translated"
 sidebar:
   order: 1001
@@ -183,7 +184,7 @@ hello    = "#{greeting}#{name}!"     # リテラル文字列キャリア:
 
 最小限の有用な実行に設定ファイルは一切不要です。`rigor check lib`はそのままで動きます。設定ファイルは、追加の`paths`、別の`severity_profile`、プロジェクト全体のルール無効化、プラグインなど、デフォルト以外の挙動のために用意します。
 
-[AI支援セットアップ](#速いパス-aiエージェントにセットアップさせる)を使ったなら、`rigor-project-init`スキルが既に1つ書いてくれています。手書きでスターターを書くには、`rigor init`が`.rigor.dist.yml`を出力します。これはコミット対象のプロジェクトデフォルトで、`target_ruby`・`paths`・`severity_profile`が埋められ、残りはコメントアウトされています。ほとんどのプロジェクトに必要なのはこれだけです;主要なリファレンス、JSONスキーマによるエディタ統合、`includes:`による合成は[設定](../../manual/03-configuration/)にあります。
+[AI支援セットアップ](#速いパス-aiエージェントにセットアップさせる)を使ったなら、`rigor-project-init`スキルが既に1つ書いてくれています。手書きでスターターを書くには、`rigor init`が`.rigor.dist.yml`を出力します。これはコミット対象のプロジェクトデフォルトで、`paths`と`severity_profile`が埋められ、`target_ruby`はプロジェクトのRubyに設定するまでコメントアウトされ、残りはコメントアウトされています。ほとんどのプロジェクトに必要なのはこれだけです;主要なリファレンス、JSONスキーマによるエディタ統合、`includes:`による合成は[設定](../../manual/03-configuration/)にあります。
 
 最初に知っておく価値のあることが2つあります。意外に思われがちだからです。`target_ruby`は*あなたのプロジェクトの*Rubyであり、Rigor自身が動作する4.0ではありません ── 両者は意図的に独立しています。そして開発者がローカルの`.rigor.yml`を保持しているとき、それはその実行における設定の*唯一の*ソースであり（2つのファイルが自動的にマージされることは決してありません）、共有デフォルトを拡張するにはそれを`includes:`に列挙しなければなりません。
 

@@ -3,8 +3,8 @@ title: "`rigor unused`でデッドコードを取り除く"
 description: "rigortype/rigor docs/manual/18-removing-dead-code.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/18-removing-dead-code.md"
 sourcePath: "docs/manual/18-removing-dead-code.md"
-sourceSha: "21d12b2fc7dc57b15cdfd2f4dc71e8a8641441438eddea0e2097b94f42a6e9d8"
-sourceCommit: "db7b23d42e9b47560438b67dfe16d53e03f70575"
+sourceSha: "89aa88986cf32656c3bb2cbe33e0dfc8e3954c05175a2e7efc0a1a3584488c81"
+sourceCommit: "e4685d12ad7454982fdfed674e1cd0cd6f168fd8"
 translationStatus: "translated"
 sidebar:
   order: 9018
@@ -90,13 +90,15 @@ rigor unused --entry-point='lib/cli.rb' --entry-point='lib/workers/**/*.rb'
 | **Reachable only from test code** | 生きたテストがあり、Rigorに見えるあるいは疑える本番の呼び出し元がない | 最初に処理する |
 | **Candidates** | 到達可能なものが何もそれを名指ししない | 裁定する——ほとんどはまだ生きている |
 | **Cannot decide** | 実行時に何かがそれを名指しできる | 理由を読む;ここから削除しない |
-| **Namespace-only** | 生きたコードを包むモジュール | 候補から除外;数だけ |
+| **Namespace-only** | 本番が到達するコードを包むモジュール | 候補から除外;数だけ |
 
 この順序で処理してください——これはサマリーを*読む*順序ではありません。そちらでは`roots`が最初に来ます。残りを信頼してよいかを教えてくれるからです。
 
 ### テストのみの行から
 
 セクションが小さいからではなく——上のサンプルでは候補45行に対して164行です——各行が自前の証拠を運んでいるからです。通るspecがあって本番の呼び出し元がないクラスは、死んでいるか、書き留める価値のある機構によって到達されているかのどちらかであり、いずれにせよspecファイルから決着させられます。あるアプリケーションでは、このセクションは唯一の残る呼び出し元が`spec/policies/`である22個のポリシークラスを含んでいました。この22件は裁定されなかったので、このセクションを高収量ではなく高シグナルとして扱ってください;収量は未計測です。
+
+「テストコード」は、`rigor unused`を実行するディレクトリ（プロジェクトルートから実行してください）からの相対パスによって決定されます: 配下の任意の場所にある`spec/`および`test/`、`*_spec.rb`および`*_test.rb`、そしてそのルートにおけるエンドツーエンドのツリーである`qa/`、`e2e/`、`features/`です。`rubocop/`、`keeps/`、`tooling/`、`scripts/`などのツーリングディレクトリは本番としてカウントされるため、それらからのみ使用されるクラスは一覧表示されるのではなくルート化されます: それを削除するとツーリングが壊れてしまうためです。
 
 ### 候補: そのクラスがどれだけ規約的かでソートする
 
@@ -106,6 +108,10 @@ rigor unused --entry-point='lib/cli.rb' --entry-point='lib/workers/**/*.rb'
 Candidates — nothing reachable references these (45)
     1  Api::V1::Timelines::TopicController   app/controllers/api/v1/timelines/topic_controller.rb:3
 ```
+
+基底クラスは、そのサブクラスのいずれかが到達可能であるときは常に到達可能です: `class Sub < Base`は`Sub`に代わって`Base`を名指します。したがって、他に何も名指ししない基底クラスは、そのサブクラスのいずれも到達可能でない場合にサブクラスと一緒に現れ、判断は1つの行ではなくファミリー全体に属します。サブクラスが**Cannot decide**の下にあるとき、その基底クラスもそこへ移動します。
+
+`paths:`外で宣言されたクラス ── `config/application.rb`の`Application`、イニシャライザ内のクラス、specヘルパー ── はそれ自体レポートに含まれないため、それが名指すものはそのファイルから名指されたものとしてカウントされます: `config.middleware.use MyMw`は`MyMw`を生かしたまま保ち、`spec/support`内の偽のサブクラスはその基底クラスをテストから到達可能に保ちます。`paths:`内で再オープンするgemクラスについても同様です。ファイル自体が宣言する名前は依然としてその宣言を意味します: マイグレーションのローカルな`class LegacyThing < ActiveRecord::Base`スタブは、アプリの`LegacyThing`モデルを生かしたまま保ちません。
 
 裁定した実行の53件の偽陽性は、いくつかの繰り返し現れる形に分かれ、そのうち28件が最初の形でした。これらを認識できれば、リストの大半をすばやくスキップできます:
 
@@ -127,7 +133,7 @@ Candidates — nothing reachable references these (45)
 
 テスト専用のセクションから降格された行は2つ目の種類であり、それこそ知る価値のあるものです: あなたのspecが参照し、かつデータファイルも名指しているクラス——`config/recurring.yml`内のジョブ、YAMLの設定から名指されるクラス——は、死んだ本番のパスではありません。その設定こそがそれを駆動しているのかもしれないからです。テスト専用のセクションは本番について1つの主張をするので、Rigorがそれに反する証拠を保持している行は、ファイル名とともに代わりにここに属します。
 
-`"Foo".constantize`は`Foo`をちょうど名指しするので、通常の参照として数えられ、決してこのセクションには到達しません。`"Foo::#{key}".constantize`は名前空間を限定することしかできないので、`Foo`配下のすべてが降格されます。`.yml`・`.json`・テンプレートファイル内に文字列として現れるクラス名も同じように降格されます——定数参照より弱い証拠であり、使用の証明でも、死んでいると呼ぶ根拠でもありません。
+`"Foo".constantize`は`Foo`をちょうど名指しするので、通常の参照として数えられ、決してこのセクションには到達しません。`"Foo::#{key}".constantize`は名前空間を限定することしかできないので、`Foo`配下のすべてが降格されます; `"V#{version}"`は名前の先頭であるため、`V1`、`V2_0`、およびそれらの配下のすべてが降格されます。`const_get`はそのレシーバーから名前を検索するため、`class Migration`内の`const_get("V#{version}")`は`Migration::V1`を降格させます ── 呼び出しが第2引数として`false`を渡さない限り、トップレベルの`V*`名も同様です。最初にローカル変数に組み立てられた名前（`name = "V#{version}"; const_get(name)`）も同じように読み取られます。`.yml`・`.json`・テンプレートファイル内に文字列として現れるクラス名も同じように降格されます ── 定数参照より弱い証拠であり、使用の証明でも、死んでいると呼ぶ根拠でもありません。
 
 ここのセクションが大きいことは、このコードベースでは動的ディスパッチが荷重を支えていると告げており、それが削除キャンペーンがそこで止まる正直な理由です。
 

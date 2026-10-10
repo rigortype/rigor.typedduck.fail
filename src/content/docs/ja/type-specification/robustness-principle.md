@@ -3,9 +3,9 @@ title: "ロバストネス原則（型のためのPostelの法則）"
 description: "rigortype/rigor docs/type-specification/robustness-principle.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/type-specification/robustness-principle.md"
 sourcePath: "docs/type-specification/robustness-principle.md"
-sourceSha: "32f5ceb548481b7259a9d4814286052ca6ee7ccde637794d92a811da5a5d20f6"
-sourceCommit: "04668e5f0d6205fdd5c8f44662041add7ab33ca3"
-sourceDate: "2026-09-09T05:08:18+09:00"
+sourceSha: "9cb3821ad425b15bb4e010694a18467f04b55c2316739abf88d097d13b3377a2"
+sourceCommit: "e4685d12ad7454982fdfed674e1cd0cd6f168fd8"
+sourceDate: "2026-10-11T04:16:14+09:00"
 translationStatus: "translated"
 sidebar:
   order: 2050
@@ -60,7 +60,7 @@ Rigorの既存のキャリアは、原則が解析器に使うよう指示する
 ### 具体的なパターン
 
 - **コンテナクエリからの有界整数**。`Array#size`、`String#length`、`Hash#size`、`Range#size`、`Set#size`は`Nominal[Integer]`ではなく`non-negative-int`を返すべきです（SHOULD）。境界は構造的な真実（負のサイズはない）であり、すべての後続比較を通じて伝播します。
-- **イテレータブロックパラメータ**。`Integer#times`、`Integer#upto`、`Integer#downto`、`Range#each`などは、コンテナの要素型だけではなく、反復ドメインの精密な`IntegerRange`にブロックのインデックスパラメータをバインドすべきです（SHOULD）。
+- **イテレータブロックパラメータ**。`Integer#times`、`Integer#upto`、`Integer#downto`、`Range#each`などは、コンテナの要素型だけではなく、反復ドメインの精密な`IntegerRange`にブロックのインデックスパラメータをバインドすべきです（SHOULD）。`Integer#step`（位置引数または`by:` / `to:`）は、リミットとステップもIntegerである場合（省略、または`nil`リミットも該当）にのみ`Integer`をバインドしなければなりません（MUST）: Floatのステップまたは有限のFloatリミットはブロックにFloatをyieldさせ、RationalのステップはRationalをyieldさせるため、非Integerのオペランドを持つ呼び出しはRBSの`Numeric`バインディングを保持します。型付けされていない（untyped）オペランドはどちらの可能性もあるため、パラメータは`Dynamic[Numeric]`にバインドされ、見つからないメソッドは報告されません（[#1783](https://github.com/rigortype/rigor/issues/1783)）。
 - **フォールドによる有界Float**（[ADR-109](../../adr/109-ruby-native-range-notation/)）。乱数の抽出、単調関数、およびclampはすべて呼び出しが指名する区間に着地し、その区間は`FloatRange` / `IntegerRange`となります: `rand(a..b)`および`Random.rand(a..b)`はリテラル範囲そのものを返すべきです（SHOULD。引数なしおよび`rand(n)`形式はRBSに任せられます。コーパスはそれらを未知値のオラクルとして読んでいるためです）;有界な引数に対する`Math.sqrt` / `exp` / `log`およびその他の単調関数はその境界の像の間の範囲を返すべきであり（SHOULD）、境界が関数の定義域を下回る場合は辞退しなければなりません（MUST decline。そこに達した値は例外を発生させるためです）;有界なレシーバーに対する`abs`、`clamp(lo, hi)`、および`clamp(range)`はブラケットへとナローイングすべきであり（SHOULD）、プレーンな`Integer` / `Float`レシーバーではブラケット全体を返すべきです（SHOULD）── レシーバーがどんな境界を持っていようと`clamp`はブラケットの内側に着地するため、`i.clamp(1, 9)`と`i.clamp(1..9)`は両方とも`Integer[1..9]`になります。ブラケットの終端はレシーバー自身のクラスのリテラルでなければなりません（MUST）: 混合ブラケット（`1.clamp(0.5, 2.5)`）はレシーバーまたは境界を返し、そのクラスはユニオンとなるため、辞退しなければなりません（MUST decline）。排他的終端（`clamp(1...9)`）および逆向きのブラケットは実行時に例外を発生させるため、あらゆるレシーバーで辞退しなければなりません（MUST decline）。有界なFloatは決して`NaN`を保持しないため、それに対する`nan?`は`false`となり、`finite?`はその境界によって決定されます; `floor` / `ceil` / `round` / `to_i`は有限の境界を`IntegerRange`へとマッピングし、無限の境界では辞退しなければなりません（MUST decline。そこに達した値に対して`FloatDomainError`を発生させるためです）。プレーンな`Float`レシーバーはそれ以外のどれも取りません: `NaN`である可能性があるためです。`clamp`は例外であり、健全（sound）です ── `NaN`レシーバーは比較の中で例外を発生させるため、リターンする呼び出しはブラケットの内側にあり、いかなる`FloatRange`もその中に`NaN`を保持しません。
 - **タプル形状の戻り値**。 固定アリティの異種配列を返すメソッド（例: `Integer#divmod`）は、多重代入先で各スロットの型がローカル変数に流れるように`Tuple[…]`として公開すべきです（SHOULD）。
 - **カタログ下の定数たたみ込み**。 レシーバーと引数が具体的な定数である`:leaf` / `:trivial` / `:leaf_when_numeric`として分類されたすべてのメソッドは`Constant`にたたみ込まれるべきです（SHOULD）。`MethodCatalog`層は最も広いメソッドサーフェスにわたって第1句を観察するツールチェーンです。
@@ -127,7 +127,7 @@ render(nullable_field.to_s)
 - **ナローイング（[control-flow-analysis.md](../control-flow-analysis/)）**: 第2句の広げ方はナローイング層と意図的にペアになります。広いパラメータはナローイングで回復された精密な本体を供給します — これら2つは別々ではなく一緒に設計されています。
 - **消去（[rbs-erasure.md](../rbs-erasure/)）**: 厳密な戻り値はエクスポート時により広いRBS形式に消去される場合があります（MAY）。第1句は*内部的に*厳密なキャリアを生成します;消去はエクスポートルールが要求するものを提示します。`rigor type-of`によるユーザーのビューは厳密な形式を示します。
 - **推論バジェット（[inference-budgets.md](../inference-budgets/)）**: 第1句はエンジンの残りと同じバジェットで制限されます。無限計算を必要とする厳密な戻り値はバジェットに譲歩しなければなりません（MUST）;原則は無制限の推論を認可しません。
-- **オーバーライドシグネチャチェック（[ADR-35](../../adr/35-override-signature-compatibility/)、v0.1.15で出荷）**: この原則が*推論された*シグネチャを置換可能性へ偏らせるのに対し、`def.override-*`ルールファミリーはプロジェクト定義の階層をまたいで*著作された*ものを検証します — `def.override-return-widened`は第1句の戻り値共変性の対応物、`def.override-param-narrowed`は第2句のパラメータ反変性の対応物です。これらのルールはオーバーライドと影にされた祖先の両方が著者提供のシグネチャを持つときにのみ発火し（どちらかの側が推論のみなら沈黙を保つので、原則の著作上の選択そのものが決してフラグされることはありません）、重大度は`severity_profile:`を通じてマップされます。
+- **オーバーライドシグネチャチェック（[ADR-35](../../adr/35-override-signature-compatibility/)、v0.1.15で出荷）**: この原則が*推論された*シグネチャを置換可能性へ偏らせるのに対し、`def.override-*`ルールファミリーはプロジェクト定義の階層をまたいで*著作された*ものを検証します — `def.override-return-widened`は第1句の戻り値共変性の対応物、`def.override-param-narrowed`は第2句のパラメータ反変性の対応物です。これらのルールはオーバーライドと影にされた祖先の両方が著者提供のシグネチャを持つときにのみ発火し（どちらかの側が推論のみなら沈黙を保つので、原則の著作上の選択そのものが決してフラグされることはありません）、重大度は`severity_profile:`を通じてマップされます。コンストラクタとコピーフック（`initialize`、`initialize_copy`、`initialize_dup`、`initialize_clone`）は置換可能性の枠外です ── `Class#new`、`dup`、`clone`はレシーバ自身のクラス上でそれらに到達し、その戻り値を破棄するため、3つのルールのいずれもそれらには適用されません（[ADR-35 WD10](../../adr/35-override-signature-compatibility/#wd10--object-lifecycle-hooks-are-outside-the-substitutability-frame)）。
 
 ## 仕様レベルのまとめ
 

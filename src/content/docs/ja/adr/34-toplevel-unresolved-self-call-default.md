@@ -3,9 +3,9 @@ title: "ADR-34 — トップレベルの未解決implicit-self呼び出しはデ
 description: "rigortype/rigor docs/adr/34-toplevel-unresolved-self-call-default.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/34-toplevel-unresolved-self-call-default.md"
 sourcePath: "docs/adr/34-toplevel-unresolved-self-call-default.md"
-sourceSha: "a5bb83aeaf3e92db5c4b090a97eb7dd917de2157230627913e2010ad5f33410d"
-sourceCommit: "1c6f6ea59bac83a5227c3a879523151aeada9b3c"
-sourceDate: "2026-10-10T01:33:30+09:00"
+sourceSha: "2f30c2d81eed8ed5726ae9adf3f15555d1aa45723aa7d9b0e0b2c401ba913dea"
+sourceCommit: "e4685d12ad7454982fdfed674e1cd0cd6f168fd8"
+sourceDate: "2026-10-10T06:46:43+09:00"
 translationStatus: "translated"
 sidebar:
   order: 4034
@@ -48,6 +48,7 @@ type:    Dynamic[top]
 2. `(Object, name, instance)`の下の[ADR-17](../17-monkey-patch-pre-evaluation/)の`Inference::ProjectPatchedMethods`レジストリ内のエントリー、
 3. ロードされたRBS環境から引いた標準的な`Kernel` / `Object`プライベートメソッド表面（`puts`、`p`、`require`、`loop`、`raise`、…）、
 4. トップレベルの`main`オブジェクトのプライベートシングルトンメソッド（`using`、`include`、`public`、`private`、`define_method`）。RBSコアの`RBS::Unnamed::TopLevelSelfClass`、およびCRuby 4.0で`main`が持つがRBSが宣言していない`ruby2_keywords`から取得される。rbs 3.xはそのクラスを欠いているため、そこでは`ruby2_keywords`のみがカバーされる。この項目はルールを沈黙させるのみであり、推論はこれらの呼び出しを`main`に対してディスパッチしない。（*2026-10-10修正: 項目3のみでは正しいコードでこれらを報告してしまい、`pre_eval:`はこれらに適用できないため; [#1383](https://github.com/rigortype/rigor/issues/1383)。*）
+5. プロジェクトが`Object`にmix-inするモジュールのインスタンスメソッド: トップレベルの`include M`（`main.include`は`Object.include`）、または`class Object`内の`include M`。RBSもプロジェクトも宣言していないモジュールは列挙できないため、すべての名前を解決し、RBSモジュールのシングルトンメソッドもカウントされる（coreが`Math`の`module_function`を`def self.`として宣言しているため）。項目4と同様に、この項目はルールを沈黙させるのみである; そのような呼び出しを型付けすることは[#1715](https://github.com/rigortype/rigor/issues/1715)である。（*2026-10-10修正: include自体は[#1383](https://github.com/rigortype/rigor/issues/1383)以降沈黙していたが、それが取り込んだものは引き続き報告されていたため; [#1697](https://github.com/rigortype/rigor/issues/1697)。*）
 
 エンジンは新しい`call.unresolved-toplevel`診断をemitする。ヒットした場合、解決されたメソッドの戻り値型とパラメータ契約（contract）はADR-24スライス1〜3と同様に伝播する。
 
@@ -182,3 +183,4 @@ WD1のステップ1ルックアップ（「同じファイルまたは解析さ�
 
 - 2026-05-29 — 初回提案。トップレベルの無音な挙動に関するユーザーの問いと、プレイグラウンド / スタンドアロンスクリプトのユースケースが逆のデフォルトを望むという認識によって引き起こされた。ADR-17の事前評価メカニズムが自然なエスケープハッチだ——このADR自体によって新しい設定インターフェースは導入されない。
 - 2026-10-10 — 決定項目4を追加: `main`のプライベートシングルトンメソッドがトップレベル呼び出しを解決する（[#1383](https://github.com/rigortype/rigor/issues/1383)）。トップレベルブロック内の呼び出しもトップレベルとして判定されるため、同じ名前がそこでも沈黙する;その偽陰性はそれが置き換える偽陽性よりも安価である。
+- 2026-10-10 ── 決定項目5を追加: `Object`にmix-inされたモジュールはトップレベル呼び出しを解決する（[#1697](https://github.com/rigortype/rigor/issues/1697)）。このエッジはファイルが実行された後のRubyと同様にプロジェクト全体に及ぶため、includeするファイルを決してロードしないファイルも沈黙する; その偽陰性はより安価な誤りである。

@@ -4,7 +4,7 @@ description: "Imported from rigortype/rigor docs/notes/20260704-plugins-moderniz
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260704-plugins-modernization-sweep.md"
 sourcePath: "docs/notes/20260704-plugins-modernization-sweep.md"
 sourceSha: "e8a55373938541d68e53700bf4f9925b7dc2f7e61cdcc6988cc5b1b445ee2c66"
-sourceCommit: "1c6f6ea59bac83a5227c3a879523151aeada9b3c"
+sourceCommit: "e4685d12ad7454982fdfed674e1cd0cd6f168fd8"
 sourceDate: "2026-07-04T20:23:29+09:00"
 sourceLanguage: "ja"
 sidebar:

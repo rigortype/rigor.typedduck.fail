@@ -3,8 +3,8 @@ title: "ADR-35 — オーバーライドのシグネチャ互換性（リスコ�
 description: "rigortype/rigor docs/adr/35-override-signature-compatibility.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/35-override-signature-compatibility.md"
 sourcePath: "docs/adr/35-override-signature-compatibility.md"
-sourceSha: "a799eba489ec1312cf4fc2e83cebc25cfbc5966823ebecafe8e183ae747948ee"
-sourceCommit: "78b18cea6a576475c92bce020535269f2eebc20d"
+sourceSha: "feb4686754bec67da15c6ddbd13c14ede1141ec5e05b91c2a96a93d956c8a747"
+sourceCommit: "e4685d12ad7454982fdfed674e1cd0cd6f168fd8"
 translationStatus: "translated"
 sidebar:
   order: 4035
@@ -182,6 +182,21 @@ end
 
 **How to apply:**段階1（2026-07-18に着地）は、WD3 / WD6の比較に、`accepts`の前に、サブクラスのインスタンス化引数（`RBS::Definition#ancestors`の`.args`を、親の宣言された型パラメータ名とzipしたもの — ディスパッチャーが使うのと同じADR-4フェーズ2dの`type_vars`スレッディング）を親のシグネチャへ代入させる。未束縛 / 未解決の型パラメータは`Dynamic[Top]`へ退化し続ける（WD7に従い沈黙）。決して偽の`:no`にはならない。段階2〜3は新しい機構を必要としない。段階1と段階3の中間としての構造化されたRBS::Extendedのオプトアウトアノテーション（`%a{rigor:v1:override-exempt}`形）は保留である — 未解決の問題を参照。
 
+### WD10 — オブジェクトライフサイクルフックは置換可能性の枠外
+
+2026-10-10に追加（[#1716](https://github.com/rigortype/rigor/issues/1716)）。3つのルールは`initialize`とコピーフック`initialize_copy` / `initialize_dup` / `initialize_clone`をスキップし、`def.override-visibility-reduced`は`respond_to_missing?`もスキップする。
+
+**Why:**これらのルールは、親を保持している呼び出し元にサブクラスを渡せることを検証する。そのような呼び出し元がこれらのメソッドに到達することはない。
+
+- `initialize`には、呼び出し元が指定するクラスに対する`Class#new`（または`super`）を通じてのみ到達するため、`Base`の*インスタンス*を保持する呼び出し元が`Base`のコンストラクタ引数を`Sub#initialize`に渡すことは決してない。クラスオブジェクトを保持する呼び出し元（ファクトリやレジストリのように、`klass : singleton(Base)`から`klass.new(...)`を呼ぶ）は渡しうるが、そのクラスオブジェクトの置換可能性は意図的に未チェックのままとされている。RBSもサブクラス間で`singleton(Base).new`を結び付けないからである。異なる引数を取り、`super(...)`の中で親の引数を構築するサブクラス — 構造化データを受け取ってメッセージをフォーマットする例外サブクラス — は慣用的なRubyであり、PHPのLSPルールも同じ理由でコンストラクタを免除している。
+- `dup` / `clone`はコピーフックに*レシーバー自身のクラス*のインスタンスを渡すため、引数の型は親の宣言ではなく`self`に従う。コピーフックはそのパラメータがレシーバー自身のクラスを除外するときに`dup`を壊し*うる*が、それは親があろうとなかろうと存在する`self`に対するシグネチャの欠陥であり、親との比較は誤った道具である。実際上、この免除はエンジンが証明できる発火（`Numeric` → `Integer`）を除去するだけである: コピーフックが通常行う`Base` → `Sub`の狭めは`:maybe`であり、WD7のもとですでに沈黙している。
+- `new`、`dup`、`clone`は4つのメソッドすべての戻り値を破棄するため、広げられた戻り値が呼び出し元に到達することはない。
+- CRubyは、どのセクションに書かれていようと、すべての非シングルトン`def`でこれら5つの名前をprivateにする（`vm_method.c`の`rb_method_entry_make`）。それらに対してソース発見された`public`セクションは実行時の可視性ではないため、サブクラスでの`private`セクションは何ら縮小していない。例外は親が`public :initialize`（または`public :respond_to_missing?`）を実行する場合である: `rb_export_method`はそのエントリを真にpublicにし、サブクラスの`def`は真にprivateになる。ルールは現在そこでも沈黙を保つ。この真陽性の喪失は許容される。パターンが稀であり、`public`セクション内のサブクラスはすでに見逃されていたからである。発見時に強制された可視性を記録し、明示的な`public :name`を尊重すれば、これを回復できるだろう。
+
+`respond_to_missing?`は2つのシグネチャルールを維持する: `respond_to?`は固定の`(Symbol, bool)`プロトコルであらゆるインスタンス上でそれを呼び出すため、そこでの狭められたパラメータは親の型を持つ呼び出し元を実際に壊す。
+
+**How to apply:** `CheckRules::LIFECYCLE_HOOKS`が`resolve_authored_override`（パラメータおよび戻り値ルールの共有エントリ）をゲートし、`CheckRules::IMPLICITLY_PRIVATE_METHODS`が`override_visibility_diagnostic`をゲートする。この変更は診断を除去するだけである。
+
 ## 実装スライス
 
 推奨される順序。各スライスは独立して出荷可能。
@@ -226,3 +241,4 @@ SteepはRBSに対して類似のオーバーライド互換性チェックを行
 - 2026-05-29 — 初回提案。Liskovハンドブック付録の著作に続くユーザーの質問（「RigorにLSP観点での機能追加の余地はありそう？」）に引き起こされた。意図的に狭くスコープした: 証明可能な違反のみ、両側著作のシグネチャのみ、型方向 + 可視性のみ（アリティと例外規則はスコープ外）、`:maybe`は沈黙 — そうしてルールは、診断を追加するすべての変更をゲートする偽陽性の規律を尊重する。
 - 2026-05-29 — PHPDocスタイルの逃げ道の提供についてのユーザーの質問に続き、Mirtesの*Generics in PHP using PHPDocs*を引用してWD9（逃げ道）を追加。段階化された設計（ジェネリクス第一 → 本体ナローイング → 抑制）と、段階1のジェネリックインスタンス化を認識する比較がparam/returnチェックの正しさの要件であり単なるオプトアウトではない — 正当な`Consumer[T < Message]`の特殊化が決して偽発火してはならない — という決定を記録する。構造化された`%a{rigor:v1:override-exempt}`アノテーションは未解決の問題として提示され、暫定的に見送られる。
 - 2026-07-18 — WD9段階1（ジェネリックインスタンス化を認識する比較）が戻り値 + パラメータのチェックに着地。親のシグネチャがいまや`accepts`比較の前にサブクラスのインスタンス化引数の下で翻訳されるので、`Parent[Integer]`から継承された`-> T`は`-> Integer`で比較される。正しさの要件ではなく*精度*の上乗せとして捉え直した（未束縛 / 伝播されたジェネリックはすでに`Dynamic[Top]`へ退化し沈黙を保つので、偽陽性リスクを加えない）。RBSのみの祖先へのリーチとシングルトン（`def self.`）のカバレッジは保留のまま。
+- 2026-10-10 — WD10を追加: sorah/protobufable内の例外サブクラスのコンストラクタで`def.override-param-narrowed`が発火したことを受け、`initialize`、`initialize_copy`、`initialize_dup`、`initialize_clone`を3つのルールすべてから免除し、`respond_to_missing?`を可視性ルールから免除した（[#1716](https://github.com/rigortype/rigor/issues/1716)）。

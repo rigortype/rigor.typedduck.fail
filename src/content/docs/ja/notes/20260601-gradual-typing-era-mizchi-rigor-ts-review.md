@@ -4,7 +4,7 @@ description: "Imported from rigortype/rigor docs/notes/20260601-gradual-typing-e
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260601-gradual-typing-era-mizchi-rigor-ts-review.md"
 sourcePath: "docs/notes/20260601-gradual-typing-era-mizchi-rigor-ts-review.md"
 sourceSha: "127fc561e29d6d7b2630ce0699180e19922fe79dc9ab89c8b6a1f41cfefc27e7"
-sourceCommit: "1c6f6ea59bac83a5227c3a879523151aeada9b3c"
+sourceCommit: "e4685d12ad7454982fdfed674e1cd0cd6f168fd8"
 sourceDate: "2026-06-01T22:49:16+09:00"
 sourceLanguage: "ja"
 sidebar:

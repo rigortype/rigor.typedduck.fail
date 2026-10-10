@@ -3,9 +3,9 @@ title: "`rigor sig-gen`でRBSを生成する"
 description: "rigortype/rigor docs/handbook/11-sig-gen.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/11-sig-gen.md"
 sourcePath: "docs/handbook/11-sig-gen.md"
-sourceSha: "a81dd694160abdee9f348ae7876b29d85ccba38df02311e39e22bf6c8cbacd5d"
-sourceCommit: "07f49bdb90e563a2387d0df35bc4640e32dd8a0e"
-sourceDate: "2026-09-27T10:09:37+09:00"
+sourceSha: "ac390df1a6c0c28ecf1fe2ad722c5f37410808f4610a015dd696c68c864ba898"
+sourceCommit: "e4685d12ad7454982fdfed674e1cd0cd6f168fd8"
+sourceDate: "2026-10-10T18:05:07+09:00"
 translationStatus: "translated"
 sidebar:
   order: 1011
@@ -105,6 +105,7 @@ would create sig/greeter.rbs (1 method(s))
 - `sig.skipped.inline-declared`: `.rigor.yml`が`sig_gen.inline_declared: skip`を設定しており、メソッドがインラインで宣言されている。[インライン宣言されたメソッド](#インライン宣言されたメソッド)を参照。
 - `sig.skipped.inline-generic-class`: メソッドのクラスがインライン宣言によってジェネリックであり、`sig/`がまだそれを宣言していないか、型パラメーターの名前を異なって付けている。[インラインでジェネリックにされたクラス](#インラインでジェネリックにされたクラス)を参照。
 - `sig.skipped.inline-differs`: メソッドがインラインと`sig/`で宣言されており、両者が不一致。拒絶（refusal）: `--write`と`--check`は`1`で終了する。[インライン宣言されたメソッド](#インライン宣言されたメソッド)を参照。
+- `sig.skipped.top-level-def` — プレーンなトップレベル`def`。これはprivateな`Object`メソッドを定義します。sig-genはこれをリストしますが（`--format=json`ではファイル、メソッド名、およびこの理由）、それに対するRBSを書き出さないため、`--write`と`--check`には影響しません。そのJSON行には`class`キーがありません。`def self.x`、ブロック本体内の`def`、および`class << obj`内の`def`は報告されません。
 - `sig.skipped.unrenderable-rbs`: このメソッドに対してRigorがレンダリングしたシグネチャがRBSとしてパースできない。これは**Rigor自身のバグ**であり、あなたのコードの性質ではない——生成された行はすべて出力される前にパースされ、`rbs`が拒否した行は書き出される代わりに破棄される。パースできない`.rbs`は`rigor check`によって*丸ごと*隔離されるため、1つの不正な行がファイル内の他のすべての型を道連れにしてしまうからだ。他のシグネチャには影響しない;スキップされたメソッドはstderrに報告され、私たちに報告する価値がある。
 
 ### より厳密な戻り値は宣言されたパラメータを保持する

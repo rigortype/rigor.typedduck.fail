@@ -3,15 +3,15 @@ title: "ADR-121 — Rubyのrefinementを通じた呼び出しの型付け、お�
 description: "rigortype/rigor docs/adr/121-ruby-refinement-typing.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/121-ruby-refinement-typing.md"
 sourcePath: "docs/adr/121-ruby-refinement-typing.md"
-sourceSha: "5dcd0e89a936304fdf1f2047d7b55c9b2d37a542f653aed8bb77687bf1f662ba"
-sourceCommit: "1c6f6ea59bac83a5227c3a879523151aeada9b3c"
-sourceDate: "2026-10-09T23:33:40+09:00"
+sourceSha: "da34947cdeaa29d5325d0b521ac9d00a9a09fbf3c522668f82d73466c1f936a4"
+sourceCommit: "e4685d12ad7454982fdfed674e1cd0cd6f168fd8"
+sourceDate: "2026-10-10T16:30:06+09:00"
 translationStatus: "translated"
 sidebar:
   order: 4121
 ---
 
-ステータス: **Accepted、2026-10-09**。現時点では何も実装されていない。作業は#1670によって追跡される: クエリ（#1673）、型付けアーム（#1664）、include展開（#1671）、gemのrefine本体（#1672）、再定義されたメソッドの辞退（#1663）、およびRuby 4.1の`Proc#refined`向けの#1665、#1666、#1667。規範的なルールは各スライスとともに`docs/internal-spec/inference-engine.md` §「Rubyリファインメント」に着地する。
+ステータス: **Accepted、2026-10-09；2026-10-10に実装済み**。#1670のもとで着地: 再定義されたメソッドの辞退（#1685）、include展開（#1684）、gemのrefine本体（#1686）、クエリ（#1729）、型付けアーム（#1747）、およびRuby 4.1の`Proc#refined`向けのシグネチャ（#1711）、リファインされたリテラル（#1738）、`BlockAsMethod`フィールド（#1744）。オープン: 「結果」の配下の繰り越し事項および#1669。規範的なルールは`docs/internal-spec/inference-engine.md` §「Rubyリファインメント」にある。
 
 根拠: #1664および#1667に関する2026-10-09の設計セッション、master `54da094f0`および`7baff7b1f`上のプローブ（#1670に一覧）、CRuby `334b4ffa7f`の`doc/syntax/refinements.rdoc`および`test/ruby/test_proc.rb`（`test_refined*`）、ならびに[Feature #22097](https://bugs.ruby-lang.org/issues/22097)。ADR-49アーキタイプ: 熟議型（deliberative）;ステークス: 中（すべてのリファインされた呼び出しの偽陽性エンベロープ、および公開プラグインマニフェストフィールド）。
 

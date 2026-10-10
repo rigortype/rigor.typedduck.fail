@@ -3,9 +3,9 @@ title: "プラグインリファレンス"
 description: "rigortype/rigor docs/manual/plugins/README.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/plugins/README.md"
 sourcePath: "docs/manual/plugins/README.md"
-sourceSha: "dd872f434fd574b1f9b284057001c4cb258d593d379da7b3c3235a5aff52bc43"
-sourceCommit: "1c6f6ea59bac83a5227c3a879523151aeada9b3c"
-sourceDate: "2026-10-10T04:06:26+09:00"
+sourceSha: "2f25883f1cbd83a117182a6a6747f3e70ef42d900698fdb27e90d60e5c21e014"
+sourceCommit: "e4685d12ad7454982fdfed674e1cd0cd6f168fd8"
+sourceDate: "2026-10-10T06:16:23+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9000
@@ -17,7 +17,7 @@ sidebar:
 
 ## 利用可能なページ
 
-- [rigor-activerecord](rigor-activerecord/): ActiveRecordのファインダー／リレーションの型付けと、スキーマでチェックされるカラム。
+- [rigor-activerecord](rigor-activerecord/): ActiveRecordのファインダー／リレーションの型付けと、スキーマでチェックされるカラム; `rigor unused`向けに関連を通じてのみ到達されるモデルをルート化する。
 - [rigor-rails-routes](rigor-rails-routes/): パースした`config/routes.rb`に対する`*_path`／`*_url`ヘルパーの検証。
 - [rigor-rails-i18n](rigor-rails-i18n/): `t(...)`／`I18n.t(...)`のキー、ロケールごとのカバレッジ、補間の検証。
 - [rigor-actionpack](rigor-actionpack/): コントローラーのルートヘルパー、フィルタチェーン、レンダーターゲット、ストロングパラメータのキー。
