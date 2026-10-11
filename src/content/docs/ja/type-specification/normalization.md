@@ -3,9 +3,9 @@ title: "正規化"
 description: "rigortype/rigor docs/type-specification/normalization.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/type-specification/normalization.md"
 sourcePath: "docs/type-specification/normalization.md"
-sourceSha: "06504b9295590aa69614a5298b64f25abfa45baee9473641d016376b59e5e1e6"
-sourceCommit: "d01a937b5d3d66d5ec4e6ba82036919d1bc91d10"
-sourceDate: "2026-09-12T20:35:02+09:00"
+sourceSha: "7fc4074c506fd6cc5ca749e0263f1a8946b6c90ec2b0e29d6d8937c3cb76ed22"
+sourceCommit: "a8a58149bbbed5f850866905324fab02b678990c"
+sourceDate: "2026-10-11T12:00:00+09:00"
 translationStatus: "translated"
 sidebar:
   order: 2050
@@ -21,6 +21,7 @@ Rigorは比較と報告の前に型を正規化します。正規化は診断、
 - 重複するユニオンと積のオペランドを除去する。
 - 別のメンバーによって吸収されるユニオンメンバーを削除する; §「メンバーの吸収」に完全なリストがあります。
 - ユニオンから`bot`を削除する（`T | bot = T`）。
+- 2つの`Enumerator::ArithmeticSequence[E]`メンバーを、それらの要素のユニオン上の1つに合流（join）する: `Enumerator::ArithmeticSequence[A] | Enumerator::ArithmeticSequence[B]`は`Enumerator::ArithmeticSequence[A | B]`に正規化される。これは吸収とは異なり拡大（widen）であり、いずれのアームがyieldする各要素も`A | B`であるため健全である。
 - 積から`top`を削除する（`T & top = T`）。
 - `T?`を内部的に`T | nil`に展開する。
 - ドメインが既知の場合、有限集合の差と補完を正規化する。
@@ -39,7 +40,8 @@ Rigorは比較と報告の前に型を正規化します。正規化は診断、
 
 - `bot`はすべてのメンバーによって吸収され、`top`はすべてのメンバーを吸収します。
 - あるメンバーは、それをすでにリストしているユニオンメンバーによって吸収されます —— フラット化と重複排除を1レベル下で読み取ったものです。
--- `FloatRange`は素の`Float`メンバーおよびそれを含む`FloatRange`によって吸収されます。このルールとそのInteger除外は[imported-built-in-types.md](../imported-built-in-types/)にあります（`Float`の比較ナローイングはtruthyエッジのみを広げるため、falseyエッジは`Float`を保持し、さもなくば合流が両方の解釈を運んでしまいます; `Integer`の両エッジはナローイングされるため、`IntegerRange`は両メンバーを保持します）。
+- `Enumerator::ArithmeticSequence[E]`（[rbs-erasure.md](../rbs-erasure/)のRigor非公開要素）は、`Numeric`をyieldする素の`Enumerator::ArithmeticSequence`メンバーによって吸収されます。`1.step(10, 2)`と`1.step(10, 0.5)`の合流はFloatをyieldするシーケンスを保持するため、ブロックプローブが合意できない2つの解釈としてではなく、素のクラスとして読み取られなければなりません（MUST）（[#1794](https://github.com/rigortype/rigor/issues/1794)）。
+- `FloatRange`は素の`Float`メンバーおよびそれを含む`FloatRange`によって吸収されます。このルールとそのInteger除外は[imported-built-in-types.md](../imported-built-in-types/)にあります（`Float`の比較ナローイングはtruthyエッジのみを広げるため、falseyエッジは`Float`を保持し、さもなくば合流が両方の解釈を運んでしまいます; `Integer`の両エッジはナローイングされるため、`IntegerRange`は両メンバーを保持します）。
 - 構造的キャリアは、この同じリストを1レベル下で問い合わせることで、**同一の骨格（spine）上で要素ごとに**吸収されます。**等しいアリティ**の2つの`Tuple`メンバーは、一方のすべての要素が他方のその位置の要素と等しいか、またはそれによって吸収される場合に吸収されます。2つの`HashShape`メンバーは、その骨格 —— キーセット、余分なキーのポリシー、および必須 / オプション / 読み取り専用の分類 —— が同一であり、すべての値型がそのキーの値と等しいか、またはそれによって吸収される場合に吸収されます。
 
 異なるアリティや異なる骨格は決して吸収されません: `[A]`と`[A, B]`、またはキーや開放性（openness）で意見が合わない2つのハッシュ形状は、異なる形状の値を記述しているため、どちらも他方の解釈ではありません。

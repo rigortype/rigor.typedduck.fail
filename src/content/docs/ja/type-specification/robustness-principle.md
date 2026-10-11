@@ -3,9 +3,9 @@ title: "ロバストネス原則（型のためのPostelの法則）"
 description: "rigortype/rigor docs/type-specification/robustness-principle.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/type-specification/robustness-principle.md"
 sourcePath: "docs/type-specification/robustness-principle.md"
-sourceSha: "9cb3821ad425b15bb4e010694a18467f04b55c2316739abf88d097d13b3377a2"
-sourceCommit: "e4685d12ad7454982fdfed674e1cd0cd6f168fd8"
-sourceDate: "2026-10-11T04:16:14+09:00"
+sourceSha: "bc389cd673d70fd7f99c40cf507eb8ab3931433f39dd9b58f652295293da1995"
+sourceCommit: "a8a58149bbbed5f850866905324fab02b678990c"
+sourceDate: "2026-10-11T12:00:00+09:00"
 translationStatus: "translated"
 sidebar:
   order: 2050
@@ -60,7 +60,7 @@ Rigorの既存のキャリアは、原則が解析器に使うよう指示する
 ### 具体的なパターン
 
 - **コンテナクエリからの有界整数**。`Array#size`、`String#length`、`Hash#size`、`Range#size`、`Set#size`は`Nominal[Integer]`ではなく`non-negative-int`を返すべきです（SHOULD）。境界は構造的な真実（負のサイズはない）であり、すべての後続比較を通じて伝播します。
-- **イテレータブロックパラメータ**。`Integer#times`、`Integer#upto`、`Integer#downto`、`Range#each`などは、コンテナの要素型だけではなく、反復ドメインの精密な`IntegerRange`にブロックのインデックスパラメータをバインドすべきです（SHOULD）。`Integer#step`（位置引数または`by:` / `to:`）は、リミットとステップもIntegerである場合（省略、または`nil`リミットも該当）にのみ`Integer`をバインドしなければなりません（MUST）: Floatのステップまたは有限のFloatリミットはブロックにFloatをyieldさせ、RationalのステップはRationalをyieldさせるため、非Integerのオペランドを持つ呼び出しはRBSの`Numeric`バインディングを保持します。型付けされていない（untyped）オペランドはどちらの可能性もあるため、パラメータは`Dynamic[Numeric]`にバインドされ、見つからないメソッドは報告されません（[#1783](https://github.com/rigortype/rigor/issues/1783)）。
+- **イテレータブロックパラメータ**。`Integer#times`、`Integer#upto`、`Integer#downto`、`Range#each`などは、コンテナの要素型だけではなく、反復ドメインの精密な`IntegerRange`にブロックのインデックスパラメータをバインドすべきです（SHOULD）。`Integer#step`（位置引数または`by:` / `to:`）は、リミットとステップもIntegerである場合（省略、または`nil`リミットも該当）にのみ`Integer`をバインドしなければなりません（MUST）: Floatのステップまたは有限のFloatリミットはブロックにFloatをyieldさせ、RationalのステップはRationalをyieldさせるため、非Integerのオペランドを持つ呼び出しはRBSの`Numeric`バインディングを保持します。型付けされていない（untyped）オペランドはどちらの可能性もあるため、パラメータは`Dynamic[Numeric]`にバインドされ、見つからないメソッドは報告されません（[#1783](https://github.com/rigortype/rigor/issues/1783)）。ブロックなし形式は、それが返す`Enumerator::ArithmeticSequence`の要素に対して同じ規則を適用しなければならず（MUST）、これは`Enumerator::ArithmeticSequence[Integer]`（または`[Dynamic[Numeric]]`）として運ばれ、シーケンスの`each`ブロックおよび`Enumerator` / `Enumerable`から継承するすべてのメソッド（`map`、`select`、`to_a`、`first`、`lazy`など）によって読み取られます。無限のFloatリミットを超えると2つの形式は分かれます: `1.step(Float::INFINITY, 2) { … }`はIntegerをyieldしますが、そのシーケンスはFloatをyieldし、いずれにせよFloatリミットは非Integerオペランドであるため、シーケンスはRBSの`Numeric`要素を保持します（[#1794](https://github.com/rigortype/rigor/issues/1794)）。
 - **フォールドによる有界Float**（[ADR-109](../../adr/109-ruby-native-range-notation/)）。乱数の抽出、単調関数、およびclampはすべて呼び出しが指名する区間に着地し、その区間は`FloatRange` / `IntegerRange`となります: `rand(a..b)`および`Random.rand(a..b)`はリテラル範囲そのものを返すべきです（SHOULD。引数なしおよび`rand(n)`形式はRBSに任せられます。コーパスはそれらを未知値のオラクルとして読んでいるためです）;有界な引数に対する`Math.sqrt` / `exp` / `log`およびその他の単調関数はその境界の像の間の範囲を返すべきであり（SHOULD）、境界が関数の定義域を下回る場合は辞退しなければなりません（MUST decline。そこに達した値は例外を発生させるためです）;有界なレシーバーに対する`abs`、`clamp(lo, hi)`、および`clamp(range)`はブラケットへとナローイングすべきであり（SHOULD）、プレーンな`Integer` / `Float`レシーバーではブラケット全体を返すべきです（SHOULD）── レシーバーがどんな境界を持っていようと`clamp`はブラケットの内側に着地するため、`i.clamp(1, 9)`と`i.clamp(1..9)`は両方とも`Integer[1..9]`になります。ブラケットの終端はレシーバー自身のクラスのリテラルでなければなりません（MUST）: 混合ブラケット（`1.clamp(0.5, 2.5)`）はレシーバーまたは境界を返し、そのクラスはユニオンとなるため、辞退しなければなりません（MUST decline）。排他的終端（`clamp(1...9)`）および逆向きのブラケットは実行時に例外を発生させるため、あらゆるレシーバーで辞退しなければなりません（MUST decline）。有界なFloatは決して`NaN`を保持しないため、それに対する`nan?`は`false`となり、`finite?`はその境界によって決定されます; `floor` / `ceil` / `round` / `to_i`は有限の境界を`IntegerRange`へとマッピングし、無限の境界では辞退しなければなりません（MUST decline。そこに達した値に対して`FloatDomainError`を発生させるためです）。プレーンな`Float`レシーバーはそれ以外のどれも取りません: `NaN`である可能性があるためです。`clamp`は例外であり、健全（sound）です ── `NaN`レシーバーは比較の中で例外を発生させるため、リターンする呼び出しはブラケットの内側にあり、いかなる`FloatRange`もその中に`NaN`を保持しません。
 - **タプル形状の戻り値**。 固定アリティの異種配列を返すメソッド（例: `Integer#divmod`）は、多重代入先で各スロットの型がローカル変数に流れるように`Tuple[…]`として公開すべきです（SHOULD）。
 - **カタログ下の定数たたみ込み**。 レシーバーと引数が具体的な定数である`:leaf` / `:trivial` / `:leaf_when_numeric`として分類されたすべてのメソッドは`Constant`にたたみ込まれるべきです（SHOULD）。`MethodCatalog`層は最も広いメソッドサーフェスにわたって第1句を観察するツールチェーンです。

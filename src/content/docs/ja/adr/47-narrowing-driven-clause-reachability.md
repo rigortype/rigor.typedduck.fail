@@ -11,7 +11,7 @@ sidebar:
   order: 4047
 ---
 
-ステータス: **Accepted —— WD1 + WD2 + WD3a + WD5実装済み。Rigorの既存の2つの`if`/`unless`到達可能性ルールを、フロー（flow）エンジンが既に計算しているナローイング（narrowing）を用いて`case`/`when`および`case`/`in`節に拡張する。WD5は鏡像の方向を実行する——決定可能なバージョンガードが非選択とした`if`/`unless`ブランチは到達不能であり、何も報告しない。Elixir v1.20の冗長な`case`節報告に触発されたもの;Rigorの偽陽性エンベロープ内に収まるようスコープを限定する**。**WD5は2026-10-10に修正（#1692）: 明示的な`target_ruby`は指定されたランタイムでもあり、Rubyの非推奨化ルールによってのみ読み取られる。**
+ステータス: **Accepted —— WD1 + WD2 + WD3a + WD5実装済み。Rigorの既存の2つの`if`/`unless`到達可能性ルールを、フロー（flow）エンジンが既に計算しているナローイング（narrowing）を用いて`case`/`when`および`case`/`in`節に拡張する。WD5は鏡像の方向を実行する——決定可能なバージョンガードが非選択とした`if`/`unless`ブランチは到達不能であり、何も報告しない。Elixir v1.20の冗長な`case`節報告に触発されたもの;Rigorの偽陽性エンベロープ内に収まるようスコープを限定する**。**WD5は2026-10-10に修正（#1692）: 明示的な`target_ruby`は指定されたランタイムでもあり、Rubyの非推奨化ルールによってのみ読み取られる**。
 
 **WD1 landed（v0.1.17）**。`flow.unreachable-clause`は、`case <local>`節のクラス/モジュール定数条件（`when String` / `when MyClass`）が対象を`Type::Bot`に絞り込むときに発火する —— `scope_index`（評価器自身の節ごとの`body_scope`）から読み返すため、ルールとボディ型付けは乖離しえない。単一の`body_scope == bot`シグナルが設計で挙げる両方の形をカバーする（節ごとのdisjointnessと先行網羅の両方。網羅済みの入口スコープも`bot`に絞り込まれるため）。偽陽性エンベロープを強制: 対象は絞り込み済みのローカルでなければならず、`Dynamic`（<ruby>漸進的保証<rp>（</rp><rt>gradual guarantee</rt><rp>）</rp></ruby>）でも既に`Bot`（デッドコード）でもいけない。クラス/モジュール定数条件のみ（`when nil` / 範囲 / 正規表現 / 式は除外）、ループ/ブロック内の節はスキップ。**WD4**に従い、lenient + balanced（デフォルト）では`:info`、strictのみ`:warning`で出荷。balanced→`:warning`昇格は回帰コーパスFPゲートを待つ;Rigor自身の`lib` + `plugins` + `examples`でクリーン（ゼロ発火）。
 
@@ -123,7 +123,7 @@ Rigorはこの作業の難しい半分を既に行っている。欠けている
 - *すべてのルールに対して指定されたランタイムを`VersionGuard`に伝播する* ── 却下: Rigorが読み取るcoreおよびstdlibのRBSは依然としてアナライザーのRubyに属するため、別のRubyに対してガードを畳み込むと、あるRubyのアームと別のRubyのシグネチャをペアにしてしまう。
 - *`required_ruby_version`、`.ruby-version`、またはGemfileの`ruby`行を読み取る* ── 別のissueに先送り: ランタイムを指定する者を拡大することになり、この修正はそれに依存しない。
 
-**結果**。`Configuration`は`target_ruby`が書かれたかどうかを記録し（`#target_ruby_explicit?`）、`#to_h`はそれを運ぶため、キャッシュは指定された`"4.0"`とデフォルトを区別する。したがって`rigor init`はそのキーをコメントアウトして書き出す: デフォルトを書き出すスターターはそれを誰も行っていない言明に変えてしまい、デフォルトが`"4.1"`に達した日にすべての新しいプロジェクトが非推奨化を報告してしまう。`spec/rigor/analysis/check_rules/deprecated_ruby2_keywords_spec.rb`が保持するゲート: キーなし、`"4.0"`、`"latest"`、および書かれていない`"4.1"`では沈黙; 書かれた`"4.1"`では報告する。2つの`alias`ルールは[#1776](https://github.com/rigortype/rigor/issues/1776)である: #1692が求めたプローブにより、Rigorがまだ「`Object`フォールバックを通じてのみ見つかった」または「prependされたモジュールで定義された」を確実に区別できないことが判明した。
+**結果**。`Configuration`は`target_ruby`が書かれたかどうかを記録し（`#target_ruby_explicit?`）、`#to_h`はそれを運ぶため、キャッシュは指定された`"4.0"`とデフォルトを区別する。したがって`rigor init`はそのキーをコメントアウトして書き出す: デフォルトを書き出すスターターはそれを誰も行っていない言明に変えてしまい、デフォルトが`"4.1"`に達した日にすべての新しいプロジェクトが非推奨化を報告してしまう。`spec/rigor/analysis/check_rules/deprecated_ruby2_keywords_spec.rb`が保持するゲート: キーなし、`"4.0"`、`"latest"`、および書かれていない`"4.1"`では沈黙;書かれた`"4.1"`では報告する。2つの`alias`ルールは[#1776](https://github.com/rigortype/rigor/issues/1776)である: #1692が求めたプローブにより、Rigorがまだ「`Object`フォールバックを通じてのみ見つかった」または「prependされたモジュールで定義された」を確実に区別できないことが判明した。
 
 ## 却下 / 先送りした代替案
 

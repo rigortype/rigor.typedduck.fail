@@ -3,9 +3,9 @@ title: "RBS消去"
 description: "rigortype/rigor docs/type-specification/rbs-erasure.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/type-specification/rbs-erasure.md"
 sourcePath: "docs/type-specification/rbs-erasure.md"
-sourceSha: "0fc6aadf7f0430363e48bf85481e461ee835424adf1ae1cc40867da497ac6534"
-sourceCommit: "04668e5f0d6205fdd5c8f44662041add7ab33ca3"
-sourceDate: "2026-09-09T00:33:11+09:00"
+sourceSha: "0901e0953371cb6400fc39e0fa4a9e5c60f64d17e4c704cb5bbffec158e470c8"
+sourceCommit: "a8a58149bbbed5f850866905324fab02b678990c"
+sourceDate: "2026-10-11T12:00:00+09:00"
 translationStatus: "translated"
 sidebar:
   order: 2050
@@ -21,6 +21,7 @@ RBS消去はRigorの内部型を有効なRBS型に変換します。Rigor→RBS�
 - 絞り込まれた型は絞り込まれていないベースに消去されます。
 - サポートされていないリテラル種類はその名前的クラスに消去されます。
 - 整数範囲は`Integer`に消去されます; Float範囲は`Float`に消去されます。
+- RBSが型引数なしで宣言しているクラス上でRigorが運ぶ型引数は消去されます: `1.step(10, 2)`が返すシーケンスである`Enumerator::ArithmeticSequence[Integer]`は、`Enumerator::ArithmeticSequence`に消去されます（[#1794](https://github.com/rigortype/rigor/issues/1794)）。消去のみがそれを落とします: 診断メッセージ、`rigor type-of`、および`rigor annotate`は、有効なRBSではない内部形式を出力します。`rigor sig-gen`が消去されたシグネチャを書き出した後は、それを読み取る呼び出し元は再びRBSの`Numeric`要素を見ることになります;要素はエンジンが呼び出し自身を推論する場所でのみ生き残ります。
 - 補完と差分のリファインメントは現在のドメイン型に消去されます。
 - ハッシュシェイプの開放性、追加キー、読み取り専用マーカーは以下のハッシュシェイプ消去アルゴリズムによって消去されます。
 - オブジェクトシェイプは一致する名前付きインターフェースが存在する場合はそれに消去され、そうでなければ保守的な名前的または`top`に消去されます。

@@ -3,9 +3,9 @@ title: "プラグイン側キャッシュプロデューサー（スライス6�
 description: "rigortype/rigor docs/internal-spec/plugin-cache-producers.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/plugin-cache-producers.md"
 sourcePath: "docs/internal-spec/plugin-cache-producers.md"
-sourceSha: "79f143974cada0c4d94d5d16cf404c739d3e0233013b517a9695f9462d922675"
-sourceCommit: "8a5d6e2c6001d80084cf95132e306eb6a6d71b9a"
-sourceDate: "2026-10-08T17:40:13+09:00"
+sourceSha: "cc24ffc7da5a17a5c93ca0c4076bf847404c52c470991f1425ffb3ebeccf42c4"
+sourceCommit: "a8a58149bbbed5f850866905324fab02b678990c"
+sourceDate: "2026-10-11T12:00:00+09:00"
 translationStatus: "translated"
 sidebar:
   order: 3050
@@ -130,6 +130,7 @@ end
 
 - フックは**オプション**です —— それを定義するプラグインは（`respond_to?`を通じて）参照され、定義しないプラグインは参照されません。`Plugin::Base`上にデフォルトはありません。
 - 貢献が各解析対象ファイル自身の内容**のみ**から導出される（そのファイルが変わったときに既に再解析される）プラグインは、それ*自身の*クロスファイルサーフェスを持ちません。それでもフックを定義して**安定したセンチネル文字列**（例: `"per-file-lets"`）を返すべきです —— これは「クロスファイルのファクトサーフェスなし」を積極的に宣言し、プラグインをインクリメンタル対応のまま保ちます。バンドルされた`rigor-rspec`・`rigor-minitest`・`rigor-mangrove`・`rigor-railties`・`rigor-activesupport-core-ext`はまさにこれを行います。`rigor-ffi`は代わりに検出された`:ffx` / `:ffi`ターゲットを返します。このターゲットは`./Gemfile.lock`と`ext/**/extconf.rb`から読み取られ、解析対象ファイルのいずれの内容にもカバーされないためです。
+- このフックは`--incremental`スナップショットのみをカバーします。実行結果キャッシュ ── `--incremental`スロットおよびプレーンな`rigor check`エントリー ── はプラグインをロードすることなく変更のない実行に答えるため、フックを決して呼び出しません: それらはプラグインの`IoBoundary`が記録した行を通じてのみ、その背後にある状態を認識します。したがって、値がプロジェクトファイルに依存するフックは、境界を通じてそれらを読み取らなければならず（MUST、`#read_file`、`#file?`、`#glob`など）、さもなければソース編集を伴わないファイル変更に対して以前の回答が提供されてしまいます。`#glob`はどのファイルが一致したかのみを記録するため、一致の内容に依存するフックはその一致を`#read_file`しなければなりません。`rigor-ffi`はそのターゲットの入力をそのように読み取ります（[#1652](https://github.com/rigortype/rigor/issues/1652)）。
 - `dynamic_return` / `narrowing_facts`の貢献を登録し、3つのチャネルの**いずれも**提供しないプラグインは、そのランでスナップショットを再利用不能にし、ランの出力で名指しされます —— インクリメンタルは、陳腐化した再利用のリスクを冒すのではなく、フル解析へ格下げされます。
 - 3つのチャネルはすべて値によってダイジェストされます（`Cache::ValueDigest`、[#1574](https://github.com/rigortype/rigor/issues/1574)）: オブジェクトをどのように共有しているかに関係なく等しい値は同様にダイジェストされるため、キャッシュから提供されたプロデューサー値は計算時と同じようにダイジェストされます。ダイジェストが読み取れない値 ── Proc、IO、デフォルトprocを持つHash、無名クラスのインスタンス、循環構造 ── は、あたかもサーフェスを持たないかのようにプラグインを不透明にします。貢献の状態はダイジェストが読み取る場所に保持してください: 単純な値、Data、Struct、例外（message、backtrace、cause）、およびインスタンス変数であり、String、Array、Hashに設定されたインスタンス変数や、オブジェクトに`extend`されたモジュールではありません。
 - `--verify-incremental`は常設のバックストップです: プラグインの実際の貢献が動いたのに動かなかったフックは、そこでバイト不一致として表面化します。

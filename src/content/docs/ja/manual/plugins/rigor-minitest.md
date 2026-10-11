@@ -3,8 +3,9 @@ title: "rigor-minitest"
 description: "rigortype/rigor docs/manual/plugins/rigor-minitest.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/plugins/rigor-minitest.md"
 sourcePath: "docs/manual/plugins/rigor-minitest.md"
-sourceSha: "a686a8c6dfe14d62f596b21d55ddcf5a32094206f8e0025b196816de8a3f3ed2"
-sourceCommit: "450a3016ca812067f6baa96e415442ed936ad49a"
+sourceSha: "b57f9314cdd2c65e35c17b02e2e294e16b83ef31283189de942a95319903e1e4"
+sourceCommit: "a8a58149bbbed5f850866905324fab02b678990c"
+sourceDate: "2026-10-11T12:00:00+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9050
@@ -44,18 +45,26 @@ end
 | --- | --- |
 | `assert_kind_of(T, x)` / `assert_instance_of(T, x)` | `T`にナローイング |
 | `assert_nil(x)` | `Constant<nil>`にナローイング |
-| `assert_equal(literal, x)` | `Constant<literal>`にナローイング |
+| `assert_equal(literal, x)` | `Constant<literal>`とmeet（下記参照） |
 | `assert_match(regex, x)` | `String`にナローイング |
 | `refute_kind_of` / `refute_instance_of`（＋`assert_not_*`） | `T`から除外する方向にナローイング |
 | `refute_nil(x)` / `assert_not_nil(x)` | nilから除外する方向にナローイング |
-| `refute_equal(literal, x)` / `assert_not_equal(...)` | `Constant<literal>`から除外する方向にナローイング |
+| `refute_equal(literal, x)` / `assert_not_equal(...)` | 変更なし |
 | `_(x).must_be_kind_of(T)` / `must_be_a(T)` / `must_be_instance_of(T)` / `must_be_an_instance_of(T)` | `T`にナローイング |
 | `_(x).must_be_nil` | `Constant<nil>`にナローイング |
-| `_(x).must_equal(literal)` | `Constant<literal>`にナローイング |
+| `_(x).must_equal(literal)` | `Constant<literal>`とmeet（下記参照） |
 | `_(x).must_match(regex)` | `String`にナローイング |
 | `_(x).wont_be_kind_of(T)` / `wont_be_instance_of(T)` | `T`から除外する方向にナローイング |
 | `_(x).wont_be_nil` | nilから除外する方向にナローイング |
-| `_(x).wont_equal(literal)` | `Constant<literal>`から除外する方向にナローイング |
+| `_(x).wont_equal(literal)` | 変更なし |
+
+### 等価性は同一性ではない
+
+`assert_equal(literal, x)`と`_(x).must_equal(literal)`は`literal == x`のときにパスし、`==`はクラスをまたいで成り立つことがあります: `1 == 1.0`、`1 == 1r`、そして独自の`==`を持つクラス（`to_i`を比較する`ModInt`など）は`assert_equal 9, m`をパスします。したがって、アサーションは`x`の型を決して置き換えません:
+
+- `nil`、`true`、`false`、またはSymbolリテラルは同一性の`==`を持つため、`x`の型が何であれ、`x`はそのリテラルにナローイングされます;
+- Integer、Float、またはStringリテラルは、`x`の型のすべてのメンバーがすでにそのリテラルのクラスである（またはリテラルと等しくなり得ない`nil`、真偽値、Symbolである）場合にのみ`x`をナローイングします。`x = rand(10); assert_equal 9, x`の後、`x`は`9`になります;
+- それ以外の場合 ── `x`が`Dynamic`である、ユーザー定義クラスである、別の数値クラスである（Integerの`x`に対する`assert_equal 9.0, x`）、またはリテラルが`-0.0`とも等しい`0.0`である場合 ── `x`はその型を保持します。
 
 ## diagnosticなし、設定なし
 

@@ -53,7 +53,7 @@ cache:
 
 | キー | 型 | デフォルト | 意味 |
 | --- | --- | --- | --- |
-| `target_ruby` | String | `"4.0"` | **自分の**プロジェクトが動作する最低のRubyバージョン ── `"X.Y"`、`"X.Y.Z"`、または`"latest"`。Rigor自体が動作するRubyとは独立。すべての値がRigorのパースする構文を選択します。明示的に設定したバージョンは、そのバージョンのRuby非推奨ルールもオンにします（`"4.1"`以降の[`call.deprecated-ruby2-keywords`](../04-diagnostics/#rule-call-deprecated-ruby2-keywords)）; デフォルトおよび`"latest"`は決してオンにしないため、`rigor init`はこのキーをコメントアウトして出力します。 |
+| `target_ruby` | String | `"4.0"` | **自分の**プロジェクトが動作する最低のRubyバージョン ── `"X.Y"`、`"X.Y.Z"`、または`"latest"`。Rigor自体が動作するRubyとは独立。すべての値がRigorのパースする構文を選択します。明示的に設定したバージョンは、そのバージョンのRuby非推奨ルールもオンにします（`"4.1"`以降の[`call.deprecated-ruby2-keywords`](../04-diagnostics/#rule-call-deprecated-ruby2-keywords)）;デフォルトおよび`"latest"`は決してオンにしないため、`rigor init`はこのキーをコメントアウトして出力します。 |
 | `paths` | Array | `["lib"]` | 解析するディレクトリまたはファイル。 |
 | `exclude` | Array | `[]` | スキップするGlobパターン。`vendor/bundle`、`.bundle`、`node_modules`は常に除外される。 |
 | `test_paths` | Array | `nil` | プロジェクトのテストルート: テストを保持するディレクトリ（またはファイル）。相対パスのエントリーは設定ファイルのディレクトリを基準に解決されます。未設定の場合は`spec/`と`test/`のうち存在する方を自動検出します。`[]`はなしを宣言します。`rigor sig-gen --params=observed`はパラメータを型付けするためにそこにある呼び出し箇所を読み取り、存在しない宣言されたルートがあればstderrに名前を出力します。テストルートは`paths:`にも記載されていない限り解析されず、変更してもキャッシュは無効化されません。 |

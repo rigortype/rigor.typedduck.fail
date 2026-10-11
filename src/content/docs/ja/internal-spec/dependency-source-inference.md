@@ -3,9 +3,9 @@ title: "オプトイン依存関係ソース推論"
 description: "rigortype/rigor docs/internal-spec/dependency-source-inference.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/dependency-source-inference.md"
 sourcePath: "docs/internal-spec/dependency-source-inference.md"
-sourceSha: "6d4c3588f9be22dd92e84f95639ad37da8de4aa730aec116340406ad137e1c62"
-sourceCommit: "e4685d12ad7454982fdfed674e1cd0cd6f168fd8"
-sourceDate: "2026-10-10T13:22:56+09:00"
+sourceSha: "83b7f1946498402a06f5facd527b5108a78845a9b63311930671be95442e01e8"
+sourceCommit: "a8a58149bbbed5f850866905324fab02b678990c"
+sourceDate: "2026-10-11T19:39:13+09:00"
 translationStatus: "translated"
 sidebar:
   order: 3050
@@ -121,6 +121,7 @@ Builder.build(dependencies)        ▼
 - `#method_catalog` — ウォーカーによって設定されたフラットな`Hash{[class_name, method_name] => :instance | :singleton}`（スライス2b-i）。
 - `#contribution_for(class_name:, method_name:)` — 記録された種類または`nil`を返す。
 - `#refinements` — gemの`refine`本体（issue #1672;下の「refine本体」を参照）、フリーズされた`Hash{refined_class => Hash{method_name => Array<refining_module>}}`。
+- `#bound_constant?(segment)` — 辿られたgemが、クラスやモジュールを宣言することなく、最後のセグメントが`segment`である定数を書き込んでいるか（issue #1814; `Walker::Outcome#bound`、gem間でユニオン;下の「refine本体」を参照）。
 - `#empty?` — 解決されたgemが登録されていない場合にtrue。
 - `#cache_descriptor` — 解決されたgemごとに1つの`DependencyEntry`を持つフリーズされた[`Cache::Descriptor`](../cache/)（スライス3;以下の「キャッシュスライス」参照）。
 
@@ -138,12 +139,17 @@ Builder.build(dependencies)        ▼
 - `def self.foo`は周囲のフラグに関係なく`(Class, :foo, :singleton)`を記録。
 - クラスごとの先着書き込みが勝つ。異なる種類の同じクラスの同名メソッド（稀;主にプライベートAPI）は、クラスごとの最初のウォークで勝った種類を持つ。
 - `refine X do … end`はrefine本体であり、囲むモジュールの一部ではない（下の「refine本体」を参照）。
+- ファイルが書き込む定数、および宣言するクラスとモジュールは、`Outcome#bound`のために収集される（下の「refine本体」を参照）。
 
 ### refine本体（issue #1672）
 
-ウォーカーはプロジェクトのウォークが行うrefine呼び出し形状（`Inference::ScopeIndexer.module_refine_target`）を認識する: 1つの定数引数とリテラルブロックを持つ暗黙的レシーバーまたは`self`レシーバーの`refine`であり、`self`がクラスであることが既知でない場合である。`Class`は`Module#refine`を未定義化するため、`class`や`class << …`本体の直下、あるいは`Class.new` / `Struct.new` / `Data.define`ブロック内の`refine`はそのクラス自身のメソッドであり、他の任意の呼び出しと同様にウォークされる（issue #1689）。refine本体のインスタンス`def`はカタログに入ってはならない（MUST NOT）: それらはリファインするモジュールのメソッドではなく、`using`の後にのみリファインされるクラスのメソッドとなるからである。ウォーカーは代わりに各々を、囲むモジュールによるターゲットのリファインメントとして`Walker::Outcome#refinements`に記録し、ターゲットはプロジェクトのウォークが解決するのと同じ方法（それが指し示しうるすべての名前）で字句的に解決される。`def self.x`および`def`や宣言内にネストされた`def`はターゲット上で何も定義しないためドロップされる; 本体内で宣言された`class` / `module`は引き続き字句プレフィックスのもとでウォークされる。囲むモジュールのない`refine`、または`class << self`下のブロック内の`refine`は、リファインするモジュールを名指さないため何も記録しない。計算されたターゲット（`refine(klass) { … }`）はキーとなるクラスを名指ししないため、その本体は他のブロックと同様にウォークされる。
+ウォーカーはプロジェクトのウォークが行うrefine呼び出し形状（`Inference::ScopeIndexer.module_refine_target`）を認識する: 1つの定数引数とリテラルブロックを持つ暗黙的レシーバーまたは`self`レシーバーの`refine`であり、`self`がクラスであることが既知でない場合である。`Class`は`Module#refine`を未定義化するため、`class`や`class << …`本体の直下、あるいは`Class.new` / `Struct.new` / `Data.define`ブロック内の`refine`はそのクラス自身のメソッドであり、他の任意の呼び出しと同様にウォークされる（issue #1689）。refine本体のインスタンス`def`はカタログに入ってはならない（MUST NOT）: それらはリファインするモジュールのメソッドではなく、`using`の後にのみリファインされるクラスのメソッドとなるからである;本体内で宣言された`class` / `module`は引き続き字句プレフィックスのもとでウォークされる。
 
-`Builder`はすべてのgemのテーブルを`Index#refinements`へとユニオンし、ランナーはそれをプロジェクトの`discovered_refinements`シード（issue #1120の`call.undefined-method`リファインメントチェックが読み取るテーブル）へとユニオンする。したがって、gemのリファインするモジュールを`using`するプロジェクトファイルは、その字句領域においてgemのリファインされた呼び出しを解決し、他の場所では引き続きそれを報告する。インデックスは毎回の実行が行う事前パスによって再構築されるため、ウォーム実行で再解析されたファイルにはコールド実行がシードするのと同じテーブルがシードされる。変更されていないファイルのキャッシュ結果は、カタログの貢献と同様にgemの名前、バージョン、およびモードでキー付けされるため（「キャッシュスライス」参照）、バージョンバンプなしにgemのrefine本体を編集しても、そのファイルが再解析されるまでは反映されない。gemごとのバジェットを使い果たした後にウォーカーが到達したrefine本体は記録されない。ADR-121 WD3により、gemのrefine本体は推論されない: その中へのリファインされた呼び出しは`Dynamic[top]`として型付けされる（現在は未解決メソッドフォールバックを通じて;リファインされたディスパッチアーム#1664はその答えを維持する）。
+テーブル自体はウォーカーの下行（descent）からは構築されない（issue #1814）: `Walker.walk`は各ファイルを、プロジェクトウォークの国勢調査（census、`build_methods_and_def_nodes`）のリファインメントテーブルである`Inference::ScopeIndexer.refinement_table`を通じて読み取り、プロジェクトの畳み込み（fold）が行うのと同様にファイルごとのテーブルをユニオンする。計算されたターゲットはその名前をワイルドカードクラスの下に記録し、名前が不完全な本体は名前ワイルドカード行を記録し、メソッド内の`refine`または`:refine`リテラルはそれが実行されるモジュールのターゲットワイルドカード行を記録する（ADR-121 WD7）── まさにプロジェクトファイルにおける挙動と同様である。したがって囲むモジュールのない`refine`は、プロジェクトウォークが記録するのと同様に、いかなる`using`も名指さないモジュール名`""`の下に記録される。`walker_walk_census_parity_spec.rb`は同じソースに対して2つのウォークを1つのテーブルに束縛する。センサスが帰属させることができない`:refine`リテラルをソース内に保持するgem（`rspec-support`の`Module.private_method_defined?(:refine)`）は、その行を持つプロジェクトファイルが残すのと同様に`"*"`モジュール行を残し、これがすべてのモジュールを不透明にする（#1829）。
+
+定数の書き込みがバインドするrefineターゲット（このgem、別のオプトインgem、またはプロジェクトにおける`K = String; refine(K)`）は、その書き込みが保持するどのような値をも名指すが、ウォーカーはそれを解決できない。それらの行はセンサスが記録したとおりに残る（`K`および`M::K`）;各ファイルにわたるウォークのパスは、クラスやモジュールを宣言することなく定数書き込みがバインドする名前（代入、演算子書き込み、多重代入、ルート指定されたパス書き込み）も収集する（`Point = Struct.new(:x)`は、プロジェクトウォーク自身の`meta_new_rvalue`読み取りを通じてクラスやモジュールを宣言する）。素の書き込みはその名前を周囲の`class` / `module`ヘッダーの字句的ネストの下でバインドし（`module Shared; Target = String; end`に対しては`Shared::Target`、ブロックはこれを変更しない）、ネストされたコンパクトヘッダーが指し示しうるすべての名前の下でバインドする（`module W; module Shared::Inner`は`W::Shared::Inner`または`Shared::Inner`を開く）。`Walker::Outcome#bound`はそれらの名前を保持し、`#bound_segments`はウォークがその所有者を特定（spell）できない書き込みの最後のセグメントを保持し（ルート指定されていないパス書き込み──`Wrap::K = …`はインクルードされたモジュールの`Wrap`の下でバインドする可能性があり、ブロック内の`self::K = …`はブロックの`self`の下でバインドするため; `class << …`の下の書き込み;その値がクラスを作成しない限りリテラル名を持つ`const_set`）、`Index#bound_constant?(name)`は辿られたgem全体で両方をユニオンする: gemがバインドする名前、または特定できない所有者の下でgemがその最後のセグメントをバインドする名前についてtrueとなる。リーダーは読み取り時にキーを決定する（`InEffectRefinements.class_wildcard_key?`、ADR-121 WD7）: 全体としていかなるクラスもRBSも知らないキーは、そのいずれかのセグメントがプロジェクトのセンサスがバインドする定数である場合、あるいはそのいずれかのプレフィックス（先頭の`Object::`は除外）が辿られたgemがバインドする名前である場合、クラス不明となる。したがって、あるgemの`module Shared; Target = String; end`がプロジェクト内または別のgem内の`refine(Shared::Target)`の隣にある場合、およびプレフィックスエイリアス（`Enc = ::Encoding; refine(Enc::Converter)`）は、いかなるレシーバーにも一致しない行を保持する代わりに、すべてのレシーバーにおいてその本体の名前を辞退する（#1815項目5）。gemの書き込みを、その最後のセグメントではなくそれがバインドする名前によって照合することにより、単にコアクラスの名前を共有しているだけのgem定数（`RBS::BuiltinNames`が書き込む`String`、`Array`、…）が、`module Ext`内のプロジェクトの`refine String`も記録する兄弟スペル（`Ext::String`）を動かしてしまうことを防ぐ。gem自身のモジュールは不透明なままであるため（#1811）、それを`using`している下ではスパンはいずれにせよ辞退する;これらの行はプロジェクトモジュールの`using`およびモジュールを名指さない`using`に到達する。
+
+`Builder`はすべてのgemのテーブルを`Index#refinements`へとユニオンし、ランナーはそれをプロジェクトの`discovered_refinements`シード（issue #1120の`call.undefined-method`リファインメントチェックが読み取るテーブル）へとユニオンする。したがって、gemのリファインするモジュールを`using`するプロジェクトファイルは、その字句領域においてgemのリファインされた呼び出しを解決し、他の場所では引き続きそれを報告する。インデックスは毎回の実行が行う事前パスによって再構築されるため、ウォーム実行で再解析されたファイルにはコールド実行がシードするのと同じテーブルがシードされる。変更されていないファイルのキャッシュ結果は、カタログの貢献と同様にgemの名前、バージョン、およびモードでキー付けされるため（「キャッシュスライス」参照;実行結果キーとインクリメンタルスナップショットのフィンガープリントはissue #1814以降その行を運ぶ）、バージョンバンプなしにgemのrefine本体を編集しても、そのファイルが再解析されるまでは反映されない。カタログはgemごとのバジェットで停止し、バジェットがトリップしたためにウォークが到達しなかったファイルは行もバインドされた定数も貢献しない。ADR-121 WD3により、gemのrefine本体は推論されない: その中へのリファインされた呼び出しは`Dynamic[top]`として型付けされる（現在は未解決メソッドフォールバックを通じて;リファインされたディスパッチアーム#1664はその答えを維持する）。
 
 ファイルごとのエラーはサイレントに「このファイルからの貢献なし」に降格します:
 
@@ -224,6 +230,8 @@ Rigor::Cache::Descriptor::DependencyEntry.new(
 `Cache::Descriptor::SCHEMA_VERSION`はこのスライスで2にバンプされました。正規ハッシュ形状にトップレベルスロットを追加することは定数の文書化された契約に従って非互換な変更であるため、バンプは`Cache::Store#ensure_schema_version!`をトリガーして古い形状のエントリーが孤立として残らないよう最初の実行後にキャッシュルートを消去します。
 
 スライス3エンベロープはgemバージョンごとの無効化の**プリミティブ**を着地させます。ADR-10推論を`Store#fetch_or_compute`経由でルーティングするキャッシュプロデューサーはgemごとの予算機械と並行してスライス4にキューに入れられます。
+
+Issue #1814はこれを、ウォーム実行がゲートされる2つのアイデンティティへと配線します。リファインメントテーブルのgem側、メソッドカタログ、およびgemがバインドする定数はすべてのファイルのチェックに到達し、解析されたファイルはそれらを記録しないため、`GemResolver.dependency_entries(dependencies)`はgemを辿ることなく解決される無効化されていない各エントリーをその`DependencyEntry`へと引き上げ、`Analysis::RunCacheKey.descriptor`はその行を自身の`dependencies:`スロットに運び、`IncrementalSnapshot.fingerprint`はそれらを`dependency-source`部分としてハッシュします。`bundle update`はすでにロックファイルのダイジェストによってカバーされていました;これらの行はロックファイルのないプロジェクト、またはバンドルの隣にインストールされたgemをカバーします。gemをリストしないプロジェクトは行を追加しないため、そのキーとフィンガープリントは以前のままです。gemのバージョンを変更しないファイル編集は引き続き認識されません。
 
 ## 診断ファミリー
 

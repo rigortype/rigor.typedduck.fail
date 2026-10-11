@@ -3,9 +3,9 @@ title: "ベースライン"
 description: "rigortype/rigor docs/manual/06-baseline.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/06-baseline.md"
 sourcePath: "docs/manual/06-baseline.md"
-sourceSha: "991cbc4e017cbb4cc36f231d001da1269c35443f63f90ea64e19a1bebabc8c0d"
-sourceCommit: "2d0ffe6f38d01cfd850527c57987b27487b414d4"
-sourceDate: "2026-06-13T17:48:47+09:00"
+sourceSha: "3acd2094385528095fbb5ea42532173522e4f30b429bf05d4b8da631f4ae5a94"
+sourceCommit: "a8a58149bbbed5f850866905324fab02b678990c"
+sourceDate: "2026-10-11T12:00:00+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9006
@@ -62,6 +62,8 @@ baseline: .rigor-baseline.yml
 | `rigor baseline dump` | ベースラインを表示する。`--rule`と`--file`でフィルタリング可能。 |
 | `rigor baseline drift` | バケットがどう動いたかを表示する。`--only=over`で増えたバケット、`reducible`ですでに改善したバケット、`cleared`で空のバケット。 |
 | `rigor baseline prune` | もはや何にも一致しないバケットを削除する。`--dry-run`でプレビュー。 |
+
+`generate`と`regenerate`は、`baseline:`がオフであること以外はロードされた設定を変更せずに解析するため、`bleeding_edge`、`target_ruby`、または`severity_overrides`などのオプションは、`rigor check`を形成するのとまったく同様に記録されるセットを形成します。
 
 `generate`と`regenerate`は`--match-mode=rule`（デフォルト: ファイル×ルール単位で1バケット）または`--match-mode=message`（メッセージごとに1バケット: より精密だがチャーンが増える）を受け付けます。
 
