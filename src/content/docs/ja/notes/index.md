@@ -3,9 +3,9 @@ title: "リサーチ・サーベイノート"
 description: "rigortype/rigor docs/notes/README.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/README.md"
 sourcePath: "docs/notes/README.md"
-sourceSha: "997118eae5cc82726fdb8dae9d5a4572f043f2b72c4a18785d4b570947f5b3f6"
-sourceCommit: "d19c9306f46b59d84bde8ac1a5a43f54be23c023"
-sourceDate: "2026-09-27T13:53:30+09:00"
+sourceSha: "8656cebb31186a96788a840017cefb90a6d6e1dad7d31b5f3653172e353eb3bf"
+sourceCommit: "9cc10f58aa968f6e3116557a491aae41bc8a89e1"
+sourceDate: "2026-10-12T03:29:50+09:00"
 translationStatus: "translated"
 sidebar:
   order: 6000
@@ -89,6 +89,7 @@ sidebar:
 | 2026-09-17 | [プラグイン提供メンバーをown-method拒否元として扱う —— まずコーパスの規模を測定する（issue #963）](20260917-plugin-member-veto/) |
 | 2026-09-17 | [レンダリング箇所のlocalsとレイアウト —— コーパス計測](20260917-render-locals-and-layouts/) |
 | 2026-09-26 | [インラインに対する`sig/` —— 一貫性規則の偽陽性ゲート（issue #1075）](20260926-sig-inline-consistency-fp-gate/) |
+| 2026-10-12 | [albaオンボーディングとrbs-inline移行 —— 手書き`sig/` vs sig-gen `--overwrite`、inline統合、およびrbs-inline生成境界カタログを用いた10ファイルのバッチ移行](20261012-alba-onboarding-rbs-inline-pilot/) |
 
 ## アナライザーの自己テスト（teeth・偽陰性）
 
