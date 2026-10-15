@@ -4,6 +4,7 @@ import starlight from '@astrojs/starlight';
 import starlightSidebarTopics from 'starlight-sidebar-topics';
 import remarkCjkFriendly from 'remark-cjk-friendly';
 import { rigorInferenceHints } from './src/lib/ec-inference-hints.mjs';
+import { apiReferenceTopics } from './scripts/api-reference/navigation.mjs';
 
 const sidebarTranslations = {
   recentlyUpdated: { ja: '最近の更新' },
@@ -109,7 +110,7 @@ export default defineConfig({
           href: 'https://github.com/rigortype/rigor',
         },
       ],
-      customCss: ['./src/styles/custom.css'],
+      customCss: ['./src/styles/custom.css', './src/styles/api-reference.css'],
       components: {
         Head: './src/components/Head.astro',
         Footer: './src/components/Footer.astro',
@@ -293,6 +294,7 @@ export default defineConfig({
         },
               ],
             },
+            ...apiReferenceTopics(),
             {
               // The chibirigor online book (v2). Pages are synced from the
               // upstream/chibirigor submodule (book/v2/en + book/v2/ja) by
@@ -341,6 +343,7 @@ export default defineConfig({
             // plugin middleware checks these in order and stops at the first
             // match, so ORDER MATTERS.
             topics: {
+              apiref: ['/apiref', '/apiref/**/*', '/ja/apiref', '/ja/apiref/**/*'],
               // chibirigor first: its JA-only landing and glossary pages have
               // no sidebar entry, so they must resolve here before the
               // reference catch-all below would otherwise claim them.

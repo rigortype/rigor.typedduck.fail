@@ -1,0 +1,8 @@
+{
+  "scopes": {
+    "rigor": {
+      "destination": "rigor",
+      "sources": [{ "root": ".", "include": ["lib/rigor/plugin/base.rb"] }]
+    }
+  }
+}

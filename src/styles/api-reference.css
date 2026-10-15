@@ -1,0 +1,47 @@
+.api-breadcrumbs {
+  font-family: var(--sl-font-system);
+  font-size: 0.875rem;
+}
+.api-breadcrumbs ol {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 0.75rem;
+  padding: 0;
+  list-style: none;
+}
+.api-breadcrumbs li { display: flex; align-items: center; gap: 0.75rem; margin: 0; }
+.api-breadcrumbs li + li::before { content: '/'; color: var(--sl-color-gray-2); }
+.api-breadcrumbs a { display: inline-flex; align-items: center; min-block-size: 2.75rem; }
+.api-index-link { display: inline-flex; align-items: center; min-block-size: 2.75rem; max-inline-size: 100%; overflow-wrap: anywhere; }
+.api-provenance, .api-meta {
+  font-family: var(--sl-font-system);
+  color: var(--sl-color-gray-2);
+  font-size: 0.875rem;
+  overflow-wrap: anywhere;
+}
+.api-declaration {
+  padding-block: 1.5rem;
+  border-block-start: 1px solid var(--sl-color-hairline);
+}
+.api-declaration .api-signature {
+  margin: 0;
+  scroll-margin-block-start: calc(var(--sl-nav-height) + 1.5rem);
+  font-size: var(--sl-text-lg);
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+.api-signature code {
+  font-size: inherit !important;
+  background: none !important;
+  padding: 0 !important;
+  box-shadow: none !important;
+}
+.api-declaration .api-meta { margin-block: 0.5rem 1rem; }
+.api-declaration .api-example { white-space: pre-wrap; overflow-wrap: anywhere; }
+.api-breadcrumbs a:focus-visible { outline: 2px solid var(--sl-color-text-accent); outline-offset: 2px; }
+body:has(.api-provenance) .sidebar a[aria-current='page'] { border-inline-start: 0; }
+@media (max-width: 50rem) {
+  .api-provenance, .api-meta, .api-breadcrumbs { font-size: 1rem; }
+  .api-declaration { font-size: 1.0625rem; }
+}
