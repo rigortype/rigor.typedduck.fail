@@ -22,7 +22,7 @@ async function producerDigest(directory) {
     for (const entry of (await readdir(path.join(directory, relative), { withFileTypes: true })).sort((a, b) => a.name.localeCompare(b.name, 'en'))) {
       const file = path.join(relative, entry.name);
       if (entry.isDirectory()) await visit(file);
-      else if (entry.isFile() && entry.name.endsWith('.rb')) hash.update(file).update('\0').update(await readFile(path.join(directory, file))).update('\0');
+      else if (entry.isFile() && /\.(rb|json)$/.test(entry.name)) hash.update(file).update('\0').update(await readFile(path.join(directory, file))).update('\0');
     }
   };
   await visit('lib');
@@ -141,6 +141,7 @@ async function main() {
     throw new Error('Lens artifacts require fresh analysis: set ZARD_SOURCE_DIR and RIGOR_LENS=1; lens inputs are not a complete dependency graph');
   }
   const reference = referenceFor(artifact);
+  for (const diagnostic of reference.diagnostics || []) console.warn(`API relationships: ${diagnostic}`);
   await validateSource(artifact, rigorRoot, commit);
   const files = artifact.export.scopes.flatMap((scope) => scope.files.map((file) => file.path));
   if ((await git(rigorRoot, 'status', '--porcelain', '--', ...new Set(files))).length) throw new Error('API input sources have uncommitted changes; use a clean pinned Rigor checkout');

@@ -10,7 +10,7 @@ runs:
     - uses: actions/checkout@v4
       with:
         repository: rigortype/zard
-        ref: a07f746c033de0454cbeee15fc412f3926be17a8
+        ref: 325173654599b1cf66754a12724d138dff0ad2c2
         path: .api-producer
         persist-credentials: false
     - uses: ruby/setup-ruby@v1
@@ -25,9 +25,10 @@ runs:
       if: inputs.lens == '1'
       shell: bash
       run: |
+        RIGOR_VERSION=$(ruby -rjson -e 'puts JSON.parse(File.read(".api-producer/zard-rigor/lib/zard/rigor/compatibility.json")).fetch("default_version")')
         gem install rbs --version 4.2.0 --no-document
         gem install language_server-protocol --version 3.17.0.6 --no-document
-        gem install rigortype --version 0.4.3 --no-document
+        gem install rigortype --version "$RIGOR_VERSION" --no-document
         gem install rbs-inline --version 0.14.0 --no-document
         gem install digest-xxhash --version 0.2.9 --no-document
     - name: Select the producer for subsequent build steps
