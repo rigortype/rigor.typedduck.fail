@@ -69,6 +69,24 @@ an implicit rest node has no such method. The shared producer fixture passes
 end to end. Keep production lens disabled until an upstream release handles
 this source; do not alter source selection or substitute guessed facts.
 
+## Browsing and coverage
+
+API pages include native disclosure groups linking each member to its exact
+definition. Repeated definitions keep separate anchors and source-line labels.
+The producer's optional written `relationships` add a hierarchy link within
+each documentation scope, superclass/mixin references and reverse documentation
+links. Class trees and module usage are separate. Unresolved expressions,
+conflicting written parents and cycles remain explicit; effective inherited
+members and runtime lookup are not inferred. Older exports retain their routes.
+
+When lens is enabled, coverage summaries distinguish omitted constructs,
+failed targets, absent capabilities and unmatched declarations from dynamic
+types. Producer/schema support and the CI default release are selected by the
+pinned ZARD checkout's `zard-rigor/lib/zard/rigor/compatibility.json`; changing
+that manifest still requires verifying the released executable. Site CI reads
+the manifest rather than maintaining a second analyzer version pin. Type facts
+remain opt-in pending the upstream release.
+
 ## Source links
 
 The optional `sourceLinks.template` in `api-reference.config.json` maps declaration IDs to immutable source URLs in the generated artifact's `source.links`. Supported substitutions are `{commit}`, `{path}`, `{start_line}` and `{end_line}`; commit, path and start_line are required. The commit is always the validated Rigor checkout commit. Paths are selected repository-relative files, encoded segment by segment; absolute/escaping paths, unknown substitutions and credential-bearing URLs are rejected. Templates perform literal substitution only, never expression evaluation. A missing line range produces readable source metadata without a fabricated link. All retained definition sites get their own line/range destination. Omit this setting to generate without source links. Changing the template requires artifact regeneration.

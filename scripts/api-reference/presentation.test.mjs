@@ -35,5 +35,7 @@ test('installed package renders producer parameter metadata and declaration sour
   } };
   const page = pagesFor(referenceFor(artifact)).get('apiref/sdk/example.md');
   assert.match(page, /Example#call\(value = \[1, 2\]\)/);
+  assert.match(page, /aria-label="Members on this page"/);
+  assert.match(page, /<code>call\(value = \[1, 2\]\)<\/code>/);
   assert.ok(page.includes(`href="${url}"`));
 });

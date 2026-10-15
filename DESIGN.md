@@ -25,6 +25,10 @@ Reuse Starlight's content width, 17rem sidebar, 3.5rem header and responsive sid
 - **Category index:** named classes/modules/constants/member sections using real links; an empty category is omitted and an empty reference explains that no public declarations were exported.
 - **Build provenance:** unobtrusive source commit and producer versions, without presenting unparsed contracts as authoritative rendered types.
 - **Optional lens facts:** an `aside` within each declaration separates shared member signatures from the definition's own body return. A thin theme accent rule, sidebar surface, existing code styles and definition lists distinguish the producer's typed, dynamic and unavailable states. Signatures wrap on narrow screens; no type text is parsed. The protocol notice identifies the experimental producer.
+- **Lens coverage:** a labelled aside with a hairline border and normal prose lists unavailable public declaration counts, incomplete source files and absent capabilities. Per-declaration explanations remain beside the affected definition.
+- **Member index:** a labelled navigation landmark groups attributes, instance methods and singleton methods in native `details` elements, initially open. Each entry links to its exact declaration anchor and carries source location text so repeated definitions remain distinguishable. Use existing monospace signatures, 44px links/summary controls, wrapping text and the standard keyboard focus ring. No client script is needed.
+- **Source relationships:** definition lists show written superclass/mixin expressions, source lines and links to all retained target definitions. Separate hierarchy pages use nested lists for class relationships and a separate module-usage list. Conflicts, cycles and unresolved expressions remain readable; do not infer runtime ancestry or inherited members. Use existing text, spacing, link and focus tokens.
+  Visual indentation stops after four levels on deeply nested trees, retaining semantic nesting and all links so narrow screens remain usable.
 
 ## 6. Motion and interaction
 
