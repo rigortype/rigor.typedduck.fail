@@ -15,14 +15,19 @@ test('a rejected artifact cannot overwrite generated pages or provenance', async
   const temporary = await mkdtemp(path.join(os.tmpdir(), 'api-artifact-test-'));
   try {
     const input = path.join(temporary, 'invalid.json');
-    await writeFile(input, JSON.stringify({ export: { schema: 'zard-doc/v0', revision: 999 } }));
-    const result = spawnSync(process.execPath, [path.join(root, 'scripts/sync-api-reference.mjs')], {
-      cwd: root, encoding: 'utf8', env: { ...process.env, ZARD_SOURCE_DIR: '', ZARD_API_JSON: input, RIGOR_API_SOURCE_DIR: root },
-    });
-    assert.equal(result.status, 1, result.stderr);
-    assert.match(result.stderr, /unsupported schema\/revision/);
-    assert.equal(result.stdout, '');
-    const after = await Promise.all(files.map((file) => existsSync(file) ? readFile(file, 'utf8') : null));
-    assert.deepEqual(after, before);
+    for (const [artifact, message] of [
+      [{ export: { schema: 'zard-doc/v0', revision: 999 } }, /unsupported schema\/revision/],
+      [{ export: { schema: 'zard-doc/v0', revision: 1, lens: {} } }, /Lens artifacts require fresh analysis/],
+    ]) {
+      await writeFile(input, JSON.stringify(artifact));
+      const result = spawnSync(process.execPath, [path.join(root, 'scripts/sync-api-reference.mjs')], {
+        cwd: root, encoding: 'utf8', env: { ...process.env, ZARD_SOURCE_DIR: '', ZARD_API_JSON: input, RIGOR_API_SOURCE_DIR: root },
+      });
+      assert.equal(result.status, 1, result.stderr);
+      assert.match(result.stderr, message);
+      assert.equal(result.stdout, '');
+      const after = await Promise.all(files.map((file) => existsSync(file) ? readFile(file, 'utf8') : null));
+      assert.deepEqual(after, before);
+    }
   } finally { await rm(temporary, { recursive: true, force: true }); }
 });

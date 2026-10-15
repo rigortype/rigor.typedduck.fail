@@ -27,6 +27,7 @@ async function producerDigest(directory) {
   };
   await visit('lib');
   await visit('zard-doc/lib');
+  if (process.env.RIGOR_LENS === '1') await visit('zard-rigor/lib');
   return hash.digest('hex');
 }
 
@@ -41,8 +42,10 @@ async function generate(rigorRoot, commit) {
   try {
     const configPath = path.join(temporary, 'zard-doc.yml');
     await writeFile(configPath, JSON.stringify({ scopes: config.scopes, docroot: 'unused', layout: 'namespace' }));
-    const args = ['-I', path.join(zardRoot, 'lib'), '-I', path.join(zardRoot, 'zard-doc/lib'),
+    const args = ['-I', path.join(zardRoot, 'lib'), '-I', path.join(zardRoot, 'zard-doc/lib'), '-I', path.join(zardRoot, 'zard-rigor/lib'),
       path.join(zardRoot, 'zard-doc/exe/zard-doc'), 'build', '--config', configPath, '--format', 'json'];
+    if (process.env.RIGOR_LENS === '1') args.push('--lens-root', rigorRoot,
+      '--rigor-command', process.env.RIGOR_COMMAND || 'rigor', '--lens-config', process.env.RIGOR_LENS_CONFIG || '.rigor.dist.yml');
     const result = await exec(process.env.RUBY || 'ruby', args, { cwd: root, maxBuffer: 64 * 1024 * 1024 });
     if (result.stderr) process.stderr.write(result.stderr);
     const data = JSON.parse(result.stdout);
@@ -60,6 +63,10 @@ async function generate(rigorRoot, commit) {
       for (const file of scope.files) file.path = sourcePath(file.path);
     }
     spans(data);
+    if (data.lens) {
+      data.lens.project = '.';
+      for (const warning of data.lens.warnings) console.warn(`Rigor lens: ${warning}`);
+    }
     return { source: { commit, selectionDigest: sha256(await readFile(path.join(root, 'api-reference.config.json'))),
       zardCommit: await git(zardRoot, 'rev-parse', 'HEAD'), zardSourceDigest: await producerDigest(zardRoot),
       links: sourceLinksFor(data, config.sourceLinks, commit) }, export: data };
@@ -130,6 +137,9 @@ async function main() {
   const rigorRoot = await realpath(path.resolve(root, process.env.RIGOR_API_SOURCE_DIR || 'upstream/rigor'));
   const commit = await git(rigorRoot, 'rev-parse', 'HEAD');
   const artifact = process.env.ZARD_SOURCE_DIR ? await generate(rigorRoot, commit) : JSON.parse(await readFile(input, 'utf8'));
+  if (artifact.export?.lens && !(process.env.ZARD_SOURCE_DIR && process.env.RIGOR_LENS === '1')) {
+    throw new Error('Lens artifacts require fresh analysis: set ZARD_SOURCE_DIR and RIGOR_LENS=1; lens inputs are not a complete dependency graph');
+  }
   const reference = referenceFor(artifact);
   await validateSource(artifact, rigorRoot, commit);
   const files = artifact.export.scopes.flatMap((scope) => scope.files.map((file) => file.path));
