@@ -10,6 +10,7 @@
     "sync:playground": "node scripts/sync-playground.mjs",
     "sync:api": "node scripts/sync-api-reference.mjs",
     "test:api": "node --test scripts/api-reference/*.test.mjs",
+    "check:api": "node scripts/check-built-api.mjs",
     "sync:all": "pnpm run sync:docs && pnpm run sync:chibirigor && pnpm run sync:playground && pnpm run sync:api",
     "check:translations": "node scripts/check-translations.mjs",
     "bootstrap:translations": "node scripts/check-translations.mjs --bootstrap",
@@ -31,6 +32,7 @@
   },
   "devDependencies": {
     "@astrojs/check": "0.9.10",
+    "hast-util-from-html": "2.0.3",
     "typescript": "6.0.3",
     "wrangler": "^4.125.0"
   },

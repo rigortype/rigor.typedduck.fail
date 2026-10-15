@@ -7,6 +7,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
 import { referenceFor, pagesFor } from './api-reference/presentation.mjs';
+import { sourceLinksFor } from './api-reference/source-links.mjs';
 
 const exec = promisify(execFile);
 const root = fileURLToPath(new URL('..', import.meta.url));
@@ -39,7 +40,7 @@ async function generate(rigorRoot, commit) {
   const temporary = await mkdtemp(path.join(root, '.astro/api-export-'));
   try {
     const configPath = path.join(temporary, 'zard-doc.yml');
-    await writeFile(configPath, JSON.stringify({ ...config, docroot: 'unused', layout: 'namespace' }));
+    await writeFile(configPath, JSON.stringify({ scopes: config.scopes, docroot: 'unused', layout: 'namespace' }));
     const args = ['-I', path.join(zardRoot, 'lib'), '-I', path.join(zardRoot, 'zard-doc/lib'),
       path.join(zardRoot, 'zard-doc/exe/zard-doc'), 'build', '--config', configPath, '--format', 'json'];
     const result = await exec(process.env.RUBY || 'ruby', args, { cwd: root, maxBuffer: 64 * 1024 * 1024 });
@@ -60,13 +61,18 @@ async function generate(rigorRoot, commit) {
     }
     spans(data);
     return { source: { commit, selectionDigest: sha256(await readFile(path.join(root, 'api-reference.config.json'))),
-      zardCommit: await git(zardRoot, 'rev-parse', 'HEAD'), zardSourceDigest: await producerDigest(zardRoot) }, export: data };
+      zardCommit: await git(zardRoot, 'rev-parse', 'HEAD'), zardSourceDigest: await producerDigest(zardRoot),
+      links: sourceLinksFor(data, config.sourceLinks, commit) }, export: data };
   } finally { await rm(temporary, { recursive: true, force: true }); }
 }
 
 async function validateSource(artifact, rigorRoot, commit) {
   if (artifact.source?.commit !== commit || !/^[0-9a-f]{40}$/.test(commit)) throw new Error('API artifact does not match the pinned Rigor commit; regenerate it');
   if (artifact.source.selectionDigest !== sha256(await readFile(path.join(root, 'api-reference.config.json')))) throw new Error('API source selection changed; regenerate the artifact');
+  const config = JSON.parse(await readFile(path.join(root, 'api-reference.config.json'), 'utf8'));
+  const expectedLinks = sourceLinksFor(artifact.export, config.sourceLinks, commit);
+  const actualLinks = artifact.source.links || {};
+  if (Object.keys(actualLinks).length !== Object.keys(expectedLinks).length || Object.entries(expectedLinks).some(([id, url]) => actualLinks[id] !== url)) throw new Error('API source links changed; regenerate the artifact');
   for (const scope of artifact.export.scopes) {
     for (const file of scope.files) {
       const actual = await realpath(path.resolve(rigorRoot, file.path));
