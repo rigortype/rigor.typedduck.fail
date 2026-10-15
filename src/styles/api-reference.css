@@ -32,6 +32,7 @@
   overflow-wrap: anywhere;
 }
 .api-signature code {
+  white-space: pre-wrap;
   font-size: inherit !important;
   background: none !important;
   padding: 0 !important;
