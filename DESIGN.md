@@ -24,6 +24,7 @@ Reuse Starlight's content width, 17rem sidebar, 3.5rem header and responsive sid
 - **Declaration entry:** semantic section with a stable anchor, a wrapping monospace signature and visible kind label; original documentation follows in normal flow. Source definitions remain distinct. Heading levels follow the page hierarchy.
 - **Category index:** named classes/modules/constants/member sections using real links; an empty category is omitted and an empty reference explains that no public declarations were exported.
 - **Build provenance:** unobtrusive source commit and producer versions, without presenting unparsed contracts as authoritative rendered types.
+- **Optional lens facts:** an `aside` within each declaration separates shared member signatures from the definition's own body return. A thin theme accent rule, sidebar surface, existing code styles and definition lists distinguish the producer's typed, dynamic and unavailable states. Signatures wrap on narrow screens; no type text is parsed. The protocol notice identifies the experimental producer.
 
 ## 6. Motion and interaction
 

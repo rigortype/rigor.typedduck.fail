@@ -1,21 +1,37 @@
 name: Set up API documentation producer
-description: Install the pinned ZARD JSON producer without running Rigor lens
+description: Install the pinned ZARD producer and released Rigor lens
+inputs:
+  lens:
+    description: Enable experimental lens (requires a compatible source tree)
+    default: '0'
 runs:
   using: composite
   steps:
     - uses: actions/checkout@v4
       with:
         repository: rigortype/zard
-        ref: bd76d0db8bfc25683fa92aae77b750494e2c3246
+        ref: a07f746c033de0454cbeee15fc412f3926be17a8
         path: .api-producer
         persist-credentials: false
     - uses: ruby/setup-ruby@v1
       with:
-        ruby-version: '3.4'
+        ruby-version: '4.0'
         bundler-cache: false
-    - name: Install the pinned parser
+    - name: Install pinned parser
       shell: bash
-      run: gem install prism --version 1.9.0 --no-document
+      run: |
+        gem install prism --version 1.9.0 --no-document
+    - name: Install optional released analyzer
+      if: inputs.lens == '1'
+      shell: bash
+      run: |
+        gem install rbs --version 4.2.0 --no-document
+        gem install language_server-protocol --version 3.17.0.6 --no-document
+        gem install rigortype --version 0.4.3 --no-document
+        gem install rbs-inline --version 0.14.0 --no-document
+        gem install digest-xxhash --version 0.2.9 --no-document
     - name: Select the producer for subsequent build steps
       shell: bash
-      run: echo "ZARD_SOURCE_DIR=$GITHUB_WORKSPACE/.api-producer" >> "$GITHUB_ENV"
+      run: |
+        echo "ZARD_SOURCE_DIR=$GITHUB_WORKSPACE/.api-producer" >> "$GITHUB_ENV"
+        echo 'RIGOR_LENS=${{ inputs.lens }}' >> "$GITHUB_ENV"
