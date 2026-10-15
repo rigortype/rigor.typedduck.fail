@@ -3,9 +3,9 @@ title: "設定"
 description: "rigortype/rigor docs/manual/03-configuration.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/03-configuration.md"
 sourcePath: "docs/manual/03-configuration.md"
-sourceSha: "eba16bc371b6b1d64567afebc6c19aeedaa874edd2471162e6d0cbc63c2f6c60"
-sourceCommit: "e4685d12ad7454982fdfed674e1cd0cd6f168fd8"
-sourceDate: "2026-10-10T23:24:05+09:00"
+sourceSha: "2113953b3412fdd8372a850a78eec773ecaaa747a312889873452c3d76183dc5"
+sourceCommit: "2e694082a9cbec0251e3d21f1c1b477e8549d14c"
+sourceDate: "2026-10-15T09:29:34+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9003
@@ -55,7 +55,7 @@ cache:
 | --- | --- | --- | --- |
 | `target_ruby` | String | `"4.0"` | **自分の**プロジェクトが動作する最低のRubyバージョン ── `"X.Y"`、`"X.Y.Z"`、または`"latest"`。Rigor自体が動作するRubyとは独立。すべての値がRigorのパースする構文を選択します。明示的に設定したバージョンは、そのバージョンのRuby非推奨ルールもオンにします（`"4.1"`以降の[`call.deprecated-ruby2-keywords`](../04-diagnostics/#rule-call-deprecated-ruby2-keywords)）;デフォルトおよび`"latest"`は決してオンにしないため、`rigor init`はこのキーをコメントアウトして出力します。 |
 | `paths` | Array | `["lib"]` | 解析するディレクトリまたはファイル。 |
-| `exclude` | Array | `[]` | スキップするGlobパターン。`vendor/bundle`、`.bundle`、`node_modules`は常に除外される。 |
+| `exclude` | Array | `[]` | スキップするglobパターン。相対パターンは、使用中の設定ファイルのディレクトリ（設定ファイルが使用されない場合は作業ディレクトリ）に対するファイルの相対パスと照合されるため、パスが`paths:`から来たかコマンドライン引数から来たかに関係なく同じファイルを除外します。また、そのベースより上のディレクトリには決してマッチしません（その外側のファイルは`../…`として見られるため、`../shared/lib/gen/**`は`paths:`が指名する隣接ディレクトリに到達します）。先頭の`./`は無視され、`.`で始まるパターン（`.*`など）はベースの外側にあるファイル（`../…`として現れる）にもマッチします。ファイルへのシンボリックリンクはそれ自体の名前のもとでのみ照合されます: realpathパスはディレクトリを解決し、ファイルは解決しません。`*`および`**`は`/`もまたぐため、`lib/*.rb`はネストされたファイルにもマッチします。絶対パターンは絶対パスと照合されます。`includes:`ファイルからのパターンは、インクルードされたファイルではなく、トップレベル設定のディレクトリを基準に解決されます。`vendor/bundle`、`.bundle`、`node_modules`は常に除外されます。 |
 | `test_paths` | Array | `nil` | プロジェクトのテストルート: テストを保持するディレクトリ（またはファイル）。相対パスのエントリーは設定ファイルのディレクトリを基準に解決されます。未設定の場合は`spec/`と`test/`のうち存在する方を自動検出します。`[]`はなしを宣言します。`rigor sig-gen --params=observed`はパラメータを型付けするためにそこにある呼び出し箇所を読み取り、存在しない宣言されたルートがあればstderrに名前を出力します。テストルートは`paths:`にも記載されていない限り解析されず、変更してもキャッシュは無効化されません。 |
 | `includes` | Array | `[]` | このファイルの下に継承する他の設定ファイル。 |
 | `fold_platform_specific_paths` | Boolean | `false` | ソース探索時にRubyバージョン条件付きロードパスを解決する。 |

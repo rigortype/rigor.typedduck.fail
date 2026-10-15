@@ -4,7 +4,7 @@ description: "Imported from rigortype/rigor docs/notes/20260610-plugin-architect
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260610-plugin-architecture-perf-audit.md"
 sourcePath: "docs/notes/20260610-plugin-architecture-perf-audit.md"
 sourceSha: "fbb1f4e8528e8e836bc4efd48a22ee962902bb0a8d635e17dc5ac975fc9931ff"
-sourceCommit: "9cc10f58aa968f6e3116557a491aae41bc8a89e1"
+sourceCommit: "2e694082a9cbec0251e3d21f1c1b477e8549d14c"
 sourceDate: "2026-06-10T23:55:51+09:00"
 sourceLanguage: "ja"
 sidebar:
