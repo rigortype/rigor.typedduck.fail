@@ -37,9 +37,6 @@ importers:
       '@astrojs/check':
         specifier: 0.9.10
         version: 0.9.10(prettier@3.8.3)(typescript@6.0.3)
-      hast-util-from-html:
-        specifier: 2.0.3
-        version: 2.0.3
       typescript:
         specifier: 6.0.3
         version: 6.0.3
@@ -2438,7 +2435,7 @@ packages:
     resolution: {integrity: sha512-rLfVLB4FgQneDr0dv1oddCVZmKjcJ6yX6mS4pU82Mq/Dt9a3cLZQ62pDBL4AUO+uVrCvtWz3ZFUL2HFAFJ/BXQ==}
 
   zard-doc-astro@file:vendor/zard-doc-astro-0.0.0.tgz:
-    resolution: {integrity: sha512-FSkSlYmFUL2hxsexCeIsgtTxgc4I1GYgt2O4QdexM8Aw1bm27YgqYypj+/tDm0GFbqGVRPokK60rqypXpkScaA==, tarball: file:vendor/zard-doc-astro-0.0.0.tgz}
+    resolution: {integrity: sha512-H+aKqyACcG9CM3YODy671byrIE0lGwz3Uru4TsuRNQNjWQ7mbKEdO31mtZSsJumNulegepiov1VIBFgjm+NgGw==, tarball: file:vendor/zard-doc-astro-0.0.0.tgz}
     version: 0.0.0
     engines: {node: '>=22'}
 
@@ -3750,12 +3747,12 @@ snapshots:
 
   hast-util-embedded@3.0.0:
     dependencies:
-      '@types/hast': 3.0.5
+      '@types/hast': 3.0.4
       hast-util-is-element: 3.0.0
 
   hast-util-format@1.1.0:
     dependencies:
-      '@types/hast': 3.0.5
+      '@types/hast': 3.0.4
       hast-util-embedded: 3.0.0
       hast-util-minify-whitespace: 1.0.1
       hast-util-phrasing: 3.0.1
@@ -3765,7 +3762,7 @@ snapshots:
 
   hast-util-from-html@2.0.3:
     dependencies:
-      '@types/hast': 3.0.5
+      '@types/hast': 3.0.4
       devlop: 1.1.0
       hast-util-from-parse5: 8.0.3
       parse5: 7.3.0
@@ -3785,19 +3782,19 @@ snapshots:
 
   hast-util-has-property@3.0.0:
     dependencies:
-      '@types/hast': 3.0.5
+      '@types/hast': 3.0.4
 
   hast-util-is-body-ok-link@3.0.1:
     dependencies:
-      '@types/hast': 3.0.5
+      '@types/hast': 3.0.4
 
   hast-util-is-element@3.0.0:
     dependencies:
-      '@types/hast': 3.0.5
+      '@types/hast': 3.0.4
 
   hast-util-minify-whitespace@1.0.1:
     dependencies:
-      '@types/hast': 3.0.5
+      '@types/hast': 3.0.4
       hast-util-embedded: 3.0.0
       hast-util-is-element: 3.0.0
       hast-util-whitespace: 3.0.0
@@ -3805,11 +3802,11 @@ snapshots:
 
   hast-util-parse-selector@4.0.0:
     dependencies:
-      '@types/hast': 3.0.5
+      '@types/hast': 3.0.4
 
   hast-util-phrasing@3.0.1:
     dependencies:
-      '@types/hast': 3.0.5
+      '@types/hast': 3.0.4
       hast-util-embedded: 3.0.0
       hast-util-has-property: 3.0.0
       hast-util-is-body-ok-link: 3.0.1
@@ -4692,7 +4689,7 @@ snapshots:
 
   rehype-parse@9.0.1:
     dependencies:
-      '@types/hast': 3.0.5
+      '@types/hast': 3.0.4
       hast-util-from-html: 2.0.3
       unified: 11.0.5
 

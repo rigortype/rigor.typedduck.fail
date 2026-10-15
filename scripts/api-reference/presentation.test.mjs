@@ -21,19 +21,3 @@ test('installed presentation package preserves site routes, provenance and Engli
   assert.deepEqual(topic.label, { en: 'API Reference', ja: 'APIリファレンス（英語）' });
   assert.equal(topic.items[1].items[1].link, '/apiref/sdk/example/');
 });
-
-test('installed package renders producer parameter metadata and declaration source URLs', () => {
-  const id = 'sdk:zard-01';
-  const url = `https://github.com/rigortype/rigor/blob/${'a'.repeat(40)}/lib/example.rb#L1-L3`;
-  const artifact = { source: { commit: 'a'.repeat(40), links: { [id]: url } }, export: {
-    schema: 'zard-doc/v0', revision: 1, layout: 'namespace', producer: { zard: '0.0.1', zard_doc: '0.0.1' },
-    scopes: [{ name: 'sdk', destination: 'sdk', declarations: [{ id, kind: 'instance_method', name: 'call', display_name: 'Example#call',
-      visibility: 'public', parameters: ['value'], parameter_details: [{ kind: 'optional', name: 'value', source: 'value = [1, 2]',
-        span: { path: 'lib/example.rb', start_line: 1 }, default: '[1, 2]', default_span: { path: 'lib/example.rb', start_line: 1 } }],
-      page: 'sdk/Example.md', anchor: 'zard-01', span: { path: 'lib/example.rb', start_line: 1, end_line: 3 }, documentation: [],
-    }], pages: [{ path: 'sdk/Example.md', declarations: [id] }] }], links: {},
-  } };
-  const page = pagesFor(referenceFor(artifact)).get('apiref/sdk/example.md');
-  assert.match(page, /Example#call\(value = \[1, 2\]\)/);
-  assert.ok(page.includes(`href="${url}"`));
-});

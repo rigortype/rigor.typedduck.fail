@@ -1,5 +1,4 @@
 {
-  "sourceLinks": { "template": "https://github.com/rigortype/rigor/blob/{commit}/{path}#L{start_line}-L{end_line}" },
   "scopes": {
     "rigor": {
       "destination": "rigor",

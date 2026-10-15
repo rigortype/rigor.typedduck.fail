@@ -64,11 +64,6 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - uses: ./.github/actions/setup-api
-
-      - name: Test API integration
-        run: pnpm test:api
-
       - name: Build
         run: pnpm build
         env:
@@ -78,9 +73,6 @@ jobs:
           # RIGOR_WASM_URL (also a variable) overrides it if ever needed.
           RIGOR_WASM_BASE_URL: ${{ vars.RIGOR_WASM_BASE_URL }}
           RIGOR_WASM_URL: ${{ vars.RIGOR_WASM_URL }}
-
-      - name: Validate generated API links
-        run: pnpm check:api
 
       - name: Deploy to Cloudflare Workers
         uses: cloudflare/wrangler-action@v3

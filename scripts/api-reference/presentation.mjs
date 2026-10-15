@@ -14,7 +14,6 @@ export function referenceFor(artifact) {
     description: 'Explore Rigor classes, modules and public members.',
     introduction: 'Browse the public declarations in the selected Rigor source trees. Source documentation is shown in English.',
     provenance,
-    sourceLinks: source?.links || {},
   });
 }
 
