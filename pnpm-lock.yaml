@@ -30,6 +30,9 @@ importers:
       starlight-sidebar-topics:
         specifier: ^0.8.0
         version: 0.8.0(@astrojs/starlight@0.39.3(astro@6.4.8(@types/node@24.12.4)(rollup@4.60.4)(yaml@2.8.4))(typescript@6.0.3))
+      zard-doc-astro:
+        specifier: file:vendor/zard-doc-astro-0.0.0.tgz
+        version: file:vendor/zard-doc-astro-0.0.0.tgz
     devDependencies:
       '@astrojs/check':
         specifier: 0.9.10
@@ -2430,6 +2433,11 @@ packages:
 
   youch@4.1.0-beta.10:
     resolution: {integrity: sha512-rLfVLB4FgQneDr0dv1oddCVZmKjcJ6yX6mS4pU82Mq/Dt9a3cLZQ62pDBL4AUO+uVrCvtWz3ZFUL2HFAFJ/BXQ==}
+
+  zard-doc-astro@file:vendor/zard-doc-astro-0.0.0.tgz:
+    resolution: {integrity: sha512-H+aKqyACcG9CM3YODy671byrIE0lGwz3Uru4TsuRNQNjWQ7mbKEdO31mtZSsJumNulegepiov1VIBFgjm+NgGw==, tarball: file:vendor/zard-doc-astro-0.0.0.tgz}
+    version: 0.0.0
+    engines: {node: '>=22'}
 
   zod@4.4.3:
     resolution: {integrity: sha512-ytENFjIJFl2UwYglde2jchW2Hwm4GJFLDiSXWdTrJQBIN9Fcyp7n4DhxJEiWNAJMV1/BqWfW/kkg71UDcHJyTQ==}
@@ -5314,6 +5322,14 @@ snapshots:
       '@speed-highlight/core': 1.2.23
       cookie: 1.1.1
       youch-core: 0.3.3
+
+  zard-doc-astro@file:vendor/zard-doc-astro-0.0.0.tgz:
+    dependencies:
+      github-slugger: 2.0.0
+      mdast-util-from-markdown: 2.0.3
+      mdast-util-to-markdown: 2.1.2
+    transitivePeerDependencies:
+      - supports-color
 
   zod@4.4.3: {}
 

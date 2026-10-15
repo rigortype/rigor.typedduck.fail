@@ -25,6 +25,10 @@ The `predev` and `prebuild` scripts sync Markdown from the `upstream/rigor` subm
 - Old `/reference/…` URLs are 301-redirected to the flattened paths via
   `public/_redirects`
 
+## API reference
+
+An optional ZARD JSON consumer generates the API Reference topic, namespace pages and declaration details within Starlight. See [API reference integration](docs/api-reference.md) for local producer setup, explicit artifact inputs, provenance checks and tests. It works without Rigor lens; existing builds remain unchanged until an API input is configured.
+
 ## Deployment (Cloudflare Workers Static Assets via GitHub Actions)
 
 The Cloudflare side of this site is a **Worker** named

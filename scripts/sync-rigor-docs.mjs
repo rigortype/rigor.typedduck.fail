@@ -72,7 +72,7 @@ await mkdir(outputRoot, { recursive: true });
 // left by an older sync, and upstream top-level additions/removals are handled
 // automatically (anything not regenerated this run is gone next run).
 const jaDirName = path.relative(outputRoot, jaOutputRoot).split(path.sep)[0];
-const ownedRootEntries = new Set(['index.mdx', 'recently-updated.mdx', jaDirName]);
+const ownedRootEntries = new Set(['index.mdx', 'recently-updated.mdx', 'apiref', jaDirName]);
 for (const entry of await readdir(outputRoot, { withFileTypes: true })) {
   if (entry.name.startsWith('.')) continue;
   if (ownedRootEntries.has(entry.name)) continue;

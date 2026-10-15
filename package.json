@@ -8,7 +8,9 @@
     "sync:docs": "node scripts/sync-rigor-docs.mjs",
     "sync:chibirigor": "node scripts/sync-chibirigor-docs.mjs",
     "sync:playground": "node scripts/sync-playground.mjs",
-    "sync:all": "pnpm run sync:docs && pnpm run sync:chibirigor && pnpm run sync:playground",
+    "sync:api": "node scripts/sync-api-reference.mjs",
+    "test:api": "node --test scripts/api-reference/*.test.mjs",
+    "sync:all": "pnpm run sync:docs && pnpm run sync:chibirigor && pnpm run sync:playground && pnpm run sync:api",
     "check:translations": "node scripts/check-translations.mjs",
     "bootstrap:translations": "node scripts/check-translations.mjs --bootstrap",
     "predev": "pnpm run sync:all",
@@ -24,7 +26,8 @@
     "astro": "6.4.8",
     "github-slugger": "2.0.0",
     "remark-cjk-friendly": "^2.3.1",
-    "starlight-sidebar-topics": "^0.8.0"
+    "starlight-sidebar-topics": "^0.8.0",
+    "zard-doc-astro": "file:vendor/zard-doc-astro-0.0.0.tgz"
   },
   "devDependencies": {
     "@astrojs/check": "0.9.10",

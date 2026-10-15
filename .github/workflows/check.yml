@@ -1,0 +1,33 @@
+name: Check
+
+on:
+  pull_request:
+  push:
+    branches: [master]
+
+permissions:
+  contents: read
+
+jobs:
+  site:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: false
+          persist-credentials: false
+      # Sync tasks need source history, but not nested upstream submodules.
+      - name: Initialize documentation sources
+        run: |
+          git submodule update --init upstream/rigor upstream/chibirigor
+          git -C upstream/rigor fetch origin '+refs/tags/*:refs/tags/*'
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm test:api
+      - run: pnpm sync:all
+      - run: pnpm check
+      - run: pnpm build
