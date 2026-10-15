@@ -27,7 +27,9 @@ jobs:
           node-version: 24
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - uses: ./.github/actions/setup-api
       - run: pnpm test:api
       - run: pnpm sync:all
       - run: pnpm check
       - run: pnpm build
+      - run: pnpm check:api
