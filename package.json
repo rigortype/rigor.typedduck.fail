@@ -25,10 +25,9 @@
     "@astrojs/starlight": "0.39.3",
     "astro": "6.4.8",
     "github-slugger": "2.0.0",
-    "mdast-util-from-markdown": "2.0.3",
-    "mdast-util-to-markdown": "2.1.2",
     "remark-cjk-friendly": "^2.3.1",
-    "starlight-sidebar-topics": "^0.8.0"
+    "starlight-sidebar-topics": "^0.8.0",
+    "zard-doc-astro": "file:vendor/zard-doc-astro-0.0.0.tgz"
   },
   "devDependencies": {
     "@astrojs/check": "0.9.10",

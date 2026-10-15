@@ -2,6 +2,14 @@
 
 The site consumes ZARD's experimental `zard-doc/v0`, revision 1 export. `api-reference.config.json` selects an explicit documentation scope and source mapping; initially this is Rigor's plugin base API. No Rigor lens invocation or inferred signature is required.
 
+## Ownership
+
+The `zard-doc-astro` package in the ZARD repository owns export validation, route mapping, safe prose and semantic HTML. Its separate `zard-doc-astro/starlight` adapter owns frontmatter and sidebar-topic conversion. Neither ships CSS or depends on this site's theme.
+
+This site owns `src/styles/api-reference.css`, source selection and acquisition, Rigor-specific copy and GitHub provenance, Japanese fallback policy, output publication and deployment. `scripts/api-reference/presentation.mjs` supplies these product choices to the package. Generated declaration markup does not live in this repository.
+
+Until npm publication, `vendor/zard-doc-astro-0.0.0.tgz` is an explicit package snapshot installed through a relative `file:` dependency. Its origin and refresh procedure are recorded in `vendor/README.md`. Builds require no sibling ZARD checkout for the presentation package. The optional Ruby JSON producer is still selected separately through `ZARD_SOURCE_DIR`.
+
 ## Generate locally
 
 Initialize `upstream/rigor` using the existing non-recursive submodule workflow. Install the ZARD checkout's Ruby dependencies, then run:
@@ -49,4 +57,4 @@ pnpm check
 pnpm build
 ```
 
-The tests cover incompatible schemas, private declarations, escaped paths, missing link targets, slug collisions, repeated definitions, source-HTML injection, code preservation and multiline prose. Browser QA additionally verifies the real generated API, source anchors, navigation, theme switching, mobile layout and the Japanese fallback. Custom symbol search, typed lens signatures, method-table sorting and version selection remain separate backlog slices.
+The package tests cover incompatible schemas, private declarations, escaped paths, missing link targets, slug collisions, repeated definitions, source-HTML injection, code preservation and multiline prose. Run them with `pnpm --dir zard-doc-astro test` in the ZARD repository. Site tests exercise the installed archive's routes, product provenance, Japanese entry and rejected-artifact publication behavior. Browser QA additionally verifies the real generated API, source anchors, navigation, theme switching, mobile layout and the Japanese fallback. Custom symbol search, typed lens signatures, method-table sorting and version selection remain separate backlog slices.

@@ -6,8 +6,7 @@ import { mkdir, mkdtemp, readFile, readdir, realpath, rename, rm, writeFile } fr
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
-import { parseExport } from './api-reference/model.mjs';
-import { renderPages } from './api-reference/render.mjs';
+import { referenceFor, pagesFor } from './api-reference/presentation.mjs';
 
 const exec = promisify(execFile);
 const root = fileURLToPath(new URL('..', import.meta.url));
@@ -125,11 +124,11 @@ async function main() {
   const rigorRoot = await realpath(path.resolve(root, process.env.RIGOR_API_SOURCE_DIR || 'upstream/rigor'));
   const commit = await git(rigorRoot, 'rev-parse', 'HEAD');
   const artifact = process.env.ZARD_SOURCE_DIR ? await generate(rigorRoot, commit) : JSON.parse(await readFile(input, 'utf8'));
-  const model = parseExport(artifact.export);
+  const reference = referenceFor(artifact);
   await validateSource(artifact, rigorRoot, commit);
   const files = artifact.export.scopes.flatMap((scope) => scope.files.map((file) => file.path));
   if ((await git(rigorRoot, 'status', '--porcelain', '--', ...new Set(files))).length) throw new Error('API input sources have uncommitted changes; use a clean pinned Rigor checkout');
-  const pages = renderPages(model, artifact.source);
+  const pages = pagesFor(reference);
   await publish(pages, artifact);
   console.log(`API reference: ${pages.size} pages from Rigor ${commit.slice(0, 8)}.`);
 }
