@@ -34,4 +34,7 @@ const jsonLd = {
 <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} is:inline />
 <script>
   import '../scripts/prompt-language';
+  import { enhanceMembers } from 'zard-doc-astro/members';
+  enhanceMembers();
+  document.addEventListener('astro:page-load', () => enhanceMembers());
 </script>
