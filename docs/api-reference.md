@@ -85,7 +85,7 @@ types. Producer/schema support and the CI default release are selected by the
 pinned ZARD checkout's `zard-rigor/lib/zard/rigor/compatibility.json`; changing
 that manifest still requires verifying the released executable. Site CI reads
 the manifest rather than maintaining a second analyzer version pin. Type facts
-remain opt-in pending the upstream release.
+are enabled in CI/deployment with the reviewed Rigor 0.4.4 executable and pinned v0.4.4 source. Local generation can still omit `RIGOR_LENS=1` for a plain export. Constant value slots, aliases and module functions use only producer facts; absent capabilities remain explicit.
 
 ## Source links
 
@@ -111,4 +111,4 @@ pnpm build
 pnpm check:api
 ```
 
-The package tests cover incompatible schemas, private declarations, escaped paths, missing link targets, slug collisions, repeated definitions, source-HTML injection, code preservation and multiline prose. Run them with `pnpm --dir zard-doc-astro test` in the ZARD repository. Site tests exercise the installed archive's routes, product provenance, Japanese entry and rejected-artifact publication behavior. Browser QA additionally verifies the real generated API, source anchors, navigation, theme switching, mobile layout and the Japanese fallback. Custom symbol search, typed lens signatures, method-table sorting and version selection remain separate backlog slices.
+The package tests cover incompatible schemas, private declarations, escaped paths, missing link targets, slug collisions, repeated definitions, source-HTML injection, code preservation and multiline prose. Run them with `pnpm --dir zard-doc-astro test` in the ZARD repository. Site tests exercise the installed archive's routes, product provenance, Japanese entry and rejected-artifact publication behavior. Browser QA additionally verifies the real generated API, source anchors, navigation, theme switching, mobile layout and the Japanese fallback. Native disclosures keep documentation readable without JavaScript. The enhanced member-order selector sorts the index and declaration groups by source or name while preserving anchors and open states. Custom symbol search and version selection remain separate backlog slices.

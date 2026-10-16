@@ -1,8 +1,8 @@
 # Presentation package snapshot
 
-`zard-doc-astro-0.0.0.tgz` is an unpublished package snapshot from `rigortype/zard`, commit `325173654599b1cf66754a12724d138dff0ad2c2`, directory `zard-doc-astro`. It contains the unstyled presentation implementation and Starlight adapter, not Ruby source or consumer CSS. The source remains maintained in the ZARD repository.
+`zard-doc-astro-0.0.0.tgz` is an unpublished package snapshot from `rigortype/zard`, commit `562890e1011c6b3cef3d17c8a580d0468abd6d45`, directory `zard-doc-astro`. It contains the unstyled presentation implementation and Starlight adapter, not Ruby source or consumer CSS. The source remains maintained in the ZARD repository.
 
-SHA-256: `65115d569e024cef5f45d80687ae081c882d9da8bcfaa8ac8b42dbbaa56dc5d7`.
+SHA-256: `c01ceab5f32dc5c486c54edf58e1fac6193fb8a661c5091dd44f0dadfb2039b0`.
 
 To refresh after reviewing a new ZARD revision:
 
