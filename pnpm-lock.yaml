@@ -2438,7 +2438,7 @@ packages:
     resolution: {integrity: sha512-rLfVLB4FgQneDr0dv1oddCVZmKjcJ6yX6mS4pU82Mq/Dt9a3cLZQ62pDBL4AUO+uVrCvtWz3ZFUL2HFAFJ/BXQ==}
 
   zard-doc-astro@file:vendor/zard-doc-astro-0.0.0.tgz:
-    resolution: {integrity: sha512-g62w/0hv0CSiu97epZpq3zUI6q4P2n5GybgJjtmVOqVbkR3TiS5M2YYq/NJQ8zIZ24rdU6vtGLMU3c0mcGXkwA==, tarball: file:vendor/zard-doc-astro-0.0.0.tgz}
+    resolution: {integrity: sha512-DvVLBjqMIkdIj1Xusa/PLc/+LG97oW4D9h3GnHLS9Y/rNWNWgAGDtn7CXCy/pReJ03/m1uq5ZOmyga+mahxAYg==, tarball: file:vendor/zard-doc-astro-0.0.0.tgz}
     version: 0.0.0
     engines: {node: '>=22'}
 

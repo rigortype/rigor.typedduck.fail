@@ -3,14 +3,14 @@ description: Install the pinned ZARD producer and released Rigor lens
 inputs:
   lens:
     description: Enable experimental lens (requires a compatible source tree)
-    default: '0'
+    default: '1'
 runs:
   using: composite
   steps:
     - uses: actions/checkout@v4
       with:
         repository: rigortype/zard
-        ref: 325173654599b1cf66754a12724d138dff0ad2c2
+        ref: 562890e1011c6b3cef3d17c8a580d0468abd6d45
         path: .api-producer
         persist-credentials: false
     - uses: ruby/setup-ruby@v1
