@@ -3,9 +3,9 @@ title: "診断ポリシー"
 description: "rigortype/rigor docs/type-specification/diagnostic-policy.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/type-specification/diagnostic-policy.md"
 sourcePath: "docs/type-specification/diagnostic-policy.md"
-sourceSha: "0526c3b0754740312f0cbafb2305a72caae2ddf55e0f6a22c00faebca4f5a7a8"
-sourceCommit: "e4685d12ad7454982fdfed674e1cd0cd6f168fd8"
-sourceDate: "2026-10-10T23:24:05+09:00"
+sourceSha: "3332b77bc09d58a5a2be2bb81373b0d904d1004b17ddddf1fed7f814bd6adad4"
+sourceCommit: "c9f6388da4707f3f26ed85dad75d5d8a66d85f11"
+sourceDate: "2026-10-16T08:49:00+09:00"
 translationStatus: "translated"
 sidebar:
   order: 2050
@@ -62,7 +62,7 @@ Rigorは静かな拡幅よりも精密な診断を優先すべきです（SHOULD
 | `plugin_trust.*` | `plugin.<plugin-id>.*`のプラグイン自身が作成した発見事項とは異なり、{Plugin::TrustPolicy} / {Plugin::IoBoundary}の境界それ自体に関する診断。`plugin_trust.read-refused`（[#959](https://github.com/rigortype/rigor/issues/959)）は、プラグインの`#read_file`・`#file?`・`#directory?`・`#list_directory`呼び出しで、そのパスがすべての`TrustPolicy#allowed_read_roots`エントリーから外れたものを報告する——`allow_read?`は`File.expand_path`のみで比較し、`realpath`やシンボリックリンクの解決は行わないため（意図的な[ADR-2](../../adr/2-extension-api/)の制約）、シンボリックリンクされたパス配下にルートを持つプロジェクト（macOSの`/tmp` → `/private/tmp`が一般的なケース）は、この行が存在する前はプラグインのすべての読み取りを静かに拒否していた。拒否されたパスごとではなく、実行ごとにこれに遭遇したプラグインごとに1行の`:info`行を発行し、件数、最初に拒否されたパス、逸脱した読み取りルート、および修正のヒント（シンボリックリンクされたルートに対する`cd "$(pwd -P)"`、または`plugins_io.allowed_paths:`エントリー）を名指しする。プラグインインスタンスの実行全体（`#prepare`とすべてのファイルごとの呼び出しが1つのメモ化された境界を共有する）にわたって蓄積され、ファイルごとの解析の後に`Runner::DiagnosticAggregator#plugin_trust_refusal_diagnostics`によって一度だけ読み取られる`Plugin::IoBoundary#refusal_summary`から構築される;これにより、兄弟である`assemble_run_diagnostics`行（`rbs.coverage.*`、`plugin.<plugin-id>.*`のロードエラーなど）と同じ再生成契約を持つ実行レベルの行となる——ADR-45のrecord-and-validateキャッシュMISS時に計算され、HIT時には逐語的に再提供され、`IncrementalSession`の個別のファイルごとキャッシュ（`#788`）を経由することは決してない。スコープのギャップ: リーダーはコーディネーター側の`Plugin::Registry`を参照するが、これはシーケンシャルモード（`--workers`未設定、デフォルト）でのみ実際に`#prepare`やファイルごとの解析を実行する;プールされた実行（`--workers N`）はワーカーごとの`WorkerSession`レジストリ上で準備と解析を行うため、この行からは見えず、プールされたワーカーのスライス内に閉じた拒否は報告されない——これを排出するには、`Runner::PoolCoordinator`内の`drain_reporters`・`drain_dependencies`・`drain_effects`の傍らに4つ目のマーシャリングされたチャネルが必要となり、今後の課題として残されている。 |
 | `generated.<provider>.*` | **予約済み —— 現時点では実装された識別子はありません**。生成シグネチャプロバイダの診断;創成期の予約（[ADR-1](../../adr/1-types/) / [ADR-2](../../adr/2-extension-api/)）。 |
 | `hint.*` | **予約済み —— 現時点では実装された識別子はありません**。スタイルとリファクタリングの提案、設定でゲート。[ADR-1](../../adr/1-types/) §「ケイパビリティロール」が`style.suggest_role_generalization`スイッチの背後で`hint.role-generalization.*`を定義している;このファミリーもその設定キーも実装されていない。 |
-| `sig.*` | **現時点では診断ファミリーではない** —— これらの識別子は診断ストリームではなく`rigor sig-gen`のJSON出力を通じて表面化する（この行の末尾を参照）。[ADR-14](../../adr/14-rbs-sig-generation/)に基づくRBSシグネチャ生成器のテレメトリ。`sig.generated.new-file` / `sig.generated.new-method` / `sig.generated.tighter-return`（`rigor sig-gen`コマンドがRBSを生成する際に発行するメソッドごとの分類）と、`sig.skipped.complex-shape` / `sig.skipped.user-authored` / `sig.skipped.untyped-return` / `sig.skipped.unrenderable-rbs`（生成器が発行を控えたメソッドごとの理由;最後のものはRigorのレンダリング上の欠陥である——生成された行がRBSとしてパースできないため、発行される代わりに破棄される。パースできない`.rbs`は消費者によって丸ごと隔離されるからだ）を予約する。[ADR-112](../../adr/112-extrbs-comment-channel/) WD4は`sig.generated.inline-overwrite`（`--overwrite`のもとでのみ: `# @rbs` / `#:`によってインラインで宣言されたメソッドの`sig/`宣言がそれと不一致であり、`sig/`メンバー全体がインラインのもので置き換えられる）、`sig.skipped.inline-differs`（`--overwrite`なしの同じ不一致 ── パラメーター名、ユニオンの綴り、解決を変更しない`::`は無視し型として比較されるが、オーバーロードの順序は考慮される。パラメーターのみのアノテーションの場合はパラメーターのみ。拒絶であり、これに対して`--write`と`--check`は1で終了する。`sig/`メンバーが別様に宣言するパラメーターのもとでインラインの戻り値が推論される場合、`--overwrite`のもとでも維持される）、`sig.skipped.inline-declared`（`sig_gen.inline_declared: skip`によりインラインリーダーが宣言するメソッドを`sig/`から除外する）、および`sig.skipped.inline-generic-class`（メソッドのクラスがインライン宣言によってジェネリックであり、`sig/`がそれを宣言していない ── 型パラメーターのないヘッダーはその定義ビルドに失敗する ── または異なる名前の型パラメーターで宣言している）を追加する。[#1676](https://github.com/rigortype/rigor/issues/1676)は`sig.skipped.top-level-def`（プレーンなトップレベル`def`、privateな`Object`メソッド: ファイルと名前とともに報告され、RBSは書き出されない）を追加する。[ADR-103](../../adr/103-effect-labels/) WD9はエフェクトアノテーションスロットを追加する: `sig.effect.emitted`（`%a{pure}` / `%a{rigor:v1:effect …}`が書き出された）、`sig.effect.withheld-tolerated`（メソッドのフットプリントは`effects.tolerated:`のもとでのみクリーンであるため、アノテーションはコードが行うことではなくプロジェクトが無視することに合意した内容を述べることになる —— [effect-labels.md](../effect-labels/) § ポリシーによるディスチャージ、不変条件4を参照）、`sig.effect.withheld-non-exhaustive`（メソッドが到達する一部の呼び出しが未解決であるため、サマリーが「これらのエフェクト、および潜在的により多くのエフェクト」と読める）、`sig.effect.withheld-unclaimed-callee`（到達する一部の呼び出しは解決されたものの、どこにもその被呼出し側を記述するものがない —— 網羅性とは異なる問題であり、書き出される境界を許諾する問題である）、`sig.effect.withheld-declared`（メソッドがすでに独自の手動境界を保持しているか、`≤`レーンにラベルが残存しているため、証明されたレーンが決して認めなかった主張を保持している）、および`sig.effect.left-unreadable`（対象宣言がすでにアノテーションを保持しているため、ライターがそのバイト列をそのまま残した）。スライス1のMVPはこれらの識別子を診断ストリームではなくコマンドのJSON出力で公開する。後続のスライスで`--write`パスがランディングした際に`:info`診断として接続する。 |
+| `sig.*` | **現時点では診断ファミリーではない** —— これらの識別子は診断ストリームではなく`rigor sig-gen`のJSON出力を通じて表面化する（この行の末尾を参照）。[ADR-14](../../adr/14-rbs-sig-generation/)に基づくRBSシグネチャ生成器のテレメトリ。`sig.generated.new-file` / `sig.generated.new-method` / `sig.generated.tighter-return`（`rigor sig-gen`コマンドがRBSを生成する際に発行するメソッドごとの分類）と、`sig.skipped.complex-shape` / `sig.skipped.user-authored` / `sig.skipped.untyped-return` / `sig.skipped.unrenderable-rbs`（生成器が発行を控えたメソッドごとの理由;最後のものはRigorのレンダリング上の欠陥である——生成された行がRBSとしてパースできないため、発行される代わりに破棄される。パースできない`.rbs`は消費者によって丸ごと隔離されるからだ）を予約する。[ADR-112](../../adr/112-extrbs-comment-channel/) WD4は`sig.generated.inline-overwrite`（`--overwrite`のもとでのみ: `# @rbs` / `#:`によってインラインで宣言されたメソッドの`sig/`宣言がそれと不一致であり、`sig/`メンバー全体がインラインのもので置き換えられる）、`sig.skipped.inline-differs`（`--overwrite`なしの同じ不一致 ── パラメータ名、ユニオンの綴り、解決を変更しない`::`は無視し型として比較されるが、オーバーロードの順序は考慮される。パラメータのみのアノテーションの場合はパラメータのみ。拒絶であり、これに対して`--write`と`--check`は1で終了する。`sig/`メンバーが別様に宣言するパラメータのもとでインラインの戻り値が推論される場合、`--overwrite`のもとでも維持される）、`sig.skipped.inline-declared`（`sig_gen.inline_declared: skip`によりインラインリーダーが宣言するメソッドを`sig/`から除外する）、および`sig.skipped.inline-generic-class`（メソッドのクラスがインライン宣言によってジェネリックであり、`sig/`がそれを宣言していない ── 型パラメータのないヘッダーはその定義ビルドに失敗する ── または異なる名前の型パラメータで宣言している）を追加する。[#1676](https://github.com/rigortype/rigor/issues/1676)は`sig.skipped.top-level-def`（プレーンなトップレベル`def`、privateな`Object`メソッド: ファイルと名前とともに報告され、RBSは書き出されない）を追加する。[ADR-103](../../adr/103-effect-labels/) WD9はエフェクトアノテーションスロットを追加する: `sig.effect.emitted`（`%a{pure}` / `%a{rigor:v1:effect …}`が書き出された）、`sig.effect.withheld-tolerated`（メソッドのフットプリントは`effects.tolerated:`のもとでのみクリーンであるため、アノテーションはコードが行うことではなくプロジェクトが無視することに合意した内容を述べることになる —— [effect-labels.md](../effect-labels/) § ポリシーによるディスチャージ、不変条件4を参照）、`sig.effect.withheld-non-exhaustive`（メソッドが到達する一部の呼び出しが未解決であるため、サマリーが「これらのエフェクト、および潜在的により多くのエフェクト」と読める）、`sig.effect.withheld-unclaimed-callee`（到達する一部の呼び出しは解決されたものの、どこにもその被呼出し側を記述するものがない —— 網羅性とは異なる問題であり、書き出される境界を許諾する問題である）、`sig.effect.withheld-declared`（メソッドがすでに独自の手動境界を保持しているか、`≤`レーンにラベルが残存しているため、証明されたレーンが決して認めなかった主張を保持している）、および`sig.effect.left-unreadable`（対象宣言がすでにアノテーションを保持しているため、ライターがそのバイト列をそのまま残した）。スライス1のMVPはこれらの識別子を診断ストリームではなくコマンドのJSON出力で公開する。後続のスライスで`--write`パスがランディングした際に`:info`診断として接続する。 |
 
 ### RBS定義構築stderrフォールバック
 
@@ -105,8 +105,8 @@ Rigorは、特定の診断を1行単位またはファイル全体で抑制す�
 
 Rigorネイティブのマーカーは、PHPStanのアノテーションの感覚を踏まえながらアプリケーション側の型DSLを発明しないRubyコメント文法を使います。
 
-- **行形式**: `# rigor:disable <rule1>, <rule2>` — その物理行で列挙したルールを抑制します。`# rigor:disable all`はその行のすべてのルールを抑制します。
-- **ファイルレベル形式**（v0.1.2）: `# rigor:disable-file <rule1>, <rule2>` — ファイル内のすべての行について列挙したルールを抑制します。`# rigor:disable-file all`はファイル内のすべての診断を抑制します。
+- **行形式**: `# rigor:disable <rule1>, <rule2>` — その物理行で列挙したルールを抑制します。`# rigor:disable all`はその行のすべての組み込みルールを抑制します（プラグインの行は抑制しません。*トークン解決*を参照）。
+- **ファイルレベル形式**（v0.1.2）: `# rigor:disable-file <rule1>, <rule2>` — ファイル内のすべての行について列挙したルールを抑制します。`# rigor:disable-file all`はファイル内のすべての組み込み診断を抑制します（プラグインの行は抑制しません。*トークン解決*を参照）。
 
 ルールリストはカンマ区切りおよび/または空白区切りで、上記のルールIDプレフィックス（`call.undefined-method`）を使います。リテラルの`all`キーワードと短い旧来のエイリアスは、`rigor explain`が使うのと同じ展開を通じて解決されます。ブロックスコープ（`start` / `end`）の形式はありません。
 
@@ -122,14 +122,23 @@ Rigorネイティブのマーカーは、PHPStanのアノテーションの感�
 
 ### トークン解決
 
-ルールトークン——`# rigor:disable[-file]`マーカー内、または`.rigor.yml`の`disable:`リスト内のもの——は、**パース時に正規ルールidのセットへ展開されます**（`resolve_rule_token`）;行ごと／ファイルごとの抑制マッチは、その後そのセットに対する診断の正規`rule`の正確なメンバーシップテストになります。認識されるトークン形は4つです:
+ルールトークン——`# rigor:disable[-file]`マーカー内、または`.rigor.yml`の`disable:`リスト内のもの——は、**パース時に正規ルールidのセットへ展開されます**（`resolve_rule_token`）;行ごと／ファイルごとの抑制マッチは、その後そのセットに対する診断の正規`rule`の正確なメンバーシップテストになります。認識されるトークン形は5つです:
 
 - `all` — リテラルのワイルドカード;スコープ内のすべてのルールを抑制します。ルールリストへ展開されるのではなく、センチネルの`all`として保たれます。
 - **旧来の非プレフィックスエイリアス**（`undefined-method`）——単一の正規id（`call.undefined-method`）にマップされます。
 - **ファミリーワイルドカード**——診断ファミリー`call` / `flow` / `assert` / `dump` / `def` / `global` / `suppression` / `static` / `effect`のいずれか——`<family>.`配下のすべての正規idに展開されます。
 - **正確な正規id**（`call.undefined-method`）——それ自身として保たれます。
+- **プラグイン修飾id**——`plugin.<id>.<rule>`またはプラグイン全体の`plugin.<id>`——それ自身として保たれます。プラグイン自体の行に届く唯一の形です（以下参照）。
 
 認識されないトークンはそのまま保たれるので、`rule`が文字通りその文字列である診断にのみマッチします（実質的にノーオペレーション——*妥当性ルール*を参照）。`rule`が`nil`の診断は決して抑制されません。ファミリー展開はトークン時に起こるので、マッチ自体は決してプレフィックスマッチングをしません——常に展開された正規idセットに対する正確な等価です。
+
+`.rigor.yml`の`disable:`リスト内の`all`は、ファイル内で`# rigor:disable-file all`が行うのと同様に、すべての組み込みチェックルール行（`CheckRules`カタログ内のidで、`:builtin`ソースファミリーから発行されるもの）をドロップします。ファイルごとのフィルタに加え、このリストは実行の最終ストリームで重大度がスタンプされる場所——順次実行、ワーカープール、`--incremental`再チェック、および結果キャッシュから返される実行のすべてが通過するスタンプ処理——でそれらの行に再度適用されます。そのため、`effect.annotations-unchecked`のようにファイルごとの解析の外で生成されるチェックルール行もこれに応じます。
+
+プラグイン自体の行（ソースファミリー`plugin.<id>`）は、その修飾idによってのみトークンに応じます: トークンが行の`qualified_rule`（`plugin.<id>.<rule>`）と等しいか、またはそのソースファミリー（`plugin.<id>`）と等しい場合です。どちらも行自身のフィールドに対する完全文字列比較であるため、`plugin.<id>`は単に`<id>.`で始まるidを持つプラグインには決して届きません。マニフェストidとルールidの両方にドットが含まれる可能性があるため、1つの重複が残ります: ルール`b.c`を持つプラグイン`a`と、ルール`c`を持つプラグイン`a.b`はどちらも`qualified_rule` `plugin.a.b.c`を共有し、その完全一致トークンは両方の行をドロップします。プレフィックスのないidや`all`は、`disable:`内でもマーカー内でもこれらの行には届きません: プラグインはプレフィックスのないルール（`load-error`、`unknown-column`）を共有しており、プレフィックスなしのマッチは他のプラグインの指摘を隠してしまう可能性があるためです。`disable:`は同じ重大度スタンプでこれらに届くため、すべての実行形式で一致します;マーカーは、マーカーを保持するファイルが解析されている間にプラグインが発行する行（`#diagnostics_for_file`およびノードルール）に届き、別のファイルに位置するプラグイン行は`disable:`およびベースラインにのみ応じます。`disable:`はスタンプ時に適用されるため、`disable: [plugin.<id>]`はそのプラグインの実行レベルの開示行（解析不可能なロケールファイルに対するrigor-rails-i18nの`load-error`など、`.rigor.yml`で報告されるもの）もドロップします。
+
+`disable:`リストは、チェックルールカタログ外の実行レベルの行——プラグインローダーの`load-error`および`runtime-error`（`plugin_loader.*`）、`dynamic.dependency-source.*`、`rbs.coverage.*`、`plugin_trust.*`、`pool-degraded`——には届きません（独自の抑制パイプラインを持つ`pre-eval.*`行を除く）。どの表記もこれらには届きません: プレフィックスのないidも、修飾id（`plugin_loader.load-error`）も、`all`も届きません。これらは`severity_overrides:`およびベースラインに応じます。`severity_overrides:`は行の`qualified_rule`ではなく`rule`をキーとするため、ローダーの行はそこで`load-error` / `runtime-error`に応じます——このキーは、プレフィックスのないルールが同じであるプラグイン行も再スタンプします。
+
+`ConfigAudit`は、どの行にも届かない`disable:`トークンについて警告します: 上記の予約された実行レベルの行を名指しするもの（任意の表記）、`plugins:`が設定していないプラグインの`plugin.`修飾トークン（ロードせずに各エントリーのマニフェストidが既知である場合にのみチェックされます——明示的な`id:`、またはバンドルされたプラグインのgem名から`rigor-`を除いたもの）、および`all`、ファミリー、旧来のエイリアス、カタログid、`pre-eval.*` idのいずれでもないその他のトークン（プラグインのプレフィックスなしルールを含む）。非チェックエンジンファミリー配下のトークン（`rbs_extended.*`、`rbs.*`、`dynamic.*`）または既知の非カタログエンジンidはフラグされません。警告は標準エラー出力および`config_warnings`に出力され、終了ステータスは変更されません。
 
 ### エコシステム互換マーカー（計画中、未実装）
 

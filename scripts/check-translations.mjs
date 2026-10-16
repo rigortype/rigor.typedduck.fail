@@ -18,7 +18,7 @@ const upstreamRoot = path.resolve(projectRoot, process.env.RIGOR_SOURCE_DIR ?? '
 const sourceLocaleRoot = docsRoot;
 const targetLocale = process.env.RIGOR_LOCALE ?? 'ja';
 const targetLocaleRoot = path.join(docsRoot, targetLocale);
-const skipDirs = new Set([targetLocale, 'chibirigor']);
+const skipDirs = new Set([targetLocale, 'chibirigor', 'apiref']);
 // For Japanese-native upstream sources, hand-edited English translations
 // live under translations/en/<output-path>. sync-rigor-docs.mjs reads
 // these and overlays them onto the gitignored EN tree.
@@ -146,7 +146,7 @@ async function buildReport(records) {
     if (!translatedSha) {
       stale.push({ ...record, targetPath, reason: 'missing-sourceSha', status, translatedCommit });
     } else if (translatedSha !== record.sourceSha) {
-      stale.push({ ...record, targetPath, reason: 'sha-mismatch', status, translatedCommit });
+      stale.push({ ...record, targetPath, reason: 'sha-mismatch', status, translatedCommit, translatedSha });
     } else if (status !== 'translated') {
       stale.push({ ...record, targetPath, reason: `status:${status}`, status, translatedCommit });
     } else {

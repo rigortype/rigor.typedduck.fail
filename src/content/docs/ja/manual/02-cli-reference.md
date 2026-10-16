@@ -3,8 +3,8 @@ title: "CLIコマンドリファレンス"
 description: "rigortype/rigor docs/manual/02-cli-reference.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/02-cli-reference.md"
 sourcePath: "docs/manual/02-cli-reference.md"
-sourceSha: "b7747f1dd146e41a898d9cefef0c0aff117332af68d894dc67093efa637f0265"
-sourceCommit: "8a5d6e2c6001d80084cf95132e306eb6a6d71b9a"
+sourceSha: "ac22094ebcfdfeffb7a560bed01a2bfe1477ed3706b665f01f721d0dbfc0226e"
+sourceCommit: "c9f6388da4707f3f26ed85dad75d5d8a66d85f11"
 sourceDate: "2026-10-08T16:17:41+09:00"
 translationStatus: "translated"
 sidebar:
@@ -40,7 +40,7 @@ rigor check [paths...]
 | `--explain` | フェイルソフトフォールバックイベントを`info`診断として表示する。 |
 | `--no-cache` | この実行では永続キャッシュをスキップする。`--incremental`と併用した場合はコールドなフル解析となる: インクリメンタルスナップショットと実行結果キャッシュは読み込みも書き込みもされないため、次回のプレーンな`--incremental`実行でも以前持っていたスナップショットがそのまま使用される。 |
 | `--incremental` | 前回の実行以降に変更されたファイルと、それに依存するファイルだけを再解析し、残りはクロスプロセスのディスクスナップショットから提供する（ADR-46）。診断結果はフル実行と同一;設定 / gem / バージョンの変更（またはファイルの追加・削除）があれば透過的にフル再解析へ切り替わる。変更がない実行は、アナライザーを起動することなくキャッシュから応答される。[キャッシュ](../12-caching/)を参照。 |
-| `--verify-incremental` | 受け入れゲート: インクリメンタルアナライザーをフルの`--no-cache`実行と突き合わせ、診断結果がバイト単位で同一であることを表明してから終了する（一致なら0、不一致なら差分の診断結果とともに1）。CIで`--incremental`が古い結果を決して提供しないことを保証するために使う。 |
+| `--verify-incremental` | 受け入れゲート: インクリメンタルアナライザーをフルの`--no-cache`実行と突き合わせ、診断結果が集合として、かつ同一の順序で一致することを表明してから終了する（一致なら0、不一致なら1。集合の不一致の場合は異なる診断結果、集合が同一で順序が異なる場合は順序が分岐した最初のインデックスを表示）。CIで`--incremental`が古い結果を決して提供しないことを保証するために使う。 |
 | `--clear-cache` | 実行前にキャッシュディレクトリを削除する。 |
 | `--cache-stats` | 終了時にオンディスクキャッシュのインベントリを表示する——`--format text`では標準出力へ、それ以外のすべてのフォーマットでは標準エラー出力へ出すので、機械可読な出力はパース可能なドキュメントのままである。`--clear-cache`と`--verify-incremental`の注記も同じ規則に従う。 |
 | `--[no-]stats` | 実行サマリー（ファイル数、クラス数、メモリ、経過時間）をstderrに表示する。デフォルトはオン。 |
@@ -107,6 +107,16 @@ rigor type-of [options] FILE LINE COL
 プラグインがRubyへコンパイルするテンプレート（`rigor-actionpack`配下のERBビュー）は、`rigor check`がそれを解析するのと同じ方法でプローブされます: コンパイルされたRubyは、ビューの宣言された`self`、ローカル変数、インスタンス変数の下で型付けされ、`LINE:COL`はテンプレート自身のものになります。列位置は、コンパイラが逐語的にコピーしたRuby（`<%= @user.name %>`における`@user.name`）の中にあり、かつコンパイルされた式をちょうど1つ指す場合にのみ応答します。HTMLテキスト内の列、プラグインが書き換えたコード（レイアウトの`<%= yield %>`）、あるいは複数の場所にコピーされたバイト列の中の列は、その理由とともに`no expression found at …`を出力して`1`で終了します;コマンドが代わりに近傍のノードについて応答することは決してありません。同じものを指す2つのタグ（`<% if "a" <= v %>`の横の`<%= v %>`、または`<%= v %> <%= v.to_s %>`）も同様の理由で拒否されます;単一のタグ内で繰り返される名前は引き続き応答します。素の`FILE:LINE`はテンプレートの列へ逆マッピングされる式のみを一覧表示します。`--trace`のフォールバックはテンプレート行で報告され、JSONのフォールバックは位置がテンプレート列へ逆マッピングされる場合にのみ`column`を持ちます。プラグインがコンパイルを拒否したテンプレートは`plugin declined the template; probing its bytes as Ruby`と出力し、パースエラーを含めて素のRubyとしてプローブされます。
 
 4つのプローブコマンド ── `type-of`、`type-scan`、`trace`、`annotate` ── は、呼び出しごとに環境をゼロから構築し、永続キャッシュの読み取りも書き込みも行いません。そのため、これらのいずれも`--no-cache`を受け付けません。スキップすべきキャッシュが存在しないからです。したがって、プローブは`rigor check --no-cache`が解析を行う環境に対して型付けを行います。キャッシュを使用する（デフォルトの）`rigor check`が構築する環境は同一であることが意図されており、Rigorは2つの構築を互いに照合してゲートしています ── ただし、プローブと`check`実行の間の不一致を追跡している場合、`rigor check --no-cache`と比較することでその変数を排除できます。
+
+## `rigor lens`
+
+1つ以上のファイルの宣言を、それらの型および型の由来とともにマップします（実験段階）。[推論型の検査](../05-inspecting-types/)を参照してください。
+
+```sh
+rigor lens [--format=text|json] [--config=PATH] [--workers=N] FILE...
+```
+
+lensは`rigor check --incremental`と同じインクリメンタル解析を実行し、そのキャッシュを読み書きします。`--workers`はコールド実行に適用されます。`--format=json`は1つの`lens/v0`ドキュメントを出力します（[内部仕様](../../internal-spec/lens/)）。少なくとも1つのファイルに結果がある場合は`0`、いずれにもない場合は`1`、使用法エラーの場合は`64`で終了します。コード内の診断によって終了ステータスが変わることはありません。
 
 ## `rigor trace`
 
@@ -437,7 +447,7 @@ RigorのMCP（Model Context Protocol）サーバーをstdio上で実行し、AI�
 rigor mcp [--transport=stdio] [--config=PATH]
 ```
 
-`stdio`が唯一のトランスポートです。サーバーは純Ruby製のJSON-RPC 2.0実装で、7つの読み取り専用ツール（`rigor_check`、`rigor_type_of`、`rigor_triage`、`rigor_annotate`、`rigor_sig_gen`、`rigor_explain`、`rigor_coverage`）を公開します。
+`stdio`が唯一のトランスポートです。サーバーは純Ruby製のJSON-RPC 2.0実装で、8つの読み取り専用ツール（`rigor_check`、`rigor_type_of`、`rigor_triage`、`rigor_lens`、`rigor_annotate`、`rigor_sig_gen`、`rigor_explain`、`rigor_coverage`）を公開します。`rigor_lens`は`rigor check --incremental`が書き込むインクリメンタルキャッシュのみを書き込みます。
 
 ## `rigor lsp`対`rigor mcp`
 

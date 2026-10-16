@@ -3,8 +3,8 @@ title: "互換性と公開サーフェス"
 description: "rigortype/rigor docs/compatibility.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/compatibility.md"
 sourcePath: "docs/compatibility.md"
-sourceSha: "486edf0b6e9484ede31277d91cc93cdf75ab97fd041dc8a54f1a7f7abdcd1db5"
-sourceCommit: "ffb456b0cc9e068a59d0ba03ba464b60ad83280a"
+sourceSha: "ba22fcd49a83edd21722e868fdefca5200adcbaec28f18b417d2364af6092452"
+sourceCommit: "c9f6388da4707f3f26ed85dad75d5d8a66d85f11"
 sourceDate: "2026-09-08T04:46:34+09:00"
 translationStatus: "translated"
 sidebar:
@@ -41,7 +41,7 @@ Rigorは**トライアルしてから凍結する**経路をたどります（AD
 
 | Surface | Authoritative enumeration | User reference | Contract |
 | --- | --- | --- | --- |
-| **CLIコマンド＋フラグ**（`check`、`triage`、`baseline`、`sig-gen`、`lsp`、`mcp`、`annotate`、`type-of`、`coverage`、`plugins`、`plugin`、`skill`、…） | [`lib/rigor/cli.rb`](https://github.com/rigortype/rigor/blob/master/lib/rigor/cli.rb)と`lib/rigor/cli/`内の`CLI::HANDLERS`＋コマンドごとの`OptionParser` | [Manual ch. 2 — CLI reference](../manual/02-cli-reference/) | **yes** ── 文書化されたコマンド／フラグは名前と意味を保つ。削除／改名は破壊的 |
+| **CLIコマンド＋フラグ**（`check`、`triage`、`baseline`、`sig-gen`、`lsp`、`mcp`、`annotate`、`type-of`、`coverage`、`plugins`、`plugin`、`skill`、…;実験段階の`lens`を除く） | [`lib/rigor/cli.rb`](https://github.com/rigortype/rigor/blob/master/lib/rigor/cli.rb)と`lib/rigor/cli/`内の`CLI::HANDLERS`＋コマンドごとの`OptionParser` | [Manual ch. 2 — CLI reference](../manual/02-cli-reference/) | **yes** ── 文書化されたコマンド／フラグは名前と意味を保つ。削除／改名は破壊的 |
 | **`.rigor.yml`のキー＋値の文法** | **2つの対等な情報源:** [`lib/rigor/configuration.rb`](https://github.com/rigortype/rigor/blob/master/lib/rigor/configuration.rb)内の`Configuration::DEFAULTS`＋強制変換器（どのキーが存在し何を意味するか）、**および**[`schemas/rigor-config.schema.json`](https://github.com/rigortype/rigor/blob/master/schemas/rigor-config.schema.json)（宣言された形。姉妹実装のために予約されここでは決して読まれない名前空間を含む）。意味論: [`docs/internal-spec/config.md`](../internal-spec/config/)（[ADR-99](../adr/99-config-schema-authority/)） | [Manual ch. 3 — Configuration](../manual/03-configuration/) | **yes** ── 文書化されたキーは名前・形・デフォルト意味論を保つ |
 | **プラグイン契約** ── `Plugin::Base`のフック＋マニフェストフィールド（[ADR-37](../adr/37-plugin-interface-segregation/)のナロープロトコル`node_rule` / `dynamic_return` / `narrowing_facts`（ADR-80で`type_specifier`から改名;旧動詞・そのリーダー・そのエンジン消費者・`rigor plugins --capabilities`キーはすべて0.3.0で削除された）＋宣言的フィールド）と読み取り側の名前空間（`Scope`、`Type`、`Reflection`、`Environment`、…） | [`docs/internal-spec/public-api.md`](../internal-spec/public-api/)、[`public_api_drift_spec.rb`](https://github.com/rigortype/rigor/blob/master/spec/rigor/public_api_drift_spec.rb)が固定 | [ADR-2](../adr/2-extension-api/)＋[`examples/`](https://github.com/rigortype/rigor/blob/master/examples/README.md)配下のプラグイン例 | **yes** ── ADR-37のナロープロトコル（非推奨のファットフックは1.0前に削除。例: ADR-52 slice 5b / ADR-60） |
 | **診断識別子**（`flow.always-truthy-condition`、`call.unresolved-toplevel`、…）＋**抑制マーカー**（`# rigor:disable <id>` / `# rigor:disable-file <id>`）＋**`severity_overrides:`のキー** | [`lib/rigor/analysis/check_rules.rb`](https://github.com/rigortype/rigor/blob/master/lib/rigor/analysis/check_rules.rb)内のルールID（`ALL_RULES`、`LEGACY_RULE_ALIASES`）、[`lib/rigor/analysis/rule_catalog.rb`](https://github.com/rigortype/rigor/blob/master/lib/rigor/analysis/rule_catalog.rb)内のメタデータ | [Manual ch. 4 — Diagnostics](../manual/04-diagnostics/)、`rigor explain <rule>` | **yes ── 語彙であって発火集合ではない**（§ compatibility model 2） |
@@ -55,6 +55,7 @@ Rigorは**トライアルしてから凍結する**経路をたどります（AD
 
 - **エンジン内部** ── `Rigor::Inference::*`、`Rigor::Scope`の内部、`Rigor::Type::*`のキャリア、ディスパッチ階層、合成された`Rigor::AST::*`ノード、そして`Rigor::Analysis::{Runner,CheckRules,FactStore}`。[`docs/internal-spec/public-api.md` § Internal surfaces](../internal-spec/public-api/)を参照。
 - **あるファイルでどの診断が発火するか** ── 精度とバグ捕捉はマイナー内で自由に向上します（§ compatibility model 2）。[ベースライン](../manual/06-baseline/)がそのチャーンを吸収します。
+- **`rigor lens`とその`lens/v0`出力** ── `lens/v1`がリリースで出荷されるまで実験段階（[ADR-113](../adr/113-rigor-lens/) § Amendment、[`docs/internal-spec/lens.md`](../internal-spec/lens/)）。破壊的変更はドキュメントの`revision`を引き上げます。
 - **`rigor sig-gen`の出力精度** ── *推論されるシェイプ*は時間とともに先鋭化します。コマンド・フラグ・RBSとしての妥当性は契約ですが、出力するものの精度は契約ではありません。
 
 ## 形式とスキーマのバージョン

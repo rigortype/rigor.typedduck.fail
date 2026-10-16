@@ -3,8 +3,8 @@ title: "Rigor MCPサーバー: AIエージェント統合"
 description: "rigortype/rigor docs/manual/10-mcp-server.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/10-mcp-server.md"
 sourcePath: "docs/manual/10-mcp-server.md"
-sourceSha: "46ff808003591e52ff8b42f69eedfbad2ed4109df767e8d0824f1b831ef50fa5"
-sourceCommit: "42d6e031257466de187cc9640b4896300473f9bb"
+sourceSha: "64645436071c659b61443269f8ee2c4fe0ac02d6ff08af58335ad5dd8a98a4fb"
+sourceCommit: "c9f6388da4707f3f26ed85dad75d5d8a66d85f11"
 sourceDate: "2026-09-25T20:39:06+09:00"
 translationStatus: "translated"
 sidebar:
@@ -36,6 +36,7 @@ sidebar:
 | `rigor_check` | `rigor check --format json` | JSON診断レポート |
 | `rigor_type_of` | `rigor type-of --format json` | `FILE:LINE:COL`のJSON型 |
 | `rigor_triage` | `rigor triage --format json` | JSON分布 + クラス／メソッドセレクタ + ホットスポット + ヒント |
+| `rigor_lens` | `rigor lens --format json` | JSON `lens/v0`宣言マップ（実験段階） |
 | `rigor_annotate` | `rigor annotate --no-color` | 注釈付きRubyソース |
 | `rigor_sig_gen` | `rigor sig-gen --print --format json` | JSON RBSスケルトン候補 |
 | `rigor_explain` | `rigor explain --format json` | JSONルールカタログエントリー |
@@ -271,6 +272,23 @@ Clineパネル → MCPサーバー → サーバーを追加 → カスタムを
 
 ---
 
+### rigor_lens
+
+指定されたファイルが宣言するクラス、モジュール、メソッド、属性を、`rigor check`がそれぞれに与える型およびその型の由来とともにマップします。ドキュメントは実験段階の`lens/v0`形式です（[内部仕様](../../internal-spec/lens/)）。コマンドについては[推論型の検査](../05-inspecting-types/)を参照してください。
+
+**入力:**
+
+| 引数 | 型 | 必須 |
+|---|---|---|
+| `files` | `string[]` | はい |
+| `config` | `string` | いいえ |
+
+**返り値:** JSON。各ファイルはその`status`、`sites`、`omissions`、`diagnostics`を運び、`members`がシグネチャを保持します。
+
+**典型的なエージェントの使い方:**ファイルを編集したり型を書いたりする前に、そのファイルやクラスが何を提供し、そのメソッドがすでにどのような契約を持っているかを把握する。1回の呼び出しですべてのファイルを渡してください: 各呼び出しは1回の解析を実行し、プロジェクトでの最初の呼び出しはフルの`rigor check`のコストがかかります。パス、サイトキー、キャッシュはサーバーが起動したディレクトリからの相対となるため、プロジェクトルートから起動してください; `--config`はどのファイルがプロジェクトに属するかを修正するものであり、パスの書き方を修正するものではありません。
+
+---
+
 ### rigor_annotate
 
 指定されたRubyソースファイルに各行の最後の式の型を`#=>`コメントとして付加して返します。`def`ヘッダー行はメソッドの推論戻り値型を表示します。
@@ -413,7 +431,7 @@ echo '{"jsonrpc":"2.0","id":0,"method":"initialize","params":{"protocolVersion":
 
 JSONレスポンスが返るはずです。何も返らないかシェルエラーが出る場合、`rigor`が`PATH`上にありません。まずインストールパスを修正してください（[Rigorのインストール](../01-installation/)を参照）。
 
-**`rigor_check` / `rigor_triage`がエラーのあるプロジェクトで空の診断配列を返す**。
+**`rigor_check` / `rigor_triage`がエラーのあるプロジェクトで空の診断配列を返す、あるいは`rigor_lens`がすべてのファイルを`outside_project`と報告する**。
 
 ツールはMCPサーバーが起動したワーキングディレクトリから`Configuration.discover`を使います。クライアントがホームまたは一時ディレクトリから`rigor mcp`を起動した場合、`.rigor.yml`が見つからず設定済みパスが空のセットにデフォルトします。対処法:
 
@@ -441,7 +459,7 @@ JSONレスポンスが返るはずです。何も返らないかシェルエラ�
 
 ## ステータスとロードマップ
 
-`rigor mcp`はすべての7ツールとstdioトランスポートを伴うv0.2.0評価リリースで出荷されます。キューされたフォローアップは需要駆動です:
+`rigor mcp`は7つのツールとstdioトランスポートを伴ってv0.1.10で出荷され、v0.4.4で`rigor_lens`が加わりました。キューされたフォローアップは需要駆動です:
 
 - **HTTPトランスポート**（スライス（slice）2）: CI / リモートエージェント向けの`--transport=http`;最小限のRackエンドポイント。
 - **コール間環境キャッシュ**（スライス3）: コール間でウォームな`Environment` + `Cache::Store`をサーバー内に保持し、`mtime`ベースのチェックで無効化;同じプロジェクトへの繰り返し呼び出しのウォームパスレイテンシをほぼゼロに削減。

@@ -3,8 +3,8 @@ title: "診断"
 description: "rigortype/rigor docs/manual/04-diagnostics.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/04-diagnostics.md"
 sourcePath: "docs/manual/04-diagnostics.md"
-sourceSha: "3db9aa0df961ee5351c2fbaa2ef07e21bedad4789e975e523cc8280bd0939c95"
-sourceCommit: "e4685d12ad7454982fdfed674e1cd0cd6f168fd8"
+sourceSha: "5a0e3c65d76aa0e5542adf1ffbea3f3830e6c07be2f51ce1a5c7225ad8763993"
+sourceCommit: "c9f6388da4707f3f26ed85dad75d5d8a66d85f11"
 sourceDate: "2026-10-10T23:24:05+09:00"
 translationStatus: "translated"
 sidebar:
@@ -190,13 +190,13 @@ rigor check --format json \
 config.merge(extra)  # rigor:disable call.undefined-method
 ```
 
-修飾IDファミリーワイルドカード（`call`）、カンマまたはスペース区切りのリスト、または`all`を受け付けます。コメントは診断が指す行に置かなければなりません。`disable-block`形式はないため、複数行にまたがる式では、発火する各行にコメントが必要です。
+修飾ID、ファミリーワイルドカード（`call`）、カンマまたはスペース区切りのリスト、または`all`を受け付けます。プラグインの診断は、角括弧内に印字される修飾ID（`plugin.shoulda-matchers.unknown-column`）またはプラグイン全体のファミリー（`plugin.shoulda-matchers`）でのみ到達できます;複数のプラグインが素のルールを共有するため、その素のルール（`unknown-column`）や`all`では対象外となります。コメントは診断が指す行に置かなければなりません。`disable-block`形式はないため、複数行にまたがる式では、発火する各行にコメントが必要です。
 
 このマーカーは**コメントの先頭**になければなりません——行全体の`# rigor:disable …`か、末尾の`expr  # rigor:disable …`です。このマニュアルが随所でそうしているように、構文を単に引用しているだけのコメントは普通の散文です: それは何も抑制せず、何も警告しません。二重にした`## rigor:disable …`や、`=begin` / `=end`ブロックの中に書かれたマーカーについても同様です——どちらも作動しません。
 
 機能し得ないマーカーは、静かに無視されるのではなくフラグされます。既知のルールを1つも指さないトークン（`call.undefined-metod`のようなタイポ）は[`suppression.unknown-rule`](#rule-suppression-unknown-rule)を、ルールをまったく持たない素のマーカーは[`suppression.empty`](#rule-suppression-empty)を、Rigorの文法の外にあるマーカー語（RuboCopの反射である`# rigor:disable-next-line <rule>`や`# rigor:enable`）は[`suppression.unknown-marker`](#rule-suppression-unknown-marker)を発火します。いずれもすべてのプロファイルで`:warning`です。`plugin.`接頭辞のトークンは決してフラグされず（プラグインのルール語彙は動的にロードされるため）、これらの抑制診断はいずれも他のルールと同様にそれ自体を抑制できます。
 
-**ソース内、ファイル全体**。ファイル内のどこかに`# rigor:disable-file <rules>`を記述すると、すべての行でそれらのルールが抑制されます。`# rigor:disable-file all`でファイルを黙らせます。慣例では先頭付近に置きます —— 典型的には生成ファイル、フィクスチャ、またはベンダリングされたスニペットで —— が、ファイル内のすべてのコメントがスキャンされるため、どこに置いても機能します。
+**ソース内、ファイル全体**。ファイル内のどこかに`# rigor:disable-file <rules>`を記述すると、すべての行でそれらのルールが抑制されます。`# rigor:disable-file all`でファイル内のすべての組み込みルールを黙らせます（プラグインの診断には上記と同様に修飾IDが必要です）。慣例では先頭付近に置きます —— 典型的には生成ファイル、フィクスチャ、またはベンダリングされたスニペットで —— が、ファイル内のすべてのコメントがスキャンされるため、どこに置いても機能します。
 
 3つのレイヤーは**合成されます**: ファイルスコープのマーカーは行スコープのものを打ち消さず、プロジェクト全体の`disable:`はどちらも持たないファイルにも依然として適用されます。
 
@@ -206,5 +206,19 @@ config.merge(extra)  # rigor:disable call.undefined-method
 disable:
   - flow.dead-assignment
 ```
+
+`disable: [all]`は、シグネチャファイルで報告される`effect.annotations-unchecked`を含め、すべての組み込みチェックルールをオフにします。
+
+プラグイン自身の診断は、その修飾IDによってオフにします ── 1つのルールに対しては`plugin.<id>.<rule>`、そのプラグインのすべてのルールに対しては`plugin.<id>`です:
+
+```yaml
+disable:
+  - plugin.shoulda-matchers.unknown-column
+  - plugin.rails-i18n
+```
+
+素のルール（`unknown-column`、`load-error`）や`all`はそれらには到達しないため、あるプラグインの抑制が同じ名前を持つ別のプラグインの所見を隠してしまうことは決してありません。
+
+このリストは、`.rigor.yml`で報告される実行レベルの行（ロードに失敗した、あるいは`prepare`で例外を発生させたプラグイン（`plugin_loader.*`）、解決しなかった`dependencies.source_inference:`のgem（`dynamic.dependency-source.*`）、`rbs.coverage.*`の通知、`plugin_trust.*`、`pool-degraded`）には、`plugin_loader.load-error`を含め、いかなる綴りでも到達しません。これらをオフにするには、[`severity_overrides:`](#重要度プロファイル)を`off`に設定するか、[ベースライン](../06-baseline/)に記録してください。`severity_overrides:`はソース接頭辞なしの行のルールIDと照合されるため、プラグインローダーの行はそこでは`load-error`および`runtime-error`となります ── そしてそのキーは、素のルールが同じである任意のプラグイン診断も再スタンプします。`disable:`エントリーがこれらの行のいずれかを名指ししている、いかなるルールも名指ししていない、または`plugins:`が設定していないプラグインを名指ししている場合、`rigor check`は警告します（[設定検証の警告](../03-configuration/#設定検証の警告)を参照）。ルールIDを持たないパスエラーやパースエラーは、常に報告されます。
 
 表示は維持したいが失敗させたくない*既知のバックログ*には、`disable:`の一括設定より[ベースライン](../06-baseline/)を使用してください。`disable:`は新しい発生も隠してしまいます。

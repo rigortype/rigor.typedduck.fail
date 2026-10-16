@@ -3,8 +3,9 @@ title: "rigor-rails-routes"
 description: "rigortype/rigor docs/manual/plugins/rigor-rails-routes.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/plugins/rigor-rails-routes.md"
 sourcePath: "docs/manual/plugins/rigor-rails-routes.md"
-sourceSha: "a4592c78c36baa7bbdfd26357f08a75131106774da25ed44c1bbd2500918226b"
-sourceCommit: "5fab9b52937efba652b9f6ecde1bb0a9954a9f77"
+sourceSha: "6f3828059947c26738b642c8885476211e454ecd5fd0edf639a4103dcf72c0d6"
+sourceCommit: "c9f6388da4707f3f26ed85dad75d5d8a66d85f11"
+sourceDate: "2026-10-16T08:49:00+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9050
@@ -81,7 +82,8 @@ plugins:
 
 ## 制限事項
 
-- **静的に展開できないルート定義**。パーサがメタプログラミングを展開できないことで生成されるヘルパー（ランタイムデータに対するループで構築されるルート、パーサがモデル化していないエンジンが注入するヘルパー）は登録されない場合があり、偽の`unknown-helper`が表面化することがあります。それらはベースライン（baseline）に記録するか、その行に`# rigor:disable`を付けてください。
+- **静的に展開できないルート定義**。パーサがメタプログラミングを展開できないことで生成されるヘルパー（ランタイムデータに対するループで構築されるルート、パーサがモデル化していないエンジンが注入するヘルパー）は登録されない場合があり、偽の`unknown-helper`が表面化することがあります。それらはベースラインに記録するか、その行に`# rigor:disable plugin.rails-routes.unknown-helper`を追加してください。
+- **「ルートファイルがロードされませんでした」警告は実行スコープです**。これは特定の一つのソースファイルではなく設定自体に関する事実であるため、最初に解析されたファイルではなく実行ごとに1回、`.rigor.yml`に対して報告されます。これは`:warning`であるため、古い位置でベースライン化していた場合はそのエントリーがマッチしなくなり、`--fail-on=warning`での実行が失敗します。`rigor baseline regenerate`で再生成してください。
 - **プロジェクト固有の活用変化**（`config/initializers/inflections.rb`で宣言されたもの）はまだ完全には取り込まれていません（ADR-39スライス3）。標準のActiveSupportの活用変化はカバーされており、`inflect.acronym`宣言はコントローラークラス名の合成に限って読み取られます。
 
 ## プラグイン内部

@@ -3,8 +3,8 @@ title: "設定"
 description: "rigortype/rigor docs/manual/03-configuration.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/03-configuration.md"
 sourcePath: "docs/manual/03-configuration.md"
-sourceSha: "2113953b3412fdd8372a850a78eec773ecaaa747a312889873452c3d76183dc5"
-sourceCommit: "2e694082a9cbec0251e3d21f1c1b477e8549d14c"
+sourceSha: "1a9ebed3389925f6bfa3baef89a0f9b21f0634d06847a49b9e159b8c78dc284c"
+sourceCommit: "c9f6388da4707f3f26ed85dad75d5d8a66d85f11"
 sourceDate: "2026-10-15T09:29:34+09:00"
 translationStatus: "translated"
 sidebar:
@@ -24,7 +24,7 @@ Rigorはプロジェクトルートから単一のYAML設定ファイルを読�
 
 設定を置き換えではなく*継承*するには、設定ファイルで`includes:`（再帰的）を使ってベースを指定できます。`--config=PATH`は探索を完全にバイパスします。
 
-設定ファイル内のすべての相対パスは、そのファイル自身のディレクトリを基準に解決されます。パス設定における先頭の`~/`（または単体の`~`）はホームディレクトリに展開されます; `~name`は他のユーザーのホームではなく、`~name`という名前の通常のディレクトリです。これは`paths:`、`signature_paths:`、`test_paths:`、`pre_eval:`、`plugins_io.allowed_paths:`、`includes:`、`bundler.bundle_path:`、`bundler.lockfile:`、`rbs_collection.lockfile:`を対象とします。`cache.path:`、`baseline:`、`effects.snapshot.path:`には適用されず、リテラルのまま作業ディレクトリに対する相対パスとして維持されます。
+設定ファイル内の相対パスは、そのファイル自身のディレクトリを基準に解決されますが、3つの例外があります: `bundler.bundle_path:`、`bundler.lockfile:`、`rbs_collection.lockfile:`は、`rigor`が実行された作業ディレクトリを基準に解決されます。これらが一致するのは、設定ファイルが存在するディレクトリから`rigor`を実行した場合（通常はこちら）のみです;他の場所から`--config path/to/.rigor.yml`を指定する場合は、これら3つを絶対パスで指定してください。パス設定における先頭の`~/`（または単体の`~`）はホームディレクトリに展開されます; `~name`は他のユーザーのホームではなく、`~name`という名前の通常のディレクトリです。これは`paths:`、`signature_paths:`、`test_paths:`、`pre_eval:`、`plugins_io.allowed_paths:`、`includes:`、`bundler.bundle_path:`、`bundler.lockfile:`、`rbs_collection.lockfile:`を対象とします。`cache.path:`、`baseline:`、`effects.snapshot.path:`には適用されず、リテラルのまま作業ディレクトリに対する相対パスとして維持されます。
 
 ## エディタ検証
 
@@ -67,7 +67,7 @@ cache:
 | --- | --- | --- | --- |
 | `libraries` | Array | `[]` | バンドルされたRBSを読み込む標準ライブラリ/gem名。 |
 | `signature_paths` | Array | `nil` | `.rbs`ファイルの追加ディレクトリ。相対パスのエントリーは設定ファイルのディレクトリを基準に解決されます。 |
-| `pre_eval` | Array | `[]` | ファイルごとの解析前に走査するファイル（またはglob）。プロジェクトのモンキーパッチを登録し、そのトップレベル定数をプロジェクト全体に公開するために使用。 |
+| `pre_eval` | Array | `[]` | ファイルごとの解析前に走査するファイル（またはglob）。プロジェクトのモンキーパッチを登録し、そのトップレベル定数をプロジェクト全体に公開するために使用。ウォーカーは`require` / `require_relative`をたどらないため、ファイルをロード順にリストしてください: 2つのファイルで宣言されたメソッドは最後にリストされたものが採用され、より後ろにリストされたファイルをrequireしているファイルもリスト順に読み込まれます。`type-of`、`type-scan`、`trace`、`annotate`、`sig-gen`もこれらのパッチを読み込むため、`rigor check`と同様にパッチ適用後のメソッドを型付けします。 |
 | `plugins` | Array | `[]` | 有効化するプラグイン。[プラグインの使い方](../07-plugins/)を参照。 |
 
 ### シグネチャ生成
@@ -86,6 +86,8 @@ rigor: signature_paths: "/path/to/sig" does not exist (no signatures loaded from
 rigor: signature_paths: "/path/to/sig" matched 0 signature files
 rigor: libraries: "csb" is not an available RBS library (no signatures loaded from it)
 rigor: disable: "call.undefined-methdo" is not a recognized rule id; the suppression has no effect
+rigor: disable: "plugin_loader.load-error" names a run-level row, which `disable:` does not reach; use `severity_overrides:` or a baseline
+rigor: disable: "plugin.shoulda-matchers.unknown-column" names no plugin `plugins:` configures; the suppression has no effect
 rigor: severity_overrides: "flow.bogus" is not a recognized rule id; the override has no effect
 rigor: bundler.lockfile: "./missing/Gemfile.lock" does not exist
 ```
@@ -98,13 +100,13 @@ rigor: signature_paths: "…/plugins/rigor-activerecord/sig" loads the signature
 
 未認識キーのチェックは**トップレベル**のキーを対象とし、他の実装のために予約された名前空間（下記参照）はスキップします。グループの*内側*でのタイポ（`cache: { pth: … }`）は、check時ではなく入力しながらJSONスキーマによって捕捉されます。
 
-これらはエラーではなく警告です。部分的またはオプションのバンドルや、先を見越した設定は妥当なセットアップです。この監査は、明示的で、正常なセットアップに対して安全なシグナルでのみ発火します。未設定のデフォルト（自動検出される`<root>/sig`、自動検出されるバンドル）が警告されることは決してなく、*プラグイン*ファミリー（`rspec.…`、`rbs_extended.…`）配下の`disable:` / `severity_overrides:`トークンは放置されます。そのルールIDは静的に列挙できず、実行時に解決される可能性があるためです。同じ所見は`--format=json`のペイロードでも`config_warnings`の下に（それぞれ`kind`タグ付きで）現れるので、CIはそれらに対してアサートできます。
+これらはエラーではなく警告です。部分的またはオプションのバンドルや、先を見越した設定は妥当なセットアップです。この監査は、明示的で、正常なセットアップに対して安全なシグナルでのみ発火します。未設定のデフォルト（自動検出される`<root>/sig`、自動検出されるバンドル）が警告されることは決してなく、組み込みでないファミリー（`rspec.…`、`rbs_extended.…`）配下の`severity_overrides:`キーは放置されます。そのルールIDは静的に列挙できず、実行時に解決される可能性があるためです。`disable:`は、到達可能な範囲が判明しているためより厳密にチェックされます: プラグインのルールは修飾された`plugin.<id>.<rule>`形式でのみカウントされるため、素のプラグインルール（`rspec.let-binding`）は警告されます。修飾されたトークンは、ロードせずにすべてのエントリーのプラグインIDが判明している場合（明示的な`id:`、またはバンドル済みプラグインのgem名から`rigor-`を除いたもの）にのみ`plugins:`と照合されます; `id:`なしでリストされた1つのサードパーティgemによってそのチェックはオフになります。`rbs_extended.…`、`rbs.…`、`dynamic.…`配下のトークンは、フラグが立てられる予約された実行レベルの行（`rbs.coverage.…`、`dynamic.dependency-source.…`）を除き、そのまま放置されます。同じ所見は`--format=json`のペイロードでも`config_warnings`の下に（それぞれ`kind`タグ付きで）現れるので、CIはそれらに対してアサートできます。
 
 ### 診断
 
 | キー | 型 | デフォルト | 意味 |
 | --- | --- | --- | --- |
-| `disable` | Array | `[]` | プロジェクト全体で抑制するルールIDまたはファミリー。 |
+| `disable` | Array | `[]` | プロジェクト全体で抑制するルールIDまたはファミリー; `all`はすべての組み込みチェックルールを抑制します。プラグインの診断は修飾されたID（`plugin.<id>.<rule>`、またはプラグイン全体に対する`plugin.<id>`）で指定され、素のIDや`all`はそれらには到達しません。実行レベルの`.rigor.yml`の行（`plugin_loader.*`、`dynamic.dependency-source.*`、`rbs.coverage.*`、`plugin_trust.*`、`pool-degraded`）はいかなる綴りでも到達できません;これらには`severity_overrides:`を使用してください。[診断](../04-diagnostics/#診断の抑制)を参照。 |
 | `severity_profile` | String | `"balanced"` | `lenient`、`balanced`、または`strict`。[診断](../04-diagnostics/)を参照。 |
 | `severity_overrides` | Hash | `{}` | ルール/ファミリーごとの重要度。例: `{ call: warning, flow.always-truthy-condition: off }`。 |
 | `baseline` | String / `false` | `nil` | `.rigor-baseline.yml`へのパス、または`false`で継承されたベースライン（baseline）を無効化。[ベースライン](../06-baseline/)を参照。 |

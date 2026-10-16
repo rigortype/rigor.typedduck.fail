@@ -3,8 +3,9 @@ title: "rigor-shoulda-matchers"
 description: "rigortype/rigor docs/manual/plugins/rigor-shoulda-matchers.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/plugins/rigor-shoulda-matchers.md"
 sourcePath: "docs/manual/plugins/rigor-shoulda-matchers.md"
-sourceSha: "b294cfc2e301be0736cfe722010c36f4a3f873819e719b3a3b84e5aca15739a7"
-sourceCommit: "6e5bd55274e20dfb59183559c4971d34f878c907"
+sourceSha: "b457da316a3e101ace8f2407c652e6daff718a9e39219742be1c54c41f4cd03e"
+sourceCommit: "c9f6388da4707f3f26ed85dad75d5d8a66d85f11"
+sourceDate: "2026-10-16T08:14:06+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9050
@@ -41,7 +42,7 @@ end
 
 カラムマッチャー: `validate_presence_of` / `_uniqueness_of` / `_length_of` / `_numericality_of` / `_acceptance_of` / `_inclusion_of` / `_exclusion_of` / `_absence_of` / `_format_of` / `_confirmation_of`、および`have_db_column` / `have_db_index`。アソシエーションマッチャーとその期待する種類: `belong_to` / `have_one`（単数）、`have_many` / `have_and_belong_to_many`（コレクション）。どのモデルが検査されるかは、囲んでいる`describe <Constant>`（最も内側が優先）が固定します。
 
-限定したルールで抑制します（例: `# rigor:disable plugin.shoulda-matchers.unknown-column`）。あるいは`# rigor:disable plugin.shoulda-matchers`でファミリー全体を黙らせます。
+限定したルールで抑制します（例: `# rigor:disable plugin.shoulda-matchers.unknown-column`）。あるいは`# rigor:disable plugin.shoulda-matchers`でファミリー全体を黙らせます。同じ表記が`.rigor.yml`の`disable:`でもプロジェクト全体に機能します。プレフィックスのないルール（`# rigor:disable unknown-column`）はこれらの診断には届きません。
 
 ## 設定なし
 

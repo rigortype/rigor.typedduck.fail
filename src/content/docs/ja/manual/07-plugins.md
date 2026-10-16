@@ -3,8 +3,8 @@ title: "プラグインの使用"
 description: "rigortype/rigor docs/manual/07-plugins.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/07-plugins.md"
 sourcePath: "docs/manual/07-plugins.md"
-sourceSha: "3261a60454fe2255ad8f3d0995d8ad136b167ff294750b86d9e262ce0cf92695"
-sourceCommit: "1c6f6ea59bac83a5227c3a879523151aeada9b3c"
+sourceSha: "b4bf1e41822d4a3d926f26a9fd5b070cf9fe9d9f78556f85ace482de12ebd320"
+sourceCommit: "c9f6388da4707f3f26ed85dad75d5d8a66d85f11"
 sourceDate: "2026-10-10T04:06:26+09:00"
 translationStatus: "translated"
 sidebar:
@@ -60,6 +60,6 @@ Rigorは[`plugins/`](https://github.com/rigortype/rigor/blob/master/plugins/READ
 | --- | --- |
 | `process`（デフォルト） | 呼び出しをフォークされたクラッシュ隔離ワーカーで実行し、ターゲットライブラリのモンキーパッチやあらゆるクラッシュがRigorを汚染しないようにします。`fork`が利用できない環境（Windows / JRuby）では`none`にフォールバックします。 |
 | `none` | ライブラリをRigor自身のプロセスに読み込み、直接呼び出します。 |
-| `ruby_box` | 実験的な`Ruby::Box`サンドボックス内で実行します。これには`RUBY_BOX=1`起動フラグが必要なので、この戦略を選ぶと`rigor`ランチャーはそのフラグを設定して自身を再実行（re-exec）します。また、[Ruby Bug #22260](https://bugs.ruby-lang.org/issues/22260)を修正したRubyが必要ですが、4.0.7までのリリースには修正が含まれていません。ランチャーはまずこの修正の有無をチェックし、修正がない場合は警告を出力して設定済みのストラテジーを代わりに使用します。**環境変数限定** —— 設定ファイルはRubyが起動したずっと後に読み取られるため、`plugins_isolation: ruby_box`は代わりに設定エラーとして報告されます。 |
+| `ruby_box` | 実験的な`Ruby::Box`サンドボックス内で実行します。これには`RUBY_BOX=1`起動フラグが必要なので、この戦略を選ぶと`rigor`ランチャーはそのフラグを設定して自身を再実行（re-exec）します。また、[Ruby Bug #22260](https://bugs.ruby-lang.org/issues/22260)を修正したRubyが必要ですが、4.0.7までのリリースには修正が含まれていません。ランチャーはまずこの修正の有無をチェックし、修正がない場合は警告を出力して設定済みのストラテジーを代わりに使用します。環境にすでに`RUBY_BOX=1`がある場合も同じチェックが実行されます: 修正がない場合、ランチャーは通知を出力して`RUBY_BOX`なしで自身を再起動するため、実行は完了しますがプラグインは隔離されません。チェック結果はRubyビルドごとに`$XDG_CACHE_HOME/rigor`（または`~/.cache/rigor`）配下にキャッシュされ、期限切れになることはありません。そのため、修正を適用してインプレースでRubyを再ビルドした場合は、`$XDG_CACHE_HOME/rigor/ruby-box-probe`（または`~/.cache/rigor/ruby-box-probe`）を削除してください。タイムアウトしたチェックはキャッシュされないため、毎回の実行で最大10秒のコストがかかります。**環境変数限定** ── 設定ファイルはRubyが起動したずっと後に読み取られるため、`plugins_isolation: ruby_box`は代わりに設定エラーとして報告されます。 |
 
 環境変数は`plugins_isolation:`よりも優先されるため、コミットされたプロジェクトの選択を1回の呼び出しに対してオーバーライドできます。レガシーの`RIGOR_BOX`環境変数は、`RIGOR_PLUGIN_ISOLATION=ruby_box`への後方互換エイリアスです。デフォルト（`process`）はほぼすべての人にとって正しい選択です。この変数は、フォークが利用できない稀なプラットフォームや、より強い封じ込めが欲しい場合のために存在します。
