@@ -3,9 +3,9 @@ title: "CLIコマンドリファレンス"
 description: "rigortype/rigor docs/manual/02-cli-reference.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/02-cli-reference.md"
 sourcePath: "docs/manual/02-cli-reference.md"
-sourceSha: "3927f4ba46d643eb558b1de198fab0258465995a0f6c7fea037a2d64d09400da"
-sourceCommit: "dd9a97915411c94081f504402ab2c9cf7820e9ae"
-sourceDate: "2026-10-19T01:48:44+09:00"
+sourceSha: "bf729dc3ebce50e19b34a966c7dfb3b1ff253505bddead3142c6baea44dae529"
+sourceCommit: "364d4c4a260fe1512e239fe953fe93412d146820"
+sourceDate: "2026-10-19T04:57:49+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9002
@@ -612,10 +612,10 @@ rigor doctor [--config PATH] [--format text|json]
 - **RBS環境の健全性** — RBSクラス宇宙が正常に構築されたかどうか（`0`クラスは壊れたセットアップを意味します）。
 - **プラグインのロードエラー** — 設定されたすべてのプラグインがロードされたかどうか。
 - **ベースラインドリフト** — 現在の診断が保存済みベースラインからドリフトしているかどうか。
-- **プラグインのギャップ** — bundledプラグインがモデル化している依存関係（Rails、Devise、Pundit、Sidekiqなど）が`Gemfile.lock`に含まれているにもかかわらず、それらのプラグインが有効化されていないかどうか（ADR-96）。
+- **プラグインのギャップ** — プロジェクトの直接の依存関係（`Gemfile.lock`の`DEPENDENCIES`セクション、および直接の`rails`が表すRailsコンポーネント）にbundledプラグインがモデル化しているgem（Rails、Devise、Pundit、Sidekiqなど）が含まれているにもかかわらず、`plugins:`にそのプラグインが列挙されていないかどうか（[ADR-96](../../adr/96-plugin-target-gems/)）。`enabled: false`のエントリーも列挙済みとしてカウントされます。プラグインをあえて除外している可能性もあるため、欠落した各プラグインは警告となります。`plugins:`がgemをモデル化するbundledプラグイン（`target_gems:`を宣言しているもの）を1つも列挙していない場合にのみ失敗となります。カレントディレクトリに`.rigor.yml`も`.rigor.dist.yml`も発見されない場合はスキップされます。
 - **Gemfileへのインストール** — Rigor自身がプロジェクトの依存関係の1つとして解決されるかどうか。これは[Rigorのインストール](../01-installation/)がしないよう指示していることです。**GEM**リモートから解決された`rigortype`だけがカウントされます。`PATH`や`GIT`ソースは意図的にRigorを開発またはベンダリングしていることを意味し、Rigor自身のリポジトリはまさにそのように見えます。
 - **プラグインインストールのずれ** — Rigorがバンドルするプラグインが、エンジンとは別の`rigortype`インストールからロードされていないかどうかを、両方のパスを示して報告します。エンジンとそのバンドル済みプラグインはまとめてバージョン管理されているため、別のインストールからのコピーはエンジンを不一致のプラグインで動かしかねません。失敗ではなく警告です;自分自身のバンドルに含まれるサードパーティプラグインが対象になることはありません。
-- **バンドル配置** — gemがアクティブなRubyのデフォルトgem homeにインストールされており、Rigorがそれらを見つけられないため、`bundler.bundle_path:`や`vendor/bundle`なしではgem提供の`sig/`探索が行われない状態になっていないか。
+- **バンドル配置** — カレントディレクトリの`Gemfile.lock`がインストールされたbundleをRigorが特定できるかどうか。特定できない場合（典型的にはアクティブなRubyのデフォルトgem homeにあるgem）、gem提供の`sig/`探索は行われません。Rigorはプロジェクトがbundleを記録している場所でのみそれを見つけます。`.rigor.yml`内の`bundler.bundle_path:`は単独で使用され、存在していなければなりません。これがない場合（かつ`bundler.auto_detect: false`でない場合）、Rigorは`.bundle/config`の`BUNDLE_PATH`、次にツリー内の`vendor/bundle`、そしてグローバルのBundler設定を順に読み取ります。失敗ではなく警告です: デフォルトの配置は正常であり、ほとんどのgemは`sig/`を出荷していません。
 
 テキスト出力はチェックごとに`[PASS]`・`[FAIL]`・`[WARN]`と、振り分けられたヒント（例:「`rigor baseline regenerate`を実行してください」）を表示します。JSON出力は安定した契約です:
 

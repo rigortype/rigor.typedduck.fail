@@ -3,9 +3,9 @@ title: "Rigor MCPサーバー: AIエージェント統合"
 description: "rigortype/rigor docs/manual/10-mcp-server.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/10-mcp-server.md"
 sourcePath: "docs/manual/10-mcp-server.md"
-sourceSha: "55ecf3d03c628d6f85860c35c26cdf4e0ef27077e4bf3fa733abdfc1f3132471"
-sourceCommit: "273bb9f9580739b38f93e5900e83979002290514"
-sourceDate: "2026-10-18T05:33:32+09:00"
+sourceSha: "7f91ddd31c090fe565fb20449e30c5037de1c61ff65440a65aa2051b2727b19d"
+sourceCommit: "364d4c4a260fe1512e239fe953fe93412d146820"
+sourceDate: "2026-10-19T02:53:06+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9010
@@ -360,7 +360,7 @@ RubyソースファイルからRBSスケルトンシグネチャを推論して�
 |---|---|---|---|
 | `rule` | `string` | いいえ | 省略するとフルカタログを取得 |
 
-受け付ける値: 正規ルールID（`call.undefined-method`）、レガシーエイリアス（`undefined-method`）、またはファミリープレフィックス（`call`、`flow`、`assert`、`dump`、`def`）。
+受け付ける値: 正規ルールID（`call.undefined-method`）、レガシーエイリアス（`undefined-method`）、またはファミリープレフィックス（`call`、`flow`、`def`、`assert`、`dump`、`global`、`suppression`、`static`、`effect`）。
 
 **返り値:** JSON（ルールカタログエントリーの配列）。
 
