@@ -3,15 +3,15 @@ title: "プラグインの使用"
 description: "rigortype/rigor docs/manual/07-plugins.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/07-plugins.md"
 sourcePath: "docs/manual/07-plugins.md"
-sourceSha: "b4bf1e41822d4a3d926f26a9fd5b070cf9fe9d9f78556f85ace482de12ebd320"
-sourceCommit: "c9f6388da4707f3f26ed85dad75d5d8a66d85f11"
-sourceDate: "2026-10-10T04:06:26+09:00"
+sourceSha: "4ec3da9f40bca40ac45308ff1312f12b3cb4ef858764596f027153a79f18cc8e"
+sourceCommit: "dd9a97915411c94081f504402ab2c9cf7820e9ae"
+sourceDate: "2026-10-19T01:35:46+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9007
 ---
 
-プラグインはRigorにフレームワーク、gem、またはアプリケーションDSLについて教えます。Railsのルートヘルパー、RSpecの`let`バインディング、dry-rbのstruct属性など、通常の推論では見えないものです。このページはプラグインの*有効化*について説明します。プラグインの作成は[`examples/`](https://github.com/rigortype/rigor/blob/master/examples/README.md)と[`rigor-plugin-author`スキル](../08-skills/)でカバーされています。
+プラグインはRigorにフレームワーク、gem、またはアプリケーションDSLについて教えます。Railsのルートヘルパー、RSpecの`let`バインディング、dry-rbのstruct属性など、通常の推論では見えないものです。このページはプラグインの*有効化*について説明します。プラグインの作成は[`examples/`](https://github.com/rigortype/rigor/blob/master/examples/README.md)と[`rigor-plugin-author`スキル](../08-skills/)でカバーされており、既存プラグインのレビューと近代化は[`rigor-plugin-review`](../08-skills/)で行います。
 
 ## プラグインを有効化する
 

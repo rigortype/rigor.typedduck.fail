@@ -3,9 +3,9 @@ title: "提供スキル"
 description: "rigortype/rigor docs/manual/08-skills.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/08-skills.md"
 sourcePath: "docs/manual/08-skills.md"
-sourceSha: "9d01cefeaa2a2887beaef60807f49ba3901fe9c78a9d04fde62a97c75b8f9e7f"
-sourceCommit: "e12ab45fa55707ed2acc0eae2e273b99a72dc077"
-sourceDate: "2026-09-28T02:14:03+09:00"
+sourceSha: "e2dc1e5d6b5770031700eefc5629c0afec54c5b43e7abc339057ad7812d3e72a"
+sourceCommit: "dd9a97915411c94081f504402ab2c9cf7820e9ae"
+sourceDate: "2026-10-19T01:35:46+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9008
@@ -40,6 +40,7 @@ Rigorは一連の**エージェントスキル**をバンドルしています�
 - **`rigor-protection-uplift`**: `rigor coverage --protection`が表面化させる型保護の穴を塞ぎます。まずsig-gen、次に最小限の手書きRBSの残余を、二重ゲート（サイトが保護される*かつ*`rigor check`が新たな診断を獲得しない）のもとで行います。[型保護カバレッジ](../15-type-protection-coverage/)を参照してください。
 - **`rigor-baseline-reduce`**: 既存の`.rigor-baseline.yml`をルールごとに削減します。`rigor triage`で優先順位を付け、各サイトを実際のバグ／安全なスタイル上の発見／偽陽性として分類し、ベースラインを再生成します。バックログを少しずつ減らすために使ってください。
 - **`rigor-monkeypatch-resolve`**: 実際にはプロジェクト自身のモンキーパッチである`undefined-method`のクラスタを、定義ファイルを`pre_eval:`に配線することで解決します。
+- **`rigor-unused-adjudicate`**: デッドコードの削除を提案する前に、フレームワークのルートや偽陽性のパターンをチェックして、`rigor unused`レポートを安全に判定します。[`rigor unused`でデッドコードを取り除く](../18-removing-dead-code/)を参照してください。
 - **`rigor-type-oracle`**: エージェントが書くあらゆる型をコードを読むことからではなくRigor（`type-of` / `annotate` / `sig-gen`）から調達し、ギャップを埋めるのではなく報告します。型が書かれようとしている*イベント*によってトリガーされるため、`rigor skill describe`はこれをリストしますがルーティングすることは決してありません ── エージェントがあなたのコードを文書化またはアノテーションする際にはいつでもこれを活用してください（またはその`AGENTS.md`の段落を導入してください）。上記の「ここから始める」で導入されています。
 
 ### 統合と運用
@@ -53,6 +54,7 @@ Rigorは一連の**エージェントスキル**をバンドルしています�
 - **`rigor-upgrade`**: 新しいRigorバージョンをクリーンに採用します。ベースラインとの差分を取り、本物の新規キャッチをsig品質の偽陽性から仕分けし、再生成します。
 - **`rigor-doctor`**: セットアップが健全であること（設定が解決し、プラグインがロードされ、ベースラインが新鮮で、RBS環境が壊れていないこと）を検証します。[トラブルシューティング](../13-troubleshooting/)を参照してください。
 - **`rigor-plugin-author`**: 自分のリポジトリに新しいRigorプラグインをスキャフォールドして、Rigorが推論できないアプリケーションDSLやメタプログラミングパターンについて教えます。バンドルされたプラグインがプロジェクトの依存するフレームワークやDSLをカバーしていないときに使ってください。
+- **`rigor-plugin-review`**: 現在のオーサリング契約に照らして既存のRigorプラグインを監査し、優先順位付けされたアップグレードパスを生成します。`rigor-plugin-author`に対するレビュー／アップグレードの対応物です。
 
 ## CLIからスキルを発見する
 

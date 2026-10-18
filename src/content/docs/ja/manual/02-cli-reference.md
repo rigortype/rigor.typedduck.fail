@@ -3,9 +3,9 @@ title: "CLIコマンドリファレンス"
 description: "rigortype/rigor docs/manual/02-cli-reference.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/02-cli-reference.md"
 sourcePath: "docs/manual/02-cli-reference.md"
-sourceSha: "0245273ba2059ae02d9af7b41b96e3084454af0d85ad61f004dc66351128e474"
-sourceCommit: "273bb9f9580739b38f93e5900e83979002290514"
-sourceDate: "2026-10-17T05:56:22+09:00"
+sourceSha: "3927f4ba46d643eb558b1de198fab0258465995a0f6c7fea037a2d64d09400da"
+sourceCommit: "dd9a97915411c94081f504402ab2c9cf7820e9ae"
+sourceDate: "2026-10-19T01:48:44+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9002
@@ -136,7 +136,7 @@ rigor trace [--delay=SECONDS] [--line=N] [--verbose] [--format=json] FILE
 rigor type-scan PATH...
 ```
 
-`--limit=N`は表示例の上限を設定し（デフォルト10）、`--show-recognized`は完全にカバーされたクラスを含め、`--threshold=RATIO`は未認識ノードの割合が`RATIO`を超えた場合にコマンドをゼロ以外で終了させます。`--format=text|json`で出力形式を選択します。
+`--limit=N`は表示例の上限を設定し（デフォルト10）、`--show-recognized`は完全にカバーされたクラスを含め、`--threshold=RATIO`は未認識ノードの割合が`RATIO`を超えた場合にコマンドをゼロ以外で終了させます。`--format=text|json`で出力形式を選択します。`--config=PATH`は設定の自動探索をオーバーライドします。
 
 ## `rigor effects`
 
@@ -189,7 +189,7 @@ rigor effects diff      # the same comparison, never gating
 rigor effects explain   # why an entry point reaches a label
 ```
 
-レポートと違い、サブコマンドはパスを取りません: スナップショットはプロジェクト全体を記録するもので、サブセットに対して書かれたものは他のすべてのメソッドが消えたプロジェクトとして読めてしまいます。すべて`--config=PATH`・`--format=text|json`・`--full`を受け付けます;`check`・`diff`・`explain`は追加で`--baseline=PATH`（設定されたもの以外のファイルと比較する —— botでの`--baseline <(git show origin/main:.rigor-effects.yml)`）、`--strict-tolerated`、`--no-tolerated-effects`を受け付けます。
+レポートと違い、サブコマンドはパスを取りません: スナップショットはプロジェクト全体を記録するもので、サブセットに対して書かれたものは他のすべてのメソッドが消えたプロジェクトとして読めてしまいます。すべて`--config=PATH`・`--format=text|json`・`--full`を受け付けます;`check`・`diff`・`explain`は追加で`--baseline=PATH`（設定されたもの以外のファイルと比較する —— botでの`--baseline <(git show origin/main:.rigor-effects.yml)`）、`--strict-tolerated`、`--no-tolerated-effects`を受け付けます。`explain`はさらに、変更されたユニットの代わりに特定の1つのユニットを説明するための`--symbol=KEY`を受け付けます。
 
 ファイルは2つのテーブルを記録します。`methods:`は各メソッドの**直接**サマリー —— ブロックリテラルとカタログ化された呼び出し先を含む、自身の本体がすること。ただし呼び出すプロジェクトメソッドがすることは含まない —— を保持します。これは意図的です: エントリーは自身の行が変わったときにだけ動くので、diffはそれを引き起こしたプルリクエストに帰属可能なままです。`reach:`は`effects.snapshot.reach:`が名指しするエントリポイントにおける**推移的**フットプリントを保持し、そこではリーフの変更が扇状に広がることになっています —— その扇状の広がりが影響範囲です。
 
@@ -257,10 +257,10 @@ reach:
 診断ルールのカタログエントリーを表示します。引数なしで呼び出すとすべてのルールを一覧表示します。
 
 ```sh
-rigor explain [rule]
+rigor explain [options] [rule]
 ```
 
-`rule`はルールID（`call.undefined-method`）、レガシーエイリアス、またはファミリーワイルドカード（`call`、`flow`、`def`、`assert`、`dump`）です。`--format=json`が利用可能です。不明なルールの場合は`64`で終了します。
+`rule`はルールID（`call.undefined-method`）、レガシーエイリアス、またはファミリーワイルドカード（`call`、`flow`、`def`、`assert`、`dump`、`global`、`suppression`、`static`、`effect`）です。`--format=text|json`が出力形式を選択します。不明なルールの場合は`64`で終了します。
 
 シグネチャの記述を控えた際に`rigor sig-gen`が出力する`sig.skipped.*`識別子にも対応しています —— `rigor explain sig.skipped.untyped-return`はそのスキップが何を意味し、代わりに何をすべきかを説明します。これらは診断ルールではないため、深刻度や抑制行なしでレンダリングされます。
 
@@ -269,10 +269,10 @@ rigor explain [rule]
 現在の診断を保存済みベースラインJSONと比較し、新しいものだけを報告します。
 
 ```sh
-rigor diff <baseline.json> [paths...]
+rigor diff [options] <baseline.json> [paths...]
 ```
 
-`--current=PATH`は新規チェックを実行する代わりに保存済み診断JSONと比較します。新しい診断が現れた場合は`1`で終了します。
+`--current=PATH`は新規チェックを実行する代わりに保存済み診断JSONと比較します。`--format=text|json`は出力形式を選択し（デフォルトは`text`）、`--config=PATH`は暗黙のチェックにカスタム設定を渡します。新しい診断が現れた場合は`1`で終了します。
 
 ## `rigor sig-gen`
 
@@ -335,7 +335,7 @@ rigor baseline <generate|regenerate|dump|drift|prune> [options]
 | `drift` | 各バケットのドリフトを監査する。`--only=within\|over\|cleared\|reducible`でフィルタリング。 |
 | `prune` | 診断に一致しなくなったバケットを削除する。`--dry-run`でプレビュー。 |
 
-`generate`と`regenerate`は`--output=PATH`と`--match-mode=rule|message`を受け付けます。`dump`・`drift`・`prune`は非既定のベースラインファイルを読むための`--baseline=PATH`を受け付けます。
+`generate`と`regenerate`は`--output=PATH`と`--match-mode=rule|message`を受け付けます。`dump`・`drift`・`prune`は非既定のベースラインファイルを読むための`--baseline=PATH`を受け付けます。`dump`は機械可読な出力のための`--format=text|json`も受け付けます。
 
 ## `rigor triage`
 
@@ -612,9 +612,10 @@ rigor doctor [--config PATH] [--format text|json]
 - **RBS環境の健全性** — RBSクラス宇宙が正常に構築されたかどうか（`0`クラスは壊れたセットアップを意味します）。
 - **プラグインのロードエラー** — 設定されたすべてのプラグインがロードされたかどうか。
 - **ベースラインドリフト** — 現在の診断が保存済みベースラインからドリフトしているかどうか。
-- **Railsプラグインのギャップ** — `Gemfile.lock`にRails gemが含まれているのにRailsプラグインが有効化されていないかどうか。
+- **プラグインのギャップ** — bundledプラグインがモデル化している依存関係（Rails、Devise、Pundit、Sidekiqなど）が`Gemfile.lock`に含まれているにもかかわらず、それらのプラグインが有効化されていないかどうか（ADR-96）。
 - **Gemfileへのインストール** — Rigor自身がプロジェクトの依存関係の1つとして解決されるかどうか。これは[Rigorのインストール](../01-installation/)がしないよう指示していることです。**GEM**リモートから解決された`rigortype`だけがカウントされます。`PATH`や`GIT`ソースは意図的にRigorを開発またはベンダリングしていることを意味し、Rigor自身のリポジトリはまさにそのように見えます。
 - **プラグインインストールのずれ** — Rigorがバンドルするプラグインが、エンジンとは別の`rigortype`インストールからロードされていないかどうかを、両方のパスを示して報告します。エンジンとそのバンドル済みプラグインはまとめてバージョン管理されているため、別のインストールからのコピーはエンジンを不一致のプラグインで動かしかねません。失敗ではなく警告です;自分自身のバンドルに含まれるサードパーティプラグインが対象になることはありません。
+- **バンドル配置** — gemがアクティブなRubyのデフォルトgem homeにインストールされており、Rigorがそれらを見つけられないため、`bundler.bundle_path:`や`vendor/bundle`なしではgem提供の`sig/`探索が行われない状態になっていないか。
 
 テキスト出力はチェックごとに`[PASS]`・`[FAIL]`・`[WARN]`と、振り分けられたヒント（例:「`rigor baseline regenerate`を実行してください」）を表示します。JSON出力は安定した契約です:
 
@@ -664,6 +665,7 @@ rigor upgrade
 | `0` | 成功（終了しきい値以上の診断なし。デフォルトは`error`; `rigor check --fail-on=SEVERITY`で`warning`または`info`に引き下げられる）。 |
 | `1` | しきい値以上の診断あり、またはコマンド固有のエラー（パースエラー、ファイル不在、`diff`での新規診断、`effects check`でのエフェクトドリフト）。 |
 | `64` | 使用法エラー（不明なコマンド、不正なフラグ、不正な引数、またはローダーが処理を進められない`.rigor.yml`内の値）。 |
+| `70` | 致命的な内部エラー —— 解析内部での`SystemStackError`または`NoMemoryError`。Rigorは実行を完了できなかったため、ディスク上のレポートはクリーンではなく空になります。 |
 
 `rigor triage`は例外で、参考情報であり常に`0`で終了します。
 

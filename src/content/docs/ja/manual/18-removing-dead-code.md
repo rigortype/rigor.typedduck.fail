@@ -3,9 +3,9 @@ title: "`rigor unused`でデッドコードを取り除く"
 description: "rigortype/rigor docs/manual/18-removing-dead-code.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/18-removing-dead-code.md"
 sourcePath: "docs/manual/18-removing-dead-code.md"
-sourceSha: "b76d8987b9da9969ef4a179c630a19220811ede6aa402d9ec3d2496ad4cf1438"
-sourceCommit: "273bb9f9580739b38f93e5900e83979002290514"
-sourceDate: "2026-10-17T07:56:07+09:00"
+sourceSha: "b0eef0f1e10c4e48dca2595e96d664c9829e3aeb2fabd7238bfcc4e35b4dd4fb"
+sourceCommit: "dd9a97915411c94081f504402ab2c9cf7820e9ae"
+sourceDate: "2026-10-19T01:35:46+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9018
@@ -13,7 +13,7 @@ sidebar:
 
 この章は、古いコードベースを渡されて「何を捨てられるか」を問われた人のためのものです。`rigor unused`は「この1,500個のクラスのうちどれが死んでいるのか？」を、具体的な問いの有限のリストへと変えます。その問いに答えることはしません。
 
-コマンドリファレンス——すべてのフラグ、すべての出力セクション——は[CLIリファレンス](../02-cli-reference/#rigor-unused)にあります。この章はその周りのワークフローです。
+コマンドリファレンス——すべてのフラグ、すべての出力セクション——は[CLIリファレンス](../02-cli-reference/#rigor-unused)にあります。この章はその周りのワークフローです。AIコーディングエージェント向けには、同梱の[`rigor-unused-adjudicate`](../08-skills/)スキルがこの判定ワークフローを一歩ずつガイドします。
 
 **始める前に**、動作する`rigor check`のセットアップが必要です: `paths:`を持つ設定ファイルと、あなたのフレームワーク向けのプラグインが有効化されていること。[設定](../03-configuration/)と[プラグインの利用](../07-plugins/)を参照してください。`rigor unused`は同じ設定を読み、同じ`plugins:`をロードします。そしてプラグインの半分はオプションではありません——[ルート](#ルートがレバーである)の節が、`rigor-rails-routes`なしのRailsアプリがほとんどノイズのレポートを生む理由を説明します。
 

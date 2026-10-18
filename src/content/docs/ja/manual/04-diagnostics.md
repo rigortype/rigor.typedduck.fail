@@ -3,9 +3,9 @@ title: "診断"
 description: "rigortype/rigor docs/manual/04-diagnostics.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/04-diagnostics.md"
 sourcePath: "docs/manual/04-diagnostics.md"
-sourceSha: "4a94c8e8a49451c0776327c6ebf974a73013c293d98a51f5ae9aec3093212d90"
-sourceCommit: "273bb9f9580739b38f93e5900e83979002290514"
-sourceDate: "2026-10-17T01:23:27+09:00"
+sourceSha: "e0bda9461af4c15da463f84c5d8c321c11e654dc8e5ae6efaa654e377cfa37f1"
+sourceCommit: "dd9a97915411c94081f504402ab2c9cf7820e9ae"
+sourceDate: "2026-10-19T01:35:46+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9004
@@ -192,7 +192,7 @@ rigor check --format json \
 config.merge(extra)  # rigor:disable call.undefined-method
 ```
 
-修飾ID、ファミリーワイルドカード（`call`）、カンマまたはスペース区切りのリスト、または`all`を受け付けます。プラグインの診断は、角括弧内に印字される修飾ID（`plugin.shoulda-matchers.unknown-column`）またはプラグイン全体のファミリー（`plugin.shoulda-matchers`）でのみ到達できます;複数のプラグインが素のルールを共有するため、その素のルール（`unknown-column`）や`all`では対象外となります。コメントは診断が指す行に置かなければなりません。`disable-block`形式はないため、複数行にまたがる式では、発火する各行にコメントが必要です。
+修飾ID、ファミリーワイルドカード（`call`、`flow`、`def`、`assert`、`dump`、`global`、`suppression`、`static`、`effect`、`pre-eval`）、カンマまたはスペース区切りのリスト、または`all`を受け付けます。プラグインの診断は、角括弧内に印字される修飾ID（`plugin.shoulda-matchers.unknown-column`）またはプラグイン全体のファミリー（`plugin.shoulda-matchers`）でのみ到達できます;複数のプラグインが素のルールを共有するため、その素のルール（`unknown-column`）や`all`では対象外となります。コメントは診断が指す行に置かなければなりません。`disable-block`形式はないため、複数行にまたがる式では、発火する各行にコメントが必要です。
 
 このマーカーは**コメントの先頭**になければなりません——行全体の`# rigor:disable …`か、末尾の`expr  # rigor:disable …`です。このマニュアルが随所でそうしているように、構文を単に引用しているだけのコメントは普通の散文です: それは何も抑制せず、何も警告しません。二重にした`## rigor:disable …`や、`=begin` / `=end`ブロックの中に書かれたマーカーについても同様です——どちらも作動しません。
 

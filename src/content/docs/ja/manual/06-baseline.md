@@ -3,9 +3,9 @@ title: "ベースライン"
 description: "rigortype/rigor docs/manual/06-baseline.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/06-baseline.md"
 sourcePath: "docs/manual/06-baseline.md"
-sourceSha: "3acd2094385528095fbb5ea42532173522e4f30b429bf05d4b8da631f4ae5a94"
-sourceCommit: "a8a58149bbbed5f850866905324fab02b678990c"
-sourceDate: "2026-10-11T12:00:00+09:00"
+sourceSha: "b973c3a767e6ebacbad4bdf5281475c36515e0ec0f93c656cd03c170bcc4c875"
+sourceCommit: "dd9a97915411c94081f504402ab2c9cf7820e9ae"
+sourceDate: "2026-10-19T01:35:46+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9006
@@ -59,7 +59,7 @@ baseline: .rigor-baseline.yml
 | --- | --- |
 | `rigor baseline generate` | 現在の診断から新しいベースラインを書き出す。`--force`なしで既存ファイルの上書きを拒否する。 |
 | `rigor baseline regenerate` | 無条件に書き直す。診断を修正した後にファイルを縮小するために実行する。 |
-| `rigor baseline dump` | ベースラインを表示する。`--rule`と`--file`でフィルタリング可能。 |
+| `rigor baseline dump` | ベースラインを表示する。`--rule`と`--file`でフィルタリング可能（ツール向けには`--format=json`）。 |
 | `rigor baseline drift` | バケットがどう動いたかを表示する。`--only=over`で増えたバケット、`reducible`ですでに改善したバケット、`cleared`で空のバケット。 |
 | `rigor baseline prune` | もはや何にも一致しないバケットを削除する。`--dry-run`でプレビュー。 |
 

@@ -3,14 +3,15 @@ title: "推論型の確認"
 description: "rigortype/rigor docs/manual/05-inspecting-types.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/05-inspecting-types.md"
 sourcePath: "docs/manual/05-inspecting-types.md"
-sourceSha: "495cf6c734b810b80714857b1409f2cb287a9a4261994b37fad99b2eb406705a"
-sourceCommit: "c9f6388da4707f3f26ed85dad75d5d8a66d85f11"
+sourceSha: "ca0083e965604a9585e372759fb21aa09e84f64969f33780734e3247496d5f77"
+sourceCommit: "dd9a97915411c94081f504402ab2c9cf7820e9ae"
+sourceDate: "2026-10-19T01:35:46+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9005
 ---
 
-Rigorの解析はデフォルトでは不可視です。診断を報告するときだけ口を開きます。エンジンが式に割り当てた型を*確認*したいときは、2つのソースヘルパーと2つのCLIコマンドの4つのツールがあります。
+Rigorの解析はデフォルトでは不可視です。診断を報告するときだけ口を開きます。エンジンが式に割り当てた型を*確認*したいときは、2つのソースヘルパーと4つのCLIコマンドの6つのツールがあります。
 
 ## `dump_type`: ソースから型を出力する
 
