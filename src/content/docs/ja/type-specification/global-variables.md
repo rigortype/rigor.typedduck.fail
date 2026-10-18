@@ -3,9 +3,9 @@ title: "グローバル変数"
 description: "rigortype/rigor docs/type-specification/global-variables.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/type-specification/global-variables.md"
 sourcePath: "docs/type-specification/global-variables.md"
-sourceSha: "201d1013f9c0cabd5223ba3e95bb933803c522f76c3dfa4be23ed21461e6b7e0"
-sourceCommit: "c9f6388da4707f3f26ed85dad75d5d8a66d85f11"
-sourceDate: "2026-10-16T06:43:32+09:00"
+sourceSha: "d8349aaea6cff80f2c3ac5d3d4041d0582415160be959e31d658961c6170482e"
+sourceCommit: "273bb9f9580739b38f93e5900e83979002290514"
+sourceDate: "2026-10-18T04:27:43+09:00"
 translationStatus: "translated"
 sidebar:
   order: 2050
@@ -119,14 +119,14 @@ Rubyは特殊変数を4種類の場所のいずれかに保持し、その場所
 **クラスガード**はそのようなエビデンスです: `is_a?`、`kind_of?`、`instance_of?`、`C === $g`、`case $g when C`、および`case $g in C`は、グローバル変数が`C`を保持する可能性があることを示します（[#1429](https://github.com/rigortype/rigor/issues/1429)）。ルールは[クラスガード](../control-flow-analysis/#クラスガード)および[グローバル変数と定数のガード](../control-flow-analysis/#グローバル変数と定数のガード)にあります。要約すると:
 
 - **アーム**。ガードの真値エッジでは、レシーバーはガードを満たすことができる自身の型のメンバーへとナローイングされるため、`is_a?(StringIO)`の下では、`IO | StringIO`と型付けされた`$stdout`（`$stdout = StringIO.new`の後、それから開始する本体内のシード）は`StringIO`を読み取ります。満たすことができるメンバーが存在しない場合、メンバーがガードのクラスと素（disjoint）であるクラスの`Nominal`である場合（`$stdout = File.open(path)`の後に`File | IO`と型付けされた`$stdout`）を含め、エッジは`bot`になります: アーム内のレシーバーに対する呼び出しはチェックされないため、`$stdout.is_a?(StringIO) ? $stdout.string : nil`は静かなままです。これはすべての位置にある`if`、`unless`、三項演算子、ならびに文、書き込みの値、ブロックの値、配列要素、呼び出し引数、呼び出しレシーバーにおける`case`に適用されます（[#1484](https://github.com/rigortype/rigor/issues/1484)）。その`bot`レシーバーに対する呼び出しは任意のコードを実行する可能性があるため、それを越えるとガードのナローイングは復元されます。
-- **判定なし**。`C`がその対象と素であるためにデッドである`when C`または`in C`節は、節にエントリーする対象のメンバーのいずれかが、`C`と素であるクラスの`NilClass`、`TrueClass`、または`FalseClass`以外の`Nominal`である場合、`flow.unreachable-clause`を報告しません。そのルールはローカル変数に対する`case`のみを読み取るため、`case $stdout`を決して報告しません; `io = $stdout; case io when StringIO`が辞退の対象となる形状です。先行する節が網羅した節は、先行する節が対象の慣用的な型のみをカバーしていた場合でも依然として報告され、条件として使用される`case`も同様です: どちらも以下の既知の違反です。
+- **判定なし**。`C`がその対象と素であるためにデッドである`when C`または`in C`節は、節にエントリーする対象のメンバーのいずれかが、`C`と素であるクラスの`NilClass`、`TrueClass`、または`FalseClass`以外の`Nominal`である場合、`flow.unreachable-clause`を報告しません。そのルールはローカル変数に対する`case`のみを読み取るため、`case $stdout`を決して報告しません; `io = $stdout; case io when StringIO`が辞退の対象となる形状です。先行する節が網羅した節は、対象がリテラルであるか、またはそれが名指す各クラスが先行する節が名指すクラスのいずれかと同じかその配下である場合にのみ報告されるため、`case io when IO then 2 when StringIO then 1 end`は静かなままです（[#1485](https://github.com/rigortype/rigor/issues/1485)、[クラスガード](../control-flow-analysis/#クラスガード)）。条件として使用される`case`は依然として報告されます: 以下の既知の違反です。
 - **`respond_to?`**は[クラスガード](../control-flow-analysis/#クラスガード)に記載されているとおりにナローイングします: その真値エッジはそのメソッドを欠いていると把握されているメンバーを脱落させ、応答できるメンバーが存在せず、メンバーの1つが`NilClass`、`TrueClass`、または`FalseClass`以外の`Nominal`である場合、レシーバーを`Dynamic[top]`として読み取ります。
 - **値**。`if`、`unless`、または三項演算子はすべての位置でアームの値を保持し、`case … in`はそのアームを決して脱落させません。`case … when`は、評価器がそのアームをユニオンする場所でアームを保持します: 書き込みがバインドする値として、またはメソッドの戻り値としてです。解析が`case … when`ノード自体を型付けする場所では、その値はアームを脱落させます: 呼び出しの引数、配列要素またはハッシュ値、呼び出しレシーバー、メソッド演算子のオペランド（`(case …) + 0`）、`!`のオペランド、ブロック本体の最後の式、および条件です。`&&`および`||`のオペランドはすべての位置でアームを保持します（`id((case …) || 3)`）。[#1465](https://github.com/rigortype/rigor/issues/1465)に位置の一覧があります。
 
 > **既知の違反、執筆時点では未修正**。以下の各ケースにおいて、解析は依然としてコード内のクラスガードに反してレポートを行うか、値を型付けします。対象の型が慣用的なものである場合、それは上記のルールが禁止していることです:
 >
 > - 上記の値の脱落。条件文において、これは正しいコードに対してレポートします: `$stdout = File.open(path)`の後、`if (case $stdout when StringIO then true else false end)`は`flow.always-truthy-condition`（「条件は常に偽値です」）を報告します（[#1465](https://github.com/rigortype/rigor/issues/1465)）。
-> - 対象の慣用的な型をカバーする節の後の節は、すでにカバーされているとして`flow.unreachable-clause`を報告します: `io = STDOUT`の場合、`case io when IO then 2 when StringIO then 1 end`の`when StringIO`です（[#1485](https://github.com/rigortype/rigor/issues/1485)）。
+> - 対象の慣用的な型をカバーする節の後の末尾の`else`は`flow.unreachable-clause`を報告します: `io = STDOUT`の場合、`case io when IO then 1 else 2 end`の`else`（`StringIO`が到達する）です。`else`はクラスガードではありませんが、判定は慣用的な型単独に基づいています（[#2071](https://github.com/rigortype/rigor/issues/2071)）。
 > - アームがガードされたレシーバーからバインドする変数は、アームが`bot`を読み取るため、合流後に他のパスの型のみを読み取ります: 同じ書き込みの後、`buf = nil; buf = $stdout if $stdout.is_a?(StringIO); puts buf.string if buf`は`flow.always-truthy-condition`を報告します（[#1465](https://github.com/rigortype/rigor/issues/1465)）。
 
 **設定**はもう一つのエビデンスの出所です。ストリームを入れ替えるテストヘルパー（`config.before { $stdout = StringIO.new }`）は[ADR-17](../../adr/17-monkey-patch-pre-evaluation/)の意味でのモンキーパッチであり、それが処理するパスにスコープされた`pre_eval:`エントリーとしてエンジンに到達することが意図されています。

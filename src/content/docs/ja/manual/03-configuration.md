@@ -3,9 +3,9 @@ title: "設定"
 description: "rigortype/rigor docs/manual/03-configuration.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/03-configuration.md"
 sourcePath: "docs/manual/03-configuration.md"
-sourceSha: "1a9ebed3389925f6bfa3baef89a0f9b21f0634d06847a49b9e159b8c78dc284c"
-sourceCommit: "c9f6388da4707f3f26ed85dad75d5d8a66d85f11"
-sourceDate: "2026-10-15T09:29:34+09:00"
+sourceSha: "9c946e35e0554e747e721faf9dcf37ead511a292edc11a16184a22c201070529"
+sourceCommit: "273bb9f9580739b38f93e5900e83979002290514"
+sourceDate: "2026-10-17T01:07:55+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9003
@@ -100,7 +100,7 @@ rigor: signature_paths: "…/plugins/rigor-activerecord/sig" loads the signature
 
 未認識キーのチェックは**トップレベル**のキーを対象とし、他の実装のために予約された名前空間（下記参照）はスキップします。グループの*内側*でのタイポ（`cache: { pth: … }`）は、check時ではなく入力しながらJSONスキーマによって捕捉されます。
 
-これらはエラーではなく警告です。部分的またはオプションのバンドルや、先を見越した設定は妥当なセットアップです。この監査は、明示的で、正常なセットアップに対して安全なシグナルでのみ発火します。未設定のデフォルト（自動検出される`<root>/sig`、自動検出されるバンドル）が警告されることは決してなく、組み込みでないファミリー（`rspec.…`、`rbs_extended.…`）配下の`severity_overrides:`キーは放置されます。そのルールIDは静的に列挙できず、実行時に解決される可能性があるためです。`disable:`は、到達可能な範囲が判明しているためより厳密にチェックされます: プラグインのルールは修飾された`plugin.<id>.<rule>`形式でのみカウントされるため、素のプラグインルール（`rspec.let-binding`）は警告されます。修飾されたトークンは、ロードせずにすべてのエントリーのプラグインIDが判明している場合（明示的な`id:`、またはバンドル済みプラグインのgem名から`rigor-`を除いたもの）にのみ`plugins:`と照合されます; `id:`なしでリストされた1つのサードパーティgemによってそのチェックはオフになります。`rbs_extended.…`、`rbs.…`、`dynamic.…`配下のトークンは、フラグが立てられる予約された実行レベルの行（`rbs.coverage.…`、`dynamic.dependency-source.…`）を除き、そのまま放置されます。同じ所見は`--format=json`のペイロードでも`config_warnings`の下に（それぞれ`kind`タグ付きで）現れるので、CIはそれらに対してアサートできます。
+これらはエラーではなく警告です。部分的またはオプションのバンドルや、先を見越した設定は妥当なセットアップです。この監査は、明示的で、正常なセットアップに対して安全なシグナルでのみ発火します: 未設定のデフォルト（自動検出される`<root>/sig`、自動検出されるバンドル）が警告されることは決してなく、`severity_overrides:`または`disable:`内の`rbs_extended.…`、`rbs.…`、`dynamic.…`キーは放置されます。エンジンがそれらのIDをカタログ外で発行するためです。`disable:`と`severity_overrides:`はどちらも、到達可能な範囲が判明しているためより厳密にチェックされます: プラグインのルールは修飾された`plugin.<id>.<rule>`形式でのみカウントされるため、素のプラグインルール（`rspec.let-binding`）は警告されます。修飾されたトークンは、ロードせずにすべてのエントリーのプラグインIDが判明している場合（明示的な`id:`、またはバンドル済みプラグインのgem名から`rigor-`を除いたもの）にのみ`plugins:`と照合されます; `id:`なしでリストされた1つのサードパーティgemによってそのチェックはオフになります。`disable:`内の`rbs_extended.…`、`rbs.…`、`dynamic.…`配下のトークンは、フラグが立てられる予約された実行レベルの行（`rbs.coverage.…`、`dynamic.dependency-source.…`）を除き、そのまま放置されます; `severity_overrides:`ではそれらの行は意図されたキーであり決してフラグが立てられませんが、素のプラグインルール、`all`、または設定されていないプラグインに対する`plugin.`修飾キーにはフラグが立てられます。同じ所見は`--format=json`のペイロードでも`config_warnings`の下に（それぞれ`kind`タグ付きで）現れるので、CIはそれらに対してアサートできます。
 
 ### 診断
 
@@ -108,7 +108,7 @@ rigor: signature_paths: "…/plugins/rigor-activerecord/sig" loads the signature
 | --- | --- | --- | --- |
 | `disable` | Array | `[]` | プロジェクト全体で抑制するルールIDまたはファミリー; `all`はすべての組み込みチェックルールを抑制します。プラグインの診断は修飾されたID（`plugin.<id>.<rule>`、またはプラグイン全体に対する`plugin.<id>`）で指定され、素のIDや`all`はそれらには到達しません。実行レベルの`.rigor.yml`の行（`plugin_loader.*`、`dynamic.dependency-source.*`、`rbs.coverage.*`、`plugin_trust.*`、`pool-degraded`）はいかなる綴りでも到達できません;これらには`severity_overrides:`を使用してください。[診断](../04-diagnostics/#診断の抑制)を参照。 |
 | `severity_profile` | String | `"balanced"` | `lenient`、`balanced`、または`strict`。[診断](../04-diagnostics/)を参照。 |
-| `severity_overrides` | Hash | `{}` | ルール/ファミリーごとの重要度。例: `{ call: warning, flow.always-truthy-condition: off }`。 |
+| `severity_overrides` | Hash | `{}` | ルール/ファミリーごとの重要度。例: `{ call: warning, flow.always-truthy-condition: off }`。プラグインの診断は修飾されたID（`plugin.<id>.<rule>`、またはプラグイン全体に対する`plugin.<id>`）で指定され、素のルールやファミリーはそれらには到達しません。プラグインローダー自身の行は`plugin_loader.load-error` / `plugin_loader.runtime-error`（または素の`load-error` / `runtime-error`）です。 |
 | `baseline` | String / `false` | `nil` | `.rigor-baseline.yml`へのパス、または`false`で継承されたベースライン（baseline）を無効化。[ベースライン](../06-baseline/)を参照。 |
 | `bleeding_edge` | Boolean / Array / Hash | `false` | 次のメジャーでキューに積まれた変更を前倒しで採用する（[ADR-50](../../adr/50-release-engineering-and-stability-strategy/) § WD2）。`false`は何も採用せず;`true`はオーバーレイ全体を採用し;feature idのリストはそれらのみを採用し;`{ all: true, except: [ids] }`は名指ししたもの以外すべてを採用する。`severity_profile`とは直交する。単一の実行に対しては[`rigor check --bleeding-edge[=ids]`](../02-cli-reference/#rigor-check) / `--no-bleeding-edge`で上書きする。[`rigor show-bleedingedge`](../02-cli-reference/#rigor-show-bleedingedge)で検査する。 |
 

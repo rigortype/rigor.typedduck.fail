@@ -3,9 +3,9 @@ title: "診断ポリシー"
 description: "rigortype/rigor docs/type-specification/diagnostic-policy.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/type-specification/diagnostic-policy.md"
 sourcePath: "docs/type-specification/diagnostic-policy.md"
-sourceSha: "3332b77bc09d58a5a2be2bb81373b0d904d1004b17ddddf1fed7f814bd6adad4"
-sourceCommit: "c9f6388da4707f3f26ed85dad75d5d8a66d85f11"
-sourceDate: "2026-10-16T08:49:00+09:00"
+sourceSha: "7f36c8bb2b3fd8b0e8f0c8212857651240a9af42d3155aed8cadbeb174355c2f"
+sourceCommit: "273bb9f9580739b38f93e5900e83979002290514"
+sourceDate: "2026-10-18T20:43:42+09:00"
 translationStatus: "translated"
 sidebar:
   order: 2050
@@ -85,13 +85,13 @@ Rigorは静かな拡幅よりも精密な診断を優先すべきです（SHOULD
 これを駆動する`.rigor.yml`キーは2つあります（[ADR-8](../../adr/8-steep-inspired-improvements/)）:
 
 - `severity_profile:` — `lenient` / `balanced`（デフォルト）/ `strict`のいずれか。各プロファイルは正規ルールidを深刻度にマップするルールごとのテーブルで、プロファイルは`:error`の広さと採用しやすさをトレードオフします（`lenient`は不確実なルールを`:warning`/`:off`に落とし、`strict`はすべてのルールを`:error`に上げます）。アクティブプロファイルのテーブルに存在しないルールは著者が定めた深刻度を保ちます。
-- `severity_overrides:` — `{ rule_id => severity }`マップ。キーは正確な正規ルールid（`call.undefined-method`）か、**ファミリーワイルドカード**（`call`）——最初のドット区切りセグメントがキーに等しいすべてのルールにマッチします。
+- `severity_overrides:` — `{ rule_id => severity }`マップ。キーは正確な正規ルールid（`call.undefined-method`）か、**ファミリーワイルドカード**（`call`）——最初のドット区切りセグメントがキーに等しいすべてのルールにマッチします。プラグイン自身の行（ソースファミリー`plugin.<id>`）は例外です: その修飾id（`plugin.<id>.<rule>`、その`qualified_rule`）またはプラグイン全体の`plugin.<id>`にのみ応答し、素のルールやファミリーワイルドカードには決して応答しません（issue #1985、#1953以降の`disable:`と同様）。プラグインローダーの行は`plugin_loader.<rule>`に応答し、その後に素の`load-error` / `runtime-error`に応答します。
 
 解決された深刻度は`:error` / `:warning` / `:info` / `:off`のいずれかです;**`:off`は診断を完全にドロップします**。`Configuration::SeverityProfile.resolve`はこの優先順位（高い順）をMUST適用します:
 
 1. `nil`のルールidは著者が定めた深刻度を保ちます（参照するものがありません）。
-2. ルールidに対する正確な`severity_overrides`エントリー。
-3. それ以外ではファミリーワイルドカードの`severity_overrides`エントリー（ルールidの最初のセグメント）。
+2. ルールidに対する正確な`severity_overrides`エントリー。プラグインの行の場合、これはその`qualified_rule`、次にその`plugin.<id>`エントリーです;その他の行の場合、まず`qualified_rule`（プラグインローダーの`plugin_loader.load-error`）、次に素のルールであるため、`{ load-error: info, plugin_loader.load-error: off }`はローダーの行をoffのままにします。
+3. それ以外では、プラグインの行ではない場合、ファミリーワイルドカードの`severity_overrides`エントリー（ルールidの最初のセグメント）。
 4. それ以外ではアクティブプロファイルテーブルのルールidに対するエントリー。
 5. それ以外では著者が定めた深刻度。
 
@@ -136,9 +136,9 @@ Rigorネイティブのマーカーは、PHPStanのアノテーションの感�
 
 プラグイン自体の行（ソースファミリー`plugin.<id>`）は、その修飾idによってのみトークンに応じます: トークンが行の`qualified_rule`（`plugin.<id>.<rule>`）と等しいか、またはそのソースファミリー（`plugin.<id>`）と等しい場合です。どちらも行自身のフィールドに対する完全文字列比較であるため、`plugin.<id>`は単に`<id>.`で始まるidを持つプラグインには決して届きません。マニフェストidとルールidの両方にドットが含まれる可能性があるため、1つの重複が残ります: ルール`b.c`を持つプラグイン`a`と、ルール`c`を持つプラグイン`a.b`はどちらも`qualified_rule` `plugin.a.b.c`を共有し、その完全一致トークンは両方の行をドロップします。プレフィックスのないidや`all`は、`disable:`内でもマーカー内でもこれらの行には届きません: プラグインはプレフィックスのないルール（`load-error`、`unknown-column`）を共有しており、プレフィックスなしのマッチは他のプラグインの指摘を隠してしまう可能性があるためです。`disable:`は同じ重大度スタンプでこれらに届くため、すべての実行形式で一致します;マーカーは、マーカーを保持するファイルが解析されている間にプラグインが発行する行（`#diagnostics_for_file`およびノードルール）に届き、別のファイルに位置するプラグイン行は`disable:`およびベースラインにのみ応じます。`disable:`はスタンプ時に適用されるため、`disable: [plugin.<id>]`はそのプラグインの実行レベルの開示行（解析不可能なロケールファイルに対するrigor-rails-i18nの`load-error`など、`.rigor.yml`で報告されるもの）もドロップします。
 
-`disable:`リストは、チェックルールカタログ外の実行レベルの行——プラグインローダーの`load-error`および`runtime-error`（`plugin_loader.*`）、`dynamic.dependency-source.*`、`rbs.coverage.*`、`plugin_trust.*`、`pool-degraded`——には届きません（独自の抑制パイプラインを持つ`pre-eval.*`行を除く）。どの表記もこれらには届きません: プレフィックスのないidも、修飾id（`plugin_loader.load-error`）も、`all`も届きません。これらは`severity_overrides:`およびベースラインに応じます。`severity_overrides:`は行の`qualified_rule`ではなく`rule`をキーとするため、ローダーの行はそこで`load-error` / `runtime-error`に応じます——このキーは、プレフィックスのないルールが同じであるプラグイン行も再スタンプします。
+`disable:`リストは、チェックルールカタログ外の実行レベルの行——プラグインローダーの`load-error`および`runtime-error`（`plugin_loader.*`）、`dynamic.dependency-source.*`、`rbs.coverage.*`、`plugin_trust.*`、`pool-degraded`——には届きません（独自の抑制パイプラインを持つ`pre-eval.*`行を除く）。どの表記もこれらには届きません: プレフィックスのないidも、修飾id（`plugin_loader.load-error`）も、`all`も届きません。これらは`severity_overrides:`およびベースラインに、ローダーの`plugin_loader.load-error` / `plugin_loader.runtime-error`またはその素の`load-error` / `runtime-error`によって応じます;素のキーはプラグイン自身の`plugin.<id>.load-error`行を再スタンプしません（issue #1985）。
 
-`ConfigAudit`は、どの行にも届かない`disable:`トークンについて警告します: 上記の予約された実行レベルの行を名指しするもの（任意の表記）、`plugins:`が設定していないプラグインの`plugin.`修飾トークン（ロードせずに各エントリーのマニフェストidが既知である場合にのみチェックされます——明示的な`id:`、またはバンドルされたプラグインのgem名から`rigor-`を除いたもの）、および`all`、ファミリー、旧来のエイリアス、カタログid、`pre-eval.*` idのいずれでもないその他のトークン（プラグインのプレフィックスなしルールを含む）。非チェックエンジンファミリー配下のトークン（`rbs_extended.*`、`rbs.*`、`dynamic.*`）または既知の非カタログエンジンidはフラグされません。警告は標準エラー出力および`config_warnings`に出力され、終了ステータスは変更されません。
+`ConfigAudit`は、どの行にも届かない`disable:`トークンについて警告します: 上記の予約された実行レベルの行を名指しするもの（任意の表記）、`plugins:`が設定していないプラグインの`plugin.`修飾トークン（ロードせずに各エントリーのマニフェストidが既知である場合にのみチェックされます——明示的な`id:`、またはバンドルされたプラグインのgem名から`rigor-`を除いたもの）、および`all`、ファミリー、旧来のエイリアス、カタログid、`pre-eval.*` idのいずれでもないその他のトークン（プラグインのプレフィックスなしルールを含む）。非チェックエンジンファミリー配下のトークン（`rbs_extended.*`、`rbs.*`、`dynamic.*`）または既知の非カタログエンジンidはフラグされません。`ConfigAudit`は`severity_overrides:`キーも同様にフラグを立てます（issue #1985）: `plugins:`が設定していないプラグインを名指しする`plugin.`修飾キー、`all`、どちらのローダー行も名指ししていない`plugin_loader.`キー、ルールを名指ししていない組み込みファミリー内のキー、およびカタログと非チェックエンジンidの外側にあるその他のキー（プラグインの素のルールを含む）。予約された実行レベルの行は決してそこではフラグを立てられません。このマップこそがそれらを調整する場所だからです。警告は標準エラー出力および`config_warnings`に出力され、終了ステータスは変更されません。
 
 ### エコシステム互換マーカー（計画中、未実装）
 

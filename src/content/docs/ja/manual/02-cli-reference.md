@@ -3,9 +3,9 @@ title: "CLIコマンドリファレンス"
 description: "rigortype/rigor docs/manual/02-cli-reference.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/02-cli-reference.md"
 sourcePath: "docs/manual/02-cli-reference.md"
-sourceSha: "ac22094ebcfdfeffb7a560bed01a2bfe1477ed3706b665f01f721d0dbfc0226e"
-sourceCommit: "c9f6388da4707f3f26ed85dad75d5d8a66d85f11"
-sourceDate: "2026-10-08T16:17:41+09:00"
+sourceSha: "0245273ba2059ae02d9af7b41b96e3084454af0d85ad61f004dc66351128e474"
+sourceCommit: "273bb9f9580739b38f93e5900e83979002290514"
+sourceDate: "2026-10-17T05:56:22+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9002
@@ -298,6 +298,8 @@ rigor sig-gen [paths]
 | `--format=text\|json` | 出力形式。 |
 
 `--print`、`--diff`、`--write`、`--check`は相互排他です。`--check`は`--write`がファイルを作成・変更・拒絶するまさにそのタイミングで失敗するため、`--overwrite`なしで`--write`が見送るより厳密な戻り値では失敗しません。`--check --overwrite`は1件としてカウントします。[ハンドブック第11章](../../handbook/11-sig-gen/#ciでsigを最新に保つ)を参照してください。
+
+`--write`はスキップした各提案（`sig/`がすでに宣言しているメンバー（`alias`を含む）、またはそれがそこで宣言されているかもしくはそのクラスがそこに存在するために書き込みを行わないシグネチャパスにルーティングされるメンバー）を個別の`skipped Class#method (reason)`行に出力します;終了ステータスは変わりません。[ハンドブック第11章](../../handbook/11-sig-gen/#安全性---writeが行うことと行わないこと)を参照してください。
 
 `# @rbs` / `#:`でインライン宣言されたメソッドは、その本体が推論した内容ではなくその宣言として書き出されます。パラメータのみのアノテーションはパラメータを保持し戻り値を本体から取得し、`initialize`は常に`-> void`です。`sig/`がすでにそのメソッド（`def`または`attr_*`）を宣言しており、型として両者が不一致の場合（パラメータ名やユニオンの綴りは問わず、オーバーロードの順序は問う）、sig-genはどちらも変更しません: メソッドは拒絶され（`sig.skipped.inline-differs`、`--format=json`の`refused`にリスト）、両者を一致させるか`--overwrite`（`sig/`のメンバー全体をインライン宣言で置き換える）を渡すまで`--write` / `--check`は`1`で終了します。パラメータのみのアノテーションではパラメータのみが比較され、戻り値は通常の提案規則に従います。インラインでジェネリックにされたクラスは、`sig/`が同じ型パラメータで宣言していない限り書き出されません。Steepが同じアノテーションを読み込むプロジェクトでは、`.rigor.yml`で`sig_gen.inline_declared: skip`を設定してそれらのメソッドを`sig/`から除外します。[ハンドブック第11章](../../handbook/11-sig-gen/#インラインで宣言されたメソッド)を参照してください。
 

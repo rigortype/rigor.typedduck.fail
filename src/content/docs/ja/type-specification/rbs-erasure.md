@@ -3,9 +3,9 @@ title: "RBS消去"
 description: "rigortype/rigor docs/type-specification/rbs-erasure.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/type-specification/rbs-erasure.md"
 sourcePath: "docs/type-specification/rbs-erasure.md"
-sourceSha: "0901e0953371cb6400fc39e0fa4a9e5c60f64d17e4c704cb5bbffec158e470c8"
-sourceCommit: "a8a58149bbbed5f850866905324fab02b678990c"
-sourceDate: "2026-10-11T12:00:00+09:00"
+sourceSha: "e4d80089c62045d9a99530c6009da6e9cb862a24cbf2048fe4f189efb749c36b"
+sourceCommit: "273bb9f9580739b38f93e5900e83979002290514"
+sourceDate: "2026-10-18T04:24:05+09:00"
 translationStatus: "translated"
 sidebar:
   order: 2050
@@ -20,7 +20,8 @@ RBS消去はRigorの内部型を有効なRBS型に変換します。Rigor→RBS�
 - 正確なRBS型はそれ自身に消去されます。
 - 絞り込まれた型は絞り込まれていないベースに消去されます。
 - サポートされていないリテラル種類はその名前的クラスに消去されます。
-- 整数範囲は`Integer`に消去されます; Float範囲は`Float`に消去されます。
+- 有界数値リファインメント`Integer[a..b]`および`Float[a..b]`（整数範囲型およびFloat範囲型; `int<a, b>`は非推奨の入力表記）は`Integer` / `Float`に消去されます。これらは`Range`オブジェクトではありません; `Range`リテラルは次の規則に従います。
+- `Range`リテラルは`Range[E]`に消去されます。`E`は名前順における非nil端点のクラスのユニオンです（`1..10`は`Range[Integer]`へ; `1..2.5`および`1.5..2`はいずれも`Range[Float | Integer]`へ）。両方の端点がnilの場合は`Range[untyped]`になります。素の`Range`は有効なRBSではありません。`Range[out E]`は型引数を取るためです（[#1891](https://github.com/rigortype/rigor/issues/1891)）。
 - RBSが型引数なしで宣言しているクラス上でRigorが運ぶ型引数は消去されます: `1.step(10, 2)`が返すシーケンスである`Enumerator::ArithmeticSequence[Integer]`は、`Enumerator::ArithmeticSequence`に消去されます（[#1794](https://github.com/rigortype/rigor/issues/1794)）。消去のみがそれを落とします: 診断メッセージ、`rigor type-of`、および`rigor annotate`は、有効なRBSではない内部形式を出力します。`rigor sig-gen`が消去されたシグネチャを書き出した後は、それを読み取る呼び出し元は再びRBSの`Numeric`要素を見ることになります;要素はエンジンが呼び出し自身を推論する場所でのみ生き残ります。
 - 補完と差分のリファインメントは現在のドメイン型に消去されます。
 - ハッシュシェイプの開放性、追加キー、読み取り専用マーカーは以下のハッシュシェイプ消去アルゴリズムによって消去されます。

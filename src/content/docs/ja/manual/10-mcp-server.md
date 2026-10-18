@@ -3,9 +3,9 @@ title: "Rigor MCPサーバー: AIエージェント統合"
 description: "rigortype/rigor docs/manual/10-mcp-server.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/10-mcp-server.md"
 sourcePath: "docs/manual/10-mcp-server.md"
-sourceSha: "64645436071c659b61443269f8ee2c4fe0ac02d6ff08af58335ad5dd8a98a4fb"
-sourceCommit: "c9f6388da4707f3f26ed85dad75d5d8a66d85f11"
-sourceDate: "2026-09-25T20:39:06+09:00"
+sourceSha: "55ecf3d03c628d6f85860c35c26cdf4e0ef27077e4bf3fa733abdfc1f3132471"
+sourceCommit: "273bb9f9580739b38f93e5900e83979002290514"
+sourceDate: "2026-10-18T05:33:32+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9010
@@ -325,6 +325,8 @@ RubyソースファイルからRBSスケルトンシグネチャを推論して�
 | `config` | `string` | いいえ | セッションデフォルト |
 
 `params: "observed"`はプロジェクトのテストルート（設定された`test_paths:`、または`spec/`と`test/`のうち存在する方）から呼び出し箇所の引数型を収集します。
+
+`params: "observed"`の下では、レスポンスはトップレベルの`observation`オブジェクト`{"paths": [...], "missing": [...]}`も運びます: 読み取られたテストルートと、存在しないかコレクターが読み取らなかった（ディレクトリでも`.rb`ファイルでもない）宣言されたテストルートです。両方が空の場合はテストルートが見つからなかったことを意味し、すべてのパラメータは`untyped`のままになります。このキーはデフォルトの`untyped`ポリシーの下では存在しません。
 
 **返り値:** JSON（`rigor sig-gen --print --format json`と同じ）。
 

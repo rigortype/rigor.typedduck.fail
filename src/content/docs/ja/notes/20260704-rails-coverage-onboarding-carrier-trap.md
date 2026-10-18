@@ -4,7 +4,7 @@ description: "Imported from rigortype/rigor docs/notes/20260704-rails-coverage-o
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260704-rails-coverage-onboarding-carrier-trap.md"
 sourcePath: "docs/notes/20260704-rails-coverage-onboarding-carrier-trap.md"
 sourceSha: "4f08b103b994fcdedc1a30a16ed2838d0fab6dd4d81d479634237a4de5e4d212"
-sourceCommit: "c9f6388da4707f3f26ed85dad75d5d8a66d85f11"
+sourceCommit: "273bb9f9580739b38f93e5900e83979002290514"
 sourceDate: "2026-07-04T23:06:52+09:00"
 sourceLanguage: "ja"
 sidebar:

@@ -3,9 +3,9 @@ title: "`rigor unused`でデッドコードを取り除く"
 description: "rigortype/rigor docs/manual/18-removing-dead-code.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/18-removing-dead-code.md"
 sourcePath: "docs/manual/18-removing-dead-code.md"
-sourceSha: "9b44194531be6c3ca65ab4001b2621a29f911f50a4fd09f28d0b9af397ff5c09"
-sourceCommit: "c9f6388da4707f3f26ed85dad75d5d8a66d85f11"
-sourceDate: "2026-10-16T04:42:13+09:00"
+sourceSha: "b76d8987b9da9969ef4a179c630a19220811ede6aa402d9ec3d2496ad4cf1438"
+sourceCommit: "273bb9f9580739b38f93e5900e83979002290514"
+sourceDate: "2026-10-17T07:56:07+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9018
@@ -134,7 +134,7 @@ Candidates — nothing reachable references these (45)
 
 テスト専用のセクションから降格された行は2つ目の種類であり、それこそ知る価値のあるものです: あなたのspecが参照し、かつデータファイルも名指しているクラス——`config/recurring.yml`内のジョブ、YAMLの設定から名指されるクラス——は、死んだ本番のパスではありません。その設定こそがそれを駆動しているのかもしれないからです。テスト専用のセクションは本番について1つの主張をするので、Rigorがそれに反する証拠を保持している行は、ファイル名とともに代わりにここに属します。
 
-`"Foo".constantize`は`Foo`をちょうど名指しするので、通常の参照として数えられ、決してこのセクションには到達しません。`"Foo::#{key}".constantize`は名前空間を限定することしかできないので、`Foo`配下のすべてが降格されます; `"V#{version}"`は名前の先頭であるため、`V1`、`V2_0`、およびそれらの配下のすべてが降格されます。`const_get`はそのレシーバーから名前を検索するため、`class Migration`内の`const_get("V#{version}")`は`Migration::V1`を降格させます ── 呼び出しが第2引数として`false`を渡さない限り、`Migration`のスーパークラスやmixin配下の`V*`名、およびトップレベルの`V*`名も同様です。リテラルの`const_get("Handler")`も同じ順序で検索される参照であるため、トップレベルの`Handler`ではなく`Migration::Handler`が存在する場合はそれを名指します。メソッド内（またはクラス本体内のラムダや`define_method`などのブロック内）でレシーバーが暗黙、`self`、または`self.class`である場合、その呼び出しはサブクラスやinclude元で実行される可能性があるため、子孫で宣言された`Handler`も到達可能なまま保持されます。子孫とは、`class D < Base`と記述されたクラス、およびその本体にモジュールの単純な`include`、`prepend`、`extend`を持つ宣言です。`K.include(Mix)`、`K.send(:include, Mix)`、`K.extend(Ext)`、`K = Class.new(Base)`はまだ追跡されません。クラス本体に直接記述された呼び出しは広げられません。`Other.instance_eval { }`（または`class_eval`、`module_eval`およびそれらの`_exec`形式）の内部では、レシーバーは`Other`になります。最初にローカル変数に組み立てられた名前（`name = "V#{version}"; const_get(name)`）も同じように読み取られます。`.yml`・`.json`・テンプレートファイル内に文字列として現れるクラス名も同じように降格されます ── 定数参照より弱い証拠であり、使用の証明でも、死んでいると呼ぶ根拠でもありません。
+`"Foo".constantize`は`Foo`をちょうど名指しするので、通常の参照として数えられ、決してこのセクションには到達しません。`"Foo::#{key}".constantize`は名前空間を限定することしかできないので、`Foo`配下のすべてが降格されます; `"V#{version}"`は名前の先頭であるため、`V1`、`V2_0`、およびそれらの配下のすべてが降格されます。`const_get`はそのレシーバーから名前を検索するため、`class Migration`内の`const_get("V#{version}")`は`Migration::V1`を降格させます ── 呼び出しが第2引数として`false`を渡さない限り、`Migration`のスーパークラスやmixin配下の`V*`名、およびトップレベルの`V*`名も同様です。リテラルの`const_get("Handler")`も同じ順序で検索される参照であるため、トップレベルの`Handler`ではなく`Migration::Handler`が存在する場合はそれを名指します。メソッド内（またはクラス本体内のラムダや`define_method`などのブロック内）でレシーバーが暗黙、`self`、または`self.class`である場合、その呼び出しはサブクラスやinclude元で実行される可能性があるため、子孫で宣言された`Handler`も到達可能なまま保持されます。子孫とは、`class D < Base`または`K = Class.new(Base)`と記述されたクラス、およびその本体内またはRigorが命名できるレシーバー経由でモジュールを`include`、`prepend`、`extend`するクラスです: イニシャライザ内の`K.include(Mix)`、その`send`、`public_send`、`__send__`による表記、または`K.class_eval { }`内の`include Mix`です。クラス本体に直接記述された呼び出しは広げられません。`Other.instance_eval { }`（または`class_eval`、`module_eval`およびそれらの`_exec`形式）の内部では、レシーバーは`Other`になり、そのブロックが定義するメソッド（`def`、`define_method`、`define_singleton_method`）は`Other`またはその子孫上で実行されます。レシーバーがまったく命名できない場合、その名前はそれが宣言されている任意の場所で保持されます: ローカル変数に対するevalブロック（`k.class_eval { }`）、そのようなレシーバーがモジュールをincludeする際のモジュール自身の探索、または計算されたモジュールをincludeするクラス（`K.include(mods.first)`）です。Rigorが命名できないレシーバー経由でモジュールを獲得するクラス（`[Foo].each { |k| k.include(Consts) }`、`Class.new`ブロック内の`include`）は、そのモジュールの定数に関する自身の探索について追跡されません。最初にローカル変数に組み立てられた名前（`name = "V#{version}"; const_get(name)`）も同じように読み取られます。`.yml`・`.json`・テンプレートファイル内に文字列として現れるクラス名も同じように降格されます ── 定数参照より弱い証拠であり、使用の証明でも、死んでいると呼ぶ根拠でもありません。
 
 ここのセクションが大きいことは、このコードベースでは動的ディスパッチが荷重を支えていると告げており、それが削除キャンペーンがそこで止まる正直な理由です。
 

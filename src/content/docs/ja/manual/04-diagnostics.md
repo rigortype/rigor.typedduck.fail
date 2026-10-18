@@ -3,9 +3,9 @@ title: "診断"
 description: "rigortype/rigor docs/manual/04-diagnostics.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/04-diagnostics.md"
 sourcePath: "docs/manual/04-diagnostics.md"
-sourceSha: "5a0e3c65d76aa0e5542adf1ffbea3f3830e6c07be2f51ce1a5c7225ad8763993"
-sourceCommit: "c9f6388da4707f3f26ed85dad75d5d8a66d85f11"
-sourceDate: "2026-10-10T23:24:05+09:00"
+sourceSha: "4a94c8e8a49451c0776327c6ebf974a73013c293d98a51f5ae9aec3093212d90"
+sourceCommit: "273bb9f9580739b38f93e5900e83979002290514"
+sourceDate: "2026-10-17T01:23:27+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9004
@@ -125,6 +125,8 @@ severity_overrides:
 
 ルール固有のオーバーライドはファミリーオーバーライドより優先されます。`off`は診断を結果から完全に除去するため、`severity_overrides:`は下記の`disable:`のより軽いタッチの兄弟になります —— どちらもルールを黙らせますが、オーバーライドはプロファイルの残りと並んで「この1つのルールを、この重要度で」と読めます。
 
+プラグインの診断は、`disable:`と同様に修飾されたIDで指定されます: 1つのルールに対しては`plugin.<id>.<rule>`（`plugin.rails-i18n.load-error: off`）、そのプラグインのすべての行に対しては`plugin.<id>`です。素のルールやファミリーは決してプラグインの行には到達しないため、`load-error: off`は各プラグイン自身の`load-error`をそのまま残します。プラグインローダーの行は`plugin_loader.load-error`および`plugin_loader.runtime-error`であり、これらは素の`load-error` / `runtime-error`にも応答します。`rigor check`は、どの行にも到達しないと判断できるキーについて警告します。
+
 YAMLはベアワードの`off`をブール値として予約しています。それを指定するオーバーライドが適用されないように見える場合は、`"off"`と引用符で囲んでください —— `on`も同様です。
 
 ## 機械可読な出力（`--format json`）
@@ -219,6 +221,6 @@ disable:
 
 素のルール（`unknown-column`、`load-error`）や`all`はそれらには到達しないため、あるプラグインの抑制が同じ名前を持つ別のプラグインの所見を隠してしまうことは決してありません。
 
-このリストは、`.rigor.yml`で報告される実行レベルの行（ロードに失敗した、あるいは`prepare`で例外を発生させたプラグイン（`plugin_loader.*`）、解決しなかった`dependencies.source_inference:`のgem（`dynamic.dependency-source.*`）、`rbs.coverage.*`の通知、`plugin_trust.*`、`pool-degraded`）には、`plugin_loader.load-error`を含め、いかなる綴りでも到達しません。これらをオフにするには、[`severity_overrides:`](#重要度プロファイル)を`off`に設定するか、[ベースライン](../06-baseline/)に記録してください。`severity_overrides:`はソース接頭辞なしの行のルールIDと照合されるため、プラグインローダーの行はそこでは`load-error`および`runtime-error`となります ── そしてそのキーは、素のルールが同じである任意のプラグイン診断も再スタンプします。`disable:`エントリーがこれらの行のいずれかを名指ししている、いかなるルールも名指ししていない、または`plugins:`が設定していないプラグインを名指ししている場合、`rigor check`は警告します（[設定検証の警告](../03-configuration/#設定検証の警告)を参照）。ルールIDを持たないパスエラーやパースエラーは、常に報告されます。
+このリストは、`.rigor.yml`で報告される実行レベルの行（ロードに失敗した、あるいは`prepare`で例外を発生させたプラグイン（`plugin_loader.*`）、解決しなかった`dependencies.source_inference:`のgem（`dynamic.dependency-source.*`）、`rbs.coverage.*`の通知、`plugin_trust.*`、`pool-degraded`）には、`plugin_loader.load-error`を含め、いかなる綴りでも到達しません。これらをオフにするには、[`severity_overrides:`](#重要度プロファイル)を`off`に設定するか、[ベースライン](../06-baseline/)に記録してください。`severity_overrides:`では、プラグインローダーの行は`plugin_loader.load-error`および`plugin_loader.runtime-error`、または素の`load-error` / `runtime-error`です（両方が設定されている場合は修飾されたキーが勝利します）;素のキーは同じ名前のプラグイン自身の行（`plugin.<id>.load-error`）には到達しません。`disable:`エントリーがこれらの行のいずれかを名指ししている、いかなるルールも名指ししていない、または`plugins:`が設定していないプラグインを名指ししている場合、`rigor check`は警告します（[設定検証の警告](../03-configuration/#設定検証の警告)を参照）。ルールIDを持たないパスエラーやパースエラーは、常に報告されます。
 
 表示は維持したいが失敗させたくない*既知のバックログ*には、`disable:`の一括設定より[ベースライン](../06-baseline/)を使用してください。`disable:`は新しい発生も隠してしまいます。
