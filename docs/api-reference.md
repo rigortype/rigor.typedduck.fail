@@ -46,9 +46,9 @@ RIGOR_LENS=1 RIGOR_COMMAND=/absolute/path/to/rigor \
 ```
 
 This requires the checkout's optional `zard-rigor` dependencies and a standalone
-Rigor 0.4.3 executable. `RIGOR_LENS_CONFIG` defaults to `.rigor.dist.yml`, relative
+Rigor 0.4.5 executable. Older producer exports are rejected; regenerate them with 0.4.5. `RIGOR_LENS_CONFIG` defaults to `.rigor.dist.yml`, relative
 to the documented Rigor root. The CI setup action offers the same opt-in with
-`with: { lens: '1' }`, installing Rigor 0.4.3, RBS 4.2.0, Prism 1.9.0,
+`with: { lens: '1' }`, installing Rigor 0.4.5, RBS 4.2.0, Prism 1.9.0,
 language_server-protocol 3.17.0.6, rbs-inline 0.14.0 and digest-xxhash 0.2.9.
 
 The adapter validates experimental `lens/v0` revision 1, source snapshots and
@@ -59,15 +59,9 @@ the previous artifact/pages intact. Enriched artifacts require fresh analysis
 on every generation; `inputs` is not a complete dependency graph and an explicit
 `ZARD_API_JSON` is therefore supported only for plain exports.
 
-**Current blocker:** the pinned source `2e694082a9cbec0251e3d21f1c1b477e8549d14c`
-fails with released Rigor 0.4.3 when running
-`rigor lens --format=json --workers=4 --config=.rigor.dist.yml ./lib/rigor/plugin/base.rb`.
-The producer returns exit 1, target status `failed`, and
-`NoMethodError: undefined method 'expression' for an instance of Prism::ImplicitRestNode`.
-Its `lens/file_reader.rb` calls `node.rest&.expression` for multiple assignment;
-an implicit rest node has no such method. The shared producer fixture passes
-end to end. Keep production lens disabled until an upstream release handles
-this source; do not alter source selection or substitute guessed facts.
+Rigor 0.4.5 handles the selected source and emits readable declared block types.
+The previous trailing-comma assignment and block object-display failures are
+resolved in the supported executable. Type display text remains producer output.
 
 ## Browsing and coverage
 
@@ -85,7 +79,7 @@ types. Producer/schema support and the CI default release are selected by the
 pinned ZARD checkout's `zard-rigor/lib/zard/rigor/compatibility.json`; changing
 that manifest still requires verifying the released executable. Site CI reads
 the manifest rather than maintaining a second analyzer version pin. Type facts
-are enabled in CI/deployment with the reviewed Rigor 0.4.4 executable and pinned v0.4.4 source. Local generation can still omit `RIGOR_LENS=1` for a plain export. Constant value slots, aliases and module functions use only producer facts; absent capabilities remain explicit.
+are enabled in CI/deployment with the reviewed Rigor 0.4.5 executable and pinned v0.4.5 source. Local generation can still omit `RIGOR_LENS=1` for a plain export. Constant value slots, aliases and module functions use only producer facts; absent capabilities remain explicit.
 
 ## Source links
 
