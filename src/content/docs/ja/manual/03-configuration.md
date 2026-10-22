@@ -3,9 +3,9 @@ title: "設定"
 description: "rigortype/rigor docs/manual/03-configuration.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/03-configuration.md"
 sourcePath: "docs/manual/03-configuration.md"
-sourceSha: "9c946e35e0554e747e721faf9dcf37ead511a292edc11a16184a22c201070529"
-sourceCommit: "273bb9f9580739b38f93e5900e83979002290514"
-sourceDate: "2026-10-17T01:07:55+09:00"
+sourceSha: "df38fe6eb811a27a60179b76d848f18c9ff63877061522acb0a9b88d672cc052"
+sourceCommit: "5f4adf1ec1ff7ca079371d42f8dc2c9f4649e2cc"
+sourceDate: "2026-10-21T02:52:21+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9003
@@ -56,7 +56,7 @@ cache:
 | `target_ruby` | String | `"4.0"` | **自分の**プロジェクトが動作する最低のRubyバージョン ── `"X.Y"`、`"X.Y.Z"`、または`"latest"`。Rigor自体が動作するRubyとは独立。すべての値がRigorのパースする構文を選択します。明示的に設定したバージョンは、そのバージョンのRuby非推奨ルールもオンにします（`"4.1"`以降の[`call.deprecated-ruby2-keywords`](../04-diagnostics/#rule-call-deprecated-ruby2-keywords)）;デフォルトおよび`"latest"`は決してオンにしないため、`rigor init`はこのキーをコメントアウトして出力します。 |
 | `paths` | Array | `["lib"]` | 解析するディレクトリまたはファイル。 |
 | `exclude` | Array | `[]` | スキップするglobパターン。相対パターンは、使用中の設定ファイルのディレクトリ（設定ファイルが使用されない場合は作業ディレクトリ）に対するファイルの相対パスと照合されるため、パスが`paths:`から来たかコマンドライン引数から来たかに関係なく同じファイルを除外します。また、そのベースより上のディレクトリには決してマッチしません（その外側のファイルは`../…`として見られるため、`../shared/lib/gen/**`は`paths:`が指名する隣接ディレクトリに到達します）。先頭の`./`は無視され、`.`で始まるパターン（`.*`など）はベースの外側にあるファイル（`../…`として現れる）にもマッチします。ファイルへのシンボリックリンクはそれ自体の名前のもとでのみ照合されます: realpathパスはディレクトリを解決し、ファイルは解決しません。`*`および`**`は`/`もまたぐため、`lib/*.rb`はネストされたファイルにもマッチします。絶対パターンは絶対パスと照合されます。`includes:`ファイルからのパターンは、インクルードされたファイルではなく、トップレベル設定のディレクトリを基準に解決されます。`vendor/bundle`、`.bundle`、`node_modules`は常に除外されます。 |
-| `test_paths` | Array | `nil` | プロジェクトのテストルート: テストを保持するディレクトリ（またはファイル）。相対パスのエントリーは設定ファイルのディレクトリを基準に解決されます。未設定の場合は`spec/`と`test/`のうち存在する方を自動検出します。`[]`はなしを宣言します。`rigor sig-gen --params=observed`はパラメータを型付けするためにそこにある呼び出し箇所を読み取り、存在しない宣言されたルートがあればstderrに名前を出力します。テストルートは`paths:`にも記載されていない限り解析されず、変更してもキャッシュは無効化されません。 |
+| `test_paths` | Array | `nil` | プロジェクトのテストルート: テストを保持するディレクトリ（またはファイル）。相対パスのエントリーは設定ファイルのディレクトリを基準に解決されます。未設定の場合は、設定ファイルのディレクトリに存在する`spec/`と`test/`のうち存在する方を自動検出し、設定ファイルのディレクトリにどちらも存在しない場合や設定ファイルが使用されない場合は作業ディレクトリから自動検出します。`[]`はなしを宣言します。`rigor sig-gen --params=observed`はパラメータを型付けするためにそこにある呼び出し箇所を読み取り、存在しない宣言されたルートがあればstderrに名前を出力します。テストルートは`paths:`にも記載されていない限り解析されず、変更してもキャッシュは無効化されません。 |
 | `includes` | Array | `[]` | このファイルの下に継承する他の設定ファイル。 |
 | `fold_platform_specific_paths` | Boolean | `false` | ソース探索時にRubyバージョン条件付きロードパスを解決する。 |
 | `parameter_inference` | Boolean | `false` | `check`ウォークでのオプトインのコールサイトパラメータ型推論（[ADR-67](../../adr/67-parameter-type-inference/) WD6）。`true`のとき、宣言されていない`def` / `initialize` / セッターのパラメータは、解決されたコールサイト引数型のユニオンに型付けされ、下流のivar読み取り・畳み込み・保護カバレッジを精密化する。精度加算的のみ —— 否定的ルールは推論されたパラメータに対して決して発火しない。`--incremental`とは併用できない。 |
@@ -89,6 +89,7 @@ rigor: disable: "call.undefined-methdo" is not a recognized rule id; the suppres
 rigor: disable: "plugin_loader.load-error" names a run-level row, which `disable:` does not reach; use `severity_overrides:` or a baseline
 rigor: disable: "plugin.shoulda-matchers.unknown-column" names no plugin `plugins:` configures; the suppression has no effect
 rigor: severity_overrides: "flow.bogus" is not a recognized rule id; the override has no effect
+rigor: severity_overrides: "undefined-method" is a legacy alias of `call.undefined-method`; the override has no effect, so write `call.undefined-method`
 rigor: bundler.lockfile: "./missing/Gemfile.lock" does not exist
 ```
 

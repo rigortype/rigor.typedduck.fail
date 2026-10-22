@@ -3,9 +3,9 @@ title: "推論バジェットとユーザー提供の境界"
 description: "rigortype/rigor docs/type-specification/inference-budgets.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/type-specification/inference-budgets.md"
 sourcePath: "docs/type-specification/inference-budgets.md"
-sourceSha: "8a91feec5259cb9f5fd7d6b8440dbafb2763b9e0c72617ad80ba5f4250888463"
-sourceCommit: "273bb9f9580739b38f93e5900e83979002290514"
-sourceDate: "2026-10-18T22:42:34+09:00"
+sourceSha: "69477038b17f96bd14ba23e691d8c6ff8ac3d682af613adc2413c1765b91a141"
+sourceCommit: "5f4adf1ec1ff7ca079371d42f8dc2c9f4649e2cc"
+sourceDate: "2026-10-21T02:55:17+09:00"
 translationStatus: "translated"
 sidebar:
   order: 2050
@@ -90,7 +90,7 @@ CLIの挙動には2つのモードが必要です（MUST）:
 | 再帰の再入 | 実効的な深さ1 → `Dynamic[top]`の代わりにfixpoint戻りサマリー（`bot`からのKleene、キャップ3）;値ピンされた引数は燃料32までアンロール → foldされた定数（[ADR-55](../../adr/55-recursive-return-precision/)スライス1+2） | `ExpressionTyper#infer_user_method_return`（`BudgetTrace::RECURSION_GUARD`、`BudgetTrace::RECURSION_UNROLL_FUEL`、`BudgetTrace::RECURSION_FIXPOINT_CAP`） | いいえ —— `(receiver, method)`の再入ガード。サイクル内の再入は想定された**fixpointサマリー**を返す（スライス2: `bot`でシードされたKleene反復で、最大3回joinして再評価し、最終ラウンドで`Constant→Nominal`を拡大する;非収束は`RECURSION_FIXPOINT_CAP`を介して今日の`untyped`に崩れる）ため、再帰的な`String`ビルダーは`Dynamic`の貢献なしに`String`を返す。すべての引数が`Constant` / `Tuple`-of-`Constant`のとき、キーはさらに引数*値*で拡張され、異なる定数フレームがハードな32フレーム燃料 + 64ノード値サイズキャップ（スライス1）のもとで再帰し、素のガードへ枯渇していく。いずれもハードで設定不能な終了キャップのまま —— 表が想定する設定可能な`recursion_depth`の精度アンロールとは別物 |
 | 祖先ウォーク上限 | 100ノード | `ExpressionTyper::ANCESTOR_WALK_LIMIT`（暗黙的selfのメソッド解決） | いいえ |
 | HKTリデューサーのfuel | 64ステップ | `Inference::HktReducer::DEFAULT_FUEL`（[ADR-20](../../adr/20-lightweight-hkt/)） | いいえ（呼び出しごとの`fuel:`引数で、`.rigor.yml`ではない） |
-| 定数畳み込みサイズ | 最大13,606ビットのInteger結果（およびRationalまたはComplex結果の各Integer部分）。これは10進表現が4096バイトのString畳み込み制限に収まる最大のビット長; `Constant<Range>`レシーバーからウォークされる最大1024個の要素（終端のない範囲は超過としてカウント）（[#2115](https://github.com/rigortype/rigor/issues/2115)） | `STRING_FOLD_BYTE_LIMIT`と並ぶ`MethodDispatcher::ConstantFolding::INTEGER_FOLD_BIT_LIMIT`および`RANGE_ENUMERATION_LIMIT`。`**` / `pow` / `<<` / `>>`は呼び出しが実行される前にそのオペランドからチェックされる。端点のみを読み取るRangeメソッド（数値範囲に対する`begin`、`end`、`size`、`cover?`、`===`、および`include?` / `member?`）は範囲のサイズに関わらず畳み込まれ、Integer端点に対する引数なしの`first` / `last` / `min` / `max` / `minmax` / `count` / `size`は範囲を実体化することなく畳み込まれる | いいえ —— ビット制限を超えた数値はそのクラスに広げられ（`2 ** 100_000_000`は`Integer`、`2 ** -100_000_000`は`Rational`）、RBSの`Integer#**`の`Numeric`には広げられない;ウォーク上限を超えたRangeメソッドは辞退され、ディスパッチはRBSの戻り値型にフォールスルーする |
+| 定数畳み込みサイズ | すべてのStringを生成するfoldからの最大4096バイトのString結果（[#2125](https://github.com/rigortype/rigor/issues/2125)）;最大13,606ビットのInteger結果（およびRationalまたはComplex結果の各Integer部分）。これは10進表現が4096バイトのString畳み込み制限に収まる最大のビット長; `Constant<Range>`レシーバーからウォークされる最大1024個の要素（終端のない範囲は超過としてカウント）（[#2115](https://github.com/rigortype/rigor/issues/2115)） | `STRING_FOLD_BYTE_LIMIT`と並ぶ`MethodDispatcher::ConstantFolding::INTEGER_FOLD_BIT_LIMIT`および`RANGE_ENUMERATION_LIMIT`。`**` / `pow` / `<<` / `>>`は呼び出しが実行される前にそのオペランドからチェックされ、`String#%` / `format`の幅や精度、`center` / `ljust` / `rjust`の幅、および`sub` / `gsub`の置換も同様。端点のみを読み取るRangeメソッド（数値範囲に対する`begin`、`end`、`size`、`cover?`、`===`、および`include?` / `member?`）は範囲のサイズに関わらず畳み込まれ、Integer端点に対する引数なしの`first` / `last` / `min` / `max` / `minmax` / `count` / `size`は範囲を実体化することなく畳み込まれる | いいえ —— バイト制限を超えたStringはユニオンレシーバーのすべてのメンバーを含めfold全体を辞退し、ディスパッチは`literal-string`のリフトまたはRBSの`String`にフォールスルーする;ビット制限を超えた数値はそのクラスに広げられ（`2 ** 100_000_000`は`Integer`、`2 ** -100_000_000`は`Rational`）、RBSの`Integer#**`の`Numeric`には広げられない;ウォーク上限を超えたRangeメソッドは辞退され、ディスパッチはRBSの戻り値型にフォールスルーする |
 | `dependencies.budget_per_gem` | 5000メソッド定義（範囲1250〜20000） | [ADR-10](../../adr/10-dependency-source-inference/)のソースウォーク上限 | **はい** —— `.rigor.yml`の`dependencies.budget_per_gem:`、`dependencies.source_inference:`によるオプトイン |
 
 残りの表の行 — コストを担う`union_size`と`structural_growth`を含む — はまだ強制されていません。ターゲットとなる設計、配線計画（Layer 1のドキュメント/仕様の衛生、Layer 2の計測ゲート付き配線）、およびヒット時の`static.*`診断ポリシーは[ADR-41](../../adr/41-inference-budget-design/)に記録されています。裏付けとなる調査は[`docs/notes/20260603-inference-budget-reality-survey.md`](../../notes/20260603-inference-budget-reality-survey/)です。`RIGOR_BUDGET_TRACE`は配線済みのガードについて実行ごとのカウントを公開します。これにはADR-55スライス1の`recursion-unroll-fuel`枯渇カウンタとスライス2の`recursion-fixpoint-cap`非収束カウンタを含みます。

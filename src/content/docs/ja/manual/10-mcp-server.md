@@ -3,9 +3,9 @@ title: "Rigor MCPサーバー: AIエージェント統合"
 description: "rigortype/rigor docs/manual/10-mcp-server.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/10-mcp-server.md"
 sourcePath: "docs/manual/10-mcp-server.md"
-sourceSha: "7f91ddd31c090fe565fb20449e30c5037de1c61ff65440a65aa2051b2727b19d"
-sourceCommit: "364d4c4a260fe1512e239fe953fe93412d146820"
-sourceDate: "2026-10-19T02:53:06+09:00"
+sourceSha: "dbb90cfe30180c160b242fac4783d8c63797404b0438eb552bc3a5611cdae2c1"
+sourceCommit: "5f4adf1ec1ff7ca079371d42f8dc2c9f4649e2cc"
+sourceDate: "2026-10-20T18:16:48+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9010
@@ -57,7 +57,7 @@ rigor mcp [--transport=stdio] [--config=PATH]
 ```
 
 - `--transport=stdio`: デフォルト;v1で受け付ける唯一の値。HTTPトランスポートはv2に先送り。
-- `--config=PATH`: セッションレベルのデフォルト設定パス。個々のツール呼び出しが独自の`config`引数を提供でき、それが優先されます。どちらもない場合、`Configuration.discover`がワーキングディレクトリから`.rigor.yml` / `.rigor.dist.yml`を探索します。
+- `--config=PATH`: セッションレベルのデフォルト設定パス。個々のツール呼び出しが独自の`config`引数を提供でき、それが優先されます。ファイルが存在しないパスは、セッションのデフォルトと呼び出しごとの`config`の双方において、デフォルトへの暗黙の切り替えではなくエラーとなります（呼び出しは`isError: true`を返します）。どちらもない場合、`Configuration.discover`がワーキングディレクトリから`.rigor.yml` / `.rigor.dist.yml`を探索します。
 
 終了コード: 0（クリーンシャットダウン、stdin EOF）、64（不明な`--transport`）。
 
@@ -345,6 +345,8 @@ RubyソースファイルからRBSスケルトンシグネチャを推論して�
 ```
 
 分類: `new-file`、`new-method`、`tighter-return`、`equivalent`、`skipped`。
+
+ディレクトリでも`.rb`ファイルでもない`paths`エントリーは、`rigor_check`が使用する形式（`"message": "no such file or directory"`）で、トップレベルの`diagnostics`配列の下に報告されます。読み取られたパスと共にある場合は警告となり、1つも読み取られなかった場合はエラーとなります。`diagnostics`のない空の`candidates`リストは、生成対象が見つからなかったことを意味します。
 
 **典型的なエージェントの使い方:** `rigor_sig_gen`を呼び出してどのメソッドが`sig/`に書く価値のある精確な戻り値を持つかを確認し、候補を生成して挿入する。エージェントはシグネチャを自動的に書く**べきではありません**。候補を人間のレビューのために提示し、確認済みエントリーのみを`rigor sig-gen --write`で適用する。
 

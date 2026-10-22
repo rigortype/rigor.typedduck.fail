@@ -3,8 +3,9 @@ title: "rigor-devise"
 description: "rigortype/rigor docs/manual/plugins/rigor-devise.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/plugins/rigor-devise.md"
 sourcePath: "docs/manual/plugins/rigor-devise.md"
-sourceSha: "d80036dfc9fa5c09e2d523755c33405fce973d7ad4e94bd34c34bf9df2d2a44d"
-sourceCommit: "2d0ffe6f38d01cfd850527c57987b27487b414d4"
+sourceSha: "01dc89ad7380e2bf9a8c4bb8d597b3cb56772b6e9ac9a5f38a79f365cde61d0b"
+sourceCommit: "5f4adf1ec1ff7ca079371d42f8dc2c9f4649e2cc"
+sourceDate: "2026-10-22T14:26:09+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9050
@@ -40,6 +41,8 @@ user.send_reset_password_instructions   # （モジュールのRBSの戻り値�
 
 ## 制限事項
 
+- **DeviseモジュールのRBSが必要**。メソッドは各ストラテジーモジュールのシグネチャ（`Devise::Models::DatabaseAuthenticatable`など）から提供されますが、これらはRigorに同梱されておらず、`devise` gemも出荷していません。`signature_paths:`（または`rbs collection`）経由で提供してください;シグネチャのないストラテジーモジュールは何も提供せず、モデルの`valid_password?`などはそのままになります。`plugins/rigor-devise/demo/sig/devise.rbs`が最小限の例です。
+- **自身の定義が優先される**。モデル自身が定義したメソッド（`def`、`alias_method`、`attr_*`、`define_method`、`delegate`）、またはモデルがインクルードもしくはプリペンドしているプロジェクトのモジュールが定義したメソッドは、Deviseモジュールから型付けされるのではなくその定義に委ねられます。これは実行時にDeviseのモジュールがオーバーライドするような、`devise`呼び出しより前にインクルードされたモジュールに対しても成り立ちます。モジュール自身のパブリックメソッドのみが提供されます。
 - **インスタンスメソッドのみ**。モジュールごとの`ClassMethods`（例: `User.reset_password_by_token`）はまだ合成されません。
 - **コントローラーヘルパーは保留**。`current_user`／`authenticate_user!`／`user_signed_in?`は、モデルの宣言ではなくルーティングファイルの`devise_for :users`に由来する（Tier Cの作業）ため、まだ提供されません。
 - **サードパーティのストラテジーはスキャンされない**。イニシャライザで`Devise.add_module :foo`を介して登録されたストラテジーは、バンドルされたストラテジーテーブルにとって未知です。

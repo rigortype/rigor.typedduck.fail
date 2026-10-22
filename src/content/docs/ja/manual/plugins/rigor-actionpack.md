@@ -3,9 +3,9 @@ title: "rigor-actionpack"
 description: "rigortype/rigor docs/manual/plugins/rigor-actionpack.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/plugins/rigor-actionpack.md"
 sourcePath: "docs/manual/plugins/rigor-actionpack.md"
-sourceSha: "6f10443ac88b24c0d29f389a1787d39485a7c90da3dfa844eef64f5dd4dc6a6d"
-sourceCommit: "32fcfb01032273679a99853a37f53a6e842b3330"
-sourceDate: "2026-09-24T17:29:28+09:00"
+sourceSha: "39660f8d1dd62edb671750aabb52187fd3a0c64882ca94c0de5f6ab40e129589"
+sourceCommit: "5f4adf1ec1ff7ca079371d42f8dc2c9f4649e2cc"
+sourceDate: "2026-10-22T22:48:12+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9050
@@ -42,6 +42,16 @@ plugins:
 | `plugin.actionpack.missing-template` | error | 明示的な`render`が、いずれの`view_search_paths`下にも存在しないビューパスに解決された |
 | `plugin.actionpack.permit-call` | info | `params.require(:m).permit(:key, …)`チェーンが既知のモデルに解決された。キーはそのカラムに対して照合された |
 | `plugin.actionpack.unknown-permit-key` | error | リテラルの`permit(:key)`が実在するカラムの近傍ミス（編集距離 ≤ 2）だがそのカラムではない —— タイポの可能性が高い（「もしかして」付き）。どのカラムにも似ていないキー（正当な仮想属性）は発火しない |
+
+また、このプラグインはコントローラーがインスタンスごとに1つのアクションを実行することをエンジンに伝えます（[ADR-125](../../../adr/125-per-invocation-classes/)）。マニフェストの`per_invocation_classes:`に`ActionController::Base`と`ActionController::API`を記載しています。また、コールバックマクロ（`before_action`など）や`helper_method`を`per_invocation_non_action_macros:`に記載しているため、それらが指定する名前のメソッドはアクションではありません。
+
+そのため、`index`が`@roles = Role.sorted.to_a`を代入し、`permissions`が`@roles = Role.sorted`を代入する場合でも、`def.ivar-write-mismatch`は沈黙を保ちます。privateやprotectedのヘルパー、`initialize`、または同一アクション内の2つの書き込みが関係する不一致は引き続き報告されます。また、メソッドと同じファイル内にあるマクロが指名しているコールバック対象や`helper_method`が関係する場合も引き続き報告されます。Concernモジュールで定義されたアクションや、`ActionController::Metal`コントローラーも引き続き報告されます。
+
+以下の形状は沈黙を保ちます:
+
+- `ApplicationController`など、別ファイルまたはConcern内のマクロからのみ指定されているpublicメソッド
+- ラムダコールバックが到達するpublicメソッド（`before_action -> { load_roles }`）
+- 別のアクションを呼び出すアクション
 
 フィルタとレンダーの解決は、ネストしたモジュールによるコントローラーの修飾（`module Admin; class WidgetsController`は`admin/widgets/…`下のビューを解決する）を尊重し、参照できないgem提供の親クラスについては沈黙します。
 

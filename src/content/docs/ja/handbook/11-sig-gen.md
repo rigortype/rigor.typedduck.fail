@@ -3,9 +3,9 @@ title: "`rigor sig-gen`でRBSを生成する"
 description: "rigortype/rigor docs/handbook/11-sig-gen.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/11-sig-gen.md"
 sourcePath: "docs/handbook/11-sig-gen.md"
-sourceSha: "e88a6a999ea479e8a4a784dc47897a273f8c4dc11e36c6cf091c9fb57c6fe87a"
-sourceCommit: "273bb9f9580739b38f93e5900e83979002290514"
-sourceDate: "2026-10-18T10:18:05+09:00"
+sourceSha: "86c7adabbffbd2e1538dd06bc6b754c4eb8fa01fadb4d2033e1da8ca21d0bcda"
+sourceCommit: "5f4adf1ec1ff7ca079371d42f8dc2c9f4649e2cc"
+sourceDate: "2026-10-20T12:43:45+09:00"
 translationStatus: "translated"
 sidebar:
   order: 1011
@@ -261,7 +261,7 @@ end
 
 `void`の戻り値にはマーカーは不要です。`sig-gen`が`void`に対して値を提案することは決してありません: `void`は戻り値が契約の一部ではないことを意味し、いかなる推論もそれを合成しないため、`void`宣言はパラメータ型と同様に著者の意図そのものです（[ADR-14](../../adr/14-rbs-sig-generation/) §「推論vs RBS矛盾ルール」）。
 
-本体がリテラルとして証明する宣言にも不要です。本体が文字列`"bot"`である`def describe: () -> String`に対して、`sig-gen`が`"bot"`を提案することはありません: 宣言された型はその本体に対するあなたの抽象化であり、リテラルに固定してしまうとすべての兄弟クラスが共有する契約を書き換えてしまうことになります。`sig/`内に手書きした宣言された`untyped`も、値リテラルに対して同様に扱われます: 本体が証明するInteger、String、またはSymbolはそのクラスへと広げられます（`-> 1`は`-> Integer`に、`-> ("S" | nil)`は`-> (String | nil)`になります）。一方、`nil`、`true`、`false`、および計算された`Float`はそのまま提案されます。アノテーションを付けなかった`def`に対してインラインリーダーのみが合成する`untyped`はリテラルを保持し、いかなる`.rbs`も宣言していないメソッドも同様です ── リテラルは依然として本体が証明する最も厳密なものであり、それが書き出されます。
+本体がリテラルとして証明する宣言にも不要です。本体が文字列`"bot"`である`def describe: () -> String`に対して、`sig-gen`が`"bot"`を提案することはありません: 宣言された型はその本体に対するあなたの抽象化であり、リテラルに固定してしまうとすべての兄弟クラスが共有する契約を書き換えてしまうことになります。`sig/`内に手書きした宣言された`untyped`も、値リテラルに対して同様に扱われます: 本体が証明するInteger、String、またはSymbolはそのクラスへと広げられ（`-> 1`は`-> Integer`に、`-> ("S" | nil)`は`-> (String | nil)`になります）、`true`や`false`は`bool`（`(false | true)`と表記）へと広げられるため、他方でメソッドをオーバーライドするサブクラスが戻り値を広げていると報告されることはありません。`nil`のみを返す本体は`untyped`を維持します: これはサブクラスが肉付けするテンプレートメソッドの形状であり、`-> nil`にすると値を返すあらゆるオーバーライドが広げられたとみなされてしまうためです。タプル、レコード、または型引数の内側にあるリテラルも、形状を保ったまま同様に広げられます（`-> [1, "a"]`は`-> [Integer, String]`に、`-> { a: 1 }`は`-> { a: Integer }`になります）。ジェネリック型の中では、`Array`、`Hash`、`Set`、`Range`、`Enumerator`の引数のみが広げられます。ユニオンまたは形状の内側の`nil`、および計算された`Float`はそのまま提案されます。メソッドがパラメータのみに対するインライン`# @rbs`アノテーションも持っている場合、ネストされているかどうかにかかわらず、広げられる対象のリテラルを保持する戻り値は一切提案されず、`untyped`が維持されます。アノテーションを付けなかった`def`に対してインラインリーダーのみが合成する`untyped`はリテラルを保持し、いかなる`.rbs`も宣言していないメソッドも同様です ── リテラルは依然として本体が証明する最も厳密なものであり、それが書き出されます。
 
 `%a{…}`アノテーションではなくコメントにするのには3つの理由があります: `rigor:v1:`ディレクティブ名前空間（[`docs/type-specification/rbs-extended.md`](../../type-specification/rbs-extended/)）の外側に留まること、どのエンジンパスもそれを読み込まないこと、そして`RBS::Parser`がそれをメンバーにバインドするため、チェック処理が行を走査する代わりにAST上でそれを見つけられることです。issue番号は耐荷重となる半分です ── ジェネレータが回答できるようになるエンジンの作業を指し示しており、手書きのRBSへと促すギャップこそがより価値の高いシグナルであるという[ADR-14](../../adr/14-rbs-sig-generation/)のルールに基づいています。
 

@@ -3,9 +3,9 @@ title: "rigor-rspec"
 description: "rigortype/rigor docs/manual/plugins/rigor-rspec.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/plugins/rigor-rspec.md"
 sourcePath: "docs/manual/plugins/rigor-rspec.md"
-sourceSha: "bf738aa166e7d9194e9cba5867067acaf425366cc24aa00f74bc2da643ead19c"
-sourceCommit: "273bb9f9580739b38f93e5900e83979002290514"
-sourceDate: "2026-10-17T06:23:30+09:00"
+sourceSha: "f9209aed3cfdc10ed6c62935446a2de6b87f3d04fcac18f34a386acbf0b5ecc6"
+sourceCommit: "5f4adf1ec1ff7ca079371d42f8dc2c9f4649e2cc"
+sourceDate: "2026-10-21T04:29:42+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9050
@@ -66,10 +66,11 @@ end
 | `eq(literal)` / `eql(literal)` | `Constant<literal>`とのmeet（下記参照） |
 | `be_a(T)` / `be_kind_of(T)` / `be_instance_of(T)` / `be_an_instance_of(T)` | `T`とのmeet |
 | `be_nil` | `Constant<nil>`への絞り込み |
-| `match(/regex/)` | `String`への絞り込み |
+| `match(/regex/)` | `String`および`Symbol`メンバーを保持し、`Object`、`BasicObject`またはモジュールメンバーを`String \| Symbol`として読み取り、`nil`、`true`、`false`および数値メンバーを除去（プロジェクトがそれらに`match`、`to_str`、`==`を定義している場合を除く）;メンバーがそれ以外の何らかである可能性がある場合は変更なし |
 | `not_to be_nil` / `to_not be_nil` | `nil`の除外 |
 | `not_to be_a(T)` / `not_to be_kind_of(T)` / `not_to be_instance_of(T)` / `not_to be_an_instance_of(T)` | `T`の除外 |
 | `not_to eq(literal)` / `not_to eql(literal)`（および`to_not`） | 変更なし（下記参照） |
+| `not_to match(/regex/)`（および`to_not`） | 変更なし: マッチしない`String`はパスするため |
 
 他のマッチャーは何も発行しません。`be_truthy`は絞り込まれず、`expect { ... }.to raise_error(...)`（ブロック形式）や、引数がローカル変数でない`expect(foo.bar)`も絞り込まれません。
 

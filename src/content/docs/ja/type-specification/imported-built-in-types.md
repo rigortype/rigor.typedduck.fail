@@ -3,9 +3,9 @@ title: "インポートされた組み込み型"
 description: "rigortype/rigor docs/type-specification/imported-built-in-types.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/type-specification/imported-built-in-types.md"
 sourcePath: "docs/type-specification/imported-built-in-types.md"
-sourceSha: "01a667741e4c9a9bf7d4d36493fbc8a7ab721fbae8fbacbf5ee78c02c00f04a2"
-sourceCommit: "32fcfb01032273679a99853a37f53a6e842b3330"
-sourceDate: "2026-09-24T03:40:23+09:00"
+sourceSha: "284ba0ad3ff2c61bd057b2a1a0ffe11d4b712d7b06fead000d6e160d0f685eea"
+sourceCommit: "5f4adf1ec1ff7ca079371d42f8dc2c9f4649e2cc"
+sourceDate: "2026-10-21T03:18:28+09:00"
 translationStatus: "translated"
 sidebar:
   order: 2050
@@ -71,6 +71,7 @@ RigorはPHPStan、TypeScript、Pythonタイピングから、明確なRubyの意
 非整数数値リファインメントには別のルールがあります:
 
 - `Float`リテラル等価と網羅性ナローイング（narrowing）はデフォルトで拒否されます。`NaN`、無限大、符号付きゼロ、強制変換に敏感な比較はリテラルパーティションを誤って述べやすくします。Rigorはfloat比較から関係的ファクト（fact）を保持する場合があります（MAY）。
+- `Float`リテラルキャリアはその`==`同値類ではなく値をピン留めします: `1.0 / 0.0`と`1.0 / -0.0`は異なるため、`0.0`と`-0.0`は別個のキャリアであり、`0.0 | -0.0`は両方のメンバーを保持します（[#1513](https://github.com/rigortype/rigor/issues/1513)）。`Complex`リテラルも各部分を同様に比較します。`NaN != NaN`であるにもかかわらずキャリアの等価性は`NaN`に対して反射的であり続けるため、`NaN`の結果が繰り返されてもユニオンメンバーが増殖することはありません。Ruby自身の`==` / `eql?`によるナローイング（`x == 0.0`）は依然としてRubyに従い、2つのゼロは等しいとみなされます。
 - `Float`範囲は同じ`cover?`定義に従います（[ADR-109](../../adr/109-ruby-native-range-notation/) WD4）: `Float[R]`は`{ x | x.is_a?(Float) && R.cover?(x) }`であり、`FloatRange`キャリアによって表示され、`Float`へと消去されます。`Float[0.0...1.0]`は半開区間、`Float[0.0..]`は`+Infinity`で閉じており、`Float[0.0...Float::INFINITY]`は有限かつ非負であり、いかなる有界な範囲も`NaN`を含みません。終端はFloatまたはIntegerリテラル（`(0..1).cover?(0.5)`と同様にIntegerは強制変換される）、明記された定数`Float::INFINITY`、`-Float::INFINITY`、`Float::MAX`、`-Float::MAX`、またはその側の無限大を表す省略 / `nil`です; `(nil..nil).cover?(Float::NAN)`は真であるため`Float[nil..nil]`は`Float`自体に正規化され、空の範囲（`Float[2.0..1.0]`、`Float[1.0...1.0]`）は解決不能なペイロードとして拒絶されなければなりません（MUST decline）。同じ倍精度浮動小数点数をカバーする2つの表記は同一の型です（`Float[0.0...1.0]`は`Float[0.0..0.9999999999999999]`と等しい）;表示は書かれた終端を保持します。2つの名前は範囲のエイリアスであり、独立したNaN性リファインメントではありません: `non-nan-float`は`Float[-Float::INFINITY..]`、`finite-float`は`Float[-Float::MAX..Float::MAX]`です;表示は名前を優先します。`FloatRange`は`Float`および`Float`のis-a関係にあるものによって受け入れられます;カバーされるFloatリテラルと含まれる`FloatRange`を受け入れ、`Float`自体は決して受け入れません（`Float`は`NaN`の可能性があるため）。`Float::NAN`は`Constant`キャリアになってはなりません（MUST NOT）。
 - `Float`比較ナローイング（ADR-109 WD5）は真値エッジのみをナローイングします: `x > c`および`x >= c`は閉じた`Float[c..]`へ（厳密な`(c, ∞]`よりも倍精度1つ分広い;厳密な`Float[c.next_float..]`はルールが除外された点を要求するまで延期される）、`x < c`は`Float[...c]`へ、`x <= c`は`Float[..c]`へ、`x.between?(a, b)`は`Float[a..b]`へナローイングし、それぞれより厳密な側で既存の範囲と交差します。偽値エッジは進入時の型を維持しなければなりません（MUST）。`!(x > c)`が`NaN`を許容するためです。`x.nan?`はその偽値エッジのみを`non-nan-float`へナローイングし、`x.finite?`はその真値エッジのみを`finite-float`へナローイングします。ユニオンでは、`Float`メンバーは任意の`FloatRange`メンバーを吸収し、`FloatRange`メンバーはそれが含むものを吸収するため、ガードの後の結合は1つの集合を指名します —— そして同じ吸収は同アリティのタプルまたは同一形状のハッシュシェイプの`Float`要素にも及びます（[normalization.md](../normalization/) §「メンバーの吸収」）。規範的な述語カタログは[control-flow-analysis.md](../control-flow-analysis/)です。
 - `Float#to_s`（および同一の値である`#inspect`）は、レシーバーに関する有限性の証明がある場合にのみ`numeric-string`に達します: `finite-float`、両方の境界が有限な倍精度浮動小数点数である任意の`FloatRange`、または有限な`Float`リテラル（このルールではなく定数畳み込みによって直接畳み込まれる）です。`Float[0.0..]`は意図的にそのような証明では**ありません** —— その終わりのない上界は`Float::INFINITY`です —— 一方で`Float[0.0...Float::INFINITY]`は証明となります。排他的な終端によって正規境界が`Float::MAX`に落ちるためです。有限性の証明がない場合、結果は`non-empty-string`にのみなります: `Float::INFINITY`、`-Float::INFINITY`、および`Float::NAN`はすべて、Rubyの数値リテラルではない非空の文字列（`"Infinity"`、`"-Infinity"`、`"NaN"`）として印字されます。

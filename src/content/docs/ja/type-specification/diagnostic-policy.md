@@ -3,9 +3,9 @@ title: "診断ポリシー"
 description: "rigortype/rigor docs/type-specification/diagnostic-policy.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/type-specification/diagnostic-policy.md"
 sourcePath: "docs/type-specification/diagnostic-policy.md"
-sourceSha: "7f36c8bb2b3fd8b0e8f0c8212857651240a9af42d3155aed8cadbeb174355c2f"
-sourceCommit: "273bb9f9580739b38f93e5900e83979002290514"
-sourceDate: "2026-10-18T20:43:42+09:00"
+sourceSha: "ae1b71dfbf3ffab4f12bda161b33e200f344637ceb5fdac44f28edeef9180cc7"
+sourceCommit: "5f4adf1ec1ff7ca079371d42f8dc2c9f4649e2cc"
+sourceDate: "2026-10-22T11:08:39+09:00"
 translationStatus: "translated"
 sidebar:
   order: 2050
@@ -85,7 +85,7 @@ Rigorは静かな拡幅よりも精密な診断を優先すべきです（SHOULD
 これを駆動する`.rigor.yml`キーは2つあります（[ADR-8](../../adr/8-steep-inspired-improvements/)）:
 
 - `severity_profile:` — `lenient` / `balanced`（デフォルト）/ `strict`のいずれか。各プロファイルは正規ルールidを深刻度にマップするルールごとのテーブルで、プロファイルは`:error`の広さと採用しやすさをトレードオフします（`lenient`は不確実なルールを`:warning`/`:off`に落とし、`strict`はすべてのルールを`:error`に上げます）。アクティブプロファイルのテーブルに存在しないルールは著者が定めた深刻度を保ちます。
-- `severity_overrides:` — `{ rule_id => severity }`マップ。キーは正確な正規ルールid（`call.undefined-method`）か、**ファミリーワイルドカード**（`call`）——最初のドット区切りセグメントがキーに等しいすべてのルールにマッチします。プラグイン自身の行（ソースファミリー`plugin.<id>`）は例外です: その修飾id（`plugin.<id>.<rule>`、その`qualified_rule`）またはプラグイン全体の`plugin.<id>`にのみ応答し、素のルールやファミリーワイルドカードには決して応答しません（issue #1985、#1953以降の`disable:`と同様）。プラグインローダーの行は`plugin_loader.<rule>`に応答し、その後に素の`load-error` / `runtime-error`に応答します。
+- `severity_overrides:` — `{ rule_id => severity }`マップ。キーは正確な正規ルールid（`call.undefined-method`）か、**ファミリーワイルドカード**（`call`）——最初のドット区切りセグメントがキーに等しいすべてのルールにマッチします。`disable:`とは異なり、プレフィックスのないレガシーエイリアス（`undefined-method`）はここでは正規idにマップされません: キーは効果を持たず、`ConfigAudit`がそれについて警告します（issue #2005）。プラグイン自身の行（ソースファミリー`plugin.<id>`）は例外です: その修飾id（`plugin.<id>.<rule>`、その`qualified_rule`）またはプラグイン全体の`plugin.<id>`にのみ応答し、素のルールやファミリーワイルドカードには決して応答しません（issue #1985、#1953以降の`disable:`と同様）。プラグインローダーの行は`plugin_loader.<rule>`に応答し、その後に素の`load-error` / `runtime-error`に応答します。
 
 解決された深刻度は`:error` / `:warning` / `:info` / `:off`のいずれかです;**`:off`は診断を完全にドロップします**。`Configuration::SeverityProfile.resolve`はこの優先順位（高い順）をMUST適用します:
 
@@ -138,7 +138,7 @@ Rigorネイティブのマーカーは、PHPStanのアノテーションの感�
 
 `disable:`リストは、チェックルールカタログ外の実行レベルの行——プラグインローダーの`load-error`および`runtime-error`（`plugin_loader.*`）、`dynamic.dependency-source.*`、`rbs.coverage.*`、`plugin_trust.*`、`pool-degraded`——には届きません（独自の抑制パイプラインを持つ`pre-eval.*`行を除く）。どの表記もこれらには届きません: プレフィックスのないidも、修飾id（`plugin_loader.load-error`）も、`all`も届きません。これらは`severity_overrides:`およびベースラインに、ローダーの`plugin_loader.load-error` / `plugin_loader.runtime-error`またはその素の`load-error` / `runtime-error`によって応じます;素のキーはプラグイン自身の`plugin.<id>.load-error`行を再スタンプしません（issue #1985）。
 
-`ConfigAudit`は、どの行にも届かない`disable:`トークンについて警告します: 上記の予約された実行レベルの行を名指しするもの（任意の表記）、`plugins:`が設定していないプラグインの`plugin.`修飾トークン（ロードせずに各エントリーのマニフェストidが既知である場合にのみチェックされます——明示的な`id:`、またはバンドルされたプラグインのgem名から`rigor-`を除いたもの）、および`all`、ファミリー、旧来のエイリアス、カタログid、`pre-eval.*` idのいずれでもないその他のトークン（プラグインのプレフィックスなしルールを含む）。非チェックエンジンファミリー配下のトークン（`rbs_extended.*`、`rbs.*`、`dynamic.*`）または既知の非カタログエンジンidはフラグされません。`ConfigAudit`は`severity_overrides:`キーも同様にフラグを立てます（issue #1985）: `plugins:`が設定していないプラグインを名指しする`plugin.`修飾キー、`all`、どちらのローダー行も名指ししていない`plugin_loader.`キー、ルールを名指ししていない組み込みファミリー内のキー、およびカタログと非チェックエンジンidの外側にあるその他のキー（プラグインの素のルールを含む）。予約された実行レベルの行は決してそこではフラグを立てられません。このマップこそがそれらを調整する場所だからです。警告は標準エラー出力および`config_warnings`に出力され、終了ステータスは変更されません。
+`ConfigAudit`は、どの行にも届かない`disable:`トークンについて警告します: 上記の予約された実行レベルの行を名指しするもの（任意の表記）、`plugins:`が設定していないプラグインの`plugin.`修飾トークン（ロードせずに各エントリーのマニフェストidが既知である場合にのみチェックされます——明示的な`id:`、またはバンドルされたプラグインのgem名から`rigor-`を除いたもの）、および`all`、ファミリー、旧来のエイリアス、カタログid、`pre-eval.*` idのいずれでもないその他のトークン（プラグインのプレフィックスなしルールを含む）。非チェックエンジンファミリー配下のトークン（`rbs_extended.*`、`rbs.*`、`dynamic.*`）または既知の非カタログエンジンidはフラグされません。`ConfigAudit`は`severity_overrides:`キーも同様にフラグを立てます（issue #1985）: `plugins:`が設定していないプラグインを名指しする`plugin.`修飾キー、`all`、どちらのローダー行も名指ししていない`plugin_loader.`キー、ルールを名指ししていない組み込みファミリー内のキー、プレフィックスのないレガシーエイリアス（`disable:`のようにマップされないため、監査はその正規idで名指しします）、およびカタログと非チェックエンジンidの外側にあるその他のキー（プラグインの素のルールを含む）。予約された実行レベルの行は決してそこではフラグを立てられません。このマップこそがそれらを調整する場所だからです。警告は標準エラー出力および`config_warnings`に出力され、終了ステータスは変更されません。
 
 ### エコシステム互換マーカー（計画中、未実装）
 
