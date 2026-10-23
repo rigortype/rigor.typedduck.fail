@@ -3,9 +3,9 @@ title: "rigor-actionpack"
 description: "rigortype/rigor docs/manual/plugins/rigor-actionpack.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/plugins/rigor-actionpack.md"
 sourcePath: "docs/manual/plugins/rigor-actionpack.md"
-sourceSha: "39660f8d1dd62edb671750aabb52187fd3a0c64882ca94c0de5f6ab40e129589"
-sourceCommit: "5f4adf1ec1ff7ca079371d42f8dc2c9f4649e2cc"
-sourceDate: "2026-10-22T22:48:12+09:00"
+sourceSha: "60003289ff9616e3350baef6a355edfba25bc84c56ed72b110c6984c7ca93dde"
+sourceCommit: "25e6377322a0890fcf1ba9f49863180c8487fb36"
+sourceDate: "2026-10-23T06:30:21+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9050
@@ -46,6 +46,8 @@ plugins:
 また、このプラグインはコントローラーがインスタンスごとに1つのアクションを実行することをエンジンに伝えます（[ADR-125](../../../adr/125-per-invocation-classes/)）。マニフェストの`per_invocation_classes:`に`ActionController::Base`と`ActionController::API`を記載しています。また、コールバックマクロ（`before_action`など）や`helper_method`を`per_invocation_non_action_macros:`に記載しているため、それらが指定する名前のメソッドはアクションではありません。
 
 そのため、`index`が`@roles = Role.sorted.to_a`を代入し、`permissions`が`@roles = Role.sorted`を代入する場合でも、`def.ivar-write-mismatch`は沈黙を保ちます。privateやprotectedのヘルパー、`initialize`、または同一アクション内の2つの書き込みが関係する不一致は引き続き報告されます。また、メソッドと同じファイル内にあるマクロが指名しているコールバック対象や`helper_method`が関係する場合も引き続き報告されます。Concernモジュールで定義されたアクションや、`ActionController::Metal`コントローラーも引き続き報告されます。
+
+マクロが記載されていないため、2つの形状は沈黙を保ちます: `rescue_from X, with: :handler`や`layout :method_name`によって指定されたpublicメソッドはアクションとして扱われ、ラムダコールバック（`before_action -> { load_roles }`）が到達するメソッドも同様です（修正は[#2320](https://github.com/rigortype/rigor/issues/2320)で追跡されています）。
 
 以下の形状は沈黙を保ちます:
 

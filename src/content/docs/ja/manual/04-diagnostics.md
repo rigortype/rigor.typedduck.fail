@@ -3,9 +3,9 @@ title: "診断"
 description: "rigortype/rigor docs/manual/04-diagnostics.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/04-diagnostics.md"
 sourcePath: "docs/manual/04-diagnostics.md"
-sourceSha: "8598ca8f1fac12c94160cf17e5a36524bd3a04b08e71b7da59129ac6c79d44e5"
-sourceCommit: "5f4adf1ec1ff7ca079371d42f8dc2c9f4649e2cc"
-sourceDate: "2026-10-22T22:48:12+09:00"
+sourceSha: "c240a55bdffd9c59c8584643298c0a81b31152d03dd72a255e6985552e6a1fe6"
+sourceCommit: "25e6377322a0890fcf1ba9f49863180c8487fb36"
+sourceDate: "2026-10-23T02:03:28+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9004
@@ -58,7 +58,7 @@ app/user.rb:11:3: error: undefined method `lenght' for "hello" [call.undefined-m
 | <a id="rule-flow-return-in-ensure"></a>`flow.return-in-ensure` | `ensure`節内の明示的な`return`。メソッドの実行中の戻り値を上書きし、実行中の例外を静かに握りつぶす。`ensure`内のネストした`def`、ラムダ、`define_method`ブロック内の`return`は発火しない（それは内側のフレームを抜けるだけ）。 | high |
 | <a id="rule-flow-shadowed-rescue-clause"></a>`flow.shadowed-rescue-clause` | 同じチェーンの先行する節が、この節の挙げるすべての例外クラスのスーパークラス（または同一クラス）をすでに捕捉するため、この`rescue`節が決して実行されない。 | high |
 | <a id="rule-def-return-type-mismatch"></a>`def.return-type-mismatch` | メソッドボディの結果が宣言されたRBSの戻り値型に違反する。 | medium |
-| <a id="rule-def-ivar-write-mismatch"></a>`def.ivar-write-mismatch` | そのRBS宣言（`@x: T`または`attr_*`メンバー）が両方の書き込みを許容している場合を除き、インスタンス変数が最初の書き込みと異なる型で書かれる。`rigor-actionpack`が読み込まれている場合、Railsはコントローラーインスタンスごとに1つのアクションを実行するため、コントローラーの異なる2つのアクションでの書き込みは比較されません。privateやprotectedのヘルパー、`initialize`、または同一アクション内での書き込みは引き続き比較され、同一ファイル内のマクロが指定するコールバック対象や`helper_method`での書き込みも同様です。別ファイルまたはConcern内のマクロからのみ指定されているpublicメソッドや、ラムダコールバックを通じて到達するpublicメソッドはアクションとして扱われ、別のアクションが呼び出すアクションも同様です。 | high |
+| <a id="rule-def-ivar-write-mismatch"></a>`def.ivar-write-mismatch` | そのRBS宣言（`@x: T`または`attr_*`メンバー）が両方の書き込みを許容している場合を除き、インスタンス変数が最初の書き込みと異なる型で書かれる。`rigor-actionpack`または`rigor-actionmailer`が読み込まれている場合、Railsはインスタンスごとに1つのアクションを実行するため、コントローラーまたはメーラーの異なる2つのアクションでの書き込みは比較されません。privateやprotectedのヘルパー、`initialize`、または同一アクション内での書き込みは引き続き比較され、同一ファイル内のマクロが指定するコールバック対象や`helper_method`での書き込みも同様です。別ファイルまたはConcern内のマクロからのみ指定されているpublicメソッドや、ラムダコールバックを通じて到達するpublicメソッドはアクションとして扱われ、別のアクションが呼び出すアクションも同様です。 | high |
 | <a id="rule-def-method-visibility-mismatch"></a>`def.method-visibility-mismatch` | 明示的レシーバーの呼び出しがprivateメソッドに到達する。 | high |
 | <a id="rule-def-override-visibility-reduced"></a>`def.override-visibility-reduced` | オーバーライドが、プロジェクト定義の祖先から継承した可視性を下げる。 | high |
 | <a id="rule-def-override-return-widened"></a>`def.override-return-widened` | オーバーライドの宣言された戻り値型が、継承した戻り値型を広げる（共変性）。 | high |

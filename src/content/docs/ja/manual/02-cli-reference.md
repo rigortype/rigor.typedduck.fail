@@ -3,9 +3,9 @@ title: "CLIコマンドリファレンス"
 description: "rigortype/rigor docs/manual/02-cli-reference.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/02-cli-reference.md"
 sourcePath: "docs/manual/02-cli-reference.md"
-sourceSha: "bc8b5a79c7b5478b8c16cce91aef5bcbdc051c76ed787a8a062d5ed9d16c90bb"
-sourceCommit: "5f4adf1ec1ff7ca079371d42f8dc2c9f4649e2cc"
-sourceDate: "2026-10-22T13:48:05+09:00"
+sourceSha: "02999976f6fcf92abedfd127ca3bc18f44f99703fb030578ad5fbb02f1ab151d"
+sourceCommit: "25e6377322a0890fcf1ba9f49863180c8487fb36"
+sourceDate: "2026-10-23T02:03:28+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9002
@@ -467,6 +467,8 @@ rigor mcp [--transport=stdio] [--config=PATH]
 `.rigor.yml`に設定された各プラグインの有効化状態（ロード済み、ロードエラー（理由付き）、各プラグインの宣言した拡張サーフェス（surface））を報告します。[プラグイン](../07-plugins/)を参照してください。
 
 ロードされた各プラグインの行は、解決された実際のロード元ファイルも報告します（テキストでは`path:`の行、JSONでは`"path"`キー）。そのため、古いインストール済みgemが新しいチェックアウトのバンドル済みプラグインコピーを覆い隠している場合、その不一致が一目で分かります。
+
+`per_invocation_classes:`または`per_invocation_non_action_macros:`（[ADR-125](../../adr/125-per-invocation-classes/)）を宣言しているプラグインは、テキストではそれぞれに対する行が、JSONではキー（何も宣言していない場合は空配列）が与えられます。
 
 ```sh
 rigor plugins [--format=text|json] [--strict] [--capabilities] [--config=PATH]

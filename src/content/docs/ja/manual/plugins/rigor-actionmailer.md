@@ -3,8 +3,9 @@ title: "rigor-actionmailer"
 description: "rigortype/rigor docs/manual/plugins/rigor-actionmailer.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/plugins/rigor-actionmailer.md"
 sourcePath: "docs/manual/plugins/rigor-actionmailer.md"
-sourceSha: "5f9b8a5e7c0dc3066d56927809f967b8eb3d65fac326e87cf50c850c5ab01fad"
-sourceCommit: "5fab9b52937efba652b9f6ecde1bb0a9954a9f77"
+sourceSha: "e8382b5c56747f453ff8431893b564dd51c957a9afdcdfb3be5de28d29360463"
+sourceCommit: "25e6377322a0890fcf1ba9f49863180c8487fb36"
+sourceDate: "2026-10-23T06:30:21+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9050
@@ -52,6 +53,18 @@ plugins:
 - **標準のビューファイル名パターンのみ**（`<action>.{html,text}.{erb,haml,slim}`）。カスタムエンジン／ビューパスは対象外です。
 - 真新しいビューファイルは、メーラーファイルが参照する何かが変わるまでキャッシュされたインデックスを無効化しません（リード追跡のトレードオフです）。
 - **[`rigor unused`](../../02-cli-reference/#rigor-unused)向けのルートは公開しません**。`MyMailer.welcome(...)`はメーラーを通常の定数として名指ししており、レポートはそれを既に記録しています。代わりに`app/mailers`配下のすべてのクラスをルートにすれば、何も送信しないメーラーを、証拠なしに永久に到達可能とマークしてしまいます。
+
+## アクション間でのインスタンス変数の書き込み
+
+このプラグインは、メーラーがインスタンスごとに1つのアクションを実行することをエンジンに伝えます（[ADR-125](../../../adr/125-per-invocation-classes/)）。マニフェストの`per_invocation_classes:`に`ActionMailer::Base`を記載し、コールバックマクロ（`before_action`など）や`helper_method`を`per_invocation_non_action_macros:`に記載しているため、それらが指定する名前のメソッドはアクションではありません。
+
+そのため、`welcome`が`@items = [1, 2]`を代入し、`digest`が`@items = { a: 1 }`を代入する場合でも、[`def.ivar-write-mismatch`](../../04-diagnostics/#rule-def-ivar-write-mismatch)は沈黙を保ちます。同一アクション内での2つの異なる書き込みや、privateやprotectedのヘルパー、`initialize`、または同一ファイル内のマクロが指名するコールバック対象や`helper_method`が関係する不一致は引き続き報告されます。
+
+コールバックマクロには、アクション自身のインスタンス上で実行される`before_deliver`、`after_deliver`、`around_deliver`が含まれます。
+
+マクロが記載されていないため、2つの形状は沈黙を保ちます: `rescue_from X, with: :handler`や`layout :method_name`によって指定されたpublicメソッドはアクションとして扱われ、ラムダコールバック（`before_action -> { load_roles }`）が到達するメソッドも同様です（修正は[#2320](https://github.com/rigortype/rigor/issues/2320)で追跡されています）。
+
+可視性はソースの順序で読み取られます。これはRailsがpublicインスタンスメソッドから`action_methods`を構築するのと同様です。最終的にprotectedまたはprivateになるメソッドはアクションではありません: 単独の`protected`や`private`の後にあるか、`private :x`や`protected :x`で指定されているか、インラインで定義（`private def x`）されている場合です。`public :x`や`public def x`によって再びアクションになります。そのため、ビューテンプレートのチェックは行われなくなり、呼び出し（`UserMailer.helper`）はエラー重要度で`unknown-action`を報告します（Railsが`NoMethodError`を発生させるため）。
 
 ## プラグイン内部
 
