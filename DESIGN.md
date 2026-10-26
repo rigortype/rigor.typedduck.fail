@@ -33,6 +33,10 @@ Reuse Starlight's content width, 17rem sidebar, 3.5rem header and responsive sid
 
 - **API symbol search:** an inline disclosure above API content, visibly separate from Starlight prose search. Use a 44px trigger and text field, system labels, monospace wrapping names, 0.875rem metadata (1rem on mobile), hairline result separators, and a tonal active row. The document owns scrolling; show at most 20 results. An explicit label and live status cover idle, loading, results, empty and retryable error states. Keep the API overview link available without JavaScript.
 
+**Publication badges and page controls:** internal/deprecated badges use text on the existing gray-6 tonal surface, system labels and a 4px radius. Native selects and labelled checkboxes retain 44px label/control targets, wrapping and theme-aware focus. Their explanation distinguishes view filtering from publication. The adapter owns the markup and ensures direct anchors reveal selected declarations.
+
+**Search publication filters:** a native fieldset separates display-only filters from build-time publication. Show a Ruby visibility select only when published non-public symbols exist and a labelled internal-documentation checkbox only when internal symbols exist. Use the existing system labels, hairline border, spacing scale and 44px control targets. Filtering resets result selection; it never changes page anchors or publication.
+
 ## 6. Motion and interaction
 
 Reuse Starlight's built-in interactions. No new animation, modal or client framework is introduced. API search adapts the beui.dev command-palette input/active-row mechanism to an inline, motion-free combobox. Alt+/ opens and focuses it; arrows move the active result, Enter follows its URL, Escape closes and restores focus. Typing resets selection; closing during a fetch never reopens the panel. No new animation is introduced for reduced-motion users. Links have hover/active feedback and visible keyboard focus; selected navigation uses a tonal fill and weight, without adding an accent border. Native disclosure controls work by keyboard and touch. Reduced-motion preferences remain respected by the shell.

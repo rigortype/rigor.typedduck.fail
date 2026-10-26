@@ -48,11 +48,11 @@
 .api-member-preview { grid-column: 1 / -1; overflow-wrap: anywhere; }
 .api-member-controls { margin-block: 1rem; font-family: var(--sl-font-system); }
 .api-member-controls label { display: flex; align-items: center; flex-wrap: wrap; gap: 0.5rem 1rem; }
-.api-member-controls select { min-block-size: 2.75rem; max-inline-size: 100%; padding: 0.5rem 0.75rem; font: inherit; color: var(--sl-color-text); background: var(--sl-color-bg); border: 1px solid var(--sl-color-gray-2); border-radius: 4px; }
+.api-member-controls select, .api-publication-controls select { min-block-size: 2.75rem; max-inline-size: 100%; padding: 0.5rem 0.75rem; font: inherit; color: var(--sl-color-text); background: var(--sl-color-bg); border: 1px solid var(--sl-color-gray-2); border-radius: 4px; }
 .api-member > summary { min-block-size: 2.75rem; cursor: pointer; }
 .api-member > summary .api-signature { display: inline; }
 .api-member > summary .api-meta { display: block; margin-block: 0.5rem; }
-.api-member > summary:focus-visible, .api-member-controls select:focus-visible { outline: 2px solid var(--sl-color-text-accent); outline-offset: 2px; }
+.api-member > summary:focus-visible, .api-member-controls select:focus-visible, .api-publication-controls :is(select, input):focus-visible { outline: 2px solid var(--sl-color-text-accent); outline-offset: 2px; }
 .api-member-index code { white-space: pre-wrap; overflow-wrap: anywhere; }
 .api-member-index a:focus-visible, .api-member-index summary:focus-visible { outline: 2px solid var(--sl-color-text-accent); outline-offset: 2px; }
 .api-lens-summary { padding: 1rem; margin-block: 1rem; border: 1px solid var(--sl-color-hairline); overflow-wrap: anywhere; }
@@ -88,4 +88,15 @@ body:has(.api-provenance) .sidebar a[aria-current='page'] { border-inline-start:
   .api-member-index li { grid-template-columns: minmax(0, 1fr); margin-block-end: 0.5rem; }
   .api-provenance, .api-meta, .api-breadcrumbs { font-size: 1rem; }
   .api-declaration { font-size: 1.0625rem; }
+}
+
+.api-publication-controls { margin-block: 1rem; padding: 0.75rem; border: 1px solid var(--sl-color-hairline); font-family: var(--sl-font-system); }
+.api-publication-controls[hidden] { display: none; }
+.api-publication-controls label { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 1rem; min-block-size: 2.75rem; margin-block: 0.5rem; }
+.api-publication-controls input { inline-size: 1rem; block-size: 1rem; margin: 0; }
+.api-publication-controls p { margin-block: 0.5rem; color: var(--sl-color-gray-2); }
+.api-badge { display: inline-block; margin-inline-start: 0.5rem; padding-inline: 0.5rem; border-radius: 4px; color: var(--sl-color-text); background: var(--sl-color-gray-6); font-family: var(--sl-font-system); font-size: 0.875rem; font-weight: 600; }
+.api-member-index .api-badge { justify-self: start; }
+@media (max-width: 50rem) {
+  .api-badge { font-size: 1rem; }
 }

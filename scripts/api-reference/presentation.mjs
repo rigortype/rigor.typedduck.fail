@@ -12,8 +12,8 @@ export function referenceFor(artifact) {
   return createReference(data, {
     basePath: 'apiref',
     title: 'API Reference',
-    description: 'Explore Rigor classes, modules and public members.',
-    introduction: 'Browse the public declarations in the selected Rigor source trees. Source documentation is shown in English.',
+    description: 'Explore published Rigor classes, modules and members.',
+    introduction: 'Browse the declarations selected by the API publication policy. Source documentation is shown in English.',
     provenance,
     sourceLinks: source?.links || {},
   });

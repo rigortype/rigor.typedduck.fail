@@ -46,7 +46,7 @@ test('index uses published page membership, exact declaration anchors, owners an
   const index = searchIndexFor(artifact, reference);
   assert.equal(index.entries.length, 5);
   assert.deepEqual(index.entries.find((row) => row.id === 'sdk:one'), {
-    id: 'sdk:one', kind: 'instance_method', name: 'call', qualifiedName: 'Example#call', owner: 'Example', scope: 'sdk', location: 'lib/example.rb:1', url: '/apiref/sdk/example/#zard-01',
+    id: 'sdk:one', kind: 'instance_method', name: 'call', qualifiedName: 'Example#call', owner: 'Example', scope: 'sdk', visibility: 'public', publication: 'public', deprecated: false, location: 'lib/example.rb:1', url: '/apiref/sdk/example/#zard-01',
   });
   assert.equal(index.entries.find((row) => row.kind === 'namespace').url, '/apiref/sdk/example/');
   assert.equal(index.entries.find((row) => row.kind === 'constant').owner, 'Example');
@@ -80,4 +80,46 @@ test('client accepts published Unicode namespace slugs and rejects unsafe URLs',
     entry.url = url;
     assert.throws(() => validateSearchIndex({ version: 1, entries: [entry] }));
   }
+});
+
+
+test('display filters distinguish documentation intent from Ruby visibility without changing published targets', () => {
+  const entries = [
+    { ...row('public', 'call', 'Example#call'), visibility: 'public', publication: 'public' },
+    { ...row('private', 'callPrivate', 'Example#callPrivate'), visibility: 'private', publication: 'public' },
+    { ...row('internal', 'callInternal', 'Example#callInternal'), visibility: 'public', publication: 'internal' },
+  ];
+  assert.deepEqual(matchSymbols(entries, 'call', 20, { includeInternal: false }).entries.map((entry) => entry.id), ['public', 'private']);
+  assert.deepEqual(matchSymbols(entries, 'call', 20, { visibility: 'public', includeInternal: true }).entries.map((entry) => entry.id), ['public', 'internal']);
+  assert.deepEqual(matchSymbols(entries, 'call', 20, { visibility: 'private', includeInternal: false }).entries.map((entry) => entry.id), ['private']);
+  assert.equal(matchSymbols(entries, 'call', 20, { visibility: 'protected', includeInternal: true }).total, 0);
+  assert.equal(entries.length, 3);
+});
+
+test('new search indexes require explicit publication metadata while legacy indexes remain readable', () => {
+  const entry = { ...row('x', 'call', 'Example#call'), visibility: 'private', publication: 'internal', deprecated: true };
+  assert.deepEqual(validateSearchIndex({ version: 2, entries: [entry] }), [entry]);
+  for (const invalid of [{ visibility: 'secret' }, { publication: 'hidden' }, { deprecated: 'yes' }, { visibility: undefined }]) {
+    assert.throws(() => validateSearchIndex({ version: 2, entries: [{ ...entry, ...invalid }] }), /Invalid API search index/);
+  }
+  assert.equal(validateSearchIndex({ version: 1, entries: [row('legacy', 'call', 'Example#call')] }).length, 1);
+});
+
+test('search preserves selected private, internal and deprecated declarations from revision 2', () => {
+  const artifact = fixture();
+  artifact.export.revision = 2;
+  for (const declaration of artifact.export.scopes[0].declarations) declaration.publication = 'public';
+  const declarations = artifact.export.scopes[0].declarations;
+  declarations[0].visibility = 'private';
+  declarations[1].publication = 'internal';
+  declarations[2].documentation = [{ name: 'deprecated', description: 'Use **NEW_VALUE** instead.', rendered_description: 'Use **NEW_VALUE** instead.',
+    span: { path: 'lib/example.rb', start_line: 1, end_line: 1 } }];
+  const reference = referenceFor(artifact);
+  const index = searchIndexFor(artifact, reference);
+  assert.equal(index.entries.find((entry) => entry.id === declarations[0].id).visibility, 'private');
+  assert.equal(index.entries.find((entry) => entry.id === declarations[1].id).publication, 'internal');
+  assert.equal(index.entries.find((entry) => entry.id === declarations[2].id).deprecated, true);
+  const broken = structuredClone(reference);
+  broken.pages.find((page) => page.slug === 'apiref/sdk/example').body = '';
+  assert.throws(() => searchIndexFor(artifact, broken), /not published/);
 });

@@ -1,6 +1,22 @@
 # API reference integration
 
-The site consumes ZARD's experimental `zard-doc/v0`, revision 1 export. `api-reference.config.json` selects an explicit documentation scope and source mapping; initially this is Rigor's plugin base API. No Rigor lens invocation or inferred signature is required.
+The site consumes ZARD's experimental `zard-doc/v0`, revision 2 export (legacy revision 1 remains readable). `api-reference.config.json` selects an explicit documentation scope and source mapping; initially this is Rigor's plugin base API. No Rigor lens invocation or inferred signature is required.
+
+## Publication policy and display filters
+
+`api-reference.config.json` forwards `publication` to ZARD during generation. The checked-in policy is explicit:
+
+```json
+"publication": { "visibility": ["public"], "intent": ["public"] }
+```
+
+`visibility` selects Ruby `public`, `protected` or `private` declarations. `intent` independently selects documentation `public` or `internal` declarations. For an internal reference, use `"visibility": ["public", "protected", "private"]` and `"intent": ["public", "internal"]`. A scope may override the root policy. A public Ruby method may be internal documentation; a private Ruby method may carry public documentation intent. Both axes must be selected to publish a declaration.
+
+ZARD recognizes canonical comments such as `# @api internal — Implementation detail.` and `# @api public — Supported extension point.`. Unmarked declarations have public documentation intent. Markers apply only to the attached declaration; they do not implicitly hide nested members. If an excluded container has published members, its namespace page remains as navigation for those members. Empty pages and excluded declaration anchors disappear on regeneration. Search, sidebar navigation and relationship links derive from the same selected export.
+
+The adapter renders internal and deprecated badges and the Markdown explanation of `@deprecated`; the site does not duplicate those notices. Source spans and original documentation remain in the producer artifact.
+
+Browser controls filter **already published** symbols. The search offers Ruby visibility and “Show internal documentation” only when those values occur in the index; internal search results are initially hidden. Page controls are supplied by the adapter. These controls are conveniences, not access controls: filtered symbols still exist in the generated HTML and index, and direct anchors remain usable. Symbols excluded by the build policy have no declaration page entry or search result and cannot be revealed by browser controls. A policy change invalidates the source-selection digest and requires regeneration with the producer.
 
 ## Ownership
 
@@ -94,7 +110,7 @@ The optional `sourceLinks.template` in `api-reference.config.json` maps declarat
 
 The API topic reuses Starlight's header, themes, responsive sidebar, collapsible groups, Markdown rendering and shared Pagefind search. Breadcrumbs and declaration entries use the existing Rigor tokens recorded in `DESIGN.md`. No client framework is added.
 
-The separate API symbol search indexes the same published declaration and page data as the reference pages. It includes public class, module, constant, attribute and method entries, preserves instance (`#`) and singleton (`.`) names, and links to their exact published anchors. The compact index is generated with the pages, checked against the built HTML, and fetched only when search opens. Type a name or qualified name; use Alt+/ to open, arrow keys to select, Enter to follow a result and Escape to close. The regular scope and namespace links remain available without JavaScript. The 46-entry Rigor export produces a 20,833-byte index (1,757 bytes gzip).
+The separate API symbol search indexes the same published declaration and page data as the reference pages. It includes the published class, module, constant, attribute and method entries, preserves instance (`#`) and singleton (`.`) names, and links to their exact published anchors. The compact index is generated with the pages, checked against the built HTML, and fetched only when search opens. Type a name or qualified name; use Alt+/ to open, arrow keys to select, Enter to follow a result and Escape to close. The regular scope and namespace links remain available without JavaScript.
 
 Repeated definitions retain separate source anchors; source text is not interpreted as runtime ownership or an inferred signature. Documentation lines are joined using their source spans before Markdown rendering. Conventional two-space-indented Ruby comment example blocks are treated as literal code, retaining indentation, quotes and blank lines. Source-supplied HTML is converted to text, code spans/blocks remain code, unsafe or unresolved links become readable text, and recognized API links are mapped to actual routes. Original contracts and documentation claims remain in the artifact, separate from displayed API prose.
 
@@ -107,4 +123,4 @@ pnpm build
 pnpm check:api
 ```
 
-The package tests cover incompatible schemas, private declarations, escaped paths, missing link targets, slug collisions, repeated definitions, source-HTML injection, code preservation and multiline prose. Run them with `pnpm --dir zard-doc-astro test` in the ZARD repository. Site tests exercise the installed archive's routes, product provenance, Japanese entry, symbol matching and rejected-artifact publication behavior. Browser QA additionally verifies the real generated API, source anchors, search keyboard behavior, navigation, theme switching, mobile layout and the Japanese fallback. Native disclosures keep documentation readable without JavaScript. The enhanced member-order selector sorts the index and declaration groups by source or name while preserving anchors and open states. Version selection remains a separate backlog slice.
+The package tests cover incompatible schemas, legacy private declarations, publication policy, escaped paths, missing link targets, slug collisions, repeated definitions, source-HTML injection, code preservation and multiline prose. Run them with `pnpm --dir zard-doc-astro test` in the ZARD repository. Site tests exercise the installed archive's routes, product provenance, Japanese entry, symbol matching and rejected-artifact publication behavior. Browser QA additionally verifies the real generated API, source anchors, search keyboard behavior, navigation, theme switching, mobile layout and the Japanese fallback. Native disclosures keep documentation readable without JavaScript. The enhanced member-order selector sorts the index and declaration groups by source or name while preserving anchors and open states. Version selection remains a separate backlog slice.
