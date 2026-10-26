@@ -3,7 +3,7 @@
   font-family: var(--sl-font-system);
 }
 .api-search [hidden] { display: none; }
-.api-search button, .api-search input {
+.api-search button, .api-search input, .api-search select {
   min-block-size: 2.75rem;
   max-inline-size: 100%;
   padding: 0.5rem 0.75rem;
@@ -18,7 +18,11 @@
 .api-search button:hover { background: var(--sl-color-accent-low); }
 .api-search kbd { margin-inline-start: 0.75rem; font-size: 0.875rem; }
 .api-search label { display: block; margin-block: 1rem 0.5rem; font-weight: 600; }
-.api-search input { inline-size: 100%; }
+.api-search input[type="search"] { inline-size: 100%; }
+.api-search-filters { margin: 1rem 0; padding: 0.75rem; border: 1px solid var(--sl-color-hairline); }
+.api-search-filters legend { font-weight: 600; }
+.api-search .api-search-internal { display: flex; align-items: center; gap: 0.5rem; min-block-size: 2.75rem; }
+.api-search input[type="checkbox"] { inline-size: 1rem; min-block-size: 1rem; margin: 0; }
 .api-search p { margin-block: 0.5rem; color: var(--sl-color-gray-2); font-size: 0.875rem; }
 .api-search ul { padding: 0; margin-block: 1rem; list-style: none; }
 .api-search li { margin: 0; border-block-start: 1px solid var(--sl-color-hairline); }
@@ -26,7 +30,7 @@
 .api-search a[aria-selected='true'], .api-search a:hover { background: var(--sl-color-accent-low); }
 .api-search-name { display: block; font-family: var(--sl-font-mono); }
 .api-search-meta { display: block; color: var(--sl-color-gray-2); font-size: 0.875rem; margin-block-start: 0.25rem; }
-.api-search :is(button, input, a):focus-visible { outline: 2px solid var(--sl-color-text-accent); outline-offset: 2px; }
+.api-search :is(button, input, select, a):focus-visible { outline: 2px solid var(--sl-color-text-accent); outline-offset: 2px; }
 @media (max-width: 50rem) {
   .api-search p, .api-search-meta { font-size: 1rem; }
 }

@@ -43,7 +43,7 @@ async function generate(rigorRoot, commit) {
   const temporary = await mkdtemp(path.join(root, '.astro/api-export-'));
   try {
     const configPath = path.join(temporary, 'zard-doc.yml');
-    await writeFile(configPath, JSON.stringify({ scopes: config.scopes, docroot: 'unused', layout: 'namespace' }));
+    await writeFile(configPath, JSON.stringify({ publication: config.publication, scopes: config.scopes, docroot: 'unused', layout: 'namespace' }));
     const args = ['-I', path.join(zardRoot, 'lib'), '-I', path.join(zardRoot, 'zard-doc/lib'), '-I', path.join(zardRoot, 'zard-rigor/lib'),
       path.join(zardRoot, 'zard-doc/exe/zard-doc'), 'build', '--config', configPath, '--format', 'json'];
     if (process.env.RIGOR_LENS === '1') args.push('--lens-root', rigorRoot,

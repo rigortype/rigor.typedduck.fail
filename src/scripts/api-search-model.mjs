@@ -1,11 +1,13 @@
 const compare = (a, b) => a < b ? -1 : a > b ? 1 : 0;
 const normalize = (value) => value.trim().toLowerCase().replace(/^::/, '');
 
-export function matchSymbols(entries, query, limit = 20) {
+export function matchSymbols(entries, query, limit = 20, filters = {}) {
   const needle = normalize(query);
   if (!needle) return { total: 0, entries: [] };
   const ranked = [];
   for (const entry of entries) {
+    if (filters.includeInternal === false && entry.publication === 'internal') continue;
+    if (filters.visibility && filters.visibility !== 'all' && (entry.visibility || 'public') !== filters.visibility) continue;
     const qualified = normalize(entry.qualifiedName);
     const name = normalize(entry.name);
     const rank = qualified === needle ? 0 : name === needle ? 1 : qualified.startsWith(needle) ? 2
@@ -36,8 +38,10 @@ function isApiUrl(value) {
 }
 
 export function validateSearchIndex(value) {
-  if (value?.version !== 1 || !Array.isArray(value.entries) || value.entries.some((entry) =>
+  if (![1, 2].includes(value?.version) || !Array.isArray(value.entries) || value.entries.some((entry) =>
     !entry || ['id', 'kind', 'name', 'qualifiedName', 'owner', 'scope', 'url'].some((key) => typeof entry[key] !== 'string')
+    || (value.version === 2 && (!['public', 'internal'].includes(entry.publication)
+      || !['public', 'protected', 'private'].includes(entry.visibility) || typeof entry.deprecated !== 'boolean'))
     || (entry.location != null && typeof entry.location !== 'string') || !isApiUrl(entry.url))) {
     throw new Error('Invalid API search index');
   }

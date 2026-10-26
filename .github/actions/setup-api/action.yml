@@ -10,7 +10,7 @@ runs:
     - uses: actions/checkout@v4
       with:
         repository: rigortype/zard
-        ref: 42898e4e2d8d5b8a8a42ff46f404852634ec66ef
+        ref: 8441efc3cc36664ceee9fa3def091badbac89241
         path: .api-producer
         persist-credentials: false
     - uses: ruby/setup-ruby@v1

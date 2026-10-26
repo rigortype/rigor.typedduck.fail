@@ -6,7 +6,10 @@ export function enhanceApiSearch() {
   root.dataset.ready = 'true';
   const toggle = root.querySelector('[data-api-search-toggle]');
   const panel = root.querySelector('#api-search-panel');
-  const input = root.querySelector('input');
+  const input = root.querySelector('#api-search-input');
+  const filters = root.querySelector('[data-api-search-filters]');
+  const visibility = root.querySelector('[data-api-search-visibility]');
+  const internal = root.querySelector('[data-api-search-internal]');
   const results = root.querySelector('[role="listbox"]');
   const status = root.querySelector('[role="status"]');
   const retry = root.querySelector('[data-api-search-retry]');
@@ -28,7 +31,7 @@ export function enhanceApiSearch() {
 
   function render() {
     if (!entries) return;
-    const found = matchSymbols(entries, input.value);
+    const found = matchSymbols(entries, input.value, 20, { visibility: visibility.value, includeInternal: internal.checked });
     matches = found.entries;
     results.replaceChildren(...matches.map((entry, index) => {
       const row = document.createElement('li');
@@ -44,7 +47,7 @@ export function enhanceApiSearch() {
       name.textContent = entry.qualifiedName;
       const meta = document.createElement('span');
       meta.className = 'api-search-meta';
-      meta.textContent = `${entry.kind.replaceAll('_', ' ')} · ${entry.owner || 'top level'} · ${entry.scope}${entry.location ? ` · ${entry.location}` : ''}`;
+      meta.textContent = `${entry.kind.replaceAll('_', ' ')} · ${entry.owner || 'top level'} · ${entry.scope} · ${entry.visibility || 'public'}${entry.publication === 'internal' ? ' · internal documentation' : ''}${entry.deprecated ? ' · deprecated' : ''}${entry.location ? ` · ${entry.location}` : ''}`;
       link.append(name, meta);
       link.addEventListener('pointermove', () => select(index));
       row.append(link);
@@ -52,7 +55,7 @@ export function enhanceApiSearch() {
     }));
     select(-1);
     input.setAttribute('aria-expanded', String(matches.length > 0 && !panel.hidden));
-    status.textContent = !input.value.trim() ? 'Type a name to search public API symbols.' : found.total === 0
+    status.textContent = !input.value.trim() ? 'Type a name to search published API symbols.' : found.total === 0
       ? 'No API symbols found. Try a shorter name or a namespace.' : found.total > matches.length
         ? `Showing ${matches.length} of ${found.total} symbols. Refine your search for more.` : `${found.total} ${found.total === 1 ? 'symbol' : 'symbols'} found.`;
   }
@@ -67,6 +70,18 @@ export function enhanceApiSearch() {
       const response = await fetch('/api-symbols.json', { cache: 'no-cache' });
       if (!response.ok) throw new Error('API search unavailable');
       entries = validateSearchIndex(await response.json());
+      const visibilities = ['public', 'protected', 'private'].filter((value) => entries.some((entry) => (entry.visibility || 'public') === value));
+      const hasInternal = entries.some((entry) => entry.publication === 'internal');
+      filters.hidden = !hasInternal && !visibilities.some((value) => value !== 'public');
+      visibility.hidden = !visibilities.some((value) => value !== 'public');
+      root.querySelector('[data-api-search-visibility-label]').hidden = visibility.hidden;
+      for (const value of visibilities) {
+        const option = document.createElement('option');
+        option.value = value;
+        option.textContent = value;
+        visibility.append(option);
+      }
+      root.querySelector('[data-api-search-internal-label]').hidden = !hasInternal;
       render();
     } catch {
       status.textContent = 'API symbols could not be loaded. Retry, or browse the API pages below.';
@@ -97,6 +112,8 @@ export function enhanceApiSearch() {
   toggle.addEventListener('click', () => panel.hidden ? open() : close());
   retry.addEventListener('click', () => { input.focus(); void load(); });
   input.addEventListener('input', render);
+  visibility.addEventListener('change', render);
+  internal.addEventListener('change', render);
   input.addEventListener('keydown', (event) => {
     if (event.isComposing) return;
     if (['ArrowDown', 'ArrowUp'].includes(event.key)) {
