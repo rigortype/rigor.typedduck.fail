@@ -7,11 +7,13 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
 import { referenceFor, pagesFor } from './api-reference/presentation.mjs';
+import { searchIndexFor } from './api-reference/search-index.mjs';
 import { sourceLinksFor } from './api-reference/source-links.mjs';
 
 const exec = promisify(execFile);
 const root = fileURLToPath(new URL('..', import.meta.url));
 const artifactPath = path.join(root, 'src/data/api-reference.json');
+const searchPath = path.join(root, 'public/api-symbols.json');
 const outputRoot = path.join(root, 'src/content/docs');
 const sha256 = (value) => createHash('sha256').update(value).digest('hex');
 const git = async (cwd, ...args) => (await exec('git', ['-C', cwd, ...args])).stdout.trim();
@@ -88,7 +90,7 @@ async function validateSource(artifact, rigorRoot, commit) {
   }
 }
 
-async function publish(pages, artifact) {
+async function publish(pages, artifact, searchIndex) {
   await mkdir(path.join(root, '.astro'), { recursive: true });
   const staging = await mkdtemp(path.join(root, '.astro/api-pages-'));
   const changed = [];
@@ -103,7 +105,9 @@ async function publish(pages, artifact) {
     const prepared = path.join(staging, 'artifact.json');
     await writeFile(prepared, JSON.stringify(artifact, null, 2) + '\n');
     const replacements = ['apiref', 'ja/apiref'].map((directory) => [path.join(staging, directory), path.join(outputRoot, directory)]);
-    replacements.push([prepared, artifactPath]);
+    const search = path.join(staging, 'api-symbols.json');
+    await writeFile(search, JSON.stringify(searchIndex) + '\n');
+    replacements.push([search, searchPath], [prepared, artifactPath]);
     for (const [index, [from, target]] of replacements.entries()) {
       await mkdir(path.dirname(target), { recursive: true });
       const backup = path.join(staging, `backup-${index}`);
@@ -131,6 +135,7 @@ async function main() {
   if (!process.env.ZARD_SOURCE_DIR && !process.env.ZARD_API_JSON && !existsSync(input)) {
     await rm(path.join(outputRoot, 'apiref'), { recursive: true, force: true });
     await rm(path.join(outputRoot, 'ja/apiref'), { recursive: true, force: true });
+    await rm(searchPath, { force: true });
     console.log('API reference disabled: set ZARD_SOURCE_DIR or ZARD_API_JSON to enable generation.');
     return;
   }
@@ -146,7 +151,7 @@ async function main() {
   const files = artifact.export.scopes.flatMap((scope) => scope.files.map((file) => file.path));
   if ((await git(rigorRoot, 'status', '--porcelain', '--', ...new Set(files))).length) throw new Error('API input sources have uncommitted changes; use a clean pinned Rigor checkout');
   const pages = pagesFor(reference);
-  await publish(pages, artifact);
+  await publish(pages, artifact, searchIndexFor(artifact, reference));
   console.log(`API reference: ${pages.size} pages from Rigor ${commit.slice(0, 8)}.`);
 }
 

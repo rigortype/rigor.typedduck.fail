@@ -1,4 +1,5 @@
 ---
+import '../styles/api-search.css';
 import Default from '@astrojs/starlight/components/Head.astro';
 import { slugForId, NO_TWIN_IDS } from '../lib/docs';
 
@@ -34,6 +35,9 @@ const jsonLd = {
 <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} is:inline />
 <script>
   import '../scripts/prompt-language';
+  import { enhanceApiSearch } from '../scripts/api-search.mjs';
+  enhanceApiSearch();
+  document.addEventListener('astro:page-load', enhanceApiSearch);
   import { enhanceMembers } from 'zard-doc-astro/members';
   enhanceMembers();
   document.addEventListener('astro:page-load', () => enhanceMembers());

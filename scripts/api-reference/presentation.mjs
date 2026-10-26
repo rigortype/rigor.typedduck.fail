@@ -1,3 +1,4 @@
+import { searchMarkup } from './search-markup.mjs';
 import { createReference } from 'zard-doc-astro';
 import { starlightPages, starlightTopic } from 'zard-doc-astro/starlight';
 
@@ -32,6 +33,12 @@ APIリファレンスは現在英語で提供しています。クラス・モ�
 
 <a class="api-index-link" href="/apiref/">英語のAPIリファレンスを開く</a>
 `);
+  for (const [file, content] of pages) {
+    const frontmatterEnd = content.indexOf('\n---\n', 4);
+    if (!content.startsWith('---\n') || frontmatterEnd < 0) throw new Error(`API page has no frontmatter: ${file}`);
+    const end = frontmatterEnd + 5;
+    pages.set(file, content.slice(0, end) + "\n" + searchMarkup + content.slice(end));
+  }
   return pages;
 }
 

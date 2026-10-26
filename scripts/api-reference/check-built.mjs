@@ -1,5 +1,6 @@
 import { readFile, readdir } from 'node:fs/promises';
 import path from 'node:path';
+import { validateSearchIndex } from '../../src/scripts/api-search-model.mjs';
 import { fromHtml } from 'hast-util-from-html';
 
 async function htmlFiles(directory) {
@@ -40,5 +41,14 @@ export async function checkBuiltApi(directory) {
       count++;
     }
   }
-  return { pages: files.length, links: count };
+  const index = validateSearchIndex(JSON.parse(await readFile(path.join(root, 'api-symbols.json'), 'utf8')));
+  for (const entry of index) {
+    const url = new URL(entry.url, 'https://api.invalid');
+    const target = path.resolve(root, decodeURIComponent(url.pathname).slice(1), 'index.html');
+    const page = pages.get(target);
+    if (!page || (url.hash && !page.ids.has(decodeURIComponent(url.hash.slice(1))))) {
+      throw new Error(`Broken API search target: ${entry.id}: ${entry.url}`);
+    }
+  }
+  return { pages: files.length, links: count, searchTargets: index.length };
 }

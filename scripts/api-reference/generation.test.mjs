@@ -10,7 +10,7 @@ import test from 'node:test';
 const root = fileURLToPath(new URL('../..', import.meta.url));
 
 test('a rejected artifact cannot overwrite generated pages or provenance', async () => {
-  const files = ['src/data/api-reference.json', 'src/content/docs/apiref/index.md'].map((file) => path.join(root, file));
+  const files = ['src/data/api-reference.json', 'src/content/docs/apiref/index.md', 'public/api-symbols.json'].map((file) => path.join(root, file));
   const before = await Promise.all(files.map((file) => existsSync(file) ? readFile(file, 'utf8') : null));
   const temporary = await mkdtemp(path.join(os.tmpdir(), 'api-artifact-test-'));
   try {
