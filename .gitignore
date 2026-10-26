@@ -41,3 +41,6 @@ public/playground/
 # ships shared Claude Code skills under .claude/skills/.
 !.claude/
 .claude/settings.local.json
+
+# Generated atomically with API reference pages.
+public/api-symbols.json

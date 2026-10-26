@@ -31,9 +31,11 @@ Reuse Starlight's content width, 17rem sidebar, 3.5rem header and responsive sid
 - **Source relationships:** definition lists show written superclass/mixin expressions, source lines and links to all retained target definitions. Separate hierarchy pages use nested lists for class relationships and a separate module-usage list. Conflicts, cycles and unresolved expressions remain readable; do not infer runtime ancestry or inherited members. Use existing text, spacing, link and focus tokens.
   Visual indentation stops after four levels on deeply nested trees, retaining semantic nesting and all links so narrow screens remain usable.
 
+- **API symbol search:** an inline disclosure above API content, visibly separate from Starlight prose search. Use a 44px trigger and text field, system labels, monospace wrapping names, 0.875rem metadata (1rem on mobile), hairline result separators, and a tonal active row. The document owns scrolling; show at most 20 results. An explicit label and live status cover idle, loading, results, empty and retryable error states. Keep the API overview link available without JavaScript.
+
 ## 6. Motion and interaction
 
-Reuse Starlight's built-in interactions. No new animation, modal or client framework is introduced. Links have hover/active feedback and visible keyboard focus; selected navigation uses a tonal fill and weight, without adding an accent border. Native disclosure controls work by keyboard and touch. Reduced-motion preferences remain respected by the shell.
+Reuse Starlight's built-in interactions. No new animation, modal or client framework is introduced. API search adapts the beui.dev command-palette input/active-row mechanism to an inline, motion-free combobox. Alt+/ opens and focuses it; arrows move the active result, Enter follows its URL, Escape closes and restores focus. Typing resets selection; closing during a fetch never reopens the panel. No new animation is introduced for reduced-motion users. Links have hover/active feedback and visible keyboard focus; selected navigation uses a tonal fill and weight, without adding an accent border. Native disclosure controls work by keyboard and touch. Reduced-motion preferences remain respected by the shell.
 
 ## 7. Depth and surface
 
