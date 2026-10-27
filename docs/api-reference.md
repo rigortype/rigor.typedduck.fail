@@ -67,7 +67,7 @@ to the documented Rigor root. The CI setup action offers the same opt-in with
 `with: { lens: '1' }`, installing Rigor 0.4.5, RBS 4.2.0, Prism 1.9.0,
 language_server-protocol 3.17.0.6, rbs-inline 0.14.0 and digest-xxhash 0.2.9.
 
-The adapter validates experimental `lens/v0` revision 1, source snapshots and
+The adapter validates experimental `lens/v0` revision 1, the `rigor:v1` type grammar, source snapshots and
 exact declaration bindings. The package renders member signatures separately
 from each definition's body return, preserving dynamic/unavailable states.
 CSS remains in this consumer. A failed analysis prevents publication and leaves
