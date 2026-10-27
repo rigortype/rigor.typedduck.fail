@@ -79,6 +79,16 @@ Rigor 0.4.5 handles the selected source and emits readable declared block types.
 The previous trailing-comma assignment and block object-display failures are
 resolved in the supported executable. Type display text remains producer output.
 
+Producer `type_references` turn uniquely `resolved` class, module and interface
+names in member signatures into links to their declaration anchors under
+`/apiref/`. The package validates this metadata and wraps only those names;
+ambiguous and unresolved names, including core, gem and unpublished types, stay
+literal, and the signature text is unchanged. The site performs no type parsing
+or name resolution. Exports without the field render literal signatures. The
+currently selected Rigor scope references only types outside it, so its
+signatures have no links yet; widening the selection makes in-scope names
+linkable without site changes.
+
 ## Browsing and coverage
 
 API pages include native disclosure groups linking each member to its exact
@@ -123,4 +133,4 @@ pnpm build
 pnpm check:api
 ```
 
-The package tests cover incompatible schemas, legacy private declarations, publication policy, escaped paths, missing link targets, slug collisions, repeated definitions, source-HTML injection, code preservation and multiline prose. Run them with `pnpm --dir zard-doc-astro test` in the ZARD repository. Site tests exercise the installed archive's routes, product provenance, Japanese entry, symbol matching and rejected-artifact publication behavior. Browser QA additionally verifies the real generated API, source anchors, search keyboard behavior, navigation, theme switching, mobile layout and the Japanese fallback. Native disclosures keep documentation readable without JavaScript. The enhanced member-order selector sorts the index and declaration groups by source or name while preserving anchors and open states. Version selection remains a separate backlog slice.
+The package tests cover incompatible schemas, legacy private declarations, publication policy, escaped paths, missing link targets, slug collisions, repeated definitions, source-HTML injection, code preservation and multiline prose. Run them with `pnpm --dir zard-doc-astro test` in the ZARD repository. Site tests exercise the installed archive's routes, product provenance, Japanese entry, symbol matching, signature type-reference links (resolved, ambiguous/unresolved and legacy exports) and rejected-artifact publication behavior. Browser QA additionally verifies the real generated API, source anchors, search keyboard behavior, navigation, theme switching, mobile layout and the Japanese fallback. Native disclosures keep documentation readable without JavaScript. The enhanced member-order selector sorts the index and declaration groups by source or name while preserving anchors and open states. Version selection remains a separate backlog slice.
