@@ -1,6 +1,6 @@
 # API reference integration
 
-The site consumes ZARD's experimental `zard-doc/v0`, revision 2 export (legacy revision 1 remains readable). `api-reference.config.json` selects an explicit documentation scope and source mapping; initially this is Rigor's plugin base API. No Rigor lens invocation or inferred signature is required.
+The site consumes ZARD's experimental `zard-doc/v0`, revision 2 export (legacy revision 1 remains readable). `api-reference.config.json` selects an explicit documentation scope and source mapping; this is Rigor's plugin base API plus the files declaring the Rigor types its signatures name (manifest, protocol contract, effect and I/O boundary declarations, and analysis diagnostics). No Rigor lens invocation or inferred signature is required.
 
 ## Publication policy and display filters
 
@@ -85,9 +85,10 @@ names in member signatures into links to their declaration anchors under
 ambiguous and unresolved names, including core, gem and unpublished types, stay
 literal, and the signature text is unchanged. The site performs no type parsing
 or name resolution. Exports without the field render literal signatures. The
-currently selected Rigor scope references only types outside it, so its
-signatures have no links yet; widening the selection makes in-scope names
-linkable without site changes.
+selection includes the declarations of every Rigor type named by `Plugin::Base`
+signatures, so those names link; core Ruby types and Rigor types declared in
+unselected files stay literal. Adding a declaring file to the selection makes
+its type linkable without site changes.
 
 ## Browsing and coverage
 

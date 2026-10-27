@@ -4,7 +4,17 @@
   "scopes": {
     "rigor": {
       "destination": "rigor",
-      "sources": [{ "root": ".", "include": ["lib/rigor/plugin/base.rb"] }]
+      "sources": [{ "root": ".", "include": [
+        "lib/rigor/plugin/base.rb",
+        "lib/rigor/plugin/manifest.rb",
+        "lib/rigor/plugin/protocol_contract.rb",
+        "lib/rigor/plugin/effect_attribution.rb",
+        "lib/rigor/plugin/effect_edge.rb",
+        "lib/rigor/plugin/effect_entry_points.rb",
+        "lib/rigor/plugin/effect_ancestry.rb",
+        "lib/rigor/plugin/io_boundary.rb",
+        "lib/rigor/analysis/diagnostic.rb"
+      ] }]
     }
   }
 }
