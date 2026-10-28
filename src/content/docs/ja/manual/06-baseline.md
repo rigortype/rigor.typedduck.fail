@@ -3,9 +3,9 @@ title: "ベースライン"
 description: "rigortype/rigor docs/manual/06-baseline.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/06-baseline.md"
 sourcePath: "docs/manual/06-baseline.md"
-sourceSha: "b973c3a767e6ebacbad4bdf5281475c36515e0ec0f93c656cd03c170bcc4c875"
-sourceCommit: "dd9a97915411c94081f504402ab2c9cf7820e9ae"
-sourceDate: "2026-10-19T01:35:46+09:00"
+sourceSha: "908484ba9dedec2c87e6da0124a8a4d54ce67c102154b8b079275cbf526b2277"
+sourceCommit: "946539726906d2bd14f395ca4ea16e7d990e2515"
+sourceDate: "2026-10-28T02:54:40+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9006
@@ -64,6 +64,8 @@ baseline: .rigor-baseline.yml
 | `rigor baseline prune` | もはや何にも一致しないバケットを削除する。`--dry-run`でプレビュー。 |
 
 `generate`と`regenerate`は、`baseline:`がオフであること以外はロードされた設定を変更せずに解析するため、`bleeding_edge`、`target_ruby`、または`severity_overrides`などのオプションは、`rigor check`を形成するのとまったく同様に記録されるセットを形成します。
+
+サマリーは書き出されたバケットがカバーする診断のみをカウントします。ルールのない診断 ── Rigorがパースできなかったファイル内の**パースエラー**、存在しない`paths:`エントリー、または内部エラー ── や、パスのない診断はキー付けできないため、ベースラインに入ることは決してありません。コマンドは件数、理由、該当ファイルを記載した2行目を表示します。終了ステータスは0のままですが、`baseline:`が設定された次回の`rigor check`は、それらのファイルを修正、除外、または不正な`paths:`エントリーを削除するまで、依然としてそれらを報告し非ゼロで終了します。
 
 `generate`と`regenerate`は`--match-mode=rule`（デフォルト: ファイル×ルール単位で1バケット）または`--match-mode=message`（メッセージごとに1バケット: より精密だがチャーンが増える）を受け付けます。
 

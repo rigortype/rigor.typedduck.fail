@@ -3,8 +3,9 @@ title: "型演算子"
 description: "rigortype/rigor docs/type-specification/type-operators.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/type-specification/type-operators.md"
 sourcePath: "docs/type-specification/type-operators.md"
-sourceSha: "be4ec178930af9276d5cd297ab9662610edd387d4effede1a0cd2f7b0c7642e9"
-sourceCommit: "e3eb424c3c88035e453246710c8df3dc5cc8e7e1"
+sourceSha: "b154d17a87536523c3048b9f82fb1bf1b7e6ce0c5435d8bba1fbfff2baee671f"
+sourceCommit: "946539726906d2bd14f395ca4ea16e7d990e2515"
+sourceDate: "2026-10-27T12:35:46Z"
 translationStatus: "translated"
 sidebar:
   order: 2050
@@ -98,6 +99,7 @@ v != "foo" => v: Dynamic[top] with a dynamic-origin relational fact `v != "foo"`
 - 裸の`~U`は、周囲の診断がすでにドメインを述べている場合にのみ使う場合があります（MAY）。例えば「`String`の中で値は`~"foo"`」。
 - 動的由来のprovenanceが重要な場合、可能であればドメイン式とは別に表示します（例: 動的由来ノートを付けた`String - "foo"`、またはテクニカルトレースでの`Dynamic[String - "foo"]`）。`Dynamic[T]`表示ルールは[diagnostic-policy.md](../diagnostic-policy/)にあります。
 - 保持された除外バジェットが超過した場合、不安定な長いチェーンではなく、正のドメインと省略ノートを表示します（例: `Integer with 12 excluded literals omitted`）。
+- ハッシュシェイプは、StringキーとSymbolキーが決して同じように読まれないよう、RBSレコードの綴り方と同じように各キーを綴らなければなりません（MUST）: テキストが識別子であるSymbolはコロン付きの裸の形（`a: Integer`）、それ以外のSymbolはクォートされたSymbolリテラルとファットアロー（`:"a-b" => Integer`）、Stringやその他のスカラーキーはそのリテラルとファットアロー（`"a-b" => Integer`、`1 => Integer`）。オプショナルキーは先頭に`?`を付けます。コンパクトな`"a-b": Integer`はRubyにおいてSymbolキーであるため、Stringキーをそのように綴ってはなりません（MUST NOT）。
 
 ### 表示の例
 

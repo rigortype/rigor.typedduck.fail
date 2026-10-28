@@ -3,9 +3,9 @@ title: "rigor-activesupport-core-ext"
 description: "rigortype/rigor docs/manual/plugins/rigor-activesupport-core-ext.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/plugins/rigor-activesupport-core-ext.md"
 sourcePath: "docs/manual/plugins/rigor-activesupport-core-ext.md"
-sourceSha: "c906f97c600ff7c21b83941a08dd5f01869b39e5d2316e02f95e0d504de74397"
-sourceCommit: "32fcfb01032273679a99853a37f53a6e842b3330"
-sourceDate: "2026-09-24T20:04:56+09:00"
+sourceSha: "7c67fdfeddb802391e975a13ddfab2ab8ea730c8d4200a66df4fdd347af0d46a"
+sourceCommit: "946539726906d2bd14f395ca4ea16e7d990e2515"
+sourceDate: "2026-10-27T23:16:49+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9050
@@ -24,6 +24,8 @@ plugins:
 
 > **このプラグインは必要ないかもしれません**。[ADR-72](../../../adr/72-gemfile-lock-gated-rbs-overlays/)以降、Rigorは`activesupport`が`Gemfile.lock`にあるのにRBSを同梱していない場合に、バンドルされたcore_extのRBSオーバーレイを自動ロードします。そのため、最も一般的なActiveSupportの偽陽性は設定ゼロですでに抑制されています。本プラグインは、そのオーバーレイの**オプトインの、より充実した双子**です（かつシグネチャのオーサリングの拠点でもあります）。完全なサーフェスが欲しいときに読み込んでください。読み込まれているとき、自動オーバーレイは身を引き、両者が二重宣言することはありません。
 
+プロジェクトが`activesupport`に対して`rbs collection install`も実行している場合、一部のメソッドは2回宣言されます ── `Object#acts_like?`、`Object#html_safe?`、`Time#to_fs`などがその例です。Rigorは両者をマージします: プラグインのシグネチャが最初に試行され、コレクションのものも引き続き適用されるため、いずれか一方が受け付ける呼び出しは型チェックを通過します。独自の`sig/`またはインラインRBSがプラグインのメソッドのいずれかを宣言している場合、独自のものが代わりに使用され、プラグインのものは身を引きます;実行はそのプラグインのファイルに対して1行の`rbs.coverage.plugin-signature-stood-down` info行を報告し、該当メソッドとそれぞれに使用された宣言元のファイルを名指しします。
+
 ## カバー範囲
 
 おおよそ上位40程度のセレクタとその近隣のものを、以下にわたってカバーします。
@@ -33,7 +35,7 @@ plugins:
 - **String** ── 語形変化（`#underscore`、`#camelize`、`#classify`、`#constantize`、`#pluralize`、…）、フィルタ（`#squish`、`#truncate`）、`#html_safe`、`#starts_with?` / `#ends_with?`（**Symbol**上でも）、変換、および`#in_time_zone`。
 - **Time / Date / DateTime** ── `.current`、`.zone`、`#yesterday`、`#tomorrow`、`#beginning_of_*` / `#end_of_*`、`#ago`、`#since`。`Time`はさらにRailsインスタンスサーフェス**全体**を担います（後述）；`Date`と`DateTime`は従来と同じサブセットを担います。
 - **Array** ── `.wrap`、`#to_sentence`、`#in_groups_of`、`#second` … `#fifth`、`#compact_blank`、`#exclude?`。
-- **Hash** ── `#symbolize_keys` / `#stringify_keys`（およびdeep / bang版）とそのエイリアスである`#to_options`、`#deep_merge`、`#reverse_merge` / `#with_defaults`（およびbang版）、`#with_indifferent_access`、`#except!`、`#extract!`。
+- **Hash** ── `#symbolize_keys` / `#stringify_keys`（およびdeep / bang版）とそのエイリアスである`#to_options`、`#deep_merge`、`#reverse_merge` / `#with_defaults`（およびbang版）、`#with_indifferent_access`、`#except!`、`#extract!`。`#symbolize_keys` / `#to_options`は、ActiveSupportが行うように（`key.to_sym rescue key`）メンバーごとにキー型をマップします: `String`または`Symbol`キーは`Symbol`として読み取られ、それ以外のすべてのキー（`Integer`、`Float`、プロジェクトクラス）は`untyped`として読み取られます。ミックスインやプロジェクトファイルが任意のクラスに`to_sym`を与える可能性があるためです。したがって、`Hash[String, Integer]`は`Hash[Symbol, Integer]`を与え、`Hash[Integer, Integer]`は`Hash[untyped, Integer]`を与えます。プラグインなしのactivesupportオーバーレイ単独では、キーは`untyped`と読み取られます。bang形式はレシーバー自身の型を返します。
 - **Range** ── `#overlaps?`、`#to_fs` / `#to_formatted_s`。
 - **Enumerable** ── `#index_by`、`#index_with`、`#pluck`、`#exclude?`。
 

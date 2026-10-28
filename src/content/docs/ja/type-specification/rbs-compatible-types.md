@@ -3,8 +3,9 @@ title: "RBS互換型"
 description: "rigortype/rigor docs/type-specification/rbs-compatible-types.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/type-specification/rbs-compatible-types.md"
 sourcePath: "docs/type-specification/rbs-compatible-types.md"
-sourceSha: "44025a115798e35061c1bad93727bc674ab5a0b10f3bc7137c55d29ea6fed2ff"
-sourceCommit: "4c03f62d04f594030bd79aa00f3a5978e0457d4c"
+sourceSha: "844a630c7b6a75ceeb92ecdac3cd855aff3c6ca77b98e4b26882e6851644b895"
+sourceCommit: "946539726906d2bd14f395ca4ea16e7d990e2515"
+sourceDate: "2026-10-27T21:39:36+09:00"
 translationStatus: "translated"
 sidebar:
   order: 2050
@@ -59,6 +60,8 @@ RigorはRBS構文で文書化されたすべての型形式をサポートしま
 ### レコードとタプル
 
 RBSレコード（`{ key: T }`）とタプル（`[A, B]`）は正確な形式として受け付けられます。Rigorの内部ハッシュと配列シェイプ（[structural-interfaces-and-object-shapes.md](../structural-interfaces-and-object-shapes/)参照）はこれらのRBS形式を必須/オプショナル/追加キーポリシーと読み取り専用マーカーで拡張します;それらの拡張は決定論的に消去されます（[rbs-erasure.md](../rbs-erasure/)参照）。
+
+タプルは、位置ごとにメンバーを受け入れる同じアリティの別のタプルを受け入れます。配列が保持しない長さによって`Array[E]`を拒絶することはありません: タプルのいずれかのメンバーが`E`のどのメンバーも受け入れない場合を除き、「たぶん（maybe）」と答えます（`Array[String]`に対する`[Integer, Integer]`は依然として不一致です）。したがって、宣言された`[String, String]`は、実行時に配列の長さが異なる場合であっても、診断なしで`Array[String]`の引数または戻り値を受け入れます。
 
 ### 型変数
 

@@ -3,9 +3,9 @@ title: "設定"
 description: "rigortype/rigor docs/manual/03-configuration.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/03-configuration.md"
 sourcePath: "docs/manual/03-configuration.md"
-sourceSha: "df38fe6eb811a27a60179b76d848f18c9ff63877061522acb0a9b88d672cc052"
-sourceCommit: "5f4adf1ec1ff7ca079371d42f8dc2c9f4649e2cc"
-sourceDate: "2026-10-21T02:52:21+09:00"
+sourceSha: "8ae6edb8f2dc607fd56a6c3a1b06e841bd3ffea78d11d856fded9cf4026d79e3"
+sourceCommit: "946539726906d2bd14f395ca4ea16e7d990e2515"
+sourceDate: "2026-10-27T12:37:25Z"
 translationStatus: "translated"
 sidebar:
   order: 9003
@@ -101,7 +101,7 @@ rigor: signature_paths: "…/plugins/rigor-activerecord/sig" loads the signature
 
 未認識キーのチェックは**トップレベル**のキーを対象とし、他の実装のために予約された名前空間（下記参照）はスキップします。グループの*内側*でのタイポ（`cache: { pth: … }`）は、check時ではなく入力しながらJSONスキーマによって捕捉されます。
 
-これらはエラーではなく警告です。部分的またはオプションのバンドルや、先を見越した設定は妥当なセットアップです。この監査は、明示的で、正常なセットアップに対して安全なシグナルでのみ発火します: 未設定のデフォルト（自動検出される`<root>/sig`、自動検出されるバンドル）が警告されることは決してなく、`severity_overrides:`または`disable:`内の`rbs_extended.…`、`rbs.…`、`dynamic.…`キーは放置されます。エンジンがそれらのIDをカタログ外で発行するためです。`disable:`と`severity_overrides:`はどちらも、到達可能な範囲が判明しているためより厳密にチェックされます: プラグインのルールは修飾された`plugin.<id>.<rule>`形式でのみカウントされるため、素のプラグインルール（`rspec.let-binding`）は警告されます。修飾されたトークンは、ロードせずにすべてのエントリーのプラグインIDが判明している場合（明示的な`id:`、またはバンドル済みプラグインのgem名から`rigor-`を除いたもの）にのみ`plugins:`と照合されます; `id:`なしでリストされた1つのサードパーティgemによってそのチェックはオフになります。`disable:`内の`rbs_extended.…`、`rbs.…`、`dynamic.…`配下のトークンは、フラグが立てられる予約された実行レベルの行（`rbs.coverage.…`、`dynamic.dependency-source.…`）を除き、そのまま放置されます; `severity_overrides:`ではそれらの行は意図されたキーであり決してフラグが立てられませんが、素のプラグインルール、`all`、または設定されていないプラグインに対する`plugin.`修飾キーにはフラグが立てられます。同じ所見は`--format=json`のペイロードでも`config_warnings`の下に（それぞれ`kind`タグ付きで）現れるので、CIはそれらに対してアサートできます。
+これらはエラーではなく警告です。部分的またはオプションのバンドルや、先を見越した設定は妥当なセットアップです。この監査は、明示的で、正常なセットアップに対して安全なシグナルでのみ発火します: 未設定のデフォルト（自動検出される`<root>/sig`、自動検出されるバンドル）が警告されることは決してなく、`severity_overrides:`または`disable:`内の`rbs_extended.…`、`rbs.…`、`dynamic.…`キーは放置されます。エンジンがそれらのIDをカタログ外で発行するためです。`disable:`と`severity_overrides:`はどちらも、到達可能な範囲が判明しているためより厳密にチェックされます: プラグインのルールは修飾された`plugin.<id>.<rule>`形式でのみカウントされるため、素のプラグインルール（`rspec.let-binding`）は警告されます。修飾されたトークンは、ロードせずにすべてのエントリーのプラグインIDが判明している場合（明示的な`id:`、またはバンドル済みプラグインのgem名から`rigor-`を除いたもの）にのみ`plugins:`と照合されます; `id:`なしでリストされた1つのサードパーティgemによってそのチェックはオフになります。`disable:`内の`rbs_extended.…`、`rbs.…`、`dynamic.…`配下のトークンは、フラグが立てられる予約された実行レベルの行（`rbs.coverage.…`、`dynamic.dependency-source.…`）を除き、そのまま放置されます; `severity_overrides:`ではそれらの行は意図されたキーであり決してフラグが立てられませんが、素のプラグインルール、`all`、または設定されていないプラグインに対する`plugin.`修飾キーにはフラグが立てられます。同じ所見は`--format=json`のペイロードでも`config_warnings`の下に（それぞれ`kind`タグ付きで）現れるので、CIはそれらに対してアサートできます。[言語サーバー](../09-editor-integration/)はそれぞれを`window/showMessage`警告として表示し、`config`引数を取るすべての[MCPツール](../10-mcp-server/#ツールリファレンス)はそれらの結果にこれらを含めます。
 
 ### 診断
 

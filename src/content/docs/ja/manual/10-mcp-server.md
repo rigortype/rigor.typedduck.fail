@@ -3,9 +3,9 @@ title: "Rigor MCPサーバー: AIエージェント統合"
 description: "rigortype/rigor docs/manual/10-mcp-server.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/10-mcp-server.md"
 sourcePath: "docs/manual/10-mcp-server.md"
-sourceSha: "dbb90cfe30180c160b242fac4783d8c63797404b0438eb552bc3a5611cdae2c1"
-sourceCommit: "5f4adf1ec1ff7ca079371d42f8dc2c9f4649e2cc"
-sourceDate: "2026-10-20T18:16:48+09:00"
+sourceSha: "aced012f624d8d72b3628f3b10d9de1f2921f38f461ea98b6ee8d75c31b05726"
+sourceCommit: "946539726906d2bd14f395ca4ea16e7d990e2515"
+sourceDate: "2026-10-27T12:37:25Z"
 translationStatus: "translated"
 sidebar:
   order: 9010
@@ -164,6 +164,14 @@ Clineパネル → MCPサーバー → サーバーを追加 → カスタムを
 
 ## ツールリファレンス
 
+`config`引数を取るすべてのツールは、設定の警告 ── 効力のないキーやどのルールも名指ししない`disable:`トークンなど、`rigor check`がSTDERRに出力するもの ── を報告します。`rigor_check`はそれらを自身のドキュメント内に保持します;その他のすべてのツールは、変更されないツールの独自出力の後に、1つのJSONオブジェクトを保持する2つ目の`text`コンテンツブロックを追加します:
+
+```json
+{"config_warnings": [{"kind": "unknown_key", "message": "`undefined-method` is not a recognized configuration key; it has no effect.", "key": "undefined-method", "suggestion": null}]}
+```
+
+各エントリーは`rigor check --format json`の`config_warnings`エントリーの形状を持ちます。設定に警告がない場合や、設定のロードに失敗した場合（ツールがそのエラー自体を報告します）には、そのようなブロックは存在しません。
+
 ### rigor_check
 
 1つ以上のRubyファイルまたはディレクトリを型エラー、未定義メソッド、引数数の不一致、nilレシーバーリスクについて解析します。
@@ -191,6 +199,8 @@ Clineパネル → MCPサーバー → サーバーを追加 → カスタムを
   ]
 }
 ```
+
+`.rigor.yml`に[設定警告](../03-configuration/)（効力のないキーや`disable:`トークン）がある場合、ドキュメントは`rigor check --format json`と同様に`config_warnings`の下にそれらを保持します。
 
 `isError`は、診断が見つかった場合でも実行が正常完了したときは`false`。`isError: true`はCLIがEXIT_USAGE（64）で終了したとき（不正な引数またはランタイム失敗）のみ設定されます。AIクライアントは`isError: false`のJSON診断配列を通常通り読み取れます。
 

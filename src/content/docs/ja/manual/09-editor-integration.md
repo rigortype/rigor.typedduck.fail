@@ -3,8 +3,9 @@ title: "Rigor LSP: エディタ統合"
 description: "rigortype/rigor docs/manual/09-editor-integration.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/09-editor-integration.md"
 sourcePath: "docs/manual/09-editor-integration.md"
-sourceSha: "a8bc98e2a43668c8de09788bbe0d570d51d739fbe3b5cc17036224070ca788dd"
-sourceCommit: "2d0ffe6f38d01cfd850527c57987b27487b414d4"
+sourceSha: "31e3effb4440d806dfaddc61040c8f2d15353af6f7bec386ee8a9a708e1eb506"
+sourceCommit: "946539726906d2bd14f395ca4ea16e7d990e2515"
+sourceDate: "2026-10-27T12:37:25Z"
 translationStatus: "translated"
 sidebar:
   order: 9009
@@ -25,6 +26,7 @@ sidebar:
 | `textDocument/documentSymbol` | Prism ASTからのアウトラインツリー: ネストを含む`class` / `module` / `def`。 |
 | `workspace/didChangeWatchedFiles` | セッションごとの`Environment` + `Cache::Store`キャッシュを無効化し、保存済みファイルが再伝播するようにする。 |
 | `workspace/didChangeConfiguration` | 同様に`.rigor.yml` / `Gemfile.lock`等を再読み込みする。 |
+| `window/showMessage` | [設定警告](../03-configuration/)ごとに1つの警告 ── 効力のないキーやどのルールも名指ししない`disable:`トークンなど、`rigor check`がSTDERRに出力する行。`initialized`時に送信され、保存後は`.rigor.yml`の再読み込みで警告セットが変化した場合にのみ再送される。 |
 
 ## 前提条件
 
@@ -156,6 +158,10 @@ Rubyバッファでアタッチするには`M-x eglot`を実行します。プ�
 - プロジェクトに`.rigor.yml`または`.rigor.dist.yml`があること（またはLSPルート走査がそれを見つけること）を確認します。LSPは`Configuration.discover`を使います。`rigor check`と同じロジックです。
 - LSPログ（`--log=/tmp/rigor-lsp.log`）でプラグイン読み込みエラーまたはRBS環境ビルドの失敗を確認します。
 - 同じプロジェクトルートから`rigor check <path>`を実行します。そこで機能すれば、LSPも機能するはずです。`rigor check`が失敗する場合は、まずそちらを修正してください。
+
+**.rigor.ymlでオフにしているにもかかわらずルールが発火する**。
+
+- サーバーの起動時（または`.rigor.yml`を変更した保存後）に表示された`rigor:`警告を確認してください: トップレベルでの`undefined-method: "off"`のようなスペルミスのあるキーや、どのルールも名指ししない`disable:`トークンには効果がなく、サーバーはそれを一度伝えます。同じ警告は`rigor check`のSTDERRにも表示されます。
 
 **補完ポップアップが空**。
 

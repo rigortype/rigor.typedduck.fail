@@ -3,9 +3,9 @@ title: "rigor-actionpack"
 description: "rigortype/rigor docs/manual/plugins/rigor-actionpack.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/plugins/rigor-actionpack.md"
 sourcePath: "docs/manual/plugins/rigor-actionpack.md"
-sourceSha: "60003289ff9616e3350baef6a355edfba25bc84c56ed72b110c6984c7ca93dde"
-sourceCommit: "25e6377322a0890fcf1ba9f49863180c8487fb36"
-sourceDate: "2026-10-23T06:30:21+09:00"
+sourceSha: "429e2a74e9603c1c08494ba58f7477e3dcd175981e62eb9c783c451ac76cafd0"
+sourceCommit: "946539726906d2bd14f395ca4ea16e7d990e2515"
+sourceDate: "2026-10-27T21:44:10+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9050
@@ -190,7 +190,7 @@ view:users/show.html  ≤+ io.db.read
 - **暗黙のselfヘルパーのみ**。明示的なレシーバーを持つ`*_path`／`*_url`呼び出し（`Rails.application.routes.url_helpers.x_path`）は素通りします。
 - **パスベースのファイルフィルタ**。`controller_search_paths`下のファイルはクラス階層にかかわらずチェックされます。そこに置かれた非コントローラーファイル（まれ）もスキャンされてしまいます。
 - **カバレッジはアップストリームのファクトに従う**。ヘルパーの検証は`rigor-rails-routes`が公開したものだけを把握し、`permit`の検証は`rigor-activerecord`が公開したものだけを把握します ── これらのプロデューサーを有効化すると、このプラグインがチェックできる範囲が広がります。
-- **`params[:key]`は型なしのまま**。コントローラーの内側では`params`は`ActionController::Parameters`として型付けされ、常にそれを返すビルダーのメソッド——`require`・`permit`・`permit!`・`expect`・`slice`・`slice!`・`except`・`without`・`extract!`・`merge`・`merge!`・`reverse_merge`・`reverse_merge!`・`with_defaults`・`with_defaults!`・`compact`・`compact_blank`・`deep_dup`——の結果も同様なので、それらから組み立てた連鎖は全体を通じて具体的なレシーバーを保ちます。添字による読み取りは意図的に型なしのまま残されます: `params[:missing]`は実行時に`nil`であり、そうでないと述べる型は、フローのルールに生きた条件（`if params[:q]`・`url.nil?`）を定数へ畳み込ませ、動作するコードを報告させてしまうからです。結果が呼び出しに依存するメソッド——`dig`・`fetch`・`compact!`、およびブロックなしの`select` / `reject` / `transform_keys` / `transform_values`——も同じ理由で型なしです。
+- **`params[:key]`は漸進的キャリア（gradual carrier）**。コントローラーの内側では`params`は`ActionController::Parameters`として型付けされ、常にそれを返すビルダーのメソッド ── `require`・`permit`・`permit!`・`expect`・`slice`・`slice!`・`except`・`without`・`extract!`・`merge`・`merge!`・`reverse_merge`・`reverse_merge!`・`with_defaults`・`with_defaults!`・`compact`・`compact_blank`・`deep_dup` ── の結果も同様なので、それらから組み立てた連鎖は全体を通じて具体的なレシーバーを保ちます。添字による読み取りは`Dynamic[ActionController::Parameters | nil]`を返します（[#2430](https://github.com/rigortype/rigor/issues/2430)）: 静的ファセットはnil許容の`Parameters`であるため、`params[:user][:name]`や`params[:user].permit(:name)`はそのファセット上でディスパッチを継続し、`Dynamic`ラッパーにより、実行時のスカラーパラメータと同様に値が`String`パラメータなどの宣言された境界を越えられるようになります。ファセットが非nilの名前的型ではなくnil許容であるのは意図的なものです: `params[:missing]`は実行時に`nil`であり、非nilの型はフローのルールに生きた条件（`if params[:q]`・`url.nil?`）を定数へ畳み込ませ、動作するコードを報告させてしまうからです。連鎖の外側にあるキャリア上のメソッド（`params[:q].to_s`）は`Dynamic[top]`を返します。エンジンがファセットを射影せずに`Dynamic`レシーバーをディスパッチするためです: これは精度の損失であり、偽陽性ではありません。結果が呼び出しに依存するメソッド ── `dig`・`fetch`・`compact!`、およびブロックなしの`select` / `reject` / `transform_keys` / `transform_values` ── も同じ理由で型なしです。
 - **`flash[:key]`と`session[:key]`も型なしのまま**。同じ理由であり、同じやり方で計測しました。どちらも、格納されたものを——設定されていないキーには`nil`を——返す葉の読み取りです。nilでない型は`mode = flash[:notice] ? … : …`を片方の腕へ畳み込み、その後の生きたガードを報告します;nil許容の型は`note = flash[:notice]; note.upcase`に`call.possible-nil-receiver`を乗せます。これらを通じた書き込みは影響を受けません: `flash[:k] = v`が`v`なのは、Rubyで代入式が意味するものがそれだからであり、ルールは必要ありません。
 
 ## プラグインの内部
