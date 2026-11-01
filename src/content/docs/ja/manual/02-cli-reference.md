@@ -3,9 +3,9 @@ title: "CLIコマンドリファレンス"
 description: "rigortype/rigor docs/manual/02-cli-reference.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/02-cli-reference.md"
 sourcePath: "docs/manual/02-cli-reference.md"
-sourceSha: "3c1935f2a239d366e259b3f5692b660dd8c0b7076668acb6449de4bfc471b7bb"
-sourceCommit: "5edeb7a2ad6fdb82472b076b90bb3dad9024706e"
-sourceDate: "2026-11-01T01:09:45Z"
+sourceSha: "25bc0691aba70041414c938562b4df10393dea632a8bcd05d58f05e7221102a4"
+sourceCommit: "088adf7e773e66dfac0afbc874f3d20ec73639ec"
+sourceDate: "2026-11-01T10:20:34Z"
 translationStatus: "translated"
 sidebar:
   order: 9002
@@ -82,13 +82,15 @@ rigor check [paths...]
 rigor init [--path=PATH] [--force] [--no-plugins]
 ```
 
-デフォルトでは`.rigor.dist.yml`を書き出します。`--path`で別のターゲットを指定し、`--force`で既存ファイルを上書きします。`--force`なしでファイルが存在する場合は`1`で終了します。
+デフォルトでは`.rigor.dist.yml`を書き出します。`--path`で別のターゲットを指定し、`--force`で既存ファイルを上書きします。`--force`なしでファイルが存在する場合は`1`で終了します。ディレクトリが存在しないか書き込みできない`--path`は使用法エラーです: stderrに`rigor init: cannot write PATH: REASON`を1行出力して`64`で終了します。ディレクトリは作成されません。
 
 作業ディレクトリに`Gemfile.lock`がある場合、`rigor init`はロックファイルが宣言しているgemのバンドル済みプラグインを提案します（[`rigor doctor`](#rigor-doctor)のプラグインギャップチェックと同じ読み取りです）。提案は`plugins: []`の下にコメントアウトされた形で含まれるため、明示的に有効化するまで何もロードされません: `plugins:`行の`[]`を削除し、必要なエントリのコメントを解除して、`rigor plugins --strict`を実行してください。Railsプロジェクトの`rails`はRailsファミリーも引き込むため、リストが長くなることがあります。ロックファイルがない場合や、ロックされたgemにバンドル済みプラグインがない場合は、テンプレートに提案は含まれません。
 
 有効化ではなく提案にとどめるのはADR-96基準2に従っています: ロックファイルの存在それ自体によって、プロジェクトがプラグインのコードにオプトインすることはありません。
 
-`--no-plugins`は、ロックファイルが存在する場合でも提案を含めずにテンプレートを書き出します。
+Railsアプリケーション（作業ディレクトリに`config/application.rb`がある場合）では、`rigor init`は存在するソースディレクトリである`app`と`lib`も提案します。有効な`paths:`は`lib`のままです;提案はその下にあるコメントアウトされた`paths:`行であり、検出された名前が記述されます。上の`paths:`リストを削除して下の行のコメントを解除するまで、引数なしの`rigor check`は`lib`のみを解析します。他のレイアウトではディレクトリの提案は行われません。
+
+`--no-plugins`は、ロックファイルが存在する場合でもプラグインの提案を含めずにテンプレートを書き出します。
 
 ## `rigor annotate`
 
@@ -355,6 +357,8 @@ rigor baseline <generate|regenerate|dump|drift|prune> [options]
 | `prune` | 診断に一致しなくなったバケットを削除する。`--dry-run`でプレビュー。 |
 
 `generate`と`regenerate`は`--output=PATH`と`--match-mode=rule|message`を受け付けます。`dump`・`drift`・`prune`は非既定のベースラインファイルを読むための`--baseline=PATH`を受け付けます。`dump`は機械可読な出力のための`--format=text|json`も受け付けます。
+
+`generate`と`regenerate`は位置引数のパスを取りません: 設定された`paths:`を解析するため、パス引数を渡すと使用法エラー（終了コード`64`）になります。対象スコープを絞り込むにはコマンドラインではなく設定の`paths:`で行ってください。
 
 ## `rigor triage`
 

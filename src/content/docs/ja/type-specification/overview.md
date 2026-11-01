@@ -3,9 +3,9 @@ title: "概要"
 description: "rigortype/rigor docs/type-specification/overview.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/type-specification/overview.md"
 sourcePath: "docs/type-specification/overview.md"
-sourceSha: "c02cad682d0536c6ef0be6eefedf09e383ecd9016f597f11d5bd07c35f2a82be"
-sourceCommit: "946539726906d2bd14f395ca4ea16e7d990e2515"
-sourceDate: "2026-10-28T04:18:26+09:00"
+sourceSha: "db2a70af5e996748d12e0b44193f8a77da04c618edd64495b16b581b784626f9"
+sourceCommit: "088adf7e773e66dfac0afbc874f3d20ec73639ec"
+sourceDate: "2026-11-01T16:46:31+09:00"
 translationStatus: "translated"
 sidebar:
   order: 2050
@@ -89,7 +89,7 @@ RigorはPHPStan、TypeScript、Pythonのtyping仕様からアイデアを借り�
 - その他のすべてのペアは**未決定（undecided）**です: Rigorが忠実に比較できない位置（型エイリアス、インターフェース、`self`、型変数、proc、またはプロジェクト自身が宣言ししたがって囲む名前空間内で解決できる可能性のある相対クラス名）、素であると証明できない2つの型、1対1でペアリングされないオーバーロード、依然として重複する異なる形状のパラメータリスト、または各側が異なる位置でより精密である場合。`.rbs`宣言がバインドし、ドロップされたインライン宣言は報告されなければなりません（MUST。[ADR-32](../../adr/32-rbs-inline-comment-ingestion/) WD12を参照: Rigorがパースしたものの尊重しなかったアノテーションが決して揉み消されることはありません）。
 - **インスタンス変数**も同様に参加します（[#2440](https://github.com/rigortype/rigor/issues/2440)）: 両側で宣言されたインスタンス変数（`@x: T`）またはクラスインスタンス変数（`self.@x: T`）は1つのメンバーです。型が一致していてもrbs 4.xは1つの重複宣言を拒否するためです。これは、`sig/`配下（多くは`sig/generated/`）に`rbs-inline --output`のRBSをコミットするプロジェクトが、すべての`# @rbs @x: T`に対して生み出す形状です。同じ型の2つの宣言は暗黙にマージされます。その他のすべてのペアは未決定であり、ランク付けも証明もされません: `.rbs`宣言がバインドし、ドロップされたインライン宣言は`:info`で報告され、`rbs.contradicting-signature`としては決して報告されません。クラス変数（`@@x`）は重複をrbsが受け入れるため参加せず、`attr_reader`が暗黙に示す変数も参加しません。**ミックスイン**（`include`、`extend`、`prepend`）もメンバーです: モジュールが宣言するすべてのインスタンス変数を、モジュールのミックスインごとにrbsは1回ずつカウントするため、`M`がいずれかを宣言している場合は両側の同一の`include M`によってクラスが失敗します。2つのミックスインが同一メンバーとなるのは、書かれたとおりの同じ字句的ネストを持つ宣言の内部で、モジュール、先頭の`::`、型引数に至るまで同一に記述されている場合のみです。相対名は該当ネストを通じて解決されるため、`module A; class C`内の`include M`と`class A::C`内の`include M`は異なるモジュールを指す場合があります。同一メンバーはインライン側で暗黙に身を引きます;その他のミックスインは残ります。`rbs-inline --output`はRubyファイルのネストをミラーリングするため、コミットされた出力はインラインソースとペアになります。
 
-結果がどうであれファイル内の他のすべてのアノテーションは適用され、クラスはそのメソッドサーフェスを維持します。このルールの偽陽性の規律は、深刻度ではなく矛盾の定義に宿っています: 正しいペアをフラグする可能性のあるケースは未決定であり、決してエラーにはなりません。1つのメンバーを宣言する2つの`.rbs`ファイルは依然としてクラスの定義構築に失敗し、バンドル済みRBSと衝突するプロジェクトの`.rbs`は依然としてファイルごとに隔離されます。
+結果がどうであれファイル内の他のすべてのアノテーションは適用され、クラスはそのメソッドサーフェスを維持します。このルールの偽陽性の規律は、深刻度ではなく矛盾の定義に宿っています: 正しいペアをフラグする可能性のあるケースは未決定であり、決してエラーにはなりません。1つのメンバーを宣言する2つの`.rbs`ファイルは依然としてクラスの定義構築に失敗し、バンドル済みRBSと衝突するプロジェクトの`.rbs`は依然としてファイルごとに隔離されます。宣言が名指すクラスはRBSが名指すものです: 先頭の`::`は絶対指定であるため、`sig/`内の`module A; class ::Abs`は`A::Abs`ではなく`Abs`を宣言し、インラインの`Abs`とだけペアになります（[#2474](https://github.com/rigortype/rigor/issues/2474)）。
 
 > **執筆時点で部分的に実装済み（[ADR-112](../../adr/112-extrbs-comment-channel/) WD5）**。上記の比較は`sig/`宣言とインラインの`@rbs` / `#:`宣言をカバーします（[#1075](https://github.com/rigortype/rigor/issues/1075)）。`@rbs` / `#:`と`@extrbs`の間の同じルールは`@extrbs`リーダーを待ちます（[#1073](https://github.com/rigortype/rigor/issues/1073)）。`sig/`のみが宣言するメンバー上のリファインメントは、まだ自身の宣言された型と比較されません（[rbs-extended.md](../rbs-extended/)）。
 

@@ -3,9 +3,9 @@ title: "設定"
 description: "rigortype/rigor docs/manual/03-configuration.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/03-configuration.md"
 sourcePath: "docs/manual/03-configuration.md"
-sourceSha: "5e60317cc5aa6ba325c68c73c261f5a6fd8ff819139b8bc714d8286495f4c555"
-sourceCommit: "5edeb7a2ad6fdb82472b076b90bb3dad9024706e"
-sourceDate: "2026-10-31T17:53:36+09:00"
+sourceSha: "1cfe78930b0b7a2522b576244e1415dfbb06e91f24d03203fa71fe6b83115815"
+sourceCommit: "088adf7e773e66dfac0afbc874f3d20ec73639ec"
+sourceDate: "2026-11-01T17:10:55+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9003
@@ -151,7 +151,7 @@ rigor: signature_paths: "…/plugins/rigor-activerecord/sig" loads the signature
 `bundler.auto_detect`はまずプロジェクトローカルな場所（`<project>/.bundle/config`に記録された`path`、次に`<project>/vendor/bundle/`ディレクトリ）でBundlerのインストールルートを探し、プロジェクトにツリー内バンドルがない場合はユーザーグローバルな`bundle config set --global path …`（`~/.bundle/config`）にフォールバックします。
 
 これはrigor自身の環境から`BUNDLE_PATH`を読み取ら**ない**よう意図的に作られており、*デフォルト*の共有場所（`path`が未設定のときの、アクティブなRubyの`GEM_HOME`）にインストールされたgemには到達できません。rigorはそれ自身の隔離されたRubyで動作し、あなたのプロジェクトをデータとして読み取るため（[ADR-27](../../adr/27-tool-distribution-model/)）、ツールチェーンを実行しないとプロジェクトRubyのgem homeを知ることができないのです。`rigor check`の`--stats`がRBSを見つけられなかったgemを表示する場合は、`bundler.bundle_path:`でバンドルを明示的に指し示すか、別の方法でシグネチャを供給してください。すなわち`rbs collection install`（自動探索される）か`dependencies.source_inference:`です。
-| `rbs_collection.auto_detect` | Boolean | `true` | `rbs_collection.lock.yaml`を自動探索する。 |
+| `rbs_collection.auto_detect` | Boolean | `true` | `rbs_collection.lock.yaml`を自動探索する。`Gemfile.lock`が`paths:`エントリのいずれかと一致するかその配下にあり、またはそれを含み、かつ`exclude:`で除外されていない`path:`ディレクトリから取得しているgem（Rigorが解析するコードであり、プロジェクトの`sig/`が宣言するもの）については、エントリは読み込まれない。 |
 | `rbs_collection.lockfile` | String | `nil` | 明示的な`rbs_collection.lock.yaml`パス。 |
 | `dependencies.source_inference` | Array | `[]` | gem単位のソース推論モード（ADR-10）。 |
 | `dependencies.budget_per_gem` | Integer | `5000` | gem単位のソースウォーク上限。時間ではなく**メソッド定義**の個数で数えます。ウォーカーはgemのカタログを収集する際、この個数の`def`に達するとそれ以上の収集を停止し、`dynamic.dependency-source.budget-exceeded`を発行して残りを`Dynamic[top]`に縮退させます。範囲は1250〜20000です。 |

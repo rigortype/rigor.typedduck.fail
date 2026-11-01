@@ -3,9 +3,9 @@ title: "診断ポリシー"
 description: "rigortype/rigor docs/type-specification/diagnostic-policy.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/type-specification/diagnostic-policy.md"
 sourcePath: "docs/type-specification/diagnostic-policy.md"
-sourceSha: "25f5c7554ed980f2cd5a8072c34f34559c4976d556300f151cb42c5efc61fed0"
-sourceCommit: "946539726906d2bd14f395ca4ea16e7d990e2515"
-sourceDate: "2026-10-28T06:38:18+09:00"
+sourceSha: "1be4478e44fecba073234144aea67e9003236ed64d9a58573a094b12e2c54c83"
+sourceCommit: "088adf7e773e66dfac0afbc874f3d20ec73639ec"
+sourceDate: "2026-11-01T17:10:55+09:00"
 translationStatus: "translated"
 sidebar:
   order: 2050
@@ -66,7 +66,7 @@ Rigorは静かな拡幅よりも精密な診断を優先すべきです（SHOULD
 
 ### RBS定義構築stderrフォールバック
 
-`rbs.coverage.definition-build-failed`診断とRBS定義構築stderrバナーは別々の出力です。多くのRBSクラスを走査する成功した内部要求は、ローダーインスタンスごとに最大1つの制限されたサマリーを出力しなければならず（MUST）、そのローダーが後に別の内部要求エピソードを開始した場合でも同様です;サマリーは内部探索で確認された最初の失敗を名指しし、診断は解析が要求したクラス群を個別に報告し、原因となったメンバーとシグネチャファイルを保持します。解析によって駆動される通常の定義要求は、既存の詳細な警告動作を維持します。
+`rbs.coverage.definition-build-failed`診断とRBS定義構築stderrバナーは別々の出力です。多くのRBSクラスを走査する成功した内部要求は、ローダーインスタンスごとに最大1つの制限されたサマリーを出力しなければならず（MUST）、そのローダーが後に別の内部要求エピソードを開始した場合でも同様です;サマリーは内部探索で確認された最初の失敗を名指しし、診断は解析が要求したクラス群を個別に報告し、原因となったメンバーとシグネチャファイルを保持します。解析によって駆動される通常の定義要求は、既存の詳細な警告動作を維持します。スーパークラスの循環（`class S < ::S`、または`A < B`かつ`B < A`）は、影響を受ける各クラスの定義構築の失敗として`RBS::RecursiveAncestorError`を名指して記録されなければならず（MUST）、シングルトン側でも同様です（シングルトン側ではrbs自身の祖先探索に循環チェックがなく、さもなければスタックオーバーフローになります）。定義構築中のその他のスタック枯渇は引き続き実行を中断します;構築失敗として記録されたりメモ化されたりすることは決してありません。
 
 内部要求エピソードが定義構築の失敗を記録し、その実行が診断を組み立てる前にraiseした場合、Rigorはそのエピソードで新しく遭遇した最初の失敗について詳細なstderr警告を出力しなければなりません（MUST）。以前のエピソードがすでにローダーインスタンスのサマリーを出力していた場合でも同様です。この中断時（abort-time）のフォールバックはエピソードあたり1つの警告であり、2つ目の`rbs.coverage.definition-build-failed`診断を作成することはありません。
 

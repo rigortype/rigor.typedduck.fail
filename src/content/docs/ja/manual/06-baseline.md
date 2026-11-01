@@ -3,9 +3,9 @@ title: "ベースライン"
 description: "rigortype/rigor docs/manual/06-baseline.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/06-baseline.md"
 sourcePath: "docs/manual/06-baseline.md"
-sourceSha: "e3e7d78eecf612222c611a29c28eeebba839aeac69d1f3c11b3839ab8201cd06"
-sourceCommit: "5edeb7a2ad6fdb82472b076b90bb3dad9024706e"
-sourceDate: "2026-10-30T13:13:55+09:00"
+sourceSha: "a0edf92336490dddc5ad0713c32532130b2ea499b113837bb4bc08c8c97adc70"
+sourceCommit: "088adf7e773e66dfac0afbc874f3d20ec73639ec"
+sourceDate: "2026-11-01T16:07:04+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9006
@@ -63,7 +63,7 @@ baseline: .rigor-baseline.yml
 | `rigor baseline drift` | バケットがどう動いたかを表示する。`--only=over`で増えたバケット、`reducible`ですでに改善したバケット、`cleared`で空のバケット。 |
 | `rigor baseline prune` | もはや何にも一致しないバケットを削除する。`--dry-run`でプレビュー。 |
 
-`generate`と`regenerate`は、`baseline:`がオフであること以外はロードされた設定を変更せずに解析するため、`bleeding_edge`、`target_ruby`、または`severity_overrides`などのオプションは、`rigor check`を形成するのとまったく同様に記録されるセットを形成します。
+`generate`と`regenerate`は、`baseline:`がオフであること以外はロードされた設定を変更せずに解析するため、`bleeding_edge`、`target_ruby`、または`severity_overrides`などのオプションは、`rigor check`を形成するのとまったく同様に記録されるセットを形成します。これらは設定された`paths:`のみを解析します: ファイルのサブセットに対するベースラインは他のすべてのファイルのエントリを黙って削除し、記録を破損してしまうため、位置引数のパスは使用法エラー（終了コード`64`）として拒絶されます。代わりに設定の`paths:`でスコープを絞り込んでください。
 
 サマリーは書き出されたバケットがカバーする診断のみをカウントします。ルールのない診断 ── Rigorがパースできなかったファイル内の**パースエラー**、存在しない`paths:`エントリー、または内部エラー ── や、パスのない診断はキー付けできないため、ベースラインに入ることは決してありません。コマンドは件数、理由、該当ファイルを記載した2行目を表示します。終了ステータスは0のままですが、`baseline:`が設定された次回の`rigor check`は、それらのファイルを修正、除外、または不正な`paths:`エントリーを削除するまで、依然としてそれらを報告し非ゼロで終了します。
 
