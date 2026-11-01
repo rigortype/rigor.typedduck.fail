@@ -3,9 +3,9 @@ title: "Rigor MCPサーバー: AIエージェント統合"
 description: "rigortype/rigor docs/manual/10-mcp-server.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/10-mcp-server.md"
 sourcePath: "docs/manual/10-mcp-server.md"
-sourceSha: "aced012f624d8d72b3628f3b10d9de1f2921f38f461ea98b6ee8d75c31b05726"
-sourceCommit: "946539726906d2bd14f395ca4ea16e7d990e2515"
-sourceDate: "2026-10-27T12:37:25Z"
+sourceSha: "03f2dd2005e047092d8877aee8513507314291375d8c44cab2e04dda3493c148"
+sourceCommit: "5edeb7a2ad6fdb82472b076b90bb3dad9024706e"
+sourceDate: "2026-10-30T12:48:08+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9010
@@ -171,6 +171,8 @@ Clineパネル → MCPサーバー → サーバーを追加 → カスタムを
 ```
 
 各エントリーは`rigor check --format json`の`config_warnings`エントリーの形状を持ちます。設定に警告がない場合や、設定のロードに失敗した場合（ツールがそのエラー自体を報告します）には、そのようなブロックは存在しません。
+
+`rigor_type_of`と`rigor_explain`が出力するJSONは、次のマイナーリリースでトップレベルの形状が変わります（`{ "schema_version": 1, "results" | "rules" | "skip_reasons": [...] }`）。それまでは、呼び出しが成功した場合、`config_warnings`ブロックの後に、CLIがSTDERRに出力する1行の注意書きを含む最後の`text`コンテンツブロックが追加されます。ツール自体のドキュメントは変更されません。
 
 ### rigor_check
 

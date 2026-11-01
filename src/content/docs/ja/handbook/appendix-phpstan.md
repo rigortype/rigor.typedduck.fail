@@ -3,9 +3,9 @@ title: "付録: PHPStanから来た場合"
 description: "rigortype/rigor docs/handbook/appendix-phpstan.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/appendix-phpstan.md"
 sourcePath: "docs/handbook/appendix-phpstan.md"
-sourceSha: "c76cfcbce200a1752ab3c3ddb8479fb903841d6f115f5b2fe6f53f6a60eef847"
-sourceCommit: "04668e5f0d6205fdd5c8f44662041add7ab33ca3"
-sourceDate: "2026-09-08T23:15:10+09:00"
+sourceSha: "29ba04e008529cf40568aa308672799cee15eae8a53168df91ba9212bde5b33e"
+sourceCommit: "5edeb7a2ad6fdb82472b076b90bb3dad9024706e"
+sourceDate: "2026-10-30T13:13:55+09:00"
 translationStatus: "translated"
 sidebar:
   order: 1050
@@ -24,7 +24,7 @@ PHPStanを使ったことがあれば、メンタルモデルはほぼそのま�
 | デフォルト動作 | 推論、見通せなければ沈黙 | 推論、見通せなければ沈黙 |
 | 「レベル」 | 0 – 10（数値） | `lenient`/`balanced`/`strict`（名前付き） |
 | ルールごとの制御 | `ignoreErrors:`正規表現、レベル降格 | `disable:`、`severity_overrides:` |
-| ベースライン | `phpstan-baseline.neon` | `.rigor-baseline.yml`（管理型） / `rigor.baseline.json`（アドホック） |
+| ベースライン | `phpstan-baseline.neon` | `.rigor-baseline.yml`（管理型） / `rigor-check.json`（アドホック） |
 | スタブ形式 | PHPスタブファイル | RBSファイル |
 | カスタムナローイング（narrowing） | Type-Specifying Extensions | プラグイン（第9章） |
 | カスタム戻り値シェイプ（shape） | Dynamic Return Type Extensions | プラグインの`dynamic_return` |
@@ -115,10 +115,10 @@ PHPStanの`phpstan.neon`とRigorの`.rigor.yml`/`.rigor.dist.yml`は同じ形状
 | `ignoreErrors:`（正規表現/パターン） | `disable:`（ルール識別子またはワイルドカード） |
 | `parameters: ignoreErrors:`パスごと | ファイルヘッドの`# rigor:disable-file <rule>` |
 | `includes:` | `includes:` |
-| `phpstan-baseline.neon` | `.rigor-baseline.yml`（管理型）。またはアドホックの`rigor.baseline.json` |
-| `phpstan analyse --generate-baseline` | `rigor baseline generate`（管理型）。またはアドホックの`rigor check --format=json > rigor.baseline.json` |
+| `phpstan-baseline.neon` | `.rigor-baseline.yml`（管理型）。またはアドホックの`rigor-check.json` |
+| `phpstan analyse --generate-baseline` | `rigor baseline generate`（管理型）。またはアドホックの`rigor check --format=json > rigor-check.json` |
 | `phpstan analyse` | `rigor check` |
-| `phpstan analyse --baseline` | `baseline: .rigor-baseline.yml`を設定した`rigor check`（管理型）。またはアドホックの`rigor diff rigor.baseline.json` |
+| `phpstan analyse --baseline` | `baseline: .rigor-baseline.yml`を設定した`rigor check`（管理型）。またはアドホックの`rigor diff rigor-check.json` |
 | パス解決: 宣言ファイルからの相対 | パス解決: 宣言ファイルからの相対（同じルール）。 |
 
 Rigorにはふたつのベースライン機構がある: **管理型**ベースライン（`rigor baseline generate`で`.rigor-baseline.yml`を生成し、`baseline:`設定キー経由で次回の`rigor check`が読み込む。PHPStanの`--baseline`に最も近い）と、**軽量**なアドホックスナップショット（`--format=json`ダンプに対する`rigor diff`）だ。[マニュアル: ベースライン](../../manual/06-baseline/)が両方を説明している。

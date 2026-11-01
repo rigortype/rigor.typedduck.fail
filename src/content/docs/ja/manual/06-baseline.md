@@ -3,9 +3,9 @@ title: "ベースライン"
 description: "rigortype/rigor docs/manual/06-baseline.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/06-baseline.md"
 sourcePath: "docs/manual/06-baseline.md"
-sourceSha: "908484ba9dedec2c87e6da0124a8a4d54ce67c102154b8b079275cbf526b2277"
-sourceCommit: "946539726906d2bd14f395ca4ea16e7d990e2515"
-sourceDate: "2026-10-28T02:54:40+09:00"
+sourceSha: "e3e7d78eecf612222c611a29c28eeebba839aeac69d1f3c11b3839ab8201cd06"
+sourceCommit: "5edeb7a2ad6fdb82472b076b90bb3dad9024706e"
+sourceDate: "2026-10-30T13:13:55+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9006
@@ -77,11 +77,11 @@ baseline: .rigor-baseline.yml
 
 ```sh
 # 一度だけ: 現在の診断サーフェスをキャプチャする。
-rigor check --format=json > rigor.baseline.json
-git add rigor.baseline.json
+rigor check --format=json > rigor-check.json
+git add rigor-check.json
 
 # PRごと: コミットされたスナップショットと比較する。
-rigor diff rigor.baseline.json
+rigor diff rigor-check.json
 ```
 
 [`rigor diff`](../02-cli-reference/#rigor-diff)は、スナップショットに存在しないすべての診断に`+ NEW`行を、それ以降に解消されたすべての診断に`- FIXED`行を表示し、何か新しいものがあれば`1`で終了します —— そのため、違反を追加したPRは失敗する一方で、記録された既存のものは黙ったままになります。エディタやダッシュボードとの統合のために`--format=json`が利用できます。行を修正するたびに同じ`rigor check --format=json`のリダイレクトでスナップショットを再生成すれば、プロジェクトは単調に引き締まっていきます。

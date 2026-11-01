@@ -3,9 +3,9 @@ title: "設定"
 description: "rigortype/rigor docs/manual/03-configuration.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/03-configuration.md"
 sourcePath: "docs/manual/03-configuration.md"
-sourceSha: "8ae6edb8f2dc607fd56a6c3a1b06e841bd3ffea78d11d856fded9cf4026d79e3"
-sourceCommit: "946539726906d2bd14f395ca4ea16e7d990e2515"
-sourceDate: "2026-10-27T12:37:25Z"
+sourceSha: "5e60317cc5aa6ba325c68c73c261f5a6fd8ff819139b8bc714d8286495f4c555"
+sourceCommit: "5edeb7a2ad6fdb82472b076b90bb3dad9024706e"
+sourceDate: "2026-10-31T17:53:36+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9003
@@ -24,7 +24,7 @@ Rigorはプロジェクトルートから単一のYAML設定ファイルを読�
 
 設定を置き換えではなく*継承*するには、設定ファイルで`includes:`（再帰的）を使ってベースを指定できます。`--config=PATH`は探索を完全にバイパスします。
 
-設定ファイル内の相対パスは、そのファイル自身のディレクトリを基準に解決されますが、3つの例外があります: `bundler.bundle_path:`、`bundler.lockfile:`、`rbs_collection.lockfile:`は、`rigor`が実行された作業ディレクトリを基準に解決されます。これらが一致するのは、設定ファイルが存在するディレクトリから`rigor`を実行した場合（通常はこちら）のみです;他の場所から`--config path/to/.rigor.yml`を指定する場合は、これら3つを絶対パスで指定してください。パス設定における先頭の`~/`（または単体の`~`）はホームディレクトリに展開されます; `~name`は他のユーザーのホームではなく、`~name`という名前の通常のディレクトリです。これは`paths:`、`signature_paths:`、`test_paths:`、`pre_eval:`、`plugins_io.allowed_paths:`、`includes:`、`bundler.bundle_path:`、`bundler.lockfile:`、`rbs_collection.lockfile:`を対象とします。`cache.path:`、`baseline:`、`effects.snapshot.path:`には適用されず、リテラルのまま作業ディレクトリに対する相対パスとして維持されます。
+設定ファイル内の相対パスは、そのファイル自身のディレクトリを基準に解決されますが、3つの例外があります: `bundler.bundle_path:`、`bundler.lockfile:`、`rbs_collection.lockfile:`は、`rigor`が実行された作業ディレクトリを基準に解決されます。これらが一致するのは、設定ファイルが存在するディレクトリから`rigor`を実行した場合（通常はこちら）のみです;他の場所から`--config path/to/.rigor.yml`を指定する場合は、これら3つを絶対パスで指定してください。パス設定における先頭の`~/`（または単体の`~`）はホームディレクトリに展開されます; `~name`は他のユーザーのホームではなく、`~name`という名前の通常のディレクトリです。これは`paths:`、`signature_paths:`、`core_root:`、`test_paths:`、`pre_eval:`、`plugins_io.allowed_paths:`、`includes:`、`bundler.bundle_path:`、`bundler.lockfile:`、`rbs_collection.lockfile:`を対象とします。`cache.path:`、`baseline:`、`effects.snapshot.path:`には適用されず、リテラルのまま作業ディレクトリに対する相対パスとして維持されます。
 
 ## エディタ検証
 
@@ -67,8 +67,28 @@ cache:
 | --- | --- | --- | --- |
 | `libraries` | Array | `[]` | バンドルされたRBSを読み込む標準ライブラリ/gem名。 |
 | `signature_paths` | Array | `nil` | `.rbs`ファイルの追加ディレクトリ。相対パスのエントリーは設定ファイルのディレクトリを基準に解決されます。 |
+| `core_root` | String | `nil` | `rbs` gem自身のcoreの**代わりに**読み込むcore `.rbs`ファイルのディレクトリ（古いCRuby向けに[rbs-shifter](https://github.com/rigortype/rbs-shifter)が生成したものなど）。相対パスは設定ファイルのディレクトリを基準に解決されます。`nil`はgemのcoreを読み込みます。[古いRuby向けの解析](#古いruby向けの解析)を参照してください。 |
 | `pre_eval` | Array | `[]` | ファイルごとの解析前に走査するファイル（またはglob）。プロジェクトのモンキーパッチを登録し、そのトップレベル定数をプロジェクト全体に公開するために使用。ウォーカーは`require` / `require_relative`をたどらないため、ファイルをロード順にリストしてください: 2つのファイルで宣言されたメソッドは最後にリストされたものが採用され、より後ろにリストされたファイルをrequireしているファイルもリスト順に読み込まれます。`type-of`、`type-scan`、`trace`、`annotate`、`sig-gen`もこれらのパッチを読み込むため、`rigor check`と同様にパッチ適用後のメソッドを型付けします。 |
 | `plugins` | Array | `[]` | 有効化するプラグイン。[プラグインの使い方](../07-plugins/)を参照。 |
+
+#### 古いRuby向けの解析
+
+RigorはRuby 4.0で動作し、バンドルされたcoreシグネチャはRuby 4.0を記述します。古いRubyで動作するプロジェクトでは、そのバージョンに存在しないメソッドを呼び出すことができ、Rigorはその呼び出しを受け入れてしまいます。古いAPIに対してチェックするには、`core_root:`にそのバージョン向けに書かれたcoreシグネチャディレクトリを指定します:
+
+```yaml
+target_ruby: "3.3"
+core_root: vendor/rbs-shifter/3.3/core
+```
+
+`core_root:`はcoreを置き換えますが、`signature_paths:`は追加するだけです。シグネチャディレクトリが省略したメソッドはデフォルトのcoreによって宣言されたままになるため、`signature_paths:`で削除することはできません。上記のcoreを指定すると、`[1, 2].rfind { ... }`は`call.undefined-method`を報告し、`" text ".strip(" ")`は`call.wrong-arity`を報告します。プロジェクトシグネチャ、プラグイン、`libraries:`は引き続きその上にロードされます。`target_ruby:`はRigorがパースする構文を設定するものであり、coreを選択するものではありません。
+
+存在しない、ディレクトリでない、`.rbs`ファイルを含まない、`signature_paths:`のいずれかの内部にある（またはそれを含む）、あるいはRBS環境を構築できない`core_root:`が指定された場合、終了コード64で使用法エラーとなり実行が停止します。core自体のファイルが原因で定義の構築に失敗したcoreクラスは、`rbs.coverage.definition-build-failed`エラーとして報告されます:
+
+```
+rigor: core_root: "/path/to/vendor/rbs-shifter/3.3/core" does not exist
+```
+
+キャッシュはディレクトリおよびそのファイルの内容をキーとするため、coreの切り替えや再生成を行うと、実行中の言語サーバーを含めてキャッシュされた結果が無効化されます。
 
 ### シグネチャ生成
 

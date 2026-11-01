@@ -3,9 +3,9 @@ title: "CLIコマンドリファレンス"
 description: "rigortype/rigor docs/manual/02-cli-reference.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/02-cli-reference.md"
 sourcePath: "docs/manual/02-cli-reference.md"
-sourceSha: "420813a9b4e4bd032873f63e41d1d0c5e2a8ff02131f1f002c7613edaf449a80"
-sourceCommit: "d248bc595938589e1fe4e6e14c0ecd6c080a5a2d"
-sourceDate: "2026-10-26T10:20:02+09:00"
+sourceSha: "3c1935f2a239d366e259b3f5692b660dd8c0b7076668acb6449de4bfc471b7bb"
+sourceCommit: "5edeb7a2ad6fdb82472b076b90bb3dad9024706e"
+sourceDate: "2026-11-01T01:09:45Z"
 translationStatus: "translated"
 sidebar:
   order: 9002
@@ -17,7 +17,7 @@ Rigorのすべてのコマンドは単一の`rigor`実行ファイルのサブ�
 rigor <command> [options] [arguments]
 ```
 
-`rigor help`はコマンド一覧を表示し、`rigor version`はインストール済みバージョンを表示します。不明なコマンドや不正なオプションの場合、`64`で終了します。これは慣例的な「使用法エラー」コードです。
+`rigor help`はコマンド一覧を表示し、`rigor version`はインストール済みバージョンを表示します。不明なコマンドや不正なオプションの場合、`64`で終了します。これは慣例的な「使用法エラー」コードです。個別コマンドのヘルプや、コマンドとフラグの機械可読な一覧については[`rigor help`](#rigor-help)を参照してください。
 
 プロジェクト設定を読み込むすべてのコマンドは、自動探索の代わりに特定の設定ファイルを指すための`--config=PATH`も受け付けます（追加の効果がある箇所でのみ後述で明示します）。
 
@@ -79,10 +79,16 @@ rigor check [paths...]
 スターター設定ファイルを書き出します。
 
 ```sh
-rigor init [--path=PATH] [--force]
+rigor init [--path=PATH] [--force] [--no-plugins]
 ```
 
 デフォルトでは`.rigor.dist.yml`を書き出します。`--path`で別のターゲットを指定し、`--force`で既存ファイルを上書きします。`--force`なしでファイルが存在する場合は`1`で終了します。
+
+作業ディレクトリに`Gemfile.lock`がある場合、`rigor init`はロックファイルが宣言しているgemのバンドル済みプラグインを提案します（[`rigor doctor`](#rigor-doctor)のプラグインギャップチェックと同じ読み取りです）。提案は`plugins: []`の下にコメントアウトされた形で含まれるため、明示的に有効化するまで何もロードされません: `plugins:`行の`[]`を削除し、必要なエントリのコメントを解除して、`rigor plugins --strict`を実行してください。Railsプロジェクトの`rails`はRailsファミリーも引き込むため、リストが長くなることがあります。ロックファイルがない場合や、ロックされたgemにバンドル済みプラグインがない場合は、テンプレートに提案は含まれません。
+
+有効化ではなく提案にとどめるのはADR-96基準2に従っています: ロックファイルの存在それ自体によって、プロジェクトがプラグインのコードにオプトインすることはありません。
+
+`--no-plugins`は、ロックファイルが存在する場合でも提案を含めずにテンプレートを書き出します。
 
 ## `rigor annotate`
 
@@ -92,7 +98,13 @@ rigor init [--path=PATH] [--force]
 rigor annotate [--[no-]color] [--[no-]bat] [--format=text|json] [--config=PATH] FILE
 ```
 
-`FILE`は必須です。カラーはttyの場合に自動検出され、`NO_COLOR`を尊重します。`--color` / `--no-color`で上書きできます。カラーが有効で[`bat`](https://github.com/sharkdp/bat)が`PATH`上にあるときはハイライトがbat経由になります（`--no-bat`でオプトアウト。`--bat`はbatが見つからない場合に警告して組み込みのカラライザーへフォールバックします）。`--format=json`はアノテーション付きソースの代わりに`{ line => type }`のマップを出力します。パースエラーやファイル不在の場合は`1`で終了します。
+`FILE`は必須です。カラーはttyの場合に自動検出され、`NO_COLOR`を尊重します。`--color` / `--no-color`で上書きできます。カラーが有効で[`bat`](https://github.com/sharkdp/bat)が`PATH`上にあるときはハイライトがbat経由になります（`--no-bat`でオプトアウト。`--bat`はbatが見つからない場合に警告して組み込みのカラライザーへフォールバックします）。`--format=json`はアノテーション付きソースの代わりに`{ "schema_version": 1, "annotations": { line => type } }`ドキュメントを出力します。パースエラーやファイル不在の場合は`1`で終了します。
+
+## JSONドキュメント
+
+Rigorが定義するトップレベルがオブジェクトであるすべての`--format=json`ドキュメントは、後述する3つの例外を除き、整数の`schema_version`（現在は`1`）で始まります。どのドキュメントを出力するかをフラグで選択する場合、それに続いて`mode`が含まれます: `rigor coverage`は`precision`、`protection`、`mutation`、`protection-fused`のいずれかを出力し、`rigor plugins`は`status`または`capabilities`を出力します。キーのセットはv1.0.0以降のコントラクトです: マイナーリリースでキーを追加することはありますが、キーの削除やリネームにはメジャーバージョンが必要です。
+
+`rigor lens`（独自の`schema` / `revision`）、`rigor baseline dump`（`version`）、`rigor check`のCIフォーマット（`sarif`、`gitlab`など）は独自のマーカーを維持します。`rigor type-of`、`rigor explain`、`rigor trace`は例外であり、現在のトップレベルの形状（配列、`type-of`の場合はフラットなオブジェクトまたは`{ results }`、`explain <skip-reason>`の場合はフラットなオブジェクト）を維持して出力します;次のマイナーリリースで`{ "schema_version": 1, "results" | "rules" | "skip_reasons" | "events": [...] }`に切り替わります。それまでは、それぞれがstderrに注意書きを出力し、対応するMCPツールも同様の注意書きを追加のテキストブロックとして追記します。
 
 ## `rigor type-of`
 
@@ -271,10 +283,10 @@ rigor explain [options] [rule]
 
 ## `rigor diff`
 
-現在の診断を保存済みベースラインJSONと比較し、新しいものだけを報告します。
+現在の診断を保存済み`rigor check --format=json`の結果と比較し、新しいものだけを報告します。
 
 ```sh
-rigor diff [options] <baseline.json> [paths...]
+rigor diff [options] <rigor-check.json> [paths...]
 ```
 
 `--current=PATH`は新規チェックを実行する代わりに保存済み診断JSONと比較します。`--format=text|json`は出力形式を選択し（デフォルトは`text`）、`--config=PATH`は暗黙のチェックにカスタム設定を渡します。新しい診断が現れた場合は`1`で終了します。
@@ -324,7 +336,7 @@ stdioで言語サーバーを実行します。[エディタ統合](../09-editor
 rigor lsp [--transport=stdio] [--log=PATH] [--config=PATH]
 ```
 
-`stdio`はv1で唯一のトランスポートです。`--log=PATH`は受理されますが、本リリースではまだ接続されていません。サーバーのワイヤーログをファイルへ振り向けるために予約されており、それまではログはstderrに出ます。
+`stdio`はv1で唯一のトランスポートです。`--log=PATH`はPATHにLSPワイヤーログを追記します: クライアントが送信した各JSON-RPCメッセージ（`<-`）とサーバーが書き込んだ各メッセージ（`->`）がタイムスタンプ付きで1メッセージ1行で記録され、さらにサーバループの開始から終了までのサーバーのデバッグ出力も記録されます。ファイルはサーバー起動前に追記モードで開かれるため、書き込み不可能なPATHを指定すると使用法エラーで終了します。ループ外へエスケープした例外はバックトレースとともにファイルへ書き込まれます。ループ開始前に書き込まれた出力（設定の読み込みやサーバーのセットアップ）およびループ外でのクラッシュは引き続きstderrに出力され、セッション途中でファイルが書き込み不能になった場合のサーバー出力も同様です。JSONエンコーダが拒絶したメッセージ（生の不正なUTF-8）はスクラブされた形式でログ出力されます。`--log`がない場合、ワイヤーログは書き出されず、サーバーのデバッグ出力はstderrへ送られます; stdoutはプロトコルのみを流します。
 
 ## `rigor baseline`
 
@@ -483,15 +495,19 @@ rigor plugins [--format=text|json] [--strict] [--capabilities] [--config=PATH]
 ツールチェーンにバンドルされたプラグインのオンディスクのソースをブラウズし、自前のプラグインを著作する際に本物の動作するプラグインを作業例として読めるようにします。
 
 ```sh
-rigor plugin <list|path|print|root> [name]
+rigor plugin [<name>] [--path <name>] [--list] [--root]
 ```
 
-| サブコマンド | 目的 |
+位置引数のスロットはプラグイン*名*です;代替出力はフラグであり、`rigor skill`や`rigor docs`と同じ文法です。
+
+| 形式 | 目的 |
 | --- | --- |
-| `list` | バンドルされた各プラグイン・例の名前 + 絶対ディレクトリパスの表（サブコマンドなしのデフォルト）。 |
-| `path <name>` | プラグインのディレクトリへの1行の絶対パス。 |
-| `print <name>` | ヘッダー（dir / lib / sig / READMEパス）に続けてプラグインの主ソース本体をインライン展開。 |
-| `root` | `rigortype` gemルートとその主要サブディレクトリ。 |
+| `rigor plugin`、`--list` | バンドルされたすべてのプラグインとサンプル、名前 + 絶対ディレクトリパスの表（デフォルト）。 |
+| `<name>` | ヘッダー（dir / lib / sig / READMEパス）に続けてプラグインの主ソース本体をインライン展開。 |
+| `--path <name>` | プラグインのディレクトリへの1行の絶対パス。 |
+| `--root` | `rigortype` gemルートとその主要サブディレクトリ。 |
+
+以前の動詞`list`、`path <name>`、`print <name>`、`root`は1マイナーリリースの間引き続き機能し、代替を案内する非推奨の警告をstderrに出力します; stdoutへの出力は同じです。
 
 パスはgemの場所から実行時に解決されます（コンテナ / クロスファイルシステム構成では文書化された注意点）。
 
@@ -648,6 +664,36 @@ rigor upgrade
 ```
 
 それまでは、現在のバージョンを表示し、upgradeがキューに積まれていることを注記します。`0`で終了します。
+
+## `rigor help`
+
+```sh
+rigor help                  # コマンド一覧
+rigor help <command>        # `rigor <command> --help`と同じ
+rigor help --format=json    # すべてのコマンド、そのフラグとフォーマット
+```
+
+`rigor help --format=json`はCLIサーフェス全体を1つのJSONドキュメントとして出力します。ヘルプテキストをパースするツールやエージェント向けです:
+
+```json
+{ "schema_version": 1, "version": "…", "commands": [ … ] }
+```
+
+`commands`の各エントリは以下を持ちます:
+
+| キー | 値 |
+| --- | --- |
+| `name` | コマンド名。 |
+| `summary` | `rigor help`が出力する1行の説明。 |
+| `usage` | 使用法の一行（`Usage: rigor …`）。 |
+| `flags` | コマンド自体のスイッチ。各要素は`{ "name", "arg", "optional", "desc" }`。`arg`は引数名で、引数を取らないスイッチでは`null`。引数を省略可能な場合（`--bleeding-edge[=LIST]`）は`optional`が`true`。`--[no-]x`は`--x`と`--no-x`の2つのフラグとしてリストされます。 |
+| `formats` | コマンド自体の`--format`が受け付ける値。持たない場合は空。フラグを持つサブコマンドのみがあるコマンド（`baseline`）はここでは何もリストしません。 |
+| `subcommands` | サブコマンド（`baseline dump`、`effects check`、`skill describe`）ごとに1つの`{ "name", "usage", "flags", "formats" }`オブジェクト。上記と同じ意味を持ち、サブコマンドにリストするものがない場合は空の配列。 |
+| `mcp_tool` | コマンドに対応する[MCP](../10-mcp-server/)ツール、または`null`。 |
+
+一覧は上記の各コマンドに加えて`help`と`version`を網羅します。テキストのヘルプも同じリストからレンダリングされます。
+
+`rigor help <command>`は1つのコマンドを取ります: 2つ目の単語（`rigor help baseline drift`）は終了コード`64`で拒絶され、不明なコマンドも`64`で終了します。コマンド名の後のフラグはパースされずに無視されます。
 
 ## 環境変数
 

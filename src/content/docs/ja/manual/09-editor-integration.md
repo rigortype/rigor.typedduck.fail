@@ -3,9 +3,9 @@ title: "Rigor LSP: エディタ統合"
 description: "rigortype/rigor docs/manual/09-editor-integration.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/09-editor-integration.md"
 sourcePath: "docs/manual/09-editor-integration.md"
-sourceSha: "31e3effb4440d806dfaddc61040c8f2d15353af6f7bec386ee8a9a708e1eb506"
-sourceCommit: "946539726906d2bd14f395ca4ea16e7d990e2515"
-sourceDate: "2026-10-27T12:37:25Z"
+sourceSha: "d00e488beb4c1d828b8f0f33766f4bcb2855e795dca4b6b40012009353c8392a"
+sourceCommit: "5edeb7a2ad6fdb82472b076b90bb3dad9024706e"
+sourceDate: "2026-11-01T09:02:28+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9009
@@ -43,7 +43,7 @@ rigor lsp [--transport=stdio] [--log=PATH] [--config=PATH]
 ```
 
 - `--transport=stdio`: デフォルト。v1で受け付ける唯一の値。TCP / Unixソケットトランスポートはキュー待ち。
-- `--log=PATH`: ワイヤーログ + サーバーデバッグをファイルに書き出す。指定しない場合、サーバー側のログはstderrに出力される。
+- `--log=PATH`: ワイヤーログ（送受信された各メッセージ、1メッセージ1行）とループ開始以降のサーバーのデバッグ出力をファイルに追記する。ループ開始前の出力は引き続きstderrに出力される。指定しない場合、ワイヤーログは書き出されず、サーバー側のログはstderrに出力される。
 - `--config=PATH`: `rigor check --config=PATH`のミラー。指定しない場合、`Configuration.discover`がプロジェクトルートから`.rigor.yml` / `.rigor.dist.yml`を探索する。
 
 ## エディタへの組み込み
