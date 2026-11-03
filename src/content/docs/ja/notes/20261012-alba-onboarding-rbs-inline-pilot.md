@@ -4,7 +4,7 @@ description: "Imported from rigortype/rigor docs/notes/20261012-alba-onboarding-
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20261012-alba-onboarding-rbs-inline-pilot.md"
 sourcePath: "docs/notes/20261012-alba-onboarding-rbs-inline-pilot.md"
 sourceSha: "723c1b76248598474b2da6a3dafc124d38f7cf92a7afa17d088f4573d0b930fe"
-sourceCommit: "088adf7e773e66dfac0afbc874f3d20ec73639ec"
+sourceCommit: "1c3a70e39d87479a4ca2c54e031bed7c3a56e652"
 sourceDate: "2026-10-12T04:51:28+09:00"
 sourceLanguage: "ja"
 sidebar:

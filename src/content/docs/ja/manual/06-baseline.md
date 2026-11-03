@@ -3,9 +3,9 @@ title: "ベースライン"
 description: "rigortype/rigor docs/manual/06-baseline.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/06-baseline.md"
 sourcePath: "docs/manual/06-baseline.md"
-sourceSha: "a0edf92336490dddc5ad0713c32532130b2ea499b113837bb4bc08c8c97adc70"
-sourceCommit: "088adf7e773e66dfac0afbc874f3d20ec73639ec"
-sourceDate: "2026-11-01T16:07:04+09:00"
+sourceSha: "530c74093e549c2bf3ab6abe50ec4ffccdf6f015025a2851c96f7755ff923eec"
+sourceCommit: "1c3a70e39d87479a4ca2c54e031bed7c3a56e652"
+sourceDate: "2026-11-03T05:40:53+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9006
@@ -63,7 +63,7 @@ baseline: .rigor-baseline.yml
 | `rigor baseline drift` | バケットがどう動いたかを表示する。`--only=over`で増えたバケット、`reducible`ですでに改善したバケット、`cleared`で空のバケット。 |
 | `rigor baseline prune` | もはや何にも一致しないバケットを削除する。`--dry-run`でプレビュー。 |
 
-`generate`と`regenerate`は、`baseline:`がオフであること以外はロードされた設定を変更せずに解析するため、`bleeding_edge`、`target_ruby`、または`severity_overrides`などのオプションは、`rigor check`を形成するのとまったく同様に記録されるセットを形成します。これらは設定された`paths:`のみを解析します: ファイルのサブセットに対するベースラインは他のすべてのファイルのエントリを黙って削除し、記録を破損してしまうため、位置引数のパスは使用法エラー（終了コード`64`）として拒絶されます。代わりに設定の`paths:`でスコープを絞り込んでください。
+`generate`と`regenerate`は、`baseline:`がオフであること以外はロードされた設定を変更せずに解析するため、`bleeding_edge`、`target_ruby`、または`severity_overrides`などのオプションは、`rigor check`を形成するのとまったく同様に記録されるセットを形成します。これらは設定された`paths:`のみを解析します: ファイルのサブセットに対するベースラインは他のすべてのファイルのエントリを黙って削除してしまうため、位置引数のパスは使用法エラー（終了コード`64`）として拒絶されます。他の3つのサブコマンドも同様に位置引数のパスを拒絶します。
 
 サマリーは書き出されたバケットがカバーする診断のみをカウントします。ルールのない診断 ── Rigorがパースできなかったファイル内の**パースエラー**、存在しない`paths:`エントリー、または内部エラー ── や、パスのない診断はキー付けできないため、ベースラインに入ることは決してありません。コマンドは件数、理由、該当ファイルを記載した2行目を表示します。終了ステータスは0のままですが、`baseline:`が設定された次回の`rigor check`は、それらのファイルを修正、除外、または不正な`paths:`エントリーを削除するまで、依然としてそれらを報告し非ゼロで終了します。
 

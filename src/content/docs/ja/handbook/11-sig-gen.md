@@ -3,9 +3,9 @@ title: "`rigor sig-gen`でRBSを生成する"
 description: "rigortype/rigor docs/handbook/11-sig-gen.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/11-sig-gen.md"
 sourcePath: "docs/handbook/11-sig-gen.md"
-sourceSha: "f92357e0778235540aca3bd17d659887402f404baeb774d3eec380e54d9ea41b"
-sourceCommit: "946539726906d2bd14f395ca4ea16e7d990e2515"
-sourceDate: "2026-10-28T03:49:35+09:00"
+sourceSha: "c44758f45c620ac3cdf50e0a43bfae14bb2198c96df23497c01f518222453b09"
+sourceCommit: "1c3a70e39d87479a4ca2c54e031bed7c3a56e652"
+sourceDate: "2026-11-03T06:36:15+09:00"
 translationStatus: "translated"
 sidebar:
   order: 1011
@@ -303,7 +303,7 @@ CLIのいかなる機能もこれを強制しません。これは自身のス�
 | ポリシー | 動作 |
 | --- | --- |
 | `untyped`（デフォルト） | すべてのパラメータが`untyped`として綴られる。推論由来のパラメータ契約は将来の呼び出し元に課されない。ユーザーがパラメータ型付けの著作権を完全に保持する。 |
-| `observed` | `--observe=PATH...`（設定された`test_paths:`、または`spec/`と`test/`のうち存在する方がデフォルト）配下のすべての呼び出し箇所から引数の型を収集し、パラメータ位置ごとにユニオンし、RBSに消去して、ユニオンを発行します。観察すべきテストルートがない場合、または宣言されたルートが存在しないかもしくは読み取られない場合、sig-genはstderrでその旨を報告し、`--format=json`はトップレベルの`observation`キー（後述）に同じ事実を保持します。 |
+| `observed` | `--observe=PATH...`（設定された`test_paths:`、または`spec/`と`test/`のうち存在する方がデフォルト）配下のすべての呼び出し箇所から引数の型を収集し、パラメータ位置ごとにユニオンし、RBSに消去して、ユニオンを発行します。リテラルの引数はまずそのクラスへと広げられるため、`"hello"`は`String`を提案します（#2254）。観察すべきテストルートがない場合、または宣言されたルートが存在しないかもしくは読み取られない場合、sig-genはstderrでその旨を報告し、`--format=json`はトップレベルの`observation`キー（後述）に同じ事実を保持します。 |
 | `observed-strict` | 予約済み。ロールカタログが出荷されるとケイパビリティロール（`_ToStr`、`_ToS`、…）へさらに広げる。現在は使用エラーで拒否される。 |
 
 `--params=observed`の下では、`--print` / `--diff`のJSONペイロードは`candidates`の隣にトップレベルの`observation`キーを獲得するため、stderrをまったく読み取らない消費者（MCPの`rigor_sig_gen`ツールを含む）でも、「テストルートが観察されなかった」のか「テストが型付きの引数を渡していない」のかを区別できます:

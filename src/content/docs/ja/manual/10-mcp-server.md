@@ -3,9 +3,9 @@ title: "Rigor MCPサーバー: AIエージェント統合"
 description: "rigortype/rigor docs/manual/10-mcp-server.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/10-mcp-server.md"
 sourcePath: "docs/manual/10-mcp-server.md"
-sourceSha: "03f2dd2005e047092d8877aee8513507314291375d8c44cab2e04dda3493c148"
-sourceCommit: "5edeb7a2ad6fdb82472b076b90bb3dad9024706e"
-sourceDate: "2026-10-30T12:48:08+09:00"
+sourceSha: "d35f035b4dd4ac2132b01da5084b45d890a45691f2436b40fdf9679e2433ff98"
+sourceCommit: "1c3a70e39d87479a4ca2c54e031bed7c3a56e652"
+sourceDate: "2026-11-03T07:18:31+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9010
@@ -204,7 +204,7 @@ Clineパネル → MCPサーバー → サーバーを追加 → カスタムを
 
 `.rigor.yml`に[設定警告](../03-configuration/)（効力のないキーや`disable:`トークン）がある場合、ドキュメントは`rigor check --format json`と同様に`config_warnings`の下にそれらを保持します。
 
-`isError`は、診断が見つかった場合でも実行が正常完了したときは`false`。`isError: true`はCLIがEXIT_USAGE（64）で終了したとき（不正な引数またはランタイム失敗）のみ設定されます。AIクライアントは`isError: false`のJSON診断配列を通常通り読み取れます。
+`isError`は、診断が見つかった場合でも実行が正常完了したときは`false`です。`isError: true`は使用法またはランタイムの失敗（読み取り不能な`config`、あるいは測定対象が残らない`paths`を指定した`rigor_coverage`呼び出しなど）を示します。`rigor_check`に存在しないパスが渡された場合はこれらに該当せず、診断情報として報告され、呼び出しは`isError: false`を返します。
 
 **典型的なエージェントの使い方:**エージェントが編集しようとするファイルに対して`rigor_check`を呼び出してベースラインを記録し、編集を適用し、再度呼び出して2つの診断配列の差分を取ることで変更が問題を導入または解決したかを確認する。
 
@@ -408,6 +408,8 @@ RubyソースファイルからRBSスケルトンシグネチャを推論して�
 | `config` | `string` | いいえ |
 
 **返り値:** JSON（`rigor coverage --format json`と同じ）。
+
+存在しない、またはRubyファイルではない`paths`エントリは、`rigor coverage`が報告する通りに報告されます。測定されたファイルと並んでスキップされます。その場合、結果にはCLIのstderrがフィルタリングされずに第2のテキストブロックとして含まれます: `missing.rb:1:1: warning: no such file or directory (skipped)`などのパス警告やその他の警告です。Rubyファイルを保持するエントリが1つもない場合、呼び出しは`isError: true`となり、ブロックにその旨が記載されます。
 
 ```json
 {

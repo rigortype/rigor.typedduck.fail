@@ -3,9 +3,9 @@ title: "制御フロー解析"
 description: "rigortype/rigor docs/type-specification/control-flow-analysis.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/type-specification/control-flow-analysis.md"
 sourcePath: "docs/type-specification/control-flow-analysis.md"
-sourceSha: "0c1d9ef15c9fd759fc42bf5f2fb5c9b6190f95b3903ce62b69ecc5eadd2c65fe"
-sourceCommit: "088adf7e773e66dfac0afbc874f3d20ec73639ec"
-sourceDate: "2026-11-01T18:34:31+09:00"
+sourceSha: "8d270c8381b3991b9ec20f0d4925e7f8281b612195384c7cd520dd9fcc8a7c3b"
+sourceCommit: "1c3a70e39d87479a4ca2c54e031bed7c3a56e652"
+sourceDate: "2026-11-02T20:31:03+09:00"
 translationStatus: "translated"
 sidebar:
   order: 2050
@@ -411,6 +411,17 @@ Rigorは等価ファクトを信頼レベルで分類すべきです（SHOULD）
 このルールは一様なエスケープ解析ではなくイディオムによって形作られています。空でないリテラルのシードはその厳密な型を保持します: `@order = "asc"`、`MODES = %w[a b]`、`@opts = { a: 1 }`はモードや設定テーブルであり、`"asc" | "desc"`と型付けされたRBSパラメータは依然としてそれらを受け入れます。センサスが見ていないコードからのそのようなスロットのミューテーションは追跡されません。ローカル変数はそのフロー精度を維持します。
 
 一部の標準ライブラリ呼び出しはString引数をインプレースで満たします。`io.read(n, buf)`、`io.readpartial(n, buf)`、`io.sysread(n, buf)`、`io.read_nonblock(n, buf)`の後では、インプレースの`replace`が広げるのと同様にバッファ引数が広げられます。`StringIO.new(s)`または`::StringIO.new(s)`の後では、StringIOを通じた以降の書き込みがそこに着地するため、`s`が広げられます。両者は引数がローカル変数、インスタンス変数、クラス変数、またはグローバル変数の読み取りであり、現在の型がStringリテラル、`String`公称型、またはそれらのユニオンである場合に適用されます; `Rails.cache.read(key, opts)`のオプションHashなど、その他の引数はその型を保持します。カタログはレシーバーの型ではなくメソッド名と引数位置でキー付けされているため、別のクラスの同名メソッドはその引数についてのみ精度を失います。
+
+### コレクションリムーバー
+
+ローカル変数に対して呼び出されたリムーバーやフィルターは、Rubyが削除したことを保証する内容によってそのバインディングの要素型をナローイングします（[#2608](https://github.com/rigortype/rigor/issues/2608)）:
+
+- `Array#compact!`および`Hash#compact!`は要素型または値型から`nil`を除外します;
+- `Array#delete(nil)`、`Set#delete(nil)`、`Set#delete?(nil)`は、リテラルの`nil`が渡された場合、要素型から`nil`を除外します。また`Hash#delete(nil)`はキー型からそれを取り除きます;
+- `reject!`および`delete_if`はブロックが偽（falsey）を返した要素を保持し、`select!`、`filter!`、`keep_if`は真（truthy）を返した要素を保持します。ブロックの単一の式は、要素にバインドされたパラメータに対するガードとして読み取られるため（Hashの`|k, v|`形式はキーと値をバインドします）、`reject! { |x| x.nil? }`、`select! { |x| x.is_a?(String) }`、`filter! { |x| x }`は一致する辺で`if`と同様にナローイングします。`&:nil?`は`{ |x| x.nil? }`として読み取られます;
+- 閉じたハッシュシェイプは、リテラルの`delete(:k)`が名指すSymbolキーを失い、そのキーが存在しない場合はシェイプを維持します。
+
+それ以外のものはナローイングしません: `pop`、`shift`、`slice!`、`subtract`、`clear`、および非リテラルの`delete`はどのメンバーが残るかを判断できず、複数の式を持つブロック、ジャンプやローカル書き込み、番号付きパラメータや`it`パラメータ、あるいはパラメータについて何も言明しない述語はナローイングを与えません。バインディング間で選択を行うレシーバー（`(f ? a : b).compact!`）はいずれもナローイングしません。ナローイングはオブジェクトに関するファクトであるため、そのメソッド、クラス、またはファイル本体内で他のどの保持者も書き込まないローカル変数にのみ適用されます。インスタンス変数は、任意のメソッドやそれを保持する任意のオブジェクトが書き込めるため、決してナローイングしません。ローカル変数は、後で実行される可能性のあるラムダやブロック（カタログ化されたイテレータ、または`tap` / `then` / `yield_self`のブロック以外の任意のブロック）の内部で参照されている場合;任意の書き込み（変数、定数、インデックス、属性、演算子の書き込み、多重代入）の値の内部、あるいは`case`/`in`、`=>`、`in`パターンの対象の内部（値が新規リテラルや`Array`、`Hash`、`Set`の`new` / `[]`でない限り、その書き込みやパターンがバインドするローカル変数も含まれます）のどこかで読み取られている場合;引数なしで`super`を呼び出すメソッドのパラメータである場合; Array要素、Hashキーまたは値、splat、あるいは任意の呼び出し、`yield`、`super`の引数の内部で読み取られている場合（別の値を返し参照を保持しないリーダー（`size`、`dup`、`first`、…）のレシーバーである場合を除く）; `send`、`instance_eval`、`tap`などのリフレクティブな呼び出しのレシーバーである場合;または`binding`や`eval`を呼び出す本体内にある場合はナローイングしません。それぞれ以前の読み取りを維持します。レシーバー位置、`return`、および本体の最後の式はカウントされません。宣言されたパラメータのバインディングはその本体内でナローイングし、呼び出し元の引数はナローイングしません。
 
 ### クロージャキャプチャ
 
