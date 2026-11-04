@@ -3,9 +3,9 @@ title: "Rigor LSP: エディタ統合"
 description: "rigortype/rigor docs/manual/09-editor-integration.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/09-editor-integration.md"
 sourcePath: "docs/manual/09-editor-integration.md"
-sourceSha: "d00e488beb4c1d828b8f0f33766f4bcb2855e795dca4b6b40012009353c8392a"
-sourceCommit: "5edeb7a2ad6fdb82472b076b90bb3dad9024706e"
-sourceDate: "2026-11-01T09:02:28+09:00"
+sourceSha: "397f733a462427d3a32de285924e41a196af723537a48e89a4df93302de5c6c0"
+sourceCommit: "8f295a1cc741bf669bf177f8ed09332fdaf59410"
+sourceDate: "2026-11-04T06:59:57+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9009
@@ -31,6 +31,8 @@ sidebar:
 ## 前提条件
 
 前提条件は**`rigor`が`PATH`上にある**ことだけです。`rigor check`と`rigor type-of`がすでに使っている同じ実行ファイルです。[Rigorのインストール](../01-installation/)のインストールチャンネルのいずれでも提供されます。`mise`が推奨です。そのshimがシェル環境を継承しないGUI起動エディタに`rigor`を利用可能にするからです。
+
+[VS Code拡張機能](https://github.com/rigortype/rigor/blob/master/editors/vscode/README.md)は、`rigor`が`PATH`上にない場合でもmiseやasdfのshimを検出します。`rigor`がまったく見つからない場合、マシン上にすでに存在するRuby 4.0を使って自身のストレージ内に**マネージドRigor（managed Rigor）**をインストールすることを提案し、それを最後の手段として使用します; `Gemfile.lock`、`mise.toml`、または`.tool-versions`で`rigortype`をピン留めしているプロジェクトに対しては決してそれが提供されることはありません。拡張機能のREADMEの*Server discovery*を参照してください。
 
 `rigortype`をプロジェクトの`Gemfile`に追加**しないでください**。Rigorはツールであり、ライブラリではありません。スタンドアロンでインストールすることでRubyバージョンと依存関係がアプリケーションの解決から切り離されます。[Rigorのインストール § 推奨: ランタイムバージョンマネージャ](../01-installation/#推奨-ランタイムバージョンマネージャー)を参照してください。
 

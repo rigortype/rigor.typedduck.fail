@@ -4,7 +4,7 @@ description: "Imported from rigortype/rigor docs/notes/20260518-matsumoto-2010-c
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260518-matsumoto-2010-cfa-rigor-review.md"
 sourcePath: "docs/notes/20260518-matsumoto-2010-cfa-rigor-review.md"
 sourceSha: "8209b736797af758fcb8ce6d777685982098a0d997f7391cd3d5919a760a6f0a"
-sourceCommit: "4df9f1f2074756a05d602f4e499e800c9df17218"
+sourceCommit: "8f295a1cc741bf669bf177f8ed09332fdaf59410"
 sourceDate: "2026-10-07T20:08:52+09:00"
 sourceLanguage: "ja"
 sidebar:

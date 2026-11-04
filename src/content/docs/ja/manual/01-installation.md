@@ -3,8 +3,9 @@ title: "Rigorのインストール"
 description: "rigortype/rigor docs/manual/01-installation.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/01-installation.md"
 sourcePath: "docs/manual/01-installation.md"
-sourceSha: "32c480d0bc8716fa10d4155743cc4137d90d640f11c00d1862b7386d29352c98"
-sourceCommit: "78b18cea6a576475c92bce020535269f2eebc20d"
+sourceSha: "91bd345326826c7bdf34b7908d3cb42b931ea5bd573bde0dc0d62cea688a0c44"
+sourceCommit: "8f295a1cc741bf669bf177f8ed09332fdaf59410"
+sourceDate: "2026-11-04T10:52:50+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9001
@@ -22,6 +23,8 @@ RigorはRuby 4.0で動作します。これは自分のコードが対象とす�
 > ```
 >
 > エージェントが環境（mise / asdf / 素のRuby）を検出し、適切なツールをインストールして、`rigor-project-init`スキルに引き渡します（[Railsクイックスタート](../14-rails-quickstart/)のPath Aを参照）。下記のチャンネルは手動のルートです。
+
+> **VS CodeでRigorを試すだけですか？** [Rigor拡張機能](https://github.com/rigortype/rigor/blob/master/editors/vscode/README.md)は`rigor`が見つからない場合、マシン上にすでにあるRuby 4.0（または`mise install ruby@4.0`が提供するもの）を使って自身のストレージ内にインストールすることを提案します。そのインストールはエディタ専用であり、`rigortype`をピン留めしているプロジェクトには決して使用されません。コマンドラインやCIには、以下のチャンネルを使用してください。
 
 ### お使いの言語でセットアップ
 
@@ -287,7 +290,36 @@ asdf local ruby latest:4.0
 gem install rigortype
 ```
 
-`asdf`には汎用的なgemバックエンドがないため、gemは`asdf`コマンドではなく`gem install`でインストールします。上述の`mise`は、その`gem:`バックエンドがRubyを記録するのと同じconfigにgemを記録し、そして——次のセクションで説明するように——両者が干渉しないよう保つため、より統合されたオプションです。
+`asdf`には汎用的なgemバックエンドがないため、gemは`asdf`コマンドではなく`gem install`でインストールします。上述の`mise`は、その`gem:`バックエンドがRubyを記録するのと同じconfigにgemを記録し、そして——[シンプルな代替手段](#シンプルな代替手段-gem-install)で説明するように——両者が干渉しないよう保つため、より統合されたオプションです。
+
+## セカンダリ: ピン留めされたバンドル
+
+本章冒頭のルールは、あなたの*アプリケーションの*`Gemfile`——Bundlerがアプリのgemに対して解決し、そのエントリーを`Bundler.require`が起動時にロードするもの——についてのものです。Bundlerに反対するルールではありません。Rigorだけを含み、別途解決して`BUNDLE_GEMFILE`で選択する`Gemfile`は、この禁止事項が守ろうとするすべての性質を保ちます: あなたのアプリケーションの依存関係グラフがRigorのそれと出会うことは決してなく、あなたのアプリケーションのRubyがRigorのそれによって制約されることも決してありません。
+
+それを`Gemfile.lock`とともに、RigorのCIテンプレートが使用するパスである`.github/rigor/`にコミットしてください。VS Code拡張機能はそれを実行し（検出種別`pinned-bundle`、マネージドRigorと同様の方法で見つかるRuby下で実行され、ロックファイルの`RUBY VERSION`またはGemfileの`ruby`行に一致するものを優先; `rigor.server.bundleGemfile`で別の場所を指定可能）、ピン留めされている間は決して別のRigorを実行しません。`rigor doctor`はまだこれを認識しません（[#2751](https://github.com/rigortype/rigor/issues/2751)）:
+
+```ruby
+# .github/rigor/Gemfile
+source "https://rubygems.org"
+ruby ">= 4.0.0", "< 4.1"
+gem "rigortype", "~> 0.4"
+```
+
+各コマンドは通常プロジェクトのRubyとは異なるRuby 4.0下で実行する必要があるため、コマンドラインでそれを選択します:
+
+```sh
+# miseの場合
+BUNDLE_GEMFILE=.github/rigor/Gemfile mise exec ruby@4.0 -- bundle install
+BUNDLE_GEMFILE=.github/rigor/Gemfile mise exec ruby@4.0 -- bundle exec rigor check
+# rbenvの場合
+BUNDLE_GEMFILE=.github/rigor/Gemfile RBENV_VERSION=4.0.5 bundle exec rigor check
+```
+
+`.github/rigor/`内の`.ruby-version`はそれを選択しません。Rigorはプロジェクトルートから実行されるためです。また、その`#!/usr/bin/env ruby`がプロジェクトのRubyを実行してしまうBundler binstubも同様です。
+
+同じピン留めがローカル実行とCIの双方で機能し、Dependabotがそれを最新に保つことができ（CIの章の[Rigorバージョンのピン留め](../11-ci/#rigorバージョンのピン留め)を参照）、サードパーティのRigorプラグインgemを置く場所にもなります。それが**行わない**のはRubyの提供です: すべての`bundle exec`はすでにRuby 4.0下で実行されていなければならず、`ruby`行がそれをチェックします。`rigortype`のみが正確にピン留めされます;ロックファイルはインストール時にBundlerが解決した依存関係バージョンを記録します。
+
+これはバージョンとRubyを1か所に記録し`bundle exec`も不要な`mise use --pin gem:rigortype`よりも可動部が多くなります。チームがすでにすべてをBundler経由で実行している場合や、プラグインgemが必要な場合に手を伸ばしてください——第一の選択肢としてではありません。
 
 ## シンプルな代替手段: gem install
 
@@ -300,18 +332,6 @@ gem install rigortype
 gemの名前は`rigortype`です（`rigor`はすでにRubyGemsで取得済みです）。インストールされる実行ファイルは`rigor`です。これは最も手軽な方法ですが、プロジェクト単位では何も記録しません: バージョンマネージャーを使えばプロジェクトの横にRigorバージョンをピン留めできるため、ローカルの実行とCIがずれることがありません。
 
 またこの方法では、Rigorがあなたの作業と1つのRubyを共有したままになります。これがバージョンマネージャーを先に挙げている、より深い理由です。RubyGemsがインストールする実行ファイルは`#!/usr/bin/env ruby`で始まるため、*呼び出した瞬間に*`PATH`の先頭にある`ruby`の下で実行されます——そしてRigorはRuby 4.0を必要とする一方、あなたのプロジェクトはそれぞれ独自のバージョンをpinするため、Ruby 3.xのプロジェクト内で`rigor`を実行すると、起動する前に失敗します。miseの`gem:`バックエンドにはこの失敗モードがありません。各ツールをそれ自身のプライベートなgemディレクトリにインストールし、実行ファイルをそのツールがインストールされたRubyへ向けるため、プロジェクトのRubyのpinはそこに到達できません。切り替えて離れることのないRuby 4.0の下での`gem install`はまったく問題ありませんが、切り替えて使うプロジェクトとRubyを共有するものはフットガン（footgun）です。
-
-## Bundlerにバージョンを管理させたい場合
-
-本章冒頭のルールは、あなたの*アプリケーションの*`Gemfile`——Bundlerがアプリのgemに対して解決し、そのエントリーを`Bundler.require`が起動時にロードするもの——についてのものです。Bundlerに反対するルールではありません。Rigorだけを含み、別途解決して`BUNDLE_GEMFILE`で選択する`Gemfile`は、この禁止事項が守ろうとするすべての性質を保ちます: あなたのアプリケーションの依存関係グラフがRigorのそれと出会うことは決してなく、あなたのアプリケーションのRubyがRigorのそれによって制約されることも決してありません。
-
-その構成——`.github/rigor/`配下の`Gemfile`と、それを最新に保つDependabot設定——は、CIの章の[Rigorバージョンのピン留め](../11-ci/#rigorバージョンのピン留め)に記載されています。それについてCI固有のものは何もありません:
-
-```sh
-BUNDLE_GEMFILE=.github/rigor/Gemfile bundle exec rigor check
-```
-
-これは`mise use --pin gem:rigortype`よりも可動部が多く、後者は同じバージョンを1行で記録し`bundle exec`も不要です。チームがすでにすべてをBundler経由で実行しており、Rigorを同じ土台に乗せたい場合に手を伸ばしてください——第一の選択肢としてではありません。
 
 ## Nix
 
