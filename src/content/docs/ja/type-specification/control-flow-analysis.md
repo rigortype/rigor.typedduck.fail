@@ -3,9 +3,9 @@ title: "制御フロー解析"
 description: "rigortype/rigor docs/type-specification/control-flow-analysis.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/type-specification/control-flow-analysis.md"
 sourcePath: "docs/type-specification/control-flow-analysis.md"
-sourceSha: "8d270c8381b3991b9ec20f0d4925e7f8281b612195384c7cd520dd9fcc8a7c3b"
-sourceCommit: "1c3a70e39d87479a4ca2c54e031bed7c3a56e652"
-sourceDate: "2026-11-02T20:31:03+09:00"
+sourceSha: "2ce134362a7973a5106f07a3c348410a5d1528c3bf8ec7fe6735bd1f1e294236"
+sourceCommit: "3d1338ebe88ec99fe7eab6e2e45ad7c0b7829731"
+sourceDate: "2026-11-06T22:33:38+09:00"
 translationStatus: "translated"
 sidebar:
   order: 2050
@@ -300,6 +300,8 @@ Rigorは等価ファクトを信頼レベルで分類すべきです（SHOULD）
 ### クラスガード
 
 クラスガードは、`is_a?`、`kind_of?`、`instance_of?`、クラスまたはモジュール定数`C`に対する`C === x`、`case x when C`、および単独のクラスパターン`case x in C`（または`in C => y`）です。ガードの真値エッジでは、レシーバーはそれを満たすことができるその型のメンバーにナローイングされます。満たすことができるメンバーがない場合、メンバーが`C`と互いに素（disjoint）なクラスの`Nominal`である場合を含め、エッジは`bot`になります。
+
+漸進的（`Dynamic`）な値を保持していたローカル変数は、任意のレシーバーと同様に、真値エッジにおいて要求されたクラスの`Nominal`にナローイングされ、漸進的ナローイングとしてマークされます（[#2656](https://github.com/rigortype/rigor/issues/2656)）。漸進的な対象に対して`in C => y`キャプチャがバインドする変数も同様です。ディスパッチ、`call.undefined-method`、および`call.wrong-arity`は`Nominal`を読み取ります。`call.argument-type-mismatch`は、パラメータが名指すリテラルに対してではなく、そのクラスによってマークされたローカル変数を判定します: パラメータの各リテラルをそのクラスへ拡幅した上で、ナローイングされた型が拒絶される場合にのみ報告します。`Sink#mode: ("r" | "w") -> void`に対する`def f(x) = (Sink.new.mode(x) if x.is_a?(String))`は何も報告せず、`num: (1 | 2) -> void`に対する`Sink.new.num(x) if x.is_a?(String)`は依然として報告し、`x.upcase if x.is_a?(Integer)`は依然として`call.undefined-method`を報告します。漸進的なメンバーを持つユニオン型であるローカル変数（`h[:m] || "r"`、`c ? h[:m] : nil`）は、他のメンバーがリテラルまたは空にナローイングされる場合に同様にマークされ、そのナローイングされた型のリテラルメンバーはそれ自体として判定されます;他のメンバーがクラスにナローイングされるユニオン（`d`が`String`である`h[:m] || d`）はマークされません。マークされたローカル変数に対するその後のガード（`return if x.nil?`、`x != ""`、2回目のクラスガード、任意の`when`のもとでのそれに対する`case`）は、マークを終了させることなくそれをナローイングします。ローカル変数への書き込みはマークを終了させます: 代入（`x = x`を含む）、複合書き込み、多重代入や`for`のターゲット、およびそれに書き込んだアームとのjoin。ローカル変数に書き込むブロックはマークなしでエントリーします。ブロックの後の実行がその書き込みを読み取るためです。別のローカル変数へのコピー（`y = x`）やその上の呼び出し（`mode(x.dup)`、`mode(x.strip)`）はマークを保持しないため、設計どおり依然として報告されます。
 
 そのような`Nominal`は、プログラムが厳密には保持しない慣用的な期待値である可能性があります（[ADR-117](../../adr/117-standard-streams-typed-by-idiom/)決定ポイント3、[#1429](https://github.com/rigortype/rigor/issues/1429)）。`$stdout`は`IO`と型付けされており、テストは`IO`のサブクラスではない`StringIO`で同じコードを実行するため、`$stdout.is_a?(StringIO) ? $stdout.string : nil`および`case io when StringIO then io.string end`は正しいコードです。そのようなガードに対して:
 - **アーム**。アーム内ではレシーバーは`bot`として読み取られるため、その上の呼び出しはチェックされず、アームがその後のコードと合流する場所にも何も追加しません。アームの残りの部分は通常どおりチェックされます。これはすべての位置にある`if`、`unless`、三項演算子、ならびにエバリュエータがそれを実行する場所（文、文レベルの書き込みの値、あるいはそれ自体が文またはそのような書き込みの値である呼び出しのブロック）およびエバリュエータがエントリしない値位置（配列要素、引数、レシーバーなど）の両方の`case`に当てはまります: `[case io when StringIO then io.string end]`は静かです（[#1484](https://github.com/rigortype/rigor/issues/1484)）。

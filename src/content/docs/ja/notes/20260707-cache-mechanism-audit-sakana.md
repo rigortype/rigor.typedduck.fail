@@ -4,7 +4,7 @@ description: "Imported from rigortype/rigor docs/notes/20260707-cache-mechanism-
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260707-cache-mechanism-audit-sakana.md"
 sourcePath: "docs/notes/20260707-cache-mechanism-audit-sakana.md"
 sourceSha: "d7da418acd55932c3ec3bc96fb1acba46022b55c46070590d62a17eaaaea6365"
-sourceCommit: "7f14d503aa4cfefb25672389bab5a229b1219f4e"
+sourceCommit: "3d1338ebe88ec99fe7eab6e2e45ad7c0b7829731"
 sourceDate: "2026-07-07T13:56:03+09:00"
 sourceLanguage: "ja"
 sidebar:

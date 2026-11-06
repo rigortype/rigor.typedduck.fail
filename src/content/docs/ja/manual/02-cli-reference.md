@@ -3,9 +3,9 @@ title: "CLIコマンドリファレンス"
 description: "rigortype/rigor docs/manual/02-cli-reference.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/02-cli-reference.md"
 sourcePath: "docs/manual/02-cli-reference.md"
-sourceSha: "b09e258eed1121fde255f2ee4ab755f8e680b92fef0697f923a30d15db3a06bd"
-sourceCommit: "7f14d503aa4cfefb25672389bab5a229b1219f4e"
-sourceDate: "2026-11-05T08:44:38+09:00"
+sourceSha: "37fdc74247cf5e336a60e8ee69ee687f4bec4b8c34186e8d2d8c0c3affa40c0b"
+sourceCommit: "3d1338ebe88ec99fe7eab6e2e45ad7c0b7829731"
+sourceDate: "2026-11-06T18:43:41+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9002
@@ -96,13 +96,38 @@ Railsアプリケーション（作業ディレクトリに`config/application.r
 
 ## `rigor annotate`
 
-ファイルを再表示し、各行に評価する式の型を末尾の`#=>`コメントとしてタグ付けします。[推論型の検査](../05-inspecting-types/)を参照してください。
+ソースファイルを再表示し、各行に評価される式の推論型を末尾の`#=>`コメントとしてタグ付けします（xmpfilter / seeing_is_believingの規約に準拠）。[推論型の検査](../05-inspecting-types/)を参照してください。
 
 ```sh
-rigor annotate [--[no-]color] [--[no-]bat] [--format=text|json] [--config=PATH] FILE
+rigor annotate [options] FILE
 ```
 
-`FILE`は必須です。カラーはttyの場合に自動検出され、`NO_COLOR`を尊重します。`--color` / `--no-color`で上書きできます。カラーが有効で[`bat`](https://github.com/sharkdp/bat)が`PATH`上にあるときはハイライトがbat経由になります（`--no-bat`でオプトアウト。`--bat`はbatが見つからない場合に警告して組み込みのカラライザーへフォールバックします）。`--format=json`はアノテーション付きソースの代わりに`{ "schema_version": 1, "annotations": { line => type } }`ドキュメントを出力します。パースエラーやファイル不在の場合は`1`で終了します。
+| フラグ | 用途 |
+| --- | --- |
+| `--config=PATH` | `.rigor.yml`へのパス。自動検出を上書き。 |
+| `--format=FORMAT` | 出力フォーマット（`text`または`json`）。デフォルト: `text`。 |
+| `--[no-]color` | ANSIカラーの強制または無効化（デフォルト: ttyの場合は自動検出、`NO_COLOR`を尊重）。 |
+| `--[no-]bat` | [`bat`](https://github.com/sharkdp/bat)によるシンタックスハイライトの強制または無効化（デフォルト: カラーが有効で`PATH`上に`bat`が存在する場合に有効）。 |
+
+位置引数`FILE`は必須です。各行について、コマンドはその行で評価された最後の式を特定し（例: `1; 2; 3`の最後の文は`3`を報告し、条件文ヘッダー`if nil`はその条件を報告する）、`#=> <type>`でアノテーションします。メソッド定義ヘッダー（`def`）では、行にはヘッダー式ではなくメソッドの推論された戻り値型がアノテーションされます。
+
+アノテーションは冪等です: `rigor annotate`を再実行すると、既存の`#=>`コメント（および旧形式の`#=> dump_type:`コメント）にマッチし、コメントを積み重ねる代わりにインプレースで置き換えます。
+
+カラーが有効で`bat`がインストールされている場合、出力は`bat --language=ruby --style=plain --paging=never`を通じてシンタックスハイライトされます。`--no-bat`を渡すと、`bat`連携が無効化され、Rigor組み込みのPrismカラライザーが使用されます。`--bat`は、`bat`が`PATH`上に見つからない場合にstderrに警告を出力し、組み込みのカラライザーへフォールバックします。
+
+`--format=json`では、スキーマバージョン1に準拠した、行番号を型文字列にマッピングするJSONオブジェクトを出力します:
+
+```json
+{
+  "schema_version": 1,
+  "annotations": {
+    "1": "Integer",
+    "2": "String | nil"
+  }
+}
+```
+
+成功時は`0`、ファイルが存在しないかPrism構文エラーを含む場合は`1`、使用法エラー（`FILE`引数の欠落など）の場合は`64`で終了します。
 
 ## JSONドキュメント
 
@@ -131,33 +156,144 @@ rigor type-of [options] FILE LINE COL
 
 ## `rigor lens`
 
-1つ以上のファイルの宣言を、それらの型および型の由来とともにマップします（実験段階）。[推論型の検査](../05-inspecting-types/)を参照してください。
+1つ以上のファイルの宣言を、それらの型および型の由来（provenance）とともにマップします（実験段階）。[推論型の検査](../05-inspecting-types/)を参照してください。
 
 ```sh
-rigor lens [--format=text|json] [--config=PATH] [--workers=N] FILE...
+rigor lens [options] FILE...
 ```
 
-lensは`rigor check --incremental`と同じインクリメンタル解析を実行し、そのキャッシュを読み書きします。`--workers`はコールド実行に適用されます。`--format=json`は1つの`lens/v0`ドキュメントを出力します（[内部仕様](../../internal-spec/lens/)）。少なくとも1つのファイルに結果がある場合は`0`、いずれにもない場合は`1`、使用法エラーの場合は`64`で終了します。コード内の診断によって終了ステータスが変わることはありません。
+| フラグ | 用途 |
+| --- | --- |
+| `--config=PATH` | `.rigor.yml`へのパス。自動検出を上書き。 |
+| `--format=FORMAT` | 出力フォーマット（`text`または`json`）。デフォルト: `text`。 |
+| `--workers=N` | コールド実行時のワーカープロセス数。 |
+| `--claims=REQUEST` | 手書き契約に対してドキュメントの型クレームをチェック（未リリース）。`--format=json`が必要。 |
+
+`rigor lens`は`rigor check --incremental`と同じインクリメンタル解析を実行し、そのキャッシュ（`.rigor/cache`）を共有します。ファイルに対する最初の実行にはフルチェックのコストがかかりますが、以降の実行では記録されたキャッシュが再利用されます。
+
+`--claims=REQUEST`は、同じ実行内で手書き契約に対してドキュメントの型クレームをチェックします（未リリース）。`--format=json`と、[クレーム契約](../../internal-spec/lens-claims/)に従うUTF-8 JSONリクエストが必要です。`claims`セクションは各クレームの判定結果を報告します;競合があっても終了ステータスは変わりません。無効または古いリクエストは、ドキュメントを出力せずに`64`で終了します。クレームは解析、診断、またはキャッシュされた型を変更しません。
+
+### テキスト表現
+
+テキスト出力では、各宣言の前にアンカー識別子がリストされます:
+
+```text
+lib/shop.rb  xxh3-64:845f7426b6acfe12  (2 omitted)
+  4:7c90  class Shop
+  8:e37e  Shop#label: (::Integer n) -> ::String  [contract inline]
+  14:ce93  Shop#total: () -> Integer  [single_site inferred]
+  16:182b  Shop#fetch  [contested; also lib/legacy_shop.rb:2]
+  omitted constant Shop::LIMIT (line 5)
+```
+
+- **`LINE:HASH`**: 宣言を識別する安定したアンカーハッシュ。宣言シグネチャまたは先行する型コメントが変更されたときに変わりますが、地の文のコメント編集では変わりません。
+- **`provenance`**: 角括弧内の型の起源（例: `[contract sig]`、`[contract inline]`、`[single_site inferred]`、`[plugin <name>]`）。
+- **`contested`**: プロジェクト内に複数の定義が存在するメソッド（例: ファイル間で再オープンされたクラス）を示します; Rigorは実行時ディスパッチを推測するのではなくシグネチャを出力しません。
+- **`omitted`**: lensでまだモデル化されていない構文（定数、`alias`、`define_method`）は、破棄されるのではなく明示的に省略（omitted）として記録されます。
+
+`--format=json`では、コマンドは`lens/v0` JSONドキュメントを出力します（[lens出力契約](../../internal-spec/lens/)で規定）。
+
+少なくとも1つの入力ファイルが正常に解析された場合（`status: "ok"`）は`0`、いずれのターゲットも`status: "ok"`を達成しなかった場合は`1`（JSONドキュメントは依然としてstdoutに出力される）、使用法エラー（`FILE`引数の欠落や読み取り不可能な`--config`パスなど）の場合は`64`で終了します。解析されたファイル内に存在する診断は終了コードに影響しません。
 
 ## `rigor trace`
 
-エンジンがファイルをどのように型付けしたかを、ターミナルアニメーションとして一歩ずつリプレイします。`rigor check`が実行するのと同じ推論をたどる、教育用のプローブです。
+エンジンがファイルをどのように型付けしたかを、対話的なターミナルアニメーションとして一歩ずつリプレイします。推論エンジン上で動作する教育・デバッグ用プローブです。[推論型の検査](../05-inspecting-types/)を参照してください。
 
 ```sh
-rigor trace [--delay=SECONDS] [--line=N] [--verbose] [--format=json] FILE
+rigor trace [options] FILE
 ```
 
-各フレームは、次に評価されるソース範囲をそのスコープのローカル変数とともにハイライトし、1つの推論の瞬間を描き出します。すなわち、スコープに入るローカル束縛（`bind`）、合流する分岐型（`union`）、解決される、あるいは`Dynamic[top]`へフェイルソフトする（`dispatch`）メソッドコールです。ttyではキー押下でリプレイが進みます（`q`で終了）。`--delay`は自動再生します。`--verbose`はすべての式のenter / resultフレームを追加し、`--line=N`は1行上のイベントだけを残し、`--format=json`はツールや教材向けに生のイベントストリームを出力します。[推論型の検査](../05-inspecting-types/)を参照してください。
+| フラグ | 用途 |
+| --- | --- |
+| `--config=PATH` | `.rigor.yml`へのパス。自動検出を上書き。 |
+| `--delay=SECONDS` | 各ステップ間に`SECONDS`秒の遅延を入れてフレームを自動再生（デフォルト: キー押下で手動ステップ）。 |
+| `--line=N` | ソース範囲が行`N`から始まる推論イベントのみをリプレイ。 |
+| `--verbose` | すべての式の`enter`および`result`フレームを含める（デフォルト: 教育上有用な推論のマイルストーンのみ）。 |
+| `--format=FORMAT` | 出力フォーマット: `text`（対話型ターミナルアニメーション）または`json`（生のイベントストリーム）。デフォルト: `text`。 |
+
+### 推論イベント
+
+デフォルトでは、リプレイは現在のローカル変数環境とともに評価中のAST式をハイライトし、3つのコアな推論イベント種別を表示します:
+- **`bind`**: ローカル変数の束縛がアクティブなスコープに入る。
+- **`union`**: 異なる制御フロー分岐からの型がユニオン型に合流する。
+- **`dispatch`**: メソッド呼び出しがレシーバーに対して解決されるか、または`Dynamic[top]`へフォールバックする。
+
+`--verbose`を指定すると、すべてのASTノードのエントリーと評価された型の結果がフレームとしてキャプチャされます。
+
+### インタラクティブなナビゲーション
+
+ターミナルTTYでは、アニメーションはキー押下ごとに1フレーム進みます。`q`を押すと再生を途中で終了します。`--delay=SECONDS`を指定すると、ハンズフリーの自動再生が有効になります。
+
+`--format=json`では、外部ツールや教材連携のために、イベントオブジェクトの生のストリームがトップレベルのJSON配列として出力されます。`rigor explain`と同様に、今後の`schema_version: 1`エンベロープ移行に関する非推奨警告がstderrに出力されます（[JSONドキュメント](#jsonドキュメント)を参照）。
+
+再生またはストリーム出力が成功した場合は`0`、ファイルが存在しないか構文エラー（Prismパースエラー）を含む場合は`1`、使用法エラー（`FILE`の欠落、複数ファイルの指定、無効なフラグなど）の場合は`64`で終了します。
 
 ## `rigor type-scan`
 
-パス全体の`type_of`推論カバレッジを報告します。診断器自体の診断で、クラスの推論が不良な理由を調査するときに役立ちます。
+パス全体の`Scope#type_of`推論カバレッジを報告します ── 対象ソースが`Dynamic[top]`にフォールバックすることなくどれだけ直接型付けされているかを測定するエンジン診断です。
 
 ```sh
-rigor type-scan PATH...
+rigor type-scan [options] PATH...
 ```
 
-`--limit=N`は表示例の上限を設定し（デフォルト10）、`--show-recognized`は完全にカバーされたクラスを含め、`--threshold=RATIO`は未認識ノードの割合が`RATIO`を超えた場合にコマンドをゼロ以外で終了させます。`--format=text|json`で出力形式を選択します。`--config=PATH`は設定の自動探索をオーバーライドします。
+| フラグ | 用途 |
+| --- | --- |
+| `--config=PATH` | `.rigor.yml`へのパス。自動検出を上書き。 |
+| `--format=FORMAT` | 出力フォーマット（`text`または`json`）。デフォルト: `text`。 |
+| `--limit=N` | テキストモードで表示する未認識の例の最大数。デフォルト: `10`。 |
+| `--show-recognized` | サマリーテーブルに未認識ビジットが0件のASTノードクラスを含める。 |
+| `--threshold=RATIO` | 未認識ノードの割合（`unrecognized / visits`）が`RATIO`（浮動小数点数）を超えた場合にゼロ以外（`1`）で終了。 |
+
+少なくとも1つの`PATH`引数が必要です。コマンドは指定されたパス全体のすべてのPrismノードを走査し、ディスカバリーによってシードされたプロジェクト環境に対して`Scope#type_of`を問い合わせます（`rigor coverage`と同様）。
+
+### 出力フォーマット
+
+テキストモードでは、`rigor type-scan`はサマリーブロック、クラス別の内訳、および未認識の例を出力します:
+
+```text
+Type-of scan: 1 file
+  - lib/user.rb
+
+Summary:
+  files processed:   1
+  parse errors:      0
+  AST nodes visited: 165
+  unrecognized:      14 ( 8.5%)
+
+Coverage by node class (unrecognized/visits):
+  Prism::CallNode              12/120 ( 10.0%)
+  Prism::ConstantReadNode       2/ 45 (  4.4%)
+
+Unrecognized examples (showing 10 of 14):
+  Prism::CallNode  @  lib/user.rb:14:5
+```
+
+`--show-recognized`を渡すと、クラス内訳に未認識ビジットが0件のノードクラスが含まれます。`--limit=N`は未認識イベントセクションに表示される例の総数を制限します。
+
+`--format=json`では、スキーマバージョン1に準拠したJSONドキュメントを出力します:
+
+```json
+{
+  "schema_version": 1,
+  "files": [ "lib/user.rb" ],
+  "summary": {
+    "files_processed": 1,
+    "parse_errors": 0,
+    "visited": 165,
+    "unrecognized": 14,
+    "unrecognized_ratio": 0.0848
+  },
+  "by_class": {
+    "Prism::CallNode": { "visits": 120, "unrecognized": 12 }
+  },
+  "events": [
+    { "file": "lib/user.rb", "node_class": "Prism::CallNode", "family": "call", "line": 14, "column": 5 }
+  ],
+  "parse_errors": []
+}
+```
+
+未認識の割合が`--threshold`以内であり（またはしきい値が設定されておらず）、かつパースエラーが発生しなかった場合は`0`で終了します。割合が`--threshold`を超えた場合、またはスキャンされたファイルのいずれかにパースエラーが含まれる場合は`1`で終了します。パスが指定されていない場合、指定されたパスが存在しない場合、またはフラグが無効な場合は`64`で終了します。
 
 ## `rigor effects`
 
@@ -278,22 +414,104 @@ reach:
 診断ルールのカタログエントリーを表示します。引数なしで呼び出すとすべてのルールを一覧表示します。
 
 ```sh
-rigor explain [options] [rule]
+rigor explain [options] [<rule>]
 ```
 
-`rule`はルールID（`call.undefined-method`）、レガシーエイリアス、またはファミリーワイルドカード（`call`、`flow`、`def`、`assert`、`dump`、`global`、`suppression`、`static`、`effect`）です。`--format=text|json`が出力形式を選択します。不明なルールの場合は`64`で終了します。
+| フラグ | 用途 |
+| --- | --- |
+| `--format=FORMAT` | 出力フォーマット（`text`または`json`）。デフォルト: `text`。 |
 
-シグネチャの記述を控えた際に`rigor sig-gen`が出力する`sig.skipped.*`識別子にも対応しています —— `rigor explain sig.skipped.untyped-return`はそのスキップが何を意味し、代わりに何をすべきかを説明します。これらは診断ルールではないため、深刻度や抑制行なしでレンダリングされます。
+### 呼び出しモード
+
+| 形式 | 用途 |
+| --- | --- |
+| （指定なし） | 完全なルールカタログインデックス（ルールIDと1行サマリー）を表示し、続いてすべての`rigor sig-gen`スキップ理由を表示。 |
+| `<rule>` | 正式なルールID（例: `call.undefined-method`）またはレガシーエイリアス（例: `undefined-method`）の完全なカタログエントリーを表示。 |
+| `<family>` | ファミリーワイルドカード（`call`、`flow`、`def`、`assert`、`dump`、`global`、`suppression`、`static`、`effect`）。そのプレフィックス配下のすべてのルールを表示。 |
+| `<skip-reason>` | 正確な`rigor sig-gen`スキップ理由トークン（例: `sig.skipped.untyped-return`）の説明と推奨される次のアクションを表示。ワイルドカードは受け付けない。 |
+
+ルールエントリーには、サマリー、レガシーエイリアス、著者が定めた深刻度、設定プロファイル（`lenient`、`balanced`、`strict`）にマッピングされた深刻度、エビデンス階層、`Fires when:`（発火条件）、`Does not fire when:`（発火しない例外）、インライン抑制構文（`# rigor:disable <rule>`）、ドキュメントリンク、およびそのルールが導入されたRigorリリースが含まれます。
+
+`<skip-reason>`トークンは、`rigor sig-gen`がシグネチャの書き出しを控えた理由（動的な戻り値や境界のないブロックなど）を説明し、代わりに対処すべき内容を提案します。スキップ理由はコード内の指摘ではなく書き出されなかったシグネチャを報告するため、深刻度を持たず、抑制すべき対象もありません。
+
+`--format=json`では、診断ルールは（単一ルールID、レガシーエイリアス、ファミリーワイルドカード、引数なしのいずれで要求された場合でも）常にカタログエントリーオブジェクトのJSON配列を出力します。これに対して、個々の`<skip-reason>`の問い合わせは単一のJSONオブジェクトを出力します。引数なしのインデックスモードでは、`--format=json`は診断ルール配列のみを出力します;個々のスキップ理由はトークンで問い合わせる必要があります。トップレベルのJSON形状は現在、将来のエンベロープ移行に関するstderr非推奨警告を出力します（[JSONドキュメント](#jsonドキュメント)を参照）。
+
+成功時は`0`、不明なルール名または無効なオプションの場合は`64`で終了します。
 
 ## `rigor diff`
 
-現在の診断を保存済み`rigor check --format=json`の結果と比較し、新しいものだけを報告します。
+現在の診断を保存済み`rigor check --format=json`の結果と比較し、差分を報告します。
 
 ```sh
 rigor diff [options] <rigor-check.json> [paths...]
 ```
 
-`--current=PATH`は新規チェックを実行する代わりに保存済み診断JSONと比較します。`--format=text|json`は出力形式を選択し（デフォルトは`text`）、`--config=PATH`は暗黙のチェックにカスタム設定を渡します。新しい診断が現れた場合は`1`で終了します。
+| フラグ | 用途 |
+| --- | --- |
+| `--current=PATH` | 新規の`rigor check`実行を行う代わりに、保存された診断JSONファイルと比較。 |
+| `--config=PATH` | 暗黙の`rigor check`実行に転送されるカスタム`.rigor.yml`設定。`--current`が指定されている場合は無視される。 |
+| `--format=FORMAT` | 出力フォーマット（`text`または`json`）。デフォルト: `text`。 |
+
+位置引数`<rigor-check.json>`ファイルは必須です。ADR-126 § WD1に基づき、このファイルは保存された`rigor check --format=json`の結果またはJSONスナップショットであり、`rigor baseline`で管理されるルールバケット`.rigor-baseline.yml`とは異なります。
+
+`[paths...]`が指定された場合、それらのソースパスのみが暗黙のチェックによって評価されます。`<rigor-check.json>`がリポジトリ全体をカバーしている場合、暗黙のチェックをパスのサブセットに制限すると、省略されたファイル内のすべての診断が`- FIXED`として報告されることに注意してください。`--current=PATH`が指定されている場合、`[paths...]`は無視されます。
+
+### 同一性の判定
+
+診断の同一性は以下の6要素のタプルによって決定されます:
+
+```
+(path, line, column, rule, source_family, message)
+```
+
+保存されたタプルと一致する診断は既存のものとみなされます。保存されたスナップショットに存在しない現在の診断は`+ NEW`（リグレッション）として分類されます。現在の実行に存在しない保存された診断は`- FIXED`（進捗）として分類されます。コードを別の行に移動したりメッセージを変更したりすると、1つのfixedエントリと1つのnewエントリが生成されます。深刻度は同一性タプルの一部ではありません;位置を移動せずに診断の深刻度を変更しても差分としては登録されません。
+
+### 出力フォーマット
+
+テキスト出力は差分ヘッダー、行ごとの追加と削除、およびサマリー件数を報告します:
+
+```text
+# diff against rigor-check.json (10 baseline / 9 current)
++ NEW   lib/user.rb:14:5 [call.undefined-method] Method `full_name` does not exist on `User`
+- FIXED lib/auth.rb:22:9 [call.argument-type-mismatch] Expected `String`, got `Integer`
+
+1 new, 1 fixed
+```
+
+`--format=json`では、スキーマバージョン1に準拠した出力になります:
+
+```json
+{
+  "schema_version": 1,
+  "baseline": "rigor-check.json",
+  "baseline_count": 10,
+  "current_count": 9,
+  "new": [ ... ],
+  "fixed": [ ... ]
+}
+```
+
+### CI連携
+
+`rigor diff`は、すべてのレガシーな診断を最初に修正することを要求せずに新しく導入された診断を捕捉することで、Rigorを段階的に導入しているリポジトリでのリグレッションゲートを可能にします。
+
+標準的なCIワークフローでは、`rigor check --format=json > rigor-check.json`で生成された保存済みスナップショットをツリー内にコミットします（例: `rigor-check.json`）。CIでは次を実行します:
+
+```sh
+rigor diff rigor-check.json
+```
+
+マルチステップのジョブで動的なベースブランチと比較する場合（ベースブランチでの`rigor check`が既存の診断のためにゼロ以外で終了する可能性がある場合）、`set -e`のもとで終了コードをガードします:
+
+```sh
+# ベースブランチ上（またはgit show / アーティファクト経由）
+rigor check --format=json > /tmp/base-check.json || true
+
+# PRブランチ上
+rigor diff /tmp/base-check.json
+```
+
+新しい診断が現れない場合は`0`で終了します（`fixed`にエントリが含まれていても、`new`が空であればよい）。任意の深刻度（`error`、`warning`、または`info`）の新しい診断が現れた場合は`1`で終了します。いずれかのJSONファイルが見つからないか無効なJSONを含む場合、またはコマンドの使用法が誤っている場合は`64`で終了します。
 
 ## `rigor sig-gen`
 
@@ -521,11 +739,27 @@ rigor plugin [<name>] [--path <name>] [--list] [--root]
 
 ## `rigor playground`
 
-ブラウザプレイグラウンド（リアルタイム診断付きのCodeMirrorエディタ）を起動します。別の`rigor-playground` gemが必要で、未インストールならインストールヒントを出力して`64`で終了します。
+ローカルブラウザプレイグラウンド（リアルタイムのRigor診断と型検査を備えたCodeMirrorエディタ）を起動します。
 
 ```sh
-rigor playground
+rigor playground [options]
 ```
+
+| フラグ | 用途 |
+| --- | --- |
+| `--port=PORT` | プレイグラウンドHTTPサーバーをバインドするポート（デフォルト: `9393`）。 |
+| `--no-open` | 起動時にデフォルトブラウザでプレイグラウンドURLを自動で開かない。 |
+
+プレイグラウンドには個別のコンパニオンgemである`rigor-playground`が必要です。アクティブなRuby環境にそのgemがインストールされていない場合、コマンドはstderrにインストールヒントを出力して`64`（`CLI::EXIT_USAGE`）で終了します:
+
+```text
+rigor playground requires the rigor-playground gem.
+Install it with: gem install rigor-playground
+```
+
+インストールされている場合、コマンドはローカルWebサーバーを起動し、Rubyコードを記述、編集、即時フィードバック付きで解析できるインタラクティブなブラウザプレイグラウンドを開きます。
+
+クリーンなシャットダウン時は`0`、サーバー起動失敗時（ポートが既に使用中など）は`1`、`rigor-playground`が存在しないか使用法エラーの場合は`64`で終了します。
 
 ## `rigor skill`
 
@@ -568,15 +802,27 @@ rigor skill describe --deep   # also: rigor describe --deep
 
 ## `rigor describe`
 
-[`rigor skill describe`](#rigor-skill)へのトップレベルエイリアスです。このプロジェクトに次に実行すべきスキルを推奨する、オンボーディングの入口です。素の`rigor describe`はほとんどのユーザーが最初に直感的に試す当て推量なので、それ自身のコマンドとして前面に出してあります（[ADR-73](../../adr/73-skill-driven-user-experience/) § WD2）。
+[`rigor skill describe`](#rigor-skill)のトップレベルエイリアス ── プロジェクトの状態を評価し、次に実行すべきスキルを推奨するオンボーディングのエントリーポイントです（[ADR-73](../../adr/73-skill-driven-user-experience/) § WD2）。
 
 ```sh
-rigor describe
+rigor describe [--deep]
 ```
 
-存在の有無のみのプロジェクト状態プローブ（`.rigor.yml`、`.rigor-baseline.yml`、`sig/`ディレクトリ、CI統合は存在するか？）と、推奨される次のスキルを報告します。読み取り専用で副作用がなく、`rigor check`を決して実行しません。`rigor skill describe`と同一の出力です。
+| フラグ | 用途 |
+| --- | --- |
+| `--deep` | 先に`rigor check`を実行し、診断結果に基づいて先頭の推奨をルーティング。 |
 
-`rigor describe --deep`は[`rigor skill describe --deep`](#rigor-skill)に転送します。こちらはまずチェックを実行するオプトインで——遅く、キャッシュへ書き込みます。
+### 監査モード
+
+デフォルトでは、`rigor describe`は`.rigor.yml`、`.rigor-baseline.yml`、`sig/`ディレクトリ、およびCI設定の存在を確認する存在確認のみのプローブを実行します。このデフォルトモードは読み取り専用で高速、副作用はありません ── `rigor check`を決して実行せず、`.rigor/cache`を読み書きすることもありません。
+
+`--deep`を渡すと、推奨を生成する前に`rigor check`を実行することにオプトインし、解析の健全性に基づいてルーティングします:
+- **`rigor-doctor`**: RBS環境が0クラスでビルドされた場合、またはいずれかの`configuration-error`診断が発生した場合に選択。
+- **`rigor-monkeypatch-resolve`**: 残るエラー診断の少なくとも3分の1が、プロジェクト側で再オープンされたコアまたはgemの定義に解決される呼び出しに起因する場合（`pre_eval:`を通じて対処可能）に選択。
+- **`rigor-baseline-reduce`**: 残るエラー診断が存在する場合に選択。
+- **存在確認のみの推奨**: 解析が完全にクリーンであるか、設定がまだ存在しない場合に維持。
+
+出力は`rigor skill describe`と同一です。完了時は`0`、無効なオプションの場合は`64`で終了します。
 
 ## `rigor docs`
 
@@ -666,13 +912,29 @@ rigor doctor [--config PATH] [--format text|json]
 
 ## `rigor upgrade`
 
-マイグレーションコマンドの骨格です（[ADR-50](../../adr/50-release-engineering-and-stability-strategy/) WD7）。実際の本体は、具体的な後方互換性の破壊がターゲットを与えたとき（例: 強化されたデフォルトプロファイルに対して`baseline regenerate`を再実行する、リネームされた抑制idを表面化する、`bleeding_edge:`の卒業を報告する）に着地します。
+メジャーバージョンの移行および互換性を破る変更のためのマイグレーションコマンドの骨格です（[ADR-50](../../adr/50-release-engineering-and-stability-strategy/) § WD7）。
 
 ```sh
 rigor upgrade
 ```
 
-それまでは、現在のバージョンを表示し、upgradeがキューに積まれていることを注記します。`0`で終了します。
+### 設計と将来の役割
+
+`upgrade`コマンドは、メジャーバージョンの移行や破壊的変更が発生したときにプロジェクトのマイグレーションを自動化するよう設計されています:
+- **ベースラインの再生成**: 強化されたデフォルトルールやプロファイルに対して`rigor baseline regenerate`を再実行する。
+- **抑制の更新**: リネームまたは非推奨になったインラインの`# rigor:disable`ルールを表面化し更新する。
+- **bleeding-edgeの統合**: `bleeding_edge:`設定から卒業した機能を報告し削除する。
+
+### 現在のステータス
+
+後方互換性のないリリースがアクティブなマイグレーションターゲットを提供するまで、このコマンドはプレースホルダーとして機能します。現在のRigorバージョンを表示し、マイグレーションがキューに積まれていることを報告します:
+
+```text
+rigor upgrade: No migration target available yet (ADR-50 WD7, queued).
+Current version: <version>
+```
+
+完了時は`0`で終了します。
 
 ## `rigor help`
 
