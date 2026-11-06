@@ -3,9 +3,9 @@ title: "CLIコマンドリファレンス"
 description: "rigortype/rigor docs/manual/02-cli-reference.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/02-cli-reference.md"
 sourcePath: "docs/manual/02-cli-reference.md"
-sourceSha: "a5a4c681d5088f9c0d8402b40e134440c6936a87fa6a9110e538d08d04fd82dc"
-sourceCommit: "1c3a70e39d87479a4ca2c54e031bed7c3a56e652"
-sourceDate: "2026-11-02T23:15:51Z"
+sourceSha: "b09e258eed1121fde255f2ee4ab755f8e680b92fef0697f923a30d15db3a06bd"
+sourceCommit: "7f14d503aa4cfefb25672389bab5a229b1219f4e"
+sourceDate: "2026-11-05T08:44:38+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9002
@@ -620,6 +620,7 @@ rigor show-bleedingedge [--config PATH] [--format text|json]
 | --- | --- | --- |
 | `reject-unparseable-signatures` | severity | 壊れたRBSセットは、暗黙に劣化させる代わりに**実行を失敗させます**: `signature_paths:`配下のパースできない`.rbs`（`rbs.coverage.quarantined-signature` → `error`）、解決時に衝突して環境全体を破綻させる宣言（`rbs.coverage.environment-build-failed` → `error`）、および1クラスのメソッドサーフェスを破綻させる重複メソッド定義（`rbs.coverage.definition-build-failed` → `error`）。 |
 | `use-of-void-value` | severity | 作者が宣言した`-> void`の戻り値から復元された値を値コンテキストで使うことが、`static.value-use.void`（`warning`）として報告されます。 |
+| `plugin-api-surface` | severity | プラグインソース（`Rigor::Plugin::Base`を継承するクラス）において、`Rigor::Plugin`インターフェイス値（フックの`scope`、`scope.environment`など）に対するインターフェイスが宣言していないメンバーへの呼び出しが`plugin.api-surface`（`warning`）として報告されます。 |
 | `discovery-seeded-mutation-sites` | behaviour | [`rigor coverage --protection --mutation`](../15-type-protection-coverage/)が、ティア1がすでに使っているのと同じクロスファイルのプロジェクトディスカバリーに対して計測します —— サイトを選ぶときも、破壊が捕捉されたかを判定するときも —— そのため*兄弟*ファイルで宣言されたプロジェクトクラスへの呼び出しが、捨てられる代わりに計測され、そこでの破壊が実際に捕捉されうるようになります。**分母にサイトを足すので、報告される有効性比率が動きます** —— 採用前に、CIで固定している`--threshold`と突き合わせて確認してください。 |
 | `dependent-closure-kill-oracle` | behaviour | [`rigor coverage --protection --mutation`](../15-type-protection-coverage/)が、破壊を捕捉されたとみなす条件を、ミューテーションされたファイル**またはそれに依存するファイル**のどこかに診断が現れることに広げます（従来はミューテーションされたファイル内のみ）—— メソッドの戻り値の変更が、エラーがその呼び出し元に現れたときに捕捉としてカウントされます。キルを**足す**ことしかできないので比率は上がるか変わらないかのどちらかです。ミュータント1つあたりの実時間コストが約3分の1増え、これを有効にして計測した比率は、無効で計測したものとは比較できません。 |
 | `effects-on-by-default` | behaviour | `.rigor.yml`に[`effects:`](../03-configuration/#エフェクトラベル)キーをまったく持たないプロジェクトを、`effects: {}`と書いたかのように扱う —— [エフェクト収集](../03-configuration/#エフェクトラベル)、`rigor effects`動詞群のキャッシュ共有、そして`effects.check`が、すべてのサブキーをデフォルトのままオンになる。`effects: false`と明示的に書けば依然としてオプトアウトになる。次のメジャーではなく**v0.4.0で卒業予定**（[ADR-103](../../adr/103-effect-labels/) § WD15）—— 下記の一般的なv1.0.0メジャー限定のケイデンスに先立つ、この機能に固有のオーナー裁定。 |

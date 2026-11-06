@@ -3,9 +3,9 @@ title: "構造的インターフェースとオブジェクトシェイプ"
 description: "rigortype/rigor docs/type-specification/structural-interfaces-and-object-shapes.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/type-specification/structural-interfaces-and-object-shapes.md"
 sourcePath: "docs/type-specification/structural-interfaces-and-object-shapes.md"
-sourceSha: "f33c7b292e2c812f4a516f156e5285e7365bfa778bbfbb5091c6a676c3f80494"
-sourceCommit: "42d6e031257466de187cc9640b4896300473f9bb"
-sourceDate: "2026-09-26T23:07:03+09:00"
+sourceSha: "35aa2b7f2848d6ad96586255c0d73022029f784d9479bbe896fb013a3045fc54"
+sourceCommit: "7f14d503aa4cfefb25672389bab5a229b1219f4e"
+sourceDate: "2026-11-05T10:22:40+09:00"
 translationStatus: "translated"
 sidebar:
   order: 2050
@@ -58,6 +58,44 @@ end
 # Rigorが`items`が`Array[_Closable]`であることを知っている場合、`Resource`は
 # 構造的に`_Closable`を満たせます。RubyのInheritanceやRuntimeマーカーは不要です。
 ```
+
+## インターフェイス型の値
+
+RBSシグネチャがインターフェイスで型付ける値は、1つの例外（[ADR-130](../../adr/130-interface-typed-values-dispatch-under-untyped-parity/)）を除いて`untyped`（`Dynamic[top]`）です: 絶対名が`::Rigor::Plugin`名前空間にあるインターフェイス（`_Scope`、`_Environment`、`_Services`、`_FactStore`、`_Configuration`）は`Dynamic[Rigor::Plugin::_Scope]`として保持されます。rbsコアの変換エイリアス（`int`、`string`、`path`など）を含むその他すべてのインターフェイスは、依然として`Dynamic[top]`を読みます。どのインターフェイスがファセットを保持するかは、インターフェイス名のみに依存します。
+
+そのような値は、1つを除いてあらゆるルールにとって`untyped`です。`Dynamic[top]`を特別扱いするあらゆるチェック、ナローイング、オーバーロード選択、寛容さはこれを同様に扱い、joinは`Dynamic[top]`のjoinの読み取りとして解釈されます（ファセット消去、[normalization.md](../normalization/)）。例外は、インターフェイスが宣言するメンバーの呼び出しです:
+
+- その呼び出しのシェイプをオーバーロードのいずれかが受け入れる場合にのみ、呼び出しはそのメンバーのRBSを通じて解決されます:
+  - 呼び出しがブロックを渡すときはブロックを、渡さないときは必須ブロックがないこと;
+  - 位置引数の個数が、オーバーロードがrestパラメータを持たない限り必須＋オプションの範囲内であること;
+  - 呼び出しが省略した必須キーワードがないこと。キーワードを持たないオーバーロードに渡されたキーワードハッシュは、その最後の位置引数になります。
+
+  その後、そのシェイプを受け入れるオーバーロード群に対してオーバーロード選択が実行されます。ソースコードがシェイプを明示しない呼び出し（splat、`**`キーワードsplat、転送された`...`）はいかなるオーバーロードにも受け入れられません。
+- 複数のオーバーロードがそのシェイプを受け入れ、そのうちの1つが`self`に言及するパラメータ（`(self other)`、`(Array[self] others)`）を持つ場合、呼び出しがどちらに到達するかは引数がレシーバーの種別であるかどうかに依存しますが、どのクラスもそれを名指ししません;呼び出しは`Dynamic[top]`上の同一呼び出しと同様に型付けされます。シェイプを受け入れる単一のオーバーロードは引き続き応答します。
+- 値が`nil`になり得るブロック渡しは、実行時に呼び出しをブロックなしにする可能性があります: `blk`が非nilリテラル、`nil`ではないクラスのインスタンス（`Proc`、`Method`）、クラスオブジェクト、またはシェイプ以外の任意のものである`&blk`（したがって`top`や`Object`値が該当します）;および無名の`&`。ブロックなしとブロックありの双方のシェイプが受け入れられ、かつそれらの戻り値が等しい場合にのみ呼び出しは解決されます。`&:sym`が決して`nil`になることはありません。
+- メンバー内では、`self`はレシーバーです。インターフェイスの型パラメータは値の型引数から束縛されます;束縛されないまま残されたもの（値が指定しないデフォルト付きパラメータ）は`Dynamic[top]`を読みます。
+- いかなるオーバーロードも受け入れない呼び出しは、`Dynamic[top]`上の同一呼び出しと同様に型付けされます。
+- インターフェイスが宣言していないメンバーの呼び出しは、`Dynamic[top]`上の同一呼び出しと同様に型付けされます。値のクラスはインターフェイスよりも広いため、`call.undefined-method`を報告することは決してありません;プラグインソース内では、bleeding-edgeオーバーレイのもとで`plugin.api-surface`を報告します（§「プラグインAPI外の呼び出し」）。
+
+したがって、プラグインフック内では`scope.type_of(node)`は`Rigor::Type::t`を読み、`scope.environment`は`Dynamic[Rigor::Plugin::_Environment]`を読み、一方で`scope.not_declared`はデフォルトで沈黙を保ちます。インターフェイスがnil許容値を返すと宣言しているメンバー（`_Scope#local`、`#self_type`、`#source_path`、`_Environment#nominal_for_name`）は、ローカル変数に保持されたその結果が無保護で使用されたとき、`Rigor::Scope`レシーバー上の同一コードと同様に`call.possible-nil-receiver`を報告します（そのルールはローカル変数のレシーバーのみを読み取ります）。
+
+`rigor check`、`type-of`、ホバー、lensはこの方法で宣言されたメンバーを読み取ります。`rigor sig-gen`はインターフェイスディスパッチをオフにして解析するため、その出力は消去が与えるものになります: プラグイン作者が対象として書いたことのないインターフェイスを通じて読み取った戻り値を書き出すことはありません。
+
+### プラグインAPI外の呼び出し
+
+`plugin.api-surface`（[ADR-128](../../adr/128-plugin-hook-surface-interfaces/) WD6、ADR-130スライス2）は、実行時には動作するものの、Rigorがプラグインに対して約束している範囲外である呼び出しを報告します。以下のすべてが成り立つ呼び出しにおいて発火します:
+
+- レシーバーが`Dynamic[<Rigor::Plugin interface>]`、またはそのような値と`nil`のユニオンである;
+- レシーバーが保持するどのインターフェイスもそのメソッドを宣言しておらず、`Object`（`Kernel`および`BasicObject`を含む）もそれを宣言していないため、`scope.nil?`や`scope.respond_to?(:x)`は沈黙を保つ。そのようなガードで保護された呼び出し（`scope.x if scope.respond_to?(:x)`）は引き続き報告される: ADR-128はそのガードを約束されたメンバーで置き換える;
+- 呼び出しがプラグインソースである: レキシカルに、発見されたスーパークラスチェーンが`Rigor::Plugin::Base`に到達するクラスの内部にあり、かつ`Rigor::Plugin::Base`本体の内部ではない。サードパーティプラグインはRigorのエンジンと同様に`lib/`配下にプラグインを保持するため、このテストはパスではなくクラス宣言を読み取る。`Base`自身のフックはインターフェイス値をエンジンヘルパーに渡し、それらはエンジンコードである。プラグインソース外でインターフェイスによって型付けされた値（それを名指すエンジンシグネチャ）は判定されない。
+
+このルールはファセットが残存している場合にのみそれを読み取ります。型なし値とのjoin、節の拡幅（widening）、シグネチャのないヘルパーパラメータ、またはnilになり得る値に対する`&.`呼び出しの結果によってファセットが脱落した場合、値は`Dynamic[top]`を読み、呼び出しは沈黙します。
+
+このルールの著者が定めた深刻度は`:warning`であり、全プロファイルで`:off`に解決され、`plugin-api-surface` bleeding-edge機能（[ADR-50](../../adr/50-release-engineering-and-stability-strategy/) Decision 3、WD2）によって`:warning`に昇格します。`plugin.api-surface`自身を指定する`severity_overrides:`キーによっても設定されます。ドットのない`plugin`キーはこれに届かず、`disable: [plugin]`も同様です: `plugin.`はそれ以外ではプラグイン行のプレフィックスだからです。ルールが`:off`に解決される実行では、これは評価されません。次のハードブレイクで卒業します。
+
+### エンジンパラメータにおけるインターフェイス値
+
+プラグインは、エンジンのシグネチャが背後のクラスである`Rigor::Scope`を受け取る場所に、フックの`scope`（`Dynamic[Rigor::Plugin::_Scope]`）を渡します。この値は代入可能性に対して`untyped`であるため、位置引数の`Rigor::Scope`パラメータが`call.argument-type-mismatch`を引き起こすことはありません（[ADR-128](../../adr/128-plugin-hook-surface-interfaces/) WD5）。`Rigor::Reflection`はスコープをキーワード引数`scope: Scope`として受け取りますが、この位置は現在`call.argument-type-mismatch`がチェックしない位置です;チェックするようになった後も、同じ型なしの解釈によってそれらの呼び出しはパスし続けます。インターフェイス値がその背後にあるクラスを満たすかという問題は構造的代入可能性とともに再浮上しますが、これはADR-130で先送りされています。
 
 ## 代入可能性のルール
 

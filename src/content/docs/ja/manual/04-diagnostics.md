@@ -3,9 +3,9 @@ title: "診断"
 description: "rigortype/rigor docs/manual/04-diagnostics.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/04-diagnostics.md"
 sourcePath: "docs/manual/04-diagnostics.md"
-sourceSha: "c240a55bdffd9c59c8584643298c0a81b31152d03dd72a255e6985552e6a1fe6"
-sourceCommit: "25e6377322a0890fcf1ba9f49863180c8487fb36"
-sourceDate: "2026-10-23T02:03:28+09:00"
+sourceSha: "4421f43ad6fc5c26bde4aa6b9cc1d365ea4763d2074bbf0a70bf0a7f1b68c09e"
+sourceCommit: "7f14d503aa4cfefb25672389bab5a229b1219f4e"
+sourceDate: "2026-11-05T11:15:50+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9004
@@ -66,6 +66,7 @@ app/user.rb:11:3: error: undefined method `lenght' for "hello" [call.undefined-m
 | <a id="rule-global-write-type-mismatch"></a>`global.write-type-mismatch` | 特殊なグローバル変数に、そのセッターが拒絶するリテラルが代入されており、実行されるたびに必ず`TypeError`が発生する。`$/`、`$-0`、`$,`、`$\`はStringまたはnilのみを受け付ける（`$/ = 1`や`$/ = /x/`が報告される）。`$;`と`$-F`はString、Regexp、nil、または`to_str`を持つオブジェクトを受け付ける。`$~`はMatchDataまたはnilを受け付ける。`$0`と`$PROGRAM_NAME`はStringまたは`to_str`を持つオブジェクトを受け付けるため、`$0 = nil`や`$0 = :name`が報告される。`$.`はInteger、Float、または`to_int`を持つオブジェクトを受け付けるため、`$. = "3"`は報告され、`$. = 3r`は報告されない。`$-i`はString、nil、false、または`to_str`を持つオブジェクトを受け付ける。`$stdout`、`$>`、`$stderr`は`write`に応答する任意のオブジェクトを受け付ける: `$stdout = 1`は報告され、`$stdout = StringIO.new`は報告されない。グローバル変数のRBS型ではなく、Rubyのセッターが決定する。リテラルとして書かれた値のみが判定される ── 数値、文字列、シンボル、配列、ハッシュ、正規表現リテラル（補間の有無を問わず）、または`nil`、`true`、`false` ── そのため、変数、メソッド呼び出し、定数はその型に関わらず決して報告されない。プログラムがセッターが要求するメソッド（`write`、`to_str`、`to_int`）または`method_missing` / `respond_to_missing?` / `respond_to?`を任意の場所、任意の綴り、任意のクラスで定義している場合 ── Rigorはそのような定義がどのオブジェクトに到達するかを常に判断できるわけではないため、判断を試みない ── またはトップレベルの`include` / `extend`や祖先の`include`がRigorの持たないRBSのモジュールを名指している場合、リテラルは沈黙を保つ。`$stdout`、`$>`、`$stderr`については、`write`を追加する可能性のあるリファインメントに対して`using`が有効な場合も沈黙を保つ。`$/`、`$-0`、`$,`、`$\`、`$~`は自身のクラスのみを受け付けるため、それらによって沈黙することはない。`$stdin`への書き込みは決してチェックされず、任意のファイルがエイリアスしている特殊変数（`pre_eval:`ファイルを含む`alias $stdout $out`）は免除される。`lenient`では`warning`。 | high |
 | <a id="rule-global-readonly-write"></a>`global.readonly-write` | 読み取り専用の特殊グローバル変数が書き込まれている ── `$!`、`$$`、`$?`、`$<`、`$FILENAME`、`$*`、`$:` / `$LOAD_PATH` / `$-I`、`$"` / `$LOADED_FEATURES`、`$-W`、`$-p`、`$-l`、`$-a` ── これらは値に関わらず`NameError`を発生させる。`$g = value`、`$g += value`、多重代入のターゲットをカバーする。`$LOAD_PATH \|\|= []`は決して書き込まず、`$LOAD_PATH << dir`はメソッド呼び出しであるため、どちらも発火しない。任意のファイルがエイリアスしている特殊変数（`alias $! $err`）は免除される。すべてのプロファイルでエラー。 | high |
 | <a id="rule-static-value-use-void"></a>`static.value-use.void` | 作者が宣言した`-> void`の戻り値から復元した値が、値コンテキスト（代入の右辺、呼び出しのレシーバー、または呼び出し引数）で使われている。既定ではオフで、`use-of-void-value`のbleeding-edge機能（ADR-100）を通じてのみ実行に到達する。素の文としての`void`呼び出しと、正当な`top`値はどちらも沈黙のまま。 | high |
+| <a id="rule-plugin-api-surface"></a>`plugin.api-surface` | プラグインコード（`Rigor::Plugin::Base`を継承するクラス内）が、`Rigor::Plugin`インターフェイス（`_Scope`、`_Environment`、`_Services`、`_FactStore`、`_Configuration`）が型付ける値（フックの`scope`、`scope.environment`など）に対して、そのインターフェイスが宣言していないメンバーを呼び出した。エンジンオブジェクトは現在その呼び出しに応答するが、これはRigorが維持を約束するプラグインAPIの対象外であるため、代わりにインターフェイスが宣言するメンバー（`sig/rigor/plugin/interfaces.rbs`）またはパブリックな名前空間を呼び出すこと。デフォルトではオフ; `plugin-api-surface` bleeding-edge機能（ADR-128）、または`plugin.api-surface`自身を指定する`severity_overrides:`キーによってのみ実行に達する（単なる`plugin`キーでは到達しない）。すべてのオブジェクトが持つメンバーの呼び出し（`nil?`、`respond_to?`）や、インターフェイス型を失った値（シグネチャのないヘルパーパラメータ、型なし値とのjoin）は沈黙を保つ; `respond_to?`ガードで保護された呼び出しは引き続き報告される。 | high |
 | <a id="rule-effect-envelope-exceeded"></a>`effect.envelope-exceeded` | メソッドが、宣言されたエンベロープが認めないエフェクトを行っている——その証明済みエフェクトラベル（自身の本体と、それが呼ぶすべて）が、そのメソッドまたはそのクラスに書かれた`%a{pure}`または`%a{rigor:v1:effect …}`の境界にカバーされない。二重にオプトイン: `.rigor.yml`の`effects:`ブロックと、あなたが書いたエンベロープを必要とします。Rubyの`def`に位置づけられます。証明されていない（「そしておそらくそれ以上」）エフェクトは決して発火せず、`mutate.local`はあらゆるエンベロープに許容されます。 | high |
 | <a id="rule-effect-liskov-widened"></a>`effect.liskov-widened` | オーバーライドが、それがオーバーライドするメソッドに書かれたエンベロープから逃れている。`PgRepo`は`Repo`が使えるどこでも使えるので、`Repo#find`上の`%a{rigor:v1:effect io.db}`は`PgRepo#find`も束縛します: 実装は継承する境界より純粋であってよく、決して純粋でなくてはなりません。オーバーライドが*行うこと*が継承した境界を超えているか、オーバーライドが*自身のために宣言する*エンベロープがそれより広いかのどちらかです。両側が作者によるものでなければなりません——誰かが祖先にエンベロープを書かない限り何も発火しません——そしてサブクラス化だけが数えられ、`include`は数えられません。オーバーライドの`def`に位置づけられます。`effects:`ブロックが必要です。 | high |
 | <a id="rule-effect-unknown-label"></a>`effect.unknown-label` | エフェクト宣言がレジストリの知らないラベルを名指している——エンベロープ内のタイポ（`%a{rigor:v1:effect io.bd}`）、または`effects.tolerated:`のメンバー。タグ全体はそのとき無制限として読まれるので、宣言は黙って何もしなくなります;これがそう述べます。宣言に位置づけられます: `.rbs`の行、rbs-inlineアノテーションなら`.rb`の行、設定値なら`.rigor.yml`。`# rigor:disable`コメントは`.rbs`や`.rigor.yml`からは読まれないので、そこでは`disable:`かベースラインを使ってください。綴りが明らかにラベルのつもりである場所（既知のものに近い、既知のものの隣、ドット付き、または引退済み）でのみ発火します——何にも似ていない語は沈黙のままです。あなたが自身の語彙を開いているかもしれないからです。`effects:`ブロックが必要です。 | high |
@@ -102,7 +103,7 @@ app/user.rb:11:3: error: undefined method `lenght' for "hello" [call.undefined-m
 | --- | --- |
 | `lenient` | 証明された診断のみがエラー。不確かなものは`warning` / `info`に下がる。レガシーコードへの段階的導入向け。 |
 | `balanced` *（デフォルト）* | ほとんどのルールが`error`。`dump.type`は`info`。不確かなルールは`warning`。 |
-| `strict` | ほぼすべてのルールが`error`。例外は次のとおり: `call.self-undefined-method`と`static.value-use.void`は`off`のまま（どちらもオプトインのみ）、`flow.unreachable-clause`は偽陽性ゲート待ちで`warning`のまま、そして3つの`suppression.*`ルールは`warning`のまま —— 古くなった抑制コメントは知らせる価値があるが、ビルドを失敗させる理由にはならない。CIに適している。 |
+| `strict` | ほぼすべてのルールが`error`。例外は次のとおり: `call.self-undefined-method`、`static.value-use.void`、および`plugin.api-surface`は`off`のまま（3つともオプトインのみ）、`flow.unreachable-clause`は偽陽性ゲート待ちで`warning`のまま、そして3つの`suppression.*`ルールは`warning`のまま —— 古くなった抑制コメントは知らせる価値があるが、ビルドを失敗させる理由にはならない。CIに適している。 |
 
 `balanced`では、`error`として発行され**ない**ルールは次のとおりです:
 
@@ -110,7 +111,7 @@ app/user.rb:11:3: error: undefined method `lenght' for "hello" [call.undefined-m
 | --- | --- |
 | `warning` | `call.unresolved-toplevel`、`def.ivar-write-mismatch`、`def.return-type-mismatch`、`def.override-visibility-reduced`、`def.override-return-widened`、`def.override-param-narrowed`、`flow.unreachable-branch`、`flow.always-truthy-condition`、`flow.dead-assignment`、`flow.duplicate-hash-key`、`flow.return-in-ensure`、`flow.shadowed-rescue-clause`、`suppression.unknown-rule`、`suppression.empty`、`suppression.unknown-marker`、`effect.envelope-exceeded`、`effect.liskov-widened` |
 | `info` | `flow.unreachable-clause`、`dump.type`、`effect.unknown-label`、`effect.annotations-unchecked` |
-| `off` | `call.self-undefined-method`、`static.value-use.void` |
+| `off` | `call.self-undefined-method`、`static.value-use.void`、`plugin.api-surface` |
 
 それ以外はすべて`error`として発行されます。任意の1つのルールについて、3つのプロファイルすべてにわたり、`rigor explain <rule>`は`Authored severity:`と`Severity by profile:`を表示します —— この出力はルールカタログ自体から生成されるため、ルール単位の真実の情報源です。
 

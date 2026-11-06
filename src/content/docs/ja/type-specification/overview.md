@@ -3,9 +3,9 @@ title: "概要"
 description: "rigortype/rigor docs/type-specification/overview.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/type-specification/overview.md"
 sourcePath: "docs/type-specification/overview.md"
-sourceSha: "db2a70af5e996748d12e0b44193f8a77da04c618edd64495b16b581b784626f9"
-sourceCommit: "088adf7e773e66dfac0afbc874f3d20ec73639ec"
-sourceDate: "2026-11-01T16:46:31+09:00"
+sourceSha: "ccb35e88d39af7e334cce5e1cfb02128789dfdc1ed53b9f0bc3f21118419292d"
+sourceCommit: "7f14d503aa4cfefb25672389bab5a229b1219f4e"
+sourceDate: "2026-11-06T15:15:28+09:00"
 translationStatus: "translated"
 sidebar:
   order: 2050
@@ -53,6 +53,8 @@ RigorはPHPStan、TypeScript、Pythonのtyping仕様からアイデアを借り�
 - **合理的な防御的プログラミングは歓迎され、Rigorはそれについて沈黙を保つ**。本物の外部入力境界をガードすること、正直にnil可能な値を扱うこと、信頼境界でバリデートすること — これらは良いRubyだ。Rigorはそれらを冗長としてフラグしたり、それらに異議を唱えたりしてはならない。
 
 - **Rigorが誘発してはならないのは*過剰な*防御性だ**。型情報がすでに不要だと証明しているガード — ナローイングが非nilと確立した値に対する`nil`チェック、クラスがすでに既知の値に対する`is_a?` — や、ロジックが必要とする以上のbelt-and-suspendersコーディングに著者を押しやる診断は、設計の失敗だ。著者は、プログラム自身のロジックが正当化する以上に保守的または冗長にされてはならない。境界線は*必要性*だ: ロジックが本当に必要とするガードは歓迎される;型が無意味にするガードはノイズだ。
+
+- **実用的な型付けは均一な最悪ケース規則に勝る**。Rigorは通常のコードに対して人間が必要とする型を提供し、あらゆる最悪ケースの非健全性をガードするわけではない。一般的な実際のイディオム（例えば`@buf = ""`や`@items = []`のようなアキュムレータ）を狙った狭いヒューリスティックは、それがより稀なシェイプの扱いと意味論的に整合していない場合でも許容される: 「すべての脱出ポイントでリテラルを消去する」といった均一なルールは、あらゆる場所で型を曖昧にし、他の場所で偽陽性を増やす可能性がある。稀なシェイプは実際の報告を待ち、監査はその所見をどれほど非健全であるかではなく、動作しているコードがどれほど頻繁に到達するかによってランク付けする。
 
 - **エンジンとルール作業への帰結**。動作しているコードに対する診断を増やす精度変更や新しいルールは、それがより多くを捕捉するときでも疑わしい — 偽陽性のコストは重く秤にかけられ、決して無料として扱われない。投機的な診断よりも、辞退すること（`Dynamic`にナローイングする、何も発行しない）が好まれる。これは、[ロバストネス原則](../robustness-principle/)が型著作の側で運ぶ（節2の回避策増殖アンチパターン）のと、ベースライン（baseline）メカニズム（[ADR-22](../../adr/22-baseline-and-project-onboarding/)）が採用の側で運ぶのと、同じ意図の診断発行における表現だ。
 

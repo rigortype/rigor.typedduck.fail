@@ -3,9 +3,9 @@ title: "エフェクトラベル"
 description: "rigortype/rigor docs/type-specification/effect-labels.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/type-specification/effect-labels.md"
 sourcePath: "docs/type-specification/effect-labels.md"
-sourceSha: "300b4654acca5469c06386fba7df8476e32fea361a45e23b6d67112100ae0421"
-sourceCommit: "32fcfb01032273679a99853a37f53a6e842b3330"
-sourceDate: "2026-09-24T14:17:34+09:00"
+sourceSha: "312a6a7da945a26428916d00c096eefdfd1d3e6b9eac301bb0eb1b50796c85d1"
+sourceCommit: "7f14d503aa4cfefb25672389bab5a229b1219f4e"
+sourceDate: "2026-11-04T22:28:45+09:00"
 translationStatus: "translated"
 sidebar:
   order: 2050
@@ -237,7 +237,7 @@ effects:
 
 具体的な呼び出し先が未知の呼び出しでも束縛されうるのは、それが呼ばれる*対象*が何をするかを宣言しているからです。それが成り立つ場所では、呼び出し先の境界は呼び出し元の**宣言**レーンに`≤`として、証明レーンには決して、呼び出し先を名指す起点の下で結合されます（§エフェクトサマリー）。
 
-**キャリアは名前的です**。ルックアップは、アナライザーが射影したレシーバーの*静的な*クラスによって——暗黙的self呼び出しでは、呼び出すメソッドが定義されているクラスによって——行われ、祖先を歩きません: `PgRepo`と型付けされたレシーバーは`Repo#find`の境界をインポートしません。`PgRepo#find`がその呼び出しが到達する定義だからです。構造的インターフェースはキャリアではありません: RBSのインターフェース型は`Dynamic[top]`へ消去され、境界を付ける先を持たないので、インターフェース型のレシーバーを通じた呼び出しは何もインポートしません（[structural-interfaces-and-object-shapes.md](../structural-interfaces-and-object-shapes/);この読みは構造的キャリアとともに到来します）。層はエンベロープの層に1つ加えたもので、最近接から:
+**キャリアは名前的です**。ルックアップは、アナライザーが射影したレシーバーの*静的な*クラスによって——暗黙的self呼び出しでは、呼び出すメソッドが定義されているクラスによって——行われ、祖先を歩きません: `PgRepo`と型付けされたレシーバーは`Repo#find`の境界をインポートしません。`PgRepo#find`がその呼び出しが到達する定義だからです。構造的インターフェースはキャリアではありません: RBSのインターフェース型は`Dynamic[top]`、または`Rigor::Plugin`インターフェイスの場合はクラスを名指さないファセットを持つ`Dynamic`を読み、境界を付ける先を持たないので、インターフェース型のレシーバーを通じた呼び出しは何もインポートしません（[structural-interfaces-and-object-shapes.md](../structural-interfaces-and-object-shapes/);この読みは構造的キャリアとともに到来します）。層はエンベロープの層に1つ加えたもので、最近接から:
 
 > メソッドごとのアノテーション**>**クラスレベルのアノテーション**>** `effects.envelopes:`エントリー**>**受け入れられたシグネチャ
 

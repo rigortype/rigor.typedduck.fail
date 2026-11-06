@@ -3,9 +3,9 @@ title: "正規化"
 description: "rigortype/rigor docs/type-specification/normalization.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/type-specification/normalization.md"
 sourcePath: "docs/type-specification/normalization.md"
-sourceSha: "678cad31c3cec7e49066c042419fa831dc874bb8c0f639d0b81abb807b32964e"
-sourceCommit: "8f295a1cc741bf669bf177f8ed09332fdaf59410"
-sourceDate: "2026-11-04T20:44:09+09:00"
+sourceSha: "8584ba9b190ce2f74479f22a32d18faff3ff3fcfdc82fd907010a3c11455ba31"
+sourceCommit: "7f14d503aa4cfefb25672389bab5a229b1219f4e"
+sourceDate: "2026-11-04T22:28:45+09:00"
 translationStatus: "translated"
 sidebar:
   order: 2050
@@ -19,7 +19,7 @@ Rigorは比較と報告の前に型を正規化します。正規化は診断、
 
 - ネストされたユニオン（union、合併型とも）と積をフラット化する。
 - 重複するユニオンと積のオペランドを除去する。
-- ファセット消去（facet erasure）を法として重複するユニオンオペランドを除去する（[ADR-130](../../adr/130-interface-typed-values-dispatch-under-untyped-parity/) WD1）。消去は、型を保持するすべてのキャリアの内部で再帰的に、`Dynamic`自身のファセットも含めて（`Dynamic[[Dynamic[_A]]]`は`Dynamic[[Dynamic[top]]]`へと消去される）、ADR-130が消去するファセットを`top`として読み取る。消去後に等しいメンバーはそれらの消去形へとマージされる（`Dynamic[_A] | Dynamic[top]`は`Dynamic[top]`、`[Dynamic[_A]] | [Dynamic[top]]`は`[Dynamic[top]]`）;他のいずれとも一致しないメンバーはそのファセットを保持する。メンバーの順序および§「メンバーの吸収」も消去形を読み取るため、`Dynamic[_A] | Dynamic[String]`は`Dynamic[String] | Dynamic[top]`の順序を維持し、`[Dynamic[_A]] | [Dynamic[top] | Integer]`は`[Dynamic[top]] | [Dynamic[top] | Integer]`と同様にその最初のアームを破棄する。`Rigor::Plugin`インターフェイスキャリアが存在するまではいかなるファセットも消去されないため、現在はこの規則はいかなるユニオンも変更しない。
+- ファセット消去（facet erasure）を法として重複するユニオンオペランドを除去する（[ADR-130](../../adr/130-interface-typed-values-dispatch-under-untyped-parity/) WD1）。消去は、型を保持するすべてのキャリアの内部で再帰的に、`Dynamic`自身のファセットも含めて（`Dynamic[[Dynamic[_A]]]`は`Dynamic[[Dynamic[top]]]`へと消去される）、ADR-130が消去するファセットを`top`として読み取る。消去後に等しいメンバーはそれらの消去形へとマージされる（`Dynamic[_A] | Dynamic[top]`は`Dynamic[top]`、`[Dynamic[_A]] | [Dynamic[top]]`は`[Dynamic[top]]`）;他のいずれとも一致しないメンバーはそのファセットを保持する。メンバーの順序および§「メンバーの吸収」も消去形を読み取るため、`Dynamic[_A] | Dynamic[String]`は`Dynamic[String] | Dynamic[top]`の順序を維持し、`[Dynamic[_A]] | [Dynamic[top] | Integer]`は`[Dynamic[top]] | [Dynamic[top] | Integer]`と同様にその最初のアームを破棄する。ADR-130が消去する唯一のファセットは、`Rigor::Plugin`インターフェイスキャリアである`Dynamic[Rigor::Plugin::_Scope]`である（[structural-interfaces-and-object-shapes.md](../structural-interfaces-and-object-shapes/) §「インターフェイス型の値」）。
 - 別のメンバーによって吸収されるユニオンメンバーを削除する; §「メンバーの吸収」に完全なリストがあります。
 - ユニオンから`bot`を削除する（`T | bot = T`）。
 - 2つの`Enumerator::ArithmeticSequence[E]`メンバーを、それらの要素のユニオン上の1つに合流（join）する: `Enumerator::ArithmeticSequence[A] | Enumerator::ArithmeticSequence[B]`は`Enumerator::ArithmeticSequence[A | B]`に正規化される。これは吸収とは異なり拡大（widen）であり、いずれのアームがyieldする各要素も`A | B`であるため健全である。
