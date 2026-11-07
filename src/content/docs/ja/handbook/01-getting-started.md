@@ -3,9 +3,9 @@ title: "はじめに"
 description: "rigortype/rigor docs/handbook/01-getting-started.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/01-getting-started.md"
 sourcePath: "docs/handbook/01-getting-started.md"
-sourceSha: "f9b5333929e70e128684dfbf70b59744b5d3a4bed3724961f9e1362565530d6d"
-sourceCommit: "5edeb7a2ad6fdb82472b076b90bb3dad9024706e"
-sourceDate: "2026-11-01T09:24:29+09:00"
+sourceSha: "e59b039282301caa23b6a575a8af7a7179ec0c366d38677087e6f5c6ea1b75b5"
+sourceCommit: "4e0f2ee3ddb31c8789824069b3beaea80fec9875"
+sourceDate: "2026-11-07T17:28:44+09:00"
 translationStatus: "translated"
 sidebar:
   order: 1001
@@ -47,7 +47,7 @@ mise use ruby@4.0
 mise use gem:rigortype
 ```
 
-miseがシェルでアクティベートされていると、`rigor`が`PATH`上に置かれます。gemの名前は`rigortype`です（`rigor`という名前はRubyGemsで取得済みでした）;インストールされる実行ファイルは`rigor`です。すでにRuby 4.0があるなら、`gem install rigortype`でも動きます。
+miseがシェルでアクティベートされていると、`rigor`が`PATH`上に置かれます。gemの名前は`rigortype`です（`rigor`という名前はRubyGemsで取得済みでした）;インストールされる実行ファイルは`rigor`です。すでにRuby 4.0があるなら、`gem install rigortype`でも動きます。プロジェクトのbundleに`rbs`がリストされている場合、`gem:rigortype`が`PATH`に配置する`rbs`がそれをシャドウする可能性があります; [インストールガイドの`rbs`シャドウに関する注記](../../install/#ケースa--miseが利用可能推奨)を参照してください。
 
 シェルアクティベーションとshims、`asdf`、コンテナ内開発については[Rigorのインストール](../../manual/01-installation/)を、継続的インテグレーションについては[CIでのRigor実行](../../manual/11-ci/)を参照してください。
 

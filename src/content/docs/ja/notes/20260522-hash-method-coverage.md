@@ -4,7 +4,7 @@ description: "Imported from rigortype/rigor docs/notes/20260522-hash-method-cove
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260522-hash-method-coverage.md"
 sourcePath: "docs/notes/20260522-hash-method-coverage.md"
 sourceSha: "faf702632bb0986397f0dd702f4b9f16d39fa61f77b09c2d4f2d35f197a9d8af"
-sourceCommit: "3d1338ebe88ec99fe7eab6e2e45ad7c0b7829731"
+sourceCommit: "4e0f2ee3ddb31c8789824069b3beaea80fec9875"
 sourceDate: "2026-08-08T20:14:05+09:00"
 sourceLanguage: "ja"
 sidebar:

@@ -3,9 +3,9 @@ title: "Rigorのインストール"
 description: "rigortype/rigor docs/manual/01-installation.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/01-installation.md"
 sourcePath: "docs/manual/01-installation.md"
-sourceSha: "91bd345326826c7bdf34b7908d3cb42b931ea5bd573bde0dc0d62cea688a0c44"
-sourceCommit: "8f295a1cc741bf669bf177f8ed09332fdaf59410"
-sourceDate: "2026-11-04T10:52:50+09:00"
+sourceSha: "2d4832415b00055c495ea698530ee9b79a4892930d85d2ac1a16c50938c1ac3e"
+sourceCommit: "4e0f2ee3ddb31c8789824069b3beaea80fec9875"
+sourceDate: "2026-11-07T17:28:44+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9001
@@ -241,6 +241,8 @@ miseを使ったことがない場合に知っておくべきことをいくつ�
 - **マシン全体へのインストールには`-g`を追加します**。`mise use -g gem:rigortype`はプロジェクトの`mise.toml`の代わりにmiseのグローバルconfig（`~/.config/mise/config.toml`）に書き込み、すべてのディレクトリで`rigor`が使えるようになります。
 
 gemの名前は`rigortype`で、インストールされる実行ファイル（実際に使うコマンド）は`rigor`です。
+
+プロジェクトのbundleに`rbs`がリストされている場合、`gem:rigortype`が`PATH`に配置する`rbs`がプロジェクト自身の`rbs`をシャドウする可能性があります; [インストールガイドの`rbs`シャドウに関する注記](../../install/#ケースa--miseが利用可能推奨)を参照してください。
 
 ### `rigor`を`PATH`に追加する
 

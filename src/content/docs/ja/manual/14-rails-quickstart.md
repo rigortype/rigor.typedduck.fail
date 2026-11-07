@@ -3,9 +3,9 @@ title: "Rails向けRigor: miseを使ったステップバイステップセッ�
 description: "rigortype/rigor docs/manual/14-rails-quickstart.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/14-rails-quickstart.md"
 sourcePath: "docs/manual/14-rails-quickstart.md"
-sourceSha: "e3b2ca5eb099e9a650b372e9c7800b9e4f447fd8f7a31c7d23bfb7327a6d3405"
-sourceCommit: "c9f6388da4707f3f26ed85dad75d5d8a66d85f11"
-sourceDate: "2026-10-15T10:19:59+09:00"
+sourceSha: "bb1fc01f9f3741745aeb17cdeff43e7b3335f931e862f5e39c5d8d4b16b6e788"
+sourceCommit: "4e0f2ee3ddb31c8789824069b3beaea80fec9875"
+sourceDate: "2026-11-07T17:28:44+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9014
@@ -54,7 +54,7 @@ mise use ruby@4.0
 mise use gem:rigortype
 ```
 
-`mise use`は、現在のディレクトリの`mise.toml`に選択したバージョンを記録し、一ステップでインストールします。確認してください。
+`mise use`は、現在のディレクトリの`mise.toml`に選択したバージョンを記録し、一ステップでインストールします。Steepまたは`rbs_rails`を使用するRailsプロジェクトはbundleに`rbs`をリストしており、`gem:rigortype`が`PATH`に配置する`rbs`がそれをシャドウする可能性があります; `bundle exec rbs`を実行する前に[インストールガイドの`rbs`シャドウに関する注記](../../install/#ケースa--miseが利用可能推奨)を参照してください。確認してください。
 
 ```sh
 rigor --version

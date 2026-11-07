@@ -3,9 +3,9 @@ title: "制御フロー解析"
 description: "rigortype/rigor docs/type-specification/control-flow-analysis.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/type-specification/control-flow-analysis.md"
 sourcePath: "docs/type-specification/control-flow-analysis.md"
-sourceSha: "2ce134362a7973a5106f07a3c348410a5d1528c3bf8ec7fe6735bd1f1e294236"
-sourceCommit: "3d1338ebe88ec99fe7eab6e2e45ad7c0b7829731"
-sourceDate: "2026-11-06T22:33:38+09:00"
+sourceSha: "700d7e24a2e671996f59ef2e8a6397a03ff245b5b4cbcd1951a2a0c76e780aa8"
+sourceCommit: "4e0f2ee3ddb31c8789824069b3beaea80fec9875"
+sourceDate: "2026-11-07T00:41:30+09:00"
 translationStatus: "translated"
 sidebar:
   order: 2050
@@ -313,6 +313,8 @@ Rigorは等価ファクトを信頼レベルで分類すべきです（SHOULD）
 [global-variables.md](../global-variables/#エビデンス境界)は、Rigorがイディオムによって読み取る型を変更できる証拠（そのようなガードもその一形態です）を規定しています。
 
 上記とは無関係に、`instance_of?(C)`は正確にクラス`C`を保持します: `C`がレシーバーのクラスの下位クラスである場合（`instance_of?(Integer)`における`Numeric`）、真値エッジは`C`にナローイングされます。モジュール、スーパークラス、無関係なクラス、または順序付けられていないクラスに対しては、エッジは`bot`になります。ガードを満たすメンバーを持つユニオンは、そのメンバーを保持して他のメンバーをドロップします: `Array[Integer] | Hash[Symbol, Integer]`に対する`x.is_a?(Array)`は`Array[Integer]`を読み取ります。偽値エッジは変更されません。
+
+`find`、`detect`、または`rfind`のブロック全体を構成するクラスガードは、呼び出しが真に「要素またはnil」を返す場合に、呼び出しの戻り値をナローイングします（[#2719](https://github.com/rigortype/rigor/issues/2719)）: レシーバーのすべてのメンバーがその名前をコアの`Array`または`Enumerable`へと解決し（メソッドのRBSオーナーがそれらのいずれかであり、かつプロジェクトがクラス、祖先、またはコアオーナー上でその名前のメソッドを定義していない）、呼び出し時点でrefinementが有効になっておらず、ディスパッチされた戻り値がレシーバーの要素型と`nil`の結合に等しい場合です。ディスパッチに勝ったそれ以外のもの（プロジェクト、gem、またはRBSで宣言された`find`、refinement、再オープンされた`Array`または`Enumerable`）はブロックが決してテストしなかったものを返す可能性があるため、その戻り値を維持します;要素型を読み取れないレシーバーも同様です。ブロックが正確に1つのプレーンな引数を取り、その本体が定数引数を伴うその引数に対する1つの`is_a?` / `kind_of?` / `instance_of?`呼び出しであり、かつ呼び出しが`ifnone`を渡さない場合、戻り値はディスパッチされた`E?`をそのガードの真値エッジがレシーバーをナローイングするのと同様にナローイングしたものとなり、`nil`は保持されます: `Array[Prism::Node]`に対する`nodes.rfind { |n| n.is_a?(Prism::DefNode) }`は`Prism::DefNode?`を読み取ります。ディスパッチされた戻り値が`nil`を含まない場合（型なしレシーバーの`Dynamic[top]`）、ナローイングによって要素が残らない場合（呼び出しが決して一致しないと読み取られるガードの`bot`）、および要素のクラスとテスト対象クラスとの順序を決定できない場合（RBSを持たないプロジェクトクラスであり、そこでは`Dynamic[top]`を読み取る）には、ディスパッチされた戻り値がそのまま維持されます。それ以外のブロック（第2文、`||`や`&&`、ナンバードパラメータ、別の値に対するテスト）は、ディスパッチされた戻り値を維持します。
 
 値位置の`case`は、文形式がそれを実行するのと同様に、サブジェクトの節ナローイングの下で各アームを型付けします: `n: Integer | Symbol`に対する`case n when Symbol then n else n.to_s end`は`Symbol | String`を読み取ります。
 

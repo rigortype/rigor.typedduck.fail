@@ -3,9 +3,9 @@ title: "Rigorのインストール — AIエージェント向け手順"
 description: "rigortype/rigor docs/install.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/install.md"
 sourcePath: "docs/install.md"
-sourceSha: "da12eeda66548e583e83bebe466730859a213b20d24083d2a7d9a000d0cc19dc"
-sourceCommit: "e12ab45fa55707ed2acc0eae2e273b99a72dc077"
-sourceDate: "2026-09-28T02:04:30+09:00"
+sourceSha: "208857e4cb05b4d450967f47a3e8e974145d6abdce9431537a33d2f0e66925b2"
+sourceCommit: "4e0f2ee3ddb31c8789824069b3beaea80fec9875"
+sourceDate: "2026-11-07T16:46:32+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9050
@@ -74,6 +74,8 @@ mise use --pin gem:rigortype@<LATEST>
 `--pin`は正確なRigorバージョン（`"gem:rigortype" = "X.Y.Z"`）を記録します。これがないとmiseは`"gem:rigortype" = "latest"`と書き込み、各マシンが最初にインストールするときにそのとき最新のものへ再解決します——つまりコミットされた`latest`はチームに1つの共有バージョンを与えません。トレードオフとして、pinはひとりでに動かず、`mise outdated`はpinされたツールを遅れているとは報告できません。アップグレードは新しいバージョンを指定して`mise use --pin gem:rigortype@<version>`を再実行します。`mise upgrade --bump gem:rigortype`は素の`mise use`と同じ隔離を経由します。
 
 `~/.config/mise/config.toml`にあるユーザー全体の`gem:rigortype`エントリは、このプロジェクトの外部で引き続き適用されます。古いバージョンが指定されている場合は言及してください。ただしユーザーの同意なしにグローバル設定を編集しないでください。
+
+`gem:rigortype`は`rbs`も`PATH`に配置します: miseはそのgemの依存関係がインストールするすべての実行ファイルをラップし、そのラッパーはrigortype専用の`GEM_HOME`で実行されます。プロジェクトのbundleに`rbs`が含まれており（`Gemfile.lock`に直接、あるいはSteepや`rbs_rails`経由でリストされている場合）、かつbundleがデフォルトのパスを使用しているとき、`bundle exec rbs`はプロジェクトの`rbs`ではなくこのラッパーを実行してしまいます。その結果、gitソースのgemはrigortypeの`GEM_HOME`下で`is not yet checked out`となって失敗します。`vendor/bundle`などの設定されたパス下にインストールされたbundleは、`bundle exec`がそのパスの`bin`を先頭に配置するため影響を受けません。`Gemfile.lock`に`rbs`がリストされている場合にのみ、`mise exec -- bundle exec which rbs`を実行してください（現在いるシェルがまだ新しいツールを取得していない可能性があるため、素の`bundle exec which rbs`では見逃すことがあります）。`installs/gem-rigortype/`下のパスが出力された場合はユーザーに伝え、その修正はこのチェックアウトにローカルなものであることを伝えてください: `bundle config set --local path vendor/bundle`を実行した後に`bundle install`を実行すると、追跡対象外の`.bundle/config`が書き込まれ（チームメイトやCIはデフォルトのパスを維持します）、bundleが`vendor/`に配置され、Rigorがバンドルされた各gemの同梱`sig/`を読み取るようになります（[ADR-27](../adr/27-tool-distribution-model/)）。これを提案してください。ユーザーの同意なしにbundleのパスを変更してはなりません。
 
 確認してください。
 

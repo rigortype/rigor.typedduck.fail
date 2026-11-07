@@ -3,9 +3,9 @@ title: "正規化"
 description: "rigortype/rigor docs/type-specification/normalization.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/type-specification/normalization.md"
 sourcePath: "docs/type-specification/normalization.md"
-sourceSha: "8584ba9b190ce2f74479f22a32d18faff3ff3fcfdc82fd907010a3c11455ba31"
-sourceCommit: "7f14d503aa4cfefb25672389bab5a229b1219f4e"
-sourceDate: "2026-11-04T22:28:45+09:00"
+sourceSha: "98d8f7502f051591ca895504a596542b9d118686ba14582a693863c98a2c180a"
+sourceCommit: "4e0f2ee3ddb31c8789824069b3beaea80fec9875"
+sourceDate: "2026-11-07T06:27:25+09:00"
 translationStatus: "translated"
 sidebar:
   order: 2050
@@ -46,6 +46,8 @@ Rigorは比較と報告の前に型を正規化します。正規化は診断、
 - 構造的キャリアは、この同じリストを1レベル下で問い合わせることで、**同一の骨格（spine）上で要素ごとに**吸収されます。**等しいアリティ**の2つの`Tuple`メンバーは、一方のすべての要素が他方のその位置の要素と等しいか、またはそれによって吸収される場合に吸収されます。2つの`HashShape`メンバーは、その骨格 —— キーセット、余分なキーのポリシー、および必須 / オプション / 読み取り専用の分類 —— が同一であり、すべての値型がそのキーの値と等しいか、またはそれによって吸収される場合に吸収されます。
 
 異なるアリティや異なる骨格は決して吸収されません: `[A]`と`[A, B]`、またはキーや開放性（openness）で意見が合わない2つのハッシュ形状は、異なる形状の値を記述しているため、どちらも他方の解釈ではありません。
+
+スーパークラスやモジュールの隣にある名前的サブクラスやインクルード元（includer）も吸収されないため、`ArgumentError | StandardError`は両方のメンバーを保持します: より狭いメンバーは呼び出し側の解釈が使用する証拠であり、Rigorはユニオンをメンバーごとに読み取ります。
 
 要素ごとの条項自体は独自の吸収を付与しません。このリストを1レベル下で再度問い合わせるため、任意のネストの深さにおいて、直接のユニオンメンバーが折りたたまれるのとまったく同じ要素に対して発火します。`[Float, String] | [Float[0.0..], String]`は`[Float, String]`に折りたたまれ、`[[Float, String], Integer] | [[Float[0.0..], String], Integer]`も同様です。`[1, String] | [Integer, String]`は両方のアームを保持します。値固定されたメンバーはその名前的基底によって吸収されず、要素ごとの条項は直接のルールを追い越せないためです; `[Integer, String] | [Integer[0..5], String]`および`[String, Integer] | [lowercase-string, Integer]`も同じ理由で両アームを保持し、1つの骨格の2つの解釈ではなく異なるキャリアである`Tuple`と`Nominal[Array]`のメンバーも同様です。
 
