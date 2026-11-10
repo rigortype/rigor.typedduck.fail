@@ -3,9 +3,9 @@ title: "設定"
 description: "rigortype/rigor docs/manual/03-configuration.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/03-configuration.md"
 sourcePath: "docs/manual/03-configuration.md"
-sourceSha: "3ffcabc1f22d72760c959c6135a7e223dfd0651098636fe59f17ba6f4dac37ec"
-sourceCommit: "4e0f2ee3ddb31c8789824069b3beaea80fec9875"
-sourceDate: "2026-11-07T17:18:06+09:00"
+sourceSha: "bac577b89aa506aae8bf69da0f4239a981d4ff04aaa7d0e5310a1fe19a898a50"
+sourceCommit: "3cc8382fdae19aa6a60b92ccf6e33530306b4e95"
+sourceDate: "2026-11-10T22:04:43+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9003
@@ -157,6 +157,25 @@ rigor: signature_paths: "…/plugins/rigor-activerecord/sig" loads the signature
 | `dependencies.budget_per_gem` | Integer | `5000` | gem単位のソースウォーク上限。時間ではなく**メソッド定義**の個数で数えます。ウォーカーはgemのカタログを収集する際、この個数の`def`に達するとそれ以上の収集を停止し、`dynamic.dependency-source.budget-exceeded`を発行して残りを`Dynamic[top]`に縮退させます。範囲は1250〜20000です。 |
 | `dependencies.budget_overrun_strategy` | String | `"walker_cap"` | `budget_per_gem`に達したgemへの呼び出しに何が起きるか（ADR-10 § 5b）。`walker_cap`（デフォルト）は、上限を超えたメソッドをエンジンの通常のユーザークラス解決にフォールスルーさせます。`dependency_silence`は代わりに、予算超過したgemのクラスへのあらゆる呼び出しを`Dynamic[top]`に解決し、そのgemの記録されていないサーフェスにおける`call.undefined-method`を黙らせます。その箇所での静的チェックが弱くなる代償を伴います。 |
 
+#### gem_rbs_collectionの`_test/`ディレクトリでのRigorの実行
+
+[`ruby/gem_rbs_collection`](https://github.com/ruby/gem_rbs_collection)向けに書いているシグネチャをチェックするには、コレクション自身のテストセットアップの後に、gemの`gems/<name>/<version>/_test/`ディレクトリでRigorを実行します:
+
+1. コレクションルートから`bin/test gems/<name>/<version>`を1回実行します。これにより`_test/`に`rbs_collection.yaml`および`rbs_collection.lock.yaml`が書き出され、作業ツリーが`local`ソースとしてリンクされた状態で、gemとその依存関係が`_test/.gem_rbs_collection/`にインストールされます。
+2. `_test/`に`.rigor.yml`を配置します:
+
+   ```yaml
+   paths: ["."]
+   signature_paths: ["."]
+   ```
+
+   これは`bin/test`が書き出す`Steepfile`の形状（`check "."`、`signature "."`）と同じです。Rigorはロックファイルを見つけてそこからgemとその依存関係をロードし、`signature_paths: ["."]`は`_test/`自身の`.rbs`ファイルをロードします。この行がない場合、それらのテストシグネチャが宣言する型が存在せず、そこへの呼び出しはチェックされません。
+
+   `signature_paths: [".."]`も安全です。これは作業ツリーからgemをロードし、Rigorは同じgem・バージョンのロックファイル側のコピーをスキップするため、gemが2回ロードされることはありません。`rbs_collection.yaml`がコレクションの`gems/`ディレクトリではなく`git`ソースを指定している場合など、ロックファイルのコピーが自身の作業ツリーでない場合に使用してください。
+3. `_test/`で`rigor check`を実行します。
+
+Rigorは、`rbs`と同様に、別のgemの`_test/`フィクスチャなど、コレクションされたgem内の`_`プレフィックス付きのすべてのディレクトリをスキップします。Rigorは依存関係を見つけるために`manifest.yaml`やgemspecを読み取ることはありません。ロックファイルがない場合、Rigorは依存関係を一切ロードせず、`rbs.coverage.collection-not-installed`（`:info`）を報告します。これは`bin/test`セットアップを実行するか、`rbs_collection.yaml`が存在する場所で`rbs collection install`を実行するよう指示します。
+
 ### 実行
 
 | キー | 型 | デフォルト | 意味 |
@@ -186,7 +205,7 @@ rigor: signature_paths: "…/plugins/rigor-activerecord/sig" loads the signature
 | `effects.envelopes` | Array | `[]` | **規約による**エフェクトエンベロープ。アーキテクチャの層全体を、メソッドごとのアノテーションではなく1つのスタンザで制限します。各エントリーは`match:`（クラスが定義されているファイルに対するプロジェクト相対のパスglob）または`namespace:`（定数glob: `*`は1セグメント、`**`は1つ以上）のちょうど一方と、`effect:` —— 選択されたクラスが行ってよいラベル、純粋なら`[]` —— を指定します。最も近いものが勝ちます: メソッド単位のアノテーションはクラスレベルのものに勝ち、クラスレベルはスタンザに勝ちます;スタンザ同士では**最初**にマッチしたものが勝ちます。下記の例を参照。 |
 | `effects.tolerated` | Array | `[]` | プロジェクトが対処しないと決めたラベル。境界や差異が**裁定される**ときに適用され、記録が書かれるときには決して適用されず、しかも**起点ごと**に適用されます: `Logger#info`は`io`と`telemetry`を一緒に運ぶので、`tolerated: [telemetry]`はロギングに伴ってきた`io`を免除し、同じメソッド内の`File.read`に由来する`io.fs.read`はそのままの位置に残します。`rigor check --no-tolerated-effects`（および`rigor effects check`の同じフラグ）はリストが空であるかのように再裁定します —— このポリシーの監査スイッチです。 |
 
-ブロックを書かずにオンにしたいですか？[`effects-on-by-default`](../02-cli-reference/#rigor-show-bleedingedge)ブリーディングエッジ機能（`bleeding_edge: [effects-on-by-default]`）は、`effects:`キーをまったく持たない設定を`effects: {}`であるかのように振る舞わせます —— 収集、`effects.check`、そしてこのページのその他すべてがデフォルトでオンになります。これは*不在*だけを埋めます: `effects: false`と書けばあなたは何があろうとオプトアウトのままで、あなたが書いた`effects:`ブロックは書かれたとおりそのまま残ります。これは**v0.4.0**でデフォルトになるものをプレビューします（[ADR-103](../../adr/103-effect-labels/) § WD15）。
+ブロックを書かずにオンにしたいですか？[`effects-on-by-default`](../02-cli-reference/#rigor-show-bleedingedge)ブリーディングエッジ機能（`bleeding_edge: [effects-on-by-default]`）は、`effects:`キーをまったく持たない設定を`effects: {}`であるかのように振る舞わせます —— 収集、`effects.check`、そしてこのページのその他すべてがデフォルトでオンになります。これは*不在*だけを埋めます: `effects: false`と書けばあなたは何があろうとオプトアウトのままで、あなたが書いた`effects:`ブロックは書かれたとおりそのまま残ります。これは**v0.5.0**でデフォルトになるものをプレビューします（[ADR-103](../../adr/103-effect-labels/) § WD15、§ WD18により移動）。
 
 #### エントリポイントプリセット
 

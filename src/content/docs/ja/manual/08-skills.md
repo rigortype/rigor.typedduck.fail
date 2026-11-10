@@ -3,9 +3,9 @@ title: "提供スキル"
 description: "rigortype/rigor docs/manual/08-skills.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/08-skills.md"
 sourcePath: "docs/manual/08-skills.md"
-sourceSha: "e2dc1e5d6b5770031700eefc5629c0afec54c5b43e7abc339057ad7812d3e72a"
-sourceCommit: "dd9a97915411c94081f504402ab2c9cf7820e9ae"
-sourceDate: "2026-10-19T01:35:46+09:00"
+sourceSha: "84495390d3ddfc7358215b26accf0cb08651e1784d921a803c03796ca2f71e4c"
+sourceCommit: "3cc8382fdae19aa6a60b92ccf6e33530306b4e95"
+sourceDate: "2026-11-11T03:33:10+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9008
@@ -38,6 +38,7 @@ Rigorは一連の**エージェントスキル**をバンドルしています�
 ### 改善と削減
 
 - **`rigor-protection-uplift`**: `rigor coverage --protection`が表面化させる型保護の穴を塞ぎます。まずsig-gen、次に最小限の手書きRBSの残余を、二重ゲート（サイトが保護される*かつ*`rigor check`が新たな診断を獲得しない）のもとで行います。[型保護カバレッジ](../15-type-protection-coverage/)を参照してください。
+- **`rigor-rbs-contract`**: RBS宣言を*契約（contract）*として監査、修復、拡張します: gem自身の`sig/`、アプリケーションの`sig/`、あるいは`ruby/gem_rbs_collection`にコントリビュートされたエントリです。宣言とコードが食い違っている箇所を見つけ（`rigor check`の`def.return-type-mismatch`、`rigor sig-gen --diff`、使用箇所のチェック、ライブラリのドキュメント）、引用された証拠に基づいてのみ宣言を変更し、ライブラリが値を文書化していない限り宣言された`void`を維持し、使用箇所テストによって各変更を証明します。自身のコードに対しては証拠が残した契約上の疑問をあなたに尋ね、自身が所有していないgemに対してはgemのドキュメントが判断します。[ADR-131](../../adr/131-declarations-are-contracts/)を参照してください。
 - **`rigor-baseline-reduce`**: 既存の`.rigor-baseline.yml`をルールごとに削減します。`rigor triage`で優先順位を付け、各サイトを実際のバグ／安全なスタイル上の発見／偽陽性として分類し、ベースラインを再生成します。バックログを少しずつ減らすために使ってください。
 - **`rigor-monkeypatch-resolve`**: 実際にはプロジェクト自身のモンキーパッチである`undefined-method`のクラスタを、定義ファイルを`pre_eval:`に配線することで解決します。
 - **`rigor-unused-adjudicate`**: デッドコードの削除を提案する前に、フレームワークのルートや偽陽性のパターンをチェックして、`rigor unused`レポートを安全に判定します。[`rigor unused`でデッドコードを取り除く](../18-removing-dead-code/)を参照してください。

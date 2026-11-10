@@ -3,9 +3,9 @@ title: "rigor-activesupport-core-ext"
 description: "rigortype/rigor docs/manual/plugins/rigor-activesupport-core-ext.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/plugins/rigor-activesupport-core-ext.md"
 sourcePath: "docs/manual/plugins/rigor-activesupport-core-ext.md"
-sourceSha: "7c67fdfeddb802391e975a13ddfab2ab8ea730c8d4200a66df4fdd347af0d46a"
-sourceCommit: "946539726906d2bd14f395ca4ea16e7d990e2515"
-sourceDate: "2026-10-27T23:16:49+09:00"
+sourceSha: "85f85d4570f475f3d2934d16df2416590c9cf1328eeea3fbdeb4544bd09a20f3"
+sourceCommit: "3cc8382fdae19aa6a60b92ccf6e33530306b4e95"
+sourceDate: "2026-11-08T16:51:32+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9050
@@ -32,6 +32,7 @@ plugins:
 
 - **Object（全クラス共通）** ── `#blank?`、`#present?`、`#presence`、`#presence_in`、`#try`、`#try!`、`#acts_like?`、`#deep_dup`、`#with`、`#with_options`、`#html_safe?`、`Kernel#class_eval`（および`NilClass` / `TrueClass` / `FalseClass`）。
 - **Integer / Float** ── Duration乗数（`#days`、`#hours`、`#minutes`、…）とBytes乗数（`#megabytes`、`#gigabytes`、…）。
+- **Integer / Float / BigDecimal** ── `#to_fs` / `#to_formatted_s`（`NumericWithFormat`: Symbolフォーマット、Integer基数、またはStringフォーマット、および引数なしの`to_s`形式）。
 - **String** ── 語形変化（`#underscore`、`#camelize`、`#classify`、`#constantize`、`#pluralize`、…）、フィルタ（`#squish`、`#truncate`）、`#html_safe`、`#starts_with?` / `#ends_with?`（**Symbol**上でも）、変換、および`#in_time_zone`。
 - **Time / Date / DateTime** ── `.current`、`.zone`、`#yesterday`、`#tomorrow`、`#beginning_of_*` / `#end_of_*`、`#ago`、`#since`。`Time`はさらにRailsインスタンスサーフェス**全体**を担います（後述）；`Date`と`DateTime`は従来と同じサブセットを担います。
 - **Array** ── `.wrap`、`#to_sentence`、`#in_groups_of`、`#second` … `#fifth`、`#compact_blank`、`#exclude?`。

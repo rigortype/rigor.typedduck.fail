@@ -3,9 +3,9 @@ title: "エフェクトラベル — コードが何を「する」か"
 description: "rigortype/rigor docs/manual/19-effect-labels.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/19-effect-labels.md"
 sourcePath: "docs/manual/19-effect-labels.md"
-sourceSha: "de5ccfac0a5c3b3e2e6a6f11ab06074b83e50b70e7120af7e49ecc316338b9ff"
-sourceCommit: "5fab9b52937efba652b9f6ecde1bb0a9954a9f77"
-sourceDate: "2026-09-17T12:28:13+09:00"
+sourceSha: "d02e4e39803934a495ca3dd19d35347c7a531a4b30263c4974ce7cb14bd13405"
+sourceCommit: "3cc8382fdae19aa6a60b92ccf6e33530306b4e95"
+sourceDate: "2026-10-26T02:45:29+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9019
@@ -85,7 +85,7 @@ effects: {}
 sig/slug.rbs:2:1: info: Effect annotations (`%a{pure}` / `%a{rigor:v1:effect …}`) are present in your project's signatures, but `.rigor.yml` carries no `effects:` block, so effect collection never runs and nothing checks them — they are documentation, not a contract. Add `effects: {}` to have Rigor prove what your methods do and check these bounds against it (ADR-103); an annotation alone never turns collection on, because that would make one line in one signature file more expensive for every run of the project.
 ```
 
-**v0.4.0**からは収集が既定になります: `effects:`キーをまったく持たない設定は`effects: {}`として振る舞い、`effects: false`がオプトアウトの方法になります。`0.3.x`ラインでは`bleeding_edge: [effects-on-by-default]`でそれをプレビューできます。
+**v0.5.0**からは収集が既定になります: `effects:`キーをまったく持たない設定は`effects: {}`として振る舞い、`effects: false`がオプトアウトの方法になります。それまでは`bleeding_edge: [effects-on-by-default]`でそれをプレビューできます。
 
 これらすべてに1つだけ例外があります: `rigor effects`——素のレポート——は、設定したかどうかにかかわらず暗黙の空ブロックの下で走るので、何かにコミットする前に眺めてみることができます。
 

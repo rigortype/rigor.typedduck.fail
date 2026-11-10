@@ -3,9 +3,9 @@ title: "`rigor sig-gen`でRBSを生成する"
 description: "rigortype/rigor docs/handbook/11-sig-gen.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/handbook/11-sig-gen.md"
 sourcePath: "docs/handbook/11-sig-gen.md"
-sourceSha: "c44758f45c620ac3cdf50e0a43bfae14bb2198c96df23497c01f518222453b09"
-sourceCommit: "1c3a70e39d87479a4ca2c54e031bed7c3a56e652"
-sourceDate: "2026-11-03T06:36:15+09:00"
+sourceSha: "5a3a9ff9c395993a7ac9308ad7c6b259f56e1d9e285d3904c50757ecadd012c0"
+sourceCommit: "3cc8382fdae19aa6a60b92ccf6e33530306b4e95"
+sourceDate: "2026-11-10T05:09:12+09:00"
 translationStatus: "translated"
 sidebar:
   order: 1011
@@ -106,8 +106,12 @@ would create sig/greeter.rbs (1 method(s))
 - `sig.skipped.inline-generic-class`: メソッドのクラスがインライン宣言によってジェネリックであり、`sig/`がまだそれを宣言していないか、型パラメータの名前を異なって付けている。[インラインでジェネリックにされたクラス](#インラインでジェネリックにされたクラス)を参照。
 - `sig.skipped.generic-reopening` — メソッドのクラス、またはそれがネストされているクラスが、境界またはデフォルト値を持つ型パラメータを伴ってロードされたRBSによりジェネリックとして宣言されており、`sig/`がそれを宣言していない。[ジェネリッククラスの再オープン](#ジェネリッククラスの再オープン)を参照。
 - `sig.skipped.inline-differs`: メソッドがインラインと`sig/`で宣言されており、両者が不一致。拒絶（refusal）: `--write`と`--check`は`1`で終了する。[インライン宣言されたメソッド](#インライン宣言されたメソッド)を参照。
+- `sig.skipped.overridden-bot` — メソッド本体が決して戻らず（推論された戻り値が`bot`）、解析対象コードがそのメソッドを`def`または`define_method`で再定義している（シグネチャの有無を問わずサブクラスで、そのメソッドのモジュールをインクルードするクラスで、後からインクルードまたはprependされたモジュールで、あるいはextendするクラス自身のシングルトンメソッドとして）。`bot`はオーバーライドによって置き換えられるベース本体のみを記述することになってしまうため。これにより書き込むものが何も残らなくなったクラスも空のクラスとして書き込まれるため、プロジェクトの`sig/`またはgemのシグネチャがすでに宣言していない限り、そのサブクラスはシグネチャを維持できる。
+- `sig.skipped.abstract-method` — 抽象スタイルの例外発生（`NotImplementedError`、`Abstract…`または`NotImplemented…`という名前のエラークラス、あるいはメソッドの実装やオーバーライドを求めるメッセージ、名前で定義することを求めるメッセージ（例:「please define about」;「you must define a block」は該当しない））により、メソッドの推論された戻り値が`bot`である。実装がプラグインgemなどの解析対象コードの外側に存在する可能性があるため、`bot`は提案されない。
+- `sig.skipped.template-method` — メソッドの推論された戻り値が`bot`であり、その本体が直接の`raise`・`fail`・`throw`・`exit`・`abort`で終わっておらず、直接またはselfディスパッチ呼び出しを通じて、解析対象コードがオーバーライドしているか抽象として宣言しているメソッドを呼び出している。呼び出しはレシーバーを問わず名前で照合される。直接の`throw`や何もオーバーライドしない例外発生で終わる`bot`は引き続き提案される。
 - `sig.skipped.top-level-def` — プレーンなトップレベル`def`。これはprivateな`Object`メソッドを定義します。sig-genはこれをリストしますが（`--format=json`ではファイル、メソッド名、およびこの理由）、それに対するRBSを書き出さないため、`--write`と`--check`には影響しません。そのJSON行には`class`キーがありません。`def self.x`、ブロック本体内の`def`、および`class << obj`内の`def`は報告されません。
 - `sig.skipped.unrenderable-rbs`: このメソッドに対してRigorがレンダリングしたシグネチャがRBSとしてパースできない。これは**Rigor自身のバグ**であり、あなたのコードの性質ではない——生成された行はすべて出力される前にパースされ、`rbs`が拒否した行は書き出される代わりに破棄される。パースできない`.rbs`は`rigor check`によって*丸ごと*隔離されるため、1つの不正な行がファイル内の他のすべての型を道連れにしてしまうからだ。他のシグネチャには影響しない;スキップされたメソッドはstderrに報告され、私たちに報告する価値がある。
+- `sig.skipped.platform-guarded` — メソッドが`RUBY_ENGINE`、`RUBY_PLATFORM`、または`defined?(…)`のrequireガード下でのみRubyがロードするファイル（`if RUBY_ENGINE == 'truffleruby'` → `require "stackprof/truffleruby"`の形式）で定義されており、すべてのプラットフォーム向けの通常の定義ではない。スキャンされた別のファイルもそのメソッドを定義している場合、または推論された戻り値が`bot`（例外を送出するスタブが取る形式）である場合に、sig-genは提案を見送る（[#3035](https://github.com/rigortype/rigor/issues/3035)）。
 
 ### より厳密な戻り値は宣言されたパラメータを保持する
 

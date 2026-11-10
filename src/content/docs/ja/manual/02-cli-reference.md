@@ -3,9 +3,9 @@ title: "CLIコマンドリファレンス"
 description: "rigortype/rigor docs/manual/02-cli-reference.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/02-cli-reference.md"
 sourcePath: "docs/manual/02-cli-reference.md"
-sourceSha: "37fdc74247cf5e336a60e8ee69ee687f4bec4b8c34186e8d2d8c0c3affa40c0b"
-sourceCommit: "3d1338ebe88ec99fe7eab6e2e45ad7c0b7829731"
-sourceDate: "2026-11-06T18:43:41+09:00"
+sourceSha: "dd38326b6b419e834053e0ed48e1994f7b4cdfbc35e6be33d0782e0042af06e8"
+sourceCommit: "3cc8382fdae19aa6a60b92ccf6e33530306b4e95"
+sourceDate: "2026-10-26T02:45:29+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9002
@@ -869,7 +869,7 @@ rigor show-bleedingedge [--config PATH] [--format text|json]
 | `plugin-api-surface` | severity | プラグインソース（`Rigor::Plugin::Base`を継承するクラス）において、`Rigor::Plugin`インターフェイス値（フックの`scope`、`scope.environment`など）に対するインターフェイスが宣言していないメンバーへの呼び出しが`plugin.api-surface`（`warning`）として報告されます。 |
 | `discovery-seeded-mutation-sites` | behaviour | [`rigor coverage --protection --mutation`](../15-type-protection-coverage/)が、ティア1がすでに使っているのと同じクロスファイルのプロジェクトディスカバリーに対して計測します —— サイトを選ぶときも、破壊が捕捉されたかを判定するときも —— そのため*兄弟*ファイルで宣言されたプロジェクトクラスへの呼び出しが、捨てられる代わりに計測され、そこでの破壊が実際に捕捉されうるようになります。**分母にサイトを足すので、報告される有効性比率が動きます** —— 採用前に、CIで固定している`--threshold`と突き合わせて確認してください。 |
 | `dependent-closure-kill-oracle` | behaviour | [`rigor coverage --protection --mutation`](../15-type-protection-coverage/)が、破壊を捕捉されたとみなす条件を、ミューテーションされたファイル**またはそれに依存するファイル**のどこかに診断が現れることに広げます（従来はミューテーションされたファイル内のみ）—— メソッドの戻り値の変更が、エラーがその呼び出し元に現れたときに捕捉としてカウントされます。キルを**足す**ことしかできないので比率は上がるか変わらないかのどちらかです。ミュータント1つあたりの実時間コストが約3分の1増え、これを有効にして計測した比率は、無効で計測したものとは比較できません。 |
-| `effects-on-by-default` | behaviour | `.rigor.yml`に[`effects:`](../03-configuration/#エフェクトラベル)キーをまったく持たないプロジェクトを、`effects: {}`と書いたかのように扱う —— [エフェクト収集](../03-configuration/#エフェクトラベル)、`rigor effects`動詞群のキャッシュ共有、そして`effects.check`が、すべてのサブキーをデフォルトのままオンになる。`effects: false`と明示的に書けば依然としてオプトアウトになる。次のメジャーではなく**v0.4.0で卒業予定**（[ADR-103](../../adr/103-effect-labels/) § WD15）—— 下記の一般的なv1.0.0メジャー限定のケイデンスに先立つ、この機能に固有のオーナー裁定。 |
+| `effects-on-by-default` | behaviour | `.rigor.yml`に[`effects:`](../03-configuration/#エフェクトラベル)キーをまったく持たないプロジェクトを、`effects: {}`と書いたかのように扱う —— [エフェクト収集](../03-configuration/#エフェクトラベル)、`rigor effects`動詞群のキャッシュ共有、そして`effects.check`が、すべてのサブキーをデフォルトのままオンになる。`effects: false`と明示的に書けば依然としてオプトアウトになる。次のメジャーではなく**v0.5.0で卒業予定**（[ADR-103](../../adr/103-effect-labels/) § WD15、§ WD18によりv0.4.0から移動）—— 下記の一般的なv1.0.0メジャー限定のケイデンスに先立つ、この機能に固有のオーナー裁定。 |
 
 フィーチャーが**卒業**する —— メジャーでデフォルトになる（[ADR-50](../../adr/50-release-engineering-and-stability-strategy/) § WD7）—— と、キューのリストを離れて`Graduated`の下に現れます。これは`bleeding_edge:`でそれを名指ししてももう何も起きないことの確認です: その挙動は全員に対して有効になっています。何も卒業していない間、このセクションは現れません。`--format json`では同じ情報が`graduated`配列であり、`overlay`（キューに積まれたすべてのフィーチャー。それぞれ`kind`付き）・`active`・`unknown_selected`と並びます。
 
