@@ -4,7 +4,7 @@ description: "Imported from rigortype/rigor docs/notes/20260716-dspec-formal-spe
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260716-dspec-formal-spec-substrate-evaluation.md"
 sourcePath: "docs/notes/20260716-dspec-formal-spec-substrate-evaluation.md"
 sourceSha: "748f6e09d47a917f957f63b96def0a7354270d8473459f5321286a67b2b7794f"
-sourceCommit: "3cc8382fdae19aa6a60b92ccf6e33530306b4e95"
+sourceCommit: "74338dab0b5ab27a5e171392930e4e8e5c031bfc"
 sourceDate: "2026-07-16T21:51:01+09:00"
 sourceLanguage: "ja"
 sidebar:

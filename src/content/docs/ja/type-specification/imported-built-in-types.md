@@ -3,9 +3,9 @@ title: "インポートされた組み込み型"
 description: "rigortype/rigor docs/type-specification/imported-built-in-types.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/type-specification/imported-built-in-types.md"
 sourcePath: "docs/type-specification/imported-built-in-types.md"
-sourceSha: "284ba0ad3ff2c61bd057b2a1a0ffe11d4b712d7b06fead000d6e160d0f685eea"
-sourceCommit: "5f4adf1ec1ff7ca079371d42f8dc2c9f4649e2cc"
-sourceDate: "2026-10-21T03:18:28+09:00"
+sourceSha: "2dbe5d4c078ffa6b37c6b337aaa95d4d492f811e00a59845cb8a741b32576c08"
+sourceCommit: "74338dab0b5ab27a5e171392930e4e8e5c031bfc"
+sourceDate: "2026-11-12T07:26:48+09:00"
 translationStatus: "translated"
 sidebar:
   order: 2050
@@ -93,7 +93,7 @@ RigorはPHPStan、TypeScript、Pythonタイピングから、明確なRubyの意
 | タプルリファインメント | 固定または有界な配列位置 | 正確な場合はRBSタプル、そうでなければ`Array[T]` |
 | オブジェクトシェイプ | 既知の公開メソッドまたはシングルトンケイパビリティ（capability）を持つオブジェクト | 利用可能であれば名前付きインターフェース、そうでなければ`top`または名前的ベース |
 
-4つの空証拠リファインメント（empty-witness refinement）——`non-empty-string`、`non-zero-int`、`non-empty-array[T]`、および`non-empty-hash[K, V]`——は、それぞれのベースから1つの値（`""`、`0`、`[]`、`{}`）を除去するため、ベースがそれを受け入れ、かつ型がその値の不在を証明する場合にのみ型を受け入れます。その証明はキャリアから読み取られます: 除去された値以外のリテラル; `0`をカバーしない`Integer`範囲（`positive-int`、`Integer[-5..-1]`）;タプルのアリティ（arity）は固定されているため、非ゼロのアリティを持つタプル（`[1, 2, 3]`）;すべての要素がそのキーを保持するため、オープンかクローズドかを問わず少なくとも1つの必須キーを持つハッシュシェイプ（`{ name: 1 }`）;および同じ値を除去するリファインメント（`non-empty-array[Integer]`に対する`non-empty-array[1]`）。ユニオンはすべてのメンバーが受け入れられる場合に受け入れられ、インターセクションはいずれか1つのメンバーが受け入れられる場合に受け入れられます —— ベースのチェックと証明の双方がそのメンバーに対して行われます。他のいかなるキャリアも証明とはならず、その値がたまたま除去された値を除外している場合でも保守的に拒絶されます（`decimal-int-string`は決して`""`になりませんが、`non-empty-string`はそれを拒絶します）。これらは除去された値と重複するため、拒絶されなければなりません（MUST）: ベース自身（`Array[Integer]`）、`0`をカバーする範囲（`non-negative-int`）、空タプルまたはクローズドな`{}`、すべてのキーがオプショナルであるハッシュシェイプ（`{ ?name: Integer }`は`{}`を保持します）、およびそのようなメンバーを持つ任意のユニオン。同じ規則がメソッド本体に対する`RBS::Extended`の`return:`や、呼び出しの引数に対する`param:`にも適用されるため、`non-empty-array[Integer]`の戻り値は`[1, 2, 3]`や`flag ? [1] : [2, 3]`の本体を受け入れつつ、`flag ? [1] : []`に対しては依然として`def.return-type-mismatch`を報告します。
+4つの空証拠リファインメント（empty-witness refinement）——`non-empty-string`、`non-zero-int`、`non-empty-array[T]`、および`non-empty-hash[K, V]`——は、それぞれのベースから1つの値（`""`、`0`、`[]`、`{}`）を除去するため、ベースがそれを受け入れ、かつ型がその値の不在を証明する場合にのみ型を受け入れます。その証明はキャリアから読み取られます: 除去された値以外のリテラル; `0`をカバーしない`Integer`範囲（`positive-int`、`Integer[-5..-1]`）;タプルのアリティ（arity）は固定されているため、非ゼロのアリティを持つタプル（`[1, 2, 3]`）;すべての要素がそのキーを保持するため、オープンかクローズドかを問わず少なくとも1つの必須キーを持つハッシュシェイプ（`{ name: 1 }`）;同じ値を除去するリファインメント（`non-empty-array[Integer]`に対する`non-empty-array[1]`）;およびその述語が除去された値を拒絶する述語リファインメント（`non-empty-string`に対する`decimal-int-string`）。ユニオンはすべてのメンバーが受け入れられる場合に受け入れられ、インターセクションはいずれか1つのメンバーが受け入れられる場合に受け入れられます —— ベースのチェックと証明の双方がそのメンバーに対して行われます。他のいかなるキャリアも証明とはならず、その値がたまたま除去された値を除外している場合でも保守的に拒絶されます。これらは除去された値と重複するため、拒絶されなければなりません（MUST）: ベース自身（`Array[Integer]`）、`0`をカバーする範囲（`non-negative-int`）、空タプルまたはクローズドな`{}`、すべてのキーがオプショナルであるハッシュシェイプ（`{ ?name: Integer }`は`{}`を保持します）、その述語が除去された値を許容する述語リファインメント（`lowercase-string`は`""`を保持します）、およびそのようなメンバーを持つ任意のユニオン。同じ規則がメソッド本体に対する`RBS::Extended`の`return:`や、呼び出しの引数に対する`param:`にも適用されるため、`non-empty-array[Integer]`の戻り値は`[1, 2, 3]`や`flag ? [1] : [2, 3]`の本体を受け入れつつ、`flag ? [1] : []`に対しては依然として`def.return-type-mismatch`を報告します。
 
 Pythonの`TypedDict`はシェイプの正確性の語彙を提供します: 必須および非必須キー、読み取り専用エントリー、オープン、クローズド、または型付き追加キーポリシー。Rigorはそれらのアイデアをハッシュ、オプションハッシュ、キーワード引数に適用します。読み取り専用エントリーは現在の値のビューに対する静的な書き込み制限です;基礎となるRubyオブジェクトがfrozenであることを証明するものでは**ありません**。
 
