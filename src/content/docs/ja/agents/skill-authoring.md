@@ -3,9 +3,9 @@ title: "このリポジトリでスキルを執筆する"
 description: "rigortype/rigor docs/agents/skill-authoring.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/agents/skill-authoring.md"
 sourcePath: "docs/agents/skill-authoring.md"
-sourceSha: "91af6b8b98df0f49cc15207ef8cfde09e207d5605c1611e12c3c0e2f243fa850"
-sourceCommit: "d19c9306f46b59d84bde8ac1a5a43f54be23c023"
-sourceDate: "2026-09-28T02:29:29+09:00"
+sourceSha: "2cc8a5cc2feb5415767db3e2c0c54e5290779f8190c90d1a8df4b50aa45837fa"
+sourceCommit: "2d66acadc4b2f6a7bd12f4b731d28b396c355af8"
+sourceDate: "2026-11-13T23:46:57+09:00"
 translationStatus: "translated"
 sidebar:
   order: 9050
@@ -41,10 +41,20 @@ sidebar:
 
 出力を敵対的レビューの所見とともにトリアージします:
 
-- `waza check`の2つのセクションのみが拘束力を持ちます: 「Spec Compliance」と「Links」です。そこでの失敗は欠陥です;修正してください。Compliance Score、Token Budget、Advisory Checksの下の❌行、および総合判定は公開プロファイルのアドバイザリーであり、次のルールに従います。ネットワーク不足のために失敗するリンクチェックは「`waza`を実行できない」ことであり、欠陥ではありません。
+- `waza check`の2つのセクションのみが拘束力を持ちます: 「Spec Compliance」と「Links」です。そこでの失敗は欠陥です;修正してください。Compliance Score、Token Budget、Advisory Checksの下の❌行、および総合判定は公開プロファイルのアドバイザリーであり、次のルールに従います。ネットワーク不足のために失敗するリンクチェックは「`waza`を実行できない」ことであり、欠陥ではありません。`.claude/skills/`における`link escapes skill directory`も同様です。リポジトリ内を指し示すことこそがこれらのスキルの目的であり、15個のうち9個がそれを行っています。そのようなリンクに対して`waza`がLinksの下で報告するのは、スキルのディレクトリから出ているということだけであり、そこで止まってターゲットを解決しないため、名前が変更されたADRも健全なリンクとまったく同じに見えます。代わりに`spec/docs/link_integrity_spec.rb`がそれらを解決し（`.claude/skills/`、`skills/`、および同じ理由でこのリポジトリ内を指すため同じ免除を持つ3つの内部ツリー`agents/pi-harness/`、`.pi/`、`.takt/`が対象）、`make docs-check`がそれを実行します。スキルディレクトリ内に留まるリンクは`waza`がチェックする対象であり、そこでのターゲット欠如は欠陥です。`skills/`では、このファイルの冒頭で述べた理由により、`waza`がフラグを立てるかどうかにかかわらず、`SKILL.md`やその`references/`からリポジトリ内へリンクしてはなりません。
 - `waza quality`の出力はアドバイザリーであり、それ単体で深刻（severe）になることは決してありません。agentskills.ioの公開プロファイルとは無関係に実際の欠陥を特定している場合にのみ項目を採用してください; Rigorの包括的なワークフローは、そのトークン予算やラベルのために再形成する必要はありません。また`references/`に保持された詳細に対する完全性スコアの低さは、このガイドが求める漸進的開示（progressive disclosure）そのものです。敵対的レビュアーは項目を深刻へ昇格させることができます。恒久的なキャリブレーションについては[ADR-81](../../adr/81-skill-set-optimization/)を参照してください。
 - 修正ラウンド後の`waza`の再実行はそのラウンドの差分レビューの一部であり、独立したラウンドではなく、それ自体でラウンドを開始することは決してありません。
 
 採点されたコミット、judge、スコア、および採用または却下した内容を、理由とともにPRコメントとして投稿してください。`waza`が実行できない場合（未インストール、古すぎる、Copilotログインなし、すべてのjudgeが失敗）は、PRにその旨を記載してDraftのまま残してください。`waza`が実行できるセッションでは、レビューを実行してコメントを投稿することでこれを解消します;レビューを決して黙ってスキップしてはなりません。
 
 `waza dev --auto`は決して実行しないでください: 往々にして誤りとなるボイラープレートを注入します。手書きの`name:`と`description:`のペアが拘束力を持つサーフェスです。
+
+## ネストされたログインなしでdescriptionのルーティングをテストする
+
+`skill-creator`の`run_eval` / `run_loop`および`waza dev --copilot`には、動作するネストされた`claude -p`またはCopilotログインが必要です。それがないと、誤解を招く形で失敗します: `run_loop`はすべてのクエリを「not triggered」と採点した後にクラッシュしました（2026年9月、`rigor-worktree`の構築時）。機能するフォールバックは、独立したサブエージェントによるルーティング分類です:
+
+- 3つのサブエージェントそれぞれに、すべてのスキルの`name:`と`description:`およびクエリセットを渡し、各クエリがエージェントにどのスキル（もしあれば）を参照させるかを尋ねます;
+- クエリごとの発火率を数えます（0〜3;過半数を発火とみなします）;
+- 判定者はこれがルーティングテストであることを知っており本番よりもきれいに採点するため、兄弟スキルに属するニアミスを含めて、クエリセットを敵対的に保ちます。
+
+`run_loop`は`SKILL.md`を書き換えることはなく、最良のdescriptionをJSONとして出力するので、手動で適用します。また、`--skill-path`からではなくカレントディレクトリからプロジェクトルートを探すため、リポジトリルートから実行し、実行中は本物のスキルを脇に退避させてください（そうしないと`run_eval`が偽陰性を読み取ります）; [`rigor-worktree/evals/README.md`](https://github.com/rigortype/rigor/blob/master/.claude/skills/rigor-worktree/evals/README.md)にその呼び出し方と理由が示されています。

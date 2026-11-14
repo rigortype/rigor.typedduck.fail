@@ -3,15 +3,15 @@ title: "ADR-43 — RBS完全な祖先解決（許可リストによる継承メ�
 description: "rigortype/rigor docs/adr/43-rbs-complete-ancestor-resolution.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/43-rbs-complete-ancestor-resolution.md"
 sourcePath: "docs/adr/43-rbs-complete-ancestor-resolution.md"
-sourceSha: "dc68c27030690c86c4a7c619fde0997920d1bfd927b6ea6a3b362668d81923f8"
-sourceCommit: "b5af5cf72f6b666f74479df959b1ee467feda5c6"
-sourceDate: "2026-09-22T04:35:15+09:00"
+sourceSha: "b88a23030b296bea82d64238a6bfe79b1ac26fc54818f5143a4c2c0b773d90ff"
+sourceCommit: "2d66acadc4b2f6a7bd12f4b731d28b396c355af8"
+sourceDate: "2026-11-04T08:13:45+09:00"
 translationStatus: "translated"
 sidebar:
   order: 4043
 ---
 
-ステータス: **Accepted — 全面的に着地（WD1–WD7）、2026-06-03**。WD7およびWD4の`rbs_complete_extends:`側は#1097で着地した。却下された代替案Aは[ADR-114](../114-core-stdlib-ancestor-dispatch/)（2026-09-20）によって部分的に置き換えられ、gemのケースへと絞り込まれ、本ADRのアローリストはその拒否のバイパスとして保持される。
+ステータス: **Accepted — 全面的に着地（WD1–WD7）、2026-06-03**。WD7およびWD4の`rbs_complete_extends:`側は#1097で着地した。WD8（ブロック、オーバーライド、リーダー位置）は2026-11-04に#2681で改訂された。却下された代替案Aは[ADR-114](../114-core-stdlib-ancestor-dispatch/)（2026-09-20）によって部分的に置き換えられ、gemのケースへと絞り込まれ、本ADRのアローリストはその拒否のバイパスとして保持される。
 `rigor check`が、Rubyソースのサブクラスの*継承された*メソッド呼び出しを、
 **アローリスト化された**RBSのみの祖先に対して解決できるようにする。これにより
 エンジンはその祖先の契約（contract）サーフェス（surface）の誤用を警告できる。
@@ -179,6 +179,10 @@ Steepなしで）警告できるか？」
   `call.undefined-method`で非ゼロ終了させる。
 
 - **WD7 — extendブリッジの実行順序によるシャドウイング（#1097）**。より安直な常にシャドウするルール（クラス上のどこかにある`def self.sig`が`T::Sig#sig`を隠す）は両方向で誤りである: 同じ本体内で`def self.sig`の*前*に書かれた`sig { }`は依然として`extend T::Sig`を通じて実行され、後の`def`の内側にネストされた`sig`はすべてのクラス本体defが有効になった後に実行される。`discovered_deferred_ranges`（インクリメンタルスナップショットスキーマ24、その後行がowner列を獲得したことで25）はdef / block / lambdaスパンを記録し、`Scope#*_def_shadows_call?`が最先の同オーナーdefに対して呼び出しを順序付けられるようにする。順序が証明できない場合 ── ファイル間、nil呼び出しノード、未インデックスファイル、条件付きdef ── 保守性は常にシャドウ（不透明）を指し示し、プロジェクトメソッド上で診断を捏造してしまうDeclBuilder束縛を指し示すことは決してない。このテーブルこそが、extendブリッジがプラグイン専用の認識器ではない理由である: 同じ順序付けが、将来の任意の`rbs_complete_extends:`消費者にとって耐荷重性を持つ。
+
+- **WD8 — ブリッジは呼び出しだけでなくパラメータ位置とリーダーもカバーする（2026-11-04改訂、#2681）**。WD1–WD3ではブリッジを呼び出しの戻り値、存在、およびアリティを中心に構成していた。プラグインが準拠して書かれる契約には、パラメータ位置もある: クラス本体のDSL呼び出しに渡されるブロックのパラメータ（`dynamic_return`、`narrowing_facts`、`node_rule`、`node_file_context`）、オーバーライドするフック`def`のパラメータ（`diagnostics_for_file(path:, scope:, root:)`）、そして継承されたリーダー（`services`、`config`）である。型付きの`base.rbs`（ADR-128）があっても、これらはすべてのソースのみのプラグインクラスで`Dynamic[top]`のまま留まっていたため、宣言されたフックの型はプラグインコードに到達せず、各プラグインクラスの空のRBS宣言だけが唯一の回避策だった。2つの変更がこれを閉じるが、どちらも同じアローリストによって境界付けられる:
+  （1）エンジンシード自身のソース`def`は、より近い定義元として数えなくなった。このリポジトリのプラグインチェックは`lib/rigor/plugin/base.rb`を発見するため、BaseがRubyで定義しているあらゆるメンバーがブリッジを抑止していた。これが、クラス本体の`manifest`が`Dynamic[top] | Rigor::Plugin::Manifest`と型付けされ、すでにブリッジを読んでいたブロックパラメータのプローブが何も見つけられなかった理由である。マニフェスト宣言された祖先上のプロジェクト`def`は依然として抑止する: そこではそれは再オープン（`class Grape::API; def self.desc`）であり、Rubyはそれを呼び出す。
+  （2）`MethodParameterBinder`はオーバーライドする`def`を、それがオーバーライドする宣言から束縛する: クラス自身の定義を脇に置いたブリッジの解決であり、他のすべての拒否は維持される。`initialize`は除外される。コンストラクタはスーパークラスの契約をオーバーライドしないためである。また、解決された祖先が`BasicObject`、`Object`、`Kernel`、`Module`、または`Class`から応答する宣言（`GraphQL::Schema::Object`配下の`Kernel#load`）も除外される。これはその祖先の契約ではなく、あらゆるクラスのサーフェスであるためである。スロットは、`def`のパラメータ形状が宣言のものと一致する場合にのみ束縛される──これはバインダーがすべてのRBS宣言済み`def`に適用するルールである。アローリスト外のクラスのソースサブクラス（`< ActionController::Base`）は、これらの位置のすべてで`Dynamic[top]`のままとなる。束縛契約: [`inference-engine.md`](../../internal-spec/inference-engine/) §「Inherited resolution into an RBS ancestor」および §「Method Parameter Binding」。
 
 ## 却下／先送りした代替案
 

@@ -3,9 +3,9 @@ title: "ワーカーセッションプロトコル"
 description: "rigortype/rigor docs/internal-spec/worker-session.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/worker-session.md"
 sourcePath: "docs/internal-spec/worker-session.md"
-sourceSha: "ca246cd750c87578c0455a740acd38b1366271b3399c87a0841d09b5f9f7e7e4"
-sourceCommit: "5fab9b52937efba652b9f6ecde1bb0a9954a9f77"
-sourceDate: "2026-09-08T06:03:14+09:00"
+sourceSha: "51e1515914353f941434af4d888ad046e1cb902ef181d55c3c0bee54334c07fe"
+sourceCommit: "2d66acadc4b2f6a7bd12f4b731d28b396c355af8"
+sourceDate: "2026-10-26T12:07:37+09:00"
 translationStatus: "translated"
 sidebar:
   order: 3050
@@ -56,7 +56,13 @@ sidebar:
 
 `#drain_reporters`ペイロード内のすべての値は、Marshal可能（Marshal-clean）かつ`Ractor.shareable?`でなければなりません（MUST）── forkバックエンドはそれを`Marshal.dump`で送り返すため、そこでのraiseはファイルが解析された*後に*ワーカーを終了させてしまい、コーディネーターはインプロセスでその割り当て分を再解析して`pool-degraded`を報告することでしか吸収できなくなります。したがってソース位置は`(path, line, column)`プリミティブとして渡され、`_dump`を持たないC拡張オブジェクトである`RBS::Location`としては決して渡されません。`RbsExtended::Reporter`の記録メソッドはこの3つ組（triple）を取るため、呼び出し側がエントリーに位置（location）を入れることはできません（[#785](https://github.com/rigortype/rigor/issues/785)、[#805](https://github.com/rigortype/rigor/issues/805)）。重複排除も独立して同じ形状を必要とします: `RBS::Location`は同一の`RBS::Buffer`オブジェクト上の位置に対してのみ同値と比較され、各ワーカーは自身でパースを行うため、位置を運ぶエントリーをマージするコーディネーターはワーカーごとに1行を出力してしまうからです。
 
+`#drain_reporters`ペイロードのどちらの半分も手作業で列挙されていません（[ADR-116](../../adr/116-hot-file-restructuring/) WD3、[#1195](https://github.com/rigortype/rigor/issues/1195)）。各レポーターは自身のストリームをスナップショットし（`#snapshot`）、コーディネーターはワーカーのコピーをレポーター自身の記録メソッド（`#absorb`）を通じて再生します；ペイロードが運ぶ実行レベルのファクトは`Runner::RunLevelFacts`が宣言する`:analysis`ファクトであり、コーディネーター側のパスが解析に用いた環境に適用するのと同じ`RunLevelFacts.drain`によって読み取られ、各ファクトが宣言するマージ規則によって畳み込まれます。セッションのドレインは1つの`Runner::WorkerPayload`としてまとめて受け渡されます ── fork子プロセスのペイロードファイル、Ractorワーカーの`:done`メッセージ、およびforkのデグレードパスにおける親セッションの回収 ── そのため、新しいストリームやファクトを追加しても変更されるのはそのレポーターや宣言だけであり、プールのマージ箇所は決して変更されません。
+
 プラグインの`#prepare`は**構築時に一度**実行され、各ワーカーが最初の`#analyze`呼び出し前にウォームになるようにします。`prepare`からのraiseはすべて`#prepare_diagnostics`に捕捉され、ワーカーを中断する代わりにランナーがファイルごとのストリームと並べて顕在化させます。
+
+`#drain_trust_refusals`は、セッションのプラグインが前回のドレイン以降に行った`Plugin::IoBoundary`トラストポリシー拒否をプラグインごとに報告します（[#1900](https://github.com/rigortype/rigor/issues/1900)）。他のドレインとは異なり、コーディネーターがドレインを合算するため、新しいものだけを報告します。最初のドレインは`#init`の後に始まります：すべてのレジストリが`#init`を実行し、コーディネーター側のレジストリはそれらの読み取りを自身で報告します。forkバックエンドは`#prepare`の後かつfork前に親セッションをドレインするため、親の境界を継承した子プロセスはprepare時の拒否を二重にカウントしません；子プロセス群のドレインをファイル順のスライスごとにマージし、死亡した子プロセスのスライスは親が再解析する際にファイルごとにドレインします。Ractorバックエンドは1つのワーカーのprepare拒否と各ファイルの拒否をファイル順にカウントできるよう、`#prepare`の後および各ファイルの後にドレインします。これらの順序付けにより、Ractorデグレードの後またはプラグインの`#init`がレジストリごとに異なる拒否をする場合を除き、最初に拒否されたパスが逐次実行と一致します；件数と行の有無はそれに関わらず一致します。
+
+プールがワーカーをディスパッチできない場合（`fork`がない、またはキャッシュストアなしのRactorバックエンド）、コーディネーター側のレジストリ上での解析にフォールバックします。そのレジストリの`#prepare`はプール化された事前パスによってスキップされるため、フォールバックはそれを ── 逐次事前パスが行うのと同様に環境構築の前に1回 ── 実行し、その行をストリームの先頭に置かなければなりません（**MUST**）。さもなければすべてのプラグインが未準備のまま解析し、そのprepare行およびprepare時の拒否が失われます（[#1900](https://github.com/rigortype/rigor/issues/1900)）。その行は逐次実行が置く場所（pre-eval行の前）ではなく、プールバックエンドがワーカーのprepare行を置く位置に配置されます：実行はそのファイル前ブロックを、フォールバックがまだ実行されていない解析前に組み立てるためです。
 
 ## 等価性契約
 

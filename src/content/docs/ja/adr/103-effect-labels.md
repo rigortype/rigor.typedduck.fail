@@ -3,15 +3,15 @@ title: "ADR-103 — エフェクトラベル: オプトインの、スナップ�
 description: "rigortype/rigor docs/adr/103-effect-labels.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/103-effect-labels.md"
 sourcePath: "docs/adr/103-effect-labels.md"
-sourceSha: "28b0924ea5f5e6cefc753333b53db85d728dc7655cd49ce404ab7667689cd50b"
-sourceCommit: "db7b23d42e9b47560438b67dfe16d53e03f70575"
-sourceDate: "2026-09-10T04:39:46+09:00"
+sourceSha: "2e79ade980e244d2b21c5f95c2b9a0fe1459e85e68b0a98c7ecefada8f895ef9"
+sourceCommit: "2d66acadc4b2f6a7bd12f4b731d28b396c355af8"
+sourceDate: "2026-11-10T22:04:43+09:00"
 translationStatus: "translated"
 sidebar:
   order: 4103
 ---
 
-ステータス: **Accepted、2026-08-16 — 実装済み;エフェクトシステムはv0.3.4の目玉（`rigor effects`、`rigor effects update`、`rigor effects check`）として出荷され、[#376](https://github.com/rigortype/rigor/issues/376)配下の18件の実装issueのうち13件がクローズされた**。[`docs/design/20260816-effect-labels.md`](../../design/20260816-effect-labels/)（設計ノート;その§13が選択肢を列挙し、このADRがそれらを作業上の決定として固定する。`rigor check`との共存であるWD13は同日に追加;実装前の決定であるWD14と、v0.4.0の既定オン化の裁定とその前提条件であるWD15はどちらも2026-08-17に追加;その6つの前提条件のうち5つを解決するWD16は2026-08-22に追加——6つ目はリリース時に書かれるリリースノートの移行注記なので、v0.4.0より前に既定について何も変わらない;宣言レーンは決して判定されないと裁定し、それを強制するものとしてスナップショットゲートを名指すWD17は2026-08-24に追加）でエフェクトシステムを設計する際に到達した決定を記録する。2件が未決のまま残っており、どちらもビューのスライスまで先送りできる。実装はアンブレラ[#376](https://github.com/rigortype/rigor/issues/376)配下のGitHub issueとしてスライスされている（18本のトレーサーバレットスライス、#377〜#394;トラッカーの慣習: [ADR-98](../98-development-flow-document-roles/)）。
+ステータス: **Accepted、2026-08-16 — 実装済み;エフェクトシステムはv0.3.4の目玉（`rigor effects`、`rigor effects update`、`rigor effects check`）として出荷され、[#376](https://github.com/rigortype/rigor/issues/376)配下の18件の実装issueのうち13件がクローズされた**。[`docs/design/20260816-effect-labels.md`](../../design/20260816-effect-labels/)（設計ノート;その§13が選択肢を列挙し、このADRがそれらを作業上の決定として固定する。`rigor check`との共存であるWD13は同日に追加;実装前の決定であるWD14と、v0.4.0の既定オン化の裁定とその前提条件であるWD15はどちらも2026-08-17に追加;その6つの前提条件のうち5つを解決するWD16は2026-08-22に追加——6つ目はリリース時に書かれるリリースノートの移行注記なので、反転より前に既定について何も変わらない;宣言レーンは決して判定されないと裁定し、それを強制するものとしてスナップショットゲートを名指すWD17は2026-08-24に追加;反転をv0.4.0からv0.5.0へ移すWD18は2026-10-26に追加）でエフェクトシステムを設計する際に到達した決定を記録する。2件が未決のまま残っており、どちらもビューのスライスまで先送りできる。実装はアンブレラ[#376](https://github.com/rigortype/rigor/issues/376)配下のGitHub issueとしてスライスされている（18本のトレーサーバレットスライス、#377〜#394;トラッカーの慣習: [ADR-98](../98-development-flow-document-roles/)）。
 
 根拠: Steinsの実装済みモデル（[why-effects](https://github.com/rigortype/steins/blob/master/docs/why-effects.md)・[effects.md](https://github.com/rigortype/steins/blob/master/docs/type-specification/effects.md)・[phpdoc-effects-interop.md](https://github.com/rigortype/steins/blob/master/docs/type-specification/phpdoc-effects-interop.md)）、PHPStanのRFCドラフト（[20260812-issue-draft-effect-labels-spec.md](https://github.com/zonuexe/phpstan-notes/blob/master/generated-report/20260812-issue-draft-effect-labels-spec.md)）、そして2026-08-16に集めたリポジトリのファクト（設計ノート§14）——主なものは、Rigorがメソッドレベルの呼び出しグラフを持たないこと、`rigor:v1:pure`が仕様化されているが未実装であること、そして2026-07-15のPHPStanルール再調査が推論による純粋性ルールを高FPとして却下したこと（[`docs/notes/20260715-phpstan-rules-survey-rigor-reevaluation.md`](../../notes/20260715-phpstan-rules-survey-rigor-reevaluation/)）。
 
@@ -102,6 +102,8 @@ rigor-railsは§11.2の表に従ってトランスポートと`rails.*`の意味
 
 ### WD15 — v0.4.0での既定オン化（オーナー裁定、2026-08-17）
 
+*この節のバージョンはWD18によってv0.5.0へ移された;以下の本文は裁定された当時のまま残す。*
+
 収集と`effects.check`は**v0.4.0で既定オン**になる: `effects:`キーのない`.rigor.yml`は`effects: {}`として振る舞い、`effects: false`がオプトアウトになる。`effects-on-by-default`——`:behaviour`の[bleeding-edgeフィーチャー](../50-release-engineering-and-stability-strategy/)——がプレビューだ: 今日それを採用すれば同じ既定に早期に到達する。WD7の「メジャーで卒業」は、このフィーチャーと0.xの評価ラインに限って、v1.0.0を待つのではなく**「v0.4.0で」**と読む——WD7がすでに一般のケースについて述べているのと同じ1.0前のリハーサル（`v0.2.x → v0.3.0`の卒業）であり、「次のマイナーがいつ着地しようとも」に委ねるのではなくオーナーの裁定で特定のバージョンに固定したものだ。
 
 この反転は、まず6つの前提条件をクリアすることでゲートされ、この裁定の執筆時点ではそのどれもクローズしていなかった;**WD16が1〜4と6を解決する**（2026-08-22）:
@@ -145,6 +147,16 @@ WD15のリストはコードからではなく設計から書かれており、�
 **裁定が禁じないもの**。2つの隣接するナローイングがその横に着地したが、例外ではない: カタログの姿勢は、**構文**が定数として名指すレシーバーについて答えてよい（[#463](https://github.com/rigortype/rigor/issues/463)——カタログは読まれ監査された知識であり、唯一の問いは誰がレシーバーを特定したかだった）。そしてバンドル済みプラグインは、自身のgemが導入する祖先関係を宣言してよい（[#465](https://github.com/rigortype/rigor/issues/465)——祖先関係の主張はラベルを加えず、既存の行を*到達可能*にするだけで、その行のレーンは変わらない）。
 
 **WD15の前提条件5について**、リリースノートの移行注記は1文を得る: 既定オンは収集とエンベロープチェックをオンにし、エンベロープチェックはプラグイン由来のラベルでは失敗しえず、それらが強制されるのは`rigor effects check`だ。それには依然としてレーンの但し書きも「まずキャッシュをクリアせよ」も要らない。
+
+### WD18 — 既定オン化をv0.4.0からv0.5.0へ移動（オーナー裁定、2026-10-26）
+
+WD15は反転を**v0.4.0**に固定していた。この裁定の時点でリポジトリはv0.4.6にあり、反転は行われていない。既定オンのユーザー体験がまだ定まっていないため、オーナーは代わりに**v0.5.0**で着地させると裁定する。
+
+変わらないもの: WD15の6つの前提条件とそのWD16での解決、オプトアウトとしての`effects: false`、および早期採用プレビューとしての`effects-on-by-default`。
+
+追加されるもの: [#2339](https://github.com/rigortype/rigor/issues/2339)がこの反転をブロックしていた（[#2578](https://github.com/rigortype/rigor/pull/2578)で修正済み）。プレビューは既定を早期に採用するための文書化された方法であり、`Configuration#with_bleeding_edge`が`@effects`を再導出していなかったため、`--bleeding-edge` CLIセレクタはフィーチャーが有効であると報告する一方で収集はオフのままになっていた。
+
+この反転を名指すすべての「v0.4.0」は今後「v0.5.0」と読む: このADRの「反転より前に」のヘッダー、`lib/rigor/bleeding_edge.rb`、`docs/manual/02-cli-reference.md`、`docs/manual/03-configuration.md`、`docs/manual/19-effect-labels.md`、`docs/manual/ci-templates/`の4つのコメント、および[#409](https://github.com/rigortype/rigor/issues/409)のタイトル。WD15の本文はこの節へのポインタを伴って裁定されたとおりのまま残す。日付付きのノートおよびリリース済みの変更履歴の節は、それらが書かれた時点のバージョンを保持する。
 
 ## 却下・先送りされた代替案
 

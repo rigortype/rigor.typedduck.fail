@@ -3,9 +3,9 @@ title: "ADR-34 — トップレベルの未解決implicit-self呼び出しはデ
 description: "rigortype/rigor docs/adr/34-toplevel-unresolved-self-call-default.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/34-toplevel-unresolved-self-call-default.md"
 sourcePath: "docs/adr/34-toplevel-unresolved-self-call-default.md"
-sourceSha: "2f30c2d81eed8ed5726ae9adf3f15555d1aa45723aa7d9b0e0b2c401ba913dea"
-sourceCommit: "e4685d12ad7454982fdfed674e1cd0cd6f168fd8"
-sourceDate: "2026-10-10T06:46:43+09:00"
+sourceSha: "86e28b14df93818b5295c585c2425433f7255fa900718468fb69850e75012185"
+sourceCommit: "2d66acadc4b2f6a7bd12f4b731d28b396c355af8"
+sourceDate: "2026-10-21T05:39:47+09:00"
 translationStatus: "translated"
 sidebar:
   order: 4034
@@ -184,3 +184,6 @@ WD1のステップ1ルックアップ（「同じファイルまたは解析さ�
 - 2026-05-29 — 初回提案。トップレベルの無音な挙動に関するユーザーの問いと、プレイグラウンド / スタンドアロンスクリプトのユースケースが逆のデフォルトを望むという認識によって引き起こされた。ADR-17の事前評価メカニズムが自然なエスケープハッチだ——このADR自体によって新しい設定インターフェースは導入されない。
 - 2026-10-10 — 決定項目4を追加: `main`のプライベートシングルトンメソッドがトップレベル呼び出しを解決する（[#1383](https://github.com/rigortype/rigor/issues/1383)）。トップレベルブロック内の呼び出しもトップレベルとして判定されるため、同じ名前がそこでも沈黙する;その偽陰性はそれが置き換える偽陽性よりも安価である。
 - 2026-10-10 ── 決定項目5を追加: `Object`にmix-inされたモジュールはトップレベル呼び出しを解決する（[#1697](https://github.com/rigortype/rigor/issues/1697)）。このエッジはファイルが実行された後のRubyと同様にプロジェクト全体に及ぶため、includeするファイルを決してロードしないファイルも沈黙する;その偽陰性はより安価な誤りである。
+- 2026-10-20 — ブロックの呼び出し先（callee）のプロジェクト定義が別の`self`のもとでそのブロックを実行する可能性がある場合（`module_eval(&blk)`、`instance_exec(&blk)`、またはその他の受け渡し）、トップレベルブロック内の呼び出しはトップレベルとして判定されない（[#1817](https://github.com/rigortype/rigor/issues/1817)）。呼び出し先は名前で読み取られるため、ブロックを先へ渡す別の場所の同名メソッドが`yield`しかしない呼び出し先を沈黙させ、また`def each(&b) = @items.each(&b)`のようなプロジェクトのフォワーダーは`each`に渡されるすべてのブロックを沈黙させる;その偽陰性は、1つのレシーバーのクラスだけを読み取ってRubyがディスパッチする定義を見落とすよりも安価である。
+- 2026-10-21 — 同じ読み取りはdefテーブルが保持しない定義もカバーする: `define_singleton_method` / `define_method` / `alias_method`の名前、ブロックまたはメソッド本体内の`def`、およびレシーバーの型が解決しない呼び出し先に応答する`method_missing`; `define_method` / `define_singleton_method`呼び出しのブロックもメソッド本体であり、同様にトップレベルとして判定されない（[#2184](https://github.com/rigortype/rigor/issues/2184)）。`super`を含め、自身のブロックを先へ渡す`method_missing`は、Rigorがレシーバーを型付けできないブロック、またはクラスが呼び出し先を欠くブロック内のルールを沈黙させる。
+- 2026-10-21 — ローカル変数経由で到達されたブロック（`blk = proc { … }; Ext.me(&blk)`）、Methodオブジェクト（`Ext.method(:me).call { … }`）、またはその中で開くヒアドキュメントも同じ方法で読み取られ、コアの`instance_exec`系メソッドに渡されたprocローカルはトップレベルブロックではなく、`binding`、文字列`eval`、または計算された`send`を通じて自身のブロックローカルに到達できる呼び出し先は受け渡しとしてカウントされる。Rigorがそれを実行する呼び出しまで追跡できないproc値は辞退する（[#2186](https://github.com/rigortype/rigor/issues/2186)）。

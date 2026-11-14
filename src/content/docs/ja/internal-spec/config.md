@@ -3,9 +3,9 @@ title: "設定 — `.rigor.yml`のセマンティクス"
 description: "rigortype/rigor docs/internal-spec/config.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/config.md"
 sourcePath: "docs/internal-spec/config.md"
-sourceSha: "2f554df0742fac0b16d5dfc672beab8fb1085399e656191293d8cae7c48259be"
-sourceCommit: "8a5d6e2c6001d80084cf95132e306eb6a6d71b9a"
-sourceDate: "2026-10-08T17:31:00+09:00"
+sourceSha: "eda857b69b59e89a149fd71d8df8901aeb934bbb1508f9469373412e8dfc02a2"
+sourceCommit: "2d66acadc4b2f6a7bd12f4b731d28b396c355af8"
+sourceDate: "2026-10-31T17:53:36+09:00"
 translationStatus: "translated"
 sidebar:
   order: 3050
@@ -36,13 +36,15 @@ sidebar:
 | --- | --- | --- | --- |
 | **1. スキーマ** | エディタ / CI | 編集時 | エディタの波線。**ランタイムへの影響は一切ありません**。 |
 | **2. `Configuration`のロード** | この実装 | ロード時 | `Rigor::ConfigurationError`（`ArgumentError`の一種） ── 実行が停止します。 |
-| **3. 設定監査** | この実装 | チェック時 | STDERR警告、および`--format=json`ペイロード内の`config_warnings`下のタグ付きエントリー。**終了コードは変わりません**。 |
+| **3. 設定監査** | この実装 | チェック時 | STDERR警告、および`--format=json`ペイロード内の`config_warnings`下のタグ付きエントリー。**終了コードは変わりません**。言語サーバーは変更された警告セットごとに1回ずつそれぞれを`window/showMessage`警告として表示し、`config`引数を取るMCPツールは結果内の`config_warnings`としてそれらを運びます。 |
 
 ティア2は、ローダーが処理を進められない値のためのものです（不正な形式の`dependencies.source_inference[]`エントリー、範囲外の`budget_per_gem`、enumの外にある`effects.snapshot.gate`、登録されたエントリーポイントのプリセットを名指さない`effects.snapshot.reach`エントリー、整形式のエフェクトラベルでない`effects.tolerated` / `effects.labels` / `effects.attribution` / `effects.envelopes[].effect`のメンバー、メソッドキーでない`effects.attribution`のキー、`match:` / `namespace:`の両方または両方ともでないものを名指す`effects.envelopes[]`エントリー、あるいは`effect:`の境界をまったく運ばないもの）。ティア2は*意味*ではなく*形*に答えます: エフェクトレジストリが聞いたことのないラベルは、どこに現れても問題なくロードされます。未知のラベルはフェイルオープンし、`effect.unknown-label`の仕事だからです。
 
 そもそもパース可能なYAMLでないファイルも、一歩手前で同じ形で失敗します。その際、位置はPsych自身のプレフィックス形式ではなく`path:line:column`として再レンダリングされます。
 
 **ティア2の失敗は、バックトレースではなく`rigor:`行としてユーザーに届かなければなりません（MUST）**。`Rigor::CLI#run`はすべてのコマンドについて`Rigor::ConfigurationError`をrescueし、`rigor: <message>`を出力して`64`で終了します ── 不正なフラグと同じ形です。`.rigor.yml`の誤りは同じ種類の出来事だからです。これがクラスを`ArgumentError`より狭くした理由です: このクラスは*ユーザーがファイルを誤った*ことと*Rigor自身が誤った*ことを切り分け、提示に値するのは前者だけです。`ArgumentError`のサブクラスであり続けるため、長年のティア2契約と、その名前でrescueするCLI外のすべての呼び出し元は影響を受けません。メッセージが診断のすべてです ── 問題のキーを名指さなければならず（MUST）、答えが知りうる場合はそれを運ばなければなりません（MUST）（`effects.snapshot.reach`の未登録プリセットエラーは、このプロジェクトのプラグインが実際に登録したプリセットを列挙します）。
+
+`core_root:`（[#2517](https://github.com/rigortype/rigor/issues/2517)）は両半面ともティア2であり、ロード時にはその形状のみがチェックされます（空でないString）。ディレクトリ自体は環境が構築される箇所でチェックされます。すなわち、存在し、読み取り可能なディレクトリであり、少なくとも1つの`.rbs`を保持し、かつプロジェクトのシグネチャルートのいずれかの内部に位置したりそれらを含んだりしないこと（そうするとファイルが2回ロードされてしまうため）です（`Environment::CoreRoot.validate!`および`.reject_overlap!`）。そこから構築された環境もそこでチェックされます（`RbsLoader#verify_core_root!`）。これがロード時に行われないのは、言語サーバーのリロードなど設定を読み取るだけのコマンドが、まだ生成されていないコアで失敗してはならないためです。選択されたコアのクラスのうち環境は構築するが定義は構築しないものは例外を発生させません（定義は解析の途中で遅延構築されます）。その`rbs.coverage.definition-build-failed`行は、失敗が名指しするすべてのシグネチャファイルが選択されたコア配下にある場合、`:warning`の代わりに`:error`として作成されます。`sig/`の衝突などプロジェクトファイルも名指しする失敗は警告を維持するため、コアを選択してもすでに許容されている衝突が失敗するビルドに変わることはありません。重複テストは解決済みパスを比較します。プロジェクトシグネチャの走査はシンボリックリンクされたディレクトリを辿らないため、別の場所に保管されたコアへの`sig/`リンクは1回だけロードされ受け入れられます。どちらも`ConfigurationError`である`Rigor::Environment::CoreRootError`を発生させるため、実行は`rigor:`行と終了コード`64`で停止します。`signature_paths:`エントリーとは異なり、使用不可能な選択されたコアは決してティア3にはなりません。実行には誤りでないフォールバックが存在しないためです。デフォルトのコアは選択が除外するAPIを受け入れてしまい、失敗したビルドがそうでなければ縮退する空の環境はあらゆる呼び出しを受け入れてしまいます。
 
 ティア2のチェックのうち1つだけはロード時に実行されません: `effects.snapshot.reach`の**プリセット名**は、スナップショットがそれを展開する場所で検証されます。プリセットはプラグインによって登録され、そのプラグインは検証中の設定*から*ロードされるからです。ロード時にはエントリーの形をチェックし、レジストリは解析が始まって初めて完全になります。その2つの半分が`Configuration#coerce_effects_reach`と`Rigor::Effects::EntryPoints.resolve!`であり、CLIは両方を同じ形でレンダリングします。ティア3は、整形式でありながら**見た目どおりのことを行わない**値のためのものです —— 唯一の兆候が紛らわしく下流に現れるという類の誤りです。通常は欠落したシグネチャパス、未知のライブラリ名、効果のない抑制、認識されないトップレベルキーのように、何にも解決しません。ティア3は警告するのみで決してエラーにはなりません。部分的あるいは先取り的な設定は妥当なセットアップであり、未設定のデフォルトに対しては決して発火しないからです。
 
@@ -63,7 +65,7 @@ sidebar:
 - `~/x`は`<home>/x`へ展開され、単体の`~`は`<home>`へ展開されます。ここで`<home>`は`Dir.home`です。これはBundlerが`BUNDLE_PATH: "~/gems"`で行う動作であり、`.rigor.yml`の作成者が`~/projects/app`と記述した場合の意図でもあります。
 - `~name`はリテラルのディレクトリ名です。`~name/x`は`<config dir>/~name/x`へ解決されます。ローダーはここでは`File.expand_path`を使用しません。`~name`を`name`という名前のユーザーのホームとして読み取り、そのユーザーが存在しない場合に`ArgumentError`を発生させてしまい、`~drafts`という名前のプロジェクトディレクトリで`rigor check`がクラッシュしたためです（#1510）。解決処理が`~`で例外を発生させることは決してありません。
 
-このルールは`paths:`、`signature_paths:`、`test_paths:`、`pre_eval:`、ネストされた`plugins_io.allowed_paths:`、各`includes:`エントリー、`bundler.bundle_path:`、`bundler.lockfile:`、`rbs_collection.lockfile:`、および`.bundle/config`（プロジェクトまたはユーザーグローバル）から読み取られた`BUNDLE_PATH`値をカバーします。`cache.path:`、`baseline:`、`effects.snapshot.path:`はカバーせず、これらはリテラルのまま作業ディレクトリに対する相対パスとして維持されます。
+このルールは`paths:`、`signature_paths:`、`core_root:`、`test_paths:`、`pre_eval:`、ネストされた`plugins_io.allowed_paths:`、各`includes:`エントリー、`bundler.bundle_path:`、`bundler.lockfile:`、`rbs_collection.lockfile:`、および`.bundle/config`（プロジェクトまたはユーザーグローバル）から読み取られた`BUNDLE_PATH`値をカバーします。`cache.path:`、`baseline:`、`effects.snapshot.path:`はカバーせず、これらはリテラルのまま作業ディレクトリに対する相対パスとして維持されます。
 
 Bundler自身は`BUNDLE_PATH`において`~user/`を展開しますが、Rigorは`~name`をリテラルとして維持するため、`BUNDLE_PATH: "~deploy/gems"`は追跡されません。
 

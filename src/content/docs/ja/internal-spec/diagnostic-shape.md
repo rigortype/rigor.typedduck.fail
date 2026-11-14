@@ -3,8 +3,9 @@ title: "`Rigor::Analysis::Diagnostic`のシェイプ"
 description: "rigortype/rigor docs/internal-spec/diagnostic-shape.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/diagnostic-shape.md"
 sourcePath: "docs/internal-spec/diagnostic-shape.md"
-sourceSha: "15905f8d23fe7e6fca72cd2d5550e145ffde505b43b8b16a345c3c64644911ec"
-sourceCommit: "bed65a462b04db02312f208b9dda2dda3a26ef13"
+sourceSha: "38941b3b3f181d447226ab1431c8b06eb328fb8b0864a7e7455bb9b549cf85d9"
+sourceCommit: "2d66acadc4b2f6a7bd12f4b731d28b396c355af8"
+sourceDate: "2026-10-30T12:48:08+09:00"
 translationStatus: "translated"
 sidebar:
   order: 3050
@@ -46,6 +47,8 @@ sidebar:
 
 両者は`CLI::CheckCommand#enrich_json`において、`source_family`がデフォルトの`:builtin`であり、かつ`rule`が非`nil`であるdiagnosticに対してのみ付加されます。プラグイン／`rbs_extended`／パースエラーのdiagnosticはそのまま残されます（これらは独自のドキュメントと確度を持ちます）。同じ2つのフィールドは、`rigor explain` / `rigor explain --format json`が公開する各`Entry#to_h`にも現れます。
 
+`type-of`、`explain`、`trace`（これらのシェイプは次のマイナーバージョンで変更され、それまではstderrに通知が出ます）を除く、トップレベルオブジェクトであるすべての`--format json`ドキュメントは、[ADR-126](../../adr/126-cli-grammar-and-catalogue/) WD2に従って`schema_version`（整数、最初のキー）も保持します。これを追加する唯一の場所は`CLI::JsonDocument.stamp`です。
+
 ## 構築と位置の規約
 
 2つのファクトリーが負荷を担う位置の規約を内部化しており、呼び出し側がそれを再導出しなくて済むようにしています。
@@ -57,10 +60,12 @@ sidebar:
 
 ## `qualified_rule`の導出と由来
 
-`#qualified_rule`は、コンシューマーが足がかりとする識別子です（抑制、ベースラインバケット、`--format json`）。これは次でなければなりません（MUST）。
+`#qualified_rule`は、コンシューマーが足がかりとする識別子です（ベースラインバケット、`--format json`、およびプラグインの行の抑制）。これは次でなければなりません（MUST）。
 
 - `rule`が`nil`のときは`nil`。
 - `source_family`がデフォルトの`:builtin`のときは`rule`そのまま。
 - それ以外のときは`"<source_family>.<rule>"`。これにより、プラグインルールは`plugin.<id>.<rule>`として、RBS::Extendedルールは`rbs_extended.<rule>`として、生成シグネチャルールは`generated.<provider>.<rule>`として現れる（[ADR-2](../../adr/2-extension-api/) § "Plugin Diagnostic Provenance"）。
+
+抑制がこれを足がかりとするのはプラグインの行のみです。`plugin.<id>`行は自身の`qualified_rule`または`source_family`と等しい`disable:`または`# rigor:disable`トークンにのみ応答し、素の`rule`には決して応答しません（`CheckRules.plugin_row_disabled?`）。マニフェストIDとルールの両方にドットを含められるため、2つのプラグインが同じ`qualified_rule`を共有することがあり（ルール`b.c`を持つプラグイン`a`と、ルール`c`を持つプラグイン`a.b`）、その場合1つの完全一致トークンが両方の行を除外します。組み込み行はその`rule`によって照合されますが、これは`:builtin`ファミリーでは同じ文字列です。他の非デフォルトファミリー（`plugin_loader`、`rbs_extended`、`generated.<provider>`）は`qualified_rule`では照合されません。それぞれの到達範囲は[diagnostic-policy.md](../../type-specification/diagnostic-policy/) § "Token resolution"にあります。
 
 `#to_s`（`rigor check`のテキスト行`path:line:column: severity: message`）は、`source_family`が非デフォルトのときにのみ`[<qualified_rule>]`を末尾に付けます。これにより、組み込みルールのレイアウトを変えることなく由来が見えるようになります。

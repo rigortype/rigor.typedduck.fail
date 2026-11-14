@@ -3,9 +3,9 @@ title: "マクロ／DSL展開基板"
 description: "rigortype/rigor docs/internal-spec/macro-substrate.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/macro-substrate.md"
 sourcePath: "docs/internal-spec/macro-substrate.md"
-sourceSha: "c3678ae70739ababbd856f52e4bcf4e6c5745c068715cd82c06a9455b43c8c65"
-sourceCommit: "e4685d12ad7454982fdfed674e1cd0cd6f168fd8"
-sourceDate: "2026-10-10T12:04:15+09:00"
+sourceSha: "c080485c826c8ee356ec1bc7548e06add955652b4e97dcafaa9e29b66b2f7688"
+sourceCommit: "2d66acadc4b2f6a7bd12f4b731d28b396c355af8"
+sourceDate: "2026-10-22T14:26:09+09:00"
 translationStatus: "translated"
 sidebar:
   order: 3050
@@ -169,7 +169,7 @@ floor/ceiling配信ポリシーとティアごとの根拠はADRにある。
 Sinatraの`get '/path' { ... }`（ブロックは文字どおりルートメソッド本体に
 なる）。
 
-このナローイングは、ブロックを保持する呼び出しが位置するあらゆる場所に適用される: 文、代入の値、または評価器が進入しない値の位置（呼び出し引数、キーワード引数、レシーバーチェーン）。そこではスコープインデクサーの未進入ブロックの走査が同じマッチを適用する（[`inference-engine.md`](../inference-engine/)）。
+このナローイングは、ブロックを保持する呼び出しが位置するあらゆる場所に適用される: 文、代入の値、または評価器が進入しない値の位置（呼び出し引数、キーワード引数、レシーバーチェーン）。そこではスコープインデクサーの未進入ブロックの走査が同じマッチを適用する（[`inference-engine.md`](../inference-engine/)）。クラス本体内の`:receiver_instance`ブロックは、ADR-58のivarセンサスにおけるインスタンスメソッド本体でもある: その`@x`書き込みは`def`本体と同様にクラスのインスタンスivarユニオンに加わる（[#1768](https://github.com/rigortype/rigor/issues/1768); [`inference-engine.md`](../inference-engine/)）。
 
 | フィールド | 型 | 注記 |
 | --- | --- | --- |
@@ -250,6 +250,25 @@ returns_from_arg: { position: 1, lookup_via: { plugin_id: "dry-types", fact: :dr
 **ない**。合成されるメソッドは、includeされたモジュールが記述したRBS戻り値型を
 再生する（ADR-5のロバストネス ── サーフェスは与えられていない精度を捏造
 しない）。
+
+### ティアB事前パス環境
+
+トレイトモジュールを展開するにはプロジェクトのRBSが必要である: スキャナはRBSローダーを通じてモジュールのインスタンス定義を読み取り、環境のクラス順序（class ordering）を通じてプロジェクトのクラスがRBS既知の`receiver_constraint`（`ActiveRecord::Base`）から派生しているかどうかを判定する。読み取りはその2つだけである（`Runner::ScanEnvironment#rbs_loader`、`#class_ordering`）。実行自身の環境はソースにできない。なぜなら、その環境がスキャンの出力（`synthetic_method_index:`）を格納するためである;しかしローダーはそのインデックスを一切参照しないため、事前パスは**インデックスを持たない別の環境** ── 設定のライブラリ、シグネチャパス、bundle / collection軸および必須機能、ロード済みプラグインレジストリ、プロジェクトのソースファイル（レポーターなし） ── を構築し、その後でインデックス付きの実際の環境が構築される。これが実行の環境と同じRBSユニバースを解決する保証はない: `source_rbs_synthesizer`はこれのために再度実行される;プールモードではコーディネーターがプラグインの`#prepare`を一度も実行しないため、`#prepare`が生成するプラグインシグネチャはここには存在しない;そして言語サーバーの環境は`source_files:`なしで構築される。これらの一方が宣言し他方が宣言しないモジュールは、一方では展開され他方では展開されない ── その場合、スキャンはそれに対して何も発行しないか、ディスパッチャーの`origin_module`を通じた昇格がメソッドを見つけられず`Dynamic[top]`を返す。
+
+- 構築は**遅延（lazy）**である: 一致する呼び出し箇所が最初の質問をしたときに行われる。レジストリの`method_name`（例: `devise`）がファイルに一度も書かれていないプロジェクトは何もパースせず環境も構築しない;スキャンは各ファイルのテキストを読み取り、どのファイルにもその名前が登場しない場合は空のインデックスを返す。
+- 環境はロード済みプラグインがトレイトレジストリを登録している場合にのみ構築される;ティアCとネストクラスティアはいずれも参照しない。
+- **フェイルソフト**である: 例外を送出する構築は「ローダーなし」／`:unknown`を返すため、環境がない場合と同様にティアBは何も発行しない。RBSに存在しないトレイトモジュール（`Devise::Models::*`シグネチャを提供しないプロジェクト）は黙ってスキップされる;このティアはプロジェクトのRBSが宣言していないメソッド名を捏造できない。
+- `SyntheticMethodScanner.scan(environment: nil)`は、レジストリのみのスキャンに対して依然として空のインデックスを返す;これは環境を持たない呼び出し元への応答である。
+
+### ティアBが合成するトレイトモジュールメソッド
+
+トレイトモジュールのRBSインスタンス定義には、モジュールをincludeすることで追加される以上のものが列挙されている。スキャナは、以下のすべてが成り立つ場合にのみメソッドを保持MUSTする:
+
+- その定義オーナー（`defined_in`）がモジュール自身またはモジュール自身の祖先（その`include` / `prepend`チェーン）の1つであること。RBSは自己型（`module Devise::Models::X : ActiveRecord::Base`はすべての`ActiveRecord::Base`メソッドを列挙する）の上、または自己型がない場合は`Object`（`Kernel#puts`、`Object#hash`）の上にモジュールの定義を構築する;これらはいずれもモジュールの貢献ではなく、これらを合成するとクラス自身または継承されたメソッドをモジュール側の見方で返してしまう。
+- publicであること。このティアは名前で呼び出しに応答する; `user.secret`に対してprivateモジュールメソッドを返すと、Rubyが拒否する呼び出しを黙らせてしまう。
+- プロジェクトがそのクラス上でその名前を宣言していないこと（PR #2286レビューS1）。Rubyはincludeしたどのモジュールよりも先にクラス上でメソッドを探索し、クラスが`devise`の後にincludeまたはprependするプロジェクトモジュールはDeviseモジュールよりも手前に位置する。クラス本体のいずれかの再オープンがそれに対して`def`、`alias` / `alias_method`、`attr_*`、`define_method`、または`delegate`を書いている場合、あるいはクラスがincludeまたはprependするプロジェクトモジュール（そのモジュール自身の`include` / `prepend`を辿り、名前または`::`サフィックスで一致）がそうしている場合、その名前は宣言済みとみなされる。`devise`呼び出しに対する`include`の相対的な順序は参照されない: 呼び出しの前にincludeされたモジュールは実行時にはDeviseモジュールの後ろに位置するが、それでもその名前は辞退される。辞退すると呼び出しは下位のティアに送られ、ティアBに到達可能になる前と同じように応答される;モジュールから応答することは決してない。エントリーが一切発行されないため、合成インデックス内の名前に対する`call.wrong-arity`の引き下がり（`SourceArity#project_patched?`）はクラス自身の`def`には到達しない。ティアCにも同じ順序の問題があるが、このルールは適用しない。
+
+インデックスは`--incremental`向けにダイジェストされる（`synthetic_surface_digest`、[`cache.md`](../cache/)）: これを動かす編集はプロジェクトを再解析する。
 
 ## ネストクラスティア ── `NestedClassTemplate`（`nested_class_templates:`、ADR-36）
 
