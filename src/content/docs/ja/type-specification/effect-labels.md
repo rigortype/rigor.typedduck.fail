@@ -3,8 +3,8 @@ title: "エフェクトラベル"
 description: "rigortype/rigor docs/type-specification/effect-labels.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/type-specification/effect-labels.md"
 sourcePath: "docs/type-specification/effect-labels.md"
-sourceSha: "312a6a7da945a26428916d00c096eefdfd1d3e6b9eac301bb0eb1b50796c85d1"
-sourceCommit: "7f14d503aa4cfefb25672389bab5a229b1219f4e"
+sourceSha: "c4897a0843ccb6fc9ba4c0edffc5be1ef0cffea2d904b80966f9acca672506a3"
+sourceCommit: "2d66acadc4b2f6a7bd12f4b731d28b396c355af8"
 sourceDate: "2026-11-04T22:28:45+09:00"
 translationStatus: "translated"
 sidebar:
@@ -213,7 +213,7 @@ effects:
 
 設定エントリーの中では、クラスを選択する**最初の**ものがそれを束縛します;リストは上から下へ読まれ、後のエントリーが上に書かれたものを黙って上書きすることは決してありません。したがってメソッドは高々1つのエンベロープを、ちょうど1つのソースから持ち、境界のマージはありません。診断はそのソースを`.rigor.yml effects.envelopes[N]`として名指し、Rubyの`def`に位置づけられたままです。
 
-エントリーの`effect:`内の認識されないラベルは、エントリー全体を⊤に劣化させ、`.rigor.yml`に位置づけられた`effect.unknown-label`として表面化します。アノテーションに対するのとまったく同じです（§未知のラベル）。
+エントリーの`effect:`内の認識されないラベルは、エントリー全体を⊤に劣化させ、読み込まれた設定ファイル（何も読み込まれなかった場合は`.rigor.yml`、#2742）に位置づけられた`effect.unknown-label`として表面化します。アノテーションに対するのとまったく同じです（§未知のラベル）。
 
 ### Liskov包含
 
