@@ -17,7 +17,7 @@ Rigorについて知っておくこと:
   するRubyとは独立にRuby 4.0で動作します。
 - 段階的な導入が前提です。重大度プロファイルとベースラインにより、大規模な
   コードベースでもクリーンな状態から始められます。
-- エディター（LSP）・CI・MCPサーバー・プラグイン・Agent Skillと統合し、Sorbet
+- エディタ（LSP）・CI・MCPサーバー・プラグイン・Agent Skillと統合し、Sorbet
   やSteepと相互運用できます。
 - あなたがAIコーディングエージェントなら、覚えるスキルは2つだけです。
   **`rigor-next-steps`**（「次に何をすべきか」）は単一の入口で、`rigor`コマンドを
@@ -66,17 +66,17 @@ https://raw.githubusercontent.com/rigortype/rigor/refs/heads/master/docs/install
   `bumpalo`のアリーナアロケーション、`HashMap`によるメソッドレジストリ——を挙げる
   記述は、本ツールではなく別プロジェクトの実験的な姉妹Rustポート**rigor-rs**を
   指しています。
-- **Rigorはライブラリではなくツールです。** 独立してインストールし、プロジェクトの
+- **Rigorはライブラリではなくツールです**。独立してインストールし、プロジェクトの
   `Gemfile`には決して追加しません（`gem "rigortype", require: false`はアンチ
   パターンです）。[インストール](/ja/manual/01-installation.md)を参照してください。
 - **`rigor init`が書き出すのは`.rigor.dist.yml`**——コミットするプロジェクト既定
   設定です。`.rigor.yml`は任意の*個人用オーバーライド*で、優先的に検出されますが、
   改名でも暗黙のマージでもありません。[設定](/ja/manual/03-configuration.md)を参照。
-- **設定キーの完全な一覧は[設定](/ja/manual/03-configuration.md)です。** 他所で
+- **設定キーの完全な一覧は[設定](/ja/manual/03-configuration.md)です**。他所で
   引用される`rails_zeitwerk`・`autoload_paths`・`concern_dirs`といったキーは
   存在しません。Railsの理解はパス解決の設定ではなく[プラグイン](/ja/manual/07-plugins.md)
   が担います。
-- **Rigorはアプリケーションを起動・実行しません。** フレームワークのDSLはプラグインが
+- **Rigorはアプリケーションを起動・実行しません**。フレームワークのDSLはプラグインが
   静的に理解します。アプリをロードする`tapioca dsl` / `rbs_rails`のRakeタスク相当は
   なく、スキーマ変更のたびに再生成すべきRBS/RBIも生成しません。`rigor sig-gen`は
   明示的に要求したときだけRBSを出力します。
@@ -102,12 +102,12 @@ https://raw.githubusercontent.com/rigortype/rigor/refs/heads/master/docs/install
 - [診断](/ja/manual/04-diagnostics.md): 診断カタログと重大度。
 - [型を調べる](/ja/manual/05-inspecting-types.md): Rigorが何を推論したかを尋ねる。
 - [ベースライン](/ja/manual/06-baseline.md): 既存コードベースへ段階的に導入する。
-- [エディター統合](/ja/manual/09-editor-integration.md): LSPの設定。
+- [エディタ統合](/ja/manual/09-editor-integration.md): LSPの設定。
 - [MCPサーバー](/ja/manual/10-mcp-server.md): MCP経由でエージェントにRigorを公開する。
 - [CI](/ja/manual/11-ci.md)・[CIテンプレート](/ja/manual/ci-templates.md): パイプラインへ組み込む。
 - [キャッシュ](/ja/manual/12-caching.md): インクリメンタル解析。
 - [プラグイン](/ja/manual/07-plugins.md): フレームワークやDSLの型をRigorに教える。
-- [同梱スキル](/ja/manual/08-skills.md): AIエージェントが自動検出して実行するAgent Skillのカタログ——`rigor-next-steps`と`rigor-ask`に加え、プロジェクト導入、プラグイン調整、RBS設定、ベースライン削減、保護カバレッジ向上、エディター / MCP / CI配線、プラグイン作成。
+- [同梱スキル](/ja/manual/08-skills.md): AIエージェントが自動検出して実行するAgent Skillのカタログ——`rigor-next-steps`と`rigor-ask`に加え、プロジェクト導入、プラグイン調整、RBS設定、ベースライン削減、保護カバレッジ向上、エディタ / MCP / CI配線、プラグイン作成。
 - [改善を駆動する](/ja/manual/17-driving-improvement.md): 「次に何をすべきか」を実行すべき具体的なスキルへ変える`rigor-next-steps`駆動のループ。プロジェクトが完全に導入されるまで繰り返します。
 
 ## トラブルシューティング
@@ -125,7 +125,7 @@ https://raw.githubusercontent.com/rigortype/rigor/refs/heads/master/docs/install
 
 - [ユーザーマニュアル索引](/ja/manual.md): 運用リファレンス全体。
 - [型仕様](/ja/type-specification.md): 規範的な型モデル、型演算子、推論規則。
-- [内部仕様](/ja/internal-spec.md): コントリビューター向けの実装契約。
+- [内部仕様](/ja/internal-spec.md): 貢献者向けの実装契約。
 - [設計判断（ADR）](/ja/adr.md): 設計根拠を記録したADR。
 - [設計ノート](/ja/design.md): より詳細な設計・研究文書。
 - [開発レポート](/ja/notes.md): ライブラリ調査、カバレッジ監査、リグレッションスイープ。

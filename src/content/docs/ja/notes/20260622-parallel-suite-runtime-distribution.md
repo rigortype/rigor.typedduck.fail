@@ -1,6 +1,6 @@
 ---
-title: "Parallel spec suite: runtime-based distribution (2026-06-22)"
-description: "Imported from rigortype/rigor docs/notes/20260622-parallel-suite-runtime-distribution.md."
+title: "並列specスイート: 実行時間ベースの分散（2026-06-22）"
+description: "rigortype/rigor docs/notes/20260622-parallel-suite-runtime-distribution.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260622-parallel-suite-runtime-distribution.md"
 sourcePath: "docs/notes/20260622-parallel-suite-runtime-distribution.md"
 sourceSha: "f9ac1ec95c2346cd0a8b262613cafbc0be55df9fdaca2119830bc8a8ba00ccdb"

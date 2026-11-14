@@ -32,14 +32,14 @@ sidebar:
 - **マニフェストフィールド**。
   - `per_invocation_classes: [String]`はクラス名を列挙する。バリデーションでは空でないStringのArrayが要求され、先頭の`::`は取り除かれる（`Plugin::Manifest`）。
   - `per_invocation_non_action_macros: [Symbol]`は、リテラルなSymbolまたはStringの引数がアクションではないメソッドを名指しするクラス本体マクロを列挙する。これらは同じマニフェストのクラスに適用されるため、クラスのないリストは拒否される。
-- **集約**。 `Registry#per_invocation_classes`と`#per_invocation_class?`は`open_receivers` / `open_receiver?`（[ADR-26](../26-activerecord-relation-typing/)）を模倣しており、構築時にコンパイルされる重複排除されたフラットなリストと、完全一致によるメンバーシップ判定を提供する。`Registry#per_invocation_non_action_macros(name)`は、`name`を宣言するマニフェストのマクロを返す。
-- **継承の追跡**。 `CheckRules::IvarWriteCollector`はクラスのインスタンス`Scope::ResolutionChain`を読み取るため、プロジェクトのスーパークラスチェーン（`RolesController < ApplicationController < ActionController::Base`）が対象となる。
+- **集約**。`Registry#per_invocation_classes`と`#per_invocation_class?`は`open_receivers` / `open_receiver?`（[ADR-26](../26-activerecord-relation-typing/)）を模倣しており、構築時にコンパイルされる重複排除されたフラットなリストと、完全一致によるメンバーシップ判定を提供する。`Registry#per_invocation_non_action_macros(name)`は、`name`を宣言するマニフェストのマクロを返す。
+- **継承の追跡**。`CheckRules::IvarWriteCollector`はクラスのインスタンス`Scope::ResolutionChain`を読み取るため、プロジェクトのスーパークラスチェーン（`RolesController < ApplicationController < ActionController::Base`）が対象となる。
   - 環境が認識している外部スーパークラスは、名前またはRBSの`:subclass`順序によって一致する。
   - 解決できない外部スーパークラスは記述された名前で一致する。これは、rigor-actionpackが意図的に`ActionController::Base`を未宣言のままにしているためである。このフォールバックは、いずれかの候補表記がプロジェクトの宣言するクラス（`MyApp::ActionController::Base`）を名指しする場合にはスキップされる。
   - 途中で切れたチェーンは一致しない。
 - **アクション**。コレクターは各書き込みを囲むメソッド、その可視性、および同じファイルのクラス本体内で宣言済みマクロが綴る名前（SymbolとStringの引数、およびインラインの`def`（`helper_method def current_user`））を記録する。メソッドがパブリックであり、かつそのようなマクロによって名指しされていない場合、その書き込みはアクション内にある。
 - **ルールセマンティクス**。乖離した書き込みWは、Wがアクション内にあり、かつ競合するすべての書き込み（非nilで異なる具象クラス）が同じクラスの*異なる*アクション内にある場合に差し控えられる。
-- **最初の宣言**。 rigor-actionpackは`ActionController::Base`と`ActionController::API`、および12個のコールバックマクロと`helper_method`を宣言する。
+- **最初の宣言**。rigor-actionpackは`ActionController::Base`と`ActionController::API`、および12個のコールバックマクロと`helper_method`を宣言する。
 
 **基準:**エンジンが2つの書き込みの比較を停止するのは、フレームワークの不変条件がそれらを同じオブジェクトの生存期間から分離し、プラグインがその不変条件を保証する場合のみである。以下のそれぞれは任意のアクション内で実行され得るため、これらの中にある競合する書き込みは検出結果を維持する:
 
@@ -52,10 +52,10 @@ sidebar:
 
 ### 作業決定
 
-- **WD1 — プラグインがクラスと非アクションマクロを名指しし、エンジンがメソッドを名指しする**。 Railsはパブリックメソッドにのみディスパッチし、エンジンはすでに可視性（`Scope#discovered_method_visibility`）を記録している。可視性だけでは表現できないのは、あるパブリックメソッドがコールバックやビューヘルパーであるという事実だ。どのマクロがそれらを宣言するかはプラグインが知っているため、プラグインはそれらをデータとして列挙し、エンジンはそのリテラル引数を読み取る。クラスごとのアクションリストは、静的なマニフェストには保持できないプロジェクト固有の知識を必要とするだろう。
+- **WD1 — プラグインがクラスと非アクションマクロを名指しし、エンジンがメソッドを名指しする**。Railsはパブリックメソッドにのみディスパッチし、エンジンはすでに可視性（`Scope#discovered_method_visibility`）を記録している。可視性だけでは表現できないのは、あるパブリックメソッドがコールバックやビューヘルパーであるという事実だ。どのマクロがそれらを宣言するかはプラグインが知っているため、プラグインはそれらをデータとして列挙し、エンジンはそのリテラル引数を読み取る。クラスごとのアクションリストは、静的なマニフェストには保持できないプロジェクト固有の知識を必要とするだろう。
 - **WD2 — 未確定の可視性はパブリックではない**。探索テーブルに欠けているか競合しているスロット（#2013）、および`initialize` / `respond_to_missing?`その他の暗黙的にprivateなフックは、すべての呼び出しで共有されるものとして扱われる。証明されていない前提は検出結果を維持する。
 - **WD3 — 値オブジェクトではなく対になるフィールド**。比較対象となった先例は[ADR-38](../38-additional-initializers/)の`additional_initializers:`であり、これは`{ receiver_constraint:, methods: }`という値オブジェクトのリストである。それがエントリーごとに答える問いは「このクラスのどのメソッドか」である。今回の場合、マクロはプラグインがモデル化するフレームワークの性質であり、宣言するすべてのクラスで共通であるため、マニフェストごとに1つのリストで一度だけ記述できる。このフィールドはそのマニフェストのクラスに紐づけられているため、あるプラグインのマクロが別のプラグインのクラスに適用されることはない。将来プラグインがクラスごとに異なるマクロを必要とする場合でも、値オブジェクトの選択肢は残されている。
-- **WD3a — 名前は`methods`ではなく`macros`とする**。 ADR-38の`methods:`はイニシャライザであるメソッドを列挙する。今回のエントリーは非アクションメソッドそのものではなく、引数によってそれらを名指しするクラス本体の呼び出しである。`per_invocation_non_action_macros`はその間接参照を明確に表す。
+- **WD3a — 名前は`methods`ではなく`macros`とする**。ADR-38の`methods:`はイニシャライザであるメソッドを列挙する。今回のエントリーは非アクションメソッドそのものではなく、引数によってそれらを名指しするクラス本体の呼び出しである。`per_invocation_non_action_macros`はその間接参照を明確に表す。
 - **WD4 — 汎用的な抑制フックではなく、1つのルールの絞り込み**。これらのフィールドは`def.ivar-write-mismatch`のみに供給される。「プラグインがエンジンルールXを辞退する」ような汎用フックはスコープ外である（#575）。
 
 ## 却下された代替案

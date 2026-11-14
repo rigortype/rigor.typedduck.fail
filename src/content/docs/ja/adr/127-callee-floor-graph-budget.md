@@ -11,7 +11,7 @@ sidebar:
   order: 4127
 ---
 
-ステータス: **Accepted、2026-11-01、K = 64**。 [#2564](https://github.com/rigortype/rigor/pull/2564)で実装済み。以下のプロトタイプ測定は、`a53b68c4d`上で環境変数切り替えのプロトタイプと参照パッチを用いて取得した。この作業は[#2520](https://github.com/rigortype/rigor/issues/2520)をクローズし、[#2521](https://github.com/rigortype/rigor/issues/2521)および[#2522](https://github.com/rigortype/rigor/issues/2522)をオープンとして残す（WD4）。
+ステータス: **Accepted、2026-11-01、K = 64**。[#2564](https://github.com/rigortype/rigor/pull/2564)で実装済み。以下のプロトタイプ測定は、`a53b68c4d`上で環境変数切り替えのプロトタイプと参照パッチを用いて取得した。この作業は[#2520](https://github.com/rigortype/rigor/issues/2520)をクローズし、[#2521](https://github.com/rigortype/rigor/issues/2521)および[#2522](https://github.com/rigortype/rigor/issues/2522)をオープンとして残す（WD4）。
 
 根拠: [`inference-engine.md`](../../internal-spec/inference-engine/)の#2104の箇条書き。[#2516](https://github.com/rigortype/rigor/pull/2516)、[#2524](https://github.com/rigortype/rigor/issues/2524)、および[#2558](https://github.com/rigortype/rigor/pull/2558)で修正されたメモキーの不具合。
 
@@ -25,7 +25,7 @@ calleeミューテーションフロア（callee mutation floor）は、ロー�
 
 測定された2つの事実が設計を形作る（`lib/`、`--no-cache --workers 0`）:
 
-- **グラフは小さい**。 27,980個の（root, parameter）ウォーク全体で、すべての到達範囲の和集合は22,340ノードである。最大の到達範囲は400ノードであり、64ノードを超えて到達する純粋なウォークはわずか130個である。
+- **グラフは小さい**。27,980個の（root, parameter）ウォーク全体で、すべての到達範囲の和集合は22,340ノードである。最大の到達範囲は400ノードであり、64ノードを超えて到達する純粋なウォークはわずか130個である。
 - **訪問自体はコストではない**。上限なしのウォークでも、上限32と比べて訪問数は16%しか増えない。コストは新たに到達したdefに対する`compute_forwarding_edges`であり、約2.0Mオブジェクト、実行全体の4.8%を占める。遠いdefに到達するすべてのファイルがこれを毎回支払うことになる。センサスメモとエッジメモがファイルの`DiscoveryIndex`をキーとしているためである。したがって、それらは実行ごとではなくファイルごとになっている（`ScopeIndexer.index`がファイルごとに新しいものを構築する）。
 
 ## 決定
@@ -59,7 +59,7 @@ calleeミューテーションフロア（callee mutation floor）は、ロー�
 
 ### WD3 — 順序依存性は機械的に捕捉する
 
-- **メモ監査モード（Memo-audit mode）**。 `BudgetTrace`のようなspecおよびCI専用のスイッチ。`resolved_census`、`hand_off_memo`、後続ストア、および`def_census`のすべてのヒット時に値を再計算し、格納された値と等しいことをアサートする。これにより、それを露呈する順序を見つけ出す必要なく、入力を取りこぼしたキーを発見できる。#2516および#2524の不具合はどちらもこれで失敗していたはずである。CIはこれをcallee specおよび`rigor check --no-cache --workers 0 lib`上で実行する。
+- **メモ監査モード（Memo-audit mode）**。`BudgetTrace`のようなspecおよびCI専用のスイッチ。`resolved_census`、`hand_off_memo`、後続ストア、および`def_census`のすべてのヒット時に値を再計算し、格納された値と等しいことをアサートする。これにより、それを露呈する順序を見つけ出す必要なく、入力を取りこぼしたキーを発見できる。#2516および#2524の不具合はどちらもこれで失敗していたはずである。CIはこれをcallee specおよび`rigor check --no-cache --workers 0 lib`上で実行する。
   不一致はスレッドごとのリストにも保持され、ランナーが各ファイルの後にそのファイルのクラッシュ行へ排出するため、型付けパス上の`rescue StandardError`に飲み込まれた不一致であっても実行を失敗させる（#2785、ADR-129 WD5）。すべてのファイルの解析外で発生したものは実行の最後に失敗させる。
 - **順列spec**。敵対的プログラム（#2516と#2524のプローブ、ファンアウト、上記のウィットネス）を、ファイル内のすべてのdef順序、異なるファイル名順序、および`workers: 0`と`workers: 2`の下で実行し、単一の診断セットとなることをアサートする。
 - **`CalleeMutationChain`に対するプロパティテスト**。ランダムな小さなグラフ上で、答えが参照性質と等しく、ストアを共有する事前のウォークに対して不変であることを検証する。

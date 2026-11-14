@@ -14,7 +14,7 @@ sidebar:
 Status: **Accepted, 2026-09-08 — [#826](https://github.com/rigortype/rigor/pull/826)により実装**。
 `skills/rigor-type-oracle/`（本文＋3つの`references/`＋4ケースの評価スイート）、`rigor-project-init`が導入先プロジェクトの`AGENTS.md` / `CLAUDE.md`にインストールする契約段落（Phase 8a、`references/06-agent-contract.md`）、およびカタログ配線（[`lib/rigor/cli/skill_describe.rb`](https://github.com/rigortype/rigor/blob/master/lib/rigor/cli/skill_describe.rb)の`CATALOG_ORDER`、`skills/README.md`、およびマニュアルの「ここから始める」で覚えておくべきスキルが2つから3つに増加）を出荷します。ADR-107はそのリポジトリ側の双子です: 同じルールをRigor自身のツリーへと内向きに適用し、そこではさらに型のようなコメントを禁止します。エンジン内の変更はありません。
 
-**[ADR-131](../131-declarations-are-contracts/)により改訂、2026-11-11**。 4つ目の、契約スコープのソースが追加されました: 宣言が何を約束するかはライブラリのドキュメントまたはオーナーの回答によって確定し、引用され、宣言された`void`が本体の値へと狭められることはありません。スキルとその`AGENTS.md`フラグメントには、対応するセクションと箇条書きが追加されています。
+**[ADR-131](../131-declarations-are-contracts/)により改訂、2026-11-11**。4つ目の、契約スコープのソースが追加されました: 宣言が何を約束するかはライブラリのドキュメントまたはオーナーの回答によって確定し、引用され、宣言された`void`が本体の値へと狭められることはありません。スキルとその`AGENTS.md`フラグメントには、対応するセクションと箇条書きが追加されています。
 
 根拠: 下記の§「証拠」に記録されている2026-09-08の5モデル調査（現在は`skills/rigor-type-oracle/evals/fixtures/budget_ledger.rb`として同梱されているフィクスチャ上で実行）；そのフィクスチャに対するオラクル自身の回答（インストールされたCLIに対して検証され、`references/01-oracle-commands.md`に記録）。
 

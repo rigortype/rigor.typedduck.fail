@@ -19,10 +19,10 @@ sidebar:
 
 Rigorの26個のコマンドは、それを必要とした変更ごとに1つずつ追加されたため、Wranglerと同様のドリフトを起こしている:
 
-- **1つの行為に2つの文法**。 `rigor skill`と`rigor docs`は位置引数とフラグ（`--list`、`--path`）でバンドルされたアセットを閲覧する——[ADR-73](../73-skill-driven-user-experience/)の2026-06-21修正および[ADR-74](../74-offline-doc-access-and-llms-txt/)が移行した先の文法である。一方、`rigor plugin`は同じ仕事を動詞（`list`、`path`、`print`、`root`）で行っている。
-- **1つの言葉に2つの意味**。 `rigor baseline`は`.rigor-baseline.yml`（ルールIDのバケット、[ADR-22](../22-baseline-and-project-onboarding/)、[`CONTEXT.md`](https://github.com/rigortype/rigor/blob/master/CONTEXT.md)における意味）を管理する。一方で`rigor diff`は保存された`check --format=json`ドキュメントを`rigor.baseline.json`と呼んでいる（`lib/rigor/cli/diff_command.rb` ~L24）。両者は照合方法が異なり、互換性がない。
-- **一部のコマンドにのみ適用されるルール**。 `--format`は11個のコマンドではパース時に拒否され、4個のコマンド（`check`、`coverage`、`type-of`、`type-scan`）では解析全体が終わった後に拒否され、2個のコマンド（`trace`と`unused`）ではまったく拒否されない（`json`以外の任意の値に対してテキストを出力する）。
-- **契約のないJSONドキュメント**。 [ADR-61](../61-agent-friendly-diagnostic-statistics/)は構造化JSONをエージェントが集約するサーフェスとしたが、[ADR-50](../50-release-engineering-and-stability-strategy/) WD1のv1.0テーブルは「CLIコマンド＋フラグ」を挙げるのみで、ドキュメントについては沈黙している。マーカーを持つのは`baseline dump`（`version`）と`lens`（`schema: lens/v0`、`revision`）だけである。3つのドキュメントは安定したトップレベル形状を持たない: `type-of`は単一位置ではオブジェクトで、複数位置では`{ "results": [...] }`となり（`type_of_renderer.rb` ~L93）、`explain`はインデックスやルールでは配列で、sig-genスキップ理由ではオブジェクトとなり（`explain_command.rb` ~L64–L109）、`trace`は裸の配列である（`trace_command.rb` ~L84）。
+- **1つの行為に2つの文法**。`rigor skill`と`rigor docs`は位置引数とフラグ（`--list`、`--path`）でバンドルされたアセットを閲覧する——[ADR-73](../73-skill-driven-user-experience/)の2026-06-21修正および[ADR-74](../74-offline-doc-access-and-llms-txt/)が移行した先の文法である。一方、`rigor plugin`は同じ仕事を動詞（`list`、`path`、`print`、`root`）で行っている。
+- **1つの言葉に2つの意味**。`rigor baseline`は`.rigor-baseline.yml`（ルールIDのバケット、[ADR-22](../22-baseline-and-project-onboarding/)、[`CONTEXT.md`](https://github.com/rigortype/rigor/blob/master/CONTEXT.md)における意味）を管理する。一方で`rigor diff`は保存された`check --format=json`ドキュメントを`rigor.baseline.json`と呼んでいる（`lib/rigor/cli/diff_command.rb` ~L24）。両者は照合方法が異なり、互換性がない。
+- **一部のコマンドにのみ適用されるルール**。`--format`は11個のコマンドではパース時に拒否され、4個のコマンド（`check`、`coverage`、`type-of`、`type-scan`）では解析全体が終わった後に拒否され、2個のコマンド（`trace`と`unused`）ではまったく拒否されない（`json`以外の任意の値に対してテキストを出力する）。
+- **契約のないJSONドキュメント**。[ADR-61](../61-agent-friendly-diagnostic-statistics/)は構造化JSONをエージェントが集約するサーフェスとしたが、[ADR-50](../50-release-engineering-and-stability-strategy/) WD1のv1.0テーブルは「CLIコマンド＋フラグ」を挙げるのみで、ドキュメントについては沈黙している。マーカーを持つのは`baseline dump`（`version`）と`lens`（`schema: lens/v0`、`revision`）だけである。3つのドキュメントは安定したトップレベル形状を持たない: `type-of`は単一位置ではオブジェクトで、複数位置では`{ "results": [...] }`となり（`type_of_renderer.rb` ~L93）、`explain`はインデックスやルールでは配列で、sig-genスキップ理由ではオブジェクトとなり（`explain_command.rb` ~L64–L109）、`trace`は裸の配列である（`trace_command.rb` ~L84）。
 - **手作業で維持される4つの記述**——`CLI#help`、各コマンドのバナー、`docs/manual/02-cli-reference.md`、MCPの`inputSchema`。コマンド*名*は`HANDLERS`に対してゲートされている（`spec/docs/manual_drift_spec.rb`、`spec/rigor/cli_spec.rb`）が、フラグ、フォーマット、およびMCPツールはゲートされていない。
 
 なぜ今か: ADR-50はv1.0.0でコマンドとフラグを凍結する。それまではリネームのコストは1回の非推奨化マイナーリリース（WD7の1.0前リハーサル）で済むが、それ以降はメジャーリリースを要する。
@@ -31,7 +31,7 @@ Rigorの26個のコマンドは、それを必要とした変更ごとに1つず
 
 コマンドを生成するのではなく、2つの基準に文法を収束させ、各JSONドキュメントをバージョン付き契約とし、カタログに基づくゲートでサーフェスをその両方に適合させ続ける。
 
-**基準A — 名前を誰が所有するかが文法を決める**。 Rigorが出荷する名前空間（スキル、ドキュメントページ、プラグイン）を閲覧するコマンド——そのメンバーはリリースのたびに増える——は、将来のメンバーが動詞と衝突しないよう、メンバー名を位置引数として、そのモードをフラグとして受け取る。プロジェクト状態に対して作用するコマンドは動詞サブコマンド（`baseline generate|…|prune`、`effects update|check|diff|explain`）を取る。動詞と衝突するプロジェクトパスは`./update`のように書く。既存の行為に対して新たな表記は追加しない。ただし慣例的な`--help`のエイリアスとしての`rigor help <command>`（WD3）は例外であり、AcceptedなADRが保持する表記（ADR-73に基づく`rigor describe`、`skill describe`、`skill --describe`）はそのまま残る。
+**基準A — 名前を誰が所有するかが文法を決める**。Rigorが出荷する名前空間（スキル、ドキュメントページ、プラグイン）を閲覧するコマンド——そのメンバーはリリースのたびに増える——は、将来のメンバーが動詞と衝突しないよう、メンバー名を位置引数として、そのモードをフラグとして受け取る。プロジェクト状態に対して作用するコマンドは動詞サブコマンド（`baseline generate|…|prune`、`effects update|check|diff|explain`）を取る。動詞と衝突するプロジェクトパスは`./update`のように書く。既存の行為に対して新たな表記は追加しない。ただし慣例的な`--help`のエイリアスとしての`rigor help <command>`（WD3）は例外であり、AcceptedなADRが保持する表記（ADR-73に基づく`rigor describe`、`skill describe`、`skill --describe`）はそのまま残る。
 
 **基準B — コンシューマーが分岐する対象はバージョン付きフィールドである**。フィールドからドキュメントへと引き上げたADR-61の「メッセージテキストはプレゼンテーションである」ルール: JSONドキュメントのトップレベル形状は入力に依存してはならず、ドキュメント自身がどの形状であるかを宣言する。フラグによって異なるドキュメントが選択される場合（`coverage`の通常 / `--protection` / `--mutation` / fused、`plugins --capabilities`）、トップレベルの`"mode"`文字列がそれを命名し、`schema_version`はモードごとにカウントする。
 

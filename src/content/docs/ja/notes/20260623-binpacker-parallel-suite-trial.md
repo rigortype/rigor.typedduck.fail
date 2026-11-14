@@ -1,6 +1,6 @@
 ---
-title: "binpacker parallel suite — CI trial results (2026-06-23)"
-description: "Imported from rigortype/rigor docs/notes/20260623-binpacker-parallel-suite-trial.md."
+title: "binpacker並列スイート ── CI試用結果（2026-06-23）"
+description: "rigortype/rigor docs/notes/20260623-binpacker-parallel-suite-trial.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260623-binpacker-parallel-suite-trial.md"
 sourcePath: "docs/notes/20260623-binpacker-parallel-suite-trial.md"
 sourceSha: "2a917d98c785cbce7070bc1d779f00b95d4cde29d7a72b50724672080375866a"

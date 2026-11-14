@@ -11,7 +11,7 @@ sidebar:
   order: 4131
 ---
 
-Status: **Accepted, 2026-11-11 — [#3061](https://github.com/rigortype/rigor/pull/3061)により実装**。 `skills/rigor-rbs-contract/`（本文、5つの`references/`、評価スイート）を出荷し、両者が一致するよう`rigor-type-oracle`スキルとその`AGENTS.md`フラグメントを改訂する。エンジン内の変更はない。アーキタイプ: 熟議的（deliberative）。ステークス: 中 — ガイダンスのみであり1つのドキュメントPRで可逆だが、導入先プロジェクトの`sig/`や`ruby/gem_rbs_collection`に送るRBSへエージェントが何を書くかを左右する。
+Status: **Accepted, 2026-11-11 — [#3061](https://github.com/rigortype/rigor/pull/3061)により実装**。`skills/rigor-rbs-contract/`（本文、5つの`references/`、評価スイート）を出荷し、両者が一致するよう`rigor-type-oracle`スキルとその`AGENTS.md`フラグメントを改訂する。エンジン内の変更はない。アーキタイプ: 熟議的（deliberative）。ステークス: 中 — ガイダンスのみであり1つのドキュメントPRで可逆だが、導入先プロジェクトの`sig/`や`ruby/gem_rbs_collection`に送るRBSへエージェントが何を書くかを左右する。
 
 **2026-11-11改訂（rgl 0.6.7でのフィールドトライアル後）**。ウィットネスは陰性対照が失敗した後にのみ有効とみなされ（WD7）、スキルには新しい宣言セット向けのパスが追加された。根拠: [`docs/notes/20261111-rbs-contract-field-trial-rgl.md`](../../notes/20261111-rbs-contract-field-trial-rgl/)。
 
@@ -23,9 +23,9 @@ Status: **Accepted, 2026-11-11 — [#3061](https://github.com/rigortype/rigor/pu
 
 推論はこの問いに答えられない。すべてのRubyメソッドは最後の式を返すからである。本体には常に型が*ある*が、呼び出し元がそれに依存してよいかどうかは宣言のみが記録する決定である。3つのコレクションPRはそれぞれこの点にかかっていた:
 
-- **sidekiq（#1129）**。 `Client#push`は`String`と宣言されていた。そのドキュメントコメントには「If middleware stops the job, nil will be returned instead（ミドルウェアがジョブを停止した場合、代わりにnilが返される）」とあるため、`String?`が正しかった。`perform_async`および`Client.enqueue*`は本体から同じ値を返すが、Sidekiqはこれらに戻り値をドキュメント化していないため、`void`および`boolish`のままとされた。推論はこれらすべてに同じ形状を見るが、契約は異なる。
-- **marcel（#1130）**。 `Magic.by_magic`は`instance`と宣言されていたが、その本体は`mime && new(mime[0])`であり、何も一致しないときは`nil`を返すため、宣言は不健全だった。Rigorはその分岐を証明しなかった: `magic_match`が型付けされていないため、本体に対する`rigor type-of`は`Dynamic[top] | Marcel::Magic`と読み、`rigor check`は沈黙する。この`nil`はコードを読むことで発見され、何も一致しない入力でルックアップを実行することで確認される。新しい`by_extension`のパラメータは、このgemがそれに対して行うのが`to_s`の呼び出しだけであるため、`_ToS`となった。
-- **retryable（#1126）**。 1つの`options`エイリアスが、受け入れられる入力（部分ハッシュ）と出力される値（`#to_hash`、全10キー）の両方として機能していた。キーをオプショナルにすると入力は修正されるが出力が弱まってしまう。修正ではエイリアスを2つの契約に分割した。
+- **sidekiq（#1129）**。`Client#push`は`String`と宣言されていた。そのドキュメントコメントには「If middleware stops the job, nil will be returned instead（ミドルウェアがジョブを停止した場合、代わりにnilが返される）」とあるため、`String?`が正しかった。`perform_async`および`Client.enqueue*`は本体から同じ値を返すが、Sidekiqはこれらに戻り値をドキュメント化していないため、`void`および`boolish`のままとされた。推論はこれらすべてに同じ形状を見るが、契約は異なる。
+- **marcel（#1130）**。`Magic.by_magic`は`instance`と宣言されていたが、その本体は`mime && new(mime[0])`であり、何も一致しないときは`nil`を返すため、宣言は不健全だった。Rigorはその分岐を証明しなかった: `magic_match`が型付けされていないため、本体に対する`rigor type-of`は`Dynamic[top] | Marcel::Magic`と読み、`rigor check`は沈黙する。この`nil`はコードを読むことで発見され、何も一致しない入力でルックアップを実行することで確認される。新しい`by_extension`のパラメータは、このgemがそれに対して行うのが`to_s`の呼び出しだけであるため、`_ToS`となった。
+- **retryable（#1126）**。1つの`options`エイリアスが、受け入れられる入力（部分ハッシュ）と出力される値（`#to_hash`、全10キー）の両方として機能していた。キーをオプショナルにすると入力は修正されるが出力が弱まってしまう。修正ではエイリアスを2つの契約に分割した。
 
 エンジンはすでにこの立場をとっている。[ADR-107](../107-checked-types-and-typeless-comments/)の改訂は宣言された`void`を意図された記述として扱い、`sig-gen`は`void`を上書きする提案をせず（#836）、また「本体より広い型を選ぶという選択は、誰かが書いた宣言の中にしか存在しない」ため、宣言された公称型をリテラルに狭めることも決してしない（#837）。しかし、エージェント向けのルールはそうなっていなかった。`rigor-type-oracle`は「4つ目はない」と述べており、これはドキュメントコメント由来の`String?`を禁じているように読める一方で、`void`を本体が返す型へ「狭める」ことに対しては何も述べていない。`50f4750fe`はそのギャップをRigor自身のコントリビュータ向けにのみ閉じた。
 

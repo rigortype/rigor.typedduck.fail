@@ -165,7 +165,7 @@ rigor lens [--format text|json] [--config FILE] [--workers N] FILE...
 - `single_site`: 契約がなく、プロジェクト定義がちょうど1つ（それが1つのサイト）であるもの。推論されたスロットはそのサイトに由来します。
 - `contested`: 契約がなく、プロジェクト定義が複数あるもの。RigorはRubyがどの定義を実行するか分からないため、推論されたすべてのスロットは理由`contested`を伴う`unavailable`となり、各サイトは自身の`body_return`を保持します。
 
-**デフォルト化されたインライン宣言**。 rbs-inlineプラグインがファイルを読み取る場所（`rbs_inline: enabled`、またはアノテーションゲートモード）では、すべての`def`を宣言し、何をデフォルト化したかをマークします。ルールはマジックコメントではなくそのマークをキーとします:
+**デフォルト化されたインライン宣言**。rbs-inlineプラグインがファイルを読み取る場所（`rbs_inline: enabled`、またはアノテーションゲートモード）では、すべての`def`を宣言し、何をデフォルト化したかをマークします。ルールはマジックコメントではなくそのマークをキーとします:
 
 - `rigor:v1:inferred-signature`とマークされたメンバーは、最大でブロック（§ Overloads、`block`）を除きまったくアノテーションされていません。これは契約ではなく、その`basis`はプロジェクト定義に従います。
 - `rigor:v1:inferred-return`とマークされたメンバーは、著者記述のパラメータとデフォルト化された戻り値を持ちますが、エンジンは著者記述の`untyped`パラメータとデフォルト化されたものとを区別できません。その`basis`は`contract`です; `untyped`と読まれるパラメータは`not_computed`を伴う`unavailable`です;戻り値は`single_site`と同様に推論されるか、プロジェクト定義が複数ある場合は`contested`を伴う`unavailable`になります。

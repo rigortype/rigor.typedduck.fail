@@ -77,11 +77,11 @@ masterでのエラールール: `call.undefined-method` 21件、`call.argument-t
 | sentry-ruby `test.rb:14` | `begin … rescue ZeroDivisionError`内の`1 / 0`に対するエラー重大度の`flow.always-raises` | 3行の`begin/rescue` | #2116に関連（`begin…rescue`内のraiseはハンドラへフローすべきとしているが、診断自体は未起票） |
 | rack `body_proxy.rb:8` | Steepの`# @type var app: Rack::_Application`と`app = _ = nil`が尊重されず、`app`が`nil`になる | — | 仕様通り: `docs/handbook/appendix-steep.md`によりコアにはソース内アノテーションを設けない |
 
-**実際のRBSバグ、Rigorは正当: 4件**。 4件すべてがretryable/3.0の`test.rb:41,59,91,92`である。原因は`gems/retryable/3.0/retryable.rbs:74`で、`type options`が10個のキーすべてを必須として宣言しているためである。修正はruby/gem_rbs_collection#1126にあるが、このチェックアウトには含まれていない。
+**実際のRBSバグ、Rigorは正当: 4件**。4件すべてがretryable/3.0の`test.rb:41,59,91,92`である。原因は`gems/retryable/3.0/retryable.rbs:74`で、`type options`が10個のキーすべてを必須として宣言しているためである。修正はruby/gem_rbs_collection#1126にあるが、このチェックアウトには含まれていない。
 
-**意図的: 4件**。 protobuf/3.10.3の`enum.rb:9,10`および`messages.rb:18,19`: `___error___`マーカー。
+**意図的: 4件**。protobuf/3.10.3の`enum.rb:9,10`および`messages.rb:18,19`: `___error___`マーカー。
 
-**依存RBSの欠落（ハーネス）: 9件**。 gemspecの依存関係が`signature_paths`に含まれていないため、ActiveSupportのコア拡張が存在しない。
+**依存RBSの欠落（ハーネス）: 9件**。gemspecの依存関係が`signature_paths`に含まれていないため、ActiveSupportのコア拡張が存在しない。
 
 - actionmailer/8.1 `railsguides.rb:69`およびactiverecord/8.1 `:187`の`1.hour`
 - activestorage/8.1 `:33`およびdelayed_job/4.1 `:14`の`5.minutes`
@@ -173,7 +173,7 @@ masterでのエラールール: `call.undefined-method` 21件、`call.argument-t
 - activerecord `Association#reload -> Association | nil`
 - parser `Diagnostic#render -> [String×5] | [String×3]`（正確だが過剰に精密であり、作者なら`Array[String]`と書く）
 
-**ノイズ（誤りではない）**。 yard `CLI::Help#run`やactivemodel `LazyAttributeHash#marshal_load`など、いくつか`top`へ狭める提案がある。形式的には`untyped`より狭いが、誰もこのようには書かない。サンプルでは45件見つかった。
+**ノイズ（誤りではない）**。yard `CLI::Help#run`やactivemodel `LazyAttributeHash#marshal_load`など、いくつか`top`へ狭める提案がある。形式的には`untyped`より狭いが、誰もこのようには書かない。サンプルでは45件見つかった。
 
 `bot`のストリーム全体を通読すると、112件の`bot`提案のうち52件が`NotImplementedError` / "must implement"の本体を持っている。`InlineAdapter#enqueue_at`のように最終的な振る舞いとして正しいものもあるが、確認したオーバーライドされる抽象メソッドはすべて誤りだったため、`bot`を適用する前にはレビューゲートが必要である。ベースラインのノートでも同じ助言をしていたが、今回その背後にあるメカニズムが明らかになった。
 
@@ -221,9 +221,9 @@ Steepのソース内アノテーション（`@type var`、`_ = x`）はこの一
 
 ### 手法
 
-- **ディレクトリごとのセットアップ**。 196の`_test/`ディレクトリそれぞれに対し、絶対パスで指定したmise Ruby 4.0.6バイナリとクリーンな環境を使い、steepなしで`bin/test`のセットアップを実行した。手順は、`~> <version>.0`のgemと`_test/metadata.yaml`の`additional_gems`を記載した`Gemfile`の作成、`bundle lock --local`、チェックアウトの`gems/`を`local`ソースとした`rbs_collection.yaml`の作成、`rbs collection install`である。セットアップは`bin/test`と同様に`Gemfile`と`Gemfile.lock`を`.back`にリネームする。いずれかのステップが失敗した場合はそのディレクトリのファイルを削除し、ロックファイルがない状態にして`signature_paths: [".."]`へフォールバックさせる。以前の`bin/test`実行の残骸があった6ディレクトリ（actionmailer/8.1、cancancan/3.5、faraday 2.5および2.7、marcel/1.0、retryable/3.0）は最初に退避した。その後faraday 2.5と2.7はセットアップに失敗したため、残留していた`.gem_rbs_collection/`ディレクトリは再生成されずに消滅した。セットアップは6並列で実行し、全196ディレクトリで21秒かかった。
+- **ディレクトリごとのセットアップ**。196の`_test/`ディレクトリそれぞれに対し、絶対パスで指定したmise Ruby 4.0.6バイナリとクリーンな環境を使い、steepなしで`bin/test`のセットアップを実行した。手順は、`~> <version>.0`のgemと`_test/metadata.yaml`の`additional_gems`を記載した`Gemfile`の作成、`bundle lock --local`、チェックアウトの`gems/`を`local`ソースとした`rbs_collection.yaml`の作成、`rbs collection install`である。セットアップは`bin/test`と同様に`Gemfile`と`Gemfile.lock`を`.back`にリネームする。いずれかのステップが失敗した場合はそのディレクトリのファイルを削除し、ロックファイルがない状態にして`signature_paths: [".."]`へフォールバックさせる。以前の`bin/test`実行の残骸があった6ディレクトリ（actionmailer/8.1、cancancan/3.5、faraday 2.5および2.7、marcel/1.0、retryable/3.0）は最初に退避した。その後faraday 2.5と2.7はセットアップに失敗したため、残留していた`.gem_rbs_collection/`ディレクトリは再生成されずに消滅した。セットアップは6並列で実行し、全196ディレクトリで21秒かかった。
 - **実行**。変更なしのハーネス（現在は経路に応じた`.rigor.yml`を書き出し、`route`を記録する`bin/rigor_audit_all`）を使用した。1つの`nix develop`シェルで上記「手法」のshimを使って実行した（チェックアウトに対する`bundle exec`、およびすべての`check`に`--no-cache`と`</dev/null`）。所要時間は1,180秒（19.7分）であった。出力はコレクションのチェックアウト内の`tmp/rigor_audit_adaf5c7cc_lock.jsonl`である。以前のJSONLファイルも保持している。
-- **経路**。 131ディレクトリがロックファイルを使用し、65ディレクトリが`setup_failed`でフォールバックした。失敗はすべて`bundle lock --local`によるもので、`rbs collection install`は一度も失敗しなかった。内訳は以下の通り。
+- **経路**。131ディレクトリがロックファイルを使用し、65ディレクトリが`setup_failed`でフォールバックした。失敗はすべて`bundle lock --local`によるもので、`rbs collection install`は一度も失敗しなかった。内訳は以下の通り。
 
 | 理由 | ディレクトリ数 | 例 |
 | --- | ---: | --- |
@@ -286,9 +286,9 @@ sig-genの実行が1件クラッシュした: rubyXL/3.4（ロックファイル
 | rack/2.2 `body_proxy.rb:8` | 1 | Steepの`@type var`アノテーション、仕様通り | — |
 | active_model_serializers, carrierwave, delayed_job, json-jwt | 4 | 依存RBSの欠落。これらのディレクトリはオフラインでセットアップに失敗 | —（セットアップが完了すれば#3030の経路が機能する） |
 
-**ロックファイル経路で新たに出たエラー**。 3件あり、すべてmarcel/1.0上のもので、誤検出は1件もない。`Marcel::Magic.by_extension`、`.by_path`、`.all_by_magic`が`singleton(Marcel::Magic)`上で未定義として報告される。`gems/marcel/1.0/_test/test.rb`への未コミットのローカル編集がこれらを呼び出しているが、作業ツリーの`marcel.rbs`には`Magic.by_magic`しか宣言されていない。gem自体は3つすべてを定義しているため（`marcel-1.0.4/lib/marcel/magic.rb:73,80,93`）、RBSが不完全であり、Steepでも同じ呼び出しが報告されるはずである。`374dcf6ae`時点では、残留した`.gem_rbs_collection/`のコピーにより`Marcel::Magic`のビルドが失敗し（`DuplicatedMethodDefinitionError`）、クラスが`Dynamic`と読まれてこれらの呼び出しが隠されていた。
+**ロックファイル経路で新たに出たエラー**。3件あり、すべてmarcel/1.0上のもので、誤検出は1件もない。`Marcel::Magic.by_extension`、`.by_path`、`.all_by_magic`が`singleton(Marcel::Magic)`上で未定義として報告される。`gems/marcel/1.0/_test/test.rb`への未コミットのローカル編集がこれらを呼び出しているが、作業ツリーの`marcel.rbs`には`Magic.by_magic`しか宣言されていない。gem自体は3つすべてを定義しているため（`marcel-1.0.4/lib/marcel/magic.rb:73,80,93`）、RBSが不完全であり、Steepでも同じ呼び出しが報告されるはずである。`374dcf6ae`時点では、残留した`.gem_rbs_collection/`のコピーにより`Marcel::Magic`のビルドが失敗し（`DuplicatedMethodDefinitionError`）、クラスが`Dynamic`と読まれてこれらの呼び出しが隠されていた。
 
-**新しい警告、Rigorの誤検出**。 actioncable/8.1 `test.rb:32`が`def.override-return-widened`: "widened from nil to top (overrides ApplicationCable::Channel#subscribed)" を報告する。`ChatChannel#subscribed: () -> void`（`_test/test.rbs`）が、`ApplicationCable::Channel`の定義していないフックをオーバーライドしている。親のシグネチャは、今回ロックファイル経路が読み込むRBSのみの`ActionCable::Channel::Base#subscribed: () -> nil`（`actioncable-generated.rbs:189`）である。diagnostic-policy.mdおよびADR-35によれば、このルールはプロジェクト定義の祖先のみを対象とし、RBSのみの祖先は#130へ先送りされている。間にプロジェクトクラスが挟まることでRBSのみのシグネチャが通過し、そのプロジェクトクラスに帰属させられてしまっている。最小再現例（`signature_paths: [sig]`）:
+**新しい警告、Rigorの誤検出**。actioncable/8.1 `test.rb:32`が`def.override-return-widened`: "widened from nil to top (overrides ApplicationCable::Channel#subscribed)" を報告する。`ChatChannel#subscribed: () -> void`（`_test/test.rbs`）が、`ApplicationCable::Channel`の定義していないフックをオーバーライドしている。親のシグネチャは、今回ロックファイル経路が読み込むRBSのみの`ActionCable::Channel::Base#subscribed: () -> nil`（`actioncable-generated.rbs:189`）である。diagnostic-policy.mdおよびADR-35によれば、このルールはプロジェクト定義の祖先のみを対象とし、RBSのみの祖先は#130へ先送りされている。間にプロジェクトクラスが挟まることでRBSのみのシグネチャが通過し、そのプロジェクトクラスに帰属させられてしまっている。最小再現例（`signature_paths: [sig]`）:
 
 ```ruby
 class Base;   def hook: () -> nil;  end   # RBS only, no Ruby source
