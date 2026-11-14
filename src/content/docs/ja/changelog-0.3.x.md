@@ -21,7 +21,7 @@ sidebar:
 
 ## [0.3.9] - 2026-09-12
 
-v0.3.9は0.3系の最後のリリースであり、最大の修正バッチです: 100件以上のプルリクエストが推論全体（ブロックの戻り値、インプレースミューテーション、定数およびヘッダー解決、暗黙のself呼び出し）の偽陽性を解消し、さらにウォーム実行がツリーにもはや存在しない答えを提供し続けていたキャッシュとインクリメンタルモードの陳腐化バグを解消しました。範囲（Range）はRubyの表記どおりに解釈されるようになり（`Integer[1..10]`、`Float[0.0..1.0]`、[ADR-109](../adr/109-ruby-native-range-notation/)）、v0.4.0に先立って`int<min, max>`形式は非推奨になりました。また、仕様が約束していた機能ロール（capability-role）カタログ、CIゲート向けの`--fail-on`、マニフェスト駆動のプラグインギャップアドバイザリ、そして`rigor check`における40%の割り当て削減も同梱されています; `SystemStackError`は成功ステータスの背後に空のレポートを残す代わりに、終了コード70で終了するようになりました。
+v0.3.9は0.3系の最後のリリースであり、最大の修正バッチです: 100件以上のプルリクエストが推論全体（ブロックの戻り値、インプレースミューテーション、定数およびヘッダー解決、暗黙のself呼び出し）の偽陽性を解消し、さらにウォーム実行がツリーにもはや存在しない答えを提供し続けていたキャッシュとインクリメンタルモードの陳腐化バグを解消しました。範囲（Range）はRubyの表記どおりに解釈されるようになり（`Integer[1..10]`、`Float[0.0..1.0]`、[ADR-109](../adr/109-ruby-native-range-notation/)）、v0.4.0に先立って`int<min, max>`形式は非推奨になりました。また、仕様が約束していた機能ロール（capability-role）カタログ、CIゲート向けの`--fail-on`、マニフェスト駆動のプラグインギャップアドバイザリー、そして`rigor check`における40%の割り当て削減も同梱されています; `SystemStackError`は成功ステータスの背後に空のレポートを残す代わりに、終了コード70で終了するようになりました。
 
 ### 追加
 
@@ -36,11 +36,11 @@ v0.3.9は0.3系の最後のリリースであり、最大の修正バッチで�
 - **[config]** `.rigor.yml`に`plugins_isolation:`（`none`または`process`）が追加され、プラグインからターゲットライブラリへの呼び出しをどのように分離するかを選択できるようになりました（[#971](https://github.com/rigortype/rigor/pull/971)）。
   - `RIGOR_PLUGIN_ISOLATION`は単一の実行でこれをオーバーライドでき、`Ruby::Box`はRubyの起動前にアクティブでなければならないため、`ruby_box`は環境変数のみのまま維持されます。
 - **[plugins]**プラグインマニフェストが`target_gems:`を宣言するようになり、`rigor doctor` / `rigor skill describe`はこれを使用して、プロジェクトが直接依存しているにもかかわらず有効化されていないgemをモデル化しているバンドルプラグインをプラグインごとに指摘します（[#949](https://github.com/rigortype/rigor/pull/949)）。
-  - このアドバイザリは、いずれか1つのRailsプラグインが設定されるとすぐに通知しなくなっていたRails専用のチェックを置き換え、解決済みグラフではなくロックファイルの直接の依存関係と照合し、`rails`依存関係をRailsプラグインがモデル化しているgem群へと展開します。
+  - このアドバイザリーは、いずれか1つのRailsプラグインが設定されるとすぐに通知しなくなっていたRails専用のチェックを置き換え、解決済みグラフではなくロックファイルの直接の依存関係と照合し、`rails`依存関係をRailsプラグインがモデル化しているgem群へと展開します。
 - **[plugins]** Railsプラグインが独自のフレームワーク定数を宣言するようになったため、`rescue ActiveRecord::RecordNotFound => e`は`e`を不透明（opaque）なままにする代わりに型付けするようになりました（[#974](https://github.com/rigortype/rigor/pull/974)）。
   - Active RecordとAction Controllerの例外階層、`ActiveModel`および`Arel`名前空間、そして`ActiveSupport::Concern`はそれぞれ寛容に宣言されているため、それらが省略しているメンバーが偽陽性になることはありません。
 - **[plugins]**信頼ポリシーによって拒否されたプラグインの読み取りが、サイレントに失敗する代わりに、プラグイン、拒否されたパス、および最も近い読み取りルートを示す`plugin_trust.read-refused`診断として表面化するようになりました（[#977](https://github.com/rigortype/rigor/pull/977)）。
-- **[rigor check]** `plugins:`でそのプラグインが指定されていないにもかかわらず、バンドルプラグイン自身の`sig/`を読み込む`signature_paths:`エントリに対して、有効化すべきプラグインを名指しする警告が出るようになりました（[#902](https://github.com/rigortype/rigor/pull/902)）。
+- **[rigor check]** `plugins:`でそのプラグインが指定されていないにもかかわらず、バンドルプラグイン自身の`sig/`を読み込む`signature_paths:`エントリーに対して、有効化すべきプラグインを名指しする警告が出るようになりました（[#902](https://github.com/rigortype/rigor/pull/902)）。
   - RBSはマニフェストなしで届くため、プラグインが意図的に部分的にのみ宣言しているクラスが完全なものとして解釈されてしまいます; [#660](https://github.com/rigortype/rigor/issues/660)でオープンレシーバーメンバーシップがどこに属するかが確定するまで、診断自体は維持されます。
 - **[cli]** `rigor explain`が`rigor sig-gen`の出力する`sig.skipped.*`識別子に回答するようになり、gemが出荷する`sig/`を検出できないレイアウトである、アクティブなRubyのデフォルトのgemホームにgemがインストールされている場合に`rigor doctor`が警告するようになりました（[#962](https://github.com/rigortype/rigor/pull/962)）。
 - **[cache]** `rigor type-of`、`type-scan`、`trace`、`annotate`は環境を新規に構築することが文書化されました: これらは永続キャッシュの読み書きを一切行わないため、いずれも`--no-cache`を受け付けません（[#864](https://github.com/rigortype/rigor/pull/864)）。
@@ -53,7 +53,7 @@ v0.3.9は0.3系の最後のリリースであり、最大の修正バッチで�
   - `Integer[1...10]`、`Integer[1..]`、`Integer[..10]`、`Integer[nil..nil]`が受け入れられ、空の範囲は拒否され、普遍範囲（universal range）は`int`ではなく`Integer`として表示されます。
 - **[engine]** `rigor check`が同じ解析に対して割り当てるオブジェクト数が約40%削減され（Rigor自身の`lib`で36.5Mから21.9Mへ、診断は同一）、v0.3.7のコストの大部分を回復しました（[#819](https://github.com/rigortype/rigor/pull/819)）。
 - **[engine]**戻り値メモ（return-memo）の保存ゲートが2つの基準の代わりに1つを保持するようになり、`RIGOR_BUDGET_TRACE`戻り値メモプロファイルの`consult-tainted`列が削除されました;診断出力に変更はありません（[#881](https://github.com/rigortype/rigor/pull/881)）。
-- **[plugin API]** `dynamic_return receivers:`エントリがレシーバーの種別を指定するようになりました: `"Widget"`はインスタンスレシーバーに一致し、`"singleton(Widget)"`はクラスオブジェクトに一致し、両方を対象としたいルールは両方をリストします（[#701](https://github.com/rigortype/rigor/issues/701)、[#901](https://github.com/rigortype/rigor/pull/901)）。
+- **[plugin API]** `dynamic_return receivers:`エントリーがレシーバーの種別を指定するようになりました: `"Widget"`はインスタンスレシーバーに一致し、`"singleton(Widget)"`はクラスオブジェクトに一致し、両方を対象としたいルールは両方をリストします（[#701](https://github.com/rigortype/rigor/issues/701)、[#901](https://github.com/rigortype/rigor/pull/901)）。
   - インスタンスルールは、自身がモデル化していないクラスレベルの呼び出しに対して応答しなくなり、したがってそれに対する`call.undefined-method`を抑制しなくなりました。
 - **[skills]** `rigor-type-oracle`は、人間がドキュメントとして書いたインラインアノテーション（`#: void`、リテラルユニオン、パラメータコントラクト）を、書き換えるべき推測としてではなく、チェックが検証する意図として扱うようになりました（[#843](https://github.com/rigortype/rigor/pull/843)）。
   - 型仕様のスタイルガイダンスには、書く価値のあるインラインアノテーションが示されています: 名前から示唆されない戻り値、公称クラス以上のことを表す型、パラメータのコントラクト。
@@ -75,7 +75,7 @@ v0.3.9は0.3系の最後のリリースであり、最大の修正バッチで�
   - 譲歩したファイルは、両方のファイルを名指しする`rbs.coverage.plugin-signature-stood-down`（info）として1回報告されます。
 - **[engine]** `rigor check`が相互再帰メソッドの強連結成分（strongly connected component）を呼び出しエッジごとに再探索しなくなったため、以前は終了しなかったrufoの`formatter.rb`のようなファイルが数秒で完了するようになりました（[#874](https://github.com/rigortype/rigor/pull/874)）。
 - **[inference]** 4つのブロック戻り値の判定が、ブロックが生成した値の代わりに開始時の値を報告することがなくなりました（[#965](https://github.com/rigortype/rigor/pull/965)）。
-  - ブロックの末尾にある変更されたカウンター（`[1, 2].map { total += 1 }`）および変更された文字列バッファ（`s = +"ab"; s << "c"`）が偽のalways-truthy警告を出さなくなり、カウント述語上の`find` / `index`がRubyで一致が見つかる箇所で`nil`を返すことがなくなり、パラメータを変更するブロックが9要素を超えても変更前の値を報告することがなくなりました。
+  - ブロックの末尾にある変更されたカウンタ（`[1, 2].map { total += 1 }`）および変更された文字列バッファ（`s = +"ab"; s << "c"`）が偽のalways-truthy警告を出さなくなり、カウント述語上の`find` / `index`がRubyで一致が見つかる箇所で`nil`を返すことがなくなり、パラメータを変更するブロックが9要素を超えても変更前の値を報告することがなくなりました。
 - **[rigor check]** `next value`または`break value`で抜けるブロックが、その値とフォールスルーする末尾とを結合（join）した値として型付けされるようになり、`ops.all? { |o| next false unless o; true }`のような形式の述語が無条件にtrueとして解釈されることがなくなりました（[#852](https://github.com/rigortype/rigor/pull/852)、[#865](https://github.com/rigortype/rigor/pull/865)）。
 - **[inference]**複数回変更されたコレクションがすべての格納操作の値の型を記録するようになり、`String`を欠落させる代わりに`a = []; a.push(1); a.push("s")`が`Array[Integer | String | untyped]`と解釈されるようになりました。なお、シグネチャによって要素型が宣言されているコレクションは、宣言されたとおりに維持されます（[#975](https://github.com/rigortype/rigor/pull/975)）。
 - **[engine]**型がユニオンである変数に対するインプレースミューテーション（`out = flag ? 5 : [2]; out << 2`）が、そのユニオンのすべてのコレクションメンバーを拡大（widen）するようになり、変更された配列またはハッシュが、ミューテーションによって無効化されたリテラルサイズを保持し続けることがなくなりました（[#951](https://github.com/rigortype/rigor/pull/951)）。
@@ -84,7 +84,7 @@ v0.3.9は0.3系の最後のリリースであり、最大の修正バッチで�
 - **[inference]**暗黙のself呼び出しが、同名のトップレベル`def`にバインドしてnilに対する偽の`undefined method`を報告する代わりに、継承された`attr_*` / `define_method`、`::Object`より前の祖先で宣言されたメソッド（`Exception#message`、`Array#first`、`Comparable#clamp`）、およびスーパークラスから継承されたクラスメソッドへと解決されるようになりました（[#955](https://github.com/rigortype/rigor/pull/955)）。
 - **[inference]**クラスが自身のソース内で定義しているメソッドが、祖先のみが宣言しているシグネチャから型付けされることがなくなり、基底クラスを忠実に記述した`sig/`（`def target_class: () -> nil`）によって、オーバーライドするすべてのサブクラスが`undefined method … for nil`を報告することがなくなりました（[#860](https://github.com/rigortype/rigor/pull/860)）。
 - **[inference]**ファクトリメソッド経由で読み取られる`Struct`メンバー（`def build = Pair.new(...)`の後の`build.items`）が再び畳み込まれるようになり、自身を返す形状（self-returning shape）はすべて引き続き拒絶されます（[#972](https://github.com/rigortype/rigor/pull/972)）。
-- **[inference]**定数パスを通じて代入された`Struct.new` / `Data.define` / `Class.new` / `Module.new`ファクトリ（`Holder::Thing = Struct.new(:a) do … end`）が自身が名指すクラスとして認識されるようになり、そのメンバーやブロック定義されたメソッドが`undefined method … for Struct`を報告する代わりに解決されるようになりました（[#903](https://github.com/rigortype/rigor/pull/903)）。
+- **[inference]**定数パスを通じて代入された`Struct.new` / `Data.define` / `Class.new` / `Module.new`ファクトリー（`Holder::Thing = Struct.new(:a) do … end`）が自身が名指すクラスとして認識されるようになり、そのメンバーやブロック定義されたメソッドが`undefined method … for Struct`を報告する代わりに解決されるようになりました（[#903](https://github.com/rigortype/rigor/pull/903)）。
 - **[inference]** `yield`するヘルパーから値が取得されるメソッドがブロックの型を取るようになり、`during_internal_demand { … }`ラッパーイディオムが`untyped`ではなくなり、`rigor sig-gen`がそのシグネチャを出力するようになりました（[#897](https://github.com/rigortype/rigor/pull/897)）。
 - **[engine]** `->() { }`本体内のローカル変数への代入がバインドされるようになり、ラムダのアロー記法が`lambda { }`記法とまったく同様に型付けされるようになりました（[#879](https://github.com/rigortype/rigor/issues/879)、[#885](https://github.com/rigortype/rigor/pull/885)）。
 - **[engine]**定数パスがRubyの解決方法と同じく1セグメントずつ解決されるようになり、`A`がスーパークラスやインクルードされたモジュールから`B`を継承している箇所で書かれた`A::B`が、無関係なトップレベルの`B`ではなくそのクラスを名指すようになりました（[#905](https://github.com/rigortype/rigor/pull/905)）。
@@ -110,7 +110,7 @@ v0.3.9は0.3系の最後のリリースであり、最大の修正バッチで�
 - **[rigor-rbs-inline]** `sig/`とインラインアノテーションの両方で宣言されたメソッドが衝突しなくなりました: そのメンバーについては`.rbs`の宣言が優先され、ファイルの残りのアノテーションは引き続きバインドされ、クラスはそのメソッドサーフェスを維持します（[#832](https://github.com/rigortype/rigor/pull/832)）。
   - ドロップされた各メンバーは、両方のファイルを名指しする`plugin.rbs-inline.source-rbs-annotation-not-honoured`（info）として報告されます。
 - **[rigor-rbs-inline]** rbs-inlineアノテーションを含むファイル内のアノテーションのないメソッドまたは`attr_reader`が、リーダーが生成する`untyped`シグネチャによって推論された型を失う代わりに、その本体から型付けされるようになりました（[#840](https://github.com/rigortype/rigor/pull/840)）。
-- **[rigor-factorybot / rigor-rspec]** specの`let`内の`create(:factory)`が再びファクトリのモデルクラスとして型付けされるようになりました; rigor-rspecが読み取る`:factory_index`ファクトが公開されていませんでしたが、調査コマンド（`type-of`、`annotate`、`trace`）が各プラグインの`prepare`を実行するようになり、それらのファクトを参照できるようになりました（[#950](https://github.com/rigortype/rigor/pull/950)）。
+- **[rigor-factorybot / rigor-rspec]** specの`let`内の`create(:factory)`が再びファクトリーのモデルクラスとして型付けされるようになりました; rigor-rspecが読み取る`:factory_index`ファクトが公開されていませんでしたが、調査コマンド（`type-of`、`annotate`、`trace`）が各プラグインの`prepare`を実行するようになり、それらのファクトを参照できるようになりました（[#950](https://github.com/rigortype/rigor/pull/950)）。
 - **[rigor-ffi]** `rigor-ffi`プラグインに対する`.rigor.yml`の`exceptions:`および`target:`キーが、未知の設定としてサイレントに拒絶される代わりに、検証されて有効に機能するようになりました（[#944](https://github.com/rigortype/rigor/pull/944)）。
 - **[plugins]** `rigor-rbnacl`が自身を登録し、バンドルされたRBSを提供するようになったため、`RbNaCl::SecretBox#encrypt` / `#decrypt`が`String`として型付けされるようになりました;プラグインはこれまで不活性な状態で出荷されていました（[#908](https://github.com/rigortype/rigor/pull/908)）。
 - **[plugins]**別のプラグインを引き込むプラグインgem（FFIファミリーのすべてのプラグインは`rigor-ffi`を要求します）がメタgemと誤認されなくなり、誤ったプラグインを有効化するようなアドバイスとともに失敗する代わりに、`plugins: [rigor-sassc]`が単独で読み込まれるようになりました（[#908](https://github.com/rigortype/rigor/pull/908)）。
@@ -129,7 +129,7 @@ v0.3.9は0.3系の最後のリリースであり、最大の修正バッチで�
 - **[rigor unused]**プロジェクトが再オープンしたgemのクラスが未使用（unused）の候補としてリストされなくなりました: 所有権テストは`rigor check`と同じ依存関係ソースを読み取ります（[#882](https://github.com/rigortype/rigor/issues/882)、[#888](https://github.com/rigortype/rigor/pull/888)）。
 - **[sig-gen]** `sig/`の宣言が`void`を返すメソッドが`tighter-return`として報告されなくなり、`sig-gen --diff`はそれに対して何も提案せず、`--write`も`--overwrite`もそれを置き換えることができなくなりました（[#845](https://github.com/rigortype/rigor/pull/845)）。
 - **[sig-gen]** `rigor sig-gen`がリテラルであると証明した戻り値が、より広い既存の宣言に対して`tighter-return`として提案されなくなりました; `.rbs`が宣言していないメソッドは引き続きそのリテラルを取得します（[#850](https://github.com/rigortype/rigor/pull/850)）。
-- **[rigor doctor]** `rigor doctor`および`rigor skill describe`の背後にあるプラグインギャップアドバイザリが、プロセスがたまたま読み込んだり登録したりしたプラグインクラスに依存しなくなり、有効化されたプラグインがギャップとして報告されることがなくなりました（[#967](https://github.com/rigortype/rigor/pull/967)、[#982](https://github.com/rigortype/rigor/pull/982)）。
+- **[rigor doctor]** `rigor doctor`および`rigor skill describe`の背後にあるプラグインギャップアドバイザリーが、プロセスがたまたま読み込んだり登録したりしたプラグインクラスに依存しなくなり、有効化されたプラグインがギャップとして報告されることがなくなりました（[#967](https://github.com/rigortype/rigor/pull/967)、[#982](https://github.com/rigortype/rigor/pull/982)）。
 - **[cli]** `rigor init`が生成する`.rigor.yml`が、古い31件中7件のサブセットの代わりに、出荷されたすべてのルールIDを`disable:`コメントにリストし、詳細については`rigor explain <rule>`を案内するようになりました（[#947](https://github.com/rigortype/rigor/pull/947)）。
 - **[cli]** `rigor help`が`baseline`と`unused`をリストするようになり、`rigor playground`が最初の引数を落とさなくなったため、`--port=`が尊重され、引数なしの素の`rigor playground`が起動するようになりました（[#906](https://github.com/rigortype/rigor/pull/906)）。
 - **[engine]** Rigor自身のセルフチェック（`rigor check lib`）が再び警告ゼロになりました（[#810](https://github.com/rigortype/rigor/pull/810)）。
@@ -159,12 +159,12 @@ v0.3.8はv0.3.7を採用したプロジェクト向けの安定化リリース�
   - `--format=json`は拒否された各メソッドをその`skip_reason`とともにリストし、テキストモードは理由ごとの件数を標準エラー出力に1行で出力します。
 ## [0.3.7] - 2026-09-05
 
-v0.3.7は、すでに書かれているRubyやRailsを型付けすることに焦点を当てています。コンパクト名前空間やルート化された名前空間がRubyと同じ挙動で解決されるようになったため、`class Admin::UsersController`や`::Rails`が偽の`undefined method`を引き起こすことがなくなり、日常的なRailsのサーフェス（`params`、Duration、`Time`/`Date`、ActiveRecordのテーブル名）が不透明（opaque）になる代わりに型を持つようになりました。新しいプラグインがFFIバインディングやdry-monadsの`Result` / `Maybe`をカバーします（[ADR-20](../adr/20-lightweight-hkt/)、[ADR-30](../adr/30-rigor-ffi-plugin-shape/)）。`rigor type-of`は1つのプロセスで複数の位置に回答できるようになり、カバレッジは`check`が実行するのと同じエンジンを計測するようになり、残りの修正によりStructファクトリの本体、gitソースのgem、そしてサーフェスを列挙できないレシーバー上での偽の`undefined-method`のクラスが解消されました。
+v0.3.7は、すでに書かれているRubyやRailsを型付けすることに焦点を当てています。コンパクト名前空間やルート化された名前空間がRubyと同じ挙動で解決されるようになったため、`class Admin::UsersController`や`::Rails`が偽の`undefined method`を引き起こすことがなくなり、日常的なRailsのサーフェス（`params`、Duration、`Time`/`Date`、ActiveRecordのテーブル名）が不透明（opaque）になる代わりに型を持つようになりました。新しいプラグインがFFIバインディングやdry-monadsの`Result` / `Maybe`をカバーします（[ADR-20](../adr/20-lightweight-hkt/)、[ADR-30](../adr/30-rigor-ffi-plugin-shape/)）。`rigor type-of`は1つのプロセスで複数の位置に回答できるようになり、カバレッジは`check`が実行するのと同じエンジンを計測するようになり、残りの修正によりStructファクトリーの本体、gitソースのgem、そしてサーフェスを列挙できないレシーバー上での偽の`undefined-method`のクラスが解消されました。
 
 ### 追加
 
 - **[plugins]** `rigor-ffi`プラグインファミリーが、FFIバインディングをuntypedのままにするのではなく型付けするようになりました（[ADR-30](../adr/30-rigor-ffi-plugin-shape/)、[#141](https://github.com/rigortype/rigor/issues/141)、[#719](https://github.com/rigortype/rigor/pull/719)）。
-  - コアの`rigor-ffi`は`attach_function`、構造体レイアウト、コールバック、薄いラッパーをカバーし、sassc、ethon、rbnacl、ffi-rzmq向けのアダプターが同梱されます。
+  - コアの`rigor-ffi`は`attach_function`、構造体レイアウト、コールバック、薄いラッパーをカバーし、sassc、ethon、rbnacl、ffi-rzmq向けのアダプタが同梱されます。
 
 - **[types]**ファーストクラスの`Result`および`Maybe`キャリアが着地し、それらを登録する`rigor-dry-monads`プラグインが追加されました（[ADR-20](../adr/20-lightweight-hkt/)、[#128](https://github.com/rigortype/rigor/issues/128)、[#712](https://github.com/rigortype/rigor/pull/712)）。
   - 再帰的な`type`エイリアスが暗黙的にHKTを登録するようになり、`rigor-lisp-eval`はletパターンをそれらのキャリアに束縛します。
@@ -345,7 +345,7 @@ v0.3.7は、すでに書かれているRubyやRailsを型付けすることに�
   - それを定義するクラスやモジュールを後から追加した場合でも、フル実行と同じ診断が報告されます。
 
 - **[types]**プロジェクトの基底クラスで定義されたクラスメソッドが、`Dynamic[top]`と型付けされる代わりにサブクラス上で解決されるようになりました（[#731](https://github.com/rigortype/rigor/issues/731)、[#748](https://github.com/rigortype/rigor/pull/748)）。
-  - 継承されたファクトリ、レジストリ、および`class << self`ヘルパーが戻り値型を獲得します。
+  - 継承されたファクトリー、レジストリ、および`class << self`ヘルパーが戻り値型を獲得します。
 
 - **[types]** `self`を再束縛するブロック内のミックスイン呼び出しが、レキシカルに囲むクラスに帰属することはなくなりました（[#728](https://github.com/rigortype/rigor/issues/728)、[#749](https://github.com/rigortype/rigor/pull/749)）。
   - `Thing = Class.new { include M }`はそのクラスに`M`のメソッドを配置しなくなり、`Recv.class_eval { include M }`は`Recv`に記録され、`class << self`のincludeはインスタンスサーフェスに到達するのをやめます。

@@ -11,7 +11,7 @@ sidebar:
   order: 9050
 ---
 
-[typelizer](https://github.com/skryukov/typelizer) gemがTypeScript型を生成するシリアライザークラスについて`rigor unused`に教えます。typelizerは、`include Typelizer::DSL`または`extend Typelizer::DSL`を行うすべての名前付きクラス、およびそのすべてのサブクラスに対してインターフェースを出力します。このようなクラスはRubyから一度も参照されていなくても、生成された型を通じてフロントエンドから使用されている可能性があるため、このプラグインがない場合、`rigor unused`はそれを削除候補としてリストしてしまいます。このプラグインは診断や戻り値型を追加しません。
+[typelizer](https://github.com/skryukov/typelizer) gemがTypeScript型を生成するシリアライザクラスについて`rigor unused`に教えます。typelizerは、`include Typelizer::DSL`または`extend Typelizer::DSL`を行うすべての名前付きクラス、およびそのすべてのサブクラスに対してインターフェースを出力します。このようなクラスはRubyから一度も参照されていなくても、生成された型を通じてフロントエンドから使用されている可能性があるため、このプラグインがない場合、`rigor unused`はそれを削除候補としてリストしてしまいます。このプラグインは診断や戻り値型を追加しません。
 
 `rigortype`にバンドルされて同梱されます。`plugins:`の下で有効化します:
 

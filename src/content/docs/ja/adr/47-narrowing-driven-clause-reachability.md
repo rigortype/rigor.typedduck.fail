@@ -112,7 +112,7 @@ Rigorはこの作業の難しい半分を既に行っている。欠けている
 - **パースバージョン** ── デフォルトを含むすべての値。変更なし。
 - **指定されたランタイム** ── ユーザーが`.rigor.yml`またはインクルードされたファイルで設定した`"latest"`以外の値（`Configuration#stated_runtime_ruby`）。これはプロジェクトが動作する最低のRubyである。Rubyの非推奨化ルールのみがこれを読み取り、指定された4.1以降のもとでの`call.deprecated-ruby2-keywords`から始まる。
 
-`VersionGuard`、ナローイング、および`DeadVersionGuardArms`はアナライザー自身の`RUBY_VERSION`を保持するため、WD5の前提はこれらのルールを除くすべてのルールで成立する。非推奨化ルールは、呼び出しを囲むバージョンガードを代わりに指定されたランタイムに対して読み取り（`VersionGuard.verdict(stated_ruby:)`）、アナライザーのRubyによるデッドアームフィルターをスキップし、決定できない`RUBY_VERSION`ガードのもとでは沈黙を保つ。規範的なルールは[control-flow-analysis.md § 指定されたランタイムに対して読み取られるガード](../../type-specification/control-flow-analysis/#指定されたランタイムに対して読み取られるガード)にある。
+`VersionGuard`、ナローイング、および`DeadVersionGuardArms`はアナライザー自身の`RUBY_VERSION`を保持するため、WD5の前提はこれらのルールを除くすべてのルールで成立する。非推奨化ルールは、呼び出しを囲むバージョンガードを代わりに指定されたランタイムに対して読み取り（`VersionGuard.verdict(stated_ruby:)`）、アナライザーのRubyによるデッドアームフィルタをスキップし、決定できない`RUBY_VERSION`ガードのもとでは沈黙を保つ。規範的なルールは[control-flow-analysis.md § 指定されたランタイムに対して読み取られるガード](../../type-specification/control-flow-analysis/#指定されたランタイムに対して読み取られるガード)にある。
 
 `"latest"`はいかなるランタイムも指定しない。これは同梱のPrismがパースする最新の構文を指名するため、Rigorのアップグレードによって変更されていない設定に対して新しい非推奨化がオンになってしまい、それを書いた誰もどのRubyがコードを実行するかを述べていない。
 

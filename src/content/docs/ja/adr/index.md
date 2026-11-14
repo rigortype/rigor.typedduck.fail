@@ -144,7 +144,7 @@ sidebar:
 | ADR-116 | [エンジンのホットファイルの再構築: 増加する種類は1回宣言し、各走査は1回巡回する](116-hot-file-restructuring/) | Accepted（WD5はADR-119によって部分的に置き換え；移植済み: `class_cvars`、スーパークラス、defネスト、メンバーレイアウトテーブル、後ろ3つは1回の実行を共有；WD5はコンテキストルール変種向けに修正） |
 | ADR-117 | [標準ストリーム: イディオムによって型付けされ、ランタイム契約によってチェックされる](117-standard-streams-typed-by-idiom/) | Accepted（#1405以降明示的な`$_`リーダー；オープン: #1362、#1366、#1367、#1415、#1423、#1426、#1427、#1429） |
 | ADR-119 | [発見ファクトの確実性、解決チェーン上の候補セット読み取り](119-discovery-fact-certainty/) | Accepted（2026-10-01；ゲート、`unpositioned_mixins`、チェーン、#1593、#1597、#1598、#1599、およびWD1の兄弟テーブルが先行着地；WD2–WD3およびPR Cがオープン） |
-| ADR-120 | [デフォルトのローカル`check`ルートとしての`--incremental`](120-incremental-by-default/) | Proposed（メンテナ待ち；切り替えはWD7のゲート待ち） |
+| ADR-120 | [デフォルトのローカル`check`ルートとしての`--incremental`](120-incremental-by-default/) | Proposed（メンテナー待ち；切り替えはWD7のゲート待ち） |
 | ADR-121 | [Rubyのrefinementを通じた呼び出しの型付け、および`Proc#refined`](121-ruby-refinement-typing/) | Accepted（#1670のもとで2026-10-10に実装済み；オープン: #1669および繰り越し事項） |
 | ADR-122 | [精度単調なRBSリファインメントとレイアウト安定なコード生成](122-precision-monotonic-rbs-refinement/) | Proposed（#1487、#1488、および#1489に対処） |
 

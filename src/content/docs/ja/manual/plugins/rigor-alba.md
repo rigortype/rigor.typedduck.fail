@@ -11,7 +11,7 @@ sidebar:
   order: 9050
 ---
 
-[alba](https://github.com/okuramasafumi/alba) JSONシリアライザーについてRigorに教えます。albaはgem内にRBSを同梱していないため、このプラグインがない場合、プロジェクト内のすべてのalba呼び出しは`Dynamic[top]`と読まれます。このプラグインは誤った診断を除去し、`rigor unused`のルートを公開するのみです;診断や戻り値型は追加しません。
+[alba](https://github.com/okuramasafumi/alba) JSONシリアライザについてRigorに教えます。albaはgem内にRBSを同梱していないため、このプラグインがない場合、プロジェクト内のすべてのalba呼び出しは`Dynamic[top]`と読まれます。このプラグインは誤った診断を除去し、`rigor unused`のルートを公開するのみです;診断や戻り値型は追加しません。
 
 `rigortype`にバンドルされて同梱されます。`plugins:`の下で有効化します:
 

@@ -188,14 +188,14 @@ end
 
 **Why:**これらのルールは、親を保持している呼び出し元にサブクラスを渡せることを検証する。そのような呼び出し元がこれらのメソッドに到達することはない。
 
-- `initialize`には、呼び出し元が指定するクラスに対する`Class#new`（または`super`）を通じてのみ到達するため、`Base`の*インスタンス*を保持する呼び出し元が`Base`のコンストラクタ引数を`Sub#initialize`に渡すことは決してない。クラスオブジェクトを保持する呼び出し元（ファクトリやレジストリのように、`klass : singleton(Base)`から`klass.new(...)`を呼ぶ）は渡しうるが、そのクラスオブジェクトの置換可能性は意図的に未チェックのままとされている。RBSもサブクラス間で`singleton(Base).new`を結び付けないからである。異なる引数を取り、`super(...)`の中で親の引数を構築するサブクラス — 構造化データを受け取ってメッセージをフォーマットする例外サブクラス — は慣用的なRubyであり、PHPのLSPルールも同じ理由でコンストラクタを免除している。
+- `initialize`には、呼び出し元が指定するクラスに対する`Class#new`（または`super`）を通じてのみ到達するため、`Base`の*インスタンス*を保持する呼び出し元が`Base`のコンストラクタ引数を`Sub#initialize`に渡すことは決してない。クラスオブジェクトを保持する呼び出し元（ファクトリーやレジストリのように、`klass : singleton(Base)`から`klass.new(...)`を呼ぶ）は渡しうるが、そのクラスオブジェクトの置換可能性は意図的に未チェックのままとされている。RBSもサブクラス間で`singleton(Base).new`を結び付けないからである。異なる引数を取り、`super(...)`の中で親の引数を構築するサブクラス — 構造化データを受け取ってメッセージをフォーマットする例外サブクラス — は慣用的なRubyであり、PHPのLSPルールも同じ理由でコンストラクタを免除している。
 - `dup` / `clone`はコピーフックに*レシーバー自身のクラス*のインスタンスを渡すため、引数の型は親の宣言ではなく`self`に従う。コピーフックはそのパラメータがレシーバー自身のクラスを除外するときに`dup`を壊し*うる*が、それは親があろうとなかろうと存在する`self`に対するシグネチャの欠陥であり、親との比較は誤った道具である。実際上、この免除はエンジンが証明できる発火（`Numeric` → `Integer`）を除去するだけである: コピーフックが通常行う`Base` → `Sub`の狭めは`:maybe`であり、WD7のもとですでに沈黙している。
 - `new`、`dup`、`clone`は4つのメソッドすべての戻り値を破棄するため、広げられた戻り値が呼び出し元に到達することはない。
-- CRubyは、どのセクションに書かれていようと、すべての非シングルトン`def`でこれら5つの名前をprivateにする（`vm_method.c`の`rb_method_entry_make`）。それらに対してソース発見された`public`セクションは実行時の可視性ではないため、サブクラスでの`private`セクションは何ら縮小していない。例外は親が`public :initialize`（または`public :respond_to_missing?`）を実行する場合である: `rb_export_method`はそのエントリを真にpublicにし、サブクラスの`def`は真にprivateになる。ルールは現在そこでも沈黙を保つ。この真陽性の喪失は許容される。パターンが稀であり、`public`セクション内のサブクラスはすでに見逃されていたからである。発見時に強制された可視性を記録し、明示的な`public :name`を尊重すれば、これを回復できるだろう。
+- CRubyは、どのセクションに書かれていようと、すべての非シングルトン`def`でこれら5つの名前をprivateにする（`vm_method.c`の`rb_method_entry_make`）。それらに対してソース発見された`public`セクションは実行時の可視性ではないため、サブクラスでの`private`セクションは何ら縮小していない。例外は親が`public :initialize`（または`public :respond_to_missing?`）を実行する場合である: `rb_export_method`はそのエントリーを真にpublicにし、サブクラスの`def`は真にprivateになる。ルールは現在そこでも沈黙を保つ。この真陽性の喪失は許容される。パターンが稀であり、`public`セクション内のサブクラスはすでに見逃されていたからである。発見時に強制された可視性を記録し、明示的な`public :name`を尊重すれば、これを回復できるだろう。
 
 `respond_to_missing?`は2つのシグネチャルールを維持する: `respond_to?`は固定の`(Symbol, bool)`プロトコルであらゆるインスタンス上でそれを呼び出すため、そこでの狭められたパラメータは親の型を持つ呼び出し元を実際に壊す。
 
-**How to apply:** `CheckRules::LIFECYCLE_HOOKS`が`resolve_authored_override`（パラメータおよび戻り値ルールの共有エントリ）をゲートし、`CheckRules::IMPLICITLY_PRIVATE_METHODS`が`override_visibility_diagnostic`をゲートする。この変更は診断を除去するだけである。
+**How to apply:** `CheckRules::LIFECYCLE_HOOKS`が`resolve_authored_override`（パラメータおよび戻り値ルールの共有エントリー）をゲートし、`CheckRules::IMPLICITLY_PRIVATE_METHODS`が`override_visibility_diagnostic`をゲートする。この変更は診断を除去するだけである。
 
 ## 実装スライス
 

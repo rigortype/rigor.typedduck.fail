@@ -15,7 +15,7 @@ sidebar:
 
 **改訂（2026-09-16）—— 簡潔なルーティングdescription**。OpenAIのGPT-6 Astraガイダンスに促されたレビューにより、バンドルされた貢献者向けおよびユーザー向けの全30個のスキルdescriptionが監査された。各descriptionは、所有するアクション、具体的なトリガー、および自明でないルーティング境界のみを述べるようになった;実装の詳細と具体例のリストは本体またはreferencesに残される。これは、WD4が拒否する一律の60語以下ルールを導入することなく、現行のセット全体にWD4のスキルごとの判断を適用するものである。
 
-**改訂（2026-09-28）—— 出荷ゲートとしての`waza`レビュー**。スキルの変更は、敵対的エージェントレビューと並んで`waza`レビューを経て初めて出荷されるようになった（[`docs/agents/skill-authoring.md`](../../agents/skill-authoring/) §「`waza`レビュー」）。WD3のフィルターはLLMジャッジにも拡張される: `waza check`の「仕様準拠（Spec Compliance）」および「リンク（Links）」セクションのみが欠陥として拘束力を持つ（そのトークン予算と複雑さの行はWD3に従って却下されたままである）；`waza quality`の助言は公開プロファイルから独立している場合にのみ採用され、単独で重大（severe）となることはなく、`references/`に保持される詳細に対する低い網羅性スコアは本ADRが推奨する漸進的開示（progressive disclosure）であり、欠陥ではない。`rigor-project-init`のstrictモード推奨の修正時（#1539）にメンテナの要請により採用された。
+**改訂（2026-09-28）—— 出荷ゲートとしての`waza`レビュー**。スキルの変更は、敵対的エージェントレビューと並んで`waza`レビューを経て初めて出荷されるようになった（[`docs/agents/skill-authoring.md`](../../agents/skill-authoring/) §「`waza`レビュー」）。WD3のフィルタはLLMジャッジにも拡張される: `waza check`の「仕様準拠（Spec Compliance）」および「リンク（Links）」セクションのみが欠陥として拘束力を持つ（そのトークン予算と複雑さの行はWD3に従って却下されたままである）；`waza quality`の助言は公開プロファイルから独立している場合にのみ採用され、単独で重大（severe）となることはなく、`references/`に保持される詳細に対する低い網羅性スコアは本ADRが推奨する漸進的開示（progressive disclosure）であり、欠陥ではない。`rigor-project-init`のstrictモード推奨の修正時（#1539）にメンテナーの要請により採用された。
 
 根拠: [ADR-73](../73-skill-driven-user-experience/)の2026-07-05改訂;`CLAUDE.md` § "Evaluating skills with `waza`";[ADR-74](../74-offline-doc-access-and-llms-txt/)（`rigor docs`）;[ADR-50](../50-release-engineering-and-stability-strategy/) WD1（v1.0の語彙フリーズ）。
 

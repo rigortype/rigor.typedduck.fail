@@ -67,7 +67,7 @@ sidebar:
 
 Bundler自身は`BUNDLE_PATH`において`~user/`を展開しますが、Rigorは`~name`をリテラルとして維持するため、`BUNDLE_PATH: "~deploy/gems"`は追跡されません。
 
-実行およびインクリメンタル書き込みガードは、リゾルバーごとの同じヘルパー（`LockfileResolver.configured_lockfile_path`、`RbsCollectionDiscovery.configured_lockfile_path`）を通じてロックファイル設定を展開するため、ガードは実行が読み取るロックファイルを監視します。`ConfigAudit`は`ConfigPath.absolute`を直接呼び出し、同一の結果を得ます。
+実行およびインクリメンタル書き込みガードは、リゾルバごとの同じヘルパー（`LockfileResolver.configured_lockfile_path`、`RbsCollectionDiscovery.configured_lockfile_path`）を通じてロックファイル設定を展開するため、ガードは実行が読み取るロックファイルを監視します。`ConfigAudit`は`ConfigPath.absolute`を直接呼び出し、同一の結果を得ます。
 
 実行時にRigorが*解析*を求められるパス（CLIのパス引数、テンプレートユニットのパス、またはランナーのファイルセット）はカバーしません。シェルはRigorが引数を確認する時点ですでに引数内の`~`を展開しているため、残っている`~`はディレクトリ名であり、それらの箇所では`File.absolute_path`を直接使用します。テンプレートユニットのパス演算（`Analysis::TemplateUnitPaths.relative`）はそのルールに従います。
 

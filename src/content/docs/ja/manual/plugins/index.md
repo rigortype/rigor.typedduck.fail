@@ -44,7 +44,7 @@ sidebar:
 - [rigor-graphql](rigor-graphql/): GraphQL-Rubyの型／enum／input／mutationのテーブルの公開（プラグイン横断のファクト、診断なし）。
 - [rigor-grape](rigor-grape/): `Grape::API`エンドポイントDSL（`params`、`namespace`、HTTP動詞マクロ、`desc`、`route_setting`）および`Grape::Entity`の`expose`宣言（`instance_eval`されたブロックの`self`バインディングを含む）を型付けする。
 - [rigor-alba](rigor-alba/): インラインの`Alba.serialize { }`ブロックの`self`を型付けし、`many :articles`からalbaが推論するリソースを`rigor unused`向けにルート化する。
-- [rigor-typelizer](rigor-typelizer/): typelizerがTypeScriptインターフェースを生成するシリアライザークラスを、`rigor unused`向けにルート化する。
+- [rigor-typelizer](rigor-typelizer/): typelizerがTypeScriptインターフェースを生成するシリアライザクラスを、`rigor unused`向けにルート化する。
 - [rigor-rspec-rails](rigor-rspec-rails/): `have_http_status`の引数検証（範囲外のコード、未知のステータスシンボル）。
 - [rigor-shoulda-matchers](rigor-shoulda-matchers/): ARモデル索引に対するshouldaマッチャーのカラム／関連の検証。
 - [rigor-hanami](rigor-hanami/): Hanami::Actionの`#handle`プロトコル強制 + リクエスト／レスポンスパラメータの型付け（ADR-28）。

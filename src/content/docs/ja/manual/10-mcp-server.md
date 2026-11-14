@@ -409,7 +409,7 @@ RubyソースファイルからRBSスケルトンシグネチャを推論して�
 
 **返り値:** JSON（`rigor coverage --format json`と同じ）。
 
-存在しない、またはRubyファイルではない`paths`エントリは、`rigor coverage`が報告する通りに報告されます。測定されたファイルと並んでスキップされます。その場合、結果にはCLIのstderrがフィルタリングされずに第2のテキストブロックとして含まれます: `missing.rb:1:1: warning: no such file or directory (skipped)`などのパス警告やその他の警告です。Rubyファイルを保持するエントリが1つもない場合、呼び出しは`isError: true`となり、ブロックにその旨が記載されます。
+存在しない、またはRubyファイルではない`paths`エントリーは、`rigor coverage`が報告する通りに報告されます。測定されたファイルと並んでスキップされます。その場合、結果にはCLIのstderrがフィルタリングされずに第2のテキストブロックとして含まれます: `missing.rb:1:1: warning: no such file or directory (skipped)`などのパス警告やその他の警告です。Rubyファイルを保持するエントリーが1つもない場合、呼び出しは`isError: true`となり、ブロックにその旨が記載されます。
 
 ```json
 {
