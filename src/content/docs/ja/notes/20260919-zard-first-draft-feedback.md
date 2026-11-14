@@ -3,8 +3,8 @@ title: "`@extrbs`の裁定に基づくZARD初稿へのフィードバック"
 description: "rigortype/rigor docs/notes/20260919-zard-first-draft-feedback.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260919-zard-first-draft-feedback.md"
 sourcePath: "docs/notes/20260919-zard-first-draft-feedback.md"
-sourceSha: "653029ce959925a0f7e80c74fa55808da2df971048f599297ac64883f8f305d4"
-sourceCommit: "0f252e3218936e8dc7004b574c709a434b996d2a"
+sourceSha: "fb407b812d28a0877fe9f1df3be3af82b3c045422a009220984e48824f60c533"
+sourceCommit: "2d66acadc4b2f6a7bd12f4b731d28b396c355af8"
 translationStatus: "translated"
 sidebar:
   order: 20266919
@@ -49,7 +49,7 @@ sidebar:
 
 ZARDの`CONTEXT.md`は**Rigor lens**を名指ししており、ZARD ADR-0003は「バージョン管理された構造化Rigor lens結果」を挙げています。Rigorは今回そのサーフェスを`rigor lens`コマンドとして決定しました。ZARDがそこから受け取るべきもの:
 
-- **スキーマは`lens/v0`であり、ZARDがそれを読み取るまでは未凍結である**。それを消費する最初のZARDスライスこそが、Rigorのv1.0凍結リスト上でそれを`lens/v1`へと昇格させるものです。そのスライスを`v0`に対して構築し、凍結の後ではなく前に不足しているものを報告してください。
+- **スキーマは`lens/v0`であり、ZARDがそれを読み取るまでは未凍結である**。それを消費する最初のZARDスライスこそが、Rigorのv1.0凍結リスト上でそれを`lens/v1`へと昇格させるものです。そのスライスを`v0`に対して構築し、凍結の後ではなく前に不足しているものを報告してください。*2026-10-15改定（#1907）: `v0`を読み取る実験的アダプタは凍結をトリガーしない。Rigorがまずリリースで`lens/v1`を出荷し、次にZARDのリリースがそれを要求する。合意された形状は[`docs/internal-spec/lens.md`](../../internal-spec/lens/)である。*
 - **型の文字列と診断のセットは契約の一部ではない**。これらはエンジンとともに改善されます（ADR-50 § 決定事項3）。契約は構造（宣言、スパン、来歴（provenance）、およびアンカー）をカバーします。
 - **型は`sig-gen`が`.rbs`に書き込む形式で綴られる**: 消去、およびリファインされた場所での`%a{rigor:v1:…}`。散文で`non-empty-string`を望むZARDレンダラーは、アノテーションからそれを読み取ります。型位置にリファインメントを期待してはなりません。
 - **型の来歴（provenance）ボキャブラリー:** `sig`、`inline`、`extrbs`、`inferred`、`plugin:<name>`、および`library`。`Dynamic`スロットは代わりにその起源を担います。ソース、位置、構文、および起源をカバーするZARD自身の「Provenance」という用語は、より広範です。Rigorの値をZARDのモデルへとマッピングし、改名しないでください。

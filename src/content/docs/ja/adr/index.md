@@ -3,9 +3,9 @@ title: "アーキテクチャ決定記録"
 description: "rigortype/rigor docs/adr/README.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/README.md"
 sourcePath: "docs/adr/README.md"
-sourceSha: "023559cc28c18cea6962eec4069e467189aefbed8ab716418ee177a9dd12d7a0"
-sourceCommit: "9cc10f58aa968f6e3116557a491aae41bc8a89e1"
-sourceDate: "2026-10-12T03:29:50+09:00"
+sourceSha: "ed126c820cf24a8367637c75ca1003310f31e28f7deca1b1e4c87c7a3b22b16a"
+sourceCommit: "2d66acadc4b2f6a7bd12f4b731d28b396c355af8"
+sourceDate: "2026-11-12T08:14:41+09:00"
 translationStatus: "translated"
 sidebar:
   order: 4000
@@ -52,7 +52,7 @@ sidebar:
 | ADR-24 | [implicit-selfメソッド呼び出し解決](24-self-method-call-resolution/) | Accepted（スライス4はゲート中；WD3のボディ内採用ゲートはADR-57により開かれた、2026-06-12） |
 | ADR-25 | [プラグインが提供するRBSシグネチャ](25-plugin-contributed-rbs/) | Accepted |
 | ADR-26 | [ActiveRecord relationの型付け](26-activerecord-relation-typing/) | Accepted |
-| ADR-27 | [ツール配布・インストールモデル](27-tool-distribution-model/) | Accepted（部分実装；Nix flake・コンテナイメージ・CIテンプレートを出荷；シングルバイナリは見送り） |
+| ADR-27 | [ツール配布・インストールモデル](27-tool-distribution-model/) | Accepted（部分実装；Nix flake・コンテナイメージ・CIテンプレートを出荷；シングルバイナリは見送り；2026-11-04にWD9ピン留めバンドルとWD10エディタ管理バンドルを追加） |
 | ADR-28 | [パススコープのメソッドプロトコル契約](28-path-scoped-protocol-contracts/) | Accepted |
 | ADR-29 | [ブラウザプレイグラウンド](29-browser-playground/) | Accepted（v0.1.10〜0.1.11でサーバーサイドプレイグラウンド；ブラウザ内`ruby.wasm`ビルドを2026-06-14/15に出荷） |
 | ADR-30 | [`rigor-ffi`プラグインの形状](30-rigor-ffi-plugin-shape/) | Accepted |
@@ -138,7 +138,7 @@ sidebar:
 | ADR-110 | [継承された宣言はレシーバー自身の`def`より優先されない](110-inherited-declaration-precedence/) | Accepted（#856でWD1＋WD3を実装；コーパスの25ターゲット全体で新たな診断ゼロを測定） |
 | ADR-111 | [リファインメントを`.rb`ファイル内のどこに書くか: 1つのキャリア、Rigor独自のコメント方言なし](111-inline-refinement-carrier/) | Superseded（ADR-112により置き換え；プローブの測定結果は有効） |
 | ADR-112 | [`@extrbs`: RBSで表現できないもののためのRigorが読み取るコメントチャンネル](112-extrbs-comment-channel/) | Accepted（`sig/`とインラインの間でWD5を実装、2026-09-26；残りは未実装） |
-| ADR-113 | [`rigor lens`: エージェントおよびツールのための、型の由来を持つ宣言マップ](113-rigor-lens/) | Accepted（未実装） |
+| ADR-113 | [`rigor lens`: エージェントおよびツールのための、型の由来を持つ宣言マップ](113-rigor-lens/) | Accepted（フェーズ1・ファイルのみ実装済み；シンボルクエリとフェーズ2は未着手） |
 | ADR-114 | [コアおよびstdlib RBSへの継承ディスパッチ](114-core-stdlib-ancestor-dispatch/) | Accepted（#527スライス1が着地: インスタンス側のスーパークラス巡回；スライス2/3/5/6はスコープ外、ADR-43の却下された代替案Aを部分的に置き換え） |
 | ADR-115 | [piによるマルチモデルエージェントハーネス（自社ソフトウェア第一）](115-pi-multi-model-harness/) | Proposed（薄い`agents/pi-harness/`スタブ；WD6の並行パスは未実証） |
 | ADR-116 | [エンジンのホットファイルの再構築: 増加する種類は1回宣言し、各走査は1回巡回する](116-hot-file-restructuring/) | Accepted（WD5はADR-119によって部分的に置き換え；移植済み: `class_cvars`、スーパークラス、defネスト、メンバーレイアウトテーブル、後ろ3つは1回の実行を共有；WD5はコンテキストルール変種向けに修正） |
@@ -147,6 +147,16 @@ sidebar:
 | ADR-120 | [デフォルトのローカル`check`ルートとしての`--incremental`](120-incremental-by-default/) | Proposed（メンテナー待ち；切り替えはWD7のゲート待ち） |
 | ADR-121 | [Rubyのrefinementを通じた呼び出しの型付け、および`Proc#refined`](121-ruby-refinement-typing/) | Accepted（#1670のもとで2026-10-10に実装済み；オープン: #1669および繰り越し事項） |
 | ADR-122 | [精度単調なRBSリファインメントとレイアウト安定なコード生成](122-precision-monotonic-rbs-refinement/) | Proposed（#1487、#1488、および#1489に対処） |
+| ADR-123 | [マージキューへの着地と事後承認](123-merge-queue-and-post-hoc-approval/) | Accepted（`master`上のマージキュールールセットを2026-10-19に有効化；承認キューとそのリリースゲートはADRとともに着地） |
+| ADR-124 | [エディタのpublishがクロスファイル発見のシードになる](124-editor-publish-cross-file-discovery/) | Accepted（#2164で実装済み；列挙された制限事項についてはフォローアップ） |
+| ADR-125 | [プラグインが宣言する呼び出しごとのクラス](125-per-invocation-classes/) | Accepted（#575向けに実装済み；rigor-actionmailerの採用は#2308） |
+| ADR-126 | [1つのCLI文法、バージョニングされたJSONドキュメント、およびゲートされたコマンドカタログ](126-cli-grammar-and-catalogue/) | Accepted（未実装；作業は#2502〜#2505として起票） |
+| ADR-127 | [呼び出し先のミューテーションフロアは走査ではなくグラフ特性に答える](127-callee-floor-graph-budget/) | Accepted（K = 64；#2564で実装済み） |
+| ADR-128 | [構造的インターフェースとしてのプラグインフックサーフェス、および破壊的変更の出荷方法](128-plugin-hook-surface-interfaces/) | Accepted（スライス1は#2714、スライス2は#2694、スライス3は#2822で着地） |
+| ADR-129 | [閉じた型付け状態のもとで`type_of`の結果を記憶する](129-type-of-result-memo/) | Accepted（ステージ1〜3が着地；ステージ4はエンジンウォーム時の再評価トリガーで停止；稼働中のものはなく、メモはシャドウ／監査ツール） |
+| ADR-130 | [プラグインインターフェース値: メンバーディスパッチ、およびそれ以外のすべての場所での`untyped`](130-interface-typed-values-dispatch-under-untyped-parity/) | Accepted（スライス1aは#2808、スライス1bは#2815、スライス2は#2822で着地） |
+| ADR-131 | [宣言は契約である: RBSオーサリングソースとしての文書化された意図](131-declarations-are-contracts/) | Accepted（`rigor-rbs-contract`スキルと`rigor-type-oracle`へのADR-108改訂が#3061で着地；監査サーフェスは#3062） |
+| ADR-132 | [すべての解析のための単一のリフレクティブ呼び出しビュー](132-reflective-call-view/) | Accepted（スライスはまだ着地していない；次はS0） |
 
 ## 新しいADRの追加
 

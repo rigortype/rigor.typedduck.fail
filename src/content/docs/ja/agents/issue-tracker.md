@@ -3,8 +3,8 @@ title: "イシュートラッカー: GitHub"
 description: "rigortype/rigor docs/agents/issue-tracker.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/agents/issue-tracker.md"
 sourcePath: "docs/agents/issue-tracker.md"
-sourceSha: "1e0f9d09fbd39c986dd1faea6611173b294c6b19a9d0a6d53927c264f1a00803"
-sourceCommit: "74970d1ece5a858d82c9b2c8f1a5deb57831f984"
+sourceSha: "d4b851e72e30e867752d5961b6516c9f51e0eda3fc486f5114c7c170d11f5698"
+sourceCommit: "2d66acadc4b2f6a7bd12f4b731d28b396c355af8"
 translationStatus: "translated"
 sidebar:
   order: 9050
@@ -16,7 +16,7 @@ sidebar:
 
 ## 慣習
 
-- **issueを作成する**: `gh issue create --title "..." --body "..."`。複数行の本文にはヒアドキュメントを使う。1つの`area:*`ラベルと1つのトリアージラベルを付ける（`triage-labels.md`を参照）。
+- **issueを作成する**: `gh issue create --title "..." --body "..."`。複数行の本文にはヒアドキュメントを使う。1つの`area:*`ラベルと1つのトリアージラベルを付け（`triage-labels.md`を参照）、さらに変更が意図的に残す制限については`known-limitation`を付ける（`triage-labels.md` § "Known limitations"）。
 - **issueを読む**: `gh issue view <number> --comments`。
 - **issueを一覧する**: `gh issue list --state open --json number,title,labels`（`--label` / `--milestone`フィルタ付き）。
 - **コメントする**: `gh issue comment <number> --body "..."`。

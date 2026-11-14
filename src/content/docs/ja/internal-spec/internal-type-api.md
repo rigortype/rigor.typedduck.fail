@@ -3,8 +3,8 @@ title: "内部型API"
 description: "rigortype/rigor docs/internal-spec/internal-type-api.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/internal-type-api.md"
 sourcePath: "docs/internal-spec/internal-type-api.md"
-sourceSha: "e6e1bff899cb9a935916cbe7d2d7200ec16cc0e8d16b26db9624661ae41ede34"
-sourceCommit: "78b18cea6a576475c92bce020535269f2eebc20d"
+sourceSha: "9b6587f68d60a36e9f0cce20a471f44b5e6a7643bbdd3794dffaccc71bef701c"
+sourceCommit: "2d66acadc4b2f6a7bd12f4b731d28b396c355af8"
 translationStatus: "translated"
 sidebar:
   order: 3050
@@ -132,6 +132,7 @@ sidebar:
 - `union(*types)`・`intersect(*types)`・`difference(left, right)`・`complement_within(domain, type)`。
 - `refine(base, predicate)` — リファインメントを既存の型に付加する。`predicate`の正確な形状は適用されるリファインメントファミリーに依存する（[`rigor-extensions.md`](../../type-specification/rigor-extensions/)を参照）。
 - `dynamic(static_facet)` — `Dynamic[T]`ラッパーを構築する。`dynamic(top)`は`untyped`の標準形でなければなりません（MUST）。
+- `untyped?(type)` — [ADR-130](../../adr/130-interface-typed-values-dispatch-under-untyped-parity/) WD2のパリティ述語。`Dynamic[top]`、およびADR-130が消去するファセットを持つ`Dynamic`に対して真となります。`untyped`を条件に緩和を適用する箇所は、`Dynamic`のファセットが`Top`であるかを検査したり型を`untyped`と比較したりするのではなく、この述語に問い合わせなければなりません（MUST）。`spec/rigor/type/untyped_parity_spec.rb`は、`lib/`およびプラグインとサンプルのツリーを走査し、比較または型テストにおける`Top`オペランドと、比較・ルックアップ・キーとして使用される`untyped`を検出します。これが認識するのはそれらの綴りのみであり、拘束力を持つのは振る舞いゲートである`spec/integration/interface_parity_spec.rb`です。
 
 型インスタンスは変更するコンビネータを公開してはなりません（MUST NOT）。追加のリファインメントを持つ新しい型を返すインスタンスメソッド（仮称`with_refinement`）はADR-3の未解決問題1が解決されたら追加してもかまいません（MAY）。
 

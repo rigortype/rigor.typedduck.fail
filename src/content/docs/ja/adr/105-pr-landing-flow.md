@@ -3,9 +3,9 @@ title: "ADR-105 — PRの着地フロー: 逐次マージとchangelogフラグ�
 description: "rigortype/rigor docs/adr/105-pr-landing-flow.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/105-pr-landing-flow.md"
 sourcePath: "docs/adr/105-pr-landing-flow.md"
-sourceSha: "49ee642afa5e78e7d5167c38066ec7be57bdca687cbaba11eb21725fed57b710"
-sourceCommit: "db7b23d42e9b47560438b67dfe16d53e03f70575"
-sourceDate: "2026-09-10T04:47:52+09:00"
+sourceSha: "b582b4beefda8876269ff9e83ba18a608f6fc6ad1f1979a174d89aef8ee9eaa8"
+sourceCommit: "2d66acadc4b2f6a7bd12f4b731d28b396c355af8"
+sourceDate: "2026-10-19T02:22:39+09:00"
 translationStatus: "translated"
 sidebar:
   order: 4105
@@ -46,7 +46,7 @@ sidebar:
 | `merge=union`単独（PR #500） | 実効的な層で反証された: GitHubはPRのマージ可能性についてマージドライバを無視する。 |
 | 自動排出ボット（DIRTYな各PRをリベース＋プッシュ） | 直列化されたCIのΘ（N）のコストが残り、そしてkeep-bothのコードの衝突には人間の判断が要る——このキャンペーンの最中に、機械的なリゾルバが`expression_typer.rb`を壊した。 |
 | カットの時点でエントリーを再構成する | #500を蒸し返すことになる: 文言とPRのリンクは着地時が最も安い;v0.3.6の再構成はその準備工程を支配した。 |
-| GitHubのマージキュー | CONFLICTINGなPRはキューに入れない;根本原因に手が付いていない。 |
+| GitHubのマージキュー | CONFLICTINGなPRはキューに入れない;根本原因に手が付いていない。（衝突については依然として真実; [ADR-123](../123-merge-queue-and-post-hoc-approval/)はもう一方のコスト、すなわちクリーンなマージ間の意味的な相互作用のためにキューを採用する。） |
 | コミットトレーラーによるchangelog（GitLab方式） | リンクの導出をカット時の列挙へ戻すことになる——まさに#500が取り除いたコストだ。 |
 
 ## 帰結

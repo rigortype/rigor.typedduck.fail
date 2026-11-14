@@ -3,9 +3,9 @@ title: "ADR-17 — プロジェクト側monkey-patchの事前評価"
 description: "rigortype/rigor docs/adr/17-monkey-patch-pre-evaluation.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/17-monkey-patch-pre-evaluation.md"
 sourcePath: "docs/adr/17-monkey-patch-pre-evaluation.md"
-sourceSha: "b949d34c45d998669ae6613369e963167ccdbd692f3dffb77f2c8c6f9b6b0981"
-sourceCommit: "42402864a316beb0d5ba4357ec29454ab55f6657"
-sourceDate: "2026-07-25T22:03:10+09:00"
+sourceSha: "baff3acd51128c739b1897c004ea6a01d2627d394f7062deed248df5262a459b"
+sourceCommit: "2d66acadc4b2f6a7bd12f4b731d28b396c355af8"
+sourceDate: "2026-10-15T15:05:43+09:00"
 translationStatus: "translated"
 sidebar:
   order: 4017
@@ -178,7 +178,7 @@ Rigorのアナライザーが起動すると次のように動作します。
 
 ### WD6 — なぜ既存ファミリーに畳み込むのではなく、新しい診断ファミリー`pre-eval.*`を作るのか？
 
-`pre-eval.*`ファミリーは診断の原因を可視化する: ユーザーは`# rigor:disable pre-eval.*`で事前評価チャネル全体を黙らせることができ、`call.*` / `flow.*` / `def.*`に影響しない。事前評価エラーを`configuration-error` / `call.*`に畳み込むと、その外科的な無効化が失われる。
+`pre-eval.*`ファミリーは診断の原因を可視化する: ユーザーは`# rigor:disable pre-eval`（`call`と同じく裸のファミリーワイルドカード）で事前評価チャネル全体を黙らせることができ、`call.*` / `flow.*` / `def.*`に影響しない。事前評価エラーを`configuration-error` / `call.*`に畳み込むと、その外科的な無効化が失われる。
 
 ### WD7 — ロバストネス原則（ADR-5）との境界
 

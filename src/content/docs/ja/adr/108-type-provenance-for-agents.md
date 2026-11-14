@@ -3,9 +3,9 @@ title: "ADR-108 — エージェントのための型の来歴: `rigor-type-orac
 description: "rigortype/rigor docs/adr/108-type-provenance-for-agents.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/108-type-provenance-for-agents.md"
 sourcePath: "docs/adr/108-type-provenance-for-agents.md"
-sourceSha: "f6f354243015566e7ea9d6a4545e9bf2fa50c03d19178dc21e6c7a4e5f9370e7"
-sourceCommit: "db7b23d42e9b47560438b67dfe16d53e03f70575"
-sourceDate: "2026-09-10T04:39:46+09:00"
+sourceSha: "87db986b71d66981471aa45e403d5d76197059d5da77b5c147d4e46a99fe68d3"
+sourceCommit: "2d66acadc4b2f6a7bd12f4b731d28b396c355af8"
+sourceDate: "2026-11-11T06:19:26+09:00"
 translationStatus: "translated"
 sidebar:
   order: 4108
@@ -13,6 +13,8 @@ sidebar:
 
 Status: **Accepted, 2026-09-08 — [#826](https://github.com/rigortype/rigor/pull/826)により実装**。
 `skills/rigor-type-oracle/`（本文＋3つの`references/`＋4ケースの評価スイート）、`rigor-project-init`が導入先プロジェクトの`AGENTS.md` / `CLAUDE.md`にインストールする契約段落（Phase 8a、`references/06-agent-contract.md`）、およびカタログ配線（[`lib/rigor/cli/skill_describe.rb`](https://github.com/rigortype/rigor/blob/master/lib/rigor/cli/skill_describe.rb)の`CATALOG_ORDER`、`skills/README.md`、およびマニュアルの「ここから始める」で覚えておくべきスキルが2つから3つに増加）を出荷します。ADR-107はそのリポジトリ側の双子です: 同じルールをRigor自身のツリーへと内向きに適用し、そこではさらに型のようなコメントを禁止します。エンジン内の変更はありません。
+
+**[ADR-131](../131-declarations-are-contracts/)により改訂、2026-11-11**。 4つ目の、契約スコープのソースが追加されました: 宣言が何を約束するかはライブラリのドキュメントまたはオーナーの回答によって確定し、引用され、宣言された`void`が本体の値へと狭められることはありません。スキルとその`AGENTS.md`フラグメントには、対応するセクションと箇条書きが追加されています。
 
 根拠: 下記の§「証拠」に記録されている2026-09-08の5モデル調査（現在は`skills/rigor-type-oracle/evals/fixtures/budget_ledger.rb`として同梱されているフィクスチャ上で実行）；そのフィクスチャに対するオラクル自身の回答（インストールされたCLIに対して検証され、`references/01-oracle-commands.md`に記録）。
 

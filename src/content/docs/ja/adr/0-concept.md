@@ -3,9 +3,9 @@ title: "ADR-0: Rigorの基盤とコアアーキテクチャ"
 description: "rigortype/rigor docs/adr/0-concept.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/0-concept.md"
 sourcePath: "docs/adr/0-concept.md"
-sourceSha: "5901d2d33f6e72e948cfa72f45e31eac8e05879fadffcccd2fbf3189bd5a11e6"
-sourceCommit: "0f252e3218936e8dc7004b574c709a434b996d2a"
-sourceDate: "2026-09-19T03:42:27+09:00"
+sourceSha: "0aee1f27de3acba9de7c67d9b2c1176b8361e6adcf7a9838086f0e43a737e669"
+sourceCommit: "2d66acadc4b2f6a7bd12f4b731d28b396c355af8"
+sourceDate: "2026-11-01T18:30:39+09:00"
 translationStatus: "translated"
 sidebar:
   order: 4000
@@ -45,7 +45,7 @@ SorbetやSteep、RBSといったツールの登場によってRubyエコシス�
 * RigorはAST及び依存グラフのアグレッシブなキャッシュを実装します。
 * コーディング中に即座のフィードバックを提供することが主目標です。まずは堅牢な**CLIエクスペリエンス**を優先し、LSP（Language Server Protocol）統合は後フェーズに延期します。
 * **スマート初期化：** `rigor init`は`Gemfile.lock`を解析し、必要なプラグイン（Rails、RSpecなど）とプロジェクトディレクトリを自動的に提案・設定します。
-  > **ステータス（2026-09-10）: 未構築**。`rigor init`（`lib/rigor/cli.rb#run_init`）は静的な`.rigor.dist.yml`テンプレートを書き出し、そのパスのどこにも`Gemfile.lock`の読み取りはありません ── エンジンは他の場所（ADR-72のオーバーレイ、`Environment`の自動検出）で`Gemfile.lock`を読み取りますが、`init`自身のプラグイン／ディレクトリの提案のためには決して読み取りません。以降のどのADRもこの前提を置き換えていません;これは単に未実装であり、本注記の時点でissueバックログのどこでも追跡されていません。
+  > **ステータス（2026-11-01）: プラグインとディレクトリは提案されるが、有効化はされない**。 `rigor init`（`lib/rigor/cli.rb#run_init`）は、`rigor doctor`がすでに行っているのと同じ読み取り処理である`PluginGapAdvisory`を通じて`Gemfile.lock`を読み取り、lockfileが宣言しているgemに対応するバンドルプラグインを`plugins: []`の下にコメントアウトされた提案として書き出します（#2536）。これらは有効化されません。ADR-96の基準2により、lockfileの存在だけではプロジェクトがプラグインのコードをオプトインしたことにならないため、ユーザーは使いたいもののコメントを外します。`--no-plugins`は提案を書き出しません。`test_paths:`は#1388以降、見つかったテストディレクトリから書き出されるようになっています。`paths:`はアクティブな`lib`のまま残ります。Railsアプリケーション（`config/application.rb`）では、`rigor init`が`app`と`lib`をコメントアウトされたブロックとして提案するため（#2560）、素の`rigor check`はユーザーが上の`paths:`リストを削除して下の行のコメントを外すまで`lib`のみを解析します。ディレクトリは`Gemfile.lock`ではなくプロジェクトのレイアウトに由来し、他のレイアウトに対しては提案が行われません。
 
 ### 5. MVPターゲット（CLI）
 

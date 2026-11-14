@@ -3,8 +3,8 @@ title: "Rigor内部仕様"
 description: "rigortype/rigor docs/internal-spec/README.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/README.md"
 sourcePath: "docs/internal-spec/README.md"
-sourceSha: "7f5f4323019fe9f4c84adea927449d7386da8e71767d94a4ec62ccc800322750"
-sourceCommit: "0cf313582cfbe2fa7da8148dc498d0b2a0893438"
+sourceSha: "47f7f13ed2f1edda317d9b4f16573633d860428f64a3f251561d035e017b5776"
+sourceCommit: "2d66acadc4b2f6a7bd12f4b731d28b396c355af8"
 translationStatus: "translated"
 sidebar:
   order: 3000
@@ -50,6 +50,8 @@ Rubyの識別子（`Rigor::Type`、`Rigor::Trinary`、`Rigor::Type::Combinator`�
 | [macro-substrate.md](macro-substrate/) | マクロ / DSL展開基盤 — プラグインがメタプログラミングライブラリの呼び出し形（shape）をRigorに教えるために宣言する`Plugin::Macro::*`値オブジェクトのシェイプ（shape）（ティアA/B/C/D + ネストクラス放出）（ADR-16 / ADR-18 / ADR-36）。 |
 | [public-api.md](public-api/) | 公開APIの安定境界 — プラグイン契約が設計対象とする名前空間（`Rigor::Scope`、`Type`、`Environment`、`Reflection`、`FlowContribution`、`Diagnostic`）、および内部に留めておく表面。 |
 | [diagnostic-shape.md](diagnostic-shape/) | `Rigor::Analysis::Diagnostic`のフィールドシェイプ（shape）— フィールド、`from_node` / `from_location`の位置規約、`qualified_rule`の導出 + provenance。記述的で、まだロックされていない（`public-api.md`を参照）。 |
+| [lens.md](lens/) | `rigor lens`出力 — `lens/v0`リビジョン1: check等価の計算、起動と終了ステータス、シリアライズ規約、サイトとメンバー、タグ付きスロット、アンカー（ADR-113）。実験的。 |
+| [lens-claims.md](lens-claims/) | `rigor lens --claims` — ドキュメント主張チェック、リビジョン1: リクエスト、整合性エラー、判定と理由、主張文法、有向の`documentation_coverage`関係とその信頼済み証明フラグメント（ADR-113、2026-11-04改訂）。承認済み、未実装。 |
 | [baseline.md](baseline/) | ベースライン（baseline）のバケットキー導出 — `[file, rule, message_regex]`のタプル、パスの相対化、`:rule` / `:message`のマッチモード（ADR-22）。 |
 | [worker-session.md](worker-session/) | ワーカーセッションプロトコル — `WorkerSession`の共有可能な入力、ワーカーごとの所有境界、並列解析の背後にある逐次等価性契約（ADR-15）。 |
 | [dependency-source-inference.md](dependency-source-inference/) | オプトイン依存関係ソース推論（ADR-10）— `dependencies.source_inference:`設定、ウォーカー / ディスパッチャーティア、`DependencyEntry`キャッシュスライス、`dynamic.dependency-source.*`診断ファミリー。 |

@@ -3,9 +3,9 @@ title: "Language Server — Rigor向けインプロセスRuby LSP"
 description: "rigortype/rigor docs/design/20260517-language-server.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/design/20260517-language-server.md"
 sourcePath: "docs/design/20260517-language-server.md"
-sourceSha: "aec5b1d6a5ca7d67ab58b40ac397a7860ed7d9a8d016548d8471b56d45ef85db"
-sourceCommit: "17f7d081a694f9cfdfaebd7fc71ebfc7171e2a6d"
-sourceDate: "2026-07-25T22:13:35+09:00"
+sourceSha: "9027e3082a5c290a9ee0eedca69f7fc1165904ff4fd97aa14381687c773fb4a9"
+sourceCommit: "2d66acadc4b2f6a7bd12f4b731d28b396c355af8"
+sourceDate: "2026-10-20T12:20:17+09:00"
 translationStatus: "translated"
 sidebar:
   order: 20265517
@@ -301,7 +301,10 @@ LSPはサーバープッシュの`textDocument/publishDiagnostics`を要求す�
    バッファの診断を発行すれば、そのディスク上の古いバイト列について報告する
    ことになる —— 沈黙より悪い。不変条件: *各URIのマーカーは、そのURIの現在の
    バイト列を見た最後の解析から来る* —— ダーティーなバッファ自身の`didChange`発行、
-   クリーンなバッファなら最新の保存ラウンド。
+   クリーンなバッファなら最新の保存ラウンド。ADR-124以降、バッファのマーカーは
+   他ファイルの宣言も読むため、保存ラウンドの最後には各ダーティーなバッファを
+   自身のバイト列から再発行し、監視ファイルや設定の変更時には開いているすべての
+   バッファを再発行する。
 4. **トリガーは`didChange`ではなく`didSave`**。CLIのオプションB起動1回の
    フェーズ帰属（mastodon `app/models`、248ファイル、ウォーム、4ファイルの
    クロージャ）は、ファイルごとの解析＋マージを約0.60秒と見積もる;ブート・

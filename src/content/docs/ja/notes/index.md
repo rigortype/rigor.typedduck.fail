@@ -3,9 +3,9 @@ title: "リサーチ・サーベイノート"
 description: "rigortype/rigor docs/notes/README.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/README.md"
 sourcePath: "docs/notes/README.md"
-sourceSha: "8656cebb31186a96788a840017cefb90a6d6e1dad7d31b5f3653172e353eb3bf"
-sourceCommit: "9cc10f58aa968f6e3116557a491aae41bc8a89e1"
-sourceDate: "2026-10-12T03:29:50+09:00"
+sourceSha: "942149a3e7f5c581db8a4811c79fe363d584704e542b37ec1a281e7de2c4cc91"
+sourceCommit: "2d66acadc4b2f6a7bd12f4b731d28b396c355af8"
+sourceDate: "2026-11-04T17:04:50+09:00"
 translationStatus: "translated"
 sidebar:
   order: 6000
@@ -90,6 +90,7 @@ sidebar:
 | 2026-09-17 | [レンダリング箇所のlocalsとレイアウト —— コーパス計測](20260917-render-locals-and-layouts/) |
 | 2026-09-26 | [インラインに対する`sig/` —— 一貫性規則の偽陽性ゲート（issue #1075）](20260926-sig-inline-consistency-fp-gate/) |
 | 2026-10-12 | [albaオンボーディングとrbs-inline移行 —— 手書き`sig/` vs sig-gen `--overwrite`、inline統合、およびrbs-inline生成境界カタログを用いた10ファイルのバッチ移行](20261012-alba-onboarding-rbs-inline-pilot/) |
+| 2026-11-04 | [RBSインターフェース型プロトタイプ（ADR-130、#929） — `Rigor::Plugin`インターフェースをスコープとし、untypedパリティ・ユニオンマージ・オーバーロード形状ルールを備え、メンバーディスパッチは`lib`・48プラグインツリー・14調査対象に診断を追加せず、ディスパッチオフのパリティ差分は空であり、sig-genとlensは変更なし;ドラフト1〜2と先送りされた代入可能性の半分を記録](20261104-interface-types-prototype-measurement/) |
 
 ## アナライザーの自己テスト（teeth・偽陰性）
 
@@ -142,6 +143,9 @@ sidebar:
 | 2026-09-09 | [CIウォールタイム371秒 → 220秒 — シャードのばらつきは分割の問題ではなかった；1つのマトリクスアームに固定された作業、ワーカーごとの予算を超過した1ファイル、そしてspec分割が引き起こす3つの罠](20260909-ci-wall-time-shard-rebalance/) |
 | 2026-09-12 | [v0.3.9リリースゲートの`lib peak_rss_kb`帰属 —— +10.5%は保持ではなく一時的なピークであり、約95件のマージに分散している](20260912-v039-rss-attribution/) |
 | 2026-09-27 | [フリーズされたコーパス上のマージごとのv0.3.9 → v0.4.0エンジンアロケーション — +19.1%は主に機能ボリューム; 3分の1は4つの偶発的なホットパスコスト](20260927-v040-engine-allocation-attribution/) |
+| 2026-10-15 | [`rigor lens`計算スパイク — 強制ターゲットはcheckのシード済みインデックスを一致する診断とともに読み取り; redmineでのウォームなlensは11秒を要し、その80%がビューテンプレート](20261015-lens-computation-spike/) |
+| 2026-11-04 | [作業乗数センサス — `type_of`の結果は記憶されず、呼び出し先本体は呼び出しコンテキストごとに1回実行される;プロトタイプメモは同一の診断でRailsコーパスのアロケーションを24〜34%削減](20261104-work-multiplier-census/) |
+| 2026-11-04 | [状態IDキー下における`type_of`メモの上限 — メインパスと呼び出し先本体はルール走査を超えてMastodonのアロケーションの11%（`lib`では3%）を削減し、同一の診断と0件のシャドウ型不一致を達成; 2つの独立した設計レビューが合意した点](20261104-type-of-memo-ceiling/) |
 
 ## プロセス・メタ
 

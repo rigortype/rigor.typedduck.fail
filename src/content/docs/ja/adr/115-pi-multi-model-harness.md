@@ -3,8 +3,8 @@ title: "ADR-115 — piによるマルチモデルエージェントハーネス�
 description: "rigortype/rigor docs/adr/115-pi-multi-model-harness.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/115-pi-multi-model-harness.md"
 sourcePath: "docs/adr/115-pi-multi-model-harness.md"
-sourceSha: "e65371ae95325e052e9fac525791774cd8ba7c1c5a561638c71304bfe831244b"
-sourceCommit: "b5af5cf72f6b666f74479df959b1ee467feda5c6"
+sourceSha: "4ddaa42d47afac6a7c0612306c0f188c63313c3ea1f1b7c5dcfc52169dab704d"
+sourceCommit: "2d66acadc4b2f6a7bd12f4b731d28b396c355af8"
 translationStatus: "translated"
 sidebar:
   order: 4115
@@ -83,7 +83,7 @@ miseはランタイムとパッケージマネージャーのみにとどまる�
 2. **N個**の互いに素なワークツリーレーン（DeepSeek Flashクラス）がそれらの契約の下で実装する。
 3. 各レーンが**そのhead SHAをpushして停止する**（CIウォッチャーなし）。
 4. `orchestrator`（または外部ポーリング＋再開）がCIを所有する。
-5. 敵対的レビュアーが結果を判定する: **デフォルトはGrok:max**;実装が複雑と判断された場合は**Opus:high**を追加;複雑な設計には**Fable:mediumを確保**。最終的な`Approved`には、diffに合わせた**PR本文改訂ドラフト**および**提案PRコメント**を含めなければならない（主張は現実に一致しなければならない）。任意の`Needs fix` → 修正ループ。
+5. 敵対的レビュアーが結果を判定する: **デフォルトは共同プライマリペアのGrok:xhigh + `devin/swe-2`:highであり、両方がApproveしなければならない**;実装が複雑と判断された場合は**Opus:high**を追加;複雑な設計には**Fable:mediumを確保**。最終的な`Approved`には、diffに合わせた**PR本文改訂ドラフト**および**提案PRコメント**を含めなければならない（主張は現実に一致しなければならない）。任意の`Needs fix` → 修正ループ。
 
 調査（B）およびドキュメント（C）はそのパスが一度着地するまで待つ。`agents/pi-harness/`内のスタブは受け入れ証明ではない;エンドツーエンドの実行こそが証明である。
 

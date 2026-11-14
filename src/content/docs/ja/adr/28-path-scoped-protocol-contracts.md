@@ -3,9 +3,9 @@ title: "ADR-28 — パススコープのメソッドプロトコル契約"
 description: "rigortype/rigor docs/adr/28-path-scoped-protocol-contracts.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/28-path-scoped-protocol-contracts.md"
 sourcePath: "docs/adr/28-path-scoped-protocol-contracts.md"
-sourceSha: "160f80010ae57664b8027f2823f5a6d7516e300d83a15dbc73e76219977ee23a"
-sourceCommit: "a5d648b126d5ed7b1e04a16a87927bca7883e069"
-sourceDate: "2026-05-23T03:19:23+09:00"
+sourceSha: "525a88ccf888e378e64e7bf31649f4b38b2ee45ce0a5e5f86da399f5a165341d"
+sourceCommit: "2d66acadc4b2f6a7bd12f4b731d28b396c355af8"
+sourceDate: "2026-11-06T15:15:28+09:00"
 sourceLanguage: "en"
 translationStatus: "translated"
 sidebar:
@@ -80,6 +80,8 @@ Rubyフレームワークはクラス宣言に記録されない*ふるまいの
 - フレームワークプラグインは準拠クラス側のオプトインなしに、コントローラー / ジョブ / シリアライザのプロトコルを強制できる。
 - コントローラー形のボディが実推論を獲得する: 提供されたパラメータ型がボディ全体をチェック可能なコードに変える。
 - 2つの消費者が同梱される: `examples/rigor-web/`（RigWebフレームワークチュートリアル — 最小参照消費者）と`plugins/rigor-hanami/`（本番利用: `app/actions/`下のHanami 2アクションクラスに`#handle(request) -> response`プロトコルを強制）。
+
+**適合範囲は狭い**。プロトコルが引き合うのは、規約上のディレクトリ内の*すべての*ファイルが*同じ*メソッドシグネチャを共有する場合に限られる: Hanamiアクションはそうだが、SidekiqワーカーやActiveJobジョブはそうではない。メンバーのシグネチャがばらつくディレクトリは候補にならない;プロトコルを提案してはならない。
 
 ## 却下 / 見送りの代替案
 

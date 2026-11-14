@@ -3,9 +3,9 @@ title: "ADR-39 — プラグインはターゲットライブラリの安全な�
 description: "rigortype/rigor docs/adr/39-plugin-target-library-invocation.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/39-plugin-target-library-invocation.md"
 sourcePath: "docs/adr/39-plugin-target-library-invocation.md"
-sourceSha: "1f39d4e1bcec97e49f74ff819385b2e8b830e4370022d24995106056d4dc886c"
-sourceCommit: "e12ab45fa55707ed2acc0eae2e273b99a72dc077"
-sourceDate: "2026-09-25T00:57:03+09:00"
+sourceSha: "43e16ef7c2115cc17bde57e9c255f40dc06d3bb8c9721faadb8258966325b4a2"
+sourceCommit: "2d66acadc4b2f6a7bd12f4b731d28b396c355af8"
+sourceDate: "2026-10-16T08:37:03+09:00"
 translationStatus: "translated"
 sidebar:
   order: 4039
@@ -115,7 +115,7 @@ Flake Ruby（4.0.5）で検証済み: `Ruby::Box.new` + `box.require` + `box.eva
 - しかし**フルの実世界解析はsegfaultしうる**: `RUBY_BOX=1`のもとでのRedmine `app`に対する`rigor check`がクラッシュした（`SIGSEGV`）。一見、そのプロジェクト自身の不正な形式の`sig/`（`RBS::DuplicatedDeclarationError`）のエラーパスで——非ボックス実行はこれを適切に処理する。クラッシュはVMのメソッドルックアップパス（`prepare_callable_method_entry`）でのNULL参照であり、ユーザーのサブボックスなし（プロセス全体の`RUBY_BOX=1`のみ）で再現する——これはRigorの`Plugin::Box`によって**引き起こされるものではありません**。Rubyのバグ報告ドラフトが[`docs/notes/20260602-ruby-box-segfault-bug-report.md`](../../notes/20260602-ruby-box-segfault-bug-report/)にあります。
 - **2026-08-24: segfaultの根本原因が特定され、（ローカルで）パッチ済み**。原因はクラス／モジュール本体のprocに対する`Ractor.make_shareable`: `env_copy`がTOP/CLASS envのSPECVALスロットに格納されたボックスを上書きしてしまうため、分離されたprocの内部での最初のメソッド呼び出しがNULLボックスを参照する——Rigorは`Plugin::Box`経由ではなく、Ractor共有可能なモジュールスコープのラムダを通じてこれを踏んだ。1行のVM修正 + 回帰テストをCRuby masterに対して検証済み（上記の更新されたノートを参照;パッチはローカルのCRubyチェックアウトの`fix/box`ブランチにあり、上流へ提出中）。パッチ済みのRubyでは、フルのRedmine `app`実行が`RUBY_BOX=1`のもとで完了し、さらに——PR #469の2つのRigor側修正（`::ScriptError`に安全な辞退と、`Ruby::Box#require`が生の`$LOAD_PATH`しか参照しないことによるボックス内`Kernel#require`へのgem解決フォールバック）を併せると——`ruby_box`戦略はRedmine `app/models`上で`none` / `process`と同一の診断を、ボックスが語形変化に応答しながら生成する。
 - **2026-09: 上流で修正済み、未リリース**。パッチはCRuby masterに[Bug #22260](https://bugs.ruby-lang.org/issues/22260)（`a4ad8e461a`、2026-09-10）として着地した。4.0.7（2026-09-15）には含まれず、`ruby_4_0`ブランチにも存在しない —— チケットに4.0バックポート要求がないため —— したがってリリース済みのすべてのRubyは依然としてクラッシュし、4.0.xバックポートが先に来ない限り、これを載せる最初のリリースは4.1.0となる。
-- **ランチャーは再execを修正の有無でゲートするようになった**。`RUBY_BOX=1`のもとで再execする前に、`exe/rigor`は子Rubyでバグの最小再現コードを実行する（`Rigor::Plugin::BoxProbe`）。クラッシュするか`Ruby::Box`を持たないRubyは1行の警告を受け取り、実行はsegfaultする代わりに設定された戦略（デフォルトでは`process`）のもとで継続する。このチェックはバージョン境界ではなく振る舞いによるものであるため、修正済みの4.1.0devビルドや将来の任意の4.0.xバックポートはコード変更なしに受け入れられる。
+- **ランチャーは再execを修正の有無でゲートするようになった**。`RUBY_BOX=1`のもとで再execする前に、`exe/rigor`は子Rubyでバグの最小再現コードを実行する（`Rigor::Plugin::BoxProbe`）。クラッシュするか`Ruby::Box`を持たないRubyは1行の警告を受け取り、実行はsegfaultする代わりに設定された戦略（デフォルトでは`process`）のもとで継続する。このチェックはバージョン境界ではなく振る舞いによるものであるため、修正済みの4.1.0devビルドや将来の任意の4.0.xバックポートはコード変更なしに受け入れられる。同じプローブは`RUBY_BOX`がすでに設定されているときにも実行される。そのプロセスはRigorコードが一切実行される前にボックス内で起動するため、拒否されたRubyは`RUBY_BOX`なしで再execされる（[#1346](https://github.com/rigortype/rigor/issues/1346)）。判定結果はRubyビルドごとにキャッシュされるため、子プロセスのコストは1回しか払われない。
 
 したがって**`process`（fork）がデフォルト**です——今日機能する本番対応の分離: フルのRedmine `app`実行（バイト単位同一の診断、segfaultなし）と環境変数を設定しない全スペックスイートで検証済みです。なぜならforkの境界が、`ruby_box`を壊すクラッシュをまさに封じ込めるからです。`fork`が利用できない場所では`none`にフォールバックします。`ruby_box`は**着地済みだが実験的としてゲート**されています（選択可能; Bug #22260修正を載せたRubyで使用可能であり、載せていない環境ではランチャーのプローブによって警告付きで拒否される —— CRuby masterで修正済み、リリース待ち）;修正済みのRubyがリリースされれば魅力的になります（より軽量、インプロセス、+ 正確なバージョンの共存）。`none`は明示的なオプトアウト + forkのないフォールバックです。
 

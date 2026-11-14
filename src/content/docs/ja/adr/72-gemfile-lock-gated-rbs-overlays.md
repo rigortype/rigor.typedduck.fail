@@ -3,9 +3,9 @@ title: "ADR-72 — Gemfile.lockでゲートされたバンドルRBSオーバー�
 description: "rigortype/rigor docs/adr/72-gemfile-lock-gated-rbs-overlays.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/72-gemfile-lock-gated-rbs-overlays.md"
 sourcePath: "docs/adr/72-gemfile-lock-gated-rbs-overlays.md"
-sourceSha: "e40804e5304e73b44184ccea93ba285b4c938b8d564dbae542ed82690e8d2ec2"
-sourceCommit: "2a65ec8e52462c931fbfec94df68a18139259a43"
-sourceDate: "2026-09-03T14:53:17+09:00"
+sourceSha: "ebe000f7c9d791b7e09b0589bd901adb1103f6dccaf3dcd5fc1a6610c2bbbb9d"
+sourceCommit: "2d66acadc4b2f6a7bd12f4b731d28b396c355af8"
+sourceDate: "2026-11-08T19:44:04+09:00"
 translationStatus: "translated"
 sidebar:
   order: 4072
@@ -44,6 +44,8 @@ sidebar:
 **「似ている」ではなく「ロードしている」こと**。テストは、エントリーが、ローダー自身の受入テストである`RbsLoader.project_sig_files`が双子の`.rbs`ファイルの1つをそこから読み込むディレクトリであるかどうかです（両側とも`File.realpath`によって正規化されます）。パス文字列の比較は両方向で誤りであり、偽陽性の方向はコストの高い方向です: 双子の`.rbs`*ファイル*、または存在しない双子のサブディレクトリを指定する`signature_paths:`は、文字列としては双子に一致しますがローダーはそこから何も読み取りません（`SignaturePathAudit`はそれらを`:not_directory` / `:missing`と報告します）。それらに対してオーバーレイを身を引かせてしまうとプロジェクトには*どちらの*コピーも残らなくなり、通常の`3.minutes`や`"x".camelize`が`call.undefined-method`を引き起こします——正しいコードに対してチェックが発火することになり、これはWD2と[ADR-5](../5-robustness-principle/)の双方が禁じています。静かな方向はその鏡像です: 双子へのシンボリックリンク、またはファイルシステムが大文字小文字を畳み込む環境での大文字小文字の異なる表記は、プレフィックスに一致しないまま双子の宣言をロードするため、オーバーレイが残りクラスが崩壊します。正規化は両方を解決します。
 
 **依然としてコンテンツテストではありません**。これらのシグネチャの*ベンダーされたコピー（vendored copy）*も同様に衝突しますが、意図的に捕捉されません: それを捕捉することは宣言の重複に対してオーバーレイを身を引かせることを意味し、コピーが省略したすべてのセレクタが正しいコードに対する新たな`call.undefined-method`になってしまうためです——再びWD2の禁止された方向です——さらに、編集されたコピーはどうせテストをすり抜けます。ベンダーされたコピーは推測ではなく衝突レポートを維持し、そのレポートをどれほど目立たせるべきかは[#696](https://github.com/rigortype/rigor/issues/696)の課題です。
+
+> **更新（2026-11-08、[#2974](https://github.com/rigortype/rigor/issues/2974)）:**オーバーレイは現在、プラグインの遅延シグネチャファイルとともに読み込まれるため、プロジェクトの`sig/`内にあるコピーによってクラスが崩壊することはなくなりました。双方が宣言する各メンバーはメンバー単位で身を引き、プロジェクト側の宣言が有効になります。
 
 ロックファイルの解決は`bundler.auto_detect`（デフォルト**true**）に便乗するので、この修正はルート直下に`Gemfile.lock`があるあらゆるプロジェクトでデフォルトで有効であり、設定を必要としません。
 

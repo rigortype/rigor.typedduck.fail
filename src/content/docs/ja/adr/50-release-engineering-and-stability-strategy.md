@@ -3,9 +3,9 @@ title: "ADR-50 — リリースエンジニアリングと安定化戦略（v0.2
 description: "rigortype/rigor docs/adr/50-release-engineering-and-stability-strategy.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/50-release-engineering-and-stability-strategy.md"
 sourcePath: "docs/adr/50-release-engineering-and-stability-strategy.md"
-sourceSha: "25a4b45bb1a53018caf3be8aa75ee3249da2b28a8c5b5d6c0a288880f2ae0860"
-sourceCommit: "e12ab45fa55707ed2acc0eae2e273b99a72dc077"
-sourceDate: "2026-09-27T20:06:31+09:00"
+sourceSha: "08247637d41a12b74e1800070a1b74ba8c4bf7706ba0c06db707a29d8572b867"
+sourceCommit: "2d66acadc4b2f6a7bd12f4b731d28b396c355af8"
+sourceDate: "2026-10-30T11:35:33+09:00"
 translationStatus: "translated"
 sidebar:
   order: 4050
@@ -73,6 +73,7 @@ v1.0.0の契約（列挙済み、v0.2.0で草案作成）は以下をカバー�
 | プラグイン契約——`Plugin::Base`フック＋マニフェストフィールド（ADR-37の`node_rule` / `dynamic_return` / `narrowing_facts`——ADR-80により`type_specifier`から改名、0.3.0で旧名を削除——＋宣言的フィールド） | あり（ADR-37のナロープロトコル、WD3による非推奨のfatフック） |
 | 診断**識別子**＋抑制マーカー＋`severity_overrides:`キー | あり（語彙であり、発火セットではない——§ Decision 3） |
 | ベースラインファイル形式＋キャッシュスキーマバージョン | あり（形式はあり、スキーマバンプは無効化するのみで誤読しない） |
+| 各`--format=json`ドキュメントのキーセット（`schema_version`、およびフラグがドキュメントを選択する場合は`mode`。[ADR-126](../126-cli-grammar-and-catalogue/) WD2） | あり（キーの追加はマイナー、削除や改名はメジャーのみ、空白は契約ではない） |
 | `RBS::Extended`アノテーション文法（`%a{rigor:v1:…}`） | あり |
 | エンジン内部（`Inference::*`、`Scope`、`Type::*`、ディスパッチティア） | **なし——内部、どのリリースでも変更可能** |
 | 特定ファイルで発火する診断 | **なし——§ Decision 3** |

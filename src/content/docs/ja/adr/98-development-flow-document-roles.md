@@ -3,8 +3,8 @@ title: "ADR-98 — 開発フロー文書の役割: ハンドオフ、issue、変
 description: "rigortype/rigor docs/adr/98-development-flow-document-roles.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/98-development-flow-document-roles.md"
 sourcePath: "docs/adr/98-development-flow-document-roles.md"
-sourceSha: "99c97d3343d1ab393451b1a56508fc9d6e243925ad9f58e73eba881ed419964b"
-sourceCommit: "78b18cea6a576475c92bce020535269f2eebc20d"
+sourceSha: "0305d66668b3f9ea10da5bd034717f383e4a15f32fd1f2bda4a730b69aacf706"
+sourceCommit: "2d66acadc4b2f6a7bd12f4b731d28b396c355af8"
 translationStatus: "translated"
 sidebar:
   order: 4098
@@ -75,6 +75,7 @@ ADR-97の基準2（機械的なゲートを持たない倹約ルールは一時�
 
 ## 他のADRとの関係
 
+- **[ADR-123](../123-merge-queue-and-post-hoc-approval/)** —— 5つ目のフロー面である`approval-queue.d/`を追加する。エージェントが先例に基づいて下した決定であり、リリース準備時に消化される。
 - **[ADR-97](../97-adr-index-budgets/)** —— 1週間違いの兄弟の決定。すなわちADR-97はインデックス*エントリー*が何を運んでよいかを直した。本ADRはフロー*文書*が何を運んでよいかを直す。両方とも同じ2つの基準（固定された仕事のための固定された予算、指示に対するゲート）に立ち、同じspecファイルを共有し、本ADRは`AGENTS.md`の常設ポリシー前提リストでそれに加わる。
 - **[ADR-50](../50-release-engineering-and-stability-strategy/)** —— リリース戦略を規範的に所有する。ROADMAPの戦略散文は再陳述だった。Milestoneはその切り出しを運用化する。その中の何も変わらない。
 - **[ADR-92](../92-normative-status-fidelity/)** —— 検証してから持ち越すというルールは、その宣言するかマークするかの規律をハンドオフに適用したものである。すなわち沈黙（検証されていない持ち越された主張）は決して正直な状態ではない。
