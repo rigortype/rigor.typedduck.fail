@@ -3,8 +3,8 @@ title: "ADR-49 — ADR執筆ガイドライン（必要十分なADRのための�
 description: "rigortype/rigor docs/adr/49-adr-authoring-guidelines.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/49-adr-authoring-guidelines.md"
 sourcePath: "docs/adr/49-adr-authoring-guidelines.md"
-sourceSha: "b2b438cf7e6122253b1dafa3d7c93fe7f309ed62db8a4867afd564a2e22601e5"
-sourceCommit: "db7b23d42e9b47560438b67dfe16d53e03f70575"
+sourceSha: "f1a4b8b8098c4a06d888e285a7304bf9a2e6f4770258169123847eef0fa58525"
+sourceCommit: "2d66acadc4b2f6a7bd12f4b731d28b396c355af8"
 translationStatus: "translated"
 sidebar:
   order: 4049
@@ -70,6 +70,7 @@ N/Aはゼロではない: 免除された評価軸は**分母から除外され�
 | ステークスを独立した採点評価軸にする | 却下 | ステークスは*決定*の属性であり、*文書の品質*の属性ではない;二重計上はスコアを歪める。評価軸1〜2と8の読み方モディファイアとして位置づくべきだ。 |
 | 絶対的な長さ制限（例: "≤ N語"） | 却下 | エコノミーは比例的であり絶対的ではない——ADR-46の長さは正しく、ADR-40の簡潔さも正しい。固定上限は正しく長いADRを罰し、中身のない短いADRを報奨する。 |
 | 明示的な意図がないADRを自動ペナルティ | 却下 | 目標と真っ向から矛盾する: 多くのADRは正しく薄い。薄い意図は`high`ステークスのときだけ欠陥だ（§2）、これはモディファイアが一律ペナルティなしに捉える。 |
+| ADR本体に対する構造的ゲート（regomark風の`deny` / `warn`分割） | 保留 | 以下の読解ハザードは診断の補助であり、それらに対するゲートはコーパス自体の慣例を損なってしまう: 128のADRのうち77が`#NN`+のissueやPRを引用し、およそ30〜45が`file:line`アンカーを保持しており、これらはハザード表で手動で免除されている。コーパスがすでに満たしているルールセットでのみ再検討する。 |
 | 意図を既存の"Context"期待に折り込む | 保留 | 意図（目標/なぜ）とコンテキスト（問題/背景）は別物であり、別々に採点する価値がある;合体させると重要なADRで最も一般的なギャップが隠れる。2つの評価軸が実際に連動することが判明した場合のみ再検討する。 |
 
 ## 結果

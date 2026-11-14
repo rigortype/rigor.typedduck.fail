@@ -3,8 +3,8 @@ title: "CLIコマンドリファレンス"
 description: "rigortype/rigor docs/manual/02-cli-reference.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/02-cli-reference.md"
 sourcePath: "docs/manual/02-cli-reference.md"
-sourceSha: "dd38326b6b419e834053e0ed48e1994f7b4cdfbc35e6be33d0782e0042af06e8"
-sourceCommit: "3cc8382fdae19aa6a60b92ccf6e33530306b4e95"
+sourceSha: "4e58a705808c26bff2c60d5a56f82cdfe0e256578102f124e1fc9385fd502f97"
+sourceCommit: "2d66acadc4b2f6a7bd12f4b731d28b396c355af8"
 sourceDate: "2026-10-26T02:45:29+09:00"
 translationStatus: "translated"
 sidebar:
@@ -348,6 +348,8 @@ rigor effects explain   # why an entry point reaches a label
 
 レポートと違い、サブコマンドはパスを取りません: スナップショットはプロジェクト全体を記録するもので、サブセットに対して書かれたものは他のすべてのメソッドが消えたプロジェクトとして読めてしまいます。すべて`--config=PATH`・`--format=text|json`・`--full`を受け付けます;`check`・`diff`・`explain`は追加で`--baseline=PATH`（設定されたもの以外のファイルと比較する —— botでの`--baseline <(git show origin/main:.rigor-effects.yml)`）、`--strict-tolerated`、`--no-tolerated-effects`を受け付けます。`explain`はさらに、変更されたユニットの代わりに特定の1つのユニットを説明するための`--symbol=KEY`を受け付けます。
 
+`update`は`effects.snapshot.path:`（デフォルトは`.rigor-effects.yml`）に書き込みます。そのディレクトリが存在しないパスや書き込みができないパスは使用法エラーとなります: stderrに1行の`rigor effects: cannot write PATH: REASON`を出力し、終了コード`64`で終了します。ディレクトリは自動作成されません。
+
 ファイルは2つのテーブルを記録します。`methods:`は各メソッドの**直接**サマリー —— ブロックリテラルとカタログ化された呼び出し先を含む、自身の本体がすること。ただし呼び出すプロジェクトメソッドがすることは含まない —— を保持します。これは意図的です: エントリーは自身の行が変わったときにだけ動くので、diffはそれを引き起こしたプルリクエストに帰属可能なままです。`reach:`は`effects.snapshot.reach:`が名指しするエントリポイントにおける**推移的**フットプリントを保持し、そこではリーフの変更が扇状に広がることになっています —— その扇状の広がりが影響範囲です。
 
 ```yaml
@@ -544,6 +546,8 @@ rigor sig-gen [paths]
 
 `--write`はスキップした各提案（`sig/`がすでに宣言しているメンバー（`alias`を含む）、またはそれがそこで宣言されているかもしくはそのクラスがそこに存在するために書き込みを行わないシグネチャパスにルーティングされるメンバー）を個別の`skipped Class#method (reason)`行に出力します;終了ステータスは変わりません。[ハンドブック第11章](../../handbook/11-sig-gen/#安全性---writeが行うことと行わないこと)を参照してください。
 
+`--write`が書き込めない`sig/`ターゲット（パーミッション拒絶、`.rbs`があるべき場所にディレクトリが存在する、親パスが通常ファイルであるなど）は使用法エラーとなります: stderrに1行の`rigor sig-gen: cannot write PATH: REASON`を出力し、終了コード`64`で終了します。存在しない親ディレクトリは従来どおり作成されます。実行は最初の失敗で停止します;すでに書き込まれたターゲットは書き込まれたまま残ります。
+
 `# @rbs` / `#:`でインライン宣言されたメソッドは、その本体が推論した内容ではなくその宣言として書き出されます。パラメータのみのアノテーションはパラメータを保持し戻り値を本体から取得し、`initialize`は常に`-> void`です。`sig/`がすでにそのメソッド（`def`または`attr_*`）を宣言しており、型として両者が不一致の場合（パラメータ名やユニオンの綴りは問わず、オーバーロードの順序は問う）、sig-genはどちらも変更しません: メソッドは拒絶され（`sig.skipped.inline-differs`、`--format=json`の`refused`にリスト）、両者を一致させるか`--overwrite`（`sig/`のメンバー全体をインライン宣言で置き換える）を渡すまで`--write` / `--check`は`1`で終了します。パラメータのみのアノテーションではパラメータのみが比較され、戻り値は通常の提案規則に従います。インラインでジェネリックにされたクラスは、`sig/`が同じ型パラメータで宣言していない限り書き出されません。Steepが同じアノテーションを読み込むプロジェクトでは、`.rigor.yml`で`sig_gen.inline_declared: skip`を設定してそれらのメソッドを`sig/`から除外します。[ハンドブック第11章](../../handbook/11-sig-gen/#インラインで宣言されたメソッド)を参照してください。
 
 `.rigor.yml`に`effects:`ブロックがある場合、sig-genはエフェクトサマリーが**網羅的（exhaustive）**（到達するすべての呼び出しが解決されている）、**未免責（undischarged）**（そのフットプリント内のいかなるものも`effects.tolerated:`の指定のみによって不可視化されていない）、**宣言済み（claimed）**（すべての呼び出し先がカタログ行、プラグイン、エンベロープ、またはプロジェクト定義によって記述されている）であり、自身の手書きの境界を持たず、`≤`レーンに残存ラベルがないメソッドの上に`%a{pure}`も書き込みます。それ以外のメソッドにはアノテーションが付与されず、`--effect-envelopes`はフットプリントを持つメソッドに対してRigor自身のラベル付き表記を追加します。`effects:`ブロックがない場合、出力は以前とバイト単位で同一です。[ハンドブック第11章](../../handbook/11-sig-gen/#emitting-effect-annotations)を参照してください。
@@ -579,6 +583,8 @@ rigor baseline <generate|regenerate|dump|drift|prune> [options]
 | `prune` | 診断に一致しなくなったバケットを削除する。`--dry-run`でプレビュー。 |
 
 `generate`と`regenerate`は`--output=PATH`と`--match-mode=rule|message`を受け付けます。`dump`・`drift`・`prune`は非既定のベースラインファイルを読むための`--baseline=PATH`を受け付けます。`dump`は機械可読な出力のための`--format=text|json`も受け付けます。
+
+書き込みターゲット —— `generate`および`regenerate`の`--output`、または`prune`が書き換える`--baseline`ファイル —— において、そのディレクトリが存在しないか書き込みができない場合は使用法エラーとなります: stderrに1行の`rigor baseline: cannot write PATH: REASON`を出力し、終了コード`64`で終了します。ディレクトリは自動作成されません。
 
 位置引数のパスを取るサブコマンドはありません: `generate`と`regenerate`は設定された`paths:`を解析し、`drift`と`prune`はそれらを監査し、`dump`はベースラインファイルを読み込んで`--rule`/`--file`でフィルタリングします。パス引数は使用法エラー（終了コード`64`）です。対象スコープを絞り込むにはコマンドラインではなく設定の`paths:`で行ってください。
 

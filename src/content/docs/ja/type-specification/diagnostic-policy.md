@@ -3,8 +3,8 @@ title: "診断ポリシー"
 description: "rigortype/rigor docs/type-specification/diagnostic-policy.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/type-specification/diagnostic-policy.md"
 sourcePath: "docs/type-specification/diagnostic-policy.md"
-sourceSha: "be127fd86e24193636729d1d77f8b141cc5279971c691e239eeb6e0ad0f0eeb7"
-sourceCommit: "3cc8382fdae19aa6a60b92ccf6e33530306b4e95"
+sourceSha: "81d0ee312d8a3915bc5c63ef269e8b9ef56e5204481d65d6c8b09a4897f1f7d3"
+sourceCommit: "2d66acadc4b2f6a7bd12f4b731d28b396c355af8"
 sourceDate: "2026-11-10T09:40:46Z"
 translationStatus: "translated"
 sidebar:
@@ -145,7 +145,7 @@ Rigorネイティブのマーカーは、PHPStanのアノテーションの感�
 
 `.rigor.yml`の`disable:`リスト内の`all`は、ファイル内で`# rigor:disable-file all`が行うのと同様に、すべての組み込みチェックルール行（`CheckRules`カタログ内のidで、`:builtin`ソースファミリーから発行されるもの）をドロップします。ファイルごとのフィルタに加え、このリストは実行の最終ストリームで重大度がスタンプされる場所——順次実行、ワーカープール、`--incremental`再チェック、および結果キャッシュから返される実行のすべてが通過するスタンプ処理——でそれらの行に再度適用されます。そのため、`effect.annotations-unchecked`のようにファイルごとの解析の外で生成されるチェックルール行もこれに応じます。
 
-プラグイン自体の行（ソースファミリー`plugin.<id>`）は、その修飾idによってのみトークンに応じます: トークンが行の`qualified_rule`（`plugin.<id>.<rule>`）と等しいか、またはそのソースファミリー（`plugin.<id>`）と等しい場合です。どちらも行自身のフィールドに対する完全文字列比較であるため、`plugin.<id>`は単に`<id>.`で始まるidを持つプラグインには決して届きません。マニフェストidとルールidの両方にドットが含まれる可能性があるため、1つの重複が残ります: ルール`b.c`を持つプラグイン`a`と、ルール`c`を持つプラグイン`a.b`はどちらも`qualified_rule` `plugin.a.b.c`を共有し、その完全一致トークンは両方の行をドロップします。プレフィックスのないidや`all`は、`disable:`内でもマーカー内でもこれらの行には届きません: プラグインはプレフィックスのないルール（`load-error`、`unknown-column`）を共有しており、プレフィックスなしのマッチは他のプラグインの指摘を隠してしまう可能性があるためです。`disable:`は同じ重大度スタンプでこれらに届くため、すべての実行形式で一致します;マーカーは、マーカーを保持するファイルが解析されている間にプラグインが発行する行（`#diagnostics_for_file`およびノードルール）に届き、別のファイルに位置するプラグイン行は`disable:`およびベースラインにのみ応じます。`disable:`はスタンプ時に適用されるため、`disable: [plugin.<id>]`はそのプラグインの実行レベルの開示行（解析不可能なロケールファイルに対するrigor-rails-i18nの`load-error`など、`.rigor.yml`で報告されるもの）もドロップします。
+プラグイン自体の行（ソースファミリー`plugin.<id>`）は、その修飾idによってのみトークンに応じます: トークンが行の`qualified_rule`（`plugin.<id>.<rule>`）と等しいか、またはそのソースファミリー（`plugin.<id>`）と等しい場合です。どちらも行自身のフィールドに対する完全文字列比較であるため、`plugin.<id>`は単に`<id>.`で始まるidを持つプラグインには決して届きません。マニフェストidとルールidの両方にドットが含まれる可能性があるため、1つの重複が残ります: ルール`b.c`を持つプラグイン`a`と、ルール`c`を持つプラグイン`a.b`はどちらも`qualified_rule` `plugin.a.b.c`を共有し、その完全一致トークンは両方の行をドロップします。プレフィックスのないidや`all`は、`disable:`内でもマーカー内でもこれらの行には届きません: プラグインはプレフィックスのないルール（`load-error`、`unknown-column`）を共有しており、プレフィックスなしのマッチは他のプラグインの指摘を隠してしまう可能性があるためです。`disable:`は同じ重大度スタンプでこれらに届くため、すべての実行形式で一致します;マーカーは、マーカーを保持するファイルが解析されている間にプラグインが発行する行（`#diagnostics_for_file`およびノードルール）に届き、別のファイルに位置するプラグイン行は`disable:`およびベースラインにのみ応じます。`disable:`はスタンプ時に適用されるため、`disable: [plugin.<id>]`はそのプラグインの実行レベルの開示行（解析不可能なロケールファイルに対するrigor-rails-i18nの`load-error`など、読み込まれた設定ファイル —— 何も読み込まれなかった場合は`.rigor.yml`、#2742 —— で報告されるもの）もドロップします。
 
 `disable:`リストは、チェックルールカタログ外の実行レベルの行——プラグインローダーの`load-error`および`runtime-error`（`plugin_loader.*`）、`dynamic.dependency-source.*`、`rbs.coverage.*`、`plugin_trust.*`、`pool-degraded`——には届きません（独自の抑制パイプラインを持つ`pre-eval.*`行を除く）。どの表記もこれらには届きません: プレフィックスのないidも、修飾id（`plugin_loader.load-error`）も、`all`も届きません。これらは`severity_overrides:`およびベースラインに、ローダーの`plugin_loader.load-error` / `plugin_loader.runtime-error`またはその素の`load-error` / `runtime-error`によって応じます;素のキーはプラグイン自身の`plugin.<id>.load-error`行を再スタンプしません（issue #1985）。
 

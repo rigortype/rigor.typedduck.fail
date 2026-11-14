@@ -4,8 +4,8 @@ description: "Imported from rigortype/rigor docs/notes/20260523-date-time-method
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/20260523-date-time-method-coverage.md"
 sourcePath: "docs/notes/20260523-date-time-method-coverage.md"
 sourceSha: "0a0bcfbf55709d3233d3f3571a9db02b15528830bd622f3c85916a8a0176f867"
-sourceCommit: "74338dab0b5ab27a5e171392930e4e8e5c031bfc"
-sourceDate: "2026-05-23T01:05:28+09:00"
+sourceCommit: "2d66acadc4b2f6a7bd12f4b731d28b396c355af8"
+sourceDate: "2026-11-13T21:41:07Z"
 sourceLanguage: "ja"
 sidebar:
   order: 20266523
