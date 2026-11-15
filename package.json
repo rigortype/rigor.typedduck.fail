@@ -22,19 +22,20 @@
     "check": "astro check"
   },
   "dependencies": {
-    "@astrojs/mdx": "5.0.6",
-    "@astrojs/starlight": "0.39.3",
-    "astro": "6.4.8",
+    "@astrojs/markdown-remark": "^7.3.9",
+    "@astrojs/mdx": "8.1.6",
+    "@astrojs/starlight": "0.43.1",
+    "astro": "7.4.12",
     "github-slugger": "2.0.0",
-    "remark-cjk-friendly": "^2.3.1",
-    "starlight-sidebar-topics": "^0.8.0",
+    "remark-cjk-friendly": "^2.3.4",
+    "starlight-sidebar-topics": "^0.9.0",
     "zard-doc-astro": "file:vendor/zard-doc-astro-0.0.0.tgz"
   },
   "devDependencies": {
-    "@astrojs/check": "0.9.10",
-    "hast-util-from-html": "2.0.3",
+    "@astrojs/check": "0.9.12",
+    "hast-util-from-html": "2.1.0",
     "typescript": "6.0.3",
-    "wrangler": "^4.125.0"
+    "wrangler": "^4.162.0"
   },
   "pnpm": {
     "onlyBuiltDependencies": [

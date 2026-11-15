@@ -2,6 +2,7 @@ import { defineConfig } from 'astro/config';
 import mdx from '@astrojs/mdx';
 import starlight from '@astrojs/starlight';
 import starlightSidebarTopics from 'starlight-sidebar-topics';
+import { unified } from '@astrojs/markdown-remark';
 import remarkCjkFriendly from 'remark-cjk-friendly';
 import { rigorInferenceHints } from './src/lib/ec-inference-hints.mjs';
 import { apiReferenceTopics } from './scripts/api-reference/navigation.mjs';
@@ -27,9 +28,9 @@ export default defineConfig({
   // marker leaks into the HTML. remark-cjk-friendly makes the flanking rules
   // CJK-aware. The MDX integration inherits this markdown config by default,
   // so both .md and .mdx are covered.
-  markdown: {
+  markdown: unified({
     remarkPlugins: [remarkCjkFriendly],
-  },
+  }),
   integrations: [
     starlight({
       title: 'Rigor',
