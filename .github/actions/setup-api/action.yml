@@ -7,7 +7,7 @@ inputs:
 runs:
   using: composite
   steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
       with:
         repository: rigortype/zard
         ref: 42ae1d10b349d7699c103111a2d58e9d029da3af
