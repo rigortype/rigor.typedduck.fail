@@ -3,8 +3,8 @@ title: "ADR-99 — 設定スキーマは信頼できる情報源である: `.rig
 description: "rigortype/rigor docs/adr/99-config-schema-authority.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/99-config-schema-authority.md"
 sourcePath: "docs/adr/99-config-schema-authority.md"
-sourceSha: "13c34d8eaed4ca7e9f83110414fff1b608d8d3a95415683936b8c7b7f8fbf8b1"
-sourceCommit: "78b18cea6a576475c92bce020535269f2eebc20d"
+sourceSha: "4602eef08856009d89bd71d59852574a2c42b18b942e76a1373c94928c5a6364"
+sourceCommit: "f6764bdb6e31ef848e10dccabd863adf0de6f519"
 translationStatus: "translated"
 sidebar:
   order: 4099
@@ -21,7 +21,7 @@ sidebar:
 | アーティファクト | 仕事 |
 | --- | --- |
 | `schemas/rigor-config.schema.json` | JSON Schema。`.rigor.dist.yml`が運び`rigor init`が書き込む`# yaml-language-server: $schema=`コメントを介してエディタに届く |
-| `lib/rigor/configuration.rb` | `DEFAULTS`＋ コアーサー |
+| `lib/rigor/configuration/defaults.rb` + `coercion.rb`（#3287までは`configuration.rb`内） | `DEFAULTS`＋コアーサー |
 | `lib/rigor/config_audit.rb` | 何にも解決しない警告 |
 | `docs/manual/03-configuration.md` | ユーザー向けのキーリファレンス |
 

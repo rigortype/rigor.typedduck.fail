@@ -3,8 +3,8 @@ title: "設定"
 description: "rigortype/rigor docs/manual/03-configuration.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/03-configuration.md"
 sourcePath: "docs/manual/03-configuration.md"
-sourceSha: "bac577b89aa506aae8bf69da0f4239a981d4ff04aaa7d0e5310a1fe19a898a50"
-sourceCommit: "3cc8382fdae19aa6a60b92ccf6e33530306b4e95"
+sourceSha: "c83386bb3a2ce359074f304397e57c0d3b81ee031d175bb9c26bdae269dc1392"
+sourceCommit: "f6764bdb6e31ef848e10dccabd863adf0de6f519"
 sourceDate: "2026-11-10T22:04:43+09:00"
 translationStatus: "translated"
 sidebar:
@@ -59,7 +59,7 @@ cache:
 | `test_paths` | Array | `nil` | プロジェクトのテストルート: テストを保持するディレクトリ（またはファイル）。相対パスのエントリーは設定ファイルのディレクトリを基準に解決されます。未設定の場合は、設定ファイルのディレクトリに存在する`spec/`と`test/`のうち存在する方を自動検出し、設定ファイルのディレクトリにどちらも存在しない場合や設定ファイルが使用されない場合は作業ディレクトリから自動検出します。`[]`はなしを宣言します。`rigor sig-gen --params=observed`はパラメータを型付けするためにそこにある呼び出し箇所を読み取り、存在しない宣言されたルートがあればstderrに名前を出力します。テストルートは`paths:`にも記載されていない限り解析されず、変更してもキャッシュは無効化されません。 |
 | `includes` | Array | `[]` | このファイルの下に継承する他の設定ファイル。 |
 | `fold_platform_specific_paths` | Boolean | `false` | ソース探索時にRubyバージョン条件付きロードパスを解決する。 |
-| `parameter_inference` | Boolean | `false` | `check`ウォークでのオプトインのコールサイトパラメータ型推論（[ADR-67](../../adr/67-parameter-type-inference/) WD6）。`true`のとき、宣言されていない`def` / `initialize` / セッターのパラメータは、解決されたコールサイト引数型のユニオンに型付けされ、下流のivar読み取り・畳み込み・保護カバレッジを精密化する。精度加算的のみ —— 否定的ルールは推論されたパラメータに対して決して発火しない。`--incremental`とは併用できない。 |
+| `parameter_inference` | Boolean | `false` | `check`ウォークでのオプトインのコールサイトパラメータ型推論（[ADR-67](../../adr/67-parameter-type-inference/) WD6）。`true`のとき、宣言されていない`def` / `initialize` / セッターのパラメータは、解決されたコールサイト引数型のユニオンに型付けされ、下流のivar読み取り・畳み込み・保護カバレッジを精密化する。精度加算的のみ —— 否定的ルールは推論されたパラメータに対して決して発火しない。`--incremental`と合成可能: 再チェックごとに事前パスが再実行され、推論されたパラメータ型が変化した呼び出し先は再解析される（[ADR-67](../../adr/67-parameter-type-inference/) WD6c）。 |
 
 ### 型ソース
 

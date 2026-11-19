@@ -3,8 +3,8 @@ title: "型作成の契約"
 description: "rigortype/rigor docs/agents/type-authoring.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/agents/type-authoring.md"
 sourcePath: "docs/agents/type-authoring.md"
-sourceSha: "fe73d87379812f3cbc65136c78dfedeb4b27cdc819bdd5e69a75e047be91b41f"
-sourceCommit: "2d66acadc4b2f6a7bd12f4b731d28b396c355af8"
+sourceSha: "de900a5a37e07d0b5da20edcb4857248ea0e0191e669d74bbca44ac72e07c178"
+sourceCommit: "f6764bdb6e31ef848e10dccabd863adf0de6f519"
 sourceDate: "2026-11-11T03:33:10+09:00"
 translationStatus: "translated"
 sidebar:
@@ -30,6 +30,25 @@ Rigorが生成または検査していない型を書き留めてはなりませ
 ## RBS
 
 手書きやAIが作成したRBSよりも、`rigor sig-gen --print` / `--diff`を優先してください。推論のギャップはエンジンに関するシグナルであるため、まずは生成された出力を提案し、ユーザーがその代替案をレビューした後にのみ手動で編集してください。タスクがそれを許可している場合は、既存の`.rbs`を修正して構いません。
+
+### 来歴ゲートの行クラス
+
+`spec/rigor/sig_gen/provenance_spec.rb`は、`rigor sig-gen`がレンダーする内容に対して`sig/`の各宣言を分類し、ファイルごとにマークなしの残余（residue）をピン留めします（`SIG_PROVENANCE_RESIDUE`）。戻り値がsig-genの生成するものと一致するとき（`generated`）、戻り値が等価でパラメータまたはブロックに型が付いているとき（`parameter_intent`）、または戻り値が`void`のとき（`return_intent`）、その行は正当と認められます（earned）。sig-genが戻り値を確認できない場合（`declared_divergent`、`untranslatable_declared`、`unrenderable`、`unmatched_declaration`、および対応付けられる`def`がない行: `synthetic_source`、`inherited_source`、`runtime_defined`、`no_source`）は、`# sig-gen gap:`または`# authored:`マーカーを持たない限り残余となります。sig-genがより狭く推論する宣言された戻り値（`tighter_return`）は、生成された戻り値またはマーカーを必要とします。
+
+`parameter_only`は、earned、residue、および`tighter_return`に続く第4の状態です。sig-genがそのメソッドを`sig.skipped.untyped-return`としてスキップし、宣言が何らかの型を述べており、かつすべてのオーバーロードの戻り値が素の`untyped`である場合にこれに該当します。「何らかの型を述べる」とは、`(?)`ではなく、かつ型が`untyped`、`top`、またはそのいずれかのオプショナルではない位置・オプショナル・可変長・キーワード・キーワード可変長パラメータが少なくとも1つあること、または自身のパラメータもしくは宣言された戻り値が`untyped`ではないブロックがあることを意味します。型付き戻り値を宣言するブロックは呼び出し元のブロックが何を返さなければならないかを述べており、パラメータと同様に著述された意図です。メソッド自身の戻り値はメソッドから読み取られ、ブロックからは決して読み取られません: `{ (untyped) -> untyped } -> Integer`は型付きのメソッド戻り値を持ち、残余です。
+
+メソッドのパラメータに型を付けることで、sig-genはその戻り値および呼び出し元の戻り値をレンダーできるようになります。パラメータに型を付けて戻り値を`untyped`のままにする宣言は、ゲートが検査できない主張を一切行わないため、ファイルのピンに対してカウントされません。その行は免除ではなく監視対象です: レポートはファイルごとおよび合計の`parameter_only`件数を出力し、`SIG_PROVENANCE_PARAMETER_ONLY`はファイルごとにマークあり行とマークなし行を分けて双方向にピン留めします。`void`、`bool`、`[untyped, untyped]`、`Array[untyped]`、`untyped?`、および`untyped`とのユニオンは戻り値を述べているため残余のままとなり、型を述べていない宣言（`(untyped x) -> untyped`、`(untyped? x) -> untyped`、`(top x) -> untyped`、`(?) -> untyped`、すべて`untyped`のブロック）も同様です。コンテナ（`Array[untyped]`、タプル、レコード、proc）は型として数えられます。`untyped`に展開されるエイリアスは展開されないため、これも1つとして数えられます。
+
+**抜け道は戻り値を宣言することです**。 sig-genが戻り値をレンダーできるようになるとその行はこのクラスを離れ、その時点では`tighter_return`（宣言された`untyped`が生成された型より緩い）、または本体が`nil`のみを証明する場合には`declared_divergent`残余として読まれます（sig-genは宣言された`untyped`に対して素の`nil`を提案することを辞退するため）。いずれにせよ著者が戻り値を宣言し、ゲートがそれを確認します。メソッド自身の宣言された戻り値に依存する戻り値は、自力ではレンダー可能になりません: 宣言された`untyped`が再帰呼び出しを`untyped`として読ませるため、sig-genは自己再帰メソッドや互いに呼び出し合う2つの`parameter_only`メソッドをスキップし続けます。それを宣言してください: `def depth(xs, n); return n if xs.empty?; depth(xs.drop(1), n + 1); end`に対する`(Array[Integer] xs, Integer n) -> Integer`は`parameter_intent`として確認されます。
+
+**`parameter_only`行にマーカーを付けてはなりません**。 `# sig-gen gap:`マーカーは許可リスト入りのissueを伴うエンジンギャップを記録するものであり（ADR-14）、行を静かにさせる手段ではありません。マークされた行では後の`tighter_return`が沈黙するため、マーカーは監視対象のクラスを恒久的な免除に変えてしまいます。ゲートは、このクラスが存在する前から`unrenderable`としてマークされていた2件（縮小のみ可能な`SIG_PROVENANCE_PARAMETER_ONLY_MARKED`）を除き、マークされた`parameter_only`行を失敗させます。
+
+**宣言された`untyped`に対する`tighter_return`はその提案を採用します**。素の`untyped`戻り値はマーカーが記録すべきものを何も述べていないため、失敗メッセージはそれに対するマーカーを提示せず、sig-genの提案する戻り値のみを提示します。
+
+**各オーバーロードのパラメータリストはその`def`に適合しなければなりません**（#3335）。宣言は、sig-genが候補にするか否かにかかわらず、任意のファイルでsig-genの走査がそのクラス・メソッド・種別に対して記録したすべての`def`と比較されます。それらのいずれかが、そのオーバーロードが許容するすべての呼び出しを受け入れる場合に適合します。位置引数の個数はdefの範囲内に収まらなければなりません（`*rest`は上限を取り払います）。defが`**rest`を持たない限り、オーバーロードが名指しするすべてのキーワードはdefが受け取るものでなければなりません。キーワードパラメータも`**nil`も持たないdefはキーワードを位置Hashとして受け取るため、そこでは空きのあるオプショナルまたはrestスロットが残っていれば適合します。defが必須とするすべてのキーワードはオーバーロードでも必須でなければならず、オーバーロードの`**rest`はdefにもそれを必要とします。宣言されたブロックは、ブロックを受け取るか、`yield`するか、`block_given?`や`iterator?`を呼ぶか、または`super`を呼ぶdefを必要とします。オーバーロードはオプショナルな位置引数、オプショナルなキーワード、またはブロックを省略でき、オプショナルを必須にすることができます。`...`はその前の位置引数以降であれば何でも受け入れ、`(?)`は免除されます。記録された`def`がない宣言は、比較されるのではなく理由別に免除としてカウントされます: `attr_*`、`alias`、`define_method`、`Data`/`Struct`メンバー、継承されたメソッドまたは実行時に定義されたメソッド。このカウントはすべてのメソッド行が比較されたかそれらのバケットの1つに入れられたことのみを証明し、バケットに入れられた行に`def`がなかったことを証明するものではありません。パラメータの型は引き続き著者の責任です。
+
+レポートは次のコマンドで出力します:
+`nix develop --command bundle exec ruby -Ilib -Ispec/support -e 'require "sig_provenance_auditor"; SigProvenanceAuditor.report'`。
 
 ### 宣言された`void`を尊重する
 

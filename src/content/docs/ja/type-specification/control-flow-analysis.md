@@ -3,8 +3,8 @@ title: "制御フロー解析"
 description: "rigortype/rigor docs/type-specification/control-flow-analysis.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/type-specification/control-flow-analysis.md"
 sourcePath: "docs/type-specification/control-flow-analysis.md"
-sourceSha: "3cb1d7d68929079c2f2a53b57958853d3cf238d3dd78a35559abed7719d4d7dd"
-sourceCommit: "2d66acadc4b2f6a7bd12f4b731d28b396c355af8"
+sourceSha: "8fecf4424ef14570b3c70e09fe8d0b3a197a76b26ff6f994b5b3bc028e1f31aa"
+sourceCommit: "f6764bdb6e31ef848e10dccabd863adf0de6f519"
 sourceDate: "2026-11-12T07:33:50+09:00"
 translationStatus: "translated"
 sidebar:
@@ -76,7 +76,7 @@ end
 
 `return`、`next`、または`break`は、それ自身の位置では値を生成しません。その型は`bot`であり、union下で吸収されるため、分岐結合（branch join）は完了可能なアームのみに集約されます。それが運び出す値は、それが離脱する構文に属し、その構文の推論される値は、そのフォールスルー結果と解析が到達可能なすべてのそのようなアームのunionでなければなりません（MUST）:
 
-- `return value`は囲むメソッドを脱出し、そのメソッドの推論される戻り値の型に結合します。ネストした`def`、lambdaリテラル、任意のレシーバーに対する`define_method`または`define_singleton_method`のブロック、および`Kernel`に到達する`lambda`のブロック（裸、`self`上、または`Kernel`上で呼び出される）は ── 直接的または`send`、`public_send`、`__send__`を通じて ── 障壁となり、それらのreturnは内側の定義に属します。他の任意のブロック内に書かれた`return`は、依然として囲むメソッドを脱出しそこに結合します（決して実行されないかもしれないブロックも含み、これは単に型を広げるだけです）。このルールはメソッドの戻り値型のすべての読み手を同様に拘束します: `rigor check`が呼び出し元に示すもの、および`rigor sig-gen`と`rigor annotate`が提案するもの（Issue [#1382](https://github.com/rigortype/rigor/issues/1382)）。
+- `return value`は囲むメソッドを脱出し、そのメソッドの推論される戻り値の型に結合します。ネストした`def`、lambdaリテラル、任意のレシーバーに対する`define_method`または`define_singleton_method`のブロック、および`Kernel`に到達する`lambda`のブロック（裸、`self`上、または`Kernel`上で呼び出される）は ── 直接的または`send`、`public_send`、`__send__`を通じて ── 障壁となり、それらのreturnは内側の定義に属します。`send`を通じる場合、その呼び出しが障壁となるのはレシーバーの`send`が`Kernel#send`である場合に限られます: レシーバーのクラス、またはそのチェーン上のクラスやモジュールがソースまたはRBSで独自の`send`を定義している場合（`def send(_name) = yield`）、そのブロックは通常のブロックとなり、その`return`はメソッドを脱出します（Issue [#3081](https://github.com/rigortype/rigor/issues/3081)）。`Dynamic`などのエンジンが見通せないレシーバーは障壁の解釈を保ちます;`public_send`と`__send__`は別メソッドであり、これらも障壁の解釈を保ちます。他の任意のブロック内に書かれた`return`は、依然として囲むメソッドを脱出しそこに結合します（決して実行されないかもしれないブロックも含み、これは単に型を広げるだけです）。コアまたはRBSで宣言された繰り返し呼び出し（`each`、`times`、…）または`Kernel#loop`が実行するブロック内でそのような`return`に到達するかは、最初の実行だけでなく、任意の実行が入り得る束縛に対して判定されなければなりません（MUST）: `seen = 0; items.each { return false if (seen += 1) > 3 }; true`は`false | true`を返します（Issue [#2123](https://github.com/rigortype/rigor/issues/2123)）。yieldするプロジェクトメソッドに渡されたブロック（`def each; @items.each { |i| yield i }; end`）はまだカバーされていません（Issue [#2127](https://github.com/rigortype/rigor/issues/2127)）。このルールはメソッドの戻り値型のすべての読み手を同様に拘束します: `rigor check`が呼び出し元に示すもの、および`rigor sig-gen`と`rigor annotate`が提案するもの（Issue [#1382](https://github.com/rigortype/rigor/issues/1382)）。
 - `next value`は現在のブロック呼び出しを終了し、`value`をその呼び出しの結果とするため、**ブロックの**値型に結合します。単体の`next`は`nil`を寄与します。ネストしたブロック、lambda、`def`、またはループは、その配下に書かれた`next`の対象を変更し、そのような`next`は外側ブロックの値に結合してはなりません（MUST NOT）。
 - `break value`はyieldを行っている**呼び出し（call）**を終了し、ブロックの値ではなくその呼び出しの値となります。ブロックの値型に結合してはなりません（MUST NOT）。呼び出しの推論される型は、calleeが生成する結果と到達可能なすべての`break`アームのunionでなければなりません（MUST）。単体の`break`は`nil`を寄与します。ネストしたブロック、lambda、`def`、またはループは、その配下に書かれた`break`の対象を変更します —— そのような`break`はその内側の構文に属し、外側の呼び出しに到達してはなりません（MUST NOT）。unionは精度フォールド（precision fold）の内部ではなくその上に位置するため、フォールドはブロックが決してbreakしないパスについて正確に応答する自由を保ちます。任意のcalleeはブロックを実行せずに戻る可能性があるため、calleeの結果はunionに残ります。唯一の例外は、戻る前に厳密に1回yieldすることが知られているcalleeであり、その場合、ブロックの到達不能な通常完了はそれを除去します（§「ブロック呼び出しタイミング」）。実行せずにブロックを保存する呼び出し —— `Kernel`に到達する`lambda { … }`や`proc { … }`、`define_method` / `define_singleton_method`、および`Proc.new`、`Thread.new` / `start` / `fork`、`Fiber.new`、`Enumerator.new`、`Hash.new` —— は`break`アームを一切持ちません: ブロックはその呼び出し中に実行されないため、その中の`break`は、保存されたブロックが後で実行された際にlambdaや定義されたメソッドから戻るか、または`LocalJumpError`を発生させ、呼び出しの値に結合してはなりません（MUST NOT）。
 

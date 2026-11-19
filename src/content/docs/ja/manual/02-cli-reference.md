@@ -3,8 +3,8 @@ title: "CLIコマンドリファレンス"
 description: "rigortype/rigor docs/manual/02-cli-reference.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/manual/02-cli-reference.md"
 sourcePath: "docs/manual/02-cli-reference.md"
-sourceSha: "4e58a705808c26bff2c60d5a56f82cdfe0e256578102f124e1fc9385fd502f97"
-sourceCommit: "2d66acadc4b2f6a7bd12f4b731d28b396c355af8"
+sourceSha: "d2304f5882f4713ba1b24517b26f6e7279530e5e0ce238f49db1eacac2b6df16"
+sourceCommit: "f6764bdb6e31ef848e10dccabd863adf0de6f519"
 sourceDate: "2026-10-26T02:45:29+09:00"
 translationStatus: "translated"
 sidebar:
@@ -668,6 +668,8 @@ rigor coverage [paths]
 `paths`はファイルまたはディレクトリです;省略すると、Rigorは設定ファイルの`paths:`リスト（デフォルト`lib`）を使います。[`rigor check`](#rigor-check)と同じです。
 
 `--format=text|json`が出力形式を選び、`--config=PATH`が設定探索をオーバーライドします。`--threshold=RATIO`は精度比率が`RATIO`（`0.0`〜`1.0`）を下回ると`1`で終了し、CIゲートになります。
+
+精度レポートは**呼び出しサイト（call site）**も集計します: すべてのメソッド呼び出しノード（`recv.m(...)`、`m(...)`、演算子、インデックス読み取り、および属性書き込み; `a.b += 1`や`a[i] ||= x`などの複合書き込み、`super`、および`yield`は数えません）、そしてそのうち結果が`Dynamic`（型全体またはユニオンの最悪メンバーのいずれか）になるものです。テキスト出力ではサマリーに両方の件数を出力します。`--format=json`は`summary`に`call_sites`、`dynamic_call_count`、および`dynamic_call_ratio`を含め、各`by_file`行に`call_sites`および`dynamic_call_count`を含めます。`--threshold`はこれらを読み取りません。
 
 `--protection`は**型保護カバレッジ（type-protection coverage）**に切り替えます。「自分の型がどれだけ精密か」ではなく「バグを混入させたとき、Rigorがそれを捕捉できるか」を報告します。各ディスパッチサイト（明示的なレシーバーを持つ呼び出し）は、レシーバーが具象クラスに解決するとき（Rigorの呼び出しルールが誤ったメソッドや引数を捕捉できるサイト）*保護されている（protected）*とみなされ、レシーバーが`Dynamic`のとき*保護されていない（unprotected）*とみなされます。レポートはまず保護された比率を示し、続いてランク付けされた「ここに型を追加せよ（add a type here）」リスト（型のないレシーバーで最も多く呼ばれているメソッド）、そして最も保護されていないファイルを示します。`--threshold`と`--format=json`は同じように機能します。これは実際の保護に対する健全な上界です。具象的なレシーバーは診断が発火するための必要条件ですが、十分条件ではありません。`--workers=N`は保護スキャン（パラメータ推論の事前パスとファイルごとのスキャンの両方）をforkで並列化し、出力は逐次実行とバイト同一です;ワーカー数は`check`と同じ方法で解決されます —— `--workers` › `RIGOR_RACTOR_WORKERS` › [`parallel.workers:`](../03-configuration/) › `0`（逐次デフォルト）。
 

@@ -3,8 +3,8 @@ title: "ADR-107 — Rigor自身のツリーにおけるチェック対象の型�
 description: "rigortype/rigor docs/adr/107-checked-types-and-typeless-comments.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/107-checked-types-and-typeless-comments.md"
 sourcePath: "docs/adr/107-checked-types-and-typeless-comments.md"
-sourceSha: "e5bb43d74d5f281d2ad539aa318c9594d2bf890645994a7590f18abfbbbba8a7"
-sourceCommit: "e12ab45fa55707ed2acc0eae2e273b99a72dc077"
+sourceSha: "9d26ff586c83acb1f759ad4e91b5a1313bbae00ea7d9b0f8d7ff18fb1a4abf6d"
+sourceCommit: "f6764bdb6e31ef848e10dccabd863adf0de6f519"
 sourceDate: "2026-09-26T07:41:54+09:00"
 translationStatus: "translated"
 sidebar:
@@ -185,6 +185,8 @@ def resolve_receiver(node, scope)
 | **G3** `spec/rigor/sig_gen/provenance_spec.rb`（[#825](https://github.com/rigortype/rigor/issues/825)；マーカーは[#1011](https://github.com/rigortype/rigor/issues/1011)で再指定） | すべての宣言が生成同等、著述されたパラメータの意図、または記録されたギャップのいずれかであること: 番号がエンジンギャップを追跡するオープンで許可リスト入りのissueを名指す、すべての`tighter-return`上の`# sig-gen gap: #NNN`マーカー、または背後にエンジン作業のない意図的に手書きされた行に対する`# authored:`マーカー（`spec/rigor/sig_gen/gap_issues.yml`がレビュー済みの許可リスト）；手書きされた残滓のファイル単位のピン留め；および（[#839](https://github.com/rigortype/rigor/issues/839)）実在するメソッドであること — `def`、Rigor自身の合成形状認識、またはロードされたツリーのリフレクションによって証明される | 発効中 |
 
 すでに発効しており、不変条件に寄与しているもの: 精度ゲート（`rigor coverage --threshold 0.58 lib`）は推論をフォールバックではなく主要な情報源として維持します；`spec/rigor/public_api_drift_spec.rb`は`sig/`と公開サーフェスが乖離するのを防ぎます；`make steep-check`は第2のチェッカーで`sig/`を読み取ります。
+
+> **注記、2026-11-19（[#3356](https://github.com/rigortype/rigor/pull/3356)）:**ここおよび上の表で言及されている精度ゲートは、もはや`rigor coverage --threshold 0.58 lib`ではありません。現在`make coverage`は`tool/coverage_ratchet.rb`を実行し、精度比とDynamic呼び出し箇所の割合を`tool/coverage_ratchet.yml`のピンに対して維持します（`docs/agents/measurement.md` §「セルフタイピングのラチェット」）。このADRに対して果たす役割は変わっていません。
 
 G1が本ADRの不可欠な半分である理由は、3回のスイープが示した通りです: ルールはそれを読んだセッションの後、何かが後から強制する場合にのみ生き残ります。その検出器は角括弧です — specが見つけることのできる字句形状であり、これが失敗モードのない散文規約に移行するのではなく、決定がYARDのタグ文法を維持した理由です。
 

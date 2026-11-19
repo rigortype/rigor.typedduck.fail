@@ -3,8 +3,8 @@ title: "リサーチ・サーベイノート"
 description: "rigortype/rigor docs/notes/README.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/notes/README.md"
 sourcePath: "docs/notes/README.md"
-sourceSha: "942149a3e7f5c581db8a4811c79fe363d584704e542b37ec1a281e7de2c4cc91"
-sourceCommit: "2d66acadc4b2f6a7bd12f4b731d28b396c355af8"
+sourceSha: "14a8fac1cc09370bcba9b80b7aaed0abc4f219f82114bbd94ad11755054a6971"
+sourceCommit: "f6764bdb6e31ef848e10dccabd863adf0de6f519"
 sourceDate: "2026-11-04T17:04:50+09:00"
 translationStatus: "translated"
 sidebar:
@@ -53,6 +53,7 @@ sidebar:
 | 2026-09-09 | [`sig/`内の224件の`no_source`宣言の出処](20260909-sig-no-source-audit/) |
 | 2026-09-19 | [調査コーパスの型付けホール調査 — 32ターゲットに対するノードごとの`Dynamic[top]`位置](20260919-survey-typing-holes/) |
 | 2026-09-22 | [戻り値契約としてのuntyped、void、top — sig/監査が教えたこと](20260922-untyped-void-top-return-contracts/) |
+| 2026-10-17 | [`attr_reader`呼び出しの型付け — 何が必要で、どれだけの価値があるか](20261017-attr-reader-return-typing/) |
 
 ## リグレッションスイープ・実プロジェクトトリアージ
 

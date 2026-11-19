@@ -3,8 +3,8 @@ title: "アーキテクチャ決定記録"
 description: "rigortype/rigor docs/adr/README.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/adr/README.md"
 sourcePath: "docs/adr/README.md"
-sourceSha: "ed126c820cf24a8367637c75ca1003310f31e28f7deca1b1e4c87c7a3b22b16a"
-sourceCommit: "2d66acadc4b2f6a7bd12f4b731d28b396c355af8"
+sourceSha: "80b0a10e3abb3cdf6636e830608c2f3962d52a0ad5a2f59e015b3ab79a64ac9d"
+sourceCommit: "f6764bdb6e31ef848e10dccabd863adf0de6f519"
 sourceDate: "2026-11-12T08:14:41+09:00"
 translationStatus: "translated"
 sidebar:
@@ -141,7 +141,7 @@ sidebar:
 | ADR-113 | [`rigor lens`: エージェントおよびツールのための、型の由来を持つ宣言マップ](113-rigor-lens/) | Accepted（フェーズ1・ファイルのみ実装済み；シンボルクエリとフェーズ2は未着手） |
 | ADR-114 | [コアおよびstdlib RBSへの継承ディスパッチ](114-core-stdlib-ancestor-dispatch/) | Accepted（#527スライス1が着地: インスタンス側のスーパークラス巡回；スライス2/3/5/6はスコープ外、ADR-43の却下された代替案Aを部分的に置き換え） |
 | ADR-115 | [piによるマルチモデルエージェントハーネス（自社ソフトウェア第一）](115-pi-multi-model-harness/) | Proposed（薄い`agents/pi-harness/`スタブ；WD6の並行パスは未実証） |
-| ADR-116 | [エンジンのホットファイルの再構築: 増加する種類は1回宣言し、各走査は1回巡回する](116-hot-file-restructuring/) | Accepted（WD5はADR-119によって部分的に置き換え；移植済み: `class_cvars`、スーパークラス、defネスト、メンバーレイアウトテーブル、後ろ3つは1回の実行を共有；WD5はコンテキストルール変種向けに修正） |
+| ADR-116 | [エンジンのホットファイルの再構築: 増加する種類は1回宣言し、各走査は1回巡回する](116-hot-file-restructuring/) | Accepted（WD0、WD1、および純粋な移動が着地。キャンペーンは2026-11-18に終了: 残りのスライスは独立した設計タスク。WD5はADR-119によって部分的に置き換え; C4およびWD12のインターフェースを追加） |
 | ADR-117 | [標準ストリーム: イディオムによって型付けされ、ランタイム契約によってチェックされる](117-standard-streams-typed-by-idiom/) | Accepted（#1405以降明示的な`$_`リーダー；オープン: #1362、#1366、#1367、#1415、#1423、#1426、#1427、#1429） |
 | ADR-119 | [発見ファクトの確実性、解決チェーン上の候補セット読み取り](119-discovery-fact-certainty/) | Accepted（2026-10-01；ゲート、`unpositioned_mixins`、チェーン、#1593、#1597、#1598、#1599、およびWD1の兄弟テーブルが先行着地；WD2–WD3およびPR Cがオープン） |
 | ADR-120 | [デフォルトのローカル`check`ルートとしての`--incremental`](120-incremental-by-default/) | Proposed（メンテナー待ち；切り替えはWD7のゲート待ち） |

@@ -3,8 +3,8 @@ title: "キャッシュレイヤー — `Rigor::Cache`"
 description: "rigortype/rigor docs/internal-spec/cache.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/cache.md"
 sourcePath: "docs/internal-spec/cache.md"
-sourceSha: "b2f8de14fa8aaf5d2657b185118fe91d2fb470ee056b7745b978d9d7115c113a"
-sourceCommit: "2d66acadc4b2f6a7bd12f4b731d28b396c355af8"
+sourceSha: "33c785c65d3a5633000f3c552ce78744804285939ce7e0fde284158dce892829"
+sourceCommit: "f6764bdb6e31ef848e10dccabd863adf0de6f519"
 sourceDate: "2026-11-14T02:31:31+09:00"
 translationStatus: "translated"
 sidebar:
@@ -615,11 +615,11 @@ ADR-45のrun-diagnostics記録・検証キャッシュの背後にあるlazy-`fi
 
 | 行 | ソース | 検知対象 |
 | --- | --- | --- |
-| `:stat`ファイル、解析対象ファイルごと | `analyzed_file_entries` | 実行が解析したいずれかのファイルへの編集 |
-| `:stat`ファイル、発見されたが解析されていないファイルごと | `discovery_file_entries`（[#684](https://github.com/rigortype/rigor/issues/684)） | 拡張された実行が発見のみを行ったファイルへの編集 |
-| `:stat`ファイル、`pre_eval:`ファイルごと | `pre_eval_file_entries`（[#352](https://github.com/rigortype/rigor/issues/352)） | ADR-17事前評価済みファイルへの編集 |
-| `:stat`ファイル、実行が読み取った**テンプレート**ファイルごと ── ユニットを生成したものと失敗したものの両方 | `template_unit_file_entries`（[#392](https://github.com/rigortype/rigor/issues/392)） | プラグインが要求した`.erb` / `.rbx` / …への編集（その変換がraiseしたものやバイト列を読めなかったものを含む） |
-| names glob、発見を拡張した実行上の設定されたルートごと | `discovery_glob_entries`（[#1583](https://github.com/rigortype/rigor/issues/1583)） | パス引数に対する実行が発見する設定されたパス配下へのファイルの出現（拡張がその前にファイルを1つも追加していなかった場合を含む） |
+| `:stat`ファイル、解析対象ファイルごと | `Runner::DependencyRows.analyzed_file_entries` | 実行が解析したいずれかのファイルへの編集 |
+| `:stat`ファイル、発見されたが解析されていないファイルごと | `Runner::DependencyRows.discovery_file_entries`（[#684](https://github.com/rigortype/rigor/issues/684)） | 拡張された実行が発見のみを行ったファイルへの編集 |
+| `:stat`ファイル、`pre_eval:`ファイルごと | `Runner::DependencyRows.pre_eval_file_entries`（[#352](https://github.com/rigortype/rigor/issues/352)） | ADR-17事前評価済みファイルへの編集 |
+| `:stat`ファイル、実行が読み取った**テンプレート**ファイルごと ── ユニットを生成したものと失敗したものの両方 | `Runner::DependencyRows.template_unit_file_entries`（[#392](https://github.com/rigortype/rigor/issues/392)） | プラグインが要求した`.erb` / `.rbx` / …への編集（その変換がraiseしたものやバイト列を読めなかったものを含む） |
+| names glob、発見を拡張した実行上の設定されたルートごと | `Runner::DependencyRows.discovery_glob_entries`（[#1583](https://github.com/rigortype/rigor/issues/1583)） | パス引数に対する実行が発見する設定されたパス配下へのファイルの出現（拡張がその前にファイルを1つも追加していなかった場合を含む） |
 | names glob、要求された`template_globs:`パターンごと | `template_unit_glob_entries`（#392） | 要求されたglob下でのテンプレートの出現または消失 |
 | `:stat`ファイル、すべてのシグネチャルートおよびRigor自身の`data/`ツリー（`vendored_gem_sigs/`、`core_overlay/`、`capability_roles/`）下の`.rbs`ごと | `RunDescriptor#files` → `RbsDescriptor.file_entries` | 実行が読み取ったシグネチャファイルへの編集 |
 | names glob、シグネチャルートごと（`**/*.rbs`） | `RunDescriptor#globs`（#979） | シグネチャルート下での`.rbs`の出現または消失 |
@@ -627,8 +627,8 @@ ADR-45のrun-diagnostics記録・検証キャッシュの背後にあるlazy-`fi
 | glob、プラグインが一覧表示したディレクトリごと | `IoBoundary#cache_descriptor`（[#954](https://github.com/rigortype/rigor/issues/954)） | プラグインが一覧表示したディレクトリでのファイルの出現 |
 | プラグインが提供されたプロデューサーエントリーのすべての行 | `IoBoundary#cache_descriptor`、`Plugin::Base#cache_for`によってリプレイ（[#1558](https://github.com/rigortype/rigor/issues/1558)） | この実行では読み取らなかった、提供されたプロデューサーの入力への編集 |
 | glob、プロデューサーの`watch:`パターンごと | `Plugin::Base#watch_glob_entries`（ADR-60 WD3） | プロデューサーの宣言されたwatch下での編集 |
-| `:kind`ファイル、解析ルートごと | `root_presence_entries`（[#1962](https://github.com/rigortype/rigor/issues/1962)） | ルートの出現、消失、またはディレクトリからファイルへの変化（およびその逆） ── これにより解析対象セットは同じままパスエラー行（`no such file or directory`、`not a Ruby file`）が動く |
-| `:kind`ファイル、`pre_eval:`エントリーおよびプロジェクトのシグネチャルート（設定されたもの、または自動検出された`sig`）ごと | `root_presence_entries`（#1962、[#1555](https://github.com/rigortype/rigor/issues/1555)） | 欠落していた`pre_eval:`ファイルまたはシグネチャルートの作成、あるいはそこでディレクトリとファイルが入れ替わった場合（他のどの行もカバーしない） |
+| `:kind`ファイル、解析ルートごと | `Runner::DependencyRows.root_presence_entries`（[#1962](https://github.com/rigortype/rigor/issues/1962)） | ルートの出現、消失、またはディレクトリからファイルへの変化（およびその逆） ── これにより解析対象セットは同じままパスエラー行（`no such file or directory`、`not a Ruby file`）が動く |
+| `:kind`ファイル、`pre_eval:`エントリーおよびプロジェクトのシグネチャルート（設定されたもの、または自動検出された`sig`）ごと | `Runner::DependencyRows.root_presence_entries`（#1962、[#1555](https://github.com/rigortype/rigor/issues/1555)） | 欠落していた`pre_eval:`ファイルまたはシグネチャルートの作成、あるいはそこでディレクトリとファイルが入れ替わった場合（他のどの行もカバーしない） |
 
 ADR-103のエフェクトサイドカーはこの同じディスクリプタに対して検証されますが、そのアイデンティティはルート集合ごとではなく解析対象パス集合ごとに1世代です。そのため、ルートの`:kind`行によって、本来なら持てたはずのウォームスタートを失うことがあります: `x`が欠けている状態で`rigor check lib x`を実行し、次に`mkdir x`し、次に`rigor check lib`を実行すると、サイドカーの`x`行が陳腐化していると判定されて再収集を行います。これは再計算であり、誤った答えになることは決してなく、ディスクリプタを共有することの既知のコストです。
 

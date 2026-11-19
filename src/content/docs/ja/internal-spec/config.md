@@ -3,8 +3,8 @@ title: "設定 — `.rigor.yml`のセマンティクス"
 description: "rigortype/rigor docs/internal-spec/config.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/internal-spec/config.md"
 sourcePath: "docs/internal-spec/config.md"
-sourceSha: "eda857b69b59e89a149fd71d8df8901aeb934bbb1508f9469373412e8dfc02a2"
-sourceCommit: "2d66acadc4b2f6a7bd12f4b731d28b396c355af8"
+sourceSha: "bce840ced2428757411808113a9e3ffe8425c867b539cbfffaf1f3546469ef76"
+sourceCommit: "f6764bdb6e31ef848e10dccabd863adf0de6f519"
 sourceDate: "2026-10-31T17:53:36+09:00"
 translationStatus: "translated"
 sidebar:
@@ -21,7 +21,7 @@ sidebar:
 
 | アーティファクト | 所有するもの |
 | --- | --- |
-| [`lib/rigor/configuration.rb`](https://github.com/rigortype/rigor/blob/master/lib/rigor/configuration.rb) | `DEFAULTS` — どのキーが存在するか、それらのデフォルト、そして各値にランタイムの意味を与える強制変換器（coercer）。 |
+| [`lib/rigor/configuration/defaults.rb`](https://github.com/rigortype/rigor/blob/master/lib/rigor/configuration/defaults.rb)、[`lib/rigor/configuration/coercion.rb`](https://github.com/rigortype/rigor/blob/master/lib/rigor/configuration/coercion.rb) | `DEFAULTS` — どのキーが存在するか、それらのデフォルト — および各値にランタイムの意味を与える強制変換器（coercer）（`coerce_effects`、`coerce_effects_snapshot`、および`coerce_effects_policy`は`lib/rigor/configuration.rb`に残る）。 |
 | [`schemas/rigor-config.schema.json`](https://github.com/rigortype/rigor/blob/master/schemas/rigor-config.schema.json) | すべてのキーの宣言された形状。この実装が決して読み取らないキー（§ 予約名前空間）も含みます。 |
 
 スキーマは**ローダーのドキュメントではありません** ── それ自体が権威を持ち、`rigor-rs`ポートの設定スキーマでもあります。`rigor-rs`はこのリポジトリをサブモジュールとして取り込み、独自のものを保守するのではなくファイルをそのままベンダリングします。したがってキーの形状は、いかなる実装がそれを読み取るよりも前にここで確定します（§ 予約パイプライン）。
@@ -46,7 +46,7 @@ sidebar:
 
 `core_root:`（[#2517](https://github.com/rigortype/rigor/issues/2517)）は両半面ともティア2であり、ロード時にはその形状のみがチェックされます（空でないString）。ディレクトリ自体は環境が構築される箇所でチェックされます。すなわち、存在し、読み取り可能なディレクトリであり、少なくとも1つの`.rbs`を保持し、かつプロジェクトのシグネチャルートのいずれかの内部に位置したりそれらを含んだりしないこと（そうするとファイルが2回ロードされてしまうため）です（`Environment::CoreRoot.validate!`および`.reject_overlap!`）。そこから構築された環境もそこでチェックされます（`RbsLoader#verify_core_root!`）。これがロード時に行われないのは、言語サーバーのリロードなど設定を読み取るだけのコマンドが、まだ生成されていないコアで失敗してはならないためです。選択されたコアのクラスのうち環境は構築するが定義は構築しないものは例外を発生させません（定義は解析の途中で遅延構築されます）。その`rbs.coverage.definition-build-failed`行は、失敗が名指しするすべてのシグネチャファイルが選択されたコア配下にある場合、`:warning`の代わりに`:error`として作成されます。`sig/`の衝突などプロジェクトファイルも名指しする失敗は警告を維持するため、コアを選択してもすでに許容されている衝突が失敗するビルドに変わることはありません。重複テストは解決済みパスを比較します。プロジェクトシグネチャの走査はシンボリックリンクされたディレクトリを辿らないため、別の場所に保管されたコアへの`sig/`リンクは1回だけロードされ受け入れられます。どちらも`ConfigurationError`である`Rigor::Environment::CoreRootError`を発生させるため、実行は`rigor:`行と終了コード`64`で停止します。`signature_paths:`エントリーとは異なり、使用不可能な選択されたコアは決してティア3にはなりません。実行には誤りでないフォールバックが存在しないためです。デフォルトのコアは選択が除外するAPIを受け入れてしまい、失敗したビルドがそうでなければ縮退する空の環境はあらゆる呼び出しを受け入れてしまいます。
 
-ティア2のチェックのうち1つだけはロード時に実行されません: `effects.snapshot.reach`の**プリセット名**は、スナップショットがそれを展開する場所で検証されます。プリセットはプラグインによって登録され、そのプラグインは検証中の設定*から*ロードされるからです。ロード時にはエントリーの形をチェックし、レジストリは解析が始まって初めて完全になります。その2つの半分が`Configuration#coerce_effects_reach`と`Rigor::Effects::EntryPoints.resolve!`であり、CLIは両方を同じ形でレンダリングします。ティア3は、整形式でありながら**見た目どおりのことを行わない**値のためのものです —— 唯一の兆候が紛らわしく下流に現れるという類の誤りです。通常は欠落したシグネチャパス、未知のライブラリ名、効果のない抑制、認識されないトップレベルキーのように、何にも解決しません。ティア3は警告するのみで決してエラーにはなりません。部分的あるいは先取り的な設定は妥当なセットアップであり、未設定のデフォルトに対しては決して発火しないからです。
+ティア2のチェックのうち1つだけはロード時に実行されません: `effects.snapshot.reach`の**プリセット名**は、スナップショットがそれを展開する場所で検証されます。プリセットはプラグインによって登録され、そのプラグインは検証中の設定*から*ロードされるからです。ロード時にはエントリーの形をチェックし、レジストリは解析が始まって初めて完全になります。その2つの半分が`Configuration::Coercion.coerce_effects_reach`と`Rigor::Effects::EntryPoints.resolve!`であり、CLIは両方を同じ形でレンダリングします。ティア3は、整形式でありながら**見た目どおりのことを行わない**値のためのものです —— 唯一の兆候が紛らわしく下流に現れるという類の誤りです。通常は欠落したシグネチャパス、未知のライブラリ名、効果のない抑制、認識されないトップレベルキーのように、何にも解決しません。ティア3は警告するのみで決してエラーにはなりません。部分的あるいは先取り的な設定は妥当なセットアップであり、未設定のデフォルトに対しては決して発火しないからです。
 
 ティア3は解析が読み取るもののみを監査します。`test_paths:`はその対象外です: `rigor check`はテストルートを決して読み取らず、それらを正当に欠いているチェックアウト（sparse checkout、`spec/`のないコンテナイメージ）がさもなければ毎回の実行で警告を受け、正しい設定に対して`rigor doctor`を失敗させてしまうためです。それらの唯一のリーダーである`rigor sig-gen --params=observed`は、存在しない宣言されたルートを自身のSTDERRで名指しします。
 

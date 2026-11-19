@@ -3,8 +3,8 @@ title: "Rigorの測定"
 description: "rigortype/rigor docs/agents/measurement.mdの翻訳です。"
 editUrl: "https://github.com/rigortype/rigor/edit/master/docs/agents/measurement.md"
 sourcePath: "docs/agents/measurement.md"
-sourceSha: "ebd52d438b239d3e263d32825cb61100e056a902e1be9ecfb06d4344ebedafed"
-sourceCommit: "2d66acadc4b2f6a7bd12f4b731d28b396c355af8"
+sourceSha: "5f25f2c341772c7e5f76ad588ebce7348cafc572c2fbc73542dbc0e16c59f00b"
+sourceCommit: "f6764bdb6e31ef848e10dccabd863adf0de6f519"
 sourceDate: "2026-11-14T04:00:31+09:00"
 translationStatus: "translated"
 sidebar:
@@ -77,6 +77,7 @@ worktreeから実行する場合は、その`vendor/bundle`が存在するよう
 - **裸の`analyze(source)`はプロジェクトのディスカバリーを決して広げない**ため、センサスやシードに依存する挙動はプロジェクト実行時とは異なる答えを返します（例は`RunnerHelpers#analyze`にあります）。プレパスがシードするものについては`analyze(files: { "code.rb" => source })`を使用してください。
 - **子Rubyプロセスは`bundler/setup`を継承します**。スイートの`RUBYOPT`と`Gemfile`の`gemspec`行は実行前に子プロセス内で`Rigor`を定義するため、いくつかの環境変数をクリアしてもそれは取り消されません。`RubyRun.capture`（`spec/support/ruby_run.rb`）または`Bundler.with_unbundled_env`経由でスポーンしてください。
 - **辞退アサーション（`to be_nil`）は、同様にnilを返すあらゆる構築エラーでパスします**。成功しなければならない隣接ケースと組み合わせてください。
+- **ローカルのフォーマッタフックが編集したばかりの`.rb`ファイルを書き換えることがあります**。 `.claude/settings.json`は追跡されていませんが、ローカルのものが`.rb`ファイルのEditまたはWriteのたびに`rubocop --autocorrect`を実行することがあり、safe-onlyのautocorrectであってもフィクスチャの記述を変えてしまいます: 複数行の`->(x) do`は`lambda do |x|`（`Style/Lambda`）になり、`/a\-b/`はエスケープを失い（`Style/RedundantRegexpEscape`）、無効なリテラルや未使用の代入は削除されます（`Lint/Void`、`Lint/UselessAssignment`）。書き換えられたコードも依然として実行でき、パスしてしまいます。以前のRuboCopでは`tuple(*Array.new(65) { … })`から`*`が取り除かれて1要素のタプルになり、その結果その例は主張していた64ペア上限ではなくシェイプ辞退をテストする形になり、そのまま出荷されてしまいました（fb4aca115）。`Lint/RedundantSplatExpansion`は今も`tuple(*[a, b])`や`[*Array.new(n) { … }]`の展開を取り除きます。構文に敏感なフィクスチャや再現コードはシェルヒアドキュメント経由（または`.txt`として書いてコピー）で書き込み、`.rb`ファイルのEditまたはWriteの後は必ずその領域を再読し、取り除かれるもののない構築（`tuple(*array)`ではなく`Rigor::Type::Tuple.new(array)`）を優先してください。
 - **ファイルを単独で実行するとパスする失敗はスペックの実行順序が原因です**。`--order defined`でペアを再実行して共有状態を汚染したスペックを特定してください；v0.4.3の`lens_spec`は、プラグインを直接requireしたスペックの後でのみ失敗しました（これによりプラグインローダーのgem-to-idメモが未記録のまま残されていました）。
 
 ## サイレントに誤った答えを返すシェルコマンド
@@ -122,3 +123,37 @@ worktreeから実行する場合は、その`vendor/bundle`が存在するよう
 - **`ObjectSpace.each_object`のトレースは`T_IMEMO`を見逃します**。GCを無効にした状態で各アームをインプロセスで実行し、`Rigor::CLI.new(["check", "--no-cache", "--workers=0", ...]).run`の前後で`ObjectSpace.count_objects`と`ObjectSpace.count_imemo_objects`の差分を取ってください。`imemo_ifunc`と`imemo_memo`が対になって増加している場合、ホットパス上でブロックを受け取るC実装のEnumerableメソッドを意味します。
 - **アロケートするホットパスのイディオム**。ブロック付きの`reduce`/`inject`（Symbolではないもの）は空のArrayに対してもアロケートします（`empty?`でガードするか`each`を使用してください）；`when *CONST`は評価のたびに配列をコピーします；`rigor_each_child`ブロックからの`return`は巻き戻すフレームごとに1回アロケートし、呼び出し元が各レベルでスキャンを再度要求すると二乗で増加します（代わりに`found ||= scan?(child)`と書いてください）。docstringの「allocation-free」は、深い合成入力に対して`GC.stat(:total_allocated_objects)`がそう示す場合にのみ成り立ちます。
 - **診断差分がゼロであっても、変更が何もしなかったとは限りません**。オーバーロードやファセット選択への変更は、診断に到達することのない何百もの選択を反転させ得ます：アームのコピー上で`OverloadSelector`または`FacetDistribution`にENVゲート付きログを入れて反転回数をカウントしてください。sig-genおよびeffect-summaryの変更については、`check`の診断の代わりにアームごとに`rigor sig-gen --format=json`と`rigor effects --full --format json`の差分を取ってください。ホストのRubyはデフォルトでUS-ASCIIであるため、スイープJSONは`encoding: "UTF-8"`で読み取ってください。
+
+### セルフタイピングのラチェット
+
+`make coverage`は`tool/coverage_ratchet.rb --config .rigor.gates.yml lib`を実行します（#3315）。これはインプロセスの`rigor coverage --format json`スキャン1回であり、サマリーの2つの数値を`tool/coverage_ratchet.yml`のピンに固定します:
+
+- **精度（precision）**: `precise_count / expressions_typed`。
+- **Dynamic呼び出し割合**: `dynamic_call_count / call_sites`。呼び出しサイトは`Prism::CallNode`です。`PrecisionScanner`がその値を`dynamic_top`または`dynamic_specific`（`Dynamic`全体、または最悪メンバーがそれであるユニオン）に分類するときDynamicになります。`Top`の結果は数えず、`Dynamic`と`Top`のユニオンも数えません。
+
+このラチェットは一方向です。ピンより`slack`を超えて悪い数値は失敗します。ピンより`slack`を超えて良い数値はパスし、より引き締めたピン行を含む通知を出力します。改善によって失敗することはありません。カウントは整数であり、境界の比較はイプシロンを伴うため、ちょうど`slack`上の数値はパスします。1つのツリーで5回実行して同一のカウントが得られ、`RIGOR_RACTOR_WORKERS=4`でも同様でした: キーオフのスキャンは何もforkしません（`parameter_inference:`は精度レンズの中でforkする唯一の部分です）。したがって`slack`はノイズマージンではなく、通常の変更がピンに対して運び得るドリフトです。通常の実装リファクタリングは17件のマージ済みPRにわたる測定でそれぞれ0.02〜0.047ポイント数値を動かし、残りはピンファイルに記録されています。このツールはまた、ピン留めされたもの以外の設定での実行、呼び出しサイトフィールドのないサマリー、パースエラー、フロアを下回るスキャン、および計測器の変更でしか生じない双方向への`max_step`を超えるピンからの移動も失敗させます。
+
+**失敗は変更のベースに対してではなく、ピンに対して計測されます**。距離の一部は以前の変更のドリフトである場合があります。変更自身の差分を見るには、マージベース（そのコミット自身のエンジンで）と`HEAD`で同じスキャンを実行してください。そして2つの`summary`オブジェクトと、差分がどこにあるかを見つけるための`by_file`行を比較します:
+
+```sh
+base=$(git merge-base HEAD origin/master) && rm -rf tmp/ratchet-base && mkdir -p tmp/ratchet-base &&
+  git archive "$base" exe lib sig data plugins .rigor.dist.yml .rigor.gates.yml | tar -x -C tmp/ratchet-base &&
+  (cd tmp/ratchet-base && BUNDLE_GEMFILE="$OLDPWD/Gemfile" bundle exec exe/rigor coverage --config \
+    .rigor.gates.yml --format json lib) > tmp/ratchet-base.json &&
+  bundle exec exe/rigor coverage --config .rigor.gates.yml --format json lib > tmp/ratchet-head.json
+```
+
+失敗メッセージも同じコマンドを出力します。Flake内で実行してください: 2回のスキャンはそれぞれ`make coverage`と同じ時間がかかります。#3356より古いマージベースには呼び出しサイトフィールドがないため、そこでは精度のみを比較します。次に:
+
+1. 差分が変更自身のものなら、それが型なしのまま残したものを`sig/`に宣言してください。`rigor sig-gen --print PATH`がそれを提案します。
+2. そうでなければ、あるいは低下が意図的なもの（型を広げる健全性修正）であれば、ピンを悪い方向へ動かします。それはコミットメッセージの理由ではなくゲート行の決定であり、クラス`gate-row`の`approval-queue.d/`エントリーを必要とします。[`contribution-flow.md`](../contribution-flow/) §「Decisions and the approval queue」は「同じ種類の前例が存在しない場合（同じゲートファイル、同じ種類の理由）の残余ピンの引き上げ」を重大な決定に挙げています。そのため`tool/coverage_ratchet.yml`における最初のそのような移動はメンテナーを待ち、同じ種類の理由による後続のものはそれを前例として引用します。
+
+**引き締めには2人の所有者がいます**。改善は誰かが書き込むまで未請求のまま残り、`make coverage-tighten`がそれを行います。これは同じスキャンであり、ピンより良いすべての数値を悪い側へ丸めてピンファイルに書き込みます;ピンを緩めることは決してありません。型付けバッチを着地させるPRはこれを実行してよく、実行すべきであり、リリース準備も実行します（`rigor-release-prep`のチェックリスト）。
+
+これが見えないもの: スキャンはゲート設定が定める通り`parameter_inference:`オフで実行されます。宣言またはエンジンにおけるリグレッションはこれを動かしますが、パラメータ推論自体のリグレッションは動かしません。キーオンで計測するには、`.rigor.dist.yml`の下で手動で`rigor coverage --format json lib`を実行してください;約3倍の時間がかかります。
+
+呼び出しサイトの集計は#3315のスクラッチ計測器と一致します。その計測器は、チェック自身のスコープから`type_of`を記録するインプロセスの`rigor check`でした。`8ef9d1e3a`上で101,807呼び出しサイト中51,004がDynamicと数えられ、このレンズは101,806中50,996と数えます。#3354の3つの`sig/`ファイルは計測器を−265動かし、レンズも同じく−265（50,731へ）動かしました。8サイトの差は定義ではなく2つのスコープソースに由来します。
+
+### verify-changedのspecコスト表の更新
+
+`tool/spec_costs.tsv`は、`bin/verify-changed`の時間予算のためにミラーディレクトリ配下または隣接する各specのコストを値付けします（#3289）。通常のPRはこれを編集しません: 新しいspecはデフォルトで値付けされ、削除されたspecの行は無視されます。既知の安価なspecが未カバー行に載り続ける場合、多くのspecファイルを分割または移動した後、あるいは`spec_costs_spec`がテーブルの大部分が有効またはカバー済みでなくなったと報告した場合は、`nix develop --command bundle exec ruby tool/spec_costs.rb`（またはその一部のみを更新するにはspecディレクトリとファイルを指定）で更新してください。誰でも実行できます;ヘッダーに近い負荷のホスト上で一度に1つずつ実行し、結果を単独の小さなPRとしてプッシュしてください。新しい値の2倍以内の行はそのまま残るため、差分は本当に動いたspecのみになります。
